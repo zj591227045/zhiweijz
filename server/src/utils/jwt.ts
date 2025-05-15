@@ -7,9 +7,10 @@ import config from '../config/config';
  * @returns JWT令牌
  */
 export function generateToken(payload: any): string {
-  return jwt.sign(payload, config.jwt.secret, {
+  const options: any = {
     expiresIn: config.jwt.expiresIn,
-  });
+  };
+  return jwt.sign(payload, config.jwt.secret, options);
 }
 
 /**

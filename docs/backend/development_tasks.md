@@ -6,65 +6,65 @@
 
 ### 1.1 项目初始化
 
-- [ ] 1.1.1 创建Node.js项目
-- [ ] 1.1.2 初始化package.json
-- [ ] 1.1.3 配置TypeScript (tsconfig.json)
-- [ ] 1.1.4 设置ESLint和Prettier
-- [ ] 1.1.5 配置Git仓库和.gitignore
-- [ ] 1.1.6 创建基本目录结构
+- [x] 1.1.1 创建Node.js项目
+- [x] 1.1.2 初始化package.json
+- [x] 1.1.3 配置TypeScript (tsconfig.json)
+- [x] 1.1.4 设置ESLint和Prettier
+- [x] 1.1.5 配置Git仓库和.gitignore
+- [x] 1.1.6 创建基本目录结构
 
 ### 1.2 数据库设置
 
-- [ ] 1.2.1 安装PostgreSQL数据库
-- [ ] 1.2.2 安装Prisma ORM
-- [ ] 1.2.3 初始化Prisma (prisma init)
-- [ ] 1.2.4 创建数据库连接配置
-- [ ] 1.2.5 设计数据库模型 (schema.prisma)
-- [ ] 1.2.6 创建初始迁移 (prisma migrate dev)
+- [x] 1.2.1 安装PostgreSQL数据库
+- [x] 1.2.2 安装Prisma ORM
+- [x] 1.2.3 初始化Prisma (prisma init)
+- [x] 1.2.4 创建数据库连接配置
+- [x] 1.2.5 设计数据库模型 (schema.prisma)
+- [x] 1.2.6 创建初始迁移 (prisma migrate dev)
 
 ### 1.3 基础架构搭建
 
-- [ ] 1.3.1 安装Express.js和相关依赖
-- [ ] 1.3.2 创建应用入口文件 (app.ts, server.ts)
-- [ ] 1.3.3 配置中间件 (CORS, 日志, 错误处理)
-- [ ] 1.3.4 设置路由结构
-- [ ] 1.3.5 创建基础配置文件 (config/)
-- [ ] 1.3.6 实现环境变量加载 (.env)
+- [x] 1.3.1 安装Express.js和相关依赖
+- [x] 1.3.2 创建应用入口文件 (app.ts, server.ts)
+- [x] 1.3.3 配置中间件 (CORS, 日志, 错误处理)
+- [x] 1.3.4 设置路由结构
+- [x] 1.3.5 创建基础配置文件 (config/)
+- [x] 1.3.6 实现环境变量加载 (.env)
 
 ### 1.4 开发环境配置
 
-- [ ] 1.4.1 设置开发服务器 (nodemon)
-- [ ] 1.4.2 配置热重载
-- [ ] 1.4.3 设置调试配置 (launch.json)
-- [ ] 1.4.4 创建npm脚本 (dev, build, start)
-- [ ] 1.4.5 设置测试环境 (Jest)
+- [x] 1.4.1 设置开发服务器 (nodemon)
+- [x] 1.4.2 配置热重载
+- [x] 1.4.3 设置调试配置 (launch.json)
+- [x] 1.4.4 创建npm脚本 (dev, build, start)
+- [x] 1.4.5 设置测试环境 (Jest)
 
 ## 阶段2: 核心模块开发
 
 ### 2.1 用户认证模块
 
-- [ ] 2.1.1 创建用户模型和迁移
-- [ ] 2.1.2 实现密码加密工具 (bcrypt)
-- [ ] 2.1.3 实现JWT工具 (jsonwebtoken)
-- [ ] 2.1.4 创建用户仓库 (UserRepository)
-- [ ] 2.1.5 实现认证服务 (AuthService)
-- [ ] 2.1.6 创建认证控制器 (AuthController)
-- [ ] 2.1.7 实现用户注册API
-- [ ] 2.1.8 实现用户登录API
+- [x] 2.1.1 创建用户模型和迁移
+- [x] 2.1.2 实现密码加密工具 (bcrypt)
+- [x] 2.1.3 实现JWT工具 (jsonwebtoken)
+- [x] 2.1.4 创建用户仓库 (UserRepository)
+- [x] 2.1.5 实现认证服务 (AuthService)
+- [x] 2.1.6 创建认证控制器 (AuthController)
+- [x] 2.1.7 实现用户注册API
+- [x] 2.1.8 实现用户登录API
 - [ ] 2.1.9 实现密码重置API
-- [ ] 2.1.10 创建认证中间件
-- [ ] 2.1.11 编写认证模块单元测试
-- [ ] 2.1.12 编写认证API集成测试
+- [x] 2.1.10 创建认证中间件
+- [x] 2.1.11 编写认证模块单元测试
+- [x] 2.1.12 编写认证API集成测试
 
 ### 2.2 用户管理模块
 
-- [ ] 2.2.1 创建用户服务 (UserService)
-- [ ] 2.2.2 创建用户控制器 (UserController)
-- [ ] 2.2.3 实现获取用户信息API
-- [ ] 2.2.4 实现更新用户信息API
+- [x] 2.2.1 创建用户服务 (UserService)
+- [x] 2.2.2 创建用户控制器 (UserController)
+- [x] 2.2.3 实现获取用户信息API
+- [x] 2.2.4 实现更新用户信息API
 - [ ] 2.2.5 实现用户设置管理
-- [ ] 2.2.6 编写用户管理模块单元测试
-- [ ] 2.2.7 编写用户管理API集成测试
+- [x] 2.2.6 编写用户管理模块单元测试
+- [x] 2.2.7 编写用户管理API集成测试
 
 ### 2.3 交易记录模块
 

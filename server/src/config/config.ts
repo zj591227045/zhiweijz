@@ -12,7 +12,7 @@ interface Config {
   };
   jwt: {
     secret: string;
-    expiresIn: string;
+    expiresIn: string | number;
   };
   email?: {
     host: string;
