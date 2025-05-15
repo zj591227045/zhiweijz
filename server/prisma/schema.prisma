@@ -26,6 +26,8 @@ model User {
   families      Family[]       @relation("FamilyCreator")
   familyMembers FamilyMember[]
   feedback      UserFeedback[]
+  passwordResetTokens PasswordResetToken[]
+  settings      UserSetting[]
 
   @@map("users")
 }
@@ -177,6 +179,37 @@ model UserFeedback {
   transaction Transaction? @relation(fields: [transactionId], references: [id])
 
   @@map("user_feedback")
+}
+
+// 密码重置令牌模型
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  isUsed    Boolean  @default(false) @map("is_used")
+
+  // 关系
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("password_reset_tokens")
+}
+
+// 用户设置模型
+model UserSetting {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  key       String
+  value     String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // 关系
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, key])
+  @@map("user_settings")
 }
 
 // 枚举类型

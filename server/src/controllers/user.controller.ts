@@ -1,12 +1,15 @@
 import { Request, Response } from 'express';
 import { UserService } from '../services/user.service';
 import { CreateUserDto, UpdateUserDto } from '../models/user.model';
+import { UserSettingService } from '../services/user-setting.service';
 
 export class UserController {
   private userService: UserService;
+  private userSettingService: UserSettingService;
 
   constructor() {
     this.userService = new UserService();
+    this.userSettingService = new UserSettingService();
   }
 
   /**
@@ -16,6 +19,10 @@ export class UserController {
     try {
       const userData: CreateUserDto = req.body;
       const newUser = await this.userService.createUser(userData);
+
+      // 初始化用户默认设置
+      await this.userSettingService.initializeDefaultSettings(newUser.id);
+
       res.status(201).json(newUser);
     } catch (error) {
       if (error instanceof Error) {

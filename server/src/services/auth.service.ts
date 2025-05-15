@@ -2,12 +2,17 @@ import { UserService } from './user.service';
 import { CreateUserDto } from '../models/user.model';
 import { LoginResponseDto } from '../models/auth.model';
 import { generateToken } from '../utils/jwt';
+import { PasswordResetTokenRepository } from '../repositories/password-reset-token.repository';
+import { emailService } from '../utils/email';
+import { config } from '../config';
 
 export class AuthService {
   private userService: UserService;
+  private passwordResetTokenRepository: PasswordResetTokenRepository;
 
   constructor() {
     this.userService = new UserService();
+    this.passwordResetTokenRepository = new PasswordResetTokenRepository();
   }
 
   /**
@@ -16,7 +21,7 @@ export class AuthService {
   async login(email: string, password: string): Promise<LoginResponseDto> {
     try {
       const user = await this.userService.login(email, password);
-      
+
       // 生成JWT令牌
       const token = generateToken({
         id: user.id,
@@ -43,7 +48,7 @@ export class AuthService {
     try {
       // 创建用户
       const newUser = await this.userService.createUser(userData);
-      
+
       // 生成JWT令牌
       const token = generateToken({
         id: newUser.id,
@@ -67,25 +72,72 @@ export class AuthService {
    * 发送密码重置邮件
    */
   async sendPasswordResetEmail(email: string): Promise<void> {
-    // 检查用户是否存在
-    const user = await this.userService.getUserByEmail(email);
-    if (!user) {
-      throw new Error('用户不存在');
-    }
+    try {
+      // 检查用户是否存在
+      const user = await this.userService.getUserByEmail(email);
+      if (!user) {
+        // 出于安全考虑，即使用户不存在也不返回错误
+        // 这样可以防止恶意用户探测系统中存在的邮箱
+        return;
+      }
 
-    // TODO: 实现发送密码重置邮件的逻辑
-    // 1. 生成密码重置令牌
-    // 2. 存储令牌和过期时间
-    // 3. 发送包含重置链接的邮件
+      // 清理过期的令牌
+      await this.passwordResetTokenRepository.deleteExpired();
+
+      // 计算过期时间（24小时后）
+      const expiresAt = new Date();
+      expiresAt.setTime(expiresAt.getTime() + config.passwordReset.tokenExpiresIn);
+
+      // 创建密码重置令牌
+      const resetToken = await this.passwordResetTokenRepository.create(user.id, expiresAt);
+
+      // 发送密码重置邮件
+      const emailSent = await emailService.sendPasswordResetEmail(
+        user.email,
+        resetToken.token,
+        user.name
+      );
+
+      if (!emailSent) {
+        throw new Error('发送密码重置邮件失败');
+      }
+    } catch (error) {
+      console.error('密码重置邮件发送失败:', error);
+      throw new Error('发送密码重置邮件时发生错误');
+    }
   }
 
   /**
    * 重置密码
    */
   async resetPassword(token: string, newPassword: string): Promise<void> {
-    // TODO: 实现重置密码的逻辑
-    // 1. 验证令牌的有效性
-    // 2. 更新用户密码
-    // 3. 删除已使用的令牌
+    try {
+      // 查找令牌
+      const resetToken = await this.passwordResetTokenRepository.findByToken(token);
+
+      // 验证令牌
+      if (!resetToken) {
+        throw new Error('无效的密码重置令牌');
+      }
+
+      // 检查令牌是否过期
+      if (resetToken.expiresAt < new Date()) {
+        throw new Error('密码重置令牌已过期');
+      }
+
+      // 检查令牌是否已使用
+      if (resetToken.isUsed) {
+        throw new Error('密码重置令牌已被使用');
+      }
+
+      // 更新用户密码
+      await this.userService.updateUser(resetToken.userId, { password: newPassword });
+
+      // 标记令牌为已使用
+      await this.passwordResetTokenRepository.markAsUsed(resetToken.id);
+    } catch (error) {
+      console.error('密码重置失败:', error);
+      throw error;
+    }
   }
 }
