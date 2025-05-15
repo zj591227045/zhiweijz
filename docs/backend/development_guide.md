@@ -228,7 +228,7 @@ async function authenticateUser(email: string, password: string): Promise<AuthRe
 使用Joi或Zod进行请求验证：
 
 ```typescript
-// src/validators/transaction.validator.ts
+// server/src/validators/transaction.validator.ts
 import Joi from 'joi';
 
 export function validateCreateTransaction(data: any) {
@@ -297,7 +297,7 @@ export function validateCreateTransaction(data: any) {
 
 ```typescript
 // tests/unit/services/auth.service.test.ts
-import { AuthService } from '../../../src/services/auth.service';
+import { AuthService } from '../../../server/src/services/auth.service';
 
 describe('AuthService', () => {
   let authService: AuthService;
@@ -340,8 +340,8 @@ describe('AuthService', () => {
 ```typescript
 // tests/integration/auth.api.test.ts
 import request from 'supertest';
-import app from '../../src/app';
-import { prisma } from '../../src/lib/prisma';
+import app from '../../server/src/app';
+import { prisma } from '../../server/src/lib/prisma';
 
 describe('Auth API', () => {
   beforeAll(async () => {

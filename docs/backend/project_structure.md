@@ -6,98 +6,119 @@
 
 ```
 zhiweijz/
-├── prisma/                    # Prisma ORM相关文件
-│   ├── schema.prisma          # 数据库模型定义
-│   ├── migrations/            # 数据库迁移文件
-│   └── seed.ts                # 数据库种子数据
+├── server/                    # 后端代码目录
+│   ├── server/prisma/                # Prisma ORM相关文件
+│   │   ├── schema.prisma      # 数据库模型定义
+│   │   ├── migrations/        # 数据库迁移文件
+│   │   └── seed.ts            # 数据库种子数据
+│   │
+│   ├── server/src/                   # 后端源代码目录
+│   │   ├── config/            # 配置文件
+│   │   │   ├── config.ts      # 主配置文件
+│   │   │   └── database.ts    # 数据库配置
+│   │   │
+│   │   ├── controllers/       # 控制器
+│   │   │   ├── auth.controller.ts    # 认证控制器
+│   │   │   ├── user.controller.ts    # 用户控制器
+│   │   │   ├── transaction.controller.ts # 交易控制器
+│   │   │   ├── category.controller.ts    # 分类控制器
+│   │   │   ├── budget.controller.ts      # 预算控制器
+│   │   │   ├── family.controller.ts      # 家庭控制器
+│   │   │   ├── statistics.controller.ts  # 统计控制器
+│   │   │   └── ai.controller.ts          # AI功能控制器
+│   │   │
+│   │   ├── services/          # 服务层
+│   │   │   ├── auth.service.ts        # 认证服务
+│   │   │   ├── user.service.ts        # 用户服务
+│   │   │   ├── transaction.service.ts # 交易服务
+│   │   │   ├── category.service.ts    # 分类服务
+│   │   │   ├── budget.service.ts      # 预算服务
+│   │   │   ├── family.service.ts      # 家庭服务
+│   │   │   ├── statistics.service.ts  # 统计服务
+│   │   │   └── ai.service.ts          # AI功能服务
+│   │   │
+│   │   ├── repositories/      # 数据访问层
+│   │   │   ├── user.repository.ts     # 用户数据访问
+│   │   │   ├── transaction.repository.ts # 交易数据访问
+│   │   │   ├── category.repository.ts    # 分类数据访问
+│   │   │   ├── budget.repository.ts      # 预算数据访问
+│   │   │   ├── family.repository.ts      # 家庭数据访问
+│   │   │   └── base.repository.ts        # 基础数据访问
+│   │   │
+│   │   ├── models/            # 数据模型和接口
+│   │   │   ├── user.model.ts          # 用户模型
+│   │   │   ├── auth.model.ts          # 认证模型
+│   │   │   ├── transaction.model.ts   # 交易模型
+│   │   │   ├── category.model.ts      # 分类模型
+│   │   │   ├── budget.model.ts        # 预算模型
+│   │   │   ├── family.model.ts        # 家庭模型
+│   │   │   └── common.model.ts        # 通用模型
+│   │   │
+│   │   ├── middlewares/       # 中间件
+│   │   │   ├── auth.middleware.ts     # 认证中间件
+│   │   │   ├── error.middleware.ts    # 错误处理中间件
+│   │   │   ├── validation.middleware.ts # 验证中间件
+│   │   │   └── logger.middleware.ts   # 日志中间件
+│   │   │
+│   │   ├── validators/        # 请求验证
+│   │   │   ├── auth.validator.ts      # 认证验证器
+│   │   │   ├── user.validator.ts      # 用户验证器
+│   │   │   ├── transaction.validator.ts # 交易验证器
+│   │   │   ├── category.validator.ts  # 分类验证器
+│   │   │   ├── budget.validator.ts    # 预算验证器
+│   │   │   └── family.validator.ts    # 家庭验证器
+│   │   │
+│   │   ├── utils/             # 工具函数
+│   │   │   ├── jwt.ts                 # JWT工具
+│   │   │   ├── password.ts            # 密码工具
+│   │   │   ├── date.ts                # 日期工具
+│   │   │   ├── logger.ts              # 日志工具
+│   │   │   └── error.ts               # 错误处理工具
+│   │   │
+│   │   ├── ai/                # AI相关功能
+│   │   │   ├── classifiers/           # 分类器
+│   │   │   ├── analyzers/             # 分析器
+│   │   │   ├── recommenders/          # 推荐器
+│   │   │   └── models/                # AI模型
+│   │   │
+│   │   ├── routes/            # 路由定义
+│   │   │   ├── auth.routes.ts         # 认证路由
+│   │   │   ├── user.routes.ts         # 用户路由
+│   │   │   ├── transaction.routes.ts  # 交易路由
+│   │   │   ├── category.routes.ts     # 分类路由
+│   │   │   ├── budget.routes.ts       # 预算路由
+│   │   │   ├── family.routes.ts       # 家庭路由
+│   │   │   ├── statistics.routes.ts   # 统计路由
+│   │   │   ├── ai.routes.ts           # AI功能路由
+│   │   │   └── index.ts               # 路由汇总
+│   │   │
+│   │   ├── __tests__/         # 测试文件
+│   │   │   ├── app.test.ts            # 应用测试
+│   │   │   ├── auth.test.ts           # 认证测试
+│   │   │   └── user.test.ts           # 用户测试
+│   │   │
+│   │   ├── app.ts             # 应用配置
+│   │   └── server.ts          # 服务器入口
+│   │
+│   └── .env                   # 后端环境变量
 │
-├── src/                       # 源代码目录
-│   ├── config/                # 配置文件
-│   │   ├── index.ts           # 主配置文件
-│   │   ├── database.ts        # 数据库配置
-│   │   └── auth.ts            # 认证配置
+├── client/                    # 前端代码目录
+│   ├── src/                   # 前端源代码目录
+│   │   ├── components/        # 组件
+│   │   ├── pages/             # 页面
+│   │   ├── services/          # 服务
+│   │   ├── utils/             # 工具函数
+│   │   ├── assets/            # 静态资源
+│   │   ├── styles/            # 样式文件
+│   │   ├── App.tsx            # 应用入口
+│   │   └── index.tsx          # 主入口
 │   │
-│   ├── controllers/           # 控制器
-│   │   ├── auth.controller.ts # 认证控制器
-│   │   ├── user.controller.ts # 用户控制器
-│   │   ├── transaction.controller.ts # 交易控制器
-│   │   ├── category.controller.ts    # 分类控制器
-│   │   ├── budget.controller.ts      # 预算控制器
-│   │   ├── family.controller.ts      # 家庭控制器
-│   │   ├── statistics.controller.ts  # 统计控制器
-│   │   └── ai.controller.ts          # AI功能控制器
-│   │
-│   ├── services/              # 服务层
-│   │   ├── auth.service.ts    # 认证服务
-│   │   ├── user.service.ts    # 用户服务
-│   │   ├── transaction.service.ts    # 交易服务
-│   │   ├── category.service.ts       # 分类服务
-│   │   ├── budget.service.ts         # 预算服务
-│   │   ├── family.service.ts         # 家庭服务
-│   │   ├── statistics.service.ts     # 统计服务
-│   │   └── ai.service.ts             # AI功能服务
-│   │
-│   ├── repositories/          # 数据访问层
-│   │   ├── user.repository.ts # 用户数据访问
-│   │   ├── transaction.repository.ts # 交易数据访问
-│   │   ├── category.repository.ts    # 分类数据访问
-│   │   ├── budget.repository.ts      # 预算数据访问
-│   │   ├── family.repository.ts      # 家庭数据访问
-│   │   └── base.repository.ts        # 基础数据访问
-│   │
-│   ├── models/                # 数据模型和接口
-│   │   ├── user.model.ts      # 用户模型
-│   │   ├── transaction.model.ts      # 交易模型
-│   │   ├── category.model.ts         # 分类模型
-│   │   ├── budget.model.ts           # 预算模型
-│   │   ├── family.model.ts           # 家庭模型
-│   │   └── common.model.ts           # 通用模型
-│   │
-│   ├── middlewares/           # 中间件
-│   │   ├── auth.middleware.ts # 认证中间件
-│   │   ├── error.middleware.ts # 错误处理中间件
-│   │   ├── validation.middleware.ts  # 验证中间件
-│   │   └── logger.middleware.ts      # 日志中间件
-│   │
-│   ├── validators/            # 请求验证
-│   │   ├── auth.validator.ts  # 认证验证器
-│   │   ├── user.validator.ts  # 用户验证器
-│   │   ├── transaction.validator.ts  # 交易验证器
-│   │   ├── category.validator.ts     # 分类验证器
-│   │   ├── budget.validator.ts       # 预算验证器
-│   │   └── family.validator.ts       # 家庭验证器
-│   │
-│   ├── utils/                 # 工具函数
-│   │   ├── jwt.ts             # JWT工具
-│   │   ├── password.ts        # 密码工具
-│   │   ├── date.ts            # 日期工具
-│   │   ├── logger.ts          # 日志工具
-│   │   └── error.ts           # 错误处理工具
-│   │
-│   ├── ai/                    # AI相关功能
-│   │   ├── classifiers/       # 分类器
-│   │   ├── analyzers/         # 分析器
-│   │   ├── recommenders/      # 推荐器
-│   │   └── models/            # AI模型
-│   │
-│   ├── routes/                # 路由定义
-│   │   ├── auth.routes.ts     # 认证路由
-│   │   ├── user.routes.ts     # 用户路由
-│   │   ├── transaction.routes.ts     # 交易路由
-│   │   ├── category.routes.ts        # 分类路由
-│   │   ├── budget.routes.ts          # 预算路由
-│   │   ├── family.routes.ts          # 家庭路由
-│   │   ├── statistics.routes.ts      # 统计路由
-│   │   ├── ai.routes.ts              # AI功能路由
-│   │   └── index.ts                  # 路由汇总
-│   │
-│   ├── app.ts                 # 应用配置
-│   └── server.ts              # 服务器入口
+│   ├── public/                # 公共文件
+│   └── .env                   # 前端环境变量
 │
-├── tests/                     # 测试文件
-│   ├── unit/                  # 单元测试
-│   ├── integration/           # 集成测试
-│   └── e2e/                   # 端到端测试
+├── shared/                    # 前后端共享代码
+│   ├── types/                 # 共享类型定义
+│   └── utils/                 # 共享工具函数
 │
 ├── scripts/                   # 脚本文件
 │   ├── seed.js                # 数据库种子脚本
@@ -148,7 +169,7 @@ zhiweijz/
 控制器负责处理HTTP请求，验证输入，调用服务层，并返回响应。
 
 ```typescript
-// src/controllers/transaction.controller.ts
+// server/src/controllers/transaction.controller.ts
 import { Request, Response } from 'express';
 import { TransactionService } from '../services/transaction.service';
 import { validateCreateTransaction } from '../validators/transaction.validator';
@@ -170,7 +191,7 @@ export class TransactionController {
 
       const userId = req.user.id;
       const transaction = await this.transactionService.create(userId, value);
-      
+
       res.status(201).json(transaction);
     } catch (err) {
       res.status(500).json({ error: { message: '服务器错误' } });
@@ -186,7 +207,7 @@ export class TransactionController {
 服务层包含业务逻辑，调用数据访问层，并处理业务规则。
 
 ```typescript
-// src/services/transaction.service.ts
+// server/src/services/transaction.service.ts
 import { TransactionRepository } from '../repositories/transaction.repository';
 import { CategoryRepository } from '../repositories/category.repository';
 import { CreateTransactionDto } from '../models/transaction.model';
@@ -225,8 +246,8 @@ export class TransactionService {
 数据访问层负责与数据库交互，使用Prisma ORM执行CRUD操作。
 
 ```typescript
-// src/repositories/transaction.repository.ts
-import { PrismaClient, Transaction } from '@prisma/client';
+// server/src/repositories/transaction.repository.ts
+import { PrismaClient, Transaction } from '@server/prisma/client';
 import { CreateTransactionDto } from '../models/transaction.model';
 
 export class TransactionRepository {
@@ -257,7 +278,7 @@ export class TransactionRepository {
 路由定义API端点和对应的控制器方法。
 
 ```typescript
-// src/routes/transaction.routes.ts
+// server/src/routes/transaction.routes.ts
 import { Router } from 'express';
 import { TransactionController } from '../controllers/transaction.controller';
 import { authenticate } from '../middlewares/auth.middleware';
@@ -283,7 +304,7 @@ export default router;
 为了简化依赖管理，我们将使用简单的依赖注入模式：
 
 ```typescript
-// src/services/auth.service.ts
+// server/src/services/auth.service.ts
 import { UserRepository } from '../repositories/user.repository';
 import { JwtService } from './jwt.service';
 
@@ -306,8 +327,8 @@ export class AuthService {
 这种方式允许在测试中轻松模拟依赖：
 
 ```typescript
-// tests/unit/services/auth.service.test.ts
-import { AuthService } from '../../../src/services/auth.service';
+// server/src/__tests__/services/auth.service.test.ts
+import { AuthService } from '../../services/auth.service';
 
 describe('AuthService', () => {
   let authService: AuthService;
@@ -319,11 +340,11 @@ describe('AuthService', () => {
       findByEmail: jest.fn(),
       create: jest.fn()
     };
-    
+
     mockJwtService = {
       generateToken: jest.fn()
     };
-    
+
     authService = new AuthService(mockUserRepository, mockJwtService);
   });
 
@@ -336,7 +357,7 @@ describe('AuthService', () => {
 我们将使用统一的错误处理机制：
 
 ```typescript
-// src/utils/error.ts
+// server/src/utils/error.ts
 export class AppError extends Error {
   statusCode: number;
   isOperational: boolean;
@@ -345,7 +366,7 @@ export class AppError extends Error {
     super(message);
     this.statusCode = statusCode;
     this.isOperational = isOperational;
-    
+
     Error.captureStackTrace(this, this.constructor);
   }
 }
@@ -368,7 +389,7 @@ export class UnauthorizedError extends AppError {
 然后使用中间件处理这些错误：
 
 ```typescript
-// src/middlewares/error.middleware.ts
+// server/src/middlewares/error.middleware.ts
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../utils/error';
 import logger from '../utils/logger';
@@ -389,7 +410,7 @@ export function errorHandler(
 
   // 未知错误
   logger.error(err);
-  
+
   return res.status(500).json({
     error: {
       message: '服务器错误'

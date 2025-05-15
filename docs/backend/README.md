@@ -65,15 +65,15 @@
 
 项目采用模块化结构，遵循关注点分离原则。主要目录包括：
 
-- `src/controllers/`: 控制器，处理HTTP请求
-- `src/services/`: 服务层，包含业务逻辑
-- `src/repositories/`: 数据访问层，与数据库交互
-- `src/models/`: 数据模型和接口
-- `src/middlewares/`: 中间件
-- `src/utils/`: 工具函数
-- `src/validators/`: 请求验证
-- `src/ai/`: AI相关功能
-- `src/routes/`: 路由定义
+- `server/src/controllers/`: 控制器，处理HTTP请求
+- `server/src/services/`: 服务层，包含业务逻辑
+- `server/src/repositories/`: 数据访问层，与数据库交互
+- `server/src/models/`: 数据模型和接口
+- `server/src/middlewares/`: 中间件
+- `server/src/utils/`: 工具函数
+- `server/src/validators/`: 请求验证
+- `server/src/ai/`: AI相关功能
+- `server/src/routes/`: 路由定义
 
 详细的项目结构请参考[项目结构](project_structure.md)文档。
 

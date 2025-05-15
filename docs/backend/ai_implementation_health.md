@@ -32,8 +32,8 @@
 首先收集用户的财务数据并计算基础指标：
 
 ```typescript
-// src/ai/analyzers/financial-health-analyzer.ts
-import { Transaction, Category, Budget } from '@prisma/client';
+// server/src/ai/analyzers/financial-health-analyzer.ts
+import { Transaction, Category, Budget } from '@server/prisma/client';
 
 export interface FinancialHealthMetrics {
   incomeExpenseRatio: number;
@@ -240,13 +240,13 @@ export class FinancialHealthAnalyzer {
 使用LangGraph构建财务健康评估工作流：
 
 ```typescript
-// src/ai/langgraph/financial-health-advisor.ts
+// server/src/ai/langgraph/financial-health-advisor.ts
 import { createGraph } from 'langchain/langgraph';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { ChatAnthropic } from 'langchain/chat_models/anthropic';
 import { HumanMessage, SystemMessage } from 'langchain/schema';
 import { LLMProviderService } from '../../services/llm-provider.service';
-import { Transaction, Category, Budget } from '@prisma/client';
+import { Transaction, Category, Budget } from '@server/prisma/client';
 import { FinancialHealthAnalyzer, FinancialHealthMetrics } from '../analyzers/financial-health-analyzer';
 
 interface FinancialHealthState {

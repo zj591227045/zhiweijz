@@ -7,7 +7,7 @@
 我们将采用模块化的项目结构，遵循关注点分离原则：
 
 ```
-src/
+server/src/
 ├── config/                 # 配置文件
 ├── controllers/            # 控制器
 ├── services/               # 服务层
@@ -20,7 +20,7 @@ src/
 ├── app.ts                  # 应用入口
 └── server.ts               # 服务器启动
 
-prisma/                     # Prisma ORM
+server/prisma/                     # Prisma ORM
 ├── schema.prisma           # 数据库模型定义
 └── migrations/             # 数据库迁移文件
 ```
@@ -34,7 +34,7 @@ prisma/                     # Prisma ORM
 **示例: 用户认证控制器**
 
 ```typescript
-// src/controllers/auth.controller.ts
+// server/src/controllers/auth.controller.ts
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { validateRegisterInput, validateLoginInput } from '../validators/auth.validator';
@@ -104,7 +104,7 @@ export class AuthController {
 **示例: 用户认证服务**
 
 ```typescript
-// src/services/auth.service.ts
+// server/src/services/auth.service.ts
 import { UserRepository } from '../repositories/user.repository';
 import { generateToken } from '../utils/jwt';
 import { hashPassword, comparePassword } from '../utils/password';
@@ -184,8 +184,8 @@ export class AuthService {
 **示例: 用户数据访问**
 
 ```typescript
-// src/repositories/user.repository.ts
-import { PrismaClient } from '@prisma/client';
+// server/src/repositories/user.repository.ts
+import { PrismaClient } from '@server/prisma/client';
 
 export class UserRepository {
   private prisma: PrismaClient;
@@ -230,7 +230,7 @@ export class UserRepository {
 **示例: 认证中间件**
 
 ```typescript
-// src/middlewares/auth.middleware.ts
+// server/src/middlewares/auth.middleware.ts
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt';
 import { UserRepository } from '../repositories/user.repository';
@@ -276,7 +276,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
 **示例: 认证验证器**
 
 ```typescript
-// src/validators/auth.validator.ts
+// server/src/validators/auth.validator.ts
 import Joi from 'joi';
 
 export function validateRegisterInput(data: any) {
@@ -319,7 +319,7 @@ export function validateLoginInput(data: any) {
 **示例: JWT工具**
 
 ```typescript
-// src/utils/jwt.ts
+// server/src/utils/jwt.ts
 import jwt from 'jsonwebtoken';
 import config from '../config';
 
@@ -339,7 +339,7 @@ export function verifyToken(token: string): any {
 **示例: 密码工具**
 
 ```typescript
-// src/utils/password.ts
+// server/src/utils/password.ts
 import bcrypt from 'bcrypt';
 
 export async function hashPassword(password: string): Promise<string> {
@@ -359,7 +359,7 @@ export async function comparePassword(password: string, hash: string): Promise<b
 **示例: 认证路由**
 
 ```typescript
-// src/routes/auth.routes.ts
+// server/src/routes/auth.routes.ts
 import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
 
@@ -382,7 +382,7 @@ export default router;
 **示例: 应用入口**
 
 ```typescript
-// src/app.ts
+// server/src/app.ts
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -428,7 +428,7 @@ export default app;
 **示例: 服务器启动**
 
 ```typescript
-// src/server.ts
+// server/src/server.ts
 import app from './app';
 import config from './config';
 
@@ -446,7 +446,7 @@ app.listen(PORT, () => {
 **示例: 配置文件**
 
 ```typescript
-// src/config/index.ts
+// server/src/config/index.ts
 import dotenv from 'dotenv';
 
 dotenv.config();

@@ -73,13 +73,13 @@ model AccountLLMSetting {
 使用LangGraph构建交易分类工作流：
 
 ```typescript
-// src/ai/langgraph/transaction-classifier.ts
+// server/src/ai/langgraph/transaction-classifier.ts
 import { createGraph, StateGraph } from 'langchain/langgraph';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { ChatAnthropic } from 'langchain/chat_models/anthropic';
 import { HumanMessage, SystemMessage } from 'langchain/schema';
 import { LLMProviderService } from '../services/llm-provider.service';
-import { Category, TransactionType } from '@prisma/client';
+import { Category, TransactionType } from '@server/prisma/client';
 
 interface ClassificationState {
   description: string;
@@ -267,8 +267,8 @@ export class TransactionClassifier {
 创建一个服务来管理LLM提供商设置：
 
 ```typescript
-// src/services/llm-provider.service.ts
-import { PrismaClient } from '@prisma/client';
+// server/src/services/llm-provider.service.ts
+import { PrismaClient } from '@server/prisma/client';
 
 interface LLMSettings {
   provider: string;

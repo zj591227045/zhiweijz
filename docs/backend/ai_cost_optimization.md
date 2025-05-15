@@ -36,7 +36,7 @@
 ### 缓存实现
 
 ```typescript
-// src/services/llm-cache.service.ts
+// server/src/services/llm-cache.service.ts
 import { createClient } from 'redis';
 import { createHash } from 'crypto';
 
@@ -150,7 +150,7 @@ async function callLLMWithCache(prompt: string, model: string, temperature: numb
 ### 批处理实现
 
 ```typescript
-// src/services/llm-batch.service.ts
+// server/src/services/llm-batch.service.ts
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { SystemMessage, HumanMessage } from 'langchain/schema';
 
@@ -340,7 +340,7 @@ async function classifyTransaction(description: string) {
 实现token计数工具以监控token使用情况：
 
 ```typescript
-// src/utils/token-counter.ts
+// server/src/utils/token-counter.ts
 import { encoding_for_model } from '@dqbd/tiktoken';
 
 export function countTokens(text: string, model: string = 'gpt-3.5-turbo'): number {
@@ -399,7 +399,7 @@ export function estimateCost(promptTokens: number, responseTokens: number, model
 实现自适应模型选择逻辑：
 
 ```typescript
-// src/services/model-selector.service.ts
+// server/src/services/model-selector.service.ts
 export enum TaskComplexity {
   LOW = 'low',
   MEDIUM = 'medium',
@@ -480,7 +480,7 @@ export class ModelSelectorService {
 ### 实现示例
 
 ```typescript
-// src/middlewares/ai-rate-limiter.middleware.ts
+// server/src/middlewares/ai-rate-limiter.middleware.ts
 import { Request, Response, NextFunction } from 'express';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import { createClient } from 'redis';
@@ -595,8 +595,8 @@ router.get(
 ### 实现示例
 
 ```typescript
-// src/services/ai-usage-tracker.service.ts
-import { PrismaClient } from '@prisma/client';
+// server/src/services/ai-usage-tracker.service.ts
+import { PrismaClient } from '@server/prisma/client';
 import { countTokens } from '../utils/token-counter';
 
 export class AIUsageTrackerService {

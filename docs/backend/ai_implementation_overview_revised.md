@@ -162,7 +162,7 @@ model AccountLLMSetting {
 ### 1. LLM提供商服务
 
 ```typescript
-// src/services/llm-provider.service.ts
+// server/src/services/llm-provider.service.ts
 export class LLMProviderService {
   // 获取用户或账本的LLM设置
   async getLLMSettings(userId, accountId?, accountType?) {...}
@@ -178,19 +178,19 @@ export class LLMProviderService {
 ### 2. LangGraph工作流
 
 ```typescript
-// src/ai/langgraph/transaction-classifier.ts
+// server/src/ai/langgraph/transaction-classifier.ts
 export class TransactionClassifier {
   // 使用LangGraph构建分类工作流
   async classifyTransaction(description, amount, date, categories, userId, accountId?, accountType?) {...}
 }
 
-// src/ai/langgraph/consumption-pattern-analyzer.ts
+// server/src/ai/langgraph/consumption-pattern-analyzer.ts
 export class ConsumptionPatternAnalyzer {
   // 使用LangGraph构建消费模式分析工作流
   async analyzePatterns(transactions, categories, startDate, endDate, userId, accountId?, accountType?) {...}
 }
 
-// src/ai/langgraph/budget-advisor.ts
+// server/src/ai/langgraph/budget-advisor.ts
 export class BudgetAdvisor {
   // 使用LangGraph构建预算建议工作流
   async generateBudgetSuggestions(transactions, categories, existingBudgets, months, targetSavingsRate?, userId, accountId?, accountType?) {...}
@@ -200,13 +200,13 @@ export class BudgetAdvisor {
 ### 3. 基础分析组件
 
 ```typescript
-// src/ai/analyzers/basic-stats-analyzer.ts
+// server/src/ai/analyzers/basic-stats-analyzer.ts
 export class BasicStatsAnalyzer {
   // 分析交易数据的基础统计信息
   analyze(transactions, categories, startDate, endDate) {...}
 }
 
-// src/ai/analyzers/budget-data-analyzer.ts
+// server/src/ai/analyzers/budget-data-analyzer.ts
 export class BudgetDataAnalyzer {
   // 分析预算相关数据
   analyze(transactions, categories, existingBudgets, months) {...}

@@ -29,7 +29,7 @@
 以下是完整的Prisma Schema定义：
 
 ```prisma
-// prisma/schema.prisma
+// server/prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
@@ -286,8 +286,8 @@ npx prisma migrate dev --name init
 2. 创建默认分类数据：
 
 ```typescript
-// prisma/seed.ts
-import { PrismaClient } from '@prisma/client';
+// server/prisma/seed.ts
+import { PrismaClient } from '@server/prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -364,8 +364,8 @@ npx prisma migrate deploy
 为了优化数据库连接，我们将配置连接池：
 
 ```typescript
-// src/lib/prisma.ts
-import { PrismaClient } from '@prisma/client';
+// server/src/lib/prisma.ts
+import { PrismaClient } from '@server/prisma/client';
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 

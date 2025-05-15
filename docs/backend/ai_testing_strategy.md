@@ -47,8 +47,8 @@
 **示例**：测试财务健康指标计算
 
 ```typescript
-// src/__tests__/unit/ai/analyzers/financial-health-analyzer.test.ts
-import { FinancialHealthAnalyzer } from '../../../../src/ai/analyzers/financial-health-analyzer';
+// server/src/__tests__/unit/ai/analyzers/financial-health-analyzer.test.ts
+import { FinancialHealthAnalyzer } from '../../../../server/src/ai/analyzers/financial-health-analyzer';
 
 describe('FinancialHealthAnalyzer', () => {
   let analyzer: FinancialHealthAnalyzer;
@@ -104,12 +104,12 @@ describe('FinancialHealthAnalyzer', () => {
 **示例**：测试财务健康评估工作流
 
 ```typescript
-// src/__tests__/integration/ai/financial-health-advisor.test.ts
-import { FinancialHealthAdvisor } from '../../../src/ai/langgraph/financial-health-advisor';
-import { LLMProviderService } from '../../../src/services/llm-provider.service';
+// server/src/__tests__/integration/ai/financial-health-advisor.test.ts
+import { FinancialHealthAdvisor } from '../../../server/src/ai/langgraph/financial-health-advisor';
+import { LLMProviderService } from '../../../server/src/services/llm-provider.service';
 
 // 模拟LLMProviderService
-jest.mock('../../../src/services/llm-provider.service');
+jest.mock('../../../server/src/services/llm-provider.service');
 
 describe('FinancialHealthAdvisor', () => {
   let advisor: FinancialHealthAdvisor;
@@ -187,7 +187,7 @@ describe('FinancialHealthAdvisor', () => {
 **示例**：模拟LLM响应
 
 ```typescript
-// src/__tests__/mocks/llm-responses.ts
+// server/src/__tests__/mocks/llm-responses.ts
 export const mockLLMResponses = {
   transactionClassification: {
     success: {
@@ -241,8 +241,8 @@ module.exports = {
     '**/__tests__/**/*.test.ts'
   ],
   collectCoverageFrom: [
-    'src/ai/**/*.ts',
-    'src/services/**/*.ts'
+    'server/src/ai/**/*.ts',
+    'server/src/services/**/*.ts'
   ],
   coverageThreshold: {
     global: {
@@ -268,10 +268,10 @@ module.exports = {
 **示例**：端到端测试
 
 ```typescript
-// src/__tests__/e2e/ai-features.test.ts
+// server/src/__tests__/e2e/ai-features.test.ts
 import request from 'supertest';
-import app from '../../src/app';
-import { prisma } from '../../src/lib/prisma';
+import app from '../../server/src/app';
+import { prisma } from '../../server/src/lib/prisma';
 
 // 这些测试会实际调用LLM API，应谨慎运行
 describe('AI Features E2E', () => {
@@ -342,7 +342,7 @@ describe('AI Features E2E', () => {
 ### 实现示例
 
 ```typescript
-// src/__tests__/mocks/mock-llm.ts
+// server/src/__tests__/mocks/mock-llm.ts
 export class MockLLM {
   private responses: Map<string, any>;
   private defaultResponse: any;
@@ -441,13 +441,13 @@ on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'src/ai/**'
-      - 'src/services/llm-provider.service.ts'
+      - 'server/src/ai/**'
+      - 'server/src/services/llm-provider.service.ts'
   pull_request:
     branches: [ main, develop ]
     paths:
-      - 'src/ai/**'
-      - 'src/services/llm-provider.service.ts'
+      - 'server/src/ai/**'
+      - 'server/src/services/llm-provider.service.ts'
   schedule:
     - cron: '0 0 * * 1' # 每周一运行
 

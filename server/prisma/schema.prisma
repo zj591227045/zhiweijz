@@ -1,0 +1,196 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户模型
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // 关系
+  transactions  Transaction[]
+  categories    Category[]
+  budgets       Budget[]
+  families      Family[]       @relation("FamilyCreator")
+  familyMembers FamilyMember[]
+  feedback      UserFeedback[]
+
+  @@map("users")
+}
+
+// 家庭模型
+model Family {
+  id        String   @id @default(uuid())
+  name      String
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // 关系
+  creator       User           @relation("FamilyCreator", fields: [createdBy], references: [id])
+  members       FamilyMember[]
+  transactions  Transaction[]
+  categories    Category[]
+  budgets       Budget[]
+  invitations   Invitation[]
+
+  @@map("families")
+}
+
+// 家庭成员模型
+model FamilyMember {
+  id           String   @id @default(uuid())
+  familyId     String   @map("family_id")
+  userId       String?  @map("user_id")
+  name         String
+  role         Role     @default(MEMBER)
+  isRegistered Boolean  @default(true) @map("is_registered")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // 关系
+  family       Family        @relation(fields: [familyId], references: [id])
+  user         User?         @relation(fields: [userId], references: [id])
+  transactions Transaction[]
+
+  @@map("family_members")
+}
+
+// 邀请模型
+model Invitation {
+  id             String   @id @default(uuid())
+  familyId       String   @map("family_id")
+  invitationCode String   @unique @map("invitation_code")
+  expiresAt      DateTime @map("expires_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // 关系
+  family Family @relation(fields: [familyId], references: [id])
+
+  @@map("invitations")
+}
+
+// 交易分类模型
+model Category {
+  id         String       @id @default(uuid())
+  name       String
+  type       TransactionType
+  icon       String?
+  userId     String?      @map("user_id")
+  familyId   String?      @map("family_id")
+  isDefault  Boolean      @default(false) @map("is_default")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+
+  // 关系
+  user         User?         @relation(fields: [userId], references: [id])
+  family       Family?       @relation(fields: [familyId], references: [id])
+  transactions Transaction[]
+  budgets      Budget[]
+
+  @@map("categories")
+}
+
+// 交易记录模型
+model Transaction {
+  id             String          @id @default(uuid())
+  amount         Decimal         @db.Decimal(10, 2)
+  type           TransactionType
+  categoryId     String          @map("category_id")
+  description    String?
+  date           DateTime
+  userId         String          @map("user_id")
+  familyId       String?         @map("family_id")
+  familyMemberId String?         @map("family_member_id")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  // 关系
+  user         User          @relation(fields: [userId], references: [id])
+  family       Family?       @relation(fields: [familyId], references: [id])
+  familyMember FamilyMember? @relation(fields: [familyMemberId], references: [id])
+  category     Category      @relation(fields: [categoryId], references: [id])
+  feedback     UserFeedback[]
+
+  @@map("transactions")
+}
+
+// 预算模型
+model Budget {
+  id         String      @id @default(uuid())
+  amount     Decimal     @db.Decimal(10, 2)
+  period     BudgetPeriod
+  startDate  DateTime    @map("start_date")
+  endDate    DateTime    @map("end_date")
+  categoryId String?     @map("category_id")
+  userId     String?     @map("user_id")
+  familyId   String?     @map("family_id")
+  rollover   Boolean     @default(false)
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  // 关系
+  user     User?     @relation(fields: [userId], references: [id])
+  family   Family?   @relation(fields: [familyId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id])
+
+  @@map("budgets")
+}
+
+// AI模型
+model AIModel {
+  id        String   @id @default(uuid())
+  name      String
+  version   String
+  type      String
+  modelPath String   @map("model_path")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("ai_models")
+}
+
+// 用户反馈
+model UserFeedback {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  transactionId String?  @map("transaction_id")
+  suggestionId String?  @map("suggestion_id")
+  feedbackType String   @map("feedback_type")
+  content      String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // 关系
+  user        User        @relation(fields: [userId], references: [id])
+  transaction Transaction? @relation(fields: [transactionId], references: [id])
+
+  @@map("user_feedback")
+}
+
+// 枚举类型
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum BudgetPeriod {
+  MONTHLY
+  YEARLY
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}

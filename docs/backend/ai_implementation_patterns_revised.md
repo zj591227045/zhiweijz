@@ -20,8 +20,8 @@
 首先进行基础的统计分析，提取关键指标：
 
 ```typescript
-// src/ai/analyzers/basic-stats-analyzer.ts
-import { Transaction, Category } from '@prisma/client';
+// server/src/ai/analyzers/basic-stats-analyzer.ts
+import { Transaction, Category } from '@server/prisma/client';
 
 export interface BasicStatsResult {
   totalExpense: number;
@@ -138,13 +138,13 @@ export class BasicStatsAnalyzer {
 使用LangGraph构建消费模式分析工作流：
 
 ```typescript
-// src/ai/langgraph/consumption-pattern-analyzer.ts
+// server/src/ai/langgraph/consumption-pattern-analyzer.ts
 import { createGraph } from 'langchain/langgraph';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { ChatAnthropic } from 'langchain/chat_models/anthropic';
 import { HumanMessage, SystemMessage } from 'langchain/schema';
 import { LLMProviderService } from '../../services/llm-provider.service';
-import { Transaction, Category } from '@prisma/client';
+import { Transaction, Category } from '@server/prisma/client';
 import { BasicStatsAnalyzer, BasicStatsResult } from '../analyzers/basic-stats-analyzer';
 
 interface PatternAnalysisState {

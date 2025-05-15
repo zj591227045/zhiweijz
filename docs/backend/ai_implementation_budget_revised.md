@@ -20,8 +20,8 @@
 首先分析用户的历史消费数据，提取关键指标：
 
 ```typescript
-// src/ai/analyzers/budget-data-analyzer.ts
-import { Transaction, Category, Budget } from '@prisma/client';
+// server/src/ai/analyzers/budget-data-analyzer.ts
+import { Transaction, Category, Budget } from '@server/prisma/client';
 
 export interface BudgetAnalysisData {
   // 收入数据
@@ -278,13 +278,13 @@ export class BudgetDataAnalyzer {
 使用LangGraph构建预算建议工作流：
 
 ```typescript
-// src/ai/langgraph/budget-advisor.ts
+// server/src/ai/langgraph/budget-advisor.ts
 import { createGraph } from 'langchain/langgraph';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { ChatAnthropic } from 'langchain/chat_models/anthropic';
 import { HumanMessage, SystemMessage } from 'langchain/schema';
 import { LLMProviderService } from '../../services/llm-provider.service';
-import { Transaction, Category, Budget } from '@prisma/client';
+import { Transaction, Category, Budget } from '@server/prisma/client';
 import { BudgetDataAnalyzer, BudgetAnalysisData } from '../analyzers/budget-data-analyzer';
 
 interface BudgetAdvisorState {

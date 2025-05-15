@@ -20,7 +20,7 @@
 在开发环境中，我们将使用以下测试数据库配置：
 
 ```typescript
-// src/config/test.ts
+// server/src/config/test.ts
 export default {
   database: {
     url: process.env.TEST_DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/zhiweijz_test',
@@ -95,7 +95,7 @@ jobs:
 ### 测试目录结构
 
 ```
-src/
+server/src/
 └── __tests__/
     ├── unit/
     │   ├── controllers/
@@ -110,7 +110,7 @@ src/
 ### 服务层测试示例
 
 ```typescript
-// src/__tests__/unit/services/auth.service.test.ts
+// server/src/__tests__/unit/services/auth.service.test.ts
 import { AuthService } from '../../../services/auth.service';
 import { UserRepository } from '../../../repositories/user.repository';
 import { hashPassword } from '../../../utils/password';
@@ -210,7 +210,7 @@ describe('AuthService', () => {
 ### 工具函数测试示例
 
 ```typescript
-// src/__tests__/unit/utils/password.test.ts
+// server/src/__tests__/unit/utils/password.test.ts
 import { hashPassword, comparePassword } from '../../../utils/password';
 import bcrypt from 'bcrypt';
 
@@ -267,7 +267,7 @@ describe('Password Utils', () => {
 ### API端点测试示例
 
 ```typescript
-// src/__tests__/integration/auth.api.test.ts
+// server/src/__tests__/integration/auth.api.test.ts
 import request from 'supertest';
 import app from '../../app';
 import { prisma } from '../../lib/prisma';
@@ -355,7 +355,7 @@ describe('Auth API', () => {
 由于后端开发阶段没有前端界面，我们将使用API请求序列来模拟用户流程。
 
 ```typescript
-// src/__tests__/e2e/user-flow.test.ts
+// server/src/__tests__/e2e/user-flow.test.ts
 import request from 'supertest';
 import app from '../../app';
 import { prisma } from '../../lib/prisma';
