@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>只为记账 - UI预览</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <div class="header-title">仪表板</div>
+            <div class="header-actions">
+                <button class="icon-button"><i class="fas fa-bell"></i></button>
+                <button class="icon-button"><i class="fas fa-cog"></i></button>
+            </div>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 余额卡片 -->
+            <section class="balance-card">
+                <div class="balance-header">
+                    <h2>本月概览</h2>
+                    <span class="date">2023年5月</span>
+                </div>
+                <div class="balance-details">
+                    <div class="balance-item income">
+                        <span class="label">收入</span>
+                        <span class="amount">¥8,500</span>
+                    </div>
+                    <div class="balance-divider"></div>
+                    <div class="balance-item expense">
+                        <span class="label">支出</span>
+                        <span class="amount">¥5,320</span>
+                    </div>
+                    <div class="balance-divider"></div>
+                    <div class="balance-item remaining">
+                        <span class="label">结余</span>
+                        <span class="amount">¥3,180</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 预算进度 -->
+            <section class="budget-progress">
+                <div class="section-header">
+                    <h2>预算执行情况</h2>
+                    <a href="#" class="view-all">查看全部</a>
+                </div>
+                <div class="budget-card">
+                    <div class="budget-info">
+                        <div class="budget-category">
+                            <i class="fas fa-utensils category-icon"></i>
+                            <span>餐饮</span>
+                        </div>
+                        <div class="budget-amount">
+                            <span class="current">¥1,200</span>
+                            <span class="separator">/</span>
+                            <span class="total">¥2,000</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 60%"></div>
+                    </div>
+                </div>
+                <div class="budget-card">
+                    <div class="budget-info">
+                        <div class="budget-category">
+                            <i class="fas fa-shopping-bag category-icon"></i>
+                            <span>购物</span>
+                        </div>
+                        <div class="budget-amount">
+                            <span class="current">¥1,800</span>
+                            <span class="separator">/</span>
+                            <span class="total">¥1,500</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar warning">
+                        <div class="progress" style="width: 120%"></div>
+                    </div>
+                </div>
+                <div class="budget-card">
+                    <div class="budget-info">
+                        <div class="budget-category">
+                            <i class="fas fa-bus category-icon"></i>
+                            <span>交通</span>
+                        </div>
+                        <div class="budget-amount">
+                            <span class="current">¥320</span>
+                            <span class="separator">/</span>
+                            <span class="total">¥800</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 40%"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 最近交易 -->
+            <section class="recent-transactions">
+                <div class="section-header">
+                    <h2>最近交易</h2>
+                    <a href="#" class="view-all">查看全部</a>
+                </div>
+                
+                <div class="transaction-group">
+                    <div class="transaction-date">今天</div>
+                    <div class="transaction-list">
+                        <div class="transaction-item">
+                            <div class="transaction-icon">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <div class="transaction-title">午餐</div>
+                                <div class="transaction-category">餐饮</div>
+                            </div>
+                            <div class="transaction-amount expense">-¥45</div>
+                        </div>
+                        <div class="transaction-item">
+                            <div class="transaction-icon">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <div class="transaction-title">超市购物</div>
+                                <div class="transaction-category">购物</div>
+                            </div>
+                            <div class="transaction-amount expense">-¥128</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="transaction-group">
+                    <div class="transaction-date">昨天</div>
+                    <div class="transaction-list">
+                        <div class="transaction-item">
+                            <div class="transaction-icon">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <div class="transaction-title">工资</div>
+                                <div class="transaction-category">收入</div>
+                            </div>
+                            <div class="transaction-amount income">+¥8,500</div>
+                        </div>
+                        <div class="transaction-item">
+                            <div class="transaction-icon">
+                                <i class="fas fa-bus"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <div class="transaction-title">公交车</div>
+                                <div class="transaction-category">交通</div>
+                            </div>
+                            <div class="transaction-amount expense">-¥4</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 底部导航栏 -->
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active">
+                <i class="fas fa-home"></i>
+                <span>首页</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-chart-pie"></i>
+                <span>统计</span>
+            </a>
+            <a href="#" class="nav-item add-button">
+                <div class="add-icon">
+                    <i class="fas fa-plus"></i>
+                </div>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-wallet"></i>
+                <span>预算</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>我的</span>
+            </a>
+        </nav>
+    </div>
+</body>
+</html>

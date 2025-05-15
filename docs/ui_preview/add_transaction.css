@@ -1,0 +1,202 @@
+/* 添加交易页面特定样式 */
+
+.back-button {
+    margin-right: 8px;
+}
+
+/* 交易类型切换 */
+.transaction-type-toggle {
+    display: flex;
+    background-color: var(--background-color);
+    border-radius: 8px;
+    padding: 4px;
+    margin-bottom: 24px;
+}
+
+.type-button {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    border: none;
+    background: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.type-button.active {
+    background-color: var(--card-background);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.type-button.expense.active {
+    color: var(--error-color);
+}
+
+.type-button.income.active {
+    color: var(--success-color);
+}
+
+/* 金额输入 */
+.amount-input-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 32px;
+}
+
+.currency-symbol {
+    font-size: 24px;
+    font-weight: 500;
+    margin-right: 4px;
+}
+
+.amount-input {
+    font-size: 32px;
+    font-weight: 600;
+    border: none;
+    background: none;
+    text-align: center;
+    width: 80%;
+    color: var(--text-primary);
+}
+
+.amount-input:focus {
+    outline: none;
+}
+
+/* 交易表单 */
+.transaction-form {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.form-group {
+    display: flex;
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.form-group:last-child {
+    border-bottom: none;
+}
+
+.form-label {
+    width: 80px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.form-input {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.form-input input,
+.form-input select {
+    width: 100%;
+    border: none;
+    background: none;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.form-input input:focus,
+.form-input select:focus {
+    outline: none;
+}
+
+/* 分类选择器 */
+.category-selector {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.category-icon {
+    color: var(--primary-color);
+    margin-right: 8px;
+}
+
+.chevron-icon {
+    margin-left: auto;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+/* 分类面板 */
+.category-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--card-background);
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    padding: 24px 16px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.category-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.category-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: rgba(59, 130, 246, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+}
+
+.category-item.active .category-icon-wrapper {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.category-item span {
+    font-size: 12px;
+}
+
+/* 保存按钮 */
+.save-button-container {
+    padding: 16px;
+    position: sticky;
+    bottom: 0;
+    background-color: var(--background-color);
+}
+
+.save-button {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.save-button:hover {
+    background-color: #2563eb;
+}
