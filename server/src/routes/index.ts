@@ -5,6 +5,7 @@ import userSettingRoutes from './user-setting.routes';
 import categoryRoutes from './category.routes';
 import transactionRoutes from './transaction.routes';
 import budgetRoutes from './budget.routes';
+import accountBookRoutes from './account-book.routes';
 
 const router = Router();
 
@@ -19,6 +20,7 @@ router.use('/user-settings', userSettingRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/transactions', transactionRoutes);
 router.use('/budgets', budgetRoutes);
+router.use('/account-books', accountBookRoutes);
 // router.use('/families', familyRoutes);
 // router.use('/ai', aiRoutes);
 
