@@ -323,6 +323,220 @@
   padding-bottom: 72px;
 }
 
+/* 余额卡片 */
+.balance-card {
+  background-color: var(--primary-color);
+  border-radius: 12px;
+  padding: 16px;
+  color: white;
+}
+
+.balance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.balance-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.date {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.balance-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.balance-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.balance-divider {
+  width: 1px;
+  height: 40px;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.label {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.amount {
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* 预算进度 */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.section-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.view-all {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.budget-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.budget-card {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.budget-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.budget-category {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.category-icon {
+  width: 32px;
+  height: 32px;
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--primary-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.budget-amount {
+  font-size: 14px;
+}
+
+.current {
+  font-weight: 600;
+}
+
+.separator {
+  color: var(--text-secondary);
+  margin: 0 2px;
+}
+
+.progress-bar {
+  height: 8px;
+  background-color: var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress {
+  height: 100%;
+  background-color: var(--primary-color);
+}
+
+.progress-bar.warning .progress {
+  background-color: #F59E0B;
+}
+
+/* 最近交易 */
+.recent-transactions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.transaction-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.transaction-date {
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 0 4px;
+}
+
+.transaction-list {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.transaction-item:last-child {
+  border-bottom: none;
+}
+
+.transaction-icon {
+  width: 40px;
+  height: 40px;
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--primary-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+}
+
+.transaction-details {
+  flex: 1;
+}
+
+.transaction-title {
+  font-weight: 500;
+}
+
+.transaction-category {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.transaction-amount {
+  font-weight: 600;
+}
+
+.transaction-amount.expense {
+  color: #EF4444;
+}
+
+.transaction-amount.income {
+  color: #22C55E;
+}
+
 /* 底部导航栏 */
 .bottom-nav {
   height: 56px;

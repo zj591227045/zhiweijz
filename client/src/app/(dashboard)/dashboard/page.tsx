@@ -26,6 +26,7 @@ import { BudgetProgress } from "@/components/dashboard/budget-progress";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 import { BottomNavigation } from "@/components/layout/bottom-navigation";
 
+
 export default function DashboardPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
@@ -143,11 +144,15 @@ export default function DashboardPage() {
   return (
     <div className="app-container">
       {/* 顶部导航栏 */}
-      <header className="header shadow-sm">
+      <header className="header">
         <div className="header-title">仪表板</div>
         <div className="header-actions">
-          <button className="icon-button"><i className="fas fa-bell"></i></button>
-          <button className="icon-button"><i className="fas fa-cog"></i></button>
+          <button className="icon-button">
+            <i className="fas fa-bell"></i>
+          </button>
+          <button className="icon-button">
+            <i className="fas fa-cog"></i>
+          </button>
         </div>
       </header>
 

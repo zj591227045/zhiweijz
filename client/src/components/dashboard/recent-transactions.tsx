@@ -51,27 +51,27 @@ export function RecentTransactions({ groupedTransactions }: RecentTransactionsPr
   };
 
   return (
-    <section className="recent-transactions flex flex-col gap-4">
-      <div className="section-header flex justify-between items-center mb-2">
-        <h2 className="text-base font-semibold">最近交易</h2>
-        <Link href="/transactions" className="view-all text-blue-600 text-sm">查看全部</Link>
+    <section className="recent-transactions">
+      <div className="section-header">
+        <h2>最近交易</h2>
+        <Link href="/transactions" className="view-all">查看全部</Link>
       </div>
 
       {groupedTransactions.length > 0 ? (
         groupedTransactions.map((group) => (
-          <div key={group.date} className="transaction-group flex flex-col gap-2">
-            <div className="transaction-date text-sm text-gray-500 px-1">{group.date}</div>
-            <div className="transaction-list bg-white rounded-lg shadow-sm overflow-hidden">
+          <div key={group.date} className="transaction-group">
+            <div className="transaction-date">{group.date}</div>
+            <div className="transaction-list">
               {group.transactions.map((transaction) => (
-                <div key={transaction.id} className="transaction-item flex items-center p-4 border-b border-gray-200 last:border-b-0">
-                  <div className="transaction-icon w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-3">
+                <div key={transaction.id} className="transaction-item">
+                  <div className="transaction-icon">
                     <i className={`fas ${getIconClass(transaction.categoryIcon || '', transaction.type)}`}></i>
                   </div>
-                  <div className="transaction-details flex-1">
-                    <div className="transaction-title font-medium">{transaction.description || transaction.categoryName}</div>
-                    <div className="transaction-category text-xs text-gray-500">{transaction.categoryName}</div>
+                  <div className="transaction-details">
+                    <div className="transaction-title">{transaction.description || transaction.categoryName}</div>
+                    <div className="transaction-category">{transaction.categoryName}</div>
                   </div>
-                  <div className={`transaction-amount font-semibold ${transaction.type === TransactionType.EXPENSE ? 'text-red-500' : 'text-green-500'}`}>
+                  <div className={`transaction-amount ${transaction.type === TransactionType.EXPENSE ? 'expense' : 'income'}`}>
                     {transaction.type === TransactionType.EXPENSE ? '-' : '+'}
                     {formatCurrency(transaction.amount)}
                   </div>
@@ -81,7 +81,7 @@ export function RecentTransactions({ groupedTransactions }: RecentTransactionsPr
           </div>
         ))
       ) : (
-        <div className="transaction-list bg-white rounded-lg p-4 shadow-sm text-center text-gray-500">
+        <div className="transaction-list text-center">
           暂无交易记录
         </div>
       )}
