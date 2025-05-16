@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分类管理 - 只为记账</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="themes.css">
+    <style>
+        .type-toggle {
+            display: flex;
+            background-color: var(--background-color);
+            border-radius: var(--border-radius);
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+
+        .type-button {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            border: none;
+            background: none;
+            border-radius: calc(var(--border-radius) - 4px);
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .type-button.active {
+            background-color: var(--card-background);
+            color: var(--primary-color);
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .view-toggle {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 16px;
+        }
+
+        .view-button {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 18px;
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .view-button.active {
+            color: var(--primary-color);
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .category-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 8px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+        }
+
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(var(--primary), 0.1);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .category-name {
+            font-size: 12px;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .categories-list {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .category-list-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .category-list-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(var(--primary), 0.1);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-right: 12px;
+        }
+
+        .category-list-name {
+            flex: 1;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .category-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .category-action {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .category-action:hover {
+            color: var(--primary-color);
+        }
+
+        .category-action.delete:hover {
+            color: var(--error-color);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .add-category {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 8px;
+            background-color: var(--background-color);
+            border: 1px dashed var(--border-color);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+        }
+
+        .add-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(var(--primary), 0.1);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .add-text {
+            font-size: 12px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .modal-content {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 320px;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            color: var(--text-primary);
+            background-color: var(--background-color);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .icon-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+        }
+
+        .icon-option.selected {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .modal-footer {
+            display: flex;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .modal-button {
+            flex: 1;
+            padding: 14px;
+            text-align: center;
+            font-size: 16px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .modal-button.cancel {
+            color: var(--text-secondary);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .modal-button.confirm {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .edit-mode-notice {
+            background-color: rgba(var(--primary), 0.1);
+            color: var(--primary-color);
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            display: none;
+        }
+
+        .edit-mode-text {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .done-button {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+    <script src="theme-switcher.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div class="header-title">分类管理</div>
+            <div class="header-actions">
+                <button class="icon-button" id="edit-button">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="edit-mode-notice" id="edit-mode-notice">
+                <div class="edit-mode-text">
+                    <i class="fas fa-info-circle"></i>
+                    <span>编辑模式</span>
+                </div>
+                <button class="done-button" id="done-button">完成</button>
+            </div>
+
+            <div class="type-toggle">
+                <button class="type-button active" data-type="expense">支出</button>
+                <button class="type-button" data-type="income">收入</button>
+            </div>
+
+            <div class="view-toggle">
+                <button class="view-button active" data-view="grid">
+                    <i class="fas fa-th"></i>
+                </button>
+                <button class="view-button" data-view="list">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+
+            <div class="section-title">系统默认</div>
+
+            <div class="categories-grid" id="default-categories-grid">
+                <div class="category-item">
+                    <div class="category-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="category-name">餐饮</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="category-name">购物</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div class="category-name">住房</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon">
+                        <i class="fas fa-bus"></i>
+                    </div>
+                    <div class="category-name">交通</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <div class="category-name">服饰</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon">
+                        <i class="fas fa-medkit"></i>
+                    </div>
+                    <div class="category-name">医疗</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="category-name">教育</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <div class="category-name">娱乐</div>
+                </div>
+            </div>
+
+            <div class="categories-list" id="default-categories-list">
+                <div class="category-list-item">
+                    <div class="category-list-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="category-list-name">餐饮</div>
+                </div>
+                <div class="category-list-item">
+                    <div class="category-list-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="category-list-name">购物</div>
+                </div>
+                <div class="category-list-item">
+                    <div class="category-list-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div class="category-list-name">住房</div>
+                </div>
+                <div class="category-list-item">
+                    <div class="category-list-icon">
+                        <i class="fas fa-bus"></i>
+                    </div>
+                    <div class="category-list-name">交通</div>
+                </div>
+                <div class="category-list-item">
+                    <div class="category-list-icon">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <div class="category-list-name">服饰</div>
+                </div>
+                <div class="category-list-item">
+                    <div class="category-list-icon">
+                        <i class="fas fa-medkit"></i>
+                    </div>
+                    <div class="category-list-name">医疗</div>
+                </div>
+                <div class="category-list-item">
+                    <div class="category-list-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="category-list-name">教育</div>
+                </div>
+                <div class="category-list-item">
+                    <div class="category-list-icon">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <div class="category-list-name">娱乐</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">自定义分类</div>
+
+        <div class="categories-grid" id="custom-categories-grid">
+            <div class="category-item">
+                <div class="category-icon">
+                    <i class="fas fa-plane"></i>
+                </div>
+                <div class="category-name">旅行</div>
+            </div>
+            <div class="category-item">
+                <div class="category-icon">
+                    <i class="fas fa-gift"></i>
+                </div>
+                <div class="category-name">礼物</div>
+            </div>
+            <div class="add-category" id="add-category-button">
+                <div class="add-icon">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="add-text">添加分类</div>
+            </div>
+        </div>
+
+        <div class="categories-list" id="custom-categories-list">
+            <div class="category-list-item">
+                <div class="category-list-icon">
+                    <i class="fas fa-plane"></i>
+                </div>
+                <div class="category-list-name">旅行</div>
+                <div class="category-actions">
+                    <button class="category-action edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="category-action delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="category-list-item">
+                <div class="category-list-icon">
+                    <i class="fas fa-gift"></i>
+                </div>
+                <div class="category-list-name">礼物</div>
+                <div class="category-actions">
+                    <button class="category-action edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="category-action delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 添加/编辑分类对话框 -->
+        <div class="modal-overlay" id="category-modal">
+            <div class="modal-content">
+                <div class="modal-header" id="modal-title">添加分类</div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="category-name">分类名称</label>
+                        <input type="text" id="category-name" class="form-input" placeholder="请输入分类名称">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">选择图标</label>
+                        <div class="icon-grid">
+                            <div class="icon-option selected" data-icon="fa-plane">
+                                <i class="fas fa-plane"></i>
+                            </div>
+                            <div class="icon-option" data-icon="fa-gift">
+                                <i class="fas fa-gift"></i>
+                            </div>
+                            <div class="icon-option" data-icon="fa-coffee">
+                                <i class="fas fa-coffee"></i>
+                            </div>
+                            <div class="icon-option" data-icon="fa-car">
+                                <i class="fas fa-car"></i>
+                            </div>
+                            <div class="icon-option" data-icon="fa-paw">
+                                <i class="fas fa-paw"></i>
+                            </div>
+                            <div class="icon-option" data-icon="fa-baby">
+                                <i class="fas fa-baby"></i>
+                            </div>
+                            <div class="icon-option" data-icon="fa-graduation-cap">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <div class="icon-option" data-icon="fa-briefcase">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div class="icon-option" data-icon="fa-heartbeat">
+                                <i class="fas fa-heartbeat"></i>
+                            </div>
+                            <div class="icon-option" data-icon="fa-mobile-alt">
+                                <i class="fas fa-mobile-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-button cancel" id="cancel-category">取消</button>
+                    <button class="modal-button confirm" id="save-category">保存</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <a href="index.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>首页</span>
+            </a>
+            <a href="statistics.html" class="nav-item">
+                <i class="fas fa-chart-pie"></i>
+                <span>统计</span>
+            </a>
+            <a href="add_transaction_improved.html" class="nav-item add-button">
+                <div class="add-icon">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <span>添加</span>
+            </a>
+            <a href="budget.html" class="nav-item">
+                <i class="fas fa-wallet"></i>
+                <span>预算</span>
+            </a>
+            <a href="settings.html" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>我的</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // 视图切换
+        const viewButtons = document.querySelectorAll('.view-button');
+        const gridView = document.querySelectorAll('[id$="-categories-grid"]');
+        const listView = document.querySelectorAll('[id$="-categories-list"]');
+
+        viewButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const view = this.dataset.view;
+
+                // 更新按钮状态
+                viewButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+
+                // 切换视图
+                if (view === 'grid') {
+                    gridView.forEach(grid => grid.style.display = 'grid');
+                    listView.forEach(list => list.style.display = 'none');
+                } else {
+                    gridView.forEach(grid => grid.style.display = 'none');
+                    listView.forEach(list => list.style.display = 'flex');
+                }
+            });
+        });
+
+        // 类型切换
+        const typeButtons = document.querySelectorAll('.type-button');
+
+        typeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const type = this.dataset.type;
+
+                // 更新按钮状态
+                typeButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+
+                // 在实际应用中，这里会根据类型加载不同的分类
+                console.log('切换到类型:', type);
+            });
+        });
+
+        // 编辑模式
+        const editButton = document.getElementById('edit-button');
+        const editModeNotice = document.getElementById('edit-mode-notice');
+        const doneButton = document.getElementById('done-button');
+        let isEditMode = false;
+
+        editButton.addEventListener('click', function() {
+            isEditMode = !isEditMode;
+
+            if (isEditMode) {
+                editModeNotice.style.display = 'flex';
+                document.querySelectorAll('.category-actions').forEach(actions => {
+                    actions.style.display = 'flex';
+                });
+            } else {
+                editModeNotice.style.display = 'none';
+                document.querySelectorAll('.category-actions').forEach(actions => {
+                    actions.style.display = 'none';
+                });
+            }
+        });
+
+        doneButton.addEventListener('click', function() {
+            isEditMode = false;
+            editModeNotice.style.display = 'none';
+            document.querySelectorAll('.category-actions').forEach(actions => {
+                actions.style.display = 'none';
+            });
+        });
+
+        // 添加分类
+        const addCategoryButton = document.getElementById('add-category-button');
+        const categoryModal = document.getElementById('category-modal');
+        const cancelCategoryButton = document.getElementById('cancel-category');
+        const saveCategoryButton = document.getElementById('save-category');
+        const categoryNameInput = document.getElementById('category-name');
+        const iconOptions = document.querySelectorAll('.icon-option');
+        let selectedIcon = 'fa-plane';
+        let editingCategory = null;
+
+        addCategoryButton.addEventListener('click', function() {
+            // 重置表单
+            document.getElementById('modal-title').textContent = '添加分类';
+            categoryNameInput.value = '';
+            iconOptions.forEach(option => {
+                option.classList.remove('selected');
+                if (option.dataset.icon === 'fa-plane') {
+                    option.classList.add('selected');
+                }
+            });
+            selectedIcon = 'fa-plane';
+            editingCategory = null;
+
+            // 显示对话框
+            categoryModal.style.display = 'flex';
+        });
+
+        cancelCategoryButton.addEventListener('click', function() {
+            categoryModal.style.display = 'none';
+        });
+
+        iconOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                iconOptions.forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedIcon = this.dataset.icon;
+            });
+        });
+
+        saveCategoryButton.addEventListener('click', function() {
+            const categoryName = categoryNameInput.value.trim();
+
+            if (!categoryName) {
+                alert('请输入分类名称');
+                return;
+            }
+
+            if (editingCategory) {
+                // 更新现有分类
+                console.log('更新分类:', categoryName, selectedIcon);
+                // 在实际应用中，这里会发送更新请求
+            } else {
+                // 添加新分类
+                console.log('添加分类:', categoryName, selectedIcon);
+                // 在实际应用中，这里会发送添加请求
+
+                // 模拟添加到UI
+                const iconClass = 'fas ' + selectedIcon;
+
+                // 添加到网格视图
+                const gridItem = document.createElement('div');
+                gridItem.className = 'category-item';
+                gridItem.innerHTML = `
+                    <div class="category-icon">
+                        <i class="${iconClass.replace('fa-', 'fa-')}"></i>
+                    </div>
+                    <div class="category-name">${categoryName}</div>
+                `;
+
+                const addButton = document.getElementById('add-category-button');
+                document.getElementById('custom-categories-grid').insertBefore(gridItem, addButton);
+
+                // 添加到列表视图
+                const listItem = document.createElement('div');
+                listItem.className = 'category-list-item';
+                listItem.innerHTML = `
+                    <div class="category-list-icon">
+                        <i class="${iconClass.replace('fa-', 'fa-')}"></i>
+                    </div>
+                    <div class="category-list-name">${categoryName}</div>
+                    <div class="category-actions" style="display: ${isEditMode ? 'flex' : 'none'}">
+                        <button class="category-action edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="category-action delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+
+                document.getElementById('custom-categories-list').appendChild(listItem);
+
+                // 添加事件监听器
+                const editButton = listItem.querySelector('.edit');
+                const deleteButton = listItem.querySelector('.delete');
+
+                editButton.addEventListener('click', function() {
+                    openEditModal(categoryName, selectedIcon, listItem);
+                });
+
+                deleteButton.addEventListener('click', function() {
+                    if (confirm(`确定要删除分类 "${categoryName}" 吗？`)) {
+                        // 在实际应用中，这里会发送删除请求
+                        gridItem.remove();
+                        listItem.remove();
+                    }
+                });
+            }
+
+            // 关闭对话框
+            categoryModal.style.display = 'none';
+        });
+
+        // 编辑分类
+        document.querySelectorAll('.category-action.edit').forEach(button => {
+            button.addEventListener('click', function() {
+                const listItem = this.closest('.category-list-item');
+                const categoryName = listItem.querySelector('.category-list-name').textContent;
+                const iconElement = listItem.querySelector('.category-list-icon i');
+                const iconClass = iconElement.className;
+                const iconName = iconClass.replace('fas ', '');
+
+                openEditModal(categoryName, iconName, listItem);
+            });
+        });
+
+        function openEditModal(name, icon, listItem) {
+            document.getElementById('modal-title').textContent = '编辑分类';
+            categoryNameInput.value = name;
+
+            iconOptions.forEach(option => {
+                option.classList.remove('selected');
+                if (option.dataset.icon === icon) {
+                    option.classList.add('selected');
+                }
+            });
+
+            selectedIcon = icon;
+            editingCategory = listItem;
+
+            categoryModal.style.display = 'flex';
+        }
+
+        // 删除分类
+        document.querySelectorAll('.category-action.delete').forEach(button => {
+            button.addEventListener('click', function() {
+                const listItem = this.closest('.category-list-item');
+                const categoryName = listItem.querySelector('.category-list-name').textContent;
+
+                if (confirm(`确定要删除分类 "${categoryName}" 吗？`)) {
+                    // 在实际应用中，这里会发送删除请求
+
+                    // 从列表视图中删除
+                    listItem.remove();
+
+                    // 从网格视图中删除
+                    const gridItems = document.querySelectorAll('#custom-categories-grid .category-item');
+                    gridItems.forEach(item => {
+                        if (item.querySelector('.category-name').textContent === categoryName) {
+                            item.remove();
+                        }
+                    });
+                }
+            });
+        });
+
+        // 初始化视图
+        gridView.forEach(grid => grid.style.display = 'grid');
+        listView.forEach(list => list.style.display = 'none');
+
+        // 初始化编辑模式
+        document.querySelectorAll('.category-actions').forEach(actions => {
+            actions.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
