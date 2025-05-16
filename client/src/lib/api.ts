@@ -16,6 +16,9 @@ api.interceptors.request.use(
   (config) => {
     // 从localStorage获取token
     const token = localStorage.getItem("auth-token");
+    console.log("API请求:", config.method?.toUpperCase(), config.url);
+    console.log("请求头:", config.headers);
+    console.log("认证Token:", token ? "存在" : "不存在");
 
     // 如果token存在，添加到请求头
     if (token) {
@@ -25,6 +28,7 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    console.error("API请求拦截器错误:", error);
     return Promise.reject(error);
   }
 );
@@ -32,11 +36,17 @@ api.interceptors.request.use(
 // 响应拦截器
 api.interceptors.response.use(
   (response) => {
+    console.log("API响应:", response.status, response.config.url);
+    console.log("响应数据:", response.data);
     return response;
   },
   (error: AxiosError) => {
+    console.error("API响应错误:", error.message);
+    console.error("错误详情:", error.response?.status, error.response?.data);
+
     // 处理401错误（未授权）
     if (error.response?.status === 401) {
+      console.log("未授权错误，清除认证信息");
       // 清除本地存储的认证信息
       localStorage.removeItem("auth-token");
       localStorage.removeItem("user");

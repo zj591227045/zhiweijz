@@ -5,14 +5,17 @@ import { generateToken } from '../utils/jwt';
 import { PasswordResetTokenRepository } from '../repositories/password-reset-token.repository';
 import { emailService } from '../utils/email';
 import { config } from '../config';
+import { AccountBookService } from './account-book.service';
 
 export class AuthService {
   private userService: UserService;
   private passwordResetTokenRepository: PasswordResetTokenRepository;
+  private accountBookService: AccountBookService;
 
   constructor() {
     this.userService = new UserService();
     this.passwordResetTokenRepository = new PasswordResetTokenRepository();
+    this.accountBookService = new AccountBookService();
   }
 
   /**
@@ -48,6 +51,15 @@ export class AuthService {
     try {
       // 创建用户
       const newUser = await this.userService.createUser(userData);
+
+      // 为新用户创建默认账本
+      try {
+        await this.accountBookService.createDefaultAccountBook(newUser.id);
+        console.log(`已为用户 ${newUser.id} 创建默认账本`);
+      } catch (accountBookError) {
+        console.error('创建默认账本失败:', accountBookError);
+        // 不影响用户注册流程，继续执行
+      }
 
       // 生成JWT令牌
       const token = generateToken({

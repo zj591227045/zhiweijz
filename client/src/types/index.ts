@@ -179,6 +179,31 @@ export interface StatisticsResponse {
   dailyStatistics: DailyStatistics[];
 }
 
+export interface BudgetStatistics {
+  totalBudget: number;
+  totalSpent: number;
+  remaining: number;
+  percentage: number;
+  categories: BudgetCategoryStatistics[];
+}
+
+export interface BudgetCategoryStatistics {
+  category: {
+    id: string;
+    name: string;
+    icon?: string;
+  };
+  budget: number;
+  spent: number;
+  remaining: number;
+  percentage: number;
+}
+
+export interface TransactionGroup {
+  date: string;
+  transactions: Transaction[];
+}
+
 /**
  * API响应类型
  */

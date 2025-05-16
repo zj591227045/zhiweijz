@@ -9,7 +9,21 @@ export function ThemeSwitcher() {
 
   // 应用主题配置
   useEffect(() => {
+    // 强制应用主题配置
     applyThemeConfig({ theme, themeColor });
+
+    // 添加主题变更事件监听器
+    const handleThemeChange = () => {
+      console.log("主题变更事件触发，重新应用主题");
+      applyThemeConfig({ theme, themeColor });
+    };
+
+    window.addEventListener('themechange', handleThemeChange);
+
+    // 组件卸载时移除事件监听器
+    return () => {
+      window.removeEventListener('themechange', handleThemeChange);
+    };
   }, [theme, themeColor]);
 
   // 处理主题切换

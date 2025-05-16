@@ -115,6 +115,19 @@ body.dark {
     box-shadow: 0 0 0 2px rgba(var(--primary), 0.3);
 }
 
+/* 确保主题选项样式不受其他样式影响 */
+.theme-switcher .theme-option {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
+    padding: 0 !important;
+    margin: 0 4px !important;
+    display: block !important;
+}
+
 .theme-option.default {
     background-color: rgb(59, 130, 246);
 }
