@@ -1,0 +1,238 @@
+import { Family, FamilyMember, Invitation, Prisma, Role } from '@prisma/client';
+import prisma from '../config/database';
+
+/**
+ * 包含家庭和成员的家庭详情
+ */
+export interface FamilyWithMembers extends Family {
+  members: FamilyMember[];
+}
+
+/**
+ * 包含家庭和创建者的家庭信息
+ */
+export interface FamilyWithCreator extends Family {
+  creator: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+/**
+ * 家庭仓库
+ */
+export class FamilyRepository {
+  /**
+   * 创建家庭
+   */
+  async createFamily(userId: string, name: string): Promise<Family> {
+    return prisma.family.create({
+      data: {
+        name,
+        createdBy: userId,
+      },
+    });
+  }
+
+  /**
+   * 根据ID查找家庭
+   */
+  async findFamilyById(id: string): Promise<FamilyWithMembers | null> {
+    return prisma.family.findUnique({
+      where: { id },
+      include: {
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  /**
+   * 查找用户创建的家庭
+   */
+  async findFamiliesByCreatorId(userId: string): Promise<FamilyWithCreator[]> {
+    return prisma.family.findMany({
+      where: { createdBy: userId },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
+  /**
+   * 查找用户所属的家庭
+   */
+  async findFamiliesByMemberId(userId: string): Promise<Family[]> {
+    const familyMembers = await prisma.familyMember.findMany({
+      where: { userId },
+      select: { familyId: true },
+    });
+
+    const familyIds = familyMembers.map((member: { familyId: string }) => member.familyId);
+
+    return prisma.family.findMany({
+      where: { id: { in: familyIds } },
+    });
+  }
+
+  /**
+   * 查找用户的所有家庭（包括创建的和加入的）
+   */
+  async findAllFamiliesByUserId(userId: string): Promise<Family[]> {
+    const createdFamilies = await this.findFamiliesByCreatorId(userId);
+    const memberFamilies = await this.findFamiliesByMemberId(userId);
+
+    // 合并并去重
+    const allFamilies = [...createdFamilies, ...memberFamilies];
+    const uniqueFamilies = allFamilies.filter((family, index, self) =>
+      index === self.findIndex(f => f.id === family.id)
+    );
+
+    return uniqueFamilies;
+  }
+
+  /**
+   * 更新家庭
+   */
+  async updateFamily(id: string, data: { name?: string }): Promise<Family> {
+    return prisma.family.update({
+      where: { id },
+      data,
+    });
+  }
+
+  /**
+   * 删除家庭
+   */
+  async deleteFamily(id: string): Promise<Family> {
+    return prisma.family.delete({
+      where: { id },
+    });
+  }
+
+  /**
+   * 创建家庭成员
+   */
+  async createFamilyMember(data: {
+    familyId: string;
+    userId?: string;
+    name: string;
+    role: Role;
+    isRegistered: boolean;
+  }): Promise<FamilyMember> {
+    return prisma.familyMember.create({
+      data,
+    });
+  }
+
+  /**
+   * 查找家庭成员
+   */
+  async findFamilyMemberById(id: string): Promise<FamilyMember | null> {
+    return prisma.familyMember.findUnique({
+      where: { id },
+    });
+  }
+
+  /**
+   * 查找用户在家庭中的成员记录
+   */
+  async findFamilyMemberByUserAndFamily(userId: string, familyId: string): Promise<FamilyMember | null> {
+    return prisma.familyMember.findFirst({
+      where: {
+        userId,
+        familyId,
+      },
+    });
+  }
+
+  /**
+   * 查找家庭的所有成员
+   */
+  async findFamilyMembers(familyId: string): Promise<FamilyMember[]> {
+    return prisma.familyMember.findMany({
+      where: { familyId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
+  /**
+   * 更新家庭成员
+   */
+  async updateFamilyMember(id: string, data: {
+    name?: string;
+    role?: Role;
+  }): Promise<FamilyMember> {
+    return prisma.familyMember.update({
+      where: { id },
+      data,
+    });
+  }
+
+  /**
+   * 删除家庭成员
+   */
+  async deleteFamilyMember(id: string): Promise<FamilyMember> {
+    return prisma.familyMember.delete({
+      where: { id },
+    });
+  }
+
+  /**
+   * 创建邀请
+   */
+  async createInvitation(familyId: string, invitationCode: string, expiresAt: Date): Promise<Invitation> {
+    return prisma.invitation.create({
+      data: {
+        familyId,
+        invitationCode,
+        expiresAt,
+      },
+    });
+  }
+
+  /**
+   * 根据邀请码查找邀请
+   */
+  async findInvitationByCode(invitationCode: string): Promise<Invitation | null> {
+    return prisma.invitation.findUnique({
+      where: { invitationCode },
+      include: {
+        family: true,
+      },
+    });
+  }
+
+  /**
+   * 删除邀请
+   */
+  async deleteInvitation(id: string): Promise<Invitation> {
+    return prisma.invitation.delete({
+      where: { id },
+    });
+  }
+}

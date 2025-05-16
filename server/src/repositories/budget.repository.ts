@@ -179,4 +179,31 @@ export class BudgetRepository {
       },
     });
   }
+
+  /**
+   * 根据周期和日期范围查找预算
+   */
+  async findByPeriodAndDate(
+    userId: string,
+    period: BudgetPeriod,
+    startDate: Date,
+    endDate: Date,
+    familyId?: string
+  ): Promise<BudgetWithCategory[]> {
+    return prisma.budget.findMany({
+      where: {
+        userId,
+        period,
+        startDate: { lte: endDate },
+        OR: [
+          { endDate: null },
+          { endDate: { gte: startDate } },
+        ] as Prisma.BudgetWhereInput[],
+        ...(familyId && { familyId }),
+      },
+      include: {
+        category: true,
+      },
+    });
+  }
 }

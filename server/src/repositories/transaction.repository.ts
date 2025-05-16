@@ -167,4 +167,30 @@ export class TransactionRepository {
       count: Number(result.count),
     }));
   }
+
+  /**
+   * 根据日期范围查找交易记录
+   */
+  async findByDateRange(
+    userId: string,
+    type: TransactionType,
+    startDate: Date,
+    endDate: Date,
+    familyId?: string
+  ): Promise<any[]> {
+    return prisma.transaction.findMany({
+      where: {
+        userId,
+        type,
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+        ...(familyId && { familyId }),
+      },
+      include: {
+        category: true,
+      },
+    });
+  }
 }

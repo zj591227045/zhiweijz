@@ -6,11 +6,12 @@ import categoryRoutes from './category.routes';
 import transactionRoutes from './transaction.routes';
 import budgetRoutes from './budget.routes';
 import accountBookRoutes from './account-book.routes';
+import familyRoutes from './family.routes';
+import statisticsRoutes from './statistics.routes';
 
 const router = Router();
 
 // 导入各模块路由
-// import familyRoutes from './family.routes';
 // import aiRoutes from './ai.routes';
 
 // 注册路由
@@ -21,7 +22,8 @@ router.use('/categories', categoryRoutes);
 router.use('/transactions', transactionRoutes);
 router.use('/budgets', budgetRoutes);
 router.use('/account-books', accountBookRoutes);
-// router.use('/families', familyRoutes);
+router.use('/families', familyRoutes);
+router.use('/statistics', statisticsRoutes);
 // router.use('/ai', aiRoutes);
 
 export default router;
