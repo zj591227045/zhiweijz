@@ -1,11 +1,42 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import dayjs from "dayjs";
 
 /**
  * 合并Tailwind CSS类名
  */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+/**
+ * 格式化日期为输入框格式 (YYYY-MM-DD)
+ */
+export function formatDateForInput(date: Date): string {
+  return dayjs(date).format("YYYY-MM-DD");
+}
+
+/**
+ * 格式化日期为API格式 (ISO 8601)
+ */
+export function formatDateForAPI(date: Date): string {
+  return date.toISOString();
+}
+
+/**
+ * 获取当前月份字符串
+ */
+export function getCurrentMonthString(): string {
+  return dayjs().format("YYYY-MM");
+}
+
+/**
+ * 获取当前月份的开始和结束日期
+ */
+export function getCurrentMonthRange(): { startDate: string; endDate: string } {
+  const startDate = dayjs().startOf("month").format("YYYY-MM-DD");
+  const endDate = dayjs().endOf("month").format("YYYY-MM-DD");
+  return { startDate, endDate };
 }
 
 /**
@@ -38,10 +69,10 @@ export function getRelativeTime(date: Date | string) {
   const dayjs = require("dayjs");
   const relativeTime = require("dayjs/plugin/relativeTime");
   const zhCN = require("dayjs/locale/zh-cn");
-  
+
   dayjs.extend(relativeTime);
   dayjs.locale("zh-cn");
-  
+
   return dayjs(date).fromNow();
 }
 
@@ -56,7 +87,7 @@ export function debounce<T extends (...args: any[]) => any>(
   ms: number
 ): (...args: Parameters<T>) => void {
   let timeoutId: ReturnType<typeof setTimeout>;
-  
+
   return function(this: any, ...args: Parameters<T>) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => fn.apply(this, args), ms);
@@ -74,7 +105,7 @@ export function throttle<T extends (...args: any[]) => any>(
   ms: number
 ): (...args: Parameters<T>) => void {
   let lastTime = 0;
-  
+
   return function(this: any, ...args: Parameters<T>) {
     const now = Date.now();
     if (now - lastTime >= ms) {
