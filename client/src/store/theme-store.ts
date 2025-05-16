@@ -30,99 +30,93 @@ export function applyThemeConfig(config: ThemeConfig): void {
   if (typeof window !== "undefined" && typeof document !== "undefined") {
     // 应用主题
     const html = document.documentElement;
-    const body = document.body;
 
-    // 强制清除所有主题相关的类和属性，确保没有冲突
-    html.classList.remove("dark", "light", "theme-blue", "theme-green", "theme-purple");
-    body.classList.remove("dark", "light", "theme-blue", "theme-green", "theme-purple");
-
-    // 移除所有data-theme相关属性
-    html.removeAttribute("data-theme");
-    html.removeAttribute("data-theme-color");
-
-    // 重置内联样式
-    body.style.backgroundColor = "";
-    body.style.color = "";
-
-    // 设置暗色/亮色模式
-    if (config.theme === "dark") {
-      html.classList.add("dark");
-      body.classList.add("dark");
-      html.setAttribute("data-theme", "dark");
-      body.style.backgroundColor = "#111827"; // 暗色背景色
-      body.style.color = "#f3f4f6"; // 暗色文本色
-    } else {
-      html.classList.add("light");
-      body.classList.add("light");
-
-      // 设置主题色
-      if (config.themeColor === "blue") {
-        html.setAttribute("data-theme", "default");
-        html.classList.add("theme-blue");
+    // 使用requestAnimationFrame批量处理DOM操作，减少重绘
+    requestAnimationFrame(() => {
+      // 设置暗色/亮色模式
+      if (config.theme === "dark") {
+        html.classList.remove("light");
+        html.classList.add("dark");
+        html.setAttribute("data-theme", "dark");
       } else {
-        html.setAttribute("data-theme", config.themeColor);
-        html.classList.add(`theme-${config.themeColor}`);
+        html.classList.remove("dark");
+        html.classList.add("light");
+
+        // 设置主题色
+        html.setAttribute("data-theme", config.themeColor === "blue" ? "default" : config.themeColor);
       }
-    }
 
-    // 直接应用CSS变量到根元素，确保最高优先级
-    applyThemeVariables(config);
+      // 设置主题色类
+      html.classList.remove("theme-blue", "theme-green", "theme-purple");
+      html.classList.add(`theme-${config.themeColor}`);
 
-    // 触发重绘
-    setTimeout(() => {
-      const event = new Event('themechange');
-      window.dispatchEvent(event);
-    }, 0);
+      // 直接应用CSS变量到根元素，确保最高优先级
+      applyThemeVariables(config);
+    });
   }
 }
+
+// 缓存主题变量，避免重复计算
+const themeVariables = {
+  light: {
+    background: "249, 250, 251",
+    foreground: "31, 41, 55",
+    card: "255, 255, 255",
+    cardForeground: "31, 41, 55",
+    muted: "243, 244, 246",
+    mutedForeground: "107, 114, 128",
+    border: "229, 231, 235"
+  },
+  dark: {
+    background: "17, 24, 39",
+    foreground: "243, 244, 246",
+    card: "31, 41, 55",
+    cardForeground: "243, 244, 246",
+    muted: "55, 65, 81",
+    mutedForeground: "156, 163, 175",
+    border: "55, 65, 81"
+  },
+  colors: {
+    blue: {
+      primary: "59, 130, 246",
+      primaryForeground: "255, 255, 255",
+      ring: "59, 130, 246"
+    },
+    green: {
+      primary: "16, 185, 129",
+      primaryForeground: "255, 255, 255",
+      ring: "16, 185, 129"
+    },
+    purple: {
+      primary: "139, 92, 246",
+      primaryForeground: "255, 255, 255",
+      ring: "139, 92, 246"
+    }
+  }
+};
 
 // 直接应用主题变量到根元素
 function applyThemeVariables(config: ThemeConfig): void {
   const { theme, themeColor } = config;
   const root = document.documentElement;
 
-  // 清除之前的内联样式变量
-  root.style.cssText = "";
+  // 获取主题变量
+  const baseVars = themeVariables[theme];
+  const colorVars = themeVariables.colors[themeColor];
 
   // 应用基础变量
-  if (theme === "dark") {
-    // 暗色主题变量
-    root.style.setProperty("--background", "17, 24, 39");
-    root.style.setProperty("--foreground", "243, 244, 246");
-    root.style.setProperty("--card", "31, 41, 55");
-    root.style.setProperty("--card-foreground", "243, 244, 246");
-    root.style.setProperty("--muted", "55, 65, 81");
-    root.style.setProperty("--muted-foreground", "156, 163, 175");
-    root.style.setProperty("--border", "55, 65, 81");
-  } else {
-    // 亮色主题变量
-    root.style.setProperty("--background", "249, 250, 251");
-    root.style.setProperty("--foreground", "31, 41, 55");
-    root.style.setProperty("--card", "255, 255, 255");
-    root.style.setProperty("--card-foreground", "31, 41, 55");
-    root.style.setProperty("--muted", "243, 244, 246");
-    root.style.setProperty("--muted-foreground", "107, 114, 128");
-    root.style.setProperty("--border", "229, 231, 235");
-  }
+  root.style.setProperty("--background", baseVars.background);
+  root.style.setProperty("--foreground", baseVars.foreground);
+  root.style.setProperty("--card", baseVars.card);
+  root.style.setProperty("--card-foreground", baseVars.cardForeground);
+  root.style.setProperty("--muted", baseVars.muted);
+  root.style.setProperty("--muted-foreground", baseVars.mutedForeground);
+  root.style.setProperty("--border", baseVars.border);
 
   // 应用主题色变量
-  switch (themeColor) {
-    case "blue":
-      root.style.setProperty("--primary", "59, 130, 246");
-      root.style.setProperty("--primary-foreground", "255, 255, 255");
-      root.style.setProperty("--ring", "59, 130, 246");
-      break;
-    case "green":
-      root.style.setProperty("--primary", "16, 185, 129");
-      root.style.setProperty("--primary-foreground", "255, 255, 255");
-      root.style.setProperty("--ring", "16, 185, 129");
-      break;
-    case "purple":
-      root.style.setProperty("--primary", "139, 92, 246");
-      root.style.setProperty("--primary-foreground", "255, 255, 255");
-      root.style.setProperty("--ring", "139, 92, 246");
-      break;
-  }
+  root.style.setProperty("--primary", colorVars.primary);
+  root.style.setProperty("--primary-foreground", colorVars.primaryForeground);
+  root.style.setProperty("--ring", colorVars.ring);
 
   // 设置兼容旧版的变量
   root.style.setProperty("--primary-color", `rgb(var(--primary))`);
