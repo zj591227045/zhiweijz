@@ -139,7 +139,7 @@
 **实现**:
 
 ```tsx
-// components/ui/button.tsx
+// /client/src/components/ui/button.tsx
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
@@ -230,7 +230,7 @@ export { Button, buttonVariants };
 **实现**:
 
 ```tsx
-// components/ui/input.tsx
+// /client/src/components/ui/input.tsx
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
@@ -287,7 +287,7 @@ export { Input };
 **实现**:
 
 ```tsx
-// components/ui/card.tsx
+// /client/src/components/ui/card.tsx
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
@@ -382,7 +382,7 @@ export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
 **实现**:
 
 ```tsx
-// components/dashboard/balance-card.tsx
+// /client/src/components/dashboard/balance-card.tsx
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -469,7 +469,7 @@ export function BalanceCard({
 **实现**:
 
 ```tsx
-// components/transactions/transaction-list.tsx
+// /client/src/components/transactions/transaction-list.tsx
 import { useInView } from "react-intersection-observer";
 import { useEffect } from "react";
 import { formatDate, formatCurrency } from "@/lib/utils";
@@ -594,7 +594,7 @@ export function TransactionList({
 **实现**:
 
 ```tsx
-// app/(dashboard)/page.tsx
+// /client/src/app/(dashboard)/page.tsx
 "use client";
 
 import { useEffect } from "react";

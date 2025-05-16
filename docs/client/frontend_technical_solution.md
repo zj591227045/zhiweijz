@@ -76,7 +76,7 @@
 ### 3.1 项目结构
 
 ```
-client/
+/client/
 ├── public/                # 静态资源
 │   ├── fonts/            # 字体文件
 │   ├── images/           # 图片资源
