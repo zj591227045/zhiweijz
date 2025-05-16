@@ -54,7 +54,7 @@ export function RecentTransactions({ groupedTransactions }: RecentTransactionsPr
     <section className="recent-transactions">
       <div className="section-header">
         <h2>最近交易</h2>
-        <Link href="/transactions" className="view-all">查看全部</Link>
+        <Link href="/transactions?refresh=true" className="view-all">查看全部</Link>
       </div>
 
       {groupedTransactions.length > 0 ? (

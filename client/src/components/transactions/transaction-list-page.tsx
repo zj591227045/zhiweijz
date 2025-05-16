@@ -8,7 +8,7 @@ import { TransactionFilters } from "./transaction-filters";
 import { TransactionSummary } from "./transaction-summary";
 import { GroupedTransactionList } from "./grouped-transaction-list";
 import { TransactionEmptyState } from "./transaction-empty-state";
-import { formatCurrency } from "@/lib/utils";
+// import { formatCurrency } from "@/lib/utils";
 import { TransactionType } from "@/types";
 
 export function TransactionListPage() {
@@ -56,6 +56,21 @@ export function TransactionListPage() {
   // 创建滚动容器引用
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  // 检查URL参数，如果有refresh=true，则刷新数据
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('refresh') === 'true') {
+      // 刷新数据
+      setIsRefreshing(true);
+      refetch().finally(() => {
+        setIsRefreshing(false);
+        // 移除refresh参数，避免刷新页面时重复刷新数据
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      });
+    }
+  }, [refetch, setIsRefreshing]);
+
   // 处理滚动加载更多
   const handleScroll = () => {
     if (!scrollContainerRef.current) return;
@@ -70,12 +85,7 @@ export function TransactionListPage() {
     }
   };
 
-  // 处理下拉刷新
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await refetch();
-    setIsRefreshing(false);
-  };
+  // 注意：下拉刷新功能已通过URL参数实现
 
   // 添加滚动事件监听
   useEffect(() => {
