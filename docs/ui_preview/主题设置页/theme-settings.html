@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主题设置 - 只为记账</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="themes.css">
+    <style>
+        .section-header {
+            margin-bottom: 16px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .theme-card {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .theme-card.active {
+            border: 2px solid var(--primary-color);
+            padding: 14px;
+        }
+        
+        .theme-card.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 32px 32px 0;
+            border-color: transparent var(--primary-color) transparent transparent;
+        }
+        
+        .theme-card.active::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .theme-preview {
+            width: 100%;
+            height: 80px;
+            border-radius: var(--border-radius);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .preview-header {
+            height: 20px;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+        }
+        
+        .preview-content {
+            height: 60px;
+            background-color: var(--background-color);
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .preview-card {
+            background-color: var(--card-background);
+            border-radius: 4px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            padding: 0 6px;
+            font-size: 8px;
+            color: var(--text-primary);
+        }
+        
+        .preview-button {
+            background-color: var(--primary-color);
+            border-radius: 4px;
+            height: 16px;
+            width: 40px;
+            margin-left: auto;
+            margin-right: 6px;
+        }
+        
+        .theme-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .custom-theme-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .custom-theme-item {
+            display: flex;
+            align-items: center;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .theme-color-preview {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 16px;
+        }
+        
+        .theme-info {
+            flex: 1;
+        }
+        
+        .custom-theme-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .theme-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .theme-action {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        .theme-action:hover {
+            color: var(--primary-color);
+        }
+        
+        .theme-action.delete:hover {
+            color: var(--error-color);
+        }
+        
+        .create-theme-button {
+            background-color: var(--background-color);
+            border: 1px dashed var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            color: var(--primary-color);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 24px;
+        }
+        
+        .create-theme-button:hover {
+            background-color: rgba(var(--primary), 0.05);
+        }
+        
+        .import-export-buttons {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .import-button, .export-button {
+            flex: 1;
+            background-color: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .import-button:hover, .export-button:hover {
+            background-color: rgba(var(--muted), 0.1);
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .modal-content {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 320px;
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .modal-body {
+            padding: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-label {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            color: var(--text-primary);
+            background-color: var(--background-color);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .color-picker-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .color-picker-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .color-picker-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .color-picker {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 0;
+        }
+        
+        .color-name {
+            flex: 1;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .modal-footer {
+            display: flex;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .modal-button {
+            flex: 1;
+            padding: 14px;
+            text-align: center;
+            font-size: 16px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .modal-button.cancel {
+            color: var(--text-secondary);
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .modal-button.confirm {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+    </style>
+    <script src="theme-switcher.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div class="header-title">主题设置</div>
+        </div>
+        
+        <div class="main-content">
+            <div class="section-header">
+                <div class="section-title">内置主题</div>
+            </div>
+            
+            <div class="theme-grid">
+                <div class="theme-card active" data-theme="default">
+                    <div class="theme-preview">
+                        <div class="preview-header">标题栏</div>
+                        <div class="preview-content">
+                            <div class="preview-card">内容卡片</div>
+                            <div class="preview-button"></div>
+                        </div>
+                    </div>
+                    <div class="theme-name">默认主题</div>
+                </div>
+                
+                <div class="theme-card" data-theme="dark">
+                    <div class="theme-preview" style="--background-color: #111827; --card-background: #1F2937; --primary-color: #3B82F6; --text-primary: #F9FAFB;">
+                        <div class="preview-header">标题栏</div>
+                        <div class="preview-content">
+                            <div class="preview-card">内容卡片</div>
+                            <div class="preview-button"></div>
+                        </div>
+                    </div>
+                    <div class="theme-name">暗色主题</div>
+                </div>
+                
+                <div class="theme-card" data-theme="green">
+                    <div class="theme-preview" style="--primary-color: #10B981;">
+                        <div class="preview-header">标题栏</div>
+                        <div class="preview-content">
+                            <div class="preview-card">内容卡片</div>
+                            <div class="preview-button"></div>
+                        </div>
+                    </div>
+                    <div class="theme-name">绿色主题</div>
+                </div>
+                
+                <div class="theme-card" data-theme="purple">
+                    <div class="theme-preview" style="--primary-color: #8B5CF6;">
+                        <div class="preview-header">标题栏</div>
+                        <div class="preview-content">
+                            <div class="preview-card">内容卡片</div>
+                            <div class="preview-button"></div>
+                        </div>
+                    </div>
+                    <div class="theme-name">紫色主题</div>
+                </div>
+            </div>
+            
+            <div class="section-header">
+                <div class="section-title">自定义主题</div>
+            </div>
+            
+            <div class="custom-theme-list">
+                <div class="custom-theme-item">
+                    <div class="theme-color-preview" style="background-color: #F97316;"></div>
+                    <div class="theme-info">
+                        <div class="custom-theme-name">橙色主题</div>
+                    </div>
+                    <div class="theme-actions">
+                        <button class="theme-action edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="theme-action delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="custom-theme-item">
+                    <div class="theme-color-preview" style="background-color: #EC4899;"></div>
+                    <div class="theme-info">
+                        <div class="custom-theme-name">粉色主题</div>
+                    </div>
+                    <div class="theme-actions">
+                        <button class="theme-action edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="theme-action delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="create-theme-button" id="create-theme-button">
+                <i class="fas fa-plus"></i>
+                <span>创建新主题</span>
+            </div>
+            
+            <div class="import-export-buttons">
+                <button class="import-button" id="import-button">
+                    <i class="fas fa-file-import"></i>
+                    <span>导入主题</span>
+                </button>
+                <button class="export-button" id="export-button">
+                    <i class="fas fa-file-export"></i>
+                    <span>导出主题</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="bottom-nav">
+            <a href="index.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>首页</span>
+            </a>
+            <a href="statistics.html" class="nav-item">
+                <i class="fas fa-chart-pie"></i>
+                <span>统计</span>
+            </a>
+            <a href="add_transaction_improved.html" class="nav-item add-button">
+                <div class="add-icon">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <span>添加</span>
+            </a>
+            <a href="budget.html" class="nav-item">
+                <i class="fas fa-wallet"></i>
+                <span>预算</span>
+            </a>
+            <a href="settings.html" class="nav-item active">
+                <i class="fas fa-user"></i>
+                <span>我的</span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- 创建/编辑主题对话框 -->
+    <div class="modal-overlay" id="theme-modal">
+        <div class="modal-content">
+            <div class="modal-header" id="modal-title">创建主题</div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="theme-name">主题名称</label>
+                    <input type="text" id="theme-name" class="form-input" placeholder="请输入主题名称">
+                </div>
+                
+                <div class="color-picker-group">
+                    <div class="color-picker-label">主要颜色</div>
+                    <div class="color-picker-row">
+                        <input type="color" id="primary-color" class="color-picker" value="#3B82F6">
+                        <div class="color-name">主色调</div>
+                    </div>
+                    <div class="color-picker-row">
+                        <input type="color" id="secondary-color" class="color-picker" value="#10B981">
+                        <div class="color-name">辅助色</div>
+                    </div>
+                </div>
+                
+                <div class="color-picker-group">
+                    <div class="color-picker-label">背景颜色</div>
+                    <div class="color-picker-row">
+                        <input type="color" id="background-color" class="color-picker" value="#F9FAFB">
+                        <div class="color-name">背景色</div>
+                    </div>
+                    <div class="color-picker-row">
+                        <input type="color" id="card-color" class="color-picker" value="#FFFFFF">
+                        <div class="color-name">卡片背景</div>
+                    </div>
+                </div>
+                
+                <div class="color-picker-group">
+                    <div class="color-picker-label">文本颜色</div>
+                    <div class="color-picker-row">
+                        <input type="color" id="text-primary-color" class="color-picker" value="#1F2937">
+                        <div class="color-name">主要文本</div>
+                    </div>
+                    <div class="color-picker-row">
+                        <input type="color" id="text-secondary-color" class="color-picker" value="#6B7280">
+                        <div class="color-name">次要文本</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-button cancel" id="cancel-theme">取消</button>
+                <button class="modal-button confirm" id="save-theme">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 主题切换
+        document.querySelectorAll('.theme-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const theme = this.dataset.theme;
+                
+                // 更新激活状态
+                document.querySelectorAll('.theme-card').forEach(c => {
+                    c.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // 应用主题
+                document.documentElement.setAttribute('data-theme', theme);
+                
+                // 在实际应用中，这里会保存主题设置
+                console.log('切换到主题:', theme);
+            });
+        });
+        
+        // 创建主题
+        document.getElementById('create-theme-button').addEventListener('click', function() {
+            // 重置表单
+            document.getElementById('modal-title').textContent = '创建主题';
+            document.getElementById('theme-name').value = '';
+            document.getElementById('primary-color').value = '#3B82F6';
+            document.getElementById('secondary-color').value = '#10B981';
+            document.getElementById('background-color').value = '#F9FAFB';
+            document.getElementById('card-color').value = '#FFFFFF';
+            document.getElementById('text-primary-color').value = '#1F2937';
+            document.getElementById('text-secondary-color').value = '#6B7280';
+            
+            // 显示对话框
+            document.getElementById('theme-modal').style.display = 'flex';
+        });
+        
+        // 编辑主题
+        document.querySelectorAll('.theme-action.edit').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                
+                const themeItem = this.closest('.custom-theme-item');
+                const themeName = themeItem.querySelector('.custom-theme-name').textContent;
+                const themeColor = themeItem.querySelector('.theme-color-preview').style.backgroundColor;
+                
+                // 设置表单值
+                document.getElementById('modal-title').textContent = '编辑主题';
+                document.getElementById('theme-name').value = themeName;
+                
+                // 在实际应用中，这里会获取完整的主题配置
+                // 这里简化为只设置主色调
+                document.getElementById('primary-color').value = rgbToHex(themeColor);
+                
+                // 显示对话框
+                document.getElementById('theme-modal').style.display = 'flex';
+            });
+        });
+        
+        // 删除主题
+        document.querySelectorAll('.theme-action.delete').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                
+                const themeItem = this.closest('.custom-theme-item');
+                const themeName = themeItem.querySelector('.custom-theme-name').textContent;
+                
+                if (confirm(`确定要删除主题"${themeName}"吗？`)) {
+                    // 在实际应用中，这里会发送删除请求
+                    themeItem.remove();
+                }
+            });
+        });
+        
+        // 取消按钮
+        document.getElementById('cancel-theme').addEventListener('click', function() {
+            document.getElementById('theme-modal').style.display = 'none';
+        });
+        
+        // 保存主题
+        document.getElementById('save-theme').addEventListener('click', function() {
+            const themeName = document.getElementById('theme-name').value.trim();
+            const primaryColor = document.getElementById('primary-color').value;
+            
+            if (!themeName) {
+                alert('请输入主题名称');
+                return;
+            }
+            
+            // 在实际应用中，这里会发送保存请求
+            console.log('保存主题:', themeName, primaryColor);
+            
+            // 模拟添加到UI
+            const themeItem = document.createElement('div');
+            themeItem.className = 'custom-theme-item';
+            themeItem.innerHTML = `
+                <div class="theme-color-preview" style="background-color: ${primaryColor};"></div>
+                <div class="theme-info">
+                    <div class="custom-theme-name">${themeName}</div>
+                </div>
+                <div class="theme-actions">
+                    <button class="theme-action edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="theme-action delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            
+            document.querySelector('.custom-theme-list').appendChild(themeItem);
+            
+            // 添加事件监听器
+            const editButton = themeItem.querySelector('.edit');
+            const deleteButton = themeItem.querySelector('.delete');
+            
+            editButton.addEventListener('click', function(e) {
+                e.stopPropagation();
+                
+                document.getElementById('modal-title').textContent = '编辑主题';
+                document.getElementById('theme-name').value = themeName;
+                document.getElementById('primary-color').value = primaryColor;
+                
+                document.getElementById('theme-modal').style.display = 'flex';
+            });
+            
+            deleteButton.addEventListener('click', function(e) {
+                e.stopPropagation();
+                
+                if (confirm(`确定要删除主题"${themeName}"吗？`)) {
+                    themeItem.remove();
+                }
+            });
+            
+            // 关闭对话框
+            document.getElementById('theme-modal').style.display = 'none';
+        });
+        
+        // 导入主题
+        document.getElementById('import-button').addEventListener('click', function() {
+            // 在实际应用中，这里会打开文件选择器
+            console.log('导入主题');
+        });
+        
+        // 导出主题
+        document.getElementById('export-button').addEventListener('click', function() {
+            // 在实际应用中，这里会导出主题配置
+            console.log('导出主题');
+        });
+        
+        // RGB颜色转十六进制
+        function rgbToHex(rgb) {
+            // 提取RGB值
+            const match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+            if (!match) return '#000000';
+            
+            function hex(x) {
+                return ("0" + parseInt(x).toString(16)).slice(-2);
+            }
+            
+            return "#" + hex(match[1]) + hex(match[2]) + hex(match[3]);
+        }
+    </script>
+</body>
+</html>

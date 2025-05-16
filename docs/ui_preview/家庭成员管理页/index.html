@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>只为记账 - 成员管理</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="themes.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .members-list {
+            margin-bottom: 20px;
+        }
+        
+        .member-card {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        
+        .member-header {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .member-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 20px;
+            margin-right: 16px;
+        }
+        
+        .member-info {
+            flex: 1;
+        }
+        
+        .member-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .current-user-badge {
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+        
+        .member-role {
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+        }
+        
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 8px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .admin-badge {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .member-badge {
+            background-color: rgba(107, 114, 128, 0.1);
+            color: var(--text-secondary);
+        }
+        
+        .member-actions {
+            display: flex;
+            align-items: center;
+        }
+        
+        .action-button {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--background-color);
+            color: var(--text-secondary);
+            margin-left: 8px;
+            cursor: pointer;
+        }
+        
+        .action-button.danger {
+            color: var(--error-color);
+        }
+        
+        .member-details {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .detail-column {
+            flex: 1;
+        }
+        
+        .detail-item {
+            margin-bottom: 12px;
+        }
+        
+        .detail-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .detail-value {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .stats-column {
+            flex: 1;
+            text-align: right;
+        }
+        
+        .stats-item {
+            margin-bottom: 12px;
+        }
+        
+        .stats-value {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .expense-value {
+            color: var(--error-color);
+        }
+        
+        .stats-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .role-selector {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .role-label {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-right: 12px;
+        }
+        
+        .role-options {
+            flex: 1;
+            display: flex;
+            background-color: var(--background-color);
+            border-radius: 8px;
+            padding: 4px;
+        }
+        
+        .role-option {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            border: none;
+            background: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+        
+        .role-option.active {
+            background-color: var(--card-background);
+            color: var(--primary-color);
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 24px 0 16px;
+        }
+        
+        .invitation-section {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .invite-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .invite-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(59, 130, 246, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            margin-right: 12px;
+        }
+        
+        .invite-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .invite-code-container {
+            background-color: var(--background-color);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        
+        .invite-code {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+        
+        .invite-expiry {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .invite-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .invite-button {
+            flex: 1;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .copy-button {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .share-button {
+            background-color: var(--background-color);
+            color: var(--text-primary);
+        }
+        
+        .invite-button i {
+            margin-right: 8px;
+        }
+        
+        .qr-code-container {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        
+        .qr-code {
+            width: 150px;
+            height: 150px;
+            background-color: var(--background-color);
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+        }
+        
+        .qr-code-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .expiry-selector {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background-color: var(--background-color);
+            border-radius: var(--border-radius);
+        }
+        
+        .expiry-label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .expiry-value {
+            display: flex;
+            align-items: center;
+            color: var(--primary-color);
+        }
+        
+        .expiry-value i {
+            margin-left: 8px;
+        }
+        
+        .stats-overview {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .period-selector {
+            display: flex;
+            background-color: var(--background-color);
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+        
+        .period-tab {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            border: none;
+            background: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+        
+        .period-tab.active {
+            background-color: var(--card-background);
+            color: var(--primary-color);
+        }
+        
+        .member-ranking {
+            margin-top: 16px;
+        }
+        
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .ranking-item:last-child {
+            border-bottom: none;
+        }
+        
+        .rank-number {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: var(--background-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            margin-right: 12px;
+        }
+        
+        .rank-number.top-1 {
+            background-color: #FFD700;
+            color: white;
+        }
+        
+        .rank-number.top-2 {
+            background-color: #C0C0C0;
+            color: white;
+        }
+        
+        .rank-number.top-3 {
+            background-color: #CD7F32;
+            color: white;
+        }
+        
+        .ranking-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 12px;
+        }
+        
+        .ranking-details {
+            flex: 1;
+        }
+        
+        .ranking-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .ranking-amount {
+            font-weight: 600;
+            color: var(--error-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <button class="icon-button back-button"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">成员管理</div>
+            <button class="icon-button"><i class="fas fa-user-plus"></i></button>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 成员列表 -->
+            <div class="members-list">
+                <div class="member-card">
+                    <div class="member-header">
+                        <div class="member-avatar">张</div>
+                        <div class="member-info">
+                            <div class="member-name">
+                                张三
+                                <span class="current-user-badge">你</span>
+                            </div>
+                            <div class="member-role">
+                                角色
+                                <span class="role-badge admin-badge">管理员</span>
+                            </div>
+                        </div>
+                        <div class="member-actions">
+                            <div class="action-button">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="member-details">
+                        <div class="detail-column">
+                            <div class="detail-item">
+                                <div class="detail-label">加入时间</div>
+                                <div class="detail-value">2023年1月15日</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">交易次数</div>
+                                <div class="detail-value">45次</div>
+                            </div>
+                        </div>
+                        <div class="stats-column">
+                            <div class="stats-item">
+                                <div class="stats-value expense-value">¥2,500</div>
+                                <div class="stats-label">总消费</div>
+                            </div>
+                            <div class="stats-item">
+                                <div class="stats-value">30%</div>
+                                <div class="stats-label">消费占比</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="member-card">
+                    <div class="member-header">
+                        <div class="member-avatar">李</div>
+                        <div class="member-info">
+                            <div class="member-name">李四</div>
+                            <div class="member-role">
+                                角色
+                                <span class="role-badge member-badge">成员</span>
+                            </div>
+                        </div>
+                        <div class="member-actions">
+                            <div class="action-button danger">
+                                <i class="fas fa-user-times"></i>
+                            </div>
+                            <div class="action-button">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="member-details">
+                        <div class="detail-column">
+                            <div class="detail-item">
+                                <div class="detail-label">加入时间</div>
+                                <div class="detail-value">2023年1月16日</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">交易次数</div>
+                                <div class="detail-value">32次</div>
+                            </div>
+                        </div>
+                        <div class="stats-column">
+                            <div class="stats-item">
+                                <div class="stats-value expense-value">¥1,800</div>
+                                <div class="stats-label">总消费</div>
+                            </div>
+                            <div class="stats-item">
+                                <div class="stats-value">22%</div>
+                                <div class="stats-label">消费占比</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="role-selector">
+                        <div class="role-label">角色权限</div>
+                        <div class="role-options">
+                            <button class="role-option">管理员</button>
+                            <button class="role-option active">成员</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="member-card">
+                    <div class="member-header">
+                        <div class="member-avatar">王</div>
+                        <div class="member-info">
+                            <div class="member-name">王五</div>
+                            <div class="member-role">
+                                角色
+                                <span class="role-badge member-badge">成员</span>
+                            </div>
+                        </div>
+                        <div class="member-actions">
+                            <div class="action-button danger">
+                                <i class="fas fa-user-times"></i>
+                            </div>
+                            <div class="action-button">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="member-details">
+                        <div class="detail-column">
+                            <div class="detail-item">
+                                <div class="detail-label">加入时间</div>
+                                <div class="detail-value">2023年1月18日</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">交易次数</div>
+                                <div class="detail-value">28次</div>
+                            </div>
+                        </div>
+                        <div class="stats-column">
+                            <div class="stats-item">
+                                <div class="stats-value expense-value">¥2,200</div>
+                                <div class="stats-label">总消费</div>
+                            </div>
+                            <div class="stats-item">
+                                <div class="stats-value">26%</div>
+                                <div class="stats-label">消费占比</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 邀请新成员 -->
+            <div class="section-title">邀请新成员</div>
+            
+            <div class="invitation-section">
+                <div class="invite-header">
+                    <div class="invite-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="invite-title">邀请链接</div>
+                </div>
+                
+                <div class="invite-code-container">
+                    <div class="invite-code">ABC123</div>
+                    <div class="invite-expiry">有效期至 2023年6月15日</div>
+                </div>
+                
+                <div class="invite-actions">
+                    <button class="invite-button copy-button">
+                        <i class="fas fa-copy"></i>
+                        <span>复制链接</span>
+                    </button>
+                    <button class="invite-button share-button">
+                        <i class="fas fa-share-alt"></i>
+                        <span>分享</span>
+                    </button>
+                </div>
+                
+                <div class="qr-code-container">
+                    <div class="qr-code">二维码区域</div>
+                    <div class="qr-code-hint">扫描二维码加入家庭</div>
+                </div>
+                
+                <div class="expiry-selector">
+                    <div class="expiry-label">有效期</div>
+                    <div class="expiry-value">
+                        <span>7天</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 成员统计 -->
+            <div class="section-title">成员统计</div>
+            
+            <div class="stats-overview">
+                <div class="period-selector">
+                    <button class="period-tab">全部</button>
+                    <button class="period-tab active">本月</button>
+                    <button class="period-tab">本年</button>
+                </div>
+                
+                <div class="member-ranking">
+                    <div class="ranking-item">
+                        <div class="rank-number top-1">1</div>
+                        <div class="ranking-avatar">张</div>
+                        <div class="ranking-details">
+                            <div class="ranking-name">张三</div>
+                        </div>
+                        <div class="ranking-amount">¥2,500</div>
+                    </div>
+                    
+                    <div class="ranking-item">
+                        <div class="rank-number top-2">2</div>
+                        <div class="ranking-avatar">王</div>
+                        <div class="ranking-details">
+                            <div class="ranking-name">王五</div>
+                        </div>
+                        <div class="ranking-amount">¥2,200</div>
+                    </div>
+                    
+                    <div class="ranking-item">
+                        <div class="rank-number top-3">3</div>
+                        <div class="ranking-avatar">李</div>
+                        <div class="ranking-details">
+                            <div class="ranking-name">李四</div>
+                        </div>
+                        <div class="ranking-amount">¥1,800</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="theme-switcher.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 周期选项切换
+            const periodTabs = document.querySelectorAll('.period-tab');
+            periodTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    periodTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // 角色选项切换
+            const roleOptions = document.querySelectorAll('.role-option');
+            roleOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const optionsContainer = this.parentElement;
+                    optionsContainer.querySelectorAll('.role-option').forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

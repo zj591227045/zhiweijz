@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>只为记账 - 添加/编辑分类</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="themes.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .category-form {
+            padding: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--background-color);
+            color: var(--text-primary);
+        }
+        
+        .type-toggle {
+            display: flex;
+            background-color: var(--background-color);
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+        
+        .type-button {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border: none;
+            background: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .type-button.active {
+            background-color: var(--card-background);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .type-button.expense.active {
+            color: var(--error-color);
+        }
+        
+        .type-button.income.active {
+            color: var(--success-color);
+        }
+        
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            transition: all 0.2s;
+        }
+        
+        .icon-item:hover {
+            background-color: var(--hover-color);
+        }
+        
+        .icon-item.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .icon-wrapper {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--card-background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--primary-color);
+        }
+        
+        .icon-item.active .icon-wrapper {
+            background-color: white;
+        }
+        
+        .color-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .color-option.active {
+            border-color: var(--primary-color);
+            transform: scale(1.1);
+        }
+        
+        .preview-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+        
+        .preview-title {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+        
+        .category-preview {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .preview-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .preview-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .bottom-button-container {
+            padding: 16px;
+            position: sticky;
+            bottom: 0;
+            background-color: var(--background-color);
+        }
+        
+        .save-button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .save-button:hover {
+            background-color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <button class="icon-button back-button"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">添加分类</div>
+            <div></div> <!-- 占位，保持标题居中 -->
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <form class="category-form">
+                <!-- 分类名称 -->
+                <div class="form-group">
+                    <label class="form-label" for="category-name">分类名称</label>
+                    <input type="text" id="category-name" class="form-input" placeholder="输入分类名称" maxlength="20">
+                </div>
+                
+                <!-- 分类类型 -->
+                <div class="form-group">
+                    <label class="form-label">分类类型</label>
+                    <div class="type-toggle">
+                        <button type="button" class="type-button expense active">支出</button>
+                        <button type="button" class="type-button income">收入</button>
+                    </div>
+                </div>
+                
+                <!-- 图标选择 -->
+                <div class="form-group">
+                    <label class="form-label">选择图标</label>
+                    <div class="icon-grid">
+                        <div class="icon-item active">
+                            <div class="icon-wrapper">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                        </div>
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                        </div>
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <i class="fas fa-bus"></i>
+                            </div>
+                        </div>
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <i class="fas fa-home"></i>
+                            </div>
+                        </div>
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <i class="fas fa-tshirt"></i>
+                            </div>
+                        </div>
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <i class="fas fa-gamepad"></i>
+                            </div>
+                        </div>
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <i class="fas fa-heartbeat"></i>
+                            </div>
+                        </div>
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                        </div>
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <i class="fas fa-gift"></i>
+                            </div>
+                        </div>
+                        <div class="icon-item">
+                            <div class="icon-wrapper">
+                                <i class="fas fa-plane"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 颜色选择 -->
+                <div class="form-group">
+                    <label class="form-label">选择颜色</label>
+                    <div class="color-picker">
+                        <div class="color-option active" style="background-color: #FF5722;"></div>
+                        <div class="color-option" style="background-color: #E91E63;"></div>
+                        <div class="color-option" style="background-color: #9C27B0;"></div>
+                        <div class="color-option" style="background-color: #673AB7;"></div>
+                        <div class="color-option" style="background-color: #3F51B5;"></div>
+                        <div class="color-option" style="background-color: #2196F3;"></div>
+                        <div class="color-option" style="background-color: #03A9F4;"></div>
+                        <div class="color-option" style="background-color: #00BCD4;"></div>
+                        <div class="color-option" style="background-color: #009688;"></div>
+                        <div class="color-option" style="background-color: #4CAF50;"></div>
+                        <div class="color-option" style="background-color: #8BC34A;"></div>
+                        <div class="color-option" style="background-color: #CDDC39;"></div>
+                    </div>
+                </div>
+                
+                <!-- 预览 -->
+                <div class="preview-section">
+                    <div class="preview-title">预览效果</div>
+                    <div class="category-preview">
+                        <div class="preview-icon" style="background-color: #FF5722;">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <div class="preview-name">餐饮</div>
+                    </div>
+                </div>
+            </form>
+        </main>
+
+        <!-- 底部按钮 -->
+        <div class="bottom-button-container">
+            <button class="save-button">保存</button>
+        </div>
+    </div>
+
+    <script src="theme-switcher.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 类型切换
+            const expenseButton = document.querySelector('.type-button.expense');
+            const incomeButton = document.querySelector('.type-button.income');
+            
+            expenseButton.addEventListener('click', function() {
+                expenseButton.classList.add('active');
+                incomeButton.classList.remove('active');
+            });
+            
+            incomeButton.addEventListener('click', function() {
+                incomeButton.classList.add('active');
+                expenseButton.classList.remove('active');
+            });
+            
+            // 图标选择
+            const iconItems = document.querySelectorAll('.icon-item');
+            iconItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    iconItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 更新预览
+                    const iconClass = this.querySelector('i').className;
+                    document.querySelector('.preview-icon i').className = iconClass;
+                });
+            });
+            
+            // 颜色选择
+            const colorOptions = document.querySelectorAll('.color-option');
+            colorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    colorOptions.forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 更新预览
+                    const color = this.style.backgroundColor;
+                    document.querySelector('.preview-icon').style.backgroundColor = color;
+                });
+            });
+            
+            // 名称输入
+            const nameInput = document.getElementById('category-name');
+            nameInput.addEventListener('input', function() {
+                document.querySelector('.preview-name').textContent = this.value || '分类名称';
+            });
+        });
+    </script>
+</body>
+</html>

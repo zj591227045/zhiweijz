@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>只为记账 - 账户安全</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="themes.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .security-section {
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin: 24px 0 12px 16px;
+            text-transform: uppercase;
+        }
+        
+        .security-list {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        
+        .security-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+        
+        .security-item:last-child {
+            border-bottom: none;
+        }
+        
+        .security-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(59, 130, 246, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            margin-right: 16px;
+        }
+        
+        .security-details {
+            flex: 1;
+        }
+        
+        .security-title {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .security-description {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .security-status {
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+        }
+        
+        .security-status i {
+            margin-left: 8px;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+        
+        .status-warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-container {
+            width: 90%;
+            max-width: 400px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--background-color);
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        
+        .modal-body {
+            padding: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--background-color);
+            color: var(--text-primary);
+        }
+        
+        .password-input-container {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        
+        .password-strength {
+            margin-top: 8px;
+        }
+        
+        .strength-meter {
+            height: 4px;
+            background-color: var(--background-color);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+        
+        .strength-fill {
+            height: 100%;
+            border-radius: 2px;
+            width: 70%;
+        }
+        
+        .strength-weak {
+            background-color: var(--error-color);
+        }
+        
+        .strength-medium {
+            background-color: var(--warning-color);
+        }
+        
+        .strength-strong {
+            background-color: var(--success-color);
+        }
+        
+        .strength-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .verification-code-container {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .verification-code-input {
+            flex: 1;
+        }
+        
+        .send-code-button {
+            padding: 0 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        
+        .send-code-button:disabled {
+            background-color: var(--border-color);
+            cursor: not-allowed;
+        }
+        
+        .modal-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        
+        .modal-button {
+            padding: 10px 16px;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .cancel-button {
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            border: none;
+        }
+        
+        .submit-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+        
+        .device-list {
+            margin-top: 16px;
+        }
+        
+        .device-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .device-item:last-child {
+            border-bottom: none;
+        }
+        
+        .device-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(59, 130, 246, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            margin-right: 16px;
+        }
+        
+        .device-details {
+            flex: 1;
+        }
+        
+        .device-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .current-device {
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+        
+        .device-info {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .logout-button {
+            padding: 6px 12px;
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+            border-radius: var(--border-radius);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .security-logs {
+            margin-top: 16px;
+        }
+        
+        .log-item {
+            display: flex;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .log-item:last-child {
+            border-bottom: none;
+        }
+        
+        .log-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(59, 130, 246, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            margin-right: 16px;
+        }
+        
+        .log-details {
+            flex: 1;
+        }
+        
+        .log-action {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .log-info {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+        }
+        
+        .log-time {
+            margin-right: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <button class="icon-button back-button"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">账户安全</div>
+            <div></div> <!-- 占位，保持标题居中 -->
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 账户凭证 -->
+            <div class="security-section">
+                <div class="section-title">账户凭证</div>
+                <div class="security-list">
+                    <div class="security-item" id="change-password">
+                        <div class="security-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <div class="security-details">
+                            <div class="security-title">修改密码</div>
+                            <div class="security-description">上次修改：2023年3月15日</div>
+                        </div>
+                        <div class="security-status">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="security-item" id="change-email">
+                        <div class="security-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="security-details">
+                            <div class="security-title">修改邮箱</div>
+                            <div class="security-description">当前邮箱：z****@example.com</div>
+                        </div>
+                        <div class="security-status">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="security-item">
+                        <div class="security-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <div class="security-details">
+                            <div class="security-title">安全问题</div>
+                            <div class="security-description">用于账户恢复</div>
+                        </div>
+                        <div class="security-status">
+                            <span class="status-badge status-active">已设置</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 登录安全 -->
+            <div class="security-section">
+                <div class="section-title">登录安全</div>
+                <div class="security-list">
+                    <div class="security-item" id="device-management">
+                        <div class="security-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="security-details">
+                            <div class="security-title">登录设备管理</div>
+                            <div class="security-description">查看和管理已登录的设备</div>
+                        </div>
+                        <div class="security-status">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="security-item">
+                        <div class="security-icon">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <div class="security-details">
+                            <div class="security-title">登录通知</div>
+                            <div class="security-description">新设备登录时通知我</div>
+                        </div>
+                        <div class="security-status">
+                            <span class="status-badge status-active">已开启</span>
+                        </div>
+                    </div>
+                    
+                    <div class="security-item" id="security-logs">
+                        <div class="security-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div class="security-details">
+                            <div class="security-title">安全日志</div>
+                            <div class="security-description">查看账户安全相关操作记录</div>
+                        </div>
+                        <div class="security-status">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 账户保护 -->
+            <div class="security-section">
+                <div class="section-title">账户保护</div>
+                <div class="security-list">
+                    <div class="security-item">
+                        <div class="security-icon">
+                            <i class="fas fa-envelope-open-text"></i>
+                        </div>
+                        <div class="security-details">
+                            <div class="security-title">账户恢复邮箱</div>
+                            <div class="security-description">用于找回账户</div>
+                        </div>
+                        <div class="security-status">
+                            <span class="status-badge status-warning">未设置</span>
+                        </div>
+                    </div>
+                    
+                    <div class="security-item">
+                        <div class="security-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="security-details">
+                            <div class="security-title">账户冻结保护</div>
+                            <div class="security-description">异常登录时自动冻结账户</div>
+                        </div>
+                        <div class="security-status">
+                            <span class="status-badge status-active">已开启</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- 修改密码模态框 -->
+        <div class="modal-overlay" id="password-modal">
+            <div class="modal-container">
+                <div class="modal-header">
+                    <div class="modal-title">修改密码</div>
+                    <div class="modal-close" id="close-password-modal">
+                        <i class="fas fa-times"></i>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="current-password">当前密码</label>
+                        <div class="password-input-container">
+                            <input type="password" id="current-password" class="form-input" placeholder="输入当前密码">
+                            <div class="password-toggle">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="new-password">新密码</label>
+                        <div class="password-input-container">
+                            <input type="password" id="new-password" class="form-input" placeholder="输入新密码">
+                            <div class="password-toggle">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                        <div class="password-strength">
+                            <div class="strength-meter">
+                                <div class="strength-fill strength-medium"></div>
+                            </div>
+                            <div class="strength-text">
+                                <span>密码强度：中等</span>
+                                <span>至少8个字符</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="confirm-password">确认新密码</label>
+                        <div class="password-input-container">
+                            <input type="password" id="confirm-password" class="form-input" placeholder="再次输入新密码">
+                            <div class="password-toggle">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-button cancel-button" id="cancel-password">取消</button>
+                    <button class="modal-button submit-button">确认修改</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 修改邮箱模态框 -->
+        <div class="modal-overlay" id="email-modal">
+            <div class="modal-container">
+                <div class="modal-header">
+                    <div class="modal-title">修改邮箱</div>
+                    <div class="modal-close" id="close-email-modal">
+                        <i class="fas fa-times"></i>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">当前邮箱</label>
+                        <div class="form-input">z****@example.com</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="new-email">新邮箱</label>
+                        <input type="email" id="new-email" class="form-input" placeholder="输入新邮箱地址">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="verification-code">验证码</label>
+                        <div class="verification-code-container">
+                            <input type="text" id="verification-code" class="form-input verification-code-input" placeholder="输入验证码">
+                            <button class="send-code-button">发送验证码</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-button cancel-button" id="cancel-email">取消</button>
+                    <button class="modal-button submit-button">确认修改</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 登录设备管理模态框 -->
+        <div class="modal-overlay" id="device-modal">
+            <div class="modal-container">
+                <div class="modal-header">
+                    <div class="modal-title">登录设备管理</div>
+                    <div class="modal-close" id="close-device-modal">
+                        <i class="fas fa-times"></i>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="device-list">
+                        <div class="device-item">
+                            <div class="device-icon">
+                                <i class="fas fa-mobile-alt"></i>
+                            </div>
+                            <div class="device-details">
+                                <div class="device-name">
+                                    iPhone 13
+                                    <span class="current-device">当前设备</span>
+                                </div>
+                                <div class="device-info">
+                                    iOS 15.4 · Safari · 北京 · 最后活动：今天
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="device-item">
+                            <div class="device-icon">
+                                <i class="fas fa-laptop"></i>
+                            </div>
+                            <div class="device-details">
+                                <div class="device-name">MacBook Pro</div>
+                                <div class="device-info">
+                                    macOS · Chrome · 北京 · 最后活动：昨天
+                                </div>
+                            </div>
+                            <button class="logout-button">退出</button>
+                        </div>
+                        
+                        <div class="device-item">
+                            <div class="device-icon">
+                                <i class="fas fa-tablet-alt"></i>
+                            </div>
+                            <div class="device-details">
+                                <div class="device-name">iPad Air</div>
+                                <div class="device-info">
+                                    iPadOS · Safari · 上海 · 最后活动：3天前
+                                </div>
+                            </div>
+                            <button class="logout-button">退出</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-button cancel-button" id="close-device-list">关闭</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 安全日志模态框 -->
+        <div class="modal-overlay" id="logs-modal">
+            <div class="modal-container">
+                <div class="modal-header">
+                    <div class="modal-title">安全日志</div>
+                    <div class="modal-close" id="close-logs-modal">
+                        <i class="fas fa-times"></i>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="security-logs">
+                        <div class="log-item">
+                            <div class="log-icon">
+                                <i class="fas fa-sign-in-alt"></i>
+                            </div>
+                            <div class="log-details">
+                                <div class="log-action">登录成功</div>
+                                <div class="log-info">
+                                    <span class="log-time">今天 10:30</span>
+                                    <span class="log-device">iPhone 13 · 北京</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="log-item">
+                            <div class="log-icon">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <div class="log-details">
+                                <div class="log-action">密码修改</div>
+                                <div class="log-info">
+                                    <span class="log-time">2023-03-15 14:20</span>
+                                    <span class="log-device">MacBook Pro · 北京</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="log-item">
+                            <div class="log-icon">
+                                <i class="fas fa-sign-in-alt"></i>
+                            </div>
+                            <div class="log-details">
+                                <div class="log-action">新设备登录</div>
+                                <div class="log-info">
+                                    <span class="log-time">2023-03-10 09:15</span>
+                                    <span class="log-device">iPad Air · 上海</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-button cancel-button" id="close-logs-list">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="theme-switcher.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 修改密码模态框
+            const passwordModal = document.getElementById('password-modal');
+            const changePassword = document.getElementById('change-password');
+            const closePasswordModal = document.getElementById('close-password-modal');
+            const cancelPassword = document.getElementById('cancel-password');
+            
+            changePassword.addEventListener('click', function() {
+                passwordModal.style.display = 'flex';
+            });
+            
+            closePasswordModal.addEventListener('click', function() {
+                passwordModal.style.display = 'none';
+            });
+            
+            cancelPassword.addEventListener('click', function() {
+                passwordModal.style.display = 'none';
+            });
+            
+            // 修改邮箱模态框
+            const emailModal = document.getElementById('email-modal');
+            const changeEmail = document.getElementById('change-email');
+            const closeEmailModal = document.getElementById('close-email-modal');
+            const cancelEmail = document.getElementById('cancel-email');
+            
+            changeEmail.addEventListener('click', function() {
+                emailModal.style.display = 'flex';
+            });
+            
+            closeEmailModal.addEventListener('click', function() {
+                emailModal.style.display = 'none';
+            });
+            
+            cancelEmail.addEventListener('click', function() {
+                emailModal.style.display = 'none';
+            });
+            
+            // 登录设备管理模态框
+            const deviceModal = document.getElementById('device-modal');
+            const deviceManagement = document.getElementById('device-management');
+            const closeDeviceModal = document.getElementById('close-device-modal');
+            const closeDeviceList = document.getElementById('close-device-list');
+            
+            deviceManagement.addEventListener('click', function() {
+                deviceModal.style.display = 'flex';
+            });
+            
+            closeDeviceModal.addEventListener('click', function() {
+                deviceModal.style.display = 'none';
+            });
+            
+            closeDeviceList.addEventListener('click', function() {
+                deviceModal.style.display = 'none';
+            });
+            
+            // 安全日志模态框
+            const logsModal = document.getElementById('logs-modal');
+            const securityLogs = document.getElementById('security-logs');
+            const closeLogsModal = document.getElementById('close-logs-modal');
+            const closeLogsList = document.getElementById('close-logs-list');
+            
+            securityLogs.addEventListener('click', function() {
+                logsModal.style.display = 'flex';
+            });
+            
+            closeLogsModal.addEventListener('click', function() {
+                logsModal.style.display = 'none';
+            });
+            
+            closeLogsList.addEventListener('click', function() {
+                logsModal.style.display = 'none';
+            });
+            
+            // 密码可见性切换
+            const passwordToggles = document.querySelectorAll('.password-toggle');
+            passwordToggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const input = this.previousElementSibling;
+                    const icon = this.querySelector('i');
+                    
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.className = 'fas fa-eye-slash';
+                    } else {
+                        input.type = 'password';
+                        icon.className = 'fas fa-eye';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

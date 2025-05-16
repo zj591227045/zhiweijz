@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>只为记账 - 个人资料</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="themes.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0 30px;
+            position: relative;
+        }
+        
+        .avatar-container {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .avatar-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .avatar-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            cursor: pointer;
+        }
+        
+        .avatar-container:hover .avatar-overlay {
+            opacity: 1;
+        }
+        
+        .avatar-overlay-text {
+            color: white;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .profile-form {
+            padding: 0 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--background-color);
+            color: var(--text-primary);
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .character-counter {
+            display: flex;
+            justify-content: flex-end;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        
+        .readonly-field {
+            background-color: var(--card-background);
+            padding: 12px;
+            border-radius: var(--border-radius);
+            color: var(--text-secondary);
+        }
+        
+        .image-cropper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .cropper-container {
+            width: 300px;
+            height: 300px;
+            background-color: #000;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .cropper-actions {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .cropper-button {
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .confirm-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+        
+        .cancel-button {
+            background-color: transparent;
+            color: white;
+            border: 1px solid white;
+        }
+        
+        .upload-options {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--card-background);
+            border-radius: 16px 16px 0 0;
+            padding: 20px;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .upload-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        
+        .upload-option {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            cursor: pointer;
+        }
+        
+        .upload-option:active {
+            background-color: var(--background-color);
+            border-radius: var(--border-radius);
+        }
+        
+        .option-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--background-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            margin-right: 16px;
+        }
+        
+        .option-text {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .cancel-upload {
+            width: 100%;
+            padding: 16px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--error-color);
+            cursor: pointer;
+            margin-top: 16px;
+        }
+        
+        .save-feedback {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            z-index: 1000;
+            display: none;
+            align-items: center;
+        }
+        
+        .feedback-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .feedback-error {
+            background-color: var(--error-color);
+            color: white;
+        }
+        
+        .feedback-icon {
+            margin-right: 8px;
+        }
+        
+        .bottom-button-container {
+            padding: 16px;
+            position: sticky;
+            bottom: 0;
+            background-color: var(--background-color);
+        }
+        
+        .save-button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .save-button:hover {
+            background-color: #2563eb;
+        }
+        
+        .save-button.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <button class="icon-button back-button"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">个人资料</div>
+            <div></div> <!-- 占位，保持标题居中 -->
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 头像上传区域 -->
+            <div class="avatar-section">
+                <div class="avatar-container">
+                    <div class="avatar-image">张</div>
+                    <div class="avatar-overlay">
+                        <div class="avatar-overlay-text">更换头像</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 个人信息表单 -->
+            <form class="profile-form">
+                <div class="form-group">
+                    <label class="form-label" for="username">用户名</label>
+                    <input type="text" id="username" class="form-input" value="张三" maxlength="20">
+                    <div class="character-counter">
+                        <span id="username-count">2</span>/20
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="bio">个人简介</label>
+                    <textarea id="bio" class="form-textarea" maxlength="200">热爱生活，理财达人</textarea>
+                    <div class="character-counter">
+                        <span id="bio-count">10</span>/200
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">邮箱</label>
+                    <div class="readonly-field">zhangsan@example.com</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">注册日期</label>
+                    <div class="readonly-field">2023年1月15日</div>
+                </div>
+            </form>
+        </main>
+
+        <!-- 底部保存按钮 -->
+        <div class="bottom-button-container">
+            <button class="save-button" id="save-button">保存</button>
+        </div>
+        
+        <!-- 头像上传选项 -->
+        <div class="upload-options" id="upload-options">
+            <div class="upload-title">更换头像</div>
+            <div class="upload-option" id="take-photo">
+                <div class="option-icon">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <div class="option-text">拍照</div>
+            </div>
+            <div class="upload-option" id="choose-photo">
+                <div class="option-icon">
+                    <i class="fas fa-image"></i>
+                </div>
+                <div class="option-text">从相册选择</div>
+            </div>
+            <div class="cancel-upload" id="cancel-upload">取消</div>
+        </div>
+        
+        <!-- 图片裁剪工具 -->
+        <div class="image-cropper" id="image-cropper">
+            <div class="cropper-container">
+                图片裁剪区域
+            </div>
+            <div class="cropper-actions">
+                <button class="cropper-button cancel-button" id="cancel-crop">取消</button>
+                <button class="cropper-button confirm-button" id="confirm-crop">确认</button>
+            </div>
+        </div>
+        
+        <!-- 保存反馈提示 -->
+        <div class="save-feedback feedback-success" id="save-success">
+            <i class="fas fa-check-circle feedback-icon"></i>
+            <span>保存成功</span>
+        </div>
+        
+        <div class="save-feedback feedback-error" id="save-error">
+            <i class="fas fa-times-circle feedback-icon"></i>
+            <span>保存失败，请重试</span>
+        </div>
+    </div>
+
+    <script src="theme-switcher.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 字符计数
+            const usernameInput = document.getElementById('username');
+            const usernameCount = document.getElementById('username-count');
+            const bioInput = document.getElementById('bio');
+            const bioCount = document.getElementById('bio-count');
+            
+            usernameInput.addEventListener('input', function() {
+                usernameCount.textContent = this.value.length;
+            });
+            
+            bioInput.addEventListener('input', function() {
+                bioCount.textContent = this.value.length;
+            });
+            
+            // 头像上传
+            const avatarContainer = document.querySelector('.avatar-container');
+            const uploadOptions = document.getElementById('upload-options');
+            const cancelUpload = document.getElementById('cancel-upload');
+            const takePhoto = document.getElementById('take-photo');
+            const choosePhoto = document.getElementById('choose-photo');
+            const imageCropper = document.getElementById('image-cropper');
+            const cancelCrop = document.getElementById('cancel-crop');
+            const confirmCrop = document.getElementById('confirm-crop');
+            
+            avatarContainer.addEventListener('click', function() {
+                uploadOptions.style.display = 'block';
+            });
+            
+            cancelUpload.addEventListener('click', function() {
+                uploadOptions.style.display = 'none';
+            });
+            
+            takePhoto.addEventListener('click', function() {
+                uploadOptions.style.display = 'none';
+                // 模拟拍照后进入裁剪
+                setTimeout(() => {
+                    imageCropper.style.display = 'flex';
+                }, 500);
+            });
+            
+            choosePhoto.addEventListener('click', function() {
+                uploadOptions.style.display = 'none';
+                // 模拟选择照片后进入裁剪
+                setTimeout(() => {
+                    imageCropper.style.display = 'flex';
+                }, 500);
+            });
+            
+            cancelCrop.addEventListener('click', function() {
+                imageCropper.style.display = 'none';
+            });
+            
+            confirmCrop.addEventListener('click', function() {
+                imageCropper.style.display = 'none';
+                // 模拟头像更新
+                const avatarImage = document.querySelector('.avatar-image');
+                avatarImage.textContent = '';
+                avatarImage.style.backgroundColor = '#3B82F6';
+            });
+            
+            // 保存按钮
+            const saveButton = document.getElementById('save-button');
+            const saveSuccess = document.getElementById('save-success');
+            const saveError = document.getElementById('save-error');
+            
+            saveButton.addEventListener('click', function() {
+                // 显示加载状态
+                this.classList.add('loading');
+                this.innerHTML = '<span class="loading-spinner"></span>保存中...';
+                
+                // 模拟保存操作
+                setTimeout(() => {
+                    this.classList.remove('loading');
+                    this.textContent = '保存';
+                    
+                    // 显示成功提示
+                    saveSuccess.style.display = 'flex';
+                    setTimeout(() => {
+                        saveSuccess.style.display = 'none';
+                    }, 3000);
+                    
+                    // 如果要显示错误提示
+                    // saveError.style.display = 'flex';
+                    // setTimeout(() => {
+                    //     saveError.style.display = 'none';
+                    // }, 3000);
+                }, 1500);
+            });
+        });
+    </script>
+</body>
+</html>

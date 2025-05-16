@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 只为记账</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="themes.css">
+    <style>
+        .auth-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 24px;
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 48px;
+            margin-top: 48px;
+        }
+        
+        .app-logo {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+        
+        .app-slogan {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+        
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .form-input {
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            background-color: var(--card-background);
+            color: var(--text-primary);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(var(--primary), 0.2);
+        }
+        
+        .password-input-wrapper {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .remember-me input {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .submit-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .submit-button:hover {
+            background-color: rgba(var(--primary), 0.9);
+        }
+        
+        .auth-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 16px;
+        }
+        
+        .auth-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .auth-footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 24px 0;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+        
+        .theme-switcher {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+    </style>
+    <script src="theme-switcher.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <div class="auth-container">
+            <div class="theme-switcher">
+                <div class="theme-option default active" data-theme="default"></div>
+                <div class="theme-option dark" data-theme="dark"></div>
+                <div class="theme-option green" data-theme="green"></div>
+                <div class="theme-option purple" data-theme="purple"></div>
+            </div>
+            
+            <div class="auth-header">
+                <div class="app-logo">只为记账</div>
+                <div class="app-slogan">简单、高效，AI驱动的个人财务管理工具</div>
+            </div>
+            
+            <form class="auth-form">
+                <div class="form-group">
+                    <label class="form-label" for="email">邮箱</label>
+                    <input type="email" id="email" class="form-input" placeholder="请输入邮箱地址" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="password">密码</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="password" class="form-input" placeholder="请输入密码" required>
+                        <button type="button" class="password-toggle">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="remember-me">
+                    <input type="checkbox" id="remember" checked>
+                    <label for="remember">记住我</label>
+                </div>
+                
+                <button type="submit" class="submit-button">登录</button>
+                
+                <div class="auth-links">
+                    <a href="register.html" class="auth-link">注册账号</a>
+                    <a href="forgot-password.html" class="auth-link">忘记密码？</a>
+                </div>
+            </form>
+            
+            <div class="auth-footer">
+                &copy; 2023 只为记账 - 版权所有
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 密码显示/隐藏切换
+        document.querySelector('.password-toggle').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const icon = this.querySelector('i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+        
+        // 表单提交
+        document.querySelector('.auth-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // 在实际应用中，这里会发送登录请求
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>

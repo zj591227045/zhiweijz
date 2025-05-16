@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>只为记账 - 账本详情</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="themes.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .book-header {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .book-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        
+        .book-description {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+        
+        .book-meta {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .book-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+        
+        .default-badge {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .current-badge {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+        
+        .created-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .set-current-button {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 24px 0 16px;
+        }
+        
+        .stats-card {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .period-selector {
+            display: flex;
+            background-color: var(--background-color);
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+        
+        .period-tab {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            border: none;
+            background: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+        
+        .period-tab.active {
+            background-color: var(--card-background);
+            color: var(--primary-color);
+        }
+        
+        .stats-summary {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .income-value {
+            color: var(--success-color);
+        }
+        
+        .expense-value {
+            color: var(--error-color);
+        }
+        
+        .balance-value {
+            color: var(--primary-color);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .trend-chart {
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+        }
+        
+        .ai-service-card {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .service-status {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .status-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+        
+        .status-icon.configured {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+        
+        .status-icon.not-configured {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+        }
+        
+        .status-details {
+            flex: 1;
+        }
+        
+        .status-title {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .status-description {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .service-info {
+            background-color: var(--background-color);
+            border-radius: var(--border-radius);
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .service-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .service-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .service-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .service-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .configure-button {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .settings-list {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        
+        .settings-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+        
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+        
+        .settings-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(59, 130, 246, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            margin-right: 12px;
+        }
+        
+        .settings-details {
+            flex: 1;
+        }
+        
+        .settings-title {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .settings-description {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .settings-arrow {
+            color: var(--text-secondary);
+        }
+        
+        .danger-zone {
+            margin-top: 32px;
+        }
+        
+        .danger-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--error-color);
+            margin-bottom: 16px;
+        }
+        
+        .delete-button {
+            width: 100%;
+            padding: 12px;
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .warning-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <button class="icon-button back-button"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">账本详情</div>
+            <button class="icon-button"><i class="fas fa-edit"></i></button>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 账本基本信息 -->
+            <div class="book-header">
+                <div class="book-name">个人账本</div>
+                <div class="book-description">日常开支记录，包含个人所有收支情况。</div>
+                
+                <div class="book-meta">
+                    <div class="book-badge default-badge">默认账本</div>
+                    <div class="book-badge current-badge">当前使用</div>
+                    <div class="created-date">创建于 2023年1月15日</div>
+                </div>
+                
+                <!-- 如果不是当前账本，显示"设为当前"按钮 -->
+                <!-- <button class="set-current-button">设为当前账本</button> -->
+            </div>
+            
+            <!-- 账本统计概览 -->
+            <div class="section-title">账本统计</div>
+            
+            <div class="stats-card">
+                <div class="period-selector">
+                    <button class="period-tab">全部</button>
+                    <button class="period-tab active">本月</button>
+                    <button class="period-tab">本年</button>
+                </div>
+                
+                <div class="stats-summary">
+                    <div class="stat-item">
+                        <div class="stat-value income-value">¥8,000</div>
+                        <div class="stat-label">总收入</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value expense-value">¥5,000</div>
+                        <div class="stat-label">总支出</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value balance-value">¥3,000</div>
+                        <div class="stat-label">结余</div>
+                    </div>
+                </div>
+                
+                <div class="trend-chart">
+                    <div>图表区域 - 显示收支趋势</div>
+                </div>
+            </div>
+            
+            <!-- AI服务配置 -->
+            <div class="section-title">AI服务</div>
+            
+            <div class="ai-service-card">
+                <div class="service-status">
+                    <div class="status-icon configured">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="status-details">
+                        <div class="status-title">AI服务已配置</div>
+                        <div class="status-description">您的账本已连接AI服务，可以使用智能分析功能。</div>
+                    </div>
+                </div>
+                
+                <div class="service-info">
+                    <div class="service-item">
+                        <div class="service-label">服务提供商</div>
+                        <div class="service-value">OpenAI</div>
+                    </div>
+                    <div class="service-item">
+                        <div class="service-label">模型</div>
+                        <div class="service-value">GPT-4</div>
+                    </div>
+                    <div class="service-item">
+                        <div class="service-label">状态</div>
+                        <div class="service-value">正常</div>
+                    </div>
+                </div>
+                
+                <button class="configure-button">修改配置</button>
+            </div>
+            
+            <!-- 账本设置选项 -->
+            <div class="section-title">账本设置</div>
+            
+            <div class="settings-list">
+                <div class="settings-item">
+                    <div class="settings-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <div class="settings-details">
+                        <div class="settings-title">交易管理</div>
+                        <div class="settings-description">管理账本中的交易记录</div>
+                    </div>
+                    <div class="settings-arrow">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                
+                <div class="settings-item">
+                    <div class="settings-icon">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <div class="settings-details">
+                        <div class="settings-title">分类管理</div>
+                        <div class="settings-description">自定义交易分类</div>
+                    </div>
+                    <div class="settings-arrow">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                
+                <div class="settings-item">
+                    <div class="settings-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="settings-details">
+                        <div class="settings-title">预算管理</div>
+                        <div class="settings-description">设置和管理预算</div>
+                    </div>
+                    <div class="settings-arrow">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                
+                <div class="settings-item">
+                    <div class="settings-icon">
+                        <i class="fas fa-file-export"></i>
+                    </div>
+                    <div class="settings-details">
+                        <div class="settings-title">数据导出</div>
+                        <div class="settings-description">导出账本数据</div>
+                    </div>
+                    <div class="settings-arrow">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 危险操作区域 -->
+            <div class="danger-zone">
+                <div class="danger-title">危险操作</div>
+                <button class="delete-button">删除账本</button>
+                <div class="warning-text">删除账本将永久移除所有相关数据，此操作不可恢复。</div>
+            </div>
+        </main>
+    </div>
+
+    <script src="theme-switcher.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 周期选项切换
+            const periodTabs = document.querySelectorAll('.period-tab');
+            periodTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    periodTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

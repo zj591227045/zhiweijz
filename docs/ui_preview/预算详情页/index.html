@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>只为记账 - 预算详情</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="themes.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .budget-header {
+            padding: 20px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            margin-bottom: 16px;
+        }
+        
+        .category-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #FF5722;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            margin-right: 12px;
+        }
+        
+        .category-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .budget-period {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+        
+        .budget-amount {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        
+        .budget-progress-container {
+            margin-bottom: 16px;
+        }
+        
+        .budget-progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .spent-amount {
+            font-weight: 500;
+            color: var(--error-color);
+        }
+        
+        .remaining-amount {
+            font-weight: 500;
+            color: var(--success-color);
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: var(--background-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 4px;
+            width: 65%; /* 示例进度 */
+        }
+        
+        .budget-stats {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 24px 0 16px;
+        }
+        
+        .trend-chart {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+        
+        .chart-tabs {
+            display: flex;
+            background-color: var(--background-color);
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+        
+        .chart-tab {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            border: none;
+            background: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+        
+        .chart-tab.active {
+            background-color: var(--card-background);
+            color: var(--primary-color);
+        }
+        
+        .transactions-list {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        
+        .transaction-item {
+            display: flex;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .transaction-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(59, 130, 246, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            margin-right: 12px;
+        }
+        
+        .transaction-details {
+            flex: 1;
+        }
+        
+        .transaction-title {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .transaction-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .transaction-amount {
+            font-weight: 600;
+            color: var(--error-color);
+        }
+        
+        .view-all {
+            text-align: center;
+            padding: 12px;
+            color: var(--primary-color);
+            font-weight: 500;
+            cursor: pointer;
+            background-color: var(--card-background);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .bottom-actions {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            position: sticky;
+            bottom: 0;
+            background-color: var(--background-color);
+        }
+        
+        .edit-button {
+            flex: 1;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .delete-button {
+            flex: 1;
+            padding: 14px;
+            background-color: var(--background-color);
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <button class="icon-button back-button"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">预算详情</div>
+            <button class="icon-button"><i class="fas fa-ellipsis-v"></i></button>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 预算基本信息 -->
+            <div class="budget-header">
+                <div class="category-info">
+                    <div class="category-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="category-name">餐饮</div>
+                </div>
+                
+                <div class="budget-period">2023年5月1日 - 2023年5月31日</div>
+                
+                <div class="budget-amount">¥1,000.00</div>
+                
+                <div class="budget-progress-container">
+                    <div class="budget-progress-info">
+                        <div class="spent-amount">已用: ¥650.00 (65%)</div>
+                        <div class="remaining-amount">剩余: ¥350.00</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                </div>
+                
+                <div class="budget-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">15天</div>
+                        <div class="stat-label">剩余天数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">¥23.33</div>
+                        <div class="stat-label">日均消费</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">¥43.33</div>
+                        <div class="stat-label">日均可用</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 预算趋势 -->
+            <div class="section-title">预算使用趋势</div>
+            
+            <div class="chart-tabs">
+                <button class="chart-tab">日</button>
+                <button class="chart-tab active">周</button>
+                <button class="chart-tab">月</button>
+            </div>
+            
+            <div class="trend-chart">
+                <div>图表区域 - 显示预算使用趋势</div>
+            </div>
+            
+            <!-- 相关交易 -->
+            <div class="section-title">相关交易</div>
+            
+            <div class="transactions-list">
+                <div class="transaction-item">
+                    <div class="transaction-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="transaction-details">
+                        <div class="transaction-title">午餐</div>
+                        <div class="transaction-date">5月15日 12:30</div>
+                    </div>
+                    <div class="transaction-amount">-¥45.00</div>
+                </div>
+                
+                <div class="transaction-item">
+                    <div class="transaction-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="transaction-details">
+                        <div class="transaction-title">晚餐</div>
+                        <div class="transaction-date">5月14日 18:45</div>
+                    </div>
+                    <div class="transaction-amount">-¥68.00</div>
+                </div>
+                
+                <div class="transaction-item">
+                    <div class="transaction-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="transaction-details">
+                        <div class="transaction-title">早餐</div>
+                        <div class="transaction-date">5月14日 08:15</div>
+                    </div>
+                    <div class="transaction-amount">-¥12.00</div>
+                </div>
+                
+                <div class="view-all">
+                    查看全部
+                </div>
+            </div>
+        </main>
+
+        <!-- 底部操作按钮 -->
+        <div class="bottom-actions">
+            <button class="edit-button">编辑预算</button>
+            <button class="delete-button">删除</button>
+        </div>
+    </div>
+
+    <script src="theme-switcher.js"></script>
+</body>
+</html>

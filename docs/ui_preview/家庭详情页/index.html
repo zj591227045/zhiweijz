@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>只为记账 - 家庭详情</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="themes.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .family-header {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .family-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        
+        .family-description {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+        
+        .family-meta {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .member-count {
+            display: flex;
+            align-items: center;
+            margin-right: 16px;
+            color: var(--text-secondary);
+        }
+        
+        .member-count i {
+            margin-right: 6px;
+            color: var(--primary-color);
+        }
+        
+        .created-date {
+            color: var(--text-secondary);
+        }
+        
+        .edit-button {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 24px 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .view-all {
+            font-size: 14px;
+            font-weight: normal;
+            color: var(--primary-color);
+            cursor: pointer;
+        }
+        
+        .members-list {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+        
+        .member-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .member-item:last-child {
+            border-bottom: none;
+        }
+        
+        .member-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 12px;
+        }
+        
+        .member-details {
+            flex: 1;
+        }
+        
+        .member-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .member-role {
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
+        }
+        
+        .role-admin {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .role-member {
+            background-color: rgba(107, 114, 128, 0.1);
+            color: var(--text-secondary);
+        }
+        
+        .member-joined {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .invite-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            color: var(--primary-color);
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 16px;
+        }
+        
+        .invite-button i {
+            margin-right: 8px;
+        }
+        
+        .stats-card {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .period-selector {
+            display: flex;
+            background-color: var(--background-color);
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+        
+        .period-tab {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            border: none;
+            background: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+        
+        .period-tab.active {
+            background-color: var(--card-background);
+            color: var(--primary-color);
+        }
+        
+        .stats-summary {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .income-value {
+            color: var(--success-color);
+        }
+        
+        .expense-value {
+            color: var(--error-color);
+        }
+        
+        .balance-value {
+            color: var(--primary-color);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .chart-container {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        
+        .chart-card {
+            min-width: 200px;
+            flex: 1;
+            background-color: var(--background-color);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .chart-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        
+        .chart-placeholder {
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+        
+        .recent-transactions {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+        
+        .transaction-item {
+            display: flex;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .transaction-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 12px;
+        }
+        
+        .transaction-details {
+            flex: 1;
+        }
+        
+        .transaction-title {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .transaction-member {
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
+            background-color: rgba(107, 114, 128, 0.1);
+            color: var(--text-secondary);
+        }
+        
+        .transaction-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .transaction-amount {
+            font-weight: 600;
+        }
+        
+        .amount-expense {
+            color: var(--error-color);
+        }
+        
+        .amount-income {
+            color: var(--success-color);
+        }
+        
+        .view-all-button {
+            display: block;
+            text-align: center;
+            padding: 12px;
+            background-color: var(--card-background);
+            color: var(--primary-color);
+            font-weight: 500;
+            cursor: pointer;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .management-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .management-option {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .option-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: rgba(59, 130, 246, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            margin: 0 auto 12px;
+        }
+        
+        .option-title {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .option-description {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .danger-zone {
+            margin-top: 32px;
+        }
+        
+        .danger-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--error-color);
+            margin-bottom: 16px;
+        }
+        
+        .danger-button {
+            width: 100%;
+            padding: 12px;
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+        
+        .warning-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <button class="icon-button back-button"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">家庭详情</div>
+            <button class="icon-button"><i class="fas fa-cog"></i></button>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 家庭基本信息 -->
+            <div class="family-header">
+                <div class="family-name">我的家庭</div>
+                <div class="family-description">家庭日常开支记录，共同管理家庭财务。</div>
+                
+                <div class="family-meta">
+                    <div class="member-count">
+                        <i class="fas fa-users"></i>
+                        <span>4名成员</span>
+                    </div>
+                    <div class="created-date">创建于 2023年1月15日</div>
+                </div>
+                
+                <button class="edit-button">编辑家庭信息</button>
+            </div>
+            
+            <!-- 成员列表 -->
+            <div class="section-title">
+                <span>成员列表</span>
+                <span class="view-all">查看全部</span>
+            </div>
+            
+            <div class="members-list">
+                <div class="member-item">
+                    <div class="member-avatar">张</div>
+                    <div class="member-details">
+                        <div class="member-name">
+                            张三
+                            <span class="member-role role-admin">管理员</span>
+                        </div>
+                        <div class="member-joined">2023年1月15日加入</div>
+                    </div>
+                </div>
+                
+                <div class="member-item">
+                    <div class="member-avatar">李</div>
+                    <div class="member-details">
+                        <div class="member-name">
+                            李四
+                            <span class="member-role role-member">成员</span>
+                        </div>
+                        <div class="member-joined">2023年1月16日加入</div>
+                    </div>
+                </div>
+                
+                <div class="member-item">
+                    <div class="member-avatar">王</div>
+                    <div class="member-details">
+                        <div class="member-name">
+                            王五
+                            <span class="member-role role-member">成员</span>
+                        </div>
+                        <div class="member-joined">2023年1月18日加入</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="invite-button">
+                <i class="fas fa-user-plus"></i>
+                <span>邀请成员</span>
+            </div>
+            
+            <!-- 家庭财务统计 -->
+            <div class="section-title">家庭财务统计</div>
+            
+            <div class="stats-card">
+                <div class="period-selector">
+                    <button class="period-tab">全部</button>
+                    <button class="period-tab active">本月</button>
+                    <button class="period-tab">本年</button>
+                </div>
+                
+                <div class="stats-summary">
+                    <div class="stat-item">
+                        <div class="stat-value income-value">¥12,000</div>
+                        <div class="stat-label">总收入</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value expense-value">¥8,500</div>
+                        <div class="stat-label">总支出</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value balance-value">¥3,500</div>
+                        <div class="stat-label">结余</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-card">
+                        <div class="chart-title">成员消费占比</div>
+                        <div class="chart-placeholder">饼图区域</div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-title">分类消费占比</div>
+                        <div class="chart-placeholder">饼图区域</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 家庭账本活动 -->
+            <div class="section-title">
+                <span>最近交易</span>
+                <span class="view-all">查看全部</span>
+            </div>
+            
+            <div class="recent-transactions">
+                <div class="transaction-item">
+                    <div class="transaction-icon" style="background-color: #FF5722;">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="transaction-details">
+                        <div class="transaction-title">
+                            晚餐
+                            <span class="transaction-member">张三</span>
+                        </div>
+                        <div class="transaction-date">5月15日 18:30</div>
+                    </div>
+                    <div class="transaction-amount amount-expense">-¥150.00</div>
+                </div>
+                
+                <div class="transaction-item">
+                    <div class="transaction-icon" style="background-color: #2196F3;">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="transaction-details">
+                        <div class="transaction-title">
+                            超市购物
+                            <span class="transaction-member">李四</span>
+                        </div>
+                        <div class="transaction-date">5月14日 16:45</div>
+                    </div>
+                    <div class="transaction-amount amount-expense">-¥320.00</div>
+                </div>
+                
+                <div class="transaction-item">
+                    <div class="transaction-icon" style="background-color: #4CAF50;">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <div class="transaction-details">
+                        <div class="transaction-title">
+                            工资
+                            <span class="transaction-member">王五</span>
+                        </div>
+                        <div class="transaction-date">5月10日 09:15</div>
+                    </div>
+                    <div class="transaction-amount amount-income">+¥6,000.00</div>
+                </div>
+                
+                <div class="view-all-button">查看全部交易</div>
+            </div>
+            
+            <!-- 家庭管理选项 -->
+            <div class="section-title">家庭管理</div>
+            
+            <div class="management-options">
+                <div class="management-option">
+                    <div class="option-icon">
+                        <i class="fas fa-users-cog"></i>
+                    </div>
+                    <div class="option-title">成员管理</div>
+                    <div class="option-description">管理家庭成员</div>
+                </div>
+                
+                <div class="management-option">
+                    <div class="option-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="option-title">预算管理</div>
+                    <div class="option-description">设置家庭预算</div>
+                </div>
+                
+                <div class="management-option">
+                    <div class="option-icon">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <div class="option-title">分类管理</div>
+                    <div class="option-description">自定义交易分类</div>
+                </div>
+                
+                <div class="management-option">
+                    <div class="option-icon">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <div class="option-title">家庭设置</div>
+                    <div class="option-description">高级设置选项</div>
+                </div>
+            </div>
+            
+            <!-- 危险操作区域 -->
+            <div class="danger-zone">
+                <div class="danger-title">危险操作</div>
+                <button class="danger-button">退出家庭</button>
+                <button class="danger-button">解散家庭</button>
+                <div class="warning-text">解散家庭将永久移除所有相关数据，此操作不可恢复。</div>
+            </div>
+        </main>
+    </div>
+
+    <script src="theme-switcher.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 周期选项切换
+            const periodTabs = document.querySelectorAll('.period-tab');
+            periodTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    periodTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

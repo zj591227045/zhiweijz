@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>家庭账本 - 只为记账</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="themes.css">
+    <style>
+        .book-header-card {
+            background-color: var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 20px 16px;
+            color: white;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .book-header-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+            pointer-events: none;
+        }
+        
+        .book-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .book-description {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 16px;
+        }
+        
+        .book-stats {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .section-action {
+            color: var(--primary-color);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .member-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .member-card {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .member-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 16px;
+        }
+        
+        .member-info {
+            flex: 1;
+        }
+        
+        .member-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .member-role {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .role-badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .role-badge.admin {
+            background-color: rgba(var(--primary), 0.1);
+            color: var(--primary-color);
+        }
+        
+        .role-badge.member {
+            background-color: rgba(var(--muted), 0.1);
+            color: var(--text-secondary);
+        }
+        
+        .member-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .member-action {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px;
+        }
+        
+        .member-action:hover {
+            color: var(--primary-color);
+        }
+        
+        .transaction-summary {
+            display: flex;
+            justify-content: space-between;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .summary-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .summary-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .summary-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .summary-value.income {
+            color: var(--success-color);
+        }
+        
+        .summary-value.expense {
+            color: var(--error-color);
+        }
+        
+        .invite-card {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .invite-header {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        
+        .invite-link-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .invite-link {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            color: var(--text-secondary);
+            background-color: var(--background-color);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .copy-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .invite-info {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .modal-content {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 320px;
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .modal-body {
+            padding: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-label {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            color: var(--text-primary);
+            background-color: var(--background-color);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            color: var(--text-primary);
+            background-color: var(--background-color);
+        }
+        
+        .modal-footer {
+            display: flex;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .modal-button {
+            flex: 1;
+            padding: 14px;
+            text-align: center;
+            font-size: 16px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .modal-button.cancel {
+            color: var(--text-secondary);
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .modal-button.confirm {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .modal-button.delete {
+            color: var(--error-color);
+            font-weight: 600;
+        }
+    </style>
+    <script src="theme-switcher.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div class="header-title">家庭账本</div>
+            <div class="header-actions">
+                <button class="icon-button" id="settings-button">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="book-header-card">
+                <div class="book-title">家庭共享账本</div>
+                <div class="book-description">记录家庭日常收支，共同管理家庭财务</div>
+                <div class="book-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">3</div>
+                        <div class="stat-label">成员</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">87</div>
+                        <div class="stat-label">交易</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">¥12,450</div>
+                        <div class="stat-label">本月支出</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="transaction-summary">
+                <div class="summary-item">
+                    <div class="summary-label">收入</div>
+                    <div class="summary-value income">¥15,800.00</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">支出</div>
+                    <div class="summary-value expense">¥12,450.50</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">结余</div>
+                    <div class="summary-value">¥3,349.50</div>
+                </div>
+            </div>
+            
+            <div class="section-header">
+                <div class="section-title">成员管理</div>
+                <a href="#" class="section-action" id="invite-button">
+                    <i class="fas fa-user-plus"></i>
+                    <span>邀请</span>
+                </a>
+            </div>
+            
+            <div class="member-list">
+                <div class="member-card">
+                    <div class="member-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="member-info">
+                        <div class="member-name">张三</div>
+                        <div class="member-role">
+                            <span class="role-badge admin">管理员</span>
+                            <span>(我)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="member-card">
+                    <div class="member-avatar" style="background-color: #10B981;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="member-info">
+                        <div class="member-name">李四</div>
+                        <div class="member-role">
+                            <span class="role-badge member">成员</span>
+                        </div>
+                    </div>
+                    <div class="member-actions">
+                        <button class="member-action" id="edit-member">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="member-action" id="remove-member">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="member-card">
+                    <div class="member-avatar" style="background-color: #8B5CF6;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="member-info">
+                        <div class="member-name">王五</div>
+                        <div class="member-role">
+                            <span class="role-badge member">成员</span>
+                        </div>
+                    </div>
+                    <div class="member-actions">
+                        <button class="member-action" id="edit-member-2">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="member-action" id="remove-member-2">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="invite-card">
+                <div class="invite-header">邀请链接</div>
+                <div class="invite-link-container">
+                    <div class="invite-link">https://zhiweijz.com/invite/abc123xyz</div>
+                    <button class="copy-button" id="copy-link">
+                        <i class="fas fa-copy"></i>
+                        <span>复制</span>
+                    </button>
+                </div>
+                <div class="invite-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span>链接有效期为7天，仅限3人使用</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bottom-nav">
+            <a href="index.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>首页</span>
+            </a>
+            <a href="statistics.html" class="nav-item">
+                <i class="fas fa-chart-pie"></i>
+                <span>统计</span>
+            </a>
+            <a href="add_transaction_improved.html" class="nav-item add-button">
+                <div class="add-icon">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <span>添加</span>
+            </a>
+            <a href="budget.html" class="nav-item">
+                <i class="fas fa-wallet"></i>
+                <span>预算</span>
+            </a>
+            <a href="settings.html" class="nav-item active">
+                <i class="fas fa-user"></i>
+                <span>我的</span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- 编辑成员对话框 -->
+    <div class="modal-overlay" id="member-modal">
+        <div class="modal-content">
+            <div class="modal-header">编辑成员</div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="member-name">成员名称</label>
+                    <input type="text" id="member-name" class="form-input" value="李四">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="member-role">成员角色</label>
+                    <select id="member-role" class="form-select">
+                        <option value="admin">管理员</option>
+                        <option value="member" selected>成员</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-button cancel" id="cancel-member">取消</button>
+                <button class="modal-button confirm" id="save-member">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 移除成员确认对话框 -->
+    <div class="modal-overlay" id="remove-modal">
+        <div class="modal-content">
+            <div class="modal-header">移除成员</div>
+            <div class="modal-body">
+                <p>确定要移除成员"李四"吗？此操作无法撤销。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-button cancel" id="cancel-remove">取消</button>
+                <button class="modal-button delete" id="confirm-remove">移除</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 邀请成员对话框 -->
+    <div class="modal-overlay" id="invite-modal">
+        <div class="modal-content">
+            <div class="modal-header">邀请成员</div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="invite-link">邀请链接</label>
+                    <div class="invite-link-container">
+                        <div class="invite-link">https://zhiweijz.com/invite/abc123xyz</div>
+                        <button class="copy-button" id="copy-invite">
+                            <i class="fas fa-copy"></i>
+                            <span>复制</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="invite-limit">使用限制</label>
+                    <select id="invite-limit" class="form-select">
+                        <option value="1">1人</option>
+                        <option value="3" selected>3人</option>
+                        <option value="5">5人</option>
+                        <option value="10">10人</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="invite-expiry">有效期</label>
+                    <select id="invite-expiry" class="form-select">
+                        <option value="1">1天</option>
+                        <option value="3">3天</option>
+                        <option value="7" selected>7天</option>
+                        <option value="30">30天</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-button cancel" id="cancel-invite">取消</button>
+                <button class="modal-button confirm" id="generate-invite">生成</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 复制邀请链接
+        document.getElementById('copy-link').addEventListener('click', function() {
+            const link = document.querySelector('.invite-link').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                this.innerHTML = '<i class="fas fa-check"></i><span>已复制</span>';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-copy"></i><span>复制</span>';
+                }, 2000);
+            });
+        });
+        
+        // 编辑成员
+        document.getElementById('edit-member').addEventListener('click', function() {
+            document.getElementById('member-modal').style.display = 'flex';
+        });
+        
+        document.getElementById('cancel-member').addEventListener('click', function() {
+            document.getElementById('member-modal').style.display = 'none';
+        });
+        
+        document.getElementById('save-member').addEventListener('click', function() {
+            // 在实际应用中，这里会发送更新请求
+            document.getElementById('member-modal').style.display = 'none';
+        });
+        
+        // 移除成员
+        document.getElementById('remove-member').addEventListener('click', function() {
+            document.getElementById('remove-modal').style.display = 'flex';
+        });
+        
+        document.getElementById('cancel-remove').addEventListener('click', function() {
+            document.getElementById('remove-modal').style.display = 'none';
+        });
+        
+        document.getElementById('confirm-remove').addEventListener('click', function() {
+            // 在实际应用中，这里会发送删除请求
+            document.getElementById('remove-modal').style.display = 'none';
+        });
+        
+        // 邀请成员
+        document.getElementById('invite-button').addEventListener('click', function() {
+            document.getElementById('invite-modal').style.display = 'flex';
+        });
+        
+        document.getElementById('cancel-invite').addEventListener('click', function() {
+            document.getElementById('invite-modal').style.display = 'none';
+        });
+        
+        document.getElementById('generate-invite').addEventListener('click', function() {
+            // 在实际应用中，这里会发送生成邀请链接的请求
+            document.getElementById('invite-modal').style.display = 'none';
+        });
+        
+        document.getElementById('copy-invite').addEventListener('click', function() {
+            const link = this.previousElementSibling.textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                this.innerHTML = '<i class="fas fa-check"></i><span>已复制</span>';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-copy"></i><span>复制</span>';
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>

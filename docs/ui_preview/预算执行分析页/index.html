@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>只为记账 - 预算执行分析</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="themes.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .period-selector {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            margin-bottom: 16px;
+        }
+        
+        .period-label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .period-value {
+            display: flex;
+            align-items: center;
+            color: var(--primary-color);
+        }
+        
+        .period-value i {
+            margin-left: 8px;
+        }
+        
+        .overview-card {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .total-budget {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .total-amount {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .total-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .circular-progress {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+        }
+        
+        .progress-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--primary-color) 0% 70%,
+                var(--background-color) 70% 100%
+            );
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .progress-inner {
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            background-color: var(--card-background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .progress-percentage {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .progress-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .budget-stats {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .stat-value.warning {
+            color: var(--warning-color);
+        }
+        
+        .stat-value.danger {
+            color: var(--error-color);
+        }
+        
+        .stat-value.success {
+            color: var(--success-color);
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 24px 0 16px;
+        }
+        
+        .history-chart {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+        
+        .recommendations {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .recommendation-card {
+            min-width: 250px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 16px;
+        }
+        
+        .recommendation-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .recommendation-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 12px;
+        }
+        
+        .recommendation-category {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .recommendation-amounts {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        
+        .current-budget, .recommended-budget {
+            text-align: center;
+        }
+        
+        .budget-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .budget-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .recommendation-reason {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        
+        .apply-button {
+            width: 100%;
+            padding: 8px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .budget-execution-list {
+            margin-top: 24px;
+        }
+        
+        .filter-tabs {
+            display: flex;
+            background-color: var(--background-color);
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+        
+        .filter-tab {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            border: none;
+            background: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+        
+        .filter-tab.active {
+            background-color: var(--card-background);
+            color: var(--primary-color);
+        }
+        
+        .budget-item {
+            display: flex;
+            padding: 16px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            margin-bottom: 12px;
+        }
+        
+        .budget-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 12px;
+        }
+        
+        .budget-details {
+            flex: 1;
+        }
+        
+        .budget-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .budget-progress {
+            margin-bottom: 8px;
+        }
+        
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        
+        .spent-info {
+            color: var(--text-secondary);
+        }
+        
+        .remaining-info {
+            color: var(--text-secondary);
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background-color: var(--background-color);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+        
+        .progress-fill.normal {
+            background-color: var(--primary-color);
+        }
+        
+        .progress-fill.warning {
+            background-color: var(--warning-color);
+        }
+        
+        .progress-fill.danger {
+            background-color: var(--error-color);
+        }
+        
+        .trend-indicator {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+        }
+        
+        .trend-indicator i {
+            margin-right: 4px;
+        }
+        
+        .trend-indicator.over-budget {
+            color: var(--error-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <button class="icon-button back-button"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">预算执行分析</div>
+            <div></div> <!-- 占位，保持标题居中 -->
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 周期选择器 -->
+            <div class="period-selector">
+                <div class="period-label">预算周期</div>
+                <div class="period-value">
+                    <span>2023年5月</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            
+            <!-- 预算执行概览 -->
+            <div class="overview-card">
+                <div class="total-budget">
+                    <div class="total-amount">¥5,000.00</div>
+                    <div class="total-label">总预算</div>
+                </div>
+                
+                <div class="circular-progress">
+                    <div class="progress-circle">
+                        <div class="progress-inner">
+                            <div class="progress-percentage">70%</div>
+                            <div class="progress-label">执行率</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="budget-stats">
+                    <div class="stat-item">
+                        <div class="stat-value danger">2</div>
+                        <div class="stat-label">超支预算</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value warning">3</div>
+                        <div class="stat-label">接近超支</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value success">1</div>
+                        <div class="stat-label">使用率低</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 历史执行 -->
+            <div class="section-title">历史执行情况</div>
+            
+            <div class="history-chart">
+                <div>图表区域 - 显示历史预算执行情况</div>
+            </div>
+            
+            <!-- 预算调整建议 -->
+            <div class="section-title">预算调整建议</div>
+            
+            <div class="recommendations">
+                <div class="recommendation-card">
+                    <div class="recommendation-header">
+                        <div class="recommendation-icon" style="background-color: #FF5722;">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <div class="recommendation-category">餐饮</div>
+                    </div>
+                    
+                    <div class="recommendation-amounts">
+                        <div class="current-budget">
+                            <div class="budget-label">当前预算</div>
+                            <div class="budget-value">¥1,000</div>
+                        </div>
+                        <div class="recommended-budget">
+                            <div class="budget-label">建议预算</div>
+                            <div class="budget-value">¥1,200</div>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-reason">
+                        过去3个月平均超支15%，建议适当增加预算以符合实际消费习惯。
+                    </div>
+                    
+                    <button class="apply-button">应用</button>
+                </div>
+                
+                <div class="recommendation-card">
+                    <div class="recommendation-header">
+                        <div class="recommendation-icon" style="background-color: #9C27B0;">
+                            <i class="fas fa-gamepad"></i>
+                        </div>
+                        <div class="recommendation-category">娱乐</div>
+                    </div>
+                    
+                    <div class="recommendation-amounts">
+                        <div class="current-budget">
+                            <div class="budget-label">当前预算</div>
+                            <div class="budget-value">¥500</div>
+                        </div>
+                        <div class="recommended-budget">
+                            <div class="budget-label">建议预算</div>
+                            <div class="budget-value">¥400</div>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-reason">
+                        连续3个月使用率不足70%，建议适当减少预算以提高资金利用效率。
+                    </div>
+                    
+                    <button class="apply-button">应用</button>
+                </div>
+            </div>
+            
+            <!-- 预算执行详情 -->
+            <div class="section-title">预算执行详情</div>
+            
+            <div class="filter-tabs">
+                <button class="filter-tab active">全部</button>
+                <button class="filter-tab">超支</button>
+                <button class="filter-tab">接近超支</button>
+                <button class="filter-tab">正常</button>
+            </div>
+            
+            <div class="budget-execution-list">
+                <div class="budget-item">
+                    <div class="budget-icon" style="background-color: #FF5722;">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="budget-details">
+                        <div class="budget-name">餐饮</div>
+                        <div class="budget-progress">
+                            <div class="progress-info">
+                                <div class="spent-info">已用: ¥850 (85%)</div>
+                                <div class="remaining-info">剩余: ¥150</div>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill warning" style="width: 85%;"></div>
+                            </div>
+                        </div>
+                        <div class="trend-indicator over-budget">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>预计超支 ¥100</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="budget-item">
+                    <div class="budget-icon" style="background-color: #2196F3;">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="budget-details">
+                        <div class="budget-name">购物</div>
+                        <div class="budget-progress">
+                            <div class="progress-info">
+                                <div class="spent-info">已用: ¥1,100 (110%)</div>
+                                <div class="remaining-info">超支: ¥100</div>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill danger" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        <div class="trend-indicator over-budget">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>已超支</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="budget-item">
+                    <div class="budget-icon" style="background-color: #4CAF50;">
+                        <i class="fas fa-bus"></i>
+                    </div>
+                    <div class="budget-details">
+                        <div class="budget-name">交通</div>
+                        <div class="budget-progress">
+                            <div class="progress-info">
+                                <div class="spent-info">已用: ¥240 (60%)</div>
+                                <div class="remaining-info">剩余: ¥160</div>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill normal" style="width: 60%;"></div>
+                            </div>
+                        </div>
+                        <div class="trend-indicator">
+                            <i class="fas fa-check-circle"></i>
+                            <span>执行正常</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="theme-switcher.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 筛选标签切换
+            const filterTabs = document.querySelectorAll('.filter-tab');
+            filterTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    filterTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

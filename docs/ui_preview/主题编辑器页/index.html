@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>只为记账 - 主题编辑器</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="themes.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .theme-form {
+            padding: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--background-color);
+            color: var(--text-primary);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 24px 0 16px;
+        }
+
+        .color-groups {
+            margin-bottom: 24px;
+        }
+
+        .color-group {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .group-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            cursor: pointer;
+        }
+
+        .group-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .group-toggle {
+            color: var(--text-secondary);
+            transition: transform 0.2s;
+        }
+
+        .group-toggle.expanded {
+            transform: rotate(180deg);
+        }
+
+        .color-variables {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .color-variable {
+            display: flex;
+            align-items: center;
+        }
+
+        .variable-name {
+            flex: 1;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .color-preview {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            margin-right: 12px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .color-value {
+            font-family: monospace;
+            font-size: 14px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .color-picker-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .color-picker-container {
+            width: 90%;
+            max-width: 320px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .color-picker-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .color-picker-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .color-picker-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--background-color);
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .color-picker-body {
+            padding: 16px;
+        }
+
+        .color-picker-preview {
+            width: 100%;
+            height: 100px;
+            border-radius: var(--border-radius);
+            margin-bottom: 16px;
+        }
+
+        .color-input-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .color-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            font-family: monospace;
+        }
+
+        .color-format-toggle {
+            padding: 10px;
+            background-color: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            margin-left: 8px;
+            color: var(--text-primary);
+            font-family: monospace;
+            cursor: pointer;
+        }
+
+        .preset-colors {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .preset-color {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+        }
+
+        .color-picker-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .color-picker-button {
+            padding: 10px 16px;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .cancel-button {
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            border: none;
+        }
+
+        .apply-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        .preview-section {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .preview-tabs {
+            display: flex;
+            background-color: var(--background-color);
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+
+        .preview-tab {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            border: none;
+            background: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+
+        .preview-tab.active {
+            background-color: var(--card-background);
+            color: var(--primary-color);
+        }
+
+        .theme-mode-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .mode-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-right: 8px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .component-preview {
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+        }
+
+        .preview-components {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .preview-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .preview-button {
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .primary-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        .secondary-button {
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .danger-button {
+            background-color: var(--error-color);
+            color: white;
+            border: none;
+        }
+
+        .preview-card {
+            padding: 16px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .card-content {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .preview-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .preview-input {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--background-color);
+            color: var(--text-primary);
+        }
+
+        .preview-text {
+            margin-bottom: 16px;
+        }
+
+        .text-primary {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .text-secondary {
+            color: var(--text-secondary);
+        }
+
+        .page-preview {
+            display: none;
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+        }
+
+        .page-preview-content {
+            padding: 16px;
+        }
+
+        .bottom-actions {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            position: sticky;
+            bottom: 0;
+            background-color: var(--background-color);
+        }
+
+        .reset-button {
+            flex: 1;
+            padding: 14px;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .save-button {
+            flex: 1;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .save-apply-button {
+            flex: 1;
+            padding: 14px;
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .unsaved-changes-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dialog-container {
+            width: 90%;
+            max-width: 320px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .dialog-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .dialog-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .dialog-body {
+            padding: 16px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .dialog-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .dialog-button {
+            padding: 10px 16px;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .discard-button {
+            background-color: var(--background-color);
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+        }
+
+        .continue-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <button class="icon-button back-button"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">主题编辑器</div>
+            <div></div> <!-- 占位，保持标题居中 -->
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 主题基本信息 -->
+            <form class="theme-form">
+                <div class="form-group">
+                    <label class="form-label" for="theme-name">主题名称</label>
+                    <input type="text" id="theme-name" class="form-input" placeholder="输入主题名称" value="我的自定义主题" maxlength="30">
+                    <div class="form-hint">最多30个字符</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="base-theme">基于主题</label>
+                    <select id="base-theme" class="form-select">
+                        <option value="light">默认亮色</option>
+                        <option value="dark" selected>默认暗色</option>
+                        <option value="blue">蓝色主题</option>
+                        <option value="green">绿色主题</option>
+                    </select>
+                    <div class="form-hint">选择一个基础主题作为起点</div>
+                </div>
+            </form>
+
+            <!-- 颜色编辑区域 -->
+            <div class="section-title">颜色变量</div>
+
+            <div class="color-groups">
+                <!-- 主要颜色组 -->
+                <div class="color-group">
+                    <div class="group-header">
+                        <div class="group-title">主要颜色</div>
+                        <div class="group-toggle expanded">
+                            <i class="fas fa-chevron-up"></i>
+                        </div>
+                    </div>
+
+                    <div class="color-variables">
+                        <div class="color-variable">
+                            <div class="color-preview" style="background-color: #3B82F6;"></div>
+                            <div class="variable-name">primary</div>
+                            <div class="color-value">#3B82F6</div>
+                        </div>
+
+                        <div class="color-variable">
+                            <div class="color-preview" style="background-color: #2563EB;"></div>
+                            <div class="variable-name">primary-hover</div>
+                            <div class="color-value">#2563EB</div>
+                        </div>
+
+                        <div class="color-variable">
+                            <div class="color-preview" style="background-color: #1D4ED8;"></div>
+                            <div class="variable-name">primary-active</div>
+                            <div class="color-value">#1D4ED8</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 背景颜色组 -->
+                <div class="color-group">
+                    <div class="group-header">
+                        <div class="group-title">背景颜色</div>
+                        <div class="group-toggle expanded">
+                            <i class="fas fa-chevron-up"></i>
+                        </div>
+                    </div>
+
+                    <div class="color-variables">
+                        <div class="color-variable">
+                            <div class="color-preview" style="background-color: #1E1E1E;"></div>
+                            <div class="variable-name">background</div>
+                            <div class="color-value">#1E1E1E</div>
+                        </div>
+
+                        <div class="color-variable">
+                            <div class="color-preview" style="background-color: #2D2D2D;"></div>
+                            <div class="variable-name">card-background</div>
+                            <div class="color-value">#2D2D2D</div>
+                        </div>
+
+                        <div class="color-variable">
+                            <div class="color-preview" style="background-color: #3D3D3D;"></div>
+                            <div class="variable-name">input-background</div>
+                            <div class="color-value">#3D3D3D</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 文本颜色组 -->
+                <div class="color-group">
+                    <div class="group-header">
+                        <div class="group-title">文本颜色</div>
+                        <div class="group-toggle expanded">
+                            <i class="fas fa-chevron-up"></i>
+                        </div>
+                    </div>
+
+                    <div class="color-variables">
+                        <div class="color-variable">
+                            <div class="color-preview" style="background-color: #FFFFFF;"></div>
+                            <div class="variable-name">text-primary</div>
+                            <div class="color-value">#FFFFFF</div>
+                        </div>
+
+                        <div class="color-variable">
+                            <div class="color-preview" style="background-color: #A0A0A0;"></div>
+                            <div class="variable-name">text-secondary</div>
+                            <div class="color-value">#A0A0A0</div>
+                        </div>
+
+                        <div class="color-variable">
+                            <div class="color-preview" style="background-color: #6B7280;"></div>
+                            <div class="variable-name">text-muted</div>
+                            <div class="color-value">#6B7280</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 状态颜色组 -->
+                <div class="color-group">
+                    <div class="group-header">
+                        <div class="group-title">状态颜色</div>
+                        <div class="group-toggle expanded">
+                            <i class="fas fa-chevron-up"></i>
+                        </div>
+                    </div>
+
+                    <div class="color-variables">
+                        <div class="color-variable">
+                            <div class="color-preview" style="background-color: #EF4444;"></div>
+                            <div class="variable-name">error</div>
+                            <div class="color-value">#EF4444</div>
+                        </div>
+
+                        <div class="color-variable">
+                            <div class="color-preview" style="background-color: #10B981;"></div>
+                            <div class="variable-name">success</div>
+                            <div class="color-value">#10B981</div>
+                        </div>
+
+                        <div class="color-variable">
+                            <div class="color-preview" style="background-color: #F59E0B;"></div>
+                            <div class="variable-name">warning</div>
+                            <div class="color-value">#F59E0B</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 边框颜色组 -->
+                <div class="color-group">
+                    <div class="group-header">
+                        <div class="group-title">边框颜色</div>
+                        <div class="group-toggle expanded">
+                            <i class="fas fa-chevron-up"></i>
+                        </div>
+                    </div>
+
+                    <div class="color-variables">
+                        <div class="color-variable">
+                            <div class="color-preview" style="background-color: #4B5563;"></div>
+                            <div class="variable-name">border</div>
+                            <div class="color-value">#4B5563</div>
+                        </div>
+
+                        <div class="color-variable">
+                            <div class="color-preview" style="background-color: #374151;"></div>
+                            <div class="variable-name">border-light</div>
+                            <div class="color-value">#374151</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 实时预览区域 -->
+            <div class="section-title">实时预览</div>
+
+            <div class="preview-section">
+                <div class="preview-tabs">
+                    <button class="preview-tab active">组件预览</button>
+                    <button class="preview-tab">页面预览</button>
+                </div>
+
+                <div class="theme-mode-toggle">
+                    <span class="mode-label">暗色模式</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <!-- 组件预览 -->
+                <div class="component-preview">
+                    <div class="preview-components">
+                        <div>
+                            <h4>按钮</h4>
+                            <div class="preview-buttons">
+                                <button class="preview-button primary-button">主要按钮</button>
+                                <button class="preview-button secondary-button">次要按钮</button>
+                                <button class="preview-button danger-button">危险按钮</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4>卡片</h4>
+                            <div class="preview-card">
+                                <div class="card-title">卡片标题</div>
+                                <div class="card-content">这是卡片内容，展示主题的卡片样式效果。</div>
+                                <button class="preview-button primary-button">操作按钮</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4>表单元素</h4>
+                            <div class="preview-form">
+                                <input type="text" class="preview-input" placeholder="输入框">
+                                <select class="preview-input">
+                                    <option>下拉选择框</option>
+                                    <option>选项1</option>
+                                    <option>选项2</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4>文本样式</h4>
+                            <div class="preview-text">
+                                <div class="text-primary">主要文本</div>
+                                <div class="text-secondary">次要文本内容，用于展示详细信息和描述性内容。</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 页面预览 -->
+                <div class="page-preview" style="display: none;">
+                    <div class="page-preview-content">
+                        <div class="preview-card" style="margin-bottom: 16px;">
+                            <div class="card-title">账户概览</div>
+                            <div class="card-content">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                                    <div>
+                                        <div style="color: var(--text-secondary); font-size: 12px;">总收入</div>
+                                        <div style="color: var(--success-color); font-weight: 600;">¥8,000</div>
+                                    </div>
+                                    <div>
+                                        <div style="color: var(--text-secondary); font-size: 12px;">总支出</div>
+                                        <div style="color: var(--error-color); font-weight: 600;">¥5,000</div>
+                                    </div>
+                                    <div>
+                                        <div style="color: var(--text-secondary); font-size: 12px;">结余</div>
+                                        <div style="color: var(--primary-color); font-weight: 600;">¥3,000</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <div style="font-weight: 600; margin-bottom: 12px;">最近交易</div>
+                            <div class="preview-card" style="margin-bottom: 8px; display: flex; align-items: center;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary-color); display: flex; align-items: center; justify-content: center; color: white; margin-right: 12px;">
+                                    <i class="fas fa-utensils"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 500;">餐饮</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">午餐</div>
+                                </div>
+                                <div style="color: var(--error-color); font-weight: 600;">-¥45</div>
+                            </div>
+
+                            <div class="preview-card" style="margin-bottom: 8px; display: flex; align-items: center;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background-color: var(--success-color); display: flex; align-items: center; justify-content: center; color: white; margin-right: 12px;">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 500;">工资</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">月薪</div>
+                                </div>
+                                <div style="color: var(--success-color); font-weight: 600;">+¥6,000</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 底部操作按钮 -->
+        <div class="bottom-actions">
+            <button class="reset-button">重置</button>
+            <button class="save-button">保存</button>
+            <button class="save-apply-button">保存并应用</button>
+        </div>
+
+        <!-- 颜色选择器模态框 -->
+        <div class="color-picker-modal" id="color-picker-modal">
+            <div class="color-picker-container">
+                <div class="color-picker-header">
+                    <div class="color-picker-title">选择颜色</div>
+                    <div class="color-picker-close" id="close-color-picker">
+                        <i class="fas fa-times"></i>
+                    </div>
+                </div>
+                <div class="color-picker-body">
+                    <div class="color-picker-preview" style="background-color: #3B82F6;"></div>
+
+                    <div class="color-input-container">
+                        <input type="text" class="color-input" value="#3B82F6">
+                        <button class="color-format-toggle">HEX</button>
+                    </div>
+
+                    <div class="preset-colors">
+                        <div class="preset-color" style="background-color: #EF4444;"></div>
+                        <div class="preset-color" style="background-color: #F59E0B;"></div>
+                        <div class="preset-color" style="background-color: #10B981;"></div>
+                        <div class="preset-color" style="background-color: #3B82F6;"></div>
+                        <div class="preset-color" style="background-color: #6366F1;"></div>
+                        <div class="preset-color" style="background-color: #8B5CF6;"></div>
+                        <div class="preset-color" style="background-color: #EC4899;"></div>
+                        <div class="preset-color" style="background-color: #F43F5E;"></div>
+                        <div class="preset-color" style="background-color: #FFFFFF;"></div>
+                        <div class="preset-color" style="background-color: #A0A0A0;"></div>
+                        <div class="preset-color" style="background-color: #6B7280;"></div>
+                        <div class="preset-color" style="background-color: #1F2937;"></div>
+                    </div>
+                </div>
+                <div class="color-picker-footer">
+                    <button class="color-picker-button cancel-button" id="cancel-color">取消</button>
+                    <button class="color-picker-button apply-button" id="apply-color">应用</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 未保存更改对话框 -->
+        <div class="unsaved-changes-dialog" id="unsaved-changes-dialog">
+            <div class="dialog-container">
+                <div class="dialog-header">
+                    <div class="dialog-title">未保存的更改</div>
+                </div>
+                <div class="dialog-body">
+                    您有未保存的更改，确定要离开吗？离开后所有更改将会丢失。
+                </div>
+                <div class="dialog-footer">
+                    <button class="dialog-button discard-button" id="discard-changes">放弃更改</button>
+                    <button class="dialog-button continue-button" id="continue-editing">继续编辑</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="theme-switcher.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 颜色组展开/折叠
+            const groupHeaders = document.querySelectorAll('.group-header');
+            groupHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    const toggle = this.querySelector('.group-toggle');
+                    toggle.classList.toggle('expanded');
+
+                    const variables = this.nextElementSibling;
+                    variables.style.display = toggle.classList.contains('expanded') ? 'grid' : 'none';
+                });
+            });
+
+            // 预览标签切换
+            const previewTabs = document.querySelectorAll('.preview-tab');
+            const componentPreview = document.querySelector('.component-preview');
+            const pagePreview = document.querySelector('.page-preview');
+
+            previewTabs.forEach((tab, index) => {
+                tab.addEventListener('click', function() {
+                    previewTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    if (index === 0) {
+                        componentPreview.style.display = 'block';
+                        pagePreview.style.display = 'none';
+                    } else {
+                        componentPreview.style.display = 'none';
+                        pagePreview.style.display = 'block';
+                    }
+                });
+            });
+
+            // 颜色选择器
+            const colorPicker = document.getElementById('color-picker-modal');
+            const closeColorPicker = document.getElementById('close-color-picker');
+            const cancelColor = document.getElementById('cancel-color');
+            const applyColor = document.getElementById('apply-color');
+            const colorVariables = document.querySelectorAll('.color-variable');
+
+            let currentColorElement = null;
+
+            colorVariables.forEach(variable => {
+                const preview = variable.querySelector('.color-preview');
+                const value = variable.querySelector('.color-value');
+
+                preview.addEventListener('click', function() {
+                    openColorPicker(this, value);
+                });
+
+                value.addEventListener('click', function() {
+                    openColorPicker(preview, this);
+                });
+            });
+
+            function openColorPicker(preview, value) {
+                currentColorElement = { preview, value };
+
+                const color = value.textContent;
+                document.querySelector('.color-picker-preview').style.backgroundColor = color;
+                document.querySelector('.color-input').value = color;
+
+                colorPicker.style.display = 'flex';
+            }
+
+            closeColorPicker.addEventListener('click', function() {
+                colorPicker.style.display = 'none';
+            });
+
+            cancelColor.addEventListener('click', function() {
+                colorPicker.style.display = 'none';
+            });
+
+            applyColor.addEventListener('click', function() {
+                const newColor = document.querySelector('.color-input').value;
+
+                if (currentColorElement) {
+                    currentColorElement.preview.style.backgroundColor = newColor;
+                    currentColorElement.value.textContent = newColor;
+                }
+
+                colorPicker.style.display = 'none';
+
+                // 更新预览
+                updatePreview();
+            });
+
+            // 预设颜色选择
+            const presetColors = document.querySelectorAll('.preset-color');
+            presetColors.forEach(color => {
+                color.addEventListener('click', function() {
+                    const selectedColor = this.style.backgroundColor;
+                    const hexColor = rgbToHex(selectedColor);
+
+                    document.querySelector('.color-picker-preview').style.backgroundColor = hexColor;
+                    document.querySelector('.color-input').value = hexColor;
+                });
+            });
+
+            // RGB转HEX
+            function rgbToHex(rgb) {
+                // 从rgb(r, g, b)格式提取数字
+                const rgbArray = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+                if (rgbArray) {
+                    const r = parseInt(rgbArray[1]);
+                    const g = parseInt(rgbArray[2]);
+                    const b = parseInt(rgbArray[3]);
+
+                    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+                }
+                return rgb;
+            }
+
+            // 更新预览
+            function updatePreview() {
+                // 在实际应用中，这里会根据颜色变量更新预览区域的样式
+                console.log('更新预览');
+            }
+
+            // 未保存更改对话框
+            const backButton = document.querySelector('.back-button');
+            const unsavedChangesDialog = document.getElementById('unsaved-changes-dialog');
+            const discardChanges = document.getElementById('discard-changes');
+            const continueEditing = document.getElementById('continue-editing');
+
+            backButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                unsavedChangesDialog.style.display = 'flex';
+            });
+
+            discardChanges.addEventListener('click', function() {
+                unsavedChangesDialog.style.display = 'none';
+                // 实际应用中这里会返回上一页
+                console.log('放弃更改');
+            });
+
+            continueEditing.addEventListener('click', function() {
+                unsavedChangesDialog.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>

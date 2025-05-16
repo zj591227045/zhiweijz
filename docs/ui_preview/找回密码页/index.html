@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>找回密码 - 只为记账</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="themes.css">
+    <style>
+        .auth-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 24px;
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 48px;
+            margin-top: 48px;
+        }
+        
+        .app-logo {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+        
+        .app-slogan {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+        
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .form-input {
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            background-color: var(--card-background);
+            color: var(--text-primary);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(var(--primary), 0.2);
+        }
+        
+        .submit-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .submit-button:hover {
+            background-color: rgba(var(--primary), 0.9);
+        }
+        
+        .auth-links {
+            display: flex;
+            justify-content: center;
+            margin-top: 24px;
+        }
+        
+        .auth-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .auth-footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 24px 0;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+        
+        .theme-switcher {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+        
+        .info-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+        
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 24px;
+        }
+        
+        .success-icon {
+            font-size: 48px;
+            color: var(--success-color);
+            margin-bottom: 16px;
+        }
+        
+        .success-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        
+        .success-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        
+        .email-highlight {
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+    </style>
+    <script src="theme-switcher.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <div class="auth-container">
+            <div class="theme-switcher">
+                <div class="theme-option default active" data-theme="default"></div>
+                <div class="theme-option dark" data-theme="dark"></div>
+                <div class="theme-option green" data-theme="green"></div>
+                <div class="theme-option purple" data-theme="purple"></div>
+            </div>
+            
+            <div class="auth-header">
+                <div class="app-logo">只为记账</div>
+                <div class="app-slogan">简单、高效的个人财务管理工具</div>
+            </div>
+            
+            <div class="request-form">
+                <div class="info-text">
+                    请输入您注册时使用的邮箱地址，我们将向您发送密码重置链接。
+                </div>
+                
+                <form class="auth-form" id="forgot-password-form">
+                    <div class="form-group">
+                        <label class="form-label" for="email">邮箱</label>
+                        <input type="email" id="email" class="form-input" placeholder="请输入邮箱地址" required>
+                    </div>
+                    
+                    <button type="submit" class="submit-button">发送重置链接</button>
+                </form>
+                
+                <div class="auth-links">
+                    <a href="login.html" class="auth-link">返回登录</a>
+                </div>
+            </div>
+            
+            <div class="success-message" id="success-message">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="success-title">重置链接已发送</div>
+                <div class="success-description">
+                    我们已向 <span class="email-highlight" id="sent-email">user@example.com</span> 发送了密码重置链接。
+                    请检查您的邮箱，并按照邮件中的指示重置密码。
+                </div>
+                <button class="submit-button" onclick="window.location.href='login.html'">返回登录</button>
+            </div>
+            
+            <div class="auth-footer">
+                &copy; 2023 只为记账 - 版权所有
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 表单提交
+        document.getElementById('forgot-password-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 获取邮箱地址
+            const email = document.getElementById('email').value;
+            
+            // 显示成功消息
+            document.querySelector('.request-form').style.display = 'none';
+            document.getElementById('success-message').style.display = 'block';
+            document.getElementById('sent-email').textContent = email;
+            
+            // 在实际应用中，这里会发送密码重置请求
+        });
+    </script>
+</body>
+</html>

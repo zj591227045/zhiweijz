@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>只为记账 - 创建账本</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="themes.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .book-form {
+            padding: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--background-color);
+            color: var(--text-primary);
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            margin-bottom: 8px;
+        }
+        
+        .toggle-label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 24px 0 16px;
+        }
+        
+        .ai-service-section {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .provider-selector {
+            margin-bottom: 16px;
+        }
+        
+        .provider-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .provider-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .provider-option {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .provider-option.active {
+            border-color: var(--primary-color);
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        
+        .provider-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .provider-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .model-selector {
+            margin-bottom: 16px;
+        }
+        
+        .api-key-input {
+            margin-bottom: 16px;
+        }
+        
+        .api-key-input .form-input {
+            font-family: monospace;
+        }
+        
+        .test-connection-button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 16px;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            margin-bottom: 16px;
+        }
+        
+        .connection-status.success {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+        
+        .connection-status.error {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+        }
+        
+        .connection-status i {
+            margin-right: 8px;
+        }
+        
+        .advanced-settings {
+            margin-top: 24px;
+        }
+        
+        .collapsible-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+        
+        .collapsible-title {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .collapsible-icon {
+            transition: transform 0.2s;
+        }
+        
+        .collapsible-icon.expanded {
+            transform: rotate(180deg);
+        }
+        
+        .collapsible-content {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .preview-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+        
+        .preview-title {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+        
+        .book-preview {
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            text-align: left;
+        }
+        
+        .preview-book-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        
+        .preview-book-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        
+        .preview-book-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .preview-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .preview-default-badge {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .preview-ai-badge {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+        
+        .bottom-button-container {
+            padding: 16px;
+            position: sticky;
+            bottom: 0;
+            background-color: var(--background-color);
+        }
+        
+        .save-button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .save-button:hover {
+            background-color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <button class="icon-button back-button"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">创建账本</div>
+            <div></div> <!-- 占位，保持标题居中 -->
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <form class="book-form">
+                <!-- 账本基本信息 -->
+                <div class="form-group">
+                    <label class="form-label" for="book-name">账本名称</label>
+                    <input type="text" id="book-name" class="form-input" placeholder="输入账本名称" maxlength="30">
+                    <div class="form-hint">最多30个字符</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="book-description">账本描述</label>
+                    <textarea id="book-description" class="form-textarea" placeholder="描述这个账本的用途（可选）" maxlength="100"></textarea>
+                    <div class="form-hint">最多100个字符</div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="toggle-container">
+                        <div class="toggle-label">设为默认账本</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-hint">默认账本将在登录后自动选择</div>
+                </div>
+                
+                <!-- AI服务配置 -->
+                <div class="section-title">AI服务配置</div>
+                
+                <div class="form-group">
+                    <div class="toggle-container">
+                        <div class="toggle-label">启用AI服务</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="enable-ai" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-hint">启用后可使用智能分析和建议功能</div>
+                </div>
+                
+                <div class="ai-service-section">
+                    <div class="provider-selector">
+                        <label class="provider-label">选择服务提供商</label>
+                        <div class="provider-options">
+                            <div class="provider-option active">
+                                <div class="provider-icon">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div class="provider-name">OpenAI</div>
+                            </div>
+                            <div class="provider-option">
+                                <div class="provider-icon">
+                                    <i class="fab fa-microsoft"></i>
+                                </div>
+                                <div class="provider-name">Azure OpenAI</div>
+                            </div>
+                            <div class="provider-option">
+                                <div class="provider-icon">
+                                    <i class="fas fa-microchip"></i>
+                                </div>
+                                <div class="provider-name">其他</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="model-selector">
+                        <label class="form-label" for="ai-model">选择模型</label>
+                        <select id="ai-model" class="form-input">
+                            <option value="gpt-4">GPT-4</option>
+                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="api-key-input">
+                        <label class="form-label" for="api-key">API密钥</label>
+                        <input type="password" id="api-key" class="form-input" placeholder="输入API密钥">
+                        <div class="form-hint">您的API密钥将被安全加密存储</div>
+                    </div>
+                    
+                    <button type="button" class="test-connection-button">测试连接</button>
+                    
+                    <!-- 连接状态（成功/失败） -->
+                    <div class="connection-status success">
+                        <i class="fas fa-check-circle"></i>
+                        <span>连接成功！API密钥有效。</span>
+                    </div>
+                    
+                    <!-- 高级设置 -->
+                    <div class="advanced-settings">
+                        <div class="collapsible-header">
+                            <div class="collapsible-title">高级设置</div>
+                            <div class="collapsible-icon">
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="collapsible-content" style="display: none;">
+                            <div class="form-group">
+                                <label class="form-label" for="custom-prompt">自定义提示词</label>
+                                <textarea id="custom-prompt" class="form-textarea" placeholder="输入自定义提示词"></textarea>
+                                <div class="form-hint">自定义AI的行为和回复风格</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="language">语言偏好</label>
+                                <select id="language" class="form-input">
+                                    <option value="zh-CN">简体中文</option>
+                                    <option value="en-US">English</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 预览 -->
+                <div class="preview-section">
+                    <div class="preview-title">预览效果</div>
+                    <div class="book-preview">
+                        <div class="preview-book-name">个人账本</div>
+                        <div class="preview-book-description">日常开支记录，包含个人所有收支情况。</div>
+                        <div class="preview-book-badges">
+                            <div class="preview-badge preview-default-badge">默认账本</div>
+                            <div class="preview-badge preview-ai-badge">AI已启用</div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </main>
+
+        <!-- 底部按钮 -->
+        <div class="bottom-button-container">
+            <button class="save-button">保存</button>
+        </div>
+    </div>
+
+    <script src="theme-switcher.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 服务提供商选择
+            const providerOptions = document.querySelectorAll('.provider-option');
+            providerOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    providerOptions.forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // AI服务启用/禁用
+            const enableAiToggle = document.getElementById('enable-ai');
+            const aiServiceSection = document.querySelector('.ai-service-section');
+            
+            enableAiToggle.addEventListener('change', function() {
+                aiServiceSection.style.opacity = this.checked ? '1' : '0.5';
+                aiServiceSection.style.pointerEvents = this.checked ? 'auto' : 'none';
+                
+                // 更新预览
+                const aiBadge = document.querySelector('.preview-ai-badge');
+                aiBadge.style.display = this.checked ? 'inline-flex' : 'none';
+            });
+            
+            // 高级设置折叠/展开
+            const collapsibleHeader = document.querySelector('.collapsible-header');
+            const collapsibleContent = document.querySelector('.collapsible-content');
+            const collapsibleIcon = document.querySelector('.collapsible-icon');
+            
+            collapsibleHeader.addEventListener('click', function() {
+                collapsibleContent.style.display = collapsibleContent.style.display === 'none' ? 'block' : 'none';
+                collapsibleIcon.classList.toggle('expanded');
+            });
+            
+            // 账本名称和描述实时预览
+            const nameInput = document.getElementById('book-name');
+            const descriptionInput = document.getElementById('book-description');
+            const previewName = document.querySelector('.preview-book-name');
+            const previewDescription = document.querySelector('.preview-book-description');
+            
+            nameInput.addEventListener('input', function() {
+                previewName.textContent = this.value || '账本名称';
+            });
+            
+            descriptionInput.addEventListener('input', function() {
+                previewDescription.textContent = this.value || '账本描述';
+            });
+        });
+    </script>
+</body>
+</html>
