@@ -169,10 +169,7 @@ export class BudgetRepository {
       where: {
         userId,
         startDate: { lte: date },
-        OR: [
-          { endDate: null },
-          { endDate: { gte: date } },
-        ] as Prisma.BudgetWhereInput[],
+        endDate: { gte: date },
       },
       include: {
         category: true,
@@ -195,10 +192,7 @@ export class BudgetRepository {
         userId,
         period,
         startDate: { lte: endDate },
-        OR: [
-          { endDate: null },
-          { endDate: { gte: startDate } },
-        ] as Prisma.BudgetWhereInput[],
+        endDate: { gte: startDate },
         ...(familyId && { familyId }),
       },
       include: {

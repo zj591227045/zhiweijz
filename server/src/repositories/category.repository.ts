@@ -34,7 +34,24 @@ export class CategoryRepository {
         isDefault: category.isDefault || false,
       })),
     });
-    
+
+    return result.count;
+  }
+
+  /**
+   * 批量创建默认分类（不设置userId）
+   */
+  async createDefaultCategories(categoriesData: CreateCategoryDto[]): Promise<number> {
+    const result = await prisma.category.createMany({
+      data: categoriesData.map(category => ({
+        name: category.name,
+        type: category.type,
+        icon: category.icon,
+        familyId: null,
+        isDefault: true,
+      })),
+    });
+
     return result.count;
   }
 
@@ -115,7 +132,7 @@ export class CategoryRepository {
     const count = await prisma.transaction.count({
       where: { categoryId: id },
     });
-    
+
     return count > 0;
   }
 
@@ -126,7 +143,7 @@ export class CategoryRepository {
     const count = await prisma.category.count({
       where: { isDefault: true },
     });
-    
+
     return count > 0;
   }
 }

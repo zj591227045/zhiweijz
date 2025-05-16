@@ -25,8 +25,8 @@ export class CategoryService {
       return 0; // 默认分类已存在，无需初始化
     }
 
-    // 创建默认分类（使用空字符串作为userId表示系统默认分类）
-    return this.categoryRepository.createMany('system', defaultCategories);
+    // 创建默认分类（不设置userId，表示系统默认分类）
+    return this.categoryRepository.createDefaultCategories(defaultCategories);
   }
 
   /**

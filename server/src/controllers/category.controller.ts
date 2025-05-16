@@ -18,7 +18,12 @@ export class CategoryController {
       const count = await this.categoryService.initializeDefaultCategories();
       res.status(200).json({ message: `成功初始化 ${count} 个默认分类` });
     } catch (error) {
-      res.status(500).json({ message: '初始化默认分类时发生错误' });
+      console.error('初始化默认分类时发生错误:', error);
+      if (error instanceof Error) {
+        res.status(500).json({ message: `初始化默认分类时发生错误: ${error.message}` });
+      } else {
+        res.status(500).json({ message: '初始化默认分类时发生错误' });
+      }
     }
   }
 
@@ -58,7 +63,7 @@ export class CategoryController {
 
       const type = req.query.type as TransactionType | undefined;
       const familyId = req.query.familyId as string | undefined;
-      
+
       const categories = await this.categoryService.getCategories(userId, type, familyId);
       res.status(200).json(categories);
     } catch (error) {
@@ -96,7 +101,7 @@ export class CategoryController {
 
       const categoryId = req.params.id;
       const categoryData: UpdateCategoryDto = req.body;
-      
+
       const category = await this.categoryService.updateCategory(categoryId, userId, categoryData);
       res.status(200).json(category);
     } catch (error) {
