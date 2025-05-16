@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 @import '../styles/themes.css';
+@import '../styles/statistics.css';
 
 @layer base {
   :root {

@@ -102,6 +102,11 @@ export interface FinancialOverviewResponseDto {
     amount: number;
     percentage: number;
   }>;
+  dailyStatistics: Array<{
+    date: string;
+    income: number;
+    expense: number;
+  }>;
 }
 
 /**
@@ -379,12 +384,49 @@ export class StatisticsService {
         };
       });
 
+    // 按日期分组收入和支出
+    const dailyIncomeMap = new Map<string, number>();
+    for (const t of incomeTransactions) {
+      const date = new Date(t.date).toISOString().split('T')[0]; // YYYY-MM-DD
+      const current = dailyIncomeMap.get(date) || 0;
+      dailyIncomeMap.set(date, current + Number(t.amount));
+    }
+
+    const dailyExpenseMap = new Map<string, number>();
+    for (const t of expenseTransactions) {
+      const date = new Date(t.date).toISOString().split('T')[0]; // YYYY-MM-DD
+      const current = dailyExpenseMap.get(date) || 0;
+      dailyExpenseMap.set(date, current + Number(t.amount));
+    }
+
+    // 生成日期范围内的所有日期
+    const allDates = new Set<string>();
+    const currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      allDates.add(currentDate.toISOString().split('T')[0]);
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // 添加已有交易的日期
+    dailyIncomeMap.forEach((_, date) => allDates.add(date));
+    dailyExpenseMap.forEach((_, date) => allDates.add(date));
+
+    // 生成每日统计数据
+    const dailyStatistics = Array.from(allDates)
+      .map(date => ({
+        date,
+        income: dailyIncomeMap.get(date) || 0,
+        expense: dailyExpenseMap.get(date) || 0
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
     return {
       income,
       expense,
       netIncome,
       topIncomeCategories,
       topExpenseCategories,
+      dailyStatistics
     };
   }
 

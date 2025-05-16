@@ -9,12 +9,14 @@ interface StatsSummaryCardProps {
   isLoading: boolean;
 }
 
-export function StatsSummaryCard({ 
-  income, 
-  expense, 
+export function StatsSummaryCard({
+  income,
+  expense,
   balance,
-  isLoading 
+  isLoading
 }: StatsSummaryCardProps) {
+  console.log('StatsSummaryCard 组件收到的数据:', { income, expense, balance, isLoading });
+
   return (
     <div className="summary-card">
       <div className="summary-header">收支概览</div>

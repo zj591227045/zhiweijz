@@ -196,6 +196,7 @@ const getCacheKey = (url: string, params?: any): string => {
 export const apiClient = {
   // GET请求，支持缓存
   get: <T = any>(url: string, config?: AxiosRequestConfig & { useCache?: boolean, cacheTTL?: number }): Promise<T> => {
+    console.log('API GET 请求:', url, config);
     const useCache = config?.useCache !== false; // 默认使用缓存
     const cacheTTL = config?.cacheTTL; // 可选的缓存TTL
 
@@ -205,18 +206,31 @@ export const apiClient = {
       const cachedData = apiCache.get(cacheKey);
 
       if (cachedData) {
+        console.log('从缓存获取数据:', url, cachedData);
         return Promise.resolve(cachedData);
       }
 
       // 如果缓存中没有，发起请求并缓存结果
+      console.log('缓存中没有数据，发起请求:', url);
       return api.get(url, config).then((res: AxiosResponse) => {
+        console.log('API GET 响应数据:', url, res.data);
         apiCache.set(cacheKey, res.data, cacheTTL);
         return res.data;
+      }).catch(error => {
+        console.error('API GET 请求错误:', url, error);
+        throw error;
       });
     }
 
     // 不使用缓存或没有参数，直接发起请求
-    return api.get(url, config).then((res: AxiosResponse) => res.data);
+    console.log('不使用缓存，直接发起请求:', url);
+    return api.get(url, config).then((res: AxiosResponse) => {
+      console.log('API GET 响应数据:', url, res.data);
+      return res.data;
+    }).catch(error => {
+      console.error('API GET 请求错误:', url, error);
+      throw error;
+    });
   },
 
   // POST请求，会使相关GET缓存失效

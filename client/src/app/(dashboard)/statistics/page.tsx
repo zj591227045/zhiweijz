@@ -10,7 +10,7 @@ import { StatsSummaryCard } from "@/components/statistics/stats-summary-card";
 import { CategoryDistribution } from "@/components/statistics/category-distribution";
 import { TrendChart } from "@/components/statistics/trend-chart";
 import { AnalysisNavigation } from "@/components/statistics/analysis-navigation";
-import { getCurrentMonthRange } from "@/lib/api-services";
+import { getCurrentMonthRange, getPreviousMonthRange, getNextMonthRange } from "@/lib/api-services";
 import { useStatisticsStore } from "@/store/statistics-store";
 import { toast } from "sonner";
 
@@ -18,8 +18,8 @@ export default function StatisticsPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const { currentAccountBook } = useAccountBookStore();
-  const { 
-    isLoading, 
+  const {
+    isLoading,
     setIsLoading,
     fetchStatisticsData,
     statisticsData,
@@ -45,15 +45,25 @@ export default function StatisticsPage() {
   // 获取统计数据
   useEffect(() => {
     const loadData = async () => {
-      if (!dateRange.startDate || !dateRange.endDate) return;
-      
+      if (!dateRange.startDate || !dateRange.endDate) {
+        console.log('日期范围未设置，不加载数据');
+        return;
+      }
+
+      console.log('开始加载统计数据:', {
+        dateRange,
+        currentAccountBook,
+        isAuthenticated
+      });
+
       setIsLoading(true);
       try {
-        await fetchStatisticsData(
+        const result = await fetchStatisticsData(
           dateRange.startDate,
           dateRange.endDate,
           currentAccountBook?.id
         );
+        console.log('统计数据加载完成:', result);
       } catch (error) {
         console.error("获取统计数据失败:", error);
         toast.error("获取统计数据失败，请稍后重试");
@@ -63,24 +73,57 @@ export default function StatisticsPage() {
     };
 
     if (isAuthenticated && dateRange.startDate && dateRange.endDate) {
+      console.log('条件满足，调用loadData()');
       loadData();
+    } else {
+      console.log('条件不满足，不调用loadData():', {
+        isAuthenticated,
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate
+      });
     }
   }, [
-    isAuthenticated, 
-    dateRange, 
-    currentAccountBook, 
-    fetchStatisticsData, 
+    isAuthenticated,
+    dateRange,
+    currentAccountBook,
+    fetchStatisticsData,
     setIsLoading
   ]);
 
   // 格式化当前日期显示
   const formatCurrentDate = () => {
     if (!dateRange.startDate) return "";
-    
+
     const startDate = new Date(dateRange.startDate);
     const year = startDate.getFullYear();
     const month = startDate.getMonth() + 1;
     return `${year}年${month}月`;
+  };
+
+  // 处理上个月按钮点击
+  const handlePrevMonth = () => {
+    if (!dateRange.startDate) return;
+
+    const currentDate = new Date(dateRange.startDate);
+    const { startDate, endDate } = getPreviousMonthRange(currentDate);
+    setDateRange({ startDate, endDate });
+  };
+
+  // 处理下个月按钮点击
+  const handleNextMonth = () => {
+    if (!dateRange.startDate) return;
+
+    const currentDate = new Date(dateRange.startDate);
+    const { startDate, endDate } = getNextMonthRange(currentDate);
+
+    // 不允许选择未来的月份
+    const now = new Date();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    if (new Date(startDate) >= nextMonth) {
+      return;
+    }
+
+    setDateRange({ startDate, endDate });
   };
 
   return (
@@ -96,14 +139,14 @@ export default function StatisticsPage() {
 
       <div className="main-content">
         {/* 日期选择器 */}
-        <DateRangePicker 
+        <DateRangePicker
           currentDate={formatCurrentDate()}
-          onPrevMonth={() => {/* 处理上个月 */}}
-          onNextMonth={() => {/* 处理下个月 */}}
+          onPrevMonth={handlePrevMonth}
+          onNextMonth={handleNextMonth}
         />
 
         {/* 统计概览卡片 */}
-        <StatsSummaryCard 
+        <StatsSummaryCard
           income={statisticsData?.totalIncome || 0}
           expense={statisticsData?.totalExpense || 0}
           balance={statisticsData?.balance || 0}
@@ -111,14 +154,14 @@ export default function StatisticsPage() {
         />
 
         {/* 分类占比图表 */}
-        <CategoryDistribution 
+        <CategoryDistribution
           expenseCategories={statisticsData?.expenseByCategory || []}
           incomeCategories={statisticsData?.incomeByCategory || []}
           isLoading={isLoading}
         />
 
         {/* 趋势图表 */}
-        <TrendChart 
+        <TrendChart
           dailyStatistics={statisticsData?.dailyStatistics || []}
           isLoading={isLoading}
         />

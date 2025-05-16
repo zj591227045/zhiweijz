@@ -12,13 +12,13 @@ interface StatisticsState {
   statisticsData: StatisticsResponse | null;
   isLoading: boolean;
   error: Error | null;
-  
+
   // 视图状态
   dateRange: DateRange;
   categoryChartType: 'pie' | 'bar';
   trendChartPeriod: 'day' | 'week' | 'month';
   selectedCategoryType: 'expense' | 'income';
-  
+
   // 操作方法
   setIsLoading: (isLoading: boolean) => void;
   setError: (error: Error | null) => void;
@@ -42,7 +42,7 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
   categoryChartType: 'pie',
   trendChartPeriod: 'day',
   selectedCategoryType: 'expense',
-  
+
   // 操作方法
   setIsLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
@@ -50,12 +50,26 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
   setCategoryChartType: (type) => set({ categoryChartType: type }),
   setTrendChartPeriod: (period) => set({ trendChartPeriod: period }),
   setSelectedCategoryType: (type) => set({ selectedCategoryType: type }),
-  
+
   // 获取统计数据
   fetchStatisticsData: async (startDate, endDate, accountBookId) => {
+    console.log('开始获取统计数据:', { startDate, endDate, accountBookId });
     try {
       set({ isLoading: true, error: null });
       const data = await getFinancialOverview(startDate, endDate, accountBookId);
+      console.log('获取到的统计数据:', data);
+
+      // 检查数据是否符合预期
+      if (!data) {
+        console.error('获取到的统计数据为空');
+      } else if (!data.expenseByCategory || !Array.isArray(data.expenseByCategory)) {
+        console.error('获取到的支出分类数据无效:', data.expenseByCategory);
+      } else if (!data.incomeByCategory || !Array.isArray(data.incomeByCategory)) {
+        console.error('获取到的收入分类数据无效:', data.incomeByCategory);
+      } else if (!data.dailyStatistics || !Array.isArray(data.dailyStatistics)) {
+        console.error('获取到的每日统计数据无效:', data.dailyStatistics);
+      }
+
       set({ statisticsData: data });
       return data;
     } catch (error) {
@@ -66,7 +80,7 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
       set({ isLoading: false });
     }
   },
-  
+
   // 重置状态
   reset: () => set({
     statisticsData: null,

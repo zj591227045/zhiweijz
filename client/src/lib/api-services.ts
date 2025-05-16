@@ -7,6 +7,8 @@ import {
 } from "@/types";
 import { formatDate } from "./utils";
 
+
+
 /**
  * 获取财务概览数据
  * @param startDate 开始日期
@@ -28,9 +30,47 @@ export async function getFinancialOverview(
   console.log("请求财务概览数据URL:", url);
 
   try {
-    const response = await apiClient.get<StatisticsResponse>(url);
-    console.log("财务概览数据响应:", response);
-    return response;
+    // 获取API响应
+    const apiResponse = await apiClient.get<any>(url);
+    console.log("财务概览数据原始响应:", apiResponse);
+
+    // 将API响应转换为前端组件期望的数据结构
+    const transformedResponse: StatisticsResponse = {
+      totalIncome: apiResponse.income || 0,
+      totalExpense: apiResponse.expense || 0,
+      balance: apiResponse.netIncome || 0,
+      incomeByCategory: Array.isArray(apiResponse.topIncomeCategories)
+        ? apiResponse.topIncomeCategories.map((cat: any) => ({
+            categoryId: cat.category?.id || '',
+            categoryName: cat.category?.name || '',
+            amount: cat.amount || 0,
+            percentage: cat.percentage || 0
+          }))
+        : [],
+      expenseByCategory: Array.isArray(apiResponse.topExpenseCategories)
+        ? apiResponse.topExpenseCategories.map((cat: any) => ({
+            categoryId: cat.category?.id || '',
+            categoryName: cat.category?.name || '',
+            amount: cat.amount || 0,
+            percentage: cat.percentage || 0
+          }))
+        : [],
+      // 使用API返回的每日统计数据
+      dailyStatistics: apiResponse.dailyStatistics || []
+    };
+
+    console.log("转换后的财务概览数据:", transformedResponse);
+
+    // 检查转换后的数据结构
+    console.log("转换后的数据结构检查:");
+    console.log("- totalIncome:", transformedResponse.totalIncome);
+    console.log("- totalExpense:", transformedResponse.totalExpense);
+    console.log("- balance:", transformedResponse.balance);
+    console.log("- incomeByCategory:", transformedResponse.incomeByCategory);
+    console.log("- expenseByCategory:", transformedResponse.expenseByCategory);
+    console.log("- dailyStatistics:", transformedResponse.dailyStatistics);
+
+    return transformedResponse;
   } catch (error) {
     console.error("获取财务概览数据错误:", error);
     // 返回默认数据，避免页面崩溃
@@ -170,6 +210,36 @@ export function getCurrentMonthRange(): { startDate: string; endDate: string } {
   const now = new Date();
   const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
   const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  return {
+    startDate: formatDate(startDate),
+    endDate: formatDate(endDate)
+  };
+}
+
+/**
+ * 获取上个月的开始和结束日期
+ * @param currentDate 当前日期，默认为当前时间
+ * @returns 上个月的开始和结束日期
+ */
+export function getPreviousMonthRange(currentDate: Date = new Date()): { startDate: string; endDate: string } {
+  const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+  const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+
+  return {
+    startDate: formatDate(startDate),
+    endDate: formatDate(endDate)
+  };
+}
+
+/**
+ * 获取下个月的开始和结束日期
+ * @param currentDate 当前日期，默认为当前时间
+ * @returns 下个月的开始和结束日期
+ */
+export function getNextMonthRange(currentDate: Date = new Date()): { startDate: string; endDate: string } {
+  const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+  const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 2, 0);
 
   return {
     startDate: formatDate(startDate),
