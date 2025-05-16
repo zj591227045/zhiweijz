@@ -1,23 +1,14 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
-import { AuthGuard } from "@/components/auth/auth-guard";
+import { Providers } from "@/components/providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "只为记账 - 简单、高效的个人财务管理工具",
-  description: "只为记账是一款简单、高效的个人财务管理工具，帮助您轻松管理个人和家庭财务。",
+  title: "只为记账 - 简单高效的个人记账应用",
+  description: "只为记账是一款简单、高效的个人记账应用，帮助您更好地管理财务。",
 };
 
 export default function RootLayout({
@@ -26,16 +17,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ThemeProvider>
-          <AuthGuard>
-            {children}
-          </AuthGuard>
+    <html lang="zh-CN" suppressHydrationWarning>
+      <body className={inter.className}>
+        <Providers>
+          {children}
           <Toaster position="top-center" />
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

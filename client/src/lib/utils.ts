@@ -1,6 +1,85 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
+/**
+ * 合并Tailwind CSS类名
+ */
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
+}
+
+/**
+ * 格式化金额
+ * @param amount 金额
+ * @param currency 货币符号
+ * @returns 格式化后的金额字符串
+ */
+export function formatCurrency(amount: number, currency: string = "¥") {
+  return `${currency}${amount.toFixed(2)}`;
+}
+
+/**
+ * 格式化日期
+ * @param date 日期
+ * @param format 格式
+ * @returns 格式化后的日期字符串
+ */
+export function formatDate(date: Date | string, format: string = "YYYY-MM-DD") {
+  const dayjs = require("dayjs");
+  return dayjs(date).format(format);
+}
+
+/**
+ * 获取相对时间
+ * @param date 日期
+ * @returns 相对时间字符串
+ */
+export function getRelativeTime(date: Date | string) {
+  const dayjs = require("dayjs");
+  const relativeTime = require("dayjs/plugin/relativeTime");
+  const zhCN = require("dayjs/locale/zh-cn");
+  
+  dayjs.extend(relativeTime);
+  dayjs.locale("zh-cn");
+  
+  return dayjs(date).fromNow();
+}
+
+/**
+ * 防抖函数
+ * @param fn 要执行的函数
+ * @param ms 延迟时间
+ * @returns 防抖后的函数
+ */
+export function debounce<T extends (...args: any[]) => any>(
+  fn: T,
+  ms: number
+): (...args: Parameters<T>) => void {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  
+  return function(this: any, ...args: Parameters<T>) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn.apply(this, args), ms);
+  };
+}
+
+/**
+ * 节流函数
+ * @param fn 要执行的函数
+ * @param ms 间隔时间
+ * @returns 节流后的函数
+ */
+export function throttle<T extends (...args: any[]) => any>(
+  fn: T,
+  ms: number
+): (...args: Parameters<T>) => void {
+  let lastTime = 0;
+  
+  return function(this: any, ...args: Parameters<T>) {
+    const now = Date.now();
+    if (now - lastTime >= ms) {
+      fn.apply(this, args);
+      lastTime = now;
+    }
+  };
 }
