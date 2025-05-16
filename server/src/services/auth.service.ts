@@ -152,4 +152,36 @@ export class AuthService {
       throw error;
     }
   }
+
+  /**
+   * 刷新用户token
+   */
+  async refreshToken(userId: string): Promise<LoginResponseDto> {
+    try {
+      // 获取用户信息
+      const user = await this.userService.getUserById(userId);
+
+      if (!user) {
+        throw new Error('用户不存在');
+      }
+
+      // 生成新的JWT令牌
+      const token = generateToken({
+        id: user.id,
+        email: user.email,
+      });
+
+      return {
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        },
+      };
+    } catch (error) {
+      console.error('刷新token失败:', error);
+      throw error;
+    }
+  }
 }

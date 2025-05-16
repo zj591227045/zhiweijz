@@ -76,4 +76,41 @@ export class AuthController {
       }
     }
   }
+
+  /**
+   * 检查认证状态
+   */
+  async checkAuth(_req: Request, res: Response): Promise<void> {
+    try {
+      // 如果请求能到达这里，说明认证中间件已经验证了token
+      res.status(200).json({ message: '认证有效' });
+    } catch (error) {
+      res.status(401).json({ message: '认证无效' });
+    }
+  }
+
+  /**
+   * 刷新token
+   */
+  async refreshToken(req: Request, res: Response): Promise<void> {
+    try {
+      // 从请求中获取用户ID
+      const userId = req.user?.id;
+
+      if (!userId) {
+        res.status(401).json({ message: '无效的用户信息' });
+        return;
+      }
+
+      // 刷新token
+      const refreshResponse = await this.authService.refreshToken(userId);
+      res.status(200).json(refreshResponse);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(401).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '刷新token时发生错误' });
+      }
+    }
+  }
 }

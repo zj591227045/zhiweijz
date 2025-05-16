@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
+import { authenticate } from '../middlewares/auth.middleware';
 
 const router = Router();
 const authController = new AuthController();
@@ -15,5 +16,11 @@ router.post('/forgot-password', (req, res) => authController.forgotPassword(req,
 
 // 重置密码
 router.post('/reset-password', (req, res) => authController.resetPassword(req, res));
+
+// 检查认证状态
+router.get('/check', authenticate, (req, res) => authController.checkAuth(req, res));
+
+// 刷新token
+router.post('/refresh', authenticate, (req, res) => authController.refreshToken(req, res));
 
 export default router;

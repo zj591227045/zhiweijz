@@ -85,6 +85,22 @@ api.interceptors.request.use(
   }
 );
 
+// 标记是否正在刷新token
+let isRefreshing = false;
+// 等待token刷新的请求队列
+let refreshSubscribers: Array<(token: string) => void> = [];
+
+// 将请求添加到队列
+const subscribeTokenRefresh = (callback: (token: string) => void) => {
+  refreshSubscribers.push(callback);
+};
+
+// 执行队列中的请求
+const onTokenRefreshed = (token: string) => {
+  refreshSubscribers.forEach(callback => callback(token));
+  refreshSubscribers = [];
+};
+
 // 响应拦截器
 api.interceptors.response.use(
   (response) => {
@@ -94,22 +110,63 @@ api.interceptors.response.use(
     }
     return response;
   },
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
     // 仅在开发环境输出详细日志
     if (isDev) {
       console.error("API响应错误:", error.message);
       console.error("错误详情:", error.response?.status, error.response?.data);
     }
 
-    // 处理401错误（未授权）
-    if (error.response?.status === 401) {
-      // 清除本地存储的认证信息
-      localStorage.removeItem("auth-token");
-      localStorage.removeItem("user");
+    const originalRequest = error.config as any;
 
-      // 如果不在登录页面，重定向到登录页
-      if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
-        window.location.href = "/login";
+    // 处理401错误（未授权）
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      // 如果是刷新token的请求失败，直接返回错误
+      if (originalRequest.url === '/auth/refresh') {
+        // 清除认证状态，但不跳转
+        localStorage.removeItem("auth-token");
+        localStorage.removeItem("user");
+        return Promise.reject(error);
+      }
+
+      // 标记请求已重试
+      originalRequest._retry = true;
+
+      // 如果已经在刷新token，将请求添加到队列
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          subscribeTokenRefresh((token: string) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(api(originalRequest));
+          });
+        });
+      }
+
+      isRefreshing = true;
+
+      try {
+        // 尝试刷新token
+        const response = await api.post('/auth/refresh');
+        const newToken = response.data.token;
+
+        if (newToken) {
+          // 更新localStorage中的token
+          localStorage.setItem("auth-token", newToken);
+
+          // 更新请求头
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
+          // 通知队列中的请求
+          onTokenRefreshed(newToken);
+
+          // 重试原始请求
+          return api(originalRequest);
+        }
+      } catch (refreshError) {
+        // 刷新token失败，但不跳转页面
+        // 让组件自己处理认证状态
+      } finally {
+        isRefreshing = false;
       }
     }
 
