@@ -103,7 +103,8 @@ export class TransactionImportService {
         result.success++;
       } catch (error) {
         result.failed++;
-        result.errors.push(`行 ${records.indexOf(record) + 1}: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : '未知错误';
+        result.errors.push(`行 ${records.indexOf(record) + 1}: ${errorMessage}`);
       }
     }
 
@@ -124,7 +125,7 @@ export class TransactionImportService {
     });
 
     // 标准化字段名
-    return records.map(record => this.normalizeRecord(record));
+    return records.map((record: any) => this.normalizeRecord(record));
   }
 
   /**
@@ -136,16 +137,17 @@ export class TransactionImportService {
     try {
       // 解析JSON
       const records = JSON.parse(content);
-      
+
       // 确保是数组
       if (!Array.isArray(records)) {
         throw new Error('JSON内容必须是数组');
       }
 
       // 标准化字段名
-      return records.map(record => this.normalizeRecord(record));
+      return records.map((record: any) => this.normalizeRecord(record));
     } catch (error) {
-      throw new Error(`JSON解析错误: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : '未知错误';
+      throw new Error(`JSON解析错误: ${errorMessage}`);
     }
   }
 
@@ -156,12 +158,12 @@ export class TransactionImportService {
    */
   private normalizeRecord(record: any): any {
     const normalized: any = {};
-    
+
     // 遍历记录的所有字段
     for (const [key, value] of Object.entries(record)) {
       // 转换字段名为小写
       const lowerKey = key.toLowerCase();
-      
+
       // 根据字段名映射
       if (lowerKey === 'amount' || lowerKey === '金额') {
         normalized.amount = value;
@@ -178,7 +180,7 @@ export class TransactionImportService {
         normalized[lowerKey] = value;
       }
     }
-    
+
     return normalized;
   }
 }
