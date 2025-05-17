@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import { BudgetPeriod } from '@prisma/client';
 import { BudgetService } from '../services/budget.service';
-import { 
-  CreateBudgetDto, 
-  UpdateBudgetDto, 
-  BudgetQueryParams 
+import {
+  CreateBudgetDto,
+  UpdateBudgetDto,
+  BudgetQueryParams
 } from '../models/budget.model';
 
 export class BudgetController {
@@ -30,7 +30,7 @@ export class BudgetController {
         startDate: new Date(req.body.startDate),
         endDate: req.body.endDate ? new Date(req.body.endDate) : undefined,
       };
-      
+
       const budget = await this.budgetService.createBudget(userId, budgetData);
       res.status(201).json(budget);
     } catch (error) {
@@ -58,13 +58,14 @@ export class BudgetController {
         period: req.query.period as BudgetPeriod | undefined,
         categoryId: req.query.categoryId as string | undefined,
         familyId: req.query.familyId as string | undefined,
+        accountBookId: req.query.accountBookId as string | undefined,
         active: req.query.active === 'true',
         page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
         limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 20,
         sortBy: req.query.sortBy as string | undefined,
         sortOrder: req.query.sortOrder as 'asc' | 'desc' | undefined,
       };
-      
+
       const budgets = await this.budgetService.getBudgets(userId, params);
       res.status(200).json(budgets);
     } catch (error) {
@@ -112,7 +113,7 @@ export class BudgetController {
         startDate: req.body.startDate ? new Date(req.body.startDate) : undefined,
         endDate: req.body.endDate ? new Date(req.body.endDate) : undefined,
       };
-      
+
       const budget = await this.budgetService.updateBudget(budgetId, userId, budgetData);
       res.status(200).json(budget);
     } catch (error) {

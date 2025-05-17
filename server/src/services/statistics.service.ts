@@ -133,7 +133,8 @@ export class StatisticsService {
     startDate: Date,
     endDate: Date,
     groupBy: 'day' | 'week' | 'month' | 'category' = 'day',
-    familyId?: string
+    familyId?: string,
+    accountBookId?: string
   ): Promise<ExpenseStatisticsResponseDto> {
     // 验证用户是否为家庭成员
     if (familyId) {
@@ -149,7 +150,8 @@ export class StatisticsService {
       TransactionType.EXPENSE,
       startDate,
       endDate,
-      familyId
+      familyId,
+      accountBookId
     );
 
     // 获取分类信息
@@ -179,7 +181,8 @@ export class StatisticsService {
     startDate: Date,
     endDate: Date,
     groupBy: 'day' | 'week' | 'month' | 'category' = 'day',
-    familyId?: string
+    familyId?: string,
+    accountBookId?: string
   ): Promise<IncomeStatisticsResponseDto> {
     // 验证用户是否为家庭成员
     if (familyId) {
@@ -195,7 +198,8 @@ export class StatisticsService {
       TransactionType.INCOME,
       startDate,
       endDate,
-      familyId
+      familyId,
+      accountBookId
     );
 
     // 获取分类信息
@@ -223,13 +227,50 @@ export class StatisticsService {
   async getBudgetStatistics(
     userId: string,
     month: string,
-    familyId?: string
+    familyId?: string,
+    accountBookId?: string
   ): Promise<BudgetStatisticsResponseDto> {
+    console.log('StatisticsService.getBudgetStatistics 参数:', {
+      userId,
+      month,
+      familyId,
+      accountBookId
+    });
+
     // 验证用户是否为家庭成员
     if (familyId) {
       const isMember = await this.isUserFamilyMember(userId, familyId);
       if (!isMember) {
         throw new Error('无权访问此家庭数据');
+      }
+    }
+
+    // 验证用户是否有权访问账本
+    if (accountBookId) {
+      try {
+        // 导入AccountBookRepository
+        const { AccountBookRepository } = require('../repositories/account-book.repository');
+        const accountBookRepository = new AccountBookRepository();
+
+        // 查找账本
+        const accountBook = await accountBookRepository.findById(accountBookId);
+        console.log('查找账本结果:', accountBook);
+
+        if (!accountBook) {
+          throw new Error('账本不存在');
+        }
+
+        // 验证权限
+        if (accountBook.userId !== userId) {
+          console.error('账本权限验证失败:', {
+            accountBookUserId: accountBook.userId,
+            requestUserId: userId
+          });
+          throw new Error('无权访问此账本');
+        }
+      } catch (error) {
+        console.error('验证账本权限时出错:', error);
+        throw error;
       }
     }
 
@@ -243,14 +284,22 @@ export class StatisticsService {
     const startDate = new Date(year, monthNum - 1, 1);
     const endDate = new Date(year, monthNum, 0, 23, 59, 59, 999);
 
+    console.log('查询预算的日期范围:', {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString()
+    });
+
     // 获取月度预算
     const budgets = await this.budgetRepository.findByPeriodAndDate(
       userId,
       BudgetPeriod.MONTHLY,
       startDate,
       endDate,
-      familyId
+      familyId,
+      accountBookId
     );
+
+    console.log(`找到 ${budgets.length} 个预算`);
 
     // 获取分类信息
     const categories = await this.getCategoriesMap(userId, familyId);
@@ -264,8 +313,11 @@ export class StatisticsService {
       TransactionType.EXPENSE,
       startDate,
       endDate,
-      familyId
+      familyId,
+      accountBookId
     );
+
+    console.log(`找到 ${transactions.length} 条交易记录`);
 
     // 计算总支出
     const totalSpent = transactions.reduce((sum: number, t: any) => sum + Number(t.amount), 0);
@@ -293,7 +345,8 @@ export class StatisticsService {
     userId: string,
     startDate: Date,
     endDate: Date,
-    familyId?: string
+    familyId?: string,
+    accountBookId?: string
   ): Promise<FinancialOverviewResponseDto> {
     // 验证用户是否为家庭成员
     if (familyId) {
@@ -309,7 +362,8 @@ export class StatisticsService {
       TransactionType.INCOME,
       startDate,
       endDate,
-      familyId
+      familyId,
+      accountBookId
     );
 
     // 获取支出交易记录
@@ -318,7 +372,8 @@ export class StatisticsService {
       TransactionType.EXPENSE,
       startDate,
       endDate,
-      familyId
+      familyId,
+      accountBookId
     );
 
     // 获取分类信息

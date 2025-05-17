@@ -69,6 +69,8 @@ export class TransactionController {
         categoryId: req.query.categoryId as string | undefined,
         familyId: req.query.familyId as string | undefined,
         familyMemberId: req.query.familyMemberId as string | undefined,
+        accountBookId: req.query.accountBookId as string | undefined,
+        budgetId: req.query.budgetId as string | undefined,
         page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
         limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 20,
         sortBy: req.query.sortBy as string | undefined,
@@ -203,6 +205,7 @@ export class TransactionController {
         startDate: exportData.startDate ? new Date(exportData.startDate) : undefined,
         endDate: exportData.endDate ? new Date(exportData.endDate) : undefined,
         categoryId: exportData.categoryId,
+        accountBookId: req.query.accountBookId as string | undefined,
       };
 
       // 导出交易记录

@@ -68,6 +68,7 @@ export class BudgetRepository {
       ...(period && { period }),
       ...(categoryId && { categoryId }),
       ...(familyId && { familyId }),
+      ...(params.accountBookId && { accountBookId: params.accountBookId }),
       ...(active && {
         OR: [
           { endDate: null },
@@ -208,8 +209,18 @@ export class BudgetRepository {
     period: BudgetPeriod,
     startDate: Date,
     endDate: Date,
-    familyId?: string
+    familyId?: string,
+    accountBookId?: string
   ): Promise<BudgetWithCategory[]> {
+    console.log('BudgetRepository.findByPeriodAndDate 参数:', {
+      userId,
+      period,
+      startDate,
+      endDate,
+      familyId,
+      accountBookId
+    });
+
     return prisma.budget.findMany({
       where: {
         userId,
@@ -217,6 +228,7 @@ export class BudgetRepository {
         startDate: { lte: endDate },
         endDate: { gte: startDate },
         ...(familyId && { familyId }),
+        ...(accountBookId && { accountBookId }),
       },
       include: {
         category: true,

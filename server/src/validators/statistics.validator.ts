@@ -8,6 +8,7 @@ interface DateRangeQuery {
   endDate?: string;
   groupBy?: string;
   familyId?: string;
+  accountBookId?: string;
 }
 
 /**
@@ -16,6 +17,7 @@ interface DateRangeQuery {
 interface MonthQuery {
   month?: string;
   familyId?: string;
+  accountBookId?: string;
 }
 
 /**
@@ -35,6 +37,9 @@ export function validateDateRangeQuery(query: any) {
     familyId: Joi.string().uuid().messages({
       'string.guid': '家庭ID必须是有效的UUID',
     }),
+    accountBookId: Joi.string().uuid().messages({
+      'string.guid': '账本ID必须是有效的UUID',
+    }),
   });
 
   return schema.validate(query);
@@ -50,6 +55,9 @@ export function validateMonthQuery(query: any) {
     }),
     familyId: Joi.string().uuid().messages({
       'string.guid': '家庭ID必须是有效的UUID',
+    }),
+    accountBookId: Joi.string().uuid().messages({
+      'string.guid': '账本ID必须是有效的UUID',
     }),
   });
 

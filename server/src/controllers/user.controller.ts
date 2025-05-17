@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { UserService } from '../services/user.service';
-import { CreateUserDto, UpdateUserDto } from '../models/user.model';
+import { CreateUserDto, UpdateUserDto, UpdateProfileDto } from '../models/user.model';
 import { UserSettingService } from '../services/user-setting.service';
+import { getFileUrl } from '../middlewares/upload.middleware';
 
 export class UserController {
   private userService: UserService;
@@ -10,6 +11,122 @@ export class UserController {
   constructor() {
     this.userService = new UserService();
     this.userSettingService = new UserSettingService();
+  }
+
+  /**
+   * 获取当前用户的个人资料
+   */
+  async getUserProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const user = await this.userService.getUserById(userId);
+
+      // 转换为前端需要的格式
+      const profile = {
+        id: user.id,
+        username: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        bio: user.bio,
+        birthDate: user.birthDate,
+        createdAt: user.createdAt
+      };
+
+      res.status(200).json(profile);
+    } catch (error) {
+      console.error('获取用户资料失败:', error);
+      res.status(500).json({ message: '获取用户资料失败' });
+    }
+  }
+
+  /**
+   * 更新当前用户的个人资料
+   */
+  async updateUserProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const profileData: UpdateProfileDto = req.body;
+
+      // 转换为用户更新DTO
+      const updateData: UpdateUserDto = {
+        name: profileData.username,
+        bio: profileData.bio,
+        birthDate: profileData.birthDate
+      };
+
+      // 更新用户信息
+      const updatedUser = await this.userService.updateUser(userId, updateData);
+
+      // 转换为前端需要的格式
+      const profile = {
+        id: updatedUser.id,
+        username: updatedUser.name,
+        email: updatedUser.email,
+        avatar: updatedUser.avatar,
+        bio: updatedUser.bio,
+        birthDate: updatedUser.birthDate,
+        createdAt: updatedUser.createdAt
+      };
+
+      res.status(200).json(profile);
+    } catch (error) {
+      console.error('更新用户资料失败:', error);
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '更新用户资料失败' });
+      }
+    }
+  }
+
+  /**
+   * 上传用户头像
+   */
+  async uploadAvatar(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      // 检查是否有文件上传
+      if (!req.file) {
+        res.status(400).json({ message: '未上传文件' });
+        return;
+      }
+
+      // 获取文件信息
+      const avatarFile = req.file;
+      const avatarUrl = getFileUrl(avatarFile.filename, 'avatar');
+
+      // 更新用户头像
+      const updateData: UpdateUserDto = {
+        avatar: avatarUrl
+      };
+
+      await this.userService.updateUser(userId, updateData);
+
+      // 返回头像URL
+      res.status(200).json({ avatar: avatarUrl });
+    } catch (error) {
+      console.error('上传头像失败:', error);
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '上传头像失败' });
+      }
+    }
   }
 
   /**

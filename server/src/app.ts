@@ -2,6 +2,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import path from 'path';
 import config from './config/config';
 import routes from './routes';
 
@@ -12,8 +13,14 @@ const app: Express = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' } // 允许跨域访问资源
+}));
 app.use(morgan(config.env === 'development' ? 'dev' : 'combined'));
+
+// 配置静态文件服务
+const dataDir = path.join(process.cwd(), '..', 'data');
+app.use('/data', express.static(dataDir));
 
 // 根路由
 app.get('/', (req: Request, res: Response) => {

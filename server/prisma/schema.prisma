@@ -12,6 +12,9 @@ model User {
   email               String               @unique
   passwordHash        String
   name                String
+  avatar              String?              // 用户头像URL
+  bio                 String?              // 用户个人简介
+  birthDate           DateTime?            @map("birth_date") // 用户出生日期
   createdAt           DateTime             @default(now()) @map("created_at")
   updatedAt           DateTime             @updatedAt @map("updated_at")
   accountBooks        AccountBook[]

@@ -18,6 +18,7 @@ export class TransactionRepository {
         userId,
         familyId: transactionData.familyId,
         familyMemberId: transactionData.familyMemberId,
+        accountBookId: transactionData.accountBookId,
       },
       include: {
         category: true,
@@ -63,6 +64,7 @@ export class TransactionRepository {
       ...(categoryId && { categoryId }),
       ...(familyId && { familyId }),
       ...(familyMemberId && { familyMemberId }),
+      ...(params.accountBookId && { accountBookId: params.accountBookId }),
     };
 
     // 构建排序条件
@@ -97,6 +99,7 @@ export class TransactionRepository {
       ...(transactionData.description !== undefined && { description: transactionData.description }),
       ...(transactionData.date && { date: transactionData.date }),
       ...(transactionData.familyMemberId && { familyMemberId: transactionData.familyMemberId }),
+      ...(transactionData.budgetId && { budgetId: transactionData.budgetId }),
     };
 
     return prisma.transaction.update({
@@ -176,8 +179,18 @@ export class TransactionRepository {
     type: TransactionType,
     startDate: Date,
     endDate: Date,
-    familyId?: string
+    familyId?: string,
+    accountBookId?: string
   ): Promise<any[]> {
+    console.log('TransactionRepository.findByDateRange 参数:', {
+      userId,
+      type,
+      startDate,
+      endDate,
+      familyId,
+      accountBookId
+    });
+
     return prisma.transaction.findMany({
       where: {
         userId,
@@ -187,6 +200,7 @@ export class TransactionRepository {
           lte: endDate,
         },
         ...(familyId && { familyId }),
+        ...(accountBookId && { accountBookId }),
       },
       include: {
         category: true,
