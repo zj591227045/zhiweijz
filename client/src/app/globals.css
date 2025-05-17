@@ -131,6 +131,10 @@
     --text-secondary: #9ca3af;
     --border-color: #374151;
     --card-background: #1f2937;
+    --background-color: #111827;
+    --success-color: #34d399;
+    --error-color: #f87171;
+    color-scheme: dark;
   }
 
   /* 绿色主题 */
@@ -314,6 +318,10 @@
 
 .icon-button:hover {
   background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dark .icon-button:hover {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 /* 主要内容区域 */
