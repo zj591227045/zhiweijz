@@ -59,10 +59,5 @@ export default function BudgetsPage() {
   }
 
   // 如果已认证，显示预算页面
-  return (
-    <div className="pb-16">
-      <BudgetList />
-      <BottomNavigation activeItem="budget" />
-    </div>
-  );
+  return <BudgetList />;
 }

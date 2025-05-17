@@ -106,6 +106,41 @@ export async function getBudgetStatistics(
   try {
     const response = await apiClient.get<BudgetStatistics>(url);
     console.log("预算数据响应:", response);
+
+    // 确保每个预算类别都有周期信息
+    if (response && response.categories) {
+      response.categories = response.categories.map(cat => {
+        // 如果后端没有提供period字段，尝试从名称推断
+        if (!cat.period) {
+          // 默认设置为月度预算
+          cat.period = 'MONTHLY';
+
+          // 根据名称进一步细化
+          if (cat.category.name.includes('月') ||
+              cat.category.name.includes('monthly') ||
+              cat.category.name.includes('月度')) {
+            cat.period = 'MONTHLY';
+          } else if (cat.category.name.includes('年') ||
+                    cat.category.name.includes('yearly') ||
+                    cat.category.name.includes('年度')) {
+            cat.period = 'YEARLY';
+          } else if (cat.category.name.includes('家庭') ||
+                    cat.category.name.includes('family')) {
+            cat.period = 'FAMILY';
+          }
+        }
+
+        // 如果是"未知分类"或"other"，降低其优先级
+        if (cat.category.name.includes('未知') ||
+            cat.category.name.includes('other') ||
+            cat.category.name === '未知分类') {
+          cat.period = 'OTHER';
+        }
+
+        return cat;
+      });
+    }
+
     return response;
   } catch (error) {
     console.error("获取预算数据错误:", error);

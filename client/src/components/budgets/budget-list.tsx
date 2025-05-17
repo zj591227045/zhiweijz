@@ -7,7 +7,6 @@ import dayjs from 'dayjs';
 import { useBudgetStore } from '@/store/budget-store';
 import { accountBookService, budgetService } from '@/lib/api/budget-service';
 import { familyService } from '@/lib/api/budget-service';
-import { Header } from './header';
 import { AccountBookSelector } from './account-book-selector';
 import { BudgetTypeSelector } from './budget-type-selector';
 import { MonthSelector } from './month-selector';
@@ -15,6 +14,7 @@ import { BudgetOverview } from './budget-overview';
 import { CategoryBudgets } from './category-budgets';
 import { FamilyBudgets } from './family-budgets';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PageContainer } from '@/components/layout/page-container';
 
 export function BudgetList() {
   const router = useRouter();
@@ -262,30 +262,36 @@ export function BudgetList() {
     router.push('/budgets/new');
   };
 
+  // 右侧操作按钮
+  const rightActions = (
+    <button
+      onClick={handleAddBudget}
+      className="icon-button"
+    >
+      <i className="fas fa-plus"></i>
+    </button>
+  );
+
   return (
-    <div className="budget-page">
-      <Header onAddClick={handleAddBudget} />
+    <PageContainer title="预算管理" rightActions={rightActions} activeNavItem="budget">
+      <AccountBookSelector />
 
-      <main className="budget-content">
-        <AccountBookSelector />
+      <BudgetTypeSelector />
 
-        <BudgetTypeSelector />
+      <MonthSelector />
 
-        <MonthSelector />
+      {isLoadingBudgets ? (
+        <BudgetSkeleton />
+      ) : (
+        <>
+          <BudgetOverview />
 
-        {isLoadingBudgets ? (
-          <BudgetSkeleton />
-        ) : (
-          <>
-            <BudgetOverview />
+          <CategoryBudgets />
 
-            <CategoryBudgets />
-
-            {selectedAccountBook?.type === 'FAMILY' && <FamilyBudgets />}
-          </>
-        )}
-      </main>
-    </div>
+          {selectedAccountBook?.type === 'FAMILY' && <FamilyBudgets />}
+        </>
+      )}
+    </PageContainer>
   );
 }
 

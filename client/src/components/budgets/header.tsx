@@ -6,13 +6,12 @@ interface HeaderProps {
 
 export function Header({ onAddClick }: HeaderProps) {
   return (
-    <header className="page-header">
-      <div className="header-left"></div>
-      <h1 className="page-title">预算管理</h1>
-      <div className="header-right">
+    <header className="header">
+      <div className="header-title">预算管理</div>
+      <div className="header-actions">
         <button
           onClick={onAddClick}
-          className="add-button"
+          className="icon-button"
         >
           <i className="fas fa-plus"></i>
         </button>

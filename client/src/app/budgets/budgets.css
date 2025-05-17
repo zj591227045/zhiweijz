@@ -352,18 +352,7 @@
   font-size: 10px;
 }
 
-/* 预算页面整体布局 */
-.budget-page {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background-color: #f9fafb;
-}
-
-.budget-content {
-  flex: 1;
-  padding: 0 16px 16px;
-}
+/* 预算页面整体布局使用全局app-container和main-content样式 */
 
 /* 预算项目 */
 .budget-item {
@@ -380,13 +369,14 @@
   border-left: 4px solid #ef4444;
 }
 
-.budget-category {
+/* 预算列表项的分类样式 */
+.budget-item .budget-category {
   display: flex;
   align-items: center;
   flex: 1;
 }
 
-.category-icon {
+.budget-item .category-icon {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -415,7 +405,8 @@
   font-weight: 500;
 }
 
-.separator {
+/* 预算列表项的分隔符 */
+.budget-item .separator {
   margin: 0 4px;
   color: #6b7280;
 }
@@ -425,7 +416,8 @@
   color: #6b7280;
 }
 
-.budget-progress {
+/* 预算列表项的进度条 */
+.budget-item .budget-progress {
   width: 96px;
   margin-bottom: 4px;
 }
@@ -524,42 +516,4 @@
   }
 }
 
-/* 页面头部 */
-.page-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background-color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 56px;
-  padding: 0 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.header-left, .header-right {
-  flex: 1;
-  display: flex;
-}
-
-.header-right {
-  justify-content: flex-end;
-}
-
-.page-title {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.add-button {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #1f2937;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
+/* 页面头部使用全局header样式 */

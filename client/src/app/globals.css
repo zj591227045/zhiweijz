@@ -398,7 +398,14 @@
   font-size: 14px;
 }
 
+/* 仪表盘预算执行情况组件样式 */
 .budget-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.budget-content {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -416,27 +423,104 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
+  flex-wrap: nowrap; /* 防止换行 */
+  width: 100%; /* 确保宽度占满 */
+  overflow: hidden; /* 防止内容溢出 */
 }
 
 .budget-category {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0; /* 允许子元素收缩 */
+  flex: 1; /* 占据可用空间 */
+  overflow: hidden; /* 防止内容溢出 */
+  max-width: 65%; /* 限制最大宽度，给金额留出空间 */
+}
+
+.budget-category span {
+  white-space: nowrap; /* 防止文本换行 */
+  overflow: hidden; /* 隐藏溢出内容 */
+  text-overflow: ellipsis; /* 显示省略号 */
+  max-width: 100%; /* 确保不超过父容器 */
 }
 
 .category-icon {
   width: 32px;
   height: 32px;
+  min-width: 32px; /* 防止图标收缩 */
   background-color: rgba(59, 130, 246, 0.1);
   color: var(--primary-color);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0; /* 防止图标缩小 */
 }
 
 .budget-amount {
   font-size: 14px;
+  white-space: nowrap; /* 防止金额换行 */
+  text-align: right; /* 右对齐 */
+  flex-shrink: 0; /* 防止金额缩小 */
+  min-width: 80px; /* 确保有足够空间显示金额 */
+}
+
+/* 仪表盘特定样式，确保不被其他页面样式覆盖 */
+.dashboard-budget-progress {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.dashboard-budget-card {
+  background-color: var(--card-background) !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+.dashboard-budget-category {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+  overflow: hidden !important;
+  max-width: 65% !important;
+}
+
+.dashboard-category-name {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+}
+
+.dashboard-category-icon {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  color: var(--primary-color) !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.dashboard-budget-amount {
+  font-size: 14px !important;
+  white-space: nowrap !important;
+  text-align: right !important;
+  flex-shrink: 0 !important;
+  min-width: 80px !important;
+}
+
+.dashboard-separator {
+  color: var(--text-secondary) !important;
+  margin: 0 2px !important;
 }
 
 .current {
@@ -453,6 +537,7 @@
   background-color: var(--border-color);
   border-radius: 4px;
   overflow: hidden;
+  width: 100%; /* 确保进度条宽度占满 */
 }
 
 .progress {
@@ -462,6 +547,20 @@
 
 .progress-bar.warning .progress {
   background-color: #F59E0B;
+}
+
+/* 仪表盘特定进度条样式 */
+.dashboard-progress-bar {
+  height: 8px !important;
+  background-color: var(--border-color) !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  width: 100% !important;
+}
+
+.dashboard-progress {
+  height: 100% !important;
+  background-color: var(--primary-color) !important;
 }
 
 /* 最近交易 */

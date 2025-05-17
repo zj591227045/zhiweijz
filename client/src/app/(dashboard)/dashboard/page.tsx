@@ -24,7 +24,7 @@ import {
 import { MonthlyOverview } from "@/components/dashboard/monthly-overview";
 import { BudgetProgress } from "@/components/dashboard/budget-progress";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
-import { BottomNavigation } from "@/components/layout/bottom-navigation";
+import { PageContainer } from "@/components/layout/page-container";
 
 
 export default function DashboardPage() {
@@ -141,70 +141,64 @@ export default function DashboardPage() {
     }
   }, [currentAccountBook, isAuthenticated, accountBooks, fetchAccountBooks]);
 
+  // 右侧操作按钮
+  const rightActions = (
+    <>
+      <button className="icon-button">
+        <i className="fas fa-bell"></i>
+      </button>
+      <button className="icon-button">
+        <i className="fas fa-cog"></i>
+      </button>
+    </>
+  );
+
   return (
-    <div className="app-container">
-      {/* 顶部导航栏 */}
-      <header className="header">
-        <div className="header-title">仪表板</div>
-        <div className="header-actions">
-          <button className="icon-button">
-            <i className="fas fa-bell"></i>
-          </button>
-          <button className="icon-button">
-            <i className="fas fa-cog"></i>
-          </button>
+    <PageContainer title="仪表板" rightActions={rightActions} activeNavItem="home">
+      {isLoading ? (
+        <div className="flex h-40 items-center justify-center">
+          <p className="text-gray-500">加载中...</p>
         </div>
-      </header>
+      ) : (
+        <>
+          {/* 本月概览 */}
+          <MonthlyOverview
+            income={overview?.totalIncome || 0}
+            expense={overview?.totalExpense || 0}
+            balance={overview?.balance || 0}
+            month={currentMonth}
+          />
 
-      {/* 主要内容区域 */}
-      <main className="main-content">
-        {isLoading ? (
-          <div className="flex h-40 items-center justify-center">
-            <p className="text-gray-500">加载中...</p>
-          </div>
-        ) : (
-          <>
-            {/* 本月概览 */}
-            <MonthlyOverview
-              income={overview?.totalIncome || 0}
-              expense={overview?.totalExpense || 0}
-              balance={overview?.balance || 0}
-              month={currentMonth}
-            />
+          {/* 预算执行情况 */}
+          <BudgetProgress
+            categories={budgets?.categories.map(cat => ({
+              id: cat.category.id,
+              name: cat.category.name,
+              icon: cat.category.icon,
+              budget: cat.budget,
+              spent: cat.spent,
+              percentage: cat.percentage,
+              period: cat.period // 添加预算周期信息
+            })) || []}
+          />
 
-            {/* 预算执行情况 */}
-            <BudgetProgress
-              categories={budgets?.categories.map(cat => ({
-                id: cat.category.id,
-                name: cat.category.name,
-                icon: cat.category.icon,
-                budget: cat.budget,
-                spent: cat.spent,
-                percentage: cat.percentage
-              })) || []}
-            />
-
-            {/* 最近交易 */}
-            <RecentTransactions
-              groupedTransactions={transactionGroups.map(group => ({
-                date: group.date,
-                transactions: group.transactions.map(tx => ({
-                  id: tx.id,
-                  amount: tx.amount,
-                  type: tx.type,
-                  categoryName: tx.category?.name || "未分类",
-                  categoryIcon: tx.category?.icon,
-                  description: tx.description,
-                  date: tx.date
-                }))
-              }))}
-            />
-          </>
-        )}
-      </main>
-
-      {/* 底部导航栏 */}
-      <BottomNavigation />
-    </div>
+          {/* 最近交易 */}
+          <RecentTransactions
+            groupedTransactions={transactionGroups.map(group => ({
+              date: group.date,
+              transactions: group.transactions.map(tx => ({
+                id: tx.id,
+                amount: tx.amount,
+                type: tx.type,
+                categoryName: tx.category?.name || "未分类",
+                categoryIcon: tx.category?.icon,
+                description: tx.description,
+                date: tx.date
+              }))
+            }))}
+          />
+        </>
+      )}
+    </PageContainer>
   );
 }

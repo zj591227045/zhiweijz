@@ -201,6 +201,7 @@ export interface BudgetCategoryStatistics {
   spent: number;
   remaining: number;
   percentage: number;
+  period?: string; // 添加预算周期字段
 }
 
 export interface TransactionGroup {
