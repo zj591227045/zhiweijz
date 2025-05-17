@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api";
 import { Theme, ThemeColor } from "@/store/theme-store";
+import { ThemeConfig as EditorThemeConfig } from "@/types/theme";
 
 // 主题设置接口
 export interface ThemeSettings {
@@ -53,6 +54,138 @@ export interface ThemeConfig {
 
 // 主题服务
 class ThemeService {
+  // 获取主题详情
+  async getThemeById(themeId: string): Promise<EditorThemeConfig> {
+    try {
+      // 由于后端API可能尚未实现，这里使用模拟实现
+      // const response = await apiClient.get(`/api/themes/${themeId}`);
+      // return response.data;
+
+      console.log("模拟获取主题详情:", themeId);
+
+      // 返回模拟数据
+      return {
+        id: themeId,
+        name: themeId === "default" ? "默认主题" :
+              themeId === "dark" ? "暗色主题" :
+              themeId === "green" ? "绿色主题" :
+              themeId === "purple" ? "紫色主题" : "自定义主题",
+        baseTheme: themeId === "dark" ? "dark" : "light",
+        colors: {
+          primary: {
+            default: themeId === "green" ? "#10B981" :
+                    themeId === "purple" ? "#8B5CF6" : "#3B82F6",
+            hover: themeId === "green" ? "#059669" :
+                  themeId === "purple" ? "#7C3AED" : "#2563EB",
+            active: themeId === "green" ? "#047857" :
+                   themeId === "purple" ? "#6D28D9" : "#1D4ED8",
+          },
+          background: {
+            default: themeId === "dark" ? "#111827" : "#F9FAFB",
+            card: themeId === "dark" ? "#1F2937" : "#FFFFFF",
+            input: themeId === "dark" ? "#374151" : "#F3F4F6",
+          },
+          text: {
+            primary: themeId === "dark" ? "#F9FAFB" : "#111827",
+            secondary: themeId === "dark" ? "#D1D5DB" : "#4B5563",
+            muted: themeId === "dark" ? "#9CA3AF" : "#6B7280",
+          },
+          border: themeId === "dark" ? "#374151" : "#E5E7EB",
+          error: "#EF4444",
+          success: "#10B981",
+          warning: "#F59E0B",
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error("获取主题详情失败:", error);
+      throw error;
+    }
+  }
+
+  // 获取基础主题列表
+  async getBaseThemes(): Promise<{ id: string; name: string }[]> {
+    try {
+      // 由于后端API可能尚未实现，这里使用模拟实现
+      // const response = await apiClient.get('/api/themes/base');
+      // return response.data;
+
+      console.log("模拟获取基础主题列表");
+
+      // 返回模拟数据
+      return [
+        { id: "light", name: "默认亮色" },
+        { id: "dark", name: "默认暗色" },
+        { id: "blue", name: "蓝色主题" },
+        { id: "green", name: "绿色主题" },
+        { id: "purple", name: "紫色主题" },
+      ];
+    } catch (error) {
+      console.error("获取基础主题列表失败:", error);
+      throw error;
+    }
+  }
+
+  // 创建新主题
+  async createTheme(theme: EditorThemeConfig): Promise<EditorThemeConfig> {
+    try {
+      // 由于后端API可能尚未实现，这里使用模拟实现
+      // const response = await apiClient.post('/api/themes', theme);
+      // return response.data;
+
+      console.log("模拟创建新主题:", theme.name);
+
+      // 返回模拟数据
+      return {
+        ...theme,
+        id: `custom_${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error("创建新主题失败:", error);
+      throw error;
+    }
+  }
+
+  // 更新主题
+  async updateTheme(themeId: string, theme: EditorThemeConfig): Promise<EditorThemeConfig> {
+    try {
+      // 由于后端API可能尚未实现，这里使用模拟实现
+      // const response = await apiClient.put(`/api/themes/${themeId}`, theme);
+      // return response.data;
+
+      console.log("模拟更新主题:", themeId, theme.name);
+
+      // 返回模拟数据
+      return {
+        ...theme,
+        id: themeId,
+        updatedAt: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error("更新主题失败:", error);
+      throw error;
+    }
+  }
+
+  // 应用主题
+  async applyTheme(themeId: string): Promise<void> {
+    try {
+      // 由于后端API可能尚未实现，这里使用模拟实现
+      // const response = await apiClient.put('/api/themes/settings', { themeId });
+      // return response.data;
+
+      console.log("模拟应用主题:", themeId);
+
+      // 调用现有的switchTheme方法
+      await this.switchTheme(themeId);
+    } catch (error) {
+      console.error("应用主题失败:", error);
+      throw error;
+    }
+  }
   // 获取主题设置
   async getThemeSettings(): Promise<ThemeSettings> {
     try {

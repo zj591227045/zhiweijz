@@ -30,6 +30,7 @@
     "next": "15.3.2",
     "react": "^19.0.0",
     "react-chartjs-2": "^5.3.0",
+    "react-colorful": "^5.6.1",
     "react-datepicker": "^8.3.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.56.3",

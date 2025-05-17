@@ -123,7 +123,7 @@ export function CustomThemes({
       )}
 
       <Link
-        href="/settings/theme/create"
+        href="/settings/theme/editor"
         className="create-theme-button mt-4 flex items-center justify-center gap-2 border border-dashed border-border rounded-lg p-4 text-primary hover:bg-primary/5 transition-colors"
       >
         <i className="fas fa-plus"></i>
