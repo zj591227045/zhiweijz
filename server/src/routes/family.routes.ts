@@ -29,4 +29,13 @@ router.post('/:id/invitations', authenticate, (req, res) => familyController.cre
 // 接受邀请
 router.post('/join', authenticate, (req, res) => familyController.acceptInvitation(req, res));
 
+// 获取家庭成员列表
+router.get('/:id/members', authenticate, (req, res) => familyController.getFamilyMembers(req, res));
+
+// 获取家庭统计数据
+router.get('/:id/statistics', authenticate, (req, res) => familyController.getFamilyStatistics(req, res));
+
+// 退出家庭
+router.post('/:id/leave', authenticate, (req, res) => familyController.leaveFamily(req, res));
+
 export default router;

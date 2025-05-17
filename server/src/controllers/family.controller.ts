@@ -306,4 +306,121 @@ export class FamilyController {
       res.status(500).json({ message: '接受邀请失败' });
     }
   }
+
+  /**
+   * 获取家庭成员列表
+   */
+  async getFamilyMembers(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const familyId = req.params.id;
+      if (!familyId) {
+        res.status(400).json({ message: '家庭ID不能为空' });
+        return;
+      }
+
+      // 获取家庭成员列表
+      try {
+        const members = await this.familyService.getFamilyMembers(familyId, userId);
+        res.status(200).json({ members, totalCount: members.length });
+      } catch (error) {
+        if (error instanceof Error && error.message === '无权访问此家庭') {
+          res.status(403).json({ message: error.message });
+        } else if (error instanceof Error && error.message === '家庭不存在') {
+          res.status(404).json({ message: error.message });
+        } else {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('获取家庭成员列表失败:', error);
+      res.status(500).json({ message: '获取家庭成员列表失败' });
+    }
+  }
+
+  /**
+   * 获取家庭统计数据
+   */
+  async getFamilyStatistics(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const familyId = req.params.id;
+      if (!familyId) {
+        res.status(400).json({ message: '家庭ID不能为空' });
+        return;
+      }
+
+      // 获取时间范围参数
+      const period = req.query.period as string || 'month';
+      if (!['month', 'last_month', 'year', 'all'].includes(period)) {
+        res.status(400).json({ message: '无效的时间范围参数' });
+        return;
+      }
+
+      // 获取家庭统计数据
+      try {
+        const statistics = await this.familyService.getFamilyStatistics(familyId, userId, period);
+        res.status(200).json(statistics);
+      } catch (error) {
+        if (error instanceof Error && error.message === '无权访问此家庭') {
+          res.status(403).json({ message: error.message });
+        } else if (error instanceof Error && error.message === '家庭不存在') {
+          res.status(404).json({ message: error.message });
+        } else {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('获取家庭统计数据失败:', error);
+      res.status(500).json({ message: '获取家庭统计数据失败' });
+    }
+  }
+
+  /**
+   * 退出家庭
+   */
+  async leaveFamily(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const familyId = req.params.id;
+      if (!familyId) {
+        res.status(400).json({ message: '家庭ID不能为空' });
+        return;
+      }
+
+      // 退出家庭
+      try {
+        await this.familyService.leaveFamily(familyId, userId);
+        res.status(204).end();
+      } catch (error) {
+        if (error instanceof Error && error.message === '家庭创建者不能退出家庭') {
+          res.status(403).json({ message: error.message });
+        } else if (error instanceof Error && error.message === '家庭不存在') {
+          res.status(404).json({ message: error.message });
+        } else if (error instanceof Error && error.message === '您不是该家庭的成员') {
+          res.status(404).json({ message: error.message });
+        } else {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('退出家庭失败:', error);
+      res.status(500).json({ message: '退出家庭失败' });
+    }
+  }
 }

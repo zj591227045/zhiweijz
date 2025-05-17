@@ -372,4 +372,174 @@ export class FamilyService {
     const member = await this.familyRepository.findFamilyMemberByUserAndFamily(userId, familyId);
     return !!member && member.role === Role.ADMIN;
   }
+
+  /**
+   * 获取家庭成员列表
+   */
+  async getFamilyMembers(familyId: string, userId: string): Promise<FamilyMemberResponseDto[]> {
+    // 获取家庭详情
+    const family = await this.familyRepository.findFamilyById(familyId);
+    if (!family) {
+      throw new Error('家庭不存在');
+    }
+
+    // 验证用户是否为家庭成员
+    const isMember = await this.isUserFamilyMember(userId, familyId);
+    if (!isMember) {
+      throw new Error('无权访问此家庭');
+    }
+
+    // 获取家庭成员列表
+    const members = await this.familyRepository.findFamilyMembers(familyId);
+
+    return members.map(member => toFamilyMemberResponseDto(member));
+  }
+
+  /**
+   * 获取家庭统计数据
+   */
+  async getFamilyStatistics(familyId: string, userId: string, period: string): Promise<any> {
+    // 获取家庭详情
+    const family = await this.familyRepository.findFamilyById(familyId);
+    if (!family) {
+      throw new Error('家庭不存在');
+    }
+
+    // 验证用户是否为家庭成员
+    const isMember = await this.isUserFamilyMember(userId, familyId);
+    if (!isMember) {
+      throw new Error('无权访问此家庭');
+    }
+
+    // 获取家庭成员列表
+    const members = await this.familyRepository.findFamilyMembers(familyId);
+
+    // 这里应该从交易记录中获取统计数据
+    // 由于目前没有实现交易相关功能，我们返回模拟数据
+
+    // 根据时间范围获取不同的数据
+    let totalIncome = 0;
+    let totalExpense = 0;
+
+    switch (period) {
+      case 'month':
+        totalIncome = 12000;
+        totalExpense = 8500;
+        break;
+      case 'last_month':
+        totalIncome = 10000;
+        totalExpense = 7500;
+        break;
+      case 'year':
+        totalIncome = 120000;
+        totalExpense = 85000;
+        break;
+      case 'all':
+      default:
+        totalIncome = 150000;
+        totalExpense = 100000;
+        break;
+    }
+
+    // 计算结余
+    const balance = totalIncome - totalExpense;
+
+    // 生成成员分布数据
+    const memberDistribution = members.map((member, index) => {
+      const amount = Math.round(totalExpense * (0.1 + index * 0.2));
+      const percentage = Math.round((amount / totalExpense) * 100);
+
+      return {
+        memberId: member.id,
+        username: member.name,
+        amount,
+        percentage
+      };
+    });
+
+    // 生成分类分布数据
+    const categoryIcons = ['utensils', 'shopping-bag', 'home', 'car', 'plane'];
+    const categoryNames = ['餐饮', '购物', '住房', '交通', '旅行'];
+
+    const categoryDistribution = categoryNames.map((name, index) => {
+      const amount = Math.round(totalExpense * (0.1 + index * 0.1));
+      const percentage = Math.round((amount / totalExpense) * 100);
+
+      return {
+        categoryId: `category_${index + 1}`,
+        categoryName: name,
+        categoryIcon: categoryIcons[index],
+        amount,
+        percentage
+      };
+    });
+
+    // 生成最近交易数据
+    const recentTransactions = [
+      {
+        id: 'transaction_1',
+        categoryName: '餐饮',
+        categoryIcon: 'utensils',
+        description: '晚餐',
+        amount: 150,
+        type: 'EXPENSE',
+        memberName: members[0]?.name || '未知用户',
+        date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 昨天
+      },
+      {
+        id: 'transaction_2',
+        categoryName: '购物',
+        categoryIcon: 'shopping-bag',
+        description: '超市购物',
+        amount: 320,
+        type: 'EXPENSE',
+        memberName: members[1]?.name || members[0]?.name || '未知用户',
+        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() // 前天
+      },
+      {
+        id: 'transaction_3',
+        categoryName: '工资',
+        categoryIcon: 'money-bill-wave',
+        description: '工资',
+        amount: 6000,
+        type: 'INCOME',
+        memberName: members[2]?.name || members[0]?.name || '未知用户',
+        date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() // 5天前
+      }
+    ];
+
+    return {
+      totalIncome,
+      totalExpense,
+      balance,
+      memberDistribution,
+      categoryDistribution,
+      recentTransactions
+    };
+  }
+
+  /**
+   * 退出家庭
+   */
+  async leaveFamily(familyId: string, userId: string): Promise<void> {
+    // 获取家庭详情
+    const family = await this.familyRepository.findFamilyById(familyId);
+    if (!family) {
+      throw new Error('家庭不存在');
+    }
+
+    // 检查用户是否为家庭创建者
+    if (family.createdBy === userId) {
+      throw new Error('家庭创建者不能退出家庭');
+    }
+
+    // 检查用户是否为家庭成员
+    const member = await this.familyRepository.findFamilyMemberByUserAndFamily(userId, familyId);
+    if (!member) {
+      throw new Error('您不是该家庭的成员');
+    }
+
+    // 退出家庭
+    await this.familyRepository.deleteFamilyMember(member.id);
+  }
 }

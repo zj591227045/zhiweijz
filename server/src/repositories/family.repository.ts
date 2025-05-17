@@ -121,8 +121,55 @@ export class FamilyRepository {
    * 删除家庭
    */
   async deleteFamily(id: string): Promise<Family> {
-    return prisma.family.delete({
-      where: { id },
+    // 使用事务确保所有相关数据都被正确删除
+    return prisma.$transaction(async (tx) => {
+      // 1. 删除所有邀请
+      await tx.invitation.deleteMany({
+        where: { familyId: id },
+      });
+
+      // 2. 删除所有家庭成员
+      await tx.familyMember.deleteMany({
+        where: { familyId: id },
+      });
+
+      // 3. 删除所有家庭分类预算
+      const familyBudgets = await tx.budget.findMany({
+        where: { familyId: id },
+        select: { id: true },
+      });
+
+      const budgetIds = familyBudgets.map(budget => budget.id);
+
+      if (budgetIds.length > 0) {
+        await tx.categoryBudget.deleteMany({
+          where: { budgetId: { in: budgetIds } },
+        });
+      }
+
+      // 4. 删除所有家庭预算
+      await tx.budget.deleteMany({
+        where: { familyId: id },
+      });
+
+      // 5. 更新所有关联的交易记录，移除家庭关联
+      await tx.transaction.updateMany({
+        where: { familyId: id },
+        data: {
+          familyId: null,
+          familyMemberId: null
+        },
+      });
+
+      // 6. 删除家庭分类
+      await tx.category.deleteMany({
+        where: { familyId: id },
+      });
+
+      // 7. 最后删除家庭
+      return tx.family.delete({
+        where: { id },
+      });
     });
   }
 
