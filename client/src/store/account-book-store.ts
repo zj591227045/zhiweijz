@@ -23,14 +23,31 @@ export const useAccountBookStore = create<AccountBookState>()(
       currentAccountBook: null,
       isLoading: false,
       error: null,
-      
+
       fetchAccountBooks: async () => {
         try {
           set({ isLoading: true, error: null });
-          const accountBooks = await apiClient.get<AccountBook[]>("/account-books");
-          
+          const response = await apiClient.get<any>("/account-books");
+
+          // 确保accountBooks是一个数组
+          let accountBooks: AccountBook[] = [];
+
+          // 处理不同的API响应格式
+          if (Array.isArray(response)) {
+            accountBooks = response;
+          } else if (response && typeof response === 'object') {
+            // 如果响应是一个对象，尝试获取data字段
+            if (Array.isArray(response.data)) {
+              accountBooks = response.data;
+            } else if (response.books && Array.isArray(response.books)) {
+              accountBooks = response.books;
+            }
+          }
+
+          console.log("获取到的账本数据:", accountBooks);
+
           set({ accountBooks, isLoading: false });
-          
+
           // 如果没有当前账本或当前账本不在列表中，设置默认账本
           const { currentAccountBook } = get();
           if (!currentAccountBook || !accountBooks.find(book => book.id === currentAccountBook.id)) {
@@ -40,13 +57,14 @@ export const useAccountBookStore = create<AccountBookState>()(
             }
           }
         } catch (error: any) {
+          console.error("获取账本失败:", error);
           set({
             isLoading: false,
             error: error.response?.data?.error?.message || "获取账本失败",
           });
         }
       },
-      
+
       setCurrentAccountBook: (accountBookId: string) => {
         const { accountBooks } = get();
         const accountBook = accountBooks.find(book => book.id === accountBookId);
@@ -54,7 +72,7 @@ export const useAccountBookStore = create<AccountBookState>()(
           set({ currentAccountBook: accountBook });
         }
       },
-      
+
       createAccountBook: async (name: string, description?: string) => {
         try {
           set({ isLoading: true, error: null });
@@ -62,7 +80,7 @@ export const useAccountBookStore = create<AccountBookState>()(
             name,
             description,
           });
-          
+
           const { accountBooks } = get();
           set({
             accountBooks: [...accountBooks, newAccountBook],
@@ -75,7 +93,7 @@ export const useAccountBookStore = create<AccountBookState>()(
           });
         }
       },
-      
+
       updateAccountBook: async (id: string, name: string, description?: string) => {
         try {
           set({ isLoading: true, error: null });
@@ -83,10 +101,10 @@ export const useAccountBookStore = create<AccountBookState>()(
             name,
             description,
           });
-          
+
           const { accountBooks, currentAccountBook } = get();
           set({
-            accountBooks: accountBooks.map(book => 
+            accountBooks: accountBooks.map(book =>
               book.id === id ? updatedAccountBook : book
             ),
             currentAccountBook: currentAccountBook?.id === id ? updatedAccountBook : currentAccountBook,
@@ -99,20 +117,20 @@ export const useAccountBookStore = create<AccountBookState>()(
           });
         }
       },
-      
+
       deleteAccountBook: async (id: string) => {
         try {
           set({ isLoading: true, error: null });
           await apiClient.delete(`/account-books/${id}`);
-          
+
           const { accountBooks, currentAccountBook } = get();
           const newAccountBooks = accountBooks.filter(book => book.id !== id);
-          
+
           set({
             accountBooks: newAccountBooks,
             isLoading: false,
           });
-          
+
           // 如果删除的是当前账本，切换到默认账本
           if (currentAccountBook?.id === id) {
             const defaultBook = newAccountBooks.find(book => book.isDefault) || newAccountBooks[0];
@@ -129,7 +147,7 @@ export const useAccountBookStore = create<AccountBookState>()(
           });
         }
       },
-      
+
       clearError: () => {
         set({ error: null });
       },

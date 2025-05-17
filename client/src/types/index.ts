@@ -48,6 +48,14 @@ export interface AccountBook {
   isDefault: boolean;
   createdAt: string;
   updatedAt: string;
+  aiService?: {
+    enabled: boolean;
+    provider?: string;
+    model?: string;
+    apiKey?: string;
+    customPrompt?: string;
+    language?: string;
+  };
 }
 
 /**
