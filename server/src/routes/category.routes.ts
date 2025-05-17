@@ -20,6 +20,9 @@ router.post('/', (req, res) => categoryController.createCategory(req, res));
 // 获取单个分类
 router.get('/:id', (req, res) => categoryController.getCategory(req, res));
 
+// 更新分类排序（注意：这个路由必须放在 /:id 路由之前，否则会被 /:id 路由匹配）
+router.put('/order', (req, res) => categoryController.updateCategoryOrder(req, res));
+
 // 更新分类
 router.put('/:id', (req, res) => categoryController.updateCategory(req, res));
 

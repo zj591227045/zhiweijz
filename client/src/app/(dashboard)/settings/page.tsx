@@ -98,6 +98,18 @@ export default function SettingsPage() {
             <i className="fas fa-chevron-right"></i>
           </div>
         </Link>
+        <Link href="/settings/categories" className="settings-item">
+          <div className="item-icon">
+            <i className="fas fa-tags"></i>
+          </div>
+          <div className="item-content">
+            <div className="item-title">分类管理</div>
+            <div className="item-description">管理交易分类</div>
+          </div>
+          <div className="item-action">
+            <i className="fas fa-chevron-right"></i>
+          </div>
+        </Link>
         <Link href="/settings/export" className="settings-item">
           <div className="item-icon">
             <i className="fas fa-file-export"></i>

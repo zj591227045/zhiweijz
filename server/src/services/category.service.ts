@@ -224,4 +224,46 @@ export class CategoryService {
     // 删除分类
     await this.categoryRepository.delete(id);
   }
+
+  /**
+   * 更新分类排序
+   */
+  async updateCategoryOrder(userId: string, categoryIds: string[], type: TransactionType): Promise<void> {
+    console.log(`服务层: 开始更新分类排序，用户ID: ${userId}, 分类类型: ${type}`);
+    console.log(`服务层: 分类IDs: ${categoryIds.join(', ')}`);
+
+    // 验证所有分类ID是否有效
+    const categories = await this.categoryRepository.findByIds(categoryIds);
+    console.log(`服务层: 找到 ${categories.length} 个分类，期望 ${categoryIds.length} 个`);
+
+    if (categories.length !== categoryIds.length) {
+      console.log(`服务层: 部分分类ID无效，找到 ${categories.length}，期望 ${categoryIds.length}`);
+      console.log(`服务层: 找到的分类IDs: ${categories.map(c => c.id).join(', ')}`);
+      throw new Error('部分分类ID无效');
+    }
+
+    // 验证所有分类类型是否匹配
+    const invalidTypeCategory = categories.find(cat => cat.type !== type);
+    if (invalidTypeCategory) {
+      console.log(`服务层: 分类类型不匹配，期望类型 ${type}，但分类 ${invalidTypeCategory.id} 的类型是 ${invalidTypeCategory.type}`);
+      throw new Error('分类类型不匹配');
+    }
+
+    // 获取需要更新的分类ID列表（包括默认分类和用户自定义分类）
+    const categoriesToUpdate = categories.map(cat => cat.id);
+    console.log(`服务层: 需要更新的分类数量: ${categoriesToUpdate.length}`);
+
+    if (categoriesToUpdate.length > 0) {
+      console.log(`服务层: 开始更新分类配置的显示顺序`);
+      // 更新所有分类的显示顺序（通过UserCategoryConfig表）
+      await this.userCategoryConfigRepository.updateDisplayOrder(
+        userId,
+        categoriesToUpdate,
+        categoryIds
+      );
+      console.log(`服务层: 分类排序更新完成`);
+    } else {
+      console.log(`服务层: 没有分类需要更新`);
+    }
+  }
 }

@@ -151,4 +151,29 @@ export class CategoryRepository {
 
     return count > 0;
   }
+
+  /**
+   * 根据ID列表查找分类
+   */
+  async findByIds(ids: string[]): Promise<Category[]> {
+    return prisma.category.findMany({
+      where: {
+        id: { in: ids },
+      },
+    });
+  }
+
+  /**
+   * 更新分类显示顺序
+   * 注意：由于Category模型没有displayOrder字段，此方法实际上不执行任何操作
+   * 分类排序是通过UserCategoryConfig中的displayOrder字段来实现的
+   * @param categoryIds 需要更新的分类ID列表
+   * @param orderedIds 排序后的完整分类ID列表
+   */
+  async updateDisplayOrder(categoryIds: string[], orderedIds: string[]): Promise<void> {
+    // 由于Category模型没有displayOrder字段，这里不执行任何操作
+    // 实际的排序是在UserCategoryConfigRepository中处理的
+    console.log('分类排序通过UserCategoryConfig处理，Category本身不存储排序信息');
+    return;
+  }
 }

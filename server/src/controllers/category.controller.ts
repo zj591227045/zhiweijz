@@ -135,4 +135,46 @@ export class CategoryController {
       }
     }
   }
+
+  /**
+   * 更新分类排序
+   */
+  async updateCategoryOrder(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      console.log('收到分类排序请求，请求体:', JSON.stringify(req.body));
+
+      const { categoryIds, type } = req.body;
+
+      if (!categoryIds || !Array.isArray(categoryIds) || categoryIds.length === 0) {
+        console.log('分类ID列表不能为空:', categoryIds);
+        res.status(400).json({ message: '分类ID列表不能为空' });
+        return;
+      }
+
+      if (!type || !['EXPENSE', 'INCOME'].includes(type)) {
+        console.log('分类类型必须为EXPENSE或INCOME:', type);
+        res.status(400).json({ message: '分类类型必须为EXPENSE或INCOME' });
+        return;
+      }
+
+      console.log(`开始更新分类排序，用户ID: ${userId}, 分类类型: ${type}, 分类IDs: ${categoryIds.join(', ')}`);
+
+      await this.categoryService.updateCategoryOrder(userId, categoryIds, type);
+      console.log('分类排序更新成功');
+      res.status(200).json({ message: '分类排序更新成功' });
+    } catch (error) {
+      console.error('更新分类排序时发生错误:', error);
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '更新分类排序时发生错误' });
+      }
+    }
+  }
 }
