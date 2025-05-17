@@ -23,6 +23,7 @@ model User {
   transactions        Transaction[]
   feedback            UserFeedback[]
   settings            UserSetting[]
+  categoryConfigs     UserCategoryConfig[]
 
   @@map("users")
 }
@@ -71,22 +72,23 @@ model Invitation {
 }
 
 model Category {
-  id              String           @id @default(uuid())
+  id              String               @id @default(uuid())
   name            String
   type            TransactionType
   icon            String?
-  userId          String?          @map("user_id")
-  familyId        String?          @map("family_id")
-  isDefault       Boolean          @default(false) @map("is_default")
-  createdAt       DateTime         @default(now()) @map("created_at")
-  updatedAt       DateTime         @updatedAt @map("updated_at")
-  accountBookId   String?          @map("account_book_id")
+  userId          String?              @map("user_id")
+  familyId        String?              @map("family_id")
+  isDefault       Boolean              @default(false) @map("is_default")
+  createdAt       DateTime             @default(now()) @map("created_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
+  accountBookId   String?              @map("account_book_id")
   budgets         Budget[]
-  accountBook     AccountBook?     @relation(fields: [accountBookId], references: [id])
-  family          Family?          @relation(fields: [familyId], references: [id])
-  user            User?            @relation(fields: [userId], references: [id])
+  accountBook     AccountBook?         @relation(fields: [accountBookId], references: [id])
+  family          Family?              @relation(fields: [familyId], references: [id])
+  user            User?                @relation(fields: [userId], references: [id])
   categoryBudgets CategoryBudget[]
   transactions    Transaction[]
+  userConfigs     UserCategoryConfig[]
 
   @@map("categories")
 }
@@ -254,4 +256,19 @@ enum BudgetPeriod {
 enum Role {
   ADMIN
   MEMBER
+}
+
+model UserCategoryConfig {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  categoryId   String   @map("category_id")
+  isHidden     Boolean  @default(false) @map("is_hidden")
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category     Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId])
+  @@map("user_category_configs")
 }

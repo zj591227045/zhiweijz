@@ -55,23 +55,7 @@ export class CategoryRepository {
     return result.count;
   }
 
-  /**
-   * 为特定用户创建默认分类
-   */
-  async createUserDefaultCategories(userId: string, categoriesData: CreateCategoryDto[]): Promise<number> {
-    const result = await prisma.category.createMany({
-      data: categoriesData.map(category => ({
-        name: category.name,
-        type: category.type,
-        icon: category.icon,
-        userId,
-        familyId: null,
-        isDefault: false, // 用户的分类不标记为默认分类
-      })),
-    });
 
-    return result.count;
-  }
 
   /**
    * 根据ID查找分类
@@ -102,15 +86,12 @@ export class CategoryRepository {
   }
 
   /**
-   * 获取用户的所有分类
+   * 获取用户的所有自定义分类
    */
   async findByUserId(userId: string, type?: TransactionType): Promise<Category[]> {
     return prisma.category.findMany({
       where: {
-        OR: [
-          { userId },
-          { isDefault: true },
-        ],
+        userId,
         ...(type && { type }),
       },
       orderBy: { name: 'asc' },
@@ -123,10 +104,7 @@ export class CategoryRepository {
   async findByFamilyId(familyId: string, type?: TransactionType): Promise<Category[]> {
     return prisma.category.findMany({
       where: {
-        OR: [
-          { familyId },
-          { isDefault: true },
-        ],
+        familyId,
         ...(type && { type }),
       },
       orderBy: { name: 'asc' },

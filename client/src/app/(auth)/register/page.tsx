@@ -69,7 +69,7 @@ export default function RegisterPage() {
         email: data.email,
         password: data.password,
       });
-      toast.success("注册成功");
+      // 成功提示已在store中处理
     } catch (err) {
       // 错误已在store中处理
     }
