@@ -6,6 +6,7 @@
 @import '../styles/statistics.css';
 @import '../styles/profile.css';
 @import '../styles/members.css';
+@import '../styles/security.css';
 
 @layer base {
   :root {

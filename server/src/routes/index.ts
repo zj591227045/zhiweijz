@@ -10,6 +10,7 @@ import categoryBudgetRoutes from './category-budget.routes';
 import accountBookRoutes from './account-book.routes';
 import familyRoutes from './family.routes';
 import statisticsRoutes from './statistics.routes';
+import securityRoutes from './security.routes';
 
 const router = Router();
 
@@ -28,6 +29,7 @@ router.use('/category-budgets', categoryBudgetRoutes);
 router.use('/account-books', accountBookRoutes);
 router.use('/families', familyRoutes);
 router.use('/statistics', statisticsRoutes);
+router.use('/security', securityRoutes);
 // router.use('/ai', aiRoutes);
 
 export default router;
