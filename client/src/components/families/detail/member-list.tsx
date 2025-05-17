@@ -7,13 +7,14 @@ import { formatDate } from "@/lib/utils/date-utils";
 interface MemberListProps {
   members: FamilyMember[];
   isAdmin: boolean;
+  familyId: string;
   onInvite: () => void;
 }
 
-export function MemberList({ members, isAdmin, onInvite }: MemberListProps) {
+export function MemberList({ members, isAdmin, familyId, onInvite }: MemberListProps) {
   // 显示最多3个成员，其余的在成员管理页面查看
   const displayMembers = members.slice(0, 3);
-  
+
   // 获取成员头像文本（取名字的第一个字）
   const getAvatarText = (name: string) => {
     return name.charAt(0);
@@ -23,9 +24,9 @@ export function MemberList({ members, isAdmin, onInvite }: MemberListProps) {
     <>
       <div className="section-title">
         <span>成员列表</span>
-        <Link href="#" className="view-all">查看全部</Link>
+        <Link href={`/families/${familyId}/members`} className="view-all">查看全部</Link>
       </div>
-      
+
       <div className="members-list">
         {displayMembers.map((member) => (
           <div key={member.id} className="member-item">
@@ -46,7 +47,7 @@ export function MemberList({ members, isAdmin, onInvite }: MemberListProps) {
           </div>
         ))}
       </div>
-      
+
       {isAdmin && (
         <div className="invite-button" onClick={onInvite}>
           <i className="fas fa-user-plus"></i>

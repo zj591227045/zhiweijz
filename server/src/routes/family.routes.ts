@@ -38,4 +38,13 @@ router.get('/:id/statistics', authenticate, (req, res) => familyController.getFa
 // 退出家庭
 router.post('/:id/leave', authenticate, (req, res) => familyController.leaveFamily(req, res));
 
+// 更新成员角色
+router.put('/:familyId/members/:memberId/role', authenticate, (req, res) => familyController.updateMemberRole(req, res));
+
+// 删除成员
+router.delete('/:familyId/members/:memberId', authenticate, (req, res) => familyController.deleteFamilyMember(req, res));
+
+// 获取成员统计
+router.get('/:id/members/statistics', authenticate, (req, res) => familyController.getMemberStatistics(req, res));
+
 export default router;

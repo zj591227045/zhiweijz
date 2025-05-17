@@ -542,4 +542,88 @@ export class FamilyService {
     // 退出家庭
     await this.familyRepository.deleteFamilyMember(member.id);
   }
+
+  /**
+   * 获取成员统计
+   */
+  async getMemberStatistics(familyId: string, userId: string, period: string): Promise<any> {
+    // 获取家庭详情
+    const family = await this.familyRepository.findFamilyById(familyId);
+    if (!family) {
+      throw new Error('家庭不存在');
+    }
+
+    // 验证用户是否为家庭成员
+    const isMember = await this.isUserFamilyMember(userId, familyId);
+    if (!isMember) {
+      throw new Error('无权访问此家庭');
+    }
+
+    // 获取家庭成员列表
+    const members = await this.familyRepository.findFamilyMembers(familyId);
+
+    // 这里应该从交易记录中获取统计数据
+    // 由于目前没有实现交易相关功能，我们返回模拟数据
+
+    // 根据时间范围获取不同的数据
+    let totalExpense = 0;
+
+    switch (period) {
+      case 'month':
+        totalExpense = 8500;
+        break;
+      case 'last_month':
+        totalExpense = 7500;
+        break;
+      case 'all':
+      default:
+        totalExpense = 100000;
+        break;
+    }
+
+    // 生成成员消费统计数据
+    const memberStatistics = members.map((member, index) => {
+      // 为每个成员生成不同的消费金额，确保总和等于totalExpense
+      const basePercentage = 100 / members.length;
+      let percentage = basePercentage;
+
+      // 为了让数据更有变化，根据索引调整百分比
+      if (index === 0) {
+        percentage = basePercentage * 1.5;
+      } else if (index === members.length - 1) {
+        percentage = basePercentage * 0.5;
+      }
+
+      const amount = Math.round((totalExpense * percentage) / 100);
+
+      return {
+        memberId: member.id,
+        userId: member.userId,
+        username: member.name,
+        avatar: null, // 实际应用中应该从用户表获取
+        role: member.role,
+        joinedAt: member.createdAt,
+        isCurrentUser: member.userId === userId,
+        statistics: {
+          totalExpense: amount,
+          percentage: Math.round(percentage),
+          transactionCount: Math.round(amount / 100) // 假设平均每笔交易100元
+        }
+      };
+    });
+
+    // 计算用户权限
+    const isAdmin = await this.isUserFamilyAdmin(userId, familyId);
+
+    return {
+      members: memberStatistics,
+      totalExpense,
+      period,
+      userPermissions: {
+        canInvite: isAdmin,
+        canRemove: isAdmin,
+        canChangeRoles: isAdmin
+      }
+    };
+  }
 }

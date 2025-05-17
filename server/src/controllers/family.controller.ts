@@ -423,4 +423,129 @@ export class FamilyController {
       res.status(500).json({ message: '退出家庭失败' });
     }
   }
+
+  /**
+   * 更新成员角色
+   */
+  async updateMemberRole(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const familyId = req.params.familyId;
+      const memberId = req.params.memberId;
+      if (!familyId || !memberId) {
+        res.status(400).json({ message: '家庭ID和成员ID不能为空' });
+        return;
+      }
+
+      // 验证请求数据
+      if (!req.body.role || !['ADMIN', 'MEMBER'].includes(req.body.role)) {
+        res.status(400).json({ message: '角色必须是 ADMIN 或 MEMBER' });
+        return;
+      }
+
+      // 更新成员角色
+      try {
+        const member = await this.familyService.updateFamilyMember(familyId, memberId, userId, { role: req.body.role });
+        res.status(200).json(member);
+      } catch (error) {
+        if (error instanceof Error && error.message === '无权更新家庭成员') {
+          res.status(403).json({ message: error.message });
+        } else if (error instanceof Error && error.message === '家庭成员不存在') {
+          res.status(404).json({ message: error.message });
+        } else {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('更新成员角色失败:', error);
+      res.status(500).json({ message: '更新成员角色失败' });
+    }
+  }
+
+  /**
+   * 删除家庭成员
+   */
+  async deleteFamilyMember(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const familyId = req.params.familyId;
+      const memberId = req.params.memberId;
+      if (!familyId || !memberId) {
+        res.status(400).json({ message: '家庭ID和成员ID不能为空' });
+        return;
+      }
+
+      // 删除家庭成员
+      try {
+        await this.familyService.deleteFamilyMember(familyId, memberId, userId);
+        res.status(204).end();
+      } catch (error) {
+        if (error instanceof Error && error.message === '无权删除家庭成员') {
+          res.status(403).json({ message: error.message });
+        } else if (error instanceof Error && error.message === '家庭成员不存在') {
+          res.status(404).json({ message: error.message });
+        } else if (error instanceof Error && error.message === '不能删除自己') {
+          res.status(400).json({ message: error.message });
+        } else {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('删除家庭成员失败:', error);
+      res.status(500).json({ message: '删除家庭成员失败' });
+    }
+  }
+
+  /**
+   * 获取成员统计
+   */
+  async getMemberStatistics(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const familyId = req.params.id;
+      if (!familyId) {
+        res.status(400).json({ message: '家庭ID不能为空' });
+        return;
+      }
+
+      // 获取时间范围参数
+      const period = req.query.period as string || 'month';
+      if (!['month', 'last_month', 'all'].includes(period)) {
+        res.status(400).json({ message: '无效的时间范围参数' });
+        return;
+      }
+
+      // 获取成员统计数据
+      try {
+        const statistics = await this.familyService.getMemberStatistics(familyId, userId, period);
+        res.status(200).json(statistics);
+      } catch (error) {
+        if (error instanceof Error && error.message === '无权访问此家庭') {
+          res.status(403).json({ message: error.message });
+        } else if (error instanceof Error && error.message === '家庭不存在') {
+          res.status(404).json({ message: error.message });
+        } else {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('获取成员统计失败:', error);
+      res.status(500).json({ message: '获取成员统计失败' });
+    }
+  }
 }

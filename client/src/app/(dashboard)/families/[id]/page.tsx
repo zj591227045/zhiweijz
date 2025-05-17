@@ -16,11 +16,11 @@ export default function FamilyDetailPage() {
   const params = useParams();
   const router = useRouter();
   const familyId = params.id as string;
-  
-  const { 
-    family, 
-    isLoading, 
-    error, 
+
+  const {
+    family,
+    isLoading,
+    error,
     fetchFamilyDetail,
     updateFamily,
     leaveFamily,
@@ -48,7 +48,7 @@ export default function FamilyDetailPage() {
     setIsProcessing(true);
     const success = await leaveFamily(familyId);
     setIsProcessing(false);
-    
+
     if (success) {
       setIsLeaveDialogOpen(false);
       router.push("/families");
@@ -60,7 +60,7 @@ export default function FamilyDetailPage() {
     setIsProcessing(true);
     const success = await deleteFamily(familyId);
     setIsProcessing(false);
-    
+
     if (success) {
       setIsDeleteDialogOpen(false);
       router.push("/families");
@@ -70,8 +70,8 @@ export default function FamilyDetailPage() {
   // 如果正在加载，显示加载状态
   if (isLoading) {
     return (
-      <PageContainer 
-        title="家庭详情" 
+      <PageContainer
+        title="家庭详情"
         showBackButton
         activeNavItem="profile"
       >
@@ -85,8 +85,8 @@ export default function FamilyDetailPage() {
   // 如果发生错误，显示错误信息
   if (error || !family) {
     return (
-      <PageContainer 
-        title="家庭详情" 
+      <PageContainer
+        title="家庭详情"
         showBackButton
         activeNavItem="profile"
       >
@@ -113,40 +113,41 @@ export default function FamilyDetailPage() {
   );
 
   return (
-    <PageContainer 
-      title="家庭详情" 
+    <PageContainer
+      title="家庭详情"
       showBackButton
       activeNavItem="profile"
     >
-      <FamilyHeader 
-        family={family} 
+      <FamilyHeader
+        family={family}
         isAdmin={isAdmin}
         onUpdate={updateFamily}
       />
-      
-      <MemberList 
-        members={family.members} 
+
+      <MemberList
+        members={family.members}
         isAdmin={isAdmin}
+        familyId={familyId}
         onInvite={handleInviteMember}
       />
-      
+
       <FamilyStatistics familyId={familyId} />
-      
+
       <RecentTransactions familyId={familyId} />
-      
-      <FamilyManagement 
+
+      <FamilyManagement
         isAdmin={isAdmin}
         familyId={familyId}
         onLeave={() => setIsLeaveDialogOpen(true)}
         onDelete={() => setIsDeleteDialogOpen(true)}
       />
-      
-      <InvitationDialog 
-        isOpen={isInviteDialogOpen} 
+
+      <InvitationDialog
+        isOpen={isInviteDialogOpen}
         onClose={() => setIsInviteDialogOpen(false)}
         familyId={familyId}
       />
-      
+
       <ConfirmDialog
         isOpen={isLeaveDialogOpen}
         title="退出家庭"
@@ -157,7 +158,7 @@ export default function FamilyDetailPage() {
         onCancel={() => setIsLeaveDialogOpen(false)}
         isDangerous
       />
-      
+
       <ConfirmDialog
         isOpen={isDeleteDialogOpen}
         title="解散家庭"

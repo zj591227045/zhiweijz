@@ -1,0 +1,430 @@
+.members-list {
+  margin-bottom: 20px;
+}
+
+.member-card {
+  background-color: var(--card-background);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.member-header {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.member-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 20px;
+  margin-right: 16px;
+}
+
+.member-info {
+  flex: 1;
+}
+
+.member-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.current-user-badge {
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 8px;
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--success-color);
+}
+
+.member-role {
+  font-size: 14px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.admin-badge {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--primary-color);
+}
+
+.member-badge {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: var(--text-secondary);
+}
+
+.member-actions {
+  display: flex;
+  align-items: center;
+}
+
+.action-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--background-color);
+  color: var(--text-secondary);
+  margin-left: 8px;
+  cursor: pointer;
+}
+
+.action-button.danger {
+  color: var(--error-color);
+}
+
+.member-details {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.detail-column {
+  flex: 1;
+}
+
+.detail-item {
+  margin-bottom: 12px;
+}
+
+.detail-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.detail-value {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.stats-column {
+  flex: 1;
+  text-align: right;
+}
+
+.stats-item {
+  margin-bottom: 12px;
+}
+
+.stats-value {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.expense-value {
+  color: var(--error-color);
+}
+
+.stats-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.role-selector {
+  padding: 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+}
+
+.role-label {
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-right: 12px;
+}
+
+.role-options {
+  flex: 1;
+  display: flex;
+  background-color: var(--background-color);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.role-option {
+  flex: 1;
+  padding: 8px;
+  text-align: center;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-secondary);
+}
+
+.role-option.active {
+  background-color: var(--card-background);
+  color: var(--primary-color);
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 24px 0 16px;
+}
+
+.invitation-section {
+  background-color: var(--card-background);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.invite-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.invite-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(59, 130, 246, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  margin-right: 12px;
+}
+
+.invite-title {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.invite-code-container {
+  background-color: var(--background-color);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.invite-code {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary-color);
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.invite-expiry {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.invite-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.invite-button {
+  flex: 1;
+  padding: 12px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.copy-button {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.share-button {
+  background-color: var(--background-color);
+  color: var(--text-primary);
+}
+
+.invite-button i {
+  margin-right: 8px;
+}
+
+.qr-code-container {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.qr-code {
+  width: 150px;
+  height: 150px;
+  background-color: var(--background-color);
+  margin: 0 auto 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+.qr-code-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.expiry-selector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: var(--background-color);
+  border-radius: var(--radius);
+  position: relative;
+}
+
+.expiry-label {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.expiry-value {
+  display: flex;
+  align-items: center;
+  color: var(--primary-color);
+}
+
+.expiry-value i {
+  margin-left: 8px;
+}
+
+.stats-overview {
+  background-color: var(--card-background);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.period-selector {
+  display: flex;
+  background-color: var(--background-color);
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 16px;
+}
+
+.period-tab {
+  flex: 1;
+  padding: 8px;
+  text-align: center;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-secondary);
+}
+
+.period-tab.active {
+  background-color: var(--card-background);
+  color: var(--primary-color);
+}
+
+.member-ranking {
+  margin-top: 16px;
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ranking-item:last-child {
+  border-bottom: none;
+}
+
+.rank-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--background-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  margin-right: 12px;
+}
+
+.rank-number.top-1 {
+  background-color: #FFD700;
+  color: white;
+}
+
+.rank-number.top-2 {
+  background-color: #C0C0C0;
+  color: white;
+}
+
+.rank-number.top-3 {
+  background-color: #CD7F32;
+  color: white;
+}
+
+.ranking-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  margin-right: 12px;
+}
+
+.ranking-details {
+  flex: 1;
+}
+
+.ranking-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.ranking-amount {
+  font-weight: 600;
+  color: var(--error-color);
+}
