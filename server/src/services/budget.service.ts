@@ -1,6 +1,7 @@
 import { BudgetPeriod, Budget, Category } from '@prisma/client';
 import { BudgetRepository, BudgetWithCategory } from '../repositories/budget.repository';
 import { CategoryRepository } from '../repositories/category.repository';
+import { CategoryBudgetRepository } from '../repositories/category-budget.repository';
 import {
   CreateBudgetDto,
   UpdateBudgetDto,
@@ -10,14 +11,17 @@ import {
   toBudgetResponseDto
 } from '../models/budget.model';
 import { toCategoryResponseDto } from '../models/category.model';
+import { toCategoryBudgetResponseDto, CategoryBudgetResponseDto } from '../models/category-budget.model';
 
 export class BudgetService {
   private budgetRepository: BudgetRepository;
   private categoryRepository: CategoryRepository;
+  private categoryBudgetRepository: CategoryBudgetRepository;
 
   constructor() {
     this.budgetRepository = new BudgetRepository();
     this.categoryRepository = new CategoryRepository();
+    this.categoryBudgetRepository = new CategoryBudgetRepository();
   }
 
   /**
@@ -30,6 +34,11 @@ export class BudgetService {
       if (!category) {
         throw new Error('分类不存在');
       }
+    }
+
+    // 如果启用分类预算且总预算金额为0，标记为自动计算
+    if (budgetData.enableCategoryBudget && budgetData.amount === 0) {
+      budgetData.isAutoCalculated = true;
     }
 
     // 创建预算
@@ -85,11 +94,27 @@ export class BudgetService {
     // 计算已使用金额
     const spent = await this.budgetRepository.calculateSpentAmount(id);
 
-    return toBudgetResponseDto(
+    // 获取分类预算
+    let categoryBudgets: CategoryBudgetResponseDto[] = [];
+    if (budget.enableCategoryBudget && budget.categoryBudgets) {
+      categoryBudgets = budget.categoryBudgets.map(cb =>
+        toCategoryBudgetResponseDto(
+          cb,
+          cb.category ? toCategoryResponseDto(cb.category) : undefined
+        )
+      );
+    }
+
+    const result = toBudgetResponseDto(
       budget,
       budget.category ? toCategoryResponseDto(budget.category) : undefined,
       spent
     );
+
+    // 添加分类预算到响应
+    result.categoryBudgets = categoryBudgets;
+
+    return result;
   }
 
   /**
@@ -115,17 +140,48 @@ export class BudgetService {
       }
     }
 
+    // 处理分类预算启用状态变更
+    if (budgetData.enableCategoryBudget !== undefined &&
+        budgetData.enableCategoryBudget !== budget.enableCategoryBudget) {
+
+      // 如果启用分类预算且总预算金额为0，标记为自动计算
+      if (budgetData.enableCategoryBudget && Number(budget.amount) === 0) {
+        budgetData.isAutoCalculated = true;
+      }
+
+      // 如果禁用分类预算，删除所有分类预算
+      if (!budgetData.enableCategoryBudget) {
+        await this.categoryBudgetRepository.deleteByBudgetId(id);
+      }
+    }
+
     // 更新预算
     const updatedBudget = await this.budgetRepository.update(id, budgetData);
 
     // 计算已使用金额
     const spent = await this.budgetRepository.calculateSpentAmount(id);
 
-    return toBudgetResponseDto(
+    // 获取分类预算
+    let categoryBudgets: CategoryBudgetResponseDto[] = [];
+    if (updatedBudget.enableCategoryBudget && updatedBudget.categoryBudgets) {
+      categoryBudgets = updatedBudget.categoryBudgets.map(cb =>
+        toCategoryBudgetResponseDto(
+          cb,
+          cb.category ? toCategoryResponseDto(cb.category) : undefined
+        )
+      );
+    }
+
+    const result = toBudgetResponseDto(
       updatedBudget,
       updatedBudget.category ? toCategoryResponseDto(updatedBudget.category) : undefined,
       spent
     );
+
+    // 添加分类预算到响应
+    result.categoryBudgets = categoryBudgets;
+
+    return result;
   }
 
   /**

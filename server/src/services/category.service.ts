@@ -30,6 +30,20 @@ export class CategoryService {
   }
 
   /**
+   * 为用户创建默认分类
+   */
+  async createUserDefaultCategories(userId: string): Promise<number> {
+    // 检查系统默认分类是否已存在，如果不存在则先创建
+    const defaultCategoriesExist = await this.categoryRepository.defaultCategoriesExist();
+    if (!defaultCategoriesExist) {
+      await this.initializeDefaultCategories();
+    }
+
+    // 为用户创建默认分类的副本
+    return this.categoryRepository.createUserDefaultCategories(userId, defaultCategories);
+  }
+
+  /**
    * 创建分类
    */
   async createCategory(userId: string, categoryData: CreateCategoryDto): Promise<CategoryResponseDto> {

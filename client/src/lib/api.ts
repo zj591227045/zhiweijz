@@ -5,6 +5,7 @@ const isDev = process.env.NODE_ENV === 'development';
 
 // API基础URL
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+console.log('API基础URL:', API_BASE_URL);
 
 // 简单的内存缓存实现
 interface CacheItem {
@@ -65,16 +66,24 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // 从localStorage获取token
-    const token = localStorage.getItem("auth-token");
+    let token;
 
-    // 仅在开发环境输出详细日志
-    if (isDev) {
-      console.log("API请求:", config.method?.toUpperCase(), config.url);
+    try {
+      token = localStorage.getItem("auth-token");
+      console.log("API请求拦截器: 获取到token", token ? '成功' : '失败');
+    } catch (error) {
+      console.error("API请求拦截器: 获取token失败", error);
     }
+
+    // 输出详细日志
+    console.log("API请求:", config.method?.toUpperCase(), config.url, config.params);
 
     // 如果token存在，添加到请求头
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log("API请求拦截器: 添加Authorization头", `Bearer ${token.substring(0, 10)}...`);
+    } else {
+      console.warn("API请求拦截器: 没有token，请求可能会被拒绝");
     }
 
     return config;

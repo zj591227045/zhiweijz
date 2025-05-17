@@ -1,0 +1,565 @@
+/* 预算管理页面特定样式 */
+
+/* 账本选择器 */
+.account-book-selector {
+  margin-bottom: 16px;
+}
+
+.selected-account-book {
+  background-color: white;
+  border-radius: 8px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+}
+
+.selected-account-book i:first-child {
+  color: #3b82f6;
+  margin-right: 8px;
+}
+
+.selected-account-book span {
+  font-weight: 500;
+  flex: 1;
+  text-align: center;
+}
+
+.selected-account-book i:last-child {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+/* 预算类型切换 */
+.budget-type-selector {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+  background-color: white;
+  border-radius: 20px;
+  padding: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.budget-type-button {
+  background: none;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  color: #6b7280;
+  cursor: pointer;
+  flex: 1;
+  text-align: center;
+}
+
+.budget-type-button.active {
+  background-color: #3b82f6;
+  color: white;
+  font-weight: 500;
+}
+
+/* 月份选择器 */
+.month-selector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding: 0 10px;
+}
+
+.month-nav-button {
+  background: none;
+  border: none;
+  color: #6b7280;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.current-month {
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* 预算概览 */
+.budget-overview {
+  margin-bottom: 24px;
+}
+
+.overview-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.overview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.overview-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.budget-status {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.overview-amounts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.amount-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.amount-label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.amount-value {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.overall-progress {
+  margin-bottom: 16px;
+}
+
+.progress-bar {
+  height: 8px;
+  background-color: #f3f4f6;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 4px;
+  border: 1px solid transparent;
+}
+
+.progress-bar.border-red-500 {
+  border-color: #ef4444;
+}
+
+.progress {
+  height: 100%;
+  background-color: #3b82f6;
+  border-radius: 4px;
+}
+
+.progress.bg-red-500 {
+  background-color: #ef4444;
+}
+
+.progress.bg-orange-500 {
+  background-color: #f97316;
+}
+
+.progress.bg-yellow-500 {
+  background-color: #eab308;
+}
+
+.progress.bg-green-500 {
+  background-color: #22c55e;
+}
+
+.progress-label {
+  text-align: right;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.progress-label.text-red-500 {
+  color: #ef4444;
+}
+
+.text-red-500 {
+  color: #ef4444;
+}
+
+.rollover-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.rollover-amount {
+  font-weight: 600;
+  margin: 0 4px;
+}
+
+.rollover-amount.positive {
+  color: #10b981;
+}
+
+.rollover-amount.negative {
+  color: #ef4444;
+}
+
+.rollover-info-icon {
+  color: #6b7280;
+  font-size: 12px;
+  margin-left: 4px;
+  cursor: pointer;
+}
+
+.daily-budget {
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.daily-amount {
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+/* 分类预算 */
+.view-options {
+  display: flex;
+  gap: 8px;
+}
+
+.view-option {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  font-size: 14px;
+  color: #6b7280;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.view-option.active {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+.budget-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 家庭成员预算 */
+.family-budgets {
+  margin-top: 24px;
+}
+
+.family-member-section {
+  background-color: white;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.family-member-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.family-member-info {
+  display: flex;
+  align-items: center;
+}
+
+.member-icon {
+  width: 32px;
+  height: 32px;
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+}
+
+.toggle-button {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.family-member-budgets {
+  padding: 12px;
+}
+
+.family-member-budgets .budget-item {
+  box-shadow: none;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 8px;
+}
+
+.family-member-budgets .budget-item:last-child {
+  margin-bottom: 0;
+}
+
+/* 结转标识 */
+.rollover-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.rollover-badge.positive {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.rollover-badge.negative {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.rollover-badge i {
+  margin-right: 4px;
+  font-size: 10px;
+}
+
+/* 预算页面整体布局 */
+.budget-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+.budget-content {
+  flex: 1;
+  padding: 0 16px 16px;
+}
+
+/* 预算项目 */
+.budget-item {
+  background-color: white;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+}
+
+.budget-item.warning {
+  border-left: 4px solid #ef4444;
+}
+
+.budget-category {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.category-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+}
+
+.budget-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.budget-amounts {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.spent {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.separator {
+  margin: 0 4px;
+  color: #6b7280;
+}
+
+.total {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.budget-progress {
+  width: 96px;
+  margin-bottom: 4px;
+}
+
+/* 骨架屏样式 */
+.skeleton-container {
+  animation: pulse 1.5s infinite;
+}
+
+.skeleton {
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.skeleton-title {
+  height: 20px;
+  width: 30%;
+  background-color: #f3f4f6;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.skeleton-subtitle {
+  height: 16px;
+  width: 25%;
+  background-color: #f3f4f6;
+  border-radius: 4px;
+}
+
+.skeleton-label {
+  height: 12px;
+  width: 60%;
+  background-color: #f3f4f6;
+  border-radius: 4px;
+  margin: 0 auto 4px;
+}
+
+.skeleton-value {
+  height: 16px;
+  width: 100%;
+  background-color: #f3f4f6;
+  border-radius: 4px;
+  margin: 0 auto;
+}
+
+.skeleton-filters {
+  height: 24px;
+  width: 120px;
+  background-color: #f3f4f6;
+  border-radius: 4px;
+}
+
+.category-icon.skeleton {
+  background-color: #f3f4f6;
+}
+
+.category-name.skeleton {
+  height: 16px;
+  width: 80px;
+  background-color: #f3f4f6;
+  border-radius: 4px;
+}
+
+.budget-amounts.skeleton {
+  height: 16px;
+  width: 80px;
+  background-color: #f3f4f6;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.budget-progress.skeleton {
+  height: 8px;
+  width: 96px;
+  background-color: #f3f4f6;
+  border-radius: 4px;
+}
+
+.section-header.skeleton {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+/* 页面头部 */
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 56px;
+  padding: 0 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.header-left, .header-right {
+  flex: 1;
+  display: flex;
+}
+
+.header-right {
+  justify-content: flex-end;
+}
+
+.page-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.add-button {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1f2937;
+  background: none;
+  border: none;
+  cursor: pointer;
+}

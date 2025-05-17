@@ -1,9 +1,10 @@
 import { PrismaClient, Budget, BudgetPeriod, Prisma, Category } from '@prisma/client';
 import { CreateBudgetDto, UpdateBudgetDto, BudgetQueryParams } from '../models/budget.model';
 
-// 扩展Budget类型，包含category关联
+// 扩展Budget类型，包含category和categoryBudgets关联
 export type BudgetWithCategory = Budget & {
   category?: Category | null;
+  categoryBudgets?: any[];
 };
 
 const prisma = new PrismaClient();
@@ -24,6 +25,9 @@ export class BudgetRepository {
         rollover: budgetData.rollover,
         userId,
         familyId: budgetData.familyId,
+        accountBookId: budgetData.accountBookId,
+        enableCategoryBudget: budgetData.enableCategoryBudget ?? false,
+        isAutoCalculated: budgetData.isAutoCalculated ?? false,
       },
       include: {
         category: true,
@@ -106,6 +110,8 @@ export class BudgetRepository {
       ...(budgetData.startDate !== undefined && { startDate: budgetData.startDate }),
       ...(budgetData.endDate !== undefined && { endDate: budgetData.endDate }),
       ...(budgetData.rollover !== undefined && { rollover: budgetData.rollover }),
+      ...(budgetData.enableCategoryBudget !== undefined && { enableCategoryBudget: budgetData.enableCategoryBudget }),
+      ...(budgetData.isAutoCalculated !== undefined && { isAutoCalculated: budgetData.isAutoCalculated }),
     };
 
     return prisma.budget.update({
@@ -170,6 +176,23 @@ export class BudgetRepository {
         userId,
         startDate: { lte: date },
         endDate: { gte: date },
+      },
+      include: {
+        category: true,
+      },
+    });
+  }
+
+  /**
+   * 根据账本ID查找活跃的预算
+   */
+  async findActiveByAccountBookId(accountBookId: string, date: Date = new Date()): Promise<BudgetWithCategory | null> {
+    return prisma.budget.findFirst({
+      where: {
+        accountBookId,
+        startDate: { lte: date },
+        endDate: { gte: date },
+        categoryId: null, // 只查找总预算，不包括分类预算
       },
       include: {
         category: true,

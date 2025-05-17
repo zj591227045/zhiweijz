@@ -52,15 +52,21 @@ export function BudgetProgress({ categories }: BudgetProgressProps) {
                 </div>
                 <span>{category.name}</span>
               </div>
-              <div className="budget-amount">
+              <div className={`budget-amount ${category.percentage > 100 ? 'text-red-500' : ''}`}>
                 <span className="current">{formatCurrency(category.spent)}</span>
                 <span className="separator">/</span>
                 <span className="total">{formatCurrency(category.budget)}</span>
               </div>
             </div>
-            <div className={`progress-bar ${category.percentage > 100 ? 'warning' : ''}`}>
+            <div className={`progress-bar ${category.percentage > 100 ? 'border-red-500' : ''}`}>
               <div
-                className="progress"
+                className={`progress ${
+                  category.percentage > 100
+                    ? 'bg-red-500'
+                    : category.percentage > 80
+                    ? 'bg-orange-500'
+                    : 'bg-blue-500'
+                }`}
                 style={{ width: `${Math.min(category.percentage, 100)}%` }}
               ></div>
             </div>

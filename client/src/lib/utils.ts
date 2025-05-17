@@ -97,7 +97,7 @@ export function debounce<T extends (...args: any[]) => any>(
 /**
  * 节流函数
  * @param fn 要执行的函数
- * @param ms 间隔时间
+ * @param ms 延迟时间
  * @returns 节流后的函数
  */
 export function throttle<T extends (...args: any[]) => any>(
@@ -114,3 +114,39 @@ export function throttle<T extends (...args: any[]) => any>(
     }
   };
 }
+
+/**
+ * 获取分类图标类名
+ * @param iconName 图标名称
+ * @returns Font Awesome图标类名
+ */
+export function getCategoryIconClass(iconName?: string): string {
+  if (!iconName) return 'fa-tag';
+
+  // 图标映射表
+  const iconMap: Record<string, string> = {
+    food: 'fa-utensils',
+    shopping: 'fa-shopping-bag',
+    transport: 'fa-bus',
+    entertainment: 'fa-film',
+    home: 'fa-home',
+    health: 'fa-heartbeat',
+    education: 'fa-graduation-cap',
+    travel: 'fa-plane',
+    other: 'fa-ellipsis-h',
+    // 添加更多图标映射
+    utensils: 'fa-utensils',
+    'shopping-bag': 'fa-shopping-bag',
+    bus: 'fa-bus',
+    film: 'fa-film',
+    home: 'fa-home',
+    heartbeat: 'fa-heartbeat',
+    'graduation-cap': 'fa-graduation-cap',
+    plane: 'fa-plane',
+    'ellipsis-h': 'fa-ellipsis-h',
+  };
+
+  return iconMap[iconName] || 'fa-tag';
+}
+
+

@@ -6,6 +6,7 @@ import { PasswordResetTokenRepository } from '../repositories/password-reset-tok
 import { emailService } from '../utils/email';
 import { config } from '../config';
 import { AccountBookService } from './account-book.service';
+import { CategoryService } from './category.service';
 
 export class AuthService {
   private userService: UserService;
@@ -58,6 +59,16 @@ export class AuthService {
         console.log(`已为用户 ${newUser.id} 创建默认账本`);
       } catch (accountBookError) {
         console.error('创建默认账本失败:', accountBookError);
+        // 不影响用户注册流程，继续执行
+      }
+
+      // 为新用户创建默认分类
+      try {
+        const categoryService = new CategoryService();
+        await categoryService.createUserDefaultCategories(newUser.id);
+        console.log(`已为用户 ${newUser.id} 创建默认分类`);
+      } catch (categoryError) {
+        console.error('创建默认分类失败:', categoryError);
         // 不影响用户注册流程，继续执行
       }
 

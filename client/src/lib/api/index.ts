@@ -29,17 +29,40 @@ apiClient.interceptors.request.use(
 // 响应拦截器
 apiClient.interceptors.response.use(
   (response) => {
+    // 添加调试日志
+    console.log(`API响应 [${response.config.method?.toUpperCase()}] ${response.config.url}:`, {
+      status: response.status,
+      headers: response.headers,
+      data: response.data
+    });
+
+    // 检查响应数据格式
+    if (response.data === null || response.data === undefined) {
+      console.warn(`API响应 [${response.config.method?.toUpperCase()}] ${response.config.url}: 响应数据为空`);
+    } else if (typeof response.data === 'object') {
+      console.log(`API响应 [${response.config.method?.toUpperCase()}] ${response.config.url}: 响应数据类型为对象`);
+    } else {
+      console.warn(`API响应 [${response.config.method?.toUpperCase()}] ${response.config.url}: 响应数据类型为 ${typeof response.data}`);
+    }
+
     // 直接返回响应数据
     return response.data;
   },
   (error) => {
     // 处理错误
+    console.error('API请求错误:', error);
+
     if (error.response) {
       // 服务器返回错误状态码
       const status = error.response.status;
+      console.error(`API错误响应 [${error.config?.method?.toUpperCase()}] ${error.config?.url}:`, {
+        status,
+        data: error.response.data
+      });
 
       // 如果是401未授权，可能是token过期
       if (status === 401) {
+        console.warn('API认证失败: 401 Unauthorized');
         // 清除本地存储的token
         localStorage.removeItem("auth-token");
 

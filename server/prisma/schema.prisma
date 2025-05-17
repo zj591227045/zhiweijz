@@ -14,6 +14,7 @@ model User {
   name                String
   createdAt           DateTime             @default(now()) @map("created_at")
   updatedAt           DateTime             @updatedAt @map("updated_at")
+  accountBooks        AccountBook[]
   budgets             Budget[]
   categories          Category[]
   families            Family[]             @relation("FamilyCreator")
@@ -22,7 +23,6 @@ model User {
   transactions        Transaction[]
   feedback            UserFeedback[]
   settings            UserSetting[]
-  accountBooks        AccountBook[]
 
   @@map("users")
 }
@@ -71,21 +71,22 @@ model Invitation {
 }
 
 model Category {
-  id            String          @id @default(uuid())
-  name          String
-  type          TransactionType
-  icon          String?
-  userId        String?         @map("user_id")
-  familyId      String?         @map("family_id")
-  accountBookId String?         @map("account_book_id")
-  isDefault     Boolean         @default(false) @map("is_default")
-  createdAt     DateTime        @default(now()) @map("created_at")
-  updatedAt     DateTime        @updatedAt @map("updated_at")
-  budgets       Budget[]
-  family        Family?         @relation(fields: [familyId], references: [id])
-  user          User?           @relation(fields: [userId], references: [id])
-  accountBook   AccountBook?    @relation(fields: [accountBookId], references: [id])
-  transactions  Transaction[]
+  id              String           @id @default(uuid())
+  name            String
+  type            TransactionType
+  icon            String?
+  userId          String?          @map("user_id")
+  familyId        String?          @map("family_id")
+  isDefault       Boolean          @default(false) @map("is_default")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  accountBookId   String?          @map("account_book_id")
+  budgets         Budget[]
+  accountBook     AccountBook?     @relation(fields: [accountBookId], references: [id])
+  family          Family?          @relation(fields: [familyId], references: [id])
+  user            User?            @relation(fields: [userId], references: [id])
+  categoryBudgets CategoryBudget[]
+  transactions    Transaction[]
 
   @@map("categories")
 }
@@ -100,44 +101,44 @@ model Transaction {
   userId         String          @map("user_id")
   familyId       String?         @map("family_id")
   familyMemberId String?         @map("family_member_id")
-  accountBookId  String?         @map("account_book_id")
-  budgetId       String?         @map("budget_id")
   createdAt      DateTime        @default(now()) @map("created_at")
   updatedAt      DateTime        @updatedAt @map("updated_at")
+  accountBookId  String?         @map("account_book_id")
+  budgetId       String?         @map("budget_id")
+  accountBook    AccountBook?    @relation(fields: [accountBookId], references: [id])
+  budget         Budget?         @relation(fields: [budgetId], references: [id])
   category       Category        @relation(fields: [categoryId], references: [id])
   family         Family?         @relation(fields: [familyId], references: [id])
   familyMember   FamilyMember?   @relation(fields: [familyMemberId], references: [id])
   user           User            @relation(fields: [userId], references: [id])
-  accountBook    AccountBook?    @relation(fields: [accountBookId], references: [id])
-  budget         Budget?         @relation(fields: [budgetId], references: [id])
   feedback       UserFeedback[]
 
   @@map("transactions")
 }
 
 model Budget {
-  id                  String       @id @default(uuid())
-  name                String
-  amount              Decimal      @db.Decimal(10, 2)
-  period              BudgetPeriod
-  startDate           DateTime     @map("start_date")
-  endDate             DateTime     @map("end_date")
-  categoryId          String?      @map("category_id")
-  userId              String?      @map("user_id")
-  familyId            String?      @map("family_id")
-  accountBookId       String?      @map("account_book_id")
-  rollover            Boolean      @default(false)
-  enableCategoryBudget Boolean     @default(true) @map("enable_category_budget")
-  rolloverAmount      Decimal?     @db.Decimal(10, 2) @map("rollover_amount")
-  createdAt           DateTime     @default(now()) @map("created_at")
-  updatedAt           DateTime     @updatedAt @map("updated_at")
-
-  // 关系
-  category      Category?    @relation(fields: [categoryId], references: [id])
-  family        Family?      @relation(fields: [familyId], references: [id])
-  user          User?        @relation(fields: [userId], references: [id])
-  accountBook   AccountBook? @relation(fields: [accountBookId], references: [id])
-  transactions  Transaction[]
+  id                   String           @id @default(uuid())
+  amount               Decimal          @db.Decimal(10, 2)
+  period               BudgetPeriod
+  startDate            DateTime         @map("start_date")
+  endDate              DateTime         @map("end_date")
+  categoryId           String?          @map("category_id")
+  userId               String?          @map("user_id")
+  familyId             String?          @map("family_id")
+  rollover             Boolean          @default(false)
+  createdAt            DateTime         @default(now()) @map("created_at")
+  updatedAt            DateTime         @updatedAt @map("updated_at")
+  name                 String
+  accountBookId        String?          @map("account_book_id")
+  isAutoCalculated     Boolean          @default(false) @map("is_auto_calculated")
+  enableCategoryBudget Boolean          @default(false) @map("enable_category_budget")
+  rolloverAmount       Decimal?         @map("rollover_amount") @db.Decimal(10, 2)
+  accountBook          AccountBook?     @relation(fields: [accountBookId], references: [id])
+  category             Category?        @relation(fields: [categoryId], references: [id])
+  family               Family?          @relation(fields: [familyId], references: [id])
+  user                 User?            @relation(fields: [userId], references: [id])
+  categoryBudgets      CategoryBudget[]
+  transactions         Transaction[]
 
   @@map("budgets")
 }
@@ -194,39 +195,50 @@ model UserSetting {
 }
 
 model AccountBook {
-  id          String    @id @default(uuid())
-  name        String
-  description String?
-  userId      String    @map("user_id")
-  isDefault   Boolean   @default(false) @map("is_default")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  // 关系
-  user         User               @relation(fields: [userId], references: [id])
-  transactions Transaction[]
-  categories   Category[]
-  budgets      Budget[]
+  id           String              @id @default(uuid())
+  name         String
+  description  String?
+  userId       String              @map("user_id")
+  isDefault    Boolean             @default(false) @map("is_default")
+  createdAt    DateTime            @default(now()) @map("created_at")
+  updatedAt    DateTime            @updatedAt @map("updated_at")
+  user         User                @relation(fields: [userId], references: [id])
   llmSettings  AccountLLMSetting[]
+  budgets      Budget[]
+  categories   Category[]
+  transactions Transaction[]
 
   @@map("account_books")
 }
 
 model AccountLLMSetting {
-  id            String    @id @default(uuid())
-  accountBookId String    @map("account_book_id")
-  provider      String    @default("openai")
-  model         String    @default("gpt-3.5-turbo")
-  apiKey        String?   @map("api_key")
-  temperature   Float     @default(0.3)
-  maxTokens     Int       @default(1000) @map("max_tokens")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-
-  // 关系
+  id            String      @id @default(uuid())
+  accountBookId String      @map("account_book_id")
+  provider      String      @default("openai")
+  model         String      @default("gpt-3.5-turbo")
+  apiKey        String?     @map("api_key")
+  temperature   Float       @default(0.3)
+  maxTokens     Int         @default(1000) @map("max_tokens")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
   accountBook   AccountBook @relation(fields: [accountBookId], references: [id])
 
   @@map("account_llm_settings")
+}
+
+model CategoryBudget {
+  id         String   @id @default(uuid())
+  budgetId   String   @map("budget_id")
+  categoryId String   @map("category_id")
+  amount     Decimal  @db.Decimal(10, 2)
+  spent      Decimal  @default(0) @db.Decimal(10, 2)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  budget     Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([budgetId, categoryId])
+  @@map("category_budgets")
 }
 
 enum TransactionType {

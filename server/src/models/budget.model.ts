@@ -1,5 +1,6 @@
 import { Budget as PrismaBudget, BudgetPeriod } from '@prisma/client';
 import { CategoryResponseDto } from './category.model';
+import { CategoryBudgetResponseDto } from './category-budget.model';
 
 /**
  * 预算创建DTO
@@ -15,6 +16,7 @@ export interface CreateBudgetDto {
   familyId?: string;
   accountBookId?: string;
   enableCategoryBudget?: boolean;
+  isAutoCalculated?: boolean;
 }
 
 /**
@@ -29,6 +31,7 @@ export interface UpdateBudgetDto {
   endDate?: Date;
   rollover?: boolean;
   enableCategoryBudget?: boolean;
+  isAutoCalculated?: boolean;
 }
 
 /**
@@ -61,6 +64,7 @@ export interface BudgetResponseDto {
   endDate: Date;
   rollover: boolean;
   enableCategoryBudget: boolean;
+  isAutoCalculated: boolean;
   userId: string;
   familyId?: string;
   accountBookId?: string;
@@ -72,6 +76,8 @@ export interface BudgetResponseDto {
   remaining?: number;
   progress?: number;
   adjustedRemaining?: number; // 考虑结转后的剩余金额
+  // 分类预算
+  categoryBudgets?: CategoryBudgetResponseDto[];
 }
 
 /**
@@ -107,6 +113,7 @@ export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryRes
   // 使用类型断言获取新字段
   const budgetAny = budget as any;
   const enableCategoryBudget = budgetAny.enableCategoryBudget;
+  const isAutoCalculated = budgetAny.isAutoCalculated;
   const rolloverAmount = budgetAny.rolloverAmount;
 
   // 计算预算执行情况
@@ -131,7 +138,8 @@ export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryRes
     startDate,
     endDate,
     rollover,
-    enableCategoryBudget: enableCategoryBudget ?? true,
+    enableCategoryBudget: enableCategoryBudget ?? false,
+    isAutoCalculated: isAutoCalculated ?? false,
     userId: userId || '',
     familyId: familyId || undefined,
     accountBookId: accountBookId || undefined,

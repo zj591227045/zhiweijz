@@ -56,6 +56,24 @@ export class CategoryRepository {
   }
 
   /**
+   * 为特定用户创建默认分类
+   */
+  async createUserDefaultCategories(userId: string, categoriesData: CreateCategoryDto[]): Promise<number> {
+    const result = await prisma.category.createMany({
+      data: categoriesData.map(category => ({
+        name: category.name,
+        type: category.type,
+        icon: category.icon,
+        userId,
+        familyId: null,
+        isDefault: false, // 用户的分类不标记为默认分类
+      })),
+    });
+
+    return result.count;
+  }
+
+  /**
    * 根据ID查找分类
    */
   async findById(id: string): Promise<Category | null> {
@@ -71,6 +89,15 @@ export class CategoryRepository {
     return prisma.category.findMany({
       where: { isDefault: true },
       orderBy: { name: 'asc' },
+    });
+  }
+
+  /**
+   * 根据名称查找分类
+   */
+  async findByName(name: string): Promise<Category | null> {
+    return prisma.category.findFirst({
+      where: { name },
     });
   }
 
