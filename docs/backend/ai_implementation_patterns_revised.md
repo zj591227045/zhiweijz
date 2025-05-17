@@ -510,7 +510,7 @@ export class ConsumptionPatternAnalyzer {
 ### 获取消费模式分析API
 
 ```
-GET /api/v1/ai/consumption-patterns
+GET /api/ai/consumption-patterns
 ```
 
 **查询参数**：

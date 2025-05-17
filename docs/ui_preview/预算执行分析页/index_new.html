@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>只为记账 - 预算执行分析</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="themes.css">
+    <link rel="stylesheet" href="budget_analysis.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <button class="icon-button back-button"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">预算执行分析</div>
+            <div></div> <!-- 占位，保持标题居中 -->
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 账本选择器 -->
+            <div class="account-book-selector">
+                <div class="selected-account-book">
+                    <i class="fas fa-book"></i>
+                    <span>我的账本</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            
+            <!-- 预算类型切换 -->
+            <div class="budget-type-selector">
+                <button class="budget-type-button active">月度预算</button>
+                <button class="budget-type-button">年度预算</button>
+            </div>
+            
+            <!-- 周期选择器 -->
+            <div class="period-selector">
+                <div class="period-label">预算周期</div>
+                <div class="period-value">
+                    <span>2023年5月</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            
+            <!-- 预算执行概览 -->
+            <div class="overview-card">
+                <div class="total-budget">
+                    <div class="total-amount">¥5,000.00</div>
+                    <div class="total-label">总预算</div>
+                </div>
+                
+                <div class="circular-progress">
+                    <div class="progress-circle">
+                        <div class="progress-inner">
+                            <div class="progress-percentage">70%</div>
+                            <div class="progress-label">执行率</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="budget-stats">
+                    <div class="stat-item">
+                        <div class="stat-value danger">2</div>
+                        <div class="stat-label">超支预算</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value warning">3</div>
+                        <div class="stat-label">接近超支</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value success">1</div>
+                        <div class="stat-label">使用率低</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value info">2</div>
+                        <div class="stat-label">有结转</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 结转分析 -->
+            <div class="section-title">结转影响分析</div>
+            
+            <div class="rollover-analysis-card">
+                <div class="rollover-summary">
+                    <div class="rollover-amount positive">+¥200</div>
+                    <div class="rollover-label">当前周期结转影响</div>
+                </div>
+                
+                <div class="rollover-trend">
+                    <div class="trend-label">结转趋势: <span class="trend-value increasing">增长</span></div>
+                    <div class="trend-chart">
+                        <div class="trend-bar" style="height: 20px;"></div>
+                        <div class="trend-bar" style="height: 30px;"></div>
+                        <div class="trend-bar" style="height: 50px;"></div>
+                    </div>
+                </div>
+                
+                <div class="rollover-recommendation">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>考虑增加餐饮预算，减少连续结转</span>
+                </div>
+            </div>
+            
+            <!-- 历史执行 -->
+            <div class="section-title">历史执行情况</div>
+            
+            <div class="chart-controls">
+                <div class="rollover-toggle">
+                    <label class="toggle-switch small">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span>显示结转影响</span>
+                </div>
+            </div>
+            
+            <div class="history-chart">
+                <div>图表区域 - 显示历史预算执行情况（含结转影响）</div>
+            </div>
+            
+            <!-- 预算调整建议 -->
+            <div class="section-title">预算调整建议</div>
+            
+            <div class="recommendations">
+                <div class="recommendation-card">
+                    <div class="recommendation-header">
+                        <div class="recommendation-icon" style="background-color: #FF5722;">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <div class="recommendation-category">餐饮</div>
+                    </div>
+                    
+                    <div class="recommendation-amounts">
+                        <div class="current-budget">
+                            <div class="budget-label">当前预算</div>
+                            <div class="budget-value">¥1,000</div>
+                        </div>
+                        <div class="recommended-budget">
+                            <div class="budget-label">建议预算</div>
+                            <div class="budget-value">¥1,200</div>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-reason">
+                        过去3个月平均超支15%，且有连续结转，建议适当增加预算以符合实际消费习惯。
+                    </div>
+                    
+                    <div class="expected-rollover">
+                        <span>预期结转: </span>
+                        <span class="rollover-value">+¥50</span>
+                    </div>
+                    
+                    <button class="apply-button">应用</button>
+                </div>
+                
+                <div class="recommendation-card">
+                    <div class="recommendation-header">
+                        <div class="recommendation-icon" style="background-color: #9C27B0;">
+                            <i class="fas fa-gamepad"></i>
+                        </div>
+                        <div class="recommendation-category">娱乐</div>
+                    </div>
+                    
+                    <div class="recommendation-amounts">
+                        <div class="current-budget">
+                            <div class="budget-label">当前预算</div>
+                            <div class="budget-value">¥500</div>
+                        </div>
+                        <div class="recommended-budget">
+                            <div class="budget-label">建议预算</div>
+                            <div class="budget-value">¥400</div>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-reason">
+                        连续3个月使用率不足70%，建议适当减少预算以提高资金利用效率。
+                    </div>
+                    
+                    <div class="expected-rollover">
+                        <span>预期结转: </span>
+                        <span class="rollover-value">+¥0</span>
+                    </div>
+                    
+                    <button class="apply-button">应用</button>
+                </div>
+            </div>
+            
+            <!-- 预算执行详情 -->
+            <div class="section-title">预算执行详情</div>
+            
+            <div class="filter-tabs">
+                <button class="filter-tab active">全部</button>
+                <button class="filter-tab">超支</button>
+                <button class="filter-tab">接近超支</button>
+                <button class="filter-tab">正常</button>
+                <button class="filter-tab">有结转</button>
+            </div>
+            
+            <!-- 个人账本预算列表 -->
+            <div class="budget-execution-list">
+                <div class="budget-item">
+                    <div class="budget-icon" style="background-color: #FF5722;">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="budget-details">
+                        <div class="budget-name">餐饮</div>
+                        <div class="budget-progress">
+                            <div class="progress-info">
+                                <div class="spent-info">已用: ¥850 (85%)</div>
+                                <div class="remaining-info">剩余: ¥150</div>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill warning" style="width: 85%;"></div>
+                            </div>
+                        </div>
+                        <div class="budget-footer">
+                            <div class="trend-indicator over-budget">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>预计超支 ¥100</span>
+                            </div>
+                            <div class="rollover-badge positive">
+                                <i class="fas fa-exchange-alt"></i>
+                                <span>+¥100</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 家庭账本预算列表 -->
+            <div class="family-budget-list">
+                <div class="family-member-section">
+                    <div class="family-member-header">
+                        <div class="family-member-info">
+                            <i class="fas fa-user member-icon"></i>
+                            <span>张三</span>
+                        </div>
+                        <button class="toggle-button"><i class="fas fa-chevron-down"></i></button>
+                    </div>
+                    <div class="family-member-budgets">
+                        <div class="budget-item">
+                            <div class="budget-icon" style="background-color: #FF5722;">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <div class="budget-details">
+                                <div class="budget-name">餐饮</div>
+                                <div class="budget-progress">
+                                    <div class="progress-info">
+                                        <div class="spent-info">已用: ¥700 (70%)</div>
+                                        <div class="remaining-info">剩余: ¥300</div>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill normal" style="width: 70%;"></div>
+                                    </div>
+                                </div>
+                                <div class="trend-indicator">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>执行正常</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

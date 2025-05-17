@@ -284,7 +284,7 @@ afterAll(async () => {
 });
 
 describe('Auth API', () => {
-  describe('POST /api/v1/auth/register', () => {
+  describe('POST /api/auth/register', () => {
     it('should register a new user', async () => {
       const userData = {
         email: 'test@example.com',
@@ -293,7 +293,7 @@ describe('Auth API', () => {
       };
       
       const response = await request(app)
-        .post('/api/v1/auth/register')
+        .post('/api/auth/register')
         .send(userData)
         .expect(201);
       
@@ -320,7 +320,7 @@ describe('Auth API', () => {
       };
       
       const response = await request(app)
-        .post('/api/v1/auth/register')
+        .post('/api/auth/register')
         .send(userData)
         .expect(409);
       
@@ -336,7 +336,7 @@ describe('Auth API', () => {
       };
       
       const response = await request(app)
-        .post('/api/v1/auth/register')
+        .post('/api/auth/register')
         .send(invalidData)
         .expect(400);
       
@@ -395,7 +395,7 @@ describe('User Flow', () => {
     };
     
     const response = await request(app)
-      .post('/api/v1/auth/register')
+      .post('/api/auth/register')
       .send(userData)
       .expect(201);
     
@@ -406,7 +406,7 @@ describe('User Flow', () => {
   
   it('should get categories', async () => {
     const response = await request(app)
-      .get('/api/v1/categories')
+      .get('/api/categories')
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
     
@@ -429,7 +429,7 @@ describe('User Flow', () => {
     };
     
     const response = await request(app)
-      .post('/api/v1/transactions')
+      .post('/api/transactions')
       .set('Authorization', `Bearer ${token}`)
       .send(transactionData)
       .expect(201);
@@ -443,7 +443,7 @@ describe('User Flow', () => {
   
   it('should get transaction list', async () => {
     const response = await request(app)
-      .get('/api/v1/transactions')
+      .get('/api/transactions')
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
     

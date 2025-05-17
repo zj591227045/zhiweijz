@@ -94,7 +94,7 @@ model AccountLLMSetting {
 
 #### 创建账本
 
-- **URL**: `/api/v1/account-books`
+- **URL**: `/api/account-books`
 - **方法**: `POST`
 - **认证**: 需要JWT令牌
 - **请求体**:
@@ -123,7 +123,7 @@ model AccountLLMSetting {
 
 #### 获取账本列表
 
-- **URL**: `/api/v1/account-books`
+- **URL**: `/api/account-books`
 - **方法**: `GET`
 - **认证**: 需要JWT令牌
 - **查询参数**:
@@ -168,7 +168,7 @@ model AccountLLMSetting {
 
 #### 获取默认账本
 
-- **URL**: `/api/v1/account-books/default`
+- **URL**: `/api/account-books/default`
 - **方法**: `GET`
 - **认证**: 需要JWT令牌
 - **响应**: 200 OK
@@ -189,7 +189,7 @@ model AccountLLMSetting {
 
 #### 获取单个账本
 
-- **URL**: `/api/v1/account-books/:id`
+- **URL**: `/api/account-books/:id`
 - **方法**: `GET`
 - **认证**: 需要JWT令牌
 - **响应**: 200 OK
@@ -210,7 +210,7 @@ model AccountLLMSetting {
 
 #### 更新账本
 
-- **URL**: `/api/v1/account-books/:id`
+- **URL**: `/api/account-books/:id`
 - **方法**: `PUT`
 - **认证**: 需要JWT令牌
 - **请求体**:
@@ -239,14 +239,14 @@ model AccountLLMSetting {
 
 #### 删除账本
 
-- **URL**: `/api/v1/account-books/:id`
+- **URL**: `/api/account-books/:id`
 - **方法**: `DELETE`
 - **认证**: 需要JWT令牌
 - **响应**: 204 No Content
 
 #### 设置默认账本
 
-- **URL**: `/api/v1/account-books/:id/set-default`
+- **URL**: `/api/account-books/:id/set-default`
 - **方法**: `POST`
 - **认证**: 需要JWT令牌
 - **响应**: 200 OK
@@ -269,7 +269,7 @@ model AccountLLMSetting {
 
 #### 获取账本LLM设置
 
-- **URL**: `/api/v1/account-books/:id/llm-settings`
+- **URL**: `/api/account-books/:id/llm-settings`
 - **方法**: `GET`
 - **认证**: 需要JWT令牌
 - **响应**: 200 OK
@@ -288,7 +288,7 @@ model AccountLLMSetting {
 
 #### 更新账本LLM设置
 
-- **URL**: `/api/v1/account-books/:id/llm-settings`
+- **URL**: `/api/account-books/:id/llm-settings`
 - **方法**: `PUT`
 - **认证**: 需要JWT令牌
 - **请求体**:

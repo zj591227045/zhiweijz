@@ -603,7 +603,7 @@ export class BudgetAdvisor {
 ### 获取预算建议API
 
 ```
-GET /api/v1/ai/budget-suggestions
+GET /api/ai/budget-suggestions
 ```
 
 **查询参数**：

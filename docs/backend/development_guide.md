@@ -353,10 +353,10 @@ describe('Auth API', () => {
     await prisma.$disconnect();
   });
 
-  describe('POST /api/v1/auth/register', () => {
+  describe('POST /api/auth/register', () => {
     it('should register a new user', async () => {
       const response = await request(app)
-        .post('/api/v1/auth/register')
+        .post('/api/auth/register')
         .send({
           email: 'test@example.com',
           password: 'password123',

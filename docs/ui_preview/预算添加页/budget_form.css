@@ -1,0 +1,446 @@
+/* 预算添加/编辑页样式 */
+
+:root {
+    /* 主色调 */
+    --primary-color: #3B82F6;
+    --secondary-color: #10B981;
+    
+    /* 功能色 */
+    --success-color: #22C55E;
+    --warning-color: #F59E0B;
+    --error-color: #EF4444;
+    --info-color: #3B82F6;
+    
+    /* 中性色 */
+    --background-color: #F9FAFB;
+    --card-background: #FFFFFF;
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --border-color: #E5E7EB;
+    
+    /* 尺寸 */
+    --header-height: 56px;
+    --bottom-nav-height: 56px;
+    --border-radius: 12px;
+    --spacing: 16px;
+}
+
+/* 表单容器 */
+.budget-form {
+    padding-bottom: 24px;
+}
+
+/* 表单区块 */
+.form-section {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+/* 账本选择 */
+.account-book-options {
+    display: flex;
+    gap: 12px;
+}
+
+.account-book-option {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.account-book-option i {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}
+
+.account-book-option span {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.account-book-option.active {
+    border-color: var(--primary-color);
+    background-color: rgba(59, 130, 246, 0.05);
+}
+
+.account-book-option.active i,
+.account-book-option.active span {
+    color: var(--primary-color);
+}
+
+/* 表单组件 */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="date"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 16px;
+    color: var(--text-primary);
+    background-color: var(--card-background);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+/* 金额输入 */
+.amount-input {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.currency-symbol {
+    position: absolute;
+    left: 12px;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+.amount-input input {
+    padding-left: 28px !important;
+}
+
+/* 日期输入 */
+.date-input {
+    position: relative;
+}
+
+.date-input i {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+/* 周期选择 */
+.period-options {
+    display: flex;
+    gap: 12px;
+}
+
+.period-option {
+    flex: 1;
+    padding: 12px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.period-option span {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.period-option.active {
+    border-color: var(--primary-color);
+    background-color: rgba(59, 130, 246, 0.05);
+}
+
+.period-option.active span {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* 开关 */
+.toggle-container {
+    display: flex;
+    align-items: center;
+}
+
+.toggle-container span {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-right: 8px;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border-color);
+    transition: .4s;
+    border-radius: 20px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--primary-color);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+}
+
+/* 分类预算 */
+.category-selector {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.category-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.category-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-bottom: 8px;
+}
+
+.category-icon.small {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+}
+
+.category-option span {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.category-option.active {
+    border-color: var(--primary-color);
+    background-color: rgba(59, 130, 246, 0.05);
+}
+
+.category-budget-form {
+    background-color: var(--background-color);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.selected-category {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.selected-category .category-icon {
+    margin-bottom: 0;
+    margin-right: 12px;
+}
+
+.selected-category span {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.category-budget-info {
+    background-color: rgba(59, 130, 246, 0.05);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.info-item:last-child {
+    margin-bottom: 0;
+}
+
+.info-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.info-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.add-category-budget-button {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.category-budget-list {
+    margin-top: 16px;
+}
+
+.category-budget-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background-color: var(--background-color);
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.category-info {
+    display: flex;
+    align-items: center;
+}
+
+.category-info .category-icon {
+    margin-bottom: 0;
+    margin-right: 8px;
+}
+
+.category-budget-amount {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.remove-button {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--error-color);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* 结转信息 */
+.rollover-info {
+    display: flex;
+    padding: 12px;
+    background-color: rgba(59, 130, 246, 0.1);
+    border-radius: 8px;
+    color: var(--primary-color);
+}
+
+.rollover-info i {
+    margin-right: 12px;
+    font-size: 16px;
+}
+
+.rollover-info p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* 提交按钮 */
+.submit-button {
+    width: 100%;
+    padding: 16px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 16px;
+}
+
+/* 主题适配 */
+[data-theme="dark"] {
+    --background-color: #1F2937;
+    --card-background: #111827;
+    --text-primary: #F9FAFB;
+    --text-secondary: #9CA3AF;
+    --border-color: #374151;
+}
+
+[data-theme="light"] {
+    --background-color: #F9FAFB;
+    --card-background: #FFFFFF;
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --border-color: #E5E7EB;
+}

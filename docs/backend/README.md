@@ -83,67 +83,67 @@
 
 ### 认证API
 
-- `POST /api/v1/auth/register`: 注册新用户
-- `POST /api/v1/auth/login`: 用户登录
-- `POST /api/v1/auth/forgot-password`: 请求密码重置
-- `POST /api/v1/auth/reset-password`: 重置密码
+- `POST /api/auth/register`: 注册新用户
+- `POST /api/auth/login`: 用户登录
+- `POST /api/auth/forgot-password`: 请求密码重置
+- `POST /api/auth/reset-password`: 重置密码
 
 ### 用户API
 
-- `GET /api/v1/users/me`: 获取当前用户信息
-- `PATCH /api/v1/users/me`: 更新用户信息
+- `GET /api/users/me`: 获取当前用户信息
+- `PATCH /api/users/me`: 更新用户信息
 
 ### 交易API
 
-- `POST /api/v1/transactions`: 创建交易记录
-- `GET /api/v1/transactions`: 获取交易记录列表
-- `GET /api/v1/transactions/:id`: 获取单个交易记录
-- `PATCH /api/v1/transactions/:id`: 更新交易记录
-- `DELETE /api/v1/transactions/:id`: 删除交易记录
+- `POST /api/transactions`: 创建交易记录
+- `GET /api/transactions`: 获取交易记录列表
+- `GET /api/transactions/:id`: 获取单个交易记录
+- `PATCH /api/transactions/:id`: 更新交易记录
+- `DELETE /api/transactions/:id`: 删除交易记录
 
 ### 分类API
 
-- `GET /api/v1/categories`: 获取分类列表
-- `POST /api/v1/categories`: 创建自定义分类
-- `PATCH /api/v1/categories/:id`: 更新分类
-- `DELETE /api/v1/categories/:id`: 删除分类
+- `GET /api/categories`: 获取分类列表
+- `POST /api/categories`: 创建自定义分类
+- `PATCH /api/categories/:id`: 更新分类
+- `DELETE /api/categories/:id`: 删除分类
 
 ### 预算API
 
-- `POST /api/v1/budgets`: 创建预算
-- `GET /api/v1/budgets`: 获取预算列表
-- `PATCH /api/v1/budgets/:id`: 更新预算
-- `DELETE /api/v1/budgets/:id`: 删除预算
+- `POST /api/budgets`: 创建预算
+- `GET /api/budgets`: 获取预算列表
+- `PATCH /api/budgets/:id`: 更新预算
+- `DELETE /api/budgets/:id`: 删除预算
 
 ### 家庭API
 
-- `POST /api/v1/families`: 创建家庭
-- `GET /api/v1/families`: 获取用户的家庭列表
-- `GET /api/v1/families/:id`: 获取家庭详情
-- `POST /api/v1/families/:id/members`: 添加家庭成员
-- `POST /api/v1/families/:id/invitations`: 创建邀请链接
-- `POST /api/v1/families/join`: 接受邀请加入家庭
+- `POST /api/families`: 创建家庭
+- `GET /api/families`: 获取用户的家庭列表
+- `GET /api/families/:id`: 获取家庭详情
+- `POST /api/families/:id/members`: 添加家庭成员
+- `POST /api/families/:id/invitations`: 创建邀请链接
+- `POST /api/families/join`: 接受邀请加入家庭
 
 ### 统计API
 
-- `GET /api/v1/statistics/expenses`: 获取支出统计
-- `GET /api/v1/statistics/income`: 获取收入统计
-- `GET /api/v1/statistics/budgets`: 获取预算执行情况
-- `GET /api/v1/statistics/overview`: 获取财务概览
+- `GET /api/statistics/expenses`: 获取支出统计
+- `GET /api/statistics/income`: 获取收入统计
+- `GET /api/statistics/budgets`: 获取预算执行情况
+- `GET /api/statistics/overview`: 获取财务概览
 
 ### AI功能API
 
-- `POST /api/v1/ai/classify-transaction`: 智能分类交易
-- `GET /api/v1/ai/consumption-patterns`: 获取消费模式分析
-- `GET /api/v1/ai/budget-suggestions`: 获取预算建议
-- `GET /api/v1/ai/financial-health`: 获取财务健康评估
+- `POST /api/ai/classify-transaction`: 智能分类交易
+- `GET /api/ai/consumption-patterns`: 获取消费模式分析
+- `GET /api/ai/budget-suggestions`: 获取预算建议
+- `GET /api/ai/financial-health`: 获取财务健康评估
 
 ### LLM设置API
 
-- `GET /api/v1/settings/llm`: 获取LLM设置
-- `PUT /api/v1/settings/llm`: 更新LLM设置
-- `GET /api/v1/accounts/:accountId/settings/llm`: 获取账本LLM设置
-- `PUT /api/v1/accounts/:accountId/settings/llm`: 更新账本LLM设置
+- `GET /api/settings/llm`: 获取LLM设置
+- `PUT /api/settings/llm`: 更新LLM设置
+- `GET /api/accounts/:accountId/settings/llm`: 获取账本LLM设置
+- `PUT /api/accounts/:accountId/settings/llm`: 更新账本LLM设置
 
 ## 开发计划
 

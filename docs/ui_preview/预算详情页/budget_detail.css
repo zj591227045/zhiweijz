@@ -1,0 +1,396 @@
+/* 预算详情页样式 */
+
+:root {
+    /* 主色调 */
+    --primary-color: #3B82F6;
+    --secondary-color: #10B981;
+    
+    /* 功能色 */
+    --success-color: #22C55E;
+    --warning-color: #F59E0B;
+    --error-color: #EF4444;
+    --info-color: #3B82F6;
+    
+    /* 中性色 */
+    --background-color: #F9FAFB;
+    --card-background: #FFFFFF;
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --border-color: #E5E7EB;
+    
+    /* 尺寸 */
+    --header-height: 56px;
+    --bottom-nav-height: 56px;
+    --border-radius: 12px;
+    --spacing: 16px;
+}
+
+/* 账本信息 */
+.account-book-info {
+    display: flex;
+    align-items: center;
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.account-book-info i {
+    color: var(--primary-color);
+    margin-right: 8px;
+}
+
+.account-book-info span {
+    font-weight: 500;
+}
+
+/* 预算基本信息 */
+.budget-header {
+    padding: 20px;
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    margin-bottom: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.budget-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.category-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.category-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(255, 87, 34, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FF5722;
+    font-size: 18px;
+    margin-right: 12px;
+}
+
+.category-icon.small {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+}
+
+.category-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.budget-period {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+.budget-amount {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+/* 结转信息 */
+.rollover-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.rollover-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 14px;
+}
+
+.rollover-badge.positive {
+    background-color: rgba(34, 197, 94, 0.1);
+    color: var(--success-color);
+}
+
+.rollover-badge.negative {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--error-color);
+}
+
+.rollover-badge i {
+    margin-right: 6px;
+}
+
+.rollover-history-button {
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    color: var(--primary-color);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.rollover-history-button i {
+    margin-right: 4px;
+}
+
+/* 预算进度 */
+.budget-progress-container {
+    margin-bottom: 16px;
+}
+
+.budget-progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.spent-amount {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.remaining-amount {
+    font-weight: 500;
+    color: var(--success-color);
+}
+
+.progress-bar {
+    height: 8px;
+    background-color: var(--background-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--primary-color);
+    border-radius: 4px;
+}
+
+/* 预算统计 */
+.budget-stats {
+    display: flex;
+    justify-content: space-between;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* 分类预算状态 */
+.category-budget-status {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.category-budget-toggle {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+    margin-left: 8px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border-color);
+    transition: .4s;
+    border-radius: 20px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--primary-color);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+}
+
+.toggle-switch.small {
+    width: 30px;
+    height: 16px;
+}
+
+.toggle-switch.small .toggle-slider:before {
+    height: 12px;
+    width: 12px;
+}
+
+input:checked + .toggle-slider.small:before {
+    transform: translateX(14px);
+}
+
+.category-budget-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.category-budget-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px;
+    background-color: var(--background-color);
+    border-radius: 8px;
+}
+
+.category-budget-details {
+    flex: 1;
+    margin-left: 12px;
+}
+
+.category-budget-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.category-amount {
+    font-weight: 500;
+}
+
+.category-progress-bar {
+    height: 6px;
+    background-color: var(--border-color);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.category-progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* 图表区域 */
+.chart-tabs {
+    display: flex;
+    align-items: center;
+    background-color: var(--background-color);
+    border-radius: 8px;
+    padding: 4px;
+    margin-bottom: 16px;
+}
+
+.chart-tab {
+    flex: 1;
+    padding: 8px;
+    text-align: center;
+    border: none;
+    background: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-secondary);
+}
+
+.chart-tab.active {
+    background-color: var(--card-background);
+    color: var(--primary-color);
+}
+
+.rollover-toggle {
+    display: flex;
+    align-items: center;
+    margin-left: 12px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.rollover-toggle span {
+    margin-left: 4px;
+}
+
+/* 主题适配 */
+[data-theme="dark"] {
+    --background-color: #1F2937;
+    --card-background: #111827;
+    --text-primary: #F9FAFB;
+    --text-secondary: #9CA3AF;
+    --border-color: #374151;
+}
+
+[data-theme="light"] {
+    --background-color: #F9FAFB;
+    --card-background: #FFFFFF;
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --border-color: #E5E7EB;
+}

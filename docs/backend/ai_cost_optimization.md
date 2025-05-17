@@ -564,7 +564,7 @@ export function aiRateLimiter(type: 'basic' | 'advanced' | 'burst' = 'basic') {
 ```typescript
 // 在路由中使用限制器
 router.post(
-  '/api/v1/ai/classify-transaction',
+  '/api/ai/classify-transaction',
   authenticate,
   aiRateLimiter('basic'),
   aiRateLimiter('burst'),
@@ -572,7 +572,7 @@ router.post(
 );
 
 router.get(
-  '/api/v1/ai/financial-health',
+  '/api/ai/financial-health',
   authenticate,
   aiRateLimiter('advanced'),
   aiRateLimiter('burst'),

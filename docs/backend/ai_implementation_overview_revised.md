@@ -218,20 +218,20 @@ export class BudgetDataAnalyzer {
 ### 1. LLM设置API
 
 ```
-GET /api/v1/settings/llm
-PUT /api/v1/settings/llm
-GET /api/v1/accounts/:accountId/settings/llm?accountType=personal|family
-PUT /api/v1/accounts/:accountId/settings/llm?accountType=personal|family
+GET /api/settings/llm
+PUT /api/settings/llm
+GET /api/accounts/:accountId/settings/llm?accountType=personal|family
+PUT /api/accounts/:accountId/settings/llm?accountType=personal|family
 ```
 
 ### 2. AI功能API
 
 ```
-POST /api/v1/ai/classify-transaction
-GET /api/v1/ai/consumption-patterns
-GET /api/v1/ai/budget-suggestions
-GET /api/v1/ai/financial-health
-POST /api/v1/ai/feedback
+POST /api/ai/classify-transaction
+GET /api/ai/consumption-patterns
+GET /api/ai/budget-suggestions
+GET /api/ai/financial-health
+POST /api/ai/feedback
 ```
 
 ## 安全考虑

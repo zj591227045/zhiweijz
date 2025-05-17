@@ -99,7 +99,7 @@ enum Role {
 
 ### API接口
 
-#### POST /api/v1/families
+#### POST /api/families
 - 功能：创建家庭
 - 请求体：
   ```json
@@ -117,7 +117,7 @@ enum Role {
   }
   ```
 
-#### GET /api/v1/families
+#### GET /api/families
 - 功能：获取用户的家庭列表
 - 响应：
   ```json
@@ -133,7 +133,7 @@ enum Role {
   ]
   ```
 
-#### GET /api/v1/families/:id
+#### GET /api/families/:id
 - 功能：获取家庭详情
 - 响应：
   ```json
@@ -163,7 +163,7 @@ enum Role {
   }
   ```
 
-#### POST /api/v1/families/:id/members
+#### POST /api/families/:id/members
 - 功能：添加家庭成员
 - 请求体：
   ```json
@@ -186,7 +186,7 @@ enum Role {
   }
   ```
 
-#### POST /api/v1/families/:id/invitations
+#### POST /api/families/:id/invitations
 - 功能：创建邀请链接
 - 响应：
   ```json
@@ -199,7 +199,7 @@ enum Role {
   }
   ```
 
-#### POST /api/v1/families/join
+#### POST /api/families/join
 - 功能：接受邀请加入家庭
 - 请求体：
   ```json
@@ -270,7 +270,7 @@ enum Role {
 
 ### API接口
 
-#### GET /api/v1/statistics/expenses
+#### GET /api/statistics/expenses
 - 功能：获取支出统计
 - 查询参数：
   - `startDate`: 开始日期
@@ -307,12 +307,12 @@ enum Role {
   }
   ```
 
-#### GET /api/v1/statistics/income
+#### GET /api/statistics/income
 - 功能：获取收入统计
 - 查询参数：与支出统计相同
 - 响应：格式与支出统计相同
 
-#### GET /api/v1/statistics/budgets
+#### GET /api/statistics/budgets
 - 功能：获取预算执行情况
 - 查询参数：
   - `month`: 月份 (YYYY-MM)
@@ -341,7 +341,7 @@ enum Role {
   }
   ```
 
-#### GET /api/v1/statistics/overview
+#### GET /api/statistics/overview
 - 功能：获取财务概览
 - 查询参数：
   - `startDate`: 开始日期
@@ -452,7 +452,7 @@ model UserFeedback {
 
 ### API接口
 
-#### POST /api/v1/ai/classify-transaction
+#### POST /api/ai/classify-transaction
 - 功能：智能分类交易
 - 请求体：
   ```json
@@ -483,7 +483,7 @@ model UserFeedback {
   }
   ```
 
-#### GET /api/v1/ai/consumption-patterns
+#### GET /api/ai/consumption-patterns
 - 功能：获取消费模式分析
 - 查询参数：
   - `months`: 分析的月数 (默认3)
@@ -537,7 +537,7 @@ model UserFeedback {
   }
   ```
 
-#### GET /api/v1/ai/budget-suggestions
+#### GET /api/ai/budget-suggestions
 - 功能：获取预算建议
 - 查询参数：
   - `income`: 月收入 (可选)
@@ -564,7 +564,7 @@ model UserFeedback {
   }
   ```
 
-#### GET /api/v1/ai/financial-health
+#### GET /api/ai/financial-health
 - 功能：获取财务健康评估
 - 查询参数：
   - `months`: 评估的月数 (默认6)

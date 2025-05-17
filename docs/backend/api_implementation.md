@@ -406,14 +406,14 @@ app.use(morgan('dev'));
 app.use(express.json());
 
 // 路由
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/transactions', transactionRoutes);
-app.use('/api/v1/categories', categoryRoutes);
-app.use('/api/v1/budgets', budgetRoutes);
-app.use('/api/v1/families', familyRoutes);
-app.use('/api/v1/statistics', statisticsRoutes);
-app.use('/api/v1/ai', aiRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/budgets', budgetRoutes);
+app.use('/api/families', familyRoutes);
+app.use('/api/statistics', statisticsRoutes);
+app.use('/api/ai', aiRoutes);
 
 // 错误处理
 app.use(errorHandler);

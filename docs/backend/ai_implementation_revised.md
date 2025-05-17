@@ -384,7 +384,7 @@ export class LLMProviderService {
 ### 1. 分类交易API
 
 ```
-POST /api/v1/ai/classify-transaction
+POST /api/ai/classify-transaction
 ```
 
 **请求体**:
@@ -422,7 +422,7 @@ POST /api/v1/ai/classify-transaction
 ### 2. LLM设置API
 
 ```
-GET /api/v1/settings/llm
+GET /api/settings/llm
 ```
 
 **响应**:
@@ -437,7 +437,7 @@ GET /api/v1/settings/llm
 ```
 
 ```
-PUT /api/v1/settings/llm
+PUT /api/settings/llm
 ```
 
 **请求体**:
@@ -468,7 +468,7 @@ PUT /api/v1/settings/llm
 ### 3. 账本LLM设置API
 
 ```
-GET /api/v1/accounts/:accountId/settings/llm
+GET /api/accounts/:accountId/settings/llm
 ```
 
 **查询参数**:
@@ -477,7 +477,7 @@ GET /api/v1/accounts/:accountId/settings/llm
 **响应**: 与用户LLM设置相同
 
 ```
-PUT /api/v1/accounts/:accountId/settings/llm
+PUT /api/accounts/:accountId/settings/llm
 ```
 
 **查询参数**:

@@ -44,10 +44,10 @@ describe('账本API集成测试', () => {
     await prisma.$disconnect();
   });
 
-  describe('POST /api/v1/account-books', () => {
+  describe('POST /api/account-books', () => {
     it('应该创建一个新账本', async () => {
       const response = await request(app)
-        .post('/api/v1/account-books')
+        .post('/api/account-books')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           name: '测试账本',
@@ -67,7 +67,7 @@ describe('账本API集成测试', () => {
 
     it('未授权用户应该无法创建账本', async () => {
       const response = await request(app)
-        .post('/api/v1/account-books')
+        .post('/api/account-books')
         .send({
           name: '未授权账本',
           description: '这个账本不应该被创建',
@@ -77,10 +77,10 @@ describe('账本API集成测试', () => {
     });
   });
 
-  describe('GET /api/v1/account-books', () => {
+  describe('GET /api/account-books', () => {
     it('应该返回用户的账本列表', async () => {
       const response = await request(app)
-        .get('/api/v1/account-books')
+        .get('/api/account-books')
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(response.status).toBe(200);
@@ -95,15 +95,15 @@ describe('账本API集成测试', () => {
     });
 
     it('未授权用户应该无法获取账本列表', async () => {
-      const response = await request(app).get('/api/v1/account-books');
+      const response = await request(app).get('/api/account-books');
       expect(response.status).toBe(401);
     });
   });
 
-  describe('GET /api/v1/account-books/default', () => {
+  describe('GET /api/account-books/default', () => {
     it('应该返回用户的默认账本', async () => {
       const response = await request(app)
-        .get('/api/v1/account-books/default')
+        .get('/api/account-books/default')
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(response.status).toBe(200);
@@ -113,15 +113,15 @@ describe('账本API集成测试', () => {
     });
 
     it('未授权用户应该无法获取默认账本', async () => {
-      const response = await request(app).get('/api/v1/account-books/default');
+      const response = await request(app).get('/api/account-books/default');
       expect(response.status).toBe(401);
     });
   });
 
-  describe('GET /api/v1/account-books/:id', () => {
+  describe('GET /api/account-books/:id', () => {
     it('应该返回指定ID的账本', async () => {
       const response = await request(app)
-        .get(`/api/v1/account-books/${accountBookId}`)
+        .get(`/api/account-books/${accountBookId}`)
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(response.status).toBe(200);
@@ -131,23 +131,23 @@ describe('账本API集成测试', () => {
     });
 
     it('未授权用户应该无法获取账本详情', async () => {
-      const response = await request(app).get(`/api/v1/account-books/${accountBookId}`);
+      const response = await request(app).get(`/api/account-books/${accountBookId}`);
       expect(response.status).toBe(401);
     });
 
     it('获取不存在的账本应该返回404', async () => {
       const response = await request(app)
-        .get('/api/v1/account-books/non-existent-id')
+        .get('/api/account-books/non-existent-id')
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(response.status).toBe(404);
     });
   });
 
-  describe('PUT /api/v1/account-books/:id', () => {
+  describe('PUT /api/account-books/:id', () => {
     it('应该更新指定ID的账本', async () => {
       const response = await request(app)
-        .put(`/api/v1/account-books/${accountBookId}`)
+        .put(`/api/account-books/${accountBookId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           name: '更新后的账本名称',
@@ -162,7 +162,7 @@ describe('账本API集成测试', () => {
 
     it('未授权用户应该无法更新账本', async () => {
       const response = await request(app)
-        .put(`/api/v1/account-books/${accountBookId}`)
+        .put(`/api/account-books/${accountBookId}`)
         .send({
           name: '未授权更新',
         });
@@ -171,11 +171,11 @@ describe('账本API集成测试', () => {
     });
   });
 
-  describe('POST /api/v1/account-books/:id/set-default', () => {
+  describe('POST /api/account-books/:id/set-default', () => {
     it('应该将指定ID的账本设为默认', async () => {
       // 先创建一个非默认账本
       const createResponse = await request(app)
-        .post('/api/v1/account-books')
+        .post('/api/account-books')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           name: '非默认账本',
@@ -187,7 +187,7 @@ describe('账本API集成测试', () => {
 
       // 将新账本设为默认
       const response = await request(app)
-        .post(`/api/v1/account-books/${newAccountBookId}/set-default`)
+        .post(`/api/account-books/${newAccountBookId}/set-default`)
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(response.status).toBe(200);
@@ -196,22 +196,22 @@ describe('账本API集成测试', () => {
 
       // 验证原来的默认账本不再是默认
       const oldDefaultResponse = await request(app)
-        .get(`/api/v1/account-books/${accountBookId}`)
+        .get(`/api/account-books/${accountBookId}`)
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(oldDefaultResponse.body.isDefault).toBe(false);
     });
 
     it('未授权用户应该无法设置默认账本', async () => {
-      const response = await request(app).post(`/api/v1/account-books/${accountBookId}/set-default`);
+      const response = await request(app).post(`/api/account-books/${accountBookId}/set-default`);
       expect(response.status).toBe(401);
     });
   });
 
-  describe('PUT /api/v1/account-books/:id/llm-settings', () => {
+  describe('PUT /api/account-books/:id/llm-settings', () => {
     it('应该更新账本的LLM设置', async () => {
       const response = await request(app)
-        .put(`/api/v1/account-books/${accountBookId}/llm-settings`)
+        .put(`/api/account-books/${accountBookId}/llm-settings`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           provider: 'openai',
@@ -230,7 +230,7 @@ describe('账本API集成测试', () => {
 
     it('未授权用户应该无法更新LLM设置', async () => {
       const response = await request(app)
-        .put(`/api/v1/account-books/${accountBookId}/llm-settings`)
+        .put(`/api/account-books/${accountBookId}/llm-settings`)
         .send({
           provider: 'openai',
           model: 'gpt-3.5-turbo',
@@ -240,10 +240,10 @@ describe('账本API集成测试', () => {
     });
   });
 
-  describe('GET /api/v1/account-books/:id/llm-settings', () => {
+  describe('GET /api/account-books/:id/llm-settings', () => {
     it('应该获取账本的LLM设置', async () => {
       const response = await request(app)
-        .get(`/api/v1/account-books/${accountBookId}/llm-settings`)
+        .get(`/api/account-books/${accountBookId}/llm-settings`)
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(response.status).toBe(200);
@@ -253,16 +253,16 @@ describe('账本API集成测试', () => {
     });
 
     it('未授权用户应该无法获取LLM设置', async () => {
-      const response = await request(app).get(`/api/v1/account-books/${accountBookId}/llm-settings`);
+      const response = await request(app).get(`/api/account-books/${accountBookId}/llm-settings`);
       expect(response.status).toBe(401);
     });
   });
 
-  describe('DELETE /api/v1/account-books/:id', () => {
+  describe('DELETE /api/account-books/:id', () => {
     it('应该删除非默认账本', async () => {
       // 创建一个非默认账本用于删除测试
       const createResponse = await request(app)
-        .post('/api/v1/account-books')
+        .post('/api/account-books')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           name: '待删除账本',
@@ -274,14 +274,14 @@ describe('账本API集成测试', () => {
 
       // 删除账本
       const response = await request(app)
-        .delete(`/api/v1/account-books/${deleteAccountBookId}`)
+        .delete(`/api/account-books/${deleteAccountBookId}`)
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(response.status).toBe(204);
 
       // 验证账本已被删除
       const getResponse = await request(app)
-        .get(`/api/v1/account-books/${deleteAccountBookId}`)
+        .get(`/api/account-books/${deleteAccountBookId}`)
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(getResponse.status).toBe(404);
@@ -290,14 +290,14 @@ describe('账本API集成测试', () => {
     it('不应该删除默认账本', async () => {
       // 获取当前默认账本
       const defaultResponse = await request(app)
-        .get('/api/v1/account-books/default')
+        .get('/api/account-books/default')
         .set('Authorization', `Bearer ${authToken}`);
 
       const defaultAccountBookId = defaultResponse.body.id;
 
       // 尝试删除默认账本
       const response = await request(app)
-        .delete(`/api/v1/account-books/${defaultAccountBookId}`)
+        .delete(`/api/account-books/${defaultAccountBookId}`)
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(response.status).toBe(400);
@@ -305,7 +305,7 @@ describe('账本API集成测试', () => {
     });
 
     it('未授权用户应该无法删除账本', async () => {
-      const response = await request(app).delete(`/api/v1/account-books/${accountBookId}`);
+      const response = await request(app).delete(`/api/account-books/${accountBookId}`);
       expect(response.status).toBe(401);
     });
   });

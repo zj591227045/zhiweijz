@@ -6,6 +6,7 @@
     <title>只为记账 - 预算管理</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="budget.css">
+    <link rel="stylesheet" href="budget_new.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -20,6 +21,21 @@
 
         <!-- 主要内容区域 -->
         <main class="main-content">
+            <!-- 账本选择器 -->
+            <div class="account-book-selector">
+                <div class="selected-account-book">
+                    <i class="fas fa-book"></i>
+                    <span>我的账本</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+
+            <!-- 预算类型切换 -->
+            <div class="budget-type-selector">
+                <button class="budget-type-button active">月度预算</button>
+                <button class="budget-type-button">年度预算</button>
+            </div>
+
             <!-- 月份选择器 -->
             <div class="month-selector">
                 <button class="month-nav-button"><i class="fas fa-chevron-left"></i></button>
@@ -54,6 +70,11 @@
                         </div>
                         <div class="progress-label">66.5%</div>
                     </div>
+                    <div class="rollover-info">
+                        <span>本月结转: </span>
+                        <span class="rollover-amount positive">+¥200</span>
+                        <i class="fas fa-info-circle rollover-info-icon"></i>
+                    </div>
                     <div class="daily-budget">
                         <span>日均可用: </span>
                         <span class="daily-amount">¥178.67</span>
@@ -68,6 +89,7 @@
                     <div class="view-options">
                         <button class="view-option active">全部</button>
                         <button class="view-option">超支</button>
+                        <button class="view-option">结转</button>
                     </div>
                 </div>
 
@@ -89,6 +111,10 @@
                                 <span class="separator">/</span>
                                 <span class="total">¥2,000</span>
                             </div>
+                            <div class="rollover-badge positive">
+                                <i class="fas fa-exchange-alt"></i>
+                                <span>+¥100</span>
+                            </div>
                         </div>
                     </div>
 
@@ -108,6 +134,10 @@
                                 <span class="spent">¥1,800</span>
                                 <span class="separator">/</span>
                                 <span class="total">¥1,500</span>
+                            </div>
+                            <div class="rollover-badge negative">
+                                <i class="fas fa-exchange-alt"></i>
+                                <span>-¥300</span>
                             </div>
                         </div>
                     </div>
@@ -131,70 +161,59 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="budget-item">
-                        <div class="budget-category">
-                            <i class="fas fa-home category-icon"></i>
-                            <span>住房</span>
-                        </div>
-                        <div class="budget-details">
-                            <div class="budget-progress">
-                                <div class="progress-bar">
-                                    <div class="progress" style="width: 80%"></div>
-                                </div>
-                                <div class="progress-percentage">80%</div>
-                            </div>
-                            <div class="budget-amounts">
-                                <span class="spent">¥1,600</span>
-                                <span class="separator">/</span>
-                                <span class="total">¥2,000</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="budget-item">
-                        <div class="budget-category">
-                            <i class="fas fa-gamepad category-icon"></i>
-                            <span>娱乐</span>
-                        </div>
-                        <div class="budget-details">
-                            <div class="budget-progress">
-                                <div class="progress-bar">
-                                    <div class="progress" style="width: 20%"></div>
-                                </div>
-                                <div class="progress-percentage">20%</div>
-                            </div>
-                            <div class="budget-amounts">
-                                <span class="spent">¥100</span>
-                                <span class="separator">/</span>
-                                <span class="total">¥500</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </section>
 
-            <!-- 预算建议 -->
-            <section class="budget-suggestions">
+            <!-- 家庭成员预算 (仅家庭账本) -->
+            <section class="family-budgets">
                 <div class="section-header">
-                    <h2>AI预算建议</h2>
-                </div>
-                <div class="suggestion-card">
-                    <div class="suggestion-icon">
-                        <i class="fas fa-lightbulb"></i>
-                    </div>
-                    <div class="suggestion-content">
-                        <div class="suggestion-title">购物类别超支</div>
-                        <div class="suggestion-text">您的购物支出已超出预算20%。建议减少非必要购物，或从娱乐预算中调整300元到购物预算。</div>
+                    <h2>家庭成员预算</h2>
+                    <div class="view-options">
+                        <button class="view-option active">全部</button>
+                        <button class="view-option">超支</button>
                     </div>
                 </div>
-                <div class="suggestion-card">
-                    <div class="suggestion-icon">
-                        <i class="fas fa-chart-line"></i>
+
+                <div class="budget-list">
+                    <div class="family-member-section">
+                        <div class="family-member-header">
+                            <div class="family-member-info">
+                                <i class="fas fa-user member-icon"></i>
+                                <span>张三</span>
+                            </div>
+                            <button class="toggle-button"><i class="fas fa-chevron-down"></i></button>
+                        </div>
+                        <div class="family-member-budgets">
+                            <div class="budget-item">
+                                <div class="budget-category">
+                                    <i class="fas fa-utensils category-icon"></i>
+                                    <span>餐饮</span>
+                                </div>
+                                <div class="budget-details">
+                                    <div class="budget-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress" style="width: 70%"></div>
+                                        </div>
+                                        <div class="progress-percentage">70%</div>
+                                    </div>
+                                    <div class="budget-amounts">
+                                        <span class="spent">¥700</span>
+                                        <span class="separator">/</span>
+                                        <span class="total">¥1,000</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="suggestion-content">
-                        <div class="suggestion-title">餐饮支出趋势</div>
-                        <div class="suggestion-text">您的餐饮支出比上月同期减少15%，继续保持这一趋势可以节省更多资金。</div>
+
+                    <div class="family-member-section">
+                        <div class="family-member-header">
+                            <div class="family-member-info">
+                                <i class="fas fa-user member-icon"></i>
+                                <span>李四</span>
+                            </div>
+                            <button class="toggle-button"><i class="fas fa-chevron-right"></i></button>
+                        </div>
                     </div>
                 </div>
             </section>

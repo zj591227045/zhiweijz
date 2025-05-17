@@ -1,4 +1,4 @@
-import { Transaction, TransactionType } from '@prisma/client';
+import { Transaction as PrismaTransaction, TransactionType } from '@prisma/client';
 import { CategoryResponseDto } from './category.model';
 
 /**
@@ -12,6 +12,8 @@ export interface CreateTransactionDto {
   date: Date;
   familyId?: string;
   familyMemberId?: string;
+  accountBookId?: string;
+  budgetId?: string;
 }
 
 /**
@@ -23,6 +25,7 @@ export interface UpdateTransactionDto {
   description?: string;
   date?: Date;
   familyMemberId?: string;
+  budgetId?: string;
 }
 
 /**
@@ -35,6 +38,8 @@ export interface TransactionQueryParams {
   categoryId?: string;
   familyId?: string;
   familyMemberId?: string;
+  accountBookId?: string;
+  budgetId?: string;
   page?: number;
   limit?: number;
   sortBy?: string;
@@ -92,6 +97,8 @@ export interface TransactionResponseDto {
   userId: string;
   familyId?: string;
   familyMemberId?: string;
+  accountBookId?: string;
+  budgetId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -109,7 +116,7 @@ export interface TransactionPaginatedResponseDto {
 /**
  * 将交易记录实体转换为响应DTO
  */
-export function toTransactionResponseDto(transaction: Transaction, category?: CategoryResponseDto): TransactionResponseDto {
+export function toTransactionResponseDto(transaction: PrismaTransaction, category?: CategoryResponseDto): TransactionResponseDto {
   return {
     id: transaction.id,
     amount: Number(transaction.amount),
@@ -121,6 +128,8 @@ export function toTransactionResponseDto(transaction: Transaction, category?: Ca
     userId: transaction.userId,
     familyId: transaction.familyId || undefined,
     familyMemberId: transaction.familyMemberId || undefined,
+    accountBookId: transaction.accountBookId || undefined,
+    budgetId: (transaction as any).budgetId || undefined, // 临时类型转换，等待Prisma客户端更新
     createdAt: transaction.createdAt,
     updatedAt: transaction.updatedAt,
   };

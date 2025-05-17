@@ -479,7 +479,7 @@ export class FinancialHealthAdvisor {
 ### 获取财务健康评估API
 
 ```
-GET /api/v1/ai/financial-health
+GET /api/ai/financial-health
 ```
 
 **查询参数**：

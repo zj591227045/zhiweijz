@@ -101,6 +101,7 @@ model Transaction {
   familyId       String?         @map("family_id")
   familyMemberId String?         @map("family_member_id")
   accountBookId  String?         @map("account_book_id")
+  budgetId       String?         @map("budget_id")
   createdAt      DateTime        @default(now()) @map("created_at")
   updatedAt      DateTime        @updatedAt @map("updated_at")
   category       Category        @relation(fields: [categoryId], references: [id])
@@ -108,29 +109,35 @@ model Transaction {
   familyMember   FamilyMember?   @relation(fields: [familyMemberId], references: [id])
   user           User            @relation(fields: [userId], references: [id])
   accountBook    AccountBook?    @relation(fields: [accountBookId], references: [id])
+  budget         Budget?         @relation(fields: [budgetId], references: [id])
   feedback       UserFeedback[]
 
   @@map("transactions")
 }
 
 model Budget {
-  id            String       @id @default(uuid())
-  amount        Decimal      @db.Decimal(10, 2)
-  period        BudgetPeriod
-  startDate     DateTime     @map("start_date")
-  endDate       DateTime     @map("end_date")
-  categoryId    String?      @map("category_id")
-  userId        String?      @map("user_id")
-  familyId      String?      @map("family_id")
-  accountBookId String?      @map("account_book_id")
-  rollover      Boolean      @default(false)
-  createdAt     DateTime     @default(now()) @map("created_at")
-  updatedAt     DateTime     @updatedAt @map("updated_at")
-  name          String
+  id                  String       @id @default(uuid())
+  name                String
+  amount              Decimal      @db.Decimal(10, 2)
+  period              BudgetPeriod
+  startDate           DateTime     @map("start_date")
+  endDate             DateTime     @map("end_date")
+  categoryId          String?      @map("category_id")
+  userId              String?      @map("user_id")
+  familyId            String?      @map("family_id")
+  accountBookId       String?      @map("account_book_id")
+  rollover            Boolean      @default(false)
+  enableCategoryBudget Boolean     @default(true) @map("enable_category_budget")
+  rolloverAmount      Decimal?     @db.Decimal(10, 2) @map("rollover_amount")
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+
+  // 关系
   category      Category?    @relation(fields: [categoryId], references: [id])
   family        Family?      @relation(fields: [familyId], references: [id])
   user          User?        @relation(fields: [userId], references: [id])
   accountBook   AccountBook? @relation(fields: [accountBookId], references: [id])
+  transactions  Transaction[]
 
   @@map("budgets")
 }

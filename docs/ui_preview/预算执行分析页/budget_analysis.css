@@ -1,0 +1,398 @@
+/* 预算执行分析页样式 */
+
+:root {
+    /* 主色调 */
+    --primary-color: #3B82F6;
+    --secondary-color: #10B981;
+    
+    /* 功能色 */
+    --success-color: #22C55E;
+    --warning-color: #F59E0B;
+    --error-color: #EF4444;
+    --info-color: #3B82F6;
+    
+    /* 中性色 */
+    --background-color: #F9FAFB;
+    --card-background: #FFFFFF;
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --border-color: #E5E7EB;
+    
+    /* 尺寸 */
+    --header-height: 56px;
+    --bottom-nav-height: 56px;
+    --border-radius: 12px;
+    --spacing: 16px;
+}
+
+/* 账本选择器 */
+.account-book-selector {
+    margin-bottom: 16px;
+}
+
+.selected-account-book {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+}
+
+.selected-account-book i:first-child {
+    color: var(--primary-color);
+    margin-right: 8px;
+}
+
+.selected-account-book span {
+    font-weight: 500;
+    flex: 1;
+    text-align: center;
+}
+
+.selected-account-book i:last-child {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+/* 预算类型切换 */
+.budget-type-selector {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+    background-color: var(--card-background);
+    border-radius: 20px;
+    padding: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.budget-type-button {
+    background: none;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    flex: 1;
+}
+
+.budget-type-button.active {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 500;
+}
+
+/* 周期选择器 */
+.period-selector {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.period-label {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.period-value {
+    display: flex;
+    align-items: center;
+    color: var(--primary-color);
+}
+
+.period-value i {
+    margin-left: 8px;
+}
+
+/* 结转分析卡片 */
+.rollover-analysis-card {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.rollover-summary {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.rollover-amount {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.rollover-amount.positive {
+    color: var(--success-color);
+}
+
+.rollover-amount.negative {
+    color: var(--error-color);
+}
+
+.rollover-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.rollover-trend {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+}
+
+.trend-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.trend-value {
+    font-weight: 500;
+}
+
+.trend-value.increasing {
+    color: var(--success-color);
+}
+
+.trend-value.decreasing {
+    color: var(--error-color);
+}
+
+.trend-value.stable {
+    color: var(--info-color);
+}
+
+.trend-chart {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    height: 50px;
+    gap: 8px;
+}
+
+.trend-bar {
+    width: 30px;
+    background-color: rgba(59, 130, 246, 0.2);
+    border-radius: 4px 4px 0 0;
+}
+
+.rollover-recommendation {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background-color: rgba(59, 130, 246, 0.1);
+    border-radius: 8px;
+    color: var(--primary-color);
+}
+
+.rollover-recommendation i {
+    margin-right: 8px;
+}
+
+/* 图表控制 */
+.chart-controls {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+}
+
+.rollover-toggle {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+    margin-right: 8px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border-color);
+    transition: .4s;
+    border-radius: 20px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--primary-color);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+}
+
+.toggle-switch.small {
+    width: 30px;
+    height: 16px;
+}
+
+.toggle-switch.small .toggle-slider:before {
+    height: 12px;
+    width: 12px;
+}
+
+input:checked + .toggle-slider.small:before {
+    transform: translateX(14px);
+}
+
+/* 预算调整建议 */
+.expected-rollover {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.rollover-value {
+    font-weight: 500;
+    color: var(--success-color);
+}
+
+/* 预算执行详情 */
+.budget-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.rollover-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.rollover-badge.positive {
+    background-color: rgba(34, 197, 94, 0.1);
+    color: var(--success-color);
+}
+
+.rollover-badge.negative {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--error-color);
+}
+
+.rollover-badge i {
+    margin-right: 4px;
+    font-size: 10px;
+}
+
+/* 家庭预算列表 */
+.family-budget-list {
+    margin-top: 16px;
+}
+
+.family-member-section {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.family-member-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.family-member-info {
+    display: flex;
+    align-items: center;
+}
+
+.member-icon {
+    width: 32px;
+    height: 32px;
+    background-color: rgba(59, 130, 246, 0.1);
+    color: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+}
+
+.toggle-button {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.family-member-budgets {
+    padding: 12px;
+}
+
+.family-member-budgets .budget-item {
+    box-shadow: none;
+    border: 1px solid var(--border-color);
+    margin-bottom: 8px;
+}
+
+.family-member-budgets .budget-item:last-child {
+    margin-bottom: 0;
+}
+
+/* 主题适配 */
+[data-theme="dark"] {
+    --background-color: #1F2937;
+    --card-background: #111827;
+    --text-primary: #F9FAFB;
+    --text-secondary: #9CA3AF;
+    --border-color: #374151;
+}
+
+[data-theme="light"] {
+    --background-color: #F9FAFB;
+    --card-background: #FFFFFF;
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --border-color: #E5E7EB;
+}

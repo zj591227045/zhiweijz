@@ -280,7 +280,7 @@ describe('AI Features E2E', () => {
   beforeAll(async () => {
     // 设置测试用户和认证
     const loginResponse = await request(app)
-      .post('/api/v1/auth/login')
+      .post('/api/auth/login')
       .send({
         email: 'test@example.com',
         password: 'password123'
@@ -292,7 +292,7 @@ describe('AI Features E2E', () => {
   describe('Transaction Classification', () => {
     it('should classify a transaction correctly', async () => {
       const response = await request(app)
-        .post('/api/v1/ai/classify-transaction')
+        .post('/api/ai/classify-transaction')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           description: '星巴克咖啡',

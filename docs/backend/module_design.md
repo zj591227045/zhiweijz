@@ -56,7 +56,7 @@ model User {
 
 ### API接口
 
-#### POST /api/v1/auth/register
+#### POST /api/auth/register
 - 功能：注册新用户
 - 请求体：
   ```json
@@ -77,7 +77,7 @@ model User {
   }
   ```
 
-#### POST /api/v1/auth/login
+#### POST /api/auth/login
 - 功能：用户登录
 - 请求体：
   ```json
@@ -98,7 +98,7 @@ model User {
   }
   ```
 
-#### POST /api/v1/auth/forgot-password
+#### POST /api/auth/forgot-password
 - 功能：请求密码重置
 - 请求体：
   ```json
@@ -113,7 +113,7 @@ model User {
   }
   ```
 
-#### POST /api/v1/auth/reset-password
+#### POST /api/auth/reset-password
 - 功能：重置密码
 - 请求体：
   ```json
@@ -129,7 +129,7 @@ model User {
   }
   ```
 
-#### POST /api/v1/auth/change-password
+#### POST /api/auth/change-password
 - 功能：修改密码
 - 请求体：
   ```json
@@ -174,7 +174,7 @@ model User {
 
 ### API接口
 
-#### GET /api/v1/users/me
+#### GET /api/users/me
 - 功能：获取当前用户信息
 - 响应：
   ```json
@@ -186,7 +186,7 @@ model User {
   }
   ```
 
-#### PATCH /api/v1/users/me
+#### PATCH /api/users/me
 - 功能：更新用户信息
 - 请求体：
   ```json
@@ -274,7 +274,7 @@ enum TransactionType {
 
 ### API接口
 
-#### POST /api/v1/transactions
+#### POST /api/transactions
 - 功能：创建交易记录
 - 请求体：
   ```json
@@ -304,7 +304,7 @@ enum TransactionType {
   }
   ```
 
-#### GET /api/v1/transactions
+#### GET /api/transactions
 - 功能：获取交易记录列表
 - 查询参数：
   - `type`: 交易类型 (INCOME, EXPENSE)
@@ -345,7 +345,7 @@ enum TransactionType {
   }
   ```
 
-#### GET /api/v1/transactions/:id
+#### GET /api/transactions/:id
 - 功能：获取单个交易记录
 - 响应：
   ```json
@@ -371,7 +371,7 @@ enum TransactionType {
   }
   ```
 
-#### PATCH /api/v1/transactions/:id
+#### PATCH /api/transactions/:id
 - 功能：更新交易记录
 - 请求体：
   ```json
@@ -396,7 +396,7 @@ enum TransactionType {
   }
   ```
 
-#### DELETE /api/v1/transactions/:id
+#### DELETE /api/transactions/:id
 - 功能：删除交易记录
 - 响应：204 No Content
 

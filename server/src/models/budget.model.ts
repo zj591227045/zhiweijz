@@ -1,4 +1,4 @@
-import { Budget, BudgetPeriod, TransactionType } from '@prisma/client';
+import { Budget as PrismaBudget, BudgetPeriod } from '@prisma/client';
 import { CategoryResponseDto } from './category.model';
 
 /**
@@ -13,6 +13,8 @@ export interface CreateBudgetDto {
   endDate: Date;
   rollover: boolean;
   familyId?: string;
+  accountBookId?: string;
+  enableCategoryBudget?: boolean;
 }
 
 /**
@@ -26,6 +28,7 @@ export interface UpdateBudgetDto {
   startDate?: Date;
   endDate?: Date;
   rollover?: boolean;
+  enableCategoryBudget?: boolean;
 }
 
 /**
@@ -35,6 +38,8 @@ export interface BudgetQueryParams {
   period?: BudgetPeriod;
   categoryId?: string;
   familyId?: string;
+  accountBookId?: string;
+  familyMemberId?: string;
   active?: boolean;
   page?: number;
   limit?: number;
@@ -55,14 +60,18 @@ export interface BudgetResponseDto {
   startDate: Date;
   endDate: Date;
   rollover: boolean;
+  enableCategoryBudget: boolean;
   userId: string;
   familyId?: string;
+  accountBookId?: string;
+  rolloverAmount?: number;
   createdAt: Date;
   updatedAt: Date;
   // 预算执行情况
   spent?: number;
   remaining?: number;
   progress?: number;
+  adjustedRemaining?: number; // 考虑结转后的剩余金额
 }
 
 /**
@@ -78,14 +87,39 @@ export interface BudgetPaginatedResponseDto {
 /**
  * 将预算实体转换为响应DTO
  */
-export function toBudgetResponseDto(budget: Budget, category?: CategoryResponseDto, spent?: number): BudgetResponseDto {
-  const { id, name, amount, period, categoryId, startDate, endDate, rollover, userId, familyId, createdAt, updatedAt } = budget;
+export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryResponseDto, spent?: number): BudgetResponseDto {
+  const {
+    id,
+    name,
+    amount,
+    period,
+    categoryId,
+    startDate,
+    endDate,
+    rollover,
+    userId,
+    familyId,
+    accountBookId,
+    createdAt,
+    updatedAt
+  } = budget;
+
+  // 使用类型断言获取新字段
+  const budgetAny = budget as any;
+  const enableCategoryBudget = budgetAny.enableCategoryBudget;
+  const rolloverAmount = budgetAny.rolloverAmount;
 
   // 计算预算执行情况
   const numericAmount = Number(amount);
+  const numericRolloverAmount = rolloverAmount ? Number(rolloverAmount) : undefined;
   const numericSpent = spent !== undefined ? Number(spent) : undefined;
   const remaining = numericSpent !== undefined ? numericAmount - numericSpent : undefined;
   const progress = numericSpent !== undefined && numericAmount > 0 ? (numericSpent / numericAmount) * 100 : undefined;
+
+  // 计算考虑结转后的剩余金额
+  const adjustedRemaining = remaining !== undefined && numericRolloverAmount !== undefined
+    ? remaining + numericRolloverAmount
+    : remaining;
 
   return {
     id,
@@ -95,14 +129,18 @@ export function toBudgetResponseDto(budget: Budget, category?: CategoryResponseD
     categoryId: categoryId || undefined,
     category,
     startDate,
-    endDate: endDate || undefined,
+    endDate,
     rollover,
+    enableCategoryBudget: enableCategoryBudget ?? true,
     userId: userId || '',
     familyId: familyId || undefined,
+    accountBookId: accountBookId || undefined,
+    rolloverAmount: numericRolloverAmount,
     createdAt,
     updatedAt,
     spent: numericSpent,
     remaining,
     progress,
+    adjustedRemaining,
   };
 }

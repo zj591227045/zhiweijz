@@ -1,0 +1,63 @@
+/* 预算编辑页额外样式 */
+
+/* 当前结转信息 */
+.current-rollover {
+    margin-top: 16px;
+    background-color: var(--background-color);
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.rollover-header {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.rollover-data {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rollover-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.rollover-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.rollover-value {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.rollover-value.positive {
+    color: var(--success-color);
+}
+
+.rollover-value.negative {
+    color: var(--error-color);
+}
+
+/* 主题适配 */
+[data-theme="dark"] {
+    --background-color: #1F2937;
+    --card-background: #111827;
+    --text-primary: #F9FAFB;
+    --text-secondary: #9CA3AF;
+    --border-color: #374151;
+}
+
+[data-theme="light"] {
+    --background-color: #F9FAFB;
+    --card-background: #FFFFFF;
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --border-color: #E5E7EB;
+}
