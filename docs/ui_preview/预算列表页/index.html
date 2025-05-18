@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>只为记账 - 预算列表</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="budget.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <button class="icon-button back-button"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">预算管理</div>
+            <div class="header-actions">
+                <button class="icon-button"><i class="fas fa-plus"></i></button>
+            </div>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 预算类型选择器 -->
+            <div class="budget-type-selector">
+                <button class="type-button active">个人预算</button>
+                <button class="type-button">通用预算</button>
+            </div>
+
+            <!-- 个人预算列表 -->
+            <section class="budget-section active" id="personal-budgets">
+                <div class="section-header">
+                    <h2>个人预算</h2>
+                    <div class="section-description">每月自动刷新的个人预算</div>
+                </div>
+
+                <div class="budget-list">
+                    <div class="budget-card">
+                        <div class="budget-header">
+                            <div class="budget-title">
+                                <h3>月度预算</h3>
+                                <span class="budget-period">2023年5月</span>
+                            </div>
+                            <div class="budget-actions">
+                                <button class="icon-button"><i class="fas fa-ellipsis-v"></i></button>
+                            </div>
+                        </div>
+                        <div class="budget-amount">¥8,000.00</div>
+                        <div class="budget-progress">
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 66.5%"></div>
+                            </div>
+                            <div class="progress-info">
+                                <span class="spent">已用: ¥5,320.00</span>
+                                <span class="remaining">剩余: ¥2,680.00</span>
+                            </div>
+                        </div>
+                        <div class="budget-footer">
+                            <div class="rollover-info">
+                                <i class="fas fa-exchange-alt"></i>
+                                <span>本月结转: +¥200.00</span>
+                            </div>
+                            <div class="days-remaining">剩余15天</div>
+                        </div>
+                    </div>
+
+                    <div class="budget-card">
+                        <div class="budget-header">
+                            <div class="budget-title">
+                                <h3>餐饮预算</h3>
+                                <span class="budget-period">2023年5月</span>
+                            </div>
+                            <div class="budget-actions">
+                                <button class="icon-button"><i class="fas fa-ellipsis-v"></i></button>
+                            </div>
+                        </div>
+                        <div class="budget-amount">¥2,000.00</div>
+                        <div class="budget-progress">
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 60%"></div>
+                            </div>
+                            <div class="progress-info">
+                                <span class="spent">已用: ¥1,200.00</span>
+                                <span class="remaining">剩余: ¥800.00</span>
+                            </div>
+                        </div>
+                        <div class="budget-footer">
+                            <div class="category-icon">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <div class="days-remaining">剩余15天</div>
+                        </div>
+                    </div>
+
+                    <div class="budget-card warning">
+                        <div class="budget-header">
+                            <div class="budget-title">
+                                <h3>购物预算</h3>
+                                <span class="budget-period">2023年5月</span>
+                            </div>
+                            <div class="budget-actions">
+                                <button class="icon-button"><i class="fas fa-ellipsis-v"></i></button>
+                            </div>
+                        </div>
+                        <div class="budget-amount">¥1,500.00</div>
+                        <div class="budget-progress">
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 120%"></div>
+                            </div>
+                            <div class="progress-info">
+                                <span class="spent">已用: ¥1,800.00</span>
+                                <span class="remaining negative">超支: ¥300.00</span>
+                            </div>
+                        </div>
+                        <div class="budget-footer">
+                            <div class="category-icon">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                            <div class="days-remaining">剩余15天</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 通用预算列表 -->
+            <section class="budget-section" id="general-budgets">
+                <div class="section-header">
+                    <h2>通用预算</h2>
+                    <div class="section-description">长期或无期限的通用预算</div>
+                </div>
+
+                <div class="budget-list">
+                    <div class="budget-card">
+                        <div class="budget-header">
+                            <div class="budget-title">
+                                <h3>年度旅行预算</h3>
+                                <span class="budget-period">2023年全年</span>
+                            </div>
+                            <div class="budget-actions">
+                                <button class="icon-button"><i class="fas fa-ellipsis-v"></i></button>
+                            </div>
+                        </div>
+                        <div class="budget-amount">¥10,000.00</div>
+                        <div class="budget-progress">
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 30%"></div>
+                            </div>
+                            <div class="progress-info">
+                                <span class="spent">已用: ¥3,000.00</span>
+                                <span class="remaining">剩余: ¥7,000.00</span>
+                            </div>
+                        </div>
+                        <div class="budget-footer">
+                            <div class="category-icon">
+                                <i class="fas fa-plane"></i>
+                            </div>
+                            <div class="days-remaining">剩余245天</div>
+                        </div>
+                    </div>
+
+                    <div class="budget-card">
+                        <div class="budget-header">
+                            <div class="budget-title">
+                                <h3>装修预算</h3>
+                                <span class="budget-period">无期限</span>
+                            </div>
+                            <div class="budget-actions">
+                                <button class="icon-button"><i class="fas fa-ellipsis-v"></i></button>
+                            </div>
+                        </div>
+                        <div class="budget-amount">¥50,000.00</div>
+                        <div class="budget-progress">
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 10%"></div>
+                            </div>
+                            <div class="progress-info">
+                                <span class="spent">已用: ¥5,000.00</span>
+                                <span class="remaining">剩余: ¥45,000.00</span>
+                            </div>
+                        </div>
+                        <div class="budget-footer">
+                            <div class="category-icon">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <div class="days-remaining">无期限</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 添加预算按钮 -->
+                <button class="add-budget-button">
+                    <i class="fas fa-plus"></i>
+                    <span>添加通用预算</span>
+                </button>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // 切换预算类型
+        const typeButtons = document.querySelectorAll('.type-button');
+        const budgetSections = document.querySelectorAll('.budget-section');
+
+        typeButtons.forEach((button, index) => {
+            button.addEventListener('click', () => {
+                // 更新按钮状态
+                typeButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                // 更新预算列表显示
+                budgetSections.forEach(section => section.classList.remove('active'));
+                budgetSections[index].classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

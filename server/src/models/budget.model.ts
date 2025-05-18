@@ -1,4 +1,4 @@
-import { Budget as PrismaBudget, BudgetPeriod } from '@prisma/client';
+import { Budget as PrismaBudget, BudgetPeriod, BudgetType, RolloverType } from '@prisma/client';
 import { CategoryResponseDto } from './category.model';
 import { CategoryBudgetResponseDto } from './category-budget.model';
 
@@ -17,6 +17,7 @@ export interface CreateBudgetDto {
   accountBookId?: string;
   enableCategoryBudget?: boolean;
   isAutoCalculated?: boolean;
+  budgetType?: BudgetType;
 }
 
 /**
@@ -32,6 +33,8 @@ export interface UpdateBudgetDto {
   rollover?: boolean;
   enableCategoryBudget?: boolean;
   isAutoCalculated?: boolean;
+  budgetType?: BudgetType;
+  rolloverAmount?: number;
 }
 
 /**
@@ -44,6 +47,7 @@ export interface BudgetQueryParams {
   accountBookId?: string;
   familyMemberId?: string;
   active?: boolean;
+  budgetType?: BudgetType;
   page?: number;
   limit?: number;
   sortBy?: string;
@@ -70,6 +74,7 @@ export interface BudgetResponseDto {
   accountBookId?: string;
   accountBookName?: string;
   accountBookType?: string;
+  budgetType: BudgetType;
   rolloverAmount?: number;
   createdAt: Date;
   updatedAt: Date;
@@ -78,6 +83,10 @@ export interface BudgetResponseDto {
   remaining?: number;
   progress?: number;
   adjustedRemaining?: number; // 考虑结转后的剩余金额
+  // 日均统计
+  daysRemaining?: number;
+  dailySpent?: number;
+  dailyAvailable?: number;
   // 分类预算
   categoryBudgets?: CategoryBudgetResponseDto[];
 }
@@ -117,6 +126,7 @@ export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryRes
   const enableCategoryBudget = budgetAny.enableCategoryBudget;
   const isAutoCalculated = budgetAny.isAutoCalculated;
   const rolloverAmount = budgetAny.rolloverAmount;
+  const budgetType = budgetAny.budgetType || BudgetType.PERSONAL;
 
   // 计算预算执行情况
   const numericAmount = Number(amount);
@@ -129,6 +139,15 @@ export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryRes
   const adjustedRemaining = remaining !== undefined && numericRolloverAmount !== undefined
     ? remaining + numericRolloverAmount
     : remaining;
+
+  // 计算日均统计
+  const now = new Date();
+  const daysRemaining = Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+  const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+  const elapsedDays = Math.max(0, totalDays - daysRemaining);
+
+  const dailySpent = elapsedDays > 0 && numericSpent !== undefined ? numericSpent / elapsedDays : 0;
+  const dailyAvailable = daysRemaining > 0 && adjustedRemaining !== undefined ? adjustedRemaining / daysRemaining : 0;
 
   return {
     id,
@@ -145,6 +164,7 @@ export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryRes
     userId: userId || '',
     familyId: familyId || undefined,
     accountBookId: accountBookId || undefined,
+    budgetType: budgetType,
     rolloverAmount: numericRolloverAmount,
     createdAt,
     updatedAt,
@@ -152,5 +172,8 @@ export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryRes
     remaining,
     progress,
     adjustedRemaining,
+    daysRemaining,
+    dailySpent,
+    dailyAvailable,
   };
 }

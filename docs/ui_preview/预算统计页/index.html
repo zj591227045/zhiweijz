@@ -3,28 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>只为记账 - 预算管理</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="budget.css">
+    <title>只为记账 - 预算统计</title>
+    <link rel="stylesheet" href="../预算列表页/styles.css">
+    <link rel="stylesheet" href="../预算列表页/budget.css">
+    <link rel="stylesheet" href="budget_stats.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="app-container">
         <!-- 顶部导航栏 -->
         <header class="header">
-            <div class="header-title">预算管理</div>
+            <div class="header-title">预算统计</div>
             <div class="header-actions">
-                <button class="icon-button"><i class="fas fa-plus"></i></button>
+                <button class="icon-button"><i class="fas fa-cog"></i></button>
             </div>
         </header>
 
         <!-- 主要内容区域 -->
         <main class="main-content">
-            <!-- 月份选择器 -->
-            <div class="month-selector">
-                <button class="month-nav-button"><i class="fas fa-chevron-left"></i></button>
-                <div class="current-month">2023年5月</div>
-                <button class="month-nav-button"><i class="fas fa-chevron-right"></i></button>
+            <!-- 预算选择器 -->
+            <div class="budget-selector">
+                <div class="budget-tabs">
+                    <button class="budget-tab active">个人预算</button>
+                    <button class="budget-tab">通用预算</button>
+                </div>
+                <div class="budget-carousel">
+                    <div class="budget-card active">
+                        <div class="budget-name">月度预算</div>
+                        <div class="budget-period">2023年5月</div>
+                    </div>
+                    <div class="budget-card">
+                        <div class="budget-name">餐饮预算</div>
+                        <div class="budget-period">2023年5月</div>
+                    </div>
+                    <div class="budget-card">
+                        <div class="budget-name">购物预算</div>
+                        <div class="budget-period">2023年5月</div>
+                    </div>
+                </div>
             </div>
 
             <!-- 预算概览 -->
@@ -54,9 +70,47 @@
                         </div>
                         <div class="progress-label">66.5%</div>
                     </div>
+                    <div class="rollover-info">
+                        <span>本月结转: </span>
+                        <span class="rollover-amount positive">+¥200</span>
+                        <i class="fas fa-info-circle rollover-info-icon"></i>
+                    </div>
                     <div class="daily-budget">
                         <span>日均可用: </span>
                         <span class="daily-amount">¥178.67</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 预算趋势图 -->
+            <section class="budget-trends">
+                <div class="section-header">
+                    <h2>预算趋势</h2>
+                    <div class="view-options">
+                        <button class="view-option active">日</button>
+                        <button class="view-option">周</button>
+                        <button class="view-option">月</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-placeholder">
+                        <div class="chart-bar" style="height: 30%"></div>
+                        <div class="chart-bar" style="height: 45%"></div>
+                        <div class="chart-bar" style="height: 60%"></div>
+                        <div class="chart-bar" style="height: 75%"></div>
+                        <div class="chart-bar" style="height: 50%"></div>
+                        <div class="chart-bar" style="height: 65%"></div>
+                        <div class="chart-bar" style="height: 80%"></div>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-color primary"></div>
+                            <span>支出</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color secondary"></div>
+                            <span>结转影响</span>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -111,90 +165,37 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="budget-item">
-                        <div class="budget-category">
-                            <i class="fas fa-bus category-icon"></i>
-                            <span>交通</span>
-                        </div>
-                        <div class="budget-details">
-                            <div class="budget-progress">
-                                <div class="progress-bar">
-                                    <div class="progress" style="width: 40%"></div>
-                                </div>
-                                <div class="progress-percentage">40%</div>
-                            </div>
-                            <div class="budget-amounts">
-                                <span class="spent">¥320</span>
-                                <span class="separator">/</span>
-                                <span class="total">¥800</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="budget-item">
-                        <div class="budget-category">
-                            <i class="fas fa-home category-icon"></i>
-                            <span>住房</span>
-                        </div>
-                        <div class="budget-details">
-                            <div class="budget-progress">
-                                <div class="progress-bar">
-                                    <div class="progress" style="width: 80%"></div>
-                                </div>
-                                <div class="progress-percentage">80%</div>
-                            </div>
-                            <div class="budget-amounts">
-                                <span class="spent">¥1,600</span>
-                                <span class="separator">/</span>
-                                <span class="total">¥2,000</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="budget-item">
-                        <div class="budget-category">
-                            <i class="fas fa-gamepad category-icon"></i>
-                            <span>娱乐</span>
-                        </div>
-                        <div class="budget-details">
-                            <div class="budget-progress">
-                                <div class="progress-bar">
-                                    <div class="progress" style="width: 20%"></div>
-                                </div>
-                                <div class="progress-percentage">20%</div>
-                            </div>
-                            <div class="budget-amounts">
-                                <span class="spent">¥100</span>
-                                <span class="separator">/</span>
-                                <span class="total">¥500</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </section>
 
-            <!-- 预算建议 -->
-            <section class="budget-suggestions">
+            <!-- 最近交易 -->
+            <section class="recent-transactions">
                 <div class="section-header">
-                    <h2>AI预算建议</h2>
+                    <h2>最近交易</h2>
+                    <a href="#" class="view-all">查看全部</a>
                 </div>
-                <div class="suggestion-card">
-                    <div class="suggestion-icon">
-                        <i class="fas fa-lightbulb"></i>
+
+                <div class="transaction-list">
+                    <div class="transaction-item">
+                        <div class="transaction-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <div class="transaction-info">
+                            <div class="transaction-title">午餐</div>
+                            <div class="transaction-date">5月15日 12:30</div>
+                        </div>
+                        <div class="transaction-amount expense">-¥45</div>
                     </div>
-                    <div class="suggestion-content">
-                        <div class="suggestion-title">购物类别超支</div>
-                        <div class="suggestion-text">您的购物支出已超出预算20%。建议减少非必要购物，或从娱乐预算中调整300元到购物预算。</div>
-                    </div>
-                </div>
-                <div class="suggestion-card">
-                    <div class="suggestion-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <div class="suggestion-content">
-                        <div class="suggestion-title">餐饮支出趋势</div>
-                        <div class="suggestion-text">您的餐饮支出比上月同期减少15%，继续保持这一趋势可以节省更多资金。</div>
+
+                    <div class="transaction-item">
+                        <div class="transaction-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="transaction-info">
+                            <div class="transaction-title">超市购物</div>
+                            <div class="transaction-date">5月14日 18:45</div>
+                        </div>
+                        <div class="transaction-amount expense">-¥128</div>
                     </div>
                 </div>
             </section>

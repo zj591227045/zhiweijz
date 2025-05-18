@@ -1,0 +1,199 @@
+/* 预算选择器样式 */
+.budget-selector {
+    margin-bottom: 20px;
+}
+
+.budget-tabs {
+    display: flex;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.budget-tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    background: none;
+    border: none;
+    color: var(--text-color-secondary);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.budget-tab.active {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.budget-carousel {
+    display: flex;
+    overflow-x: auto;
+    padding: 5px 0;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.budget-carousel::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+.budget-card {
+    flex: 0 0 auto;
+    width: 150px;
+    padding: 15px;
+    margin-right: 10px;
+    border-radius: 10px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.budget-card.active {
+    border-color: var(--primary-color);
+    background-color: var(--primary-color-light);
+}
+
+.budget-name {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.budget-period {
+    font-size: 0.8rem;
+    color: var(--text-color-secondary);
+}
+
+/* 预算趋势图样式 */
+.budget-trends {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    box-shadow: var(--card-shadow);
+}
+
+.chart-container {
+    margin-top: 15px;
+}
+
+.chart-placeholder {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    height: 200px;
+    margin-bottom: 15px;
+}
+
+.chart-bar {
+    width: 12%;
+    background-color: var(--primary-color);
+    border-radius: 4px 4px 0 0;
+    position: relative;
+}
+
+.chart-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 20%;
+    background-color: var(--secondary-color);
+    border-radius: 4px 4px 0 0;
+}
+
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    margin-right: 5px;
+    border-radius: 2px;
+}
+
+.legend-color.primary {
+    background-color: var(--primary-color);
+}
+
+.legend-color.secondary {
+    background-color: var(--secondary-color);
+}
+
+/* 最近交易样式 */
+.recent-transactions {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    box-shadow: var(--card-shadow);
+}
+
+.view-all {
+    font-size: 0.8rem;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.transaction-list {
+    margin-top: 10px;
+}
+
+.transaction-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.transaction-item:last-child {
+    border-bottom: none;
+}
+
+.transaction-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--primary-color-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    color: var(--primary-color);
+}
+
+.transaction-info {
+    flex: 1;
+}
+
+.transaction-title {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.transaction-date {
+    font-size: 0.8rem;
+    color: var(--text-color-secondary);
+}
+
+.transaction-amount {
+    font-weight: 600;
+}
+
+.transaction-amount.expense {
+    color: var(--danger-color);
+}
+
+.transaction-amount.income {
+    color: var(--success-color);
+}

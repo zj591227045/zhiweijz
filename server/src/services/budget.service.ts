@@ -1,7 +1,9 @@
-import { BudgetPeriod, Budget, Category } from '@prisma/client';
+import { BudgetPeriod, BudgetType, Budget, Category, RolloverType } from '@prisma/client';
 import { BudgetRepository, BudgetWithCategory } from '../repositories/budget.repository';
 import { CategoryRepository } from '../repositories/category.repository';
 import { CategoryBudgetRepository } from '../repositories/category-budget.repository';
+import { BudgetHistoryRepository } from '../repositories/budget-history.repository';
+import { BudgetHistoryService } from './budget-history.service';
 import {
   CreateBudgetDto,
   UpdateBudgetDto,
@@ -17,11 +19,15 @@ export class BudgetService {
   private budgetRepository: BudgetRepository;
   private categoryRepository: CategoryRepository;
   private categoryBudgetRepository: CategoryBudgetRepository;
+  private budgetHistoryRepository: BudgetHistoryRepository;
+  private budgetHistoryService: BudgetHistoryService;
 
   constructor() {
     this.budgetRepository = new BudgetRepository();
     this.categoryRepository = new CategoryRepository();
     this.categoryBudgetRepository = new CategoryBudgetRepository();
+    this.budgetHistoryRepository = new BudgetHistoryRepository();
+    this.budgetHistoryService = new BudgetHistoryService();
   }
 
   /**
@@ -256,5 +262,115 @@ export class BudgetService {
 
     console.log(`处理完成，返回 ${budgetsWithSpent.length} 个预算`);
     return budgetsWithSpent;
+  }
+
+  /**
+   * 获取预算结转历史
+   */
+  async getBudgetRolloverHistory(budgetId: string, userId: string): Promise<any[]> {
+    // 检查预算是否存在
+    const budget = await this.budgetRepository.findById(budgetId);
+    if (!budget) {
+      throw new Error('预算不存在');
+    }
+
+    // 验证权限
+    if (budget.userId !== userId && !budget.familyId) {
+      throw new Error('无权访问此预算');
+    }
+
+    // 获取预算历史记录
+    return this.budgetHistoryService.getBudgetHistoriesByBudgetId(budgetId);
+  }
+
+  /**
+   * 处理预算结转
+   * 在月度预算结束时调用，计算结转金额并创建历史记录
+   */
+  async processBudgetRollover(budgetId: string): Promise<void> {
+    // 获取预算信息
+    const budget = await this.budgetRepository.findById(budgetId);
+    if (!budget) {
+      throw new Error('预算不存在');
+    }
+
+    // 只处理启用了结转的预算
+    if (!budget.rollover) {
+      return;
+    }
+
+    // 计算已使用金额
+    const spent = await this.budgetRepository.calculateSpentAmount(budgetId);
+    const amount = Number(budget.amount);
+    const remaining = amount - spent;
+
+    // 格式化期间（例如：2023年5月）
+    const endDate = budget.endDate;
+    const period = `${endDate.getFullYear()}年${endDate.getMonth() + 1}月`;
+
+    // 记录结转历史
+    await this.budgetHistoryService.recordRollover(
+      budgetId,
+      period,
+      remaining,
+      `${period}预算结转`
+    );
+
+    // 更新预算的结转金额
+    await this.budgetRepository.update(budgetId, {
+      rolloverAmount: remaining
+    });
+  }
+
+  /**
+   * 创建下一个周期的预算
+   * 对于月度预算，创建下个月的预算
+   */
+  async createNextPeriodBudget(budgetId: string): Promise<BudgetResponseDto> {
+    // 获取当前预算
+    const currentBudget = await this.budgetRepository.findById(budgetId);
+    if (!currentBudget) {
+      throw new Error('预算不存在');
+    }
+
+    // 只处理个人预算
+    if ((currentBudget as any).budgetType !== BudgetType.PERSONAL) {
+      throw new Error('只能为个人预算创建下一周期');
+    }
+
+    // 计算下一周期的日期
+    const startDate = new Date(currentBudget.endDate);
+    startDate.setDate(startDate.getDate() + 1);
+
+    const endDate = new Date(startDate);
+    if (currentBudget.period === BudgetPeriod.MONTHLY) {
+      // 设置为下个月的最后一天
+      endDate.setMonth(endDate.getMonth() + 1);
+      endDate.setDate(0);
+    } else {
+      // 年度预算，加一年
+      endDate.setFullYear(endDate.getFullYear() + 1);
+      endDate.setDate(endDate.getDate() - 1);
+    }
+
+    // 创建新预算数据
+    const newBudgetData: CreateBudgetDto = {
+      name: currentBudget.name,
+      amount: Number(currentBudget.amount),
+      period: currentBudget.period,
+      categoryId: currentBudget.categoryId || undefined,
+      startDate,
+      endDate,
+      rollover: currentBudget.rollover,
+      familyId: currentBudget.familyId || undefined,
+      accountBookId: (currentBudget as any).accountBookId || undefined,
+      enableCategoryBudget: (currentBudget as any).enableCategoryBudget || false,
+      isAutoCalculated: (currentBudget as any).isAutoCalculated || false,
+      budgetType: BudgetType.PERSONAL
+    };
+
+    // 创建新预算
+    const userId = currentBudget.userId || '';
+    return this.createBudget(userId, newBudgetData);
   }
 }

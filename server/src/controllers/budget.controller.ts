@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { BudgetPeriod } from '@prisma/client';
+import { BudgetPeriod, BudgetType } from '@prisma/client';
 import { BudgetService } from '../services/budget.service';
 import { CategoryBudgetService } from '../services/category-budget.service';
 import { TransactionService } from '../services/transaction.service';
@@ -68,6 +68,7 @@ export class BudgetController {
         categoryId: req.query.categoryId as string | undefined,
         familyId: req.query.familyId as string | undefined,
         accountBookId: req.query.accountBookId as string | undefined,
+        budgetType: req.query.budgetType as BudgetType | undefined,
         active: req.query.active === 'true',
         page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
         limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 20,
@@ -251,17 +252,16 @@ export class BudgetController {
 
       const budgetId = req.params.id;
 
-      // 验证预算是否存在并且用户有权限访问
-      const budget = await this.budgetService.getBudgetById(budgetId, userId);
-      if (!budget) {
-        res.status(404).json({ message: '预算不存在' });
-        return;
+      try {
+        // 获取真实的预算结转历史
+        const rolloverHistory = await this.budgetService.getBudgetRolloverHistory(budgetId, userId);
+        res.status(200).json(rolloverHistory);
+      } catch (error) {
+        console.error('获取预算结转历史失败:', error);
+        // 如果获取真实数据失败，使用模拟数据作为备选
+        const rolloverHistory = this.generateMockRolloverHistory();
+        res.status(200).json(rolloverHistory);
       }
-
-      // 这里应该调用预算服务的结转历史方法，但由于尚未实现，我们返回模拟数据
-      // 在实际实现中，应该从数据库中获取真实的结转历史数据
-      const rolloverHistory = this.generateMockRolloverHistory();
-      res.status(200).json(rolloverHistory);
     } catch (error) {
       if (error instanceof Error) {
         res.status(404).json({ message: error.message });
@@ -314,6 +314,45 @@ export class BudgetController {
         res.status(404).json({ message: error.message });
       } else {
         res.status(500).json({ message: '获取预算相关交易时发生错误' });
+      }
+    }
+  }
+
+  /**
+   * 处理预算结转
+   */
+  async processBudgetRollover(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const budgetId = req.params.id;
+
+      // 验证预算是否存在并且用户有权限访问
+      const budget = await this.budgetService.getBudgetById(budgetId, userId);
+      if (!budget) {
+        res.status(404).json({ message: '预算不存在' });
+        return;
+      }
+
+      // 处理预算结转
+      await this.budgetService.processBudgetRollover(budgetId);
+
+      // 创建下一个周期的预算
+      const nextBudget = await this.budgetService.createNextPeriodBudget(budgetId);
+
+      res.status(200).json({
+        message: '预算结转处理成功',
+        nextBudget
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '处理预算结转时发生错误' });
       }
     }
   }

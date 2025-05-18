@@ -143,12 +143,14 @@ model Budget {
   isAutoCalculated     Boolean          @default(false) @map("is_auto_calculated")
   enableCategoryBudget Boolean          @default(false) @map("enable_category_budget")
   rolloverAmount       Decimal?         @map("rollover_amount") @db.Decimal(10, 2)
+  budgetType           BudgetType       @default(PERSONAL) @map("budget_type")
   accountBook          AccountBook?     @relation(fields: [accountBookId], references: [id])
   category             Category?        @relation(fields: [categoryId], references: [id])
   family               Family?          @relation(fields: [familyId], references: [id])
   user                 User?            @relation(fields: [userId], references: [id])
   categoryBudgets      CategoryBudget[]
   transactions         Transaction[]
+  budgetHistories      BudgetHistory[]
 
   @@map("budgets")
 }
@@ -345,4 +347,27 @@ enum Role {
 enum AccountBookType {
   PERSONAL
   FAMILY
+}
+
+enum BudgetType {
+  PERSONAL
+  GENERAL
+}
+
+model BudgetHistory {
+  id           String       @id @default(uuid())
+  budgetId     String       @map("budget_id")
+  period       String       // 例如: "2023年5月"
+  amount       Decimal      @db.Decimal(10, 2)
+  type         RolloverType
+  description  String?
+  createdAt    DateTime     @default(now()) @map("created_at")
+  budget       Budget       @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+
+  @@map("budget_histories")
+}
+
+enum RolloverType {
+  SURPLUS
+  DEFICIT
 }

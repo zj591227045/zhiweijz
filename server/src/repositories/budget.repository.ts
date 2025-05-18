@@ -1,4 +1,4 @@
-import { PrismaClient, Budget, BudgetPeriod, Prisma, Category } from '@prisma/client';
+import { PrismaClient, Budget, BudgetPeriod, BudgetType, Prisma, Category } from '@prisma/client';
 import { CreateBudgetDto, UpdateBudgetDto, BudgetQueryParams } from '../models/budget.model';
 
 // 扩展Budget类型，包含category、accountBook和categoryBudgets关联
@@ -93,6 +93,7 @@ export class BudgetRepository {
         accountBookId: budgetData.accountBookId,
         enableCategoryBudget: budgetData.enableCategoryBudget ?? false,
         isAutoCalculated: budgetData.isAutoCalculated ?? false,
+        budgetType: budgetData.budgetType || BudgetType.PERSONAL,
       },
       include: {
         category: true,
@@ -121,6 +122,7 @@ export class BudgetRepository {
       categoryId,
       familyId,
       active,
+      budgetType,
       page = 1,
       limit = 20,
       sortBy = 'startDate',
@@ -134,6 +136,7 @@ export class BudgetRepository {
       familyId,
       accountBookId: params.accountBookId,
       active,
+      budgetType,
       page,
       limit
     });
@@ -145,6 +148,7 @@ export class BudgetRepository {
       ...(categoryId && { categoryId }),
       ...(familyId && { familyId }),
       ...(params.accountBookId && { accountBookId: params.accountBookId }),
+      ...(budgetType && { budgetType }),
       ...(active && {
         OR: [
           { endDate: null },
@@ -189,6 +193,7 @@ export class BudgetRepository {
       ...(budgetData.rollover !== undefined && { rollover: budgetData.rollover }),
       ...(budgetData.enableCategoryBudget !== undefined && { enableCategoryBudget: budgetData.enableCategoryBudget }),
       ...(budgetData.isAutoCalculated !== undefined && { isAutoCalculated: budgetData.isAutoCalculated }),
+      ...(budgetData.budgetType !== undefined && { budgetType: budgetData.budgetType }),
     };
 
     return prisma.budget.update({

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>只为记账 - 预算详情</title>
+    <link rel="stylesheet" href="../预算列表页/styles.css">
+    <link rel="stylesheet" href="../预算列表页/budget.css">
+    <link rel="stylesheet" href="budget_detail.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <button class="icon-button back-button"><i class="fas fa-arrow-left"></i></button>
+            <div class="header-title">预算详情</div>
+            <div class="header-actions">
+                <button class="icon-button"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 账本信息 -->
+            <div class="account-book-info">
+                <i class="fas fa-book"></i>
+                <span>我的账本</span>
+            </div>
+
+            <!-- 预算基本信息 -->
+            <section class="budget-header">
+                <div class="budget-name">月度预算</div>
+                <div class="budget-period">2023年5月1日 - 2023年5月31日</div>
+                <div class="budget-amount">¥8,000.00</div>
+
+                <!-- 结转信息 -->
+                <div class="rollover-info">
+                    <div class="rollover-badge positive">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>本月结转: +¥200.00</span>
+                    </div>
+                    <button class="rollover-history-button">
+                        <i class="fas fa-history"></i>
+                        <span>结转历史</span>
+                    </button>
+                </div>
+
+                <!-- 预算进度 -->
+                <div class="budget-progress-container">
+                    <div class="budget-progress-info">
+                        <div class="spent-amount">
+                            已用: ¥5,320.00 (66.5%)
+                        </div>
+                        <div class="remaining-amount positive">
+                            剩余: ¥2,680.00
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 66.5%"></div>
+                    </div>
+                </div>
+
+                <!-- 预算统计 -->
+                <div class="budget-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">15天</div>
+                        <div class="stat-label">剩余天数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">¥332.50</div>
+                        <div class="stat-label">日均消费</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">¥178.67</div>
+                        <div class="stat-label">日均可用</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 分类预算状态 -->
+            <section class="category-budget-status">
+                <div class="section-header">
+                    <h2>分类预算</h2>
+                </div>
+
+                <div class="category-budget-list">
+                    <div class="category-budget-item">
+                        <div class="category-info">
+                            <div class="category-icon">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <span>餐饮</span>
+                        </div>
+                        <div class="budget-progress">
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 60%"></div>
+                            </div>
+                        </div>
+                        <div class="budget-amounts">
+                            <div class="amount-row">
+                                <span class="amount-label">已用:</span>
+                                <span class="amount-value">¥1,200.00</span>
+                            </div>
+                            <div class="amount-row">
+                                <span class="amount-label">总额:</span>
+                                <span class="amount-value">¥2,000.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="category-budget-item warning">
+                        <div class="category-info">
+                            <div class="category-icon">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                            <span>购物</span>
+                        </div>
+                        <div class="budget-progress">
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 120%"></div>
+                            </div>
+                        </div>
+                        <div class="budget-amounts">
+                            <div class="amount-row">
+                                <span class="amount-label">已用:</span>
+                                <span class="amount-value">¥1,800.00</span>
+                            </div>
+                            <div class="amount-row">
+                                <span class="amount-label">总额:</span>
+                                <span class="amount-value">¥1,500.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 预算趋势图表 -->
+            <section class="budget-trend-chart">
+                <div class="section-header">
+                    <h2>预算趋势</h2>
+                    <div class="chart-controls">
+                        <div class="view-mode-selector">
+                            <button class="view-mode-button active">日</button>
+                            <button class="view-mode-button">周</button>
+                            <button class="view-mode-button">月</button>
+                        </div>
+                        <label class="rollover-toggle">
+                            <input type="checkbox" checked>
+                            <span class="toggle-label">显示结转</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-placeholder">
+                        <div class="chart-bar" style="height: 30%"></div>
+                        <div class="chart-bar" style="height: 45%"></div>
+                        <div class="chart-bar" style="height: 60%"></div>
+                        <div class="chart-bar" style="height: 75%"></div>
+                        <div class="chart-bar" style="height: 50%"></div>
+                        <div class="chart-bar" style="height: 65%"></div>
+                        <div class="chart-bar" style="height: 80%"></div>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-color primary"></div>
+                            <span>支出</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color secondary"></div>
+                            <span>结转影响</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 相关交易 -->
+            <section class="related-transactions">
+                <div class="section-header">
+                    <h2>相关交易</h2>
+                </div>
+
+                <div class="transaction-list">
+                    <div class="transaction-item">
+                        <div class="transaction-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <div class="transaction-info">
+                            <div class="transaction-title">午餐</div>
+                            <div class="transaction-date">5月15日 12:30</div>
+                        </div>
+                        <div class="transaction-amount expense">-¥45.00</div>
+                    </div>
+
+                    <div class="transaction-item">
+                        <div class="transaction-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="transaction-info">
+                            <div class="transaction-title">超市购物</div>
+                            <div class="transaction-date">5月14日 18:45</div>
+                        </div>
+                        <div class="transaction-amount expense">-¥128.00</div>
+                    </div>
+
+                    <button class="view-all-button">查看全部</button>
+                </div>
+            </section>
+
+            <!-- 底部操作按钮 -->
+            <div class="bottom-actions">
+                <button class="action-button edit-button">
+                    <i class="fas fa-edit"></i>
+                    <span>编辑预算</span>
+                </button>
+                <button class="action-button delete-button">
+                    <i class="fas fa-trash"></i>
+                    <span>删除预算</span>
+                </button>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
