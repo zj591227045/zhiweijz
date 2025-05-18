@@ -147,9 +147,6 @@ export default function DashboardPage() {
       <button className="icon-button">
         <i className="fas fa-bell"></i>
       </button>
-      <button className="icon-button">
-        <i className="fas fa-cog"></i>
-      </button>
     </>
   );
 
@@ -178,8 +175,14 @@ export default function DashboardPage() {
               budget: cat.budget,
               spent: cat.spent,
               percentage: cat.percentage,
-              period: cat.period // 添加预算周期信息
+              period: cat.period, // 添加预算周期信息
+              categoryId: cat.category.id // 添加分类ID
             })) || []}
+            totalBudget={budgets ? {
+              amount: budgets.totalBudget,
+              spent: budgets.totalSpent,
+              percentage: budgets.percentage
+            } : undefined}
           />
 
           {/* 最近交易 */}

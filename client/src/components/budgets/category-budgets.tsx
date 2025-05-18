@@ -143,20 +143,7 @@ export function CategoryBudgets() {
                 ? '暂无超支预算'
                 : '暂无结转预算'}
             </p>
-            <p className="text-xs text-gray-400 mt-2">
-              {Array.isArray(budgets) ? `原始预算数据: ${budgets.length}条` : '预算数据不是数组'}
-            </p>
             <div className="mt-4">
-              <button
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                onClick={() => {
-                  console.log('手动刷新预算数据');
-                  // 强制刷新预算数据
-                  window.location.reload();
-                }}
-              >
-                刷新数据
-              </button>
             </div>
           </div>
         )}

@@ -54,7 +54,17 @@ export class BudgetService {
    * 获取预算列表
    */
   async getBudgets(userId: string, params: BudgetQueryParams): Promise<BudgetPaginatedResponseDto> {
+    console.log('BudgetService.getBudgets 参数:', {
+      userId,
+      params
+    });
+
     const { budgets, total } = await this.budgetRepository.findAll(userId, params);
+
+    console.log('BudgetService.getBudgets 查询结果:', {
+      total,
+      budgetsCount: budgets.length
+    });
 
     // 获取每个预算的已使用金额
     const budgetsWithSpent = await Promise.all(

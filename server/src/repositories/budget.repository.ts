@@ -62,6 +62,17 @@ export class BudgetRepository {
       sortOrder = 'desc'
     } = params;
 
+    console.log('BudgetRepository.findAll 参数:', {
+      userId,
+      period,
+      categoryId,
+      familyId,
+      accountBookId: params.accountBookId,
+      active,
+      page,
+      limit
+    });
+
     // 构建查询条件
     const where: Prisma.BudgetWhereInput = {
       userId,
@@ -146,6 +157,15 @@ export class BudgetRepository {
       throw new Error('预算不存在');
     }
 
+    console.log('计算预算已使用金额 - 预算信息:', {
+      budgetId,
+      userId: budget.userId,
+      categoryId: budget.categoryId,
+      accountBookId: budget.accountBookId,
+      startDate: budget.startDate,
+      endDate: budget.endDate
+    });
+
     // 构建查询条件
     const where: Prisma.TransactionWhereInput = {
       userId: budget.userId || undefined,
@@ -155,6 +175,7 @@ export class BudgetRepository {
         ...(budget.endDate && { lte: budget.endDate }),
       },
       ...(budget.categoryId && { categoryId: budget.categoryId }),
+      ...(budget.accountBookId && { accountBookId: budget.accountBookId }),
     };
 
     // 计算总支出

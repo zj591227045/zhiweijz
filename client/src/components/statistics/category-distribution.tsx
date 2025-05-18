@@ -62,6 +62,17 @@ export function CategoryDistribution({
       return;
     }
 
+    // 添加调试信息，确认分类数据是交易分类而非预算分类
+    console.log('分类数据详情:');
+    categories.forEach((cat, index) => {
+      console.log(`分类 ${index + 1}:`, {
+        id: cat.categoryId,
+        name: cat.categoryName,
+        amount: cat.amount,
+        percentage: cat.percentage
+      });
+    });
+
     // 颜色映射
     const colorMap: Record<number, string> = {
       0: '#3B82F6', // 蓝色
@@ -121,7 +132,7 @@ export function CategoryDistribution({
     <div className="chart-card">
       <div className="chart-header">
         <div className="chart-title">
-          {selectedCategoryType === 'expense' ? '支出' : '收入'}分类占比
+          {selectedCategoryType === 'expense' ? '支出' : '收入'}交易分类占比
         </div>
         <div className="chart-actions">
           <button

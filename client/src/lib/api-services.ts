@@ -40,20 +40,26 @@ export async function getFinancialOverview(
       totalExpense: apiResponse.expense || 0,
       balance: apiResponse.netIncome || 0,
       incomeByCategory: Array.isArray(apiResponse.topIncomeCategories)
-        ? apiResponse.topIncomeCategories.map((cat: any) => ({
-            categoryId: cat.category?.id || '',
-            categoryName: cat.category?.name || '',
-            amount: cat.amount || 0,
-            percentage: cat.percentage || 0
-          }))
+        ? apiResponse.topIncomeCategories.map((cat: any) => {
+            console.log('处理收入分类数据:', cat);
+            return {
+              categoryId: cat.category?.id || '',
+              categoryName: cat.category?.name || '',
+              amount: cat.amount || 0,
+              percentage: cat.percentage || 0
+            };
+          })
         : [],
       expenseByCategory: Array.isArray(apiResponse.topExpenseCategories)
-        ? apiResponse.topExpenseCategories.map((cat: any) => ({
-            categoryId: cat.category?.id || '',
-            categoryName: cat.category?.name || '',
-            amount: cat.amount || 0,
-            percentage: cat.percentage || 0
-          }))
+        ? apiResponse.topExpenseCategories.map((cat: any) => {
+            console.log('处理支出分类数据:', cat);
+            return {
+              categoryId: cat.category?.id || '',
+              categoryName: cat.category?.name || '',
+              amount: cat.amount || 0,
+              percentage: cat.percentage || 0
+            };
+          })
         : [],
       // 使用API返回的每日统计数据
       dailyStatistics: apiResponse.dailyStatistics || []

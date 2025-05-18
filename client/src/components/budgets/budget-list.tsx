@@ -72,8 +72,8 @@ export function BudgetList() {
       selectedFamilyMemberId,
     ],
     queryFn: async () => {
-      // 确保有账本ID
-      const accountBookId = selectedAccountBook?.id;
+      // 确保有账本ID，优先使用选中的账本，如果没有则使用全局账本
+      const accountBookId = selectedAccountBook?.id || currentAccountBook?.id;
 
       console.log('正在获取预算列表...', {
         accountBookId,
@@ -113,7 +113,7 @@ export function BudgetList() {
         throw error;
       }
     },
-    enabled: !!selectedAccountBook?.id, // 确保有账本ID才启用查询
+    enabled: !!(selectedAccountBook?.id || currentAccountBook?.id), // 确保有账本ID才启用查询
   });
 
   // 获取家庭成员列表（仅家庭账本）
@@ -153,11 +153,12 @@ export function BudgetList() {
       setAccountBooks(processedData);
 
       // 使用全局账本作为选中的账本
-      if (currentAccountBook && !selectedAccountBook) {
+      if (currentAccountBook && (!selectedAccountBook || selectedAccountBook.id !== currentAccountBook.id)) {
         console.log('账本数据更新 - 使用全局账本:', currentAccountBook);
         // 在processedData中查找匹配的账本
         const matchedBook = processedData.find(book => book.id === currentAccountBook.id);
         if (matchedBook) {
+          console.log('账本数据更新 - 找到匹配的账本:', matchedBook);
           setSelectedAccountBook(matchedBook);
         } else if (processedData.length > 0) {
           // 如果找不到匹配的账本，使用默认账本或第一个账本
@@ -187,6 +188,8 @@ export function BudgetList() {
   // 更新预算数据
   useEffect(() => {
     console.log('预算数据更新 - 原始数据:', budgetData);
+    console.log('预算数据更新 - 当前账本:', selectedAccountBook);
+    console.log('预算数据更新 - 全局账本:', currentAccountBook);
 
     if (budgetData) {
       console.log('预算数据更新 - 总预算:', budgetData.totalBudget);
@@ -277,6 +280,14 @@ export function BudgetList() {
       }
     }
   }, [currentAccountBook, accountBooks, selectedAccountBook, setSelectedAccountBook]);
+
+  // 当选中的账本变化时，重新获取预算数据
+  useEffect(() => {
+    if (selectedAccountBook) {
+      console.log('选中的账本变化 - 触发预算数据重新获取:', selectedAccountBook);
+      refetchBudgets();
+    }
+  }, [selectedAccountBook, refetchBudgets]);
 
   // 处理添加预算
   const handleAddBudget = () => {

@@ -86,8 +86,12 @@ export const budgetService = {
       // 构建查询参数
       const queryParams = new URLSearchParams();
 
+      // 确保账本ID存在且有效
       if (params.accountBookId) {
+        console.log('使用账本ID获取预算:', params.accountBookId);
         queryParams.append('accountBookId', params.accountBookId);
+      } else {
+        console.warn('获取预算时没有提供账本ID');
       }
 
       queryParams.append('period', params.period);

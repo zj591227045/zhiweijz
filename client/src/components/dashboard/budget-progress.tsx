@@ -12,13 +12,19 @@ interface BudgetCategory {
   spent: number;
   percentage: number;
   period?: string; // 添加预算周期字段
+  categoryId?: string; // 添加分类ID字段，用于区分总预算和分类预算
 }
 
 interface BudgetProgressProps {
   categories: BudgetCategory[];
+  totalBudget?: {
+    amount: number;
+    spent: number;
+    percentage: number;
+  };
 }
 
-export function BudgetProgress({ categories }: BudgetProgressProps) {
+export function BudgetProgress({ categories, totalBudget }: BudgetProgressProps) {
   // 状态控制折叠/展开
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -45,6 +51,20 @@ export function BudgetProgress({ categories }: BudgetProgressProps) {
     // 复制数组以避免修改原始数据
     const sortedCats = [...cats];
 
+    // 首先检查是否有总预算（没有分类ID的预算）
+    const totalBudget = sortedCats.find(cat =>
+      cat.name.includes("总预算") ||
+      cat.name.includes("月度预算") ||
+      cat.name === "预算" ||
+      cat.id === "total"
+    );
+
+    // 如果找到总预算，优先显示
+    if (totalBudget) {
+      console.log('找到总预算，优先显示:', totalBudget);
+      return [totalBudget];
+    }
+
     // 过滤掉名称为"未知"或"other"的分类，除非没有其他分类
     let filteredCats = sortedCats.filter(cat =>
       !cat.name.includes("未知") &&
@@ -60,13 +80,15 @@ export function BudgetProgress({ categories }: BudgetProgressProps) {
     // 按优先级排序：个人月度预算 > 家庭预算 > 年度预算 > 其他
     filteredCats.sort((a, b) => {
       const getPriority = (cat: BudgetCategory) => {
-        // 个人月度预算最高优先级
+        // 总预算最高优先级
+        if (!cat.categoryId || cat.name.includes("总预算") || cat.name.includes("月度预算")) return 0;
+        // 个人月度预算次高优先级
         if (cat.period === "MONTHLY" &&
             !cat.name.includes("家庭") &&
             !cat.name.includes("family")) return 1;
-        // 家庭预算第二优先级
+        // 家庭预算第三优先级
         if (cat.name.includes("家庭") || cat.name.includes("family")) return 2;
-        // 年度预算第三优先级
+        // 年度预算第四优先级
         if (cat.period === "YEARLY") return 3;
         // 其他预算最低优先级
         return 4;
@@ -79,8 +101,28 @@ export function BudgetProgress({ categories }: BudgetProgressProps) {
     return filteredCats.slice(0, 3);
   };
 
+  // 如果提供了总预算信息，添加到分类列表中
+  const processedCategories = [...categories];
+
+  // 如果有总预算信息但分类列表中没有总预算，添加一个总预算项
+  if (totalBudget && !processedCategories.find(cat =>
+      cat.name.includes("总预算") ||
+      cat.name.includes("月度预算") ||
+      cat.name === "预算" ||
+      cat.id === "total")) {
+    processedCategories.unshift({
+      id: "total",
+      name: "月度总预算",
+      icon: "money-bill",
+      budget: totalBudget.amount,
+      spent: totalBudget.spent,
+      percentage: totalBudget.percentage,
+      period: "MONTHLY"
+    });
+  }
+
   // 获取要显示的预算类别
-  const displayCategories = prioritizeCategories(categories);
+  const displayCategories = prioritizeCategories(processedCategories);
 
   return (
     <section className="budget-progress dashboard-budget-progress">

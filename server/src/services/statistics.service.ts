@@ -407,6 +407,7 @@ export class StatisticsService {
       .slice(0, 5)
       .map(({ categoryId, amount }) => {
         const category = categories.get(categoryId);
+        console.log(`收入分类 ${categoryId} 的信息:`, category);
         return {
           category: {
             id: categoryId,
@@ -428,6 +429,7 @@ export class StatisticsService {
       .slice(0, 5)
       .map(({ categoryId, amount }) => {
         const category = categories.get(categoryId);
+        console.log(`支出分类 ${categoryId} 的信息:`, category);
         return {
           category: {
             id: categoryId,
@@ -643,17 +645,28 @@ export class StatisticsService {
    * 获取分类映射
    */
   private async getCategoriesMap(userId: string, familyId?: string): Promise<Map<string, any>> {
-    let categories;
+    // 获取默认分类
+    const defaultCategories = await this.categoryRepository.findDefaultCategories();
+
+    // 获取用户或家庭分类
+    let userCategories;
     if (familyId) {
-      categories = await this.categoryRepository.findByFamilyId(familyId);
+      userCategories = await this.categoryRepository.findByFamilyId(familyId);
     } else {
-      categories = await this.categoryRepository.findByUserId(userId);
+      userCategories = await this.categoryRepository.findByUserId(userId);
     }
 
+    // 合并所有分类
+    const allCategories = [...defaultCategories, ...userCategories];
+
+    console.log(`获取到 ${defaultCategories.length} 个默认分类和 ${userCategories.length} 个用户/家庭分类`);
+
     const categoriesMap = new Map<string, any>();
-    for (const category of categories) {
+    for (const category of allCategories) {
       categoriesMap.set(category.id, category);
     }
+
+    console.log(`分类映射包含 ${categoriesMap.size} 个分类`);
 
     return categoriesMap;
   }

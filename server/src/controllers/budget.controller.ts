@@ -66,6 +66,12 @@ export class BudgetController {
         sortOrder: req.query.sortOrder as 'asc' | 'desc' | undefined,
       };
 
+      console.log('BudgetController.getBudgets 请求参数:', {
+        userId,
+        queryParams: req.query,
+        parsedParams: params
+      });
+
       const budgets = await this.budgetService.getBudgets(userId, params);
       res.status(200).json(budgets);
     } catch (error) {

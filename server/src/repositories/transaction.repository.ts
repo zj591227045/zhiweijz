@@ -191,7 +191,7 @@ export class TransactionRepository {
       accountBookId
     });
 
-    return prisma.transaction.findMany({
+    const transactions = await prisma.transaction.findMany({
       where: {
         userId,
         type,
@@ -206,5 +206,16 @@ export class TransactionRepository {
         category: true,
       },
     });
+
+    console.log(`找到 ${transactions.length} 条交易记录，其中 ${transactions.filter(t => t.category).length} 条有关联的分类信息`);
+
+    // 检查是否有交易没有关联到分类
+    const transactionsWithoutCategory = transactions.filter(t => !t.category);
+    if (transactionsWithoutCategory.length > 0) {
+      console.log(`警告: ${transactionsWithoutCategory.length} 条交易没有关联到分类`);
+      console.log('没有分类的交易ID:', transactionsWithoutCategory.map(t => t.id));
+    }
+
+    return transactions;
   }
 }
