@@ -12,25 +12,25 @@ model User {
   email               String               @unique
   passwordHash        String               @map("password")
   name                String
-  avatar              String?              // 用户头像URL
-  bio                 String?              // 用户个人简介
-  birthDate           DateTime?            @map("birth_date") // 用户出生日期
-  passwordChangedAt   DateTime?            @map("password_changed_at") // 密码最后修改时间
   createdAt           DateTime             @default(now()) @map("created_at")
   updatedAt           DateTime             @updatedAt @map("updated_at")
+  avatar              String?
+  bio                 String?
+  birthDate           DateTime?            @map("birth_date")
+  passwordChangedAt   DateTime?            @map("password_changed_at")
   accountBooks        AccountBook[]
   budgets             Budget[]
   categories          Category[]
   families            Family[]             @relation("FamilyCreator")
   familyMembers       FamilyMember[]
   passwordResetTokens PasswordResetToken[]
+  securityLogs        SecurityLog[]
+  sessions            Session[]
   transactions        Transaction[]
+  categoryConfigs     UserCategoryConfig[]
   feedback            UserFeedback[]
   settings            UserSetting[]
-  categoryConfigs     UserCategoryConfig[]
-  sessions            Session[]
   verificationCodes   VerificationCode[]
-  securityLogs        SecurityLog[]
 
   @@map("users")
 }
@@ -41,13 +41,13 @@ model Family {
   createdBy    String         @map("created_by")
   createdAt    DateTime       @default(now()) @map("created_at")
   updatedAt    DateTime       @updatedAt @map("updated_at")
+  accountBooks AccountBook[]
   budgets      Budget[]
   categories   Category[]
   creator      User           @relation("FamilyCreator", fields: [createdBy], references: [id])
   members      FamilyMember[]
   invitations  Invitation[]
   transactions Transaction[]
-  accountBooks AccountBook[]
 
   @@map("families")
 }
@@ -209,13 +209,14 @@ model AccountBook {
   name         String
   description  String?
   userId       String              @map("user_id")
-  type         AccountBookType     @default(PERSONAL) @map("type")
-  familyId     String?             @map("family_id")
   isDefault    Boolean             @default(false) @map("is_default")
   createdAt    DateTime            @default(now()) @map("created_at")
   updatedAt    DateTime            @updatedAt @map("updated_at")
-  user         User                @relation(fields: [userId], references: [id])
+  familyId     String?             @map("family_id")
+  type         AccountBookType     @default(PERSONAL) @map("type")
+  created_by   String?
   family       Family?             @relation(fields: [familyId], references: [id])
+  user         User                @relation(fields: [userId], references: [id])
   llmSettings  AccountLLMSetting[]
   budgets      Budget[]
   categories   Category[]
@@ -254,26 +255,6 @@ model CategoryBudget {
   @@map("category_budgets")
 }
 
-enum TransactionType {
-  INCOME
-  EXPENSE
-}
-
-enum BudgetPeriod {
-  MONTHLY
-  YEARLY
-}
-
-enum Role {
-  ADMIN
-  MEMBER
-}
-
-enum AccountBookType {
-  PERSONAL
-  FAMILY
-}
-
 model UserCategoryConfig {
   id           String   @id @default(uuid())
   userId       String   @map("user_id")
@@ -282,8 +263,8 @@ model UserCategoryConfig {
   displayOrder Int      @default(0) @map("display_order")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   category     Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, categoryId])
   @@map("user_category_configs")
@@ -333,4 +314,35 @@ model SecurityLog {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("security_logs")
+}
+
+model user_account_books {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String
+  account_book_id String   @db.Uuid
+  can_edit        Boolean  @default(false)
+  created_at      DateTime @default(now()) @db.Timestamp(6)
+  updated_at      DateTime @default(now()) @db.Timestamp(6)
+
+  @@unique([user_id, account_book_id])
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum BudgetPeriod {
+  MONTHLY
+  YEARLY
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum AccountBookType {
+  PERSONAL
+  FAMILY
 }
