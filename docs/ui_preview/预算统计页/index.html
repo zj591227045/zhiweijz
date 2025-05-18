@@ -27,57 +27,88 @@
                     <button class="budget-tab active">个人预算</button>
                     <button class="budget-tab">通用预算</button>
                 </div>
+                <!-- 个人账本时不显示选择器，直接显示用户的个人预算 -->
+                <!-- 家庭账本时，可以滑动显示家庭成员的预算情况，选择器显示的名称是家庭成员的名字 -->
+                <!-- 通用预算时，滑动显示创建的通用预算 -->
                 <div class="budget-carousel">
+                    <!-- 个人账本示例 -->
                     <div class="budget-card active">
                         <div class="budget-name">月度预算</div>
                         <div class="budget-period">2023年5月</div>
                     </div>
-                    <div class="budget-card">
-                        <div class="budget-name">餐饮预算</div>
+
+                    <!-- 家庭账本示例（默认隐藏） -->
+                    <div class="budget-card" style="display: none;">
+                        <div class="budget-name">张三</div>
                         <div class="budget-period">2023年5月</div>
                     </div>
-                    <div class="budget-card">
-                        <div class="budget-name">购物预算</div>
+                    <div class="budget-card" style="display: none;">
+                        <div class="budget-name">李四</div>
                         <div class="budget-period">2023年5月</div>
+                    </div>
+
+                    <!-- 通用预算示例（默认隐藏） -->
+                    <div class="budget-card" style="display: none;">
+                        <div class="budget-name">旅游预算</div>
+                        <div class="budget-period">2023年5月-2023年12月</div>
+                    </div>
+                    <div class="budget-card" style="display: none;">
+                        <div class="budget-name">装修预算</div>
+                        <div class="budget-period">2023年1月-2023年12月</div>
                     </div>
                 </div>
             </div>
 
-            <!-- 预算概览 -->
+            <!-- 预算概览 - 使用预算详情页的样式 -->
             <section class="budget-overview">
                 <div class="overview-card">
-                    <div class="overview-header">
-                        <h2>月度预算</h2>
-                        <div class="budget-status">剩余15天</div>
-                    </div>
-                    <div class="overview-amounts">
-                        <div class="amount-item">
-                            <span class="amount-label">总预算</span>
-                            <span class="amount-value">¥8,000</span>
+                    <div class="budget-header">
+                        <div class="budget-name">月度预算</div>
+                        <div class="budget-period">2023年5月1日 - 2023年5月31日</div>
+                        <div class="budget-amount">¥8,000.00</div>
+
+                        <!-- 结转信息 -->
+                        <div class="rollover-info">
+                            <div class="rollover-badge positive">
+                                <i class="fas fa-exchange-alt"></i>
+                                <span>本月结转: +¥200.00</span>
+                            </div>
+                            <button class="rollover-history-button">
+                                <i class="fas fa-history"></i>
+                                <span>结转历史</span>
+                            </button>
                         </div>
-                        <div class="amount-item">
-                            <span class="amount-label">已支出</span>
-                            <span class="amount-value">¥5,320</span>
+
+                        <!-- 预算进度 -->
+                        <div class="budget-progress-container">
+                            <div class="budget-progress-info">
+                                <div class="spent-amount">
+                                    已用: ¥5,320.00 (66.5%)
+                                </div>
+                                <div class="remaining-amount positive">
+                                    剩余: ¥2,680.00
+                                </div>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 66.5%"></div>
+                            </div>
                         </div>
-                        <div class="amount-item">
-                            <span class="amount-label">剩余</span>
-                            <span class="amount-value">¥2,680</span>
+
+                        <!-- 预算统计 -->
+                        <div class="budget-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">15天</div>
+                                <div class="stat-label">剩余天数</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">¥332.50</div>
+                                <div class="stat-label">日均消费</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">¥178.67</div>
+                                <div class="stat-label">日均可用</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="overall-progress">
-                        <div class="progress-bar">
-                            <div class="progress" style="width: 66.5%"></div>
-                        </div>
-                        <div class="progress-label">66.5%</div>
-                    </div>
-                    <div class="rollover-info">
-                        <span>本月结转: </span>
-                        <span class="rollover-amount positive">+¥200</span>
-                        <i class="fas fa-info-circle rollover-info-icon"></i>
-                    </div>
-                    <div class="daily-budget">
-                        <span>日均可用: </span>
-                        <span class="daily-amount">¥178.67</span>
                     </div>
                 </div>
             </section>

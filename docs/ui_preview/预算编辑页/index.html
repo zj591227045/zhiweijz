@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>只为记账 - 编辑预算</title>
-    <link rel="stylesheet" href="../预算添加页/styles.css">
-    <link rel="stylesheet" href="../预算添加页/themes.css">
+    <link rel="stylesheet" href="../预算列表页/styles.css">
     <link rel="stylesheet" href="../预算添加页/budget_form.css">
+    <link rel="stylesheet" href="budget_edit.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -15,36 +15,52 @@
         <header class="header">
             <button class="icon-button back-button"><i class="fas fa-arrow-left"></i></button>
             <div class="header-title">编辑预算</div>
-            <div></div> <!-- 占位，保持标题居中 -->
+            <button class="icon-button save-button"><i class="fas fa-check"></i></button>
         </header>
 
         <!-- 主要内容区域 -->
         <main class="main-content">
             <form class="budget-form">
-                <!-- 账本选择 -->
+                <!-- 预算类型信息 -->
                 <div class="form-section">
-                    <div class="section-title">选择账本</div>
-                    <div class="account-book-options">
-                        <div class="account-book-option active">
-                            <i class="fas fa-book"></i>
-                            <span>我的账本</span>
+                    <!-- 切换按钮 - 仅用于演示 -->
+                    <div class="budget-type-switcher">
+                        <button type="button" class="type-switch-button active" id="personal-budget-switch">个人预算</button>
+                        <button type="button" class="type-switch-button" id="general-budget-switch">通用预算</button>
+                    </div>
+
+                    <!-- 个人预算信息 -->
+                    <div class="budget-type-info" id="personal-budget-info">
+                        <div class="type-icon">
+                            <i class="fas fa-wallet"></i>
                         </div>
-                        <div class="account-book-option">
-                            <i class="fas fa-users"></i>
-                            <span>家庭账本</span>
+                        <div class="type-info">
+                            <div class="type-name">个人预算</div>
+                            <div class="type-description">每月自动刷新的个人预算，用于管理日常支出。</div>
+                        </div>
+                    </div>
+
+                    <!-- 通用预算信息 -->
+                    <div class="budget-type-info" id="general-budget-info" style="display: none;">
+                        <div class="type-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="type-info">
+                            <div class="type-name">通用预算</div>
+                            <div class="type-description">创建长期或无期限的预算，适用于特定目标或项目。</div>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- 基本信息 -->
                 <div class="form-section">
                     <div class="section-title">基本信息</div>
-                    
+
                     <div class="form-group">
                         <label for="budget-name">预算名称</label>
-                        <input type="text" id="budget-name" value="餐饮月度预算">
+                        <input type="text" id="budget-name" value="月度预算">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="budget-amount">预算金额</label>
                         <div class="amount-input">
@@ -52,19 +68,43 @@
                             <input type="number" id="budget-amount" value="1000.00">
                         </div>
                     </div>
-                    
+                </div>
+
+                <!-- 时间设置 - 个人预算版本 -->
+                <div class="form-section" id="personal-budget-time">
+                    <div class="section-title">时间设置</div>
+
                     <div class="form-group">
-                        <label>预算周期</label>
-                        <div class="period-options">
-                            <div class="period-option active">
-                                <span>月度</span>
-                            </div>
-                            <div class="period-option">
-                                <span>年度</span>
-                            </div>
+                        <label for="budget-refresh-day">刷新日期</label>
+                        <select id="budget-refresh-day" class="form-select">
+                            <option value="1" selected>每月1日</option>
+                            <option value="5">每月5日</option>
+                            <option value="10">每月10日</option>
+                            <option value="15">每月15日</option>
+                            <option value="20">每月20日</option>
+                            <option value="25">每月25日</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="toggle-container">
+                            <span>启用结转</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enable-rollover" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="help-text">
+                            <i class="fas fa-info-circle"></i>
+                            <span>启用结转后，当月未花完的预算将结转到下个月，超支的金额将从下个月扣除。</span>
                         </div>
                     </div>
-                    
+                </div>
+
+                <!-- 时间设置 - 通用预算版本 -->
+                <div class="form-section" id="general-budget-time" style="display: none;">
+                    <div class="section-title">时间设置</div>
+
                     <div class="form-group">
                         <label for="budget-start-date">开始日期</label>
                         <div class="date-input">
@@ -72,7 +112,7 @@
                             <i class="fas fa-calendar"></i>
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="budget-end-date">结束日期</label>
                         <div class="date-input">
@@ -80,8 +120,22 @@
                             <i class="fas fa-calendar"></i>
                         </div>
                     </div>
+
+                    <div class="form-group">
+                        <div class="toggle-container">
+                            <span>无期限预算</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="unlimited-budget">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="help-text">
+                            <i class="fas fa-info-circle"></i>
+                            <span>启用无期限预算后，预算将没有结束日期</span>
+                        </div>
+                    </div>
                 </div>
-                
+
                 <!-- 分类预算设置 -->
                 <div class="form-section">
                     <div class="section-header">
@@ -94,7 +148,7 @@
                             </label>
                         </div>
                     </div>
-                    
+
                     <div class="category-budget-container">
                         <div class="category-selector">
                             <div class="category-option">
@@ -103,21 +157,21 @@
                                 </div>
                                 <span>餐饮</span>
                             </div>
-                            
+
                             <div class="category-option active">
                                 <div class="category-icon" style="background-color: #2196F3;">
                                     <i class="fas fa-shopping-bag"></i>
                                 </div>
                                 <span>购物</span>
                             </div>
-                            
+
                             <div class="category-option">
                                 <div class="category-icon" style="background-color: #4CAF50;">
                                     <i class="fas fa-bus"></i>
                                 </div>
                                 <span>交通</span>
                             </div>
-                            
+
                             <div class="category-option">
                                 <div class="category-icon" style="background-color: #9C27B0;">
                                     <i class="fas fa-gamepad"></i>
@@ -125,7 +179,7 @@
                                 <span>娱乐</span>
                             </div>
                         </div>
-                        
+
                         <div class="category-budget-form">
                             <div class="selected-category">
                                 <div class="category-icon" style="background-color: #2196F3;">
@@ -133,7 +187,7 @@
                                 </div>
                                 <span>购物</span>
                             </div>
-                            
+
                             <div class="form-group">
                                 <label for="category-budget-amount">分类预算金额</label>
                                 <div class="amount-input">
@@ -141,7 +195,7 @@
                                     <input type="number" id="category-budget-amount" placeholder="0.00">
                                 </div>
                             </div>
-                            
+
                             <div class="category-budget-info">
                                 <div class="info-item">
                                     <span class="info-label">总预算:</span>
@@ -156,10 +210,10 @@
                                     <span class="info-value">¥200.00</span>
                                 </div>
                             </div>
-                            
+
                             <button type="button" class="add-category-budget-button">添加分类预算</button>
                         </div>
-                        
+
                         <div class="category-budget-list">
                             <div class="category-budget-item">
                                 <div class="category-info">
@@ -171,7 +225,7 @@
                                 <div class="category-budget-amount">¥600.00</div>
                                 <button class="remove-button"><i class="fas fa-times"></i></button>
                             </div>
-                            
+
                             <div class="category-budget-item">
                                 <div class="category-info">
                                     <div class="category-icon small" style="background-color: #4CAF50;">
@@ -185,28 +239,12 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- 结转设置 -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <div class="section-title">结转设置</div>
-                        <div class="toggle-container">
-                            <span>启用结转</span>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="enable-rollover" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="rollover-info">
-                        <i class="fas fa-info-circle"></i>
-                        <p>启用结转后，当月未花完的预算将结转到下个月，超支的金额将从下个月扣除。</p>
-                    </div>
-                    
-                    <!-- 当前结转信息 -->
+
+                <!-- 当前结转信息 -->
+                <div class="form-section" id="rollover-info-section">
+                    <div class="section-title">结转情况</div>
+
                     <div class="current-rollover">
-                        <div class="rollover-header">当前结转情况</div>
                         <div class="rollover-data">
                             <div class="rollover-item">
                                 <span class="rollover-label">上月结转:</span>
@@ -219,7 +257,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- 提交按钮 -->
                 <button type="submit" class="submit-button">保存修改</button>
             </form>
