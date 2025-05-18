@@ -32,7 +32,7 @@ export function BottomNavigation({ activeItem }: BottomNavigationProps = {}) {
           <i className="fas fa-plus"></i>
         </div>
       </Link>
-      <Link href="/budgets" className={`nav-item ${isActive('budget', '/budgets') ? 'active' : ''}`}>
+      <Link href="/budgets/detail" className={`nav-item ${isActive('budget', '/budgets') || (pathname && pathname.startsWith('/budgets/')) ? 'active' : ''}`}>
         <i className="fas fa-wallet"></i>
         <span>预算</span>
       </Link>

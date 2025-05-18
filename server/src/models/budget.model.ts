@@ -68,6 +68,8 @@ export interface BudgetResponseDto {
   userId: string;
   familyId?: string;
   accountBookId?: string;
+  accountBookName?: string;
+  accountBookType?: string;
   rolloverAmount?: number;
   createdAt: Date;
   updatedAt: Date;

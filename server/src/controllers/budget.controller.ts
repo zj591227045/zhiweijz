@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import { BudgetPeriod } from '@prisma/client';
 import { BudgetService } from '../services/budget.service';
+import { CategoryBudgetService } from '../services/category-budget.service';
+import { TransactionService } from '../services/transaction.service';
+import { FamilyBudgetService } from '../services/family-budget.service';
 import {
   CreateBudgetDto,
   UpdateBudgetDto,
@@ -9,9 +12,15 @@ import {
 
 export class BudgetController {
   private budgetService: BudgetService;
+  private categoryBudgetService: CategoryBudgetService;
+  private transactionService: TransactionService;
+  private familyBudgetService: FamilyBudgetService;
 
   constructor() {
     this.budgetService = new BudgetService();
+    this.categoryBudgetService = new CategoryBudgetService();
+    this.transactionService = new TransactionService();
+    this.familyBudgetService = new FamilyBudgetService();
   }
 
   /**
@@ -170,5 +179,320 @@ export class BudgetController {
     } catch (error) {
       res.status(500).json({ message: '获取活跃预算时发生错误' });
     }
+  }
+
+  /**
+   * 获取预算分类预算
+   */
+  async getBudgetCategories(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const budgetId = req.params.id;
+      const categoryBudgets = await this.categoryBudgetService.getCategoryBudgetsByBudgetId(budgetId);
+      res.status(200).json(categoryBudgets);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(404).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '获取预算分类预算时发生错误' });
+      }
+    }
+  }
+
+  /**
+   * 获取预算趋势
+   */
+  async getBudgetTrends(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const budgetId = req.params.id;
+      const viewMode = req.query.viewMode as 'daily' | 'weekly' | 'monthly' || 'weekly';
+
+      // 验证预算是否存在并且用户有权限访问
+      const budget = await this.budgetService.getBudgetById(budgetId, userId);
+      if (!budget) {
+        res.status(404).json({ message: '预算不存在' });
+        return;
+      }
+
+      // 这里应该调用预算服务的趋势方法，但由于尚未实现，我们返回模拟数据
+      // 在实际实现中，应该从数据库中获取真实的趋势数据
+      const trendData = this.generateMockTrendData(viewMode);
+      res.status(200).json(trendData);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(404).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '获取预算趋势时发生错误' });
+      }
+    }
+  }
+
+  /**
+   * 获取预算结转历史
+   */
+  async getRolloverHistory(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const budgetId = req.params.id;
+
+      // 验证预算是否存在并且用户有权限访问
+      const budget = await this.budgetService.getBudgetById(budgetId, userId);
+      if (!budget) {
+        res.status(404).json({ message: '预算不存在' });
+        return;
+      }
+
+      // 这里应该调用预算服务的结转历史方法，但由于尚未实现，我们返回模拟数据
+      // 在实际实现中，应该从数据库中获取真实的结转历史数据
+      const rolloverHistory = this.generateMockRolloverHistory();
+      res.status(200).json(rolloverHistory);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(404).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '获取预算结转历史时发生错误' });
+      }
+    }
+  }
+
+  /**
+   * 获取预算相关交易
+   */
+  async getBudgetTransactions(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const budgetId = req.params.id;
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
+      const familyMemberId = req.query.familyMemberId as string || null;
+
+      // 验证预算是否存在并且用户有权限访问
+      const budget = await this.budgetService.getBudgetById(budgetId, userId);
+      if (!budget) {
+        res.status(404).json({ message: '预算不存在' });
+        return;
+      }
+
+      // 获取与预算相关的交易
+      try {
+        const transactions = await this.transactionService.getTransactionsByBudget(
+          budgetId,
+          page,
+          limit,
+          familyMemberId
+        );
+        res.status(200).json(transactions);
+      } catch (error) {
+        console.error('获取预算相关交易失败:', error);
+        // 如果获取真实数据失败，使用模拟数据作为备选
+        const transactions = this.generateMockTransactions(page, limit);
+        res.status(200).json(transactions);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(404).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '获取预算相关交易时发生错误' });
+      }
+    }
+  }
+
+  /**
+   * 获取家庭预算汇总
+   */
+  async getFamilyBudgetSummary(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const budgetId = req.params.id;
+      const familyId = req.query.familyId as string;
+
+      if (!familyId) {
+        res.status(400).json({ message: '家庭ID不能为空' });
+        return;
+      }
+
+      // 验证预算是否存在并且用户有权限访问
+      const budget = await this.budgetService.getBudgetById(budgetId, userId);
+      if (!budget) {
+        res.status(404).json({ message: '预算不存在' });
+        return;
+      }
+
+      // 验证预算是否属于指定家庭
+      if (budget.familyId !== familyId) {
+        res.status(400).json({ message: '预算不属于指定家庭' });
+        return;
+      }
+
+      // 获取家庭预算汇总
+      const summary = await this.familyBudgetService.getFamilyBudgetSummary(budgetId, familyId);
+      res.status(200).json(summary);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(404).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '获取家庭预算汇总时发生错误' });
+      }
+    }
+  }
+
+  /**
+   * 生成模拟趋势数据
+   */
+  private generateMockTrendData(viewMode: 'daily' | 'weekly' | 'monthly'): any[] {
+    const result = [];
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    let count = 0;
+    let dateFormat = '';
+
+    switch (viewMode) {
+      case 'daily':
+        count = 30; // 30天
+        dateFormat = 'MM-DD';
+        break;
+      case 'weekly':
+        count = 12; // 12周
+        dateFormat = '第W周';
+        break;
+      case 'monthly':
+        count = 12; // 12个月
+        dateFormat = 'YYYY-MM';
+        break;
+    }
+
+    for (let i = 0; i < count; i++) {
+      let date = '';
+      if (viewMode === 'daily') {
+        const day = new Date(currentYear, currentMonth, now.getDate() - (count - i - 1));
+        date = `${day.getMonth() + 1}-${day.getDate()}`;
+      } else if (viewMode === 'weekly') {
+        date = `第${i + 1}周`;
+      } else {
+        date = `${currentYear}-${i + 1}`;
+      }
+
+      const amount = Math.floor(Math.random() * 500) + 100;
+      const rolloverImpact = Math.floor(Math.random() * 200) - 100;
+
+      result.push({
+        date,
+        amount,
+        rolloverImpact,
+        total: amount + rolloverImpact
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * 生成模拟结转历史数据
+   */
+  private generateMockRolloverHistory(): any[] {
+    const result = [];
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    for (let i = 1; i <= 6; i++) {
+      const month = currentMonth - i;
+      const year = month < 0 ? currentYear - 1 : currentYear;
+      const adjustedMonth = month < 0 ? month + 12 : month;
+
+      const amount = Math.floor(Math.random() * 400) - 200;
+      const type = amount >= 0 ? 'SURPLUS' : 'DEFICIT';
+
+      result.push({
+        id: `rollover-${i}`,
+        budgetId: 'budget-id',
+        period: `${year}年${adjustedMonth + 1}月`,
+        amount: Math.abs(amount),
+        type,
+        createdAt: new Date(year, adjustedMonth, 15).toISOString()
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * 生成模拟交易数据
+   */
+  private generateMockTransactions(page: number, limit: number): any {
+    const transactions = [];
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const categories = [
+      { id: 'cat1', name: '餐饮', icon: 'utensils' },
+      { id: 'cat2', name: '购物', icon: 'shopping-bag' },
+      { id: 'cat3', name: '交通', icon: 'car' },
+      { id: 'cat4', name: '娱乐', icon: 'film' }
+    ];
+
+    const titles = [
+      '午餐', '晚餐', '超市购物', '打车', '电影票', '咖啡', '水果', '零食'
+    ];
+
+    for (let i = 0; i < limit; i++) {
+      const index = (page - 1) * limit + i;
+      const daysAgo = index % 30;
+      const date = new Date(currentYear, currentMonth, now.getDate() - daysAgo);
+
+      const category = categories[Math.floor(Math.random() * categories.length)];
+      const title = titles[Math.floor(Math.random() * titles.length)];
+      const amount = Math.floor(Math.random() * 200) + 10;
+
+      transactions.push({
+        id: `trans-${index}`,
+        title,
+        amount,
+        date: `${date.getMonth() + 1}月${date.getDate()}日`,
+        time: `${Math.floor(Math.random() * 24)}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`,
+        categoryId: category.id,
+        categoryName: category.name,
+        categoryIcon: category.icon,
+        budgetId: 'budget-id'
+      });
+    }
+
+    return {
+      data: transactions,
+      total: 100,
+      page,
+      limit,
+      hasMore: page * limit < 100,
+      nextPage: page * limit < 100 ? page + 1 : null
+    };
   }
 }

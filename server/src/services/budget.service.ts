@@ -215,22 +215,46 @@ export class BudgetService {
 
   /**
    * 获取当前活跃的预算
+   * 包括用户的个人预算和用户所属家庭的预算
    */
   async getActiveBudgets(userId: string): Promise<BudgetResponseDto[]> {
+    console.log(`获取用户 ${userId} 的活跃预算`);
     const budgets = await this.budgetRepository.findActiveBudgets(userId);
+    console.log(`找到 ${budgets.length} 个活跃预算`);
 
     // 获取每个预算的已使用金额
     const budgetsWithSpent = await Promise.all(
       budgets.map(async (budget) => {
         const spent = await this.budgetRepository.calculateSpentAmount(budget.id);
-        return toBudgetResponseDto(
+
+        // 确保预算包含账本信息
+        let accountBookType = 'PERSONAL';
+        let accountBookName = '个人账本';
+        let familyId = undefined;
+
+        if (budget.accountBook) {
+          accountBookType = budget.accountBook.type;
+          accountBookName = budget.accountBook.name;
+          familyId = budget.accountBook.familyId || undefined;
+        }
+
+        // 转换为响应DTO
+        const budgetDto = toBudgetResponseDto(
           budget,
           budget.category ? toCategoryResponseDto(budget.category) : undefined,
           spent
         );
+
+        // 添加账本信息
+        budgetDto.accountBookType = accountBookType;
+        budgetDto.accountBookName = accountBookName;
+        budgetDto.familyId = familyId;
+
+        return budgetDto;
       })
     );
 
+    console.log(`处理完成，返回 ${budgetsWithSpent.length} 个预算`);
     return budgetsWithSpent;
   }
 }

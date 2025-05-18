@@ -7,6 +7,7 @@ import { randomUUID } from 'crypto';
 import { FamilyRepository, FamilyWithMembers } from '../repositories/family.repository';
 import { UserRepository } from '../repositories/user.repository';
 import { AccountBookService } from './account-book.service';
+import { FamilyBudgetService } from './family-budget.service';
 import {
   AcceptInvitationDto,
   CreateFamilyDto,
@@ -31,11 +32,13 @@ export class FamilyService {
   private familyRepository: FamilyRepository;
   private userRepository: UserRepository;
   private accountBookService: AccountBookService;
+  private familyBudgetService: FamilyBudgetService;
 
   constructor() {
     this.familyRepository = new FamilyRepository();
     this.userRepository = new UserRepository();
     this.accountBookService = new AccountBookService();
+    this.familyBudgetService = new FamilyBudgetService();
   }
 
   /**
@@ -244,6 +247,27 @@ export class FamilyService {
       isRegistered: memberData.isRegistered !== undefined ? memberData.isRegistered : !!memberData.userId,
     });
 
+    // 如果是已注册用户，为其创建默认预算
+    if (member.userId && member.isRegistered) {
+      try {
+        // 获取家庭账本
+        const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(userId, familyId, { limit: 100 });
+        if (familyAccountBooks && familyAccountBooks.data && familyAccountBooks.data.length > 0) {
+          // 为每个家庭账本创建默认预算
+          for (const accountBook of familyAccountBooks.data) {
+            await this.familyBudgetService.createDefaultBudgetsForNewMember(
+              member.userId,
+              familyId,
+              accountBook.id
+            );
+          }
+        }
+      } catch (error) {
+        console.error(`为新家庭成员 ${member.userId} 创建默认预算失败:`, error);
+        // 不影响成员添加流程，继续执行
+      }
+    }
+
     return toFamilyMemberResponseDto(member);
   }
 
@@ -289,6 +313,16 @@ export class FamilyService {
     const userMember = await this.familyRepository.findFamilyMemberByUserAndFamily(userId, familyId);
     if (userMember && userMember.id === memberId) {
       throw new Error('不能删除自己');
+    }
+
+    // 如果是已注册用户，删除其在家庭中的预算
+    if (member.userId && member.isRegistered) {
+      try {
+        await this.familyBudgetService.deleteMemberBudgets(member.userId, familyId);
+      } catch (error) {
+        console.error(`删除家庭成员 ${member.userId} 的预算失败:`, error);
+        // 不影响成员删除流程，继续执行
+      }
     }
 
     // 删除家庭成员

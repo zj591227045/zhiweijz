@@ -45,8 +45,14 @@ export function getCurrentMonthRange(): { startDate: string; endDate: string } {
  * @param currency 货币符号
  * @returns 格式化后的金额字符串
  */
-export function formatCurrency(amount: number, currency: string = "¥") {
-  return `${currency}${amount.toFixed(2)}`;
+export function formatCurrency(amount: number | undefined | null, currency: string = "¥") {
+  if (amount === undefined || amount === null) return `${currency}0.00`;
+
+  // 处理负数
+  const isNegative = amount < 0;
+  const absAmount = Math.abs(amount);
+
+  return isNegative ? `-${currency}${absAmount.toFixed(2)}` : `${currency}${absAmount.toFixed(2)}`;
 }
 
 /**

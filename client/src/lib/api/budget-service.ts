@@ -246,11 +246,73 @@ export const budgetService = {
    */
   async getBudgetById(budgetId: string): Promise<Budget> {
     try {
+      console.log(`发送获取预算详情请求: /budgets/${budgetId}`);
       const response = await apiClient.get<Budget>(`/budgets/${budgetId}`);
+      console.log('获取预算详情响应:', response);
       return response;
     } catch (error) {
       console.error('获取预算详情失败:', error);
       throw error;
+    }
+  },
+
+  /**
+   * 获取预算趋势数据
+   */
+  async getBudgetTrends(budgetId: string, viewMode: 'daily' | 'weekly' | 'monthly' = 'weekly'): Promise<any[]> {
+    try {
+      console.log(`发送获取预算趋势请求: /budgets/${budgetId}/trends?viewMode=${viewMode}`);
+      const response = await apiClient.get<any[]>(`/budgets/${budgetId}/trends?viewMode=${viewMode}`);
+      console.log('获取预算趋势响应:', response);
+      return response || [];
+    } catch (error) {
+      console.error('获取预算趋势失败:', error);
+      return [];
+    }
+  },
+
+  /**
+   * 获取活跃预算
+   */
+  async getActiveBudgets(): Promise<any[]> {
+    try {
+      console.log('发送获取活跃预算请求: /budgets/active');
+      const response = await apiClient.get<any[]>('/budgets/active');
+      console.log('获取活跃预算响应:', response);
+      return response || [];
+    } catch (error) {
+      console.error('获取活跃预算失败:', error);
+      return [];
+    }
+  },
+
+  /**
+   * 获取预算结转历史
+   */
+  async getRolloverHistory(budgetId: string): Promise<any[]> {
+    try {
+      console.log(`发送获取结转历史请求: /budgets/${budgetId}/rollover-history`);
+      const response = await apiClient.get<any[]>(`/budgets/${budgetId}/rollover-history`);
+      console.log('获取结转历史响应:', response);
+      return response || [];
+    } catch (error) {
+      console.error('获取结转历史失败:', error);
+      return [];
+    }
+  },
+
+  /**
+   * 获取预算相关交易
+   */
+  async getBudgetTransactions(budgetId: string, page: number = 1, limit: number = 10): Promise<any> {
+    try {
+      console.log(`发送获取预算交易请求: /budgets/${budgetId}/transactions?page=${page}&limit=${limit}`);
+      const response = await apiClient.get<any>(`/budgets/${budgetId}/transactions?page=${page}&limit=${limit}`);
+      console.log('获取预算交易响应:', response);
+      return response || { data: [], hasMore: false, nextPage: null };
+    } catch (error) {
+      console.error('获取预算交易失败:', error);
+      return { data: [], hasMore: false, nextPage: null };
     }
   },
 

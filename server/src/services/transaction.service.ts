@@ -1,7 +1,9 @@
-import { TransactionType } from '@prisma/client';
+import { TransactionType, PrismaClient } from '@prisma/client';
 import { TransactionRepository } from '../repositories/transaction.repository';
 import { CategoryRepository } from '../repositories/category.repository';
 import { BudgetTransactionService } from './budget-transaction.service';
+
+const prisma = new PrismaClient();
 import {
   CreateTransactionDto,
   UpdateTransactionDto,
@@ -195,5 +197,95 @@ export class TransactionService {
       count: stats.count,
       byCategory: categoryStats,
     };
+  }
+
+  /**
+   * 获取预算相关交易
+   * @param budgetId 预算ID
+   * @param page 页码
+   * @param limit 每页数量
+   * @param familyMemberId 家庭成员ID（可选）
+   */
+  async getTransactionsByBudget(
+    budgetId: string,
+    page: number = 1,
+    limit: number = 10,
+    familyMemberId?: string | null
+  ): Promise<any> {
+    try {
+      // 获取预算信息
+      const budget = await prisma.budget.findUnique({
+        where: { id: budgetId },
+        select: {
+          id: true,
+          userId: true,
+          familyId: true,
+          accountBookId: true,
+          startDate: true,
+          endDate: true,
+          categoryId: true
+        }
+      });
+
+      if (!budget) {
+        throw new Error('预算不存在');
+      }
+
+      // 构建查询条件
+      const where: any = {
+        accountBookId: budget.accountBookId,
+        date: {
+          gte: budget.startDate,
+          lte: budget.endDate
+        },
+        type: 'EXPENSE'
+      };
+
+      // 如果是分类预算，添加分类过滤
+      if (budget.categoryId) {
+        where.categoryId = budget.categoryId;
+      }
+
+      // 如果指定了家庭成员，添加家庭成员过滤
+      if (familyMemberId) {
+        where.userId = familyMemberId;
+      }
+
+      // 查询交易记录
+      const transactions = await prisma.transaction.findMany({
+        where,
+        include: {
+          category: true
+        },
+        orderBy: {
+          date: 'desc'
+        },
+        skip: (page - 1) * limit,
+        take: limit
+      });
+
+      // 查询总数
+      const total = await prisma.transaction.count({ where });
+
+      // 转换为响应格式
+      const data = transactions.map(transaction =>
+        toTransactionResponseDto(
+          transaction,
+          transaction.category ? toCategoryResponseDto(transaction.category) : undefined
+        )
+      );
+
+      return {
+        data,
+        total,
+        page,
+        limit,
+        hasMore: page * limit < total,
+        nextPage: page * limit < total ? page + 1 : null
+      };
+    } catch (error) {
+      console.error('获取预算相关交易失败:', error);
+      throw error;
+    }
   }
 }

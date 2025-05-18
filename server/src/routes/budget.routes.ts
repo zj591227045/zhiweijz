@@ -26,4 +26,19 @@ router.put('/:id', (req, res) => budgetController.updateBudget(req, res));
 // 删除预算
 router.delete('/:id', (req, res) => budgetController.deleteBudget(req, res));
 
+// 获取预算分类预算
+router.get('/:id/categories', (req, res) => budgetController.getBudgetCategories(req, res));
+
+// 获取预算趋势
+router.get('/:id/trends', (req, res) => budgetController.getBudgetTrends(req, res));
+
+// 获取预算结转历史
+router.get('/:id/rollover-history', (req, res) => budgetController.getRolloverHistory(req, res));
+
+// 获取预算相关交易
+router.get('/:id/transactions', (req, res) => budgetController.getBudgetTransactions(req, res));
+
+// 获取家庭预算汇总
+router.get('/:id/family-summary', (req, res) => budgetController.getFamilyBudgetSummary(req, res));
+
 export default router;

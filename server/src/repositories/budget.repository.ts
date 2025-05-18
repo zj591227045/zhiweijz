@@ -1,15 +1,80 @@
 import { PrismaClient, Budget, BudgetPeriod, Prisma, Category } from '@prisma/client';
 import { CreateBudgetDto, UpdateBudgetDto, BudgetQueryParams } from '../models/budget.model';
 
-// 扩展Budget类型，包含category和categoryBudgets关联
+// 扩展Budget类型，包含category、accountBook和categoryBudgets关联
 export type BudgetWithCategory = Budget & {
   category?: Category | null;
   categoryBudgets?: any[];
+  accountBook?: {
+    id: string;
+    name: string;
+    type: string;
+    familyId?: string | null;
+  } | null;
 };
 
 const prisma = new PrismaClient();
 
 export class BudgetRepository {
+  /**
+   * 根据用户ID和家庭ID查找预算
+   */
+  async findByUserAndFamily(userId: string, familyId: string): Promise<BudgetWithCategory[]> {
+    return prisma.budget.findMany({
+      where: {
+        userId,
+        familyId,
+      },
+      include: {
+        category: true,
+      },
+    });
+  }
+
+  /**
+   * 计算家庭成员在指定预算期间的支出金额
+   */
+  async calculateMemberSpentAmount(
+    budgetId: string,
+    userId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<number> {
+    // 获取预算信息
+    const budget = await prisma.budget.findUnique({
+      where: { id: budgetId },
+      select: { familyId: true, accountBookId: true }
+    });
+
+    if (!budget) {
+      return 0;
+    }
+
+    // 查询该成员在该预算期间的所有支出交易
+    const transactions = await prisma.transaction.findMany({
+      where: {
+        userId,
+        familyId: budget.familyId,
+        accountBookId: budget.accountBookId,
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+        type: 'EXPENSE',
+      },
+      select: {
+        amount: true,
+      },
+    });
+
+    // 计算总支出
+    const totalSpent = transactions.reduce(
+      (sum, transaction) => sum + Number(transaction.amount),
+      0
+    );
+
+    return totalSpent;
+  }
   /**
    * 创建预算
    */
@@ -191,16 +256,55 @@ export class BudgetRepository {
 
   /**
    * 获取当前活跃的预算
+   * 包括用户的个人预算和用户所属家庭的预算
    */
   async findActiveBudgets(userId: string, date: Date = new Date()): Promise<BudgetWithCategory[]> {
-    return prisma.budget.findMany({
-      where: {
-        userId,
+    // 1. 查找用户所属的所有家庭ID
+    const familyMembers = await prisma.familyMember.findMany({
+      where: { userId },
+      select: { familyId: true },
+    });
+
+    const familyIds = familyMembers.map(member => member.familyId);
+
+    // 2. 构建查询条件：包括用户个人预算和用户所属家庭的预算
+    console.log(`查询用户 ${userId} 的活跃预算，包括家庭IDs: ${familyIds.join(', ') || '无'}`);
+
+    // 构建查询条件
+    const where = {
+      OR: [] as any[]
+    };
+
+    // 添加用户个人预算条件
+    where.OR.push({
+      userId,
+      startDate: { lte: date },
+      endDate: { gte: date },
+    });
+
+    // 只有当用户属于至少一个家庭时，才添加家庭预算条件
+    if (familyIds.length > 0) {
+      where.OR.push({
+        familyId: { in: familyIds },
         startDate: { lte: date },
         endDate: { gte: date },
-      },
+      });
+    }
+
+    console.log('查询条件:', JSON.stringify(where, null, 2));
+
+    return prisma.budget.findMany({
+      where,
       include: {
         category: true,
+        accountBook: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            familyId: true
+          }
+        }
       },
     });
   }
