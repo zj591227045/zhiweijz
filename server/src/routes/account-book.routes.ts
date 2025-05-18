@@ -35,4 +35,13 @@ router.get('/:id/llm-settings', accountBookController.getAccountBookLLMSetting.b
 // 更新账本LLM设置
 router.put('/:id/llm-settings', accountBookController.updateAccountBookLLMSetting.bind(accountBookController));
 
+// 创建家庭账本
+router.post('/family/:familyId', accountBookController.createFamilyAccountBook.bind(accountBookController));
+
+// 获取家庭账本列表
+router.get('/family/:familyId', accountBookController.getFamilyAccountBooks.bind(accountBookController));
+
+// 重置家庭账本
+router.post('/:id/reset', accountBookController.resetFamilyAccountBook.bind(accountBookController));
+
 export default router;

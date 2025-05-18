@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { AccountBook } from "@/types";
+import { AccountBook, AccountBookType, CreateAccountBookData, UpdateAccountBookData } from "@/types";
 import { apiClient } from "@/lib/api";
 
 interface AccountBookState {
@@ -9,9 +9,11 @@ interface AccountBookState {
   isLoading: boolean;
   error: string | null;
   fetchAccountBooks: () => Promise<void>;
+  fetchFamilyAccountBooks: (familyId: string) => Promise<void>;
   setCurrentAccountBook: (accountBookId: string) => void;
-  createAccountBook: (name: string, description?: string) => Promise<void>;
-  updateAccountBook: (id: string, name: string, description?: string) => Promise<void>;
+  createAccountBook: (data: CreateAccountBookData) => Promise<void>;
+  createFamilyAccountBook: (familyId: string, data: CreateAccountBookData) => Promise<void>;
+  updateAccountBook: (id: string, data: UpdateAccountBookData) => Promise<void>;
   deleteAccountBook: (id: string) => Promise<void>;
   clearError: () => void;
 }
@@ -65,6 +67,43 @@ export const useAccountBookStore = create<AccountBookState>()(
         }
       },
 
+      fetchFamilyAccountBooks: async (familyId: string) => {
+        try {
+          set({ isLoading: true, error: null });
+          const response = await apiClient.get<any>(`/account-books/family/${familyId}`);
+
+          // 确保accountBooks是一个数组
+          let accountBooks: AccountBook[] = [];
+
+          // 处理不同的API响应格式
+          if (Array.isArray(response)) {
+            accountBooks = response;
+          } else if (response && typeof response === 'object') {
+            // 如果响应是一个对象，尝试获取data字段
+            if (Array.isArray(response.data)) {
+              accountBooks = response.data;
+            } else if (response.books && Array.isArray(response.books)) {
+              accountBooks = response.books;
+            }
+          }
+
+          console.log("获取到的家庭账本数据:", accountBooks);
+
+          // 合并账本列表，保留现有的个人账本
+          const { accountBooks: existingBooks } = get();
+          const personalBooks = existingBooks.filter(book => book.type === AccountBookType.PERSONAL);
+          const mergedBooks = [...personalBooks, ...accountBooks];
+
+          set({ accountBooks: mergedBooks, isLoading: false });
+        } catch (error: any) {
+          console.error("获取家庭账本失败:", error);
+          set({
+            isLoading: false,
+            error: error.response?.data?.error?.message || "获取家庭账本失败",
+          });
+        }
+      },
+
       setCurrentAccountBook: (accountBookId: string) => {
         const { accountBooks } = get();
         const accountBook = accountBooks.find(book => book.id === accountBookId);
@@ -73,13 +112,10 @@ export const useAccountBookStore = create<AccountBookState>()(
         }
       },
 
-      createAccountBook: async (name: string, description?: string) => {
+      createAccountBook: async (data: CreateAccountBookData) => {
         try {
           set({ isLoading: true, error: null });
-          const newAccountBook = await apiClient.post<AccountBook>("/account-books", {
-            name,
-            description,
-          });
+          const newAccountBook = await apiClient.post<AccountBook>("/account-books", data);
 
           const { accountBooks } = get();
           set({
@@ -94,13 +130,28 @@ export const useAccountBookStore = create<AccountBookState>()(
         }
       },
 
-      updateAccountBook: async (id: string, name: string, description?: string) => {
+      createFamilyAccountBook: async (familyId: string, data: CreateAccountBookData) => {
         try {
           set({ isLoading: true, error: null });
-          const updatedAccountBook = await apiClient.put<AccountBook>(`/account-books/${id}`, {
-            name,
-            description,
+          const newAccountBook = await apiClient.post<AccountBook>(`/account-books/family/${familyId}`, data);
+
+          const { accountBooks } = get();
+          set({
+            accountBooks: [...accountBooks, newAccountBook],
+            isLoading: false,
           });
+        } catch (error: any) {
+          set({
+            isLoading: false,
+            error: error.response?.data?.error?.message || "创建家庭账本失败",
+          });
+        }
+      },
+
+      updateAccountBook: async (id: string, data: UpdateAccountBookData) => {
+        try {
+          set({ isLoading: true, error: null });
+          const updatedAccountBook = await apiClient.put<AccountBook>(`/account-books/${id}`, data);
 
           const { accountBooks, currentAccountBook } = get();
           set({

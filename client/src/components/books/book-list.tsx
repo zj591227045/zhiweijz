@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { BookCard } from "./book-card";
-import { AccountBook } from "@/types";
+import { AccountBook, AccountBookType } from "@/types";
 
 interface BookListProps {
   books: AccountBook[];
@@ -10,6 +10,7 @@ interface BookListProps {
   onSwitchBook: (book: AccountBook) => void;
   onEditBook: (book: AccountBook) => void;
   onDeleteBook: (book: AccountBook) => void;
+  onResetBook?: (book: AccountBook) => void; // 可选的重置功能，仅用于家庭账本
 }
 
 export function BookList({
@@ -18,14 +19,14 @@ export function BookList({
   onSwitchBook,
   onEditBook,
   onDeleteBook,
+  onResetBook,
 }: BookListProps) {
   // 确保books是一个数组
   const safeBooks = Array.isArray(books) ? books : [];
 
   // 分类账本：个人账本和家庭账本
-  // 目前API没有区分，所以暂时全部当作个人账本
-  const personalBooks = safeBooks;
-  const familyBooks: AccountBook[] = [];
+  const personalBooks = safeBooks.filter(book => book.type === AccountBookType.PERSONAL);
+  const familyBooks = safeBooks.filter(book => book.type === AccountBookType.FAMILY);
 
   return (
     <div className="space-y-6">
@@ -65,6 +66,7 @@ export function BookList({
                 onSwitch={() => onSwitchBook(book)}
                 onEdit={() => onEditBook(book)}
                 onDelete={() => onDeleteBook(book)}
+                onReset={onResetBook ? () => onResetBook(book) : undefined}
               />
             ))}
           </div>

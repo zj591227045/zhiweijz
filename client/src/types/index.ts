@@ -41,10 +41,17 @@ export interface ChangePasswordData {
 /**
  * 账本相关类型
  */
+export enum AccountBookType {
+  PERSONAL = "PERSONAL",
+  FAMILY = "FAMILY",
+}
+
 export interface AccountBook {
   id: string;
   name: string;
   description?: string;
+  type: AccountBookType;
+  familyId?: string;
   isDefault: boolean;
   createdAt: string;
   updatedAt: string;
@@ -255,6 +262,23 @@ export interface CreateFamilyMemberData {
   role?: FamilyRole;
   userId?: string;
   isRegistered?: boolean;
+}
+
+/**
+ * 账本创建和更新类型
+ */
+export interface CreateAccountBookData {
+  name: string;
+  description?: string;
+  type?: AccountBookType;
+  familyId?: string;
+  isDefault?: boolean;
+}
+
+export interface UpdateAccountBookData {
+  name?: string;
+  description?: string;
+  isDefault?: boolean;
 }
 
 /**

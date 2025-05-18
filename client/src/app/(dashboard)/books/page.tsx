@@ -30,10 +30,39 @@ export default function BookListPage() {
   const [bookToDelete, setBookToDelete] = useState<AccountBook | null>(null);
   const [showSwitchConfirm, setShowSwitchConfirm] = useState(false);
   const [bookToSwitch, setBookToSwitch] = useState<AccountBook | null>(null);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [bookToReset, setBookToReset] = useState<AccountBook | null>(null);
 
   // 获取账本列表
   useEffect(() => {
-    fetchAccountBooks();
+    const loadAllAccountBooks = async () => {
+      try {
+        // 先获取个人账本
+        await fetchAccountBooks();
+
+        // 获取用户的家庭列表
+        const response = await fetch('/api/families', {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const families = await response.json();
+
+          // 为每个家庭获取账本
+          const fetchPromises = families.map((family: any) =>
+            useAccountBookStore.getState().fetchFamilyAccountBooks(family.id)
+          );
+
+          await Promise.all(fetchPromises);
+        }
+      } catch (error) {
+        console.error('加载账本失败:', error);
+      }
+    };
+
+    loadAllAccountBooks();
   }, [fetchAccountBooks]);
 
   // 错误处理
@@ -111,6 +140,43 @@ export default function BookListPage() {
     setBookToSwitch(null);
   };
 
+  // 处理重置账本
+  const handleResetBook = (book: AccountBook) => {
+    setBookToReset(book);
+    setShowResetConfirm(true);
+  };
+
+  // 确认重置账本
+  const confirmResetBook = async () => {
+    if (!bookToReset) return;
+
+    try {
+      // 调用API重置账本
+      const response = await fetch(`/api/account-books/${bookToReset.id}/reset`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ confirm: true }),
+      });
+
+      if (response.ok) {
+        toast.success(`账本 "${bookToReset.name}" 已重置`);
+        // 重新获取账本列表
+        fetchAccountBooks();
+      } else {
+        const error = await response.json();
+        toast.error(error.message || '重置账本失败');
+      }
+    } catch (error) {
+      console.error('重置账本失败:', error);
+      toast.error('重置账本失败');
+    } finally {
+      setShowResetConfirm(false);
+      setBookToReset(null);
+    }
+  };
+
 
 
   // 确保accountBooks是一个数组
@@ -140,6 +206,7 @@ export default function BookListPage() {
               onSwitchBook={handleSwitchBook}
               onEditBook={handleEditBook}
               onDeleteBook={handleDeleteBook}
+              onResetBook={handleResetBook}
             />
           )}
 
@@ -170,6 +237,18 @@ export default function BookListPage() {
         cancelText="取消"
         onConfirm={confirmSwitchBook}
         onCancel={() => setShowSwitchConfirm(false)}
+      />
+
+      {/* 重置账本确认对话框 */}
+      <ConfirmDialog
+        isOpen={showResetConfirm}
+        title="重置家庭账本"
+        message={`确定要重置账本 "${bookToReset?.name}" 吗？此操作将清除所有交易记录、预算信息和历史记录，且不可恢复。`}
+        confirmText="重置"
+        cancelText="取消"
+        onConfirm={confirmResetBook}
+        onCancel={() => setShowResetConfirm(false)}
+        isDangerous
       />
     </PageContainer>
   );

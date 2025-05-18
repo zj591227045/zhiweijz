@@ -17,6 +17,8 @@ export class AccountBookRepository {
         userId,
         name: accountBookData.name,
         description: accountBookData.description,
+        type: accountBookData.type || 'PERSONAL',
+        familyId: accountBookData.familyId,
         isDefault: accountBookData.isDefault ?? false,
       },
     });
@@ -38,18 +40,31 @@ export class AccountBookRepository {
     userId: string,
     params: AccountBookQueryParams
   ): Promise<{ accountBooks: AccountBook[]; total: number }> {
-    const { page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = params;
+    const { page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc', type, familyId } = params;
     const skip = (page - 1) * limit;
+
+    // 构建查询条件
+    const whereCondition: Prisma.AccountBookWhereInput = { userId };
+
+    // 添加类型过滤
+    if (type) {
+      whereCondition.type = type;
+    }
+
+    // 添加家庭ID过滤
+    if (familyId) {
+      whereCondition.familyId = familyId;
+    }
 
     const [accountBooks, total] = await Promise.all([
       prisma.accountBook.findMany({
-        where: { userId },
+        where: whereCondition,
         skip,
         take: limit,
         orderBy: { [sortBy]: sortOrder },
       }),
       prisma.accountBook.count({
-        where: { userId },
+        where: whereCondition,
       }),
     ]);
 
@@ -88,6 +103,8 @@ export class AccountBookRepository {
       data: {
         name: accountBookData.name,
         description: accountBookData.description,
+        type: accountBookData.type,
+        familyId: accountBookData.familyId,
         isDefault: accountBookData.isDefault,
       },
     });
@@ -114,6 +131,75 @@ export class AccountBookRepository {
       data: {
         isDefault: false,
       },
+    });
+  }
+
+  /**
+   * 根据家庭ID查找所有账本
+   */
+  async findAllByFamilyId(
+    familyId: string,
+    params: AccountBookQueryParams
+  ): Promise<{ accountBooks: AccountBook[]; total: number }> {
+    const { page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = params;
+    const skip = (page - 1) * limit;
+
+    const [accountBooks, total] = await Promise.all([
+      prisma.accountBook.findMany({
+        where: {
+          familyId,
+          type: 'FAMILY'
+        },
+        skip,
+        take: limit,
+        orderBy: { [sortBy]: sortOrder },
+      }),
+      prisma.accountBook.count({
+        where: {
+          familyId,
+          type: 'FAMILY'
+        },
+      }),
+    ]);
+
+    return { accountBooks, total };
+  }
+
+  /**
+   * 重置账本
+   * 清除所有交易记录、预算信息和历史记录
+   */
+  async resetAccountBook(accountBookId: string): Promise<void> {
+    // 使用事务确保所有操作要么全部成功，要么全部失败
+    await prisma.$transaction(async (tx) => {
+      // 1. 删除所有关联的交易记录
+      await tx.transaction.deleteMany({
+        where: { accountBookId },
+      });
+
+      // 2. 删除所有分类预算
+      const budgets = await tx.budget.findMany({
+        where: { accountBookId },
+        select: { id: true },
+      });
+
+      const budgetIds = budgets.map(budget => budget.id);
+
+      if (budgetIds.length > 0) {
+        await tx.categoryBudget.deleteMany({
+          where: { budgetId: { in: budgetIds } },
+        });
+      }
+
+      // 3. 删除所有预算
+      await tx.budget.deleteMany({
+        where: { accountBookId },
+      });
+
+      // 注意：我们不删除分类，因为分类是账本的基础结构
+      // 但我们可以重置分类的使用统计等信息（如果有的话）
+
+      console.log(`已重置账本 ${accountBookId} 的所有数据`);
     });
   }
 

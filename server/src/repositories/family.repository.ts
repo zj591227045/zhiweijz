@@ -282,4 +282,22 @@ export class FamilyRepository {
       where: { id },
     });
   }
+
+  /**
+   * 检查用户是否为家庭成员
+   */
+  async isFamilyMember(userId: string, familyId: string): Promise<boolean> {
+    // 检查用户是否为家庭创建者
+    const family = await prisma.family.findUnique({
+      where: { id: familyId },
+    });
+
+    if (family && family.createdBy === userId) {
+      return true;
+    }
+
+    // 检查用户是否为家庭成员
+    const member = await this.findFamilyMemberByUserAndFamily(userId, familyId);
+    return !!member;
+  }
 }

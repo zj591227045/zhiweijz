@@ -92,7 +92,7 @@ export default function SettingsPage() {
           </div>
           <div className="item-content">
             <div className="item-title">家庭管理</div>
-            <div className="item-description">管理家庭人员及账本</div>
+            <div className="item-description">管理家庭人员</div>
           </div>
           <div className="item-action">
             <i className="fas fa-chevron-right"></i>

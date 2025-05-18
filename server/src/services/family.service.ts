@@ -6,6 +6,7 @@ enum Role {
 import { randomUUID } from 'crypto';
 import { FamilyRepository, FamilyWithMembers } from '../repositories/family.repository';
 import { UserRepository } from '../repositories/user.repository';
+import { AccountBookService } from './account-book.service';
 import {
   AcceptInvitationDto,
   CreateFamilyDto,
@@ -29,10 +30,12 @@ import {
 export class FamilyService {
   private familyRepository: FamilyRepository;
   private userRepository: UserRepository;
+  private accountBookService: AccountBookService;
 
   constructor() {
     this.familyRepository = new FamilyRepository();
     this.userRepository = new UserRepository();
+    this.accountBookService = new AccountBookService();
   }
 
   /**
@@ -57,6 +60,14 @@ export class FamilyService {
       isRegistered: true,
     });
 
+    // 自动创建家庭账本
+    try {
+      await this.createDefaultFamilyAccountBook(userId, family.id, family.name);
+    } catch (error) {
+      console.error('创建家庭账本失败:', error);
+      // 不影响家庭创建流程，继续执行
+    }
+
     return toFamilyResponseDto(
       family,
       [member],
@@ -66,6 +77,19 @@ export class FamilyService {
         email: creator.email,
       }
     );
+  }
+
+  /**
+   * 为家庭创建默认账本
+   * @private
+   */
+  private async createDefaultFamilyAccountBook(userId: string, familyId: string, familyName: string): Promise<void> {
+    await this.accountBookService.createFamilyAccountBook(userId, familyId, {
+      name: `${familyName}的家庭账本`,
+      description: '系统自动创建的家庭账本',
+      isDefault: true,
+    });
+    console.log(`已为家庭 ${familyId} 创建默认账本`);
   }
 
   /**

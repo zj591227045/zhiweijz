@@ -47,6 +47,7 @@ model Family {
   members      FamilyMember[]
   invitations  Invitation[]
   transactions Transaction[]
+  accountBooks AccountBook[]
 
   @@map("families")
 }
@@ -208,10 +209,13 @@ model AccountBook {
   name         String
   description  String?
   userId       String              @map("user_id")
+  type         AccountBookType     @default(PERSONAL) @map("type")
+  familyId     String?             @map("family_id")
   isDefault    Boolean             @default(false) @map("is_default")
   createdAt    DateTime            @default(now()) @map("created_at")
   updatedAt    DateTime            @updatedAt @map("updated_at")
   user         User                @relation(fields: [userId], references: [id])
+  family       Family?             @relation(fields: [familyId], references: [id])
   llmSettings  AccountLLMSetting[]
   budgets      Budget[]
   categories   Category[]
@@ -263,6 +267,11 @@ enum BudgetPeriod {
 enum Role {
   ADMIN
   MEMBER
+}
+
+enum AccountBookType {
+  PERSONAL
+  FAMILY
 }
 
 model UserCategoryConfig {

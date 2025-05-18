@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useBudgetStore } from '@/store/budget-store';
+import { useAccountBookStore } from '@/store/account-book-store';
 import { accountBookService, budgetService } from '@/lib/api/budget-service';
 import { familyService } from '@/lib/api/budget-service';
-import { AccountBookSelector } from './account-book-selector';
 import { BudgetTypeSelector } from './budget-type-selector';
 import { MonthSelector } from './month-selector';
 import { BudgetOverview } from './budget-overview';
@@ -18,6 +18,7 @@ import { PageContainer } from '@/components/layout/page-container';
 
 export function BudgetList() {
   const router = useRouter();
+  const { currentAccountBook } = useAccountBookStore();
   const {
     accountBooks,
     selectedAccountBook,
@@ -151,22 +152,30 @@ export function BudgetList() {
       console.log('账本数据更新 - 处理后的数据:', processedData);
       setAccountBooks(processedData);
 
-      // 如果有账本数据且没有选中的账本，选择默认账本或第一个账本
-      if (processedData.length > 0 && !selectedAccountBook) {
-        console.log('账本数据更新 - 没有选中的账本，选择默认账本或第一个账本');
+      // 使用全局账本作为选中的账本
+      if (currentAccountBook && !selectedAccountBook) {
+        console.log('账本数据更新 - 使用全局账本:', currentAccountBook);
+        // 在processedData中查找匹配的账本
+        const matchedBook = processedData.find(book => book.id === currentAccountBook.id);
+        if (matchedBook) {
+          setSelectedAccountBook(matchedBook);
+        } else if (processedData.length > 0) {
+          // 如果找不到匹配的账本，使用默认账本或第一个账本
+          const defaultBook = processedData.find(book => book.isDefault) || processedData[0];
+          console.log('账本数据更新 - 使用默认账本:', defaultBook);
+          setSelectedAccountBook(defaultBook);
+        }
+      } else if (!selectedAccountBook && processedData.length > 0) {
+        // 如果没有全局账本和选中的账本，选择默认账本或第一个账本
         const defaultBook = processedData.find(book => book.isDefault) || processedData[0];
-        console.log('账本数据更新 - 选择的账本:', defaultBook);
+        console.log('账本数据更新 - 选择默认账本:', defaultBook);
         setSelectedAccountBook(defaultBook);
-      } else if (selectedAccountBook) {
-        console.log('账本数据更新 - 已有选中的账本:', selectedAccountBook);
-      } else {
-        console.log('账本数据更新 - 没有账本数据可选择');
       }
     } else {
       console.log('账本数据更新 - 没有有效数据');
       setAccountBooks([]);
     }
-  }, [accountBooksData, selectedAccountBook, setAccountBooks, setSelectedAccountBook]);
+  }, [accountBooksData, currentAccountBook, selectedAccountBook, setAccountBooks, setSelectedAccountBook]);
 
   // 初始化家庭成员列表
   useEffect(() => {
@@ -257,6 +266,18 @@ export function BudgetList() {
     setIsLoading(isLoadingAccountBooks || isLoadingBudgets || isLoadingFamilyMembers);
   }, [isLoadingAccountBooks, isLoadingBudgets, isLoadingFamilyMembers, setIsLoading]);
 
+  // 监听全局账本变化
+  useEffect(() => {
+    if (currentAccountBook && accountBooks.length > 0) {
+      // 在accountBooks中查找匹配的账本
+      const matchedBook = accountBooks.find(book => book.id === currentAccountBook.id);
+      if (matchedBook && (!selectedAccountBook || selectedAccountBook.id !== matchedBook.id)) {
+        console.log('全局账本变化 - 更新选中的账本:', matchedBook);
+        setSelectedAccountBook(matchedBook);
+      }
+    }
+  }, [currentAccountBook, accountBooks, selectedAccountBook, setSelectedAccountBook]);
+
   // 处理添加预算
   const handleAddBudget = () => {
     router.push('/budgets/new');
@@ -274,8 +295,6 @@ export function BudgetList() {
 
   return (
     <PageContainer title="预算管理" rightActions={rightActions} activeNavItem="budget">
-      <AccountBookSelector />
-
       <BudgetTypeSelector />
 
       <MonthSelector />

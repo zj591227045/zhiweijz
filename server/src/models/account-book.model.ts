@@ -1,4 +1,4 @@
-import { AccountBook } from '@prisma/client';
+import { AccountBook, AccountBookType } from '@prisma/client';
 
 /**
  * 账本创建DTO
@@ -7,6 +7,8 @@ export interface CreateAccountBookDto {
   name: string;
   description?: string;
   isDefault?: boolean;
+  type?: AccountBookType;
+  familyId?: string;
 }
 
 /**
@@ -16,6 +18,8 @@ export interface UpdateAccountBookDto {
   name?: string;
   description?: string;
   isDefault?: boolean;
+  type?: AccountBookType;
+  familyId?: string;
 }
 
 /**
@@ -26,6 +30,8 @@ export interface AccountBookQueryParams {
   limit?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  type?: AccountBookType;
+  familyId?: string;
 }
 
 /**
@@ -36,6 +42,8 @@ export interface AccountBookResponseDto {
   name: string;
   description?: string;
   userId: string;
+  type: AccountBookType;
+  familyId?: string;
   isDefault: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -59,18 +67,20 @@ export interface AccountBookPaginatedResponseDto {
  * 将账本实体转换为响应DTO
  */
 export function toAccountBookResponseDto(
-  accountBook: AccountBook, 
+  accountBook: AccountBook,
   transactionCount?: number,
   categoryCount?: number,
   budgetCount?: number
 ): AccountBookResponseDto {
-  const { id, name, description, userId, isDefault, createdAt, updatedAt } = accountBook;
+  const { id, name, description, userId, type, familyId, isDefault, createdAt, updatedAt } = accountBook;
 
   return {
     id,
     name,
     description: description || undefined,
     userId,
+    type,
+    familyId: familyId || undefined,
     isDefault,
     createdAt,
     updatedAt,

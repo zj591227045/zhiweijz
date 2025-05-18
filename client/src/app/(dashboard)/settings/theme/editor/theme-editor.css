@@ -9,7 +9,7 @@
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 16px;
-  color: var(--text-primary);
+  color: hsl(var(--foreground));
 }
 
 /* 表单样式 */
@@ -25,16 +25,16 @@
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: hsl(var(--foreground));
 }
 
 .form-input, .form-select {
   width: 100%;
   padding: 12px;
-  border: 1px solid var(--border-color);
+  border: 1px solid hsl(var(--border));
   border-radius: 8px;
-  background-color: var(--background-color);
-  color: var(--text-primary);
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
 .form-select {
@@ -47,7 +47,7 @@
 
 .form-hint {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: hsl(var(--muted-foreground));
   margin-top: 4px;
 }
 
@@ -57,7 +57,7 @@
 }
 
 .color-group {
-  background-color: var(--card-background);
+  background-color: hsl(var(--card));
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 16px;
@@ -74,11 +74,11 @@
 
 .group-title {
   font-weight: 600;
-  color: var(--text-primary);
+  color: hsl(var(--foreground));
 }
 
 .group-toggle {
-  color: var(--text-secondary);
+  color: hsl(var(--muted-foreground));
   transition: transform 0.2s;
 }
 
@@ -101,7 +101,7 @@
   width: 24px;
   height: 24px;
   border-radius: 4px;
-  border: 1px solid var(--border-color);
+  border: 1px solid hsl(var(--border));
   margin-right: 12px;
   cursor: pointer;
 }
@@ -109,13 +109,13 @@
 .variable-name {
   flex: 1;
   font-size: 14px;
-  color: var(--text-primary);
+  color: hsl(var(--foreground));
 }
 
 .color-value {
   font-family: monospace;
   font-size: 14px;
-  color: var(--text-secondary);
+  color: hsl(var(--muted-foreground));
   cursor: pointer;
 }
 
@@ -136,7 +136,7 @@
 .color-picker-container {
   width: 90%;
   max-width: 320px;
-  background-color: var(--card-background);
+  background-color: hsl(var(--card));
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -144,7 +144,7 @@
 
 .color-picker-header {
   padding: 16px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid hsl(var(--border));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -153,7 +153,7 @@
 .color-picker-title {
   font-size: 16px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: hsl(var(--foreground));
 }
 
 .color-picker-close {
@@ -163,8 +163,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--background-muted);
-  color: var(--text-secondary);
+  background-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
   cursor: pointer;
 }
 
@@ -188,21 +188,21 @@
 .color-input {
   flex: 1;
   padding: 10px;
-  border: 1px solid var(--border-color);
+  border: 1px solid hsl(var(--border));
   border-radius: 6px;
-  background-color: var(--background-color);
-  color: var(--text-primary);
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
   font-family: monospace;
   font-size: 14px;
 }
 
 .color-format-toggle {
   padding: 10px;
-  background-color: var(--background-color);
-  border: 1px solid var(--border-color);
+  background-color: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
   border-radius: 6px;
   margin-left: 8px;
-  color: var(--text-primary);
+  color: hsl(var(--foreground));
   font-family: monospace;
   font-size: 14px;
   cursor: pointer;
@@ -233,13 +233,13 @@
 .preset-color {
   aspect-ratio: 1;
   border-radius: 4px;
-  border: 1px solid var(--border-color);
+  border: 1px solid hsl(var(--border));
   cursor: pointer;
 }
 
 .color-picker-footer {
   padding: 16px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid hsl(var(--border));
   display: flex;
   justify-content: flex-end;
   gap: 12px;
@@ -253,18 +253,18 @@
 }
 
 .cancel-button {
-  background-color: var(--background-color);
-  color: var(--text-primary);
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
 .apply-button {
-  background-color: var(--primary-color);
-  color: white;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
 }
 
 /* 预览样式 */
 .preview-section {
-  background-color: var(--card-background);
+  background-color: hsl(var(--card));
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 24px;
@@ -273,7 +273,7 @@
 
 .preview-tabs {
   display: flex;
-  background-color: var(--background-muted);
+  background-color: hsl(var(--muted));
   border-radius: 6px;
   padding: 4px;
   margin-bottom: 16px;
@@ -286,14 +286,14 @@
   border-radius: 4px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: hsl(var(--muted-foreground));
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .preview-tab.active {
-  background-color: var(--card-background);
-  color: var(--primary-color);
+  background-color: hsl(var(--card));
+  color: hsl(var(--primary));
 }
 
 .theme-mode-toggle {
@@ -305,7 +305,7 @@
 
 .mode-label {
   font-size: 14px;
-  color: var(--text-secondary);
+  color: hsl(var(--muted-foreground));
   margin-right: 8px;
 }
 
@@ -329,7 +329,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--background-muted);
+  background-color: hsl(var(--muted));
   transition: .4s;
   border-radius: 24px;
 }
@@ -351,10 +351,10 @@ input:checked + .toggle-slider:before {
 }
 
 .component-preview, .page-preview {
-  border: 1px solid var(--border-color);
+  border: 1px solid hsl(var(--border));
   border-radius: 6px;
   padding: 16px;
-  background-color: var(--background-color);
+  background-color: hsl(var(--background));
 }
 
 .page-preview-content {
@@ -371,7 +371,7 @@ input:checked + .toggle-slider:before {
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 8px;
-  color: var(--text-primary);
+  color: hsl(var(--foreground));
 }
 
 .preview-buttons {
@@ -388,36 +388,36 @@ input:checked + .toggle-slider:before {
 }
 
 .primary-button {
-  background-color: var(--primary-color);
-  color: white;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
 }
 
 .secondary-button {
-  background-color: var(--background-color);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
 }
 
 .danger-button {
-  background-color: var(--error-color);
-  color: white;
+  background-color: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
 }
 
 .preview-card {
   padding: 16px;
-  background-color: var(--card-background);
+  background-color: hsl(var(--card));
   border-radius: 6px;
-  border: 1px solid var(--border-color);
+  border: 1px solid hsl(var(--border));
 }
 
 .card-title {
   font-weight: 600;
-  color: var(--text-primary);
+  color: hsl(var(--foreground));
   margin-bottom: 8px;
 }
 
 .card-content {
-  color: var(--text-secondary);
+  color: hsl(var(--muted-foreground));
   margin-bottom: 16px;
 }
 
@@ -429,20 +429,20 @@ input:checked + .toggle-slider:before {
 
 .preview-input {
   padding: 10px;
-  border: 1px solid var(--border-color);
+  border: 1px solid hsl(var(--border));
   border-radius: 6px;
-  background-color: var(--background-color);
-  color: var(--text-primary);
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
 .preview-text .text-primary {
   font-weight: 600;
-  color: var(--text-primary);
+  color: hsl(var(--foreground));
   margin-bottom: 8px;
 }
 
 .preview-text .text-secondary {
-  color: var(--text-secondary);
+  color: hsl(var(--muted-foreground));
 }
 
 /* 底部操作按钮 */
@@ -451,9 +451,9 @@ input:checked + .toggle-slider:before {
   gap: 12px;
   position: sticky;
   bottom: 0;
-  background-color: var(--background-color);
+  background-color: hsl(var(--background));
   padding: 16px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid hsl(var(--border));
 }
 
 .bottom-actions button {
@@ -468,18 +468,18 @@ input:checked + .toggle-slider:before {
 }
 
 .reset-button {
-  background-color: var(--background-color);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
 }
 
 .save-button {
-  background-color: var(--primary-color);
-  color: white;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
 }
 
 .save-apply-button {
-  background-color: var(--success-color);
+  background-color: hsl(var(--emerald-600));
   color: white;
 }
 
@@ -505,7 +505,7 @@ button:disabled {
 .dialog-container {
   width: 90%;
   max-width: 320px;
-  background-color: var(--card-background);
+  background-color: hsl(var(--card));
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -513,24 +513,24 @@ button:disabled {
 
 .dialog-header {
   padding: 16px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .dialog-title {
   font-size: 18px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: hsl(var(--foreground));
 }
 
 .dialog-body {
   padding: 16px;
-  color: var(--text-secondary);
+  color: hsl(var(--muted-foreground));
   line-height: 1.5;
 }
 
 .dialog-footer {
   padding: 16px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid hsl(var(--border));
   display: flex;
   justify-content: flex-end;
   gap: 12px;
@@ -544,14 +544,14 @@ button:disabled {
 }
 
 .discard-button {
-  background-color: var(--background-color);
-  color: var(--error-color);
-  border: 1px solid var(--error-color);
+  background-color: hsl(var(--background));
+  color: hsl(var(--destructive));
+  border: 1px solid hsl(var(--destructive));
 }
 
 .continue-button {
-  background-color: var(--primary-color);
-  color: white;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
 }
 
 /* 响应式调整 */
