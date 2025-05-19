@@ -1,11 +1,12 @@
 import axios from "axios";
 
-// 创建API客户端实例
+// 创建API客户端实例 - 使用相对路径
 export const apiClient = axios.create({
-  baseURL: "/api",
+  baseURL: '/api', // 使用相对路径，会自动使用当前域名
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 15000, // 增加超时时间到15秒
 });
 
 // 请求拦截器
@@ -19,9 +20,20 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
+    // 添加请求调试信息
+    console.log(`API请求 [${config.method?.toUpperCase()}] ${config.url}:`, {
+      baseURL: config.baseURL,
+      url: config.url,
+      fullURL: `${config.baseURL}${config.url}`,
+      headers: config.headers,
+      params: config.params,
+      data: config.data
+    });
+
     return config;
   },
   (error) => {
+    console.error('请求拦截器错误:', error);
     return Promise.reject(error);
   }
 );
@@ -61,14 +73,27 @@ apiClient.interceptors.response.use(
     return response.data;
   },
   (error) => {
-    // 处理错误
+    // 增强错误处理和调试信息
     console.error('API请求错误:', error);
+
+    // 记录请求配置信息
+    if (error.config) {
+      console.error('请求配置:', {
+        url: error.config.url,
+        baseURL: error.config.baseURL,
+        method: error.config.method,
+        headers: error.config.headers,
+        timeout: error.config.timeout
+      });
+    }
 
     if (error.response) {
       // 服务器返回错误状态码
       const status = error.response.status;
       console.error(`API错误响应 [${error.config?.method?.toUpperCase()}] ${error.config?.url}:`, {
         status,
+        statusText: error.response.statusText,
+        headers: error.response.headers,
         data: error.response.data
       });
 
@@ -86,9 +111,34 @@ apiClient.interceptors.response.use(
 
       // 返回错误信息
       return Promise.reject(error.response.data);
+    } else if (error.request) {
+      // 请求已发送但没有收到响应
+      console.error('没有收到响应:', error.request);
+
+      // 检查是否为跨域问题
+      if (error.message && (
+          error.message.includes('Network Error') ||
+          error.message.includes('CORS') ||
+          error.message.includes('cross-origin')
+      )) {
+        console.error('可能存在跨域问题，请检查服务器CORS配置和网络连接');
+
+        // 显示当前API基础URL
+        console.info('当前API基础URL:', '/api (相对路径)');
+        console.info('当前浏览器URL:', typeof window !== 'undefined' ? window.location.href : 'N/A');
+      }
+
+      return Promise.reject({
+        message: '网络错误，无法连接到服务器',
+        originalError: error.message
+      });
     }
 
-    // 网络错误或其他错误
-    return Promise.reject(error);
+    // 其他错误
+    console.error('其他错误:', error.message);
+    return Promise.reject({
+      message: '请求处理错误',
+      originalError: error.message
+    });
   }
 );

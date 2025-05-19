@@ -12,7 +12,13 @@ const app: Express = express();
 // 配置中间件
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+// 配置CORS，允许所有来源的请求
+app.use(cors({
+  origin: '*', // 允许所有来源的请求
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' } // 允许跨域访问资源
 }));

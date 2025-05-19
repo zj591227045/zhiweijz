@@ -24,6 +24,16 @@ const nextConfig = {
 
   // 配置输出
   output: 'standalone',
+
+  // 配置API代理
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:3000/api/:path*', // 代理到后端服务器
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

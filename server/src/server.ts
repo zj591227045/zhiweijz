@@ -6,8 +6,8 @@ import { connectDatabase, disconnectDatabase } from './config/database';
 connectDatabase();
 
 // 启动服务器
-const server = app.listen(config.port, () => {
-  console.log(`服务器已启动，监听端口: ${config.port}`);
+const server = app.listen(config.port, '0.0.0.0', () => {
+  console.log(`服务器已启动，监听地址: 0.0.0.0:${config.port}`);
   console.log(`环境: ${config.env}`);
 });
 

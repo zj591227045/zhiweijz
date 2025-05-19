@@ -3,8 +3,8 @@ import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 // 是否为开发环境
 const isDev = process.env.NODE_ENV === 'development';
 
-// API基础URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+// API基础URL - 使用相对路径
+const API_BASE_URL = '/api'; // 使用相对路径，会自动使用当前域名
 console.log('API基础URL:', API_BASE_URL);
 
 // 简单的内存缓存实现
