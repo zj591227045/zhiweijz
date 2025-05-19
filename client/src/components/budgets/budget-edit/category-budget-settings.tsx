@@ -4,7 +4,7 @@ import { useBudgetEditStore } from '@/store/budget-edit-store';
 import { CategorySelector } from './category-selector';
 import { CategoryBudgetList } from './category-budget-list';
 import { BudgetAllocationSummary } from './budget-allocation-summary';
-import { Switch } from '@/components/ui/switch';
+import { ToggleSwitch } from '@/components/ui/toggle-switch';
 
 export function CategoryBudgetSettings() {
   const {
@@ -48,10 +48,10 @@ export function CategoryBudgetSettings() {
         <div className="section-title">分类预算</div>
         <div className="toggle-container">
           <span>启用分类预算</span>
-          <Switch
+          <ToggleSwitch
             id="enable-category-budget"
             checked={enableCategoryBudget}
-            onCheckedChange={handleCategoryBudgetToggle}
+            onChange={handleCategoryBudgetToggle}
           />
         </div>
       </div>

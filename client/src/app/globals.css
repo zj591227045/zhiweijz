@@ -13,6 +13,7 @@
 @import '../styles/family-member-selector.css';
 @import '../styles/invitation-history.css';
 @import '../styles/budget-edit.css';
+@import '../styles/rollover-dialog.css';
 
 @layer base {
   :root {

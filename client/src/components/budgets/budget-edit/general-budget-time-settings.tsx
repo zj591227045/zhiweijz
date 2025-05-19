@@ -1,7 +1,7 @@
 'use client';
 
 import { useBudgetEditStore } from '@/store/budget-edit-store';
-import { Switch } from '@/components/ui/switch';
+import { ToggleSwitch } from '@/components/ui/toggle-switch';
 
 export function GeneralBudgetTimeSettings() {
   const {
@@ -64,10 +64,10 @@ export function GeneralBudgetTimeSettings() {
       <div className="form-group">
         <div className="toggle-container">
           <span>无期限预算</span>
-          <Switch
+          <ToggleSwitch
             id="unlimited-budget"
             checked={isUnlimited}
-            onCheckedChange={handleUnlimitedToggle}
+            onChange={handleUnlimitedToggle}
           />
         </div>
         <div className="help-text">
