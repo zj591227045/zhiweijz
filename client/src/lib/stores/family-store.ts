@@ -49,7 +49,7 @@ export interface CreateFamilyRequest {
 
 // 加入家庭请求
 export interface JoinFamilyRequest {
-  inviteCode: string;
+  invitationCode: string;
 }
 
 // 家庭状态

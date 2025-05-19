@@ -104,10 +104,10 @@ export function validateCreateInvitationInput(data: any) {
  */
 export function validateAcceptInvitationInput(data: any) {
   const schema = Joi.object<AcceptInvitationDto>({
-    invitationCode: Joi.string().required().uuid().messages({
+    invitationCode: Joi.string().required().pattern(/^\d{8}$/).messages({
       'string.base': '邀请码必须是字符串',
       'string.empty': '邀请码不能为空',
-      'string.guid': '邀请码必须是有效的UUID',
+      'string.pattern.base': '邀请码必须是8位数字',
       'any.required': '邀请码是必填项'
     })
   });

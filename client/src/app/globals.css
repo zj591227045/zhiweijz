@@ -37,6 +37,9 @@
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
     --radius: 0.5rem;
+    --error: 0 84.2% 60.2%;
+    --background-secondary: 240 5% 96%;
+    --background-hover: 240 5% 92%;
 
     /* 主题色变量 */
     --blue-50: 217.2 100% 97.1%;
@@ -129,6 +132,9 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
+    --error: 0 62.8% 30.6%;
+    --background-secondary: 240 3.7% 10%;
+    --background-hover: 240 3.7% 15%;
 
     /* 自定义暗色主题变量 */
     --primary-color: #60a5fa; /* 暗色蓝色主题 */

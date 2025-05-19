@@ -13,9 +13,9 @@ interface MemberItemProps {
   onRemove: () => void;
 }
 
-export function MemberItem({ 
-  member, 
-  canRemove, 
+export function MemberItem({
+  member,
+  canRemove,
   canChangeRole,
   onToggleRoleSelector,
   onRemove
@@ -27,15 +27,21 @@ export function MemberItem({
 
   return (
     <>
-      <div className="member-header">
-        <div className="member-avatar">
-          {member.avatar ? (
-            <img src={member.avatar} alt={member.username} />
-          ) : (
-            getAvatarText(member.username)
-          )}
+      {/* 成员基本信息区域 */}
+      <div className="member-info-section">
+        {/* 头像区域 */}
+        <div className="member-avatar-container">
+          <div className="member-avatar">
+            {member.avatar ? (
+              <img src={member.avatar} alt={member.username} />
+            ) : (
+              getAvatarText(member.username)
+            )}
+          </div>
         </div>
-        <div className="member-info">
+
+        {/* 成员信息区域 */}
+        <div className="member-info-container">
           <div className="member-name">
             {member.username}
             {member.isCurrentUser && (
@@ -47,28 +53,34 @@ export function MemberItem({
             <RoleBadge role={member.role} />
           </div>
         </div>
-        <div className="member-actions">
+      </div>
+
+      {/* 操作按钮区域 - 完全独立的一行 */}
+      {(canRemove || canChangeRole) && (
+        <div className="member-actions-row">
           {canRemove && (
-            <button 
-              className="action-button danger" 
+            <button
+              className="action-button danger"
               onClick={onRemove}
               aria-label="移除成员"
             >
               <i className="fas fa-user-times"></i>
+              <span className="action-text">移除成员</span>
             </button>
           )}
           {canChangeRole && (
-            <button 
-              className="action-button" 
+            <button
+              className="action-button"
               onClick={onToggleRoleSelector}
               aria-label="管理角色"
             >
-              <i className="fas fa-ellipsis-v"></i>
+              <i className="fas fa-user-shield"></i>
+              <span className="action-text">管理角色</span>
             </button>
           )}
         </div>
-      </div>
-      
+      )}
+
       <div className="member-details">
         <div className="detail-column">
           <div className="detail-item">

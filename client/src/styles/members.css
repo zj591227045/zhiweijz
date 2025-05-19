@@ -13,16 +13,23 @@
   height: auto; /* 自动适应内容高度 */
 }
 
-.member-header {
+/* 成员信息区域 - 新布局 */
+.member-info-section {
+  padding: 16px 16px 8px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid var(--border-color);
+  text-align: center;
+  border-bottom: none;
+}
+
+.member-avatar-container {
+  margin-bottom: 12px;
 }
 
 .member-avatar {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background-color: var(--primary-color);
   display: flex;
@@ -30,21 +37,23 @@
   justify-content: center;
   color: white;
   font-weight: 600;
-  font-size: 20px;
-  margin-right: 16px;
+  font-size: 24px;
+  margin: 0 auto;
 }
 
-.member-info {
-  flex: 1;
+.member-info-container {
+  width: 100%;
+  text-align: center;
 }
 
 .member-name {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .current-user-badge {
@@ -61,6 +70,7 @@
   color: var(--text-secondary);
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .role-badge {
@@ -88,21 +98,57 @@
   align-items: center;
 }
 
+/* 操作按钮行样式 */
+.member-actions-row {
+  display: flex;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--background-secondary);
+  gap: 10px;
+  width: 100%;
+}
+
 .action-button {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: var(--background-color);
   color: var(--text-secondary);
-  margin-left: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
   cursor: pointer;
+  border: none;
+  flex: 1;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.action-button:hover {
+  background-color: var(--background-hover);
+  transform: translateY(-1px);
+}
+
+.action-button:active {
+  transform: translateY(0);
+}
+
+.action-button i {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.action-text {
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .action-button.danger {
-  color: var(--error-color);
+  color: #f43f5e; /* 使用更鲜明的红色 */
+}
+
+.action-button.danger:hover {
+  background-color: rgba(244, 63, 94, 0.1);
 }
 
 .member-details {
@@ -112,6 +158,7 @@
   flex-wrap: wrap; /* 允许内容换行 */
   height: auto; /* 自动适应内容高度 */
   overflow: visible; /* 确保内容不会被截断 */
+  border-bottom: 1px solid var(--border-color);
 }
 
 .detail-column {

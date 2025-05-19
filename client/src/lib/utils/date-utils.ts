@@ -7,10 +7,10 @@ dayjs.locale('zh-cn');
 /**
  * 格式化日期为友好显示
  * @param dateString 日期字符串
- * @param format 格式化模式，默认为 'YYYY年MM月DD日'
+ * @param format 格式化模式，默认为 'YYYY年MM月DD日 HH:mm'
  * @returns 格式化后的日期字符串
  */
-export function formatDate(dateString: string, format: string = 'YYYY年MM月DD日'): string {
+export function formatDate(dateString: string, format: string = 'YYYY年MM月DD日 HH:mm'): string {
   return dayjs(dateString).format(format);
 }
 
@@ -22,11 +22,11 @@ export function formatDate(dateString: string, format: string = 'YYYY年MM月DD�
 export function getRelativeTime(dateString: string): string {
   const date = dayjs(dateString);
   const now = dayjs();
-  
+
   const diffMinutes = now.diff(date, 'minute');
   const diffHours = now.diff(date, 'hour');
   const diffDays = now.diff(date, 'day');
-  
+
   if (diffMinutes < 1) {
     return '刚刚';
   } else if (diffMinutes < 60) {

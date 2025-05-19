@@ -8,9 +8,9 @@ import { useFamilyStore } from "@/lib/stores/family-store";
 
 // 表单验证模式
 const joinFamilySchema = z.object({
-  inviteCode: z.string()
+  invitationCode: z.string()
     .min(1, "邀请码不能为空")
-    .regex(/^[A-Za-z0-9]+$/, "邀请码格式不正确"),
+    .regex(/^\d{8}$/, "邀请码必须是8位数字"),
 });
 
 type JoinFamilyFormValues = z.infer<typeof joinFamilySchema>;
@@ -33,7 +33,7 @@ export function JoinFamilyDialog({ isOpen, onClose }: JoinFamilyDialogProps) {
   } = useForm<JoinFamilyFormValues>({
     resolver: zodResolver(joinFamilySchema),
     defaultValues: {
-      inviteCode: "",
+      invitationCode: "",
     },
   });
 
@@ -42,7 +42,7 @@ export function JoinFamilyDialog({ isOpen, onClose }: JoinFamilyDialogProps) {
     setIsSubmitting(true);
     const success = await joinFamily(data);
     setIsSubmitting(false);
-    
+
     if (success) {
       reset();
       onClose();
@@ -58,15 +58,15 @@ export function JoinFamilyDialog({ isOpen, onClose }: JoinFamilyDialogProps) {
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="modal-body">
             <div className="form-group">
-              <label className="form-label" htmlFor="invite-code">邀请码</label>
+              <label className="form-label" htmlFor="invitation-code">邀请码</label>
               <input
-                id="invite-code"
-                className={`form-input ${errors.inviteCode ? "border-red-500" : ""}`}
-                {...register("inviteCode")}
+                id="invitation-code"
+                className={`form-input ${errors.invitationCode ? "border-red-500" : ""}`}
+                {...register("invitationCode")}
                 placeholder="输入邀请码"
               />
-              {errors.inviteCode && (
-                <p className="text-red-500 text-xs mt-1">{errors.inviteCode.message}</p>
+              {errors.invitationCode && (
+                <p className="text-red-500 text-xs mt-1">{errors.invitationCode.message}</p>
               )}
             </div>
             <p className="text-sm text-gray-500 mt-4">
