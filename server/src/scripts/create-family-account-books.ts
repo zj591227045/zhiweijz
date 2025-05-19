@@ -1,6 +1,6 @@
 /**
  * 为已有的家庭创建账本的脚本
- * 
+ *
  * 使用方法：
  * npx ts-node src/scripts/create-family-account-books.ts
  */
@@ -39,28 +39,8 @@ async function createFamilyAccountBook(familyId: string, familyName: string, cre
 
   console.log(`为家庭 ${familyName} (${familyId}) 创建了账本: ${accountBook.name} (${accountBook.id})`);
 
-  // 创建默认月度预算
-  const today = new Date();
-  const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-  const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-  const budget = await prisma.budget.create({
-    data: {
-      name: '月度总预算',
-      amount: 0, // 默认为0，表示不限制
-      period: 'MONTHLY',
-      startDate,
-      endDate,
-      rollover: false,
-      accountBookId: accountBook.id,
-      userId: creatorId,
-      familyId,
-      enableCategoryBudget: false,
-      isAutoCalculated: false,
-    },
-  });
-
-  console.log(`为账本 ${accountBook.name} (${accountBook.id}) 创建了默认预算: ${budget.name} (${budget.id})`);
+  // 注意：不再自动创建预算
+  // 预算将在家庭成员添加时自动创建
 }
 
 async function main() {

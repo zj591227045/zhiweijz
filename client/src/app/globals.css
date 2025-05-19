@@ -8,6 +8,8 @@
 @import '../styles/members.css';
 @import '../styles/security.css';
 @import '../styles/budget-detail.css';
+@import '../styles/budget-list.css';
+@import '../styles/budget-list-page.css';
 @import '../styles/family-member-selector.css';
 
 @layer base {

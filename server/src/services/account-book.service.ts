@@ -39,15 +39,6 @@ export class AccountBookService {
     // 创建账本
     const accountBook = await this.accountBookRepository.create(userId, accountBookData);
 
-    // 自动创建月度预算
-    try {
-      await this.createDefaultMonthlyBudget(userId, accountBook.id);
-      console.log(`已为账本 ${accountBook.id} 创建默认月度预算`);
-    } catch (error) {
-      console.error('创建默认月度预算失败:', error);
-      // 不影响账本创建流程，继续执行
-    }
-
     // 获取账本统计信息
     const stats = await this.accountBookRepository.getAccountBookStats(accountBook.id);
 
@@ -60,30 +51,14 @@ export class AccountBookService {
   }
 
   /**
-   * 为账本创建默认月度预算
+   * 为账本创建默认月度预算 - 已废弃，保留方法签名以兼容旧代码
    * @private
+   * @deprecated 账本不再自动创建预算，预算由用户手动创建或在家庭成员添加时自动创建
    */
   private async createDefaultMonthlyBudget(userId: string, accountBookId: string): Promise<void> {
-    // 获取当前月份的起止日期
-    const today = new Date();
-    const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-    const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-    // 创建月度预算数据
-    const budgetData: CreateBudgetDto = {
-      name: '月度总预算',
-      amount: 0, // 默认为0，表示不限制
-      period: 'MONTHLY',
-      startDate,
-      endDate,
-      rollover: false,
-      accountBookId,
-      enableCategoryBudget: false,
-      isAutoCalculated: false
-    };
-
-    // 创建预算
-    await this.budgetRepository.create(userId, budgetData);
+    // 此方法已废弃，不再自动创建预算
+    console.log(`不再为账本 ${accountBookId} 自动创建预算`);
+    return;
   }
 
   /**

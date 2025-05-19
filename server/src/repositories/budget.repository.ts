@@ -141,20 +141,10 @@ export class BudgetRepository {
       limit
     });
 
-    // 构建查询条件
+    // 构建查询条件 - 只根据账本ID和预算类型过滤
     const where: Prisma.BudgetWhereInput = {
-      userId,
-      ...(period && { period }),
-      ...(categoryId && { categoryId }),
-      ...(familyId && { familyId }),
       ...(params.accountBookId && { accountBookId: params.accountBookId }),
       ...(budgetType && { budgetType }),
-      ...(active && {
-        OR: [
-          { endDate: null },
-          { endDate: { gte: new Date() } },
-        ] as Prisma.BudgetWhereInput[],
-      }),
     };
 
     // 构建排序条件

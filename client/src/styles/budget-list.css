@@ -1,0 +1,190 @@
+/* 预算列表页特定样式 */
+
+/* 预算类型选择器 */
+.budget-type-selector {
+  display: flex;
+  margin-bottom: 20px;
+  background-color: var(--background);
+  border-radius: var(--radius);
+  padding: 4px;
+}
+
+.type-button {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  color: var(--muted-foreground);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.type-button.active {
+  background-color: var(--card);
+  color: var(--primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 预算部分 */
+.budget-section {
+  margin-bottom: 24px;
+}
+
+.section-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.section-description {
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+
+/* 预算卡片 */
+.budget-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.budget-card {
+  background-color: var(--card);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.budget-card.warning .progress {
+  background-color: var(--warning-color, #F59E0B);
+}
+
+.budget-card.danger .progress {
+  background-color: var(--error-color, #EF4444);
+}
+
+.budget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.budget-title {
+  flex: 1;
+}
+
+.budget-title h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.budget-period {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.budget-actions {
+  margin-left: 8px;
+}
+
+.budget-amount {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.budget-progress {
+  margin-bottom: 12px;
+}
+
+.progress-bar {
+  height: 8px;
+  background-color: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress {
+  height: 100%;
+  background-color: var(--primary);
+  border-radius: 4px;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.spent {
+  color: var(--foreground);
+}
+
+.remaining {
+  color: var(--success-color, #22C55E);
+  font-weight: 500;
+}
+
+.remaining.negative {
+  color: var(--error-color, #EF4444);
+}
+
+.budget-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.rollover-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--success-color, #22C55E);
+}
+
+.rollover-info.negative {
+  color: var(--error-color, #EF4444);
+}
+
+.days-remaining {
+  color: var(--muted-foreground);
+}
+
+/* 添加预算按钮 */
+.add-budget-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--background);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  width: 100%;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.add-budget-button:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* 响应式调整 */
+@media (min-width: 640px) {
+  .budget-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}

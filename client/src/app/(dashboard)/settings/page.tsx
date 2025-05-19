@@ -86,6 +86,18 @@ export default function SettingsPage() {
             <i className="fas fa-chevron-right"></i>
           </div>
         </Link>
+        <Link href="/budgets/list" className="settings-item">
+          <div className="item-icon">
+            <i className="fas fa-wallet"></i>
+          </div>
+          <div className="item-content">
+            <div className="item-title">预算管理</div>
+            <div className="item-description">管理个人和通用预算</div>
+          </div>
+          <div className="item-action">
+            <i className="fas fa-chevron-right"></i>
+          </div>
+        </Link>
         <Link href="/families" className="settings-item">
           <div className="item-icon">
             <i className="fas fa-home"></i>

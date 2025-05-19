@@ -42,7 +42,8 @@ export class FamilyBudgetService {
         familyId,
         accountBookId,
         enableCategoryBudget: false,
-        isAutoCalculated: false
+        isAutoCalculated: false,
+        budgetType: 'PERSONAL' // 确保创建的是个人预算
       };
 
       // 创建预算

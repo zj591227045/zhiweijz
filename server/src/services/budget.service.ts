@@ -65,6 +65,7 @@ export class BudgetService {
       params
     });
 
+    // 简化实现：只根据账本ID和预算类型过滤
     const { budgets, total } = await this.budgetRepository.findAll(userId, params);
 
     console.log('BudgetService.getBudgets 查询结果:', {

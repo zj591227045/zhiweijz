@@ -62,24 +62,20 @@ export class BudgetController {
         return;
       }
 
-      // 解析查询参数
+      // 解析查询参数 - 只关注账本ID和预算类型
       const params: BudgetQueryParams = {
-        period: req.query.period as BudgetPeriod | undefined,
-        categoryId: req.query.categoryId as string | undefined,
-        familyId: req.query.familyId as string | undefined,
         accountBookId: req.query.accountBookId as string | undefined,
         budgetType: req.query.budgetType as BudgetType | undefined,
-        active: req.query.active === 'true',
         page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
         limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 20,
-        sortBy: req.query.sortBy as string | undefined,
-        sortOrder: req.query.sortOrder as 'asc' | 'desc' | undefined,
+        sortBy: 'startDate',
+        sortOrder: 'desc',
       };
 
       console.log('BudgetController.getBudgets 请求参数:', {
         userId,
-        queryParams: req.query,
-        parsedParams: params
+        accountBookId: params.accountBookId,
+        budgetType: params.budgetType
       });
 
       const budgets = await this.budgetService.getBudgets(userId, params);

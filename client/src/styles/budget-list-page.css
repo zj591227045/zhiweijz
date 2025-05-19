@@ -1,0 +1,197 @@
+/* 预算列表页特定样式 */
+
+/* 预算类型选择器 */
+.budget-list-type-selector {
+  display: flex;
+  margin-bottom: 20px;
+  background-color: hsl(var(--background));
+  border-radius: var(--radius);
+  padding: 4px;
+}
+
+.budget-list-type-button {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.budget-list-type-button.active {
+  background-color: hsl(var(--card));
+  color: hsl(var(--primary));
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 预算部分 */
+.budget-list-section {
+  margin-bottom: 24px;
+}
+
+.budget-list-section-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.budget-list-section-description {
+  font-size: 14px;
+  color: hsl(var(--muted-foreground));
+}
+
+/* 预算卡片 */
+.budget-list-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.budget-list-card {
+  background-color: hsl(var(--card));
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.budget-list-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.budget-list-card.warning .budget-list-progress {
+  background-color: var(--warning-color, #F59E0B);
+}
+
+.budget-list-card.danger .budget-list-progress {
+  background-color: var(--error-color, #EF4444);
+}
+
+.budget-list-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.budget-list-card-title {
+  flex: 1;
+}
+
+.budget-list-card-title h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.budget-list-card-period {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.budget-list-card-actions {
+  margin-left: 8px;
+}
+
+.budget-list-card-amount {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.budget-list-card-progress {
+  margin-bottom: 12px;
+}
+
+.budget-list-progress-bar {
+  height: 8px;
+  background-color: hsl(var(--border));
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.budget-list-progress {
+  height: 100%;
+  background-color: hsl(var(--primary));
+  border-radius: 4px;
+}
+
+.budget-list-progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.budget-list-spent {
+  color: hsl(var(--foreground));
+}
+
+.budget-list-remaining {
+  color: var(--success-color, #22C55E);
+  font-weight: 500;
+}
+
+.budget-list-remaining.negative {
+  color: var(--error-color, #EF4444);
+}
+
+.budget-list-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.budget-list-rollover-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--success-color, #22C55E);
+}
+
+.budget-list-rollover-info.negative {
+  color: var(--error-color, #EF4444);
+}
+
+.budget-list-days-remaining {
+  color: hsl(var(--muted-foreground));
+}
+
+/* 添加预算按钮 */
+.budget-list-add-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: hsl(var(--background));
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 16px;
+  width: 100%;
+  color: hsl(var(--primary));
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.budget-list-add-button:hover {
+  background-color: hsl(var(--primary) / 0.05);
+}
+
+/* 响应式调整 */
+@media (min-width: 640px) {
+  .budget-list-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}

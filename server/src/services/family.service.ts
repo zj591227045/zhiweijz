@@ -203,6 +203,27 @@ export class FamilyService {
       throw new Error('只有家庭创建者可以删除家庭');
     }
 
+    // 获取家庭关联的所有账本
+    try {
+      const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(userId, id, { limit: 100 });
+
+      // 删除每个家庭账本
+      if (familyAccountBooks && familyAccountBooks.data && familyAccountBooks.data.length > 0) {
+        for (const accountBook of familyAccountBooks.data) {
+          try {
+            await this.accountBookService.deleteAccountBook(accountBook.id, userId);
+            console.log(`已删除家庭账本: ${accountBook.id}`);
+          } catch (error) {
+            console.error(`删除家庭账本 ${accountBook.id} 失败:`, error);
+            // 继续删除其他账本
+          }
+        }
+      }
+    } catch (error) {
+      console.error(`获取或删除家庭 ${id} 的账本失败:`, error);
+      // 继续删除家庭
+    }
+
     // 删除家庭
     await this.familyRepository.deleteFamily(id);
   }
@@ -394,6 +415,25 @@ export class FamilyService {
       role: Role.MEMBER,
       isRegistered: true,
     });
+
+    // 为新成员创建默认预算
+    try {
+      // 获取家庭账本
+      const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(userId, invitation.familyId, { limit: 100 });
+      if (familyAccountBooks && familyAccountBooks.data && familyAccountBooks.data.length > 0) {
+        // 为每个家庭账本创建默认预算
+        for (const accountBook of familyAccountBooks.data) {
+          await this.familyBudgetService.createDefaultBudgetsForNewMember(
+            userId,
+            invitation.familyId,
+            accountBook.id
+          );
+        }
+      }
+    } catch (error) {
+      console.error(`为通过邀请加入的家庭成员 ${userId} 创建默认预算失败:`, error);
+      // 不影响成员添加流程，继续执行
+    }
 
     // 删除已使用的邀请
     await this.familyRepository.deleteInvitation(invitation.id);
