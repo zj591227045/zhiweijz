@@ -65,11 +65,28 @@ export class AccountBookService {
    * 获取账本列表
    */
   async getAccountBooks(userId: string, params: AccountBookQueryParams): Promise<AccountBookPaginatedResponseDto> {
-    const { accountBooks, total } = await this.accountBookRepository.findAllByUserId(userId, params);
+    // 1. 获取用户的个人账本
+    const { accountBooks: personalAccountBooks, total: personalTotal } = await this.accountBookRepository.findAllByUserId(userId, params);
 
-    // 获取每个账本的统计信息
+    // 2. 获取用户所属的所有家庭ID
+    const userFamilies = await this.familyRepository.findAllFamiliesByUserId(userId);
+    const familyIds = userFamilies.map(family => family.id);
+
+    // 3. 获取用户所属家庭的所有家庭账本
+    const { accountBooks: familyAccountBooks, total: familyTotal } =
+      await this.accountBookRepository.findAllByUserFamilies(familyIds, params);
+
+    // 4. 合并个人账本和家庭账本
+    const allAccountBooks = [...personalAccountBooks, ...familyAccountBooks];
+
+    // 5. 去重（以防有重复）
+    const uniqueAccountBooks = allAccountBooks.filter((book, index, self) =>
+      index === self.findIndex(b => b.id === book.id)
+    );
+
+    // 6. 获取每个账本的统计信息
     const accountBooksWithStats = await Promise.all(
-      accountBooks.map(async (accountBook) => {
+      uniqueAccountBooks.map(async (accountBook) => {
         const stats = await this.accountBookRepository.getAccountBookStats(accountBook.id);
         return toAccountBookResponseDto(
           accountBook,
@@ -80,11 +97,36 @@ export class AccountBookService {
       })
     );
 
+    // 7. 应用排序（如果需要）
+    if (params.sortBy) {
+      const sortOrder = params.sortOrder === 'asc' ? 1 : -1;
+      accountBooksWithStats.sort((a, b) => {
+        const aValue = a[params.sortBy as keyof AccountBookResponseDto];
+        const bValue = b[params.sortBy as keyof AccountBookResponseDto];
+
+        // 处理可能的 undefined 值
+        if (aValue === undefined && bValue === undefined) return 0;
+        if (aValue === undefined) return sortOrder; // undefined 值排在后面
+        if (bValue === undefined) return -sortOrder; // undefined 值排在后面
+
+        if (aValue < bValue) return -1 * sortOrder;
+        if (aValue > bValue) return 1 * sortOrder;
+        return 0;
+      });
+    }
+
+    // 8. 应用分页（如果需要）
+    const page = params.page || 1;
+    const limit = params.limit || 20;
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedBooks = accountBooksWithStats.slice(startIndex, endIndex);
+
     return {
-      total,
-      page: params.page || 1,
-      limit: params.limit || 20,
-      data: accountBooksWithStats,
+      total: uniqueAccountBooks.length,
+      page: page,
+      limit: limit,
+      data: paginatedBooks,
     };
   }
 

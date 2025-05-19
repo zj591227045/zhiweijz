@@ -166,6 +166,41 @@ export class AccountBookRepository {
   }
 
   /**
+   * 根据用户所属的家庭ID列表查找所有家庭账本
+   */
+  async findAllByUserFamilies(
+    familyIds: string[],
+    params: AccountBookQueryParams
+  ): Promise<{ accountBooks: AccountBook[]; total: number }> {
+    if (!familyIds.length) {
+      return { accountBooks: [], total: 0 };
+    }
+
+    const { page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = params;
+    const skip = (page - 1) * limit;
+
+    const [accountBooks, total] = await Promise.all([
+      prisma.accountBook.findMany({
+        where: {
+          familyId: { in: familyIds },
+          type: 'FAMILY'
+        },
+        skip,
+        take: limit,
+        orderBy: { [sortBy]: sortOrder },
+      }),
+      prisma.accountBook.count({
+        where: {
+          familyId: { in: familyIds },
+          type: 'FAMILY'
+        },
+      }),
+    ]);
+
+    return { accountBooks, total };
+  }
+
+  /**
    * 重置账本
    * 清除所有交易记录、预算信息和历史记录
    */
