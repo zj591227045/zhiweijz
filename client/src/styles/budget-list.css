@@ -67,6 +67,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid var(--border-color);
 }
 
 .budget-card:hover {
@@ -127,6 +128,11 @@
   gap: 8px;
 }
 
+.budget-actions .action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
 .budget-actions .edit-button,
 .budget-actions .delete-button {
   width: 36px;
@@ -138,6 +144,7 @@
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .budget-actions .edit-button {
@@ -160,11 +167,6 @@
   background-color: var(--error-color-dark, #dc2626);
   transform: translateY(-2px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.budget-actions .action-buttons {
-  display: flex;
-  gap: 8px;
 }
 
 .budget-amount {
@@ -228,6 +230,21 @@
   color: var(--error-color);
 }
 
+.category-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--primary-color);
+}
+
+.category-icon i {
+  font-size: 14px;
+}
+
 .days-remaining {
   color: var(--text-secondary);
 }
@@ -248,10 +265,51 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
+  margin-top: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .add-budget-button:hover {
   background-color: rgba(59, 130, 246, 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.add-budget-button i {
+  font-size: 16px;
+}
+
+/* 预算统计链接 */
+.statistics-link-container {
+  margin-bottom: 20px;
+}
+
+.statistics-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 12px;
+  width: 100%;
+  color: var(--primary-color);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.statistics-link:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.statistics-link i {
+  font-size: 16px;
 }
 
 /* 响应式调整 */

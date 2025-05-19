@@ -114,12 +114,7 @@ export function BudgetListPage() {
               ? '您还没有个人预算，个人预算会在创建账本时自动创建'
               : '您还没有通用预算，点击下方按钮添加'}
           </p>
-          {selectedType === 'GENERAL' && (
-            <Button onClick={handleAddBudget}>
-              <i className="fas fa-plus mr-2"></i>
-              添加通用预算
-            </Button>
-          )}
+
         </div>
       );
     }
@@ -179,8 +174,8 @@ export function BudgetListPage() {
           {renderBudgetList()}
         </div>
 
-        {/* 添加通用预算按钮 - 仅在通用预算页面且有预算时显示 */}
-        {selectedType === 'GENERAL' && generalBudgets.length > 0 && (
+        {/* 添加通用预算按钮 - 仅在通用预算页面显示 */}
+        {selectedType === 'GENERAL' && (
           <button
             className="add-budget-button"
             onClick={handleAddBudget}

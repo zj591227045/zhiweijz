@@ -63,7 +63,7 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
         </div>
         <div className="budget-actions">
           {/* 个人预算只显示编辑按钮，通用预算显示编辑和删除按钮 */}
-          {budget.budgetType === 'PERSONAL' ? (
+          <div className="action-buttons">
             <button
               className="edit-button"
               onClick={(e) => handleEdit(e)}
@@ -71,15 +71,7 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
             >
               <i className="fas fa-edit"></i>
             </button>
-          ) : (
-            <div className="action-buttons">
-              <button
-                className="edit-button"
-                onClick={(e) => handleEdit(e)}
-                aria-label="编辑预算"
-              >
-                <i className="fas fa-edit"></i>
-              </button>
+            {budget.budgetType === 'GENERAL' && (
               <button
                 className="delete-button"
                 onClick={(e) => handleDelete(e)}
@@ -87,8 +79,8 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
               >
                 <i className="fas fa-trash-alt"></i>
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
