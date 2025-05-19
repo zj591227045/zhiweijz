@@ -1,0 +1,79 @@
+/* 虚拟数字键盘样式 */
+.numeric-keyboard {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--background-color);
+  border-top: 1px solid var(--border-color);
+  z-index: 1000; /* 提高z-index确保显示在最上层 */
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 8px 0;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.keyboard-row {
+  display: flex;
+  width: 100%;
+}
+
+.keyboard-key {
+  flex: 1;
+  height: 60px;
+  border: none;
+  background-color: var(--card-background);
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text-primary);
+  border-radius: 4px;
+  margin: 2px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
+}
+
+.keyboard-key:active {
+  background-color: var(--background-hover, rgba(0, 0, 0, 0.05));
+}
+
+.function-key {
+  font-size: 18px;
+  color: var(--primary-color);
+}
+
+.function-key i {
+  margin-right: 4px;
+}
+
+.complete-key {
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 18px;
+}
+
+.complete-key:active {
+  background-color: var(--primary-hover, #3070e0);
+}
+
+/* 适配暗色模式 */
+.dark .keyboard-key {
+  background-color: var(--card-background);
+  color: var(--text-primary);
+}
+
+.dark .keyboard-key:active {
+  background-color: var(--background-hover, rgba(255, 255, 255, 0.1));
+}
+
+.dark .complete-key {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.dark .complete-key:active {
+  background-color: var(--primary-hover, #4b8ef5);
+}

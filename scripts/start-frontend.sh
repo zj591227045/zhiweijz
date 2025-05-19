@@ -37,4 +37,4 @@ echo -e "${BLUE}启动前端开发服务器...${NC}"
 echo -e "${YELLOW}按 Ctrl+C 停止服务器${NC}"
 
 # 使用Next.js启动前端开发服务器，使用turbopack加速构建
-npx next dev --turbopack
+npx next dev --turbopack -p 3001

@@ -7,7 +7,7 @@
 ## 建议的截图
 
 1. 仪表板页面 (dashboard.png)
-2. 添加交易页面 (add_transaction.png)
+2. 添加记账页面 (add_transaction.png)
 3. 预算管理页面 (budget.png)
 4. 分类选择器 (category_selector.png)
 5. 统计分析页面 (statistics.png)

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import { useAccountBookStore } from "@/store/account-book-store";
 import { getCategories, getAccountBooks, createTransaction } from "@/lib/api/transaction-service";
 import { TransactionType } from "@/types";
 import { formatDateForAPI, cn } from "@/lib/utils";
+import { NumericKeyboard } from "./numeric-keyboard";
 
 // 交易类型切换组件
 function TransactionTypeToggle() {
@@ -32,10 +33,13 @@ function TransactionTypeToggle() {
   );
 }
 
+
+
 // 金额输入组件
 function AmountInput() {
   const { amount, setAmount } = useTransactionFormStore();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [showKeyboard, setShowKeyboard] = useState(true); // 默认显示键盘
 
   // 处理金额输入
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,26 +51,131 @@ function AmountInput() {
     }
   };
 
-  // 组件挂载时自动聚焦
+  // 处理输入框点击，显示虚拟键盘
+  const handleInputClick = () => {
+    setShowKeyboard(true);
+  };
+
+  // 处理键盘输入
+  const handleKeyboardInput = (value: string) => {
+    // 处理等号，执行计算
+    if (value === "=") {
+      try {
+        // 使用 Function 构造函数安全地计算表达式
+        // eslint-disable-next-line no-new-func
+        const result = new Function(`return ${amount}`)();
+
+        // 格式化结果，最多保留两位小数
+        const formattedResult = parseFloat(result.toFixed(2)).toString();
+        setAmount(formattedResult);
+      } catch (error) {
+        // 如果计算出错，保持原值不变
+        console.error("计算错误:", error);
+      }
+      return;
+    }
+
+    // 处理数字和小数点输入
+    if (value === "." && amount.includes(".")) {
+      // 已经有小数点了，不再添加
+      return;
+    }
+
+    // 处理加减号
+    if (value === "+" || value === "-") {
+      // 如果是第一个字符，或者前一个字符是运算符，则替换
+      if (amount === "" || ["+", "-"].includes(amount.slice(-1))) {
+        setAmount(value);
+      } else {
+        // 否则追加
+        setAmount(amount + value);
+      }
+      return;
+    }
+
+    // 正常追加数字或小数点
+    setAmount(amount + value);
+  };
+
+  // 处理删除
+  const handleKeyboardDelete = () => {
+    if (amount.length > 0) {
+      setAmount(amount.slice(0, -1));
+    }
+  };
+
+  // 处理完成
+  const handleKeyboardComplete = () => {
+    setShowKeyboard(false);
+  };
+
+  // 组件挂载时自动聚焦和显示键盘
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
+      // 自动显示键盘
+      setShowKeyboard(true);
     }
   }, []);
 
   return (
-    <div className="amount-input-container">
-      <span className="currency-symbol">¥</span>
-      <input
-        ref={inputRef}
-        type="text"
-        className="amount-input"
-        placeholder="0.00"
-        value={amount}
-        onChange={handleAmountChange}
-        inputMode="decimal"
-      />
-    </div>
+    <>
+      <div className="amount-input-container" style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: '24px',
+        position: 'relative',
+        width: '100%'
+      }}>
+        <div className="amount-display" style={{
+          position: 'relative',
+          width: '80%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <span className="currency-symbol" style={{
+            position: 'absolute',
+            left: '0',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            fontSize: '24px',
+            fontWeight: '500',
+            zIndex: '1',
+            paddingLeft: '8px'
+          }}>¥</span>
+          <input
+            ref={inputRef}
+            type="text"
+            className="amount-input"
+            placeholder="0.00"
+            value={amount}
+            onChange={handleAmountChange}
+            onClick={handleInputClick}
+            readOnly // 使用虚拟键盘输入，禁用系统键盘
+            style={{
+              fontSize: '32px',
+              fontWeight: '600',
+              border: 'none',
+              background: 'none',
+              width: '100%',
+              paddingLeft: '30px',
+              color: 'var(--text-primary)',
+              textAlign: 'center'
+            }}
+          />
+        </div>
+      </div>
+
+      {showKeyboard && (
+        <NumericKeyboard
+          onInput={handleKeyboardInput}
+          onDelete={handleKeyboardDelete}
+          onComplete={handleKeyboardComplete}
+        />
+      )}
+    </>
   );
 }
 
@@ -284,9 +393,9 @@ export function TransactionAddPage() {
         throw new Error("创建交易失败，服务器未返回有效响应");
       }
     } catch (error) {
-      console.error("添加交易失败:", error);
-      toast.error("添加交易失败，请重试");
-      setSubmitError("添加交易失败，请重试");
+      console.error("添加记账失败:", error);
+      toast.error("添加记账失败，请重试");
+      setSubmitError("添加记账失败，请重试");
     } finally {
       setSubmitting(false);
     }
@@ -306,7 +415,7 @@ export function TransactionAddPage() {
         <button className="icon-button back-button" onClick={handleBackClick}>
           <i className="fas fa-arrow-left"></i>
         </button>
-        <div className="header-title">添加交易</div>
+        <div className="header-title">添加记账</div>
         <div></div> {/* 占位，保持标题居中 */}
       </header>
 
@@ -410,16 +519,6 @@ export function TransactionAddPage() {
 
       {/* 底部按钮 */}
       <div className="bottom-button-container">
-        {/* 第一步按钮 */}
-        {currentStep === 1 && (
-          <button
-            className="next-button"
-            onClick={() => goToStep(2)}
-          >
-            下一步
-          </button>
-        )}
-
         {/* 第二步按钮 */}
         {currentStep === 2 && (
           <div className="step2-buttons">

@@ -1,4 +1,4 @@
-// 这个脚本文件用于演示添加交易改进版的交互效果
+// 这个脚本文件用于演示添加记账改进版的交互效果
 // 在实际项目中，这些功能将使用React组件实现
 
 document.addEventListener('DOMContentLoaded', function() {
