@@ -26,9 +26,11 @@ export function BudgetStatisticsPage() {
     trendData,
     categoryBudgets,
     recentTransactions,
+    rolloverHistory,
     chartViewMode,
     chartTimeRange,
     showRolloverImpact,
+    isRolloverHistoryOpen,
     categoryFilter,
     enableCategoryBudget,
     isLoading,
@@ -39,9 +41,11 @@ export function BudgetStatisticsPage() {
     setChartViewMode,
     setChartTimeRange,
     toggleRolloverImpact,
+    toggleRolloverHistory,
     setCategoryFilter,
     fetchBudgetStatistics,
     fetchBudgetTrends,
+    fetchRolloverHistory,
     resetState
   } = useBudgetStatisticsStore();
 
@@ -63,6 +67,13 @@ export function BudgetStatisticsPage() {
     // 组件卸载时重置状态
     return () => resetState();
   }, [currentAccountBook, budgetType, fetchBudgetStatistics, resetState]);
+
+  // 当选中预算变化时，获取结转历史数据
+  useEffect(() => {
+    if (selectedBudgetId) {
+      fetchRolloverHistory(selectedBudgetId);
+    }
+  }, [selectedBudgetId, fetchRolloverHistory]);
 
   // 处理预算类型切换
   const handleBudgetTypeChange = (type: 'personal' | 'general') => {
@@ -97,6 +108,8 @@ export function BudgetStatisticsPage() {
       } else {
         fetchBudgetTrends(budgetId, chartViewMode, chartTimeRange);
       }
+
+      // 结转历史数据会通过useEffect自动获取
 
       // 获取预算相关的交易记录
       // 注意：fetchBudgetTrends已经会获取预算详情并更新overview

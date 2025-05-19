@@ -27,6 +27,7 @@ export interface TotalBudget {
   amount: number;
   spent: number;
   remaining: number;
+  adjustedRemaining?: number; // 考虑结转后的剩余金额
   percentage: number;
   daysRemaining: number;
   rolloverAmount?: number;
@@ -43,6 +44,7 @@ export interface Budget {
   amount: number;
   spent: number;
   remaining: number;
+  adjustedRemaining?: number; // 考虑结转后的剩余金额
   percentage: number;
   isOverspent: boolean;
   rollover: boolean;
@@ -127,7 +129,7 @@ export const useBudgetStore = create<BudgetState>()(
 
       // 操作方法
       setSelectedAccountBook: (accountBook) => set({ selectedAccountBook: accountBook }),
-      
+
       setBudgetType: (type) => {
         if (type === 'MONTHLY') {
           set({
@@ -149,17 +151,17 @@ export const useBudgetStore = create<BudgetState>()(
           });
         }
       },
-      
+
       setCurrentPeriod: (period) => {
         const { startDate, endDate } = period;
         const displayText = dayjs(startDate).format(
-          dayjs(startDate).year() === dayjs(endDate).year() 
+          dayjs(startDate).year() === dayjs(endDate).year()
             ? (dayjs(startDate).month() === dayjs(endDate).month() ? 'YYYY年M月' : 'YYYY年M月-M月')
             : 'YYYY年M月-YYYY年M月'
         );
         set({ currentPeriod: { ...period, displayText } });
       },
-      
+
       nextMonth: () => set((state) => {
         if (state.budgetType === 'MONTHLY') {
           const nextMonth = dayjs(state.currentPeriod.startDate).add(1, 'month');
@@ -181,7 +183,7 @@ export const useBudgetStore = create<BudgetState>()(
           };
         }
       }),
-      
+
       prevMonth: () => set((state) => {
         if (state.budgetType === 'MONTHLY') {
           const prevMonth = dayjs(state.currentPeriod.startDate).subtract(1, 'month');
@@ -203,32 +205,32 @@ export const useBudgetStore = create<BudgetState>()(
           };
         }
       }),
-      
+
       setSelectedFamilyMember: (memberId) => set({ selectedFamilyMemberId: memberId }),
-      
+
       setActiveFilter: (filter) => set({ activeFilter: filter }),
-      
+
       toggleFamilyMemberExpanded: (memberId) => set((state) => ({
         expandedFamilyMembers: {
           ...state.expandedFamilyMembers,
           [memberId]: !state.expandedFamilyMembers[memberId],
         },
       })),
-      
+
       setFamilyMembers: (members) => set({ familyMembers: members }),
-      
+
       setAccountBooks: (books) => set({ accountBooks: books }),
-      
+
       setTotalBudget: (budget) => set({ totalBudget: budget }),
-      
+
       setBudgets: (budgets) => set({ budgets: budgets }),
-      
+
       setFamilyBudgets: (budgets) => set({ familyBudgets: budgets }),
-      
+
       setIsLoading: (isLoading) => set({ isLoading }),
-      
+
       setIsRefreshing: (isRefreshing) => set({ isRefreshing }),
-      
+
       setIsDeleting: (isDeleting) => set({ isDeleting }),
     }),
     { name: 'budget-store' }

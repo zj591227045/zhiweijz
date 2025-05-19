@@ -14,6 +14,7 @@ export interface Budget {
   amount: number;
   spent: number;
   remaining: number;
+  adjustedRemaining?: number; // 考虑结转后的剩余金额
   percentage: number;
   rolloverAmount?: number;
   daysRemaining: number;

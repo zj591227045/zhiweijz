@@ -33,6 +33,7 @@ export function BudgetOverview() {
     amount: totalBudget.amount || 0,
     spent: totalBudget.spent || 0,
     remaining: totalBudget.remaining || 0,
+    adjustedRemaining: totalBudget.adjustedRemaining || totalBudget.remaining || 0,
     percentage: totalBudget.percentage || 0,
     daysRemaining: totalBudget.daysRemaining || 0,
     rolloverAmount: totalBudget.rolloverAmount || 0,
@@ -67,7 +68,7 @@ export function BudgetOverview() {
           <div className="amount-item">
             <div className="amount-label">剩余</div>
             <div className={`amount-value ${safeTotalBudget.percentage > 100 ? 'text-red-500' : ''}`}>
-              {formatCurrency(safeTotalBudget.remaining)}
+              {formatCurrency(safeTotalBudget.adjustedRemaining)}
             </div>
           </div>
         </div>

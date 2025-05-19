@@ -35,6 +35,8 @@ export interface UpdateBudgetDto {
   isAutoCalculated?: boolean;
   budgetType?: BudgetType;
   rolloverAmount?: number;
+  amountModified?: boolean;         // 预算金额是否已被修改
+  lastAmountModifiedAt?: Date;      // 最后一次修改预算金额的时间
 }
 
 /**
@@ -90,6 +92,9 @@ export interface BudgetResponseDto {
   dailyAvailable?: number;
   // 分类预算
   categoryBudgets?: CategoryBudgetResponseDto[];
+  // 预算金额修改状态
+  amountModified?: boolean;
+  lastAmountModifiedAt?: Date;
 }
 
 /**
@@ -128,6 +133,8 @@ export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryRes
   const isAutoCalculated = budgetAny.isAutoCalculated;
   const rolloverAmount = budgetAny.rolloverAmount;
   const budgetType = budgetAny.budgetType || BudgetType.PERSONAL;
+  const amountModified = budgetAny.amountModified;
+  const lastAmountModifiedAt = budgetAny.lastAmountModifiedAt;
 
   // 计算预算执行情况
   const numericAmount = Number(amount);
@@ -176,5 +183,7 @@ export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryRes
     daysRemaining,
     dailySpent,
     dailyAvailable,
+    amountModified,
+    lastAmountModifiedAt,
   };
 }

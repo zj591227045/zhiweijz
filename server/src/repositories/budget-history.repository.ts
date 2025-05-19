@@ -15,6 +15,15 @@ export class BudgetHistoryRepository {
         amount: new Prisma.Decimal(data.amount),
         type: data.type,
         description: data.description,
+        ...(data.budgetAmount !== undefined && {
+          budgetAmount: new Prisma.Decimal(data.budgetAmount)
+        }),
+        ...(data.spentAmount !== undefined && {
+          spentAmount: new Prisma.Decimal(data.spentAmount)
+        }),
+        ...(data.previousRollover !== undefined && {
+          previousRollover: new Prisma.Decimal(data.previousRollover)
+        }),
       },
     });
   }

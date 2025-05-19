@@ -38,6 +38,9 @@ router.get('/:id/rollover-history', (req, res) => budgetController.getRolloverHi
 // 处理预算结转
 router.post('/:id/rollover', (req, res) => budgetController.processBudgetRollover(req, res));
 
+// 重新计算预算结转
+router.post('/:id/recalculate-rollover', (req, res) => budgetController.recalculateBudgetRollover(req, res));
+
 // 获取预算相关交易
 router.get('/:id/transactions', (req, res) => budgetController.getBudgetTransactions(req, res));
 

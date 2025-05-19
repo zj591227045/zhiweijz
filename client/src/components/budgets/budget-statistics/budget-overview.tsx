@@ -1,6 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { useBudgetStatisticsStore } from '@/store/budget-statistics-store';
+import { RolloverHistoryDialog } from '@/components/budgets/rollover-history-dialog';
 
 interface BudgetOverviewProps {
   overview: {
@@ -10,6 +12,7 @@ interface BudgetOverviewProps {
     amount: number;
     spent: number;
     remaining: number;
+    adjustedRemaining?: number; // 考虑结转后的剩余金额
     percentage: number;
     rollover: number;
     daysRemaining: number;
@@ -19,11 +22,19 @@ interface BudgetOverviewProps {
 }
 
 export function BudgetOverview({ overview }: BudgetOverviewProps) {
-  const router = useRouter();
+  const {
+    rolloverHistory,
+    isRolloverHistoryOpen,
+    toggleRolloverHistory,
+    fetchRolloverHistory
+  } = useBudgetStatisticsStore();
 
   // 处理结转历史按钮点击
   const handleRolloverHistoryClick = () => {
-    router.push(`/budgets/${overview.id}/rollover-history`);
+    // 先获取结转历史数据，然后打开对话框
+    fetchRolloverHistory(overview.id).then(() => {
+      toggleRolloverHistory();
+    });
   };
 
   // 格式化金额
@@ -47,22 +58,31 @@ export function BudgetOverview({ overview }: BudgetOverviewProps) {
   };
 
   return (
-    <div className="overview-card">
-      <div className="budget-name">{overview.name}</div>
-      <div className="budget-period">{overview.period}</div>
-      <div className="budget-amount">{formatAmount(overview.amount, false)}</div>
+    <>
+      <div className="overview-card">
+        <div className="budget-name">{overview.name}</div>
+        <div className="budget-period">{overview.period}</div>
+        <div className="budget-amount">{formatAmount(overview.amount, false)}</div>
 
-      {/* 结转信息 */}
-      <div className="rollover-info">
-        <div className={`rollover-badge ${getRolloverBadgeClass(overview.rollover)}`}>
-          <i className="fas fa-exchange-alt"></i>
-          <span>本月结转: {overview.rollover >= 0 ? '+' : ''}{formatAmount(overview.rollover)}</span>
+        {/* 结转信息 */}
+        <div className="rollover-info">
+          <div className={`rollover-badge ${getRolloverBadgeClass(overview.rollover)}`}>
+            <i className="fas fa-exchange-alt"></i>
+            <span>本月结转: {overview.rollover >= 0 ? '+' : ''}{formatAmount(overview.rollover)}</span>
+          </div>
+          <button className="rollover-history-button" onClick={handleRolloverHistoryClick}>
+            <i className="fas fa-history"></i>
+            <span>结转历史</span>
+          </button>
         </div>
-        <button className="rollover-history-button" onClick={handleRolloverHistoryClick}>
-          <i className="fas fa-history"></i>
-          <span>结转历史</span>
-        </button>
-      </div>
+
+        {/* 结转历史对话框 */}
+        {isRolloverHistoryOpen && (
+          <RolloverHistoryDialog
+            history={rolloverHistory}
+            onClose={toggleRolloverHistory}
+          />
+        )}
 
       {/* 预算进度 - 优化样式 */}
       <div className="budget-progress-container">
@@ -70,8 +90,8 @@ export function BudgetOverview({ overview }: BudgetOverviewProps) {
           <div className="spent-amount">
             已用: {formatAmount(overview.spent)} ({overview.percentage.toFixed(1)}%)
           </div>
-          <div className={`remaining-amount ${overview.remaining >= 0 ? 'positive' : 'negative'}`}>
-            剩余: {formatAmount(overview.remaining)}
+          <div className={`remaining-amount ${(overview.adjustedRemaining ?? overview.remaining) >= 0 ? 'positive' : 'negative'}`}>
+            剩余: {formatAmount(overview.adjustedRemaining ?? overview.remaining)}
           </div>
         </div>
         <div className="progress-bar">
@@ -97,6 +117,7 @@ export function BudgetOverview({ overview }: BudgetOverviewProps) {
           <div className="stat-label">日均可用</div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

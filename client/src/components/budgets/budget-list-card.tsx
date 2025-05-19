@@ -100,8 +100,8 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
             budget.overSpent && "negative"
           )}>
             {budget.overSpent
-              ? `超支: ${formatCurrency(Math.abs(budget.remaining))}`
-              : `剩余: ${formatCurrency(budget.remaining)}`}
+              ? `超支: ${formatCurrency(Math.abs(budget.adjustedRemaining ?? budget.remaining))}`
+              : `剩余: ${formatCurrency(budget.adjustedRemaining ?? budget.remaining)}`}
           </span>
         </div>
       </div>

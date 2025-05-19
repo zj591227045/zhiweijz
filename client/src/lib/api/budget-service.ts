@@ -163,10 +163,11 @@ export const budgetService = {
           amount: totalBudgetItem.amount || 0,
           spent: totalBudgetItem.spent || 0,
           remaining: totalBudgetItem.remaining || 0,
+          adjustedRemaining: totalBudgetItem.adjustedRemaining || (totalBudgetItem.remaining + (totalBudgetItem.rolloverAmount || 0)),
           percentage: totalBudgetItem.percentage || 0,
           daysRemaining: calculateDaysRemaining(),
           rolloverAmount: totalBudgetItem.rolloverAmount,
-          dailyAvailable: calculateDailyAvailable(totalBudgetItem.remaining || 0)
+          dailyAvailable: calculateDailyAvailable(totalBudgetItem.adjustedRemaining || totalBudgetItem.remaining || 0)
         };
 
         // 确保familyBudgets是对象
@@ -189,6 +190,7 @@ export const budgetService = {
             amount: 0,
             spent: 0,
             remaining: 0,
+            adjustedRemaining: 0,
             percentage: 0,
             daysRemaining: calculateDaysRemaining(),
             dailyAvailable: 0
@@ -220,6 +222,7 @@ export const budgetService = {
           amount: 0,
           spent: 0,
           remaining: 0,
+          adjustedRemaining: 0,
           percentage: 0,
           daysRemaining: 0,
           dailyAvailable: 0

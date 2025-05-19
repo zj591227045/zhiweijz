@@ -101,6 +101,7 @@ export interface TransactionResponseDto {
   budgetId?: string;
   createdAt: Date;
   updatedAt: Date;
+  metadata?: any; // 交易元数据，如历史交易标记
 }
 
 /**
@@ -132,5 +133,6 @@ export function toTransactionResponseDto(transaction: PrismaTransaction, categor
     budgetId: (transaction as any).budgetId || undefined, // 临时类型转换，等待Prisma客户端更新
     createdAt: transaction.createdAt,
     updatedAt: transaction.updatedAt,
+    metadata: (transaction as any).metadata || undefined, // 添加元数据字段
   };
 }

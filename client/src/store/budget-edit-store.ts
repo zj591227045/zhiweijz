@@ -235,11 +235,11 @@ export const useBudgetEditStore = create<BudgetEditState>()(
           return;
         }
 
-        // 计算已分配金额
-        const allocatedAmount = categoryBudgets.reduce(
-          (sum, budget) => sum + budget.amount,
-          0
-        );
+                  // 计算已分配金额
+                  const allocatedAmount = categoryBudgets.reduce(
+                    (sum: number, budget: CategoryBudget) => sum + budget.amount,
+                    0
+                  );
 
         // 检查是否超出总预算
         if (allocatedAmount + categoryBudgetAmount > amount) {
@@ -278,7 +278,7 @@ export const useBudgetEditStore = create<BudgetEditState>()(
               {
                 categoryId: selectedCategoryId,
                 categoryName: selectedCategory.name,
-                categoryIcon: selectedCategory.icon,
+                categoryIcon: selectedCategory.icon || 'fa-question', // 提供默认图标
                 amount: categoryBudgetAmount,
                 isOther: false
               }
@@ -351,7 +351,7 @@ export const useBudgetEditStore = create<BudgetEditState>()(
 
         // 计算新的已分配金额
         const newAllocatedAmount = updatedBudgets.reduce(
-          (sum, budget) => sum + budget.amount,
+          (sum: number, budget: CategoryBudget) => sum + budget.amount,
           0
         );
 
@@ -400,29 +400,27 @@ export const useBudgetEditStore = create<BudgetEditState>()(
 
             // 计算已分配金额（排除"其他"分类）
             const allocatedAmount = categoryBudgets
-              .filter(cb => cb.categoryId !== 'other' && !cb.isOther)
-              .reduce((sum, cb) => sum + cb.amount, 0);
+              .filter((cb: CategoryBudget) => cb.categoryId !== 'other' && !cb.isOther)
+              .reduce((sum: number, cb: CategoryBudget) => sum + cb.amount, 0);
 
             // 计算剩余可分配金额
             const remainingAmount = response.amount - allocatedAmount;
 
             // 如果没有"其他"分类预算且有剩余金额，添加"其他"分类预算
             if (!hasOtherBudget && remainingAmount > 0) {
-              categoryBudgets = [
-                ...categoryBudgets,
-                {
-                  categoryId: 'other',
-                  categoryName: '其他',
-                  categoryIcon: 'fa-ellipsis',
-                  amount: remainingAmount,
-                  isOther: true
-                }
-              ];
+              const otherBudget: CategoryBudget = {
+                categoryId: 'other',
+                categoryName: '其他',
+                categoryIcon: 'fa-ellipsis',
+                amount: remainingAmount,
+                isOther: true
+              };
+              categoryBudgets = [...categoryBudgets, otherBudget];
             }
 
             // 如果有"其他"分类预算，确保金额正确
             if (hasOtherBudget) {
-              categoryBudgets = categoryBudgets.map(cb => {
+              categoryBudgets = categoryBudgets.map((cb: CategoryBudget) => {
                 if (cb.categoryId === 'other' || cb.isOther) {
                   return {
                     ...cb,
@@ -545,8 +543,8 @@ export const useBudgetEditStore = create<BudgetEditState>()(
           set({ isSubmitting: false });
           toast.success('预算更新成功');
 
-          // 返回预算详情页
-          window.location.href = `/budgets/${budgetId}`;
+          // 返回预算列表页
+          window.location.href = '/budgets/list';
         } catch (error) {
           console.error('更新预算失败:', error);
           set({

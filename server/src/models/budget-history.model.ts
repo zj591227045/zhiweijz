@@ -9,6 +9,9 @@ export interface CreateBudgetHistoryDto {
   amount: number;
   type: RolloverType;
   description?: string;
+  budgetAmount?: number;     // 预算金额
+  spentAmount?: number;      // 已使用金额
+  previousRollover?: number; // 上一期结转金额
 }
 
 /**
@@ -33,6 +36,10 @@ export interface BudgetHistoryResponseDto {
   type: RolloverType;
   description?: string;
   createdAt: Date;
+  updatedAt: Date;
+  budgetAmount?: number;     // 预算金额
+  spentAmount?: number;      // 已使用金额
+  previousRollover?: number; // 上一期结转金额
 }
 
 /**
@@ -56,8 +63,12 @@ export function toBudgetHistoryResponseDto(budgetHistory: PrismaBudgetHistory): 
     amount,
     type,
     description,
-    createdAt
-  } = budgetHistory;
+    createdAt,
+    updatedAt,
+    budgetAmount,
+    spentAmount,
+    previousRollover
+  } = budgetHistory as any; // 使用any类型避免TypeScript错误
 
   return {
     id,
@@ -66,6 +77,10 @@ export function toBudgetHistoryResponseDto(budgetHistory: PrismaBudgetHistory): 
     amount: Number(amount),
     type,
     description: description || undefined,
-    createdAt
+    createdAt,
+    updatedAt: updatedAt || createdAt, // 如果updatedAt不存在，使用createdAt
+    budgetAmount: budgetAmount ? Number(budgetAmount) : undefined,
+    spentAmount: spentAmount ? Number(spentAmount) : undefined,
+    previousRollover: previousRollover ? Number(previousRollover) : undefined
   };
 }

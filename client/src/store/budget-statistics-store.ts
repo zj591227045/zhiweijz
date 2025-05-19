@@ -61,6 +61,16 @@ export interface Transaction {
   type: 'EXPENSE' | 'INCOME';
 }
 
+// 结转记录类型
+export interface RolloverRecord {
+  id: string;
+  budgetId: string;
+  period: string;
+  amount: number;
+  type: 'SURPLUS' | 'DEFICIT';
+  createdAt: string;
+}
+
 // 预算统计状态类型
 interface BudgetStatisticsState {
   // 预算类型
@@ -91,6 +101,9 @@ interface BudgetStatisticsState {
   // 最近交易
   recentTransactions: Transaction[];
 
+  // 结转历史记录
+  rolloverHistory: RolloverRecord[];
+
   // 图表视图模式
   chartViewMode: 'daily' | 'weekly' | 'monthly';
 
@@ -109,6 +122,7 @@ interface BudgetStatisticsState {
   // UI状态
   isLoading: boolean;
   isLoadingTrends: boolean;
+  isRolloverHistoryOpen: boolean;
   error: string | null;
 
   // 操作方法
@@ -117,9 +131,11 @@ interface BudgetStatisticsState {
   setChartViewMode: (mode: 'daily' | 'weekly' | 'monthly') => void;
   setChartTimeRange: (range: '6months' | '12months') => void;
   toggleRolloverImpact: () => void;
+  toggleRolloverHistory: () => void;
   setCategoryFilter: (filter: 'all' | 'overspent') => void;
   fetchBudgetStatistics: (accountBookId: string, budgetType?: 'personal' | 'general', userId?: string) => Promise<void>;
   fetchBudgetTrends: (budgetId: string, viewMode?: 'daily' | 'weekly' | 'monthly', timeRange?: '6months' | '12months', familyMemberId?: string) => Promise<void>;
+  fetchRolloverHistory: (budgetId: string) => Promise<void>;
   resetState: () => void;
 }
 
@@ -140,6 +156,7 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
       },
       categoryBudgets: [],
       recentTransactions: [],
+      rolloverHistory: [],
       chartViewMode: 'monthly', // 默认显示月视图
       chartTimeRange: '6months', // 默认显示6个月
       showRolloverImpact: true,
@@ -147,6 +164,7 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
       enableCategoryBudget: false,
       isLoading: false,
       isLoadingTrends: false,
+      isRolloverHistoryOpen: false,
       error: null,
 
       // 设置预算类型
@@ -182,8 +200,28 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
         showRolloverImpact: !state.showRolloverImpact
       })),
 
+      // 切换结转历史对话框
+      toggleRolloverHistory: () => set(state => ({
+        isRolloverHistoryOpen: !state.isRolloverHistoryOpen
+      })),
+
       // 设置分类预算筛选选项
       setCategoryFilter: (filter) => set({ categoryFilter: filter }),
+
+      // 获取预算结转历史
+      fetchRolloverHistory: async (budgetId) => {
+        try {
+          console.log(`获取预算结转历史，预算ID: ${budgetId}`);
+          const history = await budgetService.getRolloverHistory(budgetId);
+          console.log('获取到结转历史:', history);
+          set({ rolloverHistory: history || [] });
+          return history;
+        } catch (error) {
+          console.error('获取结转历史失败:', error);
+          set({ rolloverHistory: [] });
+          return [];
+        }
+      },
 
       // 获取预算统计数据
       fetchBudgetStatistics: async (accountBookId, budgetType, userId) => {
@@ -329,6 +367,7 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
         },
         categoryBudgets: [],
         recentTransactions: [],
+        rolloverHistory: [],
         chartViewMode: 'monthly',
         chartTimeRange: '6months',
         showRolloverImpact: true,
@@ -336,6 +375,7 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
         enableCategoryBudget: false,
         isLoading: false,
         isLoadingTrends: false,
+        isRolloverHistoryOpen: false,
         error: null
       })
     })

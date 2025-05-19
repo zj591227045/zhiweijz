@@ -6,20 +6,41 @@ const prisma = new PrismaClient();
 export class TransactionRepository {
   /**
    * 创建交易记录
+   * @param userId 用户ID
+   * @param transactionData 交易数据
+   * @param metadata 元数据（可选）
    */
-  async create(userId: string, transactionData: CreateTransactionDto): Promise<any> {
+  async create(userId: string, transactionData: CreateTransactionDto, metadata?: any): Promise<any> {
+    // 构建基本数据
+    const data: any = {
+      amount: new Prisma.Decimal(transactionData.amount),
+      type: transactionData.type,
+      categoryId: transactionData.categoryId,
+      description: transactionData.description,
+      date: transactionData.date,
+      userId,
+      familyId: transactionData.familyId,
+      familyMemberId: transactionData.familyMemberId,
+      accountBookId: transactionData.accountBookId,
+    };
+
+    // 如果提供了元数据，添加到数据中
+    if (metadata) {
+      try {
+        // 将元数据存储在JSON字段中
+        (data as any).metadata = metadata;
+
+        // 如果是历史交易，记录创建时间和消费日期
+        if (metadata.isHistorical) {
+          console.log(`记录历史交易元数据: 创建时间=${metadata.createdAt}, 消费日期=${metadata.consumptionDate}`);
+        }
+      } catch (error) {
+        console.error('添加交易元数据失败:', error);
+      }
+    }
+
     return prisma.transaction.create({
-      data: {
-        amount: new Prisma.Decimal(transactionData.amount),
-        type: transactionData.type,
-        categoryId: transactionData.categoryId,
-        description: transactionData.description,
-        date: transactionData.date,
-        userId,
-        familyId: transactionData.familyId,
-        familyMemberId: transactionData.familyMemberId,
-        accountBookId: transactionData.accountBookId,
-      },
+      data,
       include: {
         category: true,
       },
@@ -91,8 +112,11 @@ export class TransactionRepository {
 
   /**
    * 更新交易记录
+   * @param id 交易ID
+   * @param transactionData 交易数据
+   * @param metadata 元数据（可选）
    */
-  async update(id: string, transactionData: UpdateTransactionDto): Promise<any> {
+  async update(id: string, transactionData: UpdateTransactionDto, metadata?: any): Promise<any> {
     const data: Prisma.TransactionUpdateInput = {
       ...(transactionData.amount !== undefined && { amount: new Prisma.Decimal(transactionData.amount) }),
       ...(transactionData.categoryId && { categoryId: transactionData.categoryId }),
@@ -101,6 +125,27 @@ export class TransactionRepository {
       ...(transactionData.familyMemberId && { familyMemberId: transactionData.familyMemberId }),
       ...(transactionData.budgetId && { budgetId: transactionData.budgetId }),
     };
+
+    // 如果提供了元数据，添加到数据中
+    if (metadata) {
+      try {
+        // 获取现有元数据
+        const existingTransaction = await prisma.transaction.findUnique({
+          where: { id }
+        });
+
+        // 合并现有元数据和新元数据
+        const existingMetadata = (existingTransaction as any)?.metadata || {};
+        (data as any).metadata = { ...existingMetadata, ...metadata };
+
+        // 如果是历史交易，记录更新时间和消费日期
+        if (metadata.isHistorical) {
+          console.log(`更新历史交易元数据: 更新时间=${metadata.updatedAt}, 消费日期=${metadata.consumptionDate}`);
+        }
+      } catch (error) {
+        console.error('更新交易元数据失败:', error);
+      }
+    }
 
     return prisma.transaction.update({
       where: { id },
