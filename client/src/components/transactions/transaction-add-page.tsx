@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTransactionFormStore } from "@/store/transaction-form-store";
+import { useAccountBookStore } from "@/store/account-book-store";
 import { getCategories, getAccountBooks, createTransaction } from "@/lib/api/transaction-service";
 import { TransactionType } from "@/types";
 import { formatDateForAPI, cn } from "@/lib/utils";
@@ -195,7 +196,8 @@ export function TransactionAddPage() {
     setDescription, setDate, setTime, goToStep
   } = useTransactionFormStore();
 
-  // 不再使用accountBookStore，直接通过React Query获取账本数据
+  // 获取全局账本状态
+  const { currentAccountBook } = useAccountBookStore();
 
   // 获取分类列表
   const { data: categories, isLoading: isCategoriesLoading } = useQuery({
@@ -212,9 +214,16 @@ export function TransactionAddPage() {
   // 当账本数据加载完成后，设置默认账本
   useEffect(() => {
     if (accountBooksData && accountBooksData.length > 0 && !accountBookId) {
-      setAccountBookId(accountBooksData[0].id);
+      // 优先使用全局账本
+      if (currentAccountBook) {
+        setAccountBookId(currentAccountBook.id);
+      } else {
+        // 如果没有全局账本，使用默认账本或第一个账本
+        const defaultBook = accountBooksData.find(book => book.isDefault) || accountBooksData[0];
+        setAccountBookId(defaultBook.id);
+      }
     }
-  }, [accountBooksData, accountBookId, setAccountBookId]);
+  }, [accountBooksData, accountBookId, setAccountBookId, currentAccountBook]);
 
   // 处理返回按钮点击
   const handleBackClick = () => {

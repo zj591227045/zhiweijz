@@ -16,10 +16,10 @@ export default function CreateBookPage() {
   // 创建账本的mutation
   const createBookMutation = useMutation({
     mutationFn: async (data: BookFormValues) => {
-      return apiClient.post("/account-books", {
+      // 创建账本
+      const newBook = await apiClient.post("/account-books", {
         name: data.name,
         description: data.description,
-        isDefault: data.isDefault,
         aiService: data.aiService.enabled ? {
           provider: data.aiService.provider,
           model: data.aiService.model,
@@ -28,6 +28,13 @@ export default function CreateBookPage() {
           language: data.aiService.language,
         } : undefined,
       });
+
+      // 如果设置为默认账本，调用设置默认账本的API
+      if (data.isDefault && newBook && newBook.id) {
+        await apiClient.post(`/account-books/${newBook.id}/set-default`);
+      }
+
+      return newBook;
     },
     onSuccess: () => {
       toast.success("账本创建成功");
@@ -75,7 +82,7 @@ export default function CreateBookPage() {
           onSubmit={handleSubmit}
         />
       </div>
-      
+
       {/* 底部保存按钮 */}
       <div className="bottom-button-container">
         <button

@@ -21,7 +21,7 @@ export function BookPreview({
         <div className="preview-book-description">{description || "账本描述"}</div>
         <div className="preview-book-badges">
           {isDefault && (
-            <div className="preview-badge preview-default-badge">默认账本</div>
+            <div className="preview-badge preview-default-badge">设为默认</div>
           )}
           {aiEnabled && (
             <div className="preview-badge preview-ai-badge">AI已启用</div>

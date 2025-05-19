@@ -33,10 +33,10 @@ export default function EditBookPage({ params }: EditBookPageProps) {
   // 更新账本的mutation
   const updateBookMutation = useMutation({
     mutationFn: async (data: BookFormValues) => {
-      return apiClient.put(`/account-books/${id}`, {
+      // 首先更新账本基本信息
+      const updatedBook = await apiClient.put(`/account-books/${id}`, {
         name: data.name,
         description: data.description,
-        isDefault: data.isDefault,
         aiService: data.aiService.enabled ? {
           provider: data.aiService.provider,
           model: data.aiService.model,
@@ -45,6 +45,13 @@ export default function EditBookPage({ params }: EditBookPageProps) {
           language: data.aiService.language,
         } : undefined,
       });
+
+      // 如果设置为默认账本，调用设置默认账本的API
+      if (data.isDefault) {
+        await apiClient.post(`/account-books/${id}/set-default`);
+      }
+
+      return updatedBook;
     },
     onSuccess: () => {
       toast.success("账本更新成功");
@@ -107,7 +114,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
           />
         </div>
       )}
-      
+
       {/* 底部保存按钮 */}
       {!isLoading && (
         <div className="bottom-button-container">

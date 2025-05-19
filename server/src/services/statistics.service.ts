@@ -273,12 +273,29 @@ export class StatisticsService {
         }
 
         // 验证权限
-        if (accountBook.userId !== userId) {
-          console.error('账本权限验证失败:', {
-            accountBookUserId: accountBook.userId,
-            requestUserId: userId
-          });
-          throw new Error('无权访问此账本');
+        if (accountBook.type === 'PERSONAL') {
+          // 个人账本只能被创建者访问
+          if (accountBook.userId !== userId) {
+            console.error('个人账本权限验证失败:', {
+              accountBookUserId: accountBook.userId,
+              requestUserId: userId
+            });
+            throw new Error('无权访问此账本');
+          }
+        } else if (accountBook.type === 'FAMILY') {
+          // 家庭账本可以被家庭成员访问
+          if (!accountBook.familyId) {
+            throw new Error('账本数据错误：家庭账本缺少家庭ID');
+          }
+
+          const isMember = await this.isUserFamilyMember(userId, accountBook.familyId);
+          if (!isMember) {
+            console.error('家庭账本权限验证失败:', {
+              familyId: accountBook.familyId,
+              requestUserId: userId
+            });
+            throw new Error('无权访问此家庭账本');
+          }
         }
       } catch (error) {
         console.error('验证账本权限时出错:', error);

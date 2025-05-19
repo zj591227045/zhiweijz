@@ -97,12 +97,6 @@ export default function BookListPage() {
 
   // 删除账本
   const handleDeleteBook = (book: AccountBook) => {
-    // 不允许删除默认账本
-    if (book.isDefault) {
-      toast.error("默认账本不能删除");
-      return;
-    }
-
     setBookToDelete(book);
     setShowDeleteConfirm(true);
   };
@@ -131,13 +125,31 @@ export default function BookListPage() {
   };
 
   // 确认切换账本
-  const confirmSwitchBook = () => {
+  const confirmSwitchBook = async () => {
     if (!bookToSwitch) return;
 
-    setCurrentAccountBook(bookToSwitch.id);
-    toast.success(`已切换到账本: ${bookToSwitch.name}`);
-    setShowSwitchConfirm(false);
-    setBookToSwitch(null);
+    try {
+      // 设置为默认账本
+      await fetch(`/api/account-books/${bookToSwitch.id}/set-default`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      // 更新当前账本
+      setCurrentAccountBook(bookToSwitch.id);
+      toast.success(`已切换到账本: ${bookToSwitch.name}`);
+
+      // 重新获取账本列表
+      fetchAccountBooks();
+    } catch (error) {
+      console.error('设置默认账本失败:', error);
+      toast.error('设置默认账本失败');
+    } finally {
+      setShowSwitchConfirm(false);
+      setBookToSwitch(null);
+    }
   };
 
   // 处理重置账本

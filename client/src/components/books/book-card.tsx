@@ -66,8 +66,7 @@ export function BookCard({
       <div className="book-header">
         <div className="book-title">
           {book.name}
-          {book.isDefault && <span className="book-badge">默认</span>}
-          {isActive && !book.isDefault && <span className="book-badge">当前使用</span>}
+          {isActive && <span className="book-badge">当前使用</span>}
         </div>
         <div className="book-actions">
           <button className="book-action" onClick={handleEditClick} title="编辑账本">
@@ -78,11 +77,9 @@ export function BookCard({
               <i className="fas fa-sync-alt"></i>
             </button>
           )}
-          {!book.isDefault && (
-            <button className="book-action" onClick={handleDeleteClick} title="删除账本">
-              <i className="fas fa-trash-alt"></i>
-            </button>
-          )}
+          <button className="book-action" onClick={handleDeleteClick} title="删除账本">
+            <i className="fas fa-trash-alt"></i>
+          </button>
         </div>
       </div>
       <div className="book-meta">

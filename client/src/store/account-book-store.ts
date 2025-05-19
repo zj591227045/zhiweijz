@@ -50,12 +50,26 @@ export const useAccountBookStore = create<AccountBookState>()(
 
           set({ accountBooks, isLoading: false });
 
-          // 如果没有当前账本或当前账本不在列表中，设置默认账本
+          // 如果没有当前账本或当前账本不在列表中，获取默认账本
           const { currentAccountBook } = get();
           if (!currentAccountBook || !accountBooks.find(book => book.id === currentAccountBook.id)) {
-            const defaultBook = accountBooks.find(book => book.isDefault) || accountBooks[0];
-            if (defaultBook) {
-              set({ currentAccountBook: defaultBook });
+            // 尝试从API获取默认账本
+            try {
+              const defaultBookResponse = await apiClient.get('/account-books/default');
+              if (defaultBookResponse) {
+                set({ currentAccountBook: defaultBookResponse });
+              } else {
+                // 如果API没有返回默认账本，使用第一个账本
+                if (accountBooks.length > 0) {
+                  set({ currentAccountBook: accountBooks[0] });
+                }
+              }
+            } catch (error) {
+              console.error('获取默认账本失败:', error);
+              // 如果API调用失败，使用第一个账本
+              if (accountBooks.length > 0) {
+                set({ currentAccountBook: accountBooks[0] });
+              }
             }
           }
         } catch (error: any) {

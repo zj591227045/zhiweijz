@@ -68,4 +68,6 @@ export enum UserSettingKey {
   TIME_FORMAT = 'time_format',
   // 首页设置
   HOME_PAGE = 'home_page',
+  // 默认账本ID
+  DEFAULT_ACCOUNT_BOOK_ID = 'default_account_book_id',
 }

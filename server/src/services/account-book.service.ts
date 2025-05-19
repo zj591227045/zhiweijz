@@ -173,8 +173,29 @@ export class AccountBookService {
    * 获取用户的默认账本
    */
   async getDefaultAccountBook(userId: string): Promise<AccountBookResponseDto | null> {
-    const accountBook = await this.accountBookRepository.findDefaultByUserId(userId);
+    // 从用户设置中获取默认账本ID
+    const { UserSettingService } = require('./user-setting.service');
+    const { UserSettingKey } = require('../models/user-setting.model');
+    const userSettingService = new UserSettingService();
 
+    const defaultAccountBookSetting = await userSettingService.getUserSetting(
+      userId,
+      UserSettingKey.DEFAULT_ACCOUNT_BOOK_ID
+    );
+
+    let accountBook = null;
+
+    // 如果用户设置中有默认账本ID，则获取该账本
+    if (defaultAccountBookSetting && defaultAccountBookSetting.value) {
+      accountBook = await this.accountBookRepository.findById(defaultAccountBookSetting.value);
+    }
+
+    // 如果没有找到默认账本，则尝试获取标记为默认的账本
+    if (!accountBook) {
+      accountBook = await this.accountBookRepository.findDefaultByUserId(userId);
+    }
+
+    // 如果仍然没有找到默认账本，则返回null
     if (!accountBook) {
       return null;
     }
@@ -267,9 +288,18 @@ export class AccountBookService {
         throw new Error('无权删除此账本');
       }
 
-      // 检查是否为默认账本
+      // 如果是默认账本，需要从用户设置中移除默认账本ID
       if (accountBook.isDefault) {
-        throw new Error('不能删除默认账本');
+        const { UserSettingService } = require('./user-setting.service');
+        const { UserSettingKey } = require('../models/user-setting.model');
+        const userSettingService = new UserSettingService();
+
+        try {
+          await userSettingService.deleteUserSetting(userId, UserSettingKey.DEFAULT_ACCOUNT_BOOK_ID);
+        } catch (error) {
+          console.error('删除默认账本设置失败:', error);
+          // 继续删除账本，不影响主流程
+        }
       }
     } else if (accountBook.type === 'FAMILY') {
       // 家庭账本只能被家庭管理员删除
@@ -306,18 +336,39 @@ export class AccountBookService {
     }
 
     // 验证权限
-    if (accountBook.userId !== userId) {
-      throw new Error('无权设置此账本');
+    if (accountBook.type === 'PERSONAL') {
+      // 个人账本只能被创建者设置为默认
+      if (accountBook.userId !== userId) {
+        throw new Error('无权设置此账本');
+      }
+    } else if (accountBook.type === 'FAMILY') {
+      // 家庭账本可以被家庭成员设置为默认
+      if (!accountBook.familyId) {
+        throw new Error('账本数据错误：家庭账本缺少家庭ID');
+      }
+
+      const isMember = await this.familyRepository.isFamilyMember(userId, accountBook.familyId);
+      if (!isMember) {
+        throw new Error('无权设置此家庭账本');
+      }
     }
 
-    // 更新账本为默认
-    const updatedAccountBook = await this.accountBookRepository.update(id, { isDefault: true });
+    // 使用用户设置服务来存储默认账本ID
+    const { UserSettingService } = require('./user-setting.service');
+    const { UserSettingKey } = require('../models/user-setting.model');
+    const userSettingService = new UserSettingService();
+
+    // 将账本ID保存到用户设置中
+    await userSettingService.createOrUpdateUserSetting(userId, {
+      key: UserSettingKey.DEFAULT_ACCOUNT_BOOK_ID,
+      value: id
+    });
 
     // 获取账本统计信息
     const stats = await this.accountBookRepository.getAccountBookStats(id);
 
     return toAccountBookResponseDto(
-      updatedAccountBook,
+      accountBook,
       stats.transactionCount,
       stats.categoryCount,
       stats.budgetCount

@@ -27,7 +27,7 @@ export function BottomNavigation({ activeItem }: BottomNavigationProps = {}) {
         <i className="fas fa-chart-pie"></i>
         <span>统计</span>
       </Link>
-      <Link href="/transactions/new" className="nav-item add-button">
+      <Link href="/transactions/new" className="nav-item add-button" style={{ zIndex: 101 }}>
         <div className="add-icon">
           <i className="fas fa-plus"></i>
         </div>
