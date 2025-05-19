@@ -3,207 +3,328 @@
 /* 定义CSS变量映射，解决变量名不一致的问题 */
 :root {
   --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  --primary: var(--primary-color);
-  --success: var(--success-color);
-  --danger: var(--error-color);
-  --warning: var(--warning-color);
-  --hover-background: var(--background-hover);
+  --primary: var(--primary-color, #3b82f6);
+  --success: var(--success-color, #22c55e);
+  --danger: var(--error-color, #ef4444);
+  --warning: var(--warning-color, #f59e0b);
+  --hover-background: var(--background-hover, rgba(0, 0, 0, 0.05));
+
+  /* 确保所有CSS变量都有默认值 */
+  --card-bg: var(--card-background, #ffffff);
+  --text-color: var(--text-primary, #1f2937);
+  --text-color-secondary: var(--text-secondary, #64748b);
+  --border-color: var(--border, #e5e7eb);
+  --background-color: var(--background, #f9fafb);
+  --primary-color-light: rgba(59, 130, 246, 0.1);
+  --secondary-color: var(--secondary, #64748b);
+  --border-radius: 10px;
+}
+
+/* 预算选择器样式 */
+.budget-selector {
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.budget-tabs {
+  display: flex;
+  margin-bottom: 15px;
+  border-bottom: 1px solid var(--border-color);
+  width: 100%;
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  padding: 5px;
+}
+
+.budget-tab {
+  flex: 1;
+  padding: 12px 15px;
+  text-align: center;
+  background: none;
+  border: none;
+  color: var(--text-color-secondary);
+  font-weight: 500;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.budget-tab.active {
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--primary-color);
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
+}
+
+.budget-carousel {
+  display: flex;
+  overflow-x: auto;
+  padding: 10px 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  gap: 12px;
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.budget-carousel::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.budget-card {
+  flex: 1 1 auto;
+  min-width: 120px;
+  max-width: 180px;
+  padding: 16px;
+  border-radius: 10px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--card-shadow);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.budget-card.active {
+  border-color: var(--primary-color);
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
 }
 
 /* 预算概览卡片 */
-.budget-overview {
-  margin-bottom: 2rem;
-}
-
 .overview-card {
-  background: var(--card-background);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
-  box-shadow: var(--card-shadow);
-}
-
-.budget-header {
+  background-color: var(--card-bg, #ffffff);
+  border-radius: var(--border-radius, 12px);
+  padding: 24px;
+  box-shadow: var(--card-shadow, 0 2px 8px rgba(0, 0, 0, 0.08));
+  width: 100%;
+  margin-bottom: 20px;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
 }
 
 .budget-name {
-  font-size: 1.25rem;
+  font-size: 18px;
   font-weight: 600;
-  color: var(--text-primary);
+  margin-bottom: 5px;
+  text-align: center;
+  width: 100%;
 }
 
 .budget-period {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
+  font-size: 14px;
+  color: var(--text-color-secondary);
+  margin-bottom: 16px;
+  text-align: center;
+  width: 100%;
 }
 
 .budget-amount {
-  font-size: 2rem;
+  font-size: 24px;
   font-weight: 700;
-  color: var(--text-primary);
-  margin: 0.5rem 0;
+  color: var(--text-color);
+  margin-bottom: 12px;
 }
 
 /* 结转信息 */
 .rollover-info {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin: 0.5rem 0;
+  justify-content: space-between;
+  margin-bottom: 16px;
 }
 
 .rollover-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: var(--border-radius);
-  font-size: 0.875rem;
-  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 14px;
 }
 
 .rollover-badge.positive {
-  background-color: var(--success-light, rgba(34, 197, 94, 0.1));
-  color: var(--success);
+  background-color: rgba(34, 197, 94, 0.1);
+  color: var(--success-color);
 }
 
 .rollover-badge.negative {
-  background-color: var(--danger-light, rgba(239, 68, 68, 0.1));
-  color: var(--danger);
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--danger-color);
+}
+
+.rollover-badge i {
+  margin-right: 6px;
 }
 
 .rollover-history-button {
-  display: inline-flex;
+  background: none;
+  border: none;
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: var(--border-radius);
-  background-color: var(--background);
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
-  font-size: 0.875rem;
+  color: var(--primary-color);
+  font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
-.rollover-history-button:hover {
-  background-color: var(--hover-background);
+.rollover-history-button i {
+  margin-right: 4px;
 }
 
 /* 预算进度 */
 .budget-progress-container {
-  margin: 1rem 0;
+  margin-bottom: 20px;
+  padding: 5px 0;
 }
 
 .budget-progress-info {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
+  margin-bottom: 10px;
 }
 
 .spent-amount {
-  color: var(--text-secondary);
+  font-weight: 600;
+  color: var(--text-color, #1f2937);
+  font-size: 15px;
 }
 
 .remaining-amount {
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 15px;
 }
 
 .remaining-amount.positive {
-  color: var(--success);
+  color: var(--success-color, #22c55e);
 }
 
 .remaining-amount.negative {
-  color: var(--danger);
+  color: var(--danger-color, #ef4444);
 }
 
 .progress-bar {
-  height: 0.5rem;
-  background-color: var(--background);
-  border-radius: var(--border-radius);
+  height: 12px;
+  background-color: var(--background-color, #f5f5f5);
+  border-radius: 6px;
   overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 .progress {
   height: 100%;
-  background-color: var(--primary);
-  transition: width 0.3s ease;
+  background-color: var(--primary-color, #3b82f6);
+  border-radius: 6px;
+  transition: width 0.5s ease;
+  position: relative;
+  background-image: linear-gradient(45deg,
+    rgba(255, 255, 255, 0.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    transparent 75%,
+    transparent);
+  background-size: 20px 20px;
+  animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+  from { background-position: 0 0; }
+  to { background-position: 20px 0; }
 }
 
 .progress.warning {
-  background-color: var(--warning);
+  background-color: var(--warning-color, #f59e0b);
 }
 
 .progress.danger {
-  background-color: var(--danger);
+  background-color: var(--danger-color, #ef4444);
 }
 
 /* 预算统计 */
 .budget-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  flex-wrap: wrap;
 }
 
 .stat-item {
   text-align: center;
+  flex: 1;
+  min-width: 80px;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: var(--background-color, #f5f5f5);
+  margin: 0 4px;
+  transition: all 0.2s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .stat-value {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary-color, #3b82f6);
+  margin-bottom: 4px;
 }
 
 .stat-label {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin-top: 0.25rem;
+  font-size: 13px;
+  color: var(--text-color-secondary, #64748b);
+  font-weight: 500;
 }
 
 /* 预算趋势图表 */
 .budget-trends {
-  background: var(--card-background);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
+  margin-bottom: 20px;
+  padding: 20px;
+  background-color: var(--card-bg);
+  border-radius: 12px;
   box-shadow: var(--card-shadow);
+  width: 100%;
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 20px;
 }
 
 .section-header h2 {
-  font-size: 1.25rem;
+  font-size: 18px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .view-options {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
+  background-color: var(--background-color, #f5f5f5);
+  border-radius: 8px;
+  padding: 4px;
 }
 
 .view-option {
-  padding: 0.5rem 1rem;
-  border-radius: var(--border-radius);
-  background-color: var(--background);
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
-  font-size: 0.875rem;
+  padding: 8px 16px;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  color: var(--text-color-secondary);
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .view-option:hover {
@@ -211,53 +332,56 @@
 }
 
 .view-option.active {
-  background-color: var(--primary);
-  border-color: var(--primary);
+  background-color: var(--primary-color);
   color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .chart-container {
-  position: relative;
-  height: 300px;
-  margin-top: 1rem;
+  margin-top: 20px;
+  height: 250px;
+  width: 100%;
 }
 
 .empty-chart {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  color: var(--text-secondary);
+  height: 250px;
+  color: var(--text-color-secondary);
+  background-color: var(--background-color, #f5f5f5);
+  border-radius: 8px;
 }
 
 .chart-legend {
   display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 16px;
+  padding-top: 12px;
   border-top: 1px solid var(--border-color);
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
+  font-size: 14px;
+  color: var(--text-color);
 }
 
 .legend-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+  border-radius: 3px;
 }
 
 .legend-color.primary {
-  background-color: var(--primary);
+  background-color: var(--primary-color, #3b82f6);
 }
 
 .legend-color.secondary {
-  background-color: var(--secondary);
+  background-color: var(--secondary-color, #64748b);
 }
 
 /* 图表操作区域 */
@@ -265,53 +389,325 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.chart-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .rollover-toggle {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 10px;
+  background-color: var(--background-color, #f5f5f5);
+  padding: 8px 12px;
+  border-radius: 8px;
 }
 
 .rollover-toggle-label {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.time-range-selector {
+  display: flex;
+  gap: 8px;
+  background-color: var(--background-color, #f5f5f5);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.time-range-option {
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  color: var(--text-color-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.time-range-option:hover {
+  background-color: var(--hover-background);
+}
+
+.time-range-option.active {
+  background-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .chart-type-toggle {
+  display: none; /* 隐藏图表类型切换，只显示柱状图 */
+}
+
+/* 分类预算样式 */
+.category-budgets {
+  margin-bottom: 20px;
+  padding: 20px;
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  width: 100%;
+}
+
+.budget-list {
+  margin-top: 15px;
+}
+
+.budget-item {
   display: flex;
-  gap: 0.5rem;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.budget-item:last-child {
+  border-bottom: none;
+}
+
+.budget-item.warning .progress {
+  background-color: var(--danger-color, #ef4444);
+}
+
+.budget-category {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.category-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
+  border-radius: 50%;
+}
+
+.budget-details {
+  flex: 1;
+  margin-left: 15px;
+}
+
+.budget-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.progress-percentage {
+  font-size: 12px;
+  color: var(--text-color-secondary);
+  min-width: 40px;
+  text-align: right;
+  font-weight: 500;
+}
+
+.budget-amounts {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+.spent {
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.separator {
+  margin: 0 4px;
+  color: var(--text-color-secondary);
+}
+
+.total {
+  color: var(--text-color-secondary);
+}
+
+.empty-message {
+  padding: 30px;
+  text-align: center;
+  color: var(--text-color-secondary);
+  background-color: var(--background-color, #f5f5f5);
+  border-radius: 8px;
+  margin-top: 15px;
+  font-size: 15px;
+}
+
+/* 最近交易样式 */
+.recent-transactions {
+  margin-bottom: 20px;
+  padding: 20px;
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  width: 100%;
+}
+
+.view-all {
+  font-size: 14px;
+  color: var(--primary-color);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.view-all:hover {
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
+}
+
+.transaction-list {
+  margin-top: 15px;
+}
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.transaction-item:last-child {
+  border-bottom: none;
+}
+
+.transaction-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 14px;
+  color: var(--primary-color);
+  font-size: 18px;
+}
+
+.transaction-info {
+  flex: 1;
+}
+
+.transaction-title {
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: var(--text-color);
+  font-size: 15px;
+}
+
+.transaction-date {
+  font-size: 13px;
+  color: var(--text-color-secondary);
+}
+
+.transaction-amount {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.transaction-amount.expense {
+  color: var(--danger-color, #ef4444);
+}
+
+.transaction-amount.income {
+  color: var(--success-color, #22c55e);
 }
 
 /* 解决Tailwind样式冲突，提高自定义样式优先级 */
 .budget-overview .overview-card {
-  background: var(--card-background) !important;
-  border: 1px solid var(--border-color) !important;
-  border-radius: var(--border-radius) !important;
-  padding: 1.5rem !important;
+  background-color: var(--card-bg, #ffffff) !important;
+  border-radius: var(--border-radius, 10px) !important;
+  padding: 20px !important;
   box-shadow: var(--card-shadow) !important;
+  width: 100% !important;
 }
 
 .budget-trends {
-  background: var(--card-background) !important;
-  border: 1px solid var(--border-color) !important;
-  border-radius: var(--border-radius) !important;
-  padding: 1.5rem !important;
+  background-color: var(--card-bg, #ffffff) !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
   box-shadow: var(--card-shadow) !important;
+  width: 100% !important;
+}
+
+.category-budgets {
+  background-color: var(--card-bg, #ffffff) !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  box-shadow: var(--card-shadow) !important;
+  width: 100% !important;
+}
+
+.recent-transactions {
+  background-color: var(--card-bg, #ffffff) !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  box-shadow: var(--card-shadow) !important;
+  width: 100% !important;
+}
+
+/* 确保预算选择器样式正确应用 */
+.budget-tabs {
+  background-color: var(--card-bg, #ffffff) !important;
+  border-radius: 10px !important;
+  width: 100% !important;
+}
+
+/* 确保图表容器样式正确应用 */
+.chart-container {
+  width: 100% !important;
+  height: 250px !important;
+}
+
+/* 确保预算卡片样式正确应用 */
+.budget-card {
+  background-color: var(--card-bg, #ffffff) !important;
+  border: 1px solid var(--border-color, #e5e7eb) !important;
+}
+
+.budget-card.active {
+  border-color: var(--primary-color, #3b82f6) !important;
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1)) !important;
 }
 
 /* 响应式布局 */
 @media (max-width: 768px) {
   .budget-stats {
-    grid-template-columns: repeat(2, 1fr);
+    flex-wrap: wrap;
   }
-  
+
+  .stat-item {
+    flex: 1 0 33%;
+    margin-bottom: 10px;
+  }
+
   .chart-actions {
     flex-direction: column;
-    gap: 1rem;
+    gap: 10px;
   }
-  
+
   .rollover-toggle {
     width: 100%;
     justify-content: space-between;
@@ -319,16 +715,23 @@
 }
 
 @media (max-width: 480px) {
-  .budget-stats {
-    grid-template-columns: 1fr;
-  }
-  
   .rollover-info {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
+    gap: 10px;
   }
-  
+
   .budget-amount {
-    font-size: 1.5rem;
+    font-size: 22px;
+  }
+
+  .view-options {
+    flex-wrap: wrap;
+  }
+
+  .view-option {
+    flex: 1;
+    text-align: center;
+    padding: 6px 8px;
   }
 }

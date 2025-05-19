@@ -39,7 +39,9 @@ interface BudgetTrendChartProps {
   data: TrendPoint[];
   showRolloverImpact: boolean;
   viewMode: 'daily' | 'weekly' | 'monthly';
+  timeRange: '6months' | '12months';
   onViewModeChange: (mode: 'daily' | 'weekly' | 'monthly') => void;
+  onTimeRangeChange: (range: '6months' | '12months') => void;
   onRolloverImpactToggle: () => void;
   isLoading: boolean;
 }
@@ -48,12 +50,14 @@ export function BudgetTrendChart({
   data,
   showRolloverImpact,
   viewMode,
+  timeRange,
   onViewModeChange,
+  onTimeRangeChange,
   onRolloverImpactToggle,
   isLoading
 }: BudgetTrendChartProps) {
-  // 图表类型状态
-  const [chartType, setChartType] = useState<'line' | 'bar'>('line');
+  // 图表类型状态 - 默认使用柱状图
+  const [chartType, setChartType] = useState<'line' | 'bar'>('bar');
 
   // 图表数据
   const chartData = {
@@ -72,7 +76,7 @@ export function BudgetTrendChart({
       ...(showRolloverImpact && data?.some(point => point.total !== undefined) ? [
         {
           label: '结转影响',
-          data: data?.map(point => point.total || point.amount) || [],
+          data: data?.map(point => point.total) || [],
           borderColor: 'hsl(var(--secondary))',
           backgroundColor: chartType === 'line'
             ? 'rgba(100, 116, 139, 0.5)'
@@ -162,51 +166,41 @@ export function BudgetTrendChart({
     <section className="budget-trends">
       <div className="section-header">
         <h2>预算趋势</h2>
-        <div className="view-options">
-          <button
-            className={`view-option ${viewMode === 'monthly' ? 'active' : ''}`}
-            onClick={() => onViewModeChange('monthly')}
-          >
-            月
-          </button>
-        </div>
       </div>
 
-      <div className="chart-actions" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-        <div className="rollover-toggle">
-          <span className="rollover-toggle-label">显示结转影响</span>
-          <Switch
-            checked={showRolloverImpact}
-            onCheckedChange={onRolloverImpactToggle}
-          />
-        </div>
+      <div className="chart-actions">
+        <div className="chart-controls">
+          <div className="rollover-toggle">
+            <span className="rollover-toggle-label">显示结转影响</span>
+            <Switch
+              checked={showRolloverImpact}
+              onCheckedChange={onRolloverImpactToggle}
+            />
+          </div>
 
-        <div className="chart-type-toggle">
-          <button
-            className={`view-option ${chartType === 'line' ? 'active' : ''}`}
-            onClick={() => setChartType('line')}
-            style={{ marginRight: '5px' }}
-          >
-            <i className="fas fa-chart-line"></i>
-          </button>
-          <button
-            className={`view-option ${chartType === 'bar' ? 'active' : ''}`}
-            onClick={() => setChartType('bar')}
-          >
-            <i className="fas fa-chart-bar"></i>
-          </button>
+          <div className="time-range-selector">
+            <button
+              className={`time-range-option ${timeRange === '6months' ? 'active' : ''}`}
+              onClick={() => onTimeRangeChange('6months')}
+            >
+              最近6个月
+            </button>
+            <button
+              className={`time-range-option ${timeRange === '12months' ? 'active' : ''}`}
+              onClick={() => onTimeRangeChange('12months')}
+            >
+              最近1年
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="chart-container">
         {isLoading ? (
-          <Skeleton className="h-[200px] w-full" />
+          <Skeleton className="h-[250px] w-full" />
         ) : data && data.length > 0 ? (
-          chartType === 'line' ? (
-            <Line data={chartData} options={options} height={200} />
-          ) : (
-            <Bar data={chartData} options={options} height={200} />
-          )
+          // 始终使用柱状图
+          <Bar data={chartData} options={options} height={250} />
         ) : (
           <div className="empty-chart">
             <p>暂无趋势数据</p>

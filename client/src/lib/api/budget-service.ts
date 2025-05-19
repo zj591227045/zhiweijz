@@ -258,17 +258,122 @@ export const budgetService = {
 
   /**
    * 获取预算趋势数据
+   * @param budgetId 预算ID
+   * @param viewMode 视图模式：日/周/月
+   * @param timeRange 时间范围：6个月或12个月
+   * @param familyMemberId 家庭成员ID（可选）
    */
-  async getBudgetTrends(budgetId: string, viewMode: 'daily' | 'weekly' | 'monthly' = 'weekly'): Promise<any[]> {
+  async getBudgetTrends(
+    budgetId: string,
+    viewMode: 'daily' | 'weekly' | 'monthly' = 'monthly',
+    timeRange: '6months' | '12months' = '6months',
+    familyMemberId?: string
+  ): Promise<any[]> {
     try {
-      console.log(`发送获取预算趋势请求: /budgets/${budgetId}/trends?viewMode=${viewMode}`);
-      const response = await apiClient.get<any[]>(`/budgets/${budgetId}/trends?viewMode=${viewMode}`);
+      const queryParams = new URLSearchParams();
+      queryParams.append('viewMode', viewMode);
+      // 始终请求12个月的数据，前端根据timeRange参数决定显示多少
+      queryParams.append('timeRange', '12months');
+
+      // 如果指定了家庭成员ID，添加到查询参数中
+      if (familyMemberId) {
+        queryParams.append('familyMemberId', familyMemberId);
+      }
+
+      console.log(`发送获取预算趋势请求: /budgets/${budgetId}/trends?${queryParams.toString()}`);
+      const response = await apiClient.get<any[]>(`/budgets/${budgetId}/trends?${queryParams.toString()}`);
       console.log('获取预算趋势响应:', response);
-      return response || [];
+
+      // 如果没有数据或数据不足，填充缺失的月份
+      if (!response || !Array.isArray(response) || response.length === 0) {
+        console.log('趋势数据为空或格式不正确，生成空数据');
+        return this.generateEmptyTrendData(viewMode, '12months');
+      }
+
+      // 检查响应数据格式是否符合预期
+      const validData = response.every(item =>
+        item && typeof item === 'object' && 'date' in item && 'amount' in item
+      );
+
+      if (!validData) {
+        console.log('趋势数据格式不符合预期，生成空数据');
+        return this.generateEmptyTrendData(viewMode, '12months');
+      }
+
+      // 获取最近12个月的完整月份列表
+      const months = this.getLastNMonths(12);
+
+      // 创建一个映射，用于快速查找响应中的数据
+      const responseMap = new Map();
+      response.forEach(item => {
+        responseMap.set(item.date, item);
+      });
+
+      // 填充缺失的月份数据
+      const completeData = months.map(month => {
+        if (responseMap.has(month)) {
+          const item = responseMap.get(month);
+          // 确保数据包含所有必要的字段
+          return {
+            date: item.date,
+            amount: item.amount || 0,
+            total: item.total || item.amount || 0
+          };
+        } else {
+          return {
+            date: month,
+            amount: 0,
+            total: 0
+          };
+        }
+      });
+
+      // 确保数据按日期排序
+      const sortedData = [...completeData].sort((a, b) => {
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      });
+
+      // 根据timeRange参数截取数据
+      const monthsToShow = timeRange === '6months' ? 6 : 12;
+      const result = sortedData.slice(-monthsToShow);
+
+      console.log('处理后的趋势数据:', result);
+      return result;
     } catch (error) {
       console.error('获取预算趋势失败:', error);
-      return [];
+      return this.generateEmptyTrendData(viewMode, timeRange);
     }
+  },
+
+  /**
+   * 获取最近N个月的月份列表（YYYY-MM格式）
+   */
+  getLastNMonths(n: number): string[] {
+    const result = [];
+    const today = new Date();
+
+    for (let i = n - 1; i >= 0; i--) {
+      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      result.push(`${year}-${month}`);
+    }
+
+    return result;
+  },
+
+  /**
+   * 生成空的趋势数据（用于API返回空数据时）
+   */
+  generateEmptyTrendData(viewMode: 'daily' | 'weekly' | 'monthly', timeRange: '6months' | '12months'): any[] {
+    const months = this.getLastNMonths(timeRange === '6months' ? 6 : 12);
+
+    // 为每个月创建空数据点
+    return months.map(month => ({
+      date: month,
+      amount: 0,
+      total: 0
+    }));
   },
 
   /**
@@ -400,12 +505,28 @@ export const budgetService = {
 
   /**
    * 获取预算相关交易
+   * @param budgetId 预算ID
+   * @param page 页码
+   * @param limit 每页数量
+   * @param familyMemberId 家庭成员ID（可选）
    */
-  async getBudgetTransactions(budgetId: string, page: number = 1, limit: number = 10): Promise<any> {
+  async getBudgetTransactions(
+    budgetId: string,
+    page: number = 1,
+    limit: number = 10,
+    familyMemberId?: string
+  ): Promise<any> {
     try {
-      console.log(`发送获取预算交易请求: /budgets/${budgetId}/transactions?page=${page}&limit=${limit}`);
-      const response = await apiClient.get<any>(`/budgets/${budgetId}/transactions?page=${page}&limit=${limit}`);
-      console.log('获取预算交易响应:', response);
+      let url = `/budgets/${budgetId}/transactions?page=${page}&limit=${limit}`;
+
+      // 如果指定了家庭成员ID，添加到查询参数中
+      if (familyMemberId) {
+        url += `&familyMemberId=${familyMemberId}`;
+      }
+
+      console.log(`发送获取预算交易请求: ${url}`);
+      const response = await apiClient.get<any>(url);
+      console.log('获取预算交易响应:', response, '家庭成员ID:', familyMemberId || '无');
       return response || { data: [], hasMore: false, nextPage: null };
     } catch (error) {
       console.error('获取预算交易失败:', error);

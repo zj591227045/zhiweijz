@@ -1,9 +1,12 @@
-import { BudgetPeriod, BudgetType, Budget, Category, RolloverType } from '@prisma/client';
+import { BudgetPeriod, BudgetType, Budget, Category, RolloverType, PrismaClient, Transaction, BudgetHistory } from '@prisma/client';
 import { BudgetRepository, BudgetWithCategory } from '../repositories/budget.repository';
 import { CategoryRepository } from '../repositories/category.repository';
 import { CategoryBudgetRepository } from '../repositories/category-budget.repository';
 import { BudgetHistoryRepository } from '../repositories/budget-history.repository';
 import { BudgetHistoryService } from './budget-history.service';
+
+// 创建Prisma客户端实例
+const prisma = new PrismaClient();
 import {
   CreateBudgetDto,
   UpdateBudgetDto,
@@ -337,6 +340,121 @@ export class BudgetService {
     await this.budgetRepository.update(budgetId, {
       rolloverAmount: remaining
     });
+  }
+
+  /**
+   * 获取预算趋势数据
+   * @param budgetId 预算ID
+   * @param viewMode 视图模式：日/周/月
+   * @param familyMemberId 家庭成员ID（可选）
+   * @returns 趋势数据数组
+   */
+  async getBudgetTrends(
+    budgetId: string,
+    viewMode: 'daily' | 'weekly' | 'monthly' = 'monthly',
+    familyMemberId?: string
+  ): Promise<any[]> {
+    console.log(`获取预算趋势数据，预算ID: ${budgetId}, 视图模式: ${viewMode}, 家庭成员ID: ${familyMemberId || '无'}`);
+
+    // 获取预算信息
+    const budget = await this.budgetRepository.findById(budgetId);
+    if (!budget) {
+      throw new Error('预算不存在');
+    }
+
+    // 获取预算的账本ID
+    const accountBookId = budget.accountBookId;
+    if (!accountBookId) {
+      throw new Error('预算未关联账本');
+    }
+
+    // 目前只实现月视图，其他视图模式暂时返回月视图数据
+    // 获取最近12个月的日期范围
+    const now = new Date();
+    const months = [];
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const formattedMonth = month < 10 ? `0${month}` : `${month}`;
+      months.push({
+        date: `${year}-${formattedMonth}`,
+        startDate: new Date(year, month - 1, 1),
+        endDate: new Date(year, month, 0)
+      });
+    }
+
+    console.log(`生成了${months.length}个月份的日期范围`);
+
+    // 获取每个月的交易数据
+    const result = [];
+    for (const month of months) {
+      try {
+        // 查询该月的交易总额
+        const transactions = await prisma.transaction.findMany({
+          where: {
+            accountBookId,
+            date: {
+              gte: month.startDate,
+              lte: month.endDate
+            },
+            type: 'EXPENSE',
+            ...(budget.categoryId && { categoryId: budget.categoryId }),
+            ...(familyMemberId && { userId: familyMemberId }) // 如果指定了家庭成员ID，只查询该成员的交易
+          }
+        });
+
+        console.log(`${month.date}月份找到${transactions.length}条交易记录`);
+
+        // 计算总支出
+        const amount = transactions.reduce(
+          (sum: number, transaction: Transaction) => sum + Number(transaction.amount),
+          0
+        );
+
+        // 计算结转影响（如果预算启用了结转）
+        let total = amount;
+        if (budget.rollover) {
+          // 查询该月的预算结转记录
+          const rolloverHistory = await prisma.budgetHistory.findMany({
+            where: {
+              budgetId: budget.id,
+              createdAt: {
+                gte: month.startDate,
+                lte: month.endDate
+              }
+            }
+          });
+
+          // 如果有结转记录，计算结转影响
+          if (rolloverHistory.length > 0) {
+            const rolloverAmount = rolloverHistory.reduce(
+              (sum: number, history: BudgetHistory) => sum + Number(history.amount),
+              0
+            );
+            total = amount + rolloverAmount;
+          }
+        }
+
+        // 添加到结果中
+        result.push({
+          date: month.date,
+          amount,
+          total // 如果有结转影响，total会不等于amount
+        });
+      } catch (error) {
+        console.error(`获取${month.date}月份交易数据失败:`, error);
+        // 如果查询失败，添加0值
+        result.push({
+          date: month.date,
+          amount: 0,
+          total: 0
+        });
+      }
+    }
+
+    console.log(`生成了${result.length}条趋势数据`);
+    return result;
   }
 
   /**

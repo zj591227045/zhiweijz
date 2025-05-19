@@ -27,6 +27,7 @@ export function BudgetStatisticsPage() {
     categoryBudgets,
     recentTransactions,
     chartViewMode,
+    chartTimeRange,
     showRolloverImpact,
     categoryFilter,
     enableCategoryBudget,
@@ -36,6 +37,7 @@ export function BudgetStatisticsPage() {
     setBudgetType,
     setSelectedBudgetId,
     setChartViewMode,
+    setChartTimeRange,
     toggleRolloverImpact,
     setCategoryFilter,
     fetchBudgetStatistics,
@@ -88,7 +90,13 @@ export function BudgetStatisticsPage() {
     // 如果找到了预算卡片或家庭成员，更新overview和其他相关数据
     if (selectedCard || selectedMember) {
       // 获取预算趋势数据和预算详情
-      fetchBudgetTrends(budgetId, chartViewMode);
+      // 如果是家庭成员的预算，传递家庭成员ID
+      if (selectedMember) {
+        console.log(`选择了家庭成员 ${selectedMember.name} 的预算，ID: ${selectedMember.id}`);
+        fetchBudgetTrends(budgetId, chartViewMode, chartTimeRange, selectedMember.id);
+      } else {
+        fetchBudgetTrends(budgetId, chartViewMode, chartTimeRange);
+      }
 
       // 获取预算相关的交易记录
       // 注意：fetchBudgetTrends已经会获取预算详情并更新overview
@@ -99,6 +107,37 @@ export function BudgetStatisticsPage() {
   // 处理图表视图模式切换
   const handleViewModeChange = (mode: 'daily' | 'weekly' | 'monthly') => {
     setChartViewMode(mode);
+
+    // 如果已有预算ID，获取对应视图模式的趋势数据
+    if (selectedBudgetId) {
+      // 查找选中的家庭成员
+      const selectedMember = familyMembers.find(member => member.budgetId === selectedBudgetId);
+
+      // 如果是家庭成员的预算，传递家庭成员ID
+      if (selectedMember) {
+        fetchBudgetTrends(selectedBudgetId, mode, chartTimeRange, selectedMember.id);
+      } else {
+        fetchBudgetTrends(selectedBudgetId, mode, chartTimeRange);
+      }
+    }
+  };
+
+  // 处理图表时间范围切换
+  const handleTimeRangeChange = (range: '6months' | '12months') => {
+    setChartTimeRange(range);
+
+    // 如果已有预算ID，获取对应时间范围的趋势数据
+    if (selectedBudgetId) {
+      // 查找选中的家庭成员
+      const selectedMember = familyMembers.find(member => member.budgetId === selectedBudgetId);
+
+      // 如果是家庭成员的预算，传递家庭成员ID
+      if (selectedMember) {
+        fetchBudgetTrends(selectedBudgetId, chartViewMode, range, selectedMember.id);
+      } else {
+        fetchBudgetTrends(selectedBudgetId, chartViewMode, range);
+      }
+    }
   };
 
   // 处理添加预算按钮点击
@@ -176,7 +215,9 @@ export function BudgetStatisticsPage() {
                 data={trendData[chartViewMode] || []}
                 showRolloverImpact={showRolloverImpact}
                 viewMode={chartViewMode}
+                timeRange={chartTimeRange}
                 onViewModeChange={handleViewModeChange}
+                onTimeRangeChange={handleTimeRangeChange}
                 onRolloverImpactToggle={toggleRolloverImpact}
                 isLoading={isLoadingTrends}
               />
@@ -193,6 +234,7 @@ export function BudgetStatisticsPage() {
               <RecentTransactions
                 transactions={recentTransactions}
                 budgetId={selectedBudgetId}
+                familyMemberId={familyMembers.find(member => member.budgetId === selectedBudgetId)?.id}
               />
             </>
           ) : (

@@ -17,36 +17,41 @@ interface Transaction {
 interface RecentTransactionsProps {
   transactions: Transaction[];
   budgetId: string | null;
+  familyMemberId?: string;
 }
 
-export function RecentTransactions({ transactions, budgetId }: RecentTransactionsProps) {
+export function RecentTransactions({ transactions, budgetId, familyMemberId }: RecentTransactionsProps) {
   const router = useRouter();
-  
+
   // 处理查看全部按钮点击
   const handleViewAll = () => {
     if (budgetId) {
-      router.push(`/budgets/${budgetId}/transactions`);
+      // 如果有家庭成员ID，添加到URL参数中
+      const url = familyMemberId
+        ? `/budgets/${budgetId}/transactions?familyMemberId=${familyMemberId}`
+        : `/budgets/${budgetId}/transactions`;
+      router.push(url);
     }
   };
-  
+
   // 格式化日期
   const formatDate = (dateString: string) => {
     return dayjs(dateString).format('M月D日 HH:mm');
   };
-  
+
   // 格式化金额
   const formatAmount = (amount: number, type: 'EXPENSE' | 'INCOME') => {
     const prefix = type === 'EXPENSE' ? '-' : '+';
     return `${prefix}¥${amount.toLocaleString()}`;
   };
-  
+
   return (
     <section className="recent-transactions">
       <div className="section-header">
         <h2>最近交易</h2>
         <button className="view-all" onClick={handleViewAll}>查看全部</button>
       </div>
-      
+
       <div className="transaction-list">
         {transactions.length > 0 ? (
           transactions.map(transaction => (

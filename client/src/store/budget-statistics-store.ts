@@ -94,6 +94,9 @@ interface BudgetStatisticsState {
   // 图表视图模式
   chartViewMode: 'daily' | 'weekly' | 'monthly';
 
+  // 图表时间范围
+  chartTimeRange: '6months' | '12months';
+
   // 是否显示结转影响
   showRolloverImpact: boolean;
 
@@ -112,10 +115,11 @@ interface BudgetStatisticsState {
   setBudgetType: (type: 'personal' | 'general') => void;
   setSelectedBudgetId: (id: string | null) => void;
   setChartViewMode: (mode: 'daily' | 'weekly' | 'monthly') => void;
+  setChartTimeRange: (range: '6months' | '12months') => void;
   toggleRolloverImpact: () => void;
   setCategoryFilter: (filter: 'all' | 'overspent') => void;
   fetchBudgetStatistics: (accountBookId: string, budgetType?: 'personal' | 'general', userId?: string) => Promise<void>;
-  fetchBudgetTrends: (budgetId: string, viewMode: 'daily' | 'weekly' | 'monthly') => Promise<void>;
+  fetchBudgetTrends: (budgetId: string, viewMode?: 'daily' | 'weekly' | 'monthly', timeRange?: '6months' | '12months', familyMemberId?: string) => Promise<void>;
   resetState: () => void;
 }
 
@@ -137,6 +141,7 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
       categoryBudgets: [],
       recentTransactions: [],
       chartViewMode: 'monthly', // 默认显示月视图
+      chartTimeRange: '6months', // 默认显示6个月
       showRolloverImpact: true,
       categoryFilter: 'all',
       enableCategoryBudget: false,
@@ -155,9 +160,20 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
         set({ chartViewMode: mode });
 
         // 如果已有预算ID，获取对应视图模式的趋势数据
-        const { selectedBudgetId } = get();
+        const { selectedBudgetId, chartTimeRange } = get();
         if (selectedBudgetId) {
-          get().fetchBudgetTrends(selectedBudgetId, mode);
+          get().fetchBudgetTrends(selectedBudgetId, mode, chartTimeRange);
+        }
+      },
+
+      // 设置图表时间范围
+      setChartTimeRange: (range) => {
+        set({ chartTimeRange: range });
+
+        // 如果已有预算ID，获取对应时间范围的趋势数据
+        const { selectedBudgetId, chartViewMode } = get();
+        if (selectedBudgetId) {
+          get().fetchBudgetTrends(selectedBudgetId, chartViewMode, range);
         }
       },
 
@@ -233,12 +249,29 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
       },
 
       // 获取预算趋势数据
-      fetchBudgetTrends: async (budgetId, viewMode) => {
+      fetchBudgetTrends: async (budgetId, viewMode, timeRange, familyMemberId) => {
         try {
           set({ isLoadingTrends: true });
 
+          // 使用当前状态中的默认值
+          const currentViewMode = viewMode || get().chartViewMode;
+          const currentTimeRange = timeRange || get().chartTimeRange;
+
           // 调用API获取预算趋势数据
-          const trendData = await budgetService.getBudgetTrends(budgetId, viewMode);
+          let trendData = [];
+          try {
+            trendData = await budgetService.getBudgetTrends(budgetId, currentViewMode, currentTimeRange, familyMemberId);
+            console.log('获取到的趋势数据:', trendData, '家庭成员ID:', familyMemberId || '无');
+
+            // 如果返回的数据为空或不是数组，使用空数组
+            if (!trendData || !Array.isArray(trendData) || trendData.length === 0) {
+              console.log('趋势数据为空或格式不正确，使用空数组');
+              trendData = [];
+            }
+          } catch (error) {
+            console.error('获取趋势数据失败，使用空数组:', error);
+            trendData = [];
+          }
 
           // 获取预算详情，更新overview
           try {
@@ -273,7 +306,7 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
           set(state => ({
             trendData: {
               ...state.trendData,
-              [viewMode]: trendData
+              [currentViewMode]: trendData
             },
             isLoadingTrends: false
           }));
@@ -297,6 +330,7 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
         categoryBudgets: [],
         recentTransactions: [],
         chartViewMode: 'monthly',
+        chartTimeRange: '6months',
         showRolloverImpact: true,
         categoryFilter: 'all',
         enableCategoryBudget: false,

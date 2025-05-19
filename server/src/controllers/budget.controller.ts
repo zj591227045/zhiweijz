@@ -217,7 +217,10 @@ export class BudgetController {
       }
 
       const budgetId = req.params.id;
-      const viewMode = req.query.viewMode as 'daily' | 'weekly' | 'monthly' || 'weekly';
+      const viewMode = req.query.viewMode as 'daily' | 'weekly' | 'monthly' || 'monthly';
+      const familyMemberId = req.query.familyMemberId as string || undefined;
+
+      console.log(`获取预算趋势，预算ID: ${budgetId}, 视图模式: ${viewMode}, 家庭成员ID: ${familyMemberId || '无'}`);
 
       // 验证预算是否存在并且用户有权限访问
       const budget = await this.budgetService.getBudgetById(budgetId, userId);
@@ -226,11 +229,12 @@ export class BudgetController {
         return;
       }
 
-      // 这里应该调用预算服务的趋势方法，但由于尚未实现，我们返回模拟数据
-      // 在实际实现中，应该从数据库中获取真实的趋势数据
-      const trendData = this.generateMockTrendData(viewMode);
+      // 调用预算服务获取真实趋势数据
+      const trendData = await this.budgetService.getBudgetTrends(budgetId, viewMode, familyMemberId);
+      console.log(`获取到预算趋势数据: ${trendData.length} 条记录`);
       res.status(200).json(trendData);
     } catch (error) {
+      console.error('获取预算趋势数据失败:', error);
       if (error instanceof Error) {
         res.status(404).json({ message: error.message });
       } else {
@@ -295,20 +299,14 @@ export class BudgetController {
       }
 
       // 获取与预算相关的交易
-      try {
-        const transactions = await this.transactionService.getTransactionsByBudget(
-          budgetId,
-          page,
-          limit,
-          familyMemberId
-        );
-        res.status(200).json(transactions);
-      } catch (error) {
-        console.error('获取预算相关交易失败:', error);
-        // 如果获取真实数据失败，使用模拟数据作为备选
-        const transactions = this.generateMockTransactions(page, limit);
-        res.status(200).json(transactions);
-      }
+      const transactions = await this.transactionService.getTransactionsByBudget(
+        budgetId,
+        page,
+        limit,
+        familyMemberId
+      );
+      console.log(`获取预算相关交易，预算ID: ${budgetId}, 家庭成员ID: ${familyMemberId || '无'}, 找到 ${transactions.data?.length || 0} 条记录`);
+      res.status(200).json(transactions);
     } catch (error) {
       if (error instanceof Error) {
         res.status(404).json({ message: error.message });
@@ -401,57 +399,7 @@ export class BudgetController {
     }
   }
 
-  /**
-   * 生成模拟趋势数据
-   */
-  private generateMockTrendData(viewMode: 'daily' | 'weekly' | 'monthly'): any[] {
-    const result = [];
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
 
-    let count = 0;
-    let dateFormat = '';
-
-    switch (viewMode) {
-      case 'daily':
-        count = 30; // 30天
-        dateFormat = 'MM-DD';
-        break;
-      case 'weekly':
-        count = 12; // 12周
-        dateFormat = '第W周';
-        break;
-      case 'monthly':
-        count = 12; // 12个月
-        dateFormat = 'YYYY-MM';
-        break;
-    }
-
-    for (let i = 0; i < count; i++) {
-      let date = '';
-      if (viewMode === 'daily') {
-        const day = new Date(currentYear, currentMonth, now.getDate() - (count - i - 1));
-        date = `${day.getMonth() + 1}-${day.getDate()}`;
-      } else if (viewMode === 'weekly') {
-        date = `第${i + 1}周`;
-      } else {
-        date = `${currentYear}-${i + 1}`;
-      }
-
-      const amount = Math.floor(Math.random() * 500) + 100;
-      const rolloverImpact = Math.floor(Math.random() * 200) - 100;
-
-      result.push({
-        date,
-        amount,
-        rolloverImpact,
-        total: amount + rolloverImpact
-      });
-    }
-
-    return result;
-  }
 
   /**
    * 生成模拟结转历史数据
