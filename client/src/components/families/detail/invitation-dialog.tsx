@@ -16,16 +16,17 @@ export function InvitationDialog({ isOpen, onClose, familyId }: InvitationDialog
 
   useEffect(() => {
     if (isOpen && !invitation) {
+      // 使用8小时有效期生成邀请链接
       generateInvitation(familyId);
     }
   }, [isOpen, invitation, familyId, generateInvitation]);
 
   // 复制邀请链接
   const handleCopyLink = () => {
-    if (invitation?.inviteLink) {
-      navigator.clipboard.writeText(invitation.inviteLink);
+    if (invitation?.url) {
+      navigator.clipboard.writeText(invitation.url);
       setIsCopied(true);
-      
+
       // 3秒后重置复制状态
       setTimeout(() => {
         setIsCopied(false);
@@ -35,10 +36,10 @@ export function InvitationDialog({ isOpen, onClose, familyId }: InvitationDialog
 
   // 复制邀请码
   const handleCopyCode = () => {
-    if (invitation?.inviteCode) {
-      navigator.clipboard.writeText(invitation.inviteCode);
+    if (invitation?.invitationCode) {
+      navigator.clipboard.writeText(invitation.invitationCode);
       setIsCopied(true);
-      
+
       // 3秒后重置复制状态
       setTimeout(() => {
         setIsCopied(false);
@@ -69,10 +70,10 @@ export function InvitationDialog({ isOpen, onClose, familyId }: InvitationDialog
                   </p>
                 )}
               </div>
-              
+
               <div className="bg-gray-100 p-4 rounded-lg">
                 <div className="text-center mb-2 font-bold text-lg">
-                  {invitation.inviteCode}
+                  {invitation.invitationCode}
                 </div>
                 <button
                   className="w-full py-2 text-sm text-primary bg-white border border-primary rounded-md"
@@ -81,10 +82,10 @@ export function InvitationDialog({ isOpen, onClose, familyId }: InvitationDialog
                   {isCopied ? "已复制" : "复制邀请码"}
                 </button>
               </div>
-              
+
               <div className="bg-gray-100 p-4 rounded-lg">
                 <div className="text-sm text-gray-700 mb-2 break-all">
-                  {invitation.inviteLink}
+                  {invitation.url}
                 </div>
                 <button
                   className="w-full py-2 text-sm text-primary bg-white border border-primary rounded-md"
@@ -93,19 +94,6 @@ export function InvitationDialog({ isOpen, onClose, familyId }: InvitationDialog
                   {isCopied ? "已复制" : "复制邀请链接"}
                 </button>
               </div>
-              
-              {invitation.qrCodeUrl && (
-                <div className="text-center">
-                  <p className="text-sm text-gray-500 mb-2">或扫描二维码加入</p>
-                  <div className="inline-block p-2 bg-white border rounded-lg">
-                    <img
-                      src={invitation.qrCodeUrl}
-                      alt="邀请二维码"
-                      className="w-32 h-32"
-                    />
-                  </div>
-                </div>
-              )}
             </div>
           ) : (
             <div className="text-center py-4 text-gray-500">

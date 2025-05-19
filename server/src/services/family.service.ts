@@ -366,18 +366,41 @@ export class FamilyService {
       throw new Error('无权创建邀请链接');
     }
 
-    // 生成唯一的邀请码
-    const invitationCode = randomUUID();
+    // 生成8位数字邀请码
+    const invitationCode = Math.floor(10000000 + Math.random() * 90000000).toString();
 
-    // 设置邀请过期时间（默认7天）
-    const expiresInDays = invitationData.expiresInDays || 7;
+    // 设置邀请过期时间（默认8小时）
+    const expiresInHours = 8;
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + expiresInDays);
+    expiresAt.setHours(expiresAt.getHours() + expiresInHours);
 
     // 创建邀请
     const invitation = await this.familyRepository.createInvitation(familyId, invitationCode, expiresAt);
 
     return toInvitationResponseDto(invitation, baseUrl);
+  }
+
+  /**
+   * 获取家庭邀请列表
+   */
+  async getFamilyInvitations(familyId: string, userId: string, baseUrl: string): Promise<InvitationResponseDto[]> {
+    // 获取家庭详情
+    const family = await this.familyRepository.findFamilyById(familyId);
+    if (!family) {
+      throw new Error('家庭不存在');
+    }
+
+    // 验证用户是否为家庭成员
+    const isMember = await this.isUserFamilyMember(userId, familyId);
+    if (!isMember) {
+      throw new Error('无权访问此家庭');
+    }
+
+    // 获取邀请列表
+    const invitations = await this.familyRepository.findFamilyInvitations(familyId);
+
+    // 转换为响应DTO
+    return invitations.map(invitation => toInvitationResponseDto(invitation, baseUrl));
   }
 
   /**
@@ -435,8 +458,8 @@ export class FamilyService {
       // 不影响成员添加流程，继续执行
     }
 
-    // 删除已使用的邀请
-    await this.familyRepository.deleteInvitation(invitation.id);
+    // 标记邀请为已使用
+    await this.familyRepository.markInvitationAsUsed(invitation.id, userId, user.name);
 
     return toFamilyMemberResponseDto(member);
   }

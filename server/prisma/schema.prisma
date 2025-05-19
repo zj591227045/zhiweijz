@@ -74,6 +74,10 @@ model Invitation {
   invitationCode String   @unique @map("invitation_code")
   expiresAt      DateTime @map("expires_at")
   createdAt      DateTime @default(now()) @map("created_at")
+  isUsed         Boolean  @default(false) @map("is_used")
+  usedAt         DateTime? @map("used_at")
+  usedByUserId   String?  @map("used_by_user_id")
+  usedByUserName String?  @map("used_by_user_name")
   family         Family   @relation(fields: [familyId], references: [id])
 
   @@map("invitations")

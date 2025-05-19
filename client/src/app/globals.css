@@ -11,6 +11,7 @@
 @import '../styles/budget-list.css';
 @import '../styles/budget-list-page.css';
 @import '../styles/family-member-selector.css';
+@import '../styles/invitation-history.css';
 
 @layer base {
   :root {
@@ -277,9 +278,11 @@
   max-width: 480px;
   margin: 0 auto;
   position: relative;
-  height: 100vh;
+  min-height: 100vh; /* 修改为最小高度，允许内容增长 */
+  height: auto; /* 自动适应内容高度 */
   display: flex;
   flex-direction: column;
+  overflow: visible; /* 确保内容不会被截断 */
 }
 
 /* 顶部导航栏 */
@@ -331,12 +334,15 @@
 /* 主要内容区域 */
 .main-content {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: visible; /* 修改为visible，确保内容不会被截断 */
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 20px;
   padding-bottom: 72px;
+  height: auto; /* 自动适应内容高度 */
+  min-height: 100%; /* 确保至少占满可用高度 */
+  max-height: none; /* 移除最大高度限制 */
 }
 
 /* 余额卡片 */

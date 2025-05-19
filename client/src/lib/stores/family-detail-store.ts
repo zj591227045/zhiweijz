@@ -64,22 +64,22 @@ interface FamilyDetailState {
   isStatisticsLoading: boolean;
   isInvitationLoading: boolean;
   error: string | null;
-  
+
   // 获取家庭详情
   fetchFamilyDetail: (id: string) => Promise<void>;
-  
+
   // 获取家庭统计数据
   fetchFamilyStatistics: (id: string, period?: string) => Promise<void>;
-  
+
   // 生成邀请链接
-  generateInvitation: (id: string) => Promise<InvitationData | null>;
-  
+  generateInvitation: (id: string, expiresInDays?: number) => Promise<InvitationData | null>;
+
   // 更新家庭信息
   updateFamily: (id: string, data: UpdateFamilyRequest) => Promise<boolean>;
-  
+
   // 退出家庭
   leaveFamily: (id: string) => Promise<boolean>;
-  
+
   // 解散家庭
   deleteFamily: (id: string) => Promise<boolean>;
 }
@@ -93,7 +93,7 @@ export const useFamilyDetailStore = create<FamilyDetailState>((set, get) => ({
   isStatisticsLoading: false,
   isInvitationLoading: false,
   error: null,
-  
+
   // 获取家庭详情
   fetchFamilyDetail: async (id: string) => {
     try {
@@ -102,13 +102,13 @@ export const useFamilyDetailStore = create<FamilyDetailState>((set, get) => ({
       set({ family: response, isLoading: false });
     } catch (error) {
       console.error('获取家庭详情失败:', error);
-      set({ 
-        isLoading: false, 
-        error: error instanceof Error ? error.message : '获取家庭详情失败' 
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : '获取家庭详情失败'
       });
     }
   },
-  
+
   // 获取家庭统计数据
   fetchFamilyStatistics: async (id: string, period = 'month') => {
     try {
@@ -118,7 +118,7 @@ export const useFamilyDetailStore = create<FamilyDetailState>((set, get) => ({
     } catch (error) {
       console.error('获取家庭统计数据失败:', error);
       set({ isStatisticsLoading: false });
-      
+
       // 设置默认数据，避免UI崩溃
       set({
         statistics: {
@@ -132,12 +132,12 @@ export const useFamilyDetailStore = create<FamilyDetailState>((set, get) => ({
       });
     }
   },
-  
+
   // 生成邀请链接
-  generateInvitation: async (id: string) => {
+  generateInvitation: async (id: string, expiresInDays?: number) => {
     try {
       set({ isInvitationLoading: true });
-      const response = await apiClient.post(`/families/${id}/invitations`, {});
+      const response = await apiClient.post(`/families/${id}/invitations`, { expiresInDays });
       set({ invitation: response, isInvitationLoading: false });
       return response;
     } catch (error) {
@@ -146,22 +146,22 @@ export const useFamilyDetailStore = create<FamilyDetailState>((set, get) => ({
       return null;
     }
   },
-  
+
   // 更新家庭信息
   updateFamily: async (id: string, data: UpdateFamilyRequest) => {
     try {
       set({ isLoading: true });
       const response = await apiClient.put(`/families/${id}`, data);
-      
+
       // 更新本地状态
       const family = get().family;
       if (family) {
-        set({ 
+        set({
           family: { ...family, ...data },
-          isLoading: false 
+          isLoading: false
         });
       }
-      
+
       return true;
     } catch (error) {
       console.error('更新家庭信息失败:', error);
@@ -169,7 +169,7 @@ export const useFamilyDetailStore = create<FamilyDetailState>((set, get) => ({
       return false;
     }
   },
-  
+
   // 退出家庭
   leaveFamily: async (id: string) => {
     try {
@@ -183,7 +183,7 @@ export const useFamilyDetailStore = create<FamilyDetailState>((set, get) => ({
       return false;
     }
   },
-  
+
   // 解散家庭
   deleteFamily: async (id: string) => {
     try {

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { PageContainer } from '@/components/layout/page-container';
 import { MemberList } from '@/components/families/members/member-list';
 import { InvitationSection } from '@/components/families/members/invitation-section';
+import { InvitationHistory } from '@/components/families/members/invitation-history';
 import { MemberStatistics } from '@/components/families/members/member-statistics';
 import { useFamilyMembersStore } from '@/lib/stores/family-members-store';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -16,25 +17,28 @@ export default function FamilyMembersPage() {
   const params = useParams();
   const router = useRouter();
   const familyId = params.id as string;
-  
+
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<{ id: string, name: string } | null>(null);
   const [showRoleDialog, setShowRoleDialog] = useState(false);
   const [roleChangeData, setRoleChangeData] = useState<{ memberId: string, name: string, role: Role } | null>(null);
-  
-  const { 
-    members, 
+
+  const {
+    members,
     totalExpense,
     period,
     userPermissions,
     invitation,
-    isLoading, 
+    invitations,
+    isLoading,
     isRoleUpdating,
     isRemoving,
     isInvitationLoading,
+    isInvitationsLoading,
     error,
     setFamilyId,
     fetchMembers,
+    fetchInvitations,
     updateMemberRole,
     removeMember,
     generateInvitation,
@@ -44,10 +48,15 @@ export default function FamilyMembersPage() {
   // 设置家庭ID并加载数据
   useEffect(() => {
     if (familyId) {
+      console.log('设置家庭ID:', familyId);
       setFamilyId(familyId);
       fetchMembers();
+      console.log('开始获取邀请列表...');
+      fetchInvitations().then(result => {
+        console.log('邀请列表获取结果:', result);
+      });
     }
-  }, [familyId, setFamilyId, fetchMembers]);
+  }, [familyId, setFamilyId, fetchMembers, fetchInvitations]);
 
   // 处理错误
   useEffect(() => {
@@ -65,7 +74,7 @@ export default function FamilyMembersPage() {
   // 确认角色更改
   const confirmRoleChange = async () => {
     if (!roleChangeData) return;
-    
+
     const success = await updateMemberRole(roleChangeData.memberId, roleChangeData.role);
     if (success) {
       toast.success(`已将 ${roleChangeData.name} 的角色更改为${roleChangeData.role === 'ADMIN' ? '管理员' : '成员'}`);
@@ -82,7 +91,7 @@ export default function FamilyMembersPage() {
   // 确认移除成员
   const confirmRemoveMember = async () => {
     if (!memberToRemove) return;
-    
+
     const success = await removeMember(memberToRemove.id);
     if (success) {
       toast.success(`已移除成员 ${memberToRemove.name}`);
@@ -91,10 +100,10 @@ export default function FamilyMembersPage() {
   };
 
   // 处理生成邀请链接
-  const handleGenerateInvitation = async (expiresInDays = 7) => {
+  const handleGenerateInvitation = async (expiresInDays = 0.33) => { // 8小时 = 1/3天
     const invitation = await generateInvitation(expiresInDays);
     if (invitation) {
-      toast.success('邀请链接已生成');
+      toast.success('邀请码已生成');
     }
   };
 
@@ -106,8 +115,8 @@ export default function FamilyMembersPage() {
   // 如果正在加载，显示加载状态
   if (isLoading && members.length === 0) {
     return (
-      <PageContainer 
-        title="成员管理" 
+      <PageContainer
+        title="成员管理"
         showBackButton
         backUrl={`/families/${familyId}`}
         activeNavItem="profile"
@@ -120,16 +129,16 @@ export default function FamilyMembersPage() {
   }
 
   return (
-    <PageContainer 
-      title="成员管理" 
+    <PageContainer
+      title="成员管理"
       showBackButton
       backUrl={`/families/${familyId}`}
       activeNavItem="profile"
       rightAction={
         userPermissions.canInvite ? (
-          <button 
-            className="icon-button" 
-            onClick={() => handleGenerateInvitation()}
+          <button
+            className="icon-button"
+            onClick={() => handleGenerateInvitation(0.33)} // 8小时 = 1/3天
             disabled={isInvitationLoading}
           >
             <i className="fas fa-user-plus"></i>
@@ -139,35 +148,46 @@ export default function FamilyMembersPage() {
     >
       {/* 成员列表 */}
       <div className="members-list">
-        <MemberList 
+        <MemberList
           members={members}
           userPermissions={userPermissions}
           onRoleChange={handleRoleChange}
           onRemoveMember={handleRemoveMember}
         />
       </div>
-      
+
       {/* 邀请新成员区域 */}
       {userPermissions.canInvite && (
         <>
           <div className="section-title">邀请新成员</div>
-          <InvitationSection 
+          <InvitationSection
             invitation={invitation}
             isLoading={isInvitationLoading}
             onGenerateInvitation={handleGenerateInvitation}
           />
         </>
       )}
-      
+
       {/* 成员统计 */}
       <div className="section-title">成员统计</div>
-      <MemberStatistics 
+      <MemberStatistics
         members={members}
         totalExpense={totalExpense}
         period={period}
         onPeriodChange={handlePeriodChange}
       />
-      
+
+      {/* 邀请历史 */}
+      {userPermissions.canInvite && (
+        <>
+          <InvitationHistory
+            invitations={invitations}
+            isLoading={isInvitationsLoading}
+            onRefresh={fetchInvitations}
+          />
+        </>
+      )}
+
       {/* 角色更改确认对话框 */}
       <ConfirmDialog
         isOpen={showRoleDialog}
@@ -178,7 +198,7 @@ export default function FamilyMembersPage() {
         onConfirm={confirmRoleChange}
         onCancel={() => setShowRoleDialog(false)}
       />
-      
+
       {/* 移除成员确认对话框 */}
       <ConfirmDialog
         isOpen={showRemoveDialog}

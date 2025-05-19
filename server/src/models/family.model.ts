@@ -107,6 +107,10 @@ export interface InvitationResponseDto {
   expiresAt: Date;
   url: string;
   createdAt: Date;
+  isUsed: boolean;
+  usedAt?: Date;
+  usedByUserId?: string;
+  usedByUserName?: string;
 }
 
 /**
@@ -185,5 +189,9 @@ export function toInvitationResponseDto(
     expiresAt: invitation.expiresAt,
     url: `${baseUrl}/join?code=${invitation.invitationCode}`,
     createdAt: invitation.createdAt,
+    isUsed: invitation.isUsed || false,
+    usedAt: invitation.usedAt || undefined,
+    usedByUserId: invitation.usedByUserId || undefined,
+    usedByUserName: invitation.usedByUserName || undefined,
   };
 }

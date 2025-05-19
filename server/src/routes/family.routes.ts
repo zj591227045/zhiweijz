@@ -26,6 +26,9 @@ router.post('/:id/members', authenticate, (req, res) => familyController.addFami
 // 创建邀请链接
 router.post('/:id/invitations', authenticate, (req, res) => familyController.createInvitation(req, res));
 
+// 获取家庭邀请列表
+router.get('/:id/invitations', authenticate, (req, res) => familyController.getFamilyInvitations(req, res));
+
 // 接受邀请
 router.post('/join', authenticate, (req, res) => familyController.acceptInvitation(req, res));
 

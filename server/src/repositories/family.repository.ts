@@ -275,6 +275,31 @@ export class FamilyRepository {
   }
 
   /**
+   * 获取家庭的所有邀请
+   */
+  async findFamilyInvitations(familyId: string): Promise<Invitation[]> {
+    return prisma.invitation.findMany({
+      where: { familyId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
+   * 标记邀请为已使用
+   */
+  async markInvitationAsUsed(id: string, usedByUserId: string, usedByUserName: string): Promise<Invitation> {
+    return prisma.invitation.update({
+      where: { id },
+      data: {
+        isUsed: true,
+        usedAt: new Date(),
+        usedByUserId,
+        usedByUserName
+      },
+    });
+  }
+
+  /**
    * 删除邀请
    */
   async deleteInvitation(id: string): Promise<Invitation> {

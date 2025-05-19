@@ -308,6 +308,44 @@ export class FamilyController {
   }
 
   /**
+   * 获取家庭邀请列表
+   */
+  async getFamilyInvitations(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const familyId = req.params.id;
+      if (!familyId) {
+        res.status(400).json({ message: '家庭ID不能为空' });
+        return;
+      }
+
+      // 获取邀请列表
+      try {
+        // 获取基础URL
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const invitations = await this.familyService.getFamilyInvitations(familyId, userId, baseUrl);
+        res.status(200).json(invitations);
+      } catch (error) {
+        if (error instanceof Error && error.message === '无权访问此家庭') {
+          res.status(403).json({ message: error.message });
+        } else if (error instanceof Error && error.message === '家庭不存在') {
+          res.status(404).json({ message: error.message });
+        } else {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('获取家庭邀请列表失败:', error);
+      res.status(500).json({ message: '获取家庭邀请列表失败' });
+    }
+  }
+
+  /**
    * 获取家庭成员列表
    */
   async getFamilyMembers(req: Request, res: Response): Promise<void> {

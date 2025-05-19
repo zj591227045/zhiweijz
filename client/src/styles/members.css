@@ -1,12 +1,16 @@
 .members-list {
   margin-bottom: 20px;
+  max-height: none; /* 移除最大高度限制 */
+  height: auto; /* 自动适应内容高度 */
+  overflow: visible; /* 确保内容不会被截断 */
 }
 
 .member-card {
   background-color: var(--card-background);
   border-radius: var(--radius);
   margin-bottom: 12px;
-  overflow: hidden;
+  overflow: visible; /* 修改为visible，确保内容不会被截断 */
+  height: auto; /* 自动适应内容高度 */
 }
 
 .member-header {
@@ -105,6 +109,9 @@
   padding: 16px;
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap; /* 允许内容换行 */
+  height: auto; /* 自动适应内容高度 */
+  overflow: visible; /* 确保内容不会被截断 */
 }
 
 .detail-column {
@@ -330,6 +337,9 @@
   border-radius: var(--radius);
   padding: 20px;
   margin-bottom: 20px;
+  max-height: none; /* 移除最大高度限制 */
+  height: auto; /* 自动适应内容高度 */
+  overflow: visible; /* 确保内容不会被截断 */
 }
 
 .period-selector {
@@ -361,6 +371,9 @@
 
 .member-ranking {
   margin-top: 16px;
+  max-height: none; /* 移除最大高度限制 */
+  height: auto; /* 自动适应内容高度 */
+  overflow: visible; /* 确保内容不会被截断 */
 }
 
 .ranking-item {
