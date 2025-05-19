@@ -5,12 +5,7 @@ import { Budget } from '@/store/budget-list-store';
 import { cn, formatCurrency } from '@/lib/utils';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { AccountBookType } from '@/types';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
+
 
 interface BudgetListCardProps {
   budget: Budget;
@@ -29,6 +24,7 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
   // 处理编辑预算
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
+    // 使用正确的路由路径
     router.push(`/budgets/${budget.id}/edit`);
   };
 
@@ -38,12 +34,7 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
     onDelete(budget.id);
   };
 
-  // 确定进度条颜色
-  const getProgressColor = () => {
-    if (budget.overSpent) return 'bg-destructive';
-    if (budget.warning) return 'bg-amber-500';
-    return 'bg-primary';
-  };
+
 
   return (
     <div
@@ -71,24 +62,33 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
           </div>
         </div>
         <div className="budget-actions">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="icon-button" onClick={(e) => e.stopPropagation()}>
-                <i className="fas fa-ellipsis-v"></i>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleEdit}>
-                <i className="fas fa-edit mr-2"></i> 编辑
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={handleDelete}
+          {/* 个人预算只显示编辑按钮，通用预算显示编辑和删除按钮 */}
+          {budget.budgetType === 'PERSONAL' ? (
+            <button
+              className="edit-button"
+              onClick={(e) => handleEdit(e)}
+              aria-label="编辑预算"
+            >
+              <i className="fas fa-edit"></i>
+            </button>
+          ) : (
+            <div className="action-buttons">
+              <button
+                className="edit-button"
+                onClick={(e) => handleEdit(e)}
+                aria-label="编辑预算"
               >
-                <i className="fas fa-trash-alt mr-2"></i> 删除
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <i className="fas fa-edit"></i>
+              </button>
+              <button
+                className="delete-button"
+                onClick={(e) => handleDelete(e)}
+                aria-label="删除预算"
+              >
+                <i className="fas fa-trash-alt"></i>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -99,7 +99,11 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
       <div className="budget-progress">
         <div className="progress-bar">
           <div
-            className="progress"
+            className={cn(
+              "progress",
+              budget.overSpent && "bg-destructive",
+              budget.warning && !budget.overSpent && "bg-amber-500"
+            )}
             style={{ width: `${Math.min(budget.percentage, 100)}%` }}
           ></div>
         </div>

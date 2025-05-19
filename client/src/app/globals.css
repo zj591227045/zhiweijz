@@ -12,6 +12,7 @@
 @import '../styles/budget-list-page.css';
 @import '../styles/family-member-selector.css';
 @import '../styles/invitation-history.css';
+@import '../styles/budget-edit.css';
 
 @layer base {
   :root {

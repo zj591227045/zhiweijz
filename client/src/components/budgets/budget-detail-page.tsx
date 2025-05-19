@@ -160,6 +160,7 @@ export function BudgetDetailPage() {
 
   // 处理编辑预算
   const handleEdit = () => {
+    // 使用正确的路由路径
     router.push(`/budgets/${budgetId}/edit`);
   };
 

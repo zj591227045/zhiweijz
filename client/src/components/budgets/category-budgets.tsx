@@ -42,6 +42,7 @@ export function CategoryBudgets() {
 
   // 处理编辑预算
   const handleEditBudget = (budgetId: string) => {
+    // 使用正确的路由路径
     router.push(`/budgets/${budgetId}/edit`);
   };
 
