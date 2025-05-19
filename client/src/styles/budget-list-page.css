@@ -91,9 +91,26 @@
   margin-bottom: 4px;
 }
 
+.budget-list-card-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .budget-list-card-period {
   font-size: 12px;
   color: hsl(var(--muted-foreground));
+}
+
+.budget-list-card-username {
+  font-size: 12px;
+  color: hsl(var(--primary));
+  background-color: hsl(var(--primary) / 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .budget-list-card-actions {

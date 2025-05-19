@@ -112,7 +112,7 @@ export function BudgetProgress({ categories, totalBudget }: BudgetProgressProps)
       cat.id === "total")) {
     processedCategories.unshift({
       id: "total",
-      name: "月度总预算",
+      name: "个人预算",
       icon: "money-bill",
       budget: totalBudget.amount,
       spent: totalBudget.spent,

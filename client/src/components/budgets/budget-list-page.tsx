@@ -124,17 +124,13 @@ export function BudgetListPage() {
       );
     }
 
-    return (
-      <div className="budget-list-cards">
-        {currentBudgets.map(budget => (
-          <BudgetListCard
-            key={budget.id}
-            budget={budget}
-            onDelete={(id) => setBudgetToDelete(id)}
-          />
-        ))}
-      </div>
-    );
+    return currentBudgets.map(budget => (
+      <BudgetListCard
+        key={budget.id}
+        budget={budget}
+        onDelete={(id) => setBudgetToDelete(id)}
+      />
+    ));
   };
 
   return (
@@ -155,12 +151,12 @@ export function BudgetListPage() {
       />
 
       {/* 预算部分 */}
-      <section className="budget-list-section">
-        <div className="budget-list-section-header">
+      <section className="budget-section active">
+        <div className="section-header">
           <h2>
             {selectedType === 'PERSONAL' ? '个人预算' : '通用预算'}
           </h2>
-          <div className="budget-list-section-description">
+          <div className="section-description">
             {selectedType === 'PERSONAL'
               ? '每月自动刷新的个人预算'
               : '长期或无期限的通用预算'}
@@ -168,12 +164,14 @@ export function BudgetListPage() {
         </div>
 
         {/* 预算列表 */}
-        {renderBudgetList()}
+        <div className="budget-list">
+          {renderBudgetList()}
+        </div>
 
         {/* 添加通用预算按钮 - 仅在通用预算页面且有预算时显示 */}
         {selectedType === 'GENERAL' && generalBudgets.length > 0 && (
           <button
-            className="budget-list-add-button"
+            className="add-budget-button"
             onClick={handleAddBudget}
           >
             <i className="fas fa-plus"></i>

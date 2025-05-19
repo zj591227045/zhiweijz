@@ -65,7 +65,22 @@ export class FamilyService {
 
     // 自动创建家庭账本
     try {
-      await this.createDefaultFamilyAccountBook(userId, family.id, family.name);
+      const accountBook = await this.createDefaultFamilyAccountBook(userId, family.id, family.name);
+
+      // 为家庭创建者创建个人预算
+      try {
+        if (accountBook) {
+          await this.familyBudgetService.createDefaultBudgetsForNewMember(
+            userId,
+            family.id,
+            accountBook.id
+          );
+          console.log(`已为家庭创建者 ${userId} 创建默认预算`);
+        }
+      } catch (budgetError) {
+        console.error(`为家庭创建者 ${userId} 创建默认预算失败:`, budgetError);
+        // 不影响家庭创建流程，继续执行
+      }
     } catch (error) {
       console.error('创建家庭账本失败:', error);
       // 不影响家庭创建流程，继续执行
@@ -85,14 +100,16 @@ export class FamilyService {
   /**
    * 为家庭创建默认账本
    * @private
+   * @returns 创建的账本
    */
-  private async createDefaultFamilyAccountBook(userId: string, familyId: string, familyName: string): Promise<void> {
-    await this.accountBookService.createFamilyAccountBook(userId, familyId, {
+  private async createDefaultFamilyAccountBook(userId: string, familyId: string, familyName: string): Promise<any> {
+    const accountBook = await this.accountBookService.createFamilyAccountBook(userId, familyId, {
       name: `${familyName}的家庭账本`,
       description: '系统自动创建的家庭账本',
       isDefault: true,
     });
-    console.log(`已为家庭 ${familyId} 创建默认账本`);
+    console.log(`已为家庭 ${familyId} 创建默认账本: ${accountBook.id}`);
+    return accountBook;
   }
 
   /**

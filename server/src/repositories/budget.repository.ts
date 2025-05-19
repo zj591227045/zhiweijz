@@ -1,7 +1,7 @@
 import { PrismaClient, Budget, BudgetPeriod, BudgetType, Prisma, Category } from '@prisma/client';
 import { CreateBudgetDto, UpdateBudgetDto, BudgetQueryParams } from '../models/budget.model';
 
-// 扩展Budget类型，包含category、accountBook和categoryBudgets关联
+// 扩展Budget类型，包含category、accountBook、user和categoryBudgets关联
 export type BudgetWithCategory = Budget & {
   category?: Category | null;
   categoryBudgets?: any[];
@@ -10,6 +10,11 @@ export type BudgetWithCategory = Budget & {
     name: string;
     type: string;
     familyId?: string | null;
+  } | null;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
   } | null;
 };
 
@@ -155,7 +160,7 @@ export class BudgetRepository {
     // 查询总数
     const total = await prisma.budget.count({ where });
 
-    // 查询分页数据
+    // 查询分页数据，包含用户信息
     const budgets = await prisma.budget.findMany({
       where,
       orderBy,
@@ -163,6 +168,21 @@ export class BudgetRepository {
       take: limit,
       include: {
         category: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        accountBook: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            familyId: true
+          }
+        }
       },
     });
 

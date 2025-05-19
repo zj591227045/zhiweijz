@@ -81,7 +81,7 @@ async function createDefaultBudget(userId: string, accountBookId: string) {
   // 创建默认月度预算
   const budget = await prisma.budget.create({
     data: {
-      name: '月度总预算',
+      name: '个人预算',
       amount: 5000, // 默认5000元
       period: BudgetPeriod.MONTHLY,
       startDate,

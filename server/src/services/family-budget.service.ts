@@ -33,7 +33,7 @@ export class FamilyBudgetService {
 
       // 创建月度预算数据
       const budgetData: CreateBudgetDto = {
-        name: '月度总预算',
+        name: '个人预算',
         amount: 0, // 默认为0，表示不限制
         period: 'MONTHLY' as BudgetPeriod,
         startDate,

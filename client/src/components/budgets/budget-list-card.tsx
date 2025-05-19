@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { Budget } from '@/store/budget-list-store';
 import { cn, formatCurrency } from '@/lib/utils';
+import { useAccountBookStore } from '@/store/account-book-store';
+import { AccountBookType } from '@/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +19,7 @@ interface BudgetListCardProps {
 
 export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
   const router = useRouter();
+  const { currentAccountBook } = useAccountBookStore();
 
   // 处理点击预算卡片
   const handleCardClick = () => {
@@ -45,18 +48,29 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
   return (
     <div
       className={cn(
-        "budget-list-card",
-        budget.overSpent && "danger border-l-4 border-destructive",
-        budget.warning && !budget.overSpent && "warning border-l-4 border-amber-500"
+        "budget-card",
+        budget.overSpent && "danger",
+        budget.warning && !budget.overSpent && "warning"
       )}
       onClick={handleCardClick}
     >
-      <div className="budget-list-card-header">
-        <div className="budget-list-card-title">
+      <div className="budget-header">
+        <div className="budget-title">
           <h3>{budget.name}</h3>
-          <span className="budget-list-card-period">{budget.period}</span>
+          <div className="budget-subtitle">
+            <span className="budget-period">{budget.period}</span>
+            {/* 如果是家庭账本且有用户名称，显示用户名称 */}
+            {currentAccountBook?.type === AccountBookType.FAMILY &&
+             budget.budgetType === 'PERSONAL' &&
+             budget.userName && (
+              <span className="budget-username">
+                <i className="fas fa-user mr-1 text-xs"></i>
+                {budget.userName}
+              </span>
+            )}
+          </div>
         </div>
-        <div className="budget-list-card-actions">
+        <div className="budget-actions">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="icon-button" onClick={(e) => e.stopPropagation()}>
@@ -78,21 +92,21 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
         </div>
       </div>
 
-      <div className="budget-list-card-amount">
+      <div className="budget-amount">
         {formatCurrency(budget.amount)}
       </div>
 
-      <div className="budget-list-card-progress">
-        <div className="budget-list-progress-bar">
+      <div className="budget-progress">
+        <div className="progress-bar">
           <div
-            className="budget-list-progress"
+            className="progress"
             style={{ width: `${Math.min(budget.percentage, 100)}%` }}
           ></div>
         </div>
-        <div className="budget-list-progress-info">
-          <span className="budget-list-spent">已用: {formatCurrency(budget.spent)}</span>
+        <div className="progress-info">
+          <span className="spent">已用: {formatCurrency(budget.spent)}</span>
           <span className={cn(
-            "budget-list-remaining",
+            "remaining",
             budget.overSpent && "negative"
           )}>
             {budget.overSpent
@@ -102,10 +116,10 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
         </div>
       </div>
 
-      <div className="budget-list-card-footer">
+      <div className="budget-footer">
         {budget.rolloverAmount !== undefined && budget.rolloverAmount !== 0 ? (
           <div className={cn(
-            "budget-list-rollover-info",
+            "rollover-info",
             budget.rolloverAmount < 0 && "negative"
           )}>
             <i className="fas fa-exchange-alt"></i>
@@ -122,7 +136,7 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
           <div></div> // 空占位符，保持布局
         )}
 
-        <div className="budget-list-days-remaining">
+        <div className="days-remaining">
           {budget.daysRemaining > 0
             ? `剩余${budget.daysRemaining}天`
             : budget.budgetType === 'GENERAL' && budget.daysRemaining === 0

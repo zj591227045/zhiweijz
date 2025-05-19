@@ -123,12 +123,12 @@ export const budgetService = {
 
         // 分离总预算和分类预算
         let totalBudgetItem = budgetData.find(budget =>
-          budget.name === '月度总预算' || budget.name === '年度总预算' || !budget.categoryId
+          budget.name === '个人预算' || budget.name === '年度总预算' || !budget.categoryId
         );
 
         // 分类预算（有categoryId的预算）
         const categoryBudgets = budgetData.filter(budget =>
-          budget.categoryId && budget.name !== '月度总预算' && budget.name !== '年度总预算'
+          budget.categoryId && budget.name !== '个人预算' && budget.name !== '年度总预算'
         );
 
         console.log('处理预算响应数据 - 总预算项:', totalBudgetItem);
@@ -138,7 +138,7 @@ export const budgetService = {
         if (!totalBudgetItem) {
           totalBudgetItem = {
             id: 'default-total-budget',
-            name: '月度总预算',
+            name: '个人预算',
             amount: categoryBudgets.reduce((sum, budget) => sum + (budget.amount || 0), 0),
             spent: categoryBudgets.reduce((sum, budget) => sum + (budget.spent || 0), 0),
             remaining: 0,

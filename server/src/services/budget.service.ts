@@ -77,11 +77,26 @@ export class BudgetService {
     const budgetsWithSpent = await Promise.all(
       budgets.map(async (budget) => {
         const spent = await this.budgetRepository.calculateSpentAmount(budget.id);
-        return toBudgetResponseDto(
+
+        // 创建预算响应DTO
+        const budgetDto = toBudgetResponseDto(
           budget,
           budget.category ? toCategoryResponseDto(budget.category) : undefined,
           spent
         );
+
+        // 添加用户名称信息
+        if (budget.user) {
+          budgetDto.userName = budget.user.name;
+        }
+
+        // 添加账本信息
+        if (budget.accountBook) {
+          budgetDto.accountBookName = budget.accountBook.name;
+          budgetDto.accountBookType = budget.accountBook.type;
+        }
+
+        return budgetDto;
       })
     );
 

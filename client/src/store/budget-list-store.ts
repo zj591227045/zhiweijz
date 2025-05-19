@@ -21,6 +21,9 @@ export interface Budget {
   warning: boolean; // 是否接近超支
   overSpent: boolean; // 是否超支
   budgetType: BudgetType;
+  userId?: string;
+  userName?: string; // 用户名称，用于在家庭账本中显示
+  accountBookType?: string; // 账本类型
 }
 
 // 预算列表状态类型
@@ -107,16 +110,32 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
       console.log('处理后的通用预算数据:', generalBudgetsData);
 
       // 处理预算数据，添加警告和超支标志
-      const processedPersonalBudgets = personalBudgetsData.map((budget: any) => ({
-        ...budget,
-        warning: budget.percentage >= 80 && budget.percentage < 100,
-        overSpent: budget.percentage >= 100
-      }));
+      const processedPersonalBudgets = personalBudgetsData.map((budget: any) => {
+        // 获取当前账本类型
+        const accountBookType = budget.accountBookType || 'PERSONAL';
+
+        // 获取用户名称 - 从API响应中提取
+        let userName = budget.userName;
+
+        // 如果API没有返回userName，但返回了user对象，则从user对象中获取
+        if (!userName && budget.user && budget.user.name) {
+          userName = budget.user.name;
+        }
+
+        return {
+          ...budget,
+          warning: budget.percentage >= 80 && budget.percentage < 100,
+          overSpent: budget.percentage >= 100,
+          accountBookType,
+          userName
+        };
+      });
 
       const processedGeneralBudgets = generalBudgetsData.map((budget: any) => ({
         ...budget,
         warning: budget.percentage >= 80 && budget.percentage < 100,
-        overSpent: budget.percentage >= 100
+        overSpent: budget.percentage >= 100,
+        accountBookType: budget.accountBookType || 'PERSONAL'
       }));
 
       set({

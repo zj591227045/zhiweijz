@@ -70,6 +70,7 @@ export interface BudgetResponseDto {
   enableCategoryBudget: boolean;
   isAutoCalculated: boolean;
   userId: string;
+  userName?: string; // 用户名称
   familyId?: string;
   accountBookId?: string;
   accountBookName?: string;

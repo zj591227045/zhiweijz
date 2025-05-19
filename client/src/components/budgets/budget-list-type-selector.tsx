@@ -10,10 +10,10 @@ interface BudgetListTypeSelectorProps {
 
 export function BudgetListTypeSelector({ selectedType, onTypeChange }: BudgetListTypeSelectorProps) {
   return (
-    <div className="budget-list-type-selector">
+    <div className="budget-type-selector">
       <button
         className={cn(
-          "budget-list-type-button",
+          "type-button",
           selectedType === 'PERSONAL' && "active"
         )}
         onClick={() => onTypeChange('PERSONAL')}
@@ -22,7 +22,7 @@ export function BudgetListTypeSelector({ selectedType, onTypeChange }: BudgetLis
       </button>
       <button
         className={cn(
-          "budget-list-type-button",
+          "type-button",
           selectedType === 'GENERAL' && "active"
         )}
         onClick={() => onTypeChange('GENERAL')}

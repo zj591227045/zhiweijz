@@ -41,6 +41,18 @@
     --background-secondary: 240 5% 96%;
     --background-hover: 240 5% 92%;
 
+    /* 预算列表页所需的变量 */
+    --background-color: #f9fafb;
+    --card-background: #ffffff;
+    --border-color: #e5e7eb;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --primary-color: #3b82f6;
+    --success-color: #22C55E;
+    --warning-color: #F59E0B;
+    --error-color: #EF4444;
+    --border-radius: 0.5rem;
+
     /* 主题色变量 */
     --blue-50: 217.2 100% 97.1%;
     --blue-100: 214.3 94.6% 92.7%;
