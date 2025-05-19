@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
+import { Category as CategoryType } from '@/types';
 
 // 分类类型
 export type CategoryType = 'EXPENSE' | 'INCOME';
@@ -10,13 +11,8 @@ export type CategoryType = 'EXPENSE' | 'INCOME';
 export type ViewMode = 'grid' | 'list';
 
 // 分类项
-export interface Category {
-  id: string;
-  name: string;
+export interface Category extends Omit<CategoryType, 'type'> {
   type: CategoryType;
-  icon: string;
-  color?: string;
-  isDefault: boolean;
   order?: number;
 }
 

@@ -14,6 +14,7 @@
 @import '../styles/invitation-history.css';
 @import '../styles/budget-edit.css';
 @import '../styles/rollover-dialog.css';
+@import '../styles/budget-add.css';
 
 @layer base {
   :root {

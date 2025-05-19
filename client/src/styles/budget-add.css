@@ -1,0 +1,574 @@
+/* 预算添加页特定样式 */
+
+/* 预算类型卡片 */
+.budget-type-card {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background-color: var(--background-color);
+  border-radius: var(--border-radius);
+}
+
+.type-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-right: 16px;
+}
+
+.type-info {
+  flex: 1;
+}
+
+.type-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.type-description {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* 帮助文本 */
+.help-text {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.help-text i {
+  margin-right: 8px;
+}
+
+/* 表单容器 */
+.budget-form {
+  padding-bottom: 24px;
+}
+
+/* 表单区块 */
+.form-section {
+  background-color: var(--card-background);
+  border-radius: var(--border-radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 表单组件 */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 16px;
+  color: var(--text-primary);
+  background-color: var(--card-background);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+/* 金额输入 */
+.amount-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.currency-symbol {
+  position: absolute;
+  left: 12px;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.amount-input input {
+  padding-left: 28px !important;
+}
+
+/* 日期输入 - 新版移动端友好样式 */
+.date-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.date-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--card-background);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.date-display:hover {
+  border-color: var(--primary-color);
+}
+
+.date-display span {
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.date-icons {
+  display: flex;
+  gap: 8px;
+  color: var(--text-secondary);
+}
+
+/* 日期选择器模态框 */
+.date-picker-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.date-picker-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.date-picker-content {
+  position: relative;
+  width: 90%;
+  max-width: 360px;
+  background-color: var(--card-background);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  z-index: 1001;
+}
+
+.date-picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.date-picker-header span {
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.date-picker-header button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.date-picker-header button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.date-picker-body {
+  padding: 16px;
+}
+
+.date-picker-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 16px;
+  color: var(--text-primary);
+  background-color: var(--card-background);
+}
+
+.date-picker-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.date-picker-actions {
+  display: flex;
+  padding: 16px;
+  gap: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+.date-picker-today,
+.date-picker-confirm {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  text-align: center;
+}
+
+.date-picker-today {
+  background-color: var(--background-color);
+  color: var(--text-primary);
+}
+
+.date-picker-confirm {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* 旧版日期输入 - 保留兼容性 */
+.date-input {
+  position: relative;
+}
+
+.date-input i {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+/* 开关组件 */
+.toggle-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border-color);
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: var(--primary-color);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(24px);
+}
+
+/* 分类选择器网格 */
+.category-grid-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+  margin-top: 12px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background-color);
+}
+
+.category-grid-selector .category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 12px 4px;
+  border-radius: 8px;
+}
+
+.category-grid-selector .category-item:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+  transform: translateY(-2px);
+}
+
+.category-grid-selector .category-item.active {
+  background-color: rgba(59, 130, 246, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.category-grid-selector .category-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.category-grid-selector .category-item span {
+  font-size: 12px;
+  text-align: center;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  font-weight: 500;
+}
+
+/* 响应式调整 */
+@media (max-width: 360px) {
+  .category-grid-selector {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 480px) {
+  .category-grid-selector {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* 分类预算表单 */
+.category-budget-form {
+  margin-top: 16px;
+}
+
+/* 无分类消息 */
+.no-categories-message {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--text-secondary);
+  gap: 8px;
+}
+
+.no-categories-message i {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.no-categories-message span {
+  font-size: 14px;
+}
+
+.selected-category {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: var(--background-color);
+  border-radius: 8px;
+}
+
+.category-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  margin-right: 12px;
+  margin-bottom: 0;
+}
+
+.category-icon.small {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+}
+
+.selected-category span {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.category-budget-info {
+  background-color: rgba(59, 130, 246, 0.05);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.info-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.add-category-budget-button {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.add-category-budget-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.category-budget-list {
+  margin-top: 16px;
+}
+
+.category-budget-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background-color: var(--background-color);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.category-info {
+  display: flex;
+  align-items: center;
+}
+
+.category-info .category-icon {
+  margin-bottom: 0;
+  margin-right: 8px;
+}
+
+.category-budget-amount {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.remove-button {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--error-color);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* 提交按钮 */
+.submit-button {
+  width: 100%;
+  padding: 16px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+}
+
+.submit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 错误消息 */
+.error-message {
+  color: var(--error-color);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* 辅助类 */
+.mt-2 {
+  margin-top: 8px;
+}

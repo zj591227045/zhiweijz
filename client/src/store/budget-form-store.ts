@@ -3,6 +3,7 @@ import { devtools } from 'zustand/middleware';
 import dayjs from 'dayjs';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
+import { Category } from '@/types';
 
 // 预算周期类型
 export type BudgetPeriodType = 'MONTHLY' | 'YEARLY';
@@ -13,15 +14,6 @@ export interface AccountBook {
   name: string;
   type: 'PERSONAL' | 'FAMILY';
   isDefault: boolean;
-}
-
-// 分类类型
-export interface Category {
-  id: string;
-  name: string;
-  icon: string;
-  color: string;
-  type: 'EXPENSE' | 'INCOME';
 }
 
 // 分类预算类型
@@ -146,7 +138,7 @@ export const useBudgetFormStore = create<BudgetFormState>()(
       setSelectedAccountBook: (id) => {
         const accountBook = get().accountBooks.find(book => book.id === id);
         if (accountBook) {
-          set({ 
+          set({
             selectedAccountBookId: id,
             selectedAccountBookType: accountBook.type
           });
@@ -177,9 +169,9 @@ export const useBudgetFormStore = create<BudgetFormState>()(
 
       // 添加分类预算
       addCategoryBudget: () => {
-        const { 
-          selectedCategoryId, 
-          categories, 
+        const {
+          selectedCategoryId,
+          categories,
           categoryBudgetAmount,
           categoryBudgets
         } = get();
@@ -274,7 +266,7 @@ export const useBudgetFormStore = create<BudgetFormState>()(
         try {
           set({ isLoading: true });
           const response = await apiClient.get(`/budgets/${budgetId}`);
-          
+
           // 设置表单数据
           set({
             mode: 'edit',
@@ -364,7 +356,7 @@ export const useBudgetFormStore = create<BudgetFormState>()(
 
           // 重置表单
           get().resetForm();
-          
+
           // 返回预算列表页
           window.location.href = '/budgets';
         } catch (error) {

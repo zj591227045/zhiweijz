@@ -85,17 +85,18 @@ export function CategoryList({ categories, isLoading }: CategoryListProps) {
   // 获取图标类名
   const getIconClass = (iconName?: string) => {
     if (!iconName) return "fas fa-question";
-    
+
     // 如果图标名称已经包含完整的类名，则直接返回
     if (iconName.startsWith("fa-")) {
       return `fas ${iconName}`;
     }
-    
-    // 根据图标名称映射到Font Awesome图标
+
+    // 直接映射API返回的图标值到Font Awesome图标
     const iconMap: Record<string, string> = {
+      // 基于API返回的图标值映射
+      transport: "fa-bus",
       restaurant: "fa-utensils",
       shopping: "fa-shopping-bag",
-      transport: "fa-bus",
       home: "fa-home",
       clothing: "fa-tshirt",
       entertainment: "fa-gamepad",
@@ -124,7 +125,7 @@ export function CategoryList({ categories, isLoading }: CategoryListProps) {
       commission: "fa-hand-holding-usd",
       other: "fa-ellipsis-h",
     };
-    
+
     return `fas ${iconMap[iconName] || "fa-question"}`;
   };
 
@@ -156,30 +157,30 @@ export function CategoryList({ categories, isLoading }: CategoryListProps) {
             <div className="drag-handle">
               <i className="fas fa-grip-lines"></i>
             </div>
-            
+
             {/* 分类图标 */}
-            <div 
-              className="category-icon" 
+            <div
+              className="category-icon"
               style={{ backgroundColor: category.color || '#f0f0f0' }}
             >
               <i className={getIconClass(category.icon)}></i>
             </div>
-            
+
             {/* 分类名称 */}
             <div className="category-name">{category.name}</div>
-            
+
             {/* 操作按钮 */}
             <div className="category-actions">
-              <button 
+              <button
                 className="action-button edit"
                 onClick={() => handleEdit(category)}
                 aria-label="编辑分类"
               >
                 <i className="fas fa-edit"></i>
               </button>
-              
+
               {!category.isDefault && (
-                <button 
+                <button
                   className="action-button delete"
                   onClick={() => handleDelete(category)}
                   aria-label="删除分类"

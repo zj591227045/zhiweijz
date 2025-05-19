@@ -116,7 +116,10 @@ export interface Category {
   type: TransactionType;
   icon?: string;
   color?: string;
-  accountBookId: string;
+  accountBookId?: string;
+  isDefault?: boolean;
+  isHidden?: boolean;
+  displayOrder?: number;
   createdAt: string;
   updatedAt: string;
 }

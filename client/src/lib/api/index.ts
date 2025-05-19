@@ -40,7 +40,19 @@ apiClient.interceptors.response.use(
     if (response.data === null || response.data === undefined) {
       console.warn(`API响应 [${response.config.method?.toUpperCase()}] ${response.config.url}: 响应数据为空`);
     } else if (typeof response.data === 'object') {
-      console.log(`API响应 [${response.config.method?.toUpperCase()}] ${response.config.url}: 响应数据类型为对象`);
+      if (Array.isArray(response.data)) {
+        console.log(`API响应 [${response.config.method?.toUpperCase()}] ${response.config.url}: 响应数据类型为数组，长度 ${response.data.length}`);
+        if (response.data.length > 0) {
+          console.log('数组第一项示例:', response.data[0]);
+        }
+      } else if ('data' in response.data && Array.isArray(response.data.data)) {
+        console.log(`API响应 [${response.config.method?.toUpperCase()}] ${response.config.url}: 响应数据类型为分页对象，数据长度 ${response.data.data.length}`);
+        if (response.data.data.length > 0) {
+          console.log('分页数据第一项示例:', response.data.data[0]);
+        }
+      } else {
+        console.log(`API响应 [${response.config.method?.toUpperCase()}] ${response.config.url}: 响应数据类型为对象`);
+      }
     } else {
       console.warn(`API响应 [${response.config.method?.toUpperCase()}] ${response.config.url}: 响应数据类型为 ${typeof response.data}`);
     }

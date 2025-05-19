@@ -30,7 +30,7 @@ export function CategoryGrid({ categories, isLoading }: CategoryGridProps) {
       });
       setShowActionMenu(true);
     }, 500); // 500ms长按触发
-    
+
     setLongPressTimer(timer);
   };
 
@@ -65,17 +65,18 @@ export function CategoryGrid({ categories, isLoading }: CategoryGridProps) {
   // 获取图标类名
   const getIconClass = (iconName?: string) => {
     if (!iconName) return "fas fa-question";
-    
+
     // 如果图标名称已经包含完整的类名，则直接返回
     if (iconName.startsWith("fa-")) {
       return `fas ${iconName}`;
     }
-    
-    // 根据图标名称映射到Font Awesome图标
+
+    // 直接映射API返回的图标值到Font Awesome图标
     const iconMap: Record<string, string> = {
+      // 基于API返回的图标值映射
+      transport: "fa-bus",
       restaurant: "fa-utensils",
       shopping: "fa-shopping-bag",
-      transport: "fa-bus",
       home: "fa-home",
       clothing: "fa-tshirt",
       entertainment: "fa-gamepad",
@@ -104,7 +105,7 @@ export function CategoryGrid({ categories, isLoading }: CategoryGridProps) {
       commission: "fa-hand-holding-usd",
       other: "fa-ellipsis-h",
     };
-    
+
     return `fas ${iconMap[iconName] || "fa-question"}`;
   };
 
@@ -130,8 +131,8 @@ export function CategoryGrid({ categories, isLoading }: CategoryGridProps) {
             onTouchEnd={handleTouchEnd}
             onTouchMove={handleTouchEnd}
           >
-            <div 
-              className="category-icon" 
+            <div
+              className="category-icon"
               style={{ backgroundColor: category.color || '#f0f0f0' }}
             >
               <i className={getIconClass(category.icon)}></i>
@@ -143,7 +144,7 @@ export function CategoryGrid({ categories, isLoading }: CategoryGridProps) {
 
       {/* 操作菜单 */}
       {showActionMenu && selectedCategory && (
-        <div 
+        <div
           className="category-action-menu"
           style={{
             top: `${menuPosition.y}px`,
@@ -163,8 +164,8 @@ export function CategoryGrid({ categories, isLoading }: CategoryGridProps) {
 
       {/* 点击其他区域关闭菜单 */}
       {showActionMenu && (
-        <div 
-          className="overlay" 
+        <div
+          className="overlay"
           onClick={() => setShowActionMenu(false)}
         ></div>
       )}
