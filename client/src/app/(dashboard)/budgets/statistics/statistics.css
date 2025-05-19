@@ -1,5 +1,12 @@
 /* 预算统计页面样式 */
 
+/* 预算统计页面容器 */
+.budget-statistics-container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
 /* 定义CSS变量映射，解决变量名不一致的问题 */
 :root {
   --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -23,14 +30,12 @@
 /* 预算选择器样式 */
 .budget-selector {
   margin-bottom: 20px;
-  width: 100%;
 }
 
 .budget-tabs {
   display: flex;
   margin-bottom: 15px;
   border-bottom: 1px solid var(--border-color);
-  width: 100%;
   background-color: var(--card-bg);
   border-radius: 10px;
   padding: 5px;
@@ -63,7 +68,6 @@
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
   gap: 12px;
-  width: 100%;
   justify-content: center;
   flex-wrap: wrap;
 }
@@ -101,7 +105,6 @@
   border-radius: var(--border-radius, 12px);
   padding: 24px;
   box-shadow: var(--card-shadow, 0 2px 8px rgba(0, 0, 0, 0.08));
-  width: 100%;
   margin-bottom: 20px;
   display: flex;
   flex-direction: column;
@@ -291,7 +294,6 @@
   background-color: var(--card-bg);
   border-radius: 12px;
   box-shadow: var(--card-shadow);
-  width: 100%;
 }
 
 .section-header {
@@ -458,7 +460,6 @@
   background-color: var(--card-bg);
   border-radius: 12px;
   box-shadow: var(--card-shadow);
-  width: 100%;
 }
 
 .budget-list {
@@ -558,7 +559,6 @@
   background-color: var(--card-bg);
   border-radius: 12px;
   box-shadow: var(--card-shadow);
-  width: 100%;
 }
 
 .view-all {
@@ -637,48 +637,42 @@
 
 /* 解决Tailwind样式冲突，提高自定义样式优先级 */
 .budget-overview .overview-card {
-  background-color: var(--card-bg, #ffffff) !important;
-  border-radius: var(--border-radius, 10px) !important;
-  padding: 20px !important;
-  box-shadow: var(--card-shadow) !important;
-  width: 100% !important;
+  background-color: var(--card-bg, #ffffff);
+  border-radius: var(--border-radius, 10px);
+  padding: 20px;
+  box-shadow: var(--card-shadow);
 }
 
 .budget-trends {
-  background-color: var(--card-bg, #ffffff) !important;
-  border-radius: 12px !important;
-  padding: 20px !important;
-  box-shadow: var(--card-shadow) !important;
-  width: 100% !important;
+  background-color: var(--card-bg, #ffffff);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--card-shadow);
 }
 
 .category-budgets {
-  background-color: var(--card-bg, #ffffff) !important;
-  border-radius: 12px !important;
-  padding: 20px !important;
-  box-shadow: var(--card-shadow) !important;
-  width: 100% !important;
+  background-color: var(--card-bg, #ffffff);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--card-shadow);
 }
 
 .recent-transactions {
-  background-color: var(--card-bg, #ffffff) !important;
-  border-radius: 12px !important;
-  padding: 20px !important;
-  box-shadow: var(--card-shadow) !important;
-  width: 100% !important;
+  background-color: var(--card-bg, #ffffff);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--card-shadow);
 }
 
 /* 确保预算选择器样式正确应用 */
 .budget-tabs {
-  background-color: var(--card-bg, #ffffff) !important;
-  border-radius: 10px !important;
-  width: 100% !important;
+  background-color: var(--card-bg, #ffffff);
+  border-radius: 10px;
 }
 
 /* 确保图表容器样式正确应用 */
 .chart-container {
-  width: 100% !important;
-  height: 250px !important;
+  height: 250px;
 }
 
 /* 确保预算卡片样式正确应用 */

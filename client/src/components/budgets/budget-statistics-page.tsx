@@ -163,97 +163,101 @@ export function BudgetStatisticsPage() {
       activeNavItem="budget"
     >
       {/* 预算类型选择器 */}
-      <BudgetTypeSelector
-        activeType={budgetType}
-        onChange={handleBudgetTypeChange}
-      />
+      <div className="budget-statistics-container">
+        <BudgetTypeSelector
+          activeType={budgetType}
+          onChange={handleBudgetTypeChange}
+        />
+      </div>
 
-      {isLoading ? (
-        <div className="loading-skeleton">
-          <Skeleton className="h-20 w-full mb-4" />
-          <Skeleton className="h-40 w-full mb-4" />
-          <Skeleton className="h-60 w-full mb-4" />
-          <Skeleton className="h-40 w-full" />
-        </div>
-      ) : error ? (
-        <div className="error-message">
-          <p>{error}</p>
-          <button
-            onClick={() => {
-              if (currentAccountBook) {
-                // 不再传递budgetType和userId参数，后端不接受这些参数
-                fetchBudgetStatistics(
-                  currentAccountBook.id,
-                  undefined, // 移除budgetType参数
-                  undefined  // 移除userId参数
-                );
-              }
-            }}
-            className="retry-button"
-          >
-            重试
-          </button>
-        </div>
-      ) : (
-        <>
-          {/* 预算卡片轮播 */}
-          <BudgetCarousel
-            budgetCards={budgetCards}
-            familyMembers={familyMembers}
-            selectedBudgetId={selectedBudgetId}
-            onBudgetSelect={handleBudgetSelect}
-            accountBookType={currentAccountBook?.type || 'PERSONAL'}
-          />
+      <div className="budget-statistics-container">
+        {isLoading ? (
+          <div className="loading-skeleton">
+            <Skeleton className="h-20 w-full mb-4" />
+            <Skeleton className="h-40 w-full mb-4" />
+            <Skeleton className="h-60 w-full mb-4" />
+            <Skeleton className="h-40 w-full" />
+          </div>
+        ) : error ? (
+          <div className="error-message">
+            <p>{error}</p>
+            <button
+              onClick={() => {
+                if (currentAccountBook) {
+                  // 不再传递budgetType和userId参数，后端不接受这些参数
+                  fetchBudgetStatistics(
+                    currentAccountBook.id,
+                    undefined, // 移除budgetType参数
+                    undefined  // 移除userId参数
+                  );
+                }
+              }}
+              className="retry-button"
+            >
+              重试
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* 预算卡片轮播 */}
+            <BudgetCarousel
+              budgetCards={budgetCards}
+              familyMembers={familyMembers}
+              selectedBudgetId={selectedBudgetId}
+              onBudgetSelect={handleBudgetSelect}
+              accountBookType={currentAccountBook?.type || 'PERSONAL'}
+            />
 
-          {/* 预算概览 */}
-          {overview ? (
-            <>
-              <BudgetOverview overview={overview} />
+            {/* 预算概览 */}
+            {overview ? (
+              <>
+                <BudgetOverview overview={overview} />
 
-              {/* 预算趋势图表 */}
-              <BudgetTrendChart
-                data={trendData[chartViewMode] || []}
-                showRolloverImpact={showRolloverImpact}
-                viewMode={chartViewMode}
-                timeRange={chartTimeRange}
-                onViewModeChange={handleViewModeChange}
-                onTimeRangeChange={handleTimeRangeChange}
-                onRolloverImpactToggle={toggleRolloverImpact}
-                isLoading={isLoadingTrends}
-              />
+                {/* 预算趋势图表 */}
+                <BudgetTrendChart
+                  data={trendData[chartViewMode] || []}
+                  showRolloverImpact={showRolloverImpact}
+                  viewMode={chartViewMode}
+                  timeRange={chartTimeRange}
+                  onViewModeChange={handleViewModeChange}
+                  onTimeRangeChange={handleTimeRangeChange}
+                  onRolloverImpactToggle={toggleRolloverImpact}
+                  isLoading={isLoadingTrends}
+                />
 
-              {/* 分类预算列表 */}
-              <CategoryBudgetList
-                categoryBudgets={categoryBudgets}
-                filter={categoryFilter}
-                onFilterChange={setCategoryFilter}
-                enableCategoryBudget={enableCategoryBudget}
-              />
+                {/* 分类预算列表 */}
+                <CategoryBudgetList
+                  categoryBudgets={categoryBudgets}
+                  filter={categoryFilter}
+                  onFilterChange={setCategoryFilter}
+                  enableCategoryBudget={enableCategoryBudget}
+                />
 
-              {/* 最近交易 */}
-              <RecentTransactions
-                transactions={recentTransactions}
-                budgetId={selectedBudgetId}
-                familyMemberId={familyMembers.find(member => member.budgetId === selectedBudgetId)?.id}
-              />
-            </>
-          ) : (
-            <div className="no-budget-data">
-              <div className="no-data-message">
-                <i className="fas fa-chart-pie"></i>
-                <h3>暂无预算数据</h3>
-                <p>请先创建预算或选择其他账本</p>
-                <button
-                  className="create-budget-button"
-                  onClick={handleAddBudget}
-                >
-                  创建预算
-                </button>
+                {/* 最近交易 */}
+                <RecentTransactions
+                  transactions={recentTransactions}
+                  budgetId={selectedBudgetId}
+                  familyMemberId={familyMembers.find(member => member.budgetId === selectedBudgetId)?.id}
+                />
+              </>
+            ) : (
+              <div className="no-budget-data">
+                <div className="no-data-message">
+                  <i className="fas fa-chart-pie"></i>
+                  <h3>暂无预算数据</h3>
+                  <p>请先创建预算或选择其他账本</p>
+                  <button
+                    className="create-budget-button"
+                    onClick={handleAddBudget}
+                  >
+                    创建预算
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-        </>
-      )}
+            )}
+          </>
+        )}
+      </div>
     </PageContainer>
   );
 }
