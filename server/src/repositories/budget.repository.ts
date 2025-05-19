@@ -272,8 +272,9 @@ export class BudgetRepository {
   /**
    * 获取当前活跃的预算
    * 包括用户的个人预算和用户所属家庭的预算
+   * 可选根据账本ID进行过滤
    */
-  async findActiveBudgets(userId: string, date: Date = new Date()): Promise<BudgetWithCategory[]> {
+  async findActiveBudgets(userId: string, date: Date = new Date(), accountBookId?: string): Promise<BudgetWithCategory[]> {
     // 1. 查找用户所属的所有家庭ID
     const familyMembers = await prisma.familyMember.findMany({
       where: { userId },
@@ -283,7 +284,7 @@ export class BudgetRepository {
     const familyIds = familyMembers.map(member => member.familyId);
 
     // 2. 构建查询条件：包括用户个人预算和用户所属家庭的预算
-    console.log(`查询用户 ${userId} 的活跃预算，包括家庭IDs: ${familyIds.join(', ') || '无'}`);
+    console.log(`查询用户 ${userId} 的活跃预算，包括家庭IDs: ${familyIds.join(', ') || '无'}, 账本ID: ${accountBookId || '无'}`);
 
     // 构建查询条件
     const where = {
@@ -291,19 +292,31 @@ export class BudgetRepository {
     };
 
     // 添加用户个人预算条件
-    where.OR.push({
+    const personalCondition: any = {
       userId,
       startDate: { lte: date },
       endDate: { gte: date },
-    });
+    };
+
+    // 添加家庭预算条件
+    const familyCondition: any = {
+      familyId: { in: familyIds },
+      startDate: { lte: date },
+      endDate: { gte: date },
+    };
+
+    // 如果指定了账本ID，添加到条件中
+    if (accountBookId) {
+      personalCondition.accountBookId = accountBookId;
+      familyCondition.accountBookId = accountBookId;
+    }
+
+    // 添加个人预算条件
+    where.OR.push(personalCondition);
 
     // 只有当用户属于至少一个家庭时，才添加家庭预算条件
     if (familyIds.length > 0) {
-      where.OR.push({
-        familyId: { in: familyIds },
-        startDate: { lte: date },
-        endDate: { gte: date },
-      });
+      where.OR.push(familyCondition);
     }
 
     console.log('查询条件:', JSON.stringify(where, null, 2));

@@ -51,6 +51,7 @@
     --text-primary: #1f2937;
     --text-secondary: #6b7280;
     --primary-color: #3b82f6;
+    --primary-rgb: 59, 130, 246;
     --success-color: #22C55E;
     --warning-color: #F59E0B;
     --error-color: #EF4444;
@@ -153,6 +154,7 @@
 
     /* 自定义暗色主题变量 */
     --primary-color: #60a5fa; /* 暗色蓝色主题 */
+    --primary-rgb: 96, 165, 250;
     --text-primary: #f3f4f6;
     --text-secondary: #9ca3af;
     --border-color: #374151;

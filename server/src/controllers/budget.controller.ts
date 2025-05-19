@@ -171,7 +171,11 @@ export class BudgetController {
         return;
       }
 
-      const budgets = await this.budgetService.getActiveBudgets(userId);
+      // 获取可选的账本ID参数
+      const accountBookId = req.query.accountBookId as string | undefined;
+      console.log(`获取活跃预算，用户ID: ${userId}, 账本ID: ${accountBookId || '无'}`);
+
+      const budgets = await this.budgetService.getActiveBudgets(userId, accountBookId);
       res.status(200).json(budgets);
     } catch (error) {
       res.status(500).json({ message: '获取活跃预算时发生错误' });

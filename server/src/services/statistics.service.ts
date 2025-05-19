@@ -75,6 +75,17 @@ export interface BudgetStatisticsResponseDto {
     remaining: number;
     percentage: number;
   }>;
+  // 添加最近交易记录
+  recentTransactions?: Array<{
+    id: string;
+    title: string;
+    amount: number;
+    date: string;
+    categoryId: string;
+    categoryName: string;
+    categoryIcon?: string;
+    type: string;
+  }>;
 }
 
 /**
@@ -229,7 +240,7 @@ export class StatisticsService {
     month: string,
     familyId?: string,
     accountBookId?: string
-  ): Promise<BudgetStatisticsResponseDto> {
+  ): Promise<any> { // 修改返回类型为any，以便返回扩展的数据
     console.log('StatisticsService.getBudgetStatistics 参数:', {
       userId,
       month,
@@ -246,6 +257,7 @@ export class StatisticsService {
     }
 
     // 验证用户是否有权访问账本
+    let accountBook;
     if (accountBookId) {
       try {
         // 导入AccountBookRepository
@@ -253,7 +265,7 @@ export class StatisticsService {
         const accountBookRepository = new AccountBookRepository();
 
         // 查找账本
-        const accountBook = await accountBookRepository.findById(accountBookId);
+        accountBook = await accountBookRepository.findById(accountBookId);
         console.log('查找账本结果:', accountBook);
 
         if (!accountBook) {
@@ -329,13 +341,128 @@ export class StatisticsService {
     // 按分类计算预算执行情况
     const categoriesData = this.calculateBudgetByCategory(budgets, transactions, categories);
 
+    // 获取最近5条交易记录
+    const recentTransactions = transactions
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5)
+      .map(t => {
+        const category = categories.get(t.categoryId);
+        return {
+          id: t.id,
+          title: t.description || '未命名交易', // 使用description字段作为title
+          amount: Number(t.amount),
+          date: new Date(t.date).toISOString(),
+          categoryId: t.categoryId,
+          categoryName: category?.name || '未知分类',
+          categoryIcon: category?.icon,
+          type: t.type
+        };
+      });
+
+    // 获取活跃预算
+    const { BudgetService } = require('../services/budget.service');
+    const budgetService = new BudgetService();
+    const activeBudgets = await budgetService.getActiveBudgets(userId, accountBookId);
+
+    // 处理活跃预算，转换为预算卡片格式
+    const budgetCards = activeBudgets.map((budget: any) => ({
+      id: budget.id,
+      name: budget.name,
+      type: budget.budgetType,
+      userId: budget.userId,
+      userName: budget.userName,
+      period: `${new Date(budget.startDate).getFullYear()}年${new Date(budget.startDate).getMonth() + 1}月`
+    }));
+
+    // 获取家庭成员信息（如果是家庭账本）
+    let familyMembers: any[] = [];
+    if (accountBook && accountBook.type === 'FAMILY' && accountBook.familyId) {
+      const { FamilyRepository } = require('../repositories/family.repository');
+      const familyRepository = new FamilyRepository();
+      const members = await familyRepository.findFamilyMembers(accountBook.familyId);
+
+      // 将家庭成员转换为前端需要的格式
+      familyMembers = members.map((member: any) => {
+        // 查找该成员的预算
+        const memberBudget = activeBudgets.find((b: any) =>
+          b.userId === member.userId && b.budgetType === 'PERSONAL');
+
+        return {
+          id: member.userId,
+          name: member.user?.name || '未知用户',
+          budgetId: memberBudget?.id || ''
+        };
+      });
+    }
+
+    // 构建第一个预算的概览数据（如果有）
+    let overview = null;
+    if (activeBudgets.length > 0) {
+      const firstBudget = activeBudgets[0];
+      overview = {
+        id: firstBudget.id,
+        name: firstBudget.name,
+        period: `${new Date(firstBudget.startDate).toLocaleDateString()} - ${new Date(firstBudget.endDate).toLocaleDateString()}`,
+        amount: Number(firstBudget.amount),
+        spent: Number(firstBudget.spent || 0),
+        remaining: Number(firstBudget.remaining || 0),
+        percentage: Number(firstBudget.percentage || 0),
+        rollover: Number(firstBudget.rolloverAmount || 0),
+        daysRemaining: this.calculateDaysRemaining(firstBudget.endDate),
+        dailySpent: this.calculateDailySpent(firstBudget.spent || 0, firstBudget.startDate),
+        dailyAvailable: this.calculateDailyAvailable(firstBudget.remaining || 0, firstBudget.endDate)
+      };
+    }
+
+    // 返回扩展的响应数据
     return {
+      // 原始预算统计数据
       totalBudget,
       totalSpent,
       remaining,
       percentage,
       categories: categoriesData,
+      recentTransactions,
+
+      // 添加前端需要的额外数据
+      budgetCards,
+      familyMembers,
+      overview,
+      enableCategoryBudget: activeBudgets.length > 0 ? activeBudgets[0].enableCategoryBudget : false
     };
+  }
+
+  /**
+   * 计算剩余天数
+   */
+  private calculateDaysRemaining(endDate?: Date): number {
+    if (!endDate) return 0;
+
+    const today = new Date();
+    const end = new Date(endDate);
+    const diffTime = end.getTime() - today.getTime();
+    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+  }
+
+  /**
+   * 计算日均消费
+   */
+  private calculateDailySpent(spent: number, startDate?: Date): number {
+    if (!startDate) return 0;
+
+    const start = new Date(startDate);
+    const today = new Date();
+    const diffTime = today.getTime() - start.getTime();
+    const daysPassed = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+    return spent / daysPassed;
+  }
+
+  /**
+   * 计算日均可用
+   */
+  private calculateDailyAvailable(remaining: number, endDate?: Date): number {
+    const daysRemaining = this.calculateDaysRemaining(endDate);
+    return daysRemaining > 0 ? remaining / daysRemaining : 0;
   }
 
   /**

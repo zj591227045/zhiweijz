@@ -151,6 +151,17 @@ export function BudgetListPage() {
       />
 
       {/* 预算部分 */}
+      {/* 预算统计链接 */}
+      <div className="statistics-link-container">
+        <button
+          className="statistics-link"
+          onClick={() => router.push('/budgets/statistics')}
+        >
+          <i className="fas fa-chart-line"></i>
+          <span>查看预算统计</span>
+        </button>
+      </div>
+
       <section className="budget-section active">
         <div className="section-header">
           <h2>

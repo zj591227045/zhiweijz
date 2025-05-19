@@ -44,6 +44,36 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
+/* 预算统计链接 */
+.statistics-link-container {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.statistics-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
+  color: var(--primary-color, rgb(59, 130, 246));
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.statistics-link:hover {
+  background-color: var(--primary-color, rgb(59, 130, 246));
+  color: white;
+}
+
+.statistics-link i {
+  margin-right: 8px;
+}
+
 .budget-type-button {
   background: none;
   border: none;

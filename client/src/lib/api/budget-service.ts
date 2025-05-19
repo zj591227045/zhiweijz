@@ -272,12 +272,109 @@ export const budgetService = {
   },
 
   /**
-   * 获取活跃预算
+   * 获取预算统计数据
    */
-  async getActiveBudgets(): Promise<any[]> {
+  async getBudgetStatistics(params: {
+    accountBookId: string;
+    budgetType?: 'PERSONAL' | 'GENERAL'; // 设为可选参数
+    month: string;
+    userId?: string; // 保留参数但不使用
+  }): Promise<any> {
     try {
-      console.log('发送获取活跃预算请求: /budgets/active');
-      const response = await apiClient.get<any[]>('/budgets/active');
+      // 构建查询参数
+      const queryParams = new URLSearchParams();
+
+      if (params.accountBookId) {
+        queryParams.append('accountBookId', params.accountBookId);
+      }
+
+      // 移除budgetType参数，后端不接受此参数
+      // if (params.budgetType) {
+      //   queryParams.append('budgetType', params.budgetType);
+      // }
+
+      queryParams.append('month', params.month);
+
+      // 移除userId参数，后端不接受此参数
+      // if (params.userId) {
+      //   queryParams.append('userId', params.userId);
+      // }
+
+      console.log(`发送获取预算统计请求: /statistics/budgets?${queryParams.toString()}`);
+      const response = await apiClient.get<any>(`/statistics/budgets?${queryParams.toString()}`);
+      console.log('获取预算统计响应:', response);
+
+      // 后端已经返回完整数据，不再需要额外调用getActiveBudgets
+      if (!response?.overview && params.accountBookId) {
+        console.log('未获取到预算概览数据，返回空数据');
+      }
+
+      return response || {
+        budgetCards: [],
+        familyMembers: [],
+        overview: null,
+        categories: [],
+        recentTransactions: [],
+        enableCategoryBudget: false
+      };
+    } catch (error) {
+      console.error('获取预算统计失败:', error);
+      return {
+        budgetCards: [],
+        familyMembers: [],
+        overview: null,
+        categories: [],
+        recentTransactions: [],
+        enableCategoryBudget: false
+      };
+    }
+  },
+
+  /**
+   * 计算剩余天数
+   */
+  calculateDaysRemaining(endDate?: string): number {
+    if (!endDate) return 0;
+
+    const today = new Date();
+    const end = new Date(endDate);
+    const diffTime = end.getTime() - today.getTime();
+    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+  },
+
+  /**
+   * 计算日均消费
+   */
+  calculateDailySpent(spent: number, startDate?: string): number {
+    if (!startDate) return 0;
+
+    const start = new Date(startDate);
+    const today = new Date();
+    const diffTime = today.getTime() - start.getTime();
+    const daysPassed = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+    return spent / daysPassed;
+  },
+
+  /**
+   * 计算日均可用
+   */
+  calculateDailyAvailable(remaining: number, endDate?: string): number {
+    const daysRemaining = this.calculateDaysRemaining(endDate);
+    return daysRemaining > 0 ? remaining / daysRemaining : 0;
+  },
+
+  /**
+   * 获取活跃预算
+   * @param accountBookId 可选的账本ID，用于过滤特定账本的预算
+   */
+  async getActiveBudgets(accountBookId?: string): Promise<any[]> {
+    try {
+      let url = '/budgets/active';
+      if (accountBookId) {
+        url += `?accountBookId=${accountBookId}`;
+      }
+      console.log(`发送获取活跃预算请求: ${url}`);
+      const response = await apiClient.get<any[]>(url);
       console.log('获取活跃预算响应:', response);
       return response || [];
     } catch (error) {
