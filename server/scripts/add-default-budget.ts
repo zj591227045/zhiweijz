@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   try {
     // 查找用户
-    const email = '591227045@qq.com';
+    const email = 'zhangjie@jacksonz.cn';
     const user = await prisma.user.findUnique({
       where: { email }
     });

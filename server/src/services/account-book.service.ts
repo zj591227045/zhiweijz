@@ -293,7 +293,47 @@ export class AccountBookService {
       isDefault: true,
     };
 
-    return this.createAccountBook(userId, accountBookData);
+    // 创建账本
+    const accountBook = await this.createAccountBook(userId, accountBookData);
+
+    // 为账本创建默认个人预算
+    try {
+      await this.createDefaultPersonalBudget(userId, accountBook.id);
+      console.log(`已为账本 ${accountBook.id} 创建默认个人预算`);
+    } catch (error) {
+      console.error('创建默认个人预算失败:', error);
+      // 不影响账本创建流程，继续执行
+    }
+
+    return accountBook;
+  }
+
+  /**
+   * 为账本创建默认个人预算
+   * @private
+   */
+  private async createDefaultPersonalBudget(userId: string, accountBookId: string): Promise<void> {
+    // 获取当前月份的起止日期
+    const today = new Date();
+    const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    // 创建预算数据
+    const budgetData: CreateBudgetDto = {
+      name: '个人预算',
+      amount: 0, // 默认为0，表示不限制
+      period: 'MONTHLY',
+      startDate,
+      endDate,
+      rollover: false,
+      accountBookId,
+      enableCategoryBudget: false,
+      isAutoCalculated: false,
+      budgetType: 'PERSONAL'
+    };
+
+    // 创建预算
+    await this.budgetRepository.create(userId, budgetData);
   }
 
   /**
