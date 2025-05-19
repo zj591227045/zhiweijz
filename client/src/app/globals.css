@@ -453,6 +453,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .budget-card {
@@ -515,6 +517,8 @@
   display: flex !important;
   flex-direction: column !important;
   gap: 12px !important;
+  width: 95% !important;
+  max-width: 95% !important;
 }
 
 .dashboard-budget-card {
@@ -522,6 +526,8 @@
   border-radius: 12px !important;
   padding: 16px !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 .dashboard-budget-category {
