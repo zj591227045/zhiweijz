@@ -16,11 +16,6 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
   const router = useRouter();
   const { currentAccountBook } = useAccountBookStore();
 
-  // 处理点击预算卡片
-  const handleCardClick = () => {
-    router.push(`/budgets/${budget.id}`);
-  };
-
   // 处理编辑预算
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -43,7 +38,6 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
         budget.overSpent && "danger",
         budget.warning && !budget.overSpent && "warning"
       )}
-      onClick={handleCardClick}
     >
       <div className="budget-header">
         <div className="budget-title">
