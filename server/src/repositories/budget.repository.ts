@@ -431,6 +431,13 @@ export class BudgetRepository {
 
   /**
    * 根据周期和日期范围查找预算
+   * @param userId 用户ID
+   * @param period 预算周期
+   * @param startDate 开始日期
+   * @param endDate 结束日期
+   * @param familyId 家庭ID（可选）
+   * @param accountBookId 账本ID（可选）
+   * @param excludeFamilyMember 是否排除托管成员的预算（默认为true）
    */
   async findByPeriodAndDate(
     userId: string,
@@ -438,7 +445,8 @@ export class BudgetRepository {
     startDate: Date,
     endDate: Date,
     familyId?: string,
-    accountBookId?: string
+    accountBookId?: string,
+    excludeFamilyMember: boolean = true
   ): Promise<BudgetWithCategory[]> {
     console.log('BudgetRepository.findByPeriodAndDate 参数:', {
       userId,
@@ -446,7 +454,8 @@ export class BudgetRepository {
       startDate,
       endDate,
       familyId,
-      accountBookId
+      accountBookId,
+      excludeFamilyMember
     });
 
     return prisma.budget.findMany({
@@ -457,6 +466,9 @@ export class BudgetRepository {
         endDate: { gte: startDate },
         ...(familyId && { familyId }),
         ...(accountBookId && { accountBookId }),
+        // 如果excludeFamilyMember为true，则只查询familyMemberId为null的记录
+        // 这样可以排除托管成员的预算
+        ...(excludeFamilyMember && { familyMemberId: null }),
       },
       include: {
         category: true,

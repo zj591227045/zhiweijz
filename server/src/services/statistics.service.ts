@@ -155,14 +155,15 @@ export class StatisticsService {
       }
     }
 
-    // 获取交易记录
+    // 获取交易记录 - 排除家庭托管成员的交易记录
     const transactions = await this.transactionRepository.findByDateRange(
       userId,
       TransactionType.EXPENSE,
       startDate,
       endDate,
       familyId,
-      accountBookId
+      accountBookId,
+      true // 设置excludeFamilyMember为true，排除家庭托管成员的交易记录
     );
 
     // 获取分类信息
@@ -203,14 +204,15 @@ export class StatisticsService {
       }
     }
 
-    // 获取交易记录
+    // 获取交易记录 - 排除家庭托管成员的交易记录
     const transactions = await this.transactionRepository.findByDateRange(
       userId,
       TransactionType.INCOME,
       startDate,
       endDate,
       familyId,
-      accountBookId
+      accountBookId,
+      true // 设置excludeFamilyMember为true，排除家庭托管成员的交易记录
     );
 
     // 获取分类信息
@@ -318,14 +320,15 @@ export class StatisticsService {
       endDate: endDate.toISOString()
     });
 
-    // 获取月度预算
+    // 获取月度预算 - 排除托管成员的预算
     const budgets = await this.budgetRepository.findByPeriodAndDate(
       userId,
       BudgetPeriod.MONTHLY,
       startDate,
       endDate,
       familyId,
-      accountBookId
+      accountBookId,
+      true // 设置excludeFamilyMember为true，排除托管成员的预算
     );
 
     console.log(`找到 ${budgets.length} 个预算`);
@@ -336,14 +339,15 @@ export class StatisticsService {
     // 计算总预算
     const totalBudget = budgets.reduce((sum: number, b: any) => sum + Number(b.amount), 0);
 
-    // 获取支出交易记录
+    // 获取支出交易记录 - 排除家庭托管成员的交易记录
     const transactions = await this.transactionRepository.findByDateRange(
       userId,
       TransactionType.EXPENSE,
       startDate,
       endDate,
       familyId,
-      accountBookId
+      accountBookId,
+      true // 设置excludeFamilyMember为true，排除家庭托管成员的交易记录
     );
 
     console.log(`找到 ${transactions.length} 条交易记录`);
@@ -510,24 +514,26 @@ export class StatisticsService {
       }
     }
 
-    // 获取收入交易记录
+    // 获取收入交易记录 - 排除家庭托管成员的交易记录
     const incomeTransactions = await this.transactionRepository.findByDateRange(
       userId,
       TransactionType.INCOME,
       startDate,
       endDate,
       familyId,
-      accountBookId
+      accountBookId,
+      true // 设置excludeFamilyMember为true，排除家庭托管成员的交易记录
     );
 
-    // 获取支出交易记录
+    // 获取支出交易记录 - 排除家庭托管成员的交易记录
     const expenseTransactions = await this.transactionRepository.findByDateRange(
       userId,
       TransactionType.EXPENSE,
       startDate,
       endDate,
       familyId,
-      accountBookId
+      accountBookId,
+      true // 设置excludeFamilyMember为true，排除家庭托管成员的交易记录
     );
 
     // 获取分类信息
