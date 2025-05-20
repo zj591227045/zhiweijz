@@ -12,6 +12,12 @@ interface Transaction {
   categoryName: string;
   categoryIcon: string;
   type: 'EXPENSE' | 'INCOME';
+  description?: string;
+  category?: {
+    id: string;
+    name: string;
+    icon: string;
+  };
 }
 
 interface RecentTransactionsProps {
@@ -57,10 +63,13 @@ export function RecentTransactions({ transactions, budgetId, familyMemberId }: R
           transactions.map(transaction => (
             <div key={transaction.id} className="transaction-item">
               <div className="transaction-icon">
-                <i className={`fas fa-${transaction.categoryIcon}`}></i>
+                <i className={`fas fa-${transaction.category?.icon || transaction.categoryIcon || 'receipt'}`}></i>
               </div>
               <div className="transaction-info">
                 <div className="transaction-title">{transaction.title}</div>
+                {transaction.description && (
+                  <div className="transaction-description">{transaction.description}</div>
+                )}
                 <div className="transaction-date">{formatDate(transaction.date)}</div>
               </div>
               <div className={`transaction-amount ${transaction.type.toLowerCase()}`}>

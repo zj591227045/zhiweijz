@@ -60,8 +60,6 @@ export function BudgetOverview({ overview }: BudgetOverviewProps) {
   return (
     <>
       <div className="overview-card" style={{ padding: '12px' }}>
-        <div className="budget-name">{overview.name}</div>
-        <div className="budget-period">{overview.period}</div>
 
         {/* 结转信息和预算金额横向对齐 */}
         <div className="budget-info-row" style={{ display: 'flex', justifyContent: 'flex-start' }}>

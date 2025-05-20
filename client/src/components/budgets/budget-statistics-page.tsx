@@ -8,7 +8,7 @@ import { useAccountBookStore } from '@/store/account-book-store';
 import { BudgetTypeSelector } from './budget-statistics/budget-type-selector';
 import { BudgetCarousel } from './budget-statistics/budget-carousel';
 import { BudgetOverview } from './budget-statistics/budget-overview';
-import { BudgetTrendChart } from './budget-statistics/budget-trend-chart';
+import BudgetTrendChart from './budget-statistics/budget-trend-chart-recharts';
 import { CategoryBudgetList } from './budget-statistics/category-budget-list';
 import { RecentTransactions } from './budget-statistics/recent-transactions';
 import { Skeleton } from '@/components/ui/skeleton';

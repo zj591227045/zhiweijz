@@ -138,7 +138,7 @@ export function BudgetProgress({ categories, totalBudget }: BudgetProgressProps)
           </button>
         </div>
         <div className="flex items-center">
-          <Link href="/budgets" className="view-all">
+          <Link href="/budgets/list" className="view-all">
             查看全部
           </Link>
         </div>

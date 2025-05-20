@@ -340,6 +340,19 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
             console.error('获取预算详情失败:', error);
           }
 
+          // 获取预算相关的交易记录
+          try {
+            const transactions = await budgetService.getBudgetTransactions(budgetId, 1, 5, familyMemberId);
+            console.log('获取到的交易记录:', transactions, '家庭成员ID:', familyMemberId || '无');
+
+            // 更新最近交易记录
+            if (transactions && transactions.data) {
+              set({ recentTransactions: transactions.data });
+            }
+          } catch (error) {
+            console.error('获取预算交易记录失败:', error);
+          }
+
           // 更新状态
           set(state => ({
             trendData: {
