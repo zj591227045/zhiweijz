@@ -180,8 +180,11 @@ export class FamilyRepository {
     familyId: string;
     userId?: string;
     name: string;
+    gender?: string;
+    birthDate?: Date;
     role: Role;
     isRegistered: boolean;
+    isCustodial?: boolean;
   }): Promise<FamilyMember> {
     return prisma.familyMember.create({
       data,
@@ -232,6 +235,8 @@ export class FamilyRepository {
    */
   async updateFamilyMember(id: string, data: {
     name?: string;
+    gender?: string;
+    birthDate?: Date;
     role?: Role;
   }): Promise<FamilyMember> {
     return prisma.familyMember.update({

@@ -1,6 +1,13 @@
 import { Request, Response } from 'express';
 import { FamilyService } from '../services/family.service';
-import { validateCreateFamilyInput, validateCreateFamilyMemberInput, validateCreateInvitationInput, validateAcceptInvitationInput } from '../validators/family.validator';
+import {
+  validateCreateFamilyInput,
+  validateCreateFamilyMemberInput,
+  validateCreateInvitationInput,
+  validateAcceptInvitationInput,
+  validateCreateCustodialMemberInput,
+  validateUpdateCustodialMemberInput
+} from '../validators/family.validator';
 
 /**
  * 家庭控制器
@@ -584,6 +591,180 @@ export class FamilyController {
     } catch (error) {
       console.error('获取成员统计失败:', error);
       res.status(500).json({ message: '获取成员统计失败' });
+    }
+  }
+
+  /**
+   * 添加托管成员
+   */
+  async addCustodialMember(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const familyId = req.params.id;
+      if (!familyId) {
+        res.status(400).json({ message: '家庭ID不能为空' });
+        return;
+      }
+
+      // 验证请求数据
+      const { error, value } = validateCreateCustodialMemberInput(req.body);
+      if (error) {
+        res.status(400).json({ message: error.details[0].message });
+        return;
+      }
+
+      // 添加托管成员
+      try {
+        const member = await this.familyService.addCustodialMember(familyId, userId, {
+          name: req.body.name,
+          gender: req.body.gender,
+          birthDate: req.body.birthDate ? new Date(req.body.birthDate) : undefined,
+          role: req.body.role
+        });
+        res.status(201).json(member);
+      } catch (error) {
+        if (error instanceof Error && error.message === '无权添加托管成员') {
+          res.status(403).json({ message: error.message });
+        } else if (error instanceof Error && error.message === '家庭不存在') {
+          res.status(404).json({ message: error.message });
+        } else {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('添加托管成员失败:', error);
+      res.status(500).json({ message: '添加托管成员失败' });
+    }
+  }
+
+  /**
+   * 更新托管成员
+   */
+  async updateCustodialMember(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const familyId = req.params.familyId;
+      const memberId = req.params.memberId;
+      if (!familyId || !memberId) {
+        res.status(400).json({ message: '家庭ID和成员ID不能为空' });
+        return;
+      }
+
+      // 验证请求数据
+      const { error, value } = validateUpdateCustodialMemberInput(req.body);
+      if (error) {
+        res.status(400).json({ message: error.details[0].message });
+        return;
+      }
+
+      // 更新托管成员
+      try {
+        const member = await this.familyService.updateCustodialMember(familyId, memberId, userId, {
+          name: req.body.name,
+          gender: req.body.gender,
+          birthDate: req.body.birthDate ? new Date(req.body.birthDate) : undefined,
+          role: req.body.role
+        });
+        res.status(200).json(member);
+      } catch (error) {
+        if (error instanceof Error && error.message === '无权更新托管成员') {
+          res.status(403).json({ message: error.message });
+        } else if (error instanceof Error && error.message === '托管成员不存在') {
+          res.status(404).json({ message: error.message });
+        } else if (error instanceof Error && error.message === '该成员不是托管成员') {
+          res.status(400).json({ message: error.message });
+        } else {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('更新托管成员失败:', error);
+      res.status(500).json({ message: '更新托管成员失败' });
+    }
+  }
+
+  /**
+   * 删除托管成员
+   */
+  async deleteCustodialMember(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const familyId = req.params.familyId;
+      const memberId = req.params.memberId;
+      if (!familyId || !memberId) {
+        res.status(400).json({ message: '家庭ID和成员ID不能为空' });
+        return;
+      }
+
+      // 删除托管成员
+      try {
+        await this.familyService.deleteCustodialMember(familyId, memberId, userId);
+        res.status(204).end();
+      } catch (error) {
+        if (error instanceof Error && error.message === '无权删除托管成员') {
+          res.status(403).json({ message: error.message });
+        } else if (error instanceof Error && error.message === '托管成员不存在') {
+          res.status(404).json({ message: error.message });
+        } else if (error instanceof Error && error.message === '该成员不是托管成员') {
+          res.status(400).json({ message: error.message });
+        } else {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('删除托管成员失败:', error);
+      res.status(500).json({ message: '删除托管成员失败' });
+    }
+  }
+
+  /**
+   * 获取托管成员列表
+   */
+  async getCustodialMembers(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const familyId = req.params.id;
+      if (!familyId) {
+        res.status(400).json({ message: '家庭ID不能为空' });
+        return;
+      }
+
+      // 获取托管成员列表
+      try {
+        const members = await this.familyService.getCustodialMembers(familyId, userId);
+        res.status(200).json({ members, totalCount: members.length });
+      } catch (error) {
+        if (error instanceof Error && error.message === '无权访问此家庭') {
+          res.status(403).json({ message: error.message });
+        } else if (error instanceof Error && error.message === '家庭不存在') {
+          res.status(404).json({ message: error.message });
+        } else {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('获取托管成员列表失败:', error);
+      res.status(500).json({ message: '获取托管成员列表失败' });
     }
   }
 }

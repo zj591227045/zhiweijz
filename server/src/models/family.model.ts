@@ -22,6 +22,19 @@ export interface CreateFamilyMemberDto {
   role?: Role;
   isRegistered?: boolean;
   userId?: string;
+  gender?: string;
+  birthDate?: Date;
+  isCustodial?: boolean;
+}
+
+/**
+ * 托管成员创建DTO
+ */
+export interface CreateCustodialMemberDto {
+  name: string;
+  gender?: string;
+  birthDate?: Date;
+  role?: Role;
 }
 
 /**
@@ -30,6 +43,8 @@ export interface CreateFamilyMemberDto {
 export interface UpdateFamilyMemberDto {
   name?: string;
   role?: Role;
+  gender?: string;
+  birthDate?: Date;
 }
 
 /**
@@ -64,8 +79,11 @@ export interface FamilyMemberResponseDto {
   userId?: string;
   user?: UserBriefDto;
   name: string;
+  gender?: string;
+  birthDate?: Date;
   role: Role;
   isRegistered: boolean;
+  isCustodial: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -168,8 +186,11 @@ export function toFamilyMemberResponseDto(
       email: member.user.email,
     } : undefined,
     name: member.name,
+    gender: member.gender || undefined,
+    birthDate: member.birthDate || undefined,
     role: member.role,
     isRegistered: member.isRegistered,
+    isCustodial: member.isCustodial || false,
     createdAt: member.createdAt,
     updatedAt: member.updatedAt,
   };

@@ -17,6 +17,7 @@
 @import '../styles/budget-add.css';
 @import '../styles/numeric-keyboard.css';
 @import '../styles/transaction-add.css';
+@import '../styles/custodial-members.css';
 
 @layer base {
   :root {

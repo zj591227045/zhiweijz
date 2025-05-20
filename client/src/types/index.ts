@@ -250,8 +250,11 @@ export interface FamilyMember {
   familyId: string;
   userId?: string;
   name: string;
+  gender?: string;
+  birthDate?: string;
   role: FamilyRole;
   isRegistered: boolean;
+  isCustodial?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -265,6 +268,20 @@ export interface CreateFamilyMemberData {
   role?: FamilyRole;
   userId?: string;
   isRegistered?: boolean;
+}
+
+export interface CreateCustodialMemberData {
+  name: string;
+  gender?: string;
+  birthDate?: string;
+  role?: FamilyRole;
+}
+
+export interface UpdateCustodialMemberData {
+  name?: string;
+  gender?: string;
+  birthDate?: string;
+  role?: FamilyRole;
 }
 
 /**

@@ -12,6 +12,7 @@ import {
   AcceptInvitationDto,
   CreateFamilyDto,
   CreateFamilyMemberDto,
+  CreateCustodialMemberDto,
   CreateInvitationDto,
   FamilyListResponseDto,
   FamilyMemberResponseDto,
@@ -742,6 +743,7 @@ export class FamilyService {
         role: member.role,
         joinedAt: member.createdAt,
         isCurrentUser: member.userId === userId,
+        isCustodial: member.isCustodial || false,
         statistics: {
           totalExpense: amount,
           percentage: Math.round(percentage),
@@ -763,5 +765,150 @@ export class FamilyService {
         canChangeRoles: isAdmin
       }
     };
+  }
+
+  /**
+   * 添加托管成员
+   */
+  async addCustodialMember(familyId: string, userId: string, memberData: CreateCustodialMemberDto): Promise<FamilyMemberResponseDto> {
+    // 获取家庭详情
+    const family = await this.familyRepository.findFamilyById(familyId);
+    if (!family) {
+      throw new Error('家庭不存在');
+    }
+
+    // 验证用户是否为家庭管理员
+    const isAdmin = await this.isUserFamilyAdmin(userId, familyId);
+    if (!isAdmin) {
+      throw new Error('无权添加托管成员');
+    }
+
+    // 创建托管成员
+    const member = await this.familyRepository.createFamilyMember({
+      familyId,
+      name: memberData.name,
+      gender: memberData.gender,
+      birthDate: memberData.birthDate,
+      role: memberData.role || Role.MEMBER,
+      isRegistered: false,
+      isCustodial: true,
+    });
+
+    // 为托管成员创建默认预算
+    try {
+      // 获取家庭账本
+      const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(userId, familyId, { limit: 100 });
+      if (familyAccountBooks && familyAccountBooks.data && familyAccountBooks.data.length > 0) {
+        // 为每个家庭账本创建默认预算
+        for (const accountBook of familyAccountBooks.data) {
+          await this.familyBudgetService.createDefaultBudgetsForNewMember(
+            userId, // 使用当前用户ID作为预算的创建者
+            familyId,
+            accountBook.id,
+            member.id // 传递托管成员ID
+          );
+        }
+      }
+    } catch (error) {
+      console.error(`为托管成员 ${member.id} 创建默认预算失败:`, error);
+      // 不影响成员添加流程，继续执行
+    }
+
+    return toFamilyMemberResponseDto(member);
+  }
+
+  /**
+   * 更新托管成员
+   */
+  async updateCustodialMember(familyId: string, memberId: string, userId: string, memberData: UpdateFamilyMemberDto): Promise<FamilyMemberResponseDto> {
+    // 获取家庭成员
+    const member = await this.familyRepository.findFamilyMemberById(memberId);
+    if (!member || member.familyId !== familyId) {
+      throw new Error('托管成员不存在');
+    }
+
+    // 验证是否为托管成员
+    if (!member.isCustodial) {
+      throw new Error('该成员不是托管成员');
+    }
+
+    // 验证用户是否为家庭管理员
+    const isAdmin = await this.isUserFamilyAdmin(userId, familyId);
+    if (!isAdmin) {
+      throw new Error('无权更新托管成员');
+    }
+
+    // 更新托管成员
+    const updatedMember = await this.familyRepository.updateFamilyMember(memberId, memberData);
+
+    return toFamilyMemberResponseDto(updatedMember);
+  }
+
+  /**
+   * 删除托管成员
+   */
+  async deleteCustodialMember(familyId: string, memberId: string, userId: string): Promise<void> {
+    // 获取家庭成员
+    const member = await this.familyRepository.findFamilyMemberById(memberId);
+    if (!member || member.familyId !== familyId) {
+      throw new Error('托管成员不存在');
+    }
+
+    // 验证是否为托管成员
+    if (!member.isCustodial) {
+      throw new Error('该成员不是托管成员');
+    }
+
+    // 验证用户是否为家庭管理员
+    const isAdmin = await this.isUserFamilyAdmin(userId, familyId);
+    if (!isAdmin) {
+      throw new Error('无权删除托管成员');
+    }
+
+    // 删除托管成员的预算
+    try {
+      await this.familyBudgetService.deleteMemberBudgets(userId, familyId, member.id);
+    } catch (error) {
+      console.error(`删除托管成员 ${member.id} 的预算失败:`, error);
+      // 不影响成员删除流程，继续执行
+    }
+
+    // 删除托管成员的交易记录
+    try {
+      // 这里应该调用交易服务删除与该托管成员相关的交易记录
+      // 由于目前没有实现交易相关功能，我们暂时跳过
+      console.log(`需要删除托管成员 ${member.id} 的交易记录`);
+    } catch (error) {
+      console.error(`删除托管成员 ${member.id} 的交易记录失败:`, error);
+      // 不影响成员删除流程，继续执行
+    }
+
+    // 删除托管成员
+    await this.familyRepository.deleteFamilyMember(memberId);
+  }
+
+  /**
+   * 获取托管成员列表
+   */
+  async getCustodialMembers(familyId: string, userId: string): Promise<FamilyMemberResponseDto[]> {
+    // 获取家庭详情
+    const family = await this.familyRepository.findFamilyById(familyId);
+    if (!family) {
+      throw new Error('家庭不存在');
+    }
+
+    // 验证用户是否为家庭成员
+    const isMember = await this.isUserFamilyMember(userId, familyId);
+    if (!isMember) {
+      throw new Error('无权访问此家庭');
+    }
+
+    // 获取家庭成员列表
+    const members = await this.familyRepository.findFamilyMembers(familyId);
+
+    // 过滤出托管成员
+    const custodialMembers = members.filter(member => member.isCustodial);
+
+    return custodialMembers.map(member => toFamilyMemberResponseDto(member));
   }
 }

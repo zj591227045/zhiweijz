@@ -21,10 +21,11 @@ export class FamilyBudgetService {
    * @param userId 用户ID
    * @param familyId 家庭ID
    * @param accountBookId 账本ID
+   * @param memberId 可选的成员ID，用于托管成员
    */
-  async createDefaultBudgetsForNewMember(userId: string, familyId: string, accountBookId: string): Promise<void> {
+  async createDefaultBudgetsForNewMember(userId: string, familyId: string, accountBookId: string, memberId?: string): Promise<void> {
     try {
-      console.log(`为新家庭成员 ${userId} 创建默认预算，家庭ID: ${familyId}, 账本ID: ${accountBookId}`);
+      console.log(`为新家庭成员创建默认预算，家庭ID: ${familyId}, 账本ID: ${accountBookId}, 成员ID: ${memberId || '无'}`);
 
       // 获取当前月份的起止日期
       const today = new Date();
@@ -43,12 +44,13 @@ export class FamilyBudgetService {
         accountBookId,
         enableCategoryBudget: false,
         isAutoCalculated: false,
-        budgetType: 'PERSONAL' // 确保创建的是个人预算
+        budgetType: 'PERSONAL', // 确保创建的是个人预算
+        familyMemberId: memberId // 如果是托管成员，设置成员ID
       };
 
       // 创建预算
       await this.budgetRepository.create(userId, budgetData);
-      console.log(`已为家庭成员 ${userId} 创建默认预算`);
+      console.log(`已为家庭成员${memberId ? ` (托管成员: ${memberId})` : ` (用户: ${userId})`}创建默认预算`);
     } catch (error) {
       console.error('为新家庭成员创建默认预算失败:', error);
       throw new Error('为新家庭成员创建默认预算失败');
@@ -57,22 +59,37 @@ export class FamilyBudgetService {
 
   /**
    * 删除家庭成员的所有预算
-   * @param userId 用户ID
+   * @param userId 操作者用户ID
    * @param familyId 家庭ID
+   * @param memberId 可选的成员ID，用于托管成员
    */
-  async deleteMemberBudgets(userId: string, familyId: string): Promise<void> {
+  async deleteMemberBudgets(userId: string, familyId: string, memberId?: string): Promise<void> {
     try {
-      console.log(`删除家庭成员 ${userId} 在家庭 ${familyId} 中的所有预算`);
+      if (memberId) {
+        console.log(`删除托管成员 ${memberId} 在家庭 ${familyId} 中的所有预算`);
 
-      // 查找该成员在该家庭中的所有预算
-      const budgets = await this.budgetRepository.findByUserAndFamily(userId, familyId);
+        // 查找该托管成员在该家庭中的所有预算
+        const budgets = await this.budgetRepository.findByFamilyMemberAndFamily(memberId, familyId);
 
-      // 删除每个预算
-      for (const budget of budgets) {
-        await this.budgetRepository.delete(budget.id);
+        // 删除每个预算
+        for (const budget of budgets) {
+          await this.budgetRepository.delete(budget.id);
+        }
+
+        console.log(`已删除托管成员 ${memberId} 的 ${budgets.length} 个预算`);
+      } else {
+        console.log(`删除家庭成员 ${userId} 在家庭 ${familyId} 中的所有预算`);
+
+        // 查找该成员在该家庭中的所有预算
+        const budgets = await this.budgetRepository.findByUserAndFamily(userId, familyId);
+
+        // 删除每个预算
+        for (const budget of budgets) {
+          await this.budgetRepository.delete(budget.id);
+        }
+
+        console.log(`已删除家庭成员 ${userId} 的 ${budgets.length} 个预算`);
       }
-
-      console.log(`已删除家庭成员 ${userId} 的 ${budgets.length} 个预算`);
     } catch (error) {
       console.error('删除家庭成员预算失败:', error);
       throw new Error('删除家庭成员预算失败');

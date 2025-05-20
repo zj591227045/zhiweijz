@@ -57,13 +57,17 @@ model FamilyMember {
   familyId     String        @map("family_id")
   userId       String?       @map("user_id")
   name         String
+  gender       String?       @map("gender")
+  birthDate    DateTime?     @map("birth_date")
   role         Role          @default(MEMBER)
   isRegistered Boolean       @default(true) @map("is_registered")
+  isCustodial  Boolean       @default(false) @map("is_custodial")
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
   family       Family        @relation(fields: [familyId], references: [id])
   user         User?         @relation(fields: [userId], references: [id])
   transactions Transaction[]
+  budgets      Budget[]
 
   @@map("family_members")
 }
@@ -139,6 +143,7 @@ model Budget {
   categoryId           String?          @map("category_id")
   userId               String?          @map("user_id")
   familyId             String?          @map("family_id")
+  familyMemberId       String?          @map("family_member_id")
   rollover             Boolean          @default(false)
   createdAt            DateTime         @default(now()) @map("created_at")
   updatedAt            DateTime         @updatedAt @map("updated_at")
@@ -154,6 +159,7 @@ model Budget {
   accountBook          AccountBook?     @relation(fields: [accountBookId], references: [id])
   category             Category?        @relation(fields: [categoryId], references: [id])
   family               Family?          @relation(fields: [familyId], references: [id])
+  familyMember         FamilyMember?    @relation(fields: [familyMemberId], references: [id])
   user                 User?            @relation(fields: [userId], references: [id])
   categoryBudgets      CategoryBudget[]
   transactions         Transaction[]

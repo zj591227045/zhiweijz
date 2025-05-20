@@ -37,6 +37,21 @@ export class BudgetRepository {
   }
 
   /**
+   * 根据托管成员ID和家庭ID查找预算
+   */
+  async findByFamilyMemberAndFamily(familyMemberId: string, familyId: string): Promise<BudgetWithCategory[]> {
+    return prisma.budget.findMany({
+      where: {
+        familyMemberId,
+        familyId,
+      },
+      include: {
+        category: true,
+      },
+    });
+  }
+
+  /**
    * 计算家庭成员在指定预算期间的支出金额
    */
   async calculateMemberSpentAmount(
@@ -95,6 +110,7 @@ export class BudgetRepository {
         rollover: budgetData.rollover,
         userId,
         familyId: budgetData.familyId,
+        familyMemberId: budgetData.familyMemberId,
         accountBookId: budgetData.accountBookId,
         enableCategoryBudget: budgetData.enableCategoryBudget ?? false,
         isAutoCalculated: budgetData.isAutoCalculated ?? false,

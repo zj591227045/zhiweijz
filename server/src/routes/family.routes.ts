@@ -50,4 +50,10 @@ router.delete('/:familyId/members/:memberId', authenticate, (req, res) => family
 // 获取成员统计
 router.get('/:id/members/statistics', authenticate, (req, res) => familyController.getMemberStatistics(req, res));
 
+// 托管成员相关路由
+router.post('/:id/custodial-members', authenticate, (req, res) => familyController.addCustodialMember(req, res));
+router.get('/:id/custodial-members', authenticate, (req, res) => familyController.getCustodialMembers(req, res));
+router.put('/:familyId/custodial-members/:memberId', authenticate, (req, res) => familyController.updateCustodialMember(req, res));
+router.delete('/:familyId/custodial-members/:memberId', authenticate, (req, res) => familyController.deleteCustodialMember(req, res));
+
 export default router;

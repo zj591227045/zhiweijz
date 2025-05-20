@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { PageContainer } from "@/components/layout/page-container";
 import { FamilyHeader } from "@/components/families/detail/family-header";
 import { MemberList } from "@/components/families/detail/member-list";
+import { CustodialMembers } from "@/components/families/detail/custodial-members";
 import { FamilyStatistics } from "@/components/families/detail/family-statistics";
 import { RecentTransactions } from "@/components/families/detail/recent-transactions";
 import { FamilyManagement } from "@/components/families/detail/family-management";
@@ -129,6 +130,11 @@ export default function FamilyDetailPage() {
         isAdmin={isAdmin}
         familyId={familyId}
         onInvite={handleInviteMember}
+      />
+
+      <CustodialMembers
+        familyId={familyId}
+        isAdmin={isAdmin}
       />
 
       <FamilyStatistics familyId={familyId} />

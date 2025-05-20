@@ -18,6 +18,7 @@ export interface CreateBudgetDto {
   enableCategoryBudget?: boolean;
   isAutoCalculated?: boolean;
   budgetType?: BudgetType;
+  familyMemberId?: string; // 托管成员ID
 }
 
 /**
@@ -74,6 +75,8 @@ export interface BudgetResponseDto {
   userId: string;
   userName?: string; // 用户名称
   familyId?: string;
+  familyMemberId?: string; // 托管成员ID
+  familyMemberName?: string; // 托管成员名称
   accountBookId?: string;
   accountBookName?: string;
   accountBookType?: string;
@@ -135,6 +138,7 @@ export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryRes
   const budgetType = budgetAny.budgetType || BudgetType.PERSONAL;
   const amountModified = budgetAny.amountModified;
   const lastAmountModifiedAt = budgetAny.lastAmountModifiedAt;
+  const familyMemberId = budgetAny.familyMemberId;
 
   // 计算预算执行情况
   const numericAmount = Number(amount);
@@ -171,6 +175,7 @@ export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryRes
     isAutoCalculated: isAutoCalculated ?? false,
     userId: userId || '',
     familyId: familyId || undefined,
+    familyMemberId: familyMemberId || undefined,
     accountBookId: accountBookId || undefined,
     budgetType: budgetType,
     rolloverAmount: numericRolloverAmount,
