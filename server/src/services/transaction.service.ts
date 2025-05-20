@@ -444,6 +444,7 @@ export class TransactionService {
           id: true,
           userId: true,
           familyId: true,
+          familyMemberId: true,
           accountBookId: true,
           startDate: true,
           endDate: true,
@@ -470,10 +471,36 @@ export class TransactionService {
         where.categoryId = budget.categoryId;
       }
 
-      // 如果指定了家庭成员，添加家庭成员过滤
+      // 处理成员过滤
       if (familyMemberId) {
-        where.userId = familyMemberId;
+        // 检查是否为托管成员ID
+        const familyMember = await prisma.familyMember.findUnique({
+          where: { id: familyMemberId },
+          select: { id: true, userId: true, isCustodial: true }
+        });
+
+        if (familyMember) {
+          if (familyMember.isCustodial) {
+            // 如果是托管成员，使用familyMemberId过滤
+            where.familyMemberId = familyMemberId;
+          } else if (familyMember.userId) {
+            // 如果是普通家庭成员，使用userId过滤
+            where.userId = familyMember.userId;
+          }
+        } else {
+          // 如果找不到家庭成员，默认使用userId查询
+          where.userId = familyMemberId;
+        }
       }
+      // 如果预算本身关联了托管成员，使用预算的familyMemberId查询
+      else if (budget.familyMemberId) {
+        where.familyMemberId = budget.familyMemberId;
+      }
+      // 如果预算关联了用户且不是家庭预算，使用预算的userId查询
+      else if (budget.userId && !budget.familyId) {
+        where.userId = budget.userId;
+      }
+      // 如果是家庭预算，不添加额外过滤，已经通过accountBookId过滤了
 
       // 查询交易记录
       const transactions = await prisma.transaction.findMany({

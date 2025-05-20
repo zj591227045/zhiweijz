@@ -401,13 +401,23 @@ export class StatisticsService {
       // 将家庭成员转换为前端需要的格式
       familyMembers = members.map((member: any) => {
         // 查找该成员的预算
-        const memberBudget = activeBudgets.find((b: any) =>
-          b.userId === member.userId && b.budgetType === 'PERSONAL');
+        let memberBudget;
+
+        if (member.isCustodial) {
+          // 如果是托管成员，通过familyMemberId查找预算
+          memberBudget = activeBudgets.find((b: any) =>
+            b.familyMemberId === member.id && b.budgetType === 'PERSONAL');
+        } else {
+          // 如果是普通成员，通过userId查找预算
+          memberBudget = activeBudgets.find((b: any) =>
+            b.userId === member.userId && b.budgetType === 'PERSONAL');
+        }
 
         return {
-          id: member.userId,
-          name: member.user?.name || '未知用户',
-          budgetId: memberBudget?.id || ''
+          id: member.id, // 使用成员ID而不是用户ID
+          name: member.isCustodial ? member.name : (member.user?.name || '未知用户'),
+          budgetId: memberBudget?.id || '',
+          isCustodial: member.isCustodial || false
         };
       });
     }

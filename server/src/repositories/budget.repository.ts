@@ -53,12 +53,18 @@ export class BudgetRepository {
 
   /**
    * 计算家庭成员在指定预算期间的支出金额
+   * @param budgetId 预算ID
+   * @param memberId 成员ID（可以是userId或familyMemberId）
+   * @param startDate 开始日期
+   * @param endDate 结束日期
+   * @param isCustodial 是否为托管成员
    */
   async calculateMemberSpentAmount(
     budgetId: string,
-    userId: string,
+    memberId: string,
     startDate: Date,
-    endDate: Date
+    endDate: Date,
+    isCustodial: boolean = false
   ): Promise<number> {
     // 获取预算信息
     const budget = await prisma.budget.findUnique({
@@ -70,18 +76,29 @@ export class BudgetRepository {
       return 0;
     }
 
+    // 构建查询条件
+    const where: Prisma.TransactionWhereInput = {
+      accountBookId: budget.accountBookId,
+      familyId: budget.familyId,
+      date: {
+        gte: startDate,
+        lte: endDate,
+      },
+      type: 'EXPENSE',
+    };
+
+    // 根据成员类型添加过滤条件
+    if (isCustodial) {
+      // 如果是托管成员，使用familyMemberId过滤
+      where.familyMemberId = memberId;
+    } else {
+      // 如果是普通成员，使用userId过滤
+      where.userId = memberId;
+    }
+
     // 查询该成员在该预算期间的所有支出交易
     const transactions = await prisma.transaction.findMany({
-      where: {
-        userId,
-        familyId: budget.familyId,
-        accountBookId: budget.accountBookId,
-        date: {
-          gte: startDate,
-          lte: endDate,
-        },
-        type: 'EXPENSE',
-      },
+      where,
       select: {
         amount: true,
       },
@@ -130,6 +147,23 @@ export class BudgetRepository {
       where: { id },
       include: {
         category: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        // 添加关联查询托管成员信息
+        familyMember: {
+          select: {
+            id: true,
+            name: true,
+            gender: true,
+            birthDate: true,
+            isCustodial: true
+          }
+        }
       },
     });
   }
@@ -176,7 +210,7 @@ export class BudgetRepository {
     // 查询总数
     const total = await prisma.budget.count({ where });
 
-    // 查询分页数据，包含用户信息
+    // 查询分页数据，包含用户信息和托管成员信息
     const budgets = await prisma.budget.findMany({
       where,
       orderBy,
@@ -197,6 +231,16 @@ export class BudgetRepository {
             name: true,
             type: true,
             familyId: true
+          }
+        },
+        // 添加关联查询托管成员信息
+        familyMember: {
+          select: {
+            id: true,
+            name: true,
+            gender: true,
+            birthDate: true,
+            isCustodial: true
           }
         }
       },
@@ -256,23 +300,33 @@ export class BudgetRepository {
     console.log('计算预算已使用金额 - 预算信息:', {
       budgetId,
       userId: budget.userId,
+      familyMemberId: (budget as any).familyMemberId,
       categoryId: budget.categoryId,
       accountBookId: budget.accountBookId,
       startDate: budget.startDate,
       endDate: budget.endDate
     });
 
-    // 构建查询条件
+    // 构建查询条件 - 不再使用userId过滤，而是通过预算的其他属性
     const where: Prisma.TransactionWhereInput = {
-      userId: budget.userId || undefined,
       type: 'EXPENSE',
       date: {
         gte: budget.startDate,
         ...(budget.endDate && { lte: budget.endDate }),
       },
+      accountBookId: budget.accountBookId,
       ...(budget.categoryId && { categoryId: budget.categoryId }),
-      ...(budget.accountBookId && { accountBookId: budget.accountBookId }),
     };
+
+    // 如果是托管成员的预算，通过familyMemberId过滤
+    if ((budget as any).familyMemberId) {
+      where.familyMemberId = (budget as any).familyMemberId;
+    }
+    // 如果是普通用户的预算且不是家庭预算，通过userId过滤
+    else if (budget.userId && !budget.familyId) {
+      where.userId = budget.userId;
+    }
+    // 如果是家庭预算，不需要额外过滤，已经通过accountBookId过滤了
 
     // 计算总支出
     const result = await prisma.transaction.aggregate({
@@ -347,6 +401,16 @@ export class BudgetRepository {
             name: true,
             type: true,
             familyId: true
+          }
+        },
+        // 添加关联查询托管成员信息
+        familyMember: {
+          select: {
+            id: true,
+            name: true,
+            gender: true,
+            birthDate: true,
+            isCustodial: true
           }
         }
       },

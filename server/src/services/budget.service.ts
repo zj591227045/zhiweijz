@@ -99,6 +99,12 @@ export class BudgetService {
           budgetDto.accountBookType = budget.accountBook.type;
         }
 
+        // 处理托管成员信息
+        // 如果预算有familyMemberId但没有familyMemberName，尝试从familyMember获取
+        if (budgetDto.familyMemberId && !budgetDto.familyMemberName && (budget as any).familyMember) {
+          budgetDto.familyMemberName = (budget as any).familyMember.name;
+        }
+
         return budgetDto;
       })
     );
@@ -292,6 +298,23 @@ export class BudgetService {
         budgetDto.accountBookType = accountBookType;
         budgetDto.accountBookName = accountBookName;
         budgetDto.familyId = familyId;
+
+        // 处理托管成员信息
+        // 如果预算有familyMemberId但没有familyMemberName，需要获取托管成员信息
+        if (budgetDto.familyMemberId && !budgetDto.familyMemberName) {
+          try {
+            // 查询托管成员信息
+            const familyMember = await prisma.familyMember.findUnique({
+              where: { id: budgetDto.familyMemberId }
+            });
+
+            if (familyMember) {
+              budgetDto.familyMemberName = familyMember.name;
+            }
+          } catch (error) {
+            console.error(`获取托管成员信息失败: ${error}`);
+          }
+        }
 
         return budgetDto;
       })
@@ -573,17 +596,26 @@ export class BudgetService {
    * @param endDate 结束日期
    */
   private async calculatePeriodSpent(budget: any, startDate: Date, endDate: Date): Promise<number> {
-    // 构建查询条件
+    // 构建查询条件 - 不再使用userId过滤，而是通过预算的其他属性
     const where: any = {
-      userId: budget.userId || undefined,
       type: 'EXPENSE',
       date: {
         gte: startDate,
         lte: endDate,
       },
+      accountBookId: budget.accountBookId,
       ...(budget.categoryId && { categoryId: budget.categoryId }),
-      ...(budget.accountBookId && { accountBookId: budget.accountBookId }),
     };
+
+    // 如果是托管成员的预算，通过familyMemberId过滤
+    if (budget.familyMemberId) {
+      where.familyMemberId = budget.familyMemberId;
+    }
+    // 如果是普通用户的预算且不是家庭预算，通过userId过滤
+    else if (budget.userId && !budget.familyId) {
+      where.userId = budget.userId;
+    }
+    // 如果是家庭预算，不需要额外过滤，已经通过accountBookId过滤了
 
     // 计算总支出
     const result = await prisma.transaction.aggregate({
@@ -670,18 +702,48 @@ export class BudgetService {
     const result = [];
     for (const month of months) {
       try {
+        // 构建查询条件
+        const whereCondition: any = {
+          accountBookId,
+          date: {
+            gte: month.startDate,
+            lte: month.endDate
+          },
+          type: 'EXPENSE',
+          ...(budget.categoryId && { categoryId: budget.categoryId })
+        };
+
+        // 处理家庭成员ID
+        if (familyMemberId) {
+          // 检查是否为托管成员ID
+          const familyMember = await prisma.familyMember.findUnique({
+            where: { id: familyMemberId },
+            select: { id: true, userId: true, isCustodial: true }
+          });
+
+          if (familyMember) {
+            if (familyMember.isCustodial) {
+              // 如果是托管成员，使用familyMemberId查询
+              whereCondition.familyMemberId = familyMemberId;
+            } else if (familyMember.userId) {
+              // 如果是普通家庭成员，使用userId查询
+              whereCondition.userId = familyMember.userId;
+            }
+          } else {
+            // 如果找不到家庭成员，默认使用userId查询
+            whereCondition.userId = familyMemberId;
+          }
+        } else if (budget.familyMemberId) {
+          // 如果预算本身关联了托管成员，使用预算的familyMemberId查询
+          whereCondition.familyMemberId = budget.familyMemberId;
+        } else if (budget.userId) {
+          // 如果预算关联了用户，使用预算的userId查询
+          whereCondition.userId = budget.userId;
+        }
+
         // 查询该月的交易总额
         const transactions = await prisma.transaction.findMany({
-          where: {
-            accountBookId,
-            date: {
-              gte: month.startDate,
-              lte: month.endDate
-            },
-            type: 'EXPENSE',
-            ...(budget.categoryId && { categoryId: budget.categoryId }),
-            ...(familyMemberId && { userId: familyMemberId }) // 如果指定了家庭成员ID，只查询该成员的交易
-          }
+          where: whereCondition
         });
 
         console.log(`${month.date}月份找到${transactions.length}条交易记录`);

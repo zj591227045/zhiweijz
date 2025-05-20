@@ -103,7 +103,10 @@ export function BudgetStatisticsPage() {
       // 获取预算趋势数据和预算详情
       // 如果是家庭成员的预算，传递家庭成员ID
       if (selectedMember) {
-        console.log(`选择了家庭成员 ${selectedMember.name} 的预算，ID: ${selectedMember.id}`);
+        console.log(`选择了家庭成员 ${selectedMember.name} 的预算，ID: ${selectedMember.id}，是否托管: ${selectedMember.isCustodial}`);
+
+        // 传递家庭成员ID，无论是普通成员还是托管成员
+        // 后端会根据familyMemberId判断是否为托管成员并进行相应处理
         fetchBudgetTrends(budgetId, chartViewMode, chartTimeRange, selectedMember.id);
       } else {
         fetchBudgetTrends(budgetId, chartViewMode, chartTimeRange);
@@ -128,6 +131,7 @@ export function BudgetStatisticsPage() {
 
       // 如果是家庭成员的预算，传递家庭成员ID
       if (selectedMember) {
+        console.log(`切换图表模式，家庭成员 ${selectedMember.name}，ID: ${selectedMember.id}，是否托管: ${selectedMember.isCustodial}`);
         fetchBudgetTrends(selectedBudgetId, mode, chartTimeRange, selectedMember.id);
       } else {
         fetchBudgetTrends(selectedBudgetId, mode, chartTimeRange);
@@ -146,6 +150,7 @@ export function BudgetStatisticsPage() {
 
       // 如果是家庭成员的预算，传递家庭成员ID
       if (selectedMember) {
+        console.log(`切换时间范围，家庭成员 ${selectedMember.name}，ID: ${selectedMember.id}，是否托管: ${selectedMember.isCustodial}`);
         fetchBudgetTrends(selectedBudgetId, chartViewMode, range, selectedMember.id);
       } else {
         fetchBudgetTrends(selectedBudgetId, chartViewMode, range);

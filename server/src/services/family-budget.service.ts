@@ -117,34 +117,64 @@ export class FamilyBudgetService {
       // 获取每个成员的支出情况
       const memberSummaries = await Promise.all(
         members.map(async (member: FamilyMember) => {
-          if (!member.userId) {
+          // 如果是托管成员
+          if (member.isCustodial) {
+            // 计算该托管成员在该预算期间的支出
+            const spent = await this.budgetRepository.calculateMemberSpentAmount(
+              budgetId,
+              member.id, // 使用成员ID
+              budget.startDate,
+              budget.endDate,
+              true // 标记为托管成员
+            );
+
+            // 计算占总预算的百分比
+            const percentage = Number(budget.amount) > 0
+              ? (spent / Number(budget.amount)) * 100
+              : 0;
+
+            return {
+              memberId: member.id,
+              memberName: member.name,
+              spent,
+              percentage,
+              isCustodial: true
+            };
+          }
+          // 如果是普通成员但没有userId
+          else if (!member.userId) {
             return {
               memberId: member.id,
               memberName: member.name,
               spent: 0,
-              percentage: 0
+              percentage: 0,
+              isCustodial: false
             };
           }
+          // 普通成员
+          else {
+            // 计算该成员在该预算期间的支出
+            const spent = await this.budgetRepository.calculateMemberSpentAmount(
+              budgetId,
+              member.userId,
+              budget.startDate,
+              budget.endDate,
+              false // 标记为非托管成员
+            );
 
-          // 计算该成员在该预算期间的支出
-          const spent = await this.budgetRepository.calculateMemberSpentAmount(
-            budgetId,
-            member.userId,
-            budget.startDate,
-            budget.endDate
-          );
+            // 计算占总预算的百分比
+            const percentage = Number(budget.amount) > 0
+              ? (spent / Number(budget.amount)) * 100
+              : 0;
 
-          // 计算占总预算的百分比
-          const percentage = Number(budget.amount) > 0
-            ? (spent / Number(budget.amount)) * 100
-            : 0;
-
-          return {
-            memberId: member.userId,
-            memberName: member.name,
-            spent,
-            percentage
-          };
+            return {
+              memberId: member.userId,
+              memberName: member.name,
+              spent,
+              percentage,
+              isCustodial: false
+            };
+          }
         })
       );
 

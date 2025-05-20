@@ -2,12 +2,11 @@
 
 import styles from './custodial-members.module.css';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { FamilyMember, CreateCustodialMemberData, UpdateCustodialMemberData } from '@/types';
 import { familyService } from '@/lib/api/family-service';
 import { formatDate } from '@/lib/utils/date-utils';
 import { toast } from 'sonner';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,7 +17,6 @@ interface CustodialMembersProps {
 }
 
 export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
-  const router = useRouter();
   const [custodialMembers, setCustodialMembers] = useState<FamilyMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -96,7 +94,7 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
     setFormData({
       name: member.name,
       gender: member.gender || '男',
-      birthDate: member.birthDate ? formatDate(new Date(member.birthDate), 'YYYY-MM-DD') : '',
+      birthDate: member.birthDate || '',
     });
     setIsEditDialogOpen(true);
   };
@@ -195,7 +193,7 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
                     {member.gender && member.birthDate && <span>•</span>}
                     {member.birthDate && (
                       <span>
-                        {formatDate(new Date(member.birthDate), 'YYYY-MM-DD')}
+                        {formatDate(member.birthDate, 'YYYY-MM-DD')}
                       </span>
                     )}
                   </div>
@@ -224,7 +222,7 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
 
       {/* 添加托管成员对话框 */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className={styles.dialogContent}>
+        <DialogContent className={styles.dialogContent} hideCloseButton>
           <DialogHeader className={styles.dialogHeader}>
             <DialogTitle className={styles.dialogTitle}>添加托管成员</DialogTitle>
           </DialogHeader>
@@ -279,7 +277,12 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
               disabled={isSubmitting}
               className={styles.submitButton}
             >
-              {isSubmitting ? "添加中..." : "添加"}
+              {isSubmitting ? (
+                <>
+                  <span className="mr-2">添加中</span>
+                  <i className="fas fa-spinner fa-spin"></i>
+                </>
+              ) : "添加"}
             </Button>
           </div>
         </DialogContent>
@@ -287,7 +290,7 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
 
       {/* 编辑托管成员对话框 */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className={styles.dialogContent}>
+        <DialogContent className={styles.dialogContent} hideCloseButton>
           <DialogHeader className={styles.dialogHeader}>
             <DialogTitle className={styles.dialogTitle}>编辑托管成员</DialogTitle>
           </DialogHeader>
@@ -342,7 +345,12 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
               disabled={isSubmitting}
               className={styles.submitButton}
             >
-              {isSubmitting ? "更新中..." : "更新"}
+              {isSubmitting ? (
+                <>
+                  <span className="mr-2">更新中</span>
+                  <i className="fas fa-spinner fa-spin"></i>
+                </>
+              ) : "更新"}
             </Button>
           </div>
         </DialogContent>
@@ -359,6 +367,7 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
               确定要删除托管成员 <strong>{selectedMember?.name}</strong> 吗？
             </div>
             <div className={styles.deleteWarning}>
+              <i className="fas fa-exclamation-triangle mr-2"></i>
               删除后将同时删除该成员的预算和交易记录，此操作不可恢复。
             </div>
           </div>
@@ -376,7 +385,12 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
               disabled={isSubmitting}
               className={styles.deleteConfirmButton}
             >
-              {isSubmitting ? "删除中..." : "删除"}
+              {isSubmitting ? (
+                <>
+                  <span className="mr-2">删除中</span>
+                  <i className="fas fa-spinner fa-spin"></i>
+                </>
+              ) : "删除"}
             </Button>
           </div>
         </DialogContent>

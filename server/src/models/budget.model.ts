@@ -140,6 +140,9 @@ export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryRes
   const lastAmountModifiedAt = budgetAny.lastAmountModifiedAt;
   const familyMemberId = budgetAny.familyMemberId;
 
+  // 获取托管成员信息
+  const familyMember = budgetAny.familyMember;
+
   // 计算预算执行情况
   const numericAmount = Number(amount);
   const numericRolloverAmount = rolloverAmount ? Number(rolloverAmount) : undefined;
@@ -174,8 +177,10 @@ export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryRes
     enableCategoryBudget: enableCategoryBudget ?? false,
     isAutoCalculated: isAutoCalculated ?? false,
     userId: userId || '',
+    userName: undefined, // 将在服务层填充
     familyId: familyId || undefined,
     familyMemberId: familyMemberId || undefined,
+    familyMemberName: familyMember ? familyMember.name : undefined, // 添加托管成员名称
     accountBookId: accountBookId || undefined,
     budgetType: budgetType,
     rolloverAmount: numericRolloverAmount,

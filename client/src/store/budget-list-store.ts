@@ -24,6 +24,8 @@ export interface Budget {
   budgetType: BudgetType;
   userId?: string;
   userName?: string; // 用户名称，用于在家庭账本中显示
+  familyMemberId?: string; // 家庭成员ID，用于托管成员
+  familyMemberName?: string; // 家庭成员名称，用于托管成员
   accountBookType?: string; // 账本类型
 }
 
@@ -117,10 +119,16 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
 
         // 获取用户名称 - 从API响应中提取
         let userName = budget.userName;
+        let familyMemberName = budget.familyMemberName;
 
         // 如果API没有返回userName，但返回了user对象，则从user对象中获取
         if (!userName && budget.user && budget.user.name) {
           userName = budget.user.name;
+        }
+
+        // 如果有familyMemberId但没有familyMemberName，使用userName作为备选
+        if (budget.familyMemberId && !familyMemberName) {
+          familyMemberName = userName;
         }
 
         return {
@@ -128,7 +136,8 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
           warning: budget.percentage >= 80 && budget.percentage < 100,
           overSpent: budget.percentage >= 100,
           accountBookType,
-          userName
+          userName,
+          familyMemberName
         };
       });
 

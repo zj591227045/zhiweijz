@@ -68,8 +68,11 @@
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
   gap: 12px;
-  justify-content: center;
-  flex-wrap: wrap;
+  justify-content: flex-start;
+  flex-wrap: nowrap; /* 确保不换行，支持水平滑动 */
+  -webkit-overflow-scrolling: touch; /* 在iOS上提供更流畅的滚动 */
+  scroll-snap-type: x mandatory; /* 添加滚动捕捉效果 */
+  padding-bottom: 15px; /* 为滚动指示器留出空间 */
 }
 
 .budget-carousel::-webkit-scrollbar {
@@ -77,9 +80,10 @@
 }
 
 .budget-card {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-width: 120px;
   max-width: 180px;
+  width: calc(33% - 8px); /* 设置固定宽度，确保一行显示3个 */
   padding: 12px 16px;
   border-radius: 10px;
   background-color: var(--card-bg);
@@ -92,6 +96,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  scroll-snap-align: start; /* 滚动捕捉对齐 */
+  margin-right: 4px;
 }
 
 .budget-card.active {
@@ -737,6 +743,72 @@
   background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1)) !important;
 }
 
+/* 滚动指示器样式 */
+.carousel-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.scroll-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.indicator-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.indicator-dot.active {
+  background-color: var(--primary-color);
+  width: 18px;
+  border-radius: 3px;
+}
+
+/* 滑动箭头样式 */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  opacity: 0.8;
+  transition: all 0.2s ease;
+}
+
+.carousel-arrow:hover {
+  opacity: 1;
+  background-color: var(--primary-color-light);
+}
+
+.carousel-arrow.left {
+  left: -5px;
+}
+
+.carousel-arrow.right {
+  right: -5px;
+}
+
+.carousel-arrow i {
+  color: var(--primary-color);
+  font-size: 14px;
+}
+
 /* 响应式布局 */
 @media (max-width: 768px) {
   .budget-stats {
@@ -809,5 +881,52 @@
     flex: 1;
     text-align: center;
     padding: 6px 8px;
+  }
+
+  /* 移动端预算卡片样式调整 */
+  .budget-card {
+    min-width: 100px;
+    width: calc(40% - 8px); /* 移动端上显示2.5个卡片 */
+    padding: 10px 12px;
+  }
+
+  .budget-name {
+    font-size: 16px;
+  }
+
+  .budget-period {
+    font-size: 12px;
+  }
+
+  /* 移动端滚动指示器样式调整 */
+  .scroll-indicator {
+    margin-top: 6px;
+  }
+
+  .indicator-dot {
+    width: 5px;
+    height: 5px;
+  }
+
+  .indicator-dot.active {
+    width: 15px;
+  }
+
+  /* 移动端滑动箭头样式调整 */
+  .carousel-arrow {
+    width: 24px;
+    height: 24px;
+  }
+
+  .carousel-arrow.left {
+    left: 0;
+  }
+
+  .carousel-arrow.right {
+    right: 0;
+  }
+
+  .carousel-arrow i {
+    font-size: 12px;
   }
 }

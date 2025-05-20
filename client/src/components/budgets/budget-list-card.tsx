@@ -44,13 +44,12 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
           <h3>{budget.name}</h3>
           <div className="budget-subtitle">
             <span className="budget-period">{budget.period}</span>
-            {/* 如果是家庭账本且有用户名称，显示用户名称 */}
+            {/* 如果是家庭账本且有用户名称或家庭成员名称，显示名称 */}
             {currentAccountBook?.type === AccountBookType.FAMILY &&
-             budget.budgetType === 'PERSONAL' &&
-             budget.userName && (
+             budget.budgetType === 'PERSONAL' && (
               <span className="budget-username">
-                <i className="fas fa-user mr-1 text-xs"></i>
-                {budget.userName}
+                <i className={`fas ${budget.familyMemberId ? 'fa-child' : 'fa-user'} mr-1 text-xs`}></i>
+                {budget.familyMemberName || budget.userName}
               </span>
             )}
           </div>
