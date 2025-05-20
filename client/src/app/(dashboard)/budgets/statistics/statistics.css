@@ -130,15 +130,41 @@
   font-size: 24px;
   font-weight: 700;
   color: var(--text-color);
+  margin-bottom: 0;
+}
+
+/* 预算金额容器 */
+.budget-amount-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-right: 10px;
+}
+
+/* 预算金额标签 */
+.budget-amount-label {
+  font-size: 14px;
+  color: var(--text-color-secondary, #64748b);
+  margin-bottom: 4px;
+}
+
+/* 预算信息横向排列容器 */
+.budget-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 12px;
+  width: 100%;
 }
 
 /* 结转信息 */
 .rollover-info {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
+  justify-content: flex-end;
+  flex-direction: column;
   margin-bottom: 16px;
+  flex: 1;
 }
 
 .rollover-badge {
@@ -258,6 +284,18 @@
   flex-wrap: wrap;
 }
 
+/* 强制横向排列的预算统计 */
+.budget-stats-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  flex-wrap: nowrap; /* 强制不换行 */
+  width: 100%;
+  overflow-x: hidden; /* 防止水平溢出 */
+}
+
 .stat-item {
   text-align: center;
   flex: 1;
@@ -267,6 +305,12 @@
   background-color: var(--background-color, #f5f5f5);
   margin: 0 4px;
   transition: all 0.2s ease;
+}
+
+.budget-stats-row .stat-item {
+  flex: 1 1 0; /* 允许伸缩，基础大小为0，让它们平均分配空间 */
+  min-width: 0; /* 允许缩小到容器宽度 */
+  max-width: 33.33%; /* 最大宽度为容器的三分之一 */
 }
 
 .stat-item:hover {
@@ -692,9 +736,21 @@
     flex-wrap: wrap;
   }
 
-  .stat-item {
+  .budget-stats-row {
+    flex-wrap: nowrap; /* 即使在小屏幕上也保持不换行 */
+    overflow-x: hidden; /* 防止水平溢出 */
+  }
+
+  .budget-stats .stat-item {
     flex: 1 0 33%;
     margin-bottom: 10px;
+  }
+
+  .budget-stats-row .stat-item {
+    flex: 1 1 0; /* 允许伸缩 */
+    min-width: 0; /* 允许缩小到容器宽度 */
+    padding: 8px 4px; /* 减小内边距以适应小屏幕 */
+    font-size: 0.95em; /* 稍微减小字体大小 */
   }
 
   .chart-actions {
@@ -709,14 +765,33 @@
 }
 
 @media (max-width: 480px) {
-  .rollover-info {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+  .budget-info-row {
+    flex-direction: row; /* 保持横向排列 */
+    align-items: center;
   }
 
   .budget-amount {
-    font-size: 22px;
+    font-size: 20px; /* 稍微减小字体大小 */
+  }
+
+  .budget-amount-label {
+    font-size: 12px; /* 在移动设备上减小字体大小 */
+  }
+
+  .rollover-info {
+    flex-direction: column;
+    align-items: flex-end; /* 右对齐 */
+    gap: 6px;
+  }
+
+  .rollover-badge {
+    font-size: 12px; /* 减小字体大小 */
+    padding: 4px 8px; /* 减小内边距 */
+  }
+
+  .rollover-history-button {
+    margin-top: 2px;
+    font-size: 12px; /* 减小字体大小 */
   }
 
   .view-options {

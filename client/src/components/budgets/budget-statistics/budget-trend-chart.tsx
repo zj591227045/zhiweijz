@@ -100,6 +100,7 @@ export function BudgetTrendChart({
         labels: {
           boxWidth: 15,
           padding: 15,
+          color: 'var(--text-primary)',
           font: {
             size: 12
           }
@@ -141,17 +142,32 @@ export function BudgetTrendChart({
           callback: function(value) {
             return `¥${value}`;
           }
+        },
+        title: {
+          display: true,
+          color: 'var(--text-secondary)',
+          font: {
+            size: 12
+          }
         }
       },
       x: {
         grid: {
-          display: false
+          display: false,
+          color: 'var(--border-color)'
         },
         ticks: {
           font: {
             size: 11
           },
           color: 'var(--text-secondary)'
+        },
+        title: {
+          display: true,
+          color: 'var(--text-secondary)',
+          font: {
+            size: 12
+          }
         }
       }
     }
