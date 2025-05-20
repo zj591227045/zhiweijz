@@ -14,6 +14,7 @@ export interface Budget {
   familyMemberId?: string;
   familyMemberName?: string;
   rolloverAmount?: number;
+  budgetType?: 'PERSONAL' | 'GENERAL';
 }
 
 // 交易表单状态类型

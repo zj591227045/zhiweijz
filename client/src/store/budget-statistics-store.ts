@@ -316,19 +316,23 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
             const budgetDetails = await budgetService.getBudgetById(budgetId);
             if (budgetDetails) {
               // 构建overview对象
+              const totalAmount = Number(budgetDetails.amount) + Number(budgetDetails.rolloverAmount || 0);
+              const spent = Number(budgetDetails.spent || 0);
+              const remaining = totalAmount - spent;
+
               const overview = {
                 id: budgetDetails.id,
                 name: budgetDetails.name,
                 period: `${new Date(budgetDetails.startDate).toLocaleDateString()} - ${new Date(budgetDetails.endDate).toLocaleDateString()}`,
                 amount: Number(budgetDetails.amount),
-                spent: Number(budgetDetails.spent || 0),
-                remaining: Number(budgetDetails.amount) - Number(budgetDetails.spent || 0),
-                percentage: budgetDetails.amount > 0 ? (Number(budgetDetails.spent || 0) / Number(budgetDetails.amount)) * 100 : 0,
+                spent: spent,
+                remaining: remaining,
+                percentage: totalAmount > 0 ? (spent / totalAmount) * 100 : 0,
                 rollover: Number(budgetDetails.rolloverAmount || 0),
                 daysRemaining: budgetService.calculateDaysRemaining(budgetDetails.endDate),
-                dailySpent: budgetService.calculateDailySpent(budgetDetails.spent || 0, budgetDetails.startDate),
+                dailySpent: budgetService.calculateDailySpent(spent, budgetDetails.startDate),
                 dailyAvailable: budgetService.calculateDailyAvailable(
-                  Number(budgetDetails.amount) - Number(budgetDetails.spent || 0),
+                  remaining,
                   budgetDetails.endDate
                 )
               };

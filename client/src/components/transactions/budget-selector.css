@@ -137,6 +137,16 @@
   gap: 12px;
 }
 
+.budget-group-header {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-top: 8px;
+  margin-bottom: 8px;
+  padding-left: 4px;
+  border-left: 3px solid var(--primary-color);
+}
+
 .budget-item {
   display: flex;
   align-items: center;

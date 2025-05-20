@@ -99,10 +99,45 @@ export class BudgetService {
           budgetDto.accountBookType = budget.accountBook.type;
         }
 
-        // 处理托管成员信息
-        // 如果预算有familyMemberId但没有familyMemberName，尝试从familyMember获取
-        if (budgetDto.familyMemberId && !budgetDto.familyMemberName && (budget as any).familyMember) {
-          budgetDto.familyMemberName = (budget as any).familyMember.name;
+        // 处理成员信息 - 按照指定逻辑获取预算名称
+        try {
+          // 1. 判断预算是否有family_member_id
+          if (budgetDto.familyMemberId) {
+            // 如果有family_member_id，按照托管用户的方式处理
+            if ((budget as any).familyMember) {
+              // 如果已经关联查询了familyMember，直接使用
+              budgetDto.familyMemberName = (budget as any).familyMember.name;
+            } else {
+              // 否则查询托管成员信息
+              const familyMember = await prisma.familyMember.findUnique({
+                where: { id: budgetDto.familyMemberId }
+              });
+
+              if (familyMember) {
+                budgetDto.familyMemberName = familyMember.name;
+              }
+            }
+          }
+          // 2. 如果family_member_id为空，则根据user_id查询用户名称
+          else if (budgetDto.userId) {
+            // 从users表中查询用户名称
+            if (budget.user) {
+              // 如果已经关联查询了user，直接使用
+              budgetDto.familyMemberName = budget.user.name;
+            } else {
+              // 否则查询用户信息
+              const user = await prisma.user.findUnique({
+                where: { id: budgetDto.userId },
+                select: { name: true }
+              });
+
+              if (user) {
+                budgetDto.familyMemberName = user.name;
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`获取预算用户名称失败: ${error}`);
         }
 
         return budgetDto;
@@ -299,11 +334,11 @@ export class BudgetService {
         budgetDto.accountBookName = accountBookName;
         budgetDto.familyId = familyId;
 
-        // 处理托管成员信息
-        // 如果预算有familyMemberId但没有familyMemberName，需要获取托管成员信息
-        if (budgetDto.familyMemberId && !budgetDto.familyMemberName) {
-          try {
-            // 查询托管成员信息
+        // 处理成员信息 - 按照指定逻辑获取预算名称
+        try {
+          // 1. 判断预算是否有family_member_id
+          if (budgetDto.familyMemberId) {
+            // 如果有family_member_id，按照托管用户的方式处理
             const familyMember = await prisma.familyMember.findUnique({
               where: { id: budgetDto.familyMemberId }
             });
@@ -311,9 +346,21 @@ export class BudgetService {
             if (familyMember) {
               budgetDto.familyMemberName = familyMember.name;
             }
-          } catch (error) {
-            console.error(`获取托管成员信息失败: ${error}`);
           }
+          // 2. 如果family_member_id为空，则根据user_id查询用户名称
+          else if (budgetDto.userId) {
+            // 从users表中查询用户名称
+            const user = await prisma.user.findUnique({
+              where: { id: budgetDto.userId },
+              select: { name: true }
+            });
+
+            if (user) {
+              budgetDto.familyMemberName = user.name;
+            }
+          }
+        } catch (error) {
+          console.error(`获取预算用户名称失败: ${error}`);
         }
 
         return budgetDto;

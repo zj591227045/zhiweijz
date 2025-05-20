@@ -215,21 +215,30 @@ export function BudgetList() {
       const budgetsList = Array.isArray(budgetData.budgets) ? budgetData.budgets : [];
 
       // 确保每个预算项都有必要的属性
-      const processedBudgets = budgetsList.map(budget => ({
-        ...budget,
-        // 确保分类信息存在
-        categoryName: budget.categoryName || budget.name,
-        categoryIcon: budget.categoryIcon || 'fa-money-bill',
-        // 确保数值属性存在
-        amount: budget.amount || 0,
-        spent: budget.spent || 0,
-        remaining: budget.remaining || 0,
-        percentage: budget.percentage || 0,
-        // 确保布尔属性存在
-        isOverspent: budget.isOverspent || false,
-        rollover: budget.rollover || false,
-        enableCategoryBudget: budget.enableCategoryBudget !== false
-      }));
+      const processedBudgets = budgetsList.map(budget => {
+        // 计算预算总金额（预算金额+结转金额）
+        const totalAmount = (budget.amount || 0) + (budget.rolloverAmount || 0);
+        const spent = budget.spent || 0;
+        const remaining = totalAmount - spent;
+        const percentage = totalAmount > 0 ? (spent / totalAmount) * 100 : 0;
+
+        return {
+          ...budget,
+          // 确保分类信息存在
+          categoryName: budget.categoryName || budget.name,
+          categoryIcon: budget.categoryIcon || 'fa-money-bill',
+          // 确保数值属性存在
+          amount: budget.amount || 0,
+          spent: spent,
+          remaining: remaining,
+          adjustedRemaining: remaining,
+          percentage: percentage,
+          // 确保布尔属性存在
+          isOverspent: percentage > 100,
+          rollover: budget.rollover || false,
+          enableCategoryBudget: budget.enableCategoryBudget !== false
+        };
+      });
 
       console.log('预算数据更新 - 处理后的预算列表:', processedBudgets);
       setBudgets(processedBudgets);

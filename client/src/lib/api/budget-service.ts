@@ -158,16 +158,21 @@ export const budgetService = {
           totalBudgetItem.isOverspent = totalBudgetItem.spent > totalBudgetItem.amount;
         }
 
+        // 计算总预算金额（预算金额+结转金额）
+        const totalAmount = (totalBudgetItem.amount || 0) + (totalBudgetItem.rolloverAmount || 0);
+        const spent = totalBudgetItem.spent || 0;
+        const remaining = totalAmount - spent;
+
         // 构建总预算对象
         const totalBudget: TotalBudget = {
           amount: totalBudgetItem.amount || 0,
-          spent: totalBudgetItem.spent || 0,
-          remaining: totalBudgetItem.remaining || 0,
-          adjustedRemaining: totalBudgetItem.adjustedRemaining || (totalBudgetItem.remaining + (totalBudgetItem.rolloverAmount || 0)),
-          percentage: totalBudgetItem.percentage || 0,
+          spent: spent,
+          remaining: remaining,
+          adjustedRemaining: remaining,
+          percentage: totalAmount > 0 ? (spent / totalAmount) * 100 : 0,
           daysRemaining: calculateDaysRemaining(),
           rolloverAmount: totalBudgetItem.rolloverAmount,
-          dailyAvailable: calculateDailyAvailable(totalBudgetItem.adjustedRemaining || totalBudgetItem.remaining || 0)
+          dailyAvailable: calculateDailyAvailable(remaining)
         };
 
         // 确保familyBudgets是对象

@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Budget, useTransactionFormStore } from "@/store/transaction-form-store";
 import { useAccountBookStore } from "@/store/account-book-store";
+import { useAuthStore } from "@/store/auth-store";
 import { getCategories, createTransaction } from "@/lib/api/transaction-service";
 import { TransactionType } from "@/types";
 import { formatDateForAPI, cn } from "@/lib/utils";
@@ -349,22 +350,48 @@ export function TransactionAddPage() {
         userName: budget.userName,
         familyMemberId: budget.familyMemberId,
         familyMemberName: budget.familyMemberName,
-        rolloverAmount: budget.rolloverAmount || 0
+        rolloverAmount: budget.rolloverAmount || 0,
+        budgetType: budget.budgetType || 'PERSONAL'
       }));
 
       setBudgets(formattedBudgets);
 
-      // 如果没有选中的预算，设置默认预算（用户自己的个人预算）
+      // 如果没有选中的预算，设置默认预算（与当前登录用户名称匹配的预算）
       if (!selectedBudget) {
-        // 查找用户自己的个人预算（没有familyMemberId的预算）
-        const personalBudget = formattedBudgets.find(b => !b.familyMemberId);
-        if (personalBudget) {
-          console.log("设置默认个人预算:", personalBudget);
-          setSelectedBudget(personalBudget);
-        } else if (formattedBudgets.length > 0) {
-          // 如果没有找到个人预算，使用第一个预算
-          console.log("未找到个人预算，使用第一个预算:", formattedBudgets[0]);
-          setSelectedBudget(formattedBudgets[0]);
+        // 获取当前登录用户信息
+        const currentUser = useAuthStore.getState().user;
+        console.log("当前登录用户:", currentUser);
+
+        if (currentUser) {
+          // 查找与当前登录用户名称匹配的预算
+          const userBudget = formattedBudgets.find(b =>
+            b.familyMemberName === currentUser.name && b.budgetType === 'PERSONAL'
+          );
+
+          if (userBudget) {
+            console.log("找到当前用户的预算:", userBudget);
+            setSelectedBudget(userBudget);
+          } else {
+            // 如果没有找到匹配的预算，查找没有familyMemberId的个人预算
+            const personalBudget = formattedBudgets.find(b =>
+              !b.familyMemberId && b.budgetType === 'PERSONAL'
+            );
+
+            if (personalBudget) {
+              console.log("设置默认个人预算:", personalBudget);
+              setSelectedBudget(personalBudget);
+            } else if (formattedBudgets.length > 0) {
+              // 如果没有找到个人预算，使用第一个预算
+              console.log("未找到个人预算，使用第一个预算:", formattedBudgets[0]);
+              setSelectedBudget(formattedBudgets[0]);
+            }
+          }
+        } else {
+          // 如果没有登录用户信息，使用第一个预算
+          if (formattedBudgets.length > 0) {
+            console.log("未找到用户信息，使用第一个预算:", formattedBudgets[0]);
+            setSelectedBudget(formattedBudgets[0]);
+          }
         }
       }
     }
