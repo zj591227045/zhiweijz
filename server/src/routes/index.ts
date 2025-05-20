@@ -11,11 +11,9 @@ import accountBookRoutes from './account-book.routes';
 import familyRoutes from './family.routes';
 import statisticsRoutes from './statistics.routes';
 import securityRoutes from './security.routes';
+import aiRoutes from './ai-routes';
 
 const router = Router();
-
-// 导入各模块路由
-// import aiRoutes from './ai.routes';
 
 // 注册路由
 router.use('/auth', authRoutes);
@@ -30,6 +28,6 @@ router.use('/account-books', accountBookRoutes);
 router.use('/families', familyRoutes);
 router.use('/statistics', statisticsRoutes);
 router.use('/security', securityRoutes);
-// router.use('/ai', aiRoutes);
+router.use('/ai', aiRoutes);
 
 export default router;

@@ -31,6 +31,7 @@ model User {
   feedback            UserFeedback[]
   settings            UserSetting[]
   verificationCodes   VerificationCode[]
+  llmSettings         UserLLMSetting[]
 
   @@map("users")
 }
@@ -219,22 +220,24 @@ model UserSetting {
 }
 
 model AccountBook {
-  id           String              @id @default(uuid())
-  name         String
-  description  String?
-  userId       String              @map("user_id")
-  isDefault    Boolean             @default(false) @map("is_default")
-  createdAt    DateTime            @default(now()) @map("created_at")
-  updatedAt    DateTime            @updatedAt @map("updated_at")
-  familyId     String?             @map("family_id")
-  type         AccountBookType     @default(PERSONAL) @map("type")
-  created_by   String?
-  family       Family?             @relation(fields: [familyId], references: [id])
-  user         User                @relation(fields: [userId], references: [id])
-  llmSettings  AccountLLMSetting[]
-  budgets      Budget[]
-  categories   Category[]
-  transactions Transaction[]
+  id             String              @id @default(uuid())
+  name           String
+  description    String?
+  userId         String              @map("user_id")
+  isDefault      Boolean             @default(false) @map("is_default")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+  familyId       String?             @map("family_id")
+  type           AccountBookType     @default(PERSONAL) @map("type")
+  created_by     String?
+  userLLMSettingId String?           @map("user_llm_setting_id")
+  family         Family?             @relation(fields: [familyId], references: [id])
+  user           User                @relation(fields: [userId], references: [id])
+  userLLMSetting UserLLMSetting?     @relation(fields: [userLLMSettingId], references: [id])
+  llmSettings    AccountLLMSetting[]
+  budgets        Budget[]
+  categories     Category[]
+  transactions   Transaction[]
 
   @@map("account_books")
 }
@@ -356,6 +359,25 @@ model BudgetHistory {
   budget           Budget       @relation(fields: [budgetId], references: [id], onDelete: Cascade)
 
   @@map("budget_histories")
+}
+
+model UserLLMSetting {
+  id          String        @id @default(uuid())
+  userId      String        @map("user_id")
+  provider    String        @default("openai")
+  model       String        @default("gpt-3.5-turbo")
+  apiKey      String?       @map("api_key")
+  temperature Float         @default(0.3)
+  maxTokens   Int           @default(1000) @map("max_tokens")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  name        String        @default("默认LLM设置")
+  description String?
+  baseUrl     String?       @map("base_url")
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountBooks AccountBook[]
+
+  @@map("user_llm_settings")
 }
 
 enum TransactionType {
