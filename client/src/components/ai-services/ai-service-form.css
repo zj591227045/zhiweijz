@@ -1,0 +1,270 @@
+/* AI服务表单样式 */
+
+.ai-service-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, rgb(31, 41, 55));
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 12px;
+  border: 1px solid var(--border-color, rgb(229, 231, 235));
+  border-radius: 8px;
+  background-color: var(--card-background, white);
+  color: var(--text-primary, rgb(31, 41, 55));
+  font-size: 14px;
+  width: 100%;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color, rgb(59, 130, 246));
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.form-group input.error,
+.form-group select.error,
+.form-group textarea.error {
+  border-color: var(--error-color, rgb(239, 68, 68));
+}
+
+.error-message {
+  font-size: 12px;
+  color: var(--error-color, rgb(239, 68, 68));
+  margin-top: 4px;
+}
+
+.field-description {
+  font-size: 12px;
+  color: var(--text-secondary, rgb(107, 114, 128));
+  margin-top: 4px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-group.half {
+  flex: 1;
+}
+
+/* 高级设置样式 */
+.advanced-settings {
+  border: 1px solid var(--border-color, rgb(229, 231, 235));
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.advanced-toggle {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--muted, rgb(243, 244, 246));
+  border: none;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, rgb(31, 41, 55));
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.advanced-toggle:hover {
+  background-color: var(--muted-hover, rgb(229, 231, 235));
+}
+
+.advanced-content {
+  padding: 16px;
+}
+
+.warning-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background-color: rgba(245, 158, 11, 0.1);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  color: rgb(194, 120, 3);
+  font-size: 14px;
+}
+
+.warning-message i {
+  font-size: 16px;
+}
+
+/* 账本绑定样式 */
+.account-books-section {
+  border: 1px solid var(--border-color, rgb(229, 231, 235));
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 8px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, rgb(31, 41, 55));
+  margin-bottom: 8px;
+}
+
+.section-description {
+  font-size: 14px;
+  color: var(--text-secondary, rgb(107, 114, 128));
+  margin-bottom: 16px;
+}
+
+.account-books-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.account-book-item {
+  padding: 10px;
+  border-radius: 6px;
+  background-color: var(--muted, rgb(243, 244, 246));
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+.book-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, rgb(31, 41, 55));
+  flex: 1;
+}
+
+.book-type {
+  font-size: 12px;
+  color: var(--text-secondary, rgb(107, 114, 128));
+  background-color: var(--card-background, white);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.no-account-books {
+  padding: 16px;
+  text-align: center;
+  color: var(--text-secondary, rgb(107, 114, 128));
+  font-size: 14px;
+}
+
+.test-connection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.test-button {
+  padding: 10px 16px;
+  background-color: var(--muted, rgb(243, 244, 246));
+  color: var(--text-primary, rgb(31, 41, 55));
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.test-button:hover {
+  background-color: var(--muted-hover, rgb(229, 231, 235));
+}
+
+.test-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.test-result {
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.test-result.success {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: rgb(16, 185, 129);
+}
+
+.test-result.error {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--error-color, rgb(239, 68, 68));
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.cancel-button {
+  padding: 10px 20px;
+  background-color: var(--muted, rgb(243, 244, 246));
+  color: var(--text-primary, rgb(31, 41, 55));
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancel-button:hover {
+  background-color: var(--muted-hover, rgb(229, 231, 235));
+}
+
+.submit-button {
+  padding: 10px 20px;
+  background-color: var(--primary-color, rgb(59, 130, 246));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submit-button:hover {
+  background-color: var(--primary-hover, rgb(37, 99, 235));
+}
+
+.submit-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

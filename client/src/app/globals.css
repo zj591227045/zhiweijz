@@ -19,6 +19,7 @@
 @import '../styles/transaction-add.css';
 @import '../styles/custodial-members.css';
 @import '../components/transactions/budget-selector.css';
+@import '../styles/bottom-nav-fix.css';
 
 @layer base {
   :root {

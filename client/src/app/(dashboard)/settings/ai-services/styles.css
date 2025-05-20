@@ -1,0 +1,134 @@
+/* AI服务管理通用样式 */
+
+.page-description {
+  font-size: 14px;
+  color: var(--text-secondary, rgb(107, 114, 128));
+  margin-bottom: 20px;
+  padding: 0 4px;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  color: var(--text-secondary, rgb(107, 114, 128));
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--primary-color, rgb(59, 130, 246));
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 卡片样式 */
+.card {
+  background-color: var(--card-background, white);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, rgb(31, 41, 55));
+  margin-bottom: 12px;
+}
+
+.card-content {
+  font-size: 14px;
+  color: var(--text-secondary, rgb(107, 114, 128));
+}
+
+/* 按钮样式 */
+.primary-button {
+  padding: 10px 20px;
+  background-color: var(--primary-color, rgb(59, 130, 246));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.primary-button:hover {
+  background-color: var(--primary-hover, rgb(37, 99, 235));
+}
+
+.secondary-button {
+  padding: 10px 20px;
+  background-color: var(--muted, rgb(243, 244, 246));
+  color: var(--text-primary, rgb(31, 41, 55));
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.secondary-button:hover {
+  background-color: var(--muted-hover, rgb(229, 231, 235));
+}
+
+.danger-button {
+  padding: 10px 20px;
+  background-color: var(--error-color, rgb(239, 68, 68));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.danger-button:hover {
+  background-color: var(--error-hover, rgb(220, 38, 38));
+}
+
+/* 标签样式 */
+.tag {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-right: 8px;
+}
+
+.tag-primary {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--primary-color, rgb(59, 130, 246));
+}
+
+.tag-success {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: rgb(16, 185, 129);
+}
+
+.tag-warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: rgb(245, 158, 11);
+}
+
+.tag-error {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--error-color, rgb(239, 68, 68));
+}

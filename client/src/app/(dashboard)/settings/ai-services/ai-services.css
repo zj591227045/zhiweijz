@@ -1,0 +1,182 @@
+/* AI服务管理页面样式 */
+
+/* 添加按钮 */
+.add-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--text-primary, rgb(31, 41, 55));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+
+.add-button:hover {
+  background-color: var(--muted, rgba(0, 0, 0, 0.05));
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  color: var(--text-secondary, rgb(107, 114, 128));
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--primary-color, rgb(59, 130, 246));
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  background-color: var(--card-background, white);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin: 16px 0;
+}
+
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: var(--muted, rgb(243, 244, 246));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  color: var(--primary-color, rgb(59, 130, 246));
+  font-size: 24px;
+}
+
+.empty-state h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, rgb(31, 41, 55));
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  font-size: 14px;
+  color: var(--text-secondary, rgb(107, 114, 128));
+  margin-bottom: 24px;
+}
+
+.add-service-button {
+  padding: 10px 20px;
+  background-color: var(--primary-color, rgb(59, 130, 246));
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.add-service-button:hover {
+  background-color: var(--primary-hover, rgb(37, 99, 235));
+}
+
+/* AI服务列表 */
+.ai-services-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.ai-service-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: var(--card-background, white);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.service-info {
+  flex: 1;
+}
+
+.service-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, rgb(31, 41, 55));
+  margin-bottom: 4px;
+}
+
+.service-details {
+  display: flex;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-secondary, rgb(107, 114, 128));
+  margin-bottom: 4px;
+}
+
+.service-provider {
+  padding: 2px 8px;
+  background-color: var(--muted, rgb(243, 244, 246));
+  border-radius: 4px;
+}
+
+.service-model {
+  padding: 2px 8px;
+  background-color: var(--muted, rgb(243, 244, 246));
+  border-radius: 4px;
+}
+
+.service-description {
+  font-size: 14px;
+  color: var(--text-secondary, rgb(107, 114, 128));
+  margin-top: 4px;
+}
+
+.service-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-button,
+.delete-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.edit-button {
+  color: var(--primary-color, rgb(59, 130, 246));
+}
+
+.delete-button {
+  color: var(--error-color, rgb(239, 68, 68));
+}

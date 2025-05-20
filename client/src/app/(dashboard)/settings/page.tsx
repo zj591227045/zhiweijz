@@ -138,6 +138,18 @@ export default function SettingsPage() {
 
       <div className="settings-group">
         <div className="group-title">应用</div>
+        <Link href="/settings/ai-services" className="settings-item">
+          <div className="item-icon">
+            <i className="fas fa-robot"></i>
+          </div>
+          <div className="item-content">
+            <div className="item-title">AI服务管理</div>
+            <div className="item-description">管理AI服务提供商</div>
+          </div>
+          <div className="item-action">
+            <i className="fas fa-chevron-right"></i>
+          </div>
+        </Link>
         <Link href="/settings/theme" className="settings-item">
           <div className="item-icon">
             <i className="fas fa-palette"></i>
