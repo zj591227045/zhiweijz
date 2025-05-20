@@ -22,6 +22,7 @@ export class TransactionRepository {
       familyId: transactionData.familyId,
       familyMemberId: transactionData.familyMemberId,
       accountBookId: transactionData.accountBookId,
+      budgetId: transactionData.budgetId, // 添加预算ID
     };
 
     // 如果提供了元数据，添加到数据中

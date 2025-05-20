@@ -307,26 +307,21 @@ export class BudgetRepository {
       endDate: budget.endDate
     });
 
-    // 构建查询条件 - 不再使用userId过滤，而是通过预算的其他属性
+    // 构建查询条件 - 直接使用budgetId过滤
     const where: Prisma.TransactionWhereInput = {
       type: 'EXPENSE',
       date: {
         gte: budget.startDate,
         ...(budget.endDate && { lte: budget.endDate }),
       },
-      accountBookId: budget.accountBookId,
-      ...(budget.categoryId && { categoryId: budget.categoryId }),
+      budgetId: budgetId, // 直接使用预算ID过滤
     };
 
-    // 如果是托管成员的预算，通过familyMemberId过滤
-    if ((budget as any).familyMemberId) {
-      where.familyMemberId = (budget as any).familyMemberId;
-    }
-    // 如果是普通用户的预算且不是家庭预算，通过userId过滤
-    else if (budget.userId && !budget.familyId) {
-      where.userId = budget.userId;
-    }
-    // 如果是家庭预算，不需要额外过滤，已经通过accountBookId过滤了
+    console.log('使用预算ID过滤交易记录:', {
+      budgetId,
+      startDate: budget.startDate,
+      endDate: budget.endDate
+    });
 
     // 计算总支出
     const result = await prisma.transaction.aggregate({

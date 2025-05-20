@@ -456,15 +456,21 @@ export class TransactionService {
         throw new Error('预算不存在');
       }
 
-      // 构建查询条件
+      // 构建查询条件 - 直接使用budgetId过滤
       const where: any = {
-        accountBookId: budget.accountBookId,
+        budgetId: budgetId, // 直接使用预算ID过滤
         date: {
           gte: budget.startDate,
           lte: budget.endDate
         },
         type: 'EXPENSE'
       };
+
+      console.log('使用预算ID过滤交易记录:', {
+        budgetId,
+        startDate: budget.startDate,
+        endDate: budget.endDate
+      });
 
       // 如果是分类预算，添加分类过滤
       if (budget.categoryId) {
