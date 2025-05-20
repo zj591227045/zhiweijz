@@ -1,0 +1,1898 @@
+app:
+  description: 记账管家
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: 家庭记账
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/siliconflow:0.0.8@217f973bd7ced1b099c2f0c669f1356bdf4cc38b8372fd58d7874f9940b95de3
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/tongyi:0.0.19@91aa4a80bd31d45b8fa37b27adcb3fb732f42aa4c91958225f20dc0189839048
+kind: app
+version: 0.2.0
+workflow:
+  conversation_variables: []
+  environment_variables:
+  - description: ''
+    id: 88af3c08-8c21-4698-b4b1-eac82b6c0c9a
+    name: Nocobase_URL
+    selector:
+    - env
+    - Nocobase_URL
+    value: http://10.255.0.97:13000
+    value_type: string
+  - description: ''
+    id: 53ae7863-88ed-460d-81ef-5735dd15c2f5
+    name: Nocobase_API
+    selector:
+    - env
+    - Nocobase_API
+    value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInJvbGVOYW1lIjoiYWRtaW4iLCJpYXQiOjE3NDY1NDUxMjMsImV4cCI6MzMzMDQxNDUxMjN9.MwSEq2aGv7nDwxlccdcD0ESFqbQSCloRTdXyZ1ohmh0
+    value_type: string
+  features:
+    file_upload:
+      allowed_file_extensions: []
+      allowed_file_types:
+      - image
+      - document
+      allowed_file_upload_methods:
+      - remote_url
+      - local_file
+      enabled: true
+      fileUploadConfig:
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        image_file_size_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: code
+      id: 1746546036659-source-1746546784219-target
+      selected: false
+      source: '1746546036659'
+      sourceHandle: source
+      target: '1746546784219'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: if-else
+      id: 1746546784219-source-1746547918808-target
+      selected: false
+      source: '1746546784219'
+      sourceHandle: source
+      target: '1746547918808'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: code
+      id: 1746548329821-source-1746548495304-target
+      selected: false
+      source: '1746548329821'
+      sourceHandle: source
+      target: '1746548495304'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: tool
+        targetType: code
+      id: 1746549541358-source-17465495921760-target
+      selected: false
+      source: '1746549541358'
+      sourceHandle: source
+      target: '17465495921760'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: tool
+        targetType: parameter-extractor
+      id: 1746549859456-source-1746549934072-target
+      selected: false
+      source: '1746549859456'
+      sourceHandle: source
+      target: '1746549934072'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: parameter-extractor
+      id: 1746548495304-source-1746550318698-target
+      selected: false
+      source: '1746548495304'
+      sourceHandle: source
+      target: '1746550318698'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: template-transform
+      id: 1746547918808-false-1746550450564-target
+      selected: false
+      source: '1746547918808'
+      sourceHandle: 'false'
+      target: '1746550450564'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: template-transform
+        targetType: variable-aggregator
+      id: 1746550450564-source-1746550371697-target
+      selected: false
+      source: '1746550450564'
+      sourceHandle: source
+      target: '1746550371697'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: parameter-extractor
+        targetType: tool
+      id: 1746550318698-source-1746549486512-target
+      source: '1746550318698'
+      sourceHandle: source
+      target: '1746549486512'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: parameter-extractor
+        targetType: http-request
+      id: 1746550318698-source-1746551904312-target
+      source: '1746550318698'
+      sourceHandle: source
+      target: '1746551904312'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: http-request
+      id: 17465495921760-source-1746552052543-target
+      source: '17465495921760'
+      sourceHandle: source
+      target: '1746552052543'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: code
+      id: 1746552052543-source-1746552392497-target
+      source: '1746552052543'
+      sourceHandle: source
+      target: '1746552392497'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: code
+      id: 1746551904312-source-1746552876412-target
+      source: '1746551904312'
+      sourceHandle: source
+      target: '1746552876412'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: http-request
+      id: 1746552876412-source-1746552975531-target
+      source: '1746552876412'
+      sourceHandle: source
+      target: '1746552975531'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: http-request
+      id: 1746552392497-source-1746552975531-target
+      source: '1746552392497'
+      sourceHandle: source
+      target: '1746552975531'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: parameter-extractor
+        targetType: http-request
+      id: 1746549934072-source-1746552975531-target
+      source: '1746549934072'
+      sourceHandle: source
+      target: '1746552975531'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: code
+      id: 1746552975531-source-1746581525468-target
+      source: '1746552975531'
+      sourceHandle: source
+      target: '1746581525468'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: answer
+      id: 1746581525468-source-answer-target
+      source: '1746581525468'
+      sourceHandle: source
+      target: answer
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: code
+      id: 1746545680501-source-1746594655609-target
+      source: '1746545680501'
+      sourceHandle: source
+      target: '1746594655609'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: http-request
+      id: 1746594655609-source-1746546036659-target
+      source: '1746594655609'
+      sourceHandle: source
+      target: '1746546036659'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+      id: 1746547918808-true-1746595346612-target
+      source: '1746547918808'
+      sourceHandle: 'true'
+      target: '1746595346612'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: variable-aggregator
+      id: 1746595346612-source-1746550371697-target
+      source: '1746595346612'
+      sourceHandle: source
+      target: '1746550371697'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: parameter-extractor
+        targetType: tool
+      id: 1746550318698-source-1746549859456-target
+      source: '1746550318698'
+      sourceHandle: source
+      target: '1746549859456'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: variable-aggregator
+        targetType: question-classifier
+      id: 1746550371697-source-1746597069745-target
+      source: '1746550371697'
+      sourceHandle: source
+      target: '1746597069745'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: http-request
+      id: 1746597069745-1-1746548329821-target
+      source: '1746597069745'
+      sourceHandle: '1'
+      target: '1746548329821'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: tool
+        targetType: tool
+      id: 1746549486512-source-1746549541358-target
+      source: '1746549486512'
+      sourceHandle: source
+      target: '1746549541358'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: 开始
+        type: start
+        variables: []
+      height: 54
+      id: '1746545680501'
+      position:
+        x: 30
+        y: 311
+      positionAbsolute:
+        x: 30
+        y: 311
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        answer: '记账信息{{#1746581525468.result#}}！
+
+          日期：{{#1746549934072.LiuShui_Date#}}
+
+          明细：{{#1746550318698.Name#}}
+
+          方向：{{#1746550318698.Type#}}；分类：{{#1746550318698.class#}}；
+
+          金额：{{#1746550318698.JinE#}}，预算：{{#17465495921760.result#}}'
+        desc: ''
+        selected: false
+        title: 直接回复
+        type: answer
+        variables: []
+      height: 232
+      id: answer
+      position:
+        x: 5502
+        y: 493
+      positionAbsolute:
+        x: 5502
+        y: 493
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - type: text
+            value: ''
+          type: none
+        desc: ''
+        headers: 'Accept:application/json
+
+          Authorization:Bearer {{#env.Nocobase_API#}}
+
+          X-Locale:zh-CN
+
+          X-Role:root'
+        method: get
+        params: 'pageSize:20
+
+          appends[]:roles
+
+          page:1
+
+          filter:{"$and":[{"nickname":{"$eq":"{{#1746594655609.result#}}"}}]}'
+        retry_config:
+          max_retries: 3
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: true
+        timeout:
+          max_connect_timeout: 0
+          max_read_timeout: 0
+          max_write_timeout: 0
+        title: 获取用户信息
+        type: http-request
+        url: '{{#env.Nocobase_URL#}}/api/users:list'
+        variables: []
+      height: 126
+      id: '1746546036659'
+      position:
+        x: 638
+        y: 311
+      positionAbsolute:
+        x: 638
+        y: 311
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "import json\nimport re\n\ndef main(json_str: str, uuid: str = None)\
+          \ -> dict:\n    # 检查uuid是否为特定值\n    if uuid == \"b7ee9ba3-efe1-41ba-a278-a45752600a2b\"\
+          :\n        # 如果uuid匹配，直接返回ID为1\n        return {'result': \"1\"}\n    \n\
+          \    # 如果uuid不匹配，执行原来的逻辑\n    try:\n        # 首先尝试解析输入的json_str\n      \
+          \  data = None\n        \n        # 尝试直接解析\n        try:\n            parsed_data\
+          \ = json.loads(json_str)\n            \n            # 检查是否有嵌套的json_str字段\n\
+          \            if \"json_str\" in parsed_data:\n                try:\n   \
+          \                 # 尝试解析嵌套的json_str\n                    inner_data = json.loads(parsed_data[\"\
+          json_str\"])\n                    data = inner_data\n                except:\n\
+          \                    # 如果嵌套的json_str不是有效JSON，可能是字符串形式\n                \
+          \    # 尝试用正则表达式提取ID\n                    id_pattern = r'\"id\"?\\s*:\\s*(\\\
+          d+)'\n                    id_match = re.search(id_pattern, parsed_data[\"\
+          json_str\"])\n                    if id_match:\n                       \
+          \ return {'result': id_match.group(1)}\n            else:\n            \
+          \    data = parsed_data\n        except:\n            # 如果直接解析失败，尝试用正则表达式\n\
+          \            id_pattern = r'\"id\"?\\s*:\\s*(\\d+)'\n            id_match\
+          \ = re.search(id_pattern, json_str)\n            if id_match:\n        \
+          \        return {'result': id_match.group(1)}\n        \n        # 如果成功解析为JSON对象，尝试从中提取ID\n\
+          \        if data and \"data\" in data and isinstance(data[\"data\"], list)\
+          \ and len(data[\"data\"]) > 0:\n            if \"id\" in data[\"data\"][0]:\n\
+          \                return {'result': str(data[\"data\"][0][\"id\"])}\n   \
+          \     \n        # 如果以上方法都失败，返回错误信息\n        return {'result': \"无法提取ID，请检查输入格式\"\
+          }\n    except Exception as e:\n        return {'result': f\"错误: {str(e)}\"\
+          }"
+        code_language: python3
+        desc: ''
+        outputs:
+          result:
+            children: null
+            type: string
+        selected: false
+        title: 提取用户ID
+        type: code
+        variables:
+        - value_selector:
+          - '1746546036659'
+          - body
+          variable: json_str
+        - value_selector:
+          - sys
+          - user_id
+          variable: uuid
+      height: 54
+      id: '1746546784219'
+      position:
+        x: 942
+        y: 311
+      positionAbsolute:
+        x: 942
+        y: 311
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: contains
+            id: fe65bef8-2344-47c7-bf22-c6676eadfe1d
+            sub_variable_condition:
+              case_id: 0d958dff-85cb-49df-89c6-618581c95233
+              conditions:
+              - comparison_operator: in
+                id: bb60ac5e-932b-4286-8258-1296a2fc5b7c
+                key: type
+                value:
+                - image
+                varType: string
+              logical_operator: and
+            value: ''
+            varType: array[file]
+            variable_selector:
+            - sys
+            - files
+          id: 'true'
+          logical_operator: and
+        - case_id: 517b6a6e-43d0-4d29-8cd3-d039841265d3
+          conditions:
+          - comparison_operator: contains
+            id: e2ec3eae-1896-4032-8f67-e1744d9bb314
+            sub_variable_condition:
+              case_id: 9ca6e04b-bb8f-4588-8c8d-b0bf40cee2bf
+              conditions:
+              - comparison_operator: in
+                id: 36c2aafd-4b78-4122-a6fe-0128c2b38f6a
+                key: type
+                value:
+                - document
+                varType: string
+              logical_operator: and
+            value: ''
+            varType: array[file]
+            variable_selector:
+            - sys
+            - files
+          id: 517b6a6e-43d0-4d29-8cd3-d039841265d3
+          logical_operator: and
+        desc: ''
+        selected: false
+        title: 条件分支
+        type: if-else
+      height: 222
+      id: '1746547918808'
+      position:
+        x: 1246
+        y: 311
+      positionAbsolute:
+        x: 1246
+        y: 311
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - type: text
+            value: ''
+          type: none
+        desc: ''
+        headers: 'Accept:application/json
+
+          Authorization:Bearer {{#env.Nocobase_API#}}
+
+          X-Locale:zh-CN
+
+          X-Role:root'
+        method: get
+        params: 'pageSize:50
+
+          page:1
+
+          filter:{}'
+        retry_config:
+          max_retries: 3
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: true
+        timeout:
+          max_connect_timeout: 0
+          max_read_timeout: 0
+          max_write_timeout: 0
+        title: 获取所有分类
+        type: http-request
+        url: '{{#env.Nocobase_URL#}}/api/t_FenLei:list'
+        variables: []
+      height: 142
+      id: '1746548329821'
+      position:
+        x: 2462
+        y: 311
+      positionAbsolute:
+        x: 2462
+        y: 311
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "import json\nimport re\n\ndef main(data: str) -> dict:\n    try:\n\
+          \        # 尝试直接解析JSON字符串\n        try:\n            json_data = json.loads(data)\n\
+          \        except json.JSONDecodeError:\n            # 如果直接解析失败，尝试清理字符串中的转义字符\n\
+          \            # 移除多余的反斜杠\n            cleaned_data = re.sub(r'\\\\+([\"\\\
+          \\\\'])', r'\\1', data)\n            # 尝试再次解析\n            json_data = json.loads(cleaned_data)\n\
+          \        \n        lines = []\n        # 遍历数据项并提取方向和名称\n        for item\
+          \ in json_data.get('data', []):\n            direction = item.get('f_FenLei_FangXiang',\
+          \ '')\n            name = item.get('f_FenLei_Name', '')\n            if\
+          \ direction and name:\n                lines.append(f\"{direction}，{name}\"\
+          )\n        \n        # 将数组合并为单个字符串，每行一个项目\n        result_str = \"\\n\"\
+          .join(lines)\n        \n        # 返回单个字符串结果\n        return {\"result\"\
+          : result_str}\n    except Exception as e:\n        # 如果所有尝试都失败，尝试使用正则表达式直接从字符串中提取所需信息\n\
+          \        try:\n            # 使用正则表达式匹配方向和名称\n            pattern = r'f_FenLei_FangXiang\\\
+          \\+\":\\s*\\\\+\"([^\\\\]+)\\\\+\".+?f_FenLei_Name\\\\+\":\\s*\\\\+\"([^\\\
+          \\]+)\\\\+\"'\n            matches = re.findall(pattern, data)\n       \
+          \     \n            if matches:\n                lines = [f\"{direction}，{name}\"\
+          \ for direction, name in matches]\n                result_str = \"\\n\"\
+          .join(lines)\n                return {\"result\": result_str}\n        \
+          \    else:\n                return {\"result\": \"无法提取数据: 未找到匹配项\"}\n  \
+          \      except Exception as e2:\n            return {\"result\": f\"错误: {str(e)},\
+          \ 二次处理错误: {str(e2)}\"}"
+        code_language: python3
+        desc: ''
+        outputs:
+          result:
+            children: null
+            type: string
+        selected: false
+        title: 整理分类信息
+        type: code
+        variables:
+        - value_selector:
+          - '1746548329821'
+          - body
+          variable: data
+      height: 54
+      id: '1746548495304'
+      position:
+        x: 2766
+        y: 311
+      positionAbsolute:
+        x: 2766
+        y: 311
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        is_team_authorization: true
+        output_schema: null
+        paramSchemas:
+        - auto_generate: null
+          default: '%Y-%m-%d %H:%M:%S'
+          form: form
+          human_description:
+            en_US: Time format in strftime standard.
+            ja_JP: Time format in strftime standard.
+            pt_BR: Time format in strftime standard.
+            zh_Hans: strftime 标准的时间格式。
+          label:
+            en_US: Format
+            ja_JP: Format
+            pt_BR: Format
+            zh_Hans: 格式
+          llm_description: null
+          max: null
+          min: null
+          name: format
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: UTC
+          form: form
+          human_description:
+            en_US: Timezone
+            ja_JP: Timezone
+            pt_BR: Timezone
+            zh_Hans: 时区
+          label:
+            en_US: Timezone
+            ja_JP: Timezone
+            pt_BR: Timezone
+            zh_Hans: 时区
+          llm_description: null
+          max: null
+          min: null
+          name: timezone
+          options:
+          - label:
+              en_US: UTC
+              ja_JP: UTC
+              pt_BR: UTC
+              zh_Hans: UTC
+            value: UTC
+          - label:
+              en_US: America/New_York
+              ja_JP: America/New_York
+              pt_BR: America/New_York
+              zh_Hans: 美洲/纽约
+            value: America/New_York
+          - label:
+              en_US: America/Los_Angeles
+              ja_JP: America/Los_Angeles
+              pt_BR: America/Los_Angeles
+              zh_Hans: 美洲/洛杉矶
+            value: America/Los_Angeles
+          - label:
+              en_US: America/Chicago
+              ja_JP: America/Chicago
+              pt_BR: America/Chicago
+              zh_Hans: 美洲/芝加哥
+            value: America/Chicago
+          - label:
+              en_US: America/Sao_Paulo
+              ja_JP: America/Sao_Paulo
+              pt_BR: América/São Paulo
+              zh_Hans: 美洲/圣保罗
+            value: America/Sao_Paulo
+          - label:
+              en_US: Asia/Shanghai
+              ja_JP: Asia/Shanghai
+              pt_BR: Asia/Shanghai
+              zh_Hans: 亚洲/上海
+            value: Asia/Shanghai
+          - label:
+              en_US: Asia/Ho_Chi_Minh
+              ja_JP: Asia/Ho_Chi_Minh
+              pt_BR: Ásia/Ho Chi Minh
+              zh_Hans: 亚洲/胡志明市
+            value: Asia/Ho_Chi_Minh
+          - label:
+              en_US: Asia/Tokyo
+              ja_JP: Asia/Tokyo
+              pt_BR: Asia/Tokyo
+              zh_Hans: 亚洲/东京
+            value: Asia/Tokyo
+          - label:
+              en_US: Asia/Dubai
+              ja_JP: Asia/Dubai
+              pt_BR: Asia/Dubai
+              zh_Hans: 亚洲/迪拜
+            value: Asia/Dubai
+          - label:
+              en_US: Asia/Kolkata
+              ja_JP: Asia/Kolkata
+              pt_BR: Asia/Kolkata
+              zh_Hans: 亚洲/加尔各答
+            value: Asia/Kolkata
+          - label:
+              en_US: Asia/Seoul
+              ja_JP: Asia/Seoul
+              pt_BR: Asia/Seoul
+              zh_Hans: 亚洲/首尔
+            value: Asia/Seoul
+          - label:
+              en_US: Asia/Singapore
+              ja_JP: Asia/Singapore
+              pt_BR: Asia/Singapore
+              zh_Hans: 亚洲/新加坡
+            value: Asia/Singapore
+          - label:
+              en_US: Europe/London
+              ja_JP: Europe/London
+              pt_BR: Europe/London
+              zh_Hans: 欧洲/伦敦
+            value: Europe/London
+          - label:
+              en_US: Europe/Berlin
+              ja_JP: Europe/Berlin
+              pt_BR: Europe/Berlin
+              zh_Hans: 欧洲/柏林
+            value: Europe/Berlin
+          - label:
+              en_US: Europe/Moscow
+              ja_JP: Europe/Moscow
+              pt_BR: Europe/Moscow
+              zh_Hans: 欧洲/莫斯科
+            value: Europe/Moscow
+          - label:
+              en_US: Australia/Sydney
+              ja_JP: Australia/Sydney
+              pt_BR: Australia/Sydney
+              zh_Hans: 澳大利亚/悉尼
+            value: Australia/Sydney
+          - label:
+              en_US: Pacific/Auckland
+              ja_JP: Pacific/Auckland
+              pt_BR: Pacific/Auckland
+              zh_Hans: 太平洋/奥克兰
+            value: Pacific/Auckland
+          - label:
+              en_US: Africa/Cairo
+              ja_JP: Africa/Cairo
+              pt_BR: Africa/Cairo
+              zh_Hans: 非洲/开罗
+            value: Africa/Cairo
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: select
+        params:
+          format: ''
+          timezone: ''
+        provider_id: time
+        provider_name: time
+        provider_type: builtin
+        selected: false
+        title: 获取当前年份
+        tool_configurations:
+          format: '%Y'
+          timezone: Asia/Shanghai
+        tool_description: 一个用于获取当前时间的工具。
+        tool_label: 获取当前时间
+        tool_name: current_time
+        tool_parameters: {}
+        type: tool
+      height: 116
+      id: '1746549486512'
+      position:
+        x: 3374
+        y: 493
+      positionAbsolute:
+        x: 3374
+        y: 493
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        is_team_authorization: true
+        output_schema: null
+        paramSchemas:
+        - auto_generate: null
+          default: '%Y-%m-%d %H:%M:%S'
+          form: form
+          human_description:
+            en_US: Time format in strftime standard.
+            ja_JP: Time format in strftime standard.
+            pt_BR: Time format in strftime standard.
+            zh_Hans: strftime 标准的时间格式。
+          label:
+            en_US: Format
+            ja_JP: Format
+            pt_BR: Format
+            zh_Hans: 格式
+          llm_description: null
+          max: null
+          min: null
+          name: format
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: UTC
+          form: form
+          human_description:
+            en_US: Timezone
+            ja_JP: Timezone
+            pt_BR: Timezone
+            zh_Hans: 时区
+          label:
+            en_US: Timezone
+            ja_JP: Timezone
+            pt_BR: Timezone
+            zh_Hans: 时区
+          llm_description: null
+          max: null
+          min: null
+          name: timezone
+          options:
+          - label:
+              en_US: UTC
+              ja_JP: UTC
+              pt_BR: UTC
+              zh_Hans: UTC
+            value: UTC
+          - label:
+              en_US: America/New_York
+              ja_JP: America/New_York
+              pt_BR: America/New_York
+              zh_Hans: 美洲/纽约
+            value: America/New_York
+          - label:
+              en_US: America/Los_Angeles
+              ja_JP: America/Los_Angeles
+              pt_BR: America/Los_Angeles
+              zh_Hans: 美洲/洛杉矶
+            value: America/Los_Angeles
+          - label:
+              en_US: America/Chicago
+              ja_JP: America/Chicago
+              pt_BR: America/Chicago
+              zh_Hans: 美洲/芝加哥
+            value: America/Chicago
+          - label:
+              en_US: America/Sao_Paulo
+              ja_JP: America/Sao_Paulo
+              pt_BR: América/São Paulo
+              zh_Hans: 美洲/圣保罗
+            value: America/Sao_Paulo
+          - label:
+              en_US: Asia/Shanghai
+              ja_JP: Asia/Shanghai
+              pt_BR: Asia/Shanghai
+              zh_Hans: 亚洲/上海
+            value: Asia/Shanghai
+          - label:
+              en_US: Asia/Ho_Chi_Minh
+              ja_JP: Asia/Ho_Chi_Minh
+              pt_BR: Ásia/Ho Chi Minh
+              zh_Hans: 亚洲/胡志明市
+            value: Asia/Ho_Chi_Minh
+          - label:
+              en_US: Asia/Tokyo
+              ja_JP: Asia/Tokyo
+              pt_BR: Asia/Tokyo
+              zh_Hans: 亚洲/东京
+            value: Asia/Tokyo
+          - label:
+              en_US: Asia/Dubai
+              ja_JP: Asia/Dubai
+              pt_BR: Asia/Dubai
+              zh_Hans: 亚洲/迪拜
+            value: Asia/Dubai
+          - label:
+              en_US: Asia/Kolkata
+              ja_JP: Asia/Kolkata
+              pt_BR: Asia/Kolkata
+              zh_Hans: 亚洲/加尔各答
+            value: Asia/Kolkata
+          - label:
+              en_US: Asia/Seoul
+              ja_JP: Asia/Seoul
+              pt_BR: Asia/Seoul
+              zh_Hans: 亚洲/首尔
+            value: Asia/Seoul
+          - label:
+              en_US: Asia/Singapore
+              ja_JP: Asia/Singapore
+              pt_BR: Asia/Singapore
+              zh_Hans: 亚洲/新加坡
+            value: Asia/Singapore
+          - label:
+              en_US: Europe/London
+              ja_JP: Europe/London
+              pt_BR: Europe/London
+              zh_Hans: 欧洲/伦敦
+            value: Europe/London
+          - label:
+              en_US: Europe/Berlin
+              ja_JP: Europe/Berlin
+              pt_BR: Europe/Berlin
+              zh_Hans: 欧洲/柏林
+            value: Europe/Berlin
+          - label:
+              en_US: Europe/Moscow
+              ja_JP: Europe/Moscow
+              pt_BR: Europe/Moscow
+              zh_Hans: 欧洲/莫斯科
+            value: Europe/Moscow
+          - label:
+              en_US: Australia/Sydney
+              ja_JP: Australia/Sydney
+              pt_BR: Australia/Sydney
+              zh_Hans: 澳大利亚/悉尼
+            value: Australia/Sydney
+          - label:
+              en_US: Pacific/Auckland
+              ja_JP: Pacific/Auckland
+              pt_BR: Pacific/Auckland
+              zh_Hans: 太平洋/奥克兰
+            value: Pacific/Auckland
+          - label:
+              en_US: Africa/Cairo
+              ja_JP: Africa/Cairo
+              pt_BR: Africa/Cairo
+              zh_Hans: 非洲/开罗
+            value: Africa/Cairo
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: select
+        params:
+          format: ''
+          timezone: ''
+        provider_id: time
+        provider_name: time
+        provider_type: builtin
+        selected: false
+        title: 获取当前月份
+        tool_configurations:
+          format: '%m'
+          timezone: Asia/Shanghai
+        tool_description: 一个用于获取当前时间的工具。
+        tool_label: 获取当前时间
+        tool_name: current_time
+        tool_parameters: {}
+        type: tool
+      height: 116
+      id: '1746549541358'
+      position:
+        x: 3678
+        y: 493
+      positionAbsolute:
+        x: 3678
+        y: 493
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "def main(name: str, year: int, month: str = None) -> dict:\n    # 如果name包含\"\
+          家庭\"，统一设置为\"家庭开销\"\n    if name and \"家庭\" in name:\n        name = \"家庭开销\"\
+          \n    \n    # 处理month为None的情况\n    if month is None:\n        processed_month\
+          \ = \"\"\n    else:\n        processed_month = month.lstrip('0') if month.startswith('0')\
+          \ and len(month) > 1 else month\n    \n    # 如果name是\"家庭开销\"，则只组合name和year\n\
+          \    if name == \"家庭开销\":\n        result = f\"{name}-{year}\"\n    else:\n\
+          \        # 只有当month有值时才添加到结果中\n        if processed_month:\n           \
+          \ result = f\"{name}-{year}-{processed_month}\"\n        else:\n       \
+          \     result = f\"{name}-{year}\"\n    \n    return {\n        'result':\
+          \ result,\n        'month': processed_month\n    }"
+        code_language: python3
+        desc: ''
+        outputs:
+          month:
+            children: null
+            type: string
+          result:
+            children: null
+            type: string
+        selected: false
+        title: 生成预算名称
+        type: code
+        variables:
+        - value_selector:
+          - '1746550318698'
+          - YuSuan
+          variable: name
+        - value_selector:
+          - '1746549486512'
+          - text
+          variable: year
+        - value_selector:
+          - '1746549541358'
+          - text
+          variable: month
+      height: 54
+      id: '17465495921760'
+      position:
+        x: 3982
+        y: 493
+      positionAbsolute:
+        x: 3982
+        y: 493
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        is_team_authorization: true
+        output_schema: null
+        paramSchemas:
+        - auto_generate: null
+          default: '%Y-%m-%d %H:%M:%S'
+          form: form
+          human_description:
+            en_US: Time format in strftime standard.
+            ja_JP: Time format in strftime standard.
+            pt_BR: Time format in strftime standard.
+            zh_Hans: strftime 标准的时间格式。
+          label:
+            en_US: Format
+            ja_JP: Format
+            pt_BR: Format
+            zh_Hans: 格式
+          llm_description: null
+          max: null
+          min: null
+          name: format
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: UTC
+          form: form
+          human_description:
+            en_US: Timezone
+            ja_JP: Timezone
+            pt_BR: Timezone
+            zh_Hans: 时区
+          label:
+            en_US: Timezone
+            ja_JP: Timezone
+            pt_BR: Timezone
+            zh_Hans: 时区
+          llm_description: null
+          max: null
+          min: null
+          name: timezone
+          options:
+          - label:
+              en_US: UTC
+              ja_JP: UTC
+              pt_BR: UTC
+              zh_Hans: UTC
+            value: UTC
+          - label:
+              en_US: America/New_York
+              ja_JP: America/New_York
+              pt_BR: America/New_York
+              zh_Hans: 美洲/纽约
+            value: America/New_York
+          - label:
+              en_US: America/Los_Angeles
+              ja_JP: America/Los_Angeles
+              pt_BR: America/Los_Angeles
+              zh_Hans: 美洲/洛杉矶
+            value: America/Los_Angeles
+          - label:
+              en_US: America/Chicago
+              ja_JP: America/Chicago
+              pt_BR: America/Chicago
+              zh_Hans: 美洲/芝加哥
+            value: America/Chicago
+          - label:
+              en_US: America/Sao_Paulo
+              ja_JP: America/Sao_Paulo
+              pt_BR: América/São Paulo
+              zh_Hans: 美洲/圣保罗
+            value: America/Sao_Paulo
+          - label:
+              en_US: Asia/Shanghai
+              ja_JP: Asia/Shanghai
+              pt_BR: Asia/Shanghai
+              zh_Hans: 亚洲/上海
+            value: Asia/Shanghai
+          - label:
+              en_US: Asia/Ho_Chi_Minh
+              ja_JP: Asia/Ho_Chi_Minh
+              pt_BR: Ásia/Ho Chi Minh
+              zh_Hans: 亚洲/胡志明市
+            value: Asia/Ho_Chi_Minh
+          - label:
+              en_US: Asia/Tokyo
+              ja_JP: Asia/Tokyo
+              pt_BR: Asia/Tokyo
+              zh_Hans: 亚洲/东京
+            value: Asia/Tokyo
+          - label:
+              en_US: Asia/Dubai
+              ja_JP: Asia/Dubai
+              pt_BR: Asia/Dubai
+              zh_Hans: 亚洲/迪拜
+            value: Asia/Dubai
+          - label:
+              en_US: Asia/Kolkata
+              ja_JP: Asia/Kolkata
+              pt_BR: Asia/Kolkata
+              zh_Hans: 亚洲/加尔各答
+            value: Asia/Kolkata
+          - label:
+              en_US: Asia/Seoul
+              ja_JP: Asia/Seoul
+              pt_BR: Asia/Seoul
+              zh_Hans: 亚洲/首尔
+            value: Asia/Seoul
+          - label:
+              en_US: Asia/Singapore
+              ja_JP: Asia/Singapore
+              pt_BR: Asia/Singapore
+              zh_Hans: 亚洲/新加坡
+            value: Asia/Singapore
+          - label:
+              en_US: Europe/London
+              ja_JP: Europe/London
+              pt_BR: Europe/London
+              zh_Hans: 欧洲/伦敦
+            value: Europe/London
+          - label:
+              en_US: Europe/Berlin
+              ja_JP: Europe/Berlin
+              pt_BR: Europe/Berlin
+              zh_Hans: 欧洲/柏林
+            value: Europe/Berlin
+          - label:
+              en_US: Europe/Moscow
+              ja_JP: Europe/Moscow
+              pt_BR: Europe/Moscow
+              zh_Hans: 欧洲/莫斯科
+            value: Europe/Moscow
+          - label:
+              en_US: Australia/Sydney
+              ja_JP: Australia/Sydney
+              pt_BR: Australia/Sydney
+              zh_Hans: 澳大利亚/悉尼
+            value: Australia/Sydney
+          - label:
+              en_US: Pacific/Auckland
+              ja_JP: Pacific/Auckland
+              pt_BR: Pacific/Auckland
+              zh_Hans: 太平洋/奥克兰
+            value: Pacific/Auckland
+          - label:
+              en_US: Africa/Cairo
+              ja_JP: Africa/Cairo
+              pt_BR: Africa/Cairo
+              zh_Hans: 非洲/开罗
+            value: Africa/Cairo
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: select
+        params:
+          format: ''
+          timezone: ''
+        provider_id: time
+        provider_name: time
+        provider_type: builtin
+        selected: false
+        title: 获取当前日期
+        tool_configurations:
+          format: '%Y-%m-%d'
+          timezone: Asia/Shanghai
+        tool_description: 一个用于获取当前时间的工具。
+        tool_label: 获取当前时间
+        tool_name: current_time
+        tool_parameters: {}
+        type: tool
+      height: 116
+      id: '1746549859456'
+      position:
+        x: 4286
+        y: 103.57142857142853
+      positionAbsolute:
+        x: 4286
+        y: 103.57142857142853
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        instruction: '根据今天的日期：{{#1746549859456.text#}}
+
+          以及以下语句的语境：{{#sys.query#}}
+
+          判断流水发生的日期；
+
+          如果语句未明确提到时间，则默认输入今天的日期。'
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: Qwen/Qwen2.5-32B-Instruct
+          provider: langgenius/siliconflow/siliconflow
+        parameters:
+        - description: 流水日期
+          name: LiuShui_Date
+          required: false
+          type: string
+        query:
+        - '1746549859456'
+        - text
+        reasoning_mode: prompt
+        selected: false
+        title: 确定流水发生日期
+        type: parameter-extractor
+        variables: []
+        vision:
+          enabled: false
+      height: 90
+      id: '1746549934072'
+      position:
+        x: 4590
+        y: 103.57142857142853
+      positionAbsolute:
+        x: 4590
+        y: 103.57142857142853
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        instruction: '根据输入的流水明细：{{#1746550371697.output#}}
+
+          提取明细的名称，赋值给Name
+
+          流水的类型，为支出还是收入，赋值给Type
+
+          分类：严格从{{#1746548495304.result#}}中选择符合流水的分类，根据支出或收入，选择合适的分类；分类不要包含支出或输入字样，仅包含最终的分类信息。（特殊规则：开通会员账号或者订阅，属于数码分类）
+
+          预算信息：如果提到预算信息，则输出对应的预算名称；如果没有提及，预算名称则为{{#1746594655609.result#}}
+
+          金额：提到的金额信息，仅保存数字，不要加任何文字'
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: Qwen/Qwen2.5-32B-Instruct
+          provider: langgenius/siliconflow/siliconflow
+        parameters:
+        - description: 明细名称
+          name: Name
+          required: false
+          type: string
+        - description: 支出或收入
+          name: Type
+          required: false
+          type: string
+        - description: 分类
+          name: class
+          required: false
+          type: string
+        - description: 预算信息
+          name: YuSuan
+          required: false
+          type: string
+        - description: 金额
+          name: JinE
+          required: false
+          type: number
+        query:
+        - sys
+        - query
+        reasoning_mode: prompt
+        selected: false
+        title: 提取明细以及分类信息
+        type: parameter-extractor
+        variables: []
+        vision:
+          enabled: false
+      height: 90
+      id: '1746550318698'
+      position:
+        x: 3070
+        y: 311
+      positionAbsolute:
+        x: 3070
+        y: 311
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        output_type: string
+        selected: false
+        title: 聚合流水明细
+        type: variable-aggregator
+        variables:
+        - - '1746550450564'
+          - output
+        - - '1746595346612'
+          - text
+      height: 131
+      id: '1746550371697'
+      position:
+        x: 1854
+        y: 311
+      positionAbsolute:
+        x: 1854
+        y: 311
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        selected: false
+        template: '{{ arg1 }}'
+        title: 提取文字输入
+        type: template-transform
+        variables:
+        - value_selector:
+          - sys
+          - query
+          variable: arg1
+      height: 54
+      id: '1746550450564'
+      position:
+        x: 1550
+        y: 311
+      positionAbsolute:
+        x: 1550
+        y: 311
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: ''
+          type: none
+        desc: ''
+        headers: 'Accept:application/json
+
+          Authorization:Bearer {{#env.Nocobase_API#}}
+
+          X-Locale:zh-CN
+
+          X-Role:root'
+        method: get
+        params: 'pageSize:20
+
+          page:1
+
+          filter:{"$and":[{"f_FenLei_Name":{"$includes":"{{#1746550318698.class#}}"}}]}'
+        retry_config:
+          max_retries: 3
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: true
+        timeout:
+          max_connect_timeout: 0
+          max_read_timeout: 0
+          max_write_timeout: 0
+        title: 获取分类ID
+        type: http-request
+        url: '{{#env.Nocobase_URL#}}/api/t_FenLei:list'
+        variables: []
+      height: 142
+      id: '1746551904312'
+      position:
+        x: 4286
+        y: 311
+      positionAbsolute:
+        x: 4286
+        y: 311
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - type: text
+            value: ''
+          type: none
+        desc: ''
+        headers: 'Accept:application/json
+
+          Authorization:Bearer {{#env.Nocobase_API#}}
+
+          X-Locale:zh-CN
+
+          X-Role:root'
+        method: get
+        params: 'pageSize:20
+
+          sort[]:-f_YuSuan_ShengXiaoRiQi
+
+          appends[]:f_YuSuan_YongHu
+
+          page:1
+
+          filter:{"$and":[{"$and":[{"f_YuSuan_Name":{"$eq":"{{#17465495921760.result#}}"}}]}]}'
+        retry_config:
+          max_retries: 3
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: true
+        timeout:
+          max_connect_timeout: 0
+          max_read_timeout: 0
+          max_write_timeout: 0
+        title: 获取预算ID
+        type: http-request
+        url: '{{#env.Nocobase_URL#}}/api/t_YuSuan:list'
+        variables: []
+      height: 142
+      id: '1746552052543'
+      position:
+        x: 4286
+        y: 493
+      positionAbsolute:
+        x: 4286
+        y: 493
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "import json\nimport re\n\ndef main(data: str) -> dict:\n    try:\n\
+          \        # 处理输入为null的情况\n        if data is None or data.strip().lower()\
+          \ == \"null\":\n            return {\"result\": \"\"}\n            \n  \
+          \      # 首先尝试直接解析\n        try:\n            json_data = json.loads(data)\n\
+          \        except json.JSONDecodeError:\n            # 如果解析失败，尝试清理字符串\n  \
+          \          # 检查是否是嵌套的JSON字符串（字符串中的JSON）\n            if data.startswith('{')\
+          \ and '\"data\":' in data:\n                # 尝试提取并清理内部JSON\n          \
+          \      match = re.search(r'\"data\":\\s*\"(.*?)\"(?:,|$)', data)\n     \
+          \           if match:\n                    inner_json = match.group(1)\n\
+          \                    # 替换转义字符\n                    inner_json = inner_json.replace('\\\
+          \\\\\\', '\\\\').replace('\\\\\"', '\"')\n                    # 尝试解析清理后的JSON\n\
+          \                    json_data = json.loads(inner_json)\n              \
+          \  else:\n                    # 如果没有匹配到内部JSON，尝试清理整个字符串\n              \
+          \      cleaned_data = re.sub(r'\\\\+([\"\\\\\\'])', r'\\1', data)\n    \
+          \                json_data = json.loads(cleaned_data)\n            else:\n\
+          \                # 如果不是嵌套的JSON，直接清理整个字符串\n                cleaned_data =\
+          \ re.sub(r'\\\\+([\"\\\\\\'])', r'\\1', data)\n                json_data\
+          \ = json.loads(cleaned_data)\n        \n        # 检查data数组是否存在且不为空\n   \
+          \     if not json_data.get('data') or len(json_data['data']) == 0:\n   \
+          \         return {\"result\": \"\"}\n        \n        # 提取第一个对象的id值并转换为字符串\n\
+          \        id_value = json_data['data'][0].get('id')\n        if id_value\
+          \ is not None:\n            return {\"result\": str(id_value)}\n       \
+          \ else:\n            return {\"result\": \"\"}\n    except Exception as\
+          \ e:\n        # 如果所有尝试都失败，尝试使用正则表达式直接从字符串中提取ID\n        try:\n         \
+          \   # 使用正则表达式匹配ID\n            id_match = re.search(r'\\\\+\"id\\\\+\":\\\
+          s*(\\d+)', data)\n            if id_match:\n                id_value = id_match.group(1)\
+          \  # 已经是字符串\n                return {\"result\": id_value}\n           \
+          \ else:\n                return {\"result\": \"\"}\n        except Exception\
+          \ as e2:\n            return {\"result\": \"\"}"
+        code_language: python3
+        desc: ''
+        outputs:
+          result:
+            children: null
+            type: string
+        selected: true
+        title: 获取预算ID
+        type: code
+        variables:
+        - value_selector:
+          - '1746552052543'
+          - body
+          variable: data
+      height: 54
+      id: '1746552392497'
+      position:
+        x: 4590
+        y: 493
+      positionAbsolute:
+        x: 4590
+        y: 493
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "import json\nimport re\n\ndef main(data: str) -> dict:\n    try:\n\
+          \        # 处理输入为null的情况\n        if data is None or data.strip().lower()\
+          \ == \"null\":\n            return {\"result\": \"\"}\n            \n  \
+          \      # 首先尝试直接解析\n        try:\n            json_data = json.loads(data)\n\
+          \        except json.JSONDecodeError:\n            # 如果解析失败，尝试清理字符串\n  \
+          \          # 检查是否是嵌套的JSON字符串（字符串中的JSON）\n            if data.startswith('{')\
+          \ and '\"data\":' in data:\n                # 尝试提取并清理内部JSON\n          \
+          \      match = re.search(r'\"data\":\\s*\"(.*?)\"(?:,|$)', data)\n     \
+          \           if match:\n                    inner_json = match.group(1)\n\
+          \                    # 替换转义字符\n                    inner_json = inner_json.replace('\\\
+          \\\\\\', '\\\\').replace('\\\\\"', '\"')\n                    # 尝试解析清理后的JSON\n\
+          \                    json_data = json.loads(inner_json)\n              \
+          \  else:\n                    # 如果没有匹配到内部JSON，尝试清理整个字符串\n              \
+          \      cleaned_data = re.sub(r'\\\\+([\"\\\\\\'])', r'\\1', data)\n    \
+          \                json_data = json.loads(cleaned_data)\n            else:\n\
+          \                # 如果不是嵌套的JSON，直接清理整个字符串\n                cleaned_data =\
+          \ re.sub(r'\\\\+([\"\\\\\\'])', r'\\1', data)\n                json_data\
+          \ = json.loads(cleaned_data)\n        \n        # 检查data数组是否存在且不为空\n   \
+          \     if not json_data.get('data') or len(json_data['data']) == 0:\n   \
+          \         return {\"result\": \"\"}\n        \n        # 提取第一个对象的id值并转换为字符串\n\
+          \        id_value = json_data['data'][0].get('id')\n        if id_value\
+          \ is not None:\n            return {\"result\": str(id_value)}\n       \
+          \ else:\n            return {\"result\": \"\"}\n    except Exception as\
+          \ e:\n        # 如果所有尝试都失败，尝试使用正则表达式直接从字符串中提取ID\n        try:\n         \
+          \   # 使用正则表达式匹配ID\n            id_match = re.search(r'\\\\+\"id\\\\+\":\\\
+          s*(\\d+)', data)\n            if id_match:\n                id_value = id_match.group(1)\
+          \  # 已经是字符串\n                return {\"result\": id_value}\n           \
+          \ else:\n                return {\"result\": \"\"}\n        except Exception\
+          \ as e2:\n            return {\"result\": \"\"}"
+        code_language: python3
+        desc: ''
+        outputs:
+          result:
+            children: null
+            type: string
+        selected: false
+        title: 提取分类ID
+        type: code
+        variables:
+        - value_selector:
+          - '1746551904312'
+          - body
+          variable: data
+      height: 54
+      id: '1746552876412'
+      position:
+        x: 4590
+        y: 311
+      positionAbsolute:
+        x: 4590
+        y: 311
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - type: text
+            value: "{\n    \"f_LiuShui_FangXiang\": \"{{#1746550318698.Type#}}\",\n\
+              \    \"f_LiuShui_FenLei\": {\n        \"id\": {{#1746552876412.result#}}\n\
+              \    },\n    \"f_LiuShui_RiQi\": \"{{#1746549934072.LiuShui_Date#}}\"\
+              ,\n    \"f_LiuShui_User\": {\n        \"id\": {{#1746546784219.result#}}\n\
+              \    },\n    \"f_LiuShui_Year\": {{#1746549486512.text#}},\n    \"f_LiuShui_Month\"\
+              : {{#17465495921760.month#}},\n    \"f_LiuShui_Name\": \"{{#1746550318698.Name#}}\"\
+              ,\n    \"f_LiuShui_JinE\": {{#1746550318698.JinE#}},\n    \"f_LiuShui_YuSuan\"\
+              : {\n        \"id\": {{#1746552392497.result#}}\n    }\n}"
+          type: raw-text
+        desc: ''
+        headers: 'Accept:application/json
+
+          Authorization:Bearer {{#env.Nocobase_API#}}
+
+          Content-Type:application/json
+
+          X-Locale:zh-CN
+
+          X-Role:root'
+        method: post
+        params: triggerWorkflows:g1kn1g4e814
+        retry_config:
+          max_retries: 3
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: true
+        timeout:
+          max_connect_timeout: 0
+          max_read_timeout: 0
+          max_write_timeout: 0
+        title: 创建流水
+        type: http-request
+        url: '{{#env.Nocobase_URL#}}/api/t_LiuShui:create'
+        variables: []
+      height: 142
+      id: '1746552975531'
+      position:
+        x: 4894
+        y: 493
+      positionAbsolute:
+        x: 4894
+        y: 493
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "def main(status_code: int) -> dict:\n    if status_code == 200:\n \
+          \       return {'result': '创建成功（200）'}\n    else:\n        return {'result':\
+          \ f'创建失败（{status_code}）'}"
+        code_language: python3
+        desc: ''
+        outputs:
+          result:
+            children: null
+            type: string
+        selected: false
+        title: 判定是否创建成功
+        type: code
+        variables:
+        - value_selector:
+          - '1746552975531'
+          - status_code
+          variable: status_code
+      height: 54
+      id: '1746581525468'
+      position:
+        x: 5198
+        y: 493
+      positionAbsolute:
+        x: 5198
+        y: 493
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "def main(text: str) -> dict:\n    name = text.split('==')[-1]\n   \
+          \ return {'result': name}"
+        code_language: python3
+        desc: ''
+        outputs:
+          result:
+            children: null
+            type: string
+        selected: false
+        title: 提取用户名
+        type: code
+        variables:
+        - value_selector:
+          - sys
+          - user_id
+          variable: text
+      height: 54
+      id: '1746594655609'
+      position:
+        x: 334
+        y: 311
+      positionAbsolute:
+        x: 334
+        y: 311
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: ''
+        model:
+          completion_params: {}
+          mode: chat
+          name: qwen2.5-vl-7b-instruct
+          provider: langgenius/tongyi/tongyi
+        prompt_template:
+        - id: 2a6e68ff-a605-4896-98bb-fbfc635c006d
+          role: system
+          text: "```xml\n<instruction>\n1. 任务目标：从提供的图片中提取消费明细、消费金额和消费时间，并按照指定格式输出。\n\
+            2. 输入：用户将提供包含消费信息的图片。\n3. 处理步骤：\n   - 第一步：识别图片中的文字内容，确保所有文本信息被准确提取。\n\
+            \   - 第二步：从提取的文本中筛选出消费明细（如商品名称或服务描述）、消费金额（通常为数字形式，可能带有货币符号）和消费时间（日期或时间戳）。\n\
+            \   - 第三步：将提取的信息按照以下格式整理：\n     - 消费明细：[具体消费项目，请精简内容，不超过10个字]\n     -\
+            \ 消费金额：[金额数字，不含货币符号]\n     - 消费时间：[年-月-日，举例：2025-05-05]\n   - 第四步：确保输出内容清晰、准确，不包含任何XML标签或其他无关符号。\n\
+            4. 输出要求：仅输出提取的信息，格式为纯文本，每项信息占一行，无需额外标注或说明。\n<example>\n输入：一张包含“咖啡 ￥35.00\
+            \ 2023-10-15 14:30:00”的图片。\n输出：\n消费明细：咖啡\n消费金额：35.00\n消费时间：2023-10-15\n\
+            </example>\n\n<example>\n输入：一张包含“午餐套餐 ￥120.50 2023-10-16 12:15:00”的图片。\n\
+            输出：\n消费明细：午餐套餐\n消费金额：120.50\n消费时间：2023-10-16\n</example>\n\n\n<note>\n\
+            1. 如果图片中的信息不完整或模糊，请明确标注缺失的部分，例如“消费时间：无法识别”。\n2. 确保消费金额仅为数字，不包含货币符号或单位。并注意，其中可能存在先用后付款的订单，订单金额可能为0.但一定会标注最终付款的金额，\
+            \ 请输出最终付款的金额\n3. 消费时间的格式应统一为“年-月-日”，若原始格式不同，请转换为该格式。\n4. 输出时无需添加任何无关文本内容。"
+        selected: false
+        structured_output_enabled: false
+        title: 识别图片内容
+        type: llm
+        variables: []
+        vision:
+          configs:
+            detail: high
+            variable_selector:
+            - sys
+            - files
+          enabled: true
+      height: 90
+      id: '1746595346612'
+      position:
+        x: 1550
+        y: 405
+      positionAbsolute:
+        x: 1550
+        y: 405
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        classes:
+        - id: '1'
+          name: 记账相关
+        - id: '2'
+          name: 记账无关
+        desc: ''
+        instruction: '判断传入信息：如果包含流水的明细、金额、日期，则判定为分类1：记账相关；
+
+          否则判断与记账无关。'
+        instructions: ''
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: Qwen/Qwen2.5-32B-Instruct
+          provider: langgenius/siliconflow/siliconflow
+        query_variable_selector:
+        - '1746550371697'
+        - output
+        selected: false
+        title: 判断是否与记账信息有关
+        topics: []
+        type: question-classifier
+        vision:
+          enabled: false
+      height: 172
+      id: '1746597069745'
+      position:
+        x: 2158
+        y: 311
+      positionAbsolute:
+        x: 2158
+        y: 311
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    viewport:
+      x: -2401.9999999999995
+      y: 86
+      zoom: 0.7
