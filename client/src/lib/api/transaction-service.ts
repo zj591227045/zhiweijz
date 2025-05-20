@@ -105,6 +105,7 @@ export async function createTransaction(data: {
   accountBookId: string;
   familyId?: string;
   familyMemberId?: string;
+  budgetId?: string; // 预算ID
 }) {
   try {
     const response = await apiClient.post<Transaction | { data: Transaction }>("/transactions", data);

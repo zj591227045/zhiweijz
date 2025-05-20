@@ -4,12 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useTransactionFormStore } from "@/store/transaction-form-store";
+import { Budget, useTransactionFormStore } from "@/store/transaction-form-store";
 import { useAccountBookStore } from "@/store/account-book-store";
-import { getCategories, getAccountBooks, createTransaction } from "@/lib/api/transaction-service";
+import { getCategories, createTransaction } from "@/lib/api/transaction-service";
 import { TransactionType } from "@/types";
 import { formatDateForAPI, cn } from "@/lib/utils";
 import { NumericKeyboard } from "./numeric-keyboard";
+import { BudgetSelector } from "./budget-selector";
+import { budgetService } from "@/lib/api/budget-service";
+import "./budget-selector.css";
 
 // 交易类型切换组件
 function TransactionTypeToggle() {
@@ -299,10 +302,10 @@ export function TransactionAddPage() {
   const router = useRouter();
   const {
     amount, type, categoryId, categoryName, categoryIcon, description,
-    date, time, accountBookId, familyId, familyMemberId,
-    currentStep, isSubmitting,
+    date, time, accountBookId, familyId, familyMemberId, budgetId,
+    currentStep, isSubmitting, selectedBudget,
     setAccountBookId, resetForm, setSubmitting, setSubmitError,
-    setDescription, setDate, setTime, goToStep
+    setDescription, setDate, setTime, goToStep, setBudgets, setSelectedBudget
   } = useTransactionFormStore();
 
   // 获取全局账本状态
@@ -314,25 +317,58 @@ export function TransactionAddPage() {
     queryFn: () => getCategories(type),
   });
 
-  // 获取账本列表
-  const { data: accountBooksData } = useQuery({
-    queryKey: ["accountBooks"],
-    queryFn: getAccountBooks,
+  // 获取活跃预算列表
+  const { data: activeBudgets } = useQuery({
+    queryKey: ["activeBudgets", currentAccountBook?.id],
+    queryFn: () => currentAccountBook?.id ? budgetService.getActiveBudgets(currentAccountBook.id) : Promise.resolve([]),
+    enabled: !!currentAccountBook?.id,
   });
 
-  // 当账本数据加载完成后，设置默认账本
+  // 当全局账本变化时，设置账本ID
   useEffect(() => {
-    if (accountBooksData && accountBooksData.length > 0 && !accountBookId) {
-      // 优先使用全局账本
-      if (currentAccountBook) {
-        setAccountBookId(currentAccountBook.id);
-      } else {
-        // 如果没有全局账本，使用默认账本或第一个账本
-        const defaultBook = accountBooksData.find(book => book.isDefault) || accountBooksData[0];
-        setAccountBookId(defaultBook.id);
+    if (currentAccountBook && (!accountBookId || accountBookId !== currentAccountBook.id)) {
+      console.log("设置账本ID:", currentAccountBook.id);
+      setAccountBookId(currentAccountBook.id);
+    }
+  }, [currentAccountBook, accountBookId, setAccountBookId]);
+
+  // 当活跃预算数据加载完成后，设置预算列表和默认预算
+  useEffect(() => {
+    if (activeBudgets && activeBudgets.length > 0) {
+      console.log("获取到活跃预算:", activeBudgets);
+
+      // 转换预算数据格式
+      const formattedBudgets: Budget[] = activeBudgets.map(budget => ({
+        id: budget.id,
+        name: budget.name,
+        amount: budget.amount,
+        spent: budget.spent || 0,
+        remaining: budget.remaining || (budget.amount - (budget.spent || 0)),
+        percentage: budget.percentage || 0,
+        userId: budget.userId,
+        userName: budget.userName,
+        familyMemberId: budget.familyMemberId,
+        familyMemberName: budget.familyMemberName,
+        rolloverAmount: budget.rolloverAmount || 0
+      }));
+
+      setBudgets(formattedBudgets);
+
+      // 如果没有选中的预算，设置默认预算（用户自己的个人预算）
+      if (!selectedBudget) {
+        // 查找用户自己的个人预算（没有familyMemberId的预算）
+        const personalBudget = formattedBudgets.find(b => !b.familyMemberId);
+        if (personalBudget) {
+          console.log("设置默认个人预算:", personalBudget);
+          setSelectedBudget(personalBudget);
+        } else if (formattedBudgets.length > 0) {
+          // 如果没有找到个人预算，使用第一个预算
+          console.log("未找到个人预算，使用第一个预算:", formattedBudgets[0]);
+          setSelectedBudget(formattedBudgets[0]);
+        }
       }
     }
-  }, [accountBooksData, accountBookId, setAccountBookId, currentAccountBook]);
+  }, [activeBudgets, selectedBudget, setBudgets, setSelectedBudget]);
 
   // 处理返回按钮点击
   const handleBackClick = () => {
@@ -364,6 +400,8 @@ export function TransactionAddPage() {
         return;
       }
 
+      // 预算ID是可选的，不做验证
+
       // 合并日期和时间
       const [hours, minutes] = time.split(":");
       const transactionDate = new Date(date);
@@ -379,6 +417,7 @@ export function TransactionAddPage() {
         accountBookId,
         familyId: familyId || undefined,
         familyMemberId: familyMemberId || undefined,
+        budgetId: budgetId || undefined,
       };
 
       // 提交数据
@@ -491,25 +530,9 @@ export function TransactionAddPage() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">账本</label>
+                <label className="form-label">预算</label>
                 <div className="form-input">
-                  <select
-                    value={accountBookId || ""}
-                    onChange={(e) => setAccountBookId(e.target.value)}
-                  >
-                    <option value="" disabled>
-                      选择账本
-                    </option>
-                    {accountBooksData && accountBooksData.length > 0 ? (
-                      accountBooksData.map((book) => (
-                        <option key={book.id} value={book.id}>
-                          {book.name}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="" disabled>加载中...</option>
-                    )}
-                  </select>
+                  <BudgetSelector />
                 </div>
               </div>
             </div>
