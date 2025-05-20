@@ -5,23 +5,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AccountBook } from "@/types";
-import { AIServiceConfig } from "./ai-service-config";
-import { AdvancedSettings } from "./advanced-settings";
 import { BookPreview } from "./book-preview";
+import { AIServiceBinding } from "./ai-service-binding";
 
 // 表单验证模式
 const bookFormSchema = z.object({
   name: z.string().min(1, "账本名称不能为空").max(30, "账本名称不能超过30个字符"),
   description: z.string().max(100, "账本描述不能超过100个字符").optional(),
   isDefault: z.boolean().optional().default(false),
-  aiService: z.object({
-    enabled: z.boolean().optional().default(false),
-    provider: z.string().optional(),
-    model: z.string().optional(),
-    apiKey: z.string().optional(),
-    customPrompt: z.string().optional(),
-    language: z.string().optional(),
-  }).optional().default({}),
 });
 
 export type BookFormValues = z.infer<typeof bookFormSchema>;
@@ -34,17 +25,14 @@ interface BookFormProps {
 }
 
 export function BookForm({ id = "book-form", book, isSubmitting = false, onSubmit }: BookFormProps) {
-  const [aiEnabled, setAiEnabled] = useState(book?.aiService?.enabled || false);
   const [previewData, setPreviewData] = useState<{
     name: string;
     description: string;
     isDefault: boolean;
-    aiEnabled: boolean;
   }>({
     name: book?.name || "个人账本",
     description: book?.description || "日常开支记录",
     isDefault: book?.isDefault || false,
-    aiEnabled: false,
   });
 
   // 表单初始化
@@ -52,7 +40,6 @@ export function BookForm({ id = "book-form", book, isSubmitting = false, onSubmi
     register,
     handleSubmit,
     watch,
-    setValue,
     formState: { errors },
   } = useForm<BookFormValues>({
     resolver: zodResolver(bookFormSchema),
@@ -60,14 +47,6 @@ export function BookForm({ id = "book-form", book, isSubmitting = false, onSubmi
       name: book?.name || "",
       description: book?.description || "",
       isDefault: book?.isDefault || false,
-      aiService: {
-        enabled: book?.aiService?.enabled || false,
-        provider: book?.aiService?.provider || "OpenAI",
-        model: book?.aiService?.model || "gpt-4",
-        apiKey: book?.aiService?.apiKey || "",
-        customPrompt: book?.aiService?.customPrompt || "",
-        language: book?.aiService?.language || "zh-CN",
-      },
     },
   });
 
@@ -75,7 +54,6 @@ export function BookForm({ id = "book-form", book, isSubmitting = false, onSubmi
   const watchedName = watch("name");
   const watchedDescription = watch("description");
   const watchedIsDefault = watch("isDefault");
-  const watchedAiEnabled = watch("aiService.enabled");
 
   // 当表单值变化时更新预览
   useEffect(() => {
@@ -83,19 +61,8 @@ export function BookForm({ id = "book-form", book, isSubmitting = false, onSubmi
       name: watchedName || "账本名称",
       description: watchedDescription || "账本描述",
       isDefault: watchedIsDefault || false,
-      aiEnabled: watchedAiEnabled || false,
     });
-  }, [watchedName, watchedDescription, watchedIsDefault, watchedAiEnabled]);
-
-  // 处理AI服务启用/禁用
-  const handleAiToggle = (enabled: boolean) => {
-    setValue("aiService.enabled", enabled);
-    setAiEnabled(enabled);
-    setPreviewData(prev => ({
-      ...prev,
-      aiEnabled: enabled,
-    }));
-  };
+  }, [watchedName, watchedDescription, watchedIsDefault]);
 
   return (
     <form id={id} onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -146,30 +113,16 @@ export function BookForm({ id = "book-form", book, isSubmitting = false, onSubmi
         <div className="form-hint">默认账本将在登录后自动选择</div>
       </div>
 
-      {/* AI服务配置 */}
-      <div className="section-title">AI服务配置</div>
-
-      <AIServiceConfig
-        register={register}
-        setValue={setValue}
-        errors={errors}
-        enabled={aiEnabled}
-        onToggle={handleAiToggle}
-      />
-
-      {/* 高级设置 */}
-      <AdvancedSettings
-        register={register}
-        errors={errors}
-        enabled={aiEnabled}
-      />
+      {/* AI服务绑定 */}
+      {book?.id && (
+        <AIServiceBinding accountBookId={book.id} />
+      )}
 
       {/* 预览 */}
       <BookPreview
         name={previewData.name}
         description={previewData.description}
         isDefault={previewData.isDefault}
-        aiEnabled={previewData.aiEnabled}
       />
 
       {/* 底部按钮 - 在页面组件中实现 */}

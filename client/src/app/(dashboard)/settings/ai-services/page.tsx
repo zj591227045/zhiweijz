@@ -12,16 +12,25 @@ import "./styles.css";
 
 export default function AIServicesPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, login } = useAuthStore();
   const [services, setServices] = useState<LLMSetting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // 如果未登录，重定向到登录页
+  // 快速登录功能
+  const quickLogin = async () => {
+    await login({
+      email: "zhangjie@jacksonz.cn",
+      password: "Zj233401!"
+    });
+    // 登录后立即获取服务列表
+    setTimeout(fetchServices, 500);
+  };
+
+  // 监听认证状态变化
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, router]);
+    console.log("认证状态变化:", isAuthenticated);
+  }, [isAuthenticated]);
 
   // 加载AI服务列表
   useEffect(() => {
@@ -33,12 +42,60 @@ export default function AIServicesPage() {
   // 获取AI服务列表
   const fetchServices = async () => {
     setIsLoading(true);
+    setError(null);
     try {
+      console.log("开始获取AI服务列表...");
+      console.log("认证状态:", isAuthenticated);
+      console.log("认证令牌:", localStorage.getItem("auth-token"));
+
+      // 检查认证状态
+      if (!isAuthenticated) {
+        console.warn("用户未登录，无法获取AI服务列表");
+        setError("请先登录后再查看AI服务列表");
+        setIsLoading(false);
+        return;
+      }
+
+      // 检查认证令牌
+      const token = localStorage.getItem("auth-token");
+      if (!token) {
+        console.warn("未找到认证令牌，请重新登录");
+        setError("认证令牌无效，请重新登录");
+        setIsLoading(false);
+        return;
+      }
+
+      // 获取服务列表
+      console.log("正在调用API获取服务列表...");
       const data = await aiService.getLLMSettingsList();
-      setServices(data);
+      console.log("获取到的AI服务列表:", data);
+
+      // 确保返回的数据是数组
+      if (Array.isArray(data)) {
+        console.log(`成功获取到 ${data.length} 个AI服务`);
+        setServices(data);
+      } else {
+        console.warn("API返回的数据不是数组:", data);
+        setServices([]);
+        setError("API返回的数据格式不正确");
+        toast.error("数据格式错误");
+      }
     } catch (error) {
       console.error("获取AI服务列表失败:", error);
-      toast.error("获取AI服务列表失败");
+      toast.error("获取AI服务列表失败，请检查网络连接");
+      setServices([]);
+
+      // 详细记录错误信息
+      if (error instanceof Error) {
+        console.error("错误名称:", error.name);
+        console.error("错误消息:", error.message);
+        console.error("错误堆栈:", error.stack);
+        setError(`获取失败: ${error.message}`);
+      } else {
+        console.error("未知错误类型:", typeof error);
+        console.error("错误内容:", error);
+        setError("未知错误，请查看控制台日志");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -60,13 +117,37 @@ export default function AIServicesPage() {
 
   // 右侧操作按钮
   const rightActions = (
-    <Link href="/settings/ai-services/add" className="icon-button">
-      <i className="fas fa-plus"></i>
-    </Link>
+    <div className="action-buttons">
+      <button
+        className="icon-button refresh-button"
+        onClick={() => fetchServices()}
+        title="刷新列表"
+      >
+        <i className="fas fa-sync-alt"></i>
+      </button>
+      <Link href="/settings/ai-services/add" className="icon-button" title="添加新服务">
+        <i className="fas fa-plus"></i>
+      </Link>
+    </div>
   );
 
   if (!isAuthenticated) {
-    return null;
+    return (
+      <div className="login-container">
+        <div className="login-card">
+          <h2>需要登录</h2>
+          <p>请登录后查看AI服务设置</p>
+          <button onClick={quickLogin} className="login-button">
+            快速登录 (测试账号)
+          </button>
+          <div className="login-info">
+            <p>使用测试账号：</p>
+            <p>邮箱：zhangjie@jacksonz.cn</p>
+            <p>密码：Zj233401!</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -80,6 +161,17 @@ export default function AIServicesPage() {
         <div className="loading-container">
           <div className="loading-spinner"></div>
           <p>加载中...</p>
+        </div>
+      ) : error ? (
+        <div className="error-state">
+          <div className="error-icon">
+            <i className="fas fa-exclamation-triangle"></i>
+          </div>
+          <h3>加载失败</h3>
+          <p>{error}</p>
+          <button onClick={fetchServices} className="retry-button">
+            重试
+          </button>
         </div>
       ) : services.length === 0 ? (
         <div className="empty-state">

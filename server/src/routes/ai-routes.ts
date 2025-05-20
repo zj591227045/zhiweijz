@@ -6,7 +6,14 @@ const router = Router();
 const aiController = new AIController();
 
 /**
- * @route POST /api/ai/account/:accountId/smart-accounting
+ * @route GET /api/ai/providers
+ * @desc 获取可用的AI提供商列表
+ * @access Public
+ */
+router.get('/providers', aiController.getProviders.bind(aiController));
+
+/**
+ * @route POST /ai/account/:accountId/smart-accounting
  * @desc 智能记账 - 需要提供账本ID作为URL参数
  * @access Private
  */
@@ -34,17 +41,38 @@ router.get('/llm-settings/list', authenticate, aiController.getUserLLMSettingsLi
 router.post('/llm-settings', authenticate, aiController.createUserLLMSettings.bind(aiController));
 
 /**
- * @route GET /api/ai/account/:accountId/llm-settings
+ * @route GET /ai/account/:accountId/llm-settings
  * @desc 获取账本LLM设置
  * @access Private
  */
 router.get('/account/:accountId/llm-settings', authenticate, aiController.getAccountLLMSettings.bind(aiController));
 
 /**
- * @route PUT /api/ai/account/:accountId/llm-settings
+ * @route PUT /ai/account/:accountId/llm-settings
  * @desc 更新账本LLM设置 - 绑定到用户的LLM设置
  * @access Private
  */
 router.put('/account/:accountId/llm-settings', authenticate, aiController.updateAccountLLMSettings.bind(aiController));
+
+/**
+ * @route PUT /api/ai/llm-settings/:id
+ * @desc 更新用户LLM设置
+ * @access Private
+ */
+router.put('/llm-settings/:id', authenticate, aiController.updateUserLLMSettingsById.bind(aiController));
+
+/**
+ * @route DELETE /api/ai/llm-settings/:id
+ * @desc 删除用户LLM设置
+ * @access Private
+ */
+router.delete('/llm-settings/:id', authenticate, aiController.deleteUserLLMSettings.bind(aiController));
+
+/**
+ * @route POST /ai/llm-settings/test
+ * @desc 测试LLM连接
+ * @access Private
+ */
+router.post('/llm-settings/test', authenticate, aiController.testLLMConnection.bind(aiController));
 
 export default router;

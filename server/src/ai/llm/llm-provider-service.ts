@@ -58,6 +58,14 @@ export class LLMProviderService {
   }
 
   /**
+   * 获取所有注册的提供商名称
+   * @returns 提供商名称集合
+   */
+  public getProviderNames(): Set<string> {
+    return new Set(this.providers.keys());
+  }
+
+  /**
    * 获取用户或账本的LLM设置
    * @param userId 用户ID
    * @param accountId 账本ID (可选)
@@ -374,5 +382,72 @@ export class LLMProviderService {
     const settings = await this.getLLMSettings(userId, accountId, accountType);
     const provider = this.getProvider(settings.provider);
     return provider.generateChat(messages, settings);
+  }
+
+  /**
+   * 测试LLM连接
+   * @param settings 测试用的LLM设置
+   * @returns 测试结果
+   */
+  public async testConnection(settings: {
+    provider: string;
+    model: string;
+    apiKey: string;
+    baseUrl?: string;
+  }): Promise<{ success: boolean; message: string }> {
+    try {
+      // 检查提供商是否存在
+      if (!this.providers.has(settings.provider)) {
+        return {
+          success: false,
+          message: `未知的提供商: ${settings.provider}`
+        };
+      }
+
+      // 检查API密钥
+      if (!settings.apiKey) {
+        return {
+          success: false,
+          message: 'API密钥不能为空'
+        };
+      }
+
+      // 获取提供商
+      const provider = this.getProvider(settings.provider);
+
+      // 构建完整的设置
+      const fullSettings = {
+        provider: settings.provider,
+        model: settings.model,
+        apiKey: settings.apiKey,
+        baseUrl: settings.baseUrl,
+        temperature: 0.7,
+        maxTokens: 100
+      };
+
+      // 尝试发送一个简单的测试请求
+      try {
+        // 使用一个简单的提示进行测试
+        const testPrompt = "Hello, this is a test message. Please respond with 'OK' if you receive this.";
+        const response = await provider.generateText(testPrompt, fullSettings);
+
+        return {
+          success: true,
+          message: `连接测试成功: ${response.substring(0, 50)}${response.length > 50 ? '...' : ''}`
+        };
+      } catch (apiError) {
+        console.error('API调用错误:', apiError);
+        return {
+          success: false,
+          message: `连接测试失败: ${apiError instanceof Error ? apiError.message : String(apiError)}`
+        };
+      }
+    } catch (error) {
+      console.error('测试连接错误:', error);
+      return {
+        success: false,
+        message: `测试过程中发生错误: ${error instanceof Error ? error.message : String(error)}`
+      };
+    }
   }
 }

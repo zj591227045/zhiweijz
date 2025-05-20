@@ -2,11 +2,16 @@ import axios from "axios";
 
 // 创建API客户端实例 - 使用相对路径
 export const apiClient = axios.create({
-  baseURL: '/api', // 使用相对路径，会自动使用当前域名
+  baseURL: '/api', // 使用相对路径，避免跨域问题
   headers: {
     "Content-Type": "application/json",
   },
   timeout: 15000, // 增加超时时间到15秒
+  // 添加调试信息
+  validateStatus: function (status) {
+    console.log('API响应状态码:', status);
+    return status >= 200 && status < 300; // 默认的验证逻辑
+  }
 });
 
 // 请求拦截器
@@ -20,6 +25,16 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
+    // 确保PUT请求的Content-Type正确设置
+    if (config.method === 'put' || config.method === 'post') {
+      config.headers['Content-Type'] = 'application/json';
+
+      // 如果数据是对象，确保它被正确序列化
+      if (config.data && typeof config.data === 'object') {
+        console.log(`确保${config.method.toUpperCase()}请求数据正确序列化:`, config.data);
+      }
+    }
+
     // 添加请求调试信息
     console.log(`API请求 [${config.method?.toUpperCase()}] ${config.url}:`, {
       baseURL: config.baseURL,
@@ -27,7 +42,8 @@ apiClient.interceptors.request.use(
       fullURL: `${config.baseURL}${config.url}`,
       headers: config.headers,
       params: config.params,
-      data: config.data
+      data: config.data,
+      method: config.method
     });
 
     return config;

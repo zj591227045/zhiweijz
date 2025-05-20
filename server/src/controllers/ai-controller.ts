@@ -22,6 +22,22 @@ export class AIController {
   }
 
   /**
+   * 获取可用的AI提供商列表
+   * @param req 请求
+   * @param res 响应
+   */
+  public async getProviders(req: Request, res: Response) {
+    try {
+      // 获取所有注册的提供商名称
+      const providers = Array.from(this.llmProviderService.getProviderNames());
+      res.json(providers);
+    } catch (error) {
+      console.error('获取AI提供商列表错误:', error);
+      res.status(500).json({ error: '获取AI提供商列表失败' });
+    }
+  }
+
+  /**
    * 智能记账API处理方法
    * @param req 请求
    * @param res 响应
@@ -240,24 +256,245 @@ export class AIController {
    */
   public async getUserLLMSettingsList(req: Request, res: Response) {
     try {
+      console.log('收到获取用户LLM设置列表请求');
+      console.log('请求头:', req.headers);
+
       const userId = req.user?.id;
+      console.log('用户ID:', userId);
+
+      if (!userId) {
+        console.log('未授权: 用户ID不存在');
+        return res.status(401).json({ error: '未授权' });
+      }
+
+      console.log(`正在查询用户 ${userId} 的LLM设置列表`);
+
+      try {
+        // 查询用户的所有LLM设置
+        const settings = await this.prisma.$queryRaw`
+          SELECT id, name, provider, model, temperature, max_tokens, created_at, updated_at, description, base_url
+          FROM "user_llm_settings"
+          WHERE "user_id" = ${userId}
+          ORDER BY "created_at" DESC
+        `;
+
+        console.log(`查询结果: 找到 ${Array.isArray(settings) ? settings.length : 0} 条记录`);
+        if (Array.isArray(settings) && settings.length > 0) {
+          console.log('第一条记录示例:', settings[0]);
+        }
+
+        // 如果没有找到记录，返回空数组
+        if (!settings || (Array.isArray(settings) && settings.length === 0)) {
+          console.log('没有找到LLM设置记录，返回空数组');
+
+          // 设置CORS头
+          res.header('Access-Control-Allow-Origin', '*');
+          res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+          res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+          return res.json([]);
+        }
+
+        // 转换字段名称为驼峰命名
+        const formattedSettings = Array.isArray(settings) ? settings.map(setting => ({
+          id: setting.id,
+          name: setting.name,
+          provider: setting.provider,
+          model: setting.model,
+          temperature: setting.temperature,
+          maxTokens: setting.max_tokens,
+          createdAt: setting.created_at,
+          updatedAt: setting.updated_at,
+          description: setting.description,
+          baseUrl: setting.base_url
+        })) : [];
+
+        console.log('返回格式化后的LLM设置列表');
+        console.log('响应数据:', formattedSettings);
+
+        // 设置CORS头
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+        res.json(formattedSettings);
+      } catch (queryError) {
+        console.error('数据库查询错误:', queryError);
+        // 如果数据库查询出错，返回空数组
+
+        // 设置CORS头
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+        res.json([]);
+      }
+    } catch (error) {
+      console.error('获取用户LLM设置列表错误:', error);
+
+      // 设置CORS头
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+      res.status(500).json({ error: '处理请求时出错' });
+    }
+  }
+
+  /**
+   * 更新用户LLM设置（通过ID）
+   * @param req 请求
+   * @param res 响应
+   */
+  public async updateUserLLMSettingsById(req: Request, res: Response) {
+    try {
+      const userId = req.user?.id;
+      const { id } = req.params;
+      const { name, provider, model, apiKey, temperature, maxTokens, baseUrl, description } = req.body;
 
       if (!userId) {
         return res.status(401).json({ error: '未授权' });
       }
 
-      // 查询用户的所有LLM设置
-      const settings = await this.prisma.$queryRaw`
-        SELECT id, name, provider, model, temperature, max_tokens, created_at, updated_at, description, base_url
-        FROM "user_llm_settings"
-        WHERE "user_id" = ${userId}
-        ORDER BY "created_at" DESC
-      `;
+      // 检查设置是否存在且属于该用户
+      const setting = await this.prisma.userLLMSetting.findFirst({
+        where: {
+          id,
+          userId
+        }
+      });
 
-      res.json(settings);
+      if (!setting) {
+        return res.status(404).json({ error: '未找到LLM设置或无权访问' });
+      }
+
+      // 准备更新数据
+      const updateData: any = {};
+      if (name !== undefined) updateData.name = name;
+      if (provider !== undefined) updateData.provider = provider;
+      if (model !== undefined) updateData.model = model;
+      if (apiKey !== undefined) updateData.apiKey = apiKey;
+      if (temperature !== undefined) updateData.temperature = temperature;
+      if (maxTokens !== undefined) updateData.maxTokens = maxTokens;
+      if (baseUrl !== undefined) updateData.baseUrl = baseUrl;
+      if (description !== undefined) updateData.description = description;
+
+      // 更新设置
+      await this.prisma.userLLMSetting.update({
+        where: { id },
+        data: updateData
+      });
+
+      res.json({ success: true });
     } catch (error) {
-      console.error('获取用户LLM设置列表错误:', error);
+      console.error('更新用户LLM设置错误:', error);
       res.status(500).json({ error: '处理请求时出错' });
+    }
+  }
+
+  /**
+   * 删除用户LLM设置
+   * @param req 请求
+   * @param res 响应
+   */
+  public async deleteUserLLMSettings(req: Request, res: Response) {
+    try {
+      const userId = req.user?.id;
+      const { id } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ error: '未授权' });
+      }
+
+      // 检查设置是否存在且属于该用户
+      const setting = await this.prisma.userLLMSetting.findFirst({
+        where: {
+          id,
+          userId
+        }
+      });
+
+      if (!setting) {
+        return res.status(404).json({ error: '未找到LLM设置或无权访问' });
+      }
+
+      // 删除设置
+      await this.prisma.userLLMSetting.delete({
+        where: { id }
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('删除用户LLM设置错误:', error);
+      res.status(500).json({ error: '处理请求时出错' });
+    }
+  }
+
+  /**
+   * 测试LLM连接
+   * @param req 请求
+   * @param res 响应
+   */
+  public async testLLMConnection(req: Request, res: Response) {
+    try {
+      const userId = req.user?.id;
+      const { provider, model, apiKey, baseUrl, useExistingKey } = req.body;
+
+      if (!userId) {
+        return res.status(401).json({ error: '未授权' });
+      }
+
+      if (!provider || !model) {
+        return res.status(400).json({ error: '提供商和模型不能为空' });
+      }
+
+      // 如果使用现有密钥，获取用户的API密钥
+      let testApiKey = apiKey;
+      if (useExistingKey) {
+        // 获取用户现有的API密钥
+        const userSettings = await this.prisma.userLLMSetting.findFirst({
+          where: {
+            userId,
+            provider
+          },
+          select: {
+            apiKey: true
+          }
+        });
+
+        if (!userSettings || !userSettings.apiKey) {
+          return res.status(400).json({
+            success: false,
+            message: '未找到现有API密钥，请提供新的API密钥'
+          });
+        }
+
+        testApiKey = userSettings.apiKey;
+      } else if (!apiKey) {
+        return res.status(400).json({
+          success: false,
+          message: 'API密钥不能为空'
+        });
+      }
+
+      // 测试连接
+      const result = await this.llmProviderService.testConnection({
+        provider,
+        model,
+        apiKey: testApiKey,
+        baseUrl
+      });
+
+      res.json({
+        success: result.success,
+        message: result.message
+      });
+    } catch (error) {
+      console.error('测试LLM连接错误:', error);
+      res.status(500).json({
+        success: false,
+        message: '测试连接时出错'
+      });
     }
   }
 

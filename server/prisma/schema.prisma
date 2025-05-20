@@ -29,9 +29,9 @@ model User {
   transactions        Transaction[]
   categoryConfigs     UserCategoryConfig[]
   feedback            UserFeedback[]
+  llmSettings         UserLLMSetting[]
   settings            UserSetting[]
   verificationCodes   VerificationCode[]
-  llmSettings         UserLLMSetting[]
 
   @@map("users")
 }
@@ -58,17 +58,17 @@ model FamilyMember {
   familyId     String        @map("family_id")
   userId       String?       @map("user_id")
   name         String
-  gender       String?       @map("gender")
-  birthDate    DateTime?     @map("birth_date")
   role         Role          @default(MEMBER)
   isRegistered Boolean       @default(true) @map("is_registered")
-  isCustodial  Boolean       @default(false) @map("is_custodial")
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
+  birthDate    DateTime?     @map("birth_date")
+  gender       String?       @map("gender")
+  isCustodial  Boolean       @default(false) @map("is_custodial")
+  budgets      Budget[]
   family       Family        @relation(fields: [familyId], references: [id])
   user         User?         @relation(fields: [userId], references: [id])
   transactions Transaction[]
-  budgets      Budget[]
 
   @@map("family_members")
 }
@@ -144,7 +144,6 @@ model Budget {
   categoryId           String?          @map("category_id")
   userId               String?          @map("user_id")
   familyId             String?          @map("family_id")
-  familyMemberId       String?          @map("family_member_id")
   rollover             Boolean          @default(false)
   createdAt            DateTime         @default(now()) @map("created_at")
   updatedAt            DateTime         @updatedAt @map("updated_at")
@@ -156,6 +155,7 @@ model Budget {
   budgetType           BudgetType       @default(PERSONAL) @map("budget_type")
   amountModified       Boolean          @default(false) @map("amount_modified")
   lastAmountModifiedAt DateTime?        @map("last_amount_modified_at")
+  familyMemberId       String?          @map("family_member_id")
   budgetHistories      BudgetHistory[]
   accountBook          AccountBook?     @relation(fields: [accountBookId], references: [id])
   category             Category?        @relation(fields: [categoryId], references: [id])
@@ -220,41 +220,25 @@ model UserSetting {
 }
 
 model AccountBook {
-  id             String              @id @default(uuid())
-  name           String
-  description    String?
-  userId         String              @map("user_id")
-  isDefault      Boolean             @default(false) @map("is_default")
-  createdAt      DateTime            @default(now()) @map("created_at")
-  updatedAt      DateTime            @updatedAt @map("updated_at")
-  familyId       String?             @map("family_id")
-  type           AccountBookType     @default(PERSONAL) @map("type")
-  created_by     String?
-  userLLMSettingId String?           @map("user_llm_setting_id")
-  family         Family?             @relation(fields: [familyId], references: [id])
-  user           User                @relation(fields: [userId], references: [id])
-  userLLMSetting UserLLMSetting?     @relation(fields: [userLLMSettingId], references: [id])
-  llmSettings    AccountLLMSetting[]
-  budgets        Budget[]
-  categories     Category[]
-  transactions   Transaction[]
+  id               String          @id @default(uuid())
+  name             String
+  description      String?
+  userId           String          @map("user_id")
+  isDefault        Boolean         @default(false) @map("is_default")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+  familyId         String?         @map("family_id")
+  type             AccountBookType @default(PERSONAL) @map("type")
+  created_by       String?
+  userLLMSettingId String?         @map("user_llm_setting_id")
+  family           Family?         @relation(fields: [familyId], references: [id])
+  user             User            @relation(fields: [userId], references: [id])
+  userLLMSetting   UserLLMSetting? @relation(fields: [userLLMSettingId], references: [id])
+  budgets          Budget[]
+  categories       Category[]
+  transactions     Transaction[]
 
   @@map("account_books")
-}
-
-model AccountLLMSetting {
-  id            String      @id @default(uuid())
-  accountBookId String      @map("account_book_id")
-  provider      String      @default("openai")
-  model         String      @default("gpt-3.5-turbo")
-  apiKey        String?     @map("api_key")
-  temperature   Float       @default(0.3)
-  maxTokens     Int         @default(1000) @map("max_tokens")
-  createdAt     DateTime    @default(now()) @map("created_at")
-  updatedAt     DateTime    @updatedAt @map("updated_at")
-  accountBook   AccountBook @relation(fields: [accountBookId], references: [id])
-
-  @@map("account_llm_settings")
 }
 
 model CategoryBudget {
@@ -362,20 +346,20 @@ model BudgetHistory {
 }
 
 model UserLLMSetting {
-  id          String        @id @default(uuid())
-  userId      String        @map("user_id")
-  provider    String        @default("openai")
-  model       String        @default("gpt-3.5-turbo")
-  apiKey      String?       @map("api_key")
-  temperature Float         @default(0.3)
-  maxTokens   Int           @default(1000) @map("max_tokens")
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-  name        String        @default("默认LLM设置")
-  description String?
-  baseUrl     String?       @map("base_url")
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String        @id @default(uuid())
+  userId       String        @map("user_id")
+  provider     String        @default("openai")
+  model        String        @default("gpt-3.5-turbo")
+  apiKey       String?       @map("api_key")
+  temperature  Float         @default(0.3)
+  maxTokens    Int           @default(1000) @map("max_tokens")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  baseUrl      String?       @map("base_url")
+  description  String?
+  name         String        @default("默认LLM设置")
   accountBooks AccountBook[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_llm_settings")
 }

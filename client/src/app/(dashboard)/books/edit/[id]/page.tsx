@@ -37,13 +37,6 @@ export default function EditBookPage({ params }: EditBookPageProps) {
       const updatedBook = await apiClient.put(`/account-books/${id}`, {
         name: data.name,
         description: data.description,
-        aiService: data.aiService.enabled ? {
-          provider: data.aiService.provider,
-          model: data.aiService.model,
-          apiKey: data.aiService.apiKey,
-          customPrompt: data.aiService.customPrompt,
-          language: data.aiService.language,
-        } : undefined,
       });
 
       // 如果设置为默认账本，调用设置默认账本的API

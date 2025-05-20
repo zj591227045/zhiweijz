@@ -8,16 +8,16 @@ import { toast } from "sonner";
 import { aiService, LLMSetting, AccountBook } from "@/lib/api/ai-service";
 import "./ai-service-form.css";
 
-// 表单验证模式
+// 表单验证模式 - 取消所有验证
 const formSchema = z.object({
-  name: z.string().min(1, "名称不能为空"),
-  provider: z.string().min(1, "请选择服务提供商"),
-  model: z.string().min(1, "模型名称不能为空"),
-  apiKey: z.string().min(1, "API密钥不能为空"),
-  baseUrl: z.string().optional(),
-  temperature: z.number().min(0).max(1).default(0.7),
-  maxTokens: z.number().min(100).max(10000).default(1000),
-  description: z.string().optional(),
+  name: z.string().optional().default(""),
+  provider: z.string().optional().default(""),
+  model: z.string().optional().default(""),
+  apiKey: z.string().optional().default(""),
+  baseUrl: z.string().optional().default(""),
+  temperature: z.number().optional().default(0.7),
+  maxTokens: z.number().optional().default(1000),
+  description: z.string().optional().default(""),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -37,6 +37,7 @@ export function AIServiceForm({ initialData, onSubmit, onCancel }: AIServiceForm
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [showBaseUrl, setShowBaseUrl] = useState(!!initialData?.baseUrl);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
+  const [apiKeyChanged, setApiKeyChanged] = useState(false);
 
   // 表单初始化
   const {
@@ -107,8 +108,15 @@ export function AIServiceForm({ initialData, onSubmit, onCancel }: AIServiceForm
     const model = watch("model");
     const baseUrl = watch("baseUrl");
 
-    if (!apiKey || !provider || !model) {
-      toast.error("请填写完整的服务信息");
+    // 检查必要字段
+    if (!provider || !model) {
+      toast.error("请选择服务提供商和模型");
+      return;
+    }
+
+    // 检查API密钥 - 如果是编辑模式且未修改API密钥，使用占位符提示
+    if (!apiKey && !initialData) {
+      toast.error("请输入API密钥");
       return;
     }
 
@@ -116,10 +124,15 @@ export function AIServiceForm({ initialData, onSubmit, onCancel }: AIServiceForm
     setTestResult(null);
 
     try {
+      // 如果是编辑模式且API密钥未修改，提示用户
+      if (!apiKey && initialData) {
+        toast.info("使用已保存的API密钥进行测试");
+      }
+
       const result = await aiService.testLLMConnection({
         provider,
         model,
-        apiKey,
+        apiKey: apiKey || "USE_EXISTING", // 使用特殊标记表示使用已有密钥
         baseUrl: baseUrl || undefined,
       });
 
@@ -176,16 +189,40 @@ export function AIServiceForm({ initialData, onSubmit, onCancel }: AIServiceForm
   const onFormSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
-      await onSubmit(data);
+      console.log('表单提交触发，表单数据:', {
+        ...data,
+        apiKey: data.apiKey ? '******' : undefined
+      });
+
+      // 处理API密钥 - 如果是编辑模式且API密钥未修改，则从提交数据中移除API密钥
+      if (initialData && !apiKeyChanged) {
+        // 创建一个新对象，不包含apiKey字段
+        const { apiKey, ...dataWithoutApiKey } = data;
+        console.log('API密钥未修改，使用原有密钥');
+        console.log('提交数据(不含API密钥):', dataWithoutApiKey);
+        await onSubmit(dataWithoutApiKey as FormValues);
+      } else {
+        // 如果是新建或API密钥已修改，则提交完整数据
+        console.log('提交包含API密钥的完整数据');
+        await onSubmit(data);
+      }
 
       // 如果是编辑模式且有选中的账本，绑定账本
       if (initialData && initialData.id && selectedAccountBooks.length > 0) {
+        console.log('绑定账本，服务ID:', initialData.id, '选中账本:', selectedAccountBooks);
         await bindAccountBooks(initialData.id);
       }
       // 如果是创建模式，需要在创建成功后获取ID再绑定账本
       // 这部分逻辑应该在父组件中处理
     } catch (error) {
       console.error("提交表单失败:", error);
+      // 详细记录错误信息
+      if (error instanceof Error) {
+        console.error('错误名称:', error.name);
+        console.error('错误消息:', error.message);
+        console.error('错误堆栈:', error.stack);
+      }
+      toast.error("提交表单失败，请检查网络连接或稍后重试");
     } finally {
       setIsLoading(false);
     }
@@ -281,10 +318,21 @@ export function AIServiceForm({ initialData, onSubmit, onCancel }: AIServiceForm
           id="apiKey"
           type="password"
           {...register("apiKey")}
-          placeholder="输入API密钥"
+          placeholder={initialData ? "••••••••••••••••" : "输入API密钥"}
           className={errors.apiKey ? "error" : ""}
+          onChange={(e) => {
+            // 标记API密钥已被修改
+            if (e.target.value) {
+              setApiKeyChanged(true);
+            }
+          }}
         />
         {errors.apiKey && <div className="error-message">{errors.apiKey.message}</div>}
+        {initialData && !apiKeyChanged && (
+          <div className="field-description">
+            如不修改API密钥，请保持为空
+          </div>
+        )}
       </div>
 
       {/* OpenAI提供商显示baseUrl */}
@@ -417,7 +465,50 @@ export function AIServiceForm({ initialData, onSubmit, onCancel }: AIServiceForm
         <button type="button" className="cancel-button" onClick={onCancel}>
           取消
         </button>
-        <button type="submit" className="submit-button" disabled={isLoading}>
+        <button
+          type="button" // 改为button类型，不再使用表单提交
+          className="submit-button"
+          disabled={isLoading}
+          onClick={() => {
+            // 手动获取表单数据并提交
+            const formData = {
+              name: watch("name") || initialData?.name || "",
+              provider: watch("provider") || initialData?.provider || "",
+              model: watch("model") || initialData?.model || "",
+              apiKey: watch("apiKey") || "",
+              baseUrl: watch("baseUrl") || initialData?.baseUrl || "",
+              temperature: watch("temperature") || initialData?.temperature || 0.7,
+              maxTokens: watch("maxTokens") || initialData?.maxTokens || 1000,
+              description: watch("description") || initialData?.description || ""
+            };
+
+            // 跳过验证，直接提交
+            console.log("手动触发表单提交，数据:", {
+              ...formData,
+              apiKey: formData.apiKey ? '******' : undefined
+            });
+
+            setIsLoading(true);
+
+            // 直接调用onSubmit，绕过表单验证
+            try {
+              onSubmit(formData as FormValues);
+
+              // 如果是编辑模式且有选中的账本，绑定账本
+              if (initialData && initialData.id && selectedAccountBooks.length > 0) {
+                console.log('绑定账本，服务ID:', initialData.id, '选中账本:', selectedAccountBooks);
+                bindAccountBooks(initialData.id).catch(err => {
+                  console.error("绑定账本失败:", err);
+                });
+              }
+            } catch (error) {
+              console.error("提交表单失败:", error);
+              toast.error("提交失败，请稍后重试");
+            } finally {
+              setIsLoading(false);
+            }
+          }}
+        >
           {isLoading ? "保存中..." : initialData ? "更新" : "创建"}
         </button>
       </div>

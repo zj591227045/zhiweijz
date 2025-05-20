@@ -4,14 +4,12 @@ interface BookPreviewProps {
   name: string;
   description: string;
   isDefault: boolean;
-  aiEnabled: boolean;
 }
 
 export function BookPreview({
   name,
   description,
   isDefault,
-  aiEnabled,
 }: BookPreviewProps) {
   return (
     <div className="preview-section">
@@ -22,9 +20,6 @@ export function BookPreview({
         <div className="preview-book-badges">
           {isDefault && (
             <div className="preview-badge preview-default-badge">设为默认</div>
-          )}
-          {aiEnabled && (
-            <div className="preview-badge preview-ai-badge">AI已启用</div>
           )}
         </div>
       </div>
