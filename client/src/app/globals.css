@@ -434,7 +434,7 @@
 }
 
 .amount {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   margin-top: 4px;
 }
@@ -693,6 +693,7 @@
 
 .transaction-amount {
   font-weight: 600;
+  font-size: 16px;
 }
 
 .transaction-amount.expense {
