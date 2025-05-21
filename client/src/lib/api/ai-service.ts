@@ -342,67 +342,50 @@ export const aiService = {
   /**
    * 获取账本LLM设置
    */
-  async getAccountLLMSettings(accountId: string): Promise<LLMSetting> {
+  async getAccountLLMSettings(accountId: string): Promise<LLMSetting | null> {
     try {
       console.log(`发送获取账本LLM设置请求，账本ID: ${accountId}`);
 
-      // 尝试使用不同的API路径
+      // 使用正确的API路径
+      console.log(`使用API路径: /ai/account/${accountId}/llm-settings`);
+
       try {
-        // 首先尝试 /ai/account/:accountId/llm-settings 路径
-        console.log(`尝试路径: /ai/account/${accountId}/llm-settings`);
-        const response = await apiClient.get<LLMSetting>(`/ai/account/${accountId}/llm-settings`);
+        const response = await apiClient.get<any>(`/ai/account/${accountId}/llm-settings`);
         console.log('账本LLM设置响应数据:', response);
 
         // 检查响应是否有效
         if (response && typeof response === 'object') {
-          if ('id' in response) {
+          // 检查是否包含必要的字段
+          if (response.provider || response.model) {
             console.log('成功获取到账本绑定的AI服务:', response);
-            return response;
+            return {
+              id: response.id || 'default-id',
+              name: response.name || '账本绑定服务',
+              provider: response.provider,
+              model: response.model,
+              apiKey: response.apiKey,
+              temperature: response.temperature || 0.7,
+              maxTokens: response.maxTokens || 1000,
+              baseUrl: response.baseUrl,
+              description: response.description || '账本绑定的AI服务',
+              createdAt: response.createdAt || new Date().toISOString(),
+              updatedAt: response.updatedAt || new Date().toISOString()
+            };
           } else {
-            console.warn('响应缺少id字段:', response);
+            console.warn('响应缺少必要字段:', response);
+            return null;
           }
         } else {
           console.warn('响应格式不正确:', response);
+          return null;
         }
-      } catch (error1) {
-        console.warn(`尝试路径 /ai/account/${accountId}/llm-settings 失败:`, error1);
-
-        // 如果第一个路径失败，尝试 /account-books/:id/llm-settings 路径
-        try {
-          console.log(`尝试备用路径: /account-books/${accountId}/llm-settings`);
-          const response = await apiClient.get<LLMSetting>(`/account-books/${accountId}/llm-settings`);
-          console.log('备用路径响应数据:', response);
-
-          if (response && typeof response === 'object') {
-            if ('id' in response) {
-              console.log('通过备用路径成功获取到账本绑定的AI服务:', response);
-              return response;
-            }
-          }
-        } catch (error2) {
-          console.warn(`备用路径也失败:`, error2);
-        }
+      } catch (error) {
+        console.error(`获取账本LLM设置失败:`, error);
+        return null;
       }
-
-      // 如果无法获取有效响应，尝试从服务列表中查找
-      console.log('尝试从服务列表中查找绑定关系');
-      const servicesList = await this.getLLMSettingsList();
-
-      // 查找与账本关联的服务
-      // 注意：这是一个临时解决方案，实际上应该由后端提供正确的绑定信息
-      for (const service of servicesList) {
-        if (service.id) {
-          console.log(`检查服务 ${service.id} 是否与账本 ${accountId} 绑定`);
-          // 这里我们无法确定绑定关系，所以返回第一个找到的服务作为临时解决方案
-          return service;
-        }
-      }
-
-      // 如果所有尝试都失败，抛出错误
-      throw new Error('无法获取账本绑定的AI服务');
     } catch (error) {
       console.error('获取账本LLM设置失败:', error);
-      throw error;
+      return null;
     }
   },
 

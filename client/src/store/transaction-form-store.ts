@@ -40,6 +40,9 @@ interface TransactionFormState {
   // 预算选择器UI状态
   isBudgetSelectorOpen: boolean;
 
+  // 虚拟键盘状态
+  showKeyboardInitially: boolean;
+
   // 步骤状态
   currentStep: 1 | 2;
 
@@ -61,6 +64,7 @@ interface TransactionFormState {
   setBudgets: (budgets: Budget[]) => void;
   setSelectedBudget: (budget: Budget | null) => void;
   toggleBudgetSelector: (isOpen?: boolean) => void;
+  setShowKeyboardInitially: (show: boolean) => void;
 
   // 步骤控制
   goToStep: (step: 1 | 2) => void;
@@ -99,6 +103,9 @@ export const useTransactionFormStore = create<TransactionFormState>((set) => {
     budgets: [],
     selectedBudget: null,
     isBudgetSelectorOpen: false,
+
+    // 默认显示虚拟键盘
+    showKeyboardInitially: true,
 
     currentStep: 1,
     isSubmitting: false,
@@ -162,6 +169,9 @@ export const useTransactionFormStore = create<TransactionFormState>((set) => {
       isBudgetSelectorOpen: isOpen !== undefined ? isOpen : !state.isBudgetSelectorOpen
     })),
 
+    // 设置是否初始显示虚拟键盘
+    setShowKeyboardInitially: (show) => set({ showKeyboardInitially: show }),
+
     // 切换步骤
     goToStep: (step) => set({ currentStep: step }),
 
@@ -193,6 +203,7 @@ export const useTransactionFormStore = create<TransactionFormState>((set) => {
         budgets: [],
         selectedBudget: null,
         isBudgetSelectorOpen: false,
+        showKeyboardInitially: true,
         currentStep: 1,
         isSubmitting: false,
         submitError: null

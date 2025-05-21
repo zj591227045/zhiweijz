@@ -20,6 +20,8 @@
 @import '../styles/transaction-detail.css';
 @import '../styles/custodial-members.css';
 @import '../components/transactions/budget-selector.css';
+@import '../components/transactions/smart-accounting-dialog.css';
+@import '../components/transactions/transaction-toast.css';
 @import '../styles/budget-selector.css';
 @import '../styles/bottom-nav-fix.css';
 

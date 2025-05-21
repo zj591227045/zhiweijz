@@ -232,4 +232,22 @@ export function getCategoryIconClass(iconName?: string): string {
   return iconMap[iconName] || 'fa-tag';
 }
 
+/**
+ * 获取图标完整类名
+ * @param iconName 图标名称
+ * @returns 完整的Font Awesome图标类名
+ */
+export function getIconClass(iconName?: string): string {
+  if (!iconName) return 'fas fa-tag';
+
+  // 如果图标名称已经包含完整的类名，则直接返回
+  if (iconName.startsWith("fa-")) {
+    return `fas ${iconName}`;
+  }
+
+  // 使用getCategoryIconClass获取图标名称
+  const iconClass = getCategoryIconClass(iconName);
+  return `fas ${iconClass}`;
+}
+
 

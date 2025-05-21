@@ -12,10 +12,8 @@ import { TransactionType } from "@/types";
 import { formatDateForAPI, cn } from "@/lib/utils";
 import { NumericKeyboard } from "./numeric-keyboard";
 import { BudgetSelector } from "./budget-selector";
-import { SmartAccountingInput } from "./smart-accounting-input";
 import { budgetService } from "@/lib/api/budget-service";
 import "./budget-selector.css";
-import "./smart-accounting-input.css";
 
 // 交易类型切换组件
 function TransactionTypeToggle() {
@@ -43,9 +41,9 @@ function TransactionTypeToggle() {
 
 // 金额输入组件
 function AmountInput() {
-  const { amount, setAmount } = useTransactionFormStore();
+  const { amount, setAmount, showKeyboardInitially } = useTransactionFormStore();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [showKeyboard, setShowKeyboard] = useState(true); // 默认显示键盘
+  const [showKeyboard, setShowKeyboard] = useState(showKeyboardInitially); // 根据状态决定是否显示键盘
 
   // 处理金额输入
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,14 +113,14 @@ function AmountInput() {
     setShowKeyboard(false);
   };
 
-  // 组件挂载时自动聚焦和显示键盘
+  // 组件挂载时自动聚焦，根据状态决定是否显示键盘
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
-      // 自动显示键盘
-      setShowKeyboard(true);
+      // 根据状态决定是否显示键盘
+      setShowKeyboard(showKeyboardInitially);
     }
-  }, []);
+  }, [showKeyboardInitially]);
 
   return (
     <>
@@ -489,9 +487,6 @@ export function TransactionAddPage() {
 
       {/* 主要内容区域 */}
       <main className="main-content">
-        {/* 智能记账输入 */}
-        <SmartAccountingInput />
-
         {/* 交易类型切换 */}
         <TransactionTypeToggle />
 

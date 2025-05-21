@@ -55,6 +55,7 @@ export interface AccountBook {
   isDefault: boolean;
   createdAt: string;
   updatedAt: string;
+  userLLMSettingId?: string; // 账本绑定的LLM服务ID
   aiService?: {
     enabled: boolean;
     provider?: string;
