@@ -6,6 +6,7 @@ interface TransactionDetailsProps {
   accountBookName: string;
   createdAt: string;
   updatedAt: string;
+  budgetName?: string;
 }
 
 export function TransactionDetails({
@@ -13,8 +14,20 @@ export function TransactionDetails({
   date,
   accountBookName,
   createdAt,
-  updatedAt
+  updatedAt,
+  budgetName
 }: TransactionDetailsProps) {
+  // 格式化金额显示
+  const formatAmount = (amount: number | undefined) => {
+    if (amount === undefined) return "¥0.00";
+    return new Intl.NumberFormat('zh-CN', {
+      style: 'currency',
+      currency: 'CNY',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(amount);
+  };
+
   return (
     <div className="detail-card">
       <div className="detail-title">基本信息</div>
@@ -31,6 +44,14 @@ export function TransactionDetails({
           <div className="detail-label">账本</div>
           <div className="detail-value">{accountBookName}</div>
         </div>
+        {budgetName && (
+          <div className="detail-item">
+            <div className="detail-label">预算</div>
+            <div className="detail-value">
+              {budgetName}
+            </div>
+          </div>
+        )}
         <div className="detail-item">
           <div className="detail-label">创建时间</div>
           <div className="detail-value">{createdAt}</div>

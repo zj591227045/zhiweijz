@@ -82,6 +82,14 @@ export interface Transaction {
   description?: string;
   date: string;
   accountBookId: string;
+  accountBook?: AccountBook;
+  budgetId?: string;
+  budget?: {
+    id: string;
+    name: string;
+    amount: number;
+    remaining: number;
+  };
   familyId?: string;
   familyMemberId?: string;
   createdAt: string;

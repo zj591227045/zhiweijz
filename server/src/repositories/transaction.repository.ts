@@ -56,6 +56,8 @@ export class TransactionRepository {
       where: { id },
       include: {
         category: true,
+        accountBook: true,
+        budget: true,
       },
     });
   }

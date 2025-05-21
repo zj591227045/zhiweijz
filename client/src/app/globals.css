@@ -17,8 +17,10 @@
 @import '../styles/budget-add.css';
 @import '../styles/numeric-keyboard.css';
 @import '../styles/transaction-add.css';
+@import '../styles/transaction-detail.css';
 @import '../styles/custodial-members.css';
 @import '../components/transactions/budget-selector.css';
+@import '../styles/budget-selector.css';
 @import '../styles/bottom-nav-fix.css';
 
 @layer base {
@@ -242,6 +244,15 @@
   font-size: 16px;
   background-color: var(--card-background);
   color: var(--text-primary);
+}
+
+.form-input.full-width {
+  width: 100%;
+}
+
+.full-width-textarea {
+  width: 100%;
+  min-height: 80px;
 }
 
 .form-input:focus {

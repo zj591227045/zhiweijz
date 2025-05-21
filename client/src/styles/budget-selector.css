@@ -1,0 +1,177 @@
+/* 预算选择器样式 */
+.budget-selector-container {
+  position: relative;
+  width: 100%;
+}
+
+.budget-selector-preview {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.budget-selector-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: var(--primary-color-light);
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.budget-selector-icon i {
+  color: var(--primary-color);
+  font-size: 16px;
+}
+
+.budget-selector-info {
+  flex: 1;
+}
+
+.budget-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.budget-balance {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.budget-selector-arrow {
+  color: var(--text-secondary);
+}
+
+/* 预算选择器弹窗 */
+.budget-selector-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+}
+
+.budget-selector-drawer {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  background-color: var(--background);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.budget-selector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.budget-selector-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.budget-selector-content {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.no-budgets-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.no-budgets-message i {
+  font-size: 32px;
+  margin-bottom: 16px;
+}
+
+.budget-group-header {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 16px 0 8px;
+}
+
+.budget-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.budget-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.budget-item:hover {
+  background-color: var(--hover-color);
+}
+
+.budget-item.active {
+  background-color: var(--primary-color-light);
+}
+
+.budget-item-info {
+  flex: 1;
+}
+
+.budget-item-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.budget-item-balance {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.budget-item-check {
+  color: var(--primary-color);
+  margin-left: 8px;
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  color: var(--text-secondary);
+}

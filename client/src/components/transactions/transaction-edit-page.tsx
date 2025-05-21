@@ -8,38 +8,18 @@ import { useTransactionEditStore } from "@/store/transaction-edit-store";
 import { useTransactionDetail, useUpdateTransaction } from "@/hooks/use-transaction-detail";
 import { getCategories, getAccountBooks } from "@/lib/api/transaction-service";
 import { TransactionType } from "@/types";
-import { formatDateForAPI, cn } from "@/lib/utils";
+import { formatDateForAPI, cn, getCategoryIconClass } from "@/lib/utils";
 import { TransactionTypeToggle } from "./transaction-type-toggle";
 import { CategorySelector } from "./transaction-edit/category-selector";
 import { StepIndicator } from "./transaction-edit/step-indicator";
 import { NumericKeyboard } from "./numeric-keyboard";
+import { BudgetSelector } from "./transaction-edit/budget-selector";
 
 // 获取图标类名
 function getIconClass(iconName: string): string {
   if (!iconName) return "fas fa-question";
-
-  // 如果图标名称已经包含完整的类名，则直接返回
-  if (iconName.startsWith("fa-")) {
-    return `fas ${iconName}`;
-  }
-
-  // 根据图标名称映射到Font Awesome图标
-  const iconMap: Record<string, string> = {
-    restaurant: "fa-utensils",
-    shopping: "fa-shopping-bag",
-    transport: "fa-bus",
-    home: "fa-home",
-    clothing: "fa-tshirt",
-    entertainment: "fa-gamepad",
-    medical: "fa-heartbeat",
-    education: "fa-graduation-cap",
-    gift: "fa-gift",
-    travel: "fa-plane",
-    communication: "fa-mobile-alt",
-    // 添加更多图标映射...
-  };
-
-  return `fas ${iconMap[iconName] || "fa-question"}`;
+  const iconClass = getCategoryIconClass(iconName);
+  return `fas ${iconClass}`;
 }
 
 // 金额输入组件
@@ -194,6 +174,7 @@ export function TransactionEditPage() {
     originalTransaction,
     amount, type, categoryId, categoryName, categoryIcon, description,
     date, time, accountBookId, familyId, familyMemberId, notes,
+    budgetId, selectedBudget,
     currentStep, isSubmitting,
     setOriginalTransaction, setAccountBookId, resetForm, setSubmitting, setSubmitError,
     setDescription, setDate, setTime, setNotes, goToStep
@@ -283,6 +264,7 @@ export function TransactionEditPage() {
         accountBookId,
         familyId: familyId || undefined,
         familyMemberId: familyMemberId || undefined,
+        budgetId: budgetId || undefined,
         notes: notes || undefined,
       };
 
@@ -420,33 +402,20 @@ export function TransactionEditPage() {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">账本</label>
-                <div className="form-input">
-                  <select
-                    value={accountBookId || ""}
-                    onChange={(e) => setAccountBookId(e.target.value)}
-                  >
-                    <option value="" disabled>
-                      选择账本
-                    </option>
-                    {accountBooksData?.map((book) => (
-                      <option key={book.id} value={book.id}>
-                        {book.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+
+
+              {/* 预算选择器 */}
+              <BudgetSelector />
 
               <div className="form-group">
                 <label className="form-label">备注</label>
-                <div className="form-input">
+                <div className="form-input full-width">
                   <textarea
                     placeholder="添加备注..."
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     rows={3}
+                    className="full-width-textarea"
                   />
                 </div>
               </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { TransactionType } from "@/types";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getCategoryIconClass } from "@/lib/utils";
 
 interface TransactionHeaderProps {
   amount: number;
@@ -18,26 +18,27 @@ export function TransactionHeader({
 }: TransactionHeaderProps) {
   // 获取图标类名
   const getIconClass = (icon: string) => {
-    if (!icon) return "fas fa-question";
-    
-    // 如果已经包含fa-前缀，直接返回
-    if (icon.includes("fa-")) return icon;
-    
-    // 否则添加前缀
-    return `fas fa-${icon}`;
+    const iconClass = getCategoryIconClass(icon);
+    return `fas ${iconClass}`;
   };
-  
+
   return (
     <div className="transaction-header">
-      <div className="transaction-type">
-        {type === TransactionType.EXPENSE ? "支出" : "收入"}
+      <div className="transaction-header-left">
+        <div className="category-icon-container">
+          <i className={getIconClass(categoryIcon)}></i>
+        </div>
+        <div className="category-label">
+          <span>{categoryName}</span>
+        </div>
       </div>
-      <div className="transaction-amount">
-        {formatCurrency(amount)}
-      </div>
-      <div className="transaction-category">
-        <i className={getIconClass(categoryIcon)}></i>
-        <span>{categoryName}</span>
+      <div className="transaction-header-right">
+        <div className="transaction-type">
+          {type === TransactionType.EXPENSE ? "支出" : "收入"}
+        </div>
+        <div className="transaction-amount">
+          {formatCurrency(amount)}
+        </div>
       </div>
     </div>
   );

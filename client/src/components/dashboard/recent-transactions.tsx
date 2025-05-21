@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import { TransactionType } from "@/types";
 
@@ -24,6 +25,13 @@ interface RecentTransactionsProps {
 }
 
 export function RecentTransactions({ groupedTransactions }: RecentTransactionsProps) {
+  const router = useRouter();
+
+  // 处理交易项点击
+  const handleTransactionClick = (transactionId: string) => {
+    router.push(`/transactions/${transactionId}`);
+  };
+
   // 获取图标类名
   const getIconClass = (iconName: string, type: TransactionType) => {
     // 这里可以根据后端返回的图标名称映射到Font Awesome图标
@@ -63,7 +71,12 @@ export function RecentTransactions({ groupedTransactions }: RecentTransactionsPr
             <div className="transaction-date">{group.date}</div>
             <div className="transaction-list">
               {group.transactions.map((transaction) => (
-                <div key={transaction.id} className="transaction-item">
+                <div
+                  key={transaction.id}
+                  className="transaction-item"
+                  onClick={() => handleTransactionClick(transaction.id)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <div className="transaction-icon">
                     <i className={`fas ${getIconClass(transaction.categoryIcon || '', transaction.type)}`}></i>
                   </div>

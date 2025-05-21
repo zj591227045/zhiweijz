@@ -1,0 +1,14 @@
+/* 仪表盘页面样式 */
+
+/* 交易项悬停效果 */
+.transaction-item {
+  transition: background-color 0.2s ease;
+}
+
+.transaction-item:hover {
+  background-color: var(--background-hover, rgba(0, 0, 0, 0.05));
+}
+
+.dark .transaction-item:hover {
+  background-color: var(--background-hover, rgba(255, 255, 255, 0.05));
+}

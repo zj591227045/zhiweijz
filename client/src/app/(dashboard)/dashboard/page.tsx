@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { useAccountBookStore } from "@/store/account-book-store";
 import { toast } from "sonner";
+import "./dashboard.css";
 import {
   BudgetStatistics,
   StatisticsResponse,
