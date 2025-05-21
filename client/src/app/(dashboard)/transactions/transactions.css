@@ -189,8 +189,28 @@
   align-items: center;
 }
 
-.daily-total {
+.daily-totals {
+  display: flex;
+  gap: 8px;
   font-size: 12px;
+}
+
+.daily-income {
+  color: var(--text-secondary);
+}
+
+.daily-income .amount {
+  color: var(--success-color);
+  font-weight: 500;
+}
+
+.daily-expense {
+  color: var(--text-secondary);
+}
+
+.daily-expense .amount {
+  color: var(--error-color);
+  font-weight: 500;
 }
 
 /* 滑动操作样式 */

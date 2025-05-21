@@ -192,3 +192,177 @@ export function useGroupedTransactions(infiniteData: any) {
   // 按日期分组
   return groupTransactionsByDate(allTransactions);
 }
+
+// 将无限查询结果（带统计信息）转换为按日期分组的交易记录
+export function useGroupedTransactionsWithStatistics(infiniteData: any) {
+  if (!infiniteData || !infiniteData.pages) {
+    return [];
+  }
+
+  // 将所有页面的数据合并为一个数组
+  const allTransactions = infiniteData.pages.flatMap((page: any) =>
+    page.transactions && page.transactions.data ? page.transactions.data : []
+  );
+
+  // 按日期分组
+  return groupTransactionsByDate(allTransactions);
+}
+
+// 交易列表和统计信息接口
+export interface TransactionsWithStatistics {
+  transactions: PaginatedResponse<Transaction>;
+  statistics: {
+    totalIncome: number;
+    totalExpense: number;
+    incomeByCategory: Array<{
+      categoryId: string;
+      categoryName: string;
+      categoryIcon: string | null;
+      amount: number;
+      percentage: number
+    }>;
+    expenseByCategory: Array<{
+      categoryId: string;
+      categoryName: string;
+      categoryIcon: string | null;
+      amount: number;
+      percentage: number
+    }>;
+  }
+}
+
+// 获取交易列表和统计信息
+export function useTransactionsWithStatistics(params?: TransactionQueryParams) {
+  return useQuery({
+    queryKey: ["transactions-with-statistics", params],
+    queryFn: async () => {
+      try {
+        // 构建查询参数
+        const queryParams: Record<string, any> = {
+          page: params?.page || 1,
+          limit: params?.limit || 20,
+        };
+
+        if (params?.type && params.type !== "ALL") {
+          queryParams.type = params.type;
+        }
+
+        if (params?.categoryIds && params.categoryIds.length > 0) {
+          queryParams.categoryIds = params.categoryIds.join(",");
+        }
+
+        if (params?.startDate) {
+          queryParams.startDate = params.startDate;
+        }
+
+        if (params?.endDate) {
+          queryParams.endDate = params.endDate;
+        }
+
+        if (params?.accountBookId) {
+          queryParams.accountBookId = params.accountBookId;
+        }
+
+        // 发送请求
+        const response = await apiClient.get<TransactionsWithStatistics>("/transactions/with-statistics", {
+          params: queryParams,
+        });
+
+        return response;
+      } catch (error) {
+        console.error("获取交易列表和统计信息失败:", error);
+        // 返回默认数据，避免UI崩溃
+        return {
+          transactions: {
+            total: 0,
+            page: 1,
+            limit: 20,
+            data: []
+          },
+          statistics: {
+            totalIncome: 0,
+            totalExpense: 0,
+            incomeByCategory: [],
+            expenseByCategory: []
+          }
+        } as TransactionsWithStatistics;
+      }
+    },
+    // 添加重试选项
+    retry: 1,
+    // 即使发生错误也不要抛出
+    useErrorBoundary: false,
+  });
+}
+
+// 使用无限查询获取交易列表和统计信息（用于无限滚动）
+export function useInfiniteTransactionsWithStatistics(params?: Omit<TransactionQueryParams, "page">) {
+  const limit = params?.limit || 20;
+
+  return useInfiniteQuery({
+    queryKey: ["infinite-transactions-with-statistics", params],
+    queryFn: async ({ pageParam = 1 }) => {
+      try {
+        // 构建查询参数
+        const queryParams: Record<string, any> = {
+          page: pageParam,
+          limit,
+        };
+
+        if (params?.type && params.type !== "ALL") {
+          queryParams.type = params.type;
+        }
+
+        if (params?.categoryIds && params.categoryIds.length > 0) {
+          queryParams.categoryIds = params.categoryIds.join(",");
+        }
+
+        if (params?.startDate) {
+          queryParams.startDate = params.startDate;
+        }
+
+        if (params?.endDate) {
+          queryParams.endDate = params.endDate;
+        }
+
+        if (params?.accountBookId) {
+          queryParams.accountBookId = params.accountBookId;
+        }
+
+        // 发送请求
+        const response = await apiClient.get<TransactionsWithStatistics>("/transactions/with-statistics", {
+          params: queryParams,
+        });
+
+        return response;
+      } catch (error) {
+        console.error("获取交易列表和统计信息失败:", error);
+        // 返回默认数据，避免UI崩溃
+        return {
+          transactions: {
+            total: 0,
+            page: 1,
+            limit: 20,
+            data: []
+          },
+          statistics: {
+            totalIncome: 0,
+            totalExpense: 0,
+            incomeByCategory: [],
+            expenseByCategory: []
+          }
+        } as TransactionsWithStatistics;
+      }
+    },
+    getNextPageParam: (lastPage) => {
+      // 如果当前页小于总页数，返回下一页的页码
+      const totalPages = Math.ceil(lastPage.transactions.total / lastPage.transactions.limit);
+      if (lastPage.transactions.page < totalPages) {
+        return lastPage.transactions.page + 1;
+      }
+      // 否则返回undefined，表示没有更多页
+      return undefined;
+    },
+    initialPageParam: 1,
+  });
+}

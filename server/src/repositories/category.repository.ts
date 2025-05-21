@@ -176,4 +176,46 @@ export class CategoryRepository {
     console.log('分类排序通过UserCategoryConfig处理，Category本身不存储排序信息');
     return;
   }
+
+  /**
+   * 获取用户可见的所有分类（包括用户自定义分类、家庭分类和默认分类）
+   * @param userId 用户ID
+   * @param type 分类类型（可选）
+   * @returns 分类列表
+   */
+  async findAll(userId: string, type?: TransactionType): Promise<Category[]> {
+    // 查询条件：用户自定义分类 OR 默认分类
+    return prisma.category.findMany({
+      where: {
+        OR: [
+          { userId }, // 用户自定义分类
+          { isDefault: true }, // 默认分类
+          {
+            familyId: {
+              not: null
+            },
+            family: {
+              members: {
+                some: {
+                  userId
+                }
+              }
+            }
+          } // 用户所属家庭的分类
+        ],
+        ...(type && { type }), // 如果指定了类型，则按类型筛选
+      },
+      orderBy: [
+        { isDefault: 'desc' }, // 默认分类排在前面
+        { name: 'asc' }, // 然后按名称排序
+      ],
+      include: {
+        family: {
+          select: {
+            name: true
+          }
+        }
+      }
+    });
+  }
 }

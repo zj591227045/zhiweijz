@@ -59,7 +59,7 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
   // 设置超时时间
-  timeout: 10000,
+  timeout: 30000, // 增加到30秒，智能记账API可能需要更长时间
 });
 
 // 请求拦截器

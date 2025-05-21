@@ -129,8 +129,14 @@ export function throttle<T extends (...args: any[]) => any>(
 export function getCategoryIconClass(iconName?: string): string {
   if (!iconName) return 'fa-tag';
 
-  // 图标映射表
+  // 如果图标名称已经包含完整的类名，则直接返回
+  if (iconName.startsWith("fa-")) {
+    return iconName;
+  }
+
+  // 图标映射表 - 扩展更完整的图标映射
   const iconMap: Record<string, string> = {
+    // 基础分类
     food: 'fa-utensils',
     shopping: 'fa-shopping-bag',
     transport: 'fa-bus',
@@ -140,7 +146,33 @@ export function getCategoryIconClass(iconName?: string): string {
     education: 'fa-graduation-cap',
     travel: 'fa-plane',
     other: 'fa-ellipsis-h',
-    // 添加更多图标映射
+
+    // 收入类别
+    salary: 'fa-money-bill-wave',
+    investment: 'fa-chart-line',
+    bonus: 'fa-gift',
+    interest: 'fa-percentage',
+
+    // 支出类别
+    restaurant: 'fa-utensils',
+    clothing: 'fa-tshirt',
+    medical: 'fa-heartbeat',
+    gift: 'fa-gift',
+    communication: 'fa-mobile-alt',
+    daily: 'fa-shopping-basket',
+    sports: 'fa-running',
+    beauty: 'fa-spa',
+    child: 'fa-baby',
+    elder: 'fa-user-friends',
+    social: 'fa-users',
+    digital: 'fa-laptop',
+    car: 'fa-car',
+    repayment: 'fa-hand-holding-usd',
+    insurance: 'fa-shield-alt',
+    office: 'fa-briefcase',
+    repair: 'fa-tools',
+
+    // 直接图标名称
     utensils: 'fa-utensils',
     'shopping-bag': 'fa-shopping-bag',
     bus: 'fa-bus',
@@ -150,6 +182,51 @@ export function getCategoryIconClass(iconName?: string): string {
     'graduation-cap': 'fa-graduation-cap',
     plane: 'fa-plane',
     'ellipsis-h': 'fa-ellipsis-h',
+    'money-bill-wave': 'fa-money-bill-wave',
+    'chart-line': 'fa-chart-line',
+    gift: 'fa-gift',
+    percentage: 'fa-percentage',
+    tshirt: 'fa-tshirt',
+    'mobile-alt': 'fa-mobile-alt',
+    'shopping-basket': 'fa-shopping-basket',
+    running: 'fa-running',
+    spa: 'fa-spa',
+    baby: 'fa-baby',
+    'user-friends': 'fa-user-friends',
+    users: 'fa-users',
+    laptop: 'fa-laptop',
+    car: 'fa-car',
+    'hand-holding-usd': 'fa-hand-holding-usd',
+    'shield-alt': 'fa-shield-alt',
+    briefcase: 'fa-briefcase',
+    tools: 'fa-tools',
+
+    // 中文分类名称映射
+    餐饮: 'fa-utensils',
+    购物: 'fa-shopping-bag',
+    交通: 'fa-bus',
+    娱乐: 'fa-film',
+    住房: 'fa-home',
+    医疗: 'fa-heartbeat',
+    学习: 'fa-graduation-cap',
+    旅行: 'fa-plane',
+    工资: 'fa-money-bill-wave',
+    投资: 'fa-chart-line',
+    奖金: 'fa-gift',
+    利息: 'fa-percentage',
+    服饰: 'fa-tshirt',
+    通讯: 'fa-mobile-alt',
+    日用: 'fa-shopping-basket',
+    运动: 'fa-running',
+    美容: 'fa-spa',
+    孩子: 'fa-baby',
+    社交: 'fa-users',
+    数码: 'fa-laptop',
+    汽车: 'fa-car',
+    保险: 'fa-shield-alt',
+    办公: 'fa-briefcase',
+    维修: 'fa-tools',
+    其他: 'fa-ellipsis-h',
   };
 
   return iconMap[iconName] || 'fa-tag';

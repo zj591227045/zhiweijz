@@ -181,6 +181,52 @@ export class TransactionController {
   }
 
   /**
+   * 获取交易列表和统计信息
+   * 支持根据时间、收入支出、分类进行过滤后再统计
+   */
+  async getTransactionsWithStatistics(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      // 解析查询参数
+      const params: TransactionQueryParams = {
+        type: req.query.type as TransactionType | undefined,
+        startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
+        endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
+        categoryId: req.query.categoryId as string | undefined,
+        familyId: req.query.familyId as string | undefined,
+        familyMemberId: req.query.familyMemberId as string | undefined,
+        accountBookId: req.query.accountBookId as string | undefined,
+        budgetId: req.query.budgetId as string | undefined,
+        page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
+        limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 20,
+        sortBy: req.query.sortBy as string | undefined,
+        sortOrder: req.query.sortOrder as 'asc' | 'desc' | undefined,
+      };
+
+      // 处理分类ID数组
+      if (req.query.categoryIds) {
+        const categoryIds = (req.query.categoryIds as string).split(',');
+        if (categoryIds.length > 0) {
+          // 如果有多个分类ID，使用OR条件
+          params.categoryIds = categoryIds;
+        }
+      }
+
+      // 获取交易列表和统计信息
+      const result = await this.transactionService.getTransactionsWithStatistics(userId, params);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('获取交易列表和统计信息时发生错误:', error);
+      res.status(500).json({ message: '获取交易列表和统计信息时发生错误' });
+    }
+  }
+
+  /**
    * 导出交易记录
    */
   async exportTransactions(req: Request, res: Response): Promise<void> {

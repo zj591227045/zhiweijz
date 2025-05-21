@@ -36,6 +36,7 @@ export interface TransactionQueryParams {
   startDate?: Date;
   endDate?: Date;
   categoryId?: string;
+  categoryIds?: string[]; // 支持多个分类ID
   familyId?: string;
   familyMemberId?: string;
   accountBookId?: string;

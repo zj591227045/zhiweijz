@@ -69,6 +69,7 @@ export class TransactionRepository {
       startDate,
       endDate,
       categoryId,
+      categoryIds,
       familyId,
       familyMemberId,
       page = 1,
@@ -89,10 +90,19 @@ export class TransactionRepository {
       ...(params.accountBookId && { accountBookId: params.accountBookId }),
     };
 
+    // 处理多个分类ID
+    if (categoryIds && categoryIds.length > 0) {
+      where.categoryId = {
+        in: categoryIds
+      };
+    }
+
     // 构建排序条件
-    const orderBy: Prisma.TransactionOrderByWithRelationInput = {
-      [sortBy]: sortOrder,
-    };
+    // 首先按日期排序，然后按创建时间排序，确保同一天的交易按创建时间排序
+    const orderBy: Prisma.TransactionOrderByWithRelationInput[] = [
+      { [sortBy]: sortOrder },
+      { createdAt: sortOrder }
+    ];
 
     // 查询总数
     const total = await prisma.transaction.count({ where });
@@ -268,5 +278,76 @@ export class TransactionRepository {
     }
 
     return transactions;
+  }
+
+  /**
+   * 获取过滤后的交易统计
+   * 支持根据时间、分类、账本等条件进行过滤
+   */
+  async getFilteredStatistics(
+    userId: string,
+    type: TransactionType,
+    params: {
+      startDate?: Date;
+      endDate?: Date;
+      categoryId?: string;
+      categoryIds?: string[]; // 添加分类ID数组参数
+      familyId?: string;
+      familyMemberId?: string;
+      accountBookId?: string;
+    }
+  ): Promise<{ total: number; count: number; byCategory: Array<{ categoryId: string; total: number; count: number }> }> {
+    // 构建查询条件
+    const where: Prisma.TransactionWhereInput = {
+      userId,
+      type,
+      ...(params.startDate && { date: { gte: params.startDate } }),
+      ...(params.endDate && { date: { lte: params.endDate } }),
+      ...(params.categoryId && { categoryId: params.categoryId }),
+      ...(params.familyId && { familyId: params.familyId }),
+      ...(params.familyMemberId && { familyMemberId: params.familyMemberId }),
+      ...(params.accountBookId && { accountBookId: params.accountBookId }),
+    };
+
+    // 处理多个分类ID
+    if (params.categoryIds && params.categoryIds.length > 0) {
+      where.categoryId = {
+        in: params.categoryIds
+      };
+    }
+
+    // 获取总计统计
+    const result = await prisma.transaction.aggregate({
+      where,
+      _sum: {
+        amount: true,
+      },
+      _count: true,
+    });
+
+    // 按分类统计
+    const categoryResults = await prisma.transaction.groupBy({
+      by: ['categoryId'],
+      where,
+      _sum: {
+        amount: true,
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    // 处理按分类统计结果
+    const byCategory = categoryResults.map(item => ({
+      categoryId: item.categoryId,
+      total: item._sum.amount ? Number(item._sum.amount) : 0,
+      count: item._count.id,
+    })).sort((a, b) => b.total - a.total);
+
+    return {
+      total: result._sum.amount ? Number(result._sum.amount) : 0,
+      count: result._count,
+      byCategory,
+    };
   }
 }

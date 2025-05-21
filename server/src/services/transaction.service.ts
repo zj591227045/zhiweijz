@@ -1,4 +1,4 @@
-import { TransactionType, PrismaClient } from '@prisma/client';
+import { TransactionType, PrismaClient, Category } from '@prisma/client';
 import { TransactionRepository } from '../repositories/transaction.repository';
 import { CategoryRepository } from '../repositories/category.repository';
 import { BudgetTransactionService } from './budget-transaction.service';
@@ -420,6 +420,105 @@ export class TransactionService {
       total: stats.total,
       count: stats.count,
       byCategory: categoryStats,
+    };
+  }
+
+  /**
+   * 获取交易列表和统计信息
+   * 支持根据时间、收入支出、分类进行过滤后再统计
+   */
+  async getTransactionsWithStatistics(userId: string, params: TransactionQueryParams): Promise<{
+    transactions: TransactionPaginatedResponseDto;
+    statistics: {
+      totalIncome: number;
+      totalExpense: number;
+      incomeByCategory: Array<{ categoryId: string; categoryName: string; categoryIcon: string | null; amount: number; percentage: number }>;
+      expenseByCategory: Array<{ categoryId: string; categoryName: string; categoryIcon: string | null; amount: number; percentage: number }>;
+    }
+  }> {
+    // 获取交易列表
+    const { transactions, total } = await this.transactionRepository.findAll(userId, params);
+
+    // 构建交易响应数据
+    const data = transactions.map(transaction =>
+      toTransactionResponseDto(
+        transaction,
+        transaction.category ? toCategoryResponseDto(transaction.category) : undefined
+      )
+    );
+
+    // 构建查询参数，用于统计
+    const statsParams = {
+      startDate: params.startDate,
+      endDate: params.endDate,
+      categoryId: params.categoryId,
+      categoryIds: params.categoryIds, // 添加分类ID数组
+      familyId: params.familyId,
+      familyMemberId: params.familyMemberId,
+      accountBookId: params.accountBookId,
+    };
+
+    // 获取收入统计
+    const incomeStats = await this.transactionRepository.getFilteredStatistics(
+      userId,
+      TransactionType.INCOME,
+      statsParams
+    );
+
+    // 获取支出统计
+    const expenseStats = await this.transactionRepository.getFilteredStatistics(
+      userId,
+      TransactionType.EXPENSE,
+      statsParams
+    );
+
+    // 获取分类信息
+    const categories = await this.categoryRepository.findAll(userId);
+    const categoryMap = new Map<string, { name: string; icon: string | null }>();
+    categories.forEach((category: Category) => {
+      categoryMap.set(category.id, {
+        name: category.name,
+        icon: category.icon
+      });
+    });
+
+    // 处理收入分类统计
+    const incomeByCategory = incomeStats.byCategory.map(item => {
+      const category = categoryMap.get(item.categoryId) || { name: '未知分类', icon: null };
+      return {
+        categoryId: item.categoryId,
+        categoryName: category.name,
+        categoryIcon: category.icon,
+        amount: item.total,
+        percentage: incomeStats.total > 0 ? (item.total / incomeStats.total) * 100 : 0
+      };
+    }).sort((a, b) => b.amount - a.amount);
+
+    // 处理支出分类统计
+    const expenseByCategory = expenseStats.byCategory.map(item => {
+      const category = categoryMap.get(item.categoryId) || { name: '未知分类', icon: null };
+      return {
+        categoryId: item.categoryId,
+        categoryName: category.name,
+        categoryIcon: category.icon,
+        amount: item.total,
+        percentage: expenseStats.total > 0 ? (item.total / expenseStats.total) * 100 : 0
+      };
+    }).sort((a, b) => b.amount - a.amount);
+
+    return {
+      transactions: {
+        total,
+        page: params.page || 1,
+        limit: params.limit || 20,
+        data,
+      },
+      statistics: {
+        totalIncome: incomeStats.total,
+        totalExpense: expenseStats.total,
+        incomeByCategory,
+        expenseByCategory
+      }
     };
   }
 

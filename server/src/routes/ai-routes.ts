@@ -20,6 +20,13 @@ router.get('/providers', aiController.getProviders.bind(aiController));
 router.post('/account/:accountId/smart-accounting', authenticate, aiController.handleSmartAccounting.bind(aiController));
 
 /**
+ * @route POST /ai/account/:accountId/smart-accounting/direct
+ * @desc 智能记账并直接创建交易记录 - 需要提供账本ID作为URL参数
+ * @access Private
+ */
+router.post('/account/:accountId/smart-accounting/direct', authenticate, aiController.handleSmartAccountingDirect.bind(aiController));
+
+/**
  * @route GET /api/ai/llm-settings
  * @desc 获取用户当前LLM设置
  * @access Private

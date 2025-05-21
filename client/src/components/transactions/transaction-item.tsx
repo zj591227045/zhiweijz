@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Transaction, TransactionType } from "@/types";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getCategoryIconClass } from "@/lib/utils";
 import { apiClient } from "@/lib/api";
 import dayjs from "dayjs";
 
@@ -130,13 +130,10 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
   // 获取图标类名
   const getIconClass = (iconName?: string) => {
     if (!iconName) return "fas fa-question";
-    
-    // 如果图标名称已经包含完整的类名，则直接返回
-    if (iconName.startsWith("fa-")) {
-      return `fas ${iconName}`;
-    }
-    
-    return `fas fa-${iconName}`;
+
+    // 使用全局的图标类名获取函数
+    const iconClass = getCategoryIconClass(iconName);
+    return iconClass.startsWith("fa-") ? `fas ${iconClass}` : `fas fa-${iconClass}`;
   };
 
   return (

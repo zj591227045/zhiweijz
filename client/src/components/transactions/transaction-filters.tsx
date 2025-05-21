@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTransactionListStore, DateRangeType } from "@/store/transaction-list-store";
 import { apiClient } from "@/lib/api";
 import { Category, TransactionType } from "@/types";
-import { cn } from "@/lib/utils";
+import { cn, getCategoryIconClass } from "@/lib/utils";
 import { DatePicker } from "@/components/ui/date-picker";
 import dayjs from "dayjs";
 
@@ -48,7 +48,7 @@ export function TransactionFilters({ isOpen }: TransactionFiltersProps) {
   // 处理日期范围类型变更
   const handleDateRangeTypeChange = (type: DateRangeType) => {
     setDateRangeType(type);
-    
+
     // 更新本地日期状态
     if (type === "current-month") {
       const now = dayjs();
@@ -165,7 +165,7 @@ export function TransactionFilters({ isOpen }: TransactionFiltersProps) {
                 onClick={() => toggleCategoryId(category.id)}
               >
                 <div className="category-icon">
-                  <i className={`fas fa-${category.icon || "question"}`}></i>
+                  <i className={`fas ${getCategoryIconClass(category.icon)}`}></i>
                 </div>
                 <div className="category-name">{category.name}</div>
               </button>

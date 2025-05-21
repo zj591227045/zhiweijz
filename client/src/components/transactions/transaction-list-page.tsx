@@ -1,14 +1,18 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Link from "next/link";
-import { useInfiniteTransactions, useGroupedTransactions, useTransactionStatistics, TransactionStatistics } from "@/hooks/use-transactions";
+import {
+  useInfiniteTransactionsWithStatistics,
+  useGroupedTransactionsWithStatistics,
+  useTransactionStatistics,
+  TransactionStatistics
+} from "@/hooks/use-transactions";
 import { useTransactionListStore } from "@/store/transaction-list-store";
 import { TransactionFilters } from "./transaction-filters";
 import { TransactionSummary } from "./transaction-summary";
 import { GroupedTransactionList } from "./grouped-transaction-list";
 import { TransactionEmptyState } from "./transaction-empty-state";
-// import { formatCurrency } from "@/lib/utils";
+import { BottomNavigation } from "@/components/layout/bottom-navigation";
 import { TransactionType } from "@/types";
 
 export function TransactionListPage() {
@@ -25,7 +29,7 @@ export function TransactionListPage() {
     setIsLoadingMore,
   } = useTransactionListStore();
 
-  // 获取交易数据
+  // 获取交易数据和统计信息（使用无限滚动）
   const {
     data: infiniteData,
     fetchNextPage,
@@ -34,7 +38,7 @@ export function TransactionListPage() {
     refetch,
     isLoading,
     isError,
-  } = useInfiniteTransactions({
+  } = useInfiniteTransactionsWithStatistics({
     startDate,
     endDate,
     type: transactionType !== "ALL" ? (transactionType as TransactionType) : undefined,
@@ -43,15 +47,8 @@ export function TransactionListPage() {
     limit: 20,
   });
 
-  // 获取统计数据
-  const { data: statisticsData } = useTransactionStatistics({
-    startDate,
-    endDate,
-    accountBookId: accountBookId || undefined,
-  }) as { data: TransactionStatistics };
-
   // 将交易数据按日期分组
-  const groupedTransactions = useGroupedTransactions(infiniteData);
+  const groupedTransactions = useGroupedTransactionsWithStatistics(infiniteData);
 
   // 创建滚动容器引用
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -117,11 +114,11 @@ export function TransactionListPage() {
         <TransactionFilters isOpen={isFilterPanelOpen} />
 
         {/* 交易统计摘要 */}
-        {statisticsData && (
+        {infiniteData && infiniteData.pages && infiniteData.pages.length > 0 && infiniteData.pages[0].statistics && (
           <TransactionSummary
-            income={statisticsData.totalIncome || 0}
-            expense={statisticsData.totalExpense || 0}
-            balance={(statisticsData.totalIncome || 0) - (statisticsData.totalExpense || 0)}
+            income={infiniteData.pages[0].statistics.totalIncome || 0}
+            expense={infiniteData.pages[0].statistics.totalExpense || 0}
+            balance={(infiniteData.pages[0].statistics.totalIncome || 0) - (infiniteData.pages[0].statistics.totalExpense || 0)}
           />
         )}
 
@@ -144,30 +141,7 @@ export function TransactionListPage() {
       </div>
 
       {/* 底部导航栏 */}
-      <div className="bottom-nav">
-        <Link href="/dashboard" className="nav-item">
-          <i className="fas fa-home"></i>
-          <span>首页</span>
-        </Link>
-        <Link href="/statistics" className="nav-item">
-          <i className="fas fa-chart-pie"></i>
-          <span>统计</span>
-        </Link>
-        <Link href="/add-transaction" className="nav-item add-button">
-          <div className="add-icon">
-            <i className="fas fa-plus"></i>
-          </div>
-          <span>添加</span>
-        </Link>
-        <Link href="/budget" className="nav-item">
-          <i className="fas fa-wallet"></i>
-          <span>预算</span>
-        </Link>
-        <Link href="/settings" className="nav-item">
-          <i className="fas fa-user"></i>
-          <span>我的</span>
-        </Link>
-      </div>
+      <BottomNavigation />
     </div>
   );
 }

@@ -12,8 +12,10 @@ import { TransactionType } from "@/types";
 import { formatDateForAPI, cn } from "@/lib/utils";
 import { NumericKeyboard } from "./numeric-keyboard";
 import { BudgetSelector } from "./budget-selector";
+import { SmartAccountingInput } from "./smart-accounting-input";
 import { budgetService } from "@/lib/api/budget-service";
 import "./budget-selector.css";
+import "./smart-accounting-input.css";
 
 // 交易类型切换组件
 function TransactionTypeToggle() {
@@ -487,6 +489,9 @@ export function TransactionAddPage() {
 
       {/* 主要内容区域 */}
       <main className="main-content">
+        {/* 智能记账输入 */}
+        <SmartAccountingInput />
+
         {/* 交易类型切换 */}
         <TransactionTypeToggle />
 

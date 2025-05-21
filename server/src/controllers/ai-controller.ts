@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { LLMProviderService } from '../ai/llm/llm-provider-service';
 import { SmartAccounting } from '../ai/langgraph/smart-accounting';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, TransactionType } from '@prisma/client';
+import { SmartAccountingResult } from '../types/smart-accounting';
 
 /**
  * AI功能控制器
@@ -495,6 +496,125 @@ export class AIController {
         success: false,
         message: '测试连接时出错'
       });
+    }
+  }
+
+  /**
+   * 智能记账并直接创建交易记录
+   * @param req 请求
+   * @param res 响应
+   */
+  public async handleSmartAccountingDirect(req: Request, res: Response) {
+    try {
+      const { description } = req.body;
+      const { accountId } = req.params;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ error: '未授权' });
+      }
+
+      if (!description) {
+        return res.status(400).json({ error: '描述不能为空' });
+      }
+
+      if (!accountId) {
+        return res.status(400).json({ error: '账本ID不能为空' });
+      }
+
+      // 检查账本是否存在并且用户有权限访问
+      const accountBook = await this.prisma.accountBook.findFirst({
+        where: {
+          id: accountId,
+          OR: [
+            { userId },
+            {
+              type: 'FAMILY',
+              familyId: {
+                not: null
+              },
+              family: {
+                members: {
+                  some: {
+                    userId
+                  }
+                }
+              }
+            }
+          ]
+        }
+      });
+
+      if (!accountBook) {
+        return res.status(404).json({ error: '账本不存在或无权访问' });
+      }
+
+      // 处理描述，获取智能记账结果
+      const result = await this.smartAccounting.processDescription(
+        description,
+        userId,
+        accountId,
+        accountBook.type
+      );
+
+      if (!result) {
+        throw new Error('Failed to process description');
+      }
+
+      // 使用类型断言
+      const smartResult = result as SmartAccountingResult;
+
+      if (!smartResult) {
+        return res.status(500).json({ error: '智能记账处理失败' });
+      }
+
+      // 从智能记账结果创建交易记录
+      try {
+        // 准备交易数据
+        // 处理日期，确保使用东八区时区
+        const dateStr = typeof smartResult.date === 'string' ? smartResult.date : smartResult.date.toString();
+        const dateObj = new Date(dateStr);
+        // 如果日期字符串中没有时区信息，添加东八区偏移
+        if (!dateStr.includes('Z') && !dateStr.includes('+')) {
+          // 添加8小时的偏移
+          dateObj.setHours(dateObj.getHours() + 8);
+        }
+
+        const transactionData = {
+          amount: smartResult.amount,
+          type: smartResult.type as TransactionType,
+          categoryId: smartResult.categoryId,
+          description: smartResult.note || description,
+          date: dateObj,
+          accountBookId: accountId,
+          userId,
+          // 如果是家庭账本，添加家庭ID
+          familyId: accountBook.type === 'FAMILY' ? accountBook.familyId : null,
+          // 预算ID如果有的话
+          budgetId: smartResult.budgetId || null
+        };
+
+        // 创建交易记录
+        const transaction = await this.prisma.transaction.create({
+          data: transactionData
+        });
+
+        // 返回创建的交易记录
+        res.status(201).json({
+          ...transaction,
+          smartAccountingResult: smartResult
+        });
+      } catch (createError) {
+        console.error('创建交易记录错误:', createError);
+        // 即使创建失败，也返回智能记账结果
+        res.status(500).json({
+          error: '创建交易记录失败',
+          smartAccountingResult: smartResult
+        });
+      }
+    } catch (error) {
+      console.error('智能记账直接创建错误:', error);
+      res.status(500).json({ error: '处理请求时出错' });
     }
   }
 

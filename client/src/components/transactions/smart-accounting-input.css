@@ -1,0 +1,87 @@
+.smart-accounting-container {
+  background-color: var(--card-bg-color);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.smart-accounting-header {
+  margin-bottom: 12px;
+}
+
+.smart-accounting-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 4px;
+}
+
+.smart-accounting-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary-color);
+}
+
+.smart-accounting-input-wrapper {
+  margin-bottom: 16px;
+}
+
+.smart-accounting-textarea {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 16px;
+  resize: none;
+  background-color: var(--input-bg-color);
+  color: var(--text-color);
+}
+
+.smart-accounting-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
+}
+
+.smart-accounting-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.smart-accounting-button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.smart-accounting-button:active {
+  transform: scale(0.98);
+}
+
+.identify-button {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.identify-button:hover {
+  background-color: var(--primary-color-dark);
+}
+
+.direct-button {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.direct-button:hover {
+  background-color: var(--success-color-dark);
+}
+
+.smart-accounting-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

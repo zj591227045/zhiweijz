@@ -11,6 +11,9 @@ router.use(authenticate);
 // 获取交易统计
 router.get('/statistics', (req, res) => transactionController.getTransactionStatistics(req, res));
 
+// 获取交易列表和统计信息
+router.get('/with-statistics', (req, res) => transactionController.getTransactionsWithStatistics(req, res));
+
 // 导出交易记录
 router.post('/export', (req, res) => transactionController.exportTransactions(req, res));
 

@@ -55,9 +55,10 @@ export function GroupedTransactionList({ groups }: GroupedTransactionListProps) 
           <div key={group.date} className="transaction-group">
             <div className="transaction-date">
               <span>{formatDateDisplay(group.date)}</span>
-              <span className="daily-total">
-                {balance >= 0 ? "收入" : "支出"} {formatCurrency(Math.abs(balance))}
-              </span>
+              <div className="daily-totals">
+                <span className="daily-income">收入 <span className="amount">{formatCurrency(income)}</span></span>
+                <span className="daily-expense">支出 <span className="amount">{formatCurrency(expense)}</span></span>
+              </div>
             </div>
             <div className="transaction-list">
               {group.transactions.map((transaction) => (
