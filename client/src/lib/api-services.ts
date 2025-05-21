@@ -6,6 +6,7 @@ import {
   TransactionGroup
 } from "@/types";
 import { formatDate } from "./utils";
+import { logApiTime } from "./performance";
 
 
 
@@ -27,12 +28,23 @@ export async function getFinancialOverview(
     url += `&accountBookId=${accountBookId}`;
   }
 
-  console.log("请求财务概览数据URL:", url);
+  // 仅在开发环境输出日志
+  const isDev = process.env.NODE_ENV === 'development';
+  if (isDev) console.log("请求财务概览数据URL:", url);
 
   try {
-    // 获取API响应
-    const apiResponse = await apiClient.get<any>(url);
-    console.log("财务概览数据原始响应:", apiResponse);
+    // 记录API请求时间
+    const endApiTime = logApiTime(`getFinancialOverview`);
+
+    // 获取API响应，强制使用缓存并设置较长的缓存时间
+    const apiResponse = await apiClient.get<any>(url, {
+      useCache: true,
+      cacheTTL: 5 * 60 * 1000, // 5分钟缓存，减少重复请求
+    });
+
+    // 结束API请求时间记录
+    endApiTime();
+    if (isDev) console.log("财务概览数据原始响应:", apiResponse);
 
     // 将API响应转换为前端组件期望的数据结构
     const transformedResponse: StatisticsResponse = {
@@ -40,41 +52,24 @@ export async function getFinancialOverview(
       totalExpense: apiResponse.expense || 0,
       balance: apiResponse.netIncome || 0,
       incomeByCategory: Array.isArray(apiResponse.topIncomeCategories)
-        ? apiResponse.topIncomeCategories.map((cat: any) => {
-            console.log('处理收入分类数据:', cat);
-            return {
-              categoryId: cat.category?.id || '',
-              categoryName: cat.category?.name || '',
-              amount: cat.amount || 0,
-              percentage: cat.percentage || 0
-            };
-          })
+        ? apiResponse.topIncomeCategories.map((cat: any) => ({
+            categoryId: cat.category?.id || '',
+            categoryName: cat.category?.name || '',
+            amount: cat.amount || 0,
+            percentage: cat.percentage || 0
+          }))
         : [],
       expenseByCategory: Array.isArray(apiResponse.topExpenseCategories)
-        ? apiResponse.topExpenseCategories.map((cat: any) => {
-            console.log('处理支出分类数据:', cat);
-            return {
-              categoryId: cat.category?.id || '',
-              categoryName: cat.category?.name || '',
-              amount: cat.amount || 0,
-              percentage: cat.percentage || 0
-            };
-          })
+        ? apiResponse.topExpenseCategories.map((cat: any) => ({
+            categoryId: cat.category?.id || '',
+            categoryName: cat.category?.name || '',
+            amount: cat.amount || 0,
+            percentage: cat.percentage || 0
+          }))
         : [],
       // 使用API返回的每日统计数据
       dailyStatistics: apiResponse.dailyStatistics || []
     };
-
-    console.log("转换后的财务概览数据:", transformedResponse);
-
-    // 检查转换后的数据结构
-    console.log("转换后的数据结构检查:");
-    console.log("- totalIncome:", transformedResponse.totalIncome);
-    console.log("- totalExpense:", transformedResponse.totalExpense);
-    console.log("- balance:", transformedResponse.balance);
-    console.log("- incomeByCategory:", transformedResponse.incomeByCategory);
-    console.log("- expenseByCategory:", transformedResponse.expenseByCategory);
-    console.log("- dailyStatistics:", transformedResponse.dailyStatistics);
 
     return transformedResponse;
   } catch (error) {
@@ -107,11 +102,22 @@ export async function getBudgetStatistics(
     url += `&accountBookId=${accountBookId}`;
   }
 
-  console.log("请求预算数据URL:", url);
+  // 仅在开发环境输出日志
+  const isDev = process.env.NODE_ENV === 'development';
+  if (isDev) console.log("请求预算数据URL:", url);
 
   try {
-    const response = await apiClient.get<BudgetStatistics>(url);
-    console.log("预算数据响应:", response);
+    // 记录API请求时间
+    const endApiTime = logApiTime(`getBudgetStatistics`);
+
+    const response = await apiClient.get<BudgetStatistics>(url, {
+      useCache: true,
+      cacheTTL: 5 * 60 * 1000, // 5分钟缓存，减少重复请求
+    });
+
+    // 结束API请求时间记录
+    endApiTime();
+    if (isDev) console.log("预算数据响应:", response);
 
     // 确保每个预算类别都有周期信息
     if (response && response.categories) {
@@ -177,12 +183,23 @@ export async function getRecentTransactions(
     url += `&accountBookId=${accountBookId}`;
   }
 
-  console.log("请求交易数据URL:", url);
+  // 仅在开发环境输出日志
+  const isDev = process.env.NODE_ENV === 'development';
+  if (isDev) console.log("请求交易数据URL:", url);
 
   try {
-    // 处理分页响应结构
-    const response = await apiClient.get<{total: number, page: number, limit: number, data: Transaction[]}>(url);
-    console.log("交易数据响应:", response);
+    // 记录API请求时间
+    const endApiTime = logApiTime(`getRecentTransactions`);
+
+    // 处理分页响应结构，强制使用缓存
+    const response = await apiClient.get<{total: number, page: number, limit: number, data: Transaction[]}>(url, {
+      useCache: true,
+      cacheTTL: 5 * 60 * 1000, // 5分钟缓存，减少重复请求
+    });
+
+    // 结束API请求时间记录
+    endApiTime();
+    if (isDev) console.log("交易数据响应:", response);
 
     // 返回data数组部分
     if (response && response.data && Array.isArray(response.data)) {

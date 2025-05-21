@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { formatCurrency } from "@/lib/utils";
 
 interface MonthlyOverviewProps {
@@ -9,7 +10,8 @@ interface MonthlyOverviewProps {
   month: string;
 }
 
-export function MonthlyOverview({ income, expense, balance, month }: MonthlyOverviewProps) {
+// 使用React.memo优化渲染性能，避免不必要的重渲染
+export const MonthlyOverview = memo(function MonthlyOverview({ income, expense, balance, month }: MonthlyOverviewProps) {
   return (
     <section className="balance-card">
       <div className="balance-header">
@@ -34,4 +36,10 @@ export function MonthlyOverview({ income, expense, balance, month }: MonthlyOver
       </div>
     </section>
   );
-}
+}, (prevProps, nextProps) => {
+  // 自定义比较函数，只有当属性真正变化时才重新渲染
+  return prevProps.income === nextProps.income &&
+         prevProps.expense === nextProps.expense &&
+         prevProps.balance === nextProps.balance &&
+         prevProps.month === nextProps.month;
+});

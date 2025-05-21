@@ -15,7 +15,7 @@ interface CacheItem {
 
 class ApiCache {
   private cache: Map<string, CacheItem> = new Map();
-  private readonly DEFAULT_TTL = 5 * 60 * 1000; // 默认缓存5分钟
+  private readonly DEFAULT_TTL = 2 * 60 * 1000; // 默认缓存2分钟，减少缓存时间以平衡性能和数据新鲜度
 
   get(key: string): any | null {
     if (!this.cache.has(key)) return null;
@@ -70,19 +70,19 @@ api.interceptors.request.use(
 
     try {
       token = localStorage.getItem("auth-token");
-      console.log("API请求拦截器: 获取到token", token ? '成功' : '失败');
+      if (isDev) console.log("API请求拦截器: 获取到token", token ? '成功' : '失败');
     } catch (error) {
       console.error("API请求拦截器: 获取token失败", error);
     }
 
-    // 输出详细日志
-    console.log("API请求:", config.method?.toUpperCase(), config.url, config.params);
+    // 仅在开发环境输出详细日志
+    if (isDev) console.log("API请求:", config.method?.toUpperCase(), config.url);
 
     // 如果token存在，添加到请求头
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log("API请求拦截器: 添加Authorization头", `Bearer ${token.substring(0, 10)}...`);
-    } else {
+      if (isDev) console.log("API请求拦截器: 添加Authorization头");
+    } else if (isDev) {
       console.warn("API请求拦截器: 没有token，请求可能会被拒绝");
     }
 
@@ -205,24 +205,28 @@ const getCacheKey = (url: string, params?: any): string => {
 export const apiClient = {
   // GET请求，支持缓存
   get: <T = any>(url: string, config?: AxiosRequestConfig & { useCache?: boolean, cacheTTL?: number }): Promise<T> => {
-    console.log('API GET 请求:', url, config);
+    // 仅在开发环境输出详细日志
+    if (isDev) console.log('API GET 请求:', url, config);
     const useCache = config?.useCache !== false; // 默认使用缓存
     const cacheTTL = config?.cacheTTL; // 可选的缓存TTL
 
+    // 生成缓存键 - 修改为同时支持有params和无params的情况
+    const cacheKey = config?.params ? getCacheKey(url, config.params) : url;
+
     // 如果使用缓存，先尝试从缓存获取
-    if (useCache && config?.params) {
-      const cacheKey = getCacheKey(url, config.params);
+    if (useCache) {
       const cachedData = apiCache.get(cacheKey);
 
       if (cachedData) {
-        console.log('从缓存获取数据:', url, cachedData);
+        if (isDev) console.log('从缓存获取数据:', url);
         return Promise.resolve(cachedData);
       }
 
       // 如果缓存中没有，发起请求并缓存结果
-      console.log('缓存中没有数据，发起请求:', url);
+      if (isDev) console.log('缓存中没有数据，发起请求:', url);
       return api.get(url, config).then((res: AxiosResponse) => {
-        console.log('API GET 响应数据:', url, res.data);
+        if (isDev) console.log('API GET 响应数据:', url);
+        // 使用提供的TTL或默认值
         apiCache.set(cacheKey, res.data, cacheTTL);
         return res.data;
       }).catch(error => {
@@ -232,9 +236,9 @@ export const apiClient = {
     }
 
     // 不使用缓存或没有参数，直接发起请求
-    console.log('不使用缓存，直接发起请求:', url);
+    if (isDev) console.log('不使用缓存，直接发起请求:', url);
     return api.get(url, config).then((res: AxiosResponse) => {
-      console.log('API GET 响应数据:', url, res.data);
+      if (isDev) console.log('API GET 响应数据:', url);
       return res.data;
     }).catch(error => {
       console.error('API GET 请求错误:', url, error);

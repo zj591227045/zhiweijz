@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, memo, useMemo } from "react";
 import { formatCurrency } from "@/lib/utils";
 
 interface BudgetCategory {
@@ -24,7 +24,8 @@ interface BudgetProgressProps {
   };
 }
 
-export function BudgetProgress({ categories, totalBudget }: BudgetProgressProps) {
+// 使用React.memo优化渲染性能
+export const BudgetProgress = memo(function BudgetProgress({ categories, totalBudget }: BudgetProgressProps) {
   // 状态控制折叠/展开
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -104,25 +105,30 @@ export function BudgetProgress({ categories, totalBudget }: BudgetProgressProps)
   // 如果提供了总预算信息，添加到分类列表中
   const processedCategories = [...categories];
 
-  // 如果有总预算信息但分类列表中没有总预算，添加一个总预算项
-  if (totalBudget && !processedCategories.find(cat =>
-      cat.name.includes("总预算") ||
-      cat.name.includes("月度预算") ||
-      cat.name === "预算" ||
-      cat.id === "total")) {
-    processedCategories.unshift({
-      id: "total",
-      name: "个人预算",
-      icon: "money-bill",
-      budget: totalBudget.amount,
-      spent: totalBudget.spent,
-      percentage: totalBudget.percentage,
-      period: "MONTHLY"
-    });
-  }
+  // 使用useMemo优化计算，避免不必要的重新计算
+  const displayCategories = useMemo(() => {
+    // 如果有总预算信息但分类列表中没有总预算，添加一个总预算项
+    const processedCats = [...categories];
 
-  // 获取要显示的预算类别
-  const displayCategories = prioritizeCategories(processedCategories);
+    if (totalBudget && !processedCats.find(cat =>
+        cat.name.includes("总预算") ||
+        cat.name.includes("月度预算") ||
+        cat.name === "预算" ||
+        cat.id === "total")) {
+      processedCats.unshift({
+        id: "total",
+        name: "个人预算",
+        icon: "money-bill",
+        budget: totalBudget.amount,
+        spent: totalBudget.spent,
+        percentage: totalBudget.percentage,
+        period: "MONTHLY"
+      });
+    }
+
+    // 获取要显示的预算类别
+    return prioritizeCategories(processedCats);
+  }, [categories, totalBudget]);
 
   return (
     <section className="budget-progress dashboard-budget-progress">
@@ -185,4 +191,31 @@ export function BudgetProgress({ categories, totalBudget }: BudgetProgressProps)
       )}
     </section>
   );
-}
+}, (prevProps, nextProps) => {
+  // 自定义比较函数，只有当属性真正变化时才重新渲染
+  if (prevProps.categories.length !== nextProps.categories.length) return false;
+
+  // 检查totalBudget是否变化
+  if (!!prevProps.totalBudget !== !!nextProps.totalBudget) return false;
+  if (prevProps.totalBudget && nextProps.totalBudget) {
+    if (prevProps.totalBudget.amount !== nextProps.totalBudget.amount ||
+        prevProps.totalBudget.spent !== nextProps.totalBudget.spent ||
+        prevProps.totalBudget.percentage !== nextProps.totalBudget.percentage) {
+      return false;
+    }
+  }
+
+  // 检查categories数组内容是否变化
+  for (let i = 0; i < prevProps.categories.length; i++) {
+    const prevCat = prevProps.categories[i];
+    const nextCat = nextProps.categories[i];
+    if (prevCat.id !== nextCat.id ||
+        prevCat.budget !== nextCat.budget ||
+        prevCat.spent !== nextCat.spent ||
+        prevCat.percentage !== nextCat.percentage) {
+      return false;
+    }
+  }
+
+  return true;
+});

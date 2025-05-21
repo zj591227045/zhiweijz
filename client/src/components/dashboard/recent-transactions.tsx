@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { memo, useMemo } from "react";
 import { formatCurrency } from "@/lib/utils";
 import { TransactionType } from "@/types";
 
@@ -24,7 +25,8 @@ interface RecentTransactionsProps {
   groupedTransactions: GroupedTransactions[];
 }
 
-export function RecentTransactions({ groupedTransactions }: RecentTransactionsProps) {
+// 使用React.memo优化渲染性能
+export const RecentTransactions = memo(function RecentTransactions({ groupedTransactions }: RecentTransactionsProps) {
   const router = useRouter();
 
   // 处理交易项点击
@@ -32,24 +34,24 @@ export function RecentTransactions({ groupedTransactions }: RecentTransactionsPr
     router.push(`/transactions/${transactionId}`);
   };
 
+  // 使用useMemo缓存图标映射，避免每次渲染重新创建
+  const iconMap = useMemo(() => ({
+    food: "fa-utensils",
+    shopping: "fa-shopping-bag",
+    transport: "fa-bus",
+    entertainment: "fa-film",
+    home: "fa-home",
+    health: "fa-heartbeat",
+    education: "fa-graduation-cap",
+    travel: "fa-plane",
+    salary: "fa-money-bill-wave",
+    investment: "fa-chart-line",
+    gift: "fa-gift",
+    other: "fa-ellipsis-h",
+  }), []);
+
   // 获取图标类名
   const getIconClass = (iconName: string, type: TransactionType) => {
-    // 这里可以根据后端返回的图标名称映射到Font Awesome图标
-    const iconMap: Record<string, string> = {
-      food: "fa-utensils",
-      shopping: "fa-shopping-bag",
-      transport: "fa-bus",
-      entertainment: "fa-film",
-      home: "fa-home",
-      health: "fa-heartbeat",
-      education: "fa-graduation-cap",
-      travel: "fa-plane",
-      salary: "fa-money-bill-wave",
-      investment: "fa-chart-line",
-      gift: "fa-gift",
-      other: "fa-ellipsis-h",
-    };
-
     // 如果是收入类型且没有找到对应图标，使用默认收入图标
     if (type === TransactionType.INCOME && !iconMap[iconName]) {
       return "fa-money-bill-wave";
@@ -100,4 +102,34 @@ export function RecentTransactions({ groupedTransactions }: RecentTransactionsPr
       )}
     </section>
   );
-}
+}, (prevProps, nextProps) => {
+  // 自定义比较函数，只有当交易数据真正变化时才重新渲染
+  if (prevProps.groupedTransactions.length !== nextProps.groupedTransactions.length) {
+    return false;
+  }
+
+  // 深度比较交易组数据
+  for (let i = 0; i < prevProps.groupedTransactions.length; i++) {
+    const prevGroup = prevProps.groupedTransactions[i];
+    const nextGroup = nextProps.groupedTransactions[i];
+
+    if (prevGroup.date !== nextGroup.date ||
+        prevGroup.transactions.length !== nextGroup.transactions.length) {
+      return false;
+    }
+
+    // 比较每个交易
+    for (let j = 0; j < prevGroup.transactions.length; j++) {
+      const prevTx = prevGroup.transactions[j];
+      const nextTx = nextGroup.transactions[j];
+
+      if (prevTx.id !== nextTx.id ||
+          prevTx.amount !== nextTx.amount ||
+          prevTx.type !== nextTx.type) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+});
