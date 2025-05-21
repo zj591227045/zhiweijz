@@ -26,20 +26,20 @@ export function BottomNavigation({ activeItem }: BottomNavigationProps = {}) {
         try {
           console.log("检查账本是否绑定LLM服务，账本ID:", currentAccountBook.id);
 
-          // 检查账本是否有userLLMSettingId字段
+          // 1. 首先检查账本对象是否有userLLMSettingId字段
           if (currentAccountBook.userLLMSettingId) {
             console.log("账本直接包含userLLMSettingId:", currentAccountBook.userLLMSettingId);
             setHasLLMService(true);
             return;
           }
 
-          // 使用aiService获取账本LLM设置
+          // 2. 使用aiService获取账本LLM设置
           try {
             const llmSettings = await aiService.getAccountLLMSettings(currentAccountBook.id);
             console.log("获取到的账本LLM设置:", llmSettings);
 
-            if (llmSettings && (llmSettings.provider || llmSettings.model)) {
-              console.log("检测到账本已绑定LLM服务");
+            if (llmSettings) {
+              console.log("账本已绑定LLM服务");
               setHasLLMService(true);
             } else {
               console.log("账本未绑定LLM服务");

@@ -78,13 +78,22 @@ export function SmartAccountingDialog({ isOpen, onClose }: SmartAccountingDialog
             return;
           }
 
-          // 使用aiService获取账本LLM设置
+          // 使用aiService检查账本是否绑定LLM服务
           try {
-            const llmSettings = await aiService.getAccountLLMSettings(currentAccountBook.id);
-            console.log("智能记账对话框 - 账本LLM服务绑定检查结果:", llmSettings);
+            // 1. 首先检查账本对象是否有userLLMSettingId字段
+            if (currentAccountBook.userLLMSettingId) {
+              console.log("智能记账对话框 - 账本直接包含userLLMSettingId:", currentAccountBook.userLLMSettingId);
+              return; // 已绑定，继续显示对话框
+            }
 
-            // 检查响应数据是否包含必要的字段
-            if (!llmSettings || !(llmSettings.provider || llmSettings.model)) {
+            // 2. 使用aiService获取账本LLM设置
+            const llmSettings = await aiService.getAccountLLMSettings(currentAccountBook.id);
+            console.log("智能记账对话框 - 获取账本LLM设置:", llmSettings);
+
+            if (llmSettings) {
+              console.log("智能记账对话框 - 账本已绑定LLM服务");
+              return; // 已绑定，继续显示对话框
+            } else {
               // 如果没有绑定LLM服务，关闭对话框并跳转到手动记账页面
               console.log("智能记账对话框 - 账本未绑定LLM服务，跳转到手动记账页面");
               onClose();

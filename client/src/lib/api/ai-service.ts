@@ -346,7 +346,7 @@ export const aiService = {
     try {
       console.log(`发送获取账本LLM设置请求，账本ID: ${accountId}`);
 
-      // 使用正确的API路径
+      // 使用API路径获取LLM设置
       console.log(`使用API路径: /ai/account/${accountId}/llm-settings`);
 
       try {
@@ -355,8 +355,14 @@ export const aiService = {
 
         // 检查响应是否有效
         if (response && typeof response === 'object') {
+          // 检查是否绑定了LLM服务
+          if (response.bound === false) {
+            console.log('账本未绑定LLM服务:', response.message);
+            return null;
+          }
+
           // 检查是否包含必要的字段
-          if (response.provider || response.model) {
+          if (response.bound === true && (response.provider || response.model)) {
             console.log('成功获取到账本绑定的AI服务:', response);
             return {
               id: response.id || 'default-id',
