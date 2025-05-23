@@ -1,0 +1,209 @@
+import { apiClient } from "./api";
+import { getCurrentMonthRange } from "./utils";
+
+// 账本相关API
+export const accountBookService = {
+  // 获取所有账本
+  getAccountBooks: () => {
+    return apiClient.get("/account-books");
+  },
+
+  // 获取默认账本
+  getDefaultAccountBook: () => {
+    return apiClient.get("/account-books/default");
+  },
+
+  // 获取单个账本
+  getAccountBook: (id: string) => {
+    return apiClient.get(`/account-books/${id}`);
+  },
+
+  // 创建账本
+  createAccountBook: (data: any) => {
+    return apiClient.post("/account-books", data);
+  },
+
+  // 更新账本
+  updateAccountBook: (id: string, data: any) => {
+    return apiClient.put(`/account-books/${id}`, data);
+  },
+
+  // 删除账本
+  deleteAccountBook: (id: string) => {
+    return apiClient.delete(`/account-books/${id}`);
+  },
+
+  // 设置默认账本
+  setDefaultAccountBook: (id: string) => {
+    return apiClient.put(`/account-books/${id}/default`);
+  },
+};
+
+// 交易相关API
+export const transactionService = {
+  // 获取所有交易
+  getTransactions: (params?: any) => {
+    return apiClient.get("/transactions", { params });
+  },
+
+  // 获取单个交易
+  getTransaction: (id: string) => {
+    return apiClient.get(`/transactions/${id}`);
+  },
+
+  // 创建交易
+  createTransaction: (data: any) => {
+    return apiClient.post("/transactions", data);
+  },
+
+  // 更新交易
+  updateTransaction: (id: string, data: any) => {
+    return apiClient.put(`/transactions/${id}`, data);
+  },
+
+  // 删除交易
+  deleteTransaction: (id: string) => {
+    return apiClient.delete(`/transactions/${id}`);
+  },
+
+  // 获取最近交易
+  getRecentTransactions: (accountBookId: string, limit: number = 10) => {
+    return apiClient.get("/transactions", {
+      params: {
+        accountBookId,
+        limit,
+        sort: "date:desc",
+      },
+    });
+  },
+
+  // 获取按日期分组的交易
+  getGroupedTransactions: (accountBookId: string, params?: any) => {
+    const defaultParams = {
+      accountBookId,
+      groupBy: "date",
+      sort: "date:desc",
+    };
+    return apiClient.get("/transactions/grouped", {
+      params: { ...defaultParams, ...params },
+    });
+  },
+};
+
+// 分类相关API
+export const categoryService = {
+  // 获取所有分类
+  getCategories: (params?: any) => {
+    return apiClient.get("/categories", { params });
+  },
+
+  // 获取单个分类
+  getCategory: (id: string) => {
+    return apiClient.get(`/categories/${id}`);
+  },
+
+  // 创建分类
+  createCategory: (data: any) => {
+    return apiClient.post("/categories", data);
+  },
+
+  // 更新分类
+  updateCategory: (id: string, data: any) => {
+    return apiClient.put(`/categories/${id}`, data);
+  },
+
+  // 删除分类
+  deleteCategory: (id: string) => {
+    return apiClient.delete(`/categories/${id}`);
+  },
+};
+
+// 预算相关API
+export const budgetService = {
+  // 获取所有预算
+  getBudgets: (params?: any) => {
+    return apiClient.get("/budgets", { params });
+  },
+
+  // 获取单个预算
+  getBudget: (id: string) => {
+    return apiClient.get(`/budgets/${id}`);
+  },
+
+  // 创建预算
+  createBudget: (data: any) => {
+    return apiClient.post("/budgets", data);
+  },
+
+  // 更新预算
+  updateBudget: (id: string, data: any) => {
+    return apiClient.put(`/budgets/${id}`, data);
+  },
+
+  // 删除预算
+  deleteBudget: (id: string) => {
+    return apiClient.delete(`/budgets/${id}`);
+  },
+
+  // 获取预算统计
+  getBudgetStatistics: (accountBookId: string, params?: any) => {
+    const defaultParams = {
+      accountBookId,
+    };
+    return apiClient.get("/statistics/budgets", {
+      params: { ...defaultParams, ...params },
+    });
+  },
+};
+
+// 统计相关API
+export const statisticsService = {
+  // 获取统计数据
+  getStatistics: (accountBookId: string, params?: any) => {
+    const { startDate, endDate } = getCurrentMonthRange();
+    const defaultParams = {
+      accountBookId,
+      startDate,
+      endDate,
+    };
+    return apiClient.get("/statistics/overview", {
+      params: { ...defaultParams, ...params },
+    });
+  },
+
+  // 获取月度统计
+  getMonthlyStatistics: (accountBookId: string, yearMonth: string) => {
+    const year = parseInt(yearMonth.split("-")[0]);
+    const month = parseInt(yearMonth.split("-")[1]);
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+
+    return apiClient.get("/statistics/overview", {
+      params: {
+        accountBookId,
+        startDate: startDate.toISOString().split("T")[0],
+        endDate: endDate.toISOString().split("T")[0],
+      },
+    });
+  },
+
+  // 获取当前月份统计
+  getCurrentMonthStatistics: (accountBookId: string) => {
+    const { startDate, endDate } = getCurrentMonthRange();
+    return apiClient.get("/statistics/overview", {
+      params: {
+        accountBookId,
+        startDate,
+        endDate,
+      },
+    });
+  },
+};
+
+// 仪表盘相关API
+export const dashboardService = {
+  // 获取仪表盘数据
+  getDashboardData: (accountBookId: string) => {
+    return apiClient.get(`/dashboard?accountBookId=${accountBookId}`);
+  },
+};

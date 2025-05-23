@@ -1,0 +1,243 @@
+/* 预算详情页面样式 */
+.budget-detail-container {
+  padding: 16px;
+}
+
+.budget-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.budget-detail-title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.budget-detail-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.budget-detail-action-button {
+  background-color: var(--background-secondary);
+  color: var(--text-secondary);
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.budget-detail-card {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.budget-detail-overview {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.budget-detail-amount {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.budget-detail-period {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.budget-detail-progress {
+  margin-bottom: 8px;
+}
+
+.budget-detail-progress-bar {
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.budget-detail-progress-fill {
+  height: 100%;
+  background-color: var(--primary-color);
+  transition: width 0.3s ease;
+}
+
+.budget-detail-progress-fill.overspent {
+  background-color: #EF4444;
+}
+
+.budget-detail-progress-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.budget-detail-summary {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.budget-detail-summary-item {
+  text-align: center;
+  flex: 1;
+}
+
+.budget-detail-summary-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.budget-detail-summary-value {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.budget-detail-summary-value.spent {
+  color: #EF4444;
+}
+
+.budget-detail-summary-value.remaining {
+  color: #10B981;
+}
+
+.budget-detail-summary-value.remaining.negative {
+  color: #EF4444;
+}
+
+.budget-detail-section-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.budget-detail-category-list {
+  margin-top: 16px;
+}
+
+.budget-detail-category-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.budget-detail-category-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--background-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+}
+
+.budget-detail-category-info {
+  flex: 1;
+}
+
+.budget-detail-category-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.budget-detail-category-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.budget-detail-category-amount {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.budget-detail-category-progress {
+  height: 6px;
+  background-color: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.budget-detail-category-progress-fill {
+  height: 100%;
+  background-color: var(--primary-color);
+}
+
+.budget-detail-category-progress-fill.overspent {
+  background-color: #EF4444;
+}
+
+.budget-detail-transactions {
+  margin-top: 16px;
+}
+
+.budget-detail-transaction-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.budget-detail-transaction-item:last-child {
+  border-bottom: none;
+}
+
+.budget-detail-transaction-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--background-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+}
+
+.budget-detail-transaction-info {
+  flex: 1;
+}
+
+.budget-detail-transaction-title {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.budget-detail-transaction-date {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.budget-detail-transaction-amount {
+  font-size: 14px;
+  font-weight: 500;
+  color: #EF4444;
+}
+
+.budget-detail-empty {
+  text-align: center;
+  padding: 32px 0;
+  color: var(--text-secondary);
+}
+
+.budget-detail-empty i {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.budget-detail-empty p {
+  font-size: 14px;
+}

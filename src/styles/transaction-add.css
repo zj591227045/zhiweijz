@@ -1,0 +1,209 @@
+/* 添加交易页面样式 */
+.transaction-add-container {
+  padding: 16px;
+}
+
+.transaction-add-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.transaction-add-title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.transaction-add-form {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.transaction-add-type-selector {
+  display: flex;
+  margin-bottom: 16px;
+  background-color: var(--background-secondary);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.transaction-add-type-option {
+  flex: 1;
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.transaction-add-type-option.expense {
+  color: var(--error-color);
+}
+
+.transaction-add-type-option.income {
+  color: var(--success-color);
+}
+
+.transaction-add-type-option.transfer {
+  color: var(--primary-color);
+}
+
+.transaction-add-type-option.active.expense {
+  background-color: var(--error-color);
+  color: white;
+}
+
+.transaction-add-type-option.active.income {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.transaction-add-type-option.active.transfer {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.transaction-add-amount {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.transaction-add-amount-input {
+  font-size: 32px;
+  font-weight: 600;
+  width: 100%;
+  text-align: center;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.transaction-add-amount-input:focus {
+  outline: none;
+}
+
+.transaction-add-amount-input.expense {
+  color: var(--error-color);
+}
+
+.transaction-add-amount-input.income {
+  color: var(--success-color);
+}
+
+.transaction-add-amount-input.transfer {
+  color: var(--primary-color);
+}
+
+.transaction-add-form-group {
+  margin-bottom: 16px;
+}
+
+.transaction-add-form-label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+
+.transaction-add-form-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background-secondary);
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+.transaction-add-form-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.transaction-add-form-select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background-secondary);
+  color: var(--text-primary);
+  font-size: 16px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.transaction-add-form-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.transaction-add-category-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.transaction-add-category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.transaction-add-category-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--background-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.transaction-add-category-icon.selected {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.transaction-add-category-name {
+  font-size: 12px;
+  text-align: center;
+}
+
+.transaction-add-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.transaction-add-submit {
+  flex: 1;
+  padding: 12px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.transaction-add-cancel {
+  flex: 1;
+  padding: 12px;
+  background-color: var(--background-secondary);
+  color: var(--text-secondary);
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+}

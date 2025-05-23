@@ -5,6 +5,9 @@ node_modules/
 dist/
 build/
 bak/
+# Next.js
+apps/web/.next/
+next-env.d.ts
 
 # Environment variables
 .env

@@ -1,0 +1,177 @@
+/* 添加预算页面样式 */
+.budget-add-container {
+  padding: 16px;
+}
+
+.budget-add-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.budget-add-title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.budget-add-form {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.budget-add-form-group {
+  margin-bottom: 16px;
+}
+
+.budget-add-form-label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+
+.budget-add-form-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background-secondary);
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+.budget-add-form-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.budget-add-form-select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background-secondary);
+  color: var(--text-primary);
+  font-size: 16px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.budget-add-form-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.budget-add-form-radio-group {
+  display: flex;
+  gap: 16px;
+}
+
+.budget-add-form-radio-item {
+  display: flex;
+  align-items: center;
+}
+
+.budget-add-form-radio {
+  margin-right: 8px;
+}
+
+.budget-add-form-checkbox-item {
+  display: flex;
+  align-items: center;
+}
+
+.budget-add-form-checkbox {
+  margin-right: 8px;
+}
+
+.budget-add-form-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.budget-add-form-error {
+  font-size: 12px;
+  color: var(--error-color);
+  margin-top: 4px;
+}
+
+.budget-add-template-section {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.budget-add-template-header {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.budget-add-template-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.budget-add-template-item {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.budget-add-template-item.selected {
+  border-color: var(--primary-color);
+  background-color: rgba(var(--primary-rgb), 0.05);
+}
+
+.budget-add-template-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: var(--primary-color);
+}
+
+.budget-add-template-name {
+  font-size: 14px;
+}
+
+.budget-add-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.budget-add-submit {
+  flex: 1;
+  padding: 12px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.budget-add-cancel {
+  flex: 1;
+  padding: 12px;
+  background-color: var(--background-secondary);
+  color: var(--text-secondary);
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+}

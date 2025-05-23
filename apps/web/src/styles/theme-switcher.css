@@ -1,0 +1,66 @@
+/* 主题切换器样式 */
+.theme-switcher {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* 主题色变量 */
+:root[data-theme="blue"] {
+  --primary-color: #3b82f6;
+  --primary-rgb: 59, 130, 246;
+}
+
+:root[data-theme="green"] {
+  --primary-color: #10b981;
+  --primary-rgb: 16, 185, 129;
+}
+
+:root[data-theme="purple"] {
+  --primary-color: #8b5cf6;
+  --primary-rgb: 139, 92, 246;
+}
+
+/* Logo样式 */
+.logo-container {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.logo {
+  width: 80px;
+  height: 80px;
+}
+
+@media (min-width: 640px) {
+  .logo {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+/* 六边形Logo样式 */
+.hexagon-logo {
+  position: relative;
+  width: 80px;
+  height: 92px;
+  background-color: var(--primary-color, #3b82f6);
+  margin: 0 auto;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .hexagon-logo {
+    width: 100px;
+    height: 115px;
+    font-size: 1.5rem;
+  }
+}

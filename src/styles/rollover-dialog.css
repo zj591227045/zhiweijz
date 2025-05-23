@@ -1,0 +1,135 @@
+/* 预算结转对话框样式 */
+.rollover-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.rollover-dialog {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  padding: 20px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.rollover-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.rollover-dialog-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.rollover-dialog-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.rollover-dialog-content {
+  margin-bottom: 20px;
+}
+
+.rollover-dialog-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.rollover-dialog-amount {
+  font-size: 24px;
+  font-weight: 600;
+  text-align: center;
+  margin: 16px 0;
+}
+
+.rollover-dialog-options {
+  margin-bottom: 16px;
+}
+
+.rollover-dialog-option {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.rollover-dialog-option.selected {
+  border-color: var(--primary-color);
+  background-color: rgba(var(--primary-rgb), 0.05);
+}
+
+.rollover-dialog-option-radio {
+  margin-right: 12px;
+}
+
+.rollover-dialog-option-text {
+  font-size: 14px;
+}
+
+.rollover-dialog-custom-amount {
+  margin-top: 16px;
+}
+
+.rollover-dialog-custom-label {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+
+.rollover-dialog-custom-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background-secondary);
+  color: var(--text-primary);
+  font-size: 16px;
+  text-align: right;
+}
+
+.rollover-dialog-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.rollover-dialog-button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+}
+
+.rollover-dialog-button-primary {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+}
+
+.rollover-dialog-button-secondary {
+  background-color: var(--background-secondary);
+  color: var(--text-secondary);
+  border: none;
+}

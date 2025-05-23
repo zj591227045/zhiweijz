@@ -1,0 +1,256 @@
+/* 仪表盘样式 */
+
+/* 页面容器 */
+.dashboard-container {
+  padding: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+  padding-bottom: 72px; /* 为底部导航留出空间 */
+}
+
+/* 月度概览卡片 */
+.balance-card {
+  background-color: var(--card-background, #ffffff);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.balance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.balance-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  margin: 0;
+}
+
+.balance-header .date {
+  font-size: 14px;
+  color: var(--text-secondary, #6b7280);
+}
+
+.balance-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.balance-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.balance-item .label {
+  font-size: 14px;
+  color: var(--text-secondary, #6b7280);
+  margin-bottom: 4px;
+}
+
+.balance-item .amount {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.balance-item.income .amount {
+  color: var(--success-color, #22C55E);
+}
+
+.balance-item.expense .amount {
+  color: var(--error-color, #EF4444);
+}
+
+.balance-item.remaining .amount {
+  color: var(--primary-color, #3b82f6);
+}
+
+.balance-divider {
+  width: 1px;
+  height: 40px;
+  background-color: var(--border-color, #e5e7eb);
+}
+
+/* 预算进度部分 */
+.budget-progress {
+  background-color: var(--card-background, #ffffff);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  margin: 0;
+}
+
+.view-all {
+  font-size: 14px;
+  color: var(--primary-color, #3b82f6);
+  text-decoration: none;
+}
+
+.budget-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.budget-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.budget-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.budget-category {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.category-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--primary-light, #e0f2fe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color, #3b82f6);
+}
+
+.budget-amount {
+  font-size: 14px;
+  color: var(--text-primary, #1f2937);
+}
+
+.budget-amount .current {
+  font-weight: 600;
+}
+
+.budget-amount .separator {
+  margin: 0 4px;
+  color: var(--text-secondary, #6b7280);
+}
+
+.progress-bar {
+  height: 8px;
+  background-color: var(--background-hover, #e5e7eb);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress {
+  height: 100%;
+  background-color: var(--primary-color, #3b82f6);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* 最近交易部分 */
+.recent-transactions {
+  background-color: var(--card-background, #ffffff);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 16px;
+}
+
+.transaction-group {
+  margin-bottom: 16px;
+}
+
+.transaction-date {
+  font-size: 14px;
+  color: var(--text-secondary, #6b7280);
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.transaction-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.transaction-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--background-hover, #e5e7eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary, #1f2937);
+}
+
+.transaction-details {
+  flex: 1;
+}
+
+.transaction-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary, #1f2937);
+  margin-bottom: 2px;
+}
+
+.transaction-category {
+  font-size: 14px;
+  color: var(--text-secondary, #6b7280);
+}
+
+.transaction-amount {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.transaction-amount.expense {
+  color: var(--error-color, #EF4444);
+}
+
+.transaction-amount.income {
+  color: var(--success-color, #22C55E);
+}
+
+/* 响应式调整 */
+@media (min-width: 640px) {
+  .dashboard-container {
+    padding: 24px;
+  }
+  
+  .balance-card,
+  .budget-progress,
+  .recent-transactions {
+    padding: 20px;
+  }
+}

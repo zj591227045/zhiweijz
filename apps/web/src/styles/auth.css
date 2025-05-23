@@ -1,0 +1,144 @@
+/* 认证页面样式 */
+.auth-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 24px;
+  max-width: 480px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 48px;
+  margin-top: 48px;
+}
+
+.app-logo {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--primary-color, #3b82f6);
+  margin-bottom: 8px;
+}
+
+.app-slogan {
+  font-size: 16px;
+  color: var(--text-secondary, #6b7280);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  background-color: var(--card-background, #ffffff);
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #1f2937);
+}
+
+.form-input {
+  padding: 12px 16px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: var(--radius, 0.5rem);
+  font-size: 16px;
+  background-color: var(--card-background, #ffffff);
+  color: var(--text-primary, #1f2937);
+}
+
+.form-input.full-width {
+  width: 100%;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-secondary, #6b7280);
+  cursor: pointer;
+  padding: 0;
+}
+
+.submit-button {
+  background-color: var(--primary-color, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: var(--radius, 0.5rem);
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+}
+
+.submit-button:hover {
+  opacity: 0.9;
+}
+
+.auth-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.auth-link {
+  color: var(--primary-color, #3b82f6);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+.auth-footer {
+  margin-top: auto;
+  text-align: center;
+  padding: 24px 0;
+  color: var(--text-secondary, #6b7280);
+  font-size: 12px;
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+  .auth-form {
+    padding: 20px;
+  }
+  
+  .app-logo {
+    font-size: 28px;
+  }
+  
+  .app-slogan {
+    font-size: 14px;
+  }
+}

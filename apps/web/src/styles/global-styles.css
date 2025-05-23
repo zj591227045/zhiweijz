@@ -1,0 +1,138 @@
+/* 全局样式 */
+
+/* 基础样式 */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: var(--background-color, #f9fafb);
+  color: var(--text-primary, #1f2937);
+  line-height: 1.5;
+}
+
+/* 表单样式 */
+input, textarea, select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 0.5rem;
+  background-color: var(--card-background, #ffffff);
+  color: var(--text-primary, #1f2937);
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb, 59, 130, 246), 0.2);
+}
+
+/* 按钮样式 */
+button {
+  cursor: pointer;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: var(--primary-color, #3b82f6);
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.9);
+}
+
+.btn-secondary {
+  background-color: var(--secondary, #f3f4f6);
+  color: var(--text-primary, #1f2937);
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.btn-secondary:hover {
+  background-color: var(--background-hover, #e5e7eb);
+}
+
+/* 卡片样式 */
+.card {
+  background-color: var(--card-background, #ffffff);
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+}
+
+/* 文本样式 */
+.text-primary {
+  color: var(--text-primary, #1f2937);
+}
+
+.text-secondary {
+  color: var(--text-secondary, #6b7280);
+}
+
+.text-success {
+  color: var(--success-color, #22C55E);
+}
+
+.text-error {
+  color: var(--error-color, #EF4444);
+}
+
+/* 布局样式 */
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.page-container {
+  padding-bottom: 72px; /* 为底部导航留出空间 */
+}
+
+/* 登录页面样式 */
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 360px;
+}
+
+.login-logo {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.login-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.login-button {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.login-error {
+  color: var(--error-color, #EF4444);
+  margin-top: 1rem;
+  text-align: center;
+}

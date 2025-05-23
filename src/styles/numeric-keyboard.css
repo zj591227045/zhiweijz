@@ -1,0 +1,111 @@
+/* 数字键盘样式 */
+.numeric-keyboard {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--card-background);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  padding: 16px;
+  user-select: none;
+}
+
+.numeric-keyboard-display {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.numeric-keyboard-amount {
+  font-size: 32px;
+  font-weight: 600;
+}
+
+.numeric-keyboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.numeric-keyboard-key {
+  background-color: var(--background-secondary);
+  border: none;
+  border-radius: 8px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.numeric-keyboard-key:active {
+  background-color: var(--background-hover);
+}
+
+.numeric-keyboard-key.function {
+  background-color: transparent;
+  font-size: 20px;
+  color: var(--text-secondary);
+}
+
+.numeric-keyboard-key.decimal {
+  font-size: 20px;
+}
+
+.numeric-keyboard-key.delete {
+  color: var(--text-secondary);
+}
+
+.numeric-keyboard-key.submit {
+  background-color: var(--primary-color);
+  color: white;
+  grid-column: span 3;
+}
+
+.numeric-keyboard-key.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.numeric-keyboard-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.numeric-keyboard-action {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+}
+
+.numeric-keyboard-action.cancel {
+  background-color: var(--background-secondary);
+  color: var(--text-secondary);
+  flex: 1;
+  margin-right: 12px;
+}
+
+.numeric-keyboard-action.confirm {
+  background-color: var(--primary-color);
+  color: white;
+  flex: 2;
+}
+
+.numeric-keyboard-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+}

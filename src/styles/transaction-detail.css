@@ -1,0 +1,206 @@
+/* 交易详情页面样式 */
+.transaction-detail-container {
+  padding: 16px;
+}
+
+.transaction-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.transaction-detail-title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.transaction-detail-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.transaction-detail-action-button {
+  background-color: var(--background-secondary);
+  color: var(--text-secondary);
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.transaction-detail-card {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.transaction-detail-amount {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.transaction-detail-amount-value {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.transaction-detail-amount-value.expense {
+  color: var(--error-color);
+}
+
+.transaction-detail-amount-value.income {
+  color: var(--success-color);
+}
+
+.transaction-detail-amount-value.transfer {
+  color: var(--primary-color);
+}
+
+.transaction-detail-category {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.transaction-detail-category-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--background-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+}
+
+.transaction-detail-category-name {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.transaction-detail-info-list {
+  margin-top: 16px;
+}
+
+.transaction-detail-info-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.transaction-detail-info-item:last-child {
+  border-bottom: none;
+}
+
+.transaction-detail-info-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.transaction-detail-info-value {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.transaction-detail-notes {
+  margin-top: 16px;
+}
+
+.transaction-detail-notes-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.transaction-detail-notes-content {
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.transaction-detail-notes-empty {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.transaction-detail-attachments {
+  margin-top: 16px;
+}
+
+.transaction-detail-attachments-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.transaction-detail-attachments-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.transaction-detail-attachment {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.transaction-detail-attachment img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.transaction-detail-attachment-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  background-color: var(--background-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+.transaction-detail-attachments-empty {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.transaction-detail-buttons {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.transaction-detail-button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+}
+
+.transaction-detail-edit-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+}
+
+.transaction-detail-delete-button {
+  background-color: var(--error-color);
+  color: white;
+  border: none;
+}

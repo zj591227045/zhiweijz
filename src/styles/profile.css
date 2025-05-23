@@ -1,0 +1,109 @@
+/* 个人资料页面样式 */
+.profile-container {
+  padding: 16px;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.profile-title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.profile-card {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-right: 16px;
+}
+
+.profile-details {
+  flex: 1;
+}
+
+.profile-name {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.profile-email {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.profile-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+}
+
+.profile-menu-item:last-child {
+  border-bottom: none;
+}
+
+.profile-menu-icon {
+  width: 24px;
+  margin-right: 12px;
+  color: var(--text-secondary);
+}
+
+.profile-menu-text {
+  flex: 1;
+  font-size: 16px;
+}
+
+.profile-menu-arrow {
+  color: var(--text-secondary);
+}
+
+.profile-logout {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  color: #EF4444;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.profile-version {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}

@@ -5,3 +5,5 @@ export * from './category';
 export * from './budget';
 export * from './account-book';
 export * from './common';
+export * from './statistics';
+export * from './theme';
