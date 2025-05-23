@@ -1,0 +1,57 @@
+'use client';
+
+import { Family } from '@/types';
+import { FamilyCard } from './family-card';
+
+interface FamilyListProps {
+  families: Family[];
+  onCreateFamily: () => void;
+  onJoinFamily: () => void;
+}
+
+export function FamilyList({ families, onCreateFamily, onJoinFamily }: FamilyListProps) {
+  return (
+    <div className="space-y-4">
+      <div className="book-header-card">
+        <div className="book-title">家庭共享账本</div>
+        <div className="book-description">记录家庭日常收支，共同管理家庭财务</div>
+        <div className="book-stats">
+          <div className="stat-item">
+            <div className="stat-value">{families.length}</div>
+            <div className="stat-label">家庭</div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-value">{families.reduce((sum, family) => sum + (family.memberCount || 0), 0)}</div>
+            <div className="stat-label">成员</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="list-header">
+        <h2 className="list-title">我的家庭</h2>
+        <div className="list-actions">
+          <button 
+            className="action-button"
+            onClick={onCreateFamily}
+          >
+            <i className="fas fa-plus"></i>
+            <span>创建</span>
+          </button>
+          <button 
+            className="action-button"
+            onClick={onJoinFamily}
+          >
+            <i className="fas fa-sign-in-alt"></i>
+            <span>加入</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {families.map((family) => (
+          <FamilyCard key={family.id} family={family} />
+        ))}
+      </div>
+    </div>
+  );
+}

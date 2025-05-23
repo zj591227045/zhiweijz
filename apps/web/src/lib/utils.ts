@@ -1,10 +1,12 @@
 import dayjs from "dayjs";
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 /**
  * 合并CSS类名
  */
-export function cn(...classes: string[]) {
-  return classes.filter(Boolean).join(' ');
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }
 
 /**
@@ -215,4 +217,67 @@ export function getIconClass(iconName?: string): string {
   // 使用getCategoryIconClass获取图标名称
   const iconClass = getCategoryIconClass(iconName);
   return `fas ${iconClass}`;
+}
+
+/**
+ * 格式化百分比
+ * @param percentage 百分比
+ * @returns 格式化后的百分比
+ */
+export function formatPercentage(percentage: number): string {
+  return percentage.toFixed(1);
+}
+
+/**
+ * 格式化日期范围
+ * @param startDate 开始日期
+ * @param endDate 结束日期
+ * @returns 格式化后的日期范围
+ */
+export function formatDateRange(startDate: string, endDate: string): string {
+  const start = dayjs(startDate);
+  const end = dayjs(endDate);
+
+  // 如果是同一个月
+  if (start.year() === end.year() && start.month() === end.month()) {
+    return `${start.year()}年${start.month() + 1}月`;
+  }
+
+  // 如果是同一年
+  if (start.year() === end.year()) {
+    return `${start.year()}年${start.month() + 1}月-${end.month() + 1}月`;
+  }
+
+  // 不同年
+  return `${start.year()}/${start.month() + 1}-${end.year()}/${end.month() + 1}`;
+}
+
+/**
+ * 获取上个月的开始和结束日期
+ * @param currentDate 当前日期，默认为当前时间
+ * @returns 上个月的开始和结束日期
+ */
+export function getPreviousMonthRange(currentDate: Date = new Date()): { startDate: string; endDate: string } {
+  const start = dayjs(currentDate).subtract(1, 'month').startOf('month');
+  const end = dayjs(currentDate).subtract(1, 'month').endOf('month');
+
+  return {
+    startDate: start.format('YYYY-MM-DD'),
+    endDate: end.format('YYYY-MM-DD')
+  };
+}
+
+/**
+ * 获取下个月的开始和结束日期
+ * @param currentDate 当前日期，默认为当前时间
+ * @returns 下个月的开始和结束日期
+ */
+export function getNextMonthRange(currentDate: Date = new Date()): { startDate: string; endDate: string } {
+  const start = dayjs(currentDate).add(1, 'month').startOf('month');
+  const end = dayjs(currentDate).add(1, 'month').endOf('month');
+
+  return {
+    startDate: start.format('YYYY-MM-DD'),
+    endDate: end.format('YYYY-MM-DD')
+  };
 }
