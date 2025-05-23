@@ -1,8 +1,12 @@
 {
   "name": "zhiweijz",
   "version": "1.0.0",
-  "description": "一个简单、纯粹的，AI驱动的移动端记账工具。",
-  "main": "index.js",
+  "description": "一个简单、纯粹、AI驱动的移动端记账工具。",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "directories": {
     "doc": "docs"
   },
