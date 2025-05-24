@@ -170,6 +170,53 @@ function applyThemeVariables(config: ThemeConfig): void {
 
   // 设置边框半径
   root.style.setProperty("--border-radius", "0.5rem");
+
+  // 强制更新所有使用这些变量的元素的颜色
+  // 特别针对个人预算元素的文字标签
+  const budgetElements = document.querySelectorAll('.dashboard-category-name, .budget-category span, .dashboard-budget-amount, .budget-amount');
+  budgetElements.forEach(element => {
+    if (element instanceof HTMLElement) {
+      // 强制重新计算样式
+      element.style.color = theme === 'dark' ? 'rgb(243, 244, 246)' : 'rgb(31, 41, 55)';
+      // 立即移除内联样式，让CSS变量生效
+      setTimeout(() => {
+        element.style.removeProperty('color');
+      }, 0);
+    }
+  });
+
+  // 强制更新所有文本元素
+  const textElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div');
+  textElements.forEach(element => {
+    if (element instanceof HTMLElement && !element.style.color) {
+      // 触发重新渲染
+      element.style.display = 'none';
+      element.offsetHeight; // 触发重排
+      element.style.display = '';
+    }
+  });
+
+  // 额外的保险措施：延迟再次强制更新预算元素
+  setTimeout(() => {
+    const budgetElementsDelayed = document.querySelectorAll('.dashboard-category-name, .dashboard-budget-amount, .dashboard-budget-amount .current, .dashboard-budget-amount .total, .dashboard-separator');
+    budgetElementsDelayed.forEach(element => {
+      if (element instanceof HTMLElement) {
+        // 强制应用正确的颜色
+        if (element.classList.contains('dashboard-category-name') || 
+            element.classList.contains('dashboard-budget-amount') ||
+            element.classList.contains('current')) {
+          element.style.color = theme === 'dark' ? 'rgb(243, 244, 246) !important' : 'rgb(31, 41, 55) !important';
+        } else if (element.classList.contains('total') || element.classList.contains('dashboard-separator')) {
+          element.style.color = theme === 'dark' ? 'rgb(156, 163, 175) !important' : 'rgb(107, 114, 128) !important';
+        }
+        
+        // 短暂延迟后移除内联样式，让CSS变量接管
+        setTimeout(() => {
+          element.style.removeProperty('color');
+        }, 100);
+      }
+    });
+  }, 200);
 }
 
 export const useThemeStore = create<ThemeState>()(

@@ -1,0 +1,221 @@
+/* 智能记账对话框样式 */
+.smart-accounting-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.smart-accounting-dialog {
+  background-color: var(--card-background);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.smart-accounting-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 0 20px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 20px;
+}
+
+.smart-accounting-dialog-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.smart-accounting-dialog-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.smart-accounting-dialog-close:hover {
+  background-color: var(--background-color);
+  color: var(--text-primary);
+}
+
+.smart-accounting-dialog-content {
+  padding: 0 20px 20px 20px;
+}
+
+.smart-accounting-dialog-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.smart-accounting-input-wrapper {
+  margin-bottom: 20px;
+}
+
+.smart-accounting-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.smart-accounting-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.smart-accounting-textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+.smart-accounting-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.smart-accounting-button {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.identify-button {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.identify-button:hover:not(:disabled) {
+  background-color: var(--primary-color-dark);
+}
+
+.direct-button {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.direct-button:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.smart-accounting-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.smart-accounting-dialog-footer {
+  padding: 0 20px 20px 20px;
+  border-top: 1px solid var(--border-color);
+  margin-top: 16px;
+  padding-top: 16px;
+}
+
+.smart-accounting-manual-button {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.smart-accounting-manual-button:hover {
+  background-color: var(--background-color);
+  color: var(--text-primary);
+}
+
+/* 处理中状态 */
+.smart-accounting-processing {
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.smart-accounting-loading {
+  margin-bottom: 16px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.smart-accounting-processing-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .smart-accounting-dialog-overlay {
+    padding: 10px;
+  }
+  
+  .smart-accounting-dialog {
+    max-width: none;
+    width: 100%;
+  }
+  
+  .smart-accounting-buttons {
+    flex-direction: column;
+  }
+  
+  .smart-accounting-button {
+    width: 100%;
+  }
+}

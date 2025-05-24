@@ -145,52 +145,38 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   cursor: pointer;
-  padding: 8px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  transition: transform 0.2s;
 }
 
-.category-item:hover {
-  background-color: var(--background-color);
+.category-item:active {
+  transform: scale(0.95);
 }
 
-.category-item.active {
-  background-color: rgba(59, 130, 246, 0.1);
-}
-
-.category-icon {
-  width: 40px;
-  height: 40px;
+.category-icon-wrapper {
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background-color: var(--background-color);
+  background-color: rgba(59, 130, 246, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--primary-color);
-  font-size: 18px;
+  font-size: 20px;
 }
 
-.category-item.active .category-icon {
+.category-item.active .category-icon-wrapper {
   background-color: var(--primary-color);
   color: white;
 }
 
-.category-name {
+.category-item span {
   font-size: 12px;
-  color: var(--text-secondary);
   text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
 }
 
-.category-item.active .category-name {
-  color: var(--primary-color);
-  font-weight: 500;
-}
+
 
 /* 日期选择器 */
 .date-picker {
@@ -302,4 +288,308 @@
 .loading-text {
   font-size: 14px;
   color: var(--text-secondary);
+}
+
+/* 两步式添加交易页面样式 */
+
+/* 交易类型切换 */
+.transaction-type-toggle {
+  display: flex;
+  background-color: var(--background-color);
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 16px;
+}
+
+.transaction-type-toggle .type-button {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.transaction-type-toggle .type-button.active {
+  background-color: var(--card-background);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.transaction-type-toggle .type-button.expense.active {
+  color: var(--error-color);
+}
+
+.transaction-type-toggle .type-button.income.active {
+  color: var(--success-color);
+}
+
+/* 金额输入 */
+.amount-input-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.amount-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.currency-symbol {
+  font-size: 32px;
+  font-weight: bold;
+  color: var(--text-secondary);
+  margin-right: 8px;
+}
+
+.amount-input {
+  font-size: 32px;
+  font-weight: bold;
+  border: none;
+  background: none;
+  outline: none;
+  text-align: center;
+  color: var(--text-primary);
+  min-width: 200px;
+}
+
+.amount-input::placeholder {
+  color: var(--text-secondary);
+}
+
+/* 步骤指示器 */
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.step {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background-color: var(--background-color);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.step.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* 步骤内容 */
+.step-content {
+  padding: 0 16px;
+}
+
+.step-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+/* 分类选择 */
+.category-section {
+  margin-bottom: 24px;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 0 16px;
+}
+
+.category-grid .category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  padding: 8px 4px;
+}
+
+.category-grid .category-item:active {
+  transform: scale(0.95);
+}
+
+.category-grid .category-item.active .category-icon-wrapper {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.category-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: rgba(59, 130, 246, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  font-size: 20px;
+}
+
+.category-grid .category-name {
+  font-size: 12px;
+  text-align: center;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+/* 选中的分类显示 */
+.selected-category {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background-color: var(--card-background);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  gap: 12px;
+}
+
+.selected-category .category-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.selected-category .category-icon-wrapper i {
+  font-size: 20px;
+  color: white;
+}
+
+.selected-category span {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.change-category-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border-color);
+  background-color: transparent;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.change-category-btn:hover {
+  background-color: var(--background-color);
+}
+
+/* 交易详情表单 */
+.transaction-details-form {
+  padding: 0 16px;
+}
+
+.transaction-details-form .form-group {
+  margin-bottom: 20px;
+}
+
+.transaction-details-form .form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.transaction-details-form .form-input {
+  position: relative;
+}
+
+.transaction-details-form .form-input input,
+.transaction-details-form .form-input select,
+.transaction-details-form .form-input textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--card-background);
+  color: var(--text-primary);
+  font-size: 16px;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.transaction-details-form .form-input input:focus,
+.transaction-details-form .form-input select:focus,
+.transaction-details-form .form-input textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.transaction-details-form .form-input input::placeholder,
+.transaction-details-form .form-input textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+.transaction-details-form .form-input textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* 表单操作按钮 */
+.form-actions {
+  padding: 24px 0;
+  margin-top: 32px;
+}
+
+.save-button {
+  width: 100%;
+  padding: 16px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.save-button:hover:not(:disabled) {
+  background-color: var(--primary-color-dark);
+}
+
+.save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 响应式调整 */
+@media (max-width: 360px) {
+  .category-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 480px) {
+  .category-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
 }

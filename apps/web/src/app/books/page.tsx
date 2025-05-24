@@ -2,61 +2,74 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore, useAccountBookStore } from "@zhiweijz/web";
 import { PageContainer } from "@/components/layout/page-container";
+import { BookList } from "@/components/books/book-list";
+import { EmptyState } from "@/components/books/empty-state";
+import { AddBookButton } from "@/components/books/add-book-button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useAccountBookStore } from "@/store/account-book-store";
 import { toast } from "sonner";
-import { apiClient } from "@/lib/api";
+import { AccountBook } from "@/types";
 import "./books.css";
-
-// 账本类型定义
-interface AccountBook {
-  id: string;
-  name: string;
-  description?: string;
-  isDefault: boolean;
-  isFamilyBook: boolean;
-  familyId?: string;
-  familyName?: string;
-}
 
 export default function BookListPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
-  const { accountBooks, currentAccountBook, fetchAccountBooks, setCurrentAccountBook } = useAccountBookStore();
+  const {
+    accountBooks,
+    currentAccountBook,
+    isLoading,
+    error,
+    fetchAccountBooks,
+    setCurrentAccountBook,
+    deleteAccountBook,
+  } = useAccountBookStore();
 
   // 本地状态
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [bookToDelete, setBookToDelete] = useState<AccountBook | null>(null);
   const [showSwitchConfirm, setShowSwitchConfirm] = useState(false);
   const [bookToSwitch, setBookToSwitch] = useState<AccountBook | null>(null);
-
-  // 如果未登录，重定向到登录页
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/auth/login");
-    }
-  }, [isAuthenticated, router]);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [bookToReset, setBookToReset] = useState<AccountBook | null>(null);
 
   // 获取账本列表
   useEffect(() => {
-    if (!isAuthenticated) return;
-
-    const loadAccountBooks = async () => {
+    const loadAllAccountBooks = async () => {
       try {
-        setIsLoading(true);
+        // 先获取个人账本
         await fetchAccountBooks();
-        setIsLoading(false);
+
+        // 获取用户的家庭列表
+        const response = await fetch('/api/families', {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const families = await response.json();
+
+          // 为每个家庭获取账本
+          const fetchPromises = families.map((family: any) =>
+            useAccountBookStore.getState().fetchFamilyAccountBooks(family.id)
+          );
+
+          await Promise.all(fetchPromises);
+        }
       } catch (error) {
-        console.error("获取账本列表失败:", error);
-        setError("获取账本列表失败");
-        setIsLoading(false);
+        console.error('加载账本失败:', error);
       }
     };
 
-    loadAccountBooks();
-  }, [isAuthenticated, fetchAccountBooks]);
+    loadAllAccountBooks();
+  }, [fetchAccountBooks]);
+
+  // 错误处理
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
   // 添加账本
   const handleAddBook = () => {
@@ -79,13 +92,11 @@ export default function BookListPage() {
     if (!bookToDelete) return;
 
     try {
-      await apiClient.delete(`/account-books/${bookToDelete.id}`);
+      await deleteAccountBook(bookToDelete.id);
       toast.success("账本删除成功");
-      fetchAccountBooks();
       setShowDeleteConfirm(false);
       setBookToDelete(null);
     } catch (error) {
-      console.error("删除账本失败:", error);
       toast.error("删除账本失败");
     }
   };
@@ -105,7 +116,12 @@ export default function BookListPage() {
 
     try {
       // 设置为默认账本
-      await apiClient.put(`/account-books/${bookToSwitch.id}/default`);
+      await fetch(`/api/account-books/${bookToSwitch.id}/set-default`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
       // 更新当前账本
       setCurrentAccountBook(bookToSwitch.id);
@@ -114,13 +130,61 @@ export default function BookListPage() {
       // 重新获取账本列表
       fetchAccountBooks();
     } catch (error) {
-      console.error("设置默认账本失败:", error);
-      toast.error("设置默认账本失败");
+      console.error('设置默认账本失败:', error);
+      toast.error('设置默认账本失败');
     } finally {
       setShowSwitchConfirm(false);
       setBookToSwitch(null);
     }
   };
+
+  // 处理重置账本
+  const handleResetBook = (book: AccountBook) => {
+    setBookToReset(book);
+    setShowResetConfirm(true);
+  };
+
+  // 确认重置账本
+  const confirmResetBook = async () => {
+    if (!bookToReset) return;
+
+    try {
+      // 调用API重置账本
+      const response = await fetch(`/api/account-books/${bookToReset.id}/reset`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ confirm: true }),
+      });
+
+      if (response.ok) {
+        toast.success(`账本 "${bookToReset.name}" 已重置`);
+        // 重新获取账本列表
+        fetchAccountBooks();
+      } else {
+        const error = await response.json();
+        toast.error(error.message || '重置账本失败');
+      }
+    } catch (error) {
+      console.error('重置账本失败:', error);
+      toast.error('重置账本失败');
+    } finally {
+      setShowResetConfirm(false);
+      setBookToReset(null);
+    }
+  };
+
+  // 右侧操作按钮
+  const rightActions = (
+    <button
+      className="icon-button"
+      onClick={() => handleAddBook()}
+      aria-label="添加账本"
+    >
+      <i className="fas fa-plus"></i>
+    </button>
+  );
 
   // 确保accountBooks是一个数组
   const safeAccountBooks = Array.isArray(accountBooks) ? accountBooks : [];
@@ -128,119 +192,69 @@ export default function BookListPage() {
   // 判断是否显示空状态
   const showEmptyState = !isLoading && safeAccountBooks.length === 0;
 
-  // 右侧操作按钮
-  const rightActions = (
-    <>
-      <button className="icon-button" onClick={handleAddBook}>
-        <i className="fas fa-plus"></i>
-      </button>
-    </>
-  );
-
   return (
-    <PageContainer title="我的账本" rightActions={rightActions} activeNavItem="profile">
-        {isLoading ? (
-          <div className="loading-state">加载中...</div>
-        ) : error ? (
-          <div className="error-state">{error}</div>
-        ) : showEmptyState ? (
-          <div className="empty-state">
-            <div className="empty-icon">
-              <i className="fas fa-book"></i>
-            </div>
-            <div className="empty-text">您还没有创建任何账本</div>
-            <button className="primary-button" onClick={handleAddBook}>
-              创建账本
-            </button>
-          </div>
-        ) : (
-          <div className="book-list">
-            {safeAccountBooks.map((book: AccountBook) => (
-              <div
-                key={book.id}
-                className={`book-card ${currentAccountBook?.id === book.id ? 'active' : ''}`}
-                onClick={() => handleSwitchBook(book)}
-              >
-                <div className="book-icon">
-                  <i className={`fas ${book.isFamilyBook ? 'fa-users' : 'fa-book'}`}></i>
-                </div>
-                <div className="book-details">
-                  <div className="book-name">{book.name}</div>
-                  {book.description && (
-                    <div className="book-description">{book.description}</div>
-                  )}
-                  {book.isDefault && (
-                    <div className="book-badge">默认</div>
-                  )}
-                  {book.isFamilyBook && (
-                    <div className="book-badge family">家庭</div>
-                  )}
-                </div>
-                <div className="book-actions">
-                  <button
-                    className="icon-button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditBook(book);
-                    }}
-                  >
-                    <i className="fas fa-edit"></i>
-                  </button>
-                  <button
-                    className="icon-button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteBook(book);
-                    }}
-                  >
-                    <i className="fas fa-trash"></i>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+    <PageContainer
+      title="我的账本"
+      rightActions={rightActions}
+      activeNavItem="profile"
+    >
+      {isLoading ? (
+        <div className="flex h-40 items-center justify-center">
+          <p className="text-gray-500">加载中...</p>
+        </div>
+      ) : (
+        <>
+          {showEmptyState ? (
+            <EmptyState onAddBook={handleAddBook} />
+          ) : (
+            <BookList
+              books={safeAccountBooks}
+              currentBookId={currentAccountBook?.id}
+              onSwitchBook={handleSwitchBook}
+              onEditBook={handleEditBook}
+              onDeleteBook={handleDeleteBook}
+              onResetBook={handleResetBook}
+            />
+          )}
+
+          <AddBookButton onClick={handleAddBook} />
+        </>
+      )}
 
       {/* 删除确认对话框 */}
-      {showDeleteConfirm && (
-        <div className="confirm-dialog">
-          <div className="confirm-dialog-content">
-            <h3>删除账本</h3>
-            <p>确定要删除账本 "{bookToDelete?.name}" 吗？此操作不可恢复，账本中的所有数据将被删除。</p>
-            <div className="confirm-dialog-actions">
-              <button className="secondary-button" onClick={() => setShowDeleteConfirm(false)}>
-                取消
-              </button>
-              <button className="danger-button" onClick={confirmDeleteBook}>
-                删除
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="删除账本"
+        message={`确定要删除账本 "${bookToDelete?.name}" 吗？此操作不可恢复，账本中的所有数据将被删除。`}
+        confirmText="删除"
+        cancelText="取消"
+        onConfirm={confirmDeleteBook}
+        onCancel={() => setShowDeleteConfirm(false)}
+        isDangerous
+      />
 
       {/* 切换账本确认对话框 */}
-      {showSwitchConfirm && (
-        <div className="confirm-dialog">
-          <div className="confirm-dialog-content">
-            <h3>切换账本</h3>
-            <p>确定要切换到账本 "{bookToSwitch?.name}" 吗？</p>
-            <div className="confirm-dialog-actions">
-              <button className="secondary-button" onClick={() => setShowSwitchConfirm(false)}>
-                取消
-              </button>
-              <button className="primary-button" onClick={confirmSwitchBook}>
-                切换
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={showSwitchConfirm}
+        title="切换账本"
+        message={`确定要切换到账本 "${bookToSwitch?.name}" 吗？`}
+        confirmText="切换"
+        cancelText="取消"
+        onConfirm={confirmSwitchBook}
+        onCancel={() => setShowSwitchConfirm(false)}
+      />
 
-      {/* 添加账本按钮 */}
-      <button className="floating-action-button" onClick={handleAddBook}>
-        <i className="fas fa-plus"></i>
-      </button>
+      {/* 重置账本确认对话框 */}
+      <ConfirmDialog
+        isOpen={showResetConfirm}
+        title="重置家庭账本"
+        message={`确定要重置账本 "${bookToReset?.name}" 吗？此操作将清除所有交易记录、预算信息和历史记录，且不可恢复。`}
+        confirmText="重置"
+        cancelText="取消"
+        onConfirm={confirmResetBook}
+        onCancel={() => setShowResetConfirm(false)}
+        isDangerous
+      />
     </PageContainer>
   );
 }

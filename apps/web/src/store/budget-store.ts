@@ -14,6 +14,7 @@ interface BudgetState {
   
   // 操作方法
   fetchBudgets: (accountBookId?: string) => Promise<void>;
+  fetchActiveBudgets: (accountBookId?: string) => Promise<void>;
   getBudget: (id: string) => Promise<Budget | null>;
   createBudget: (data: {
     amount: number;
@@ -92,6 +93,37 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
         error: error instanceof Error ? error.message : '获取预算列表失败'
       });
       toast.error('获取预算列表失败');
+    }
+  },
+
+  // 获取活跃预算列表
+  fetchActiveBudgets: async (accountBookId) => {
+    try {
+      set({ isLoading: true, error: null });
+      
+      let url = '/budgets/active';
+      if (accountBookId) {
+        url += `?accountBookId=${accountBookId}`;
+      }
+      
+      console.log(`发送获取活跃预算请求: ${url}`);
+      const response = await apiClient.get(url);
+      console.log('获取活跃预算响应:', response);
+      
+      // 处理响应数据
+      const budgets = Array.isArray(response) ? response : [];
+      
+      set({
+        budgets,
+        isLoading: false
+      });
+    } catch (error) {
+      console.error('获取活跃预算失败:', error);
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : '获取活跃预算失败'
+      });
+      toast.error('获取活跃预算失败');
     }
   },
   

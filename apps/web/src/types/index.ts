@@ -196,3 +196,16 @@ export interface ApiResponse<T> {
   data?: T;
   error?: ApiError;
 }
+
+/**
+ * 智能记账相关类型
+ */
+export interface SmartAccountingResult {
+  amount: number;
+  type: TransactionType;
+  categoryId: string;
+  categoryName: string;
+  description: string;
+  date: string;
+  confidence: number;
+}

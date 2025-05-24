@@ -563,6 +563,8 @@
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   max-width: 100% !important;
+  color: var(--text-primary) !important;
+  font-weight: 500 !important;
 }
 
 .dashboard-category-icon {
@@ -584,6 +586,16 @@
   text-align: right !important;
   flex-shrink: 0 !important;
   min-width: 80px !important;
+  color: var(--text-primary) !important;
+}
+
+.dashboard-budget-amount .current {
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+}
+
+.dashboard-budget-amount .total {
+  color: var(--text-secondary) !important;
 }
 
 .dashboard-separator {
@@ -1624,4 +1636,71 @@
   .category-grid {
     grid-template-columns: repeat(5, 1fr);
   }
+}
+
+/* 强制应用主题颜色，避免刷新时的颜色异常 */
+.dark .dashboard-category-name,
+.dark .budget-category span {
+  color: rgb(243, 244, 246) !important;
+}
+
+.dark .dashboard-budget-amount,
+.dark .budget-amount {
+  color: rgb(243, 244, 246) !important;
+}
+
+.dark .dashboard-budget-amount .current,
+.dark .budget-amount .current {
+  color: rgb(243, 244, 246) !important;
+}
+
+.dark .dashboard-budget-amount .total,
+.dark .budget-amount .total {
+  color: rgb(156, 163, 175) !important;
+}
+
+.dark .dashboard-separator,
+.dark .separator {
+  color: rgb(156, 163, 175) !important;
+}
+
+/* 额外的保险措施：使用更具体的选择器 */
+html.dark .dashboard-budget-progress .dashboard-category-name,
+html.dark .budget-progress .budget-category span {
+  color: rgb(243, 244, 246) !important;
+}
+
+html.dark .dashboard-budget-progress .dashboard-budget-amount,
+html.dark .budget-progress .budget-amount {
+  color: rgb(243, 244, 246) !important;
+}
+
+html.dark .dashboard-budget-progress .dashboard-budget-amount .current,
+html.dark .budget-progress .budget-amount .current {
+  color: rgb(243, 244, 246) !important;
+}
+
+html.dark .dashboard-budget-progress .dashboard-budget-amount .total,
+html.dark .budget-progress .budget-amount .total {
+  color: rgb(156, 163, 175) !important;
+}
+
+html.dark .dashboard-budget-progress .dashboard-separator,
+html.dark .budget-progress .separator {
+  color: rgb(156, 163, 175) !important;
+}
+
+/* 最高优先级的样式规则 */
+html.dark-theme .dashboard-category-name,
+html.dark-theme .budget-category span,
+html.dark-theme .dashboard-budget-amount,
+html.dark-theme .budget-amount {
+  color: rgb(243, 244, 246) !important;
+}
+
+html.dark-theme .dashboard-budget-amount .total,
+html.dark-theme .budget-amount .total,
+html.dark-theme .dashboard-separator,
+html.dark-theme .separator {
+  color: rgb(156, 163, 175) !important;
 }

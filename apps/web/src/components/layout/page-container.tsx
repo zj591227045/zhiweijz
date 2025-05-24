@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { BottomNavigation } from "@zhiweijz/web";
+import { EnhancedBottomNavigation } from "./enhanced-bottom-navigation";
 import { useThemeStore } from "@/store/theme-store";
 import { SettingsDialog } from "./settings-dialog";
 import "@/styles/settings-dialog.css";
@@ -119,7 +119,7 @@ export function PageContainer({
       </main>
 
       {/* 底部导航栏 */}
-      {showBottomNav && <BottomNavigation currentPath={getPathFromActiveItem(activeNavItem)} />}
+      {showBottomNav && <EnhancedBottomNavigation currentPath={getPathFromActiveItem(activeNavItem)} />}
 
       {/* 设置弹窗 */}
       <SettingsDialog

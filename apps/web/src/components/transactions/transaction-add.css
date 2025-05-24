@@ -1,0 +1,388 @@
+/* 交易添加页面特有样式 */
+
+.transaction-add-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 类型选择器 */
+.transaction-type-toggle {
+  display: flex;
+  background-color: var(--background-color);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.transaction-type-toggle .type-button {
+  flex: 1;
+  padding: 12px;
+  text-align: center;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.transaction-type-toggle .type-button.active {
+  background-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.transaction-type-toggle .type-button.expense.active {
+  background-color: #ef4444;
+}
+
+.transaction-type-toggle .type-button.income.active {
+  background-color: #10b981;
+}
+
+/* 金额输入 */
+.amount-input-container {
+  text-align: center;
+  padding: 20px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.amount-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 48px;
+  font-weight: 300;
+  color: var(--text-primary);
+  justify-content: center;
+}
+
+.currency-symbol {
+  font-size: 36px;
+  color: var(--text-secondary);
+  font-weight: 300;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.amount-input {
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 48px;
+  font-weight: 300;
+  color: var(--text-primary);
+  text-align: center;
+  line-height: 1;
+  width: auto;
+  min-width: 60px;
+  max-width: 200px;
+}
+
+.amount-input::placeholder {
+  color: var(--text-secondary);
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+  .amount-display {
+    font-size: 40px;
+    gap: 6px;
+  }
+  
+  .currency-symbol {
+    font-size: 30px;
+  }
+  
+  .amount-input {
+    font-size: 40px;
+    min-width: 50px;
+    max-width: 150px;
+  }
+}
+
+/* 步骤指示器 */
+.step-indicator {
+  display: flex;
+  margin-bottom: 20px;
+  background-color: var(--card-background);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.step-item {
+  flex: 1;
+  padding: 12px 8px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.step-item.active {
+  color: var(--primary-color);
+  font-weight: 500;
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.step-number {
+  display: none; /* 隐藏数字，使用文字显示 */
+}
+
+.step-text {
+  font-size: 14px;
+  color: inherit;
+  font-weight: inherit;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 步骤内容 */
+.step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.step-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+/* 分类选择 */
+.category-section {
+  margin-bottom: 20px;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.category-grid .category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  padding: 12px 8px;
+  border-radius: 12px;
+}
+
+.category-grid .category-item:active {
+  transform: scale(0.95);
+}
+
+.category-grid .category-item.active .category-icon-wrapper {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.category-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: rgba(59, 130, 246, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  font-size: 20px;
+}
+
+.category-grid .category-name {
+  font-size: 12px;
+  text-align: center;
+  color: var(--text-primary);
+  line-height: 1.2;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 选中的分类显示 */
+.selected-category {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--card-background);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.selected-category .category-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.selected-category .category-icon-wrapper i {
+  font-size: 18px;
+}
+
+.selected-category span {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.change-category-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.change-category-btn:hover {
+  background-color: var(--background-color);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+/* 交易详情表单 */
+.transaction-details-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.transaction-details-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.transaction-details-form .form-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.transaction-details-form .form-input {
+  background-color: var(--card-background);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.transaction-details-form .form-input input,
+.transaction-details-form .form-input textarea {
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: var(--text-primary);
+  resize: none;
+}
+
+.transaction-details-form .form-input input:focus,
+.transaction-details-form .form-input textarea:focus {
+  outline: none;
+}
+
+.transaction-details-form .form-input input::placeholder,
+.transaction-details-form .form-input textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+.transaction-details-form .form-input textarea {
+  min-height: 80px;
+  font-family: inherit;
+}
+
+/* 表单输入样式 */
+.transaction-details-form .form-input input[type="date"],
+.transaction-details-form .form-input input[type="time"] {
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: var(--text-primary);
+  padding: 0;
+}
+
+.transaction-details-form .form-input input[type="date"]:focus,
+.transaction-details-form .form-input input[type="time"]:focus {
+  outline: none;
+}
+
+.transaction-details-form .form-input input[type="date"]::-webkit-calendar-picker-indicator,
+.transaction-details-form .form-input input[type="time"]::-webkit-calendar-picker-indicator {
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+/* 日期和时间输入的特殊样式 */
+.transaction-details-form .form-input input[type="date"]::-webkit-datetime-edit,
+.transaction-details-form .form-input input[type="time"]::-webkit-datetime-edit {
+  color: var(--text-primary);
+}
+
+.transaction-details-form .form-input input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+.transaction-details-form .form-input input[type="time"]::-webkit-datetime-edit-fields-wrapper {
+  color: var(--text-primary);
+}
+
+.transaction-details-form .form-input input[type="date"]::-webkit-datetime-edit-text,
+.transaction-details-form .form-input input[type="time"]::-webkit-datetime-edit-text {
+  color: var(--text-secondary);
+}
+
+/* 表单操作按钮 */
+.form-actions {
+  margin-top: 20px;
+}
+
+.save-button {
+  width: 100%;
+  padding: 16px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.save-button:hover:not(:disabled) {
+  background-color: var(--primary-color-dark, #2563eb);
+}
+
+.save-button:disabled {
+  background-color: var(--border-color);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+/* 响应式设计 */
+@media (max-width: 360px) {
+  .category-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 480px) {
+  .category-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+} 

@@ -29,6 +29,7 @@ interface CategoryState {
     isHidden?: boolean;
   }) => Promise<boolean>;
   deleteCategory: (id: string) => Promise<boolean>;
+  updateCategoryOrder: (categoryIds: string[]) => Promise<boolean>;
 }
 
 // 创建分类状态管理
@@ -168,6 +169,27 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
         error: error instanceof Error ? error.message : `删除分类 ${id} 失败`
       });
       toast.error('删除分类失败');
+      return false;
+    }
+  },
+  
+  // 更新分类排序
+  updateCategoryOrder: async (categoryIds) => {
+    try {
+      set({ isLoading: true, error: null });
+      
+      await apiClient.put('/categories/order', { categoryIds });
+      
+      set({ isLoading: false });
+      
+      return true;
+    } catch (error) {
+      console.error('更新分类排序失败:', error);
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : '更新分类排序失败'
+      });
+      toast.error('更新分类排序失败');
       return false;
     }
   }

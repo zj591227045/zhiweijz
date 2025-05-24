@@ -176,6 +176,114 @@
   gap: 12px;
 }
 
+/* 添加账本按钮 */
+.add-book-button {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--primary-color, rgb(59, 130, 246));
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+  text-decoration: none;
+}
+
+.add-book-button i {
+  font-size: 20px;
+  margin-bottom: 2px;
+}
+
+.add-book-button span {
+  font-size: 10px;
+}
+
+.add-book-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.add-book-button:active {
+  transform: translateY(0);
+}
+
+/* 账本卡片头部 */
+.book-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.book-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, rgb(31, 41, 55));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.book-action {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--muted, rgb(243, 244, 246));
+  color: var(--text-secondary, rgb(107, 114, 128));
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.book-action:hover {
+  background-color: var(--muted-foreground, rgb(156, 163, 175, 0.2));
+}
+
+/* 账本元数据 */
+.book-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-secondary, rgb(107, 114, 128));
+}
+
+.meta-icon {
+  width: 20px;
+  display: flex;
+  justify-content: center;
+  color: var(--muted-foreground, rgb(156, 163, 175));
+}
+
+/* 分组标题 */
+.section-header {
+  margin-top: 24px;
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, rgb(31, 41, 55));
+}
+
 /* 按钮样式 */
 .primary-button {
   padding: 8px 16px;

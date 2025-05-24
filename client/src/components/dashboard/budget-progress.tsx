@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState, memo, useMemo } from "react";
+import { useState, memo, useMemo, useEffect } from "react";
 import { formatCurrency } from "@/lib/utils";
+import { useThemeStore } from "@/store/theme-store";
 
 interface BudgetCategory {
   id: string;
@@ -28,6 +29,48 @@ interface BudgetProgressProps {
 export const BudgetProgress = memo(function BudgetProgress({ categories, totalBudget }: BudgetProgressProps) {
   // 状态控制折叠/展开
   const [isCollapsed, setIsCollapsed] = useState(false);
+  
+  // 监听主题变化
+  const { theme, themeColor } = useThemeStore();
+
+  // 当主题变化时，强制更新组件样式
+  useEffect(() => {
+    // 延迟一点时间确保CSS变量已经更新
+    const timer = setTimeout(() => {
+      // 强制重新渲染所有文本元素
+      const budgetElements = document.querySelectorAll('.dashboard-category-name, .dashboard-budget-amount');
+      budgetElements.forEach(element => {
+        if (element instanceof HTMLElement) {
+          // 触发重新渲染
+          element.style.display = 'none';
+          element.offsetHeight; // 触发重排
+          element.style.display = '';
+        }
+      });
+
+      // 额外的强制更新：直接设置颜色然后移除
+      const allBudgetElements = document.querySelectorAll('.dashboard-category-name, .dashboard-budget-amount, .dashboard-budget-amount .current, .dashboard-budget-amount .total, .dashboard-separator');
+      allBudgetElements.forEach(element => {
+        if (element instanceof HTMLElement) {
+          // 根据当前主题强制设置颜色
+          if (element.classList.contains('dashboard-category-name') || 
+              element.classList.contains('dashboard-budget-amount') ||
+              element.classList.contains('current')) {
+            element.style.color = theme === 'dark' ? 'rgb(243, 244, 246)' : 'rgb(31, 41, 55)';
+          } else if (element.classList.contains('total') || element.classList.contains('dashboard-separator')) {
+            element.style.color = theme === 'dark' ? 'rgb(156, 163, 175)' : 'rgb(107, 114, 128)';
+          }
+          
+          // 短暂延迟后移除内联样式，让CSS变量接管
+          setTimeout(() => {
+            element.style.removeProperty('color');
+          }, 50);
+        }
+      });
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, [theme, themeColor]);
 
   // 获取图标类名
   const getIconClass = (iconName: string) => {
@@ -162,7 +205,12 @@ export const BudgetProgress = memo(function BudgetProgress({ categories, totalBu
                     </div>
                     <span className="dashboard-category-name">{category.name}</span>
                   </div>
-                  <div className={`budget-amount dashboard-budget-amount ${category.percentage > 100 ? 'text-red-500' : ''}`}>
+                  <div
+                    className="budget-amount dashboard-budget-amount"
+                    style={{
+                      color: category.percentage > 100 ? 'var(--error-color)' : 'var(--text-primary)'
+                    }}
+                  >
                     <span className="current">{formatCurrency(category.spent)}</span>
                     <span className="separator dashboard-separator">/</span>
                     <span className="total">{formatCurrency(category.budget)}</span>

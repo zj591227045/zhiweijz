@@ -57,6 +57,14 @@
     --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     --hover-background: rgba(0, 0, 0, 0.05);
     --primary-color-light: rgba(59, 130, 246, 0.1);
+    --primary-color-dark: #2563eb;
+    --error-color-dark: #dc2626;
+    --accent-color: #8b5cf6;
+    --skeleton-background: #f3f4f6;
+    --skeleton-highlight: #e5e7eb;
+    --card-background-secondary: #f9fafb;
+    --category-icon-background: #f0f0f0;
+    --category-icon-color: #333;
   }
 
   .dark {
@@ -103,6 +111,14 @@
     --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     --hover-background: rgba(255, 255, 255, 0.1);
     --primary-color-light: rgba(96, 165, 250, 0.2);
+    --primary-color-dark: #3b82f6;
+    --error-color-dark: #ef4444;
+    --accent-color: #a855f7;
+    --skeleton-background: #374151;
+    --skeleton-highlight: #4b5563;
+    --card-background-secondary: #111827;
+    --category-icon-background: #374151;
+    --category-icon-color: #f3f4f6;
     color-scheme: dark;
   }
 }
