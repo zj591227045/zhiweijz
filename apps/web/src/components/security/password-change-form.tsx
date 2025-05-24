@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { securityService } from "@/lib/api/security-service";
 
 // 密码修改表单验证模式
 const passwordChangeSchema = z.object({
@@ -84,28 +85,18 @@ export function PasswordChangeForm({ onClose, onSuccess }: PasswordChangeFormPro
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('/api/user/change-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          currentPassword: data.currentPassword,
-          newPassword: data.newPassword,
-        }),
+      await securityService.changePassword({
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
       });
 
-      if (response.ok) {
-        toast.success('密码修改成功');
-        onSuccess?.();
-        onClose();
-      } else {
-        const error = await response.json();
-        toast.error(error.message || '密码修改失败');
-      }
+      toast.success('密码修改成功');
+      onSuccess?.();
+      onClose();
     } catch (error) {
       console.error('密码修改失败:', error);
-      toast.error('密码修改失败');
+      const errorMessage = error instanceof Error ? error.message : '密码修改失败';
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

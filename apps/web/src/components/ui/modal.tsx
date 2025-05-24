@@ -20,16 +20,16 @@ export function Modal({
   if (!isOpen) return null;
 
   return (
-    <div className="dialog-overlay" onClick={onClose}>
+    <div className="modal-overlay" style={{ display: 'flex' }} onClick={onClose}>
       <div 
-        className={`dialog-content ${size}`} 
+        className={`modal-container ${size}`} 
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
-          <div className="dialog-header">
-            <h3 className="dialog-title">{title}</h3>
+          <div className="modal-header">
+            <h3 className="modal-title">{title}</h3>
             <button 
-              className="dialog-close"
+              className="modal-close"
               onClick={onClose}
               aria-label="关闭"
             >
@@ -37,7 +37,7 @@ export function Modal({
             </button>
           </div>
         )}
-        <div className="dialog-body">
+        <div className="modal-body">
           {children}
         </div>
       </div>
