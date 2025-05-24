@@ -7,6 +7,7 @@ import { BookForm, BookFormValues } from "@/components/books/book-form";
 import { useAccountBookStore } from "@/store/account-book-store";
 import { toast } from "sonner";
 import { AccountBook } from "@/types";
+import "../../book-form.css";
 
 interface EditBookPageProps {
   params: {
@@ -58,53 +59,78 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     }
   };
 
-  // 右侧操作按钮
-  const rightActions = (
-    <button
-      className="icon-button"
-      type="submit"
-      form="book-form"
-      disabled={isSubmitting}
-      aria-label="保存"
-    >
-      <i className="fas fa-save"></i>
-    </button>
-  );
+  // 取消操作
+  const handleCancel = () => {
+    router.push("/books");
+  };
 
   return (
     <PageContainer
       title="编辑账本"
-      rightActions={rightActions}
       showBackButton={true}
       activeNavItem="profile"
     >
       {isLoading ? (
         <div className="flex h-40 items-center justify-center">
-          <p className="text-gray-500">加载中...</p>
+          <div style={{ textAlign: 'center' }}>
+            <i className="fas fa-spinner fa-spin" style={{ fontSize: '24px', color: 'var(--primary-color, #3b82f6)', marginBottom: '12px' }}></i>
+            <p style={{ color: 'var(--text-secondary, #6b7280)', margin: 0 }}>加载中...</p>
+          </div>
         </div>
       ) : (
-        <div className="book-form">
-          <BookForm
-            id="book-form"
-            book={book}
-            isSubmitting={isSubmitting}
-            onSubmit={handleSubmit}
-          />
-        </div>
-      )}
+        <>
+          <div className="book-form">
+            <BookForm
+              id="book-form"
+              book={book}
+              isSubmitting={isSubmitting}
+              onSubmit={handleSubmit}
+            />
+          </div>
 
-      {/* 底部保存按钮 */}
-      {!isLoading && (
-        <div className="bottom-button-container">
-          <button
-            type="submit"
-            form="book-form"
-            className="save-button"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "保存中..." : "保存"}
-          </button>
-        </div>
+          {/* 底部操作按钮 */}
+          <div className="bottom-button-container">
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={handleCancel}
+                disabled={isSubmitting}
+                style={{ 
+                  flex: '1',
+                  padding: '14px',
+                  backgroundColor: 'transparent',
+                  color: 'var(--text-secondary, #6b7280)',
+                  border: '1px solid var(--border-color, #e5e7eb)',
+                  borderRadius: '8px',
+                  fontWeight: '500',
+                  fontSize: '16px'
+                }}
+              >
+                取消
+              </button>
+              <button
+                type="submit"
+                form="book-form"
+                className="save-button"
+                disabled={isSubmitting}
+                style={{ flex: '2' }}
+              >
+                {isSubmitting ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin" style={{ marginRight: '8px' }}></i>
+                    保存中...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-save" style={{ marginRight: '8px' }}></i>
+                    保存更改
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </PageContainer>
   );

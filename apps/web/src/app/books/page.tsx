@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageContainer } from "@/components/layout/page-container";
 import { BookList } from "@/components/books/book-list";
-import { EmptyState } from "@/components/books/empty-state";
 import { AddBookButton } from "@/components/books/add-book-button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useAccountBookStore } from "@/store/account-book-store";
@@ -189,9 +188,6 @@ export default function BookListPage() {
   // 确保accountBooks是一个数组
   const safeAccountBooks = Array.isArray(accountBooks) ? accountBooks : [];
 
-  // 判断是否显示空状态
-  const showEmptyState = !isLoading && safeAccountBooks.length === 0;
-
   return (
     <PageContainer
       title="我的账本"
@@ -204,18 +200,14 @@ export default function BookListPage() {
         </div>
       ) : (
         <>
-          {showEmptyState ? (
-            <EmptyState onAddBook={handleAddBook} />
-          ) : (
-            <BookList
-              books={safeAccountBooks}
-              currentBookId={currentAccountBook?.id}
-              onSwitchBook={handleSwitchBook}
-              onEditBook={handleEditBook}
-              onDeleteBook={handleDeleteBook}
-              onResetBook={handleResetBook}
-            />
-          )}
+          <BookList
+            books={safeAccountBooks}
+            currentBookId={currentAccountBook?.id}
+            onSwitchBook={handleSwitchBook}
+            onEditBook={handleEditBook}
+            onDeleteBook={handleDeleteBook}
+            onResetBook={handleResetBook}
+          />
 
           <AddBookButton onClick={handleAddBook} />
         </>

@@ -1,0 +1,467 @@
+/* 账本表单页面样式 */
+
+/* 基础布局 */
+.book-form {
+  padding: 16px;
+  padding-bottom: 100px; /* 为底部按钮留出空间 */
+}
+
+/* 表单组 */
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-primary, #1f2937);
+  font-size: 14px;
+}
+
+/* 表单输入框 */
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  background-color: var(--card-background, white);
+  color: var(--text-primary, #1f2937);
+  font-size: 16px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-input::placeholder {
+  color: var(--text-secondary, #6b7280);
+}
+
+/* 文本域 */
+.form-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  background-color: var(--card-background, white);
+  color: var(--text-primary, #1f2937);
+  font-size: 16px;
+  min-height: 100px;
+  resize: vertical;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-textarea::placeholder {
+  color: var(--text-secondary, #6b7280);
+}
+
+/* 表单提示 */
+.form-hint {
+  font-size: 12px;
+  color: var(--text-secondary, #6b7280);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.form-hint.text-red-500 {
+  color: var(--error-color, #ef4444);
+}
+
+/* 开关容器 */
+.toggle-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background-color: var(--card-background, white);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+
+.toggle-container:hover {
+  border-color: var(--primary-color, #3b82f6);
+}
+
+.toggle-label {
+  font-weight: 500;
+  color: var(--text-primary, #1f2937);
+  font-size: 16px;
+}
+
+/* 开关样式 */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border-color, #e5e7eb);
+  transition: 0.3s ease;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s ease;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+input:checked + .toggle-slider {
+  background-color: var(--primary-color, #3b82f6);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(26px);
+}
+
+input:focus + .toggle-slider {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* 分组标题 */
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  margin: 32px 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+/* 预览区域 */
+.preview-section {
+  margin-top: 32px;
+  padding: 20px;
+  background-color: var(--card-background, white);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.preview-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  color: var(--text-secondary, #6b7280);
+}
+
+.book-preview {
+  padding: 16px;
+  border: 1px dashed var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  text-align: left;
+  background-color: var(--background-color, #f9fafb);
+}
+
+.preview-book-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  margin-bottom: 8px;
+}
+
+.preview-book-description {
+  font-size: 14px;
+  color: var(--text-secondary, #6b7280);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.preview-book-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.preview-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.preview-default-badge {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--primary-color, #3b82f6);
+}
+
+.preview-ai-badge {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--success-color, #10b981);
+}
+
+/* 底部按钮容器 */
+.bottom-button-container {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  padding: 16px;
+  background-color: var(--background-color, white);
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  z-index: 10;
+}
+
+.save-button {
+  width: 100%;
+  padding: 16px;
+  background-color: var(--primary-color, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.save-button:hover {
+  background-color: var(--primary-dark, #2563eb);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.save-button:active {
+  transform: translateY(0);
+}
+
+.save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+/* AI服务绑定区域 */
+.ai-service-binding {
+  margin-top: 24px;
+  padding: 20px;
+  background-color: var(--card-background, white);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+}
+
+.ai-service-binding .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.ai-service-binding .section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+.manage-services-button {
+  padding: 6px 12px;
+  background-color: transparent;
+  color: var(--primary-color, #3b82f6);
+  border: 1px solid var(--primary-color, #3b82f6);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.manage-services-button:hover {
+  background-color: var(--primary-color, #3b82f6);
+  color: white;
+}
+
+.section-description {
+  font-size: 14px;
+  color: var(--text-secondary, #6b7280);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .book-form {
+    padding: 12px;
+    padding-bottom: 100px;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-input,
+  .form-textarea {
+    padding: 14px 16px;
+    font-size: 16px; /* 防止iOS缩放 */
+  }
+  
+  .toggle-container {
+    padding: 14px 16px;
+  }
+  
+  .section-title {
+    font-size: 16px;
+    margin: 24px 0 12px 0;
+  }
+  
+  .preview-section {
+    margin-top: 24px;
+    padding: 16px;
+  }
+  
+  .bottom-button-container {
+    padding: 12px;
+  }
+  
+  .save-button {
+    padding: 14px;
+    font-size: 16px;
+  }
+}
+
+/* 超小屏幕优化 */
+@media (max-width: 480px) {
+  .book-form {
+    padding: 8px;
+    padding-bottom: 100px;
+  }
+  
+  .form-group {
+    margin-bottom: 16px;
+  }
+  
+  .form-input,
+  .form-textarea {
+    padding: 12px 14px;
+  }
+  
+  .toggle-container {
+    padding: 12px 14px;
+  }
+  
+  .toggle-label {
+    font-size: 15px;
+  }
+  
+  .section-title {
+    font-size: 15px;
+  }
+  
+  .preview-section {
+    padding: 12px;
+  }
+  
+  .bottom-button-container {
+    padding: 8px;
+  }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .form-input,
+  .form-textarea {
+    background-color: var(--card-background, #1f2937);
+    border-color: var(--border-color, #374151);
+    color: var(--text-primary, #f9fafb);
+  }
+  
+  .form-input::placeholder,
+  .form-textarea::placeholder {
+    color: var(--text-secondary, #9ca3af);
+  }
+  
+  .toggle-container {
+    background-color: var(--card-background, #1f2937);
+    border-color: var(--border-color, #374151);
+  }
+  
+  .book-preview {
+    background-color: var(--background-color, #111827);
+    border-color: var(--border-color, #374151);
+  }
+  
+  .bottom-button-container {
+    background-color: var(--background-color, #111827);
+    border-color: var(--border-color, #374151);
+  }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .form-input,
+  .form-textarea,
+  .toggle-container {
+    border-width: 2px;
+  }
+  
+  .form-input:focus,
+  .form-textarea:focus {
+    border-width: 3px;
+  }
+  
+  .save-button {
+    border: 2px solid var(--primary-color, #3b82f6);
+  }
+}
+
+/* 减少动画模式支持 */
+@media (prefers-reduced-motion: reduce) {
+  .form-input,
+  .form-textarea,
+  .toggle-container,
+  .toggle-slider,
+  .toggle-slider:before,
+  .save-button,
+  .manage-services-button {
+    transition: none;
+  }
+  
+  .save-button:hover {
+    transform: none;
+  }
+} 

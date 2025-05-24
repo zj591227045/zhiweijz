@@ -6,6 +6,7 @@ import { PageContainer } from "@/components/layout/page-container";
 import { BookForm, BookFormValues } from "@/components/books/book-form";
 import { useAccountBookStore } from "@/store/account-book-store";
 import { toast } from "sonner";
+import "../book-form.css";
 
 export default function CreateBookPage() {
   const router = useRouter();
@@ -33,23 +34,14 @@ export default function CreateBookPage() {
     }
   };
 
-  // 右侧操作按钮
-  const rightActions = (
-    <button
-      className="icon-button"
-      type="submit"
-      form="book-form"
-      disabled={isSubmitting}
-      aria-label="保存"
-    >
-      <i className="fas fa-save"></i>
-    </button>
-  );
+  // 取消操作
+  const handleCancel = () => {
+    router.push("/books");
+  };
 
   return (
     <PageContainer
       title="创建账本"
-      rightActions={rightActions}
       showBackButton={true}
       activeNavItem="profile"
     >
@@ -61,16 +53,47 @@ export default function CreateBookPage() {
         />
       </div>
 
-      {/* 底部保存按钮 */}
+      {/* 底部操作按钮 */}
       <div className="bottom-button-container">
-        <button
-          type="submit"
-          form="book-form"
-          className="save-button"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "保存中..." : "保存"}
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={handleCancel}
+            disabled={isSubmitting}
+            style={{ 
+              flex: '1',
+              padding: '14px',
+              backgroundColor: 'transparent',
+              color: 'var(--text-secondary, #6b7280)',
+              border: '1px solid var(--border-color, #e5e7eb)',
+              borderRadius: '8px',
+              fontWeight: '500',
+              fontSize: '16px'
+            }}
+          >
+            取消
+          </button>
+          <button
+            type="submit"
+            form="book-form"
+            className="save-button"
+            disabled={isSubmitting}
+            style={{ flex: '2' }}
+          >
+            {isSubmitting ? (
+              <>
+                <i className="fas fa-spinner fa-spin" style={{ marginRight: '8px' }}></i>
+                创建中...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-save" style={{ marginRight: '8px' }}></i>
+                创建账本
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </PageContainer>
   );

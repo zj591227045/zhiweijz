@@ -19,7 +19,10 @@ export function BookPreview({
         <div className="preview-book-description">{description || "账本描述"}</div>
         <div className="preview-book-badges">
           {isDefault && (
-            <div className="preview-badge preview-default-badge">设为默认</div>
+            <div className="preview-badge preview-default-badge">
+              <i className="fas fa-star" style={{ marginRight: '4px', fontSize: '10px' }}></i>
+              默认账本
+            </div>
           )}
         </div>
       </div>

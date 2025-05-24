@@ -65,7 +65,7 @@ export function BookForm({ id = "book-form", book, isSubmitting = false, onSubmi
   }, [watchedName, watchedDescription, watchedIsDefault]);
 
   return (
-    <form id={id} onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form id={id} onSubmit={handleSubmit(onSubmit)}>
       {/* 账本基本信息 */}
       <div className="form-group">
         <label className="form-label" htmlFor="book-name">账本名称</label>

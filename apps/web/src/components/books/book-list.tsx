@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { BookCard } from "./book-card";
+import { EmptyState } from "./empty-state";
 import { AccountBook, AccountBookType } from "@/types";
 
 interface BookListProps {
@@ -31,24 +32,26 @@ export function BookList({
   return (
     <div className="space-y-6">
       {/* 个人账本 */}
-      <div>
-        <div className="section-header">
-          <div className="section-title">个人账本</div>
-        </div>
+      {personalBooks.length > 0 && (
+        <div>
+          <div className="section-header">
+            <div className="section-title">个人账本</div>
+          </div>
 
-        <div className="book-list">
-          {personalBooks.map((book) => (
-            <BookCard
-              key={book.id}
-              book={book}
-              isActive={book.id === currentBookId}
-              onSwitch={() => onSwitchBook(book)}
-              onEdit={() => onEditBook(book)}
-              onDelete={() => onDeleteBook(book)}
-            />
-          ))}
+          <div className="book-list">
+            {personalBooks.map((book) => (
+              <BookCard
+                key={book.id}
+                book={book}
+                isActive={book.id === currentBookId}
+                onSwitch={() => onSwitchBook(book)}
+                onEdit={() => onEditBook(book)}
+                onDelete={() => onDeleteBook(book)}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 家庭账本 - 如果有的话 */}
       {familyBooks.length > 0 && (
@@ -71,6 +74,15 @@ export function BookList({
             ))}
           </div>
         </div>
+      )}
+
+      {/* 如果没有任何账本，显示空状态 */}
+      {personalBooks.length === 0 && familyBooks.length === 0 && (
+        <EmptyState 
+          title="暂无账本"
+          description="您还没有创建任何账本"
+          showButton={false}
+        />
       )}
     </div>
   );
