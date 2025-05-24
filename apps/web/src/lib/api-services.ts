@@ -154,6 +154,21 @@ export const budgetService = {
       params: { ...defaultParams, ...params },
     });
   },
+
+  // 获取预算趋势数据
+  getBudgetTrends: (budgetId: string, params?: any) => {
+    return apiClient.get(`/budgets/${budgetId}/trends`, { params });
+  },
+
+  // 获取预算交易记录
+  getBudgetTransactions: (budgetId: string, params?: any) => {
+    return apiClient.get(`/budgets/${budgetId}/transactions`, { params });
+  },
+
+  // 获取预算结转历史
+  getBudgetRolloverHistory: (budgetId: string) => {
+    return apiClient.get(`/budgets/${budgetId}/rollover-history`);
+  },
 };
 
 // 统计相关API

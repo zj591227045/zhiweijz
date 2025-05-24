@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore, BottomNavigation } from '@zhiweijz/web';
+import { useAuthStore } from '@zhiweijz/web';
+import { PageContainer } from '@/components/layout/page-container';
 import { useTransactionStore } from '@/store/transaction-store';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { formatCurrency, formatDate, getIconClass } from '@/lib/utils';
@@ -54,18 +55,7 @@ export default function TransactionDetailPage({ params }: { params: { id: string
   };
 
   return (
-    <div className="app-container">
-      {/* 顶部导航栏 */}
-      <div className="header">
-        <button className="icon-button" onClick={handleBack}>
-          <i className="fas fa-arrow-left"></i>
-        </button>
-        <div className="header-title">交易详情</div>
-        <div className="header-actions"></div>
-      </div>
-
-      {/* 主要内容区域 */}
-      <div className="main-content">
+    <PageContainer title="交易详情" showBackButton={true} onBackClick={handleBack} showBottomNav={false}>
         {isLoading ? (
           <div className="loading-state">
             <div className="loading-spinner"></div>
@@ -77,7 +67,7 @@ export default function TransactionDetailPage({ params }: { params: { id: string
               <i className="fas fa-exclamation-circle"></i>
             </div>
             <div className="error-message">{error}</div>
-            <button 
+            <button
               className="retry-button"
               onClick={() => fetchTransaction(params.id)}
             >
@@ -177,7 +167,7 @@ export default function TransactionDetailPage({ params }: { params: { id: string
               <i className="fas fa-exclamation-circle"></i>
             </div>
             <div className="error-message">未找到交易记录</div>
-            <button 
+            <button
               className="retry-button"
               onClick={() => router.push('/transactions')}
             >
@@ -185,10 +175,6 @@ export default function TransactionDetailPage({ params }: { params: { id: string
             </button>
           </div>
         )}
-      </div>
-
-      {/* 底部导航栏 */}
-      <BottomNavigation currentPath="/transactions" />
 
       {/* 删除确认对话框 */}
       <ConfirmDialog
@@ -201,6 +187,6 @@ export default function TransactionDetailPage({ params }: { params: { id: string
         onCancel={() => setShowDeleteDialog(false)}
         isDangerous
       />
-    </div>
+    </PageContainer>
   );
 }

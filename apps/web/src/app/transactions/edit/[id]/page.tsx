@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore, BottomNavigation } from '@zhiweijz/web';
+import { useAuthStore } from '@zhiweijz/web';
+import { PageContainer } from '@/components/layout/page-container';
 import { useTransactionStore } from '@/store/transaction-store';
 import { useCategoryStore } from '@/store/category-store';
 import { useAccountBookStore } from '@/store/account-book-store';
-import { formatDateForInput, getIconClass } from '@/lib/utils';
+import { formatDateForInput, getCategoryIconClass } from '@/lib/utils';
 import { TransactionType, UpdateTransactionData } from '@/types';
 import { toast } from 'sonner';
 import './transaction-edit.css';
@@ -17,7 +18,7 @@ export default function TransactionEditPage({ params }: { params: { id: string }
   const { transaction, isLoading, error, fetchTransaction, updateTransaction } = useTransactionStore();
   const { categories, fetchCategories } = useCategoryStore();
   const { currentAccountBook } = useAccountBookStore();
-  
+
   // 表单状态
   const [formData, setFormData] = useState<UpdateTransactionData>({
     amount: 0,
@@ -65,26 +66,26 @@ export default function TransactionEditPage({ params }: { params: { id: string }
   // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // 表单验证
     if (!formData.amount || formData.amount <= 0) {
       setFormError('请输入有效的金额');
       return;
     }
-    
+
     if (!formData.categoryId) {
       setFormError('请选择分类');
       return;
     }
-    
+
     if (!formData.date) {
       setFormError('请选择日期');
       return;
     }
-    
+
     setIsSubmitting(true);
     setFormError('');
-    
+
     try {
       const success = await updateTransaction(params.id, formData);
       if (success) {
@@ -130,20 +131,16 @@ export default function TransactionEditPage({ params }: { params: { id: string }
     router.back();
   };
 
-  return (
-    <div className="app-container">
-      {/* 顶部导航栏 */}
-      <div className="header">
-        <button className="icon-button" onClick={handleBack}>
-          <i className="fas fa-arrow-left"></i>
-        </button>
-        <div className="header-title">编辑交易</div>
-        <div className="header-actions"></div>
-      </div>
+  // 获取图标类名
+  const getIconClass = (iconName?: string) => {
+    if (!iconName) return "fas fa-tag";
+    const iconClass = getCategoryIconClass(iconName);
+    return iconClass.startsWith("fa-") ? `fas ${iconClass}` : `fas fa-${iconClass}`;
+  };
 
-      {/* 主要内容区域 */}
-      <div className="main-content">
-        {isLoading ? (
+  return (
+    <PageContainer title="编辑交易" showBackButton={true} onBackClick={handleBack} showBottomNav={false}>
+      {isLoading ? (
           <div className="loading-state">
             <div className="loading-spinner"></div>
             <div className="loading-text">加载中...</div>
@@ -154,7 +151,7 @@ export default function TransactionEditPage({ params }: { params: { id: string }
               <i className="fas fa-exclamation-circle"></i>
             </div>
             <div className="error-message">{error}</div>
-            <button 
+            <button
               className="retry-button"
               onClick={() => fetchTransaction(params.id)}
             >
@@ -263,7 +260,7 @@ export default function TransactionEditPage({ params }: { params: { id: string }
               <i className="fas fa-exclamation-circle"></i>
             </div>
             <div className="error-message">未找到交易记录</div>
-            <button 
+            <button
               className="retry-button"
               onClick={() => router.push('/transactions')}
             >
@@ -271,10 +268,6 @@ export default function TransactionEditPage({ params }: { params: { id: string }
             </button>
           </div>
         )}
-      </div>
-
-      {/* 底部导航栏 */}
-      <BottomNavigation currentPath="/transactions" />
-    </div>
+    </PageContainer>
   );
 }

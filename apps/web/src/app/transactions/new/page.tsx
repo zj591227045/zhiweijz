@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore, BottomNavigation } from '@zhiweijz/web';
+import { useAuthStore } from '@zhiweijz/web';
+import { PageContainer } from '@/components/layout/page-container';
 import { useTransactionStore } from '@/store/transaction-store';
 import { useCategoryStore } from '@/store/category-store';
 import { useAccountBookStore } from '@/store/account-book-store';
@@ -19,7 +20,7 @@ export default function TransactionNewPage() {
   const { categories, fetchCategories } = useCategoryStore();
   const { accountBooks, currentAccountBook, fetchAccountBooks } = useAccountBookStore();
   const { budgets, fetchBudgets } = useBudgetStore();
-  
+
   // 表单状态
   const [formData, setFormData] = useState<CreateTransactionData>({
     amount: 0,
@@ -63,39 +64,39 @@ export default function TransactionNewPage() {
 
   // 根据交易类型和账本筛选预算
   const filteredBudgets = budgets.filter(
-    budget => 
-      budget.category?.type === formData.type && 
+    budget =>
+      budget.category?.type === formData.type &&
       budget.accountBookId === formData.accountBookId
   );
 
   // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // 表单验证
     if (!formData.amount || formData.amount <= 0) {
       setFormError('请输入有效的金额');
       return;
     }
-    
+
     if (!formData.categoryId) {
       setFormError('请选择分类');
       return;
     }
-    
+
     if (!formData.date) {
       setFormError('请选择日期');
       return;
     }
-    
+
     if (!formData.accountBookId) {
       setFormError('请选择账本');
       return;
     }
-    
+
     setIsSubmitting(true);
     setFormError('');
-    
+
     try {
       const success = await createTransaction(formData);
       if (success) {
@@ -144,18 +145,7 @@ export default function TransactionNewPage() {
   };
 
   return (
-    <div className="app-container">
-      {/* 顶部导航栏 */}
-      <div className="header">
-        <button className="icon-button" onClick={handleBack}>
-          <i className="fas fa-arrow-left"></i>
-        </button>
-        <div className="header-title">新增交易</div>
-        <div className="header-actions"></div>
-      </div>
-
-      {/* 主要内容区域 */}
-      <div className="main-content">
+    <PageContainer title="新增交易" showBackButton={true} onBackClick={handleBack} showBottomNav={false}>
         <form className="form-card" onSubmit={handleSubmit}>
           {/* 交易类型选择 */}
           <div className="type-selector">
@@ -293,10 +283,6 @@ export default function TransactionNewPage() {
             {isSubmitting ? '保存中...' : '保存'}
           </button>
         </form>
-      </div>
-
-      {/* 底部导航栏 */}
-      <BottomNavigation currentPath="/transactions" />
-    </div>
+    </PageContainer>
   );
 }

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore, BottomNavigation } from '@zhiweijz/web';
+import { useAuthStore } from '@zhiweijz/web';
+import { PageContainer } from '@/components/layout/page-container';
 import { useBudgetListStore } from '@/store/budget-list-store';
 import { useAccountBookStore } from '@zhiweijz/web';
 import { BudgetListTypeSelector } from './budget-list-type-selector';
@@ -89,7 +90,7 @@ export function BudgetListPage() {
         <div className="error-state">
           <i className="fas fa-exclamation-circle"></i>
           <p>{error}</p>
-          <button 
+          <button
             className="retry-button"
             onClick={() => currentAccountBook?.id && fetchBudgets(currentAccountBook.id)}
           >
@@ -124,69 +125,62 @@ export function BudgetListPage() {
     ));
   };
 
+  // 右侧操作按钮
+  const rightActions = (
+    <>
+      <button className="icon-button" onClick={handleAddBudget}>
+        <i className="fas fa-plus"></i>
+      </button>
+    </>
+  );
+
   return (
-    <div className="app-container">
-      {/* 顶部导航栏 */}
-      <div className="header">
-        <div className="header-title">预算管理</div>
-        <div className="header-actions">
-          <button className="icon-button" onClick={handleAddBudget}>
-            <i className="fas fa-plus"></i>
-          </button>
-        </div>
+    <PageContainer title="预算管理" rightActions={rightActions} activeNavItem="budget">
+      {/* 预算类型选择器 */}
+      <BudgetListTypeSelector
+        selectedType={selectedType}
+        onTypeChange={handleTypeChange}
+      />
+
+      {/* 预算统计链接 */}
+      <div className="statistics-link-container">
+        <button
+          className="statistics-link"
+          onClick={() => router.push('/budgets/statistics')}
+        >
+          <i className="fas fa-chart-line"></i>
+          <span>查看预算统计</span>
+        </button>
       </div>
 
-      {/* 主要内容区域 */}
-      <div className="main-content">
-        {/* 预算类型选择器 */}
-        <BudgetListTypeSelector
-          selectedType={selectedType}
-          onTypeChange={handleTypeChange}
-        />
+      <section className="budget-section active">
+        <div className="section-header">
+          <h2>
+            {selectedType === 'PERSONAL' ? '个人预算' : '通用预算'}
+          </h2>
+          <div className="section-description">
+            {selectedType === 'PERSONAL'
+              ? '每月自动刷新的个人预算'
+              : '长期或无期限的通用预算'}
+          </div>
+        </div>
 
-        {/* 预算统计链接 */}
-        <div className="statistics-link-container">
+        {/* 预算列表 */}
+        <div className="budget-list">
+          {renderBudgetList()}
+        </div>
+
+        {/* 添加通用预算按钮 - 仅在通用预算页面显示 */}
+        {selectedType === 'GENERAL' && (
           <button
-            className="statistics-link"
-            onClick={() => router.push('/budgets/statistics')}
+            className="add-budget-button"
+            onClick={handleAddBudget}
           >
-            <i className="fas fa-chart-line"></i>
-            <span>查看预算统计</span>
+            <i className="fas fa-plus"></i>
+            <span>添加通用预算</span>
           </button>
-        </div>
-
-        <section className="budget-section active">
-          <div className="section-header">
-            <h2>
-              {selectedType === 'PERSONAL' ? '个人预算' : '通用预算'}
-            </h2>
-            <div className="section-description">
-              {selectedType === 'PERSONAL'
-                ? '每月自动刷新的个人预算'
-                : '长期或无期限的通用预算'}
-            </div>
-          </div>
-
-          {/* 预算列表 */}
-          <div className="budget-list">
-            {renderBudgetList()}
-          </div>
-
-          {/* 添加通用预算按钮 - 仅在通用预算页面显示 */}
-          {selectedType === 'GENERAL' && (
-            <button
-              className="add-budget-button"
-              onClick={handleAddBudget}
-            >
-              <i className="fas fa-plus"></i>
-              <span>添加通用预算</span>
-            </button>
-          )}
-        </section>
-      </div>
-
-      {/* 底部导航栏 */}
-      <BottomNavigation currentPath="/budgets" />
+        )}
+      </section>
 
       {/* 删除确认对话框 */}
       {showDeleteConfirm && (
@@ -199,7 +193,7 @@ export function BudgetListPage() {
               <p>删除预算后，相关的数据将无法恢复。确定要删除此预算吗？</p>
             </div>
             <div className="modal-footer">
-              <button 
+              <button
                 className="cancel-button"
                 onClick={() => {
                   setShowDeleteConfirm(false);
@@ -209,7 +203,7 @@ export function BudgetListPage() {
               >
                 取消
               </button>
-              <button 
+              <button
                 className="delete-button"
                 onClick={handleDeleteBudget}
                 disabled={isDeleting}
@@ -220,6 +214,6 @@ export function BudgetListPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

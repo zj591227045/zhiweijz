@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { useAccountBookStore } from "@/store/account-book-store";
-import { BottomNavigation } from "@/components/layout/bottom-navigation";
+import { PageContainer } from "@/components/layout/page-container";
 import { DateRangePicker } from "@/components/statistics/date-range-picker";
 import { StatsSummaryCard } from "@/components/statistics/stats-summary-card";
 import { CategoryDistribution } from "@/components/statistics/category-distribution";
@@ -126,52 +126,47 @@ export default function StatisticsPage() {
     setDateRange({ startDate, endDate });
   };
 
+  // 右侧操作按钮
+  const rightActions = (
+    <>
+      <button className="icon-button">
+        <i className="fas fa-calendar-alt"></i>
+      </button>
+    </>
+  );
+
   return (
-    <div className="app-container">
-      <div className="header">
-        <div className="header-title">统计分析</div>
-        <div className="header-actions">
-          <button className="icon-button">
-            <i className="fas fa-calendar-alt"></i>
-          </button>
-        </div>
-      </div>
+    <PageContainer title="统计分析" rightActions={rightActions} activeNavItem="statistics">
+      {/* 日期选择器 */}
+      <DateRangePicker
+        currentDate={formatCurrentDate()}
+        onPrevMonth={handlePrevMonth}
+        onNextMonth={handleNextMonth}
+      />
 
-      <div className="main-content">
-        {/* 日期选择器 */}
-        <DateRangePicker
-          currentDate={formatCurrentDate()}
-          onPrevMonth={handlePrevMonth}
-          onNextMonth={handleNextMonth}
-        />
+      {/* 统计概览卡片 */}
+      <StatsSummaryCard
+        income={statisticsData?.totalIncome || 0}
+        expense={statisticsData?.totalExpense || 0}
+        balance={statisticsData?.balance || 0}
+        isLoading={isLoading}
+      />
 
-        {/* 统计概览卡片 */}
-        <StatsSummaryCard
-          income={statisticsData?.totalIncome || 0}
-          expense={statisticsData?.totalExpense || 0}
-          balance={statisticsData?.balance || 0}
-          isLoading={isLoading}
-        />
+      {/* 分类占比图表 */}
+      <CategoryDistribution
+        expenseCategories={statisticsData?.expenseByCategory || []}
+        incomeCategories={statisticsData?.incomeByCategory || []}
+        isLoading={isLoading}
+      />
 
-        {/* 分类占比图表 */}
-        <CategoryDistribution
-          expenseCategories={statisticsData?.expenseByCategory || []}
-          incomeCategories={statisticsData?.incomeByCategory || []}
-          isLoading={isLoading}
-        />
+      {/* 趋势图表 */}
+      <TrendChart
+        dailyStatistics={statisticsData?.dailyStatistics || []}
+        isLoading={isLoading}
+      />
 
-        {/* 趋势图表 */}
-        <TrendChart
-          dailyStatistics={statisticsData?.dailyStatistics || []}
-          isLoading={isLoading}
-        />
-
-        {/* 详细分析导航 */}
-        <AnalysisNavigation />
-      </div>
-
-      {/* 底部导航栏 */}
-      <BottomNavigation />
-    </div>
+      {/* 详细分析导航 */}
+      <AnalysisNavigation />
+    </PageContainer>
   );
 }

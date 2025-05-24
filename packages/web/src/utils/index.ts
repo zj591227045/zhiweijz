@@ -4,5 +4,5 @@
 // export * from './css-utils';
 // export * from './dom-utils';
 
-// 导出一个空对象，使文件成为一个模块
-export {};
+// 重新导出核心包中的工具函数
+export { getCategoryIconClass, getIconClass } from '@zhiweijz/core';

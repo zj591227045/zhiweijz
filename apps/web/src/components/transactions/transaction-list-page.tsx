@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore, BottomNavigation } from "@zhiweijz/web";
+import { useAuthStore } from "@zhiweijz/web";
+import { PageContainer } from "@/components/layout/page-container";
 import { formatCurrency } from "@/lib/utils";
 import { apiClient } from "@/lib/api";
 import dayjs from "dayjs";
@@ -37,7 +38,7 @@ export function TransactionListPage() {
     expense: 0,
     balance: 0
   });
-  
+
   // 筛选条件状态
   const [filters, setFilters] = useState({
     startDate: getCurrentMonthRange().startDate,
@@ -61,12 +62,12 @@ export function TransactionListPage() {
   // 获取交易数据
   useEffect(() => {
     if (!isAuthenticated) return;
-    
+
     const fetchTransactions = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        
+
         // 构建查询参数
         const queryParams: Record<string, any> = {
           startDate: filters.startDate,
@@ -74,24 +75,24 @@ export function TransactionListPage() {
           limit: 20,
           sort: "date:desc"
         };
-        
+
         if (filters.transactionType !== "ALL") {
           queryParams.type = filters.transactionType;
         }
-        
+
         if (filters.categoryIds.length > 0) {
           queryParams.categoryIds = filters.categoryIds.join(",");
         }
-        
+
         if (filters.accountBookId) {
           queryParams.accountBookId = filters.accountBookId;
         }
-        
+
         // 获取交易数据
         const response = await apiClient.get("/transactions", {
           params: queryParams
         });
-        
+
         // 获取统计数据
         const statsResponse = await apiClient.get("/statistics/overview", {
           params: {
@@ -102,15 +103,15 @@ export function TransactionListPage() {
             categoryIds: filters.categoryIds.length > 0 ? filters.categoryIds.join(",") : undefined
           }
         });
-        
+
         if (response && response.data) {
           setTransactions(response.data);
-          
+
           // 按日期分组交易
           const grouped = groupTransactionsByDate(response.data);
           setGroupedTransactions(grouped);
         }
-        
+
         if (statsResponse) {
           setStatistics({
             income: statsResponse.income || 0,
@@ -118,7 +119,7 @@ export function TransactionListPage() {
             balance: (statsResponse.income || 0) - (statsResponse.expense || 0)
           });
         }
-        
+
         setIsLoading(false);
       } catch (error) {
         console.error("获取交易数据失败:", error);
@@ -126,16 +127,16 @@ export function TransactionListPage() {
         setIsLoading(false);
       }
     };
-    
+
     fetchTransactions();
   }, [isAuthenticated, filters]);
 
   // 按日期分组交易
   const groupTransactionsByDate = (transactions: any[]) => {
     if (!Array.isArray(transactions)) return [];
-    
+
     const groups: Record<string, any[]> = {};
-    
+
     transactions.forEach(transaction => {
       const date = dayjs(transaction.date).format("YYYY-MM-DD");
       if (!groups[date]) {
@@ -143,7 +144,7 @@ export function TransactionListPage() {
       }
       groups[date].push(transaction);
     });
-    
+
     return Object.entries(groups)
       .map(([date, transactions]) => ({
         date: dayjs(date).format("MM月DD日"),
@@ -165,23 +166,21 @@ export function TransactionListPage() {
     router.push(`/transactions/${transactionId}`);
   };
 
-  return (
-    <div className="app-container">
-      {/* 顶部导航栏 */}
-      <div className="header">
-        <div className="header-title">交易记录</div>
-        <div className="header-actions">
-          <button className="icon-button">
-            <i className="fas fa-search"></i>
-          </button>
-          <button className="icon-button" onClick={toggleFilterPanel}>
-            <i className="fas fa-filter"></i>
-          </button>
-        </div>
-      </div>
+  // 右侧操作按钮
+  const rightActions = (
+    <>
+      <button className="icon-button">
+        <i className="fas fa-search"></i>
+      </button>
+      <button className="icon-button" onClick={toggleFilterPanel}>
+        <i className="fas fa-filter"></i>
+      </button>
+    </>
+  );
 
-      {/* 主要内容区域 */}
-      <div className="main-content" ref={scrollContainerRef}>
+  return (
+    <PageContainer title="交易记录" rightActions={rightActions} activeNavItem="profile">
+      <div ref={scrollContainerRef}>
         {/* 筛选区域 - 简化版 */}
         {filters.isFilterPanelOpen && (
           <div className="filter-panel">
@@ -254,9 +253,6 @@ export function TransactionListPage() {
           </div>
         )}
       </div>
-
-      {/* 底部导航栏 */}
-      <BottomNavigation currentPath="/transactions" />
-    </div>
+    </PageContainer>
   );
 }

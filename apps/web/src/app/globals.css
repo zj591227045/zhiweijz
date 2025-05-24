@@ -41,15 +41,22 @@
     /* 预算列表页所需的变量 */
     --background-color: #f9fafb;
     --card-background: #ffffff;
+    --card-bg: #ffffff;
     --border-color: #e5e7eb;
     --text-primary: #1f2937;
     --text-secondary: #6b7280;
+    --text-color: #1f2937;
+    --text-color-secondary: #6b7280;
     --primary-color: #3b82f6;
     --primary-rgb: 59, 130, 246;
     --success-color: #22C55E;
     --warning-color: #F59E0B;
     --error-color: #EF4444;
+    --danger-color: #EF4444;
     --border-radius: 0.5rem;
+    --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    --hover-background: rgba(0, 0, 0, 0.05);
+    --primary-color-light: rgba(59, 130, 246, 0.1);
   }
 
   .dark {
@@ -83,11 +90,19 @@
     --primary-rgb: 96, 165, 250;
     --text-primary: #f3f4f6;
     --text-secondary: #9ca3af;
+    --text-color: #f3f4f6;
+    --text-color-secondary: #9ca3af;
     --border-color: #374151;
     --card-background: #1f2937;
+    --card-bg: #1f2937;
     --background-color: #111827;
     --success-color: #34d399;
     --error-color: #f87171;
+    --danger-color: #f87171;
+    --warning-color: #fbbf24;
+    --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --hover-background: rgba(255, 255, 255, 0.1);
+    --primary-color-light: rgba(96, 165, 250, 0.2);
     color-scheme: dark;
   }
 }

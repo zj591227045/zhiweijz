@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore, useAccountBookStore, BottomNavigation } from "@zhiweijz/web";
+import { useAuthStore, useAccountBookStore } from "@zhiweijz/web";
+import { PageContainer } from "@/components/layout/page-container";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api";
 import "./books.css";
@@ -22,7 +23,7 @@ export default function BookListPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const { accountBooks, currentAccountBook, fetchAccountBooks, setCurrentAccountBook } = useAccountBookStore();
-  
+
   // 本地状态
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +42,7 @@ export default function BookListPage() {
   // 获取账本列表
   useEffect(() => {
     if (!isAuthenticated) return;
-    
+
     const loadAccountBooks = async () => {
       try {
         setIsLoading(true);
@@ -53,7 +54,7 @@ export default function BookListPage() {
         setIsLoading(false);
       }
     };
-    
+
     loadAccountBooks();
   }, [isAuthenticated, fetchAccountBooks]);
 
@@ -105,11 +106,11 @@ export default function BookListPage() {
     try {
       // 设置为默认账本
       await apiClient.put(`/account-books/${bookToSwitch.id}/default`);
-      
+
       // 更新当前账本
       setCurrentAccountBook(bookToSwitch.id);
       toast.success(`已切换到账本: ${bookToSwitch.name}`);
-      
+
       // 重新获取账本列表
       fetchAccountBooks();
     } catch (error) {
@@ -127,20 +128,17 @@ export default function BookListPage() {
   // 判断是否显示空状态
   const showEmptyState = !isLoading && safeAccountBooks.length === 0;
 
-  return (
-    <div className="app-container">
-      {/* 顶部导航栏 */}
-      <div className="header">
-        <div className="header-title">我的账本</div>
-        <div className="header-actions">
-          <button className="icon-button" onClick={handleAddBook}>
-            <i className="fas fa-plus"></i>
-          </button>
-        </div>
-      </div>
+  // 右侧操作按钮
+  const rightActions = (
+    <>
+      <button className="icon-button" onClick={handleAddBook}>
+        <i className="fas fa-plus"></i>
+      </button>
+    </>
+  );
 
-      {/* 主要内容区域 */}
-      <div className="main-content">
+  return (
+    <PageContainer title="我的账本" rightActions={rightActions} activeNavItem="profile">
         {isLoading ? (
           <div className="loading-state">加载中...</div>
         ) : error ? (
@@ -158,8 +156,8 @@ export default function BookListPage() {
         ) : (
           <div className="book-list">
             {safeAccountBooks.map((book: AccountBook) => (
-              <div 
-                key={book.id} 
+              <div
+                key={book.id}
                 className={`book-card ${currentAccountBook?.id === book.id ? 'active' : ''}`}
                 onClick={() => handleSwitchBook(book)}
               >
@@ -179,8 +177,8 @@ export default function BookListPage() {
                   )}
                 </div>
                 <div className="book-actions">
-                  <button 
-                    className="icon-button" 
+                  <button
+                    className="icon-button"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleEditBook(book);
@@ -188,8 +186,8 @@ export default function BookListPage() {
                   >
                     <i className="fas fa-edit"></i>
                   </button>
-                  <button 
-                    className="icon-button" 
+                  <button
+                    className="icon-button"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDeleteBook(book);
@@ -202,10 +200,6 @@ export default function BookListPage() {
             ))}
           </div>
         )}
-      </div>
-
-      {/* 底部导航栏 */}
-      <BottomNavigation currentPath="/books" />
 
       {/* 删除确认对话框 */}
       {showDeleteConfirm && (
@@ -247,6 +241,6 @@ export default function BookListPage() {
       <button className="floating-action-button" onClick={handleAddBook}>
         <i className="fas fa-plus"></i>
       </button>
-    </div>
+    </PageContainer>
   );
 }

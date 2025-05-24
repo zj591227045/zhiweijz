@@ -3,8 +3,9 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuthStore, BottomNavigation } from '@zhiweijz/web';
-import { useThemeStore } from '@zhiweijz/web';
+import { useAuthStore } from '@zhiweijz/web';
+import { PageContainer } from '@/components/layout/page-container';
+import { useThemeStore } from '@/store/theme-store';
 import './settings.css';
 
 export default function SettingsPage() {
@@ -32,15 +33,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="app-container">
-      {/* 顶部导航栏 */}
-      <div className="header">
-        <div className="header-title">设置</div>
-        <div className="header-actions"></div>
-      </div>
-
-      {/* 主要内容区域 */}
-      <div className="main-content">
+    <PageContainer title="设置" activeNavItem="profile">
         <div className="user-card">
           <div className="user-avatar">
             <i className="fas fa-user"></i>
@@ -223,15 +216,11 @@ export default function SettingsPage() {
           </Link>
         </div>
 
-        <button className="logout-button" onClick={handleLogout}>
-          退出登录
-        </button>
+      <button className="logout-button" onClick={handleLogout}>
+        退出登录
+      </button>
 
-        <div className="version-info">只为记账 v1.0.0</div>
-      </div>
-
-      {/* 底部导航栏 */}
-      <BottomNavigation currentPath="/settings" />
-    </div>
+      <div className="version-info">只为记账 v1.0.0</div>
+    </PageContainer>
   );
 }

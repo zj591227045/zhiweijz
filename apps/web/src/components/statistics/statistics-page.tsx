@@ -2,7 +2,8 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore, BottomNavigation } from '@zhiweijz/web';
+import { useAuthStore } from '@zhiweijz/web';
+import { PageContainer } from '@/components/layout/page-container';
 import { useAccountBookStore } from '@zhiweijz/web';
 import { useStatisticsStore } from '@/store/statistics-store';
 import { DateRangePicker } from './date-range-picker';
@@ -10,10 +11,10 @@ import { StatsSummaryCard } from './stats-summary-card';
 import { CategoryDistribution } from './category-distribution';
 import { TrendChart } from './trend-chart';
 import { AnalysisNavigation } from './analysis-navigation';
-import { 
-  getCurrentMonthRange, 
-  getPreviousMonthRange, 
-  getNextMonthRange 
+import {
+  getCurrentMonthRange,
+  getPreviousMonthRange,
+  getNextMonthRange
 } from '@/lib/utils';
 
 export function StatisticsPage() {
@@ -55,7 +56,7 @@ export function StatisticsPage() {
     if (dateRange.startDate && dateRange.endDate) {
       const { startDate, endDate } = getPreviousMonthRange(new Date(dateRange.startDate));
       setDateRange({ startDate, endDate });
-      
+
       if (currentAccountBook?.id) {
         fetchStatisticsData(startDate, endDate, currentAccountBook.id);
       }
@@ -67,7 +68,7 @@ export function StatisticsPage() {
     if (dateRange.startDate && dateRange.endDate) {
       const { startDate, endDate } = getNextMonthRange(new Date(dateRange.startDate));
       setDateRange({ startDate, endDate });
-      
+
       if (currentAccountBook?.id) {
         fetchStatisticsData(startDate, endDate, currentAccountBook.id);
       }
@@ -78,88 +79,81 @@ export function StatisticsPage() {
   const handleCurrentPeriod = () => {
     const { startDate, endDate } = getCurrentMonthRange();
     setDateRange({ startDate, endDate });
-    
+
     if (currentAccountBook?.id) {
       fetchStatisticsData(startDate, endDate, currentAccountBook.id);
     }
   };
 
+  // 右侧操作按钮
+  const rightActions = (
+    <>
+      <button className="icon-button">
+        <i className="fas fa-calendar-alt"></i>
+      </button>
+    </>
+  );
+
   return (
-    <div className="app-container">
-      {/* 顶部导航栏 */}
-      <div className="header">
-        <div className="header-title">统计分析</div>
-        <div className="header-actions">
-          <button className="icon-button">
-            <i className="fas fa-calendar-alt"></i>
+    <PageContainer title="统计分析" rightActions={rightActions} activeNavItem="statistics">
+      {/* 日期选择器 */}
+      <DateRangePicker
+        startDate={dateRange.startDate}
+        endDate={dateRange.endDate}
+        onPrevious={handlePreviousPeriod}
+        onNext={handleNextPeriod}
+        onToday={handleCurrentPeriod}
+      />
+
+      {isLoading ? (
+        <div className="loading-state">
+          <i className="fas fa-spinner fa-spin"></i>
+          <p>加载中...</p>
+        </div>
+      ) : error ? (
+        <div className="error-state">
+          <i className="fas fa-exclamation-circle"></i>
+          <p>{error.message}</p>
+          <button
+            className="retry-button"
+            onClick={() => {
+              if (dateRange.startDate && dateRange.endDate && currentAccountBook?.id) {
+                fetchStatisticsData(dateRange.startDate, dateRange.endDate, currentAccountBook.id);
+              }
+            }}
+          >
+            重试
           </button>
         </div>
-      </div>
+      ) : statisticsData ? (
+        <>
+          {/* 财务概览 */}
+          <StatsSummaryCard
+            totalIncome={statisticsData.totalIncome}
+            totalExpense={statisticsData.totalExpense}
+            balance={statisticsData.balance}
+          />
 
-      {/* 主要内容区域 */}
-      <div className="main-content">
-        {/* 日期选择器 */}
-        <DateRangePicker
-          startDate={dateRange.startDate}
-          endDate={dateRange.endDate}
-          onPrevious={handlePreviousPeriod}
-          onNext={handleNextPeriod}
-          onToday={handleCurrentPeriod}
-        />
+          {/* 分类分布 */}
+          <CategoryDistribution
+            expenseCategories={statisticsData.expenseByCategory}
+            incomeCategories={statisticsData.incomeByCategory}
+          />
 
-        {isLoading ? (
-          <div className="loading-state">
-            <i className="fas fa-spinner fa-spin"></i>
-            <p>加载中...</p>
-          </div>
-        ) : error ? (
-          <div className="error-state">
-            <i className="fas fa-exclamation-circle"></i>
-            <p>{error.message}</p>
-            <button 
-              className="retry-button"
-              onClick={() => {
-                if (dateRange.startDate && dateRange.endDate && currentAccountBook?.id) {
-                  fetchStatisticsData(dateRange.startDate, dateRange.endDate, currentAccountBook.id);
-                }
-              }}
-            >
-              重试
-            </button>
-          </div>
-        ) : statisticsData ? (
-          <>
-            {/* 财务概览 */}
-            <StatsSummaryCard
-              totalIncome={statisticsData.totalIncome}
-              totalExpense={statisticsData.totalExpense}
-              balance={statisticsData.balance}
-            />
+          {/* 收支趋势 */}
+          <TrendChart
+            dailyStatistics={statisticsData.dailyStatistics}
+          />
 
-            {/* 分类分布 */}
-            <CategoryDistribution
-              expenseCategories={statisticsData.expenseByCategory}
-              incomeCategories={statisticsData.incomeByCategory}
-            />
-
-            {/* 收支趋势 */}
-            <TrendChart
-              dailyStatistics={statisticsData.dailyStatistics}
-            />
-
-            {/* 统计导航 */}
-            <AnalysisNavigation />
-          </>
-        ) : (
-          <div className="empty-state">
-            <i className="fas fa-chart-bar"></i>
-            <p>暂无统计数据</p>
-          </div>
-        )}
-      </div>
-
-      {/* 底部导航栏 */}
-      <BottomNavigation currentPath="/statistics" />
-    </div>
+          {/* 统计导航 */}
+          <AnalysisNavigation />
+        </>
+      ) : (
+        <div className="empty-state">
+          <i className="fas fa-chart-bar"></i>
+          <p>暂无统计数据</p>
+        </div>
+      )}
+    </PageContainer>
   );
 }

@@ -1,0 +1,1180 @@
+/* 预算统计页面样式 */
+
+/* 预算统计页面容器 */
+.budget-statistics-container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* 定义CSS变量映射，解决变量名不一致的问题 */
+:root {
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --primary: var(--primary-color, #3b82f6);
+  --success: var(--success-color, #22c55e);
+  --danger: var(--error-color, #ef4444);
+  --warning: var(--warning-color, #f59e0b);
+  --hover-background: var(--background-hover, rgba(0, 0, 0, 0.05));
+
+  /* 确保所有CSS变量都有默认值 */
+  --card-bg: var(--card-background, #ffffff);
+  --text-color: var(--text-primary, #1f2937);
+  --text-color-secondary: var(--text-secondary, #64748b);
+  --border-color: var(--border, #e5e7eb);
+  --background-color: var(--background, #f9fafb);
+  --primary-color-light: rgba(59, 130, 246, 0.1);
+  --secondary-color: var(--secondary, #64748b);
+  --border-radius: 10px;
+}
+
+/* 预算选择器样式 */
+.budget-selector {
+  margin-bottom: 20px;
+}
+
+.budget-tabs {
+  display: flex;
+  margin-bottom: 15px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  padding: 5px;
+}
+
+.budget-tab {
+  flex: 1;
+  padding: 12px 15px;
+  text-align: center;
+  background: none;
+  border: none;
+  color: var(--text-color-secondary);
+  font-weight: 500;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.budget-tab.active {
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--primary-color);
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
+}
+
+.budget-carousel {
+  display: flex;
+  overflow-x: auto;
+  padding: 10px 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  gap: 12px;
+  justify-content: flex-start;
+  flex-wrap: nowrap; /* 确保不换行，支持水平滑动 */
+  -webkit-overflow-scrolling: touch; /* 在iOS上提供更流畅的滚动 */
+  scroll-snap-type: x mandatory; /* 添加滚动捕捉效果 */
+  padding-bottom: 15px; /* 为滚动指示器留出空间 */
+}
+
+.budget-carousel::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.budget-card {
+  flex: 0 0 auto;
+  min-width: 120px;
+  max-width: 180px;
+  width: calc(33% - 8px); /* 设置固定宽度，确保一行显示3个 */
+  padding: 12px 16px;
+  border-radius: 10px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--card-shadow);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: start; /* 滚动捕捉对齐 */
+  margin-right: 4px;
+}
+
+.budget-card.active {
+  border-color: var(--primary-color);
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
+}
+
+/* 预算概览卡片 */
+.overview-card {
+  background-color: var(--card-bg, #ffffff);
+  border-radius: var(--border-radius, 12px);
+  padding: 24px;
+  box-shadow: var(--card-shadow, 0 2px 8px rgba(0, 0, 0, 0.08));
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.budget-name {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  text-align: center;
+  width: 100%;
+}
+
+.budget-period {
+  font-size: 14px;
+  color: var(--text-color-secondary);
+  margin-bottom: 0;
+  text-align: center;
+  width: 100%;
+}
+
+.budget-amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 0;
+}
+
+/* 预算金额容器 */
+.budget-amount-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-right: 10px;
+}
+
+/* 预算金额标签 */
+.budget-amount-label {
+  font-size: 14px;
+  color: var(--text-color-secondary, #64748b);
+  margin-bottom: 4px;
+}
+
+/* 预算信息横向排列容器 */
+.budget-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+/* 结转信息 */
+.rollover-info {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  flex-direction: column;
+  margin-bottom: 16px;
+  flex: 1;
+}
+
+.rollover-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+}
+
+.rollover-badge.positive {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: var(--success-color);
+}
+
+.rollover-badge.negative {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--danger-color);
+}
+
+.rollover-badge i {
+  margin-right: 6px;
+}
+
+.rollover-history-button {
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  color: var(--primary-color);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.rollover-history-button i {
+  margin-right: 4px;
+}
+
+/* 预算进度 */
+.budget-progress-container {
+  margin-bottom: 20px;
+  padding: 5px 0;
+}
+
+.budget-progress-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.spent-amount {
+  font-weight: 600;
+  color: var(--text-color, #1f2937);
+  font-size: 15px;
+}
+
+.remaining-amount {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.remaining-amount.positive {
+  color: var(--success-color, #22c55e);
+}
+
+.remaining-amount.negative {
+  color: var(--danger-color, #ef4444);
+}
+
+.progress-bar {
+  height: 12px;
+  background-color: var(--background-color, #f5f5f5);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.progress {
+  height: 100%;
+  background-color: var(--primary-color, #3b82f6);
+  border-radius: 6px;
+  transition: width 0.5s ease;
+  position: relative;
+  background-image: linear-gradient(45deg,
+    rgba(255, 255, 255, 0.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    transparent 75%,
+    transparent);
+  background-size: 20px 20px;
+  animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+  from { background-position: 0 0; }
+  to { background-position: 20px 0; }
+}
+
+.progress.warning {
+  background-color: var(--warning-color, #f59e0b);
+}
+
+.progress.danger {
+  background-color: var(--danger-color, #ef4444);
+}
+
+/* 预算统计 */
+.budget-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  flex-wrap: wrap;
+}
+
+/* 强制横向排列的预算统计 */
+.budget-stats-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  flex-wrap: nowrap; /* 强制不换行 */
+  width: 100%;
+  overflow-x: hidden; /* 防止水平溢出 */
+}
+
+.stat-item {
+  text-align: center;
+  flex: 1;
+  min-width: 80px;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: var(--background-color, #f5f5f5);
+  margin: 0 4px;
+  transition: all 0.2s ease;
+}
+
+.budget-stats-row .stat-item {
+  flex: 1 1 0; /* 允许伸缩，基础大小为0，让它们平均分配空间 */
+  min-width: 0; /* 允许缩小到容器宽度 */
+  max-width: 33.33%; /* 最大宽度为容器的三分之一 */
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary-color, #3b82f6);
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-color-secondary, #64748b);
+  font-weight: 500;
+}
+
+/* 预算趋势图表 */
+.budget-trends {
+  margin-bottom: 20px;
+  padding: 20px;
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.view-options {
+  display: flex;
+  gap: 8px;
+  background-color: var(--background-color, #f5f5f5);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.view-option {
+  padding: 8px 16px;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  color: var(--text-color-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-option:hover {
+  background-color: var(--hover-background);
+}
+
+.view-option.active {
+  background-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chart-container {
+  margin-top: 20px;
+  height: 250px;
+  width: 100%;
+}
+
+.empty-chart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 250px;
+  color: var(--text-color-secondary);
+  background-color: var(--background-color, #f5f5f5);
+  border-radius: 8px;
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+.legend-color {
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+  border-radius: 3px;
+}
+
+.legend-color.primary {
+  background-color: var(--primary-color, #3b82f6);
+}
+
+.legend-color.secondary {
+  background-color: var(--secondary-color, #64748b);
+}
+
+/* 图表操作区域 */
+.chart-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.chart-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.rollover-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--background-color, #f5f5f5);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.rollover-toggle-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.time-range-selector {
+  display: flex;
+  gap: 8px;
+  background-color: var(--background-color, #f5f5f5);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.time-range-option {
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  color: var(--text-color-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.time-range-option:hover {
+  background-color: var(--hover-background);
+}
+
+.time-range-option.active {
+  background-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chart-type-toggle {
+  display: none; /* 隐藏图表类型切换，只显示柱状图 */
+}
+
+/* 分类预算样式 */
+.category-budgets {
+  margin-bottom: 20px;
+  padding: 20px;
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+}
+
+.budget-list {
+  margin-top: 15px;
+}
+
+.budget-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.budget-item:last-child {
+  border-bottom: none;
+}
+
+.budget-item.warning .progress {
+  background-color: var(--danger-color, #ef4444);
+}
+
+.budget-category {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.category-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
+  border-radius: 50%;
+}
+
+.budget-details {
+  flex: 1;
+  margin-left: 15px;
+}
+
+.budget-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.progress-percentage {
+  font-size: 12px;
+  color: var(--text-color-secondary);
+  min-width: 40px;
+  text-align: right;
+  font-weight: 500;
+}
+
+.budget-amounts {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+.spent {
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.separator {
+  margin: 0 4px;
+  color: var(--text-color-secondary);
+}
+
+.total {
+  color: var(--text-color-secondary);
+}
+
+.empty-message {
+  padding: 30px;
+  text-align: center;
+  color: var(--text-color-secondary);
+  background-color: var(--background-color, #f5f5f5);
+  border-radius: 8px;
+  margin-top: 15px;
+  font-size: 15px;
+}
+
+/* 最近交易样式 */
+.recent-transactions {
+  margin-bottom: 20px;
+  padding: 20px;
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+}
+
+.view-all {
+  font-size: 14px;
+  color: var(--primary-color);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.view-all:hover {
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
+}
+
+.transaction-list {
+  margin-top: 15px;
+}
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.transaction-item:last-child {
+  border-bottom: none;
+}
+
+.transaction-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 14px;
+  color: var(--primary-color);
+  font-size: 18px;
+}
+
+.transaction-info {
+  flex: 1;
+}
+
+.transaction-title {
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: var(--text-color);
+  font-size: 15px;
+}
+
+.transaction-description {
+  font-size: 13px;
+  color: var(--text-color-secondary);
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.transaction-date {
+  font-size: 13px;
+  color: var(--text-color-secondary);
+}
+
+.transaction-amount {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.transaction-amount.expense {
+  color: var(--danger-color, #ef4444);
+}
+
+.transaction-amount.income {
+  color: var(--success-color, #22c55e);
+}
+
+/* 结转历史对话框样式 */
+.rollover-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.rollover-dialog {
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 400px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.rollover-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rollover-dialog-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: var(--text-color-secondary);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  background-color: var(--hover-background);
+  color: var(--text-color);
+}
+
+.rollover-dialog-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.empty-history {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: var(--text-color-secondary);
+}
+
+.empty-history i {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-history p {
+  margin: 0;
+  font-size: 16px;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: var(--background-color, #f5f5f5);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.history-info {
+  flex: 1;
+}
+
+.history-period {
+  font-weight: 500;
+  color: var(--text-color);
+  margin-bottom: 4px;
+}
+
+.history-date {
+  font-size: 14px;
+  color: var(--text-color-secondary);
+}
+
+.history-amount {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.type-label {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.history-amount.surplus .type-label {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: var(--success-color);
+}
+
+.history-amount.deficit .type-label {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--danger-color);
+}
+
+.history-amount .amount {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.history-amount.surplus .amount {
+  color: var(--success-color);
+}
+
+.history-amount.deficit .amount {
+  color: var(--danger-color);
+}
+
+/* 加载状态和错误状态样式 */
+.loading-skeleton {
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-color-secondary);
+}
+
+.loading-state i {
+  font-size: 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.error-message {
+  padding: 20px;
+  text-align: center;
+  color: var(--danger-color);
+  background-color: rgba(239, 68, 68, 0.1);
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.retry-button {
+  margin-top: 12px;
+  padding: 8px 16px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.retry-button:hover {
+  background-color: var(--primary-color-dark, #2563eb);
+}
+
+.no-data-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--text-color-secondary);
+  text-align: center;
+}
+
+.no-data-message i {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.3;
+}
+
+.no-data-message h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.no-data-message p {
+  margin: 0 0 20px 0;
+  font-size: 14px;
+}
+
+.create-budget-button {
+  padding: 12px 24px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.create-budget-button:hover {
+  background-color: var(--primary-color-dark, #2563eb);
+  transform: translateY(-1px);
+}
+
+/* 解决Tailwind样式冲突，提高自定义样式优先级 */
+.budget-overview .overview-card {
+  background-color: var(--card-bg, #ffffff);
+  border-radius: var(--border-radius, 10px);
+  padding: 20px;
+  box-shadow: var(--card-shadow);
+}
+
+.budget-trends {
+  background-color: var(--card-bg, #ffffff);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--card-shadow);
+}
+
+.category-budgets {
+  background-color: var(--card-bg, #ffffff);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--card-shadow);
+}
+
+.recent-transactions {
+  background-color: var(--card-bg, #ffffff);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--card-shadow);
+}
+
+/* 确保预算选择器样式正确应用 */
+.budget-tabs {
+  background-color: var(--card-bg, #ffffff);
+  border-radius: 10px;
+}
+
+/* 确保图表容器样式正确应用 */
+.chart-container {
+  height: 250px;
+}
+
+/* 确保预算卡片样式正确应用 */
+.budget-card {
+  background-color: var(--card-bg, #ffffff) !important;
+  border: 1px solid var(--border-color, #e5e7eb) !important;
+}
+
+.budget-card.active {
+  border-color: var(--primary-color, #3b82f6) !important;
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1)) !important;
+}
+
+/* 滚动指示器样式 */
+.carousel-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.scroll-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.indicator-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.indicator-dot.active {
+  background-color: var(--primary-color);
+  width: 18px;
+  border-radius: 3px;
+}
+
+/* 滑动箭头样式 */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  opacity: 0.8;
+  transition: all 0.2s ease;
+}
+
+.carousel-arrow:hover {
+  opacity: 1;
+  background-color: var(--primary-color-light);
+}
+
+.carousel-arrow.left {
+  left: -5px;
+}
+
+.carousel-arrow.right {
+  right: -5px;
+}
+
+.carousel-arrow i {
+  color: var(--primary-color);
+  font-size: 14px;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .budget-stats {
+    flex-wrap: wrap;
+  }
+
+  .budget-stats-row {
+    flex-wrap: nowrap; /* 即使在小屏幕上也保持不换行 */
+    overflow-x: hidden; /* 防止水平溢出 */
+  }
+
+  .budget-stats .stat-item {
+    flex: 1 0 33%;
+    margin-bottom: 10px;
+  }
+
+  .budget-stats-row .stat-item {
+    flex: 1 1 0; /* 允许伸缩 */
+    min-width: 0; /* 允许缩小到容器宽度 */
+    padding: 8px 4px; /* 减小内边距以适应小屏幕 */
+    font-size: 0.95em; /* 稍微减小字体大小 */
+  }
+
+  .chart-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .rollover-toggle {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .budget-info-row {
+    flex-direction: row; /* 保持横向排列 */
+    align-items: center;
+  }
+
+  .budget-amount {
+    font-size: 20px; /* 稍微减小字体大小 */
+  }
+
+  .budget-amount-label {
+    font-size: 12px; /* 在移动设备上减小字体大小 */
+  }
+
+  .rollover-info {
+    flex-direction: column;
+    align-items: flex-end; /* 右对齐 */
+    gap: 6px;
+  }
+
+  .rollover-badge {
+    font-size: 12px; /* 减小字体大小 */
+    padding: 4px 8px; /* 减小内边距 */
+  }
+
+  .rollover-history-button {
+    margin-top: 2px;
+    font-size: 12px; /* 减小字体大小 */
+  }
+
+  .view-options {
+    flex-wrap: wrap;
+  }
+
+  .view-option {
+    flex: 1;
+    text-align: center;
+    padding: 6px 8px;
+  }
+
+  /* 移动端预算卡片样式调整 */
+  .budget-card {
+    min-width: 100px;
+    width: calc(40% - 8px); /* 移动端上显示2.5个卡片 */
+    padding: 10px 12px;
+  }
+
+  .budget-name {
+    font-size: 16px;
+  }
+
+  .budget-period {
+    font-size: 12px;
+  }
+
+  /* 移动端滚动指示器样式调整 */
+  .scroll-indicator {
+    margin-top: 6px;
+  }
+
+  .indicator-dot {
+    width: 5px;
+    height: 5px;
+  }
+
+  .indicator-dot.active {
+    width: 15px;
+  }
+
+  /* 移动端滑动箭头样式调整 */
+  .carousel-arrow {
+    width: 24px;
+    height: 24px;
+  }
+
+  .carousel-arrow.left {
+    left: 0;
+  }
+
+  .carousel-arrow.right {
+    right: 0;
+  }
+
+  .carousel-arrow i {
+    font-size: 12px;
+  }
+}

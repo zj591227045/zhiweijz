@@ -8,11 +8,11 @@ import {
   TransactionStatistics
 } from "@/hooks/use-transactions";
 import { useTransactionListStore } from "@/store/transaction-list-store";
+import { PageContainer } from "@/components/layout/page-container";
 import { TransactionFilters } from "./transaction-filters";
 import { TransactionSummary } from "./transaction-summary";
 import { GroupedTransactionList } from "./grouped-transaction-list";
 import { TransactionEmptyState } from "./transaction-empty-state";
-import { BottomNavigation } from "@/components/layout/bottom-navigation";
 import { TransactionType } from "@/types";
 
 export function TransactionListPage() {

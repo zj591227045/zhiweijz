@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuthStore, useAccountBookStore, BottomNavigation } from "@zhiweijz/web";
+import { useAuthStore, useAccountBookStore } from "@zhiweijz/web";
+import { PageContainer } from "@/components/layout/page-container";
 import { MonthlyOverview } from "@/components/dashboard/monthly-overview";
 import { BudgetProgress } from "@/components/dashboard/budget-progress";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
@@ -194,55 +195,48 @@ export default function DashboardPage() {
     }
   };
 
+  // 右侧操作按钮
+  const rightActions = (
+    <>
+      <button className="icon-button">
+        <i className="fas fa-bell"></i>
+      </button>
+    </>
+  );
+
   return (
-    <div className="app-container min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="dashboard-container">
-        <div className="header">
-          <h1 className="header-title">仪表盘</h1>
-          <div className="header-actions">
-            <button className="icon-button">
-              <i className="fas fa-bell"></i>
-            </button>
-            <Link href="/profile" className="icon-button">
-              <i className="fas fa-cog"></i>
-            </Link>
-          </div>
+    <PageContainer title="仪表盘" rightActions={rightActions} activeNavItem="home">
+
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
+      ) : error ? (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      ) : (
+        <>
+          {/* 月度概览 */}
+          <MonthlyOverview
+            income={monthlyStats.income}
+            expense={monthlyStats.expense}
+            balance={monthlyStats.balance}
+            month={monthlyStats.month}
+          />
 
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        ) : error ? (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        ) : (
-          <div className="main-content">
-            {/* 月度概览 */}
-            <MonthlyOverview
-              income={monthlyStats.income}
-              expense={monthlyStats.expense}
-              balance={monthlyStats.balance}
-              month={monthlyStats.month}
-            />
+          {/* 预算执行情况 */}
+          <BudgetProgress
+            categories={budgetCategories}
+            totalBudget={totalBudget}
+          />
 
-            {/* 预算执行情况 */}
-            <BudgetProgress
-              categories={budgetCategories}
-              totalBudget={totalBudget}
-            />
-
-            {/* 最近交易 */}
-            <RecentTransactions
-              groupedTransactions={groupedTransactions}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* 底部导航 */}
-      <BottomNavigation currentPath="/dashboard" />
-    </div>
+          {/* 最近交易 */}
+          <RecentTransactions
+            groupedTransactions={groupedTransactions}
+          />
+        </>
+      )}
+    </PageContainer>
   );
 }
