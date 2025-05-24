@@ -9,6 +9,7 @@ import { CreateTransactionData, Transaction, TransactionType } from '@/types';
 interface TransactionState {
   // 数据状态
   transactions: Transaction[];
+  transaction: Transaction | null; // 当前交易
   isLoading: boolean;
   error: string | null;
   
@@ -23,6 +24,7 @@ interface TransactionState {
     limit?: number;
   }) => Promise<void>;
   
+  fetchTransaction: (id: string) => Promise<void>; // 修改返回类型
   getTransaction: (id: string) => Promise<Transaction | null>;
   createTransaction: (data: CreateTransactionData) => Promise<boolean>;
   updateTransaction: (id: string, data: Partial<CreateTransactionData>) => Promise<boolean>;
@@ -33,6 +35,7 @@ interface TransactionState {
 export const useTransactionStore = create<TransactionState>((set, get) => ({
   // 初始状态
   transactions: [],
+  transaction: null,
   isLoading: false,
   error: null,
   
@@ -79,6 +82,28 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     }
   },
   
+  // 获取单个交易并设置到状态中
+  fetchTransaction: async (id) => {
+    try {
+      set({ isLoading: true, error: null, transaction: null });
+      
+      const response = await apiClient.get(`/transactions/${id}`);
+      
+      set({ 
+        isLoading: false,
+        transaction: response as Transaction
+      });
+    } catch (error) {
+      console.error(`获取交易 ${id} 失败:`, error);
+      set({
+        isLoading: false,
+        transaction: null,
+        error: error instanceof Error ? error.message : `获取交易 ${id} 失败`
+      });
+      toast.error(`获取交易详情失败`);
+    }
+  },
+
   // 获取单个交易
   getTransaction: async (id) => {
     try {

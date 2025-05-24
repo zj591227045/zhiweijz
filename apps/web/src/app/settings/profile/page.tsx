@@ -2,20 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import './profile.css';
 import { PageContainer } from "@/components/layout/page-container";
 import { AvatarUploader } from "@/components/profile/avatar-uploader";
 import { ProfileForm, ProfileFormValues } from "@/components/profile/profile-form";
+import { userService, UserProfile } from "@/lib/api/user-service";
 import { toast } from "sonner";
-
-interface UserProfile {
-  id: string;
-  username: string;
-  email: string;
-  bio?: string;
-  birthDate?: string;
-  avatar?: string;
-  createdAt: string;
-}
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -28,18 +20,8 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await fetch('/api/user/profile', {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setProfile(data);
-        } else {
-          toast.error('获取用户资料失败');
-        }
+        const data = await userService.getUserProfile();
+        setProfile(data);
       } catch (error) {
         console.error('获取用户资料失败:', error);
         toast.error('获取用户资料失败');
@@ -56,22 +38,9 @@ export default function ProfilePage() {
     setIsUploadingAvatar(true);
     
     try {
-      const formData = new FormData();
-      formData.append('avatar', file);
-
-      const response = await fetch('/api/user/avatar', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setProfile(prev => prev ? { ...prev, avatar: data.avatar } : null);
-        toast.success('头像上传成功');
-      } else {
-        const error = await response.json();
-        toast.error(error.message || '头像上传失败');
-      }
+      const data = await userService.uploadAvatar(file);
+      setProfile(prev => prev ? { ...prev, avatar: data.avatar } : null);
+      toast.success('头像上传成功');
     } catch (error) {
       console.error('头像上传失败:', error);
       toast.error('头像上传失败');
@@ -85,22 +54,9 @@ export default function ProfilePage() {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('/api/user/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        const updatedProfile = await response.json();
-        setProfile(updatedProfile);
-        toast.success('个人资料更新成功');
-      } else {
-        const error = await response.json();
-        toast.error(error.message || '更新个人资料失败');
-      }
+      const updatedProfile = await userService.updateUserProfile(data);
+      setProfile(updatedProfile);
+      toast.success('个人资料更新成功');
     } catch (error) {
       console.error('更新个人资料失败:', error);
       toast.error('更新个人资料失败');

@@ -94,6 +94,14 @@ export interface CreateTransactionData {
   familyMemberId?: string;
 }
 
+export interface UpdateTransactionData {
+  amount?: number;
+  type?: TransactionType;
+  categoryId?: string;
+  description?: string;
+  date?: string;
+}
+
 /**
  * 分类相关类型
  */
@@ -181,6 +189,63 @@ export interface BudgetCategoryStatistics {
 export interface TransactionGroup {
   date: string;
   transactions: Transaction[];
+}
+
+/**
+ * 家庭相关类型
+ */
+export enum FamilyRole {
+  ADMIN = "ADMIN",
+  MEMBER = "MEMBER",
+}
+
+export interface Family {
+  id: string;
+  name: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  memberCount?: number;
+  members?: FamilyMember[];
+}
+
+export interface FamilyMember {
+  id: string;
+  familyId: string;
+  userId?: string;
+  name: string;
+  gender?: string;
+  birthDate?: string;
+  role: FamilyRole;
+  isRegistered: boolean;
+  isCustodial?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateFamilyData {
+  name: string;
+}
+
+export interface CreateFamilyMemberData {
+  name: string;
+  role?: FamilyRole;
+  userId?: string;
+  isRegistered?: boolean;
+}
+
+export interface CreateCustodialMemberData {
+  name: string;
+  gender?: string;
+  birthDate?: string;
+  role?: FamilyRole;
+}
+
+export interface UpdateCustodialMemberData {
+  name?: string;
+  gender?: string;
+  birthDate?: string;
+  role?: FamilyRole;
 }
 
 /**
