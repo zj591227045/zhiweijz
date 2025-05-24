@@ -115,7 +115,18 @@ export const BudgetProgress = memo(function BudgetProgress({ categories, totalBu
           <h2>预算执行情况</h2>
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="ml-2 w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-primary hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            className="ml-2 w-6 h-6 flex items-center justify-center rounded-full transition-colors"
+            style={{
+              backgroundColor: 'var(--background-color)',
+              color: 'var(--primary-color)',
+              border: '1px solid var(--border-color)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--hover-background)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--background-color)';
+            }}
             aria-label={isCollapsed ? "展开预算" : "折叠预算"}
           >
             <i className={`fas ${isCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'} text-xs`}></i>
@@ -140,22 +151,33 @@ export const BudgetProgress = memo(function BudgetProgress({ categories, totalBu
                     </div>
                     <span className="dashboard-category-name">{category.name}</span>
                   </div>
-                  <div className={`budget-amount dashboard-budget-amount ${category.percentage > 100 ? 'text-red-500' : ''}`}>
+                  <div
+                    className="budget-amount dashboard-budget-amount"
+                    style={{
+                      color: category.percentage > 100 ? 'var(--error-color)' : 'var(--text-primary)'
+                    }}
+                  >
                     <span className="current">{formatCurrency(category.spent)}</span>
                     <span className="separator dashboard-separator">/</span>
                     <span className="total">{formatCurrency(category.budget)}</span>
                   </div>
                 </div>
-                <div className={`progress-bar dashboard-progress-bar ${category.percentage > 100 ? 'border-red-500' : ''}`}>
+                <div
+                  className="progress-bar dashboard-progress-bar"
+                  style={{
+                    borderColor: category.percentage > 100 ? 'var(--error-color)' : 'var(--border-color)'
+                  }}
+                >
                   <div
-                    className={`progress dashboard-progress ${
-                      category.percentage > 100
-                        ? 'bg-red-500'
+                    className="progress dashboard-progress"
+                    style={{
+                      width: `${Math.min(category.percentage, 100)}%`,
+                      backgroundColor: category.percentage > 100
+                        ? 'var(--error-color)'
                         : category.percentage > 80
-                        ? 'bg-orange-500'
-                        : 'bg-blue-500'
-                    }`}
-                    style={{ width: `${Math.min(category.percentage, 100)}%` }}
+                        ? 'var(--warning-color)'
+                        : 'var(--primary-color)'
+                    }}
                   ></div>
                 </div>
               </div>

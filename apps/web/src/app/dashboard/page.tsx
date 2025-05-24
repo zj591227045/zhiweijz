@@ -209,10 +209,21 @@ export default function DashboardPage() {
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div
+            className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2"
+            style={{ borderColor: 'var(--primary-color)' }}
+          ></div>
         </div>
       ) : error ? (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div
+          className="px-4 py-3 rounded mb-4"
+          style={{
+            backgroundColor: 'rgba(var(--error-color), 0.1)',
+            borderColor: 'var(--error-color)',
+            color: 'var(--error-color)',
+            border: '1px solid'
+          }}
+        >
           {error}
         </div>
       ) : (

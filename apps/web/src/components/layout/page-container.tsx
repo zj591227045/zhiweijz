@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { BottomNavigation } from "@zhiweijz/web";
 import { useThemeStore } from "@/store/theme-store";
+import { SettingsDialog } from "./settings-dialog";
+import "@/styles/settings-dialog.css";
 
 // 将 activeNavItem 转换为路径
 function getPathFromActiveItem(activeNavItem?: string): string {
@@ -53,6 +55,7 @@ export function PageContainer({
   showBottomNav = true,
 }: PageContainerProps) {
   const { theme, toggleTheme } = useThemeStore();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleBackClick = () => {
     if (onBackClick) {
@@ -66,6 +69,11 @@ export function PageContainer({
   // 处理主题切换
   const handleToggleTheme = () => {
     toggleTheme();
+  };
+
+  // 处理设置按钮点击
+  const handleSettingsClick = () => {
+    setIsSettingsOpen(true);
   };
 
   return (
@@ -93,6 +101,13 @@ export function PageContainer({
             >
               <i className={`fas ${theme === "dark" ? "fa-sun" : "fa-moon"}`}></i>
             </button>
+            <button
+              className="icon-button mr-2"
+              onClick={handleSettingsClick}
+              aria-label="设置"
+            >
+              <i className="fas fa-cog"></i>
+            </button>
             {rightActions}
           </div>
         </header>
@@ -105,6 +120,12 @@ export function PageContainer({
 
       {/* 底部导航栏 */}
       {showBottomNav && <BottomNavigation currentPath={getPathFromActiveItem(activeNavItem)} />}
+
+      {/* 设置弹窗 */}
+      <SettingsDialog
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </div>
   );
 }

@@ -20,23 +20,23 @@ export default function RegisterPage() {
       setPasswordError("两次输入的密码不一致");
       return false;
     }
-    
+
     if (password.length < 8) {
       setPasswordError("密码长度至少为8位");
       return false;
     }
-    
+
     setPasswordError("");
     return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validatePassword()) {
       return;
     }
-    
+
     try {
       await register({ name, email, password });
       router.push("/dashboard");
@@ -54,12 +54,21 @@ export default function RegisterPage() {
 
       <form className="auth-form" onSubmit={handleSubmit}>
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div
+            className="px-4 py-3 rounded mb-4"
+            style={{
+              backgroundColor: 'rgba(var(--error-color), 0.1)',
+              borderColor: 'var(--error-color)',
+              color: 'var(--error-color)',
+              border: '1px solid'
+            }}
+          >
             <span>{error}</span>
             <button
               type="button"
               className="float-right"
               onClick={clearError}
+              style={{ color: 'var(--error-color)' }}
             >
               &times;
             </button>
@@ -136,7 +145,12 @@ export default function RegisterPage() {
             />
           </div>
           {passwordError && (
-            <p className="text-red-500 text-sm mt-1">{passwordError}</p>
+            <p
+              className="text-sm mt-1"
+              style={{ color: 'var(--error-color)' }}
+            >
+              {passwordError}
+            </p>
           )}
         </div>
 
@@ -149,7 +163,7 @@ export default function RegisterPage() {
         </button>
 
         <div className="auth-links">
-          <span className="text-gray-500">已有账号?</span>
+          <span style={{ color: 'var(--text-secondary)' }}>已有账号?</span>
           <Link href="/auth/login" className="auth-link">
             登录
           </Link>

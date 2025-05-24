@@ -13,10 +13,10 @@ export function ThemeSwitcher() {
     // 从localStorage获取主题设置
     const savedTheme = localStorage.getItem("theme") || "light";
     const savedThemeColor = localStorage.getItem("themeColor") || "blue";
-    
+
     setTheme(savedTheme);
     setThemeColor(savedThemeColor);
-    
+
     // 应用主题
     applyTheme(savedTheme, savedThemeColor);
   }, []);
@@ -29,10 +29,10 @@ export function ThemeSwitcher() {
     } else {
       document.documentElement.classList.remove("dark");
     }
-    
+
     // 设置主题颜色
     document.documentElement.setAttribute("data-theme", newColor);
-    
+
     // 保存到localStorage
     localStorage.setItem("theme", newTheme);
     localStorage.setItem("themeColor", newColor);
@@ -59,22 +59,38 @@ export function ThemeSwitcher() {
       {/* 主题切换器 */}
       <div className="theme-switcher flex space-x-2">
         <button
-          className={`w-8 h-8 rounded-full bg-blue-500 ${themeColor === "blue" && theme === "light" ? "ring-2 ring-offset-2 ring-blue-500" : ""}`}
+          className="w-8 h-8 rounded-full"
+          style={{
+            backgroundColor: '#3b82f6',
+            boxShadow: themeColor === "blue" && theme === "light" ? '0 0 0 2px var(--card-background), 0 0 0 4px #3b82f6' : 'none'
+          }}
           onClick={() => handleThemeChange("default")}
           aria-label="蓝色主题"
         ></button>
         <button
-          className={`w-8 h-8 rounded-full bg-gray-800 ${theme === "dark" ? "ring-2 ring-offset-2 ring-gray-800" : ""}`}
+          className="w-8 h-8 rounded-full"
+          style={{
+            backgroundColor: '#1f2937',
+            boxShadow: theme === "dark" ? '0 0 0 2px var(--card-background), 0 0 0 4px #1f2937' : 'none'
+          }}
           onClick={() => handleThemeChange("dark")}
           aria-label="暗色主题"
         ></button>
         <button
-          className={`w-8 h-8 rounded-full bg-green-500 ${themeColor === "green" && theme === "light" ? "ring-2 ring-offset-2 ring-green-500" : ""}`}
+          className="w-8 h-8 rounded-full"
+          style={{
+            backgroundColor: '#10b981',
+            boxShadow: themeColor === "green" && theme === "light" ? '0 0 0 2px var(--card-background), 0 0 0 4px #10b981' : 'none'
+          }}
           onClick={() => handleThemeChange("green")}
           aria-label="绿色主题"
         ></button>
         <button
-          className={`w-8 h-8 rounded-full bg-purple-500 ${themeColor === "purple" && theme === "light" ? "ring-2 ring-offset-2 ring-purple-500" : ""}`}
+          className="w-8 h-8 rounded-full"
+          style={{
+            backgroundColor: '#8b5cf6',
+            boxShadow: themeColor === "purple" && theme === "light" ? '0 0 0 2px var(--card-background), 0 0 0 4px #8b5cf6' : 'none'
+          }}
           onClick={() => handleThemeChange("purple")}
           aria-label="紫色主题"
         ></button>
