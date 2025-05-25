@@ -5,7 +5,7 @@ import { useTransactionFormStore } from "@/store/transaction-form-store";
 import { NumericKeyboard } from "./numeric-keyboard";
 
 export function AmountInput() {
-  const { amount, setAmount } = useTransactionFormStore();
+  const { amount, setAmount, showKeyboardInitially } = useTransactionFormStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const [showKeyboard, setShowKeyboard] = useState(false);
 
@@ -92,14 +92,14 @@ export function AmountInput() {
     }
   };
 
-  // 组件挂载时自动聚焦和显示键盘
+  // 组件挂载时自动聚焦，根据状态决定是否显示键盘
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
-      // 自动显示键盘
-      setShowKeyboard(true);
+      // 根据状态决定是否显示键盘
+      setShowKeyboard(showKeyboardInitially);
     }
-  }, []);
+  }, [showKeyboardInitially]);
 
   return (
     <>

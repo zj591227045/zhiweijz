@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { apiClient } from "@/lib/api";
+import { useDashboardStore } from "@/store/dashboard-store";
 import "@/styles/smart-accounting-dialog.css";
 
 interface SmartAccountingDialogProps {
@@ -27,6 +29,7 @@ export function SmartAccountingDialog({
   accountBookId
 }: SmartAccountingDialogProps) {
   const router = useRouter();
+  const { refreshDashboardData } = useDashboardStore();
   const [description, setDescription] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState<string | null>(null);
@@ -61,22 +64,18 @@ export function SmartAccountingDialog({
       setTimeout(() => setProcessingStep("正在匹配最佳分类..."), 1600);
       setTimeout(() => setProcessingStep("正在生成交易详情..."), 2400);
 
-      // 调用智能记账API
-      const response = await fetch(`/api/ai/account/${accountBookId}/smart-accounting`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          description,
-        }),
-      });
+      // 调用智能记账API，使用apiClient确保认证令牌被正确添加
+      const response = await apiClient.post(
+        `/ai/account/${accountBookId}/smart-accounting`,
+        { description },
+        { timeout: 60000 } // 设置60秒超时，智能记账可能需要更长时间
+      );
 
-      if (response.ok) {
-        const result: SmartAccountingResult = await response.json();
+      console.log("智能记账结果:", response);
 
+      if (response) {
         // 将结果存储到sessionStorage，供添加交易页面使用
-        sessionStorage.setItem('smartAccountingResult', JSON.stringify(result));
+        sessionStorage.setItem('smartAccountingResult', JSON.stringify(response));
 
         toast.success("智能识别成功");
         onClose();
@@ -84,12 +83,24 @@ export function SmartAccountingDialog({
         // 跳转到添加交易页面
         router.push("/transactions/new");
       } else {
-        const error = await response.json();
-        toast.error(error.message || "智能识别失败，请手动填写");
+        toast.error("智能识别失败，请手动填写");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("智能记账失败:", error);
-      toast.error("智能识别失败，请手动填写");
+
+      // 提供更详细的错误信息
+      if (error.code === 'ECONNABORTED') {
+        toast.error("请求超时，服务器处理时间过长，请稍后再试");
+      } else if (error.response) {
+        // 服务器返回了错误状态码
+        toast.error(`识别失败: ${error.response.data?.error || '服务器错误'}`);
+      } else if (error.request) {
+        // 请求发送了但没有收到响应
+        toast.error("未收到服务器响应，请检查网络连接");
+      } else {
+        // 其他错误
+        toast.error("智能识别失败，请手动填写");
+      }
     } finally {
       setIsProcessing(false);
       setProcessingStep(null);
@@ -116,31 +127,53 @@ export function SmartAccountingDialog({
       setTimeout(() => setProcessingStep("正在匹配最佳分类..."), 1600);
       setTimeout(() => setProcessingStep("正在创建交易记录..."), 2400);
 
-      // 调用直接添加记账API
-      const response = await fetch(`/api/ai/account/${accountBookId}/smart-accounting/direct`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          description,
-        }),
-      });
+      // 调用直接添加记账API，使用apiClient确保认证令牌被正确添加
+      const response = await apiClient.post(
+        `/ai/account/${accountBookId}/smart-accounting/direct`,
+        { description },
+        { timeout: 60000 } // 设置60秒超时
+      );
 
-      if (response.ok) {
-        const result = await response.json();
+      console.log("直接添加记账结果:", response);
+
+      if (response && response.id) {
+        console.log("记账成功，交易ID:", response.id);
         toast.success("记账成功");
         onClose();
 
-        // 可以选择跳转到交易详情页面或交易列表
-        router.push("/transactions");
+        // 先刷新仪表盘数据，然后再跳转
+        if (accountBookId) {
+          try {
+            console.log("开始刷新仪表盘数据...");
+            await refreshDashboardData(accountBookId);
+            console.log("仪表盘数据刷新完成");
+          } catch (refreshError) {
+            console.error("刷新仪表盘数据失败:", refreshError);
+            // 即使刷新失败，也继续跳转，让用户手动刷新
+          }
+        }
+
+        // 数据刷新完成后再跳转到仪表盘页面
+        router.push("/dashboard");
       } else {
-        const error = await response.json();
-        toast.error(error.message || "记账失败，请手动填写");
+        toast.error("记账失败，请手动填写");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("直接添加记账失败:", error);
-      toast.error("记账失败，请手动填写");
+
+      // 提供更详细的错误信息
+      if (error.code === 'ECONNABORTED') {
+        toast.error("请求超时，服务器处理时间过长，请稍后再试");
+      } else if (error.response) {
+        // 服务器返回了错误状态码
+        toast.error(`记账失败: ${error.response.data?.error || '服务器错误'}`);
+      } else if (error.request) {
+        // 请求发送了但没有收到响应
+        toast.error("未收到服务器响应，请检查网络连接");
+      } else {
+        // 其他错误
+        toast.error("记账失败，请手动填写");
+      }
     } finally {
       setIsProcessing(false);
       setProcessingStep(null);
@@ -208,15 +241,15 @@ export function SmartAccountingDialog({
                   直接添加
                 </button>
               </div>
-            </div>
 
-            <div className="smart-accounting-dialog-footer">
-              <button
-                className="smart-accounting-manual-button"
-                onClick={handleManualAccounting}
-              >
-                手动记账
-              </button>
+              <div className="smart-accounting-manual-wrapper">
+                <button
+                  className="smart-accounting-manual-button"
+                  onClick={handleManualAccounting}
+                >
+                  手动记账
+                </button>
+              </div>
             </div>
           </>
         )}

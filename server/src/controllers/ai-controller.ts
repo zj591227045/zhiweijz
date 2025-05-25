@@ -630,14 +630,18 @@ export class AIController {
       // 从智能记账结果创建交易记录
       try {
         // 准备交易数据
-        // 处理日期，确保使用东八区时区
-        const dateStr = typeof smartResult.date === 'string' ? smartResult.date : smartResult.date.toString();
-        const dateObj = new Date(dateStr);
-        // 如果日期字符串中没有时区信息，添加东八区偏移
-        if (!dateStr.includes('Z') && !dateStr.includes('+')) {
-          // 添加8小时的偏移
-          dateObj.setHours(dateObj.getHours() + 8);
-        }
+        // 处理日期，使用当前本地时间而不是智能记账返回的日期
+        // 智能记账的日期通常只包含日期部分，我们需要使用当前时间
+        const now = new Date();
+        const dateObj = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          now.getHours(),
+          now.getMinutes(),
+          now.getSeconds(),
+          now.getMilliseconds()
+        );
 
         const transactionData = {
           amount: smartResult.amount,

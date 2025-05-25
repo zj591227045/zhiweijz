@@ -346,7 +346,7 @@ export const aiService = {
     try {
       console.log(`发送获取账本LLM设置请求，账本ID: ${accountId}`);
 
-      // 使用API路径获取LLM设置
+      // 使用正确的API路径获取LLM设置
       console.log(`使用API路径: /ai/account/${accountId}/llm-settings`);
 
       try {

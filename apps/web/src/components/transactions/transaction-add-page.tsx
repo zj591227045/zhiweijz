@@ -33,7 +33,8 @@ export function TransactionAddPage() {
     time,
     budgetId,
     goToStep,
-    resetForm
+    resetForm,
+    fillSmartAccountingResult
   } = useTransactionFormStore();
 
   const { createTransaction } = useTransactionStore();
@@ -60,15 +61,21 @@ export function TransactionAddPage() {
     if (smartResult) {
       try {
         const result = JSON.parse(smartResult);
-        // 预填充表单数据
-        // 这里可以根据智能识别结果预填充表单
         console.log("智能记账结果:", result);
+        
+        // 使用store方法填充表单数据
+        fillSmartAccountingResult(result);
+        
+        // 清除sessionStorage
         sessionStorage.removeItem('smartAccountingResult');
+        
+        toast.success("智能识别结果已自动填充");
       } catch (error) {
         console.error("解析智能记账结果失败:", error);
+        sessionStorage.removeItem('smartAccountingResult');
       }
     }
-  }, []);
+  }, [fillSmartAccountingResult]);
 
   // 根据交易类型筛选分类
   const filteredCategories = categories.filter(category => category.type === type);
@@ -103,10 +110,18 @@ export function TransactionAddPage() {
         return;
       }
 
-      // 合并日期和时间
+      // 合并日期和时间，使用本地时区避免UTC转换问题
       const [hours, minutes] = time.split(":");
-      const transactionDate = new Date(date);
-      transactionDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      const [year, month, day] = date.split("-");
+      const transactionDate = new Date(
+        parseInt(year),
+        parseInt(month) - 1, // 月份从0开始
+        parseInt(day),
+        parseInt(hours),
+        parseInt(minutes),
+        0,
+        0
+      );
 
       // 准备提交数据
       const transactionData = {
@@ -127,11 +142,14 @@ export function TransactionAddPage() {
         toast.success("交易记录已添加");
         resetForm();
         
-        // 刷新仪表盘数据
+        // 先刷新仪表盘数据，然后再跳转
         if (currentAccountBook?.id) {
-          refreshDashboardData(currentAccountBook.id);
+          console.log("开始刷新仪表盘数据...");
+          await refreshDashboardData(currentAccountBook.id);
+          console.log("仪表盘数据刷新完成");
         }
         
+        // 数据刷新完成后再跳转
         router.push("/dashboard");
       } else {
         throw new Error("创建交易失败，服务器未返回有效响应");

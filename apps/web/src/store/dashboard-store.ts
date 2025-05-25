@@ -167,6 +167,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   refreshDashboardData: async (accountBookId: string) => {
     try {
       set({ error: null });
+      console.log(`开始刷新仪表盘数据，账本ID: ${accountBookId}`);
 
       // 并行请求数据
       const [monthlyStats, budgetData, transactions] = await Promise.all([
@@ -175,15 +176,19 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         fetchRecentTransactions(accountBookId)
       ]);
 
+      console.log("所有数据获取完成，更新状态...");
       set({ 
         monthlyStats,
         budgetCategories: budgetData.categories,
         totalBudget: budgetData.totalBudget,
         groupedTransactions: transactions
       });
+      console.log("仪表盘状态更新完成");
     } catch (error) {
       console.error("刷新仪表盘数据失败:", error);
       set({ error: "刷新仪表盘数据失败" });
+      // 重新抛出异常，让调用者知道刷新失败
+      throw error;
     }
   },
 

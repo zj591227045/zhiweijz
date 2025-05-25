@@ -6,32 +6,46 @@
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   z-index: 1000;
-  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .smart-accounting-dialog {
-  background-color: var(--card-background);
+  width: 90%;
+  max-width: 480px;
+  background-color: var(--card-background, white);
   border-radius: 16px;
-  width: 100%;
-  max-width: 400px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
   animation: slideUp 0.3s ease-out;
+  max-height: 80vh;
+  overflow: hidden;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translate(-50%, -40%);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate(-50%, -50%);
   }
 }
 
@@ -39,43 +53,45 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 20px 0 20px;
-  border-bottom: 1px solid var(--border-color);
-  margin-bottom: 20px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
 }
 
 .smart-accounting-dialog-title {
   font-size: 18px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-primary, #1f2937);
   margin: 0;
 }
 
 .smart-accounting-dialog-close {
   background: none;
   border: none;
+  color: var(--text-secondary, #6b7280);
   font-size: 18px;
-  color: var(--text-secondary);
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: all 0.2s;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
 }
 
 .smart-accounting-dialog-close:hover {
-  background-color: var(--background-color);
-  color: var(--text-primary);
+  background-color: var(--background-hover, rgba(0, 0, 0, 0.05));
 }
 
 .smart-accounting-dialog-content {
-  padding: 0 20px 20px 20px;
+  padding: 20px;
+  overflow-y: auto;
 }
 
 .smart-accounting-dialog-subtitle {
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--text-secondary, #6b7280);
   margin-bottom: 16px;
-  text-align: center;
 }
 
 .smart-accounting-input-wrapper {
@@ -84,109 +100,124 @@
 
 .smart-accounting-textarea {
   width: 100%;
-  min-height: 80px;
-  padding: 12px 16px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-color, #e5e7eb);
   border-radius: 8px;
-  background-color: var(--background-color);
-  color: var(--text-primary);
+  padding: 12px;
   font-size: 16px;
-  font-family: inherit;
-  resize: vertical;
-  transition: border-color 0.2s;
+  resize: none;
+  background-color: var(--input-bg-color, white);
+  color: var(--text-primary, #1f2937);
+  max-height: 100px;
+  overflow-y: auto;
 }
 
 .smart-accounting-textarea:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 .smart-accounting-textarea::placeholder {
-  color: var(--text-secondary);
+  color: var(--text-secondary, #6b7280);
 }
 
 .smart-accounting-buttons {
   display: flex;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .smart-accounting-button {
   flex: 1;
-  padding: 12px 16px;
+  padding: 12px;
   border: none;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.smart-accounting-button:active {
+  transform: scale(0.98);
 }
 
 .identify-button {
-  background-color: var(--primary-color);
+  background-color: var(--primary-color, #3b82f6);
   color: white;
 }
 
 .identify-button:hover:not(:disabled) {
-  background-color: var(--primary-color-dark);
+  background-color: var(--primary-color-dark, #2563eb);
 }
 
 .direct-button {
-  background-color: var(--success-color);
+  background-color: var(--success-color, #22c55e);
   color: white;
 }
 
 .direct-button:hover:not(:disabled) {
-  opacity: 0.9;
+  background-color: var(--success-color-dark, #16a34a);
 }
 
 .smart-accounting-button:disabled {
-  opacity: 0.6;
+  opacity: 0.7;
   cursor: not-allowed;
 }
 
-.smart-accounting-dialog-footer {
-  padding: 0 20px 20px 20px;
-  border-top: 1px solid var(--border-color);
+.smart-accounting-manual-wrapper {
   margin-top: 16px;
   padding-top: 16px;
+  border-top: 1px solid var(--border-color, #e5e7eb);
 }
 
 .smart-accounting-manual-button {
   width: 100%;
-  padding: 12px 16px;
-  background-color: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  padding: 14px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  background-color: var(--warning-color, #f59e0b);
+  color: white;
+  border: none;
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+  position: relative;
+  overflow: hidden;
 }
 
 .smart-accounting-manual-button:hover {
-  background-color: var(--background-color);
-  color: var(--text-primary);
+  background-color: var(--warning-color-dark, #d97706);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.5);
 }
 
-/* 处理中状态 */
+.smart-accounting-manual-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+}
+
+/* 处理中的加载动画 */
 .smart-accounting-processing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 40px 20px;
-  text-align: center;
 }
 
 .smart-accounting-loading {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid var(--border-color);
-  border-top: 3px solid var(--primary-color);
+  border: 4px solid rgba(59, 130, 246, 0.2);
   border-radius: 50%;
+  border-top-color: var(--primary-color, #3b82f6);
   animation: spin 1s linear infinite;
-  margin: 0 auto;
 }
 
 @keyframes spin {
@@ -195,9 +226,9 @@
 }
 
 .smart-accounting-processing-text {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin: 0;
+  font-size: 16px;
+  color: var(--text-secondary, #6b7280);
+  text-align: center;
 }
 
 /* 响应式设计 */

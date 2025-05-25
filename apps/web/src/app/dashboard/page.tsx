@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore, useAccountBookStore } from "@zhiweijz/web";
 import { PageContainer } from "@/components/layout/page-container";
 import { MonthlyOverview } from "@/components/dashboard/monthly-overview";
@@ -16,6 +16,7 @@ import { useDashboardStore } from "@/store/dashboard-store";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const { isAuthenticated, user } = useAuthStore();
   const { currentAccountBook, fetchAccountBooks } = useAccountBookStore();
   const { 
@@ -25,7 +26,8 @@ export default function DashboardPage() {
     groupedTransactions, 
     isLoading, 
     error,
-    fetchDashboardData 
+    fetchDashboardData,
+    refreshDashboardData 
   } = useDashboardStore();
 
   useEffect(() => {
@@ -43,6 +45,39 @@ export default function DashboardPage() {
       fetchDashboardData(currentAccountBook.id);
     }
   }, [isAuthenticated, router, fetchAccountBooks, currentAccountBook, fetchDashboardData]);
+
+  // 监听页面可见性变化，当页面重新获得焦点时刷新数据
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && currentAccountBook?.id) {
+        console.log("页面重新获得焦点，刷新仪表盘数据");
+        refreshDashboardData(currentAccountBook.id);
+      }
+    };
+
+    const handleFocus = () => {
+      if (currentAccountBook?.id) {
+        console.log("窗口重新获得焦点，刷新仪表盘数据");
+        refreshDashboardData(currentAccountBook.id);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [currentAccountBook, refreshDashboardData]);
+
+  // 监听路由变化，当进入仪表盘页面时刷新数据
+  useEffect(() => {
+    if (pathname === '/dashboard' && currentAccountBook?.id) {
+      console.log("进入仪表盘页面，刷新数据");
+      refreshDashboardData(currentAccountBook.id);
+    }
+  }, [pathname, currentAccountBook, refreshDashboardData]);
 
   // 右侧操作按钮
   const rightActions = (

@@ -76,19 +76,19 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* 交易金额 */
-.transaction-amount {
+/* 交易详情页面的金额显示 */
+.transaction-detail-amount {
   font-size: 32px;
   font-weight: 700;
   text-align: center;
   margin-bottom: 24px;
 }
 
-.transaction-amount.income {
+.transaction-detail-amount.income {
   color: var(--success-color);
 }
 
-.transaction-amount.expense {
+.transaction-detail-amount.expense {
   color: var(--error-color);
 }
 

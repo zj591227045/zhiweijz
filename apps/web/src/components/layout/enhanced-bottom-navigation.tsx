@@ -25,6 +25,7 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
       if (currentAccountBook?.id) {
         try {
           console.log("检查账本是否绑定LLM服务，账本ID:", currentAccountBook.id);
+          console.log("当前账本对象:", currentAccountBook);
 
           // 1. 首先检查账本对象是否有userLLMSettingId字段
           if (currentAccountBook.userLLMSettingId) {
@@ -33,22 +34,43 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
             return;
           }
 
-          // 2. 使用API检查账本LLM设置
+          console.log("账本对象中没有userLLMSettingId字段，准备发起API请求");
+
+          // 2. 使用正确的API路径检查账本LLM设置
           try {
-            const response = await fetch(`/api/ai/account/${currentAccountBook.id}/llm-settings`);
+            const apiUrl = `/api/ai/account/${currentAccountBook.id}/llm-settings`;
+            console.log("准备发起API请求，URL:", apiUrl);
+            
+            // 获取认证token
+            const token = localStorage.getItem("auth-token");
+            console.log("认证token:", token ? "存在" : "不存在");
+            
+            const response = await fetch(apiUrl, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(token && { 'Authorization': `Bearer ${token}` })
+              }
+            });
+            console.log("API请求已发送，响应状态:", response.status);
+            
             if (response.ok) {
               const llmSettings = await response.json();
               console.log("获取到的账本LLM设置:", llmSettings);
 
-              if (llmSettings && llmSettings.id) {
+              // 检查响应格式，根据API文档判断是否绑定了LLM服务
+              if (llmSettings && llmSettings.bound === true) {
                 console.log("账本已绑定LLM服务");
                 setHasLLMService(true);
+              } else if (llmSettings && llmSettings.bound === false) {
+                console.log("账本未绑定LLM服务:", llmSettings.message);
+                setHasLLMService(false);
               } else {
-                console.log("账本未绑定LLM服务");
+                console.log("响应格式不明确，默认为未绑定");
                 setHasLLMService(false);
               }
             } else {
-              console.log("获取账本LLM设置失败，默认为未绑定");
+              console.log("获取账本LLM设置失败，状态码:", response.status);
               setHasLLMService(false);
             }
           } catch (error) {

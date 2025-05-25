@@ -76,7 +76,7 @@ export default function TransactionDetailPage({ params }: { params: { id: string
           </div>
         ) : transaction ? (
           <div className="transaction-detail-card">
-            <div className={`transaction-amount ${transaction.type === TransactionType.INCOME ? 'income' : 'expense'}`}>
+            <div className={`transaction-detail-amount ${transaction.type === TransactionType.INCOME ? 'income' : 'expense'}`}>
               {transaction.type === TransactionType.INCOME ? '+' : '-'}
               {formatCurrency(transaction.amount)}
             </div>

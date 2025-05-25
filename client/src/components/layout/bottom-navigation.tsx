@@ -33,7 +33,7 @@ export function BottomNavigation({ activeItem }: BottomNavigationProps = {}) {
             return;
           }
 
-          // 2. 使用aiService获取账本LLM设置
+          // 2. 使用正确的API路径检查账本LLM设置
           try {
             const llmSettings = await aiService.getAccountLLMSettings(currentAccountBook.id);
             console.log("获取到的账本LLM设置:", llmSettings);
