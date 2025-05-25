@@ -246,8 +246,26 @@ export const apiClient = {
   // POST请求，会使相关GET缓存失效
   post: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => {
     return api.post(url, data, config).then((res: AxiosResponse) => {
-      // 使相关缓存失效
-      apiCache.invalidate(new RegExp(`^${url.split('/').slice(0, -1).join('/')}`));
+      // 使相关缓存失效 - 修复缓存失效逻辑
+      const baseUrl = url.split('?')[0]; // 移除查询参数
+      const urlParts = baseUrl.split('/').filter(part => part); // 移除空字符串
+      
+      if (isDev) console.log('POST请求完成，清除相关缓存:', baseUrl);
+      
+      // 清除完全匹配的缓存
+      apiCache.invalidate(new RegExp(`^${baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+      
+      // 清除带参数的缓存
+      apiCache.invalidate(new RegExp(`^${baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?`));
+      
+      // 对于更新操作，还要清除列表缓存（如 /transactions）
+      if (urlParts.length > 1) {
+        const listUrl = '/' + urlParts.slice(0, -1).join('/');
+        apiCache.invalidate(new RegExp(`^${listUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+        apiCache.invalidate(new RegExp(`^${listUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?`));
+      }
+      
+      if (isDev) console.log('缓存清除完成');
       return res.data;
     });
   },
@@ -255,8 +273,26 @@ export const apiClient = {
   // PUT请求，会使相关GET缓存失效
   put: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => {
     return api.put(url, data, config).then((res: AxiosResponse) => {
-      // 使相关缓存失效
-      apiCache.invalidate(new RegExp(`^${url.split('/').slice(0, -1).join('/')}`));
+      // 使相关缓存失效 - 修复缓存失效逻辑
+      const baseUrl = url.split('?')[0]; // 移除查询参数
+      const urlParts = baseUrl.split('/').filter(part => part); // 移除空字符串
+      
+      if (isDev) console.log('PUT请求完成，清除相关缓存:', baseUrl);
+      
+      // 清除完全匹配的缓存
+      apiCache.invalidate(new RegExp(`^${baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+      
+      // 清除带参数的缓存
+      apiCache.invalidate(new RegExp(`^${baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?`));
+      
+      // 对于更新操作，还要清除列表缓存（如 /transactions）
+      if (urlParts.length > 1) {
+        const listUrl = '/' + urlParts.slice(0, -1).join('/');
+        apiCache.invalidate(new RegExp(`^${listUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+        apiCache.invalidate(new RegExp(`^${listUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?`));
+      }
+      
+      if (isDev) console.log('缓存清除完成');
       return res.data;
     });
   },
@@ -264,8 +300,26 @@ export const apiClient = {
   // PATCH请求，会使相关GET缓存失效
   patch: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => {
     return api.patch(url, data, config).then((res: AxiosResponse) => {
-      // 使相关缓存失效
-      apiCache.invalidate(new RegExp(`^${url.split('/').slice(0, -1).join('/')}`));
+      // 使相关缓存失效 - 修复缓存失效逻辑
+      const baseUrl = url.split('?')[0]; // 移除查询参数
+      const urlParts = baseUrl.split('/').filter(part => part); // 移除空字符串
+      
+      if (isDev) console.log('PATCH请求完成，清除相关缓存:', baseUrl);
+      
+      // 清除完全匹配的缓存
+      apiCache.invalidate(new RegExp(`^${baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+      
+      // 清除带参数的缓存
+      apiCache.invalidate(new RegExp(`^${baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?`));
+      
+      // 对于更新操作，还要清除列表缓存（如 /transactions）
+      if (urlParts.length > 1) {
+        const listUrl = '/' + urlParts.slice(0, -1).join('/');
+        apiCache.invalidate(new RegExp(`^${listUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+        apiCache.invalidate(new RegExp(`^${listUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?`));
+      }
+      
+      if (isDev) console.log('缓存清除完成');
       return res.data;
     });
   },
@@ -273,8 +327,26 @@ export const apiClient = {
   // DELETE请求，会使相关GET缓存失效
   delete: <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> => {
     return api.delete(url, config).then((res: AxiosResponse) => {
-      // 使相关缓存失效
-      apiCache.invalidate(new RegExp(`^${url.split('/').slice(0, -1).join('/')}`));
+      // 使相关缓存失效 - 修复缓存失效逻辑
+      const baseUrl = url.split('?')[0]; // 移除查询参数
+      const urlParts = baseUrl.split('/').filter(part => part); // 移除空字符串
+      
+      if (isDev) console.log('DELETE请求完成，清除相关缓存:', baseUrl);
+      
+      // 清除完全匹配的缓存
+      apiCache.invalidate(new RegExp(`^${baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+      
+      // 清除带参数的缓存
+      apiCache.invalidate(new RegExp(`^${baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?`));
+      
+      // 对于删除操作，还要清除列表缓存（如 /transactions）
+      if (urlParts.length > 1) {
+        const listUrl = '/' + urlParts.slice(0, -1).join('/');
+        apiCache.invalidate(new RegExp(`^${listUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+        apiCache.invalidate(new RegExp(`^${listUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?`));
+      }
+      
+      if (isDev) console.log('缓存清除完成');
       return res.data;
     });
   },

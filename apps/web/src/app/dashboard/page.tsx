@@ -27,7 +27,9 @@ export default function DashboardPage() {
     isLoading, 
     error,
     fetchDashboardData,
-    refreshDashboardData 
+    refreshDashboardData,
+    setupTransactionListener,
+    cleanupTransactionListener
   } = useDashboardStore();
 
   useEffect(() => {
@@ -46,6 +48,17 @@ export default function DashboardPage() {
     }
   }, [isAuthenticated, router, fetchAccountBooks, currentAccountBook, fetchDashboardData]);
 
+  // 设置交易变化监听器
+  useEffect(() => {
+    console.log("仪表盘页面：设置交易变化监听器");
+    setupTransactionListener();
+    
+    return () => {
+      console.log("仪表盘页面：清理交易变化监听器");
+      cleanupTransactionListener();
+    };
+  }, [setupTransactionListener, cleanupTransactionListener]);
+
   // 监听页面可见性变化，当页面重新获得焦点时刷新数据
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -62,22 +75,87 @@ export default function DashboardPage() {
       }
     };
 
+    // 监听localStorage变化（用于跨标签页同步）
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'dashboard_refresh_signal' && e.newValue && currentAccountBook?.id) {
+        try {
+          const signal = JSON.parse(e.newValue);
+          console.log("监听到localStorage刷新信号:", signal);
+          
+          // 检查信号是否是最近5秒内的
+          if (Date.now() - signal.timestamp < 5000 && signal.accountBookId === currentAccountBook.id) {
+            console.log("根据storage事件刷新仪表盘数据");
+            refreshDashboardData(signal.accountBookId);
+          }
+        } catch (error) {
+          console.error("处理storage事件失败:", error);
+        }
+      }
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleFocus);
+    window.addEventListener('storage', handleStorageChange);
     
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, [currentAccountBook, refreshDashboardData]);
 
-  // 监听路由变化，当进入仪表盘页面时刷新数据
+  // 监听路由变化，当进入仪表盘页面时刷新数据并重新设置监听器
   useEffect(() => {
-    if (pathname === '/dashboard' && currentAccountBook?.id) {
-      console.log("进入仪表盘页面，刷新数据");
-      refreshDashboardData(currentAccountBook.id);
+    if (pathname === '/dashboard') {
+      console.log("进入仪表盘页面，重新设置监听器并刷新数据");
+      
+      // 重新设置监听器
+      setupTransactionListener();
+      
+      // 检查localStorage中的刷新信号
+      const checkRefreshSignal = () => {
+        try {
+          const signalStr = localStorage.getItem('dashboard_refresh_signal');
+          if (signalStr) {
+            const signal = JSON.parse(signalStr);
+            console.log("检测到仪表盘刷新信号:", signal);
+            
+            // 检查信号是否是最近5秒内的（避免处理过期信号）
+            if (Date.now() - signal.timestamp < 5000) {
+              console.log("处理仪表盘刷新信号，账本ID:", signal.accountBookId);
+              
+              // 清除信号
+              localStorage.removeItem('dashboard_refresh_signal');
+              
+              // 刷新数据
+              if (signal.accountBookId && currentAccountBook?.id === signal.accountBookId) {
+                console.log("根据localStorage信号刷新仪表盘数据");
+                refreshDashboardData(signal.accountBookId);
+                return true; // 表示已处理刷新信号
+              }
+            } else {
+              // 清除过期信号
+              localStorage.removeItem('dashboard_refresh_signal');
+              console.log("清除过期的仪表盘刷新信号");
+            }
+          }
+        } catch (error) {
+          console.error("处理仪表盘刷新信号失败:", error);
+          localStorage.removeItem('dashboard_refresh_signal');
+        }
+        return false;
+      };
+      
+      // 检查刷新信号
+      const signalProcessed = checkRefreshSignal();
+      
+      // 如果没有处理刷新信号，则正常刷新数据
+      if (!signalProcessed && currentAccountBook?.id) {
+        console.log("正常刷新仪表盘数据，账本ID:", currentAccountBook.id);
+        refreshDashboardData(currentAccountBook.id);
+      }
     }
-  }, [pathname, currentAccountBook, refreshDashboardData]);
+  }, [pathname, currentAccountBook, refreshDashboardData, setupTransactionListener]);
 
   // 右侧操作按钮
   const rightActions = (

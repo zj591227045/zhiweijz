@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@zhiweijz/web';
 import { PageContainer } from '@/components/layout/page-container';
 import { useTransactionStore } from '@/store/transaction-store';
+import { triggerTransactionChange } from '@/store/dashboard-store';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { formatCurrency, formatDate, getIconClass } from '@/lib/utils';
 import { TransactionType } from '@/types';
@@ -45,6 +46,11 @@ export default function TransactionDetailPage({ params }: { params: { id: string
     setIsDeleting(false);
 
     if (success) {
+      // 触发交易变化事件，让仪表盘自动刷新
+      if (transaction.accountBookId) {
+        triggerTransactionChange(transaction.accountBookId);
+      }
+      
       router.push('/transactions');
     }
   };

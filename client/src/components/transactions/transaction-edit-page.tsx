@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTransactionEditStore } from "@/store/transaction-edit-store";
 import { useTransactionDetail, useUpdateTransaction } from "@/hooks/use-transaction-detail";
+import { triggerTransactionChange } from "@/store/dashboard-store";
 import { getCategories, getAccountBooks } from "@/lib/api/transaction-service";
 import { TransactionType } from "@/types";
 import { formatDateForAPI, cn, getCategoryIconClass } from "@/lib/utils";
@@ -276,6 +277,12 @@ export function TransactionEditPage() {
 
       // 提交成功
       toast.success("交易记录已更新");
+      
+      // 触发交易变化事件，让仪表盘自动刷新
+      if (accountBookId) {
+        triggerTransactionChange(accountBookId);
+      }
+      
       router.push(`/transactions/${transactionId}`);
     } catch (error) {
       console.error("更新交易失败:", error);

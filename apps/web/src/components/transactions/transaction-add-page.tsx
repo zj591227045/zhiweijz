@@ -8,7 +8,7 @@ import { useTransactionStore } from "@/store/transaction-store";
 import { useCategoryStore } from "@/store/category-store";
 import { useAccountBookStore } from "@/store/account-book-store";
 import { useBudgetStore } from "@/store/budget-store";
-import { useDashboardStore } from "@/store/dashboard-store";
+import { triggerTransactionChange } from "@/store/dashboard-store";
 import { AmountInput } from "./amount-input";
 import { TransactionTypeToggle } from "./transaction-type-toggle";
 import { CategorySelector } from "./category-selector";
@@ -41,7 +41,6 @@ export function TransactionAddPage() {
   const { categories, fetchCategories, isLoading: isCategoriesLoading } = useCategoryStore();
   const { currentAccountBook, fetchAccountBooks } = useAccountBookStore();
   const { budgets, fetchActiveBudgets } = useBudgetStore();
-  const { refreshDashboardData } = useDashboardStore();
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -142,15 +141,16 @@ export function TransactionAddPage() {
         toast.success("交易记录已添加");
         resetForm();
         
-        // 先刷新仪表盘数据，然后再跳转
-        if (currentAccountBook?.id) {
-          console.log("开始刷新仪表盘数据...");
-          await refreshDashboardData(currentAccountBook.id);
-          console.log("仪表盘数据刷新完成");
-        }
+        console.log("手动记账成功，准备触发交易变化事件");
         
-        // 数据刷新完成后再跳转
-        router.push("/dashboard");
+        // 触发交易变化事件，让仪表盘自动刷新
+        triggerTransactionChange(currentAccountBook.id);
+        
+        // 延迟跳转，确保事件能够被处理
+        setTimeout(() => {
+          console.log("延迟跳转到仪表盘页面");
+          router.push("/dashboard");
+        }, 100);
       } else {
         throw new Error("创建交易失败，服务器未返回有效响应");
       }

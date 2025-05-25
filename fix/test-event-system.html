@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>事件系统测试</title>
+</head>
+<body>
+    <h1>交易变化事件系统测试</h1>
+    
+    <button id="triggerBtn">触发交易变化事件</button>
+    <button id="setupBtn">设置监听器</button>
+    <button id="cleanupBtn">清理监听器</button>
+    
+    <div id="log" style="margin-top: 20px; padding: 10px; background: #f0f0f0; white-space: pre-wrap;"></div>
+
+    <script>
+        let transactionChangeHandler = null;
+        const logDiv = document.getElementById('log');
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            console.log(message);
+        }
+        
+        // 触发交易变化事件
+        function triggerTransactionChange(accountBookId) {
+            log(`触发交易变化事件，账本ID: ${accountBookId}`);
+            const event = new CustomEvent('transactionChanged', {
+                detail: { accountBookId }
+            });
+            window.dispatchEvent(event);
+            log("交易变化事件已触发");
+        }
+        
+        // 设置监听器
+        function setupTransactionListener() {
+            if (transactionChangeHandler) {
+                window.removeEventListener('transactionChanged', transactionChangeHandler);
+                log("清理旧的交易变化监听器");
+            }
+            
+            transactionChangeHandler = (event) => {
+                const { accountBookId } = event.detail;
+                log(`监听到交易变化事件，账本ID: ${accountBookId}`);
+                
+                setTimeout(() => {
+                    log("开始自动刷新仪表盘数据...");
+                    // 模拟刷新数据
+                    setTimeout(() => {
+                        log("仪表盘数据刷新完成");
+                    }, 1000);
+                }, 500);
+            };
+            
+            window.addEventListener('transactionChanged', transactionChangeHandler);
+            log("仪表盘交易变化监听器已设置");
+        }
+        
+        // 清理监听器
+        function cleanupTransactionListener() {
+            if (transactionChangeHandler) {
+                window.removeEventListener('transactionChanged', transactionChangeHandler);
+                transactionChangeHandler = null;
+                log("仪表盘交易变化监听器已清理");
+            }
+        }
+        
+        // 绑定按钮事件
+        document.getElementById('triggerBtn').addEventListener('click', () => {
+            triggerTransactionChange('test-account-book-123');
+        });
+        
+        document.getElementById('setupBtn').addEventListener('click', () => {
+            setupTransactionListener();
+        });
+        
+        document.getElementById('cleanupBtn').addEventListener('click', () => {
+            cleanupTransactionListener();
+        });
+        
+        // 页面加载时自动设置监听器
+        setupTransactionListener();
+        log("页面加载完成，监听器已设置");
+    </script>
+</body>
+</html> 

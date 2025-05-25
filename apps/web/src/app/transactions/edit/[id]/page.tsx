@@ -8,6 +8,7 @@ import { useTransactionStore } from '@/store/transaction-store';
 import { useCategoryStore } from '@/store/category-store';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { useBudgetStore } from '@/store/budget-store';
+import { triggerTransactionChange } from '@/store/dashboard-store';
 import { formatDateForInput, getCategoryIconClass } from '@/lib/utils';
 import { TransactionType, UpdateTransactionData } from '@/types';
 import { toast } from 'sonner';
@@ -532,6 +533,12 @@ export default function TransactionEditPage({ params }: { params: { id: string }
       const success = await updateTransaction(params.id, updateData);
       if (success) {
         toast.success('交易更新成功');
+        
+        // 触发交易变化事件，让仪表盘自动刷新
+        if (currentAccountBook?.id) {
+          triggerTransactionChange(currentAccountBook.id);
+        }
+        
         router.push(`/transactions/${params.id}`);
       }
     } catch (error) {

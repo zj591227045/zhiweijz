@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTransactionFormStore } from "@/store/transaction-form-store";
 import { useAccountBookStore } from "@/store/account-book-store";
+import { triggerTransactionChange } from "@/store/dashboard-store";
 import { apiClient } from "@/lib/api";
 import { getCategories } from "@/lib/api/transaction-service";
 import { aiService } from "@/lib/api/ai-service";
@@ -342,6 +343,9 @@ export function SmartAccountingDialog({ isOpen, onClose }: SmartAccountingDialog
           description: result.note || result.description || result.originalDescription || '',
           date: result.date ? new Date(result.date).toISOString() : new Date().toISOString()
         });
+
+        // 触发交易变化事件，让仪表盘自动刷新
+        triggerTransactionChange(currentAccountBook.id);
 
         // 显示顶部弹窗
         setShowToast(true);

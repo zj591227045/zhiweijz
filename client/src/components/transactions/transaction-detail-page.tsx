@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useTransactionDetail, useDeleteTransaction, useUpdateTransactionNotes } from "@/hooks/use-transaction-detail";
 import { useAccountBook, useBudget } from "@/hooks/use-account-book-budget";
 import { useTransactionDetailStore } from "@/store/transaction-detail-store";
+import { triggerTransactionChange } from "@/store/dashboard-store";
 import { TransactionHeader } from "./transaction-detail/transaction-header";
 import { TransactionDetails } from "./transaction-detail/transaction-details";
 import { NotesEditor } from "./transaction-detail/notes-editor";
@@ -83,6 +84,12 @@ export function TransactionDetailPage() {
     try {
       await deleteTransaction.mutateAsync(transaction.id);
       closeDeleteConfirm();
+      
+      // 触发交易变化事件，让仪表盘自动刷新
+      if (transaction.accountBookId) {
+        triggerTransactionChange(transaction.accountBookId);
+      }
+      
       // 删除成功后返回列表页
       router.push("/transactions");
     } catch (error) {
