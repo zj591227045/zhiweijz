@@ -174,7 +174,7 @@ export const BudgetProgress = memo(function BudgetProgress({ categories, totalBu
   }, [categories, totalBudget]);
 
   return (
-    <section className="budget-progress dashboard-budget-progress">
+    <section className="dashboard-budget-section">
       <div className="section-header">
         <div className="flex items-center">
           <h2>预算执行情况</h2>
@@ -205,27 +205,62 @@ export const BudgetProgress = memo(function BudgetProgress({ categories, totalBu
                     </div>
                     <span className="dashboard-category-name">{category.name}</span>
                   </div>
-                  <div
-                    className="budget-amount dashboard-budget-amount"
-                    style={{
-                      color: category.percentage > 100 ? 'var(--error-color)' : 'var(--text-primary)'
-                    }}
-                  >
-                    <span className="current">{formatCurrency(category.spent)}</span>
-                    <span className="separator dashboard-separator">/</span>
-                    <span className="total">{formatCurrency(category.budget)}</span>
+                  <div className="budget-amount dashboard-budget-amount">
+                    {/* 显示百分比 */}
+                    <div 
+                      className="percentage-display"
+                      style={{
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        color: category.percentage > 100 ? 'var(--error-color)' : 
+                               category.percentage > 80 ? 'var(--warning-color)' : 'var(--primary-color)',
+                        marginBottom: '2px'
+                      }}
+                    >
+                      {category.percentage.toFixed(1)}%
+                    </div>
+                    {/* 显示金额，字体更小，不换行 */}
+                    <div 
+                      className="amount-display"
+                      style={{
+                        fontSize: '12px',
+                        color: 'var(--text-secondary)',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      <span className="current">{formatCurrency(category.spent)}</span>
+                      <span className="separator" style={{ margin: '0 2px' }}>/</span>
+                      <span className="total">{formatCurrency(category.budget)}</span>
+                    </div>
                   </div>
                 </div>
-                <div className={`progress-bar dashboard-progress-bar ${category.percentage > 100 ? 'border-red-500' : ''}`}>
+                <div
+                  className="dashboard-progress-bar-custom"
+                  style={{
+                    height: '8px',
+                    backgroundColor: '#e5e7eb', // 明显的灰色背景
+                    border: `1px solid ${category.percentage > 100 ? 'var(--error-color)' : '#d1d5db'}`,
+                    borderRadius: '4px',
+                    overflow: 'hidden',
+                    width: '100%',
+                    position: 'relative'
+                  }}
+                >
                   <div
-                    className={`progress dashboard-progress ${
-                      category.percentage > 100
-                        ? 'bg-red-500'
+                    className="dashboard-progress-custom"
+                    style={{
+                      height: '100%',
+                      width: `${Math.min(category.percentage, 100)}%`,
+                      backgroundColor: category.percentage > 100
+                        ? 'var(--error-color)'
                         : category.percentage > 80
-                        ? 'bg-orange-500'
-                        : 'bg-blue-500'
-                    }`}
-                    style={{ width: `${Math.min(category.percentage, 100)}%` }}
+                        ? 'var(--warning-color)'
+                        : 'var(--primary-color)',
+                      borderRadius: '3px',
+                      transition: 'width 0.3s ease'
+                    }}
                   ></div>
                 </div>
               </div>

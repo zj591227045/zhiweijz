@@ -1,9 +1,11 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { useAccountBookStore } from "@/store/account-book-store";
+import { useState } from "react";
+import { useAccountBookStore } from "@zhiweijz/web";
+import { useLLMCacheStore } from "@zhiweijz/web";
 import { SmartAccountingDialog } from "../transactions/smart-accounting-dialog";
 import { toast } from "sonner";
 import "@/styles/smart-accounting-dialog.css";
@@ -16,79 +18,43 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
   const pathname = usePathname();
   const router = useRouter();
   const { currentAccountBook } = useAccountBookStore();
+  const { getLLMSettings, llmCache } = useLLMCacheStore();
   const [isSmartAccountingOpen, setIsSmartAccountingOpen] = useState(false);
   const [hasLLMService, setHasLLMService] = useState<boolean | null>(null);
 
-  // 检查当前账本是否绑定了LLM服务
-  useEffect(() => {
-    const checkLLMServiceBinding = async () => {
-      if (currentAccountBook?.id) {
-        try {
-          console.log("检查账本是否绑定LLM服务，账本ID:", currentAccountBook.id);
-          console.log("当前账本对象:", currentAccountBook);
+  // 使用缓存store直接检查LLM设置
+  React.useEffect(() => {
+    const checkLLMService = async () => {
+      if (!currentAccountBook?.id) {
+        setHasLLMService(false);
+        return;
+      }
 
-          // 1. 首先检查账本对象是否有userLLMSettingId字段
-          if (currentAccountBook.userLLMSettingId) {
-            console.log("账本直接包含userLLMSettingId:", currentAccountBook.userLLMSettingId);
-            setHasLLMService(true);
-            return;
-          }
+      // 首先检查账本对象是否有userLLMSettingId字段
+      if (currentAccountBook.userLLMSettingId) {
+        setHasLLMService(true);
+        return;
+      }
 
-          console.log("账本对象中没有userLLMSettingId字段，准备发起API请求");
+      // 检查缓存
+      const cachedSettings = llmCache[currentAccountBook.id];
+      if (cachedSettings) {
+        setHasLLMService(cachedSettings.bound);
+        return;
+      }
 
-          // 2. 使用正确的API路径检查账本LLM设置
-          try {
-            const apiUrl = `/api/ai/account/${currentAccountBook.id}/llm-settings`;
-            console.log("准备发起API请求，URL:", apiUrl);
-            
-            // 获取认证token
-            const token = localStorage.getItem("auth-token");
-            console.log("认证token:", token ? "存在" : "不存在");
-            
-            const response = await fetch(apiUrl, {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-                ...(token && { 'Authorization': `Bearer ${token}` })
-              }
-            });
-            console.log("API请求已发送，响应状态:", response.status);
-            
-            if (response.ok) {
-              const llmSettings = await response.json();
-              console.log("获取到的账本LLM设置:", llmSettings);
-
-              // 检查响应格式，根据API文档判断是否绑定了LLM服务
-              if (llmSettings && llmSettings.bound === true) {
-                console.log("账本已绑定LLM服务");
-                setHasLLMService(true);
-              } else if (llmSettings && llmSettings.bound === false) {
-                console.log("账本未绑定LLM服务:", llmSettings.message);
-                setHasLLMService(false);
-              } else {
-                console.log("响应格式不明确，默认为未绑定");
-                setHasLLMService(false);
-              }
-            } else {
-              console.log("获取账本LLM设置失败，状态码:", response.status);
-              setHasLLMService(false);
-            }
-          } catch (error) {
-            console.error("获取账本LLM设置失败:", error);
-            setHasLLMService(false);
-          }
-        } catch (error) {
-          console.error("检查账本LLM服务绑定失败:", error);
-          setHasLLMService(false);
-        }
-      } else {
-        console.log("没有当前账本信息，默认为未绑定LLM服务");
+      // 使用缓存store获取LLM设置
+      try {
+        const settings = await getLLMSettings(currentAccountBook.id, null);
+        setHasLLMService(settings.bound);
+      } catch (error) {
+        console.error('获取LLM设置失败:', error);
         setHasLLMService(false);
       }
     };
 
-    checkLLMServiceBinding();
-  }, [currentAccountBook]);
+    checkLLMService();
+  }, [currentAccountBook?.id, currentAccountBook?.userLLMSettingId, getLLMSettings, llmCache]);
 
   const isActive = (path: string) => {
     if (currentPath) {

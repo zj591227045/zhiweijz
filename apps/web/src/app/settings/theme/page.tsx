@@ -6,6 +6,10 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useThemeStore } from "@/store/theme-store";
+
+// 导入样式
+import "./theme-settings.css";
 
 interface Theme {
   id: string;
@@ -20,8 +24,61 @@ interface Theme {
   };
 }
 
+// 内置主题配置
+const builtInThemes: Theme[] = [
+  {
+    id: 'light-blue',
+    name: '浅色蓝色',
+    description: '经典的浅色蓝色主题',
+    type: 'built-in',
+    isActive: false,
+    preview: {
+      primaryColor: '#3B82F6',
+      backgroundColor: '#F9FAFB',
+      textColor: '#1F2937'
+    }
+  },
+  {
+    id: 'light-green',
+    name: '浅色绿色',
+    description: '清新的浅色绿色主题',
+    type: 'built-in',
+    isActive: false,
+    preview: {
+      primaryColor: '#10B981',
+      backgroundColor: '#F9FAFB',
+      textColor: '#1F2937'
+    }
+  },
+  {
+    id: 'light-purple',
+    name: '浅色紫色',
+    description: '优雅的浅色紫色主题',
+    type: 'built-in',
+    isActive: false,
+    preview: {
+      primaryColor: '#8B5CF6',
+      backgroundColor: '#F9FAFB',
+      textColor: '#1F2937'
+    }
+  },
+  {
+    id: 'dark',
+    name: '深色主题',
+    description: '护眼的深色主题',
+    type: 'built-in',
+    isActive: false,
+    preview: {
+      primaryColor: '#60A5FA',
+      backgroundColor: '#111827',
+      textColor: '#F3F4F6'
+    }
+  }
+];
+
 export default function ThemeSettingsPage() {
   const router = useRouter();
+  const { theme, themeColor, setTheme, setThemeColor } = useThemeStore();
   const [themes, setThemes] = useState<Theme[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -29,51 +86,46 @@ export default function ThemeSettingsPage() {
 
   // 获取主题列表
   useEffect(() => {
-    const fetchThemes = async () => {
+    const loadThemes = () => {
       try {
-        const response = await fetch('/api/themes');
-        if (response.ok) {
-          const data = await response.json();
-          setThemes(data);
-        } else {
-          toast.error('获取主题列表失败');
-        }
+        // 使用内置主题，并根据当前主题状态设置激活状态
+        const currentThemeId = theme === 'dark' ? 'dark' : `light-${themeColor}`;
+        const themesWithActiveState = builtInThemes.map(t => ({
+          ...t,
+          isActive: t.id === currentThemeId
+        }));
+
+        setThemes(themesWithActiveState);
       } catch (error) {
-        console.error('获取主题列表失败:', error);
-        toast.error('获取主题列表失败');
+        console.error('加载主题列表失败:', error);
+        toast.error('加载主题列表失败');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchThemes();
-  }, []);
+    loadThemes();
+  }, [theme, themeColor]);
 
   // 切换主题
   const handleThemeSelect = async (themeId: string) => {
     try {
-      const response = await fetch('/api/themes/apply', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ themeId }),
-      });
-
-      if (response.ok) {
-        toast.success('主题切换成功');
-        // 更新主题状态
-        setThemes(prev => prev.map(theme => ({
-          ...theme,
-          isActive: theme.id === themeId,
-        })));
-        
-        // 刷新页面以应用新主题
-        window.location.reload();
-      } else {
-        const error = await response.json();
-        toast.error(error.message || '切换主题失败');
+      // 解析主题ID并应用主题
+      if (themeId === 'dark') {
+        setTheme('dark');
+      } else if (themeId.startsWith('light-')) {
+        const color = themeId.replace('light-', '') as any;
+        setTheme('light');
+        setThemeColor(color);
       }
+
+      // 更新主题状态
+      setThemes(prev => prev.map(theme => ({
+        ...theme,
+        isActive: theme.id === themeId,
+      })));
+
+      toast.success('主题切换成功');
     } catch (error) {
       console.error('切换主题失败:', error);
       toast.error('切换主题失败');
@@ -85,34 +137,21 @@ export default function ThemeSettingsPage() {
     if (!themeToDelete) return;
 
     try {
-      const response = await fetch(`/api/themes/${themeToDelete.id}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        toast.success('主题删除成功');
-        setThemes(prev => prev.filter(theme => theme.id !== themeToDelete.id));
-        setShowDeleteDialog(false);
-        setThemeToDelete(null);
-      } else {
-        const error = await response.json();
-        toast.error(error.message || '删除主题失败');
-      }
+      // 目前只支持内置主题，不支持删除
+      toast.error('内置主题无法删除');
+      setShowDeleteDialog(false);
+      setThemeToDelete(null);
     } catch (error) {
       console.error('删除主题失败:', error);
       toast.error('删除主题失败');
     }
   };
 
-  // 右侧操作按钮
-  const rightActions = (
-    <Link href="/settings/theme/editor" className="icon-button" title="创建主题">
-      <i className="fas fa-plus"></i>
-    </Link>
-  );
+  // 右侧操作按钮 - 暂时隐藏主题编辑器入口
+  const rightActions = null;
 
   // 分组主题
-  const builtInThemes = themes.filter(theme => theme.type === 'built-in');
+  const builtInThemesList = themes.filter(theme => theme.type === 'built-in');
   const customThemes = themes.filter(theme => theme.type === 'custom');
   const activeTheme = themes.find(theme => theme.isActive);
 
@@ -137,16 +176,16 @@ export default function ThemeSettingsPage() {
                 <div className="theme-preview">
                   {activeTheme.preview && (
                     <div className="preview-colors">
-                      <div 
-                        className="color-dot" 
+                      <div
+                        className="color-dot"
                         style={{ backgroundColor: activeTheme.preview.primaryColor }}
                       />
-                      <div 
-                        className="color-dot" 
+                      <div
+                        className="color-dot"
                         style={{ backgroundColor: activeTheme.preview.backgroundColor }}
                       />
-                      <div 
-                        className="color-dot" 
+                      <div
+                        className="color-dot"
                         style={{ backgroundColor: activeTheme.preview.textColor }}
                       />
                     </div>
@@ -163,7 +202,7 @@ export default function ThemeSettingsPage() {
                 </div>
                 {activeTheme.type === 'custom' && (
                   <div className="theme-actions">
-                    <Link 
+                    <Link
                       href={`/settings/theme/editor?id=${activeTheme.id}`}
                       className="edit-button"
                       title="编辑主题"
@@ -180,7 +219,7 @@ export default function ThemeSettingsPage() {
           <div className="themes-section">
             <h3 className="section-title">内置主题</h3>
             <div className="themes-grid">
-              {builtInThemes.map((theme) => (
+              {builtInThemesList.map((theme) => (
                 <div
                   key={theme.id}
                   className={`theme-card ${theme.isActive ? 'active' : ''}`}
@@ -189,16 +228,16 @@ export default function ThemeSettingsPage() {
                   <div className="theme-preview">
                     {theme.preview && (
                       <div className="preview-colors">
-                        <div 
-                          className="color-dot" 
+                        <div
+                          className="color-dot"
                           style={{ backgroundColor: theme.preview.primaryColor }}
                         />
-                        <div 
-                          className="color-dot" 
+                        <div
+                          className="color-dot"
                           style={{ backgroundColor: theme.preview.backgroundColor }}
                         />
-                        <div 
-                          className="color-dot" 
+                        <div
+                          className="color-dot"
                           style={{ backgroundColor: theme.preview.textColor }}
                         />
                       </div>
@@ -234,16 +273,16 @@ export default function ThemeSettingsPage() {
                     <div className="theme-preview">
                       {theme.preview && (
                         <div className="preview-colors">
-                          <div 
-                            className="color-dot" 
+                          <div
+                            className="color-dot"
                             style={{ backgroundColor: theme.preview.primaryColor }}
                           />
-                          <div 
-                            className="color-dot" 
+                          <div
+                            className="color-dot"
                             style={{ backgroundColor: theme.preview.backgroundColor }}
                           />
-                          <div 
-                            className="color-dot" 
+                          <div
+                            className="color-dot"
                             style={{ backgroundColor: theme.preview.textColor }}
                           />
                         </div>
@@ -256,7 +295,7 @@ export default function ThemeSettingsPage() {
                       )}
                     </div>
                     <div className="theme-actions">
-                      <Link 
+                      <Link
                         href={`/settings/theme/editor?id=${theme.id}`}
                         className="edit-button"
                         title="编辑主题"
@@ -287,12 +326,20 @@ export default function ThemeSettingsPage() {
             </div>
           )}
 
-          {/* 创建主题按钮 */}
-          <div className="create-theme-section">
-            <Link href="/settings/theme/editor" className="create-theme-button">
-              <i className="fas fa-plus"></i>
-              创建自定义主题
-            </Link>
+          {/* 主题说明 */}
+          <div className="theme-info-section">
+            <div className="info-card">
+              <div className="info-icon">
+                <i className="fas fa-info-circle"></i>
+              </div>
+              <div className="info-content">
+                <div className="info-title">主题说明</div>
+                <div className="info-text">
+                  选择您喜欢的主题颜色，主题设置会自动保存并应用到整个应用。
+                  深色主题可以减少眼部疲劳，特别适合在光线较暗的环境中使用。
+                </div>
+              </div>
+            </div>
           </div>
         </>
       )}

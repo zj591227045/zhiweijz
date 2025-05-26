@@ -352,15 +352,22 @@ export class StatisticsService {
 
     console.log(`找到 ${transactions.length} 条交易记录`);
 
-    // 计算总支出
-    const totalSpent = transactions.reduce((sum: number, t: any) => sum + Number(t.amount), 0);
+    // 使用预算仓库的calculateSpentAmount方法来计算总支出
+    const { BudgetRepository } = require('../repositories/budget.repository');
+    const budgetRepository = new BudgetRepository();
+    
+    let totalSpent = 0;
+    for (const budget of budgets) {
+      const spent = await budgetRepository.calculateSpentAmount(budget.id);
+      totalSpent += spent;
+    }
 
     // 计算剩余金额和百分比
     const remaining = totalBudget - totalSpent;
     const percentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
     // 按分类计算预算执行情况
-    const categoriesData = this.calculateBudgetByCategory(budgets, transactions, categories);
+    const categoriesData = await this.calculateBudgetByCategory(budgets, transactions, categories);
 
     // 获取最近5条交易记录
     const recentTransactions = transactions
@@ -725,31 +732,31 @@ export class StatisticsService {
   /**
    * 计算各分类的预算执行情况
    */
-  private calculateBudgetByCategory(
+  private async calculateBudgetByCategory(
     budgets: any[],
     transactions: any[],
     categories: Map<string, any>
-  ): Array<{
+  ): Promise<Array<{
     category: { id: string; name: string; icon?: string };
     budget: number;
     spent: number;
     remaining: number;
     percentage: number;
-  }> {
+  }>> {
     // 按分类ID分组预算
     const budgetByCategory = new Map<string, number>();
+    const budgetIdByCategory = new Map<string, string>(); // 存储分类对应的预算ID
+    
     for (const budget of budgets) {
       if (budget.categoryId) {
         budgetByCategory.set(budget.categoryId, Number(budget.amount));
+        budgetIdByCategory.set(budget.categoryId, budget.id);
       }
     }
 
-    // 按分类ID分组支出
-    const spentByCategory = new Map<string, number>();
-    for (const transaction of transactions) {
-      const current = spentByCategory.get(transaction.categoryId) || 0;
-      spentByCategory.set(transaction.categoryId, current + Number(transaction.amount));
-    }
+    // 使用预算仓库的calculateSpentAmount方法来获取准确的已使用金额
+    const { BudgetRepository } = require('../repositories/budget.repository');
+    const budgetRepository = new BudgetRepository();
 
     // 合并预算和支出数据
     const result: Array<{
@@ -762,7 +769,14 @@ export class StatisticsService {
 
     // 处理有预算的分类
     for (const [categoryId, budget] of budgetByCategory.entries()) {
-      const spent = spentByCategory.get(categoryId) || 0;
+      const budgetId = budgetIdByCategory.get(categoryId);
+      let spent = 0;
+      
+      if (budgetId) {
+        // 使用预算ID来计算准确的已使用金额
+        spent = await budgetRepository.calculateSpentAmount(budgetId);
+      }
+      
       const category = categories.get(categoryId);
 
       result.push({
@@ -776,25 +790,6 @@ export class StatisticsService {
         remaining: budget - spent,
         percentage: budget > 0 ? (spent / budget) * 100 : 0,
       });
-    }
-
-    // 处理无预算但有支出的分类
-    for (const [categoryId, spent] of spentByCategory.entries()) {
-      if (!budgetByCategory.has(categoryId)) {
-        const category = categories.get(categoryId);
-
-        result.push({
-          category: {
-            id: categoryId,
-            name: category?.name || '未知分类',
-            icon: category?.icon,
-          },
-          budget: 0,
-          spent,
-          remaining: -spent,
-          percentage: 100, // 无预算但有支出，视为100%
-        });
-      }
     }
 
     // 按支出百分比排序

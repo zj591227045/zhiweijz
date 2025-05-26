@@ -69,7 +69,7 @@ export function CategoryBudgetList({
               className={`budget-item ${budget.isOverspent ? 'warning' : ''}`}
             >
               <div className="budget-category">
-                <i className={`${getCategoryIconClass(budget.categoryIcon)} category-icon`}></i>
+                <i className={`fas ${getCategoryIconClass(budget.categoryIcon)} category-icon`}></i>
                 <span>{budget.categoryName}</span>
               </div>
               <div className="budget-details">

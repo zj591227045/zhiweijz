@@ -17,3 +17,4 @@ export * from './api/services';
 // 导出状态管理
 export * from './store/auth-store';
 export * from './store/account-book-store';
+export * from './store/llm-cache-store';

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { memo, useMemo } from "react";
+import { memo } from "react";
 import { formatCurrency, getCategoryIconClass } from "../../lib/utils";
 
 // 交易类型枚举
@@ -39,30 +39,14 @@ export const RecentTransactions = memo(function RecentTransactions({ groupedTran
     router.push(`/transactions/${transactionId}`);
   };
 
-  // 使用useMemo缓存图标映射，避免每次渲染重新创建
-  const iconMap = useMemo(() => ({
-    food: "fa-utensils",
-    shopping: "fa-shopping-bag",
-    transport: "fa-bus",
-    entertainment: "fa-film",
-    home: "fa-home",
-    health: "fa-heartbeat",
-    education: "fa-graduation-cap",
-    travel: "fa-plane",
-    salary: "fa-money-bill-wave",
-    investment: "fa-chart-line",
-    gift: "fa-gift",
-    other: "fa-ellipsis-h",
-  }), []);
-
   // 获取图标类名
   const getIconClass = (iconName: string, type: TransactionType) => {
-    // 如果是收入类型且没有找到对应图标，使用默认收入图标
-    if (type === TransactionType.INCOME && !iconMap[iconName]) {
+    // 如果是收入类型且没有图标名称，使用默认收入图标
+    if (type === TransactionType.INCOME && !iconName) {
       return "fa-money-bill-wave";
     }
 
-    return iconMap[iconName] || "fa-tag";
+    return getCategoryIconClass(iconName);
   };
 
   return (

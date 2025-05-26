@@ -10,18 +10,33 @@ import routes from './routes';
 const app: Express = express();
 
 // 配置中间件
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // 配置CORS，允许所有来源的请求
 app.use(cors({
-  origin: '*', // 允许所有来源的请求
+  origin: true, // 允许所有来源的请求，使用true而不是'*'以支持credentials
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  credentials: true,
+  optionsSuccessStatus: 200 // 支持旧版浏览器
 }));
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' } // 允许跨域访问资源
 }));
+
+// 处理预检请求
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', '86400'); // 24小时
+    return res.status(200).end();
+  }
+  next();
+});
+
 app.use(morgan(config.env === 'development' ? 'dev' : 'combined'));
 
 // 配置静态文件服务

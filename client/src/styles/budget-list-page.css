@@ -135,7 +135,7 @@
   margin-bottom: 8px;
 }
 
-.budget-list-progress {
+.budget-list-progress:not(.budget-list-progress-fill-override) {
   height: 100%;
   background-color: hsl(var(--primary));
   border-radius: 4px;

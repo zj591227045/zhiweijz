@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        input {
+            width: 300px;
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 CORS跨域访问测试</h1>
+        
+        <div class="test-section">
+            <h3>服务器地址配置</h3>
+            <label>服务器地址: </label>
+            <input type="text" id="serverUrl" value="http://10.255.0.27:3000" placeholder="http://your-server-ip:3000">
+            <button onclick="updateServerUrl()">更新地址</button>
+        </div>
+
+        <div class="test-section">
+            <h3>1. 基础连接测试</h3>
+            <button onclick="testBasicConnection()">测试基础连接</button>
+            <div id="basicResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. API接口测试</h3>
+            <button onclick="testApiEndpoint()">测试API接口</button>
+            <div id="apiResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. POST请求测试</h3>
+            <button onclick="testPostRequest()">测试POST请求</button>
+            <div id="postResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. 带认证头的请求测试</h3>
+            <button onclick="testAuthRequest()">测试认证请求</button>
+            <div id="authResult" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        let serverUrl = 'http://10.255.0.27:3000';
+
+        function updateServerUrl() {
+            serverUrl = document.getElementById('serverUrl').value;
+            console.log('服务器地址已更新为:', serverUrl);
+        }
+
+        function showResult(elementId, message, isSuccess) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `result ${isSuccess ? 'success' : 'error'}`;
+            element.textContent = message;
+        }
+
+        async function testBasicConnection() {
+            try {
+                const response = await fetch(serverUrl + '/');
+                const data = await response.json();
+                showResult('basicResult', `✅ 连接成功! 响应: ${JSON.stringify(data)}`, true);
+            } catch (error) {
+                showResult('basicResult', `❌ 连接失败: ${error.message}`, false);
+            }
+        }
+
+        async function testApiEndpoint() {
+            try {
+                const response = await fetch(serverUrl + '/api');
+                if (response.status === 404) {
+                    showResult('apiResult', `✅ API端点响应正常 (404是预期的，因为没有根API路由)`, true);
+                } else {
+                    const data = await response.json();
+                    showResult('apiResult', `✅ API响应: ${JSON.stringify(data)}`, true);
+                }
+            } catch (error) {
+                showResult('apiResult', `❌ API请求失败: ${error.message}`, false);
+            }
+        }
+
+        async function testPostRequest() {
+            try {
+                const response = await fetch(serverUrl + '/api/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ test: 'data' })
+                });
+                
+                if (response.status === 404) {
+                    showResult('postResult', `✅ POST请求发送成功 (404是预期的，因为没有/api/test路由)`, true);
+                } else {
+                    const data = await response.json();
+                    showResult('postResult', `✅ POST响应: ${JSON.stringify(data)}`, true);
+                }
+            } catch (error) {
+                showResult('postResult', `❌ POST请求失败: ${error.message}`, false);
+            }
+        }
+
+        async function testAuthRequest() {
+            try {
+                const response = await fetch(serverUrl + '/api/protected', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer test-token',
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include'
+                });
+                
+                if (response.status === 404) {
+                    showResult('authResult', `✅ 带认证头的请求发送成功 (404是预期的)`, true);
+                } else {
+                    const data = await response.json();
+                    showResult('authResult', `✅ 认证请求响应: ${JSON.stringify(data)}`, true);
+                }
+            } catch (error) {
+                showResult('authResult', `❌ 认证请求失败: ${error.message}`, false);
+            }
+        }
+
+        // 页面加载时自动更新服务器地址
+        window.onload = function() {
+            updateServerUrl();
+        }
+    </script>
+</body>
+</html> 

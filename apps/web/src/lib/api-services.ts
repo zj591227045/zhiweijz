@@ -227,11 +227,9 @@ export const dashboardService = {
 export const exportService = {
   // 导出交易记录
   exportTransactions: (accountBookId: string, format: 'csv' | 'json' = 'csv') => {
-    return apiClient.get(`/transactions/export`, {
-      params: {
-        accountBookId,
-        format,
-      },
+    return apiClient.post(`/transactions/export?accountBookId=${accountBookId}`, {
+      format,
+    }, {
       responseType: 'blob',
     });
   },
@@ -247,5 +245,10 @@ export const feedbackService = {
     contact?: string;
   }) => {
     return apiClient.post('/feedback', data);
+  },
+
+  // 获取用户反馈列表
+  getUserFeedbacks: () => {
+    return apiClient.get('/feedback/my');
   },
 };

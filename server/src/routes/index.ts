@@ -12,6 +12,7 @@ import familyRoutes from './family.routes';
 import statisticsRoutes from './statistics.routes';
 import securityRoutes from './security.routes';
 import aiRoutes from './ai-routes';
+import feedbackRoutes from './feedback.routes';
 
 const router = Router();
 
@@ -29,5 +30,6 @@ router.use('/families', familyRoutes);
 router.use('/statistics', statisticsRoutes);
 router.use('/security', securityRoutes);
 router.use('/ai', aiRoutes);
+router.use('/feedback', feedbackRoutes);
 
 export default router;

@@ -2,19 +2,175 @@
 [data-theme="green"] {
   --primary-color: #10b981; /* 绿色主题 */
   --primary-rgb: 16, 185, 129;
+  --primary-color-light: rgba(16, 185, 129, 0.1);
+  --primary-color-dark: #059669;
+  --primary-hover: #059669;
+  --primary-active: #047857;
 }
 
 [data-theme="purple"] {
   --primary-color: #8b5cf6; /* 紫色主题 */
   --primary-rgb: 139, 92, 246;
+  --primary-color-light: rgba(139, 92, 246, 0.1);
+  --primary-color-dark: #7c3aed;
+  --primary-hover: #7c3aed;
+  --primary-active: #6d28d9;
 }
 
 [data-theme="orange"] {
   --primary-color: #f59e0b; /* 橙色主题 */
   --primary-rgb: 245, 158, 11;
+  --primary-color-light: rgba(245, 158, 11, 0.1);
+  --primary-color-dark: #d97706;
+  --primary-hover: #d97706;
+  --primary-active: #b45309;
 }
 
 [data-theme="red"] {
   --primary-color: #ef4444; /* 红色主题 */
   --primary-rgb: 239, 68, 68;
+  --primary-color-light: rgba(239, 68, 68, 0.1);
+  --primary-color-dark: #dc2626;
+  --primary-hover: #dc2626;
+  --primary-active: #b91c1c;
+}
+
+/* 确保按钮和交互元素使用主题颜色 */
+.btn-primary,
+.primary-button {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.btn-primary:hover,
+.primary-button:hover {
+  background-color: var(--primary-hover, var(--primary-color-dark)) !important;
+  border-color: var(--primary-hover, var(--primary-color-dark)) !important;
+}
+
+.btn-primary:active,
+.primary-button:active {
+  background-color: var(--primary-active, var(--primary-color-dark)) !important;
+  border-color: var(--primary-active, var(--primary-color-dark)) !important;
+}
+
+/* 工具栏图标按钮 - 图标颜色而非背景色 */
+.header .icon-button {
+  background: none !important;
+  border: none !important;
+  color: var(--primary-color) !important;
+}
+
+.header .icon-button:hover {
+  background-color: var(--primary-color-light) !important;
+  color: var(--primary-color) !important;
+}
+
+.header .icon-button:active {
+  background-color: var(--primary-color-light) !important;
+  color: var(--primary-hover, var(--primary-color-dark)) !important;
+}
+
+/* 链接和文本颜色 */
+.text-primary-color,
+.link-primary {
+  color: var(--primary-color) !important;
+}
+
+/* 边框颜色 */
+.border-primary {
+  border-color: var(--primary-color) !important;
+}
+
+/* 背景颜色 */
+.bg-primary-light {
+  background-color: var(--primary-color-light) !important;
+}
+
+/* 分类图标主题颜色支持 */
+.category-icon {
+  color: var(--category-icon-color, #333) !important;
+}
+
+.category-icon i {
+  color: inherit !important;
+}
+
+/* 当分类图标没有自定义颜色时，使用主题颜色 */
+.category-item.active .category-icon,
+.category-grid-item.active .category-icon {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.category-item:hover .category-icon,
+.category-grid-item:hover .category-icon {
+  background-color: var(--primary-color-light) !important;
+  border-color: var(--primary-color) !important;
+}
+
+/* 底部导航主题颜色 */
+.bottom-nav .nav-item.active {
+  color: var(--primary-color) !important;
+}
+
+.bottom-nav .nav-item.active i {
+  color: var(--primary-color) !important;
+}
+
+/* 页面容器中的主要按钮 */
+.page-container .primary-button,
+.page-container .btn-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.page-container .primary-button:hover,
+.page-container .btn-primary:hover {
+  background-color: var(--primary-hover, var(--primary-color-dark)) !important;
+}
+
+/* 页面容器中的图标按钮保持图标颜色样式 */
+.page-container .header .icon-button {
+  background: none !important;
+  border: none !important;
+  color: var(--primary-color) !important;
+}
+
+.page-container .header .icon-button:hover {
+  background-color: var(--primary-color-light) !important;
+  color: var(--primary-color) !important;
+}
+
+/* 表单控件主题颜色 */
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px var(--primary-color-light) !important;
+}
+
+/* 开关和选择器 */
+.toggle.active,
+.switch.active {
+  background-color: var(--primary-color) !important;
+}
+
+/* 进度条填充部分 */
+.progress,
+.budget-progress {
+  background-color: var(--primary-color) !important;
+}
+
+/* 标签和徽章 */
+.badge-primary,
+.tag-primary {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+/* 链接悬停效果 */
+a:hover,
+.link:hover {
+  color: var(--primary-color) !important;
 }

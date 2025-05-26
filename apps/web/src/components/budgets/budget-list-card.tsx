@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn, formatCurrency, getCategoryIconClass } from '@/lib/utils';
 import { useAccountBookStore } from '@zhiweijz/web';
 
 export interface Budget {
@@ -50,7 +50,7 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
 
   // 处理点击预算卡片
   const handleCardClick = () => {
-    router.push(`/budgets/${budget.id}`);
+    router.push(`/budgets/${budget.id}/edit`);
   };
 
   return (
@@ -104,11 +104,36 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
         {formatCurrency(budget.amount)}
       </div>
 
-      <div className="budget-progress">
-        <div className="progress-bar">
+      <div className="budget-list-progress-section">
+        <div 
+          className="budget-list-progress-bar-custom"
+          style={{
+            height: '8px',
+            backgroundColor: '#e5e7eb', // 明显的灰色背景
+            border: `1px solid ${budget.overSpent ? '#ef4444' : '#d1d5db'}`,
+            borderRadius: '4px',
+            overflow: 'hidden',
+            width: '100%',
+            position: 'relative',
+            marginBottom: '8px'
+          }}
+        >
           <div
-            className="progress"
-            style={{ width: `${Math.min(budget.percentage, 100)}%` }}
+            className="budget-list-progress-fill-override"
+            style={{
+              height: '100%',
+              width: `${Math.min(budget.percentage, 100)}%`,
+              backgroundColor: budget.overSpent
+                ? '#ef4444'
+                : budget.warning && !budget.overSpent
+                ? '#f59e0b'
+                : '#3b82f6',
+              borderRadius: '3px',
+              transition: 'width 0.3s ease',
+              position: 'absolute',
+              top: 0,
+              left: 0
+            }}
           ></div>
         </div>
         <div className="progress-info">
@@ -138,7 +163,7 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
           </div>
         ) : budget.categoryIcon ? (
           <div className="category-icon">
-            <i className={`fas fa-${budget.categoryIcon}`}></i>
+            <i className={`fas ${getCategoryIconClass(budget.categoryIcon)}`}></i>
           </div>
         ) : (
           <div></div> // 空占位符，保持布局

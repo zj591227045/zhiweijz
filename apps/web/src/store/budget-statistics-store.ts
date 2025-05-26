@@ -275,6 +275,45 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
             });
           }
 
+          // 确定默认选中的预算ID
+          let defaultSelectedBudgetId = null;
+          
+          if (filteredBudgetCards.length > 0) {
+            // 如果是个人预算类型且有家庭成员数据，优先选择当前用户的预算
+            if (currentBudgetType === 'personal' && response.familyMembers && response.familyMembers.length > 0) {
+              try {
+                // 导入当前用户信息
+                const { useAuthStore } = await import('@zhiweijz/web');
+                const currentUser = useAuthStore.getState().user;
+                
+                if (currentUser) {
+                  // 查找当前用户对应的家庭成员
+                  const currentUserMember = response.familyMembers.find(member => 
+                    !member.isCustodial && member.name === currentUser.name
+                  );
+                  
+                  if (currentUserMember && currentUserMember.budgetId) {
+                    defaultSelectedBudgetId = currentUserMember.budgetId;
+                    console.log('找到当前用户的预算:', currentUserMember.name, currentUserMember.budgetId);
+                  } else {
+                    // 如果找不到当前用户的预算，使用第一个预算
+                    defaultSelectedBudgetId = filteredBudgetCards[0]?.id || null;
+                    console.log('未找到当前用户的预算，使用第一个预算:', defaultSelectedBudgetId);
+                  }
+                } else {
+                  defaultSelectedBudgetId = filteredBudgetCards[0]?.id || null;
+                  console.log('未获取到当前用户信息，使用第一个预算:', defaultSelectedBudgetId);
+                }
+              } catch (error) {
+                console.error('获取当前用户信息失败:', error);
+                defaultSelectedBudgetId = filteredBudgetCards[0]?.id || null;
+              }
+            } else {
+              // 其他情况使用第一个预算
+              defaultSelectedBudgetId = filteredBudgetCards[0]?.id || null;
+            }
+          }
+
           // 更新状态
           set({
             budgetCards: filteredBudgetCards,
@@ -282,15 +321,24 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
             overview: filteredBudgetCards.length > 0 ? response.overview || null : null,
             categoryBudgets: response.categories || [],
             recentTransactions: response.recentTransactions || [],
-            selectedBudgetId: filteredBudgetCards.length > 0 ? filteredBudgetCards[0]?.id || null : null,
+            selectedBudgetId: defaultSelectedBudgetId,
             enableCategoryBudget: response.enableCategoryBudget || false,
             isLoading: false
           });
 
           // 如果有选中的预算ID，获取该预算的趋势数据
-          const selectedBudgetId = filteredBudgetCards.length > 0 ? filteredBudgetCards[0]?.id || null : null;
-          if (selectedBudgetId) {
-            get().fetchBudgetTrends(selectedBudgetId, get().chartViewMode);
+          if (defaultSelectedBudgetId) {
+            // 如果是个人预算且有家庭成员，需要传递家庭成员ID
+            if (currentBudgetType === 'personal' && response.familyMembers && response.familyMembers.length > 0) {
+              const selectedMember = response.familyMembers.find(member => member.budgetId === defaultSelectedBudgetId);
+              if (selectedMember) {
+                get().fetchBudgetTrends(defaultSelectedBudgetId, get().chartViewMode, get().chartTimeRange, selectedMember.id);
+              } else {
+                get().fetchBudgetTrends(defaultSelectedBudgetId, get().chartViewMode);
+              }
+            } else {
+              get().fetchBudgetTrends(defaultSelectedBudgetId, get().chartViewMode);
+            }
           }
         } catch (error) {
           console.error('获取预算统计数据失败:', error);

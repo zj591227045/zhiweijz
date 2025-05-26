@@ -1,14 +1,7 @@
 "use client";
 
 import { useBudgetFormStore } from "@/store/budget-form-store";
-
-// 获取分类图标类名
-const getCategoryIconClass = (icon: string) => {
-  if (icon.startsWith('fa-')) {
-    return `fas ${icon}`;
-  }
-  return `fas fa-${icon}`;
-};
+import { getCategoryIconClass } from "@/lib/utils";
 
 export function CategoryBudgetSection() {
   const {
@@ -87,7 +80,7 @@ export function CategoryBudgetSection() {
                   className="category-icon"
                   style={{ backgroundColor: category.color || '#FF5722' }}
                 >
-                  <i className={getCategoryIconClass(category.icon)}></i>
+                  <i className={`fas ${getCategoryIconClass(category.icon)}`}></i>
                 </div>
                 <span>{category.name}</span>
               </div>
@@ -101,7 +94,7 @@ export function CategoryBudgetSection() {
                   className="category-icon"
                   style={{ backgroundColor: selectedCategory.color || '#FF5722' }}
                 >
-                  <i className={getCategoryIconClass(selectedCategory.icon)}></i>
+                  <i className={`fas ${getCategoryIconClass(selectedCategory.icon)}`}></i>
                 </div>
                 <span>{selectedCategory.name}</span>
               </div>
@@ -166,7 +159,7 @@ export function CategoryBudgetSection() {
                         className="category-icon small"
                         style={{ backgroundColor: category.color || '#FF5722' }}
                       >
-                        <i className={getCategoryIconClass(category.icon)}></i>
+                        <i className={`fas ${getCategoryIconClass(category.icon)}`}></i>
                       </div>
                       <span>{category.name}</span>
                     </div>

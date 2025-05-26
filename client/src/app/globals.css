@@ -531,6 +531,14 @@
 }
 
 /* 仪表盘特定样式，确保不被其他页面样式覆盖 */
+.dashboard-budget-section {
+  background-color: var(--card-background, #ffffff) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+  padding: 16px !important;
+  margin-bottom: 20px !important;
+}
+
 .dashboard-budget-progress {
   display: flex !important;
   flex-direction: column !important;
@@ -632,15 +640,37 @@
 /* 仪表盘特定进度条样式 */
 .dashboard-progress-bar {
   height: 8px !important;
-  background-color: var(--border-color) !important;
+  background-color: rgba(0, 0, 0, 0.1) !important; /* 默认背景色 */
   border-radius: 4px !important;
   overflow: hidden !important;
   width: 100% !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  position: relative !important;
 }
 
 .dashboard-progress {
   height: 100% !important;
   background-color: var(--primary-color) !important;
+  border-radius: 3px !important;
+  transition: width 0.3s ease !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* 亮色主题下的进度条样式 */
+:root .dashboard-progress-bar,
+html:not(.dark) .dashboard-progress-bar {
+  background-color: #e5e7eb !important; /* 亮色主题下使用明显的灰色背景 */
+  border: 1px solid #d1d5db !important;
+}
+
+/* 暗色主题下的进度条样式 */
+.dark .dashboard-progress-bar,
+html.dark .dashboard-progress-bar,
+html.dark-theme .dashboard-progress-bar,
+[data-theme="dark"] .dashboard-progress-bar {
+  background-color: #374151 !important; /* 暗色主题下使用明显的深灰色背景 */
+  border: 1px solid #4b5563 !important;
 }
 
 /* 最近交易 */
@@ -1907,4 +1937,15 @@ html.dark-theme .separator {
   .family-card-name {
     font-size: 16px;
   }
+}
+
+/* 预算列表进度条样式覆盖 */
+.budget-list-progress-fill-override {
+  height: 100% !important;
+  border-radius: 3px !important;
+  transition: width 0.3s ease !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 2 !important;
 }

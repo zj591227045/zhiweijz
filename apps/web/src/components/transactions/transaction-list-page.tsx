@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@zhiweijz/web";
 import { PageContainer } from "@/components/layout/page-container";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getCategoryIconClass } from "@/lib/utils";
 import { apiClient } from "@/lib/api";
 import dayjs from "dayjs";
 
@@ -228,7 +228,7 @@ export function TransactionListPage() {
                       onClick={() => handleTransactionClick(transaction.id)}
                     >
                       <div className="transaction-icon">
-                        <i className={`fas fa-${transaction.category?.icon || 'tag'}`}></i>
+                        <i className={`fas ${getCategoryIconClass(transaction.category?.icon)}`}></i>
                       </div>
                       <div className="transaction-details">
                         <div className="transaction-title">{transaction.description || transaction.category?.name || '未分类'}</div>

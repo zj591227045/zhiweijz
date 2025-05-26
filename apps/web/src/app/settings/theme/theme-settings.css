@@ -1,0 +1,244 @@
+/* 主题设置页面样式 */
+.themes-section {
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  padding-left: 4px;
+}
+
+.themes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.theme-card {
+  background-color: var(--card-background);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-card:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.theme-card.active {
+  border-color: var(--primary-color);
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.05));
+}
+
+.theme-preview {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.preview-colors {
+  display: flex;
+  gap: 8px;
+}
+
+.color-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+}
+
+.theme-info {
+  flex: 1;
+}
+
+.theme-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.theme-description {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.theme-type {
+  font-size: 12px;
+  color: var(--text-secondary);
+  background-color: var(--background-color);
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.theme-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.edit-button,
+.delete-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.edit-button {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: var(--primary-color-dark, #2563eb);
+}
+
+.delete-button {
+  background-color: var(--error-color);
+  color: white;
+}
+
+.delete-button:hover {
+  background-color: var(--error-color-dark, #dc2626);
+}
+
+.active-indicator {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+/* 当前主题预览 */
+.current-theme-section {
+  margin-bottom: 32px;
+}
+
+.current-theme-card {
+  background-color: var(--card-background);
+  border: 2px solid var(--primary-color);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  background: linear-gradient(135deg, var(--primary-color-light, rgba(59, 130, 246, 0.05)) 0%, transparent 100%);
+}
+
+.current-theme-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-color) 0%, var(--accent-color, #8b5cf6) 100%);
+  border-radius: 12px 12px 0 0;
+}
+
+/* 主题信息说明 */
+.theme-info-section {
+  margin-top: 32px;
+}
+
+.info-card {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.info-icon {
+  width: 40px;
+  height: 40px;
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
+  color: var(--primary-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.info-content {
+  flex: 1;
+}
+
+.info-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.info-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .themes-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .theme-card {
+    padding: 16px;
+  }
+  
+  .current-theme-card {
+    padding: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .info-card {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-title {
+    font-size: 16px;
+  }
+  
+  .theme-name {
+    font-size: 15px;
+  }
+  
+  .theme-description {
+    font-size: 13px;
+  }
+}

@@ -588,9 +588,7 @@ export default function TransactionEditPage({ params }: { params: { id: string }
 
   // 获取图标类名
   const getIconClass = (iconName?: string) => {
-    if (!iconName) return "fas fa-tag";
-    const iconClass = getCategoryIconClass(iconName);
-    return iconClass.startsWith("fa-") ? `fas ${iconClass}` : `fas fa-${iconClass}`;
+    return `fas ${getCategoryIconClass(iconName)}`;
   };
 
   // 获取选中的分类信息

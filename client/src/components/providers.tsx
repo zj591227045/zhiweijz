@@ -3,6 +3,36 @@
 import { useState, useEffect, useMemo } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useThemeStore, applyThemeConfig } from "@/store/theme-store";
+import { useAuthStore } from "@/store/auth-store";
+
+// 认证初始化组件
+function AuthInitializer() {
+  const { isInitialized, token, isAuthenticated } = useAuthStore();
+
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    // 检查localStorage和store的状态是否一致
+    const localToken = localStorage.getItem("auth-token");
+    
+    if (localToken && !token) {
+      // localStorage有token但store没有，同步到store
+      useAuthStore.setState({
+        token: localToken,
+        isAuthenticated: true
+      });
+    } else if (!localToken && token) {
+      // localStorage没有token但store有，清除store
+      useAuthStore.setState({
+        user: null,
+        token: null,
+        isAuthenticated: false
+      });
+    }
+  }, [isInitialized, token, isAuthenticated]);
+
+  return null;
+}
 
 // 配置QueryClient - 优化性能
 const queryClientOptions = {
@@ -101,6 +131,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthInitializer />
       {children}
     </QueryClientProvider>
   );

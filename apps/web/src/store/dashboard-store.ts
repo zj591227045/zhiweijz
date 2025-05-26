@@ -73,11 +73,14 @@ const fetchBudgetStatistics = async (accountBookId: string) => {
     categoryId: cat.category.id,
   })) || [];
 
-  const totalBudget = (response?.totalBudget && response?.totalSpent) ? {
+  // 直接使用后端返回的百分比，不重新计算
+  const totalBudget = (response?.totalBudget && response?.totalSpent !== undefined) ? {
     amount: response.totalBudget,
     spent: response.totalSpent,
-    percentage: (response.totalSpent / response.totalBudget) * 100,
+    percentage: response.percentage || 0, // 直接使用后端计算的百分比
   } : null;
+
+  console.log("处理后的总预算数据:", totalBudget);
 
   return { categories, totalBudget };
 };

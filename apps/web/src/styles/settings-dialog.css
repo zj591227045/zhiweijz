@@ -10,16 +10,20 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 25vh 16px;
 }
 
 .settings-dialog-content {
   background-color: var(--card-background);
   border-radius: var(--border-radius);
-  width: 90%;
-  max-width: 420px;
-  max-height: 80vh;
+  width: 100%;
+  max-width: 480px;
+  height: 50vh;
   overflow: hidden;
   box-shadow: var(--card-shadow);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .settings-dialog-header {
@@ -53,8 +57,8 @@
 
 .settings-dialog-body {
   display: flex;
-  height: 70vh;
-  max-height: 500px;
+  flex: 1;
+  min-height: 0;
 }
 
 .settings-sidebar {
@@ -69,10 +73,11 @@
 }
 
 .settings-option {
-  padding: 12px 16px;
+  padding: 16px 12px;
   cursor: pointer;
   transition: all 0.2s ease;
   color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .settings-option:hover {
@@ -87,20 +92,27 @@
 
 .settings-option-icon {
   margin-right: 12px;
-  width: 20px;
+  width: 18px;
   text-align: center;
   color: inherit;
+  font-size: 16px;
+  flex-shrink: 0;
 }
 
 .settings-option-title {
   font-weight: 500;
-  margin-bottom: 4px;
+  font-size: 14px;
   color: inherit;
+  white-space: nowrap;
 }
 
 .settings-option-description {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 账本选择器样式 */
@@ -229,4 +241,162 @@
 
 .settings-empty-button:hover {
   opacity: 0.9;
-} 
+}
+
+/* 主题切换面板样式 */
+.theme-switcher-panel {
+  padding: 16px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.theme-switcher-header {
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.theme-switcher-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+}
+
+.theme-switcher-description {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.theme-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  background-color: var(--card-background);
+}
+
+.theme-option:hover {
+  background-color: var(--hover-background);
+}
+
+.theme-option.active {
+  border-color: var(--primary-color);
+  background-color: var(--primary-color-light);
+}
+
+.theme-option-preview {
+  margin-right: 12px;
+}
+
+.theme-color-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.theme-option-info {
+  flex: 1;
+}
+
+.theme-option-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.theme-option-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.theme-option-check {
+  color: var(--primary-color);
+  font-size: 16px;
+  margin-left: 8px;
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .settings-dialog {
+    padding: 25vh 8px;
+    align-items: center;
+  }
+
+  .settings-dialog-content {
+    width: 100%;
+    max-width: none;
+    height: 50vh;
+    border-radius: 12px;
+  }
+
+  .settings-dialog-body {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .settings-sidebar {
+    width: 35%;
+  }
+
+  .settings-content {
+    width: 65%;
+  }
+
+  .settings-option {
+    padding: 12px 8px;
+  }
+
+  .settings-option-icon {
+    margin-right: 8px;
+    width: 16px;
+    font-size: 14px;
+  }
+
+  .settings-option-title {
+    font-size: 13px;
+  }
+
+  .settings-option-description {
+    font-size: 10px;
+  }
+
+  .theme-switcher-panel {
+    padding: 12px;
+  }
+
+  .theme-option {
+    padding: 10px;
+  }
+
+  .theme-color-circle {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .theme-option-name {
+    font-size: 13px;
+  }
+
+  .theme-option-desc {
+    font-size: 10px;
+  }
+}

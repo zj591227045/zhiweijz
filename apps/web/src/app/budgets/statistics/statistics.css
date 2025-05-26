@@ -79,7 +79,8 @@
   display: none; /* Chrome, Safari, Opera */
 }
 
-.budget-card {
+/* 预算统计页面专用的预算卡片样式 */
+.budget-statistics-container .budget-card {
   flex: 0 0 auto;
   min-width: 120px;
   max-width: 180px;
@@ -100,7 +101,7 @@
   margin-right: 4px;
 }
 
-.budget-card.active {
+.budget-statistics-container .budget-card.active {
   border-color: var(--primary-color);
   background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
 }
@@ -132,7 +133,8 @@
   width: 100%;
 }
 
-.budget-amount {
+/* 预算统计页面专用的预算金额样式 */
+.budget-statistics-container .budget-amount {
   font-size: 24px;
   font-weight: 700;
   color: var(--text-color);
@@ -240,7 +242,8 @@
   color: var(--danger-color, #ef4444);
 }
 
-.progress-bar {
+/* 预算统计页面专用的进度条样式 */
+.budget-statistics-container .progress-bar {
   height: 12px;
   background-color: var(--background-color, #f5f5f5);
   border-radius: 6px;
@@ -249,7 +252,7 @@
   position: relative;
 }
 
-.progress {
+.budget-statistics-container .progress {
   height: 100%;
   background-color: var(--primary-color, #3b82f6);
   border-radius: 6px;
@@ -272,11 +275,11 @@
   to { background-position: 20px 0; }
 }
 
-.progress.warning {
+.budget-statistics-container .progress.warning {
   background-color: var(--warning-color, #f59e0b);
 }
 
-.progress.danger {
+.budget-statistics-container .progress.danger {
   background-color: var(--danger-color, #ef4444);
 }
 
@@ -346,14 +349,15 @@
   box-shadow: var(--card-shadow);
 }
 
-.section-header {
+/* 预算统计页面专用的节标题样式 */
+.budget-statistics-container .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
 }
 
-.section-header h2 {
+.budget-statistics-container .section-header h2 {
   font-size: 18px;
   font-weight: 600;
   color: var(--text-color);
@@ -516,7 +520,8 @@
   margin-top: 15px;
 }
 
-.budget-item {
+/* 预算统计页面专用的预算项样式 */
+.budget-statistics-container .budget-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -524,11 +529,11 @@
   border-bottom: 1px solid var(--border-color);
 }
 
-.budget-item:last-child {
+.budget-statistics-container .budget-item:last-child {
   border-bottom: none;
 }
 
-.budget-item.warning .progress {
+.budget-statistics-container .budget-item.warning .progress {
   background-color: var(--danger-color, #ef4444);
 }
 
@@ -980,13 +985,13 @@
   height: 250px;
 }
 
-/* 确保预算卡片样式正确应用 */
-.budget-card {
+/* 确保预算统计页面的预算卡片样式正确应用 */
+.budget-statistics-container .budget-card {
   background-color: var(--card-bg, #ffffff) !important;
   border: 1px solid var(--border-color, #e5e7eb) !important;
 }
 
-.budget-card.active {
+.budget-statistics-container .budget-card.active {
   border-color: var(--primary-color, #3b82f6) !important;
   background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1)) !important;
 }
@@ -1097,11 +1102,11 @@
     align-items: center;
   }
 
-  .budget-amount {
+  .budget-statistics-container .budget-amount {
     font-size: 20px; /* 稍微减小字体大小 */
   }
 
-  .budget-amount-label {
+  .budget-statistics-container .budget-amount-label {
     font-size: 12px; /* 在移动设备上减小字体大小 */
   }
 
@@ -1131,18 +1136,18 @@
     padding: 6px 8px;
   }
 
-  /* 移动端预算卡片样式调整 */
-  .budget-card {
+  /* 移动端预算统计页面的预算卡片样式调整 */
+  .budget-statistics-container .budget-card {
     min-width: 100px;
     width: calc(40% - 8px); /* 移动端上显示2.5个卡片 */
     padding: 10px 12px;
   }
 
-  .budget-name {
+  .budget-statistics-container .budget-name {
     font-size: 16px;
   }
 
-  .budget-period {
+  .budget-statistics-container .budget-period {
     font-size: 12px;
   }
 

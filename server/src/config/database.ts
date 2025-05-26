@@ -8,7 +8,11 @@ const prisma = new PrismaClient({
       url: config.database.url,
     },
   },
-  log: config.env === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+  log: process.env.PRISMA_LOG_LEVEL === 'debug' 
+    ? ['query', 'info', 'warn', 'error'] 
+    : config.env === 'development' 
+      ? ['warn', 'error'] 
+      : ['error'],
 });
 
 // 连接数据库

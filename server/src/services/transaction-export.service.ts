@@ -1,6 +1,5 @@
 import { TransactionType } from '@prisma/client';
 import { TransactionRepository } from '../repositories/transaction.repository';
-import { CategoryRepository } from '../repositories/category.repository';
 import { TransactionQueryParams } from '../models/transaction.model';
 import { createObjectCsvStringifier } from 'csv-writer';
 
@@ -17,11 +16,9 @@ export enum ExportFormat {
  */
 export class TransactionExportService {
   private transactionRepository: TransactionRepository;
-  private categoryRepository: CategoryRepository;
 
   constructor() {
     this.transactionRepository = new TransactionRepository();
-    this.categoryRepository = new CategoryRepository();
   }
 
   /**
@@ -36,28 +33,23 @@ export class TransactionExportService {
     params: TransactionQueryParams,
     format: ExportFormat
   ): Promise<{ data: string; filename: string }> {
-    // 获取交易记录
+    // 获取交易记录（已包含分类信息）
     const { transactions } = await this.transactionRepository.findAll(userId, {
       ...params,
       page: 1,
       limit: 1000, // 限制导出数量
     });
 
-    // 获取所有分类
-    const categories = await this.categoryRepository.findByUserId(userId);
-    const categoryMap = new Map(categories.map(c => [c.id, c]));
-
     // 准备导出数据
     const exportData = transactions.map(transaction => {
-      const category = categoryMap.get(transaction.categoryId);
       return {
         id: transaction.id,
         amount: Number(transaction.amount),
-        type: transaction.type,
-        category: category ? category.name : '',
+        type: transaction.type === 'INCOME' ? '收入' : '支出',
+        category: transaction.category?.name || '未分类',
         description: transaction.description || '',
         date: transaction.date.toISOString().split('T')[0],
-        createdAt: transaction.createdAt.toISOString(),
+        createdAt: transaction.createdAt.toISOString().replace('T', ' ').split('.')[0],
       };
     });
 
@@ -91,10 +83,13 @@ export class TransactionExportService {
     // 生成CSV字符串
     const csvString = csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(data);
 
+    // 添加BOM以支持中文编码
+    const csvWithBOM = '\uFEFF' + csvString;
+
     // 生成文件名
     const filename = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
 
-    return { data: csvString, filename };
+    return { data: csvWithBOM, filename };
   }
 
   /**

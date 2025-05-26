@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AccountBookSelector } from "./account-book-selector";
+import { ThemeSwitcherPanel } from "./theme-switcher-panel";
 
 interface SettingsDialogProps {
   isOpen: boolean;
@@ -42,11 +43,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
       case "accounts":
         return <AccountBookSelector onClose={onClose} />;
       case "theme":
-        return (
-          <div className="p-4 text-center text-gray-500">
-            <p>主题切换功能即将推出</p>
-          </div>
-        );
+        return <ThemeSwitcherPanel onClose={onClose} />;
       case "display":
         return (
           <div className="p-4 text-center text-gray-500">
@@ -84,13 +81,15 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                 className={`settings-option ${activePanel === option.id ? "active" : ""}`}
                 onClick={() => setActivePanel(option.id)}
               >
-                <div className="flex items-center mb-1">
+                <div className="flex items-center">
                   <i className={`fas ${option.icon} settings-option-icon`}></i>
-                  <span className="settings-option-title">{option.title}</span>
+                  <div className="flex-1">
+                    <div className="settings-option-title">{option.title}</div>
+                    <div className="settings-option-description">
+                      {option.description}
+                    </div>
+                  </div>
                 </div>
-                <p className="settings-option-description pl-6">
-                  {option.description}
-                </p>
               </div>
             ))}
           </div>
@@ -103,4 +102,4 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
       </div>
     </div>
   );
-} 
+}

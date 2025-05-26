@@ -9,11 +9,13 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitialized: boolean;
   error: string | null;
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
   clearError: () => void;
+  initialize: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -23,6 +25,7 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       isLoading: false,
+      isInitialized: false,
       error: null,
 
       login: async (credentials: LoginCredentials) => {
@@ -89,6 +92,11 @@ export const useAuthStore = create<AuthState>()(
       clearError: () => {
         set({ error: null });
       },
+
+      initialize: () => {
+        // 标记为已初始化
+        set({ isInitialized: true });
+      },
     }),
     {
       name: "auth-storage",
@@ -97,6 +105,14 @@ export const useAuthStore = create<AuthState>()(
         token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => {
+        return (state) => {
+          // 当从localStorage恢复完成后，立即标记为已初始化
+          if (state) {
+            state.initialize();
+          }
+        };
+      },
     }
   )
 );

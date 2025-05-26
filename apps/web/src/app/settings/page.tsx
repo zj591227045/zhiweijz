@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@zhiweijz/web';
@@ -12,6 +12,8 @@ export default function SettingsPage() {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuthStore();
   const { theme, setTheme } = useThemeStore();
+  const [currentLanguage, setCurrentLanguage] = useState('简体中文');
+  const [currentCurrency, setCurrentCurrency] = useState('人民币 (¥)');
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -19,6 +21,33 @@ export default function SettingsPage() {
       router.push('/auth/login');
     }
   }, [isAuthenticated, router]);
+
+  // 加载本地设置
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('app-language') || 'zh-CN';
+    const savedCurrency = localStorage.getItem('app-currency') || 'CNY';
+
+    // 语言映射
+    const languageMap: Record<string, string> = {
+      'zh-CN': '简体中文',
+      'zh-TW': '繁體中文',
+      'en': 'English'
+    };
+
+    // 货币映射
+    const currencyMap: Record<string, string> = {
+      'CNY': '人民币 (¥)',
+      'USD': '美元 ($)',
+      'EUR': '欧元 (€)',
+      'GBP': '英镑 (£)',
+      'JPY': '日元 (¥)',
+      'HKD': '港币 (HK$)',
+      'TWD': '新台币 (NT$)'
+    };
+
+    setCurrentLanguage(languageMap[savedLanguage] || '简体中文');
+    setCurrentCurrency(currencyMap[savedCurrency] || '人民币 (¥)');
+  }, []);
 
   // 处理退出登录
   const handleLogout = async () => {
@@ -168,7 +197,7 @@ export default function SettingsPage() {
             </div>
             <div className="item-content">
               <div className="item-title">语言</div>
-              <div className="item-description">简体中文</div>
+              <div className="item-description">{currentLanguage}</div>
             </div>
             <div className="item-action">
               <i className="fas fa-chevron-right"></i>
@@ -180,7 +209,7 @@ export default function SettingsPage() {
             </div>
             <div className="item-content">
               <div className="item-title">货币设置</div>
-              <div className="item-description">人民币 (¥)</div>
+              <div className="item-description">{currentCurrency}</div>
             </div>
             <div className="item-action">
               <i className="fas fa-chevron-right"></i>

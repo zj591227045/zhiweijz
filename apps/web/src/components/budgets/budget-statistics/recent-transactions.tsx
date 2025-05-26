@@ -64,7 +64,7 @@ export function RecentTransactions({ transactions, budgetId, familyMemberId }: R
           transactions.map(transaction => (
             <div key={transaction.id} className="transaction-item">
               <div className="transaction-icon">
-                <i className={getCategoryIconClass(transaction.category?.icon || transaction.categoryIcon || 'receipt')}></i>
+                <i className={`fas ${getCategoryIconClass(transaction.category?.icon || transaction.categoryIcon || 'receipt')}`}></i>
               </div>
               <div className="transaction-info">
                 <div className="transaction-title">{transaction.title}</div>

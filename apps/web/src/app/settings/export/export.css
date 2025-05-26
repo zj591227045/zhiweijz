@@ -1,0 +1,227 @@
+/* 数据导出页面样式 */
+.export-container {
+  padding: 20px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.export-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background-color: var(--card-background, #ffffff);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.export-info-icon {
+  width: 48px;
+  height: 48px;
+  background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color, #3b82f6);
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.export-info-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  margin: 0 0 8px 0;
+}
+
+.export-info-content p {
+  font-size: 14px;
+  color: var(--text-secondary, #6b7280);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.current-book-info {
+  background-color: var(--card-background, #ffffff);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.current-book-label {
+  font-size: 14px;
+  color: var(--text-secondary, #6b7280);
+  margin-bottom: 4px;
+}
+
+.current-book-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+}
+
+.export-options {
+  background-color: var(--card-background, #ffffff);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.option-group {
+  margin-bottom: 20px;
+}
+
+.option-group:last-child {
+  margin-bottom: 0;
+}
+
+.option-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  margin-bottom: 12px;
+}
+
+.format-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.format-option {
+  display: block;
+  cursor: pointer;
+  border: 2px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+  background-color: var(--card-background, #ffffff);
+}
+
+.format-option:hover {
+  border-color: rgba(var(--primary-rgb, 59, 130, 246), 0.3);
+}
+
+.format-option.selected {
+  border-color: var(--primary-color, #3b82f6);
+  background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.05);
+}
+
+.format-option input[type="radio"] {
+  display: none;
+}
+
+.format-option-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.format-option-icon {
+  width: 40px;
+  height: 40px;
+  background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color, #3b82f6);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.format-option-info {
+  flex: 1;
+}
+
+.format-option-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary, #1f2937);
+  margin-bottom: 2px;
+}
+
+.format-option-desc {
+  font-size: 14px;
+  color: var(--text-secondary, #6b7280);
+}
+
+.export-actions {
+  margin-bottom: 20px;
+}
+
+.export-button {
+  width: 100%;
+  background-color: var(--primary-color, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.export-button:hover:not(:disabled) {
+  background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.9);
+  transform: translateY(-1px);
+}
+
+.export-button:disabled {
+  background-color: var(--text-secondary, #6b7280);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.export-notes {
+  background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.05);
+  border-radius: 12px;
+  padding: 16px 20px;
+  border: 1px solid rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+}
+
+.notes-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary-color, #3b82f6);
+  margin-bottom: 12px;
+}
+
+.notes-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notes-list li {
+  font-size: 14px;
+  color: var(--text-secondary, #6b7280);
+  line-height: 1.5;
+  margin-bottom: 8px;
+  padding-left: 16px;
+  position: relative;
+}
+
+.notes-list li:last-child {
+  margin-bottom: 0;
+}
+
+.notes-list li::before {
+  content: "•";
+  color: var(--primary-color, #3b82f6);
+  position: absolute;
+  left: 0;
+  top: 0;
+}
