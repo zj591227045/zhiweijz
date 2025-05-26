@@ -185,7 +185,7 @@ export function toFamilyMemberResponseDto(
       name: member.user.name,
       email: member.user.email,
     } : undefined,
-    name: member.name,
+    name: member.name || '未知用户',
     gender: member.gender || undefined,
     birthDate: member.birthDate || undefined,
     role: member.role,

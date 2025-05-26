@@ -77,7 +77,7 @@ export function getRelativeTime(date: Date | string) {
   dayjs.extend(relativeTime);
   dayjs.locale("zh-cn");
 
-  return dayjs(date).fromNow();
+  return (dayjs(date) as any).fromNow();
 }
 
 /**
@@ -280,4 +280,89 @@ export function getNextMonthRange(currentDate: Date = new Date()): { startDate: 
     startDate: start.format('YYYY-MM-DD'),
     endDate: end.format('YYYY-MM-DD')
   };
+}
+
+/**
+ * 复制到剪贴板
+ * @param text 要复制的文本
+ * @returns 是否复制成功
+ */
+export async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (error) {
+    console.error('复制失败:', error);
+    return false;
+  }
+}
+
+/**
+ * 分享内容
+ * @param data 分享数据
+ * @returns 是否分享成功
+ */
+export async function shareContent(data: ShareData): Promise<boolean> {
+  if (navigator.share) {
+    try {
+      await navigator.share(data);
+      return true;
+    } catch (error) {
+      console.error('分享失败:', error);
+      return false;
+    }
+  }
+  return false;
+}
+
+/**
+ * 检查是否过期
+ * @param dateString 日期字符串
+ * @returns 是否过期
+ */
+export function isExpired(dateString: string): boolean {
+  return new Date(dateString) < new Date();
+}
+
+/**
+ * 获取头像文本
+ * @param name 姓名
+ * @returns 头像文本
+ */
+export function getAvatarText(name: string): string {
+  return name.charAt(0).toUpperCase();
+}
+
+/**
+ * 计算年龄
+ * @param birthDate 出生日期
+ * @returns 年龄字符串
+ */
+export function calculateAge(birthDate: string): string {
+  if (!birthDate) return '';
+  const birth = new Date(birthDate);
+  const today = new Date();
+  const age = today.getFullYear() - birth.getFullYear();
+  return `${age}岁`;
+}
+
+/**
+ * 格式化相对时间
+ * @param dateString 日期字符串
+ * @returns 相对时间字符串
+ */
+export function formatRelativeTime(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+
+  if (diffInHours < 1) {
+    return '刚刚';
+  } else if (diffInHours < 24) {
+    return `${diffInHours}小时前`;
+  } else if (diffInHours < 48) {
+    return '昨天';
+  } else {
+    return dayjs(date).format('MM-DD');
+  }
 }

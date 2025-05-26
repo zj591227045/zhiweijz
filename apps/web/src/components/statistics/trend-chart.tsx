@@ -36,7 +36,7 @@ interface TrendChartProps {
 
 export function TrendChart({ dailyStatistics }: TrendChartProps) {
   const { trendChartPeriod, setTrendChartPeriod } = useStatisticsStore();
-  const chartRef = useRef<ChartJS>(null);
+  const chartRef = useRef<any>(null);
 
   // 处理数据分组
   const processData = () => {

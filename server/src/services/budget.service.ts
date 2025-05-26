@@ -776,9 +776,12 @@ export class BudgetService {
               // 如果是普通家庭成员，使用userId查询
               whereCondition.userId = familyMember.userId;
             }
+            // 如果familyMember.userId为null，不添加userId条件
           } else {
-            // 如果找不到家庭成员，默认使用userId查询
-            whereCondition.userId = familyMemberId;
+            // 如果找不到家庭成员，且familyMemberId不为空，默认使用userId查询
+            if (familyMemberId) {
+              whereCondition.userId = familyMemberId;
+            }
           }
         } else if (budget.familyMemberId) {
           // 如果预算本身关联了托管成员，使用预算的familyMemberId查询

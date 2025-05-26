@@ -32,7 +32,7 @@ export function MemberStatistics({
 
   // 获取头像显示文本（用户名首字）
   const getAvatarText = (name: string) => {
-    return name.charAt(0);
+    return name && name.length > 0 ? name.charAt(0).toUpperCase() : '?';
   };
 
   return (
@@ -75,14 +75,14 @@ export function MemberStatistics({
             </div>
             <div className="ranking-avatar">
               {member.avatar ? (
-                <img src={member.avatar} alt={member.username} />
+                <img src={member.avatar} alt={member.username || '用户'} />
               ) : (
-                getAvatarText(member.username)
+                getAvatarText(member.username || '')
               )}
             </div>
             <div className="ranking-details">
               <div className="ranking-name">
-                {member.username}
+                {member.username || '未知用户'}
                 {member.isCurrentUser && ' (你)'}
               </div>
             </div>

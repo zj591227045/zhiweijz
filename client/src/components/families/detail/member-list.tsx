@@ -17,7 +17,7 @@ export function MemberList({ members, isAdmin, familyId, onInvite }: MemberListP
 
   // 获取成员头像文本（取名字的第一个字）
   const getAvatarText = (name: string) => {
-    return name.charAt(0);
+    return name && name.length > 0 ? name.charAt(0).toUpperCase() : '?';
   };
 
   return (
@@ -31,11 +31,11 @@ export function MemberList({ members, isAdmin, familyId, onInvite }: MemberListP
         {displayMembers.map((member) => (
           <div key={member.id} className="member-item">
             <div className="member-avatar">
-              {getAvatarText(member.name)}
+              {getAvatarText(member.name || '')}
             </div>
             <div className="member-details">
               <div className="member-name">
-                {member.name}
+                {member.name || '未知用户'}
                 <span className={`member-role ${member.role === "ADMIN" ? "role-admin" : "role-member"}`}>
                   {member.role === "ADMIN" ? "管理员" : "成员"}
                 </span>

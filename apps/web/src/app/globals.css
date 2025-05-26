@@ -9,6 +9,7 @@
 @import url('../styles/auth.css');
 @import url('../styles/theme-switcher.css');
 @import url('../styles/dashboard.css');
+@import url('../styles/budget-form.css');
 
 @layer base {
   :root {

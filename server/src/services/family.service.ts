@@ -8,6 +8,9 @@ import { FamilyRepository, FamilyWithMembers } from '../repositories/family.repo
 import { UserRepository } from '../repositories/user.repository';
 import { AccountBookService } from './account-book.service';
 import { FamilyBudgetService } from './family-budget.service';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 import {
   AcceptInvitationDto,
   CreateFamilyDto,
@@ -701,62 +704,91 @@ export class FamilyService {
     // 获取家庭成员列表
     const members = await this.familyRepository.findFamilyMembers(familyId);
 
-    // 这里应该从交易记录中获取统计数据
-    // 由于目前没有实现交易相关功能，我们返回模拟数据
-
-    // 根据时间范围获取不同的数据
-    let totalExpense = 0;
+    // 计算时间范围
+    let startDate: Date;
+    let endDate: Date = new Date();
 
     switch (period) {
       case 'month':
-        totalExpense = 8500;
+        startDate = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
         break;
       case 'last_month':
-        totalExpense = 7500;
+        startDate = new Date(endDate.getFullYear(), endDate.getMonth() - 1, 1);
+        endDate = new Date(endDate.getFullYear(), endDate.getMonth(), 0);
         break;
       case 'all':
       default:
-        totalExpense = 100000;
+        startDate = new Date(2020, 0, 1); // 从2020年开始
         break;
     }
 
-    // 生成成员消费统计数据
-    const memberStatistics = members.map((member, index) => {
-      // 为每个成员生成不同的消费金额，确保总和等于totalExpense
-      const basePercentage = 100 / members.length;
-      let percentage = basePercentage;
+    // 获取真实的交易统计数据
+    const memberStatistics = await Promise.all(members.map(async (member) => {
+      let memberExpense = 0;
+      let transactionCount = 0;
 
-      // 为了让数据更有变化，根据索引调整百分比
-      if (index === 0) {
-        percentage = basePercentage * 1.5;
-      } else if (index === members.length - 1) {
-        percentage = basePercentage * 0.5;
+      try {
+        // 查询该成员的支出交易
+        const whereCondition = {
+          familyId: familyId,
+          type: 'EXPENSE' as const,
+          date: {
+            gte: startDate,
+            lte: endDate,
+          },
+          ...(member.isCustodial
+            ? { familyMemberId: member.id } // 托管成员通过familyMemberId查询
+            : member.userId ? { userId: member.userId } : {}     // 普通成员通过userId查询，但要确保userId不为null
+          ),
+        };
+
+        const transactions = await prisma.transaction.findMany({
+          where: whereCondition,
+        });
+
+        memberExpense = transactions.reduce((sum, t) => sum + Number(t.amount), 0);
+        transactionCount = transactions.length;
+      } catch (error) {
+        console.error(`获取成员 ${member.id} 的交易数据失败:`, error);
+        // 如果查询失败，使用默认值
+        memberExpense = 0;
+        transactionCount = 0;
       }
-
-      const amount = Math.round((totalExpense * percentage) / 100);
 
       return {
         memberId: member.id,
         userId: member.userId,
-        username: member.name,
+        username: member.name || '未知用户',
         avatar: null, // 实际应用中应该从用户表获取
         role: member.role,
         joinedAt: member.createdAt,
         isCurrentUser: member.userId === userId,
         isCustodial: member.isCustodial || false,
         statistics: {
-          totalExpense: amount,
-          percentage: Math.round(percentage),
-          transactionCount: Math.round(amount / 100) // 假设平均每笔交易100元
+          totalExpense: memberExpense,
+          percentage: 0, // 稍后计算
+          transactionCount: transactionCount
         }
       };
-    });
+    }));
+
+    // 计算总支出
+    const totalExpense = memberStatistics.reduce((sum, member) => sum + member.statistics.totalExpense, 0);
+
+    // 计算每个成员的消费占比
+    const updatedMemberStatistics = memberStatistics.map(member => ({
+      ...member,
+      statistics: {
+        ...member.statistics,
+        percentage: totalExpense > 0 ? Math.round((member.statistics.totalExpense / totalExpense) * 100) : 0
+      }
+    }));
 
     // 计算用户权限
     const isAdmin = await this.isUserFamilyAdmin(userId, familyId);
 
     return {
-      members: memberStatistics,
+      members: updatedMemberStatistics,
       totalExpense,
       period,
       userPermissions: {

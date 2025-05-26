@@ -22,7 +22,7 @@ export function MemberItem({
 }: MemberItemProps) {
   // 获取头像显示文本（用户名首字）
   const getAvatarText = (name: string) => {
-    return name.charAt(0);
+    return name && name.length > 0 ? name.charAt(0).toUpperCase() : '?';
   };
 
   return (
@@ -33,9 +33,9 @@ export function MemberItem({
         <div className="member-avatar-container">
           <div className="member-avatar">
             {member.avatar ? (
-              <img src={member.avatar} alt={member.username} />
+              <img src={member.avatar} alt={member.username || '用户'} />
             ) : (
-              getAvatarText(member.username)
+              getAvatarText(member.username || '')
             )}
           </div>
         </div>
@@ -43,7 +43,7 @@ export function MemberItem({
         {/* 成员信息区域 */}
         <div className="member-info-container">
           <div className="member-name">
-            {member.username}
+            {member.username || '未知用户'}
             {member.isCurrentUser && (
               <span className="current-user-badge">你</span>
             )}
@@ -55,19 +55,35 @@ export function MemberItem({
         </div>
       </div>
 
-      {/* 操作按钮区域 - 完全独立的一行 */}
+      {/* 成员详情区域 */}
+      <div className="member-details">
+        <div className="detail-column">
+          <div className="detail-item">
+            <div className="detail-label">加入时间</div>
+            <div className="detail-value">{member.joinedAt ? formatDate(member.joinedAt) : '未知'}</div>
+          </div>
+          <div className="detail-item">
+            <div className="detail-label">交易次数</div>
+            <div className="detail-value">{member.statistics?.transactionCount || 0}次</div>
+          </div>
+        </div>
+        <div className="stats-column">
+          <div className="stats-item">
+            <div className="stats-value expense-value">
+              {formatCurrency(member.statistics?.totalExpense || 0)}
+            </div>
+            <div className="stats-label">总消费</div>
+          </div>
+          <div className="stats-item">
+            <div className="stats-value">{member.statistics?.percentage || 0}%</div>
+            <div className="stats-label">消费占比</div>
+          </div>
+        </div>
+      </div>
+
+      {/* 操作按钮区域 - 移动到最下方，在同一行中显示 */}
       {(canRemove || canChangeRole) && (
         <div className="member-actions-row">
-          {canRemove && (
-            <button
-              className="action-button danger"
-              onClick={onRemove}
-              aria-label="移除成员"
-            >
-              <i className="fas fa-user-times"></i>
-              <span className="action-text">移除成员</span>
-            </button>
-          )}
           {canChangeRole && (
             <button
               className="action-button"
@@ -78,33 +94,18 @@ export function MemberItem({
               <span className="action-text">管理角色</span>
             </button>
           )}
+          {canRemove && (
+            <button
+              className="action-button danger"
+              onClick={onRemove}
+              aria-label="移除成员"
+            >
+              <i className="fas fa-user-times"></i>
+              <span className="action-text">移除成员</span>
+            </button>
+          )}
         </div>
       )}
-
-      <div className="member-details">
-        <div className="detail-column">
-          <div className="detail-item">
-            <div className="detail-label">加入时间</div>
-            <div className="detail-value">{formatDate(member.joinedAt)}</div>
-          </div>
-          <div className="detail-item">
-            <div className="detail-label">交易次数</div>
-            <div className="detail-value">{member.statistics.transactionCount}次</div>
-          </div>
-        </div>
-        <div className="stats-column">
-          <div className="stats-item">
-            <div className="stats-value expense-value">
-              {formatCurrency(member.statistics.totalExpense)}
-            </div>
-            <div className="stats-label">总消费</div>
-          </div>
-          <div className="stats-item">
-            <div className="stats-value">{member.statistics.percentage}%</div>
-            <div className="stats-label">消费占比</div>
-          </div>
-        </div>
-      </div>
     </>
   );
 }

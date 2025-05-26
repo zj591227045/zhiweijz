@@ -96,9 +96,8 @@ export function validateUpdateFamilyMemberInput(data: any) {
  */
 export function validateCreateInvitationInput(data: any) {
   const schema = Joi.object<CreateInvitationDto>({
-    expiresInDays: Joi.number().integer().min(1).max(30).messages({
+    expiresInDays: Joi.number().min(0.1).max(30).messages({
       'number.base': '过期天数必须是数字',
-      'number.integer': '过期天数必须是整数',
       'number.min': '过期天数至少为 {#limit} 天',
       'number.max': '过期天数最多为 {#limit} 天'
     })

@@ -21,6 +21,9 @@ export function MemberList({
 }: MemberListProps) {
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
 
+  // 添加调试信息
+  // console.log('MemberList 接收到的数据:', { members, userPermissions });
+
   // 切换成员角色选择器的展开状态
   const toggleRoleSelector = (memberId: string) => {
     setExpandedMemberId(expandedMemberId === memberId ? null : memberId);
@@ -32,27 +35,43 @@ export function MemberList({
     setExpandedMemberId(null); // 关闭角色选择器
   };
 
+  // 添加安全检查
+  if (!Array.isArray(members)) {
+    console.error('members 不是数组:', members);
+    return <div className="members-list">数据格式错误</div>;
+  }
+
   return (
     <div className="members-list">
-      {members.map((member) => (
-        <div key={member.memberId} className="member-card">
-          <MemberItem 
-            member={member}
-            canRemove={userPermissions.canRemove && !member.isCurrentUser}
-            canChangeRole={userPermissions.canChangeRoles && !member.isCurrentUser}
-            onToggleRoleSelector={() => toggleRoleSelector(member.memberId)}
-            onRemove={() => onRemoveMember(member.memberId, member.username)}
-          />
-          
-          {/* 角色选择器 - 仅在展开状态且有权限时显示 */}
-          {expandedMemberId === member.memberId && userPermissions.canChangeRoles && !member.isCurrentUser && (
-            <RoleSelector 
-              currentRole={member.role}
-              onRoleChange={(role) => handleRoleChange(member.memberId, member.username, role)}
+      {members.map((member, index) => {
+        // console.log(`渲染成员 ${index}:`, member);
+        
+        // 确保member对象存在且有必要的属性
+        if (!member || !member.memberId) {
+          console.error(`成员 ${index} 数据无效:`, member);
+          return null;
+        }
+
+        return (
+          <div key={member.memberId} className="member-card">
+            <MemberItem 
+              member={member}
+              canRemove={userPermissions.canRemove && !member.isCurrentUser}
+              canChangeRole={userPermissions.canChangeRoles && !member.isCurrentUser}
+              onToggleRoleSelector={() => toggleRoleSelector(member.memberId)}
+              onRemove={() => onRemoveMember(member.memberId, member.username || '未知用户')}
             />
-          )}
-        </div>
-      ))}
+            
+            {/* 角色选择器 - 仅在展开状态且有权限时显示 */}
+            {expandedMemberId === member.memberId && userPermissions.canChangeRoles && !member.isCurrentUser && (
+              <RoleSelector 
+                currentRole={member.role}
+                onRoleChange={(role) => handleRoleChange(member.memberId, member.username || '未知用户', role)}
+              />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

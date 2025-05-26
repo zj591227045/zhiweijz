@@ -45,15 +45,15 @@ export function BudgetSelector() {
   // 筛选支出类型的预算并格式化数据
   const formattedBudgets: Budget[] = budgets.map(budget => ({
     id: budget.id,
-    name: budget.name || budget.category?.name || '未知分类',
+    name: (budget as any).name || budget.category?.name || '未知分类',
     amount: budget.amount,
-    spent: budget.spent || 0,
-    rolloverAmount: budget.rolloverAmount || 0,
-    budgetType: budget.budgetType || 'PERSONAL',
-    familyMemberName: budget.familyMemberName,
-    familyMemberId: budget.familyMemberId,
-    userId: budget.userId,
-    userName: budget.userName
+    spent: (budget as any).spent || 0,
+    rolloverAmount: (budget as any).rolloverAmount || 0,
+    budgetType: (budget as any).budgetType || 'PERSONAL',
+    familyMemberName: (budget as any).familyMemberName,
+    familyMemberId: (budget as any).familyMemberId,
+    userId: (budget as any).userId,
+    userName: (budget as any).userName
   }));
 
   // 自动选择默认预算的逻辑

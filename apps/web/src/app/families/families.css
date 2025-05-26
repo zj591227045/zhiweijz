@@ -50,22 +50,2056 @@
   border-radius: 50%;
 }
 
+/* 家庭详情页面样式 */
+
+/* 家庭头部信息 */
+.family-header {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.family-info {
+  text-align: center;
+}
+
+.family-name {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.family-description {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.family-meta {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.family-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.family-stat i {
+  color: var(--primary);
+}
+
+.edit-button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto;
+  transition: background-color 0.2s;
+}
+
+.edit-button:hover {
+  background-color: var(--primary-dark);
+}
+
+/* 家庭编辑表单 */
+.family-edit-form {
+  max-width: 100%;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: var(--background-primary);
+  color: var(--text-primary);
+  transition: border-color 0.2s;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn-primary,
+.btn-secondary {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--primary-dark);
+}
+
+.btn-primary:disabled {
+  background-color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: var(--background-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--background-tertiary);
+}
+
+.btn-danger {
+  background-color: var(--error-color);
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: var(--error-dark);
+}
+
+/* 通用区域样式 */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 16px 12px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 16px 16px;
+  padding: 0;
+}
+
+.section-title i {
+  color: var(--primary);
+}
+
+.view-all-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.view-all-link:hover {
+  color: var(--primary-dark);
+}
+
+/* 成员列表区域 */
+.member-section {
+  margin-bottom: 24px;
+}
+
+.members-preview {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  margin: 0 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.member-item:last-child {
+  border-bottom: none;
+}
+
+.member-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.member-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.member-details {
+  flex: 1;
+}
+
+.member-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.member-role {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.role-admin {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--primary);
+}
+
+.role-member {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: var(--text-secondary);
+}
+
+.member-joined {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+
+
 .icon-button:hover {
   background-color: rgba(0, 0, 0, 0.05);
 }
 
-/* 主要内容区域 */
-.main-content {
+/* 托管成员区域 */
+.custodial-section {
+  margin-bottom: 24px;
+}
+
+.custodial-list {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  margin: 0 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.custodial-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.custodial-item:last-child {
+  border-bottom: none;
+}
+
+.custodial-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--success-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.custodial-details {
   flex: 1;
-  overflow-y: visible;
+}
+
+.custodial-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.custodial-info {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.custodial-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.action-button.edit:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--primary);
+}
+
+.action-button.delete:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--error-color);
+}
+
+.add-button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background-color 0.2s;
+}
+
+.add-button:hover {
+  background-color: var(--primary-dark);
+}
+
+/* 统计区域 */
+.statistics-section,
+.transactions-section {
+  margin-bottom: 24px;
+}
+
+.period-selector {
+  display: flex;
+  background-color: var(--background-secondary);
+  border-radius: 8px;
+  padding: 4px;
+  margin: 0 16px 16px;
+}
+
+.period-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.period-tab.active {
+  background-color: var(--primary);
+  color: white;
+}
+
+.stats-overview {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  margin: 0 16px 16px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.stats-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-value.positive {
+  color: var(--success-color);
+}
+
+.stat-value.negative {
+  color: var(--error-color);
+}
+
+.member-ranking,
+.category-ranking {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  margin: 0 16px 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.ranking-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 16px 16px 0;
+  margin: 0;
+}
+
+.ranking-list {
+  padding: 16px;
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ranking-item:last-child {
+  border-bottom: none;
+}
+
+.rank-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--background-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.rank-number.top-1 {
+  background-color: #FFD700;
+  color: white;
+}
+
+.rank-number.top-2 {
+  background-color: #C0C0C0;
+  color: white;
+}
+
+.rank-number.top-3 {
+  background-color: #CD7F32;
+  color: white;
+}
+
+.member-info,
+.category-info {
+  flex: 1;
+  margin-right: 12px;
+}
+
+.ranking-name,
+.category-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.member-percentage,
+.category-percentage {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.member-amount,
+.category-amount {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* 交易列表区域 */
+.transactions-list {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  margin: 0 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.transaction-item:last-child {
+  border-bottom: none;
+}
+
+.transaction-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--background-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.transaction-details {
+  flex: 1;
+}
+
+.transaction-category {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.transaction-description {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.transaction-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-disabled);
+}
+
+.transaction-amount {
+  font-size: 16px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.transaction-amount.income {
+  color: var(--success-color);
+}
+
+.transaction-amount.expense {
+  color: var(--error-color);
+}
+
+/* 管理区域 */
+.management-section {
+  margin-bottom: 24px;
+}
+
+.management-options {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  margin: 0 16px 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.management-option {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  text-decoration: none;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s;
+}
+
+.management-option:last-child {
+  border-bottom: none;
+}
+
+.management-option:hover {
+  background-color: var(--background-secondary);
+}
+
+.option-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--background-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.option-content {
+  flex: 1;
+}
+
+.option-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.option-description {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.option-arrow {
+  color: var(--text-disabled);
+}
+
+.danger-zone {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  margin: 0 16px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.danger-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--error-color);
+  margin-bottom: 12px;
+}
+
+.danger-actions {
+  text-align: center;
+}
+
+.danger-button {
+  background-color: var(--error-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 auto 12px;
+  transition: background-color 0.2s;
+}
+
+.danger-button:hover {
+  background-color: var(--error-dark);
+}
+
+.warning-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* 成员管理页面样式 */
+
+/* 成员列表 */
+.members-list {
+  margin-bottom: 20px;
+}
+
+/* 成员管理页面的成员卡片 */
+.members-list .member-card {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  margin: 0 16px 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* 成员信息区域 - 横向布局 */
+.member-info-section {
   padding: 16px;
   display: flex;
+  flex-direction: row;
+  align-items: center;
+  text-align: left;
+  border-bottom: none;
+  gap: 12px;
+  width: 100%;
+}
+
+.member-avatar-container {
+  margin-right: 16px;
+  flex-shrink: 0;
+  display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding-bottom: 72px;
-  height: auto;
-  min-height: 100%;
+  align-items: center;
+  text-align: center;
+  min-width: 80px;
+  max-width: 80px;
+}
+
+.member-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+  margin: 0 auto 8px auto;
+}
+
+.member-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.member-info-container {
+  width: 100%;
+  text-align: center;
+  min-width: 0; /* 允许收缩 */
+}
+
+.member-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.current-user-badge {
+  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 8px;
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--success-color);
+}
+
+.member-role {
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.admin-badge {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--primary);
+}
+
+.member-badge {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: var(--text-secondary);
+}
+
+.member-joined {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* 成员统计区域 */
+.member-stats-section {
+  padding: 16px;
+  background-color: var(--background-secondary);
+  border-top: 1px solid var(--border-color);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* 成员详情区域 - 与基本信息在同一行 */
+.member-details {
+  display: flex;
+  padding: 0;
+  background-color: transparent;
+  border-top: none;
+  gap: 12px;
+  margin-left: auto;
+  min-width: 180px;
+  flex-shrink: 0;
+}
+
+.detail-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.stats-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+  text-align: right;
+  min-width: 80px;
+}
+
+.stats-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-end;
+}
+
+.stats-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stats-value.expense-value {
+  color: var(--error-color);
+}
+
+.stats-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* 操作按钮行样式 */
+.members-list .member-card .member-actions-row {
+  display: flex;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--background-secondary);
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.action-button {
+  flex: 1;
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+  color: var(--text-primary);
+}
+
+.action-button:hover {
+  background-color: var(--background-tertiary);
+}
+
+.action-button.danger {
+  color: var(--error-color);
+  border-color: var(--error-color);
+}
+
+.action-button.danger:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.action-text {
+  font-size: 13px;
+}
+
+/* 角色选择器 */
+.role-selector {
+  padding: 16px;
+  background-color: var(--background-tertiary);
+  border-top: 1px solid var(--border-color);
+}
+
+.role-selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+}
+
+.close-button:hover {
+  background-color: var(--background-secondary);
+}
+
+.role-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.role-option {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.role-option:hover:not(:disabled) {
+  border-color: var(--primary);
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.role-option.active {
+  border-color: var(--primary);
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.role-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.role-option i {
+  color: var(--primary);
+  margin-right: 12px;
+  font-size: 16px;
+}
+
+.role-info {
+  flex: 1;
+}
+
+.role-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.role-description {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* 邀请区域样式 - 重新设计 */
+.invitation-section {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  margin: 0 16px 20px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
+}
+
+/* 邀请生成按钮 */
+.invitation-generate-btn {
+  width: 100%;
+  background-color: var(--primary);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+}
+
+.invitation-generate-btn:hover {
+  background-color: var(--primary-dark);
+}
+
+.invitation-generate-btn:disabled {
+  background-color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+/* 加载状态 */
+.invitation-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 4px solid var(--border-color);
+  border-top: 4px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 邀请头部 */
+.invitation-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.invitation-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  margin: 0 auto 12px;
+}
+
+.invitation-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* 邀请内容 */
+.invitation-content {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.invitation-code {
+  font-family: monospace;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
+  background-color: var(--background-secondary);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+}
+
+.invitation-expiry {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* 邀请操作按钮 */
+.invitation-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.invitation-action-btn {
+  flex: 1;
+  background-color: var(--background-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.invitation-copy-btn:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.invitation-share-btn:hover {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: var(--success-color);
+  color: var(--success-color);
+}
+
+/* 邀请生成器 */
+.invitation-generator {
+  text-align: center;
+}
+
+.generator-header {
+  margin-bottom: 20px;
+}
+
+.generator-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  margin: 0 auto 16px;
+}
+
+.generator-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.generator-description {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.generator-form {
+  text-align: left;
+}
+
+.generate-button {
+  width: 100%;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* 邀请显示 */
+.invitation-display {
+  text-align: center;
+}
+
+.invitation-header {
+  margin-bottom: 20px;
+}
+
+.invitation-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--success-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  margin: 0 auto 12px;
+}
+
+.invitation-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.invitation-info {
+  margin-bottom: 20px;
+}
+
+.invite-code-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.invite-code {
+  font-family: monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+  background-color: var(--background-secondary);
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.copy-code-button {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.copy-code-button:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.invite-expiry {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.invitation-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.action-button {
+  flex: 1;
+  background-color: var(--background-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.action-button.copy-button:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.action-button.share-button:hover {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: var(--success-color);
+  color: var(--success-color);
+}
+
+.invitation-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  text-align: left;
+  background-color: var(--background-secondary);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.invitation-tip i {
+  color: var(--primary);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.regenerate-button {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 auto;
+  transition: all 0.2s;
+}
+
+.regenerate-button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* 成员统计样式 */
+.member-statistics {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  margin: 0 16px 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.statistics-header {
+  padding: 16px 16px 0;
+}
+
+.statistics-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.total-overview {
+  text-align: center;
+  padding: 20px 16px;
+  background-color: var(--background-secondary);
+  margin: 16px;
+  border-radius: 8px;
+}
+
+.total-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.total-amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.member-ranking {
+  padding: 16px;
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ranking-item:last-child {
+  border-bottom: none;
+}
+
+.ranking-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.ranking-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-text {
+  font-size: 16px;
+}
+
+.ranking-details {
+  flex: 1;
+}
+
+.ranking-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.current-user-indicator {
+  font-size: 12px;
+  color: var(--success-color);
+  font-weight: 500;
+}
+
+.ranking-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.ranking-amount {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.empty-ranking {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+}
+
+.empty-ranking i {
+  font-size: 48px;
+  color: var(--text-disabled);
+  margin-bottom: 16px;
+}
+
+.empty-ranking p {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.statistics-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background-color: var(--background-secondary);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.statistics-note i {
+  color: var(--primary);
+}
+
+/* 邀请历史样式 */
+.invitation-history {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  margin: 0 16px 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.refresh-button {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.refresh-button:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.refresh-button:disabled {
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+.invitation-list {
   max-height: none;
+  overflow: visible;
+}
+
+.invitation-item {
+  border-bottom: 1px solid var(--border-color);
+  overflow: visible;
+}
+
+.invitation-item:last-child {
+  border-bottom: none;
+}
+
+.invitation-item.used {
+  opacity: 0.8;
+}
+
+.invitation-item.expired {
+  opacity: 0.6;
+}
+
+.invitation-summary {
+  padding: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.invitation-summary:hover {
+  background-color: var(--background-secondary);
+}
+
+.invitation-code {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.code-text {
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.copy-button {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.copy-button:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.invitation-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.invitation-date {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.invitation-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--success-color);
+}
+
+.status-badge.used {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: var(--text-secondary);
+}
+
+.status-badge.expired {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--error-color);
+}
+
+.toggle-icon {
+  color: var(--text-secondary);
+}
+
+.invitation-details {
+  padding: 16px;
+  background-color: var(--background-secondary);
+  border-top: 1px solid var(--border-color);
+}
+
+.used-info,
+.expired-info,
+.active-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.used-at,
+.expired-at,
+.expires-at,
+.used-by {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.used-at i,
+.expired-at i,
+.expires-at i,
+.used-by i {
+  color: var(--primary);
+  width: 16px;
+}
+
+.invite-link {
+  margin-top: 12px;
+}
+
+.link-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.link-value {
+  font-size: 11px;
+  color: var(--text-primary);
+  background-color: var(--background-primary);
+  padding: 8px;
+  border-radius: 4px;
+  word-break: break-all;
+  margin-bottom: 8px;
+}
+
+.copy-link-button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background-color 0.2s;
+}
+
+.copy-link-button:hover {
+  background-color: var(--primary-dark);
+}
+
+/* 对话框样式 */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.dialog-content {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 20px 0;
+  margin-bottom: 16px;
+}
+
+.dialog-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.dialog-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.dialog-close:hover {
+  background-color: var(--background-secondary);
+}
+
+.dialog-body {
+  padding: 0 20px;
+  margin-bottom: 20px;
+}
+
+.dialog-footer {
+  display: flex;
+  gap: 12px;
+  padding: 0 20px 20px;
+}
+
+.dialog-footer button {
+  flex: 1;
+}
+
+/* 邀请对话框特殊样式 */
+.invitation-dialog {
+  max-width: 480px;
+}
+
+.invitation-success {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.invitation-success i {
+  font-size: 48px;
+  color: var(--success-color);
+  margin-bottom: 12px;
+}
+
+.invitation-success h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.info-item {
+  margin-bottom: 16px;
+}
+
+.info-item label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.code-display,
+.link-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.invite-code,
+.invite-link {
+  flex: 1;
+  font-family: monospace;
+  font-size: 14px;
+  background-color: var(--background-secondary);
+  padding: 8px 12px;
+  border-radius: 6px;
+  word-break: break-all;
+}
+
+.invite-code {
+  font-weight: 700;
+  color: var(--primary);
+  text-align: center;
+}
+
+.invite-link {
+  font-size: 11px;
+  color: var(--text-primary);
+}
+
+.expiry-time {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+/* 通用状态样式 */
+.loading-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.loading-state {
+  gap: 12px;
+}
+
+.empty-state {
+  gap: 16px;
+}
+
+.empty-state i {
+  font-size: 48px;
+  color: var(--text-disabled);
+}
+
+.empty-state p {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+  .stats-summary {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .family-meta {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .invitation-actions {
+    flex-direction: column;
+  }
+
+  .members-list .member-card .member-actions-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .member-avatar-container {
+    min-width: 70px;
+    max-width: 70px;
+    margin-right: 12px;
+  }
+
+  .member-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .member-name {
+    font-size: 12px;
+  }
+
+  .member-role {
+    font-size: 10px;
+  }
+}
+
+/* 成员操作按钮行 - 强制样式 */
+.members-list .member-card .member-actions-row {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--background-secondary);
+  border-top: 1px solid var(--border-color);
+  margin: 0;
+  width: 100% !important;
+  box-sizing: border-box;
+  position: relative;
+  order: 999; /* 确保在最后显示 */
+}
+
+.members-list .member-card .member-actions-row .action-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 44px; /* 移动端友好的触摸目标 */
+}
+
+.members-list .member-card .member-actions-row .action-button.primary {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.members-list .member-card .member-actions-row .action-button.primary:hover {
+  background-color: #d97706;
+}
+
+.members-list .member-card .member-actions-row .action-button.danger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.members-list .member-card .member-actions-row .action-button.danger:hover {
+  background-color: #dc2626;
+}
+
+.members-list .member-card .member-actions-row .action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.members-list .member-card .member-actions-row .action-button i {
+  font-size: 16px;
+}
+
+.members-list .member-card .member-actions-row .action-text {
+  font-size: 14px;
+  font-weight: 500;
 }
 
 /* 家庭头部卡片 */
@@ -141,8 +2175,8 @@
   cursor: pointer;
 }
 
-/* 家庭卡片 */
-.member-card {
+/* 家庭卡片 - 只应用于家庭列表页面 */
+.family-list .member-card {
   display: flex;
   align-items: center;
   padding: 16px;
@@ -154,7 +2188,7 @@
   transition: transform 0.2s ease;
 }
 
-.member-card:hover {
+.family-list .member-card:hover {
   transform: translateY(-2px);
 }
 
@@ -352,3 +2386,5 @@
 .dialog-confirm.danger {
   background-color: var(--error-color);
 }
+
+

@@ -2,9 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/auth-store";
 import { PageContainer } from "@/components/layout/page-container";
+import { FamilyHeader } from "@/components/families/detail/family-header";
+import { MemberList } from "@/components/families/detail/member-list";
+import { CustodialMembers } from "@/components/families/detail/custodial-members";
+import { FamilyStatistics } from "@/components/families/detail/family-statistics";
+import { RecentTransactions } from "@/components/families/detail/recent-transactions";
+import { FamilyManagement } from "@/components/families/detail/family-management";
+import { InvitationDialog } from "@/components/families/detail/invitation-dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
+import "../families.css";
 
 interface FamilyDetailPageProps {
   params: {
@@ -19,6 +28,8 @@ interface FamilyMember {
   email: string;
   role: 'ADMIN' | 'MEMBER';
   joinedAt: string;
+  name: string;
+  createdAt: string;
 }
 
 interface Family {
@@ -28,24 +39,46 @@ interface Family {
   createdAt: string;
   members: FamilyMember[];
   memberCount: number;
+  creator?: {
+    id: string;
+  };
 }
 
 export default function FamilyDetailPage({ params }: FamilyDetailPageProps) {
   const router = useRouter();
   const { id: familyId } = params;
+  const { token, isAuthenticated } = useAuthStore();
   const [family, setFamily] = useState<Family | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // 如果未登录，重定向到登录页
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+    }
+  }, [isAuthenticated, router]);
 
   // 获取家庭详情
   useEffect(() => {
     const fetchFamilyDetail = async () => {
+      if (!token) {
+        setError('未提供认证令牌');
+        setIsLoading(false);
+        return;
+      }
+
       try {
+        setIsLoading(true);
+        setError(null);
         const response = await fetch(`/api/families/${familyId}`, {
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
           },
         });
 
@@ -53,37 +86,82 @@ export default function FamilyDetailPage({ params }: FamilyDetailPageProps) {
           const data = await response.json();
           setFamily(data);
         } else {
-          toast.error('获取家庭详情失败');
-          router.push('/families');
+          const errorData = await response.json();
+          setError(errorData.message || '获取家庭详情失败');
         }
       } catch (error) {
         console.error('获取家庭详情失败:', error);
-        toast.error('获取家庭详情失败');
-        router.push('/families');
+        setError('获取家庭详情失败');
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (familyId) {
+    if (familyId && isAuthenticated) {
       fetchFamilyDetail();
     }
-  }, [familyId, router]);
+  }, [familyId, token, isAuthenticated]);
+
+  // 更新家庭信息
+  const updateFamily = async (id: string, data: { name: string; description?: string }) => {
+    if (!token) {
+      toast.error('未提供认证令牌');
+      return false;
+    }
+
+    try {
+      const response = await fetch(`/api/families/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        const updatedFamily = await response.json();
+        setFamily(updatedFamily);
+        toast.success('家庭信息更新成功');
+        return true;
+      } else {
+        const error = await response.json();
+        toast.error(error.message || '更新家庭信息失败');
+        return false;
+      }
+    } catch (error) {
+      console.error('更新家庭信息失败:', error);
+      toast.error('更新家庭信息失败');
+      return false;
+    }
+  };
+
+  // 处理邀请成员
+  const handleInviteMember = () => {
+    setIsInviteDialogOpen(true);
+  };
 
   // 处理退出家庭
   const handleLeaveFamily = async () => {
+    if (!token) {
+      toast.error('未提供认证令牌');
+      return;
+    }
+
     setIsProcessing(true);
-    
+
     try {
       const response = await fetch(`/api/families/${familyId}/leave`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
         toast.success('已退出家庭');
+        setIsLeaveDialogOpen(false);
         router.push('/families');
       } else {
         const error = await response.json();
@@ -94,21 +172,29 @@ export default function FamilyDetailPage({ params }: FamilyDetailPageProps) {
       toast.error('退出家庭失败');
     } finally {
       setIsProcessing(false);
-      setShowLeaveDialog(false);
     }
   };
 
   // 处理解散家庭
   const handleDeleteFamily = async () => {
+    if (!token) {
+      toast.error('未提供认证令牌');
+      return;
+    }
+
     setIsProcessing(true);
-    
+
     try {
       const response = await fetch(`/api/families/${familyId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
         toast.success('家庭已解散');
+        setIsDeleteDialogOpen(false);
         router.push('/families');
       } else {
         const error = await response.json();
@@ -119,36 +205,49 @@ export default function FamilyDetailPage({ params }: FamilyDetailPageProps) {
       toast.error('解散家庭失败');
     } finally {
       setIsProcessing(false);
-      setShowDeleteDialog(false);
     }
   };
 
   // 判断当前用户是否为管理员
-  const isAdmin = family?.members.some(member => member.role === 'ADMIN') || false;
+  const isAdmin = family?.members.some(
+    member => member.userId === family.creator?.id && member.role === "ADMIN"
+  ) || false;
 
+  // 如果正在加载，显示加载状态
   if (isLoading) {
     return (
       <PageContainer
         title="家庭详情"
-        showBackButton={true}
+        showBackButton
         activeNavItem="profile"
       >
-        <div className="flex h-40 items-center justify-center">
-          <p className="text-gray-500">加载中...</p>
+        <div className="flex items-center justify-center h-full">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
         </div>
       </PageContainer>
     );
   }
 
-  if (!family) {
+  // 如果发生错误，显示错误信息
+  if (error || !family) {
     return (
       <PageContainer
         title="家庭详情"
-        showBackButton={true}
+        showBackButton
         activeNavItem="profile"
       >
-        <div className="flex h-40 items-center justify-center">
-          <p className="text-gray-500">家庭不存在</p>
+        <div className="flex flex-col items-center justify-center h-full text-center px-4">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <i className="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+          </div>
+          <h2 className="text-xl font-semibold mb-2">无法加载家庭信息</h2>
+          <p className="text-gray-500 mb-6">{error || "找不到该家庭或您没有权限访问"}</p>
+          <button
+            className="btn-primary py-2 px-4 rounded-lg"
+            onClick={() => router.push("/families")}
+          >
+            返回家庭列表
+          </button>
         </div>
       </PageContainer>
     );
@@ -157,88 +256,63 @@ export default function FamilyDetailPage({ params }: FamilyDetailPageProps) {
   return (
     <PageContainer
       title="家庭详情"
-      showBackButton={true}
+      showBackButton
       activeNavItem="profile"
     >
-      {/* 家庭信息 */}
-      <div className="family-header">
-        <div className="family-info">
-          <h2 className="family-name">{family.name}</h2>
-          {family.description && (
-            <p className="family-description">{family.description}</p>
-          )}
-          <div className="family-stats">
-            <span className="member-count">{family.memberCount} 位成员</span>
-            <span className="created-date">
-              创建于 {new Date(family.createdAt).toLocaleDateString()}
-            </span>
-          </div>
-        </div>
-      </div>
+      <FamilyHeader
+        family={family}
+        isAdmin={isAdmin}
+        onUpdate={updateFamily}
+      />
 
-      {/* 成员列表 */}
-      <div className="members-section">
-        <h3 className="section-title">家庭成员</h3>
-        <div className="members-list">
-          {family.members.map((member) => (
-            <div key={member.id} className="member-item">
-              <div className="member-info">
-                <div className="member-name">{member.username}</div>
-                <div className="member-email">{member.email}</div>
-              </div>
-              <div className="member-role">
-                {member.role === 'ADMIN' ? '管理员' : '成员'}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <MemberList
+        members={family.members}
+        isAdmin={isAdmin}
+        familyId={familyId}
+        onInvite={handleInviteMember}
+      />
 
-      {/* 管理操作 */}
-      <div className="management-section">
-        <h3 className="section-title">家庭管理</h3>
-        <div className="management-actions">
-          <button
-            className="action-button leave-button"
-            onClick={() => setShowLeaveDialog(true)}
-          >
-            <i className="fas fa-sign-out-alt"></i>
-            退出家庭
-          </button>
-          
-          {isAdmin && (
-            <button
-              className="action-button delete-button"
-              onClick={() => setShowDeleteDialog(true)}
-            >
-              <i className="fas fa-trash-alt"></i>
-              解散家庭
-            </button>
-          )}
-        </div>
-      </div>
+      <CustodialMembers
+        familyId={familyId}
+        isAdmin={isAdmin}
+      />
 
-      {/* 退出家庭确认对话框 */}
+      <FamilyStatistics familyId={familyId} />
+
+      <RecentTransactions familyId={familyId} />
+
+      <FamilyManagement
+        isAdmin={isAdmin}
+        familyId={familyId}
+        onLeave={() => setIsLeaveDialogOpen(true)}
+        onDelete={() => setIsDeleteDialogOpen(true)}
+      />
+
+      <InvitationDialog
+        isOpen={isInviteDialogOpen}
+        onClose={() => setIsInviteDialogOpen(false)}
+        familyId={familyId}
+      />
+
       <ConfirmDialog
-        isOpen={showLeaveDialog}
+        isOpen={isLeaveDialogOpen}
         title="退出家庭"
         message={`确定要退出"${family.name}"吗？此操作无法撤销。`}
         confirmText={isProcessing ? "处理中..." : "退出"}
         cancelText="取消"
         onConfirm={handleLeaveFamily}
-        onCancel={() => setShowLeaveDialog(false)}
+        onCancel={() => setIsLeaveDialogOpen(false)}
         isDangerous
       />
 
-      {/* 解散家庭确认对话框 */}
       <ConfirmDialog
-        isOpen={showDeleteDialog}
+        isOpen={isDeleteDialogOpen}
         title="解散家庭"
         message={`确定要解散"${family.name}"吗？此操作将永久删除该家庭及其所有数据，无法撤销。`}
         confirmText={isProcessing ? "处理中..." : "解散"}
         cancelText="取消"
         onConfirm={handleDeleteFamily}
-        onCancel={() => setShowDeleteDialog(false)}
+        onCancel={() => setIsDeleteDialogOpen(false)}
         isDangerous
       />
     </PageContainer>

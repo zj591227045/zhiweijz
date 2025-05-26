@@ -11,14 +11,21 @@ import { AccountBook } from "@/types";
 import "../../form/book-form.css";
 
 interface EditBookPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function EditBookPage({ params }: EditBookPageProps) {
   const router = useRouter();
-  const { id } = params;
+  const [id, setId] = useState<string>("");
+
+  // 解析异步params
+  useEffect(() => {
+    params.then((resolvedParams) => {
+      setId(resolvedParams.id);
+    });
+  }, [params]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 获取账本详情
@@ -28,6 +35,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
       const response = await apiClient.get<AccountBook>(`/account-books/${id}`);
       return response;
     },
+    enabled: !!id, // 只有当id存在时才执行查询
   });
 
   // 更新账本的mutation

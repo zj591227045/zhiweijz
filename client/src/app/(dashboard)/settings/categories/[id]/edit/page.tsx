@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageContainer } from "@/components/layout/page-container";
 import { CategoryForm } from "@/components/categories/category-form";
@@ -10,9 +10,9 @@ import "../../categories.css";
 import "../../new/category-form.css";
 
 interface EditCategoryPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function EditCategoryPage({ params }: EditCategoryPageProps) {
@@ -25,6 +25,14 @@ export default function EditCategoryPage({ params }: EditCategoryPageProps) {
     originalCategory,
     isLoading 
   } = useCategoryFormStore();
+  const [id, setId] = useState<string>("");
+
+  // 解析异步params
+  useEffect(() => {
+    params.then((resolvedParams) => {
+      setId(resolvedParams.id);
+    });
+  }, [params]);
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -35,12 +43,12 @@ export default function EditCategoryPage({ params }: EditCategoryPageProps) {
 
   // 设置表单模式和获取分类详情
   useEffect(() => {
-    if (isAuthenticated && params.id) {
+    if (isAuthenticated && id) {
       setMode("edit");
-      setCategoryId(params.id);
-      fetchCategory(params.id);
+      setCategoryId(id);
+      fetchCategory(id);
     }
-  }, [isAuthenticated, params.id, setMode, setCategoryId, fetchCategory]);
+  }, [isAuthenticated, id, setMode, setCategoryId, fetchCategory]);
 
   return (
     <PageContainer
@@ -65,7 +73,7 @@ export default function EditCategoryPage({ params }: EditCategoryPageProps) {
                 : "修改分类的名称、图标和颜色，以更好地组织您的财务数据。"}
             </p>
             
-            <CategoryForm id={params.id} />
+            <CategoryForm id={id} />
           </>
         )}
       </div>

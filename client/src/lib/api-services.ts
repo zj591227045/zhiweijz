@@ -304,3 +304,16 @@ export function getNextMonthRange(currentDate: Date = new Date()): { startDate: 
     endDate: formatDate(endDate)
   };
 }
+
+// 导出服务对象，用于dashboard-store
+export const statisticsService = {
+  getStatistics: getFinancialOverview
+};
+
+export const budgetService = {
+  getBudgetStatistics
+};
+
+export const transactionService = {
+  getRecentTransactions
+};

@@ -26,7 +26,7 @@ export function CategoryDistribution({
     setSelectedCategoryType
   } = useStatisticsStore();
 
-  const chartRef = useRef<ChartJS>(null);
+  const chartRef = useRef<any>(null);
   const [chartData, setChartData] = useState({
     labels: [] as string[],
     datasets: [{

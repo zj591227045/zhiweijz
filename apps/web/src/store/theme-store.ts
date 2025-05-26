@@ -193,7 +193,7 @@ export const useThemeStore = create<ThemeState>()(
 
       toggleTheme: () => {
         const currentTheme = get().theme;
-        const newTheme = currentTheme === "light" ? "dark" : "light";
+        const newTheme: Theme = currentTheme === "light" ? "dark" : "light";
         const newConfig = { ...get(), theme: newTheme };
         set(newConfig);
         applyThemeConfig(newConfig);

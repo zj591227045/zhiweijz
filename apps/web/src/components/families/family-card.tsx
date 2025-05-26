@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Family } from '@/types';
+import { Family, FamilyRole } from '@/types';
 import { RoleBadge } from './role-badge';
 import { ConfirmDialog } from '../ui/confirm-dialog';
 import { useFamilyStore } from '@/store/family-store';
+import { useAuthStore } from '@zhiweijz/web';
 import { formatDate } from '@/lib/utils';
 
 interface FamilyCardProps {
@@ -14,13 +15,14 @@ interface FamilyCardProps {
 
 export function FamilyCard({ family }: FamilyCardProps) {
   const { deleteFamily, leaveFamily } = useFamilyStore();
+  const { user } = useAuthStore();
   const [showActions, setShowActions] = useState(false);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
   // 判断当前用户是否为创建者
-  const isCreator = family.createdBy === family.creator?.id;
+  const isCreator = user?.id === family.createdBy;
 
   // 格式化创建日期
   const formattedDate = formatDate(family.createdAt, 'YYYY-MM-DD');
@@ -66,7 +68,7 @@ export function FamilyCard({ family }: FamilyCardProps) {
           <div className="member-info">
             <div className="member-name">{family.name}</div>
             <div className="member-role">
-              <RoleBadge role={isCreator ? 'ADMIN' : 'MEMBER'} />
+              <RoleBadge role={isCreator ? FamilyRole.ADMIN : FamilyRole.MEMBER} />
               <span className="text-xs text-gray-500 ml-2">
                 {formattedDate}
               </span>

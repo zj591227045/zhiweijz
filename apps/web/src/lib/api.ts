@@ -37,7 +37,8 @@ class ApiCache {
   }
 
   invalidate(keyPattern: RegExp): void {
-    for (const key of this.cache.keys()) {
+    const keys = Array.from(this.cache.keys());
+    for (const key of keys) {
       if (keyPattern.test(key)) {
         this.cache.delete(key);
       }

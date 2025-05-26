@@ -1,0 +1,171 @@
+.invitation-history {
+  margin-bottom: 24px;
+  max-height: none; /* 移除最大高度限制 */
+  height: auto; /* 自动适应内容高度 */
+  overflow: visible; /* 确保内容不会被截断 */
+}
+
+.invitation-history .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.invitation-history .section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.invitation-history .refresh-button {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.invitation-history .refresh-button:hover {
+  background-color: var(--primary-light);
+}
+
+.invitation-history .refresh-button:disabled {
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+.invitation-history .empty-state {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-secondary);
+  background-color: var(--background-secondary);
+  border-radius: 8px;
+}
+
+.invitation-history .invitation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: none; /* 移除最大高度限制 */
+  overflow: visible; /* 确保内容不会被截断 */
+  padding-bottom: 16px; /* 添加底部间距 */
+}
+
+.invitation-history .invitation-item {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: visible; /* 修改为visible，确保内容不会被截断 */
+  margin-bottom: 12px; /* 添加底部间距，确保多个项目之间有足够空间 */
+  height: auto; /* 自动适应内容高度 */
+}
+
+.invitation-history .invitation-item.used {
+  opacity: 0.8;
+}
+
+.invitation-history .invitation-summary {
+  padding: 12px;
+  background-color: var(--background-primary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.invitation-history .invitation-code {
+  display: flex;
+  align-items: center;
+  font-family: monospace;
+  font-weight: bold;
+}
+
+.invitation-history .copy-button {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.invitation-history .invitation-status {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.invitation-history .status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.invitation-history .status-badge.active {
+  background-color: var(--success-light);
+  color: var(--success);
+}
+
+.invitation-history .status-badge.used {
+  background-color: var(--background-secondary);
+  color: var(--text-secondary);
+}
+
+.invitation-history .invitation-date {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.invitation-history .toggle-icon {
+  text-align: right;
+  color: var(--text-secondary);
+}
+
+.invitation-history .invitation-details {
+  padding: 12px;
+  background-color: var(--background-secondary);
+  border-top: 1px solid var(--border-color);
+  height: auto; /* 自动适应内容高度 */
+  overflow: visible; /* 确保内容不会被截断 */
+  max-height: none; /* 移除最大高度限制 */
+}
+
+.invitation-history .used-info {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.invitation-history .invite-link {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.invitation-history .link-label {
+  font-weight: 500;
+}
+
+.invitation-history .link-value {
+  word-break: break-all;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.invitation-history .copy-link-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}

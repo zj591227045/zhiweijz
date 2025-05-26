@@ -25,9 +25,9 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface EditAIServicePageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function EditAIServicePage({ params }: EditAIServicePageProps) {
