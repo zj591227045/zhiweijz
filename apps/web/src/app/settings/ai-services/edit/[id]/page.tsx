@@ -28,9 +28,10 @@ export default function EditAIServicePage({ params }: EditAIServicePageProps) {
   useEffect(() => {
     const fetchService = async () => {
       try {
-        const response = await fetch(`/api/ai-services/${id}`, {
+        const response = await fetch(`/api/ai/llm-settings/${id}`, {
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('auth-token')}`,
           },
         });
 
@@ -60,10 +61,11 @@ export default function EditAIServicePage({ params }: EditAIServicePageProps) {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch(`/api/ai-services/${id}`, {
+      const response = await fetch(`/api/ai/llm-settings/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth-token')}`,
         },
         body: JSON.stringify(data),
       });

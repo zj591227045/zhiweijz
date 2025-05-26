@@ -202,6 +202,7 @@ export default function AIServicesPage() {
                   <span className={styles.serviceProvider}>
                     {service.provider === "openai" ? "OpenAI" :
                      service.provider === "siliconflow" ? "硅基流动" :
+                     service.provider === "deepseek" ? "Deepseek" :
                      service.provider}
                   </span>
                   <span className={styles.serviceModel}>{service.model}</span>

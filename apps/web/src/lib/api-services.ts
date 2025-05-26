@@ -222,3 +222,30 @@ export const dashboardService = {
     return apiClient.get(`/dashboard?accountBookId=${accountBookId}`);
   },
 };
+
+// 导出相关API
+export const exportService = {
+  // 导出交易记录
+  exportTransactions: (accountBookId: string, format: 'csv' | 'json' = 'csv') => {
+    return apiClient.get(`/transactions/export`, {
+      params: {
+        accountBookId,
+        format,
+      },
+      responseType: 'blob',
+    });
+  },
+};
+
+// 反馈相关API
+export const feedbackService = {
+  // 提交反馈
+  submitFeedback: (data: {
+    type: 'bug' | 'feature' | 'other';
+    title: string;
+    content: string;
+    contact?: string;
+  }) => {
+    return apiClient.post('/feedback', data);
+  },
+};

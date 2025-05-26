@@ -191,7 +191,12 @@ export default function AIServicesPage() {
               <div className="service-info">
                 <div className="service-name">{service.name}</div>
                 <div className="service-details">
-                  <span className="service-provider">{service.provider}</span>
+                  <span className="service-provider">
+                    {service.provider === "openai" ? "OpenAI" :
+                     service.provider === "siliconflow" ? "硅基流动" :
+                     service.provider === "deepseek" ? "Deepseek" :
+                     service.provider}
+                  </span>
                   <span className="service-model">{service.model}</span>
                 </div>
                 {service.description && (

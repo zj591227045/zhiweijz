@@ -1,6 +1,7 @@
 import { LLMProvider } from './llm-provider';
 import { OpenAIProvider } from './openai-provider';
 import { SiliconFlowProvider } from './siliconflow-provider';
+import { DeepseekProvider } from './deepseek-provider';
 import { LLMSettings, Message } from '../types/llm-types';
 import { PrismaClient } from '@prisma/client';
 
@@ -34,6 +35,9 @@ export class LLMProviderService {
 
     // 注册硅基流动提供商
     this.registerProvider(new SiliconFlowProvider());
+
+    // 注册Deepseek提供商
+    this.registerProvider(new DeepseekProvider());
   }
 
   /**

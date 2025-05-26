@@ -48,6 +48,13 @@ router.get('/llm-settings/list', authenticate, aiController.getUserLLMSettingsLi
 router.post('/llm-settings', authenticate, aiController.createUserLLMSettings.bind(aiController));
 
 /**
+ * @route GET /api/ai/llm-settings/:id
+ * @desc 获取用户LLM设置详情
+ * @access Private
+ */
+router.get('/llm-settings/:id', authenticate, aiController.getUserLLMSettingsById.bind(aiController));
+
+/**
  * @route GET /ai/account/:accountId/llm-settings
  * @desc 获取账本LLM设置
  * @access Private

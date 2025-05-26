@@ -72,10 +72,11 @@ export function AIServiceForm({
     setTestResult(null);
 
     try {
-      const response = await fetch('/api/ai-services/test', {
+      const response = await fetch('/api/ai/llm-settings/test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth-token')}`,
         },
         body: JSON.stringify({
           provider: formData.provider,
@@ -120,6 +121,10 @@ export function AIServiceForm({
           { value: "Qwen/Qwen2-72B-Instruct", label: "Qwen2-72B-Instruct" },
           { value: "deepseek-ai/DeepSeek-V2.5", label: "DeepSeek-V2.5" },
         ];
+      case "deepseek":
+        return [
+          { value: "deepseek-chat", label: "Deepseek Chat" },
+        ];
       default:
         return [];
     }
@@ -128,6 +133,7 @@ export function AIServiceForm({
   const providers = [
     { value: "openai", label: "OpenAI" },
     { value: "siliconflow", label: "硅基流动" },
+    { value: "deepseek", label: "Deepseek" },
   ];
 
   return (
@@ -200,18 +206,24 @@ export function AIServiceForm({
         {errors.apiKey && <div className="text-red-500 text-xs mt-1">{errors.apiKey.message}</div>}
       </div>
 
-      {selectedProvider === "openai" && (
+      {(selectedProvider === "openai" || selectedProvider === "deepseek") && (
         <div className="form-group">
           <label htmlFor="baseUrl" className="form-label">API基础URL（可选）</label>
           <input
             id="baseUrl"
             type="text"
             {...register("baseUrl")}
-            placeholder="例如：https://api.openai.com/v1"
+            placeholder={
+              selectedProvider === "deepseek" 
+                ? "默认：https://api.deepseek.com" 
+                : "例如：https://api.openai.com/v1"
+            }
             className="form-input"
           />
           <div className="form-hint">
-            如果使用兼容OpenAI API的第三方服务，请填写API基础URL
+            {selectedProvider === "deepseek" 
+              ? "Deepseek API基础URL，留空使用默认地址" 
+              : "如果使用兼容OpenAI API的第三方服务，请填写API基础URL"}
           </div>
         </div>
       )}

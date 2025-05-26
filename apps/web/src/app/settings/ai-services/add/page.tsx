@@ -15,10 +15,11 @@ export default function AddAIServicePage() {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('/api/ai-services', {
+      const response = await fetch('/api/ai/llm-settings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth-token')}`,
         },
         body: JSON.stringify(data),
       });

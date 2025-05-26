@@ -2,25 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { toast } from "sonner";
 import { aiService, LLMSetting, AccountBook } from "@/lib/api/ai-service";
 import "./ai-service-form.css";
 
-// 表单验证模式 - 取消所有验证
-const formSchema = z.object({
-  name: z.string().optional().default(""),
-  provider: z.string().optional().default(""),
-  model: z.string().optional().default(""),
-  apiKey: z.string().optional().default(""),
-  baseUrl: z.string().optional().default(""),
-  temperature: z.number().optional().default(0.7),
-  maxTokens: z.number().optional().default(1000),
-  description: z.string().optional().default(""),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = {
+  name: string;
+  provider: string;
+  model: string;
+  apiKey: string;
+  baseUrl: string;
+  temperature: number;
+  maxTokens: number;
+  description: string;
+};
 
 interface AIServiceFormProps {
   initialData?: LLMSetting;
@@ -47,7 +42,6 @@ export function AIServiceForm({ initialData, onSubmit, onCancel }: AIServiceForm
     setValue,
     watch,
   } = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
     defaultValues: initialData
       ? {
           ...initialData,
@@ -94,7 +88,7 @@ export function AIServiceForm({ initialData, onSubmit, onCancel }: AIServiceForm
       } catch (error) {
         console.error("获取数据失败:", error);
         // 设置默认提供商
-        setProviders(["openai", "siliconflow"]);
+        setProviders(["openai", "siliconflow", "deepseek"]);
       }
     };
 
@@ -244,6 +238,10 @@ export function AIServiceForm({ initialData, onSubmit, onCancel }: AIServiceForm
           { value: "Qwen/Qwen3-14B", label: "Qwen3-14B" },
           { value: "Qwen/Qwen3-30B-A3B", label: "Qwen3-30B-A3B" },
         ];
+      case "deepseek":
+        return [
+          { value: "deepseek-chat", label: "Deepseek Chat" },
+        ];
       default:
         return [];
     }
@@ -279,14 +277,15 @@ export function AIServiceForm({ initialData, onSubmit, onCancel }: AIServiceForm
               setValue("model", "");
             }
             // 对于OpenAI兼容API，显示baseUrl字段
-            setShowBaseUrl(e.target.value.toLowerCase() === "openai");
+            setShowBaseUrl(e.target.value.toLowerCase() === "openai" || e.target.value.toLowerCase() === "deepseek");
           }}
         >
           <option value="">请选择服务提供商</option>
           {providers.map((provider) => (
             <option key={provider} value={provider}>
               {provider === "openai" ? "OpenAI" :
-               provider === "siliconflow" ? "硅基流动" : provider}
+               provider === "siliconflow" ? "硅基流动" :
+               provider === "deepseek" ? "Deepseek" : provider}
             </option>
           ))}
         </select>
@@ -335,18 +334,24 @@ export function AIServiceForm({ initialData, onSubmit, onCancel }: AIServiceForm
         )}
       </div>
 
-      {/* OpenAI提供商显示baseUrl */}
-      {selectedProvider === "openai" && (
+      {/* OpenAI兼容提供商显示baseUrl */}
+      {(selectedProvider === "openai" || selectedProvider === "deepseek") && (
         <div className="form-group">
           <label htmlFor="baseUrl">API基础URL（可选）</label>
           <input
             id="baseUrl"
             type="text"
             {...register("baseUrl")}
-            placeholder="例如：https://api.openai.com/v1"
+            placeholder={
+              selectedProvider === "deepseek" 
+                ? "默认：https://api.deepseek.com" 
+                : "例如：https://api.openai.com/v1"
+            }
           />
           <div className="field-description">
-            如果使用兼容OpenAI API的第三方服务，请填写API基础URL
+            {selectedProvider === "deepseek" 
+              ? "Deepseek API基础URL，留空使用默认地址" 
+              : "如果使用兼容OpenAI API的第三方服务，请填写API基础URL"}
           </div>
         </div>
       )}

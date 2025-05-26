@@ -500,16 +500,16 @@ export const aiService = {
       try {
         const response = await apiClient.get<string[]>('/ai/providers');
         console.log('可用LLM提供商响应数据:', response);
-        return Array.isArray(response) ? response : ['openai', 'siliconflow'];
+        return Array.isArray(response) ? response : ['openai', 'siliconflow', 'deepseek'];
       } catch (apiError) {
         console.warn('获取可用LLM提供商API可能未实现，返回默认列表:', apiError);
         // 返回默认提供商列表
-        return ['openai', 'siliconflow'];
+        return ['openai', 'siliconflow', 'deepseek'];
       }
     } catch (error) {
       console.error('获取可用LLM提供商失败:', error);
       // 返回默认提供商列表
-      return ['openai', 'siliconflow'];
+      return ['openai', 'siliconflow', 'deepseek'];
     }
   },
 

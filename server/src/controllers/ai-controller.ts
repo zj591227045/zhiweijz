@@ -402,6 +402,66 @@ export class AIController {
   }
 
   /**
+   * 获取用户LLM设置详情
+   * @param req 请求
+   * @param res 响应
+   */
+  public async getUserLLMSettingsById(req: Request, res: Response) {
+    try {
+      const userId = req.user?.id;
+      const { id } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ error: '未授权' });
+      }
+
+      if (!id) {
+        return res.status(400).json({ error: 'LLM设置ID不能为空' });
+      }
+
+      console.log(`正在查询用户 ${userId} 的LLM设置 ${id}`);
+
+      try {
+        // 查询指定的LLM设置
+        const settings = await this.prisma.$queryRaw`
+          SELECT id, name, provider, model, temperature, max_tokens, created_at, updated_at, description, base_url
+          FROM "user_llm_settings"
+          WHERE "id" = ${id} AND "user_id" = ${userId}
+        `;
+
+        if (!settings || (Array.isArray(settings) && settings.length === 0)) {
+          return res.status(404).json({ error: 'LLM设置不存在' });
+        }
+
+        const setting = Array.isArray(settings) ? settings[0] : settings;
+
+        // 转换字段名称为驼峰命名
+        const formattedSetting = {
+          id: setting.id,
+          name: setting.name,
+          provider: setting.provider,
+          model: setting.model,
+          temperature: setting.temperature,
+          maxTokens: setting.max_tokens,
+          createdAt: setting.created_at,
+          updatedAt: setting.updated_at,
+          description: setting.description,
+          baseUrl: setting.base_url
+        };
+
+        console.log('返回LLM设置详情:', formattedSetting);
+        res.json(formattedSetting);
+      } catch (queryError) {
+        console.error('数据库查询错误:', queryError);
+        res.status(500).json({ error: '查询LLM设置失败' });
+      }
+    } catch (error) {
+      console.error('获取用户LLM设置详情错误:', error);
+      res.status(500).json({ error: '处理请求时出错' });
+    }
+  }
+
+  /**
    * 更新用户LLM设置（通过ID）
    * @param req 请求
    * @param res 响应
