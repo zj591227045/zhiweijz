@@ -91,6 +91,16 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
 
       // 处理预算数据，添加警告和超支标志
       const processedPersonalBudgets = personalBudgetsData.map((budget: any) => {
+        // 调试：打印原始预算数据
+        console.log('原始预算数据:', {
+          name: budget.name,
+          amount: budget.amount,
+          spent: budget.spent,
+          percentage: budget.percentage,
+          progress: budget.progress,
+          remaining: budget.remaining
+        });
+
         // 获取当前账本类型
         const accountBookType = budget.accountBookType || 'PERSONAL';
 
@@ -108,22 +118,53 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
           familyMemberName = userName;
         }
 
-        return {
+        // 确保percentage字段存在，如果不存在则从progress字段获取或计算
+        const percentage = budget.percentage !== undefined
+          ? budget.percentage
+          : budget.progress !== undefined
+            ? budget.progress
+            : budget.amount > 0
+              ? (budget.spent / budget.amount) * 100
+              : 0;
+
+        const processedBudget = {
           ...budget,
-          warning: budget.percentage >= 80 && budget.percentage < 100,
-          overSpent: budget.percentage >= 100,
+          percentage, // 确保percentage字段存在
+          warning: percentage >= 80 && percentage < 100,
+          overSpent: percentage >= 100,
           accountBookType,
           userName,
           familyMemberName
         };
+
+        console.log('处理后的预算数据:', {
+          name: processedBudget.name,
+          percentage: processedBudget.percentage,
+          warning: processedBudget.warning,
+          overSpent: processedBudget.overSpent
+        });
+
+        return processedBudget;
       });
 
-      const processedGeneralBudgets = generalBudgetsData.map((budget: any) => ({
-        ...budget,
-        warning: budget.percentage >= 80 && budget.percentage < 100,
-        overSpent: budget.percentage >= 100,
-        accountBookType: budget.accountBookType || 'PERSONAL'
-      }));
+      const processedGeneralBudgets = generalBudgetsData.map((budget: any) => {
+        // 确保percentage字段存在，如果不存在则从progress字段获取或计算
+        const percentage = budget.percentage !== undefined
+          ? budget.percentage
+          : budget.progress !== undefined
+            ? budget.progress
+            : budget.amount > 0
+              ? (budget.spent / budget.amount) * 100
+              : 0;
+
+        return {
+          ...budget,
+          percentage, // 确保percentage字段存在
+          warning: percentage >= 80 && percentage < 100,
+          overSpent: percentage >= 100,
+          accountBookType: budget.accountBookType || 'PERSONAL'
+        };
+      });
 
       set({
         personalBudgets: processedPersonalBudgets,

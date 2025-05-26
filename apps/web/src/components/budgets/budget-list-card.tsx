@@ -104,37 +104,39 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
         {formatCurrency(budget.amount)}
       </div>
 
-      <div className="budget-list-progress-section">
-        <div 
-          className="budget-list-progress-bar-custom"
-          style={{
-            height: '8px',
-            backgroundColor: '#e5e7eb', // 明显的灰色背景
-            border: `1px solid ${budget.overSpent ? '#ef4444' : '#d1d5db'}`,
-            borderRadius: '4px',
-            overflow: 'hidden',
-            width: '100%',
-            position: 'relative',
-            marginBottom: '8px'
-          }}
-        >
+      <div className="budget-progress-section">
+        <div className="budget-progress-container">
           <div
-            className="budget-list-progress-fill-override"
+            className="budget-progress-track"
+            data-testid="progress-track"
             style={{
-              height: '100%',
-              width: `${Math.min(budget.percentage, 100)}%`,
-              backgroundColor: budget.overSpent
-                ? '#ef4444'
-                : budget.warning && !budget.overSpent
-                ? '#f59e0b'
-                : '#3b82f6',
-              borderRadius: '3px',
-              transition: 'width 0.3s ease',
-              position: 'absolute',
-              top: 0,
-              left: 0
+              height: '8px',
+              backgroundColor: '#e5e7eb',
+              borderRadius: '4px',
+              overflow: 'hidden',
+              width: '100%',
+              position: 'relative',
+              border: '1px solid #d1d5db'
             }}
-          ></div>
+          >
+            <div
+              className="budget-progress-fill"
+              data-testid="progress-fill"
+              style={{
+                height: '100%',
+                width: `${Math.min(budget.percentage, 100)}%`,
+                backgroundColor: budget.overSpent
+                  ? '#ef4444'
+                  : budget.warning && !budget.overSpent
+                  ? '#f59e0b'
+                  : '#3b82f6',
+                borderRadius: '3px',
+                transition: 'width 0.3s ease',
+                position: 'relative',
+                minWidth: budget.percentage > 0 ? '2px' : '0' // 确保有进度时至少显示2px
+              }}
+            ></div>
+          </div>
         </div>
         <div className="progress-info">
           <span className="spent">已用: {formatCurrency(budget.spent)}</span>

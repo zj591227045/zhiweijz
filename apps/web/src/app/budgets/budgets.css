@@ -238,22 +238,58 @@
   color: var(--text-primary);
 }
 
-.budget-progress {
+/* 新的进度条样式 - 避免与全局样式冲突 */
+.budget-progress-section {
   margin-bottom: 12px;
 }
 
-.progress-bar {
-  height: 8px;
-  background-color: var(--background-color);
-  border-radius: 4px;
-  overflow: hidden;
+.budget-progress-container {
   margin-bottom: 8px;
 }
 
-.progress {
-  height: 100%;
-  background-color: var(--primary-color);
+.budget-progress-track {
+  height: 8px;
+  background-color: #e5e7eb;
   border-radius: 4px;
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+  border: 1px solid #d1d5db;
+}
+
+.budget-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  position: relative;
+  min-width: 0;
+}
+
+/* 暗色主题下的进度条样式 */
+.dark .budget-progress-track,
+html.dark .budget-progress-track,
+[data-theme="dark"] .budget-progress-track {
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+}
+
+/* 确保进度条填充部分在所有主题下都能正确显示 */
+.budget-progress-fill {
+  z-index: 1;
+}
+
+/* 进度条动画效果 */
+@keyframes progressFill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: var(--progress-width);
+  }
+}
+
+.budget-progress-fill {
+  animation: progressFill 0.5s ease-out;
 }
 
 .progress-info {
