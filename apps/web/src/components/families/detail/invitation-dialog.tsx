@@ -149,25 +149,29 @@ export function InvitationDialog({ isOpen, onClose, familyId }: InvitationDialog
           {!invitation ? (
             // 生成邀请界面
             <div className="invitation-generator">
-              <div className="generator-icon">
-                <i className="fas fa-user-plus"></i>
+              <div className="generator-header">
+                <div className="generator-icon">
+                  <i className="fas fa-user-plus"></i>
+                </div>
+                <h4 className="generator-title">生成邀请链接</h4>
+                <p className="generator-description">生成邀请链接，让其他人加入您的家庭账本</p>
               </div>
-              <h4>生成邀请链接</h4>
-              <p>生成邀请链接，让其他人加入您的家庭账本</p>
 
-              <div className="form-group">
-                <label className="form-label">有效期</label>
-                <select
-                  className="form-select"
-                  value={expiresInDays}
-                  onChange={(e) => setExpiresInDays(Number(e.target.value))}
-                >
-                  {getExpiryOptions().map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+              <div className="generator-form">
+                <div className="form-group">
+                  <label className="form-label">有效期</label>
+                  <select
+                    className="form-select"
+                    value={expiresInDays}
+                    onChange={(e) => setExpiresInDays(Number(e.target.value))}
+                  >
+                    {getExpiryOptions().map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <button
@@ -191,9 +195,11 @@ export function InvitationDialog({ isOpen, onClose, familyId }: InvitationDialog
           ) : (
             // 显示邀请信息
             <div className="invitation-display">
-              <div className="invitation-success">
-                <i className="fas fa-check-circle"></i>
-                <h4>邀请链接已生成</h4>
+              <div className="invitation-header">
+                <div className="invitation-icon">
+                  <i className="fas fa-check-circle"></i>
+                </div>
+                <h4 className="invitation-title">邀请链接已生成</h4>
               </div>
 
               <div className="invitation-info">
@@ -224,11 +230,11 @@ export function InvitationDialog({ isOpen, onClose, familyId }: InvitationDialog
               </div>
 
               <div className="invitation-actions">
-                <button className="action-button copy" onClick={copyInviteLink}>
+                <button className="action-button copy-button" onClick={copyInviteLink}>
                   <i className="fas fa-copy"></i>
                   <span>复制链接</span>
                 </button>
-                <button className="action-button share" onClick={shareInviteLink}>
+                <button className="action-button share-button" onClick={shareInviteLink}>
                   <i className="fas fa-share-alt"></i>
                   <span>分享</span>
                 </button>

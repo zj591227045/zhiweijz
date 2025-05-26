@@ -17,7 +17,7 @@ interface MemberListProps {
   members: FamilyMember[];
   isAdmin: boolean;
   familyId: string;
-  onInvite: () => void;
+  onInvite?: () => void;
 }
 
 export function MemberList({ members, isAdmin, familyId, onInvite }: MemberListProps) {
@@ -80,7 +80,7 @@ export function MemberList({ members, isAdmin, familyId, onInvite }: MemberListP
         )}
       </div>
 
-      {isAdmin && (
+      {isAdmin && onInvite && (
         <button className="invite-button" onClick={onInvite}>
           <i className="fas fa-user-plus"></i>
           <span>邀请成员</span>

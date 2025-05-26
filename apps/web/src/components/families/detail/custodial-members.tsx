@@ -6,10 +6,16 @@ import { useAuthStore } from '@/store/auth-store';
 
 interface CustodialMember {
   id: string;
+  familyId: string;
+  userId?: string;
   name: string;
   gender?: string;
   birthDate?: string;
+  role: string;
+  isRegistered: boolean;
+  isCustodial: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
 interface CustodialMembersProps {
@@ -50,9 +56,10 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
       
       if (response.ok) {
         const data = await response.json();
-        setCustodialMembers(data || []);
+        // API返回格式为 { members: [], totalCount: number }
+        setCustodialMembers(data.members || []);
       } else {
-        console.error('获取托管成员失败');
+        console.error('获取托管成员失败:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('获取托管成员失败:', error);
@@ -66,6 +73,15 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
       fetchCustodialMembers();
     }
   }, [familyId, token]);
+
+  // 重置表单
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      gender: '男',
+      birthDate: '',
+    });
+  };
 
   // 添加托管成员
   const handleAddMember = async () => {
@@ -94,12 +110,7 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
         toast.success('添加托管成员成功');
         setIsAddDialogOpen(false);
         fetchCustodialMembers();
-        // 重置表单
-        setFormData({
-          name: '',
-          gender: '男',
-          birthDate: '',
-        });
+        resetForm();
       } else {
         const error = await response.json();
         toast.error(error.message || '添加托管成员失败');
@@ -114,12 +125,31 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
 
   // 编辑托管成员
   const handleEditMember = (member: CustodialMember) => {
+    console.log('编辑托管成员:', member);
     setSelectedMember(member);
-    setFormData({
+    
+    // 格式化生日日期为 YYYY-MM-DD 格式（HTML date input 需要的格式）
+    let formattedBirthDate = '';
+    if (member.birthDate) {
+      try {
+        const date = new Date(member.birthDate);
+        // 确保日期有效
+        if (!isNaN(date.getTime())) {
+          formattedBirthDate = date.toISOString().split('T')[0];
+          console.log('格式化生日日期:', member.birthDate, '->', formattedBirthDate);
+        }
+      } catch (error) {
+        console.error('日期格式化失败:', member.birthDate, error);
+      }
+    }
+    
+    const newFormData = {
       name: member.name,
       gender: member.gender || '男',
-      birthDate: member.birthDate || '',
-    });
+      birthDate: formattedBirthDate,
+    };
+    console.log('设置表单数据:', newFormData);
+    setFormData(newFormData);
     setIsEditDialogOpen(true);
   };
 
@@ -149,7 +179,9 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
       if (response.ok) {
         toast.success('更新托管成员成功');
         setIsEditDialogOpen(false);
+        setSelectedMember(null);
         fetchCustodialMembers();
+        resetForm();
       } else {
         const error = await response.json();
         toast.error(error.message || '更新托管成员失败');
@@ -198,21 +230,59 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
 
   // 格式化日期
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('zh-CN');
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('zh-CN');
+    } catch (error) {
+      console.error('日期格式化失败:', dateString, error);
+      return '未知日期';
+    }
   };
 
   // 计算年龄
   const calculateAge = (birthDate: string) => {
     if (!birthDate) return '';
-    const birth = new Date(birthDate);
-    const today = new Date();
-    const age = today.getFullYear() - birth.getFullYear();
-    return `${age}岁`;
+    try {
+      const birth = new Date(birthDate);
+      const today = new Date();
+      
+      // 计算年龄
+      let age = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        age--;
+      }
+      
+      // 如果年龄小于1岁，显示月份
+      if (age < 1) {
+        let months = today.getMonth() - birth.getMonth();
+        if (today.getDate() < birth.getDate()) {
+          months--;
+        }
+        if (months < 0) {
+          months += 12;
+        }
+        return months === 0 ? '新生儿' : `${months}个月`;
+      }
+      
+      return `${age}岁`;
+    } catch (error) {
+      console.error('年龄计算失败:', birthDate, error);
+      return '';
+    }
   };
 
-  if (custodialMembers.length === 0 && !isAdmin) {
-    return null; // 如果没有托管成员且不是管理员，不显示此区域
+  // 获取头像文本（取名字的第一个字）
+  const getAvatarText = (name: string) => {
+    return name && name.length > 0 ? name.charAt(0).toUpperCase() : '?';
+  };
+
+  // 头像显示模式：'icon' 显示儿童图标，'text' 显示姓名首字母
+  const avatarMode = 'icon'; // 可以改为 'text' 来显示姓名首字母
+
+  // 如果没有托管成员且不是管理员，不显示此区域
+  if (custodialMembers.length === 0 && !isAdmin && !isLoading) {
+    return null;
   }
 
   return (
@@ -243,7 +313,11 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
           {custodialMembers.map((member) => (
             <div key={member.id} className="custodial-item">
               <div className="custodial-avatar">
-                <i className="fas fa-child"></i>
+                {avatarMode === 'icon' ? (
+                  <i className="fas fa-child"></i>
+                ) : (
+                  getAvatarText(member.name)
+                )}
               </div>
               <div className="custodial-details">
                 <div className="custodial-name">{member.name}</div>
@@ -292,13 +366,19 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
 
       {/* 添加对话框 */}
       {isAddDialogOpen && (
-        <div className="dialog-overlay" onClick={() => setIsAddDialogOpen(false)}>
+        <div className="dialog-overlay" onClick={() => {
+          setIsAddDialogOpen(false);
+          resetForm();
+        }}>
           <div className="dialog-content" onClick={(e) => e.stopPropagation()}>
             <div className="dialog-header">
               <h3 className="dialog-title">添加托管成员</h3>
               <button 
                 className="dialog-close" 
-                onClick={() => setIsAddDialogOpen(false)}
+                onClick={() => {
+                  setIsAddDialogOpen(false);
+                  resetForm();
+                }}
               >
                 <i className="fas fa-times"></i>
               </button>
@@ -338,7 +418,10 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
             <div className="dialog-footer">
               <button 
                 className="btn-secondary" 
-                onClick={() => setIsAddDialogOpen(false)}
+                onClick={() => {
+                  setIsAddDialogOpen(false);
+                  resetForm();
+                }}
                 disabled={isSubmitting}
               >
                 取消
@@ -357,13 +440,21 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
 
       {/* 编辑对话框 */}
       {isEditDialogOpen && (
-        <div className="dialog-overlay" onClick={() => setIsEditDialogOpen(false)}>
+        <div className="dialog-overlay" onClick={() => {
+          setIsEditDialogOpen(false);
+          setSelectedMember(null);
+          resetForm();
+        }}>
           <div className="dialog-content" onClick={(e) => e.stopPropagation()}>
             <div className="dialog-header">
               <h3 className="dialog-title">编辑托管成员</h3>
               <button 
                 className="dialog-close" 
-                onClick={() => setIsEditDialogOpen(false)}
+                onClick={() => {
+                  setIsEditDialogOpen(false);
+                  setSelectedMember(null);
+                  resetForm();
+                }}
               >
                 <i className="fas fa-times"></i>
               </button>
@@ -403,7 +494,11 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
             <div className="dialog-footer">
               <button 
                 className="btn-secondary" 
-                onClick={() => setIsEditDialogOpen(false)}
+                onClick={() => {
+                  setIsEditDialogOpen(false);
+                  setSelectedMember(null);
+                  resetForm();
+                }}
                 disabled={isSubmitting}
               >
                 取消

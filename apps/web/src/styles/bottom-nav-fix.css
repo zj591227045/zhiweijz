@@ -36,18 +36,29 @@
   color: var(--primary-color);
 }
 
-.add-button {
+/* 修复添加按钮变成椭圆的问题 */
+.bottom-nav .nav-item.add-button {
   margin-top: -20px;
+  position: relative;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background-color: transparent;
 }
 
-.add-icon {
+.bottom-nav .add-icon {
   width: 48px;
   height: 48px;
-  background-color: var(--primary-color);
   border-radius: 50%;
+  background-color: var(--primary-color, rgb(59, 130, 246));
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.bottom-nav .add-icon i {
+  font-size: 20px;
+  margin-bottom: 0;
 }

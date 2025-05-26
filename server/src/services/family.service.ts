@@ -556,108 +556,160 @@ export class FamilyService {
     // 获取家庭成员列表
     const members = await this.familyRepository.findFamilyMembers(familyId);
 
-    // 这里应该从交易记录中获取统计数据
-    // 由于目前没有实现交易相关功能，我们返回模拟数据
-
-    // 根据时间范围获取不同的数据
-    let totalIncome = 0;
-    let totalExpense = 0;
+    // 计算时间范围
+    let startDate: Date;
+    let endDate: Date = new Date();
 
     switch (period) {
       case 'month':
-        totalIncome = 12000;
-        totalExpense = 8500;
+        startDate = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
         break;
       case 'last_month':
-        totalIncome = 10000;
-        totalExpense = 7500;
+        startDate = new Date(endDate.getFullYear(), endDate.getMonth() - 1, 1);
+        endDate = new Date(endDate.getFullYear(), endDate.getMonth(), 0);
         break;
       case 'year':
-        totalIncome = 120000;
-        totalExpense = 85000;
+        startDate = new Date(endDate.getFullYear(), 0, 1);
         break;
       case 'all':
       default:
-        totalIncome = 150000;
-        totalExpense = 100000;
+        startDate = new Date(2020, 0, 1); // 从2020年开始
         break;
     }
 
-    // 计算结余
-    const balance = totalIncome - totalExpense;
-
-    // 生成成员分布数据
-    const memberDistribution = members.map((member, index) => {
-      const amount = Math.round(totalExpense * (0.1 + index * 0.2));
-      const percentage = Math.round((amount / totalExpense) * 100);
-
-      return {
-        memberId: member.id,
-        username: member.name,
-        amount,
-        percentage
-      };
-    });
-
-    // 生成分类分布数据
-    const categoryIcons = ['utensils', 'shopping-bag', 'home', 'car', 'plane'];
-    const categoryNames = ['餐饮', '购物', '住房', '交通', '旅行'];
-
-    const categoryDistribution = categoryNames.map((name, index) => {
-      const amount = Math.round(totalExpense * (0.1 + index * 0.1));
-      const percentage = Math.round((amount / totalExpense) * 100);
-
-      return {
-        categoryId: `category_${index + 1}`,
-        categoryName: name,
-        categoryIcon: categoryIcons[index],
-        amount,
-        percentage
-      };
-    });
-
-    // 生成最近交易数据
-    const recentTransactions = [
-      {
-        id: 'transaction_1',
-        categoryName: '餐饮',
-        categoryIcon: 'utensils',
-        description: '晚餐',
-        amount: 150,
-        type: 'EXPENSE',
-        memberName: members[0]?.name || '未知用户',
-        date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 昨天
-      },
-      {
-        id: 'transaction_2',
-        categoryName: '购物',
-        categoryIcon: 'shopping-bag',
-        description: '超市购物',
-        amount: 320,
-        type: 'EXPENSE',
-        memberName: members[1]?.name || members[0]?.name || '未知用户',
-        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() // 前天
-      },
-      {
-        id: 'transaction_3',
-        categoryName: '工资',
-        categoryIcon: 'money-bill-wave',
-        description: '工资',
-        amount: 6000,
-        type: 'INCOME',
-        memberName: members[2]?.name || members[0]?.name || '未知用户',
-        date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() // 5天前
+    try {
+      // 获取家庭的所有账本
+      const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(userId, familyId, { limit: 100 });
+      
+      if (!familyAccountBooks || !familyAccountBooks.data || familyAccountBooks.data.length === 0) {
+        // 如果没有家庭账本，返回空数据
+        return {
+          totalIncome: 0,
+          totalExpense: 0,
+          balance: 0,
+          memberStats: [],
+          categoryStats: []
+        };
       }
-    ];
 
-    return {
-      totalIncome,
-      totalExpense,
-      balance,
-      memberDistribution,
-      categoryDistribution,
-      recentTransactions
-    };
+      // 获取所有家庭账本的ID
+      const accountBookIds = familyAccountBooks.data.map(book => book.id);
+
+      // 获取家庭账本的收入交易
+      const incomeTransactions = await prisma.transaction.findMany({
+        where: {
+          accountBookId: { in: accountBookIds },
+          type: 'INCOME',
+          date: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        include: {
+          category: true,
+          user: true,
+          familyMember: true,
+        },
+      });
+
+      // 获取家庭账本的支出交易
+      const expenseTransactions = await prisma.transaction.findMany({
+        where: {
+          accountBookId: { in: accountBookIds },
+          type: 'EXPENSE',
+          date: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        include: {
+          category: true,
+          user: true,
+          familyMember: true,
+        },
+      });
+
+      // 计算总收入和总支出
+      const totalIncome = incomeTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
+      const totalExpense = expenseTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
+      const balance = totalIncome - totalExpense;
+
+      // 计算成员消费统计
+      const memberStats = new Map<string, { name: string; totalExpense: number }>();
+      
+      expenseTransactions.forEach(transaction => {
+        let memberKey: string;
+        let memberName: string;
+
+        if (transaction.familyMemberId) {
+          // 托管成员的交易
+          const member = members.find(m => m.id === transaction.familyMemberId);
+          memberKey = transaction.familyMemberId;
+          memberName = member?.name || '未知托管成员';
+        } else if (transaction.userId) {
+          // 普通成员的交易
+          const member = members.find(m => m.userId === transaction.userId);
+          memberKey = transaction.userId;
+          memberName = member?.name || transaction.user?.name || '未知用户';
+        } else {
+          return; // 跳过无效交易
+        }
+
+        const current = memberStats.get(memberKey) || { name: memberName, totalExpense: 0 };
+        current.totalExpense += Number(transaction.amount);
+        memberStats.set(memberKey, current);
+      });
+
+      // 转换为数组并计算百分比，按百分比降序排列
+      const memberStatsArray = Array.from(memberStats.entries()).map(([memberId, stats]) => ({
+        memberId,
+        memberName: stats.name,
+        totalExpense: stats.totalExpense,
+        percentage: totalExpense > 0 ? Math.round((stats.totalExpense / totalExpense) * 100) : 0
+      })).sort((a, b) => b.percentage - a.percentage);
+
+      // 计算分类消费统计
+      const categoryStats = new Map<string, { name: string; icon: string; totalExpense: number }>();
+      
+      expenseTransactions.forEach(transaction => {
+        const categoryId = transaction.categoryId;
+        const categoryName = transaction.category?.name || '其他';
+        const categoryIcon = transaction.category?.icon || 'tag';
+
+        const current = categoryStats.get(categoryId) || { name: categoryName, icon: categoryIcon, totalExpense: 0 };
+        current.totalExpense += Number(transaction.amount);
+        categoryStats.set(categoryId, current);
+      });
+
+      // 转换为数组并计算百分比，按百分比降序排列
+      const categoryStatsArray = Array.from(categoryStats.entries()).map(([categoryId, stats]) => ({
+        categoryId,
+        categoryName: stats.name,
+        categoryIcon: stats.icon,
+        totalExpense: stats.totalExpense,
+        percentage: totalExpense > 0 ? Math.round((stats.totalExpense / totalExpense) * 100) : 0
+      })).sort((a, b) => b.percentage - a.percentage);
+
+      return {
+        totalIncome,
+        totalExpense,
+        balance,
+        memberStats: memberStatsArray,
+        categoryStats: categoryStatsArray
+      };
+
+    } catch (error) {
+      console.error('获取家庭统计数据失败:', error);
+      
+      // 如果查询失败，返回空数据而不是模拟数据
+      return {
+        totalIncome: 0,
+        totalExpense: 0,
+        balance: 0,
+        memberStats: [],
+        categoryStats: []
+      };
+    }
   }
 
   /**
@@ -722,6 +774,44 @@ export class FamilyService {
         break;
     }
 
+    // 获取家庭的所有账本
+    const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(userId, familyId, { limit: 100 });
+    
+    if (!familyAccountBooks || !familyAccountBooks.data || familyAccountBooks.data.length === 0) {
+      // 如果没有家庭账本，返回空统计数据
+      const emptyMemberStatistics = members.map(member => ({
+        memberId: member.id,
+        userId: member.userId,
+        username: member.name || '未知用户',
+        avatar: null,
+        role: member.role,
+        joinedAt: member.createdAt,
+        isCurrentUser: member.userId === userId,
+        isCustodial: member.isCustodial || false,
+        statistics: {
+          totalExpense: 0,
+          percentage: 0,
+          transactionCount: 0
+        }
+      }));
+
+      const isAdmin = await this.isUserFamilyAdmin(userId, familyId);
+
+      return {
+        members: emptyMemberStatistics,
+        totalExpense: 0,
+        period,
+        userPermissions: {
+          canInvite: isAdmin,
+          canRemove: isAdmin,
+          canChangeRoles: isAdmin
+        }
+      };
+    }
+
+    // 获取所有家庭账本的ID
+    const accountBookIds = familyAccountBooks.data.map(book => book.id);
+
     // 获取真实的交易统计数据
     const memberStatistics = await Promise.all(members.map(async (member) => {
       let memberExpense = 0;
@@ -730,7 +820,7 @@ export class FamilyService {
       try {
         // 查询该成员的支出交易
         const whereCondition = {
-          familyId: familyId,
+          accountBookId: { in: accountBookIds },
           type: 'EXPENSE' as const,
           date: {
             gte: startDate,

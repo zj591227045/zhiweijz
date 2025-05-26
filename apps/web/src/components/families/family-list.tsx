@@ -27,22 +27,22 @@ export function FamilyList({ families, onCreateFamily, onJoinFamily }: FamilyLis
         </div>
       </div>
 
-      <div className="list-header">
-        <h2 className="list-title">我的家庭</h2>
-        <div className="list-actions">
+      <div className="family-list-header">
+        <h2 className="family-list-title">我的家庭</h2>
+        <div className="family-action-buttons">
           <button 
-            className="action-button"
+            className="family-action-btn family-action-btn-primary"
             onClick={onCreateFamily}
           >
             <i className="fas fa-plus"></i>
-            <span>创建</span>
+            <span>创建家庭</span>
           </button>
           <button 
-            className="action-button"
+            className="family-action-btn family-action-btn-secondary"
             onClick={onJoinFamily}
           >
             <i className="fas fa-sign-in-alt"></i>
-            <span>加入</span>
+            <span>加入家庭</span>
           </button>
         </div>
       </div>

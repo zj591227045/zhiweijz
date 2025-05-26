@@ -8,9 +8,7 @@ import { FamilyHeader } from "@/components/families/detail/family-header";
 import { MemberList } from "@/components/families/detail/member-list";
 import { CustodialMembers } from "@/components/families/detail/custodial-members";
 import { FamilyStatistics } from "@/components/families/detail/family-statistics";
-import { RecentTransactions } from "@/components/families/detail/recent-transactions";
-import { FamilyManagement } from "@/components/families/detail/family-management";
-import { InvitationDialog } from "@/components/families/detail/invitation-dialog";
+
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
 import "../families.css";
@@ -51,7 +49,7 @@ export default function FamilyDetailPage({ params }: FamilyDetailPageProps) {
   const [family, setFamily] = useState<Family | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -136,10 +134,7 @@ export default function FamilyDetailPage({ params }: FamilyDetailPageProps) {
     }
   };
 
-  // 处理邀请成员
-  const handleInviteMember = () => {
-    setIsInviteDialogOpen(true);
-  };
+
 
   // 处理退出家庭
   const handleLeaveFamily = async () => {
@@ -269,7 +264,6 @@ export default function FamilyDetailPage({ params }: FamilyDetailPageProps) {
         members={family.members}
         isAdmin={isAdmin}
         familyId={familyId}
-        onInvite={handleInviteMember}
       />
 
       <CustodialMembers
@@ -279,20 +273,48 @@ export default function FamilyDetailPage({ params }: FamilyDetailPageProps) {
 
       <FamilyStatistics familyId={familyId} />
 
-      <RecentTransactions familyId={familyId} />
+      {/* 家庭管理操作 */}
+      <div className="management-section">
+        <div className="section-header">
+          <div className="section-title">
+            <i className="fas fa-cogs"></i>
+            <span>家庭管理</span>
+          </div>
+        </div>
 
-      <FamilyManagement
-        isAdmin={isAdmin}
-        familyId={familyId}
-        onLeave={() => setIsLeaveDialogOpen(true)}
-        onDelete={() => setIsDeleteDialogOpen(true)}
-      />
+        <div className="danger-zone">
+          <div className="danger-title">
+            <i className="fas fa-exclamation-triangle"></i>
+            <span>危险操作</span>
+          </div>
+          
+          <div className="danger-actions">
+            {isAdmin ? (
+              <>
+                <button className="danger-button delete" onClick={() => setIsDeleteDialogOpen(true)}>
+                  <i className="fas fa-trash-alt"></i>
+                  <span>解散家庭</span>
+                </button>
+                <div className="warning-text">
+                  解散家庭将永久移除所有相关数据，此操作不可恢复。
+                </div>
+              </>
+            ) : (
+              <>
+                <button className="danger-button leave" onClick={() => setIsLeaveDialogOpen(true)}>
+                  <i className="fas fa-sign-out-alt"></i>
+                  <span>退出家庭</span>
+                </button>
+                <div className="warning-text">
+                  退出家庭后，您将无法访问该家庭的数据。
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
 
-      <InvitationDialog
-        isOpen={isInviteDialogOpen}
-        onClose={() => setIsInviteDialogOpen(false)}
-        familyId={familyId}
-      />
+
 
       <ConfirmDialog
         isOpen={isLeaveDialogOpen}
