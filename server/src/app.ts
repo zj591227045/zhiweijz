@@ -48,6 +48,16 @@ app.get('/', (req: Request, res: Response) => {
   res.json({ message: '欢迎使用只为记账API' });
 });
 
+// 健康检查端点
+app.get('/api/health', (req: Request, res: Response) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: config.env
+  });
+});
+
 // API路由
 app.use('/api', routes);
 

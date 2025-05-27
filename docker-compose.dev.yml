@@ -1,0 +1,33 @@
+version: '3.8'
+
+# 开发环境覆盖配置
+services:
+  # 后端开发配置
+  backend:
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+      PRISMA_LOG_LEVEL: debug
+    volumes:
+      - ./server/src:/app/src:ro
+      - ./server/prisma:/app/prisma:ro
+    command: ["npm", "run", "dev"]
+
+  # 前端开发配置
+  frontend:
+    environment:
+      NODE_ENV: development
+      DOCKER_ENV: "true"
+      NEXT_PUBLIC_API_URL: http://localhost/api
+      BACKEND_URL: http://backend:3000
+    volumes:
+      - ./apps/web/src:/app/src:ro
+      - ./apps/web/public:/app/public:ro
+    command: ["npm", "run", "dev"]
+
+  # 开发数据库（可选：使用不同的数据库）
+  postgres:
+    environment:
+      POSTGRES_DB: zhiweijz_dev
+    ports:
+      - "5433:5432"  # 使用不同端口避免冲突
