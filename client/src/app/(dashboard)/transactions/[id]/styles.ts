@@ -1,1 +1,0 @@
-import "./transaction-detail.css";
