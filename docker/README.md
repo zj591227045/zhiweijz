@@ -38,10 +38,14 @@ docker/
 │   └── nginx.Dockerfile     # Nginx 镜像构建文件
 ├── scripts/                  # 管理脚本
 │   ├── start.sh             # 启动脚本
-│   └── stop.sh              # 停止脚本
+│   ├── stop.sh              # 停止脚本
+│   ├── setup-mirrors.sh     # Docker镜像源设置脚本
+│   ├── generate-schema.sh   # 数据库Schema生成脚本
+│   └── reset-database.sh    # 数据库重置脚本
 └── docs/                     # 文档
     ├── DEPLOYMENT.md        # 详细部署文档
-    └── TROUBLESHOOTING.md   # 故障排除指南
+    ├── TROUBLESHOOTING.md   # 故障排除指南
+    └── DATABASE_MANAGEMENT.md # 数据库管理指南
 ```
 
 ## 🛠️ 管理命令

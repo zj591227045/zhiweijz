@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAccountBookStore } from "@/store/account-book-store";
-import { AccountBook } from "@/types";
+import { AccountBook, AccountBookType } from "@/types";
 import { toast } from "sonner";
 
 interface AccountBookSelectorProps {
@@ -71,7 +71,7 @@ export function AccountBookSelector({ onClose }: AccountBookSelectorProps) {
             <div className="account-book-section">
               <h4 className="account-book-section-title">个人账本</h4>
               {accountBooks
-                .filter(book => book.type === 'PERSONAL')
+                .filter(book => book.type === AccountBookType.PERSONAL)
                 .map(book => (
                   <div
                     key={book.id}
@@ -88,11 +88,11 @@ export function AccountBookSelector({ onClose }: AccountBookSelectorProps) {
             </div>
 
             {/* 家庭账本 */}
-            {accountBooks.some(book => book.type === 'FAMILY') && (
+            {accountBooks.some(book => book.type === AccountBookType.FAMILY) && (
               <div className="account-book-section">
                 <h4 className="account-book-section-title">家庭账本</h4>
                 {accountBooks
-                  .filter(book => book.type === 'FAMILY')
+                  .filter(book => book.type === AccountBookType.FAMILY)
                   .map(book => (
                     <div
                       key={book.id}

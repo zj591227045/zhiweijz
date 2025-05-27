@@ -1,21 +1,12 @@
 'use client';
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { apiClient } from '@/api/api-client';
 import { toast } from 'sonner';
+import { AccountBook, AccountBookType } from '@/types';
 
-// 账本类型定义
-interface AccountBook {
-  id: string;
-  name: string;
-  description?: string;
-  userId: string;
-  isDefault: boolean;
-  createdAt: string;
-  updatedAt: string;
-  familyId?: string;
-  type: 'PERSONAL' | 'FAMILY';
-}
+// 账本类型定义已从 @/types 导入
 
 // 账本状态类型
 interface AccountBookState {
@@ -27,15 +18,18 @@ interface AccountBookState {
 
   // 操作方法
   fetchAccountBooks: () => Promise<void>;
-  setCurrentAccountBook: (accountBook: AccountBook) => void;
-  createAccountBook: (data: { name: string; description?: string; type?: 'PERSONAL' | 'FAMILY' }) => Promise<boolean>;
+  fetchFamilyAccountBooks: (familyId: string) => Promise<void>;
+  setCurrentAccountBook: (accountBook: AccountBook | string) => void;
+  createAccountBook: (data: { name: string; description?: string; type?: AccountBookType }) => Promise<boolean>;
   updateAccountBook: (id: string, data: { name?: string; description?: string }) => Promise<boolean>;
   deleteAccountBook: (id: string) => Promise<boolean>;
   clearError: () => void;
 }
 
 // 创建账本状态管理
-export const useAccountBookStore = create<AccountBookState>((set, get) => ({
+export const useAccountBookStore = create<AccountBookState>()(
+  persist(
+    (set, get) => ({
   // 初始状态
   accountBooks: [],
   currentAccountBook: null,
@@ -129,9 +123,66 @@ export const useAccountBookStore = create<AccountBookState>((set, get) => ({
     }
   },
 
+  // 获取家庭账本列表
+  fetchFamilyAccountBooks: async (familyId) => {
+    try {
+      set({ isLoading: true, error: null });
+      console.log('📚 [AccountBookStore] 开始获取家庭账本列表...', familyId);
+
+      const response = await apiClient.get(`/account-books/family/${familyId}`);
+      console.log('📚 [AccountBookStore] 家庭账本API响应:', response.data);
+
+      // 处理后端响应格式
+      let familyAccountBooks: AccountBook[] = [];
+      if (response.data && typeof response.data === 'object') {
+        if (Array.isArray(response.data.data)) {
+          familyAccountBooks = response.data.data;
+        } else if (Array.isArray(response.data)) {
+          familyAccountBooks = response.data;
+        }
+      }
+
+      // 合并账本列表，保留现有的个人账本
+      const { accountBooks: existingBooks } = get();
+      const personalBooks = existingBooks.filter(book => book.type === AccountBookType.PERSONAL);
+      const mergedBooks = [...personalBooks, ...familyAccountBooks];
+
+      set({ 
+        accountBooks: mergedBooks, 
+        isLoading: false,
+        error: null 
+      });
+
+      console.log('📚 [AccountBookStore] 家庭账本状态更新完成');
+
+    } catch (error: any) {
+      console.error('📚 [AccountBookStore] 获取家庭账本列表失败:', error);
+      const errorMessage = error.response?.data?.message || '获取家庭账本列表失败';
+      set({
+        isLoading: false,
+        error: errorMessage
+      });
+      toast.error(errorMessage);
+    }
+  },
+
   // 设置当前账本
   setCurrentAccountBook: (accountBook) => {
-    set({ currentAccountBook: accountBook });
+    if (typeof accountBook === 'string') {
+      // 如果传入的是账本ID，从列表中查找对应的账本
+      const { accountBooks } = get();
+      const foundBook = accountBooks.find(book => book.id === accountBook);
+      if (foundBook) {
+        console.log('📚 [AccountBookStore] 切换账本:', foundBook.name);
+        set({ currentAccountBook: foundBook });
+      } else {
+        console.warn('📚 [AccountBookStore] 未找到账本ID:', accountBook);
+      }
+    } else {
+      // 如果传入的是账本对象，直接设置
+      console.log('📚 [AccountBookStore] 切换账本:', accountBook.name);
+      set({ currentAccountBook: accountBook });
+    }
   },
 
   // 创建账本
@@ -226,4 +277,12 @@ export const useAccountBookStore = create<AccountBookState>((set, get) => ({
   clearError: () => {
     set({ error: null });
   }
-}));
+}),
+{
+  name: 'account-book-storage',
+  partialize: (state) => ({
+    currentAccountBook: state.currentAccountBook,
+  }),
+}
+)
+);
