@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PageContainer } from '@/components/layout/page-container';
 import { ThemeInfoForm, ThemeInfoFormValues } from '@/components/theme-editor/theme-info-form';
@@ -24,7 +24,7 @@ interface CustomTheme {
   createdAt?: string;
 }
 
-export default function ThemeEditorPage() {
+function ThemeEditorContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const themeId = searchParams.get('id');
@@ -269,5 +269,23 @@ export default function ThemeEditorPage() {
         isDangerous
       />
     </PageContainer>
+  );
+}
+
+export default function ThemeEditorPage() {
+  return (
+    <Suspense fallback={
+      <PageContainer
+        title="主题编辑器"
+        showBackButton={true}
+        activeNavItem="profile"
+      >
+        <div className="flex h-40 items-center justify-center">
+          <p className="text-gray-500">加载中...</p>
+        </div>
+      </PageContainer>
+    }>
+      <ThemeEditorContent />
+    </Suspense>
   );
 }

@@ -79,7 +79,7 @@ export class FamilyService {
             family.id,
             accountBook.id
           );
-          console.log(`已为家庭创建者 ${userId} 创建默认预算`);
+
         }
       } catch (budgetError) {
         console.error(`为家庭创建者 ${userId} 创建默认预算失败:`, budgetError);
@@ -580,7 +580,7 @@ export class FamilyService {
     try {
       // 获取家庭的所有账本
       const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(userId, familyId, { limit: 100 });
-      
+
       if (!familyAccountBooks || !familyAccountBooks.data || familyAccountBooks.data.length === 0) {
         // 如果没有家庭账本，返回空数据
         return {
@@ -636,7 +636,7 @@ export class FamilyService {
 
       // 计算成员消费统计
       const memberStats = new Map<string, { name: string; totalExpense: number }>();
-      
+
       expenseTransactions.forEach(transaction => {
         let memberKey: string;
         let memberName: string;
@@ -670,7 +670,7 @@ export class FamilyService {
 
       // 计算分类消费统计
       const categoryStats = new Map<string, { name: string; icon: string; totalExpense: number }>();
-      
+
       expenseTransactions.forEach(transaction => {
         const categoryId = transaction.categoryId;
         const categoryName = transaction.category?.name || '其他';
@@ -700,7 +700,7 @@ export class FamilyService {
 
     } catch (error) {
       console.error('获取家庭统计数据失败:', error);
-      
+
       // 如果查询失败，返回空数据而不是模拟数据
       return {
         totalIncome: 0,
@@ -776,7 +776,7 @@ export class FamilyService {
 
     // 获取家庭的所有账本
     const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(userId, familyId, { limit: 100 });
-    
+
     if (!familyAccountBooks || !familyAccountBooks.data || familyAccountBooks.data.length === 0) {
       // 如果没有家庭账本，返回空统计数据
       const emptyMemberStatistics = members.map(member => ({

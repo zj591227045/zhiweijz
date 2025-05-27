@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { useAuthStore } from "@/store/auth-store";
-import { aiService, LLMSetting } from "@/lib/api/ai-service";
+import { useAIServicesStore } from "@/store/ai-services-store";
 import styles from "./ai-services.module.css";
 
 interface AIService {
@@ -21,9 +21,7 @@ interface AIService {
 export default function AIServicesPage() {
   const router = useRouter();
   const { isAuthenticated, login } = useAuthStore();
-  const [services, setServices] = useState<LLMSetting[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { services, isLoading, error, fetchServices, deleteService } = useAIServicesStore();
 
   // 快速登录功能
   const quickLogin = async () => {
@@ -47,79 +45,12 @@ export default function AIServicesPage() {
     }
   }, [isAuthenticated]);
 
-  // 获取AI服务列表
-  const fetchServices = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      console.log("开始获取AI服务列表...");
-      console.log("认证状态:", isAuthenticated);
-      console.log("认证令牌:", localStorage.getItem("auth-token"));
 
-      // 检查认证状态
-      if (!isAuthenticated) {
-        console.warn("用户未登录，无法获取AI服务列表");
-        setError("请先登录后再查看AI服务列表");
-        setIsLoading(false);
-        return;
-      }
-
-      // 检查认证令牌
-      const token = localStorage.getItem("auth-token");
-      if (!token) {
-        console.warn("未找到认证令牌，请重新登录");
-        setError("认证令牌无效，请重新登录");
-        setIsLoading(false);
-        return;
-      }
-
-      // 获取服务列表
-      console.log("正在调用API获取服务列表...");
-      const data = await aiService.getLLMSettingsList();
-      console.log("获取到的AI服务列表:", data);
-
-      // 确保返回的数据是数组
-      if (Array.isArray(data)) {
-        console.log(`成功获取到 ${data.length} 个AI服务`);
-        setServices(data);
-      } else {
-        console.warn("API返回的数据不是数组:", data);
-        setServices([]);
-        setError("API返回的数据格式不正确");
-        toast.error("数据格式错误");
-      }
-    } catch (error) {
-      console.error("获取AI服务列表失败:", error);
-      toast.error("获取AI服务列表失败，请检查网络连接");
-      setServices([]);
-
-      // 详细记录错误信息
-      if (error instanceof Error) {
-        console.error("错误名称:", error.name);
-        console.error("错误消息:", error.message);
-        console.error("错误堆栈:", error.stack);
-        setError(`获取失败: ${error.message}`);
-      } else {
-        console.error("未知错误类型:", typeof error);
-        console.error("错误内容:", error);
-        setError("未知错误，请查看控制台日志");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // 删除AI服务
   const handleDelete = async (id: string) => {
     if (confirm("确定要删除此AI服务吗？")) {
-      try {
-        await aiService.deleteLLMSettings(id);
-        toast.success("AI服务已删除");
-        fetchServices();
-      } catch (error) {
-        console.error("删除AI服务失败:", error);
-        toast.error("删除AI服务失败");
-      }
+      await deleteService(id);
     }
   };
 

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>只为记账 - 登录测试</h1>
+    
+    <form id="loginForm">
+        <div class="form-group">
+            <label for="email">邮箱:</label>
+            <input type="email" id="email" value="zhangjie@jacksonz.cn" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">密码:</label>
+            <input type="password" id="password" value="Zj233401!" required>
+        </div>
+        
+        <button type="submit">登录</button>
+    </form>
+    
+    <div id="result"></div>
+    
+    <h2>测试步骤:</h2>
+    <ol>
+        <li>点击登录按钮</li>
+        <li>检查API响应</li>
+        <li>验证token</li>
+        <li>测试认证状态</li>
+    </ol>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                // 步骤1: 登录
+                resultDiv.innerHTML = '<p>正在登录...</p>';
+                
+                const loginResponse = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                if (!loginResponse.ok) {
+                    throw new Error(`登录失败: ${loginResponse.status}`);
+                }
+                
+                const loginData = await loginResponse.json();
+                console.log('登录响应:', loginData);
+                
+                // 步骤2: 保存token到localStorage
+                localStorage.setItem('auth-token', loginData.token);
+                localStorage.setItem('user', JSON.stringify(loginData.user));
+                
+                // 步骤3: 验证token
+                const checkResponse = await fetch('/api/auth/check', {
+                    headers: {
+                        'Authorization': `Bearer ${loginData.token}`
+                    }
+                });
+                
+                if (!checkResponse.ok) {
+                    throw new Error(`Token验证失败: ${checkResponse.status}`);
+                }
+                
+                const checkData = await checkResponse.json();
+                console.log('Token验证响应:', checkData);
+                
+                // 步骤4: 测试获取账本
+                const booksResponse = await fetch('/api/account-books', {
+                    headers: {
+                        'Authorization': `Bearer ${loginData.token}`
+                    }
+                });
+                
+                if (!booksResponse.ok) {
+                    throw new Error(`获取账本失败: ${booksResponse.status}`);
+                }
+                
+                const booksData = await booksResponse.json();
+                console.log('账本数据:', booksData);
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ 登录测试成功!</h3>
+                        <p><strong>用户:</strong> ${loginData.user.name} (${loginData.user.email})</p>
+                        <p><strong>Token:</strong> ${loginData.token.substring(0, 50)}...</p>
+                        <p><strong>Token验证:</strong> ${checkData.message}</p>
+                        <p><strong>账本数量:</strong> ${booksData.length}</p>
+                        <p><strong>下一步:</strong> 可以访问 <a href="/dashboard" target="_blank">仪表盘页面</a></p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('测试失败:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ 登录测试失败!</h3>
+                        <p><strong>错误:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+        
+        // 页面加载时检查当前认证状态
+        window.addEventListener('load', function() {
+            const token = localStorage.getItem('auth-token');
+            const user = localStorage.getItem('user');
+            
+            if (token && user) {
+                const userData = JSON.parse(user);
+                document.getElementById('result').innerHTML = `
+                    <div class="success">
+                        <h3>🔐 已登录状态</h3>
+                        <p><strong>用户:</strong> ${userData.name} (${userData.email})</p>
+                        <p><strong>Token:</strong> ${token.substring(0, 50)}...</p>
+                        <p><strong>操作:</strong> 
+                            <button onclick="localStorage.clear(); location.reload();">清除登录状态</button>
+                            <a href="/dashboard" target="_blank">访问仪表盘</a>
+                        </p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 'use client';
 
-import { getCategoryIconClass } from '@zhiweijz/web';
+import { getCategoryIconClass } from '@/lib/utils';
 
 interface CategoryBudget {
   id: string;

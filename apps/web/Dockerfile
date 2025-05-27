@@ -10,8 +10,8 @@ WORKDIR /app
 COPY apps/web/package*.json ./
 COPY package*.json ../
 
-# 安装依赖
-RUN npm ci --only=production
+# 安装所有依赖（构建时需要dev依赖）
+RUN npm install --ignore-scripts
 
 # 构建阶段
 FROM node:18-alpine AS builder
@@ -26,7 +26,10 @@ COPY --from=deps /app/package*.json ./
 COPY apps/web/ ./
 
 # 复制共享包（如果存在）
-COPY packages/ ../packages/ 2>/dev/null || true
+RUN mkdir -p ../packages
+
+# 确保public目录存在
+RUN mkdir -p ./public
 
 # 设置环境变量
 ENV NODE_ENV=production
@@ -52,10 +55,14 @@ WORKDIR /app
 # 设置环境变量
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV DEBUG=1
+ENV DOCKER_ENV=true
 
 # 复制必要文件
-COPY --from=builder /app/public ./public
 COPY --from=builder /app/package*.json ./
+
+# 复制public目录
+COPY --from=builder /app/public ./public
 
 # 复制构建产物
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./

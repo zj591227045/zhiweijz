@@ -50,7 +50,6 @@ export class FamilyBudgetService {
 
       // 创建预算
       await this.budgetRepository.create(userId, budgetData);
-      console.log(`已为家庭成员${memberId ? ` (托管成员: ${memberId})` : ` (用户: ${userId})`}创建默认预算`);
     } catch (error) {
       console.error('为新家庭成员创建默认预算失败:', error);
       throw new Error('为新家庭成员创建默认预算失败');

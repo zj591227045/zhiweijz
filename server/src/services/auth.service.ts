@@ -57,7 +57,6 @@ export class AuthService {
       let defaultAccountBook = null;
       try {
         defaultAccountBook = await this.accountBookService.createDefaultAccountBook(newUser.id);
-        console.log(`已为用户 ${newUser.id} 创建默认账本`);
       } catch (accountBookError) {
         console.error('创建默认账本失败:', accountBookError);
         // 不影响用户注册流程，继续执行
@@ -67,7 +66,6 @@ export class AuthService {
       try {
         const categoryService = new CategoryService();
         await categoryService.createUserDefaultCategories(newUser.id);
-        console.log(`已为用户 ${newUser.id} 创建默认分类`);
       } catch (categoryError) {
         console.error('创建默认分类失败:', categoryError);
         // 不影响用户注册流程，继续执行
@@ -90,7 +88,7 @@ export class AuthService {
           });
         }
 
-        console.log(`已为用户 ${newUser.id} 初始化默认设置`);
+
       } catch (settingError) {
         console.error('初始化用户设置失败:', settingError);
         // 不影响用户注册流程，继续执行

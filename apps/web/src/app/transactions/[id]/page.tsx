@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@zhiweijz/web';
+import { useAuthStore } from '@/store/auth-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { useTransactionStore } from '@/store/transaction-store';
 import { triggerTransactionChange } from '@/store/dashboard-store';

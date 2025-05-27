@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@zhiweijz/web';
+import { useAuthStore } from '@/store/auth-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { feedbackService } from '@/lib/api-services';
 import { toast } from 'sonner';

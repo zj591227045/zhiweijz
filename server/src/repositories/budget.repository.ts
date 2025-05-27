@@ -184,17 +184,7 @@ export class BudgetRepository {
       sortOrder = 'desc'
     } = params;
 
-    console.log('BudgetRepository.findAll 参数:', {
-      userId,
-      period,
-      categoryId,
-      familyId,
-      accountBookId: params.accountBookId,
-      active,
-      budgetType,
-      page,
-      limit
-    });
+
 
     // 构建查询条件 - 只根据账本ID和预算类型过滤
     const where: Prisma.BudgetWhereInput = {
@@ -349,7 +339,6 @@ export class BudgetRepository {
     const familyIds = familyMembers.map(member => member.familyId);
 
     // 2. 构建查询条件：包括用户个人预算和用户所属家庭的预算
-    console.log(`查询用户 ${userId} 的活跃预算，包括家庭IDs: ${familyIds.join(', ') || '无'}, 账本ID: ${accountBookId || '无'}`);
 
     // 构建查询条件
     const where = {

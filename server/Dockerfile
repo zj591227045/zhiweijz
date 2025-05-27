@@ -29,8 +29,8 @@ COPY server/ ./
 COPY server/prisma ./prisma
 
 # 复制启动脚本
-COPY server/scripts/start.sh ./scripts/start.sh
-RUN chmod +x ./scripts/start.sh
+COPY server/scripts/ ./scripts/
+RUN chmod +x ./scripts/*.sh
 
 # 生成Prisma客户端
 RUN npx prisma generate
@@ -67,8 +67,10 @@ COPY --from=builder /app/server/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/server/prisma ./prisma
 COPY --from=builder /app/server/scripts ./scripts
 
-# 创建uploads目录并设置脚本权限
-RUN mkdir -p uploads && chown -R nodejs:nodejs uploads && chmod +x scripts/start.sh
+# 创建必要目录并设置权限
+RUN mkdir -p uploads node_modules/prisma && \
+    chown -R nodejs:nodejs uploads node_modules && \
+    chmod +x scripts/*.sh
 
 # 切换到非root用户
 USER nodejs

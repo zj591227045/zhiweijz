@@ -37,7 +37,15 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(morgan(config.env === 'development' ? 'dev' : 'combined'));
+// 精简的日志格式，只记录重要信息
+const logFormat = config.env === 'development'
+  ? ':method :url :status :res[content-length] - :response-time ms'
+  : ':remote-addr - :method :url :status :res[content-length] - :response-time ms';
+
+app.use(morgan(logFormat, {
+  // 过滤掉健康检查请求的日志
+  skip: (req, res) => req.url === '/api/health'
+}));
 
 // 配置静态文件服务
 const dataDir = path.join(process.cwd(), '..', 'data');

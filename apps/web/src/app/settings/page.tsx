@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuthStore } from '@zhiweijz/web';
+import { useAuthStore } from '@/store/auth-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { useThemeStore } from '@/store/theme-store';
 import './settings.css';

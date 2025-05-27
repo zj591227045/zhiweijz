@@ -302,9 +302,7 @@ export class BudgetService {
    * 可选根据账本ID进行过滤
    */
   async getActiveBudgets(userId: string, accountBookId?: string): Promise<BudgetResponseDto[]> {
-    console.log(`获取用户 ${userId} 的活跃预算，账本ID: ${accountBookId || '无'}`);
     const budgets = await this.budgetRepository.findActiveBudgets(userId, new Date(), accountBookId);
-    console.log(`找到 ${budgets.length} 个活跃预算`);
 
     // 获取每个预算的已使用金额
     const budgetsWithSpent = await Promise.all(

@@ -4,38 +4,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageContainer } from "@/components/layout/page-container";
 import { AIServiceForm, AIServiceFormValues } from "@/components/ai-services/ai-service-form";
+import { useAIServicesStore } from "@/store/ai-services-store";
 import { toast } from "sonner";
 
 export default function AddAIServicePage() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { createService, isLoading } = useAIServicesStore();
 
   // 处理表单提交
   const handleSubmit = async (data: AIServiceFormValues) => {
-    setIsSubmitting(true);
-    
-    try {
-      const response = await fetch('/api/ai/llm-settings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth-token')}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        toast.success('AI服务创建成功');
-        router.push('/settings/ai-services');
-      } else {
-        const error = await response.json();
-        toast.error(error.message || '创建AI服务失败');
-      }
-    } catch (error) {
-      console.error('创建AI服务失败:', error);
-      toast.error('创建AI服务失败');
-    } finally {
-      setIsSubmitting(false);
+    const success = await createService(data);
+    if (success) {
+      router.push('/settings/ai-services');
     }
   };
 
@@ -53,7 +33,7 @@ export default function AddAIServicePage() {
       <AIServiceForm
         onSubmit={handleSubmit}
         onCancel={handleCancel}
-        isSubmitting={isSubmitting}
+        isSubmitting={isLoading}
       />
     </PageContainer>
   );

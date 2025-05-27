@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
-import { getCategoryIconClass } from '@zhiweijz/web';
+import { getCategoryIconClass } from '@/lib/utils';
 
 interface Transaction {
   id: string;

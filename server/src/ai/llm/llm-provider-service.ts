@@ -342,7 +342,7 @@ export class LLMProviderService {
         throw new Error('创建用户LLM设置失败');
       }
 
-      console.log(`为用户 ${userId} 创建了LLM设置: ${id}`);
+
       return id;
     } catch (error) {
       console.error('创建用户LLM设置错误:', error);

@@ -1,9 +1,21 @@
 'use client';
 
 import { useState, useEffect, useMemo } from "react";
-import { Providers } from "@zhiweijz/web";
-import { Toaster } from "sonner";
-import { useThemeStore, applyThemeConfig } from "../store/theme-store";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from 'next-themes';
+import { Toaster } from 'sonner';
+import { useThemeStore, applyThemeConfig } from '@/store/theme-store';
+import { AuthInitializer } from '@/components/auth/auth-initializer';
+
+// 创建QueryClient实例
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5分钟
+      retry: 1,
+    },
+  },
+});
 
 export function ClientProviders({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
@@ -37,17 +49,23 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
   // 防止服务端渲染不匹配
   if (!mounted) {
     return (
-      <Providers>
-        {children}
-        <Toaster position="top-center" />
-      </Providers>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+          <Toaster position="top-center" />
+        </ThemeProvider>
+      </QueryClientProvider>
     );
   }
 
   return (
-    <Providers>
-      {children}
-      <Toaster position="top-center" />
-    </Providers>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <AuthInitializer>
+          {children}
+        </AuthInitializer>
+        <Toaster position="top-center" />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

@@ -6,7 +6,7 @@ import { Family, FamilyRole } from '@/types';
 import { RoleBadge } from './role-badge';
 import { ConfirmDialog } from '../ui/confirm-dialog';
 import { useFamilyStore } from '@/store/family-store';
-import { useAuthStore } from '@zhiweijz/web';
+import { useAuthStore } from '@/store/auth-store';
 import { formatDate } from '@/lib/utils';
 
 interface FamilyCardProps {
@@ -55,7 +55,7 @@ export function FamilyCard({ family }: FamilyCardProps) {
   return (
     <>
       <Link href={`/families/${family.id}`}>
-        <div 
+        <div
           className="family-card"
           onContextMenu={(e) => {
             e.preventDefault();
@@ -106,7 +106,7 @@ export function FamilyCard({ family }: FamilyCardProps) {
                 查看详情
               </Link>
               {isCreator ? (
-                <button 
+                <button
                   className="w-full text-left p-2 text-red-500 hover:bg-gray-100 rounded"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -118,7 +118,7 @@ export function FamilyCard({ family }: FamilyCardProps) {
                   删除家庭
                 </button>
               ) : (
-                <button 
+                <button
                   className="w-full text-left p-2 text-red-500 hover:bg-gray-100 rounded"
                   onClick={(e) => {
                     e.stopPropagation();

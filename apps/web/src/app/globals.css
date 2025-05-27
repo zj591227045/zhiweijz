@@ -1,6 +1,29 @@
+/* 导入FontAwesome图标库 - 在Tailwind之前加载 */
+@import '@fortawesome/fontawesome-free/css/all.min.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 确保FontAwesome图标正确显示 - 覆盖Tailwind的重置样式 */
+.fas, .far, .fab, .fal, .fad {
+  font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "Font Awesome 6 Brands" !important;
+  font-weight: 900 !important;
+  font-style: normal !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  line-height: 1 !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  display: inline-block !important;
+}
+
+/* 修复可能的图标显示问题 */
+i.fas, i.far, i.fab, i.fal, i.fad {
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
+  font-style: normal !important;
+}
 
 /* 导入必要的样式 */
 @import url('../styles/themes.css');
@@ -308,31 +331,31 @@
   .family-action-buttons {
     gap: 6px;
   }
-  
+
   .family-action-btn {
     padding: 6px 10px;
     font-size: 12px;
   }
-  
+
   .family-action-btn span {
     display: none; /* 在小屏幕上隐藏文字，只显示图标 */
   }
-  
+
   .family-action-btn i {
     margin: 0;
     font-size: 14px;
   }
-  
+
   .family-card {
     padding: 16px;
   }
-  
+
   .family-card-avatar {
     width: 48px;
     height: 48px;
     font-size: 20px;
   }
-  
+
   .family-card-name {
     font-size: 16px;
   }

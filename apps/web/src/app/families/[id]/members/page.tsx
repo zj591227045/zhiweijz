@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@zhiweijz/web';
+import { useAuthStore } from '@/store/auth-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { MemberList } from '@/components/families/members/member-list';
 import { InvitationSection } from '@/components/families/members/invitation-section';

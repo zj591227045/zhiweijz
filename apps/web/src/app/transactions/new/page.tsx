@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@zhiweijz/web';
+import { useAuthStore } from '@/store/auth-store';
 import { TransactionAddPage } from '@/components/transactions/transaction-add-page';
 
 export default function TransactionNewPage() {

@@ -2,10 +2,10 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@zhiweijz/web';
+import { useAuthStore } from '@/store/auth-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { useBudgetStatisticsStore } from '@/store/budget-statistics-store';
-import { useAccountBookStore } from '@zhiweijz/web';
+import { useAccountBookStore } from '@/store/account-book-store';
 import { BudgetTypeSelector } from './budget-statistics/budget-type-selector';
 import { BudgetCarousel } from './budget-statistics/budget-carousel';
 import { BudgetOverview } from './budget-statistics/budget-overview';

@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useAuthStore, useAccountBookStore } from "@zhiweijz/web";
+import { useAuthStore } from "@/store/auth-store";
+import { useAccountBookStore } from "@/store/account-book-store";
 import { PageContainer } from "@/components/layout/page-container";
 import { MonthlyOverview } from "@/components/dashboard/monthly-overview";
 import { BudgetProgress } from "@/components/dashboard/budget-progress";
@@ -19,12 +20,12 @@ export default function DashboardPage() {
   const pathname = usePathname();
   const { isAuthenticated, user } = useAuthStore();
   const { currentAccountBook, fetchAccountBooks } = useAccountBookStore();
-  const { 
-    monthlyStats, 
-    budgetCategories, 
-    totalBudget, 
-    groupedTransactions, 
-    isLoading, 
+  const {
+    monthlyStats,
+    budgetCategories,
+    totalBudget,
+    groupedTransactions,
+    isLoading,
     error,
     fetchDashboardData,
     refreshDashboardData,
@@ -32,32 +33,52 @@ export default function DashboardPage() {
     cleanupTransactionListener
   } = useDashboardStore();
 
+  // 认证检查和初始数据加载
   useEffect(() => {
+    console.log('🏠 [Dashboard] useEffect 触发，认证状态:', isAuthenticated, '用户:', user);
+
     // 检查用户是否已登录
     if (!isAuthenticated) {
+      console.log('🏠 [Dashboard] 用户未登录，重定向到登录页面');
       router.push("/auth/login");
       return;
     }
 
+    console.log('🏠 [Dashboard] 用户已登录，开始获取账本列表');
     // 获取账本列表
     fetchAccountBooks();
+  }, [isAuthenticated, router]); // 移除函数依赖
 
-    // 如果有当前账本，获取仪表盘数据
-    if (currentAccountBook?.id) {
+  // 当账本变化时获取仪表盘数据
+  useEffect(() => {
+    console.log('🏠 [Dashboard] 账本变化检测:', {
+      isAuthenticated,
+      currentAccountBook,
+      accountBookId: currentAccountBook?.id
+    });
+
+    if (isAuthenticated && currentAccountBook?.id) {
+      console.log('🏠 [Dashboard] 当前账本存在，获取仪表盘数据:', currentAccountBook);
       fetchDashboardData(currentAccountBook.id);
+    } else {
+      console.log('🏠 [Dashboard] 条件不满足，不获取仪表盘数据:', {
+        isAuthenticated,
+        hasCurrentAccountBook: !!currentAccountBook,
+        accountBookId: currentAccountBook?.id
+      });
     }
-  }, [isAuthenticated, router, fetchAccountBooks, currentAccountBook, fetchDashboardData]);
+  }, [currentAccountBook?.id, isAuthenticated]); // 只依赖账本ID和认证状态
 
   // 设置交易变化监听器
   useEffect(() => {
     console.log("仪表盘页面：设置交易变化监听器");
     setupTransactionListener();
-    
+
     return () => {
       console.log("仪表盘页面：清理交易变化监听器");
       cleanupTransactionListener();
     };
-  }, [setupTransactionListener, cleanupTransactionListener]);
+  }, []); // 只在组件挂载时设置一次
 
   // 监听页面可见性变化，当页面重新获得焦点时刷新数据
   useEffect(() => {
@@ -81,7 +102,7 @@ export default function DashboardPage() {
         try {
           const signal = JSON.parse(e.newValue);
           console.log("监听到localStorage刷新信号:", signal);
-          
+
           // 检查信号是否是最近5秒内的
           if (Date.now() - signal.timestamp < 5000 && signal.accountBookId === currentAccountBook.id) {
             console.log("根据storage事件刷新仪表盘数据");
@@ -96,22 +117,19 @@ export default function DashboardPage() {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleFocus);
     window.addEventListener('storage', handleStorageChange);
-    
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [currentAccountBook, refreshDashboardData]);
+  }, [currentAccountBook?.id]); // 只依赖账本ID
 
-  // 监听路由变化，当进入仪表盘页面时刷新数据并重新设置监听器
+  // 监听路由变化，当进入仪表盘页面时处理刷新信号
   useEffect(() => {
-    if (pathname === '/dashboard') {
-      console.log("进入仪表盘页面，重新设置监听器并刷新数据");
-      
-      // 重新设置监听器
-      setupTransactionListener();
-      
+    if (pathname === '/dashboard' && currentAccountBook?.id) {
+      console.log("进入仪表盘页面，检查刷新信号");
+
       // 检查localStorage中的刷新信号
       const checkRefreshSignal = () => {
         try {
@@ -119,14 +137,14 @@ export default function DashboardPage() {
           if (signalStr) {
             const signal = JSON.parse(signalStr);
             console.log("检测到仪表盘刷新信号:", signal);
-            
+
             // 检查信号是否是最近5秒内的（避免处理过期信号）
             if (Date.now() - signal.timestamp < 5000) {
               console.log("处理仪表盘刷新信号，账本ID:", signal.accountBookId);
-              
+
               // 清除信号
               localStorage.removeItem('dashboard_refresh_signal');
-              
+
               // 刷新数据
               if (signal.accountBookId && currentAccountBook?.id === signal.accountBookId) {
                 console.log("根据localStorage信号刷新仪表盘数据");
@@ -145,17 +163,11 @@ export default function DashboardPage() {
         }
         return false;
       };
-      
-      // 检查刷新信号
-      const signalProcessed = checkRefreshSignal();
-      
-      // 如果没有处理刷新信号，则正常刷新数据
-      if (!signalProcessed && currentAccountBook?.id) {
-        console.log("正常刷新仪表盘数据，账本ID:", currentAccountBook.id);
-        refreshDashboardData(currentAccountBook.id);
-      }
+
+      // 检查刷新信号，如果没有信号则不执行额外刷新
+      checkRefreshSignal();
     }
-  }, [pathname, currentAccountBook, refreshDashboardData, setupTransactionListener]);
+  }, [pathname, currentAccountBook?.id]); // 移除函数依赖
 
   // 右侧操作按钮
   const rightActions = (

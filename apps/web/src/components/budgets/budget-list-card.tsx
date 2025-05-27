@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { cn, formatCurrency, getCategoryIconClass } from '@/lib/utils';
-import { useAccountBookStore } from '@zhiweijz/web';
+import { useAccountBookStore } from '@/store/account-book-store';
 
 export interface Budget {
   id: string;

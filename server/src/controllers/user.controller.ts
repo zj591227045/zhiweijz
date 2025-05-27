@@ -55,14 +55,23 @@ export class UserController {
         return;
       }
 
+      console.log('更新用户资料请求数据:', req.body);
       const profileData: UpdateProfileDto = req.body;
+
+      // 验证必要字段
+      if (!profileData.username || profileData.username.trim() === '') {
+        res.status(400).json({ message: '用户名不能为空' });
+        return;
+      }
 
       // 转换为用户更新DTO
       const updateData: UpdateUserDto = {
-        name: profileData.username,
-        bio: profileData.bio,
-        birthDate: profileData.birthDate
+        name: profileData.username.trim(),
+        bio: profileData.bio?.trim() || undefined,
+        birthDate: profileData.birthDate ? new Date(profileData.birthDate) : undefined
       };
+
+      console.log('转换后的更新数据:', updateData);
 
       // 更新用户信息
       const updatedUser = await this.userService.updateUser(userId, updateData);
@@ -78,6 +87,7 @@ export class UserController {
         createdAt: updatedUser.createdAt
       };
 
+      console.log('更新用户资料成功:', profile);
       res.status(200).json(profile);
     } catch (error) {
       console.error('更新用户资料失败:', error);

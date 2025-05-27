@@ -277,21 +277,21 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
 
           // 确定默认选中的预算ID
           let defaultSelectedBudgetId = null;
-          
+
           if (filteredBudgetCards.length > 0) {
             // 如果是个人预算类型且有家庭成员数据，优先选择当前用户的预算
             if (currentBudgetType === 'personal' && response.familyMembers && response.familyMembers.length > 0) {
               try {
                 // 导入当前用户信息
-                const { useAuthStore } = await import('@zhiweijz/web');
+                const { useAuthStore } = await import('@/store/auth-store');
                 const currentUser = useAuthStore.getState().user;
-                
+
                 if (currentUser) {
                   // 查找当前用户对应的家庭成员
-                  const currentUserMember = response.familyMembers.find(member => 
+                  const currentUserMember = response.familyMembers.find(member =>
                     !member.isCustodial && member.name === currentUser.name
                   );
-                  
+
                   if (currentUserMember && currentUserMember.budgetId) {
                     defaultSelectedBudgetId = currentUserMember.budgetId;
                     console.log('找到当前用户的预算:', currentUserMember.name, currentUserMember.budgetId);

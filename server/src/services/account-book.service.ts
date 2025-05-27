@@ -392,7 +392,6 @@ export class AccountBookService {
     // 为账本创建默认个人预算
     try {
       await this.createDefaultPersonalBudget(userId, accountBook.id);
-      console.log(`已为账本 ${accountBook.id} 创建默认个人预算`);
     } catch (error) {
       console.error('创建默认个人预算失败:', error);
       // 不影响账本创建流程，继续执行

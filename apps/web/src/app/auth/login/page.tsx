@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@zhiweijz/web";
+import { useAuthStore } from "@/store/auth-store";
 import { toast } from "sonner";
 import { ThemeSwitcher } from "../../../components/theme/theme-switcher";
 
