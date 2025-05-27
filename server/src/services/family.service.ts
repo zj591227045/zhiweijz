@@ -108,7 +108,7 @@ export class FamilyService {
    */
   private async createDefaultFamilyAccountBook(userId: string, familyId: string, familyName: string): Promise<any> {
     const accountBook = await this.accountBookService.createFamilyAccountBook(userId, familyId, {
-      name: `${familyName}的家庭账本`,
+      name: `${familyName}家庭账本`,
       description: '系统自动创建的家庭账本',
       isDefault: true,
     });

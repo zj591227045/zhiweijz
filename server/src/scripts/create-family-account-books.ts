@@ -28,7 +28,7 @@ async function createFamilyAccountBook(familyId: string, familyName: string, cre
   const accountBook = await prisma.accountBook.create({
     data: {
       id: randomUUID(),
-      name: `${familyName}的家庭账本`,
+      name: `${familyName}的账本`,
       description: '系统自动创建的家庭账本',
       userId: creatorId,
       type: AccountBookType.FAMILY,

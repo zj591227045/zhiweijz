@@ -29,10 +29,10 @@ interface BudgetDisplay {
 }
 
 // 预算选择器组件
-function BudgetSelector({ 
-  budgetId, 
-  setBudgetId 
-}: { 
+function BudgetSelector({
+  budgetId,
+  setBudgetId
+}: {
   budgetId: string;
   setBudgetId: (id: string) => void;
 }) {
@@ -258,11 +258,11 @@ function BudgetSelector({
 }
 
 // 数字键盘组件
-function NumericKeyboard({ 
-  onInput, 
-  onDelete, 
-  onComplete 
-}: { 
+function NumericKeyboard({
+  onInput,
+  onDelete,
+  onComplete
+}: {
   onInput: (value: string) => void;
   onDelete: () => void;
   onComplete: () => void;
@@ -302,10 +302,10 @@ function NumericKeyboard({
 }
 
 // 金额输入组件
-function AmountInput({ 
-  amount, 
-  setAmount 
-}: { 
+function AmountInput({
+  amount,
+  setAmount
+}: {
   amount: string;
   setAmount: (amount: string) => void;
 }) {
@@ -464,7 +464,7 @@ export default function TransactionEditPage({ params }: { params: { id: string }
       const transactionDate = new Date(transaction.date);
       const hours = transactionDate.getHours().toString().padStart(2, '0');
       const minutes = transactionDate.getMinutes().toString().padStart(2, '0');
-      
+
       setFormData({
         amount: transaction.amount,
         type: transaction.type,
@@ -472,7 +472,7 @@ export default function TransactionEditPage({ params }: { params: { id: string }
         date: formatDateForInput(transactionDate),
         description: transaction.description || ''
       });
-      setAmountString(transaction.amount.toString());
+      setAmountString(transaction.amount?.toString() || '0');
       setBudgetId(transaction.budgetId || '');
       setTime(`${hours}:${minutes}`);
     }
@@ -533,12 +533,12 @@ export default function TransactionEditPage({ params }: { params: { id: string }
       const success = await updateTransaction(params.id, updateData);
       if (success) {
         toast.success('交易更新成功');
-        
+
         // 触发交易变化事件，让仪表盘自动刷新
         if (currentAccountBook?.id) {
           triggerTransactionChange(currentAccountBook.id);
         }
-        
+
         router.push(`/transactions/${params.id}`);
       }
     } catch (error) {
@@ -663,7 +663,7 @@ export default function TransactionEditPage({ params }: { params: { id: string }
           {currentStep === 2 && (
             <div className="step-content">
               <h3 className="step-title">填写详情</h3>
-              
+
               {/* 显示选中的分类 */}
               {selectedCategory && (
                 <div className="selected-category">

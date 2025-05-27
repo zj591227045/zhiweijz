@@ -17,6 +17,7 @@ export interface SmartAccountingState extends WorkflowState {
     categoryId: string;
     categoryName: string;
     type: 'EXPENSE' | 'INCOME';
+    budgetName?: string;
     note: string;
     confidence: number;
   };
@@ -25,6 +26,16 @@ export interface SmartAccountingState extends WorkflowState {
     id: string;
     name: string;
   };
+
+  // 调试信息
+  debugInfo?: {
+    systemPrompt: string;
+    userPrompt: string;
+    llmResponse: string;
+    parsedResult: any;
+  };
+
+  includeDebugInfo?: boolean;
 
   // 输出
   result?: {
