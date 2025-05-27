@@ -1,6 +1,6 @@
 # 只为记账 - Docker管理Makefile
 
-.PHONY: help build up down logs restart clean health backup check-env dev-frontend
+.PHONY: help build up down logs restart clean health backup check-env dev-frontend fix-mirrors
 
 # 默认目标
 help:
@@ -22,6 +22,7 @@ help:
 	@echo "  make check-env   - 检查环境配置和服务状态"
 	@echo "  make dev-frontend - 启动本地前端开发服务"
 	@echo "  make dev-backend  - 启动Docker后端+本地前端"
+	@echo "  make fix-mirrors  - 修复Docker镜像源问题"
 
 # 构建镜像
 build:
@@ -109,3 +110,8 @@ dev-backend:
 	@sleep 10
 	@echo "启动本地前端服务..."
 	./scripts/start-dev-frontend.sh
+
+# 修复Docker镜像源
+fix-mirrors:
+	@echo "修复Docker镜像源问题..."
+	./scripts/fix-docker-mirrors.sh

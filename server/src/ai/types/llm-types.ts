@@ -44,22 +44,4 @@ export interface Message {
   name?: string;
 }
 
-/**
- * 工作流配置接口
- */
-export interface WorkflowConfig {
-  /** 工作流名称 */
-  name: string;
-  /** 工作流描述 */
-  description?: string;
-  /** 默认LLM提供商 */
-  defaultProvider: string;
-  /** 默认模型 */
-  defaultModel: string;
-  /** 默认温度 */
-  defaultTemperature: number;
-  /** 默认最大token数 */
-  defaultMaxTokens?: number;
-  /** 其他配置 */
-  [key: string]: any;
-}
+// WorkflowConfig 已移动到 workflow-types.ts 中

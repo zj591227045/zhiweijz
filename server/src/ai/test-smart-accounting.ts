@@ -23,16 +23,28 @@ async function testSmartAccounting() {
     // 创建智能记账工作流
     const smartAccounting = new SmartAccounting(llmProviderService);
 
-    // 查找一个有效的用户ID
+    // 查找一个有效的用户ID和账本ID
     let userId = '1';
+    let accountId = '1';
+    let accountType = 'personal';
     try {
       const user = await prisma.user.findFirst();
       if (user) {
         userId = user.id;
         console.log(`使用用户ID: ${userId}`);
+
+        // 查找用户的账本
+        const accountBook = await prisma.accountBook.findFirst({
+          where: { userId: user.id }
+        });
+        if (accountBook) {
+          accountId = accountBook.id;
+          accountType = accountBook.type;
+          console.log(`使用账本ID: ${accountId}, 类型: ${accountType}`);
+        }
       }
     } catch (error) {
-      console.error('查找用户时出错:', error);
+      console.error('查找用户或账本时出错:', error);
     }
 
     // 测试描述
@@ -50,7 +62,7 @@ async function testSmartAccounting() {
 
       try {
         // 处理描述
-        const result = await smartAccounting.processDescription(description, userId);
+        const result = await smartAccounting.processDescription(description, userId, accountId, accountType);
 
         // 打印结果
         console.log('处理结果:');

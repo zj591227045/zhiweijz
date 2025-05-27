@@ -27,6 +27,7 @@
     "react-hook-form": "^7.48.2",
     "recharts": "^2.15.3",
     "sonner": "^2.0.3",
+    "styled-jsx": "^5.1.1",
     "tailwind-merge": "^3.3.0",
     "zod": "^3.22.4",
     "zustand": "^5.0.5"

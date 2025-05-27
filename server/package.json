@@ -6,12 +6,15 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "dev": "nodemon --exec ts-node src/index.ts",
-    "build": "tsc",
+    "build": "npx tsc",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "prisma:generate": "npx prisma generate"
   },
   "dependencies": {
+    "@langchain/core": "^0.3.56",
+    "@langchain/openai": "^0.5.10",
     "@prisma/client": "^5.0.0",
     "@radix-ui/react-alert-dialog": "^1.1.13",
     "@types/multer": "^1.4.12",
@@ -24,11 +27,15 @@
     "dayjs": "^1.11.13",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "helmet": "^7.0.0",
     "joi": "^17.13.3",
+    "morgan": "^1.10.0",
+    "node-cache": "^5.1.2",
     "jsonwebtoken": "^9.0.1",
     "multer": "^1.4.5-lts.2",
     "nodemailer": "^6.9.4",
     "react-swipeable": "^7.0.2",
+    "typescript": "^5.1.6",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
@@ -37,6 +44,7 @@
     "@types/express": "^4.17.17",
     "@types/jest": "^29.5.3",
     "@types/jsonwebtoken": "^9.0.2",
+    "@types/morgan": "^1.9.4",
     "@types/node": "^20.4.5",
     "@types/nodemailer": "^6.4.9",
     "@types/supertest": "^2.0.12",

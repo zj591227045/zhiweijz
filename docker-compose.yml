@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
   # PostgreSQL 数据库
   postgres:
-    image: postgres:15-alpine
+    image: docker.1ms.run/postgres:15-alpine
     container_name: zhiweijz-postgres
     restart: unless-stopped
     environment:

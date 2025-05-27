@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, TransactionType } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 async function createTestUser() {
@@ -42,15 +42,15 @@ async function createTestUser() {
 
     // 创建默认分类
     const categories = [
-      { name: '餐饮', type: 'EXPENSE', icon: 'utensils', color: '#FF5722', isDefault: true },
-      { name: '购物', type: 'EXPENSE', icon: 'shopping-cart', color: '#E91E63', isDefault: true },
-      { name: '交通', type: 'EXPENSE', icon: 'car', color: '#2196F3', isDefault: true },
-      { name: '娱乐', type: 'EXPENSE', icon: 'film', color: '#9C27B0', isDefault: true },
-      { name: '日用', type: 'EXPENSE', icon: 'home', color: '#4CAF50', isDefault: true },
-      { name: '其他', type: 'EXPENSE', icon: 'ellipsis-h', color: '#607D8B', isDefault: true },
-      { name: '工资', type: 'INCOME', icon: 'money-bill', color: '#4CAF50', isDefault: true },
-      { name: '奖金', type: 'INCOME', icon: 'gift', color: '#FF9800', isDefault: true },
-      { name: '其他收入', type: 'INCOME', icon: 'plus', color: '#607D8B', isDefault: true },
+      { name: '餐饮', type: TransactionType.EXPENSE, icon: 'utensils', color: '#FF5722', isDefault: true },
+      { name: '购物', type: TransactionType.EXPENSE, icon: 'shopping-cart', color: '#E91E63', isDefault: true },
+      { name: '交通', type: TransactionType.EXPENSE, icon: 'car', color: '#2196F3', isDefault: true },
+      { name: '娱乐', type: TransactionType.EXPENSE, icon: 'film', color: '#9C27B0', isDefault: true },
+      { name: '日用', type: TransactionType.EXPENSE, icon: 'home', color: '#4CAF50', isDefault: true },
+      { name: '其他', type: TransactionType.EXPENSE, icon: 'ellipsis-h', color: '#607D8B', isDefault: true },
+      { name: '工资', type: TransactionType.INCOME, icon: 'money-bill', color: '#4CAF50', isDefault: true },
+      { name: '奖金', type: TransactionType.INCOME, icon: 'gift', color: '#FF9800', isDefault: true },
+      { name: '其他收入', type: TransactionType.INCOME, icon: 'plus', color: '#607D8B', isDefault: true },
     ];
 
     for (const category of categories) {

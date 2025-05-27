@@ -121,7 +121,7 @@ export class SmartAccounting {
       const provider = this.llmProviderService.getProvider(llmSettings.provider);
 
       // 准备分类列表
-      const categoryList = categories.map(c =>
+      const categoryList = categories.map((c: any) =>
         `- ID: ${c.id}, 名称: ${c.name}, 类型: ${c.type === 'EXPENSE' ? '支出' : '收入'}`
       ).join('\n');
 
@@ -151,7 +151,7 @@ export class SmartAccounting {
         }
 
         // 验证分类ID是否有效
-        const validCategory = categories.find(c => c.id === analyzedTransaction.categoryId);
+        const validCategory = categories.find((c: any) => c.id === analyzedTransaction.categoryId);
         if (!validCategory) {
           throw new Error('无效的分类ID');
         }

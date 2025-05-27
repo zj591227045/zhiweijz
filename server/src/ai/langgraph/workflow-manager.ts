@@ -1,7 +1,7 @@
 import { LLMProviderService } from '../llm/llm-provider-service';
 import { BaseWorkflow } from './base-workflow';
 import { SimpleWorkflow, SimpleWorkflowState } from './simple-workflow';
-import { WorkflowConfig } from '../types/workflow-types';
+import { WorkflowConfig, WorkflowState } from '../types/workflow-types';
 
 /**
  * 工作流管理器
@@ -21,7 +21,7 @@ export class WorkflowManager {
    */
   constructor(llmProviderService: LLMProviderService) {
     this.llmProviderService = llmProviderService;
-    
+
     // 注册默认工作流
     this.registerDefaultWorkflows();
   }
@@ -38,7 +38,7 @@ export class WorkflowManager {
       defaultModel: 'gpt-3.5-turbo',
       defaultTemperature: 0.7,
     };
-    
+
     this.registerWorkflowConfig('simple', simpleWorkflowConfig);
     this.registerWorkflow('simple', new SimpleWorkflow(this.llmProviderService, simpleWorkflowConfig));
   }
@@ -70,7 +70,7 @@ export class WorkflowManager {
    * @param name 工作流名称
    * @param workflow 工作流
    */
-  public registerWorkflow<T>(name: string, workflow: BaseWorkflow<T>): void {
+  public registerWorkflow<T extends WorkflowState>(name: string, workflow: BaseWorkflow<T>): void {
     this.workflows.set(name, workflow);
   }
 
@@ -79,7 +79,7 @@ export class WorkflowManager {
    * @param name 工作流名称
    * @returns 工作流
    */
-  public getWorkflow<T>(name: string): BaseWorkflow<T> {
+  public getWorkflow<T extends WorkflowState>(name: string): BaseWorkflow<T> {
     const workflow = this.workflows.get(name);
     if (!workflow) {
       throw new Error(`Workflow '${name}' not found`);
