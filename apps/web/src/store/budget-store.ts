@@ -114,8 +114,23 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
       const response = await apiClient.get(url);
       console.log('获取活跃预算响应:', response);
 
-      // 处理响应数据
-      const budgets = Array.isArray(response) ? response : [];
+      // 处理响应数据 - 更完善的数据提取逻辑
+      let budgets = [];
+
+      if (Array.isArray(response)) {
+        budgets = response;
+      } else if (response && typeof response === 'object') {
+        // 检查常见的响应格式
+        if ('data' in response && Array.isArray(response.data)) {
+          budgets = response.data;
+        } else if ('budgets' in response && Array.isArray(response.budgets)) {
+          budgets = response.budgets;
+        } else if ('items' in response && Array.isArray(response.items)) {
+          budgets = response.items;
+        }
+      }
+
+      console.log('处理后的预算数据:', budgets);
 
       set({
         budgets,

@@ -20,6 +20,17 @@ interface Budget {
   familyMemberId?: string;
   userId?: string;
   userName?: string;
+  // 添加API返回的其他字段
+  category?: {
+    id: string;
+    name: string;
+    icon?: string;
+  };
+  period?: string;
+  startDate?: string;
+  endDate?: string;
+  remaining?: number;
+  percentage?: number;
 }
 
 export function BudgetSelector() {
@@ -43,21 +54,66 @@ export function BudgetSelector() {
   }, [currentAccountBook?.id, fetchActiveBudgets]);
 
   // 筛选支出类型的预算并格式化数据
-  const formattedBudgets: Budget[] = budgets.map(budget => ({
-    id: budget.id,
-    name: (budget as any).name || budget.category?.name || '未知分类',
-    amount: budget.amount,
-    spent: (budget as any).spent || 0,
-    rolloverAmount: (budget as any).rolloverAmount || 0,
-    budgetType: (budget as any).budgetType || 'PERSONAL',
-    familyMemberName: (budget as any).familyMemberName,
-    familyMemberId: (budget as any).familyMemberId,
-    userId: (budget as any).userId,
-    userName: (budget as any).userName
-  }));
+  const formattedBudgets: Budget[] = budgets.map(budget => {
+    console.log("处理预算数据:", budget);
+
+    // 获取预算名称，优先使用name字段，其次使用分类名称
+    let budgetName = '';
+    if ((budget as any).name) {
+      budgetName = (budget as any).name;
+    } else if (budget.category?.name) {
+      budgetName = budget.category.name;
+    } else {
+      budgetName = '未知分类';
+    }
+
+    // 获取已花费金额
+    const spentAmount = (budget as any).spent || 0;
+
+    // 获取结转金额
+    const rolloverAmount = (budget as any).rolloverAmount || 0;
+
+    // 获取预算类型
+    const budgetType = (budget as any).budgetType || 'PERSONAL';
+
+    // 获取家庭成员信息
+    const familyMemberName = (budget as any).familyMemberName || (budget as any).userName;
+    const familyMemberId = (budget as any).familyMemberId;
+    const userId = (budget as any).userId;
+    const userName = (budget as any).userName;
+
+    const formattedBudget = {
+      id: budget.id,
+      name: budgetName,
+      amount: budget.amount,
+      spent: spentAmount,
+      rolloverAmount,
+      budgetType,
+      familyMemberName,
+      familyMemberId,
+      userId,
+      userName,
+      category: budget.category,
+      period: (budget as any).period,
+      startDate: (budget as any).startDate,
+      endDate: (budget as any).endDate,
+      remaining: (budget as any).remaining,
+      percentage: (budget as any).percentage
+    };
+
+    console.log("格式化后的预算:", formattedBudget);
+    return formattedBudget;
+  });
 
   // 自动选择默认预算的逻辑
   const selectDefaultBudget = useCallback(() => {
+    console.log("selectDefaultBudget 调用:", {
+      formattedBudgetsLength: formattedBudgets.length,
+      selectedBudget,
+      currentUser: currentUser?.name,
+      hasInitialized
+    });
+
     if (formattedBudgets.length > 0 && !selectedBudget && currentUser && !hasInitialized) {
       console.log("获取到活跃预算:", formattedBudgets);
       console.log("当前登录用户:", currentUser);
@@ -141,9 +197,15 @@ export function BudgetSelector() {
 
   // 获取预算显示名称
   const getBudgetDisplayName = (budget: Budget) => {
+    // 如果是个人预算且有家庭成员名称，显示成员名称
     if (budget.budgetType === 'PERSONAL' && budget.familyMemberName) {
-      return `${budget.name} (${budget.familyMemberName})`;
+      return budget.familyMemberName;
     }
+    // 如果是通用预算，直接显示预算名称
+    if (budget.budgetType === 'GENERAL') {
+      return budget.name;
+    }
+    // 其他情况显示预算名称
     return budget.name;
   };
 
@@ -199,6 +261,9 @@ export function BudgetSelector() {
                 <div className="no-budgets-message">
                   <i className="fas fa-info-circle"></i>
                   <span>没有可用的预算</span>
+                  <div style={{ fontSize: '12px', marginTop: '8px', color: '#666' }}>
+                    调试信息: budgets.length = {budgets.length}, isLoading = {isLoading.toString()}
+                  </div>
                 </div>
               ) : (
                 <div className="budget-list">
