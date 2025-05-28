@@ -188,8 +188,15 @@ export function SmartAccountingDialog({
 
   if (!isOpen) return null;
 
+  // 处理点击空白处关闭弹窗
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="smart-accounting-dialog-overlay">
+    <div className="smart-accounting-dialog-overlay" onClick={handleOverlayClick}>
       <div className="smart-accounting-dialog">
         <div className="smart-accounting-dialog-header">
           <h3 className="smart-accounting-dialog-title">智能记账</h3>

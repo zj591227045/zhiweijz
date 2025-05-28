@@ -39,7 +39,7 @@ export const useLLMCacheStore = create<LLMCacheState>((set, get) => ({
   getLLMSettings: async (accountBookId, userId) => {
     try {
       const { llmCache } = get();
-      
+
       // 检查缓存
       if (llmCache[accountBookId]) {
         return llmCache[accountBookId];
@@ -47,12 +47,8 @@ export const useLLMCacheStore = create<LLMCacheState>((set, get) => ({
 
       set({ isLoading: true, error: null });
 
-      const response = await apiClient.get(`/llm/settings`, {
-        params: {
-          accountBookId,
-          userId
-        }
-      });
+      // 使用正确的API端点获取账本LLM设置
+      const response = await apiClient.get(`/ai/account/${accountBookId}/llm-settings`);
 
       const settings = response.data;
 
@@ -73,10 +69,10 @@ export const useLLMCacheStore = create<LLMCacheState>((set, get) => ({
         isLoading: false,
         error: errorMessage
       });
-      
+
       // 返回默认设置
       const defaultSettings = { bound: false };
-      
+
       // 缓存默认设置
       set((state) => ({
         llmCache: {
@@ -94,10 +90,8 @@ export const useLLMCacheStore = create<LLMCacheState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const response = await apiClient.put(`/llm/settings`, {
-        accountBookId,
-        ...settings
-      });
+      // 使用正确的API端点更新账本LLM设置
+      const response = await apiClient.put(`/ai/account/${accountBookId}/llm-settings`, settings);
 
       const updatedSettings = response.data;
 
