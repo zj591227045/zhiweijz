@@ -262,6 +262,7 @@ main() {
         echo -e "${BLUE}下一步操作:${NC}"
         echo -e "  1. 运行 ${YELLOW}./scripts/start.sh${NC} 启动服务"
         echo -e "  2. 或运行 ${YELLOW}docker-compose pull${NC} 预拉取镜像"
+        echo -e "  3. Ubuntu系统建议运行 ${YELLOW}sudo ./scripts/setup-docker-daemon.sh${NC} 配置系统镜像源"
         echo ""
         
         # 可选：测试镜像拉取

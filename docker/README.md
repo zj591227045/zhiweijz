@@ -145,16 +145,30 @@ JWT_SECRET=your-jwt-secret-key
 2. **容器启动失败**
    ```bash
    # 查看日志
-   docker-compose logs <service-name>
+   docker-compose -p zhiweijz logs <service-name>
    ```
 
 3. **数据库连接失败**
    ```bash
    # 重启数据库
-   docker-compose restart postgres
+   docker-compose -p zhiweijz restart postgres
    ```
 
-详细故障排除请参考: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+4. **Ubuntu系统Docker镜像拉取失败**
+   ```bash
+   # 配置系统级Docker镜像源（推荐）
+   sudo ./scripts/setup-docker-daemon.sh
+   
+   # 或手动配置镜像源
+   sudo mkdir -p /etc/docker
+   sudo nano /etc/docker/daemon.json
+   # 添加镜像源配置后重启Docker
+   sudo systemctl restart docker
+   ```
+
+详细故障排除请参考: 
+- [故障排除指南](docs/TROUBLESHOOTING.md)
+- [Ubuntu镜像源配置](docs/UBUNTU_MIRRORS.md)
 
 ## 📚 文档
 
