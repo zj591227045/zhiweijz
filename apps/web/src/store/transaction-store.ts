@@ -12,7 +12,7 @@ interface TransactionState {
   transaction: Transaction | null; // 当前交易
   isLoading: boolean;
   error: string | null;
-  
+
   // 操作方法
   fetchTransactions: (params?: {
     accountBookId?: string;
@@ -23,7 +23,7 @@ interface TransactionState {
     page?: number;
     limit?: number;
   }) => Promise<void>;
-  
+
   fetchTransaction: (id: string) => Promise<void>; // 修改返回类型
   getTransaction: (id: string) => Promise<Transaction | null>;
   createTransaction: (data: CreateTransactionData) => Promise<boolean>;
@@ -38,14 +38,14 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
   transaction: null,
   isLoading: false,
   error: null,
-  
+
   // 获取交易列表
   fetchTransactions: async (params) => {
     try {
       set({ isLoading: true, error: null });
-      
+
       const response = await apiClient.get('/transactions', { params });
-      
+
       // 处理不同的响应格式
       if (response && typeof response === 'object') {
         // 如果响应是对象且有data字段，且data是数组
@@ -57,7 +57,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
           return;
         }
       }
-      
+
       // 如果响应本身是数组
       if (Array.isArray(response)) {
         set({
@@ -66,7 +66,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
         });
         return;
       }
-      
+
       // 默认设置为空数组
       set({
         transactions: [],
@@ -81,17 +81,30 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       toast.error('获取交易列表失败');
     }
   },
-  
+
   // 获取单个交易并设置到状态中
   fetchTransaction: async (id) => {
     try {
       set({ isLoading: true, error: null, transaction: null });
-      
+
       const response = await apiClient.get(`/transactions/${id}`);
-      
-      set({ 
+
+      // 处理不同的响应格式
+      let transactionData: Transaction | null = null;
+
+      if (response && typeof response === 'object') {
+        // 如果响应有data字段，使用data
+        if ('data' in response && response.data) {
+          transactionData = response.data as Transaction;
+        } else {
+          // 否则直接使用响应本身
+          transactionData = response as Transaction;
+        }
+      }
+
+      set({
         isLoading: false,
-        transaction: response as Transaction
+        transaction: transactionData
       });
     } catch (error) {
       console.error(`获取交易 ${id} 失败:`, error);
@@ -108,12 +121,23 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
   getTransaction: async (id) => {
     try {
       set({ isLoading: true, error: null });
-      
+
       const response = await apiClient.get(`/transactions/${id}`);
-      
+
       set({ isLoading: false });
-      
-      return response as Transaction;
+
+      // 处理不同的响应格式
+      if (response && typeof response === 'object') {
+        // 如果响应有data字段，使用data
+        if ('data' in response && response.data) {
+          return response.data as Transaction;
+        } else {
+          // 否则直接使用响应本身
+          return response as Transaction;
+        }
+      }
+
+      return null;
     } catch (error) {
       console.error(`获取交易 ${id} 失败:`, error);
       set({
@@ -124,16 +148,16 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       return null;
     }
   },
-  
+
   // 创建交易
   createTransaction: async (data) => {
     try {
       set({ isLoading: true, error: null });
-      
+
       await apiClient.post('/transactions', data);
-      
+
       set({ isLoading: false });
-      
+
       toast.success('交易创建成功');
       return true;
     } catch (error) {
@@ -146,16 +170,16 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       return false;
     }
   },
-  
+
   // 更新交易
   updateTransaction: async (id, data) => {
     try {
       set({ isLoading: true, error: null });
-      
+
       await apiClient.put(`/transactions/${id}`, data);
-      
+
       set({ isLoading: false });
-      
+
       toast.success('交易更新成功');
       return true;
     } catch (error) {
@@ -168,16 +192,16 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       return false;
     }
   },
-  
+
   // 删除交易
   deleteTransaction: async (id) => {
     try {
       set({ isLoading: true, error: null });
-      
+
       await apiClient.delete(`/transactions/${id}`);
-      
+
       set({ isLoading: false });
-      
+
       toast.success('交易删除成功');
       return true;
     } catch (error) {

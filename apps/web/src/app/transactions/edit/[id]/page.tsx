@@ -9,7 +9,7 @@ import { useCategoryStore } from '@/store/category-store';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { useBudgetStore } from '@/store/budget-store';
 import { triggerTransactionChange } from '@/store/dashboard-store';
-import { formatDateForInput, getCategoryIconClass } from '@/lib/utils';
+import { formatDateForInput, getCategoryIconClass, getIconClass } from '@/lib/utils';
 import { TransactionType, UpdateTransactionData } from '@/types';
 import { toast } from 'sonner';
 import './transaction-edit.css';
@@ -111,9 +111,15 @@ function BudgetSelector({
 
   // 获取预算显示名称
   const getBudgetDisplayName = (budget: BudgetDisplay) => {
+    // 如果是个人预算且有家庭成员名称，显示成员名称
     if (budget.budgetType === 'PERSONAL' && budget.familyMemberName) {
-      return `${budget.name} (${budget.familyMemberName})`;
+      return budget.familyMemberName;
     }
+    // 如果是通用预算，直接显示预算名称
+    if (budget.budgetType === 'GENERAL') {
+      return budget.name;
+    }
+    // 其他情况显示预算名称
     return budget.name;
   };
 
@@ -588,16 +594,14 @@ export default function TransactionEditPage({ params }: { params: { id: string }
     }
   };
 
-  // 获取图标类名
-  const getIconClass = (iconName?: string) => {
-    return `fas ${getCategoryIconClass(iconName)}`;
-  };
+
 
   // 获取选中的分类信息
   const selectedCategory = categories.find(cat => cat.id === formData.categoryId);
 
   return (
     <PageContainer title="编辑交易" showBackButton={true} onBackClick={handleBack} showBottomNav={false}>
+
       {isLoading ? (
         <div className="loading-state">
           <div className="loading-spinner"></div>
@@ -623,12 +627,14 @@ export default function TransactionEditPage({ params }: { params: { id: string }
             <button
               className={`type-button expense ${formData.type === TransactionType.EXPENSE ? 'active' : ''}`}
               onClick={() => handleTypeChange(TransactionType.EXPENSE)}
+              disabled={isSubmitting}
             >
               支出
             </button>
             <button
               className={`type-button income ${formData.type === TransactionType.INCOME ? 'active' : ''}`}
               onClick={() => handleTypeChange(TransactionType.INCOME)}
+              disabled={isSubmitting}
             >
               收入
             </button>
@@ -648,8 +654,8 @@ export default function TransactionEditPage({ params }: { params: { id: string }
                 {filteredCategories.map(category => (
                   <div
                     key={category.id}
-                    className={`category-item ${formData.categoryId === category.id ? 'active' : ''}`}
-                    onClick={() => handleCategorySelect(category.id)}
+                    className={`category-item ${formData.categoryId === category.id ? 'active' : ''} ${isSubmitting ? 'disabled' : ''}`}
+                    onClick={() => !isSubmitting && handleCategorySelect(category.id)}
                   >
                     <div className="category-icon-wrapper">
                       <i className={getIconClass(category.icon)}></i>
@@ -690,6 +696,7 @@ export default function TransactionEditPage({ params }: { params: { id: string }
                     value={formData.description}
                     onChange={handleChange}
                     placeholder="添加描述..."
+                    disabled={isSubmitting}
                   />
                 </div>
 
@@ -703,6 +710,7 @@ export default function TransactionEditPage({ params }: { params: { id: string }
                     value={formData.date}
                     onChange={handleChange}
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
 
@@ -716,6 +724,7 @@ export default function TransactionEditPage({ params }: { params: { id: string }
                     value={time}
                     onChange={(e) => setTime(e.target.value)}
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
 

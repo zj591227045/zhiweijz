@@ -111,6 +111,12 @@
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
+.type-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* 金额输入容器 */
 .amount-input-container {
   display: flex;
@@ -289,6 +295,12 @@
   font-weight: 600;
 }
 
+.category-item.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* 选中的分类显示 */
 .selected-category {
   display: flex;
@@ -369,6 +381,12 @@
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--background-color);
 }
 
 /* 预算选择器样式 */
@@ -794,28 +812,28 @@
 /* 响应式设计 */
 @media (max-width: 480px) {
   .category-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 12px;
   }
-  
+
   .category-item {
     padding: 12px 6px;
   }
-  
+
   .category-icon-wrapper {
     width: 40px;
     height: 40px;
     font-size: 18px;
   }
-  
+
   .category-name {
     font-size: 12px;
   }
-  
+
   .amount-input {
     font-size: 28px !important;
   }
-  
+
   .currency-symbol {
     font-size: 20px;
   }
