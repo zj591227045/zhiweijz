@@ -161,9 +161,9 @@ export function TransactionListPage() {
     }));
   };
 
-  // 处理交易项点击
+  // 处理交易项点击 - 直接进入编辑页面
   const handleTransactionClick = (transactionId: string) => {
-    router.push(`/transactions/${transactionId}`);
+    router.push(`/transactions/edit/${transactionId}`);
   };
 
   // 右侧操作按钮

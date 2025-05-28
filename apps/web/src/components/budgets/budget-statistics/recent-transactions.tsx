@@ -30,6 +30,11 @@ interface RecentTransactionsProps {
 export function RecentTransactions({ transactions, budgetId, familyMemberId }: RecentTransactionsProps) {
   const router = useRouter();
 
+  // 处理交易项点击 - 直接进入编辑页面
+  const handleTransactionClick = (transactionId: string) => {
+    router.push(`/transactions/edit/${transactionId}`);
+  };
+
   // 处理查看全部按钮点击
   const handleViewAll = () => {
     if (budgetId) {
@@ -62,7 +67,12 @@ export function RecentTransactions({ transactions, budgetId, familyMemberId }: R
       <div className="transaction-list">
         {transactions.length > 0 ? (
           transactions.map(transaction => (
-            <div key={transaction.id} className="transaction-item">
+            <div
+              key={transaction.id}
+              className="transaction-item"
+              onClick={() => handleTransactionClick(transaction.id)}
+              style={{ cursor: 'pointer' }}
+            >
               <div className="transaction-icon">
                 <i className={`fas ${getCategoryIconClass(transaction.category?.icon || transaction.categoryIcon || 'receipt')}`}></i>
               </div>

@@ -539,7 +539,8 @@ export default function TransactionEditPage({ params }: { params: { id: string }
           triggerTransactionChange(currentAccountBook.id);
         }
 
-        router.push(`/transactions/${params.id}`);
+        // 编辑完成后返回交易列表页面
+        router.push('/transactions');
       }
     } catch (error) {
       console.error('更新交易失败:', error);
@@ -582,7 +583,8 @@ export default function TransactionEditPage({ params }: { params: { id: string }
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     } else {
-      router.back();
+      // 返回交易列表页面
+      router.push('/transactions');
     }
   };
 
