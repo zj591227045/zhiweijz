@@ -64,11 +64,32 @@ find_fastest_mirror() {
         log_info "测试: $mirror"
         
         # 测试连通性和响应时间
-        local start_time=$(date +%s%N)
-        if curl -s --connect-timeout 5 --max-time 10 "$mirror/v2/" >/dev/null 2>&1; then
-            local end_time=$(date +%s%N)
-            local response_time=$(( (end_time - start_time) / 1000000 )) # 转换为毫秒
-            
+        local start_time
+        local end_time
+        local response_time
+        
+        # 兼容macOS和Linux的时间计算
+        if date +%s%N >/dev/null 2>&1 && [[ $(date +%s%N) != *"N"* ]]; then
+            # Linux系统，支持纳秒
+            start_time=$(date +%s%N)
+            if curl -s --connect-timeout 5 --max-time 10 "$mirror/v2/" >/dev/null 2>&1; then
+                end_time=$(date +%s%N)
+                response_time=$(( (end_time - start_time) / 1000000 )) # 转换为毫秒
+            else
+                response_time=999999
+            fi
+        else
+            # macOS系统，只支持秒
+            start_time=$(date +%s)
+            if curl -s --connect-timeout 5 --max-time 10 "$mirror/v2/" >/dev/null 2>&1; then
+                end_time=$(date +%s)
+                response_time=$(( (end_time - start_time) * 1000 )) # 转换为毫秒
+            else
+                response_time=999999
+            fi
+        fi
+        
+        if [ $response_time -ne 999999 ]; then
             log_success "✅ $mirror - 响应时间: ${response_time}ms"
             
             if [ $response_time -lt $fastest_time ]; then
