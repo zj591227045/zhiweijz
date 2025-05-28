@@ -19,11 +19,14 @@ cp .env.example .env
 
 ### 🌐 访问应用
 
-启动完成后，访问以下地址：
+启动完成后，脚本会自动检测并显示所有可用的访问地址：
 
-- **前端应用**: http://your-ip:8080
-- **API接口**: http://your-ip:8080/api
-- **数据库**: your-ip:5432
+- **本地访问**: http://localhost:端口号
+- **网络访问**: http://你的IP地址:端口号  
+- **API接口**: http://访问地址/api
+- **数据库**: 访问地址:5432
+
+> 💡 **提示**: 脚本会自动检测你的IP地址，支持同一网络下的其他设备访问
 
 ## 📁 目录结构
 
@@ -67,22 +70,24 @@ docker/
 
 ### 查看日志
 ```bash
-docker-compose logs -f
+docker-compose -p zhiweijz logs -f
 ```
 
 ### 重启服务
 ```bash
-docker-compose restart
+docker-compose -p zhiweijz restart
 ```
 
 ## 🔧 服务组件
 
 | 服务 | 端口 | 描述 |
 |------|------|------|
-| Nginx | 80 | 反向代理和静态资源服务 |
+| Nginx | 80/443 | 反向代理和静态资源服务 |
 | Frontend | 3000 (内部) | Next.js 前端应用 |
 | Backend | 3000 (内部) | Node.js 后端API |
 | PostgreSQL | 5432 | 数据库服务 |
+
+> 💡 **端口配置**: 可通过 `.env` 文件自定义端口，避免端口冲突
 
 ## 📊 系统要求
 
@@ -91,6 +96,25 @@ docker-compose restart
 - **内存**: 最少 2GB
 - **磁盘**: 最少 5GB
 - **操作系统**: Linux, macOS, Windows
+
+## 🔧 环境变量配置
+
+复制 `.env.example` 为 `.env` 并根据需要修改：
+
+```bash
+# 端口配置（如果默认端口冲突可修改）
+NGINX_HTTP_PORT=80
+NGINX_HTTPS_PORT=443
+POSTGRES_PORT=5432
+
+# 数据库配置
+POSTGRES_DB=zhiweijz
+POSTGRES_USER=zhiweijz
+POSTGRES_PASSWORD=zhiweijz123
+
+# 安全配置（生产环境必须修改）
+JWT_SECRET=your-super-secret-jwt-key
+```
 
 ## 🔒 默认配置
 
@@ -144,20 +168,20 @@ JWT_SECRET=your-jwt-secret-key
 git pull origin main
 
 # 2. 重新构建镜像
-docker-compose build
+docker-compose -p zhiweijz build
 
 # 3. 重启服务
-docker-compose up -d
+docker-compose -p zhiweijz up -d
 ```
 
 ## 💾 数据备份
 
 ```bash
 # 备份数据库
-docker-compose exec postgres pg_dump -U zhiweijz zhiweijz > backup.sql
+docker-compose -p zhiweijz exec postgres pg_dump -U zhiweijz zhiweijz > backup.sql
 
 # 恢复数据库
-docker-compose exec -T postgres psql -U zhiweijz zhiweijz < backup.sql
+docker-compose -p zhiweijz exec -T postgres psql -U zhiweijz zhiweijz < backup.sql
 ```
 
 ## 🌟 特性

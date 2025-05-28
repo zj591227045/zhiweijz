@@ -5,6 +5,9 @@
 
 set -e
 
+# 项目名称
+PROJECT_NAME="zhiweijz"
+
 # 颜色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -33,8 +36,8 @@ log_error() {
 stop_services() {
     log_info "停止所有服务..."
     
-    if docker-compose ps -q | grep -q .; then
-        docker-compose down
+    if docker-compose -p "$PROJECT_NAME" ps -q | grep -q .; then
+        docker-compose -p "$PROJECT_NAME" down
         log_success "所有服务已停止"
     else
         log_info "没有运行中的服务"
@@ -47,10 +50,10 @@ cleanup_resources() {
         log_warning "清理所有数据和镜像..."
         
         # 删除数据卷
-        docker-compose down -v
+        docker-compose -p "$PROJECT_NAME" down -v
         
         # 删除相关镜像
-        docker images | grep zhiweijz | awk '{print $3}' | xargs -r docker rmi -f
+        docker images | grep -E "(zhiweijz|${PROJECT_NAME})" | awk '{print $3}' | xargs -r docker rmi -f
         
         # 清理悬空镜像
         docker image prune -f
