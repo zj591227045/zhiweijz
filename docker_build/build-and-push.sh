@@ -102,13 +102,100 @@ check_docker() {
         exit 1
     fi
 
+    print_message $GREEN "✓ Docker环境正常"
+}
+
+# 函数：安装和配置buildx
+setup_buildx_if_needed() {
+    print_message $BLUE "检查Docker buildx..."
+
     # 检查buildx是否可用
     if ! docker buildx version &> /dev/null; then
-        print_message $RED "❌ Docker buildx不可用"
-        exit 1
+        print_message $YELLOW "Docker buildx不可用，正在安装..."
+
+        # 检查Docker版本
+        DOCKER_VERSION=$(docker version --format '{{.Client.Version}}' 2>/dev/null || echo "unknown")
+        print_message $BLUE "Docker版本: $DOCKER_VERSION"
+
+        # 方法1: 尝试启用buildx插件
+        if docker version --format '{{.Client.Version}}' | grep -E '^(19\.|2[0-9]\.)' &> /dev/null; then
+            print_message $BLUE "尝试启用Docker buildx插件..."
+
+            # 检查是否有buildx插件
+            if [ -f "/usr/libexec/docker/cli-plugins/docker-buildx" ] || [ -f "$HOME/.docker/cli-plugins/docker-buildx" ]; then
+                print_message $GREEN "✓ 发现buildx插件"
+            else
+                print_message $YELLOW "未发现buildx插件，尝试下载..."
+                install_buildx_plugin
+            fi
+        else
+            print_message $YELLOW "Docker版本较旧，尝试安装buildx插件..."
+            install_buildx_plugin
+        fi
+
+        # 再次检查buildx
+        if ! docker buildx version &> /dev/null; then
+            print_message $RED "❌ buildx安装失败"
+            print_message $YELLOW "请手动安装Docker buildx或升级Docker到最新版本"
+            print_message $YELLOW "参考: https://docs.docker.com/buildx/working-with-buildx/"
+            exit 1
+        fi
     fi
 
-    print_message $GREEN "✓ Docker环境正常"
+    print_message $GREEN "✓ Docker buildx可用"
+}
+
+# 函数：安装buildx插件
+install_buildx_plugin() {
+    print_message $BLUE "下载并安装buildx插件..."
+
+    # 创建插件目录
+    mkdir -p ~/.docker/cli-plugins/
+
+    # 检测架构
+    ARCH=$(uname -m)
+    case $ARCH in
+        x86_64)
+            BUILDX_ARCH="amd64"
+            ;;
+        aarch64|arm64)
+            BUILDX_ARCH="arm64"
+            ;;
+        armv7l)
+            BUILDX_ARCH="arm-v7"
+            ;;
+        *)
+            print_message $RED "❌ 不支持的架构: $ARCH"
+            exit 1
+            ;;
+    esac
+
+    # 获取最新版本
+    print_message $BLUE "获取buildx最新版本..."
+    BUILDX_VERSION=$(curl -s https://api.github.com/repos/docker/buildx/releases/latest | grep '"tag_name"' | cut -d'"' -f4 || echo "v0.12.1")
+    print_message $BLUE "buildx版本: $BUILDX_VERSION"
+
+    # 下载buildx
+    BUILDX_URL="https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.linux-${BUILDX_ARCH}"
+
+    print_message $BLUE "下载buildx: $BUILDX_URL"
+    if curl -L --fail -o ~/.docker/cli-plugins/docker-buildx "$BUILDX_URL"; then
+        chmod +x ~/.docker/cli-plugins/docker-buildx
+        print_message $GREEN "✓ buildx插件安装成功"
+    else
+        print_message $RED "❌ buildx下载失败"
+        print_message $YELLOW "尝试备用下载地址..."
+
+        # 备用下载地址
+        BUILDX_URL_ALT="https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.linux-${BUILDX_ARCH}"
+        if wget -O ~/.docker/cli-plugins/docker-buildx "$BUILDX_URL_ALT" 2>/dev/null; then
+            chmod +x ~/.docker/cli-plugins/docker-buildx
+            print_message $GREEN "✓ buildx插件安装成功(备用地址)"
+        else
+            print_message $RED "❌ buildx安装失败"
+            return 1
+        fi
+    fi
 }
 
 # 函数：设置buildx
@@ -296,6 +383,7 @@ main() {
     validate_env
 
     check_docker
+    setup_buildx_if_needed
     setup_buildx
     docker_login
 

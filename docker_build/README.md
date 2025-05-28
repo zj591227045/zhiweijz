@@ -81,6 +81,36 @@ docker buildx version
 docker buildx ls
 ```
 
+### Ubuntu/Linux用户注意事项
+
+如果遇到 "❌ Docker buildx不可用" 错误，可以使用以下方法解决：
+
+#### 方法1: 自动安装 (推荐)
+脚本会自动检测并安装buildx，无需手动操作。
+
+#### 方法2: 手动安装buildx
+```bash
+# 运行buildx安装脚本
+./docker_build/install-buildx.sh
+
+# 或手动安装
+mkdir -p ~/.docker/cli-plugins/
+curl -L https://github.com/docker/buildx/releases/latest/download/buildx-v0.12.1.linux-amd64 \
+  -o ~/.docker/cli-plugins/docker-buildx
+chmod +x ~/.docker/cli-plugins/docker-buildx
+```
+
+#### 方法3: 升级Docker
+```bash
+# Ubuntu/Debian
+sudo apt update
+sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin
+
+# 或使用Docker官方安装脚本
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+```
+
 ## 📦 构建的镜像
 
 | 镜像名称 | 用途 | 支持平台 |
@@ -172,16 +202,28 @@ docker-compose -f docker/docker-compose.yml up -d
 
 ### 常见问题
 
-1. **buildx不可用**
+1. **buildx不可用 (Ubuntu/Linux)**
    ```bash
-   # 启用buildx
-   docker buildx install
+   # 方法1: 运行自动安装脚本
+   ./docker_build/install-buildx.sh
+
+   # 方法2: 手动安装
+   mkdir -p ~/.docker/cli-plugins/
+   curl -L https://github.com/docker/buildx/releases/latest/download/buildx-v0.12.1.linux-amd64 \
+     -o ~/.docker/cli-plugins/docker-buildx
+   chmod +x ~/.docker/cli-plugins/docker-buildx
+
+   # 方法3: 升级Docker
+   sudo apt update && sudo apt install docker-buildx-plugin
    ```
 
 2. **平台不支持**
    ```bash
    # 检查可用平台
    docker buildx inspect --bootstrap
+
+   # 创建多平台构建器
+   docker buildx create --name multiarch --driver docker-container --use
    ```
 
 3. **推送失败**
