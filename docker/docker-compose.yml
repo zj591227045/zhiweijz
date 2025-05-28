@@ -26,9 +26,7 @@ services:
 
   # 后端服务
   backend:
-    build:
-      context: ..
-      dockerfile: server/Dockerfile
+    image: zj591227045/zhiweijz-backend:latest
     container_name: zhiweijz-backend
     restart: unless-stopped
     environment:
@@ -51,9 +49,7 @@ services:
 
   # 前端服务
   frontend:
-    build:
-      context: ..
-      dockerfile: apps/web/Dockerfile
+    image: zj591227045/zhiweijz-frontend:latest
     container_name: zhiweijz-frontend
     restart: unless-stopped
     environment:

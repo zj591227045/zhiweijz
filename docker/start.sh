@@ -107,23 +107,19 @@ cleanup_old_containers() {
     log_success "旧容器清理完成"
 }
 
-# 构建镜像
-build_images() {
-    log_info "构建应用镜像..."
+# 拉取最新镜像
+pull_images() {
+    log_info "拉取最新镜像..."
 
-    # 构建后端镜像
-    log_info "构建后端镜像..."
-    docker-compose -p "$PROJECT_NAME" build backend
+    # 拉取后端镜像
+    log_info "拉取后端镜像..."
+    docker pull zj591227045/zhiweijz-backend:latest
 
-    # 构建前端镜像
-    log_info "构建前端镜像..."
-    docker-compose -p "$PROJECT_NAME" build frontend
+    # 拉取前端镜像
+    log_info "拉取前端镜像..."
+    docker pull zj591227045/zhiweijz-frontend:latest
 
-    # 构建Nginx镜像
-    log_info "构建Nginx镜像..."
-    docker-compose -p "$PROJECT_NAME" build nginx
-
-    log_success "所有镜像构建完成"
+    log_success "所有镜像拉取完成"
 }
 
 # 启动服务
@@ -345,8 +341,8 @@ main() {
     # 清理旧环境
     cleanup_old_containers
 
-    # 构建镜像
-    build_images
+    # 拉取最新镜像
+    pull_images
 
     # 启动服务
     start_services

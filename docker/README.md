@@ -14,7 +14,7 @@ cd docker
 cp .env.example .env
 
 # 3. 一键启动
-./scripts/start.sh
+./start.sh
 ```
 
 ### 🌐 访问应用
@@ -34,14 +34,14 @@ cp .env.example .env
 docker/
 ├── README.md                  # 本文件
 ├── docker-compose.yml         # Docker Compose 配置
+├── start.sh                  # 启动脚本
+├── stop.sh                   # 停止脚本
 ├── .env.example              # 环境变量模板
 ├── config/                   # 配置文件
 │   ├── init.sql             # 数据库初始化脚本
 │   ├── nginx.conf           # Nginx 配置
 │   └── nginx.Dockerfile     # Nginx 镜像构建文件
-├── scripts/                  # 管理脚本
-│   ├── start.sh             # 启动脚本
-│   ├── stop.sh              # 停止脚本
+├── scripts/                  # 其他管理脚本
 │   ├── setup-mirrors.sh     # Docker镜像源设置脚本
 │   ├── generate-schema.sh   # 数据库Schema生成脚本
 │   └── reset-database.sh    # 数据库重置脚本
@@ -55,17 +55,17 @@ docker/
 
 ### 启动服务
 ```bash
-./scripts/start.sh
+./start.sh
 ```
 
 ### 停止服务
 ```bash
-./scripts/stop.sh
+./stop.sh
 ```
 
 ### 清理所有数据
 ```bash
-./scripts/stop.sh --clean
+./stop.sh --clean
 ```
 
 ### 查看日志
@@ -178,14 +178,15 @@ JWT_SECRET=your-jwt-secret-key
 ## 🔄 更新应用
 
 ```bash
-# 1. 拉取最新代码
-git pull origin main
+# 1. 停止当前服务
+./stop.sh
 
-# 2. 重新构建镜像
-docker-compose -p zhiweijz build
+# 2. 拉取最新镜像
+docker pull zj591227045/zhiweijz-frontend:latest
+docker pull zj591227045/zhiweijz-backend:latest
 
-# 3. 重启服务
-docker-compose -p zhiweijz up -d
+# 3. 重新启动服务
+./start.sh
 ```
 
 ## 💾 数据备份
@@ -208,6 +209,7 @@ docker-compose -p zhiweijz exec -T postgres psql -U zhiweijz zhiweijz < backup.s
 - ✅ **安全配置** - 请求限流、安全头、网络隔离
 - ✅ **数据持久化** - 数据库数据持久化存储
 - ✅ **易于维护** - 完整的管理脚本和文档
+- ✅ **DockerHub镜像** - 使用预构建镜像，快速部署
 
 ## 📞 支持
 
