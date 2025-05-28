@@ -201,6 +201,9 @@ export class StatisticsController {
       const endDate = value.endDate ? new Date(value.endDate) : new Date();
       const familyId = value.familyId;
       const accountBookId = value.accountBookId;
+      const budgetId = value.budgetId;
+      const type = value.type;
+      const categoryIds = value.categoryIds ? value.categoryIds.split(',') : undefined;
 
       // 获取财务概览
       try {
@@ -209,7 +212,10 @@ export class StatisticsController {
           startDate,
           endDate,
           familyId,
-          accountBookId
+          accountBookId,
+          budgetId,
+          type,
+          categoryIds
         );
         res.status(200).json(overview);
       } catch (error) {

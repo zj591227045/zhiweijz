@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { PageContainer } from "@/components/layout/page-container";
 import { formatCurrency, getCategoryIconClass } from "@/lib/utils";
@@ -28,6 +28,7 @@ const getCurrentMonthRange = () => {
 
 export function TransactionListPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +40,9 @@ export function TransactionListPage() {
     balance: 0
   });
 
+  // 从URL参数获取预算ID
+  const budgetId = searchParams.get('budgetId');
+
   // 筛选条件状态
   const [filters, setFilters] = useState({
     startDate: getCurrentMonthRange().startDate,
@@ -47,6 +51,12 @@ export function TransactionListPage() {
     categoryIds: [],
     accountBookId: null,
     isFilterPanelOpen: false
+  });
+
+  // 筛选选项状态
+  const [filterOptions, setFilterOptions] = useState({
+    categories: [],
+    budgets: []
   });
 
   // 创建滚动容器引用
@@ -88,6 +98,11 @@ export function TransactionListPage() {
           queryParams.accountBookId = filters.accountBookId;
         }
 
+        // 添加预算ID参数
+        if (budgetId) {
+          queryParams.budgetId = budgetId;
+        }
+
         // 获取交易数据
         const response = await apiClient.get("/transactions", {
           params: queryParams
@@ -100,7 +115,8 @@ export function TransactionListPage() {
             endDate: filters.endDate,
             accountBookId: filters.accountBookId || undefined,
             type: filters.transactionType !== "ALL" ? filters.transactionType : undefined,
-            categoryIds: filters.categoryIds.length > 0 ? filters.categoryIds.join(",") : undefined
+            categoryIds: filters.categoryIds.length > 0 ? filters.categoryIds.join(",") : undefined,
+            budgetId: budgetId || undefined
           }
         });
 
@@ -129,7 +145,38 @@ export function TransactionListPage() {
     };
 
     fetchTransactions();
-  }, [isAuthenticated, filters]);
+  }, [isAuthenticated, filters, budgetId]);
+
+  // 获取筛选选项数据
+  useEffect(() => {
+    const fetchFilterOptions = async () => {
+      try {
+        // 获取分类数据
+        const categoriesResponse = await apiClient.get("/categories");
+        if (categoriesResponse && categoriesResponse.data) {
+          setFilterOptions(prev => ({
+            ...prev,
+            categories: categoriesResponse.data
+          }));
+        }
+
+        // 获取预算数据
+        const budgetsResponse = await apiClient.get("/budgets");
+        if (budgetsResponse && budgetsResponse.data) {
+          setFilterOptions(prev => ({
+            ...prev,
+            budgets: budgetsResponse.data
+          }));
+        }
+      } catch (error) {
+        console.error("获取筛选选项失败:", error);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchFilterOptions();
+    }
+  }, [isAuthenticated]);
 
   // 按日期分组交易
   const groupTransactionsByDate = (transactions: any[]) => {
@@ -178,17 +225,136 @@ export function TransactionListPage() {
     </>
   );
 
+  // 处理筛选条件变化
+  const handleFilterChange = (key: string, value: any) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  // 处理分类筛选
+  const handleCategoryFilter = (categoryId: string, checked: boolean) => {
+    setFilters(prev => ({
+      ...prev,
+      categoryIds: checked 
+        ? [...prev.categoryIds, categoryId]
+        : prev.categoryIds.filter(id => id !== categoryId)
+    }));
+  };
+
+  // 重置筛选条件
+  const resetFilters = () => {
+    setFilters({
+      startDate: getCurrentMonthRange().startDate,
+      endDate: getCurrentMonthRange().endDate,
+      transactionType: "ALL",
+      categoryIds: [],
+      accountBookId: null,
+      isFilterPanelOpen: false
+    });
+  };
+
   return (
-    <PageContainer title="交易记录" rightActions={rightActions} activeNavItem="profile">
+    <PageContainer title={budgetId ? "预算交易记录" : "交易记录"} rightActions={rightActions} activeNavItem="profile">
       <div ref={scrollContainerRef}>
         {/* 筛选区域 - 简化版 */}
         {filters.isFilterPanelOpen && (
           <div className="filter-panel">
             <div className="filter-header">
               <h3>筛选条件</h3>
-              <button onClick={toggleFilterPanel}>关闭</button>
+              <div className="filter-actions">
+                <button onClick={resetFilters} className="reset-button">重置</button>
+                <button onClick={toggleFilterPanel} className="close-button">关闭</button>
+              </div>
             </div>
-            {/* 这里可以添加筛选控件 */}
+            
+            <div className="filter-content">
+              {/* 时间范围筛选 */}
+              <div className="filter-section">
+                <h4>时间范围</h4>
+                <div className="date-range">
+                  <input
+                    type="date"
+                    value={filters.startDate}
+                    onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                    className="date-input"
+                  />
+                  <span>至</span>
+                  <input
+                    type="date"
+                    value={filters.endDate}
+                    onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                    className="date-input"
+                  />
+                </div>
+              </div>
+
+              {/* 交易类型筛选 */}
+              <div className="filter-section">
+                <h4>交易类型</h4>
+                <div className="transaction-type-filter">
+                  <label>
+                    <input
+                      type="radio"
+                      name="transactionType"
+                      value="ALL"
+                      checked={filters.transactionType === "ALL"}
+                      onChange={(e) => handleFilterChange('transactionType', e.target.value)}
+                    />
+                    全部
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="transactionType"
+                      value="INCOME"
+                      checked={filters.transactionType === "INCOME"}
+                      onChange={(e) => handleFilterChange('transactionType', e.target.value)}
+                    />
+                    收入
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="transactionType"
+                      value="EXPENSE"
+                      checked={filters.transactionType === "EXPENSE"}
+                      onChange={(e) => handleFilterChange('transactionType', e.target.value)}
+                    />
+                    支出
+                  </label>
+                </div>
+              </div>
+
+              {/* 分类筛选 */}
+              <div className="filter-section">
+                <h4>分类</h4>
+                <div className="category-filter">
+                  {filterOptions.categories.map((category: any) => (
+                    <label key={category.id} className="category-item">
+                      <input
+                        type="checkbox"
+                        checked={filters.categoryIds.includes(category.id)}
+                        onChange={(e) => handleCategoryFilter(category.id, e.target.checked)}
+                      />
+                      <i className={`fas ${getCategoryIconClass(category.icon)}`}></i>
+                      {category.name}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* 预算筛选 */}
+              {budgetId && (
+                <div className="filter-section">
+                  <h4>当前预算</h4>
+                  <div className="budget-info">
+                    {filterOptions.budgets.find((budget: any) => budget.id === budgetId)?.name || '未知预算'}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

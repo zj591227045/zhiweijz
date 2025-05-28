@@ -251,7 +251,6 @@ export function BudgetStatisticsPage() {
                 <RecentTransactions
                   transactions={recentTransactions}
                   budgetId={selectedBudgetId}
-                  familyMemberId={familyMembers.find(member => member.budgetId === selectedBudgetId)?.id}
                 />
               </>
             ) : (

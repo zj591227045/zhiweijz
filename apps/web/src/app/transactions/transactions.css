@@ -267,3 +267,136 @@
 .empty-text {
   font-size: 16px;
 }
+
+/* 筛选面板详细样式 */
+.filter-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.reset-button, .close-button {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reset-button:hover, .close-button:hover {
+  background-color: var(--background-hover);
+}
+
+.filter-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.filter-section {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+}
+
+.filter-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.filter-section h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+/* 日期范围筛选 */
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: var(--card-background);
+  color: var(--text-primary);
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.date-range span {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* 交易类型筛选 */
+.transaction-type-filter {
+  display: flex;
+  gap: 16px;
+}
+
+.transaction-type-filter label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.transaction-type-filter input[type="radio"] {
+  margin: 0;
+}
+
+/* 分类筛选 */
+.category-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.category-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.category-item:hover {
+  background-color: var(--background-hover);
+}
+
+.category-item input[type="checkbox"] {
+  margin: 0;
+}
+
+.category-item i {
+  font-size: 16px;
+  color: var(--text-primary);
+  width: 20px;
+  text-align: center;
+}
+
+/* 预算信息 */
+.budget-info {
+  padding: 8px 12px;
+  background-color: var(--background-secondary);
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--text-primary);
+}

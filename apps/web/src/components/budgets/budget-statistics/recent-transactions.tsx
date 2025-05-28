@@ -24,10 +24,9 @@ interface Transaction {
 interface RecentTransactionsProps {
   transactions: Transaction[];
   budgetId: string | null;
-  familyMemberId?: string;
 }
 
-export function RecentTransactions({ transactions, budgetId, familyMemberId }: RecentTransactionsProps) {
+export function RecentTransactions({ transactions, budgetId }: RecentTransactionsProps) {
   const router = useRouter();
 
   // 处理交易项点击 - 直接进入编辑页面
@@ -37,13 +36,16 @@ export function RecentTransactions({ transactions, budgetId, familyMemberId }: R
 
   // 处理查看全部按钮点击
   const handleViewAll = () => {
+    // 构建查询参数
+    const params = new URLSearchParams();
+    
     if (budgetId) {
-      // 如果有家庭成员ID，添加到URL参数中
-      const url = familyMemberId
-        ? `/budgets/${budgetId}/transactions?familyMemberId=${familyMemberId}`
-        : `/budgets/${budgetId}/transactions`;
-      router.push(url);
+      params.set('budgetId', budgetId);
     }
+    
+    // 重定向到交易列表页面
+    const url = `/transactions${params.toString() ? `?${params.toString()}` : ''}`;
+    router.push(url);
   };
 
   // 格式化日期

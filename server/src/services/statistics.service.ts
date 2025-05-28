@@ -511,7 +511,10 @@ export class StatisticsService {
     startDate: Date,
     endDate: Date,
     familyId?: string,
-    accountBookId?: string
+    accountBookId?: string,
+    budgetId?: string,
+    type?: string,
+    categoryIds?: string[]
   ): Promise<FinancialOverviewResponseDto> {
     // 验证用户是否为家庭成员
     if (familyId) {
@@ -529,7 +532,9 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      true // 设置excludeFamilyMember为true，排除家庭托管成员的交易记录
+      true, // 设置excludeFamilyMember为true，排除家庭托管成员的交易记录
+      budgetId,
+      categoryIds
     );
 
     // 获取支出交易记录 - 排除家庭托管成员的交易记录
@@ -540,7 +545,9 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      true // 设置excludeFamilyMember为true，排除家庭托管成员的交易记录
+      true, // 设置excludeFamilyMember为true，排除家庭托管成员的交易记录
+      budgetId,
+      categoryIds
     );
 
     // 获取分类信息

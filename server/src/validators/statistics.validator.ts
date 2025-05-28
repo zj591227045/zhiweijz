@@ -9,6 +9,9 @@ interface DateRangeQuery {
   groupBy?: string;
   familyId?: string;
   accountBookId?: string;
+  budgetId?: string;
+  type?: string;
+  categoryIds?: string;
 }
 
 /**
@@ -39,6 +42,15 @@ export function validateDateRangeQuery(query: any) {
     }),
     accountBookId: Joi.string().uuid().messages({
       'string.guid': '账本ID必须是有效的UUID',
+    }),
+    budgetId: Joi.string().uuid().messages({
+      'string.guid': '预算ID必须是有效的UUID',
+    }),
+    type: Joi.string().valid('income', 'expense').messages({
+      'any.only': '类型必须是 income 或 expense',
+    }),
+    categoryIds: Joi.string().messages({
+      'string.base': 'categoryIds必须是有效的字符串',
     }),
   });
 

@@ -239,7 +239,9 @@ export class TransactionRepository {
     endDate: Date,
     familyId?: string,
     accountBookId?: string,
-    excludeFamilyMember: boolean = false
+    excludeFamilyMember: boolean = false,
+    budgetId?: string,
+    categoryIds?: string[]
   ): Promise<any[]> {
     console.log('TransactionRepository.findByDateRange 参数:', {
       userId,
@@ -248,23 +250,35 @@ export class TransactionRepository {
       endDate,
       familyId,
       accountBookId,
-      excludeFamilyMember
+      excludeFamilyMember,
+      budgetId,
+      categoryIds
     });
 
-    const transactions = await prisma.transaction.findMany({
-      where: {
-        userId,
-        type,
-        date: {
-          gte: startDate,
-          lte: endDate,
-        },
-        ...(familyId && { familyId }),
-        ...(accountBookId && { accountBookId }),
-        // 如果excludeFamilyMember为true，则只查询familyMemberId为null的记录
-        // 这样可以排除托管成员的交易记录
-        ...(excludeFamilyMember && { familyMemberId: null }),
+    const whereConditions: any = {
+      userId,
+      type,
+      date: {
+        gte: startDate,
+        lte: endDate,
       },
+      ...(familyId && { familyId }),
+      ...(accountBookId && { accountBookId }),
+      ...(budgetId && { budgetId }),
+      // 如果excludeFamilyMember为true，则只查询familyMemberId为null的记录
+      // 这样可以排除托管成员的交易记录
+      ...(excludeFamilyMember && { familyMemberId: null }),
+    };
+
+    // 处理分类ID过滤
+    if (categoryIds && categoryIds.length > 0) {
+      whereConditions.categoryId = {
+        in: categoryIds
+      };
+    }
+
+    const transactions = await prisma.transaction.findMany({
+      where: whereConditions,
       include: {
         category: true,
       },
