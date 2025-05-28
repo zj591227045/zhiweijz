@@ -53,11 +53,47 @@ check_docker() {
 # 检查Docker Compose是否可用
 check_docker_compose() {
     log_info "检查Docker Compose..."
-    if ! command -v docker-compose >/dev/null 2>&1; then
+    
+    # 检查 docker compose (新版本) 或 docker-compose (旧版本)
+    local compose_cmd=""
+    if docker compose version >/dev/null 2>&1; then
+        compose_cmd="docker compose"
+        log_info "使用 Docker Compose V2 (docker compose)"
+    elif command -v docker-compose >/dev/null 2>&1; then
+        compose_cmd="docker-compose"
+        log_info "使用 Docker Compose V1 (docker-compose)"
+    else
         log_error "Docker Compose未安装"
         exit 1
     fi
+    
+    # 导出compose命令供其他函数使用
+    export COMPOSE_CMD="$compose_cmd"
+    
+    # 检查版本
+    local version=$($compose_cmd version --short 2>/dev/null || echo "unknown")
+    log_info "Docker Compose版本: $version"
+    
     log_success "Docker Compose可用"
+}
+
+# 检查系统资源
+check_system_resources() {
+    log_info "检查系统资源..."
+    
+    # 检查内存
+    local mem_total=$(free -m | awk 'NR==2{printf "%.0f", $2}' 2>/dev/null || echo "0")
+    if [ "$mem_total" -gt 0 ] && [ "$mem_total" -lt 1024 ]; then
+        log_warning "系统内存较少 (${mem_total}MB)，可能影响容器启动"
+    fi
+    
+    # 检查磁盘空间
+    local disk_free=$(df -BM . | awk 'NR==2 {print $4}' | sed 's/M//' 2>/dev/null || echo "0")
+    if [ "$disk_free" -gt 0 ] && [ "$disk_free" -lt 2048 ]; then
+        log_warning "磁盘空间不足 (${disk_free}MB)，建议至少2GB可用空间"
+    fi
+    
+    log_success "系统资源检查完成"
 }
 
 # 设置Docker镜像源
@@ -99,7 +135,7 @@ cleanup_old_containers() {
     log_info "清理旧容器..."
 
     # 停止并删除旧容器
-    docker-compose -p "$PROJECT_NAME" down --remove-orphans 2>/dev/null || true
+    $COMPOSE_CMD -p "$PROJECT_NAME" down --remove-orphans 2>/dev/null || true
 
     # 删除悬空镜像
     docker image prune -f >/dev/null 2>&1 || true
@@ -113,46 +149,104 @@ pull_images() {
 
     # 拉取后端镜像
     log_info "拉取后端镜像..."
-    docker pull zj591227045/zhiweijz-backend:latest
+    if ! docker pull zj591227045/zhiweijz-backend:latest; then
+        log_error "后端镜像拉取失败"
+        exit 1
+    fi
 
     # 拉取前端镜像
     log_info "拉取前端镜像..."
-    docker pull zj591227045/zhiweijz-frontend:latest
+    if ! docker pull zj591227045/zhiweijz-frontend:latest; then
+        log_error "前端镜像拉取失败"
+        exit 1
+    fi
 
     log_success "所有镜像拉取完成"
 }
 
+# 安全启动单个服务
+start_service_safely() {
+    local service_name=$1
+    local wait_time=${2:-10}
+    
+    log_info "启动 ${service_name} 服务..."
+    
+    # 尝试启动服务，添加重试机制
+    local retry_count=0
+    local max_retries=3
+    
+    while [ $retry_count -lt $max_retries ]; do
+        if $COMPOSE_CMD -p "$PROJECT_NAME" up -d "$service_name" 2>/dev/null; then
+            log_success "${service_name} 服务启动成功"
+            break
+        else
+            retry_count=$((retry_count + 1))
+            log_warning "${service_name} 启动失败，重试 ${retry_count}/${max_retries}"
+            
+            if [ $retry_count -lt $max_retries ]; then
+                # 清理可能的问题容器
+                $COMPOSE_CMD -p "$PROJECT_NAME" rm -f "$service_name" 2>/dev/null || true
+                sleep 5
+            else
+                log_error "${service_name} 服务启动失败，已达到最大重试次数"
+                return 1
+            fi
+        fi
+    done
+    
+    # 等待服务启动
+    if [ $wait_time -gt 0 ]; then
+        log_info "等待 ${service_name} 服务启动 (${wait_time}秒)..."
+        sleep $wait_time
+    fi
+    
+    return 0
+}
+
 # 启动服务
 start_services() {
-    log_info "启动服务..."
+    log_info "开始启动服务..."
 
     # 启动数据库
-    log_info "启动PostgreSQL数据库..."
-    docker-compose -p "$PROJECT_NAME" up -d postgres
-
-    # 等待数据库启动
-    log_info "等待数据库启动..."
-    sleep 10
+    if ! start_service_safely "postgres" 15; then
+        log_error "数据库启动失败"
+        exit 1
+    fi
+    
+    # 验证数据库是否真正启动
+    log_info "验证数据库连接..."
+    local db_ready=false
+    for i in {1..30}; do
+        if $COMPOSE_CMD -p "$PROJECT_NAME" exec -T postgres pg_isready -U zhiweijz -d zhiweijz >/dev/null 2>&1; then
+            db_ready=true
+            break
+        fi
+        sleep 2
+    done
+    
+    if [ "$db_ready" = false ]; then
+        log_error "数据库启动超时"
+        exit 1
+    fi
+    log_success "数据库连接验证成功"
 
     # 启动后端服务
-    log_info "启动后端服务..."
-    docker-compose -p "$PROJECT_NAME" up -d backend
-
-    # 等待后端启动
-    log_info "等待后端服务启动..."
-    sleep 15
+    if ! start_service_safely "backend" 20; then
+        log_error "后端服务启动失败"
+        exit 1
+    fi
 
     # 启动前端服务
-    log_info "启动前端服务..."
-    docker-compose -p "$PROJECT_NAME" up -d frontend
-
-    # 等待前端启动
-    log_info "等待前端服务启动..."
-    sleep 10
+    if ! start_service_safely "frontend" 15; then
+        log_error "前端服务启动失败"
+        exit 1
+    fi
 
     # 启动Nginx
-    log_info "启动Nginx反向代理..."
-    docker-compose -p "$PROJECT_NAME" up -d nginx
+    if ! start_service_safely "nginx" 10; then
+        log_error "Nginx服务启动失败"
+        exit 1
+    fi
 
     log_success "所有服务启动完成"
 }
@@ -164,7 +258,7 @@ check_services() {
     # 检查容器状态
     echo ""
     echo "=== 容器状态 ==="
-    docker-compose -p "$PROJECT_NAME" ps
+    $COMPOSE_CMD -p "$PROJECT_NAME" ps
 
     echo ""
     echo "=== 服务健康检查 ==="
@@ -174,7 +268,7 @@ check_services() {
     local https_port=$(get_env_var "NGINX_HTTPS_PORT" "443")
 
     # 检查数据库
-    if docker-compose -p "$PROJECT_NAME" exec -T postgres pg_isready -U zhiweijz -d zhiweijz >/dev/null 2>&1; then
+    if $COMPOSE_CMD -p "$PROJECT_NAME" exec -T postgres pg_isready -U zhiweijz -d zhiweijz >/dev/null 2>&1; then
         log_success "数据库连接正常"
     else
         log_warning "数据库连接异常"
@@ -309,10 +403,10 @@ show_access_info() {
     echo -e "  🔑 密码: ${YELLOW}zhiweijz123${NC}"
     echo ""
     echo -e "${BLUE}管理命令:${NC}"
-    echo -e "  📋 查看日志: ${YELLOW}docker-compose -p ${PROJECT_NAME} logs -f${NC}"
-    echo -e "  🔄 重启服务: ${YELLOW}docker-compose -p ${PROJECT_NAME} restart${NC}"
-    echo -e "  🛑 停止服务: ${YELLOW}docker-compose -p ${PROJECT_NAME} down${NC}"
-    echo -e "  🧹 清理数据: ${YELLOW}docker-compose -p ${PROJECT_NAME} down -v${NC}"
+    echo -e "  📋 查看日志: ${YELLOW}${COMPOSE_CMD} -p ${PROJECT_NAME} logs -f${NC}"
+    echo -e "  🔄 重启服务: ${YELLOW}${COMPOSE_CMD} -p ${PROJECT_NAME} restart${NC}"
+    echo -e "  🛑 停止服务: ${YELLOW}${COMPOSE_CMD} -p ${PROJECT_NAME} down${NC}"
+    echo -e "  🧹 清理数据: ${YELLOW}${COMPOSE_CMD} -p ${PROJECT_NAME} down -v${NC}"
     echo ""
     echo -e "${BLUE}💡 访问提示:${NC}"
     echo -e "  • 本地访问：在本机浏览器中使用 localhost 地址"
@@ -334,6 +428,7 @@ main() {
     # 检查环境
     check_docker
     check_docker_compose
+    check_system_resources
 
     # 设置Docker镜像源
     setup_docker_mirrors
