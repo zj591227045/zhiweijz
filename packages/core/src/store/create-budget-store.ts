@@ -1,5 +1,12 @@
 import { create } from 'zustand';
 import { StorageAdapter } from '../adapters/storage-adapter';
+import {
+  Budget,
+  CreateBudgetData,
+  UpdateBudgetData,
+  ExtendedBudget,
+  BudgetResponse
+} from '../models/budget';
 
 // 预算类型枚举
 export enum BudgetType {
@@ -7,59 +14,16 @@ export enum BudgetType {
   GENERAL = "GENERAL",
 }
 
-// 预算接口
-export interface Budget {
-  id: string;
-  name: string;
-  amount: number;
-  budgetType: BudgetType;
-  accountBookId: string;
-  startDate?: string;
-  endDate?: string;
-  isUnlimited?: boolean;
-  refreshDay?: number;
-  enableRollover?: boolean;
-  rolloverAmount?: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// 创建预算数据接口
-export interface CreateBudgetData {
-  name: string;
-  amount: number;
-  budgetType: BudgetType;
-  accountBookId: string;
-  startDate?: string;
-  endDate?: string;
-  isUnlimited?: boolean;
-  refreshDay?: number;
-  enableRollover?: boolean;
-  rolloverAmount?: number;
-}
-
-// 更新预算数据接口
-export interface UpdateBudgetData {
-  name?: string;
-  amount?: number;
-  startDate?: string;
-  endDate?: string;
-  isUnlimited?: boolean;
-  refreshDay?: number;
-  enableRollover?: boolean;
-  rolloverAmount?: number;
-}
-
 // 预算状态接口
 export interface BudgetState {
-  budgets: Budget[];
+  budgets: ExtendedBudget[];
   isLoading: boolean;
   error: string | null;
   currentAccountBookId?: string;
-  
+
   fetchBudgets: (accountBookId: string, budgetType?: BudgetType) => Promise<void>;
   fetchActiveBudgets: (accountBookId: string) => Promise<void>;
-  getBudget: (id: string) => Promise<Budget | null>;
+  getBudget: (id: string) => Promise<ExtendedBudget | null>;
   createBudget: (data: CreateBudgetData) => Promise<boolean>;
   updateBudget: (id: string, data: UpdateBudgetData) => Promise<boolean>;
   deleteBudget: (id: string) => Promise<boolean>;
@@ -87,12 +51,12 @@ export const createBudgetStore = (options: BudgetStoreOptions) => {
     fetchBudgets: async (accountBookId: string, budgetType?: BudgetType) => {
       try {
         set({ isLoading: true, error: null, currentAccountBookId: accountBookId });
-        
+
         const params: Record<string, string> = { accountBookId };
         if (budgetType) params.budgetType = budgetType;
-        
+
         const response = await apiClient.get('/budgets', { params });
-        
+
         // 处理不同的响应格式
         let budgets = [];
         if (response && typeof response === 'object') {
@@ -102,7 +66,7 @@ export const createBudgetStore = (options: BudgetStoreOptions) => {
             budgets = response;
           }
         }
-        
+
         set({
           budgets,
           isLoading: false
@@ -113,7 +77,7 @@ export const createBudgetStore = (options: BudgetStoreOptions) => {
           isLoading: false,
           error: errorMessage,
         });
-        
+
         if (onError) {
           onError(errorMessage);
         }
@@ -124,11 +88,11 @@ export const createBudgetStore = (options: BudgetStoreOptions) => {
     fetchActiveBudgets: async (accountBookId: string) => {
       try {
         set({ isLoading: true, error: null, currentAccountBookId: accountBookId });
-        
-        const response = await apiClient.get('/budgets/active', { 
-          params: { accountBookId } 
+
+        const response = await apiClient.get('/budgets/active', {
+          params: { accountBookId }
         });
-        
+
         // 处理不同的响应格式
         let budgets = [];
         if (response && typeof response === 'object') {
@@ -138,7 +102,7 @@ export const createBudgetStore = (options: BudgetStoreOptions) => {
             budgets = response;
           }
         }
-        
+
         set({
           budgets,
           isLoading: false
@@ -149,7 +113,7 @@ export const createBudgetStore = (options: BudgetStoreOptions) => {
           isLoading: false,
           error: errorMessage,
         });
-        
+
         if (onError) {
           onError(errorMessage);
         }
@@ -160,7 +124,7 @@ export const createBudgetStore = (options: BudgetStoreOptions) => {
     getBudget: async (id: string) => {
       try {
         const response = await apiClient.get(`/budgets/${id}`);
-        
+
         // 处理响应格式
         let budget = null;
         if (response && typeof response === 'object') {
@@ -170,16 +134,16 @@ export const createBudgetStore = (options: BudgetStoreOptions) => {
             budget = response;
           }
         }
-        
+
         return budget;
       } catch (error: any) {
         const errorMessage = error.response?.data?.message || error.message || '获取预算详情失败';
         set({ error: errorMessage });
-        
+
         if (onError) {
           onError(errorMessage);
         }
-        
+
         return null;
       }
     },
@@ -188,15 +152,15 @@ export const createBudgetStore = (options: BudgetStoreOptions) => {
     createBudget: async (data: CreateBudgetData) => {
       try {
         set({ isLoading: true, error: null });
-        
+
         await apiClient.post('/budgets', data);
-        
+
         set({ isLoading: false });
-        
+
         if (onSuccess) {
           onSuccess('预算创建成功');
         }
-        
+
         return true;
       } catch (error: any) {
         const errorMessage = error.response?.data?.message || error.message || '创建预算失败';
@@ -204,11 +168,11 @@ export const createBudgetStore = (options: BudgetStoreOptions) => {
           isLoading: false,
           error: errorMessage,
         });
-        
+
         if (onError) {
           onError(errorMessage);
         }
-        
+
         return false;
       }
     },
@@ -217,15 +181,15 @@ export const createBudgetStore = (options: BudgetStoreOptions) => {
     updateBudget: async (id: string, data: UpdateBudgetData) => {
       try {
         set({ isLoading: true, error: null });
-        
+
         await apiClient.put(`/budgets/${id}`, data);
-        
+
         set({ isLoading: false });
-        
+
         if (onSuccess) {
           onSuccess('预算更新成功');
         }
-        
+
         return true;
       } catch (error: any) {
         const errorMessage = error.response?.data?.message || error.message || '更新预算失败';
@@ -233,11 +197,11 @@ export const createBudgetStore = (options: BudgetStoreOptions) => {
           isLoading: false,
           error: errorMessage,
         });
-        
+
         if (onError) {
           onError(errorMessage);
         }
-        
+
         return false;
       }
     },
@@ -246,15 +210,15 @@ export const createBudgetStore = (options: BudgetStoreOptions) => {
     deleteBudget: async (id: string) => {
       try {
         set({ isLoading: true, error: null });
-        
+
         await apiClient.delete(`/budgets/${id}`);
-        
+
         set({ isLoading: false });
-        
+
         if (onSuccess) {
           onSuccess('预算删除成功');
         }
-        
+
         return true;
       } catch (error: any) {
         const errorMessage = error.response?.data?.message || error.message || '删除预算失败';
@@ -262,11 +226,11 @@ export const createBudgetStore = (options: BudgetStoreOptions) => {
           isLoading: false,
           error: errorMessage,
         });
-        
+
         if (onError) {
           onError(errorMessage);
         }
-        
+
         return false;
       }
     },

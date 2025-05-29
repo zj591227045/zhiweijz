@@ -48,3 +48,74 @@ prisma/migrations/*_init/migration.sql
 .temp/
 tmp/
 temp/
+
+# ===== Android/React Native =====
+
+# Android Studio
+apps/android/.gradle/
+apps/android/local.properties
+apps/android/.idea/
+apps/android/captures/
+apps/android/app/release/
+apps/android/app/debug/
+apps/android/*.iml
+apps/android/.externalNativeBuild/
+apps/android/.cxx/
+
+# Android Build
+apps/android/build/
+apps/android/app/build/
+apps/android/*/build/
+apps/android/gradlew
+apps/android/gradlew.bat
+apps/android/gradle/wrapper/gradle-wrapper.jar
+
+# Android Keystore
+apps/android/app/debug.keystore
+apps/android/app/release.keystore
+apps/android/*.keystore
+apps/android/keystore.properties
+
+# React Native
+apps/android/node_modules/
+apps/android/npm-debug.log*
+apps/android/yarn-debug.log*
+apps/android/yarn-error.log*
+
+# Metro
+apps/android/.metro-health-check*
+apps/android/metro.config.js.bak
+
+# React Native specific
+apps/android/android/app/build/
+apps/android/ios/build/
+apps/android/ios/Pods/
+apps/android/ios/*.xcworkspace/xcuserdata/
+
+# Flipper
+apps/android/ios/Pods/Flipper*
+apps/android/android/app/src/debug/java/com/*/ReactNativeFlipper.java
+
+# Bundle artifacts
+apps/android/*.jsbundle
+
+# CocoaPods (for future iOS)
+apps/android/ios/Pods/
+apps/android/ios/Podfile.lock
+
+# Fastlane
+apps/android/fastlane/report.xml
+apps/android/fastlane/Preview.html
+apps/android/fastlane/screenshots/
+apps/android/fastlane/test_output/
+
+# Generated files
+apps/android/android/app/src/main/assets/index.android.bundle
+apps/android/android/app/src/main/assets/index.android.bundle.meta
+apps/android/android/app/src/main/res/drawable-*/
+apps/android/android/app/src/main/res/raw/
+
+# Temporary files
+apps/android/init.gradle
+apps/android/*.tmp
+apps/android/*.temp

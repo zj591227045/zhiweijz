@@ -4,107 +4,136 @@
 
 ### 必需软件
 - **Node.js**: 18.0.0 或更高版本
-- **Yarn**: 1.22.0 或更高版本
+- **npm**: 随Node.js安装
 - **Android Studio**: 最新版本
 - **Android SDK**: API Level 21 (Android 5.0) 或更高
 - **JDK**: 11 或更高版本
 
 ### 可选软件
-- **React Native CLI**: `npm install -g react-native-cli`
+- **React Native CLI**: `npm install -g @react-native-community/cli`
 - **Android模拟器**: 或真实Android设备
+
+## 项目结构说明
+
+当前项目采用以下结构：
+- `/c/Code/ZhiWeiJiZhangAndroid/`: 完整的React Native Android项目
+- `/c/Code/zhiweijz/`: 原始项目代码库
+- 后端服务运行在端口3000
 
 ## 快速启动
 
-### 1. 安装依赖
+### 1. 启动后端服务
 
+首先启动后端API服务：
 ```bash
-# 在项目根目录安装所有依赖
-yarn install
-
-# 安装移动端特定依赖
-cd packages/mobile
-yarn install
-
-# 安装Android应用依赖
-cd ../../apps/android
-yarn install
+cd /c/Code/zhiweijz/server
+npm start
 ```
 
-### 2. 构建核心包
+后端服务将在 `http://localhost:3000` 启动。
+
+### 2. 进入Android项目目录
 
 ```bash
-# 返回项目根目录
-cd ../..
-
-# 构建核心包
-cd packages/core
-yarn build
-
-# 构建移动端包
-cd ../mobile
-yarn build
+cd /c/Code/ZhiWeiJiZhangAndroid
 ```
 
-### 3. 启动后端服务
+### 3. 安装依赖
 
 ```bash
-# 返回项目根目录并启动后端
-cd ../..
-cd server
-yarn dev
+npm install
 ```
-
-后端服务将在 `http://localhost:3001` 启动。
 
 ### 4. 配置Android环境
 
-#### 4.1 设置环境变量
+确保Android Studio已正确安装并配置：
 
-在 `~/.bashrc` 或 `~/.zshrc` 中添加：
+1. 打开Android Studio
+2. 安装Android SDK (API Level 21+)
+3. 配置Android Virtual Device (AVD)
+4. 确保环境变量正确设置：
+   - `ANDROID_HOME`
+   - `JAVA_HOME`
 
+## APK构建方法
+
+### 方法一：命令行构建
+
+#### 构建Debug APK
 ```bash
-export ANDROID_HOME=$HOME/Library/Android/sdk
-export PATH=$PATH:$ANDROID_HOME/emulator
-export PATH=$PATH:$ANDROID_HOME/tools
-export PATH=$PATH:$ANDROID_HOME/tools/bin
-export PATH=$PATH:$ANDROID_HOME/platform-tools
+cd /c/Code/ZhiWeiJiZhangAndroid/android
+./gradlew assembleDebug
 ```
 
-#### 4.2 创建Android项目
+构建完成后，APK文件位置：
+`/c/Code/ZhiWeiJiZhangAndroid/android/app/build/outputs/apk/debug/app-debug.apk`
 
+#### 构建Release APK
 ```bash
-cd apps/android
-
-# 初始化React Native项目
-npx react-native init ZhiWeiJiZhangAndroid --template react-native-template-typescript
-
-# 复制我们的源代码到新项目
-cp -r src/* ZhiWeiJiZhangAndroid/
-cp index.js ZhiWeiJiZhangAndroid/
-cp app.json ZhiWeiJiZhangAndroid/
-cp package.json ZhiWeiJiZhangAndroid/
-
-# 进入项目目录
-cd ZhiWeiJiZhangAndroid
-
-# 安装依赖
-yarn install
+cd /c/Code/ZhiWeiJiZhangAndroid/android
+./gradlew assembleRelease
 ```
 
-### 5. 启动Android应用
+构建完成后，APK文件位置：
+`/c/Code/ZhiWeiJiZhangAndroid/android/app/build/outputs/apk/release/app-release.apk`
 
-#### 5.1 启动Metro服务器
+### 方法二：Android Studio构建
+
+1. 打开Android Studio
+2. 选择 "Open an existing Android Studio project"
+3. 导航到 `/c/Code/ZhiWeiJiZhangAndroid/android` 目录
+4. 等待项目同步完成
+5. 在菜单栏选择 `Build` > `Build Bundle(s) / APK(s)` > `Build APK(s)`
+6. 构建完成后，点击通知中的 "locate" 链接查看APK文件
+
+## 运行和测试
+
+### 启动Metro服务器
 
 ```bash
-# 在Android项目目录中
-yarn start
+cd /c/Code/ZhiWeiJiZhangAndroid
+npm start
 ```
 
-#### 5.2 运行Android应用
+### 在模拟器中运行
+
+1. 启动Android模拟器：
+   ```bash
+   # 列出可用的AVD
+   emulator -list-avds
+
+   # 启动指定的AVD（替换AVD_NAME为实际名称）
+   emulator -avd AVD_NAME
+   ```
+
+2. 运行应用：
+   ```bash
+   cd /c/Code/ZhiWeiJiZhangAndroid
+   npx react-native run-android
+   ```
+
+### 在真实设备上运行
+
+1. 启用开发者选项和USB调试
+2. 连接设备到电脑
+3. 验证设备连接：
+   ```bash
+   adb devices
+   ```
+4. 运行应用：
+   ```bash
+   cd /c/Code/ZhiWeiJiZhangAndroid
+   npx react-native run-android
+   ```
+
+### 安装APK到设备
 
 ```bash
-# 在另一个终端窗口中
-yarn android
+# 安装到连接的设备
+adb install /c/Code/ZhiWeiJiZhangAndroid/android/app/build/outputs/apk/debug/app-debug.apk
+
+# 或者安装到指定设备
+adb -s DEVICE_ID install app-debug.apk
 ```
 
 ## 开发模式
@@ -113,7 +142,7 @@ yarn android
 React Native支持热重载，修改代码后会自动刷新应用。
 
 ### 调试
-- **Chrome DevTools**: 在模拟器中按 `Cmd+M` (iOS) 或 `Ctrl+M` (Android)，选择 "Debug"
+- **Chrome DevTools**: 在模拟器中按 `Ctrl+M` (Android)，选择 "Debug"
 - **Flipper**: Facebook的移动应用调试工具
 - **React Native Debugger**: 专门的React Native调试工具
 
@@ -129,18 +158,18 @@ npx react-native log-android
 ## 配置说明
 
 ### API配置
-在 `packages/mobile/src/api/config.ts` 中配置API地址：
+在 `/c/Code/ZhiWeiJiZhangAndroid/App.tsx` 中配置API地址：
 
 ```typescript
 // 开发环境API地址
-const DEV_API_BASE_URL = 'http://localhost:3001/api';
+const DEV_API_BASE_URL = 'http://localhost:3000/api';
 
 // 如果使用真实设备，需要使用电脑的IP地址
-const DEV_API_BASE_URL = 'http://192.168.1.100:3001/api';
+const DEV_API_BASE_URL = 'http://192.168.1.100:3000/api';
 ```
 
 ### 主题配置
-在 `apps/android/src/theme.ts` 中自定义主题：
+在 `/c/Code/ZhiWeiJiZhangAndroid/theme.ts` 中自定义主题：
 
 ```typescript
 export const theme = {
@@ -152,6 +181,31 @@ export const theme = {
   },
 };
 ```
+
+## 项目更新流程
+
+### 从原项目同步代码
+
+当原项目 `/c/Code/zhiweijz/` 有更新时，可以按以下步骤同步：
+
+1. **更新核心逻辑**：
+   ```bash
+   # 复制更新的组件和逻辑
+   cp -r /c/Code/zhiweijz/packages/mobile/src/* /c/Code/ZhiWeiJiZhangAndroid/src/
+   ```
+
+2. **更新依赖**：
+   ```bash
+   cd /c/Code/ZhiWeiJiZhangAndroid
+   npm install
+   ```
+
+3. **重新构建**：
+   ```bash
+   cd /c/Code/ZhiWeiJiZhangAndroid/android
+   ./gradlew clean
+   ./gradlew assembleDebug
+   ```
 
 ## 常见问题
 

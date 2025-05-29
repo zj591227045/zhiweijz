@@ -1,0 +1,62 @@
+# Android Studio
+.gradle/
+local.properties
+.idea/
+captures/
+app/release/
+app/debug/
+*.iml
+.externalNativeBuild/
+.cxx/
+
+# Android Build
+build/
+app/build/
+*/build/
+
+# Android Keystore
+app/debug.keystore
+app/release.keystore
+*.keystore
+keystore.properties
+
+# React Native
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Metro
+.metro-health-check*
+metro.config.js.bak
+
+# Bundle artifacts
+*.jsbundle
+
+# Generated files
+android/app/src/main/assets/index.android.bundle
+android/app/src/main/assets/index.android.bundle.meta
+android/app/src/main/res/drawable-*/
+android/app/src/main/res/raw/
+
+# Temporary files
+init.gradle
+*.tmp
+*.temp
+*.bak
+
+# Gradle Wrapper (optional - you can choose to include or exclude)
+gradlew
+gradlew.bat
+gradle/wrapper/gradle-wrapper.jar
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

@@ -1,49 +1,18 @@
 import { create } from 'zustand';
 import { StorageAdapter } from '../adapters/storage-adapter';
-
-// 交易类型枚举
-export enum TransactionType {
-  EXPENSE = "EXPENSE",
-  INCOME = "INCOME",
-}
-
-// 分类接口
-export interface Category {
-  id: string;
-  name: string;
-  type: TransactionType;
-  icon?: string;
-  color?: string;
-  isHidden?: boolean;
-  order?: number;
-  accountBookId?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// 创建分类数据接口
-export interface CreateCategoryData {
-  name: string;
-  type: TransactionType;
-  icon?: string;
-  color?: string;
-  accountBookId: string;
-}
-
-// 更新分类数据接口
-export interface UpdateCategoryData {
-  name?: string;
-  icon?: string;
-  color?: string;
-  isHidden?: boolean;
-}
+import {
+  Category,
+  TransactionType,
+  CreateCategoryData,
+  UpdateCategoryData
+} from '../models/category';
 
 // 分类状态接口
 export interface CategoryState {
   categories: Category[];
   isLoading: boolean;
   error: string | null;
-  
+
   fetchCategories: (type?: TransactionType, accountBookId?: string) => Promise<void>;
   getCategory: (id: string) => Promise<Category | null>;
   createCategory: (data: CreateCategoryData) => Promise<boolean>;
@@ -73,13 +42,13 @@ export const createCategoryStore = (options: CategoryStoreOptions) => {
     fetchCategories: async (type?: TransactionType, accountBookId?: string) => {
       try {
         set({ isLoading: true, error: null });
-        
+
         const params: Record<string, string> = {};
         if (type) params.type = type;
         if (accountBookId) params.accountBookId = accountBookId;
-        
+
         const response = await apiClient.get('/categories', { params });
-        
+
         // 处理不同的响应格式
         let categories = [];
         if (response && typeof response === 'object') {
@@ -89,7 +58,7 @@ export const createCategoryStore = (options: CategoryStoreOptions) => {
             categories = response;
           }
         }
-        
+
         set({
           categories,
           isLoading: false
@@ -100,7 +69,7 @@ export const createCategoryStore = (options: CategoryStoreOptions) => {
           isLoading: false,
           error: errorMessage,
         });
-        
+
         if (onError) {
           onError(errorMessage);
         }
@@ -111,7 +80,7 @@ export const createCategoryStore = (options: CategoryStoreOptions) => {
     getCategory: async (id: string) => {
       try {
         const response = await apiClient.get(`/categories/${id}`);
-        
+
         // 处理响应格式
         let category = null;
         if (response && typeof response === 'object') {
@@ -121,16 +90,16 @@ export const createCategoryStore = (options: CategoryStoreOptions) => {
             category = response;
           }
         }
-        
+
         return category;
       } catch (error: any) {
         const errorMessage = error.response?.data?.message || error.message || '获取分类详情失败';
         set({ error: errorMessage });
-        
+
         if (onError) {
           onError(errorMessage);
         }
-        
+
         return null;
       }
     },
@@ -139,15 +108,15 @@ export const createCategoryStore = (options: CategoryStoreOptions) => {
     createCategory: async (data: CreateCategoryData) => {
       try {
         set({ isLoading: true, error: null });
-        
+
         await apiClient.post('/categories', data);
-        
+
         set({ isLoading: false });
-        
+
         if (onSuccess) {
           onSuccess('分类创建成功');
         }
-        
+
         return true;
       } catch (error: any) {
         const errorMessage = error.response?.data?.message || error.message || '创建分类失败';
@@ -155,11 +124,11 @@ export const createCategoryStore = (options: CategoryStoreOptions) => {
           isLoading: false,
           error: errorMessage,
         });
-        
+
         if (onError) {
           onError(errorMessage);
         }
-        
+
         return false;
       }
     },
@@ -168,15 +137,15 @@ export const createCategoryStore = (options: CategoryStoreOptions) => {
     updateCategory: async (id: string, data: UpdateCategoryData) => {
       try {
         set({ isLoading: true, error: null });
-        
+
         await apiClient.put(`/categories/${id}`, data);
-        
+
         set({ isLoading: false });
-        
+
         if (onSuccess) {
           onSuccess('分类更新成功');
         }
-        
+
         return true;
       } catch (error: any) {
         const errorMessage = error.response?.data?.message || error.message || '更新分类失败';
@@ -184,11 +153,11 @@ export const createCategoryStore = (options: CategoryStoreOptions) => {
           isLoading: false,
           error: errorMessage,
         });
-        
+
         if (onError) {
           onError(errorMessage);
         }
-        
+
         return false;
       }
     },
@@ -197,15 +166,15 @@ export const createCategoryStore = (options: CategoryStoreOptions) => {
     deleteCategory: async (id: string) => {
       try {
         set({ isLoading: true, error: null });
-        
+
         await apiClient.delete(`/categories/${id}`);
-        
+
         set({ isLoading: false });
-        
+
         if (onSuccess) {
           onSuccess('分类删除成功');
         }
-        
+
         return true;
       } catch (error: any) {
         const errorMessage = error.response?.data?.message || error.message || '删除分类失败';
@@ -213,11 +182,11 @@ export const createCategoryStore = (options: CategoryStoreOptions) => {
           isLoading: false,
           error: errorMessage,
         });
-        
+
         if (onError) {
           onError(errorMessage);
         }
-        
+
         return false;
       }
     },
@@ -226,15 +195,15 @@ export const createCategoryStore = (options: CategoryStoreOptions) => {
     updateCategoryOrder: async (categoryIds: string[]) => {
       try {
         set({ isLoading: true, error: null });
-        
+
         await apiClient.put('/categories/order', { categoryIds });
-        
+
         set({ isLoading: false });
-        
+
         if (onSuccess) {
           onSuccess('分类排序更新成功');
         }
-        
+
         return true;
       } catch (error: any) {
         const errorMessage = error.response?.data?.message || error.message || '更新分类排序失败';
@@ -242,11 +211,11 @@ export const createCategoryStore = (options: CategoryStoreOptions) => {
           isLoading: false,
           error: errorMessage,
         });
-        
+
         if (onError) {
           onError(errorMessage);
         }
-        
+
         return false;
       }
     },

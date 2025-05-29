@@ -1,59 +1,11 @@
 import { create } from 'zustand';
 import { StorageAdapter } from '../adapters/storage-adapter';
-
-// 交易类型枚举
-export enum TransactionType {
-  EXPENSE = "EXPENSE",
-  INCOME = "INCOME",
-}
-
-// 交易接口
-export interface Transaction {
-  id: string;
-  amount: number;
-  type: TransactionType;
-  categoryId: string;
-  category?: {
-    id: string;
-    name: string;
-    icon?: string;
-  };
-  accountBookId: string;
-  accountBook?: {
-    id: string;
-    name: string;
-  };
-  budgetId?: string;
-  budget?: {
-    id: string;
-    name: string;
-  };
-  description?: string;
-  date: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// 创建交易数据接口
-export interface CreateTransactionData {
-  amount: number;
-  type: TransactionType;
-  categoryId: string;
-  accountBookId: string;
-  budgetId?: string;
-  description?: string;
-  date: string;
-}
-
-// 更新交易数据接口
-export interface UpdateTransactionData {
-  amount?: number;
-  type?: TransactionType;
-  categoryId?: string;
-  budgetId?: string;
-  description?: string;
-  date?: string;
-}
+import {
+  Transaction,
+  TransactionType,
+  CreateTransactionData,
+  UpdateTransactionData
+} from '../models/transaction';
 
 // 交易状态接口
 export interface TransactionState {
@@ -61,7 +13,7 @@ export interface TransactionState {
   transaction: Transaction | null;
   isLoading: boolean;
   error: string | null;
-  
+
   fetchTransactions: (params?: any) => Promise<void>;
   fetchTransaction: (id: string) => Promise<void>;
   createTransaction: (data: CreateTransactionData) => Promise<boolean>;
@@ -83,10 +35,10 @@ export interface TransactionStoreOptions {
 }
 
 export const createTransactionStore = (options: TransactionStoreOptions) => {
-  const { 
-    apiClient, 
-    storage, 
-    onCreateSuccess, 
+  const {
+    apiClient,
+    storage,
+    onCreateSuccess,
     onCreateError,
     onUpdateSuccess,
     onUpdateError,
@@ -104,9 +56,9 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
     fetchTransactions: async (params = {}) => {
       try {
         set({ isLoading: true, error: null });
-        
+
         const response = await apiClient.get('/transactions', { params });
-        
+
         // 处理不同的响应格式
         let transactions = [];
         if (response && typeof response === 'object') {
@@ -116,7 +68,7 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
             transactions = response;
           }
         }
-        
+
         set({
           transactions,
           isLoading: false
@@ -134,9 +86,9 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
     fetchTransaction: async (id: string) => {
       try {
         set({ isLoading: true, error: null });
-        
+
         const response = await apiClient.get(`/transactions/${id}`);
-        
+
         // 处理响应格式
         let transaction = null;
         if (response && typeof response === 'object') {
@@ -146,7 +98,7 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
             transaction = response;
           }
         }
-        
+
         set({
           transaction,
           isLoading: false
@@ -164,11 +116,11 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
     createTransaction: async (data: CreateTransactionData) => {
       try {
         set({ isLoading: true, error: null });
-        
+
         const response = await apiClient.post('/transactions', data);
-        
+
         set({ isLoading: false });
-        
+
         // 创建成功回调
         if (onCreateSuccess && response) {
           let transaction = response;
@@ -177,7 +129,7 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
           }
           onCreateSuccess(transaction);
         }
-        
+
         return true;
       } catch (error: any) {
         const errorMessage = error.response?.data?.message || error.message || '创建交易失败';
@@ -185,12 +137,12 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
           isLoading: false,
           error: errorMessage,
         });
-        
+
         // 创建失败回调
         if (onCreateError) {
           onCreateError(errorMessage);
         }
-        
+
         return false;
       }
     },
@@ -199,11 +151,11 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
     updateTransaction: async (id: string, data: UpdateTransactionData) => {
       try {
         set({ isLoading: true, error: null });
-        
+
         const response = await apiClient.put(`/transactions/${id}`, data);
-        
+
         set({ isLoading: false });
-        
+
         // 更新成功回调
         if (onUpdateSuccess && response) {
           let transaction = response;
@@ -212,7 +164,7 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
           }
           onUpdateSuccess(transaction);
         }
-        
+
         return true;
       } catch (error: any) {
         const errorMessage = error.response?.data?.message || error.message || '更新交易失败';
@@ -220,12 +172,12 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
           isLoading: false,
           error: errorMessage,
         });
-        
+
         // 更新失败回调
         if (onUpdateError) {
           onUpdateError(errorMessage);
         }
-        
+
         return false;
       }
     },
@@ -234,16 +186,16 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
     deleteTransaction: async (id: string) => {
       try {
         set({ isLoading: true, error: null });
-        
+
         await apiClient.delete(`/transactions/${id}`);
-        
+
         set({ isLoading: false });
-        
+
         // 删除成功回调
         if (onDeleteSuccess) {
           onDeleteSuccess();
         }
-        
+
         return true;
       } catch (error: any) {
         const errorMessage = error.response?.data?.message || error.message || '删除交易失败';
@@ -251,12 +203,12 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
           isLoading: false,
           error: errorMessage,
         });
-        
+
         // 删除失败回调
         if (onDeleteError) {
           onDeleteError(errorMessage);
         }
-        
+
         return false;
       }
     },

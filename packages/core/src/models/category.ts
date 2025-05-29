@@ -3,6 +3,7 @@ import { TransactionType } from './transaction';
 /**
  * 分类相关类型
  */
+export { TransactionType };
 export interface Category {
   id: string;
   name: string;
