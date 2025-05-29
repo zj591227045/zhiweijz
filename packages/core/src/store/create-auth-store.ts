@@ -12,6 +12,8 @@ export interface AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
+  resetPassword: (email: string) => Promise<void>;
+  initializeAuth: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -23,10 +25,22 @@ export interface AuthStoreOptions {
   onRegisterSuccess?: () => void;
   onRegisterError?: (error: string) => void;
   onLogout?: () => void;
+  onResetPasswordSuccess?: () => void;
+  onResetPasswordError?: (error: string) => void;
 }
 
 export const createAuthStore = (options: AuthStoreOptions) => {
-  const { apiClient, storage, onLoginSuccess, onLoginError, onRegisterSuccess, onRegisterError, onLogout } = options;
+  const {
+    apiClient,
+    storage,
+    onLoginSuccess,
+    onLoginError,
+    onRegisterSuccess,
+    onRegisterError,
+    onLogout,
+    onResetPasswordSuccess,
+    onResetPasswordError
+  } = options;
 
   return create<AuthState>()(
     persist(
@@ -116,6 +130,76 @@ export const createAuthStore = (options: AuthStoreOptions) => {
           // 登出回调
           if (onLogout) {
             onLogout();
+          }
+        },
+
+        resetPassword: async (email: string) => {
+          try {
+            set({ isLoading: true, error: null });
+            await apiClient.post("/auth/forgot-password", { email });
+            set({ isLoading: false });
+
+            // 重置密码成功回调
+            if (onResetPasswordSuccess) {
+              onResetPasswordSuccess();
+            }
+          } catch (error: any) {
+            const errorMessage = error.response?.data?.message || "发送重置密码邮件失败，请稍后再试";
+            set({
+              isLoading: false,
+              error: errorMessage,
+            });
+
+            // 重置密码失败回调
+            if (onResetPasswordError) {
+              onResetPasswordError(errorMessage);
+            }
+          }
+        },
+
+        initializeAuth: async () => {
+          try {
+            set({ isLoading: true });
+
+            // 从存储中获取token
+            const token = await storage.getItem("auth-token");
+
+            if (token) {
+              // 验证token是否有效
+              try {
+                const response = await apiClient.get("/auth/check");
+                // 如果验证成功，恢复认证状态
+                set({
+                  token,
+                  isAuthenticated: true,
+                  isLoading: false,
+                });
+              } catch (error) {
+                // token无效，清除存储
+                await storage.removeItem("auth-token");
+                set({
+                  user: null,
+                  token: null,
+                  isAuthenticated: false,
+                  isLoading: false,
+                });
+              }
+            } else {
+              set({
+                user: null,
+                token: null,
+                isAuthenticated: false,
+                isLoading: false,
+              });
+            }
+          } catch (error) {
+            console.error("初始化认证状态失败:", error);
+            set({
+              user: null,
+              token: null,
+              isAuthenticated: false,
+              isLoading: false,
+            });
           }
         },
 

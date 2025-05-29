@@ -130,12 +130,40 @@ setup_docker_mirrors() {
     fi
 }
 
+# 选择配置文件
+choose_compose_file() {
+    echo ""
+    log_info "选择部署配置..."
+    echo ""
+    echo "请选择部署配置:"
+    echo "1. 完整配置 (推荐) - 包含完整的Nginx配置和健康检查"
+    echo "2. 简化配置 - 使用通用Nginx镜像，适合解决兼容性问题"
+    echo ""
+    read -p "请选择 (1-2，默认为1): " config_choice
+    
+    case $config_choice in
+        2)
+            if [ -f "docker-compose.simple.yml" ]; then
+                export COMPOSE_FILE="docker-compose.simple.yml"
+                log_info "使用简化配置: docker-compose.simple.yml"
+            else
+                log_warning "简化配置文件不存在，使用默认配置"
+                export COMPOSE_FILE="docker-compose.yml"
+            fi
+            ;;
+        *)
+            export COMPOSE_FILE="docker-compose.yml"
+            log_info "使用完整配置: docker-compose.yml"
+            ;;
+    esac
+}
+
 # 清理旧容器
 cleanup_old_containers() {
     log_info "清理旧容器..."
 
     # 停止并删除旧容器
-    $COMPOSE_CMD -p "$PROJECT_NAME" down --remove-orphans 2>/dev/null || true
+    $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" down --remove-orphans 2>/dev/null || true
 
     # 删除悬空镜像
     docker image prune -f >/dev/null 2>&1 || true
@@ -161,6 +189,13 @@ pull_images() {
         exit 1
     fi
 
+    # 拉取Nginx镜像
+    log_info "拉取Nginx镜像..."
+    if ! docker pull nginx:1.25-alpine; then
+        log_error "Nginx镜像拉取失败"
+        exit 1
+    fi
+
     log_success "所有镜像拉取完成"
 }
 
@@ -176,7 +211,7 @@ start_service_safely() {
     local max_retries=3
     
     while [ $retry_count -lt $max_retries ]; do
-        if $COMPOSE_CMD -p "$PROJECT_NAME" up -d "$service_name" 2>/dev/null; then
+        if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" up -d "$service_name" 2>/dev/null; then
             log_success "${service_name} 服务启动成功"
             break
         else
@@ -185,7 +220,7 @@ start_service_safely() {
             
             if [ $retry_count -lt $max_retries ]; then
                 # 清理可能的问题容器
-                $COMPOSE_CMD -p "$PROJECT_NAME" rm -f "$service_name" 2>/dev/null || true
+                $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" rm -f "$service_name" 2>/dev/null || true
                 sleep 5
             else
                 log_error "${service_name} 服务启动失败，已达到最大重试次数"
@@ -217,7 +252,7 @@ start_services() {
     log_info "验证数据库连接..."
     local db_ready=false
     for i in {1..30}; do
-        if $COMPOSE_CMD -p "$PROJECT_NAME" exec -T postgres pg_isready -U zhiweijz -d zhiweijz >/dev/null 2>&1; then
+        if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T postgres pg_isready -U zhiweijz -d zhiweijz >/dev/null 2>&1; then
             db_ready=true
             break
         fi
@@ -258,7 +293,7 @@ check_services() {
     # 检查容器状态
     echo ""
     echo "=== 容器状态 ==="
-    $COMPOSE_CMD -p "$PROJECT_NAME" ps
+    $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" ps
 
     echo ""
     echo "=== 服务健康检查 ==="
@@ -268,7 +303,7 @@ check_services() {
     local https_port=$(get_env_var "NGINX_HTTPS_PORT" "443")
 
     # 检查数据库
-    if $COMPOSE_CMD -p "$PROJECT_NAME" exec -T postgres pg_isready -U zhiweijz -d zhiweijz >/dev/null 2>&1; then
+    if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T postgres pg_isready -U zhiweijz -d zhiweijz >/dev/null 2>&1; then
         log_success "数据库连接正常"
     else
         log_warning "数据库连接异常"
@@ -432,6 +467,9 @@ main() {
 
     # 设置Docker镜像源
     setup_docker_mirrors
+
+    # 选择配置文件
+    choose_compose_file
 
     # 清理旧环境
     cleanup_old_containers
