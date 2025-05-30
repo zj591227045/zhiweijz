@@ -1,8 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, StatusBar } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { Provider as PaperProvider, Button } from 'react-native-paper';
-import { theme } from './theme';
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity } from 'react-native';
 
 /**
  * Android应用根组件
@@ -10,28 +7,23 @@ import { theme } from './theme';
  */
 const App: React.FC = () => {
   return (
-    <PaperProvider theme={theme}>
-      <SafeAreaProvider>
-        <StatusBar
-          barStyle="dark-content"
-          backgroundColor={theme.colors.surface}
-          translucent={false}
-        />
-        <SafeAreaView style={styles.container}>
-          <View style={styles.content}>
-            <Text style={styles.title}>只为记账</Text>
-            <Text style={styles.subtitle}>Android应用</Text>
-            <Button 
-              mode="contained" 
-              onPress={() => console.log('按钮被点击')}
-              style={styles.button}
-            >
-              测试按钮
-            </Button>
-          </View>
-        </SafeAreaView>
-      </SafeAreaProvider>
-    </PaperProvider>
+    <View style={styles.container}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#ffffff"
+        translucent={false}
+      />
+      <View style={styles.content}>
+        <Text style={styles.title}>只为记账</Text>
+        <Text style={styles.subtitle}>Android应用</Text>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => console.log('按钮被点击')}
+        >
+          <Text style={styles.buttonText}>测试按钮</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 
@@ -58,7 +50,17 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   button: {
+    backgroundColor: '#2563eb',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
     marginTop: 20,
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 
