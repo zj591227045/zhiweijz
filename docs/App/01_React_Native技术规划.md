@@ -9,6 +9,7 @@
 | 核心框架 | Next.js 14 | React Native 0.73+ | 选择稳定版本，确保兼容性 |
 | 状态管理 | Zustand | Zustand | 可直接复用，无需修改 |
 | UI组件库 | shadcn/ui + Tailwind CSS | React Native Paper | Material Design风格，适配移动端 |
+
 | 表单处理 | React Hook Form + Zod | React Hook Form + Zod | 可直接复用逻辑 |
 | HTTP客户端 | Axios + React Query | Axios + React Query | 可直接复用API调用逻辑 |
 | 图表库 | Chart.js + react-chartjs-2 | react-native-chart-kit | 原生图表支持 |

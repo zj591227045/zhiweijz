@@ -1,27 +1,26 @@
-import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import React, { useState } from 'react';
+import { View } from 'react-native';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 
-export type AuthStackParamList = {
-  Login: undefined;
-  Register: undefined;
-};
-
-const Stack = createStackNavigator<AuthStackParamList>();
-
+// 简化的导航器，不使用React Navigation
 const AuthNavigator: React.FC = () => {
+  const [currentScreen, setCurrentScreen] = useState<'Login' | 'Register'>('Login');
+
+  const navigation = {
+    navigate: (screen: 'Login' | 'Register') => {
+      setCurrentScreen(screen);
+    },
+  };
+
   return (
-    <Stack.Navigator
-      initialRouteName="Login"
-      screenOptions={{
-        headerShown: false,
-        cardStyle: { backgroundColor: '#f5f5f5' },
-      }}
-    >
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Register" component={RegisterScreen} />
-    </Stack.Navigator>
+    <View style={{ flex: 1 }}>
+      {currentScreen === 'Login' ? (
+        <LoginScreen navigation={navigation} />
+      ) : (
+        <RegisterScreen navigation={navigation} />
+      )}
+    </View>
   );
 };
 

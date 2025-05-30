@@ -8,7 +8,7 @@ const config = getDefaultConfig(projectRoot);
 // 配置Metro服务器绑定到所有网络接口
 config.server = {
   host: '0.0.0.0',  // 绑定到所有网络接口
-  port: 8181,       // 使用8181端口避免冲突
+  port: 8081,       // 使用标准的8081端口
 };
 
 // 配置项目根目录和监视目录
