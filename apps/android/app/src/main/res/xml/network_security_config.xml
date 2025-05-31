@@ -4,6 +4,7 @@
         <domain includeSubdomains="true">localhost</domain>
         <domain includeSubdomains="true">10.0.2.2</domain>
         <domain includeSubdomains="true">10.255.0.81</domain>
+        <domain includeSubdomains="true">10.255.0.97</domain>
         <!-- 添加主机IP地址 -->
     </domain-config>
 </network-security-config>

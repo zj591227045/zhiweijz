@@ -1,161 +1,47 @@
-import { create } from 'zustand';
+import { createAuthStore } from '@zhiweijz/core';
 import { Alert } from 'react-native';
+import { AsyncStorageAdapter } from '../adapters/storage-adapter';
+import { createApiClient } from '../api/api-client';
 
-// 用户类型定义
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  createdAt: string;
-}
+/**
+ * 创建存储适配器实例
+ */
+const storage = new AsyncStorageAdapter();
 
-// 认证状态类型
-interface AuthState {
-  // 状态
-  user: User | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
+/**
+ * 创建API客户端实例
+ */
+const apiClient = createApiClient(storage);
 
-  // 操作方法
-  login: (credentials: { email: string; password: string }) => Promise<boolean>;
-  register: (data: { name: string; email: string; password: string }) => Promise<boolean>;
-  logout: () => void;
-  clearError: () => void;
-  setLoading: (loading: boolean) => void;
-}
-
-// API基础URL - 使用配置的服务器地址
-const API_BASE_URL = 'http://10.255.0.97/api';
-
-// 简单的API客户端
-const apiClient = {
-  async post(endpoint: string, data: any) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || '请求失败');
-    }
-
-    return response.json();
+/**
+ * Android端认证状态管理
+ * 使用核心包的统一状态管理，添加Android端特定的处理逻辑
+ */
+export const useAuthStore = createAuthStore({
+  apiClient,
+  storage,
+  onLoginSuccess: () => {
+    // Android端特定的登录成功处理
+    console.log('登录成功');
+    // 不显示Alert，避免打断用户体验
   },
-};
-
-// 创建认证状态管理（临时不使用持久化）
-export const useAuthStore = create<AuthState>()((set, get) => ({
-      // 初始状态
-      user: null,
-      token: null,
-      isAuthenticated: false,
-      isLoading: false,
-      error: null,
-
-      // 登录方法
-      login: async (credentials) => {
-        try {
-          set({ isLoading: true, error: null });
-
-          console.log('尝试登录:', credentials.email);
-          const response = await apiClient.post('/auth/login', credentials);
-
-          console.log('登录响应:', response);
-
-          if (response.token && response.user) {
-            set({
-              user: response.user,
-              token: response.token,
-              isAuthenticated: true,
-              isLoading: false,
-            });
-
-            // TODO: 保存token到存储（暂时跳过）
-            console.log('Token saved:', response.token);
-
-            console.log('登录成功');
-            return true;
-          } else {
-            throw new Error('登录响应格式错误');
-          }
-        } catch (error: any) {
-          console.error('登录失败:', error);
-          const errorMessage = error.message || '登录失败，请检查您的凭据';
-          set({
-            isLoading: false,
-            error: errorMessage,
-          });
-
-          Alert.alert('登录失败', errorMessage);
-          return false;
-        }
-      },
-
-      // 注册方法
-      register: async (data) => {
-        try {
-          set({ isLoading: true, error: null });
-
-          console.log('尝试注册:', data.email);
-          const response = await apiClient.post('/auth/register', data);
-
-          console.log('注册响应:', response);
-
-          if (response.token && response.user) {
-            set({
-              user: response.user,
-              token: response.token,
-              isAuthenticated: true,
-              isLoading: false,
-            });
-
-            // TODO: 保存token到存储（暂时跳过）
-            console.log('Token saved:', response.token);
-
-            console.log('注册成功');
-            Alert.alert('注册成功', '欢迎使用只为记账！');
-            return true;
-          } else {
-            throw new Error('注册响应格式错误');
-          }
-        } catch (error: any) {
-          console.error('注册失败:', error);
-          const errorMessage = error.message || '注册失败，请稍后重试';
-          set({
-            isLoading: false,
-            error: errorMessage,
-          });
-
-          Alert.alert('注册失败', errorMessage);
-          return false;
-        }
-      },
-
-      // 登出方法
-      logout: () => {
-        set({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-          error: null,
-        });
-
-        console.log('登出成功');
-      },
-
-      // 清除错误
-      clearError: () => {
-        set({ error: null });
-      },
-
-      // 设置加载状态
-      setLoading: (loading) => {
-        set({ isLoading: loading });
-      },
-    }));
+  onLoginError: (error) => {
+    // Android端特定的登录错误处理
+    console.error('登录失败:', error);
+    Alert.alert('登录失败', error);
+  },
+  onRegisterSuccess: () => {
+    // Android端特定的注册成功处理
+    console.log('注册成功');
+    Alert.alert('注册成功', '欢迎使用只为记账！');
+  },
+  onRegisterError: (error) => {
+    // Android端特定的注册错误处理
+    console.error('注册失败:', error);
+    Alert.alert('注册失败', error);
+  },
+  onLogout: () => {
+    // Android端特定的登出处理
+    console.log('登出成功');
+  },
+});

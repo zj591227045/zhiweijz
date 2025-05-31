@@ -115,7 +115,24 @@ apps/android/android/app/src/main/assets/index.android.bundle.meta
 apps/android/android/app/src/main/res/drawable-*/
 apps/android/android/app/src/main/res/raw/
 
+# APK files
+apps/android/app/build/outputs/apk/
+apps/android/app/build/outputs/bundle/
+*.apk
+*.aab
+
+# Android generated files
+apps/android/app/src/main/assets/fonts/
+apps/android/app/src/main/res/values/generated.xml
+
+# React Native Metro bundle
+apps/android/index.android.bundle
+apps/android/index.android.bundle.map
+
 # Temporary files
 apps/android/init.gradle
 apps/android/*.tmp
 apps/android/*.temp
+
+# Test and development files that shouldn't be tracked
+apps/android/src/screens/StorageTestScreen.tsx

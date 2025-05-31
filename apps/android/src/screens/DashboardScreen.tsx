@@ -1,18 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Modal,
 } from 'react-native';
-import { useAuthStore } from '../store/auth-store';
+import { useAuthStore } from '../store';
+import StorageTestScreen from './StorageTestScreen';
 
 const DashboardScreen: React.FC = () => {
   const { user, logout } = useAuthStore();
+  const [showStorageTest, setShowStorageTest] = useState(false);
 
   const handleLogout = () => {
     logout();
+  };
+
+  const handleShowStorageTest = () => {
+    setShowStorageTest(true);
+  };
+
+  const handleCloseStorageTest = () => {
+    setShowStorageTest(false);
   };
 
   return (
@@ -49,7 +60,31 @@ const DashboardScreen: React.FC = () => {
           <Text style={styles.cardTitle}>预算管理</Text>
           <Text style={styles.cardSubtitle}>设置和管理您的预算计划</Text>
         </View>
+
+        {/* 开发者工具 */}
+        <TouchableOpacity style={[styles.card, styles.debugCard]} onPress={handleShowStorageTest}>
+          <Text style={styles.cardTitle}>🔧 存储测试工具</Text>
+          <Text style={styles.cardSubtitle}>测试和调试AsyncStorage功能</Text>
+        </TouchableOpacity>
       </View>
+
+      {/* 存储测试模态框 */}
+      <Modal
+        visible={showStorageTest}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={handleCloseStorageTest}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>存储测试工具</Text>
+            <TouchableOpacity style={styles.closeButton} onPress={handleCloseStorageTest}>
+              <Text style={styles.closeButtonText}>关闭</Text>
+            </TouchableOpacity>
+          </View>
+          <StorageTestScreen />
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -119,6 +154,39 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     lineHeight: 20,
+  },
+  debugCard: {
+    borderColor: '#ff9800',
+    borderWidth: 2,
+    backgroundColor: '#fff3e0',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    backgroundColor: '#f5f5f5',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  closeButton: {
+    backgroundColor: '#6200ee',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 4,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
 
