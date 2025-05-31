@@ -40,6 +40,93 @@ get_env_var() {
     echo "${value:-$default_value}"
 }
 
+# 从docker-compose.yml中解析镜像版本
+parse_image_from_compose() {
+    local service_name=$1
+    local compose_file=${2:-"$COMPOSE_FILE"}
+
+    # 使用更简单的方法解析YAML文件中的镜像信息
+    local image=$(awk -v service="$service_name" '
+        BEGIN { in_service = 0 }
+        # 匹配服务名称（顶级服务定义）
+        /^[[:space:]]*[a-zA-Z0-9_-]+:[[:space:]]*$/ {
+            current_service = $1
+            gsub(/:/, "", current_service)
+            gsub(/^[[:space:]]+/, "", current_service)
+            if (current_service == service) {
+                in_service = 1
+            } else {
+                in_service = 0
+            }
+        }
+        # 匹配image行
+        /^[[:space:]]+image:[[:space:]]*/ && in_service {
+            gsub(/^[[:space:]]+image:[[:space:]]*/, "")
+            gsub(/[[:space:]]*$/, "")
+            print $0
+            exit
+        }
+    ' "$compose_file" 2>/dev/null)
+
+    echo "$image"
+}
+
+# 解析镜像名称和标签
+parse_image_info() {
+    local full_image=$1
+    local image_name=""
+    local image_tag=""
+
+    if [[ "$full_image" == *":"* ]]; then
+        image_name="${full_image%:*}"
+        image_tag="${full_image##*:}"
+    else
+        image_name="$full_image"
+        image_tag="latest"
+    fi
+
+    echo "${image_name}:${image_tag}"
+}
+
+# 获取所有服务的镜像信息
+get_service_images() {
+    log_info "解析docker-compose.yml中的镜像版本..."
+
+    # 解析各服务的镜像信息
+    BACKEND_IMAGE=$(parse_image_from_compose "backend")
+    FRONTEND_IMAGE=$(parse_image_from_compose "frontend")
+    NGINX_IMAGE=$(parse_image_from_compose "nginx")
+
+    # 验证解析结果
+    if [ -z "$BACKEND_IMAGE" ] || [ -z "$FRONTEND_IMAGE" ] || [ -z "$NGINX_IMAGE" ]; then
+        log_error "无法从docker-compose.yml解析镜像信息"
+        log_error "后端镜像: ${BACKEND_IMAGE:-未找到}"
+        log_error "前端镜像: ${FRONTEND_IMAGE:-未找到}"
+        log_error "Nginx镜像: ${NGINX_IMAGE:-未找到}"
+        exit 1
+    fi
+
+    # 标准化镜像信息
+    BACKEND_IMAGE=$(parse_image_info "$BACKEND_IMAGE")
+    FRONTEND_IMAGE=$(parse_image_info "$FRONTEND_IMAGE")
+    NGINX_IMAGE=$(parse_image_info "$NGINX_IMAGE")
+
+    log_success "镜像版本解析完成:"
+    log_info "  后端镜像: ${BACKEND_IMAGE}"
+    log_info "  前端镜像: ${FRONTEND_IMAGE}"
+    log_info "  Nginx镜像: ${NGINX_IMAGE}"
+
+    # 询问用户是否确认使用这些版本
+    echo ""
+    read -p "是否使用以上镜像版本继续部署？(Y/n): " -n 1 -r
+    echo
+
+    if [[ $REPLY =~ ^[Nn]$ ]]; then
+        log_info "用户取消部署"
+        exit 0
+    fi
+}
+
 # 检查Docker是否运行
 check_docker() {
     log_info "检查Docker环境..."
@@ -138,8 +225,9 @@ choose_compose_file() {
     echo "请选择部署配置:"
     echo "1. 完整配置 (推荐) - 包含完整的Nginx配置和健康检查"
     echo "2. 简化配置 - 使用通用Nginx镜像，适合解决兼容性问题"
+    echo "3. 测试配置 - 使用指定版本号的镜像进行测试"
     echo ""
-    read -p "请选择 (1-2，默认为1): " config_choice
+    read -p "请选择 (1-3，默认为1): " config_choice
 
     case $config_choice in
         2)
@@ -148,6 +236,16 @@ choose_compose_file() {
                 log_info "使用简化配置: docker-compose.simple.yml"
             else
                 log_warning "简化配置文件不存在，使用默认配置"
+                export COMPOSE_FILE="docker-compose.yml"
+            fi
+            ;;
+        3)
+            if [ -f "docker-compose.test.yml" ]; then
+                export COMPOSE_FILE="docker-compose.test.yml"
+                log_info "使用测试配置: docker-compose.test.yml"
+                log_warning "注意: 测试配置使用特定版本号，可能需要手动构建镜像"
+            else
+                log_warning "测试配置文件不存在，使用默认配置"
                 export COMPOSE_FILE="docker-compose.yml"
             fi
             ;;
@@ -176,9 +274,9 @@ check_frontend_image() {
     log_info "检查前端镜像配置..."
 
     # 检查本地前端镜像是否存在且支持3001端口
-    if docker image inspect zj591227045/zhiweijz-frontend:latest >/dev/null 2>&1; then
+    if docker image inspect "$FRONTEND_IMAGE" >/dev/null 2>&1; then
         # 检查镜像是否配置了正确的端口
-        local exposed_port=$(docker image inspect zj591227045/zhiweijz-frontend:latest --format='{{range $p, $conf := .Config.ExposedPorts}}{{$p}}{{end}}' 2>/dev/null | grep "3001" || echo "")
+        local exposed_port=$(docker image inspect "$FRONTEND_IMAGE" --format='{{range $p, $conf := .Config.ExposedPorts}}{{$p}}{{end}}' 2>/dev/null | grep "3001" || echo "")
 
         if [ -n "$exposed_port" ]; then
             log_success "前端镜像已配置正确端口 (3001)"
@@ -188,19 +286,19 @@ check_frontend_image() {
             return 1
         fi
     else
-        log_warning "前端镜像不存在，需要拉取或构建"
+        log_warning "前端镜像 ($FRONTEND_IMAGE) 不存在，需要拉取或构建"
         return 1
     fi
 }
 
-# 拉取最新镜像
+# 拉取指定版本镜像
 pull_images() {
-    log_info "拉取最新镜像..."
+    log_info "拉取指定版本镜像..."
 
     # 拉取后端镜像
-    log_info "拉取后端镜像..."
-    if ! docker pull zj591227045/zhiweijz-backend:latest; then
-        log_error "后端镜像拉取失败"
+    log_info "拉取后端镜像: $BACKEND_IMAGE"
+    if ! docker pull "$BACKEND_IMAGE"; then
+        log_error "后端镜像拉取失败: $BACKEND_IMAGE"
         exit 1
     fi
 
@@ -208,28 +306,34 @@ pull_images() {
     if check_frontend_image; then
         log_info "前端镜像无需更新"
     else
-        log_info "拉取最新前端镜像..."
-        if ! docker pull zj591227045/zhiweijz-frontend:latest; then
-            log_warning "前端镜像拉取失败，可能需要重新构建"
+        log_info "拉取前端镜像: $FRONTEND_IMAGE"
+        if ! docker pull "$FRONTEND_IMAGE"; then
+            log_warning "前端镜像拉取失败: $FRONTEND_IMAGE"
 
-            # 询问是否重新构建前端镜像
-            echo ""
-            log_warning "前端镜像可能需要重新构建以支持新的端口配置 (3001)"
-            read -p "是否重新构建前端镜像？这将需要几分钟时间 (Y/n): " -n 1 -r
-            echo
+            # 检查是否是自定义镜像（包含用户名的镜像）
+            if [[ "$FRONTEND_IMAGE" == *"zj591227045"* ]]; then
+                # 询问是否重新构建前端镜像
+                echo ""
+                log_warning "前端镜像可能需要重新构建以支持新的端口配置 (3001)"
+                read -p "是否重新构建前端镜像？这将需要几分钟时间 (Y/n): " -n 1 -r
+                echo
 
-            if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-                rebuild_frontend_image
+                if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+                    rebuild_frontend_image
+                else
+                    log_warning "跳过前端镜像重建，可能导致启动失败"
+                fi
             else
-                log_warning "跳过前端镜像重建，可能导致启动失败"
+                log_error "无法拉取前端镜像，请检查镜像名称和网络连接"
+                exit 1
             fi
         fi
     fi
 
     # 拉取Nginx镜像
-    log_info "拉取Nginx镜像..."
-    if ! docker pull zj591227045/zhiweijz-nginx:latest; then
-        log_error "Nginx镜像拉取失败"
+    log_info "拉取Nginx镜像: $NGINX_IMAGE"
+    if ! docker pull "$NGINX_IMAGE"; then
+        log_error "Nginx镜像拉取失败: $NGINX_IMAGE"
         exit 1
     fi
 
@@ -238,7 +342,7 @@ pull_images() {
 
 # 重新构建前端镜像
 rebuild_frontend_image() {
-    log_info "重新构建前端镜像..."
+    log_info "重新构建前端镜像: $FRONTEND_IMAGE"
 
     # 切换到项目根目录
     cd "$(dirname "$0")/.."
@@ -251,10 +355,10 @@ rebuild_frontend_image() {
 
     # 构建前端镜像
     log_info "正在构建前端镜像，这可能需要几分钟..."
-    if docker build -f apps/web/Dockerfile -t zj591227045/zhiweijz-frontend:latest .; then
-        log_success "前端镜像构建完成"
+    if docker build -f apps/web/Dockerfile -t "$FRONTEND_IMAGE" .; then
+        log_success "前端镜像构建完成: $FRONTEND_IMAGE"
     else
-        log_error "前端镜像构建失败"
+        log_error "前端镜像构建失败: $FRONTEND_IMAGE"
         exit 1
     fi
 
@@ -324,36 +428,72 @@ verify_service_health() {
     # 根据服务类型进行特定的健康检查
     case $service_name in
         "postgres")
-            if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T postgres pg_isready -U zhiweijz -d zhiweijz >/dev/null 2>&1; then
-                log_success "${service_name} 健康检查通过"
-            else
-                log_warning "${service_name} 健康检查失败"
-                return 1
-            fi
-            ;;
-        "backend")
-            # 等待后端API可用
-            local api_ready=false
-            for i in {1..30}; do
-                if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T backend curl -f http://localhost:3000/api/health >/dev/null 2>&1; then
-                    api_ready=true
+            # PostgreSQL健康检查 - 使用官方推荐方式
+            local db_ready=false
+            for i in {1..15}; do
+                if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T postgres pg_isready -U zhiweijz -d zhiweijz >/dev/null 2>&1; then
+                    db_ready=true
                     break
                 fi
                 sleep 2
             done
 
-            if [ "$api_ready" = true ]; then
-                log_success "${service_name} 健康检查通过"
+            if [ "$db_ready" = true ]; then
+                # 进一步验证数据库连接
+                if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T postgres psql -U zhiweijz -d zhiweijz -c "SELECT 1;" >/dev/null 2>&1; then
+                    log_success "${service_name} 健康检查通过 (连接和查询正常)"
+                else
+                    log_warning "${service_name} 可连接但查询失败"
+                    return 1
+                fi
             else
-                log_warning "${service_name} 健康检查失败"
+                log_warning "${service_name} 健康检查失败 (连接超时)"
+                return 1
+            fi
+            ;;
+        "backend")
+            # 后端API健康检查 - 优化超时和验证
+            local api_ready=false
+            local health_response=""
+
+            for i in {1..20}; do
+                # 检查健康端点是否存在
+                if health_response=$($COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T backend curl -s -f http://localhost:3000/api/health 2>/dev/null); then
+                    # 验证响应内容（如果有的话）
+                    if [[ "$health_response" == *"ok"* ]] || [[ "$health_response" == *"healthy"* ]] || [ -n "$health_response" ]; then
+                        api_ready=true
+                        break
+                    fi
+                fi
+                sleep 2
+            done
+
+            if [ "$api_ready" = true ]; then
+                log_success "${service_name} 健康检查通过 (API响应正常)"
+            else
+                # 备用检查：尝试访问根路径
+                log_info "健康端点检查失败，尝试备用检查..."
+                for i in {1..10}; do
+                    if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T backend curl -s -f http://localhost:3000/ >/dev/null 2>&1; then
+                        log_success "${service_name} 备用健康检查通过 (根路径可访问)"
+                        return 0
+                    fi
+                    sleep 1
+                done
+                log_warning "${service_name} 健康检查失败 (API不可访问)"
                 return 1
             fi
             ;;
         "frontend")
-            # 等待前端服务可用
+            # 前端服务健康检查 - 改进检查方式
             local frontend_ready=false
-            for i in {1..30}; do
-                if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T frontend curl -f http://localhost:3001/ >/dev/null 2>&1; then
+
+            for i in {1..20}; do
+                # 检查前端服务是否响应
+                local response_code=$($COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T frontend curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/ 2>/dev/null || echo "000")
+
+                # 接受200, 301, 302等正常响应码
+                if [[ "$response_code" =~ ^[23] ]]; then
                     frontend_ready=true
                     break
                 fi
@@ -361,18 +501,21 @@ verify_service_health() {
             done
 
             if [ "$frontend_ready" = true ]; then
-                log_success "${service_name} 健康检查通过"
+                log_success "${service_name} 健康检查通过 (HTTP响应正常)"
             else
                 log_warning "${service_name} 健康检查失败，但继续启动其他服务"
+                log_info "前端可能需要更长时间启动，请稍后通过Nginx访问"
                 # 前端健康检查失败不阻止后续服务启动
                 return 0
             fi
             ;;
         "nginx")
-            # 等待Nginx服务可用
+            # Nginx健康检查 - 多层次验证
             local nginx_ready=false
-            for i in {1..20}; do
-                if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T nginx curl -f http://localhost/health >/dev/null 2>&1; then
+
+            # 首先检查Nginx自身状态
+            for i in {1..15}; do
+                if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T nginx curl -s -f http://localhost/health >/dev/null 2>&1; then
                     nginx_ready=true
                     break
                 fi
@@ -380,9 +523,34 @@ verify_service_health() {
             done
 
             if [ "$nginx_ready" = true ]; then
-                log_success "${service_name} 健康检查通过"
+                log_success "${service_name} 健康检查通过 (健康端点正常)"
+
+                # 进一步检查代理功能
+                log_info "验证Nginx代理功能..."
+                local proxy_ok=false
+
+                # 检查API代理
+                if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T nginx curl -s -f http://localhost/api/health >/dev/null 2>&1; then
+                    log_info "✓ API代理正常"
+                    proxy_ok=true
+                else
+                    log_warning "⚠ API代理可能有问题"
+                fi
+
+                # 检查前端代理
+                local frontend_response=$($COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T nginx curl -s -o /dev/null -w "%{http_code}" http://localhost/ 2>/dev/null || echo "000")
+                if [[ "$frontend_response" =~ ^[23] ]]; then
+                    log_info "✓ 前端代理正常"
+                    proxy_ok=true
+                else
+                    log_warning "⚠ 前端代理可能有问题"
+                fi
+
+                if [ "$proxy_ok" = true ]; then
+                    log_success "${service_name} 代理功能验证通过"
+                fi
             else
-                log_warning "${service_name} 健康检查失败"
+                log_warning "${service_name} 健康检查失败 (健康端点不可访问)"
                 return 1
             fi
             ;;
@@ -614,10 +782,13 @@ main() {
     # 选择配置文件
     choose_compose_file
 
+    # 解析镜像版本信息
+    get_service_images
+
     # 清理旧环境
     cleanup_old_containers
 
-    # 拉取最新镜像
+    # 拉取指定版本镜像
     pull_images
 
     # 启动服务

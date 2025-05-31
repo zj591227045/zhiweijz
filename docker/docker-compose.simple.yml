@@ -61,8 +61,7 @@ services:
     networks:
       - zhiweijz-network
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
     healthcheck:
       test: ["CMD", "sh", "-c", "curl -s -o /dev/null -w '%{http_code}' http://localhost:3001/ | grep -E '^[23]'"]
       interval: 25s
@@ -70,14 +69,16 @@ services:
       retries: 4
       start_period: 60s
 
-  # Nginx 反向代理
+  # Nginx 反向代理 - 使用通用镜像
   nginx:
-    image: zj591227045/zhiweijz-nginx:latest
+    image: nginx:1.25-alpine
     container_name: zhiweijz-nginx
     restart: unless-stopped
     ports:
       - "${NGINX_HTTP_PORT:-80}:80"
       - "${NGINX_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./config/nginx-simple.conf:/etc/nginx/nginx.conf:ro
     networks:
       - zhiweijz-network
     depends_on:

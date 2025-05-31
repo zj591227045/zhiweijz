@@ -17,6 +17,37 @@ cp .env.example .env
 ./start.sh
 ```
 
+### 🔧 版本管理
+
+启动脚本会自动从 `docker-compose.yml` 文件中读取并解析各个服务的镜像版本：
+
+- **自动解析**: 脚本会解析配置文件中的镜像版本号
+- **版本确认**: 启动前会显示所有镜像版本供用户确认
+- **灵活配置**: 支持使用不同的配置文件指定不同版本
+
+#### 配置文件选项
+
+1. **完整配置** (`docker-compose.yml`) - 推荐使用，包含完整功能
+2. **简化配置** (`docker-compose.simple.yml`) - 使用通用镜像，兼容性更好
+
+#### 自定义镜像版本
+
+要使用特定版本的镜像，只需修改 `docker-compose.yml` 文件中的镜像标签：
+
+```yaml
+services:
+  backend:
+    image: zj591227045/zhiweijz-backend:v1.2.0  # 指定版本
+
+  frontend:
+    image: zj591227045/zhiweijz-frontend:v1.1.5  # 指定版本
+
+  nginx:
+    image: zj591227045/zhiweijz-nginx:v2.0.1     # 指定版本
+```
+
+启动脚本会自动检测并使用指定的版本。
+
 ### 🌐 访问应用
 
 启动完成后，脚本会自动检测并显示所有可用的访问地址：
