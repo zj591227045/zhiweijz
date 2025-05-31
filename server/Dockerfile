@@ -16,11 +16,11 @@ COPY package*.json ./
 COPY server/package*.json ./server/
 
 # 安装根目录依赖（包含开发依赖，用于构建）
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # 切换到server目录并安装依赖（包含开发依赖，用于构建）
 WORKDIR /app/server
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # 复制server源代码
 COPY server/ ./

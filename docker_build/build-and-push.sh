@@ -202,15 +202,12 @@ install_buildx_plugin() {
 setup_buildx() {
     print_message $BLUE "设置Docker buildx..."
 
-    # 删除已存在的builder（如果有）
-    docker buildx rm zhiweijz-builder 2>/dev/null || true
-
-    # 创建新的builder实例
-    docker buildx create --name zhiweijz-builder --driver docker-container --use --bootstrap
+    # 使用默认的buildx实例
+    docker buildx use default
 
     # 检查支持的平台
     print_message $BLUE "检查支持的平台..."
-    docker buildx inspect --bootstrap
+    docker buildx inspect
 
     print_message $GREEN "✓ buildx设置完成"
 }
@@ -365,7 +362,7 @@ show_build_info() {
 # 函数：清理
 cleanup() {
     print_message $BLUE "清理buildx资源..."
-    docker buildx rm zhiweijz-builder 2>/dev/null || true
+    # 使用默认buildx，无需清理
 }
 
 # 主函数
@@ -388,7 +385,6 @@ main() {
     docker_login
 
     # 构建镜像
-    build_backend
     build_frontend
     build_nginx
 
