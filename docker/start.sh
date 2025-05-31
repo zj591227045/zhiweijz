@@ -333,8 +333,31 @@ pull_images() {
     # 拉取Nginx镜像
     log_info "拉取Nginx镜像: $NGINX_IMAGE"
     if ! docker pull "$NGINX_IMAGE"; then
-        log_error "Nginx镜像拉取失败: $NGINX_IMAGE"
-        exit 1
+        log_warning "Nginx镜像拉取失败: $NGINX_IMAGE"
+
+        # 检查是否是自定义镜像
+        if [[ "$NGINX_IMAGE" == *"zj591227045"* ]]; then
+            log_warning "检测到自定义Nginx镜像，可能需要重新构建"
+            echo ""
+            log_info "自定义Nginx镜像问题解决方案："
+            log_info "1. 使用配置文件挂载（推荐）- 已在docker-compose.yml中配置"
+            log_info "2. 重新构建Nginx镜像："
+            log_info "   cd $(dirname "$0")/.."
+            log_info "   docker build -f docker/config/nginx.Dockerfile -t $NGINX_IMAGE ."
+            echo ""
+            read -p "是否继续使用配置文件挂载方式？(Y/n): " -n 1 -r
+            echo
+
+            if [[ $REPLY =~ ^[Nn]$ ]]; then
+                log_info "用户选择退出"
+                exit 0
+            else
+                log_info "继续使用配置文件挂载方式"
+            fi
+        else
+            log_error "无法拉取Nginx镜像，请检查镜像名称和网络连接"
+            exit 1
+        fi
     fi
 
     log_success "所有镜像拉取完成"
@@ -419,9 +442,11 @@ verify_service_health() {
 
     log_info "验证 ${service_name} 服务健康状态..."
 
-    # 检查容器是否运行
-    if ! $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" ps "$service_name" | grep -q "Up"; then
+    # 检查容器是否运行 - 兼容Docker Compose V1和V2
+    local container_status=$($COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" ps "$service_name" 2>/dev/null)
+    if ! echo "$container_status" | grep -qE "(Up|running)"; then
         log_warning "${service_name} 容器未正常运行"
+        log_info "容器状态: $container_status"
         return 1
     fi
 
@@ -487,6 +512,12 @@ verify_service_health() {
         "frontend")
             # 前端服务健康检查 - 改进检查方式
             local frontend_ready=false
+
+            # 首先检查容器是否真正存在和运行
+            if ! docker ps --format "table {{.Names}}" | grep -q "zhiweijz-frontend"; then
+                log_warning "${service_name} 容器不存在或未运行，跳过健康检查"
+                return 0
+            fi
 
             for i in {1..20}; do
                 # 检查前端服务是否响应
@@ -576,8 +607,21 @@ start_services() {
     fi
 
     # 启动前端服务（允许失败，不阻止后续服务）
-    if ! start_service_safely "frontend" 10; then
-        log_warning "前端服务启动失败，但继续启动其他服务"
+    log_info "尝试启动前端服务..."
+    if ! start_service_safely "frontend" 15; then
+        log_warning "前端服务启动失败，尝试诊断问题..."
+
+        # 检查前端镜像是否存在
+        if ! docker image inspect "$FRONTEND_IMAGE" >/dev/null 2>&1; then
+            log_error "前端镜像不存在: $FRONTEND_IMAGE"
+            log_info "请运行以下命令重新拉取镜像:"
+            log_info "docker pull $FRONTEND_IMAGE"
+        else
+            log_info "前端镜像存在，检查容器启动日志..."
+            $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" logs frontend --tail=20 2>/dev/null || true
+        fi
+
+        log_warning "继续启动其他服务，前端问题需要手动解决"
         log_warning "请检查前端容器日志: $COMPOSE_CMD -f $COMPOSE_FILE -p $PROJECT_NAME logs frontend"
     fi
 
@@ -588,6 +632,56 @@ start_services() {
     fi
 
     log_success "服务启动流程完成"
+}
+
+# 网络诊断功能
+diagnose_network() {
+    log_info "进行网络诊断..."
+
+    echo ""
+    echo "=== 容器网络诊断 ==="
+
+    # 检查Docker网络
+    local network_name="zhiweijz-network"
+    if docker network ls | grep -q "$network_name"; then
+        log_success "Docker网络 $network_name 存在"
+
+        # 显示网络中的容器
+        echo ""
+        echo "网络中的容器:"
+        docker network inspect "$network_name" --format='{{range .Containers}}{{.Name}}: {{.IPv4Address}}{{"\n"}}{{end}}' 2>/dev/null || true
+    else
+        log_warning "Docker网络 $network_name 不存在"
+    fi
+
+    # 检查容器间连通性
+    echo ""
+    echo "=== 容器连通性测试 ==="
+
+    # 从Nginx容器测试到后端
+    if docker ps --format "table {{.Names}}" | grep -q "zhiweijz-nginx"; then
+        log_info "测试Nginx到后端连接..."
+        if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T nginx nc -z zhiweijz-backend 3000 2>/dev/null; then
+            log_success "✓ Nginx -> 后端 (3000) 连通"
+        else
+            log_warning "✗ Nginx -> 后端 (3000) 不通"
+        fi
+
+        # 测试Nginx到前端
+        log_info "测试Nginx到前端连接..."
+        if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T nginx nc -z zhiweijz-frontend 3001 2>/dev/null; then
+            log_success "✓ Nginx -> 前端 (3001) 连通"
+        else
+            log_warning "✗ Nginx -> 前端 (3001) 不通"
+
+            # 检查前端容器是否存在
+            if docker ps --format "table {{.Names}}" | grep -q "zhiweijz-frontend"; then
+                log_info "前端容器存在但端口不通，可能是服务未启动"
+            else
+                log_warning "前端容器不存在"
+            fi
+        fi
+    fi
 }
 
 # 检查服务状态
@@ -620,6 +714,13 @@ check_services() {
         log_success "后端API正常"
     else
         log_warning "后端API异常"
+
+        # 尝试直接访问后端容器
+        if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T backend curl -f http://localhost:3000/api/health >/dev/null 2>&1; then
+            log_info "后端容器正常，可能是Nginx代理问题"
+        else
+            log_warning "后端容器API也无法访问"
+        fi
     fi
 
     # 检查前端（通过Nginx代理）
@@ -630,11 +731,22 @@ check_services() {
         log_warning "前端服务异常"
 
         # 尝试直接检查前端容器
-        if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T frontend curl -f http://localhost:3001/ >/dev/null 2>&1; then
-            log_info "前端容器运行正常，可能是Nginx代理问题"
+        if docker ps --format "table {{.Names}}" | grep -q "zhiweijz-frontend"; then
+            if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T frontend curl -f http://localhost:3001/ >/dev/null 2>&1; then
+                log_info "前端容器运行正常，可能是Nginx代理问题"
+            else
+                log_warning "前端容器无法访问"
+            fi
         else
-            log_warning "前端容器也无法访问"
+            log_warning "前端容器不存在"
         fi
+    fi
+
+    # 如果有问题，进行网络诊断
+    if curl -f "$frontend_url" >/dev/null 2>&1; then
+        : # 前端正常，不需要诊断
+    else
+        diagnose_network
     fi
 }
 

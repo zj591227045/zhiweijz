@@ -85,7 +85,7 @@ services:
       - frontend
       - backend
     healthcheck:
-      test: ["CMD", "sh", "-c", "curl -f http://localhost/health && (curl -s -o /dev/null -w '%{http_code}' http://localhost/ | grep -E '^[23]')"]
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost/health || exit 1"]
       interval: 20s
       timeout: 15s
       retries: 3
