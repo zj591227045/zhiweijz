@@ -400,3 +400,125 @@
   font-size: 14px;
   color: var(--text-primary);
 }
+
+/* 多选模式样式 */
+.transaction-item.multi-select-mode {
+  padding-left: 8px;
+}
+
+.transaction-checkbox {
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.transaction-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.transaction-item.selected {
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
+  border-left: 3px solid var(--primary-color);
+}
+
+/* 模态框样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-content {
+  background-color: var(--card-background);
+  border-radius: 8px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  padding: 16px 16px 0 16px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 16px;
+}
+
+.modal-body p {
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.warning-text {
+  color: var(--error-color);
+  font-size: 14px;
+}
+
+.modal-footer {
+  padding: 0 16px 16px 16px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn-cancel, .btn-danger {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-cancel {
+  background-color: var(--background-secondary);
+  color: var(--text-primary);
+}
+
+.btn-cancel:hover {
+  background-color: var(--background-hover);
+}
+
+.btn-danger {
+  background-color: var(--error-color);
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+}
+
+.btn-cancel:disabled, .btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 工具栏按钮禁用状态 */
+.icon-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.icon-button:disabled:hover {
+  background-color: transparent;
+}

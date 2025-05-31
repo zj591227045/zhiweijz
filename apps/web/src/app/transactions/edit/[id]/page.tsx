@@ -12,6 +12,7 @@ import { triggerTransactionChange } from '@/store/dashboard-store';
 import { formatDateForInput, getCategoryIconClass, getIconClass } from '@/lib/utils';
 import { TransactionType, UpdateTransactionData } from '@/types';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/api';
 import './transaction-edit.css';
 
 // 预算显示类型定义
@@ -440,6 +441,8 @@ export default function TransactionEditPage({ params }: { params: { id: string }
   const [currentStep, setCurrentStep] = useState(2); // 默认进入第二步
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -584,13 +587,37 @@ export default function TransactionEditPage({ params }: { params: { id: string }
     setCurrentStep(2);
   };
 
-  // 返回上一页
+  // 返回交易列表页面
   const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    } else {
-      // 返回交易列表页面
-      router.push('/transactions');
+    // 直接返回交易列表页面，不再处理步骤间的后退
+    router.push('/transactions');
+  };
+
+  // 处理删除交易
+  const handleDelete = async () => {
+    if (!transaction) return;
+
+    setIsDeleting(true);
+
+    try {
+      // 先执行删除操作
+      const response = await apiClient.delete(`/transactions/${transaction.id}`);
+      if (response) {
+        // 触发交易变化事件，让仪表盘自动刷新
+        if (currentAccountBook?.id) {
+          triggerTransactionChange(currentAccountBook.id);
+        }
+
+        // 删除成功后再跳转，使用 React Router 避免页面刷新
+        toast.success('交易删除成功');
+        router.push('/transactions');
+      }
+    } catch (error) {
+      console.error('删除交易失败:', error);
+      toast.error('删除交易失败，请重试');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -599,8 +626,26 @@ export default function TransactionEditPage({ params }: { params: { id: string }
   // 获取选中的分类信息
   const selectedCategory = categories.find(cat => cat.id === formData.categoryId);
 
+  // 右侧操作按钮
+  const rightActions = (
+    <button
+      className="icon-button"
+      onClick={() => setShowDeleteConfirm(true)}
+      title="删除交易"
+      disabled={isSubmitting || isDeleting}
+    >
+      <i className="fas fa-trash-alt"></i>
+    </button>
+  );
+
   return (
-    <PageContainer title="编辑交易" showBackButton={true} onBackClick={handleBack} showBottomNav={false}>
+    <PageContainer
+      title="编辑交易"
+      showBackButton={true}
+      onBackClick={handleBack}
+      showBottomNav={false}
+      rightActions={rightActions}
+    >
 
       {isLoading ? (
         <div className="loading-state">
@@ -771,6 +816,37 @@ export default function TransactionEditPage({ params }: { params: { id: string }
           >
             返回交易列表
           </button>
+        </div>
+      )}
+
+      {/* 删除确认对话框 */}
+      {showDeleteConfirm && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3>确认删除</h3>
+            </div>
+            <div className="modal-body">
+              <p>确定要删除这条交易记录吗？</p>
+              <p className="warning-text">此操作不可恢复，请谨慎操作。</p>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn-cancel"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+              >
+                取消
+              </button>
+              <button
+                className="btn-danger"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? '删除中...' : '确认删除'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </PageContainer>

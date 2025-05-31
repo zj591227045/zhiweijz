@@ -2,6 +2,7 @@ import { LLMProviderService } from '../llm/llm-provider-service';
 import { SystemMessage, HumanMessage } from '@langchain/core/messages';
 import { SMART_ACCOUNTING_SYSTEM_PROMPT, SMART_ACCOUNTING_USER_PROMPT } from '../prompts/accounting-prompts';
 import { SmartAccountingState } from '../types/accounting-types';
+import { SmartAccountingResponse } from '../../types/smart-accounting';
 import NodeCache from 'node-cache';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
@@ -45,7 +46,7 @@ export class SmartAccounting {
     accountId: string,
     accountType: string,
     includeDebugInfo: boolean = false
-  ) {
+  ): Promise<SmartAccountingResponse> {
     if (!accountId) {
       console.error('处理智能记账时缺少账本ID');
       return null;
@@ -62,7 +63,7 @@ export class SmartAccounting {
     // 检查缓存
     const cachedResult = this.cache.get(cacheKey);
     if (cachedResult) {
-      return cachedResult;
+      return cachedResult as SmartAccountingResponse;
     }
 
     // 创建初始状态
@@ -79,6 +80,13 @@ export class SmartAccounting {
       // 分析交易
       const analyzedState = await this.analyzeTransactionHandler(initialState);
 
+      // 检查是否有错误（如内容与记账无关）
+      if (analyzedState.error) {
+        console.log('智能记账分析失败:', analyzedState.error);
+        // 返回包含错误信息的对象，而不是null
+        return { error: analyzedState.error };
+      }
+
       // 匹配预算
       const budgetState = await this.matchBudgetHandler(analyzedState);
 
@@ -91,9 +99,11 @@ export class SmartAccounting {
       // 缓存结果
       if (resultState.result) {
         this.cache.set(cacheKey, resultState.result);
+        return resultState.result;
       }
 
-      return resultState.result;
+      // 如果没有结果，返回null
+      return null;
     } catch (error) {
       console.error('工作流执行错误:', error);
       return null;
@@ -216,6 +226,43 @@ export class SmartAccounting {
    */
   private async analyzeTransactionHandler(state: SmartAccountingState) {
     try {
+      // 获取LLM设置
+      const llmSettings = await this.llmProviderService.getLLMSettings(state.userId, state.accountId, state.accountType);
+      const provider = this.llmProviderService.getProvider(llmSettings.provider);
+
+      // 第一步：判断请求内容是否与记账相关
+      const relevanceCheckPrompt = `
+你是一个专业的财务助手。请判断以下用户描述是否与记账有关。
+
+判断标准：
+1. 包含金额信息（必须）
+2. 包含交易流水明细（必须）
+3. 可能包含日期信息（可选）
+4. 可能包含预算信息（可选）
+
+如果描述中包含明确的金额和交易内容（如购买、支付、收入、转账等），则判定为与记账相关。
+如果描述中只是询问、闲聊或其他非交易相关内容，则判定为与记账无关。
+
+请只回答 "相关" 或 "无关"，不要有其他文字。
+
+用户描述: ${state.description}
+`;
+
+      const relevanceResponse = await provider.generateChat([
+        new SystemMessage('你是一个专业的财务助手，负责判断用户描述是否与记账相关。'),
+        new HumanMessage(relevanceCheckPrompt)
+      ], llmSettings);
+
+      const relevanceResult = relevanceResponse.trim();
+
+      // 如果内容与记账无关，直接返回错误
+      if (relevanceResult.includes('无关')) {
+        return {
+          ...state,
+          error: '消息与记账无关'
+        };
+      }
+
       // 获取所有分类
       const categories = await this.prisma.category.findMany({
         where: {
@@ -226,10 +273,6 @@ export class SmartAccounting {
           ]
         }
       });
-
-      // 获取LLM设置
-      const llmSettings = await this.llmProviderService.getLLMSettings(state.userId, state.accountId, state.accountType);
-      const provider = this.llmProviderService.getProvider(llmSettings.provider);
 
       // 准备分类列表
       const categoryList = categories.map((c: any) =>
@@ -594,7 +637,23 @@ export class SmartAccounting {
   private async generateResultHandler(state: SmartAccountingState) {
     if (!state.analyzedTransaction || !state.accountId || !state.userId) {
       console.error('生成结果时缺少必要信息');
-      return state;
+      // 返回一个基本的错误结果
+      const errorResult = {
+        amount: 0,
+        date: new Date(),
+        categoryId: '',
+        categoryName: '未知分类',
+        type: 'EXPENSE' as const,
+        note: '生成结果时缺少必要信息',
+        accountId: state.accountId || '',
+        accountName: '未知账本',
+        accountType: state.accountType || 'personal',
+        userId: state.userId || '',
+        confidence: 0,
+        createdAt: new Date(),
+        originalDescription: state.description
+      };
+      return { ...state, result: errorResult };
     }
 
     try {
@@ -702,6 +761,7 @@ export class SmartAccounting {
         type: state.analyzedTransaction.type,
         note: state.analyzedTransaction.note,
         accountId: state.accountId,
+        accountName: '未知账本', // 添加缺失的 accountName 字段
         accountType: state.accountType || 'personal',
         budgetId: state.matchedBudget?.id,
         budgetName: state.matchedBudget?.name,

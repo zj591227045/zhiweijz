@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { LLMProviderService } from '../ai/llm/llm-provider-service';
 import { SmartAccounting } from '../ai/langgraph/smart-accounting';
 import { PrismaClient, TransactionType } from '@prisma/client';
-import { SmartAccountingResult } from '../types/smart-accounting';
+import { SmartAccountingResult, SmartAccountingError } from '../types/smart-accounting';
 
 /**
  * AI功能控制器
@@ -706,6 +706,11 @@ export class AIController {
         return res.status(500).json({ error: '智能记账处理失败' });
       }
 
+      // 检查是否有错误信息（如内容与记账无关）
+      if ('error' in smartResult) {
+        return res.status(400).json({ info: smartResult.error });
+      }
+
       // 从智能记账结果创建交易记录
       try {
         // 准备交易数据
@@ -817,15 +822,16 @@ export class AIController {
       );
 
       if (!result) {
-        throw new Error('Failed to process description');
+        return res.status(500).json({ error: '智能记账处理失败' });
+      }
+
+      // 检查是否有错误信息（如内容与记账无关）
+      if ('error' in result) {
+        return res.status(400).json({ info: result.error });
       }
 
       // 使用类型断言
       const smartResult = result as SmartAccountingResult;
-
-      if (!smartResult) {
-        return res.status(500).json({ error: '智能记账处理失败' });
-      }
 
       // 从智能记账结果创建交易记录
       try {

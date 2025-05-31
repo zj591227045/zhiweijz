@@ -40,6 +40,12 @@ export function TransactionListPage() {
     balance: 0
   });
 
+  // 多选状态
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  const [selectedTransactions, setSelectedTransactions] = useState<Set<string>>(new Set());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // 从URL参数获取预算ID
   const budgetId = searchParams.get('budgetId');
 
@@ -69,81 +75,81 @@ export function TransactionListPage() {
     }
   }, [isAuthenticated, router]);
 
+  // 获取交易数据的函数
+  const fetchTransactions = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // 构建查询参数
+      const queryParams: Record<string, any> = {
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        limit: 20,
+        sort: "date:desc"
+      };
+
+      if (filters.transactionType !== "ALL") {
+        queryParams.type = filters.transactionType;
+      }
+
+      if (filters.categoryIds.length > 0) {
+        queryParams.categoryIds = filters.categoryIds.join(",");
+      }
+
+      if (filters.accountBookId) {
+        queryParams.accountBookId = filters.accountBookId;
+      }
+
+      // 添加预算ID参数
+      if (budgetId) {
+        queryParams.budgetId = budgetId;
+      }
+
+      // 获取交易数据
+      const response = await apiClient.get("/transactions", {
+        params: queryParams
+      });
+
+      // 获取统计数据
+      const statsResponse = await apiClient.get("/statistics/overview", {
+        params: {
+          startDate: filters.startDate,
+          endDate: filters.endDate,
+          accountBookId: filters.accountBookId || undefined,
+          type: filters.transactionType !== "ALL" ? filters.transactionType : undefined,
+          categoryIds: filters.categoryIds.length > 0 ? filters.categoryIds.join(",") : undefined,
+          budgetId: budgetId || undefined
+        }
+      });
+
+      if (response && response.data) {
+        setTransactions(response.data);
+
+        // 按日期分组交易
+        const grouped = groupTransactionsByDate(response.data);
+        setGroupedTransactions(grouped);
+      }
+
+      if (statsResponse) {
+        setStatistics({
+          income: statsResponse.income || 0,
+          expense: statsResponse.expense || 0,
+          balance: (statsResponse.income || 0) - (statsResponse.expense || 0)
+        });
+      }
+
+      setIsLoading(false);
+    } catch (error) {
+      console.error("获取交易数据失败:", error);
+      setError("获取交易数据失败，请重试");
+      setIsLoading(false);
+    }
+  };
+
   // 获取交易数据
   useEffect(() => {
     if (!isAuthenticated) return;
-
-    const fetchTransactions = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        // 构建查询参数
-        const queryParams: Record<string, any> = {
-          startDate: filters.startDate,
-          endDate: filters.endDate,
-          limit: 20,
-          sort: "date:desc"
-        };
-
-        if (filters.transactionType !== "ALL") {
-          queryParams.type = filters.transactionType;
-        }
-
-        if (filters.categoryIds.length > 0) {
-          queryParams.categoryIds = filters.categoryIds.join(",");
-        }
-
-        if (filters.accountBookId) {
-          queryParams.accountBookId = filters.accountBookId;
-        }
-
-        // 添加预算ID参数
-        if (budgetId) {
-          queryParams.budgetId = budgetId;
-        }
-
-        // 获取交易数据
-        const response = await apiClient.get("/transactions", {
-          params: queryParams
-        });
-
-        // 获取统计数据
-        const statsResponse = await apiClient.get("/statistics/overview", {
-          params: {
-            startDate: filters.startDate,
-            endDate: filters.endDate,
-            accountBookId: filters.accountBookId || undefined,
-            type: filters.transactionType !== "ALL" ? filters.transactionType : undefined,
-            categoryIds: filters.categoryIds.length > 0 ? filters.categoryIds.join(",") : undefined,
-            budgetId: budgetId || undefined
-          }
-        });
-
-        if (response && response.data) {
-          setTransactions(response.data);
-
-          // 按日期分组交易
-          const grouped = groupTransactionsByDate(response.data);
-          setGroupedTransactions(grouped);
-        }
-
-        if (statsResponse) {
-          setStatistics({
-            income: statsResponse.income || 0,
-            expense: statsResponse.expense || 0,
-            balance: (statsResponse.income || 0) - (statsResponse.expense || 0)
-          });
-        }
-
-        setIsLoading(false);
-      } catch (error) {
-        console.error("获取交易数据失败:", error);
-        setError("获取交易数据失败，请重试");
-        setIsLoading(false);
-      }
-    };
-
     fetchTransactions();
   }, [isAuthenticated, filters, budgetId]);
 
@@ -208,20 +214,116 @@ export function TransactionListPage() {
     }));
   };
 
-  // 处理交易项点击 - 直接进入编辑页面
+  // 处理交易项点击 - 多选模式下选择，否则进入编辑页面
   const handleTransactionClick = (transactionId: string) => {
-    router.push(`/transactions/edit/${transactionId}`);
+    if (isMultiSelectMode) {
+      handleTransactionSelect(transactionId);
+    } else {
+      router.push(`/transactions/edit/${transactionId}`);
+    }
+  };
+
+  // 处理交易选择
+  const handleTransactionSelect = (transactionId: string) => {
+    setSelectedTransactions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(transactionId)) {
+        newSet.delete(transactionId);
+      } else {
+        newSet.add(transactionId);
+      }
+      return newSet;
+    });
+  };
+
+  // 切换多选模式
+  const toggleMultiSelectMode = () => {
+    setIsMultiSelectMode(!isMultiSelectMode);
+    setSelectedTransactions(new Set());
+  };
+
+  // 全选/取消全选
+  const toggleSelectAll = () => {
+    if (selectedTransactions.size === transactions.length) {
+      setSelectedTransactions(new Set());
+    } else {
+      setSelectedTransactions(new Set(transactions.map(t => t.id)));
+    }
+  };
+
+  // 批量删除
+  const handleBatchDelete = async () => {
+    if (selectedTransactions.size === 0) return;
+
+    setIsDeleting(true);
+    try {
+      const deletePromises = Array.from(selectedTransactions).map(id =>
+        apiClient.delete(`/transactions/${id}`)
+      );
+
+      await Promise.all(deletePromises);
+
+      // 重新获取数据
+      await fetchTransactions();
+
+      // 重置选择状态
+      setSelectedTransactions(new Set());
+      setIsMultiSelectMode(false);
+      setShowDeleteConfirm(false);
+
+      console.log(`成功删除 ${selectedTransactions.size} 条交易记录`);
+    } catch (error) {
+      console.error('批量删除失败:', error);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // 右侧操作按钮
   const rightActions = (
     <>
-      <button className="icon-button">
-        <i className="fas fa-search"></i>
-      </button>
-      <button className="icon-button" onClick={toggleFilterPanel}>
-        <i className="fas fa-filter"></i>
-      </button>
+      {isMultiSelectMode ? (
+        <>
+          <button
+            className="icon-button"
+            onClick={toggleSelectAll}
+            title={selectedTransactions.size === transactions.length ? "取消全选" : "全选"}
+          >
+            <i className={`fas ${selectedTransactions.size === transactions.length ? 'fa-check-square' : 'fa-square'}`}></i>
+          </button>
+          <button
+            className="icon-button"
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={selectedTransactions.size === 0}
+            title="批量删除"
+          >
+            <i className="fas fa-trash-alt"></i>
+          </button>
+          <button
+            className="icon-button"
+            onClick={toggleMultiSelectMode}
+            title="退出多选"
+          >
+            <i className="fas fa-times"></i>
+          </button>
+        </>
+      ) : (
+        <>
+          <button
+            className="icon-button"
+            onClick={toggleMultiSelectMode}
+            title="多选"
+          >
+            <i className="fas fa-check-square"></i>
+          </button>
+          <button className="icon-button">
+            <i className="fas fa-search"></i>
+          </button>
+          <button className="icon-button" onClick={toggleFilterPanel}>
+            <i className="fas fa-filter"></i>
+          </button>
+        </>
+      )}
     </>
   );
 
@@ -237,7 +339,7 @@ export function TransactionListPage() {
   const handleCategoryFilter = (categoryId: string, checked: boolean) => {
     setFilters(prev => ({
       ...prev,
-      categoryIds: checked 
+      categoryIds: checked
         ? [...prev.categoryIds, categoryId]
         : prev.categoryIds.filter(id => id !== categoryId)
     }));
@@ -268,7 +370,7 @@ export function TransactionListPage() {
                 <button onClick={toggleFilterPanel} className="close-button">关闭</button>
               </div>
             </div>
-            
+
             <div className="filter-content">
               {/* 时间范围筛选 */}
               <div className="filter-section">
@@ -390,9 +492,19 @@ export function TransactionListPage() {
                   {group.transactions.map((transaction: any) => (
                     <div
                       key={transaction.id}
-                      className="transaction-item"
+                      className={`transaction-item ${isMultiSelectMode ? 'multi-select-mode' : ''} ${selectedTransactions.has(transaction.id) ? 'selected' : ''}`}
                       onClick={() => handleTransactionClick(transaction.id)}
                     >
+                      {isMultiSelectMode && (
+                        <div className="transaction-checkbox">
+                          <input
+                            type="checkbox"
+                            checked={selectedTransactions.has(transaction.id)}
+                            onChange={() => handleTransactionSelect(transaction.id)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                      )}
                       <div className="transaction-icon">
                         <i className={`fas ${getCategoryIconClass(transaction.category?.icon)}`}></i>
                       </div>
@@ -416,6 +528,37 @@ export function TransactionListPage() {
               <i className="fas fa-receipt"></i>
             </div>
             <div className="empty-text">暂无交易记录</div>
+          </div>
+        )}
+
+        {/* 批量删除确认对话框 */}
+        {showDeleteConfirm && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h3>确认删除</h3>
+              </div>
+              <div className="modal-body">
+                <p>确定要删除选中的 {selectedTransactions.size} 条交易记录吗？</p>
+                <p className="warning-text">此操作不可恢复，请谨慎操作。</p>
+              </div>
+              <div className="modal-footer">
+                <button
+                  className="btn-cancel"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                >
+                  取消
+                </button>
+                <button
+                  className="btn-danger"
+                  onClick={handleBatchDelete}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? '删除中...' : '确认删除'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

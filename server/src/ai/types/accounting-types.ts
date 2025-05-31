@@ -35,6 +35,9 @@ export interface SmartAccountingState extends WorkflowState {
     parsedResult: any;
   };
 
+  // 错误信息
+  error?: string;
+
   includeDebugInfo?: boolean;
 
   // 输出

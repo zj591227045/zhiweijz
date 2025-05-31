@@ -3,7 +3,7 @@ export interface SmartAccountingResult {
   date: Date;
   categoryId: string;
   categoryName: string;
-  type: string;
+  type: 'EXPENSE' | 'INCOME';
   note: string;
   accountId: string;
   accountName: string;
@@ -16,3 +16,9 @@ export interface SmartAccountingResult {
   createdAt: Date;
   originalDescription: string;
 }
+
+export interface SmartAccountingError {
+  error: string;
+}
+
+export type SmartAccountingResponse = SmartAccountingResult | SmartAccountingError | null;
