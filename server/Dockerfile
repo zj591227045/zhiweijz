@@ -9,7 +9,9 @@ RUN apk add --no-cache \
     python3 \
     make \
     g++ \
-    curl
+    curl \
+    openssl \
+    openssl-dev
 
 # 复制根目录的package.json和package-lock.json
 COPY package*.json ./
@@ -59,7 +61,7 @@ WORKDIR /app
 COPY --from=builder /app/server/package*.json ./
 
 # 安装生产依赖
-RUN npm install --only=production && npm cache clean --force
+RUN npm install --only=production --legacy-peer-deps && npm cache clean --force
 
 # 复制构建产物和必要文件
 COPY --from=builder /app/server/dist ./dist

@@ -93,7 +93,7 @@ docker-compose -p zhiweijz restart
 | 服务 | 端口 | 描述 |
 |------|------|------|
 | Nginx | 80/443 | 反向代理和静态资源服务 |
-| Frontend | 3000 (内部) | Next.js 前端应用 |
+| Frontend | 3001 (内部) | Next.js 前端应用 |
 | Backend | 3000 (内部) | Node.js 后端API |
 | PostgreSQL | 5432 | 数据库服务 |
 

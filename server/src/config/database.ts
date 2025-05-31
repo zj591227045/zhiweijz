@@ -3,15 +3,10 @@ import config from './config';
 
 // 创建Prisma客户端实例
 const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: config.database.url,
-    },
-  },
-  log: process.env.PRISMA_LOG_LEVEL === 'debug' 
-    ? ['query', 'info', 'warn', 'error'] 
-    : config.env === 'development' 
-      ? ['warn', 'error'] 
+  log: process.env.PRISMA_LOG_LEVEL === 'debug'
+    ? ['query', 'info', 'warn', 'error']
+    : config.env === 'development'
+      ? ['warn', 'error']
       : ['error'],
 });
 

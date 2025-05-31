@@ -53,7 +53,7 @@ check_docker() {
 # 检查Docker Compose是否可用
 check_docker_compose() {
     log_info "检查Docker Compose..."
-    
+
     # 检查 docker compose (新版本) 或 docker-compose (旧版本)
     local compose_cmd=""
     if docker compose version >/dev/null 2>&1; then
@@ -66,33 +66,33 @@ check_docker_compose() {
         log_error "Docker Compose未安装"
         exit 1
     fi
-    
+
     # 导出compose命令供其他函数使用
     export COMPOSE_CMD="$compose_cmd"
-    
+
     # 检查版本
     local version=$($compose_cmd version --short 2>/dev/null || echo "unknown")
     log_info "Docker Compose版本: $version"
-    
+
     log_success "Docker Compose可用"
 }
 
 # 检查系统资源
 check_system_resources() {
     log_info "检查系统资源..."
-    
+
     # 检查内存
     local mem_total=$(free -m | awk 'NR==2{printf "%.0f", $2}' 2>/dev/null || echo "0")
     if [ "$mem_total" -gt 0 ] && [ "$mem_total" -lt 1024 ]; then
         log_warning "系统内存较少 (${mem_total}MB)，可能影响容器启动"
     fi
-    
+
     # 检查磁盘空间
     local disk_free=$(df -BM . | awk 'NR==2 {print $4}' | sed 's/M//' 2>/dev/null || echo "0")
     if [ "$disk_free" -gt 0 ] && [ "$disk_free" -lt 2048 ]; then
         log_warning "磁盘空间不足 (${disk_free}MB)，建议至少2GB可用空间"
     fi
-    
+
     log_success "系统资源检查完成"
 }
 
@@ -140,7 +140,7 @@ choose_compose_file() {
     echo "2. 简化配置 - 使用通用Nginx镜像，适合解决兼容性问题"
     echo ""
     read -p "请选择 (1-2，默认为1): " config_choice
-    
+
     case $config_choice in
         2)
             if [ -f "docker-compose.simple.yml" ]; then
@@ -171,6 +171,28 @@ cleanup_old_containers() {
     log_success "旧容器清理完成"
 }
 
+# 检查前端镜像是否需要重新构建
+check_frontend_image() {
+    log_info "检查前端镜像配置..."
+
+    # 检查本地前端镜像是否存在且支持3001端口
+    if docker image inspect zj591227045/zhiweijz-frontend:latest >/dev/null 2>&1; then
+        # 检查镜像是否配置了正确的端口
+        local exposed_port=$(docker image inspect zj591227045/zhiweijz-frontend:latest --format='{{range $p, $conf := .Config.ExposedPorts}}{{$p}}{{end}}' 2>/dev/null | grep "3001" || echo "")
+
+        if [ -n "$exposed_port" ]; then
+            log_success "前端镜像已配置正确端口 (3001)"
+            return 0
+        else
+            log_warning "前端镜像端口配置需要更新 (当前使用3000，需要3001)"
+            return 1
+        fi
+    else
+        log_warning "前端镜像不存在，需要拉取或构建"
+        return 1
+    fi
+}
+
 # 拉取最新镜像
 pull_images() {
     log_info "拉取最新镜像..."
@@ -182,16 +204,31 @@ pull_images() {
         exit 1
     fi
 
-    # 拉取前端镜像
-    log_info "拉取前端镜像..."
-    if ! docker pull zj591227045/zhiweijz-frontend:latest; then
-        log_error "前端镜像拉取失败"
-        exit 1
+    # 检查前端镜像
+    if check_frontend_image; then
+        log_info "前端镜像无需更新"
+    else
+        log_info "拉取最新前端镜像..."
+        if ! docker pull zj591227045/zhiweijz-frontend:latest; then
+            log_warning "前端镜像拉取失败，可能需要重新构建"
+
+            # 询问是否重新构建前端镜像
+            echo ""
+            log_warning "前端镜像可能需要重新构建以支持新的端口配置 (3001)"
+            read -p "是否重新构建前端镜像？这将需要几分钟时间 (Y/n): " -n 1 -r
+            echo
+
+            if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+                rebuild_frontend_image
+            else
+                log_warning "跳过前端镜像重建，可能导致启动失败"
+            fi
+        fi
     fi
 
     # 拉取Nginx镜像
     log_info "拉取Nginx镜像..."
-    if ! docker pull nginx:1.25-alpine; then
+    if ! docker pull zj591227045/zhiweijz-nginx:latest; then
         log_error "Nginx镜像拉取失败"
         exit 1
     fi
@@ -199,17 +236,43 @@ pull_images() {
     log_success "所有镜像拉取完成"
 }
 
+# 重新构建前端镜像
+rebuild_frontend_image() {
+    log_info "重新构建前端镜像..."
+
+    # 切换到项目根目录
+    cd "$(dirname "$0")/.."
+
+    # 检查前端Dockerfile是否存在
+    if [ ! -f "apps/web/Dockerfile" ]; then
+        log_error "前端Dockerfile不存在: apps/web/Dockerfile"
+        exit 1
+    fi
+
+    # 构建前端镜像
+    log_info "正在构建前端镜像，这可能需要几分钟..."
+    if docker build -f apps/web/Dockerfile -t zj591227045/zhiweijz-frontend:latest .; then
+        log_success "前端镜像构建完成"
+    else
+        log_error "前端镜像构建失败"
+        exit 1
+    fi
+
+    # 返回docker目录
+    cd docker
+}
+
 # 安全启动单个服务
 start_service_safely() {
     local service_name=$1
     local wait_time=${2:-10}
-    
+
     log_info "启动 ${service_name} 服务..."
-    
+
     # 尝试启动服务，添加重试机制
     local retry_count=0
     local max_retries=3
-    
+
     while [ $retry_count -lt $max_retries ]; do
         if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" up -d "$service_name" 2>/dev/null; then
             log_success "${service_name} 服务启动成功"
@@ -217,24 +280,114 @@ start_service_safely() {
         else
             retry_count=$((retry_count + 1))
             log_warning "${service_name} 启动失败，重试 ${retry_count}/${max_retries}"
-            
+
+            # 显示容器日志以便调试
+            log_info "查看 ${service_name} 容器日志..."
+            $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" logs --tail=10 "$service_name" 2>/dev/null || true
+
             if [ $retry_count -lt $max_retries ]; then
                 # 清理可能的问题容器
                 $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" rm -f "$service_name" 2>/dev/null || true
                 sleep 5
             else
                 log_error "${service_name} 服务启动失败，已达到最大重试次数"
+                log_error "请检查容器日志: $COMPOSE_CMD -f $COMPOSE_FILE -p $PROJECT_NAME logs $service_name"
                 return 1
             fi
         fi
     done
-    
+
     # 等待服务启动
     if [ $wait_time -gt 0 ]; then
         log_info "等待 ${service_name} 服务启动 (${wait_time}秒)..."
         sleep $wait_time
     fi
-    
+
+    # 验证服务状态
+    verify_service_health "$service_name"
+
+    return 0
+}
+
+# 验证服务健康状态
+verify_service_health() {
+    local service_name=$1
+
+    log_info "验证 ${service_name} 服务健康状态..."
+
+    # 检查容器是否运行
+    if ! $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" ps "$service_name" | grep -q "Up"; then
+        log_warning "${service_name} 容器未正常运行"
+        return 1
+    fi
+
+    # 根据服务类型进行特定的健康检查
+    case $service_name in
+        "postgres")
+            if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T postgres pg_isready -U zhiweijz -d zhiweijz >/dev/null 2>&1; then
+                log_success "${service_name} 健康检查通过"
+            else
+                log_warning "${service_name} 健康检查失败"
+                return 1
+            fi
+            ;;
+        "backend")
+            # 等待后端API可用
+            local api_ready=false
+            for i in {1..30}; do
+                if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T backend curl -f http://localhost:3000/api/health >/dev/null 2>&1; then
+                    api_ready=true
+                    break
+                fi
+                sleep 2
+            done
+
+            if [ "$api_ready" = true ]; then
+                log_success "${service_name} 健康检查通过"
+            else
+                log_warning "${service_name} 健康检查失败"
+                return 1
+            fi
+            ;;
+        "frontend")
+            # 等待前端服务可用
+            local frontend_ready=false
+            for i in {1..30}; do
+                if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T frontend curl -f http://localhost:3001/ >/dev/null 2>&1; then
+                    frontend_ready=true
+                    break
+                fi
+                sleep 2
+            done
+
+            if [ "$frontend_ready" = true ]; then
+                log_success "${service_name} 健康检查通过"
+            else
+                log_warning "${service_name} 健康检查失败，但继续启动其他服务"
+                # 前端健康检查失败不阻止后续服务启动
+                return 0
+            fi
+            ;;
+        "nginx")
+            # 等待Nginx服务可用
+            local nginx_ready=false
+            for i in {1..20}; do
+                if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T nginx curl -f http://localhost/health >/dev/null 2>&1; then
+                    nginx_ready=true
+                    break
+                fi
+                sleep 2
+            done
+
+            if [ "$nginx_ready" = true ]; then
+                log_success "${service_name} 健康检查通过"
+            else
+                log_warning "${service_name} 健康检查失败"
+                return 1
+            fi
+            ;;
+    esac
+
     return 0
 }
 
@@ -243,38 +396,21 @@ start_services() {
     log_info "开始启动服务..."
 
     # 启动数据库
-    if ! start_service_safely "postgres" 15; then
+    if ! start_service_safely "postgres" 10; then
         log_error "数据库启动失败"
         exit 1
     fi
-    
-    # 验证数据库是否真正启动
-    log_info "验证数据库连接..."
-    local db_ready=false
-    for i in {1..30}; do
-        if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T postgres pg_isready -U zhiweijz -d zhiweijz >/dev/null 2>&1; then
-            db_ready=true
-            break
-        fi
-        sleep 2
-    done
-    
-    if [ "$db_ready" = false ]; then
-        log_error "数据库启动超时"
-        exit 1
-    fi
-    log_success "数据库连接验证成功"
 
     # 启动后端服务
-    if ! start_service_safely "backend" 20; then
+    if ! start_service_safely "backend" 15; then
         log_error "后端服务启动失败"
         exit 1
     fi
 
-    # 启动前端服务
-    if ! start_service_safely "frontend" 15; then
-        log_error "前端服务启动失败"
-        exit 1
+    # 启动前端服务（允许失败，不阻止后续服务）
+    if ! start_service_safely "frontend" 10; then
+        log_warning "前端服务启动失败，但继续启动其他服务"
+        log_warning "请检查前端容器日志: $COMPOSE_CMD -f $COMPOSE_FILE -p $PROJECT_NAME logs frontend"
     fi
 
     # 启动Nginx
@@ -283,7 +419,7 @@ start_services() {
         exit 1
     fi
 
-    log_success "所有服务启动完成"
+    log_success "服务启动流程完成"
 }
 
 # 检查服务状态
@@ -318,19 +454,26 @@ check_services() {
         log_warning "后端API异常"
     fi
 
-    # 检查前端
-    local frontend_url="http://localhost:${http_port}/health"
+    # 检查前端（通过Nginx代理）
+    local frontend_url="http://localhost:${http_port}/"
     if curl -f "$frontend_url" >/dev/null 2>&1; then
         log_success "前端服务正常"
     else
         log_warning "前端服务异常"
+
+        # 尝试直接检查前端容器
+        if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T frontend curl -f http://localhost:3001/ >/dev/null 2>&1; then
+            log_info "前端容器运行正常，可能是Nginx代理问题"
+        else
+            log_warning "前端容器也无法访问"
+        fi
     fi
 }
 
 # 获取系统IP地址
 get_system_ips() {
     local ips=()
-    
+
     # 获取本机IP地址（排除回环地址）
     if command -v ifconfig >/dev/null 2>&1; then
         # macOS/Linux 使用 ifconfig
@@ -342,21 +485,21 @@ get_system_ips() {
         # Linux 使用 ip 命令
         local local_ips=$(ip route get 1.1.1.1 2>/dev/null | grep -oP 'src \K\S+' | head -1)
         [ -n "$local_ips" ] && ips+=("$local_ips")
-        
+
         # 备用方法：获取所有网络接口IP
         local all_ips=$(ip addr show | grep -E "inet [0-9]" | grep -v "127.0.0.1" | awk '{print $2}' | cut -d'/' -f1 | head -3)
         while IFS= read -r ip; do
             [ -n "$ip" ] && [[ ! " ${ips[@]} " =~ " ${ip} " ]] && ips+=("$ip")
         done <<< "$all_ips"
     fi
-    
+
     # 如果没有找到IP，尝试其他方法
     if [ ${#ips[@]} -eq 0 ]; then
         # 尝试使用 hostname 命令
         local hostname_ip=$(hostname -I 2>/dev/null | awk '{print $1}')
         [ -n "$hostname_ip" ] && ips+=("$hostname_ip")
     fi
-    
+
     # 输出IP地址数组
     printf '%s\n' "${ips[@]}"
 }
@@ -367,32 +510,32 @@ show_access_info() {
     local http_port=$(get_env_var "NGINX_HTTP_PORT" "80")
     local https_port=$(get_env_var "NGINX_HTTPS_PORT" "443")
     local db_port=$(get_env_var "POSTGRES_PORT" "5432")
-    
+
     # 获取系统IP地址
     local system_ips=($(get_system_ips))
-    
+
     echo ""
     echo "=================================="
     log_success "🎉 只为记账部署完成！"
     echo "=================================="
     echo ""
     echo -e "${BLUE}访问地址:${NC}"
-    
+
     # 本地访问
     echo -e "${YELLOW}📱 本地访问:${NC}"
     local localhost_http="http://localhost"
     local localhost_https="https://localhost"
-    
+
     if [ "$http_port" != "80" ]; then
         localhost_http="http://localhost:${http_port}"
     fi
     if [ "$https_port" != "443" ]; then
         localhost_https="https://localhost:${https_port}"
     fi
-    
+
     echo -e "  🌐 前端应用: ${YELLOW}${localhost_http}${NC}"
     echo -e "  🔧 API接口: ${YELLOW}${localhost_http}/api${NC}"
-    
+
     # 网络访问
     if [ ${#system_ips[@]} -gt 0 ]; then
         echo ""
@@ -400,17 +543,17 @@ show_access_info() {
         for ip in "${system_ips[@]}"; do
             local network_http="http://${ip}"
             local network_https="https://${ip}"
-            
+
             if [ "$http_port" != "80" ]; then
                 network_http="http://${ip}:${http_port}"
             fi
             if [ "$https_port" != "443" ]; then
                 network_https="https://${ip}:${https_port}"
             fi
-            
+
             echo -e "  🌐 前端应用: ${YELLOW}${network_http}${NC}"
             echo -e "  🔧 API接口: ${YELLOW}${network_http}/api${NC}"
-            
+
             # 如果配置了HTTPS，也显示HTTPS地址
             if [ "$https_port" != "443" ] || [ -f "/etc/ssl/certs/localhost.crt" ]; then
                 echo -e "  🔒 HTTPS访问: ${YELLOW}${network_https}${NC}"
@@ -421,7 +564,7 @@ show_access_info() {
         echo ""
         log_warning "未能检测到网络IP地址，请手动确认网络访问地址"
     fi
-    
+
     # 数据库访问
     echo -e "${YELLOW}🗄️ 数据库访问:${NC}"
     echo -e "  📍 本地连接: ${YELLOW}localhost:${db_port}${NC}"
@@ -430,7 +573,7 @@ show_access_info() {
             echo -e "  📍 网络连接: ${YELLOW}${ip}:${db_port}${NC}"
         done
     fi
-    
+
     echo ""
     echo -e "${BLUE}数据库信息:${NC}"
     echo -e "  📊 数据库名: ${YELLOW}zhiweijz${NC}"

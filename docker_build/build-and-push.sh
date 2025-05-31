@@ -386,6 +386,7 @@ main() {
 
     # 构建镜像
     build_frontend
+    build_backend
     build_nginx
 
     # 验证镜像
