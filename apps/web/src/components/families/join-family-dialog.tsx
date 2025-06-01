@@ -64,7 +64,7 @@ export function JoinFamilyDialog({ isOpen, onClose }: JoinFamilyDialogProps) {
               />
             </div>
             <p className="text-sm text-gray-500 mb-4">
-              请向家庭管理员获取邀请码，邀请码通常为6位字母和数字的组合。
+              请向家庭管理员获取邀请码，邀请码为8位数字。
             </p>
             {error && (
               <div className="text-red-500 text-sm mt-2">{error}</div>

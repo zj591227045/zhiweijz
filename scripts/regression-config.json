@@ -1,0 +1,112 @@
+{
+  "testSuites": {
+    "unit": {
+      "enabled": true,
+      "critical": true,
+      "command": "cd server && npm test -- --coverage --passWithNoTests",
+      "timeout": 300000,
+      "description": "后端单元测试"
+    },
+    "integration": {
+      "enabled": true,
+      "critical": true,
+      "command": "cd server && npm run test:integration",
+      "timeout": 300000,
+      "description": "后端集成测试"
+    },
+    "api": {
+      "enabled": true,
+      "critical": true,
+      "command": "node scripts/test-backend-api.js",
+      "timeout": 300000,
+      "description": "API端点测试"
+    },
+    "frontend": {
+      "enabled": true,
+      "critical": false,
+      "command": "node scripts/test-frontend.js",
+      "timeout": 600000,
+      "description": "前端功能测试"
+    },
+    "e2e": {
+      "enabled": true,
+      "critical": false,
+      "command": "node scripts/test-e2e.js",
+      "timeout": 900000,
+      "description": "端到端流程测试"
+    },
+    "performance": {
+      "enabled": false,
+      "critical": false,
+      "command": "node scripts/test-performance.js",
+      "timeout": 600000,
+      "description": "性能回归测试"
+    },
+    "security": {
+      "enabled": false,
+      "critical": false,
+      "command": "node scripts/test-security.js",
+      "timeout": 300000,
+      "description": "安全测试"
+    }
+  },
+  "thresholds": {
+    "testCoverage": 80,
+    "performanceRegression": 20,
+    "errorRate": 5,
+    "criticalTestPassRate": 100,
+    "overallPassRate": 95
+  },
+  "environment": {
+    "requiredVars": [
+      "NODE_ENV"
+    ],
+    "recommendedVars": [
+      "DATABASE_URL",
+      "JWT_SECRET"
+    ]
+  },
+  "database": {
+    "checkMigrations": true,
+    "requireUpToDate": true,
+    "backupBeforeTest": false
+  },
+  "notifications": {
+    "enabled": false,
+    "onFailure": true,
+    "onSuccess": false,
+    "channels": {
+      "webhook": null,
+      "email": null,
+      "slack": null
+    }
+  },
+  "reporting": {
+    "saveReports": true,
+    "reportDirectory": "../test-reports",
+    "keepReports": 30,
+    "generateBaseline": true,
+    "includePerformanceMetrics": true,
+    "includeCoverageReport": true
+  },
+  "retry": {
+    "enabled": true,
+    "maxRetries": 2,
+    "retryDelay": 5000,
+    "retryOnlyFailed": true
+  },
+  "parallel": {
+    "enabled": false,
+    "maxConcurrency": 2,
+    "independentSuites": [
+      "unit",
+      "frontend"
+    ]
+  },
+  "cleanup": {
+    "enabled": true,
+    "cleanupTestData": true,
+    "cleanupTempFiles": true,
+    "resetDatabase": false
+  }
+}

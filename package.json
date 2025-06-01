@@ -24,6 +24,13 @@
     "test:client": "jest --testPathPattern=client",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:full": "node scripts/run-full-tests.js",
+    "test:backend-api": "node scripts/test-backend-api.js",
+    "test:frontend": "node scripts/test-frontend.js",
+    "test:e2e": "node scripts/test-e2e.js",
+    "test:regression": "node scripts/test-regression.js",
+    "test:health": "node scripts/test-health-check.js",
+    "test:guide": "node scripts/test-environment-guide.js",
     "prisma:generate": "cd server && prisma generate",
     "prisma:migrate": "cd server && prisma migrate dev",
     "prisma:studio": "cd server && prisma studio"

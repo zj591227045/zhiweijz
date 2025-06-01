@@ -1,0 +1,74 @@
+{
+  "backend": {
+    "enabled": true,
+    "timeout": 300000,
+    "retries": 2,
+    "endpoints": [
+      "/api/auth/check",
+      "/api/account-books",
+      "/api/categories",
+      "/api/transactions",
+      "/api/budgets",
+      "/api/statistics/expenses",
+      "/api/statistics/income"
+    ]
+  },
+  "frontend": {
+    "enabled": true,
+    "timeout": 180000,
+    "retries": 1,
+    "pages": [
+      { "path": "/", "title": "只为记账", "name": "首页" },
+      { "path": "/auth/login", "title": "登录", "name": "登录页面" },
+      { "path": "/auth/register", "title": "注册", "name": "注册页面" },
+      { "path": "/dashboard", "title": "仪表盘", "name": "仪表盘页面" },
+      { "path": "/transactions", "title": "交易", "name": "交易页面" },
+      { "path": "/budgets", "title": "预算", "name": "预算页面" },
+      { "path": "/books", "title": "账本", "name": "账本页面" },
+      { "path": "/settings", "title": "设置", "name": "设置页面" },
+      { "path": "/statistics", "title": "统计", "name": "统计页面" }
+    ]
+  },
+  "e2e": {
+    "enabled": true,
+    "timeout": 600000,
+    "retries": 1,
+    "testUser": {
+      "email": "e2e-test@zhiweijz.com",
+      "password": "E2ETestPassword123!",
+      "name": "E2E测试用户"
+    },
+    "flows": [
+      "用户注册流程",
+      "用户登录流程",
+      "仪表盘访问",
+      "账本管理流程",
+      "交易管理流程",
+      "预算管理流程",
+      "统计页面访问"
+    ]
+  },
+  "notifications": {
+    "enabled": false,
+    "webhook": null,
+    "email": null,
+    "slack": null
+  },
+  "reporting": {
+    "saveReports": true,
+    "reportDirectory": "../test-reports",
+    "keepReports": 30,
+    "generateBaseline": true
+  },
+  "environment": {
+    "frontendURL": "http://localhost:3003",
+    "backendURL": "http://localhost:3000",
+    "databaseURL": null
+  },
+  "thresholds": {
+    "testCoverage": 80,
+    "performanceRegression": 20,
+    "errorRate": 5,
+    "responseTime": 5000
+  }
+}

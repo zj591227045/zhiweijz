@@ -105,8 +105,8 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
   joinFamily: async (inviteCode: string) => {
     try {
       set({ isLoading: true, error: null });
-      
-      const response = await apiClient.post('/families/join', { inviteCode });
+
+      const response = await apiClient.post('/families/join', { invitationCode: inviteCode });
       
       // 更新家庭列表
       await get().fetchFamilies();

@@ -9,6 +9,7 @@ bak/
 apps/web/.next/
 next-env.d.ts
 client/
+test-reports
 
 # Environment variables
 .env
