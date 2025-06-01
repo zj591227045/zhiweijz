@@ -1,17 +1,18 @@
 # 多阶段构建 - 构建阶段
-FROM node:18-alpine AS builder
+FROM node:18-alpine3.17 AS builder
 
 # 设置工作目录
 WORKDIR /app
 
-# 安装系统依赖
-RUN apk add --no-cache \
+# 安装系统依赖 - 使用更稳定的方式
+RUN apk update && apk add --no-cache \
     python3 \
     make \
     g++ \
     curl \
     openssl \
-    openssl-dev
+    openssl-dev \
+    && rm -rf /var/cache/apk/*
 
 # 复制根目录的package.json和package-lock.json
 COPY package*.json ./
@@ -41,14 +42,15 @@ RUN npx prisma generate
 RUN npm run build
 
 # 生产阶段
-FROM node:18-alpine AS production
+FROM node:18-alpine3.17 AS production
 
 # 安装系统依赖和curl用于健康检查
-RUN apk add --no-cache \
+RUN apk update && apk add --no-cache \
     curl \
     dumb-init \
     openssl \
-    libc6-compat
+    libc6-compat \
+    && rm -rf /var/cache/apk/*
 
 # 创建非root用户
 RUN addgroup -g 1001 -S nodejs && \
