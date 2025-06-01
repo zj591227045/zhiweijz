@@ -27,11 +27,12 @@ services:
 
   # 后端服务
   backend:
-    image: zj591227045/zhiweijz-backend:0.1.3
+    image: zj591227045/zhiweijz-backend:0.1.4
     container_name: zhiweijz-backend
     restart: unless-stopped
     environment:
       NODE_ENV: production
+      DOCKER_ENV: "true"
       DATABASE_URL: postgresql://zhiweijz:zhiweijz123@postgres:5432/zhiweijz
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
       PORT: 3000

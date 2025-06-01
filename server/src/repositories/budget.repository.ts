@@ -132,6 +132,7 @@ export class BudgetRepository {
         enableCategoryBudget: budgetData.enableCategoryBudget ?? false,
         isAutoCalculated: budgetData.isAutoCalculated ?? false,
         budgetType: budgetData.budgetType || BudgetType.PERSONAL,
+        refreshDay: budgetData.refreshDay || 1,
       },
       include: {
         category: true,
@@ -254,6 +255,7 @@ export class BudgetRepository {
       ...(budgetData.enableCategoryBudget !== undefined && { enableCategoryBudget: budgetData.enableCategoryBudget }),
       ...(budgetData.isAutoCalculated !== undefined && { isAutoCalculated: budgetData.isAutoCalculated }),
       ...(budgetData.budgetType !== undefined && { budgetType: budgetData.budgetType }),
+      ...(budgetData.refreshDay !== undefined && { refreshDay: budgetData.refreshDay }),
     };
 
     return prisma.budget.update({

@@ -4,6 +4,7 @@ import { CategoryRepository } from '../repositories/category.repository';
 import { CategoryBudgetRepository } from '../repositories/category-budget.repository';
 import { BudgetHistoryRepository } from '../repositories/budget-history.repository';
 import { BudgetHistoryService } from './budget-history.service';
+import { BudgetDateUtils } from '../utils/budget-date-utils';
 
 // 创建Prisma客户端实例
 const prisma = new PrismaClient();
@@ -67,6 +68,25 @@ export class BudgetService {
       userId,
       params
     });
+
+    // 如果查询个人预算且指定了账本ID，先尝试自动创建缺失的预算
+    if (params.budgetType === 'PERSONAL' && params.accountBookId) {
+      const currentDate = new Date();
+      const currentMonthBudgets = await this.budgetRepository.findByPeriodAndDate(
+        userId,
+        BudgetPeriod.MONTHLY,
+        new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
+        new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0),
+        undefined,
+        params.accountBookId,
+        true // 排除托管成员预算
+      );
+
+      if (currentMonthBudgets.length === 0) {
+        console.log(`用户 ${userId} 在账本 ${params.accountBookId} 中没有当前月份的个人预算，尝试自动创建`);
+        await this.autoCreateMissingBudgets(userId, params.accountBookId);
+      }
+    }
 
     // 简化实现：只根据账本ID和预算类型过滤
     const { budgets, total } = await this.budgetRepository.findAll(userId, params);
@@ -300,9 +320,20 @@ export class BudgetService {
    * 获取当前活跃的预算
    * 包括用户的个人预算和用户所属家庭的预算
    * 可选根据账本ID进行过滤
+   * 如果没有找到当前月份的预算，自动创建
    */
   async getActiveBudgets(userId: string, accountBookId?: string): Promise<BudgetResponseDto[]> {
-    const budgets = await this.budgetRepository.findActiveBudgets(userId, new Date(), accountBookId);
+    // 先尝试查询当前月份的预算
+    let budgets = await this.budgetRepository.findActiveBudgets(userId, new Date(), accountBookId);
+
+    // 如果没有找到预算，尝试自动创建缺失的月份预算
+    if (budgets.length === 0 && accountBookId) {
+      console.log(`用户 ${userId} 在账本 ${accountBookId} 中没有找到活跃预算，尝试自动创建`);
+      await this.autoCreateMissingBudgets(userId, accountBookId);
+
+      // 重新查询预算
+      budgets = await this.budgetRepository.findActiveBudgets(userId, new Date(), accountBookId);
+    }
 
     // 获取每个预算的已使用金额
     const budgetsWithSpent = await Promise.all(
@@ -854,6 +885,106 @@ export class BudgetService {
   }
 
   /**
+   * 自动创建缺失的月份预算
+   * 查找用户最近的预算，并创建从上个月结束到当前月份的所有缺失预算
+   */
+  async autoCreateMissingBudgets(userId: string, accountBookId: string): Promise<void> {
+    try {
+      console.log(`开始为用户 ${userId} 在账本 ${accountBookId} 中自动创建缺失预算`);
+
+      // 查找用户在该账本中最近的个人预算
+      const latestBudget = await this.findLatestPersonalBudget(userId, accountBookId);
+
+      if (!latestBudget) {
+        console.log('未找到历史预算，无法自动创建');
+        return;
+      }
+
+      const refreshDay = (latestBudget as any).refreshDay || 1;
+      console.log(`找到最近的预算: ${latestBudget.name}, 结束日期: ${latestBudget.endDate}, 刷新日期: ${refreshDay}`);
+
+      // 检查是否需要创建新预算周期
+      const currentDate = new Date();
+      const latestEndDate = new Date(latestBudget.endDate);
+
+      if (latestEndDate < currentDate) {
+        // 计算需要创建的预算周期
+        const periodsToCreate = BudgetDateUtils.calculateMissingPeriods(latestEndDate, currentDate, refreshDay);
+        console.log(`需要创建 ${periodsToCreate.length} 个预算周期`);
+
+        // 逐个创建预算
+        let previousBudgetId = latestBudget.id;
+        for (const period of periodsToCreate) {
+          console.log(`创建预算周期: ${BudgetDateUtils.formatPeriod(period)}`);
+
+          // 处理上个预算的结转（如果启用了结转）
+          if (latestBudget.rollover) {
+            await this.processBudgetRollover(previousBudgetId);
+          }
+
+          // 创建新预算周期的预算
+          const newBudget = await this.createBudgetForPeriod(latestBudget, period);
+          previousBudgetId = newBudget.id;
+
+          console.log(`成功创建预算: ${newBudget.name} (${newBudget.id})`);
+        }
+      }
+    } catch (error) {
+      console.error('自动创建缺失预算失败:', error);
+      // 不抛出错误，避免影响正常的预算查询
+    }
+  }
+
+  /**
+   * 查找用户最近的个人预算
+   */
+  private async findLatestPersonalBudget(userId: string, accountBookId: string): Promise<any> {
+    const budgets = await prisma.budget.findMany({
+      where: {
+        userId,
+        accountBookId,
+        budgetType: BudgetType.PERSONAL,
+        period: BudgetPeriod.MONTHLY,
+        familyMemberId: null // 排除托管成员的预算
+      },
+      orderBy: {
+        endDate: 'desc'
+      },
+      take: 1
+    });
+
+    return budgets.length > 0 ? budgets[0] : null;
+  }
+
+  /**
+   * 为特定预算周期创建预算
+   * @param templateBudget 模板预算（用于复制配置）
+   * @param period 预算周期
+   * @returns 新创建的预算
+   */
+  private async createBudgetForPeriod(templateBudget: any, period: any): Promise<BudgetResponseDto> {
+    const newBudgetData: CreateBudgetDto = {
+      name: templateBudget.name,
+      amount: Number(templateBudget.amount),
+      period: templateBudget.period,
+      categoryId: templateBudget.categoryId || undefined,
+      startDate: period.startDate,
+      endDate: period.endDate,
+      rollover: templateBudget.rollover,
+      familyId: templateBudget.familyId || undefined,
+      accountBookId: templateBudget.accountBookId || undefined,
+      enableCategoryBudget: templateBudget.enableCategoryBudget || false,
+      isAutoCalculated: templateBudget.isAutoCalculated || false,
+      budgetType: BudgetType.PERSONAL,
+      refreshDay: period.refreshDay
+    };
+
+    // 创建新预算
+    const userId = templateBudget.userId || '';
+    return this.createBudget(userId, newBudgetData);
+  }
+
+  /**
    * 创建下一个周期的预算
    * 对于月度预算，创建下个月的预算
    */
@@ -869,39 +1000,43 @@ export class BudgetService {
       throw new Error('只能为个人预算创建下一周期');
     }
 
-    // 计算下一周期的日期
-    const startDate = new Date(currentBudget.endDate);
-    startDate.setDate(startDate.getDate() + 1);
+    const refreshDay = (currentBudget as any).refreshDay || 1;
 
-    const endDate = new Date(startDate);
     if (currentBudget.period === BudgetPeriod.MONTHLY) {
-      // 设置为下个月的最后一天
-      endDate.setMonth(endDate.getMonth() + 1);
-      endDate.setDate(0);
+      // 根据当前预算的结束日期计算下一个周期
+      const currentEndDate = new Date(currentBudget.endDate);
+      const nextPeriod = BudgetDateUtils.calculateMissingPeriods(
+        currentEndDate,
+        new Date(currentEndDate.getTime() + 24 * 60 * 60 * 1000), // 下一天
+        refreshDay
+      )[0];
+
+      if (!nextPeriod) {
+        throw new Error('无法计算下一个预算周期');
+      }
+
+      // 创建新预算数据
+      const newBudgetData: CreateBudgetDto = {
+        name: currentBudget.name,
+        amount: Number(currentBudget.amount),
+        period: currentBudget.period,
+        categoryId: currentBudget.categoryId || undefined,
+        startDate: nextPeriod.startDate,
+        endDate: nextPeriod.endDate,
+        rollover: currentBudget.rollover,
+        familyId: currentBudget.familyId || undefined,
+        accountBookId: (currentBudget as any).accountBookId || undefined,
+        enableCategoryBudget: (currentBudget as any).enableCategoryBudget || false,
+        isAutoCalculated: (currentBudget as any).isAutoCalculated || false,
+        budgetType: BudgetType.PERSONAL,
+        refreshDay: refreshDay,
+      };
+
+      // 创建新预算
+      const userId = currentBudget.userId || '';
+      return this.createBudget(userId, newBudgetData);
     } else {
-      // 年度预算，加一年
-      endDate.setFullYear(endDate.getFullYear() + 1);
-      endDate.setDate(endDate.getDate() - 1);
+      throw new Error('暂不支持非月度预算的自动创建');
     }
-
-    // 创建新预算数据
-    const newBudgetData: CreateBudgetDto = {
-      name: currentBudget.name,
-      amount: Number(currentBudget.amount),
-      period: currentBudget.period,
-      categoryId: currentBudget.categoryId || undefined,
-      startDate,
-      endDate,
-      rollover: currentBudget.rollover,
-      familyId: currentBudget.familyId || undefined,
-      accountBookId: (currentBudget as any).accountBookId || undefined,
-      enableCategoryBudget: (currentBudget as any).enableCategoryBudget || false,
-      isAutoCalculated: (currentBudget as any).isAutoCalculated || false,
-      budgetType: BudgetType.PERSONAL
-    };
-
-    // 创建新预算
-    const userId = currentBudget.userId || '';
-    return this.createBudget(userId, newBudgetData);
   }
 }

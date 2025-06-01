@@ -19,6 +19,7 @@ export interface CreateBudgetDto {
   isAutoCalculated?: boolean;
   budgetType?: BudgetType;
   familyMemberId?: string; // 托管成员ID
+  refreshDay?: number; // 预算刷新日期（1, 5, 10, 15, 20, 25）
 }
 
 /**
@@ -38,6 +39,7 @@ export interface UpdateBudgetDto {
   rolloverAmount?: number;
   amountModified?: boolean;         // 预算金额是否已被修改
   lastAmountModifiedAt?: Date;      // 最后一次修改预算金额的时间
+  refreshDay?: number;              // 预算刷新日期（1, 5, 10, 15, 20, 25）
 }
 
 /**
@@ -82,6 +84,7 @@ export interface BudgetResponseDto {
   accountBookType?: string;
   budgetType: BudgetType;
   rolloverAmount?: number;
+  refreshDay?: number; // 预算刷新日期
   createdAt: Date;
   updatedAt: Date;
   // 预算执行情况
@@ -139,6 +142,7 @@ export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryRes
   const amountModified = budgetAny.amountModified;
   const lastAmountModifiedAt = budgetAny.lastAmountModifiedAt;
   const familyMemberId = budgetAny.familyMemberId;
+  const refreshDay = budgetAny.refreshDay;
 
   // 获取托管成员信息
   const familyMember = budgetAny.familyMember;
@@ -184,6 +188,7 @@ export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryRes
     accountBookId: accountBookId || undefined,
     budgetType: budgetType,
     rolloverAmount: numericRolloverAmount,
+    refreshDay: refreshDay || 1,
     createdAt,
     updatedAt,
     spent: numericSpent,

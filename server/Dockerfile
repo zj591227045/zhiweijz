@@ -71,8 +71,9 @@ COPY --from=builder /app/server/scripts ./scripts
 
 # 创建必要目录并设置权限
 RUN mkdir -p uploads node_modules/prisma && \
-    chown -R nodejs:nodejs uploads node_modules && \
-    chmod +x scripts/*.sh
+    chown -R nodejs:nodejs uploads node_modules scripts && \
+    chmod +x scripts/*.sh && \
+    chmod +x scripts/migrate-refresh-day.sh
 
 # 切换到非root用户
 USER nodejs

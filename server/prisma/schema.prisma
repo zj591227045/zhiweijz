@@ -157,6 +157,7 @@ model Budget {
   amountModified       Boolean          @default(false) @map("amount_modified")
   lastAmountModifiedAt DateTime?        @map("last_amount_modified_at")
   familyMemberId       String?          @map("family_member_id")
+  refreshDay           Int?             @default(1) @map("refresh_day")
   budgetHistories      BudgetHistory[]
   accountBook          AccountBook?     @relation(fields: [accountBookId], references: [id])
   category             Category?        @relation(fields: [categoryId], references: [id])

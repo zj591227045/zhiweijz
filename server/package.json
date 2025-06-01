@@ -9,6 +9,9 @@
     "dev": "nodemon --exec ts-node src/index.ts",
     "build": "npx tsc",
     "test": "jest",
+    "budget-scheduler": "ts-node scripts/budget-scheduler.ts",
+    "test-budget-auto-continuation": "ts-node scripts/test-budget-auto-continuation.ts",
+    "test-budget-date-utils": "ts-node scripts/test-budget-date-utils.ts",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "prisma:generate": "npx prisma generate"
