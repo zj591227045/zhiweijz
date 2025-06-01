@@ -26,15 +26,32 @@ export function BudgetOverview({ overview }: BudgetOverviewProps) {
     rolloverHistory,
     isRolloverHistoryOpen,
     toggleRolloverHistory,
-    fetchRolloverHistory
+    fetchRolloverHistory,
+    fetchUserRolloverHistory
   } = useBudgetStatisticsStore();
 
   // 处理结转历史按钮点击
-  const handleRolloverHistoryClick = () => {
-    // 先获取结转历史数据，然后打开对话框
-    fetchRolloverHistory(overview.id).then(() => {
+  const handleRolloverHistoryClick = async () => {
+    try {
+      // 导入账本store获取当前账本ID
+      const { useAccountBookStore } = await import('@/store/account-book-store');
+      const { currentAccountBook } = useAccountBookStore.getState();
+
+      if (currentAccountBook) {
+        // 使用新的用户级别API获取结转历史
+        await fetchUserRolloverHistory(currentAccountBook.id, 'PERSONAL');
+        toggleRolloverHistory();
+      } else {
+        // 降级到旧版本API
+        await fetchRolloverHistory(overview.id);
+        toggleRolloverHistory();
+      }
+    } catch (error) {
+      console.error('获取结转历史失败:', error);
+      // 降级到旧版本API
+      await fetchRolloverHistory(overview.id);
       toggleRolloverHistory();
-    });
+    }
   };
 
   // 格式化金额

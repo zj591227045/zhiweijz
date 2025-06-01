@@ -1,5 +1,5 @@
 import { PrismaClient, BudgetHistory, Prisma, RolloverType } from '@prisma/client';
-import { CreateBudgetHistoryDto, BudgetHistoryQueryParams } from '../models/budget-history.model';
+import { CreateBudgetHistoryDto, BudgetHistoryQueryParams, UserBudgetHistoryQueryParams } from '../models/budget-history.model';
 
 const prisma = new PrismaClient();
 
@@ -24,6 +24,9 @@ export class BudgetHistoryRepository {
         ...(data.previousRollover !== undefined && {
           previousRollover: new Prisma.Decimal(data.previousRollover)
         }),
+        ...(data.userId && { userId: data.userId }),
+        ...(data.accountBookId && { accountBookId: data.accountBookId }),
+        ...(data.budgetType && { budgetType: data.budgetType }),
       },
     });
   }
@@ -48,11 +51,48 @@ export class BudgetHistoryRepository {
   }
 
   /**
+   * 根据用户级别查询预算历史记录
+   */
+  async findByUserLevel(params: UserBudgetHistoryQueryParams): Promise<BudgetHistory[]> {
+    const {
+      userId,
+      accountBookId,
+      budgetType = 'PERSONAL',
+      page = 1,
+      limit = 50,
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = params;
+
+    // 构建查询条件
+    const where: any = {
+      userId,
+      accountBookId,
+      budgetType,
+    };
+
+    // 构建排序条件
+    const orderBy: Prisma.BudgetHistoryOrderByWithRelationInput = {
+      [sortBy]: sortOrder,
+    };
+
+    return prisma.budgetHistory.findMany({
+      where,
+      orderBy,
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+  }
+
+  /**
    * 查询预算历史记录列表
    */
   async findAll(params: BudgetHistoryQueryParams): Promise<{ histories: BudgetHistory[]; total: number }> {
     const {
       budgetId,
+      userId,
+      accountBookId,
+      budgetType,
       page = 1,
       limit = 20,
       sortBy = 'createdAt',
@@ -60,8 +100,11 @@ export class BudgetHistoryRepository {
     } = params;
 
     // 构建查询条件
-    const where: Prisma.BudgetHistoryWhereInput = {
+    const where: any = {
       ...(budgetId && { budgetId }),
+      ...(userId && { userId }),
+      ...(accountBookId && { accountBookId }),
+      ...(budgetType && { budgetType }),
     };
 
     // 构建排序条件

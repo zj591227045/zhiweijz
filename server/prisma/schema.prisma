@@ -21,6 +21,7 @@ model User {
   passwordChangedAt   DateTime?            @map("password_changed_at")
   accountBooks        AccountBook[]
   budgets             Budget[]
+  budgetHistories     BudgetHistory[]
   categories          Category[]
   families            Family[]             @relation("FamilyCreator")
   familyMembers       FamilyMember[]
@@ -253,6 +254,7 @@ model AccountBook {
   userLLMSetting   UserLLMSetting? @relation(fields: [userLLMSettingId], references: [id])
   accountLLMSetting AccountLLMSetting?
   budgets          Budget[]
+  budgetHistories  BudgetHistory[]
   categories       Category[]
   transactions     Transaction[]
 
@@ -358,8 +360,14 @@ model BudgetHistory {
   budgetAmount     Decimal?     @map("budget_amount") @db.Decimal(10, 2)
   spentAmount      Decimal?     @map("spent_amount") @db.Decimal(10, 2)
   previousRollover Decimal?     @map("previous_rollover") @db.Decimal(10, 2)
+  userId           String?      @map("user_id")
+  accountBookId    String?      @map("account_book_id")
+  budgetType       String?      @default("PERSONAL") @map("budget_type")
   budget           Budget       @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  user             User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountBook      AccountBook? @relation(fields: [accountBookId], references: [id], onDelete: Cascade)
 
+  @@index([userId, accountBookId, budgetType, createdAt(sort: Desc)], map: "idx_budget_histories_user_account")
   @@map("budget_histories")
 }
 

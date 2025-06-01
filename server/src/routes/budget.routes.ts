@@ -32,8 +32,11 @@ router.get('/:id/categories', (req, res) => budgetController.getBudgetCategories
 // 获取预算趋势
 router.get('/:id/trends', (req, res) => budgetController.getBudgetTrends(req, res));
 
-// 获取预算结转历史
+// 获取预算结转历史（兼容旧版本）
 router.get('/:id/rollover-history', (req, res) => budgetController.getRolloverHistory(req, res));
+
+// 获取用户级别的预算结转历史
+router.get('/rollover-history/user', (req, res) => budgetController.getUserRolloverHistory(req, res));
 
 // 处理预算结转
 router.post('/:id/rollover', (req, res) => budgetController.processBudgetRollover(req, res));

@@ -165,9 +165,14 @@ export const budgetService = {
     return apiClient.get(`/budgets/${budgetId}/transactions`, { params });
   },
 
-  // 获取预算结转历史
+  // 获取预算结转历史（兼容旧版本）
   getBudgetRolloverHistory: (budgetId: string) => {
     return apiClient.get(`/budgets/${budgetId}/rollover-history`);
+  },
+
+  // 获取用户级别的预算结转历史
+  getUserBudgetRolloverHistory: (accountBookId: string, budgetType: string = 'PERSONAL') => {
+    return apiClient.get(`/budgets/rollover-history/user?accountBookId=${accountBookId}&budgetType=${budgetType}`);
   },
 };
 

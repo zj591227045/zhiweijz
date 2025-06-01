@@ -6,6 +6,7 @@ import {
   BudgetHistoryResponseDto,
   BudgetHistoryPaginatedResponseDto,
   BudgetHistoryQueryParams,
+  UserBudgetHistoryQueryParams,
   toBudgetHistoryResponseDto
 } from '../models/budget-history.model';
 
@@ -58,6 +59,14 @@ export class BudgetHistoryService {
   }
 
   /**
+   * 获取用户级别的预算历史记录
+   */
+  async getUserBudgetHistories(params: UserBudgetHistoryQueryParams): Promise<BudgetHistoryResponseDto[]> {
+    const histories = await this.budgetHistoryRepository.findByUserLevel(params);
+    return histories.map(history => toBudgetHistoryResponseDto(history));
+  }
+
+  /**
    * 记录预算结转
    * @param budgetId 预算ID
    * @param period 期间（例如：2023年5月）
@@ -79,16 +88,25 @@ export class BudgetHistoryService {
     // 确定结转类型
     const type = amount >= 0 ? RolloverType.SURPLUS : RolloverType.DEFICIT;
 
-    // 如果没有提供预算金额，尝试从预算中获取
-    if (budgetAmount === undefined) {
-      try {
-        const budget = await this.budgetRepository.findById(budgetId);
-        if (budget) {
+    // 获取预算信息以填充用户级别字段
+    let userId: string | undefined;
+    let accountBookId: string | undefined;
+    let budgetType: string | undefined;
+
+    try {
+      const budget = await this.budgetRepository.findById(budgetId);
+      if (budget) {
+        userId = budget.userId || undefined;
+        accountBookId = budget.accountBookId || undefined;
+        budgetType = (budget as any).budgetType || 'PERSONAL';
+
+        // 如果没有提供预算金额，从预算中获取
+        if (budgetAmount === undefined) {
           budgetAmount = Number(budget.amount);
         }
-      } catch (error) {
-        console.error('获取预算金额失败:', error);
       }
+    } catch (error) {
+      console.error('获取预算信息失败:', error);
     }
 
     // 创建历史记录
@@ -100,7 +118,10 @@ export class BudgetHistoryService {
       description,
       budgetAmount,
       spentAmount,
-      previousRollover
+      previousRollover,
+      userId,
+      accountBookId,
+      budgetType
     };
 
     return this.createBudgetHistory(data);

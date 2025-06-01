@@ -12,6 +12,9 @@ export interface CreateBudgetHistoryDto {
   budgetAmount?: number;     // 预算金额
   spentAmount?: number;      // 已使用金额
   previousRollover?: number; // 上一期结转金额
+  userId?: string;           // 用户ID
+  accountBookId?: string;    // 账本ID
+  budgetType?: string;       // 预算类型
 }
 
 /**
@@ -19,6 +22,22 @@ export interface CreateBudgetHistoryDto {
  */
 export interface BudgetHistoryQueryParams {
   budgetId?: string;
+  userId?: string;           // 用户ID
+  accountBookId?: string;    // 账本ID
+  budgetType?: string;       // 预算类型
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+/**
+ * 用户级别预算历史查询参数
+ */
+export interface UserBudgetHistoryQueryParams {
+  userId: string;
+  accountBookId: string;
+  budgetType?: string;
   page?: number;
   limit?: number;
   sortBy?: string;

@@ -243,7 +243,7 @@ export class BudgetController {
   }
 
   /**
-   * 获取预算结转历史
+   * 获取预算结转历史（兼容旧版本）
    */
   async getRolloverHistory(req: Request, res: Response): Promise<void> {
     try {
@@ -266,6 +266,46 @@ export class BudgetController {
         res.status(404).json({ message: error.message });
       } else {
         res.status(500).json({ message: '获取预算结转历史时发生错误' });
+      }
+    }
+  }
+
+  /**
+   * 获取用户级别的预算结转历史
+   */
+  async getUserRolloverHistory(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const accountBookId = req.query.accountBookId as string;
+      const budgetType = (req.query.budgetType as string) || 'PERSONAL';
+
+      if (!accountBookId) {
+        res.status(400).json({ message: '账本ID不能为空' });
+        return;
+      }
+
+      console.log(`获取用户级别预算结转历史，用户ID: ${userId}, 账本ID: ${accountBookId}, 预算类型: ${budgetType}`);
+
+      // 获取用户级别的预算结转历史
+      const rolloverHistory = await this.budgetService.getUserBudgetRolloverHistory(
+        userId,
+        accountBookId,
+        budgetType
+      );
+
+      console.log(`获取到用户级别预算结转历史: ${rolloverHistory.length} 条记录`);
+      res.status(200).json(rolloverHistory);
+    } catch (error) {
+      console.error('获取用户级别预算结转历史失败:', error);
+      if (error instanceof Error) {
+        res.status(404).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '获取用户级别预算结转历史时发生错误' });
       }
     }
   }
