@@ -296,6 +296,12 @@ export class AIController {
         return res.status(403).json({ error: '无权访问该账本' });
       }
 
+      // 验证LLM设置是否可访问（对于家庭账本，允许使用家庭成员的LLM设置）
+      const canAccessLLMSetting = await this.checkLLMSettingAccess(userId, accountId, userLLMSettingId);
+      if (!canAccessLLMSetting) {
+        return res.status(403).json({ error: '无权使用该LLM设置' });
+      }
+
       // 更新账本LLM设置
       await this.llmProviderService.updateAccountLLMSettings(
         accountId,
@@ -310,7 +316,7 @@ export class AIController {
   }
 
   /**
-   * 获取用户所有LLM设置
+   * 获取用户所有LLM设置（包括家庭成员可访问的设置）
    * @param req 请求
    * @param res 响应
    */
@@ -320,7 +326,8 @@ export class AIController {
       console.log('请求头:', req.headers);
 
       const userId = req.user?.id;
-      console.log('用户ID:', userId);
+      const accountBookId = req.query.accountBookId as string | undefined;
+      console.log('用户ID:', userId, '账本ID:', accountBookId);
 
       if (!userId) {
         console.log('未授权: 用户ID不存在');
@@ -330,13 +337,66 @@ export class AIController {
       console.log(`正在查询用户 ${userId} 的LLM设置列表`);
 
       try {
-        // 查询用户的所有LLM设置
-        const settings = await this.prisma.$queryRaw`
-          SELECT id, name, provider, model, temperature, max_tokens, created_at, updated_at, description, base_url
-          FROM "user_llm_settings"
-          WHERE "user_id" = ${userId}
-          ORDER BY "created_at" DESC
-        `;
+        let settings: any[] = [];
+
+        if (accountBookId) {
+          // 如果指定了账本ID，查询该账本可访问的所有LLM设置
+          console.log(`查询账本 ${accountBookId} 可访问的LLM设置`);
+
+          // 首先验证用户是否有权限访问该账本
+          const hasAccess = await this.checkAccountAccess(userId, accountBookId);
+          if (!hasAccess) {
+            return res.status(403).json({ error: '无权访问该账本' });
+          }
+
+          // 查询账本信息
+          const accountBook = await this.prisma.accountBook.findUnique({
+            where: { id: accountBookId },
+            include: {
+              family: {
+                include: {
+                  members: {
+                    where: { userId: { not: null } },
+                    include: {
+                      user: {
+                        select: { id: true }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          });
+
+          if (accountBook) {
+            let userIds = [userId]; // 默认包含当前用户
+
+            // 如果是家庭账本，包含所有家庭成员的LLM设置
+            if (accountBook.type === 'FAMILY' && accountBook.family) {
+              const familyUserIds = accountBook.family.members
+                .filter(member => member.user)
+                .map(member => member.user!.id);
+              userIds = [...new Set([...userIds, ...familyUserIds])];
+              console.log(`家庭账本，包含家庭成员用户IDs:`, familyUserIds);
+            }
+
+            // 查询所有相关用户的LLM设置
+            settings = await this.prisma.$queryRaw`
+              SELECT id, name, provider, model, temperature, max_tokens, created_at, updated_at, description, base_url, user_id
+              FROM "user_llm_settings"
+              WHERE "user_id" = ANY(${userIds})
+              ORDER BY "created_at" DESC
+            `;
+          }
+        } else {
+          // 如果没有指定账本ID，只查询用户自己的LLM设置
+          settings = await this.prisma.$queryRaw`
+            SELECT id, name, provider, model, temperature, max_tokens, created_at, updated_at, description, base_url, user_id
+            FROM "user_llm_settings"
+            WHERE "user_id" = ${userId}
+            ORDER BY "created_at" DESC
+          `;
+        }
 
         console.log(`查询结果: 找到 ${Array.isArray(settings) ? settings.length : 0} 条记录`);
         if (Array.isArray(settings) && settings.length > 0) {
@@ -355,7 +415,7 @@ export class AIController {
           return res.json([]);
         }
 
-        // 转换字段名称为驼峰命名
+        // 转换字段名称为驼峰命名，并添加所有者信息
         const formattedSettings = Array.isArray(settings) ? settings.map(setting => ({
           id: setting.id,
           name: setting.name,
@@ -366,7 +426,9 @@ export class AIController {
           createdAt: setting.created_at,
           updatedAt: setting.updated_at,
           description: setting.description,
-          baseUrl: setting.base_url
+          baseUrl: setting.base_url,
+          userId: setting.user_id,
+          isOwner: setting.user_id === userId // 标记是否为当前用户创建的设置
         })) : [];
 
         console.log('返回格式化后的LLM设置列表');
@@ -923,6 +985,69 @@ export class AIController {
       return false;
     } catch (error) {
       console.error('检查账本访问权限错误:', error);
+      return false;
+    }
+  }
+
+  /**
+   * 检查用户是否有权限使用指定的LLM设置
+   * @param userId 用户ID
+   * @param accountId 账本ID
+   * @param llmSettingId LLM设置ID
+   * @returns 是否有权限
+   */
+  private async checkLLMSettingAccess(userId: string, accountId: string, llmSettingId: string): Promise<boolean> {
+    try {
+      // 查询LLM设置
+      const llmSetting = await this.prisma.userLLMSetting.findUnique({
+        where: { id: llmSettingId }
+      });
+
+      if (!llmSetting) {
+        return false;
+      }
+
+      // 如果是用户自己的LLM设置，直接允许
+      if (llmSetting.userId === userId) {
+        return true;
+      }
+
+      // 查询账本信息
+      const accountBook = await this.prisma.accountBook.findUnique({
+        where: { id: accountId },
+        include: {
+          family: {
+            include: {
+              members: {
+                where: { userId: { not: null } },
+                select: { userId: true }
+              }
+            }
+          }
+        }
+      });
+
+      if (!accountBook) {
+        return false;
+      }
+
+      // 如果是家庭账本，检查LLM设置是否属于家庭成员
+      if (accountBook.type === 'FAMILY' && accountBook.family) {
+        const familyUserIds = accountBook.family.members
+          .map(member => member.userId)
+          .filter(id => id !== null);
+
+        // 检查当前用户是否是家庭成员
+        const isCurrentUserFamilyMember = familyUserIds.includes(userId);
+        // 检查LLM设置所有者是否是家庭成员
+        const isLLMOwnerFamilyMember = familyUserIds.includes(llmSetting.userId);
+
+        return isCurrentUserFamilyMember && isLLMOwnerFamilyMember;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('检查LLM设置访问权限错误:', error);
       return false;
     }
   }

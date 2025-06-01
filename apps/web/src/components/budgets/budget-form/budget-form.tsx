@@ -77,7 +77,10 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
     }
     const success = await submitForm(currentAccountBook.id);
     if (success) {
-      router.push("/budgets");
+      // 添加短暂延迟确保数据刷新完成
+      setTimeout(() => {
+        router.push("/budgets");
+      }, 100);
     }
   };
 

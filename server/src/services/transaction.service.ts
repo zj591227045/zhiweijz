@@ -215,7 +215,7 @@ export class TransactionService {
           // 对每个受影响的预算重新计算结转
           for (const budgetId of affectedBudgets) {
             try {
-              await this.budgetService.recalculateBudgetRollover(budgetId, true, transactionData.date);
+              await this.budgetService.recalculateBudgetRollover(budgetId);
               console.log(`预算 ${budgetId} 结转重新计算完成`);
             } catch (error) {
               console.error(`预算 ${budgetId} 结转重新计算失败:`, error);
@@ -363,12 +363,7 @@ export class TransactionService {
             // 对每个受影响的预算重新计算结转
             for (const budgetId of affectedBudgets) {
               try {
-                // 使用最早的受影响日期作为重新计算的起点
-                const affectedDate = transactionData.date && oldTransaction.date
-                  ? (transactionData.date < oldTransaction.date ? transactionData.date : oldTransaction.date)
-                  : (transactionData.date || oldTransaction.date);
-
-                await this.budgetService.recalculateBudgetRollover(budgetId, true, affectedDate);
+                await this.budgetService.recalculateBudgetRollover(budgetId);
                 console.log(`预算 ${budgetId} 结转重新计算完成`);
               } catch (error) {
                 console.error(`预算 ${budgetId} 结转重新计算失败:`, error);

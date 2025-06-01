@@ -149,15 +149,18 @@ export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryRes
 
   // 计算预算执行情况
   const numericAmount = Number(amount);
-  const numericRolloverAmount = rolloverAmount ? Number(rolloverAmount) : undefined;
+  const numericRolloverAmount = rolloverAmount ? Number(rolloverAmount) : 0;
   const numericSpent = spent !== undefined ? Number(spent) : undefined;
   const remaining = numericSpent !== undefined ? numericAmount - numericSpent : undefined;
-  const progress = numericSpent !== undefined && numericAmount > 0 ? (numericSpent / numericAmount) * 100 : undefined;
 
-  // 计算考虑结转后的剩余金额
-  const adjustedRemaining = remaining !== undefined && numericRolloverAmount !== undefined
-    ? remaining + numericRolloverAmount
-    : remaining;
+  // 计算总可用金额（基础预算 + 结转金额）
+  const totalAvailable = numericAmount + numericRolloverAmount;
+
+  // 计算考虑结转后的剩余金额：总可用金额 - 已用金额
+  const adjustedRemaining = numericSpent !== undefined ? totalAvailable - numericSpent : undefined;
+
+  // 计算基于总可用金额的进度百分比
+  const progress = numericSpent !== undefined && totalAvailable > 0 ? (numericSpent / totalAvailable) * 100 : undefined;
 
   // 计算日均统计
   const now = new Date();

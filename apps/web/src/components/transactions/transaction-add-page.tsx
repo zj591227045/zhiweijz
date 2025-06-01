@@ -47,12 +47,17 @@ export function TransactionAddPage() {
 
   // 获取数据
   useEffect(() => {
-    fetchCategories();
     fetchAccountBooks();
+  }, [fetchAccountBooks]);
+
+  // 当账本变化时，重新获取分类和预算
+  useEffect(() => {
     if (currentAccountBook?.id) {
+      console.log('当前账本变化，重新获取分类和预算:', currentAccountBook.id);
+      fetchCategories(undefined, currentAccountBook.id);
       fetchActiveBudgets(currentAccountBook.id);
     }
-  }, [fetchCategories, fetchAccountBooks, fetchActiveBudgets, currentAccountBook?.id]);
+  }, [fetchCategories, fetchActiveBudgets, currentAccountBook?.id]);
 
   // 检查智能记账结果
   useEffect(() => {

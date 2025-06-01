@@ -43,11 +43,13 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
   fetchCategories: async (type, accountBookId) => {
     try {
       set({ isLoading: true, error: null });
-      
+
       const params: Record<string, string> = {};
       if (type) params.type = type;
       if (accountBookId) params.accountBookId = accountBookId;
-      
+
+      console.log('CategoryStore.fetchCategories 参数:', { type, accountBookId, params });
+
       const response = await apiClient.get('/categories', { params });
       
       // 处理不同的响应格式

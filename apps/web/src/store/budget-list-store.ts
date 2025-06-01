@@ -16,12 +16,18 @@ interface BudgetListState {
   selectedType: BudgetType;
   isLoading: boolean;
   error: string | null;
+  showExpiredBudgets: boolean;
 
   // 操作方法
   fetchBudgets: (accountBookId: string) => Promise<void>;
+  refreshBudgets: () => Promise<void>;
   setSelectedType: (type: BudgetType) => void;
+  toggleShowExpiredBudgets: () => void;
   deleteBudget: (budgetId: string) => Promise<boolean>;
   resetState: () => void;
+
+  // 内部状态
+  lastAccountBookId: string | null;
 }
 
 // 创建预算列表状态管理
@@ -34,11 +40,15 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
   selectedType: 'PERSONAL',
   isLoading: false,
   error: null,
+  showExpiredBudgets: false,
+
+  // 内部状态
+  lastAccountBookId: null,
 
   // 获取预算列表
   fetchBudgets: async (accountBookId: string) => {
     try {
-      set({ isLoading: true, error: null });
+      set({ isLoading: true, error: null, lastAccountBookId: accountBookId });
       console.log('获取预算列表:', accountBookId);
 
       // 获取个人预算
@@ -123,9 +133,11 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
           ? budget.percentage
           : budget.progress !== undefined
             ? budget.progress
-            : budget.amount > 0
-              ? (budget.spent / budget.amount) * 100
-              : 0;
+            : (() => {
+                // 计算总可用金额（基础预算 + 结转金额）
+                const totalAvailable = budget.amount + (budget.rolloverAmount || 0);
+                return totalAvailable > 0 ? (budget.spent / totalAvailable) * 100 : 0;
+              })();
 
         const processedBudget = {
           ...budget,
@@ -139,6 +151,11 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
 
         console.log('处理后的预算数据:', {
           name: processedBudget.name,
+          amount: processedBudget.amount,
+          spent: processedBudget.spent,
+          rolloverAmount: processedBudget.rolloverAmount,
+          remaining: processedBudget.remaining,
+          adjustedRemaining: processedBudget.adjustedRemaining,
           percentage: processedBudget.percentage,
           warning: processedBudget.warning,
           overSpent: processedBudget.overSpent
@@ -153,9 +170,11 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
           ? budget.percentage
           : budget.progress !== undefined
             ? budget.progress
-            : budget.amount > 0
-              ? (budget.spent / budget.amount) * 100
-              : 0;
+            : (() => {
+                // 计算总可用金额（基础预算 + 结转金额）
+                const totalAvailable = budget.amount + (budget.rolloverAmount || 0);
+                return totalAvailable > 0 ? (budget.spent / totalAvailable) * 100 : 0;
+              })();
 
         return {
           ...budget,
@@ -181,9 +200,23 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
     }
   },
 
+  // 刷新预算列表（使用上次的账本ID）
+  refreshBudgets: async () => {
+    const { lastAccountBookId } = get();
+    if (lastAccountBookId) {
+      console.log('刷新预算列表:', lastAccountBookId);
+      await get().fetchBudgets(lastAccountBookId);
+    }
+  },
+
   // 设置选中的预算类型
   setSelectedType: (type: BudgetType) => {
     set({ selectedType: type });
+  },
+
+  // 切换显示已过期预算
+  toggleShowExpiredBudgets: () => {
+    set((state) => ({ showExpiredBudgets: !state.showExpiredBudgets }));
   },
 
   // 删除预算

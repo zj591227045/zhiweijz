@@ -1,9 +1,7 @@
-import { BudgetPeriod, BudgetType, Budget, Category, RolloverType, PrismaClient, Transaction, BudgetHistory } from '@prisma/client';
+import { BudgetPeriod, BudgetType, Budget, Category, RolloverType, PrismaClient, Transaction } from '@prisma/client';
 import { BudgetRepository, BudgetWithCategory } from '../repositories/budget.repository';
 import { CategoryRepository } from '../repositories/category.repository';
 import { CategoryBudgetRepository } from '../repositories/category-budget.repository';
-import { BudgetHistoryRepository } from '../repositories/budget-history.repository';
-import { BudgetHistoryService } from './budget-history.service';
 import { BudgetDateUtils } from '../utils/budget-date-utils';
 
 // 创建Prisma客户端实例
@@ -23,15 +21,11 @@ export class BudgetService {
   private budgetRepository: BudgetRepository;
   private categoryRepository: CategoryRepository;
   private categoryBudgetRepository: CategoryBudgetRepository;
-  private budgetHistoryRepository: BudgetHistoryRepository;
-  private budgetHistoryService: BudgetHistoryService;
 
   constructor() {
     this.budgetRepository = new BudgetRepository();
     this.categoryRepository = new CategoryRepository();
     this.categoryBudgetRepository = new CategoryBudgetRepository();
-    this.budgetHistoryRepository = new BudgetHistoryRepository();
-    this.budgetHistoryService = new BudgetHistoryService();
   }
 
   /**
@@ -401,7 +395,7 @@ export class BudgetService {
   }
 
   /**
-   * 获取预算结转历史（兼容旧版本）
+   * 获取预算结转历史（基于预算记录）
    */
   async getBudgetRolloverHistory(budgetId: string, userId: string): Promise<any[]> {
     // 检查预算是否存在
@@ -415,38 +409,88 @@ export class BudgetService {
       throw new Error('无权访问此预算');
     }
 
-    // 使用新的用户级别查询方法
+    // 使用新的基于预算记录的查询方法
     return this.getUserBudgetRolloverHistory(
       userId,
       budget.accountBookId || '',
-      (budget as any).budgetType || 'PERSONAL'
+      (budget as any).budgetType || 'PERSONAL',
+      budget.familyMemberId || undefined
     );
   }
 
   /**
-   * 获取用户级别的预算结转历史
+   * 获取用户级别的预算结转历史（基于预算记录）
    */
   async getUserBudgetRolloverHistory(
     userId: string,
     accountBookId: string,
-    budgetType: string = 'PERSONAL'
+    budgetType: string = 'PERSONAL',
+    familyMemberId?: string
   ): Promise<any[]> {
-    // 使用新的用户级别查询
-    return this.budgetHistoryService.getUserBudgetHistories({
-      userId,
+    // 构建查询条件
+    const whereCondition: any = {
       accountBookId,
       budgetType,
-      limit: 50,
-      sortBy: 'createdAt',
-      sortOrder: 'desc'
+      rollover: true, // 只查询启用结转的预算
+    };
+
+    // 根据是否为托管成员添加不同的过滤条件
+    if (familyMemberId) {
+      whereCondition.familyMemberId = familyMemberId;
+    } else {
+      whereCondition.userId = userId;
+      whereCondition.familyMemberId = null; // 排除托管成员预算
+    }
+
+    // 查询历史预算记录
+    const budgets = await prisma.budget.findMany({
+      where: whereCondition,
+      orderBy: { startDate: 'desc' },
+      take: 50
     });
+
+    // 转换为结转历史格式
+    const rolloverHistory = [];
+
+    for (const budget of budgets) {
+      const startDate = new Date(budget.startDate);
+      const endDate = new Date(budget.endDate);
+      const year = startDate.getFullYear();
+      const month = startDate.getMonth() + 1;
+      const period = `${year}年${month}月`;
+
+      // 计算该月的实际支出
+      const spent = await this.budgetRepository.calculateSpentAmount(budget.id);
+
+      // 计算该月的结转金额（总可用 - 已使用）
+      const totalAvailable = Number(budget.amount) + Number(budget.rolloverAmount || 0);
+      const remaining = totalAvailable - spent;
+
+      // 只有已结束的月份才显示结转记录
+      const currentDate = new Date();
+      if (endDate < currentDate) {
+        rolloverHistory.push({
+          id: budget.id,
+          budgetId: budget.id,
+          period,
+          amount: Math.abs(remaining),
+          type: remaining >= 0 ? 'SURPLUS' : 'DEFICIT',
+          createdAt: endDate.toISOString(),
+          budgetAmount: Number(budget.amount),
+          spentAmount: spent,
+          previousRollover: Number(budget.rolloverAmount || 0)
+        });
+      }
+    }
+
+    return rolloverHistory;
   }
 
   /**
-   * 处理预算结转
-   * 在月度预算结束时调用，计算结转金额并创建历史记录
+   * 处理预算结转（简化版本）
+   * 在创建新月份预算时，将上月剩余金额设置为新预算的rolloverAmount
    */
-  async processBudgetRollover(budgetId: string): Promise<void> {
+  async processBudgetRollover(budgetId: string): Promise<number> {
     // 获取预算信息
     const budget = await this.budgetRepository.findById(budgetId);
     if (!budget) {
@@ -455,65 +499,35 @@ export class BudgetService {
 
     // 只处理启用了结转的预算
     if (!budget.rollover) {
-      return;
-    }
-
-    // 只处理个人月度预算
-    if (budget.period !== BudgetPeriod.MONTHLY || (budget as any).budgetType !== BudgetType.PERSONAL) {
-      throw new Error('只能为个人月度预算执行结转');
+      return 0;
     }
 
     // 计算已使用金额
     const spent = await this.budgetRepository.calculateSpentAmount(budgetId);
     const amount = Number(budget.amount);
+    const currentRolloverAmount = Number(budget.rolloverAmount || 0);
 
-    // 获取当前结转金额（如果有）
-    const currentRolloverAmount = budget.rolloverAmount ? Number(budget.rolloverAmount) : 0;
+    // 计算总可用金额
+    const totalAvailable = amount + currentRolloverAmount;
 
-    // 计算调整后的预算金额（基础预算 + 当前结转金额）
-    const adjustedAmount = amount + currentRolloverAmount;
+    // 计算剩余金额（这就是要结转到下个月的金额）
+    const remaining = totalAvailable - spent;
 
-    // 计算实际剩余金额（考虑结转）
-    const remaining = adjustedAmount - spent;
-
-    // 格式化期间（例如：2023年5月）
     const endDate = budget.endDate;
     const period = `${endDate.getFullYear()}年${endDate.getMonth() + 1}月`;
 
     console.log(`处理预算结转 - 预算ID: ${budgetId}, 期间: ${period}`);
-    console.log(`基础预算: ${amount}, 当前结转: ${currentRolloverAmount}, 已使用: ${spent}, 剩余: ${remaining}`);
+    console.log(`基础预算: ${amount}, 上月结转: ${currentRolloverAmount}, 已使用: ${spent}, 结转金额: ${remaining}`);
 
-    // 记录结转历史
-    await this.budgetHistoryService.recordRollover(
-      budgetId,
-      period,
-      remaining,
-      `${period}预算结转`,
-      amount,                // 记录当前预算金额
-      spent,                 // 记录已使用金额
-      currentRolloverAmount  // 记录上一期结转金额
-    );
-
-    // 更新预算的结转金额
-    await this.budgetRepository.update(budgetId, {
-      rolloverAmount: remaining
-    });
-
-    console.log(`预算结转处理完成 - 新结转金额: ${remaining}`);
+    return remaining;
   }
 
   /**
-   * 重新计算预算结转
-   * 用于在添加/修改历史交易后重新计算预算结转金额
+   * 重新计算预算结转（简化版本）
+   * 用于在添加/修改历史交易后重新计算当前预算的可用金额
    * @param budgetId 预算ID
-   * @param recalculateHistory 是否重新计算历史结转记录
-   * @param affectedDate 受影响的日期（可选，用于优化计算范围）
    */
-  async recalculateBudgetRollover(
-    budgetId: string,
-    recalculateHistory: boolean = false,
-    affectedDate?: Date
-  ): Promise<void> {
+  async recalculateBudgetRollover(budgetId: string): Promise<void> {
     // 获取预算信息
     const budget = await this.budgetRepository.findById(budgetId);
     if (!budget) {
@@ -522,236 +536,29 @@ export class BudgetService {
 
     // 只处理启用了结转的预算
     if (!budget.rollover) {
-      throw new Error('该预算未启用结转功能');
+      console.log(`预算 ${budgetId} 未启用结转功能，无需重新计算`);
+      return;
     }
 
-    // 只处理个人月度预算
-    if (budget.period !== BudgetPeriod.MONTHLY || (budget as any).budgetType !== BudgetType.PERSONAL) {
-      throw new Error('只能为个人月度预算执行结转重新计算');
-    }
+    console.log(`重新计算预算结转 - 预算ID: ${budgetId}`);
 
-    console.log(`开始重新计算预算结转 - 预算ID: ${budgetId}, 重新计算历史: ${recalculateHistory}, 受影响日期: ${affectedDate?.toISOString() || '无'}`);
-
-    // 如果需要重新计算历史结转记录
-    if (recalculateHistory) {
-      // 获取所有历史结转记录
-      const rolloverHistory = await this.budgetHistoryService.getBudgetHistoriesByBudgetId(budgetId);
-
-      if (rolloverHistory.length > 0) {
-        console.log(`找到 ${rolloverHistory.length} 条历史结转记录，准备重新计算`);
-
-        // 按照创建时间排序历史记录
-        const sortedHistory = rolloverHistory.sort((a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
-
-        // 确定需要重新计算的起始索引
-        let startIndex = 0;
-        let previousRolloverAmount = 0;
-
-        if (affectedDate) {
-          // 如果提供了受影响的日期，找到该日期所在的月份及之后的记录
-          for (let i = 0; i < sortedHistory.length; i++) {
-            const history = sortedHistory[i];
-            const periodMatch = history.period.match(/(\d{4})年(\d{1,2})月/);
-            if (!periodMatch) continue;
-
-            const year = parseInt(periodMatch[1]);
-            const month = parseInt(periodMatch[2]) - 1; // JavaScript月份从0开始
-
-            // 创建该月的开始和结束日期
-            const startDate = new Date(year, month, 1);
-            const endDate = new Date(year, month + 1, 0); // 月份的最后一天
-
-            // 如果受影响的日期在当前月份或之前，从这个月开始重新计算
-            if (affectedDate <= endDate) {
-              startIndex = i;
-
-              // 如果不是第一个月，获取上一个月的结转金额
-              if (i > 0) {
-                const prevHistory = sortedHistory[i - 1];
-                previousRolloverAmount = prevHistory.type === 'SURPLUS'
-                  ? Number(prevHistory.amount)
-                  : -Number(prevHistory.amount);
-              }
-
-              console.log(`确定重新计算起点: ${history.period}，上一个结转金额: ${previousRolloverAmount}`);
-              break;
-            }
-          }
-        }
-
-        // 如果需要重新计算的记录存在
-        if (startIndex < sortedHistory.length) {
-          // 获取需要重新计算的记录
-          const recordsToRecalculate = sortedHistory.slice(startIndex);
-          console.log(`需要重新计算 ${recordsToRecalculate.length} 条记录，从 ${recordsToRecalculate[0].period} 开始`);
-
-          // 删除这些记录
-          for (const record of recordsToRecalculate) {
-            await this.budgetHistoryService.deleteBudgetHistory(record.id);
-          }
-          console.log(`已删除 ${recordsToRecalculate.length} 条历史结转记录`);
-
-          // 逐个重新计算历史结转记录
-          let cumulativeRollover = previousRolloverAmount;
-
-          for (const history of recordsToRecalculate) {
-            // 解析期间字符串，获取年月
-            const periodMatch = history.period.match(/(\d{4})年(\d{1,2})月/);
-            if (!periodMatch) {
-              console.warn(`无法解析期间格式: ${history.period}，跳过此记录`);
-              continue;
-            }
-
-            const year = parseInt(periodMatch[1]);
-            const month = parseInt(periodMatch[2]) - 1; // JavaScript月份从0开始
-
-            // 创建该月的开始和结束日期
-            const startDate = new Date(year, month, 1);
-            const endDate = new Date(year, month + 1, 0); // 月份的最后一天
-
-            // 计算该月的支出
-            const spent = await this.calculatePeriodSpent(budget, startDate, endDate);
-
-            // 计算该月的预算金额（基础预算 + 上月结转）
-            const periodBudget = Number(budget.amount) + cumulativeRollover;
-
-            // 计算该月的结转金额
-            const periodRemaining = periodBudget - spent;
-
-            // 更新累计结转金额
-            cumulativeRollover = periodRemaining;
-
-            // 记录新的结转历史
-            await this.budgetHistoryService.recordRollover(
-              budgetId,
-              history.period,
-              periodRemaining,
-              `${history.period}预算结转（重新计算）`,
-              Number(budget.amount),  // 记录当前预算金额
-              spent,                  // 记录已使用金额
-              cumulativeRollover      // 记录上一期结转金额
-            );
-
-            console.log(`重新计算 ${history.period} 结转: 预算=${periodBudget}, 支出=${spent}, 结转=${periodRemaining}`);
-          }
-
-          // 更新预算的结转金额为最终计算结果
-          await this.budgetRepository.update(budgetId, {
-            rolloverAmount: cumulativeRollover
-          });
-
-          console.log(`预算结转历史重新计算完成，最终结转金额: ${cumulativeRollover}`);
-        } else {
-          console.log('受影响的日期在所有历史记录之后，无需重新计算历史记录');
-
-          // 仅重新计算当前结转金额
-          await this.recalculateCurrentRollover(budgetId);
-        }
-      } else {
-        console.log('未找到历史结转记录，无需重新计算');
-      }
-    } else {
-      // 仅重新计算当前结转金额
-      await this.recalculateCurrentRollover(budgetId);
-    }
-  }
-
-  /**
-   * 仅重新计算当前结转金额
-   * @param budgetId 预算ID
-   */
-  private async recalculateCurrentRollover(budgetId: string): Promise<void> {
-    const budget = await this.budgetRepository.findById(budgetId);
-    if (!budget) {
-      throw new Error('预算不存在');
-    }
-
+    // 对于当前预算，rolloverAmount字段已经在创建时设置好了
+    // 这里只需要确保数据一致性，不需要复杂的重新计算逻辑
     const spent = await this.budgetRepository.calculateSpentAmount(budgetId);
     const amount = Number(budget.amount);
+    const rolloverAmount = Number(budget.rolloverAmount || 0);
+    const totalAvailable = amount + rolloverAmount;
+    const remaining = totalAvailable - spent;
 
-    // 获取上一个结转记录的金额
-    const previousRollover = await this.getPreviousRolloverAmount(budgetId);
-
-    // 计算调整后的预算金额（基础预算 + 上一个结转金额）
-    const adjustedAmount = amount + previousRollover;
-
-    // 计算实际剩余金额（考虑结转）
-    const remaining = adjustedAmount - spent;
-
-    // 更新预算的结转金额
-    await this.budgetRepository.update(budgetId, {
-      rolloverAmount: remaining
-    });
-
-    console.log(`预算结转重新计算完成 - 新结转金额: ${remaining}`);
+    console.log(`预算详情 - 基础: ${amount}, 结转: ${rolloverAmount}, 总可用: ${totalAvailable}, 已用: ${spent}, 剩余: ${remaining}`);
+    console.log(`预算结转重新计算完成`);
   }
 
-  /**
-   * 计算指定期间的预算支出
-   * @param budget 预算对象
-   * @param startDate 开始日期
-   * @param endDate 结束日期
-   */
-  private async calculatePeriodSpent(budget: any, startDate: Date, endDate: Date): Promise<number> {
-    // 构建查询条件 - 不再使用userId过滤，而是通过预算的其他属性
-    const where: any = {
-      type: 'EXPENSE',
-      date: {
-        gte: startDate,
-        lte: endDate,
-      },
-      accountBookId: budget.accountBookId,
-      ...(budget.categoryId && { categoryId: budget.categoryId }),
-    };
 
-    // 如果是托管成员的预算，通过familyMemberId过滤
-    if (budget.familyMemberId) {
-      where.familyMemberId = budget.familyMemberId;
-    }
-    // 如果是普通用户的预算且不是家庭预算，通过userId过滤
-    else if (budget.userId && !budget.familyId) {
-      where.userId = budget.userId;
-    }
-    // 如果是家庭预算，不需要额外过滤，已经通过accountBookId过滤了
 
-    // 计算总支出
-    const result = await prisma.transaction.aggregate({
-      where,
-      _sum: {
-        amount: true,
-      },
-    });
 
-    return result._sum.amount ? Number(result._sum.amount) : 0;
-  }
 
-  /**
-   * 获取上一个结转金额
-   * @param budgetId 预算ID
-   */
-  private async getPreviousRolloverAmount(budgetId: string): Promise<number> {
-    // 获取所有历史结转记录
-    const rolloverHistory = await this.budgetHistoryService.getBudgetHistoriesByBudgetId(budgetId);
 
-    if (rolloverHistory.length <= 1) {
-      return 0; // 如果没有历史记录或只有一条记录，返回0
-    }
-
-    // 按照创建时间排序历史记录
-    const sortedHistory = rolloverHistory.sort((a, b) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-
-    // 获取倒数第二条记录（上一个结转）
-    const previousRollover = sortedHistory[1];
-
-    // 根据结转类型计算金额
-    return previousRollover.type === 'SURPLUS'
-      ? Number(previousRollover.amount)
-      : -Number(previousRollover.amount);
-  }
 
   /**
    * 获取预算趋势数据
@@ -861,27 +668,10 @@ export class BudgetService {
         let total = amount;
 
         if (budget.rollover) {
-          // 查询该月的预算结转记录
-          const rolloverHistory = await prisma.budgetHistory.findMany({
-            where: {
-              budgetId: budget.id,
-              createdAt: {
-                gte: month.startDate,
-                lte: month.endDate
-              }
-            }
-          });
-
-          // 如果有结转记录，计算结转影响
-          if (rolloverHistory.length > 0) {
-            rolloverImpact = rolloverHistory.reduce((sum: number, history: BudgetHistory) => {
-              // 根据结转类型计算影响
-              const value = Number(history.amount);
-              return sum + (history.type === RolloverType.SURPLUS ? value : -value);
-            }, 0);
-
-            total = amount + rolloverImpact;
-          }
+          // 对于启用结转的预算，结转影响已经体现在rolloverAmount字段中
+          // 这里不需要额外计算结转影响
+          rolloverImpact = 0;
+          total = amount;
         }
 
         // 添加到结果中
@@ -938,7 +728,7 @@ export class BudgetService {
             // 处理上个预算的结转（如果启用了结转）
             let rolloverAmount = 0;
             if (latestPersonalBudget.rollover) {
-              rolloverAmount = await this.processBudgetRolloverAndGetAmount(previousBudgetId);
+              rolloverAmount = await this.processBudgetRollover(previousBudgetId);
             }
 
             // 创建新预算周期的预算（包含结转金额）
@@ -997,7 +787,7 @@ export class BudgetService {
                 // 处理上个预算的结转（如果启用了结转）
                 let rolloverAmount = 0;
                 if (latestCustodialBudget.rollover) {
-                  rolloverAmount = await this.processBudgetRolloverAndGetAmount(previousBudgetId);
+                  rolloverAmount = await this.processBudgetRollover(previousBudgetId);
                 }
 
                 // 创建新预算周期的预算（包含结转金额）
@@ -1064,64 +854,7 @@ export class BudgetService {
     return budgets.length > 0 ? budgets[0] : null;
   }
 
-  /**
-   * 处理预算结转并返回结转金额
-   * @param budgetId 预算ID
-   * @returns 结转金额
-   */
-  private async processBudgetRolloverAndGetAmount(budgetId: string): Promise<number> {
-    // 获取预算信息
-    const budget = await this.budgetRepository.findById(budgetId);
-    if (!budget) {
-      console.error(`预算 ${budgetId} 不存在，无法处理结转`);
-      return 0;
-    }
 
-    // 只处理启用了结转的预算
-    if (!budget.rollover) {
-      console.log(`预算 ${budgetId} 未启用结转，跳过`);
-      return 0;
-    }
-
-    // 计算已使用金额
-    const spent = await this.budgetRepository.calculateSpentAmount(budgetId);
-    const amount = Number(budget.amount);
-
-    // 获取当前结转金额（如果有）
-    const currentRolloverAmount = budget.rolloverAmount ? Number(budget.rolloverAmount) : 0;
-
-    // 计算调整后的预算金额（基础预算 + 当前结转金额）
-    const adjustedAmount = amount + currentRolloverAmount;
-
-    // 计算实际剩余金额（考虑结转）
-    const remaining = adjustedAmount - spent;
-
-    // 格式化期间（例如：2023年5月）
-    const endDate = budget.endDate;
-    const period = `${endDate.getFullYear()}年${endDate.getMonth() + 1}月`;
-
-    console.log(`处理预算结转 - 预算ID: ${budgetId}, 期间: ${period}`);
-    console.log(`基础预算: ${amount}, 当前结转: ${currentRolloverAmount}, 已使用: ${spent}, 剩余: ${remaining}`);
-
-    // 记录结转历史
-    await this.budgetHistoryService.recordRollover(
-      budgetId,
-      period,
-      remaining,
-      `${period}预算结转`,
-      amount,                // 记录当前预算金额
-      spent,                 // 记录已使用金额
-      currentRolloverAmount  // 记录上一期结转金额
-    );
-
-    // 更新预算的结转金额
-    await this.budgetRepository.update(budgetId, {
-      rolloverAmount: remaining
-    });
-
-    console.log(`预算结转处理完成 - 新结转金额: ${remaining}`);
-    return remaining;
-  }
 
   /**
    * 为特定预算周期创建预算

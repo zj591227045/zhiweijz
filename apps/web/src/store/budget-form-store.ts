@@ -3,6 +3,7 @@ import { devtools } from 'zustand/middleware';
 import dayjs from 'dayjs';
 import { toast } from 'sonner';
 import api from '@/lib/api';
+import { useBudgetListStore } from './budget-list-store';
 
 // 分类类型
 export interface Category {
@@ -409,6 +410,22 @@ export const useBudgetFormStore = create<BudgetFormState>()(
           }
 
           set({ isSubmitting: false });
+
+          // 通知预算列表刷新数据
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('budgetUpdated', {
+              detail: { accountBookId }
+            }));
+          }
+
+          // 同时调用预算列表store的刷新方法
+          try {
+            const budgetListStore = useBudgetListStore.getState();
+            await budgetListStore.refreshBudgets();
+          } catch (error) {
+            console.error('刷新预算列表失败:', error);
+          }
+
           return true;
         } catch (error) {
           console.error('保存预算失败:', error);

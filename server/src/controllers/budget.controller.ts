@@ -259,7 +259,9 @@ export class BudgetController {
       // 获取真实的预算结转历史
       const rolloverHistory = await this.budgetService.getBudgetRolloverHistory(budgetId, userId);
       console.log(`获取到预算结转历史: ${rolloverHistory.length} 条记录`);
-      res.status(200).json(rolloverHistory);
+
+      // 如果没有真实的结转历史，返回空数组而不是模拟数据
+      res.status(200).json(rolloverHistory || []);
     } catch (error) {
       console.error('获取预算结转历史失败:', error);
       if (error instanceof Error) {
@@ -414,7 +416,7 @@ export class BudgetController {
       }
 
       // 重新计算预算结转
-      await this.budgetService.recalculateBudgetRollover(budgetId, recalculateHistory);
+      await this.budgetService.recalculateBudgetRollover(budgetId);
 
       // 获取更新后的预算信息
       const updatedBudget = await this.budgetService.getBudgetById(budgetId, userId);
@@ -483,35 +485,7 @@ export class BudgetController {
 
 
 
-  /**
-   * 生成模拟结转历史数据
-   */
-  private generateMockRolloverHistory(): any[] {
-    const result = [];
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
 
-    for (let i = 1; i <= 6; i++) {
-      const month = currentMonth - i;
-      const year = month < 0 ? currentYear - 1 : currentYear;
-      const adjustedMonth = month < 0 ? month + 12 : month;
-
-      const amount = Math.floor(Math.random() * 400) - 200;
-      const type = amount >= 0 ? 'SURPLUS' : 'DEFICIT';
-
-      result.push({
-        id: `rollover-${i}`,
-        budgetId: 'budget-id',
-        period: `${year}年${adjustedMonth + 1}月`,
-        amount: Math.abs(amount),
-        type,
-        createdAt: new Date(year, adjustedMonth, 15).toISOString()
-      });
-    }
-
-    return result;
-  }
 
   /**
    * 生成模拟交易数据

@@ -320,7 +320,7 @@ export class StatisticsService {
       endDate: endDate.toISOString()
     });
 
-    // 获取月度预算 - 排除托管成员的预算
+    // 获取月度预算 - 包含托管成员的预算（家庭成员可以查看所有预算）
     const budgets = await this.budgetRepository.findByPeriodAndDate(
       userId,
       BudgetPeriod.MONTHLY,
@@ -328,7 +328,7 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      true // 设置excludeFamilyMember为true，排除托管成员的预算
+      false // 设置excludeFamilyMember为false，包含托管成员的预算
     );
 
     console.log(`找到 ${budgets.length} 个预算`);
@@ -339,7 +339,7 @@ export class StatisticsService {
     // 计算总预算
     const totalBudget = budgets.reduce((sum: number, b: any) => sum + Number(b.amount), 0);
 
-    // 获取支出交易记录 - 排除家庭托管成员的交易记录
+    // 获取支出交易记录 - 包含家庭托管成员的交易记录（家庭成员可以查看所有交易）
     const transactions = await this.transactionRepository.findByDateRange(
       userId,
       TransactionType.EXPENSE,
@@ -347,7 +347,7 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      true // 设置excludeFamilyMember为true，排除家庭托管成员的交易记录
+      false // 设置excludeFamilyMember为false，包含家庭托管成员的交易记录
     );
 
     console.log(`找到 ${transactions.length} 条交易记录`);

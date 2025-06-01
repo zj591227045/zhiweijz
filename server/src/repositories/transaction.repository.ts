@@ -82,15 +82,42 @@ export class TransactionRepository {
 
     // 构建查询条件
     const where: Prisma.TransactionWhereInput = {
-      userId,
       ...(type && { type }),
       ...(startDate && { date: { gte: startDate } }),
       ...(endDate && { date: { lte: endDate } }),
       ...(categoryId && { categoryId }),
       ...(familyId && { familyId }),
       ...(familyMemberId && { familyMemberId }),
-      ...(params.accountBookId && { accountBookId: params.accountBookId }),
     };
+
+    // 如果指定了账本ID，则查询该账本的所有交易记录（家庭成员可以查看家庭账本的所有记录）
+    if (params.accountBookId) {
+      where.accountBookId = params.accountBookId;
+
+      // 验证用户是否有权限查看该账本
+      const accountBook = await prisma.accountBook.findFirst({
+        where: {
+          id: params.accountBookId,
+          OR: [
+            { userId: userId }, // 个人账本
+            {
+              family: {
+                members: {
+                  some: { userId: userId } // 家庭账本成员
+                }
+              }
+            }
+          ]
+        }
+      });
+
+      if (!accountBook) {
+        throw new Error('无权限查看该账本的交易记录');
+      }
+    } else {
+      // 如果没有指定账本ID，则只查询用户自己的交易记录
+      where.userId = userId;
+    }
 
     // 处理多个分类ID
     if (categoryIds && categoryIds.length > 0) {
@@ -256,19 +283,46 @@ export class TransactionRepository {
     });
 
     const whereConditions: any = {
-      userId,
       type,
       date: {
         gte: startDate,
         lte: endDate,
       },
       ...(familyId && { familyId }),
-      ...(accountBookId && { accountBookId }),
       ...(budgetId && { budgetId }),
       // 如果excludeFamilyMember为true，则只查询familyMemberId为null的记录
       // 这样可以排除托管成员的交易记录
       ...(excludeFamilyMember && { familyMemberId: null }),
     };
+
+    // 如果指定了账本ID，则查询该账本的所有交易记录（家庭成员可以查看家庭账本的所有记录）
+    if (accountBookId) {
+      whereConditions.accountBookId = accountBookId;
+
+      // 验证用户是否有权限查看该账本
+      const accountBook = await prisma.accountBook.findFirst({
+        where: {
+          id: accountBookId,
+          OR: [
+            { userId: userId }, // 个人账本
+            {
+              family: {
+                members: {
+                  some: { userId: userId } // 家庭账本成员
+                }
+              }
+            }
+          ]
+        }
+      });
+
+      if (!accountBook) {
+        throw new Error('无权限查看该账本的交易记录');
+      }
+    } else {
+      // 如果没有指定账本ID，则只查询用户自己的交易记录
+      whereConditions.userId = userId;
+    }
 
     // 处理分类ID过滤
     if (categoryIds && categoryIds.length > 0) {

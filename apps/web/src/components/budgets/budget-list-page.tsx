@@ -18,10 +18,12 @@ export function BudgetListPage() {
     personalBudgets,
     generalBudgets,
     selectedType,
+    showExpiredBudgets,
     isLoading,
     error,
     fetchBudgets,
     setSelectedType,
+    toggleShowExpiredBudgets,
     deleteBudget,
     resetState
   } = useBudgetListStore();
@@ -47,6 +49,23 @@ export function BudgetListPage() {
     return () => resetState();
   }, [currentAccountBook?.id, fetchBudgets, resetState]);
 
+  // 监听预算更新事件
+  useEffect(() => {
+    const handleBudgetUpdated = (event: CustomEvent) => {
+      const { accountBookId } = event.detail;
+      if (accountBookId === currentAccountBook?.id) {
+        console.log('收到预算更新事件，刷新预算列表');
+        fetchBudgets(accountBookId);
+      }
+    };
+
+    window.addEventListener('budgetUpdated', handleBudgetUpdated as EventListener);
+
+    return () => {
+      window.removeEventListener('budgetUpdated', handleBudgetUpdated as EventListener);
+    };
+  }, [currentAccountBook?.id, fetchBudgets]);
+
   // 处理预算类型切换
   const handleTypeChange = (type: 'PERSONAL' | 'GENERAL') => {
     setSelectedType(type);
@@ -71,8 +90,24 @@ export function BudgetListPage() {
     }
   };
 
+  // 过滤预算列表
+  const filterBudgets = (budgets: Budget[]) => {
+    if (selectedType !== 'PERSONAL' || showExpiredBudgets) {
+      return budgets;
+    }
+
+    // 对于个人预算，默认隐藏已过期的预算
+    const currentDate = new Date();
+    return budgets.filter(budget => {
+      if (!budget.endDate) return true; // 无结束日期的预算始终显示
+      const endDate = new Date(budget.endDate);
+      return endDate >= currentDate; // 只显示未过期的预算
+    });
+  };
+
   // 确定当前显示的预算列表
-  const currentBudgets = selectedType === 'PERSONAL' ? personalBudgets : generalBudgets;
+  const allBudgets = selectedType === 'PERSONAL' ? personalBudgets : generalBudgets;
+  const currentBudgets = filterBudgets(allBudgets);
 
   // 渲染预算列表
   const renderBudgetList = () => {
@@ -164,6 +199,19 @@ export function BudgetListPage() {
               : '长期或无期限的通用预算'}
           </div>
         </div>
+
+        {/* 个人预算的过期预算切换按钮 */}
+        {selectedType === 'PERSONAL' && (
+          <div className="budget-filter-controls">
+            <button
+              className={`filter-toggle-button ${showExpiredBudgets ? 'active' : ''}`}
+              onClick={toggleShowExpiredBudgets}
+            >
+              <i className={`fas ${showExpiredBudgets ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+              <span>{showExpiredBudgets ? '隐藏已结束预算' : '显示已结束预算'}</span>
+            </button>
+          </div>
+        )}
 
         {/* 预算列表 */}
         <div className="budget-list">

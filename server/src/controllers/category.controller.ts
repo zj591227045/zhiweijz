@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
-import { TransactionType } from '@prisma/client';
+import { TransactionType, PrismaClient } from '@prisma/client';
 import { CategoryService } from '../services/category.service';
 import { CreateCategoryDto, UpdateCategoryDto } from '../models/category.model';
+
+const prisma = new PrismaClient();
 
 export class CategoryController {
   private categoryService: CategoryService;
@@ -63,10 +65,49 @@ export class CategoryController {
 
       const type = req.query.type as TransactionType | undefined;
       const familyId = req.query.familyId as string | undefined;
+      const accountBookId = req.query.accountBookId as string | undefined;
 
-      const categories = await this.categoryService.getCategories(userId, type, familyId);
+      console.log('CategoryController.getCategories 参数:', {
+        userId,
+        type,
+        familyId,
+        accountBookId
+      });
+
+      // 如果指定了账本ID，需要获取该账本对应的家庭ID
+      let effectiveFamilyId = familyId;
+      if (accountBookId && !familyId) {
+        // 查询账本信息获取家庭ID
+        const accountBook = await prisma.accountBook.findFirst({
+          where: {
+            id: accountBookId,
+            OR: [
+              { userId: userId }, // 个人账本
+              {
+                family: {
+                  members: {
+                    some: { userId: userId } // 家庭账本成员
+                  }
+                }
+              }
+            ]
+          },
+          select: {
+            familyId: true,
+            type: true
+          }
+        });
+
+        if (accountBook && accountBook.familyId) {
+          effectiveFamilyId = accountBook.familyId;
+          console.log(`从账本 ${accountBookId} 获取到家庭ID: ${effectiveFamilyId}`);
+        }
+      }
+
+      const categories = await this.categoryService.getCategories(userId, type, effectiveFamilyId);
       res.status(200).json(categories);
     } catch (error) {
+      console.error('获取分类列表失败:', error);
       res.status(500).json({ message: '获取分类列表时发生错误' });
     }
   }

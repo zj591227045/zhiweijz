@@ -185,13 +185,70 @@ export class BudgetRepository {
       sortOrder = 'desc'
     } = params;
 
+    console.log('BudgetRepository.findAll 参数:', {
+      userId,
+      params
+    });
 
+    // 构建查询条件
+    const where: Prisma.BudgetWhereInput = {};
 
-    // 构建查询条件 - 只根据账本ID和预算类型过滤
-    const where: Prisma.BudgetWhereInput = {
-      ...(params.accountBookId && { accountBookId: params.accountBookId }),
-      ...(budgetType && { budgetType }),
-    };
+    // 如果指定了账本ID，验证权限并查询该账本的所有预算
+    if (params.accountBookId) {
+      // 验证用户是否有权限查看该账本
+      const accountBook = await prisma.accountBook.findFirst({
+        where: {
+          id: params.accountBookId,
+          OR: [
+            { userId: userId }, // 个人账本
+            {
+              family: {
+                members: {
+                  some: { userId: userId } // 家庭账本成员
+                }
+              }
+            }
+          ]
+        }
+      });
+
+      if (!accountBook) {
+        throw new Error('无权限查看该账本的预算');
+      }
+
+      where.accountBookId = params.accountBookId;
+    } else {
+      // 如果没有指定账本ID，只查询用户自己的预算
+      where.userId = userId;
+    }
+
+    // 添加其他过滤条件
+    if (budgetType) {
+      where.budgetType = budgetType;
+    }
+    if (period) {
+      where.period = period;
+    }
+    if (categoryId) {
+      where.categoryId = categoryId;
+    }
+    if (familyId) {
+      where.familyId = familyId;
+    }
+    if (active !== undefined) {
+      const now = new Date();
+      if (active) {
+        where.startDate = { lte: now };
+        where.endDate = { gte: now };
+      } else {
+        where.OR = [
+          { startDate: { gt: now } },
+          { endDate: { lt: now } }
+        ];
+      }
+    }
+
+    console.log('BudgetRepository.findAll 查询条件:', JSON.stringify(where, null, 2));
 
     // 构建排序条件
     const orderBy: Prisma.BudgetOrderByWithRelationInput = {
@@ -332,6 +389,65 @@ export class BudgetRepository {
    * 可选根据账本ID进行过滤
    */
   async findActiveBudgets(userId: string, date: Date = new Date(), accountBookId?: string): Promise<BudgetWithCategory[]> {
+    // 如果指定了账本ID，则查询该账本的所有预算（家庭成员可以查看家庭账本的所有预算）
+    if (accountBookId) {
+      // 验证用户是否有权限查看该账本
+      const accountBook = await prisma.accountBook.findFirst({
+        where: {
+          id: accountBookId,
+          OR: [
+            { userId: userId }, // 个人账本
+            {
+              family: {
+                members: {
+                  some: { userId: userId } // 家庭账本成员
+                }
+              }
+            }
+          ]
+        }
+      });
+
+      if (!accountBook) {
+        throw new Error('无权限查看该账本的预算');
+      }
+
+      // 查询该账本的所有活跃预算（包括托管成员的预算）
+      const where = {
+        accountBookId,
+        startDate: { lte: date },
+        endDate: { gte: date },
+      };
+
+      console.log('查询指定账本的活跃预算，条件:', JSON.stringify(where, null, 2));
+
+      return prisma.budget.findMany({
+        where,
+        include: {
+          category: true,
+          accountBook: {
+            select: {
+              id: true,
+              name: true,
+              type: true,
+              familyId: true
+            }
+          },
+          // 添加关联查询托管成员信息
+          familyMember: {
+            select: {
+              id: true,
+              name: true,
+              gender: true,
+              birthDate: true,
+              isCustodial: true
+            }
+          }
+        },
+      });
+    }
+
+    // 如果没有指定账本ID，使用原有逻辑查询用户相关的所有预算
     // 1. 查找用户所属的所有家庭ID
     const familyMembers = await prisma.familyMember.findMany({
       where: { userId },
@@ -341,8 +457,6 @@ export class BudgetRepository {
     const familyIds = familyMembers.map(member => member.familyId);
 
     // 2. 构建查询条件：包括用户个人预算和用户所属家庭的预算
-
-    // 构建查询条件
     const where = {
       OR: [] as any[]
     };
@@ -361,12 +475,6 @@ export class BudgetRepository {
       endDate: { gte: date },
     };
 
-    // 如果指定了账本ID，添加到条件中
-    if (accountBookId) {
-      personalCondition.accountBookId = accountBookId;
-      familyCondition.accountBookId = accountBookId;
-    }
-
     // 添加个人预算条件
     where.OR.push(personalCondition);
 
@@ -375,7 +483,7 @@ export class BudgetRepository {
       where.OR.push(familyCondition);
     }
 
-    console.log('查询条件:', JSON.stringify(where, null, 2));
+    console.log('查询用户相关的活跃预算，条件:', JSON.stringify(where, null, 2));
 
     return prisma.budget.findMany({
       where,
@@ -449,20 +557,71 @@ export class BudgetRepository {
       excludeFamilyMember
     });
 
+    // 构建基础查询条件
+    const where: any = {
+      period,
+      startDate: { lte: endDate },
+      endDate: { gte: startDate },
+    };
+
+    // 如果指定了账本ID，则查询该账本的所有预算（家庭成员可以查看家庭账本的所有预算）
+    if (accountBookId) {
+      where.accountBookId = accountBookId;
+
+      // 验证用户是否有权限查看该账本
+      const accountBook = await prisma.accountBook.findFirst({
+        where: {
+          id: accountBookId,
+          OR: [
+            { userId: userId }, // 个人账本
+            {
+              family: {
+                members: {
+                  some: { userId: userId } // 家庭账本成员
+                }
+              }
+            }
+          ]
+        }
+      });
+
+      if (!accountBook) {
+        throw new Error('无权限查看该账本的预算');
+      }
+
+      // 如果excludeFamilyMember为true，则只查询familyMemberId为null的记录
+      if (excludeFamilyMember) {
+        where.familyMemberId = null;
+      }
+    } else {
+      // 如果没有指定账本ID，则只查询用户自己的预算
+      where.userId = userId;
+
+      // 添加家庭ID过滤（如果指定）
+      if (familyId) {
+        where.familyId = familyId;
+      }
+
+      // 如果excludeFamilyMember为true，则只查询familyMemberId为null的记录
+      if (excludeFamilyMember) {
+        where.familyMemberId = null;
+      }
+    }
+
     return prisma.budget.findMany({
-      where: {
-        userId,
-        period,
-        startDate: { lte: endDate },
-        endDate: { gte: startDate },
-        ...(familyId && { familyId }),
-        ...(accountBookId && { accountBookId }),
-        // 如果excludeFamilyMember为true，则只查询familyMemberId为null的记录
-        // 这样可以排除托管成员的预算
-        ...(excludeFamilyMember && { familyMemberId: null }),
-      },
+      where,
       include: {
         category: true,
+        // 添加关联查询托管成员信息
+        familyMember: {
+          select: {
+            id: true,
+            name: true,
+            gender: true,
+            birthDate: true,
+            isCustodial: true
+          }
+        }
       },
     });
   }

@@ -57,9 +57,14 @@ export const aiService = {
   /**
    * 获取用户所有LLM设置列表
    */
-  async getLLMSettingsList(): Promise<LLMSetting[]> {
+  async getLLMSettingsList(accountBookId?: string): Promise<LLMSetting[]> {
     try {
-      console.log('发送获取LLM设置列表请求: /ai/llm-settings/list');
+      let url = '/ai/llm-settings/list';
+      if (accountBookId) {
+        url += `?accountBookId=${accountBookId}`;
+      }
+
+      console.log('发送获取LLM设置列表请求:', url);
       console.log('认证令牌:', localStorage.getItem("auth-token"));
 
       // 确保请求头中包含认证令牌
@@ -70,7 +75,7 @@ export const aiService = {
       }
 
       // 发送请求
-      const response = await apiClient.get<any>('/ai/llm-settings/list');
+      const response = await apiClient.get<any>(url);
       console.log('LLM设置列表响应数据:', response);
 
       // 处理响应数据

@@ -24,9 +24,9 @@ export function AIServiceBinding({ accountBookId }: AIServiceBindingProps) {
       console.log(`开始加载账本 ${accountBookId} 的AI服务绑定信息`);
 
       try {
-        // 获取所有AI服务
+        // 获取所有AI服务（包括家庭成员可访问的服务）
         console.log("正在获取所有AI服务列表...");
-        const servicesList = await aiService.getLLMSettingsList();
+        const servicesList = await aiService.getLLMSettingsList(accountBookId);
         console.log(`成功获取到 ${servicesList.length} 个AI服务:`, servicesList);
         setServices(servicesList);
 
@@ -99,7 +99,7 @@ export function AIServiceBinding({ accountBookId }: AIServiceBindingProps) {
         toast.success("AI服务绑定成功");
 
         // 刷新服务列表，确保UI状态与后端一致
-        const servicesList = await aiService.getLLMSettingsList();
+        const servicesList = await aiService.getLLMSettingsList(accountBookId);
         setServices(servicesList);
       } else {
         console.warn("绑定AI服务返回未成功状态:", result);
