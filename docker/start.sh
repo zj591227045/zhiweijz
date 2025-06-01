@@ -510,32 +510,66 @@ verify_service_health() {
             fi
             ;;
         "frontend")
-            # 前端服务健康检查 - 改进检查方式
-            local frontend_ready=false
+            # 前端服务健康检查 - 基于容器健康状态
+            log_info "检查前端容器健康状态..."
 
-            # 首先检查容器是否真正存在和运行
+            # 首先检查容器是否存在和运行
             if ! docker ps --format "table {{.Names}}" | grep -q "zhiweijz-frontend"; then
-                log_warning "${service_name} 容器不存在或未运行，跳过健康检查"
-                return 0
+                log_warning "${service_name} 容器不存在或未运行"
+                return 1
             fi
 
-            for i in {1..20}; do
-                # 检查前端服务是否响应
-                local response_code=$($COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T frontend curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/ 2>/dev/null || echo "000")
+            # 检查容器健康状态 - 等待Docker Compose健康检查完成
+            local health_status=""
+            local max_wait=30  # 最多等待60秒 (30次 × 2秒)
 
-                # 接受200, 301, 302等正常响应码
-                if [[ "$response_code" =~ ^[23] ]]; then
-                    frontend_ready=true
-                    break
-                fi
+            for i in $(seq 1 $max_wait); do
+                # 获取容器健康状态
+                health_status=$(docker inspect zhiweijz-frontend --format='{{.State.Health.Status}}' 2>/dev/null || echo "none")
+
+                case "$health_status" in
+                    "healthy")
+                        log_success "${service_name} 健康检查通过 (容器状态: healthy)"
+                        return 0
+                        ;;
+                    "unhealthy")
+                        log_warning "${service_name} 容器状态为 unhealthy"
+                        break
+                        ;;
+                    "starting")
+                        log_info "前端容器正在启动中... ($i/$max_wait)"
+                        ;;
+                    "none")
+                        # 容器没有健康检查配置，尝试简单的进程检查
+                        log_info "容器无健康检查配置，检查进程状态..."
+                        if docker exec zhiweijz-frontend pgrep -f "node" >/dev/null 2>&1; then
+                            log_success "${service_name} 进程检查通过 (Node.js进程运行中)"
+                            return 0
+                        fi
+                        ;;
+                    *)
+                        log_info "前端容器状态: $health_status ($i/$max_wait)"
+                        ;;
+                esac
+
                 sleep 2
             done
 
-            if [ "$frontend_ready" = true ]; then
-                log_success "${service_name} 健康检查通过 (HTTP响应正常)"
+            # 如果健康检查超时或失败，尝试备用检查
+            log_info "Docker健康检查超时，尝试备用检查..."
+
+            # 备用检查：检查容器内部端口是否监听
+            if docker exec zhiweijz-frontend netstat -tln 2>/dev/null | grep -q ":3001 "; then
+                log_success "${service_name} 备用检查通过 (端口3001正在监听)"
+                return 0
+            elif docker exec zhiweijz-frontend ss -tln 2>/dev/null | grep -q ":3001 "; then
+                log_success "${service_name} 备用检查通过 (端口3001正在监听)"
+                return 0
             else
                 log_warning "${service_name} 健康检查失败，但继续启动其他服务"
                 log_info "前端可能需要更长时间启动，请稍后通过Nginx访问"
+                log_info "可以通过以下命令查看前端日志："
+                log_info "$COMPOSE_CMD -f $COMPOSE_FILE -p $PROJECT_NAME logs frontend"
                 # 前端健康检查失败不阻止后续服务启动
                 return 0
             fi
@@ -730,13 +764,33 @@ check_services() {
     else
         log_warning "前端服务异常"
 
-        # 尝试直接检查前端容器
+        # 检查前端容器状态
         if docker ps --format "table {{.Names}}" | grep -q "zhiweijz-frontend"; then
-            if $COMPOSE_CMD -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T frontend curl -f http://localhost:3001/ >/dev/null 2>&1; then
-                log_info "前端容器运行正常，可能是Nginx代理问题"
-            else
-                log_warning "前端容器无法访问"
-            fi
+            # 检查容器健康状态
+            local health_status=$(docker inspect zhiweijz-frontend --format='{{.State.Health.Status}}' 2>/dev/null || echo "none")
+
+            case "$health_status" in
+                "healthy")
+                    log_info "前端容器健康状态正常，可能是Nginx代理问题"
+                    ;;
+                "unhealthy")
+                    log_warning "前端容器健康状态异常"
+                    ;;
+                "starting")
+                    log_info "前端容器仍在启动中"
+                    ;;
+                "none")
+                    # 没有健康检查，检查进程
+                    if docker exec zhiweijz-frontend pgrep -f "node" >/dev/null 2>&1; then
+                        log_info "前端容器进程正常，可能是Nginx代理问题"
+                    else
+                        log_warning "前端容器进程异常"
+                    fi
+                    ;;
+                *)
+                    log_info "前端容器状态: $health_status"
+                    ;;
+            esac
         else
             log_warning "前端容器不存在"
         fi
