@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
+import { toast } from "sonner";
+import { SimpleSlidingCaptcha } from "@/components/captcha/simple-sliding-captcha";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -14,6 +16,8 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [passwordError, setPasswordError] = useState("");
+  const [showCaptcha, setShowCaptcha] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const validatePassword = () => {
     if (password !== confirmPassword) {
@@ -37,12 +41,64 @@ export default function RegisterPage() {
       return;
     }
 
+    // 检查是否需要验证码
+    if (!captchaToken) {
+      setShowCaptcha(true);
+      return;
+    }
+
     try {
-      await register({ name, email, password });
-      router.push("/dashboard");
+      const success = await register({
+        name,
+        email,
+        password,
+        captchaToken
+      });
+
+      if (success) {
+        router.push("/dashboard");
+      }
     } catch (error) {
       console.error("注册失败:", error);
+      // 注册失败，重置验证码
+      setCaptchaToken(null);
     }
+  };
+
+  // 处理验证码成功
+  const handleCaptchaSuccess = async (token: string) => {
+    setCaptchaToken(token);
+    setShowCaptcha(false);
+
+    // 直接调用注册API，不再通过handleSubmit
+    try {
+      const success = await register({
+        name,
+        email,
+        password,
+        captchaToken: token
+      });
+
+      if (success) {
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      console.error("注册失败:", error);
+      // 注册失败，重置验证码
+      setCaptchaToken(null);
+    }
+  };
+
+  // 处理验证码错误
+  const handleCaptchaError = (error: string) => {
+    toast.error(error);
+    setCaptchaToken(null);
+  };
+
+  // 处理验证码关闭
+  const handleCaptchaClose = () => {
+    setShowCaptcha(false);
+    setCaptchaToken(null);
   };
 
   return (
@@ -173,6 +229,15 @@ export default function RegisterPage() {
       <div className="auth-footer">
         <p>&copy; {new Date().getFullYear()} 只为记账. 保留所有权利.</p>
       </div>
+
+      {/* 验证码组件 */}
+      <SimpleSlidingCaptcha
+        isOpen={showCaptcha}
+        onClose={handleCaptchaClose}
+        onSuccess={handleCaptchaSuccess}
+        onError={handleCaptchaError}
+        title="完成注册验证"
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { apiClient } from '@/api/api-client';
 import { toast } from 'sonner';
+import { LoginAttempt } from '@/types/captcha';
 
 // 用户类型定义
 interface User {
@@ -24,14 +25,19 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  loginAttempts: Record<string, LoginAttempt>;
 
   // 操作方法
-  login: (credentials: { email: string; password: string }) => Promise<boolean>;
-  register: (data: { name: string; email: string; password: string }) => Promise<boolean>;
+  login: (credentials: { email: string; password: string; captchaToken?: string }) => Promise<boolean>;
+  register: (data: { name: string; email: string; password: string; captchaToken: string }) => Promise<boolean>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<boolean>;
   clearError: () => void;
   setLoading: (loading: boolean) => void;
+  getLoginAttempts: (email: string) => LoginAttempt;
+  incrementLoginAttempts: (email: string) => void;
+  resetLoginAttempts: (email: string) => void;
+  verifyCaptcha: (token: string, action: 'login' | 'register') => Promise<boolean>;
 }
 
 // 创建认证状态管理
@@ -44,13 +50,26 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      loginAttempts: {},
 
       // 登录
       login: async (credentials) => {
         try {
           set({ isLoading: true, error: null });
 
-          const response = await apiClient.post('/auth/login', credentials);
+          // 如果需要验证码，先验证验证码
+          if (credentials.captchaToken) {
+            const captchaValid = await get().verifyCaptcha(credentials.captchaToken, 'login');
+            if (!captchaValid) {
+              throw new Error('验证码验证失败');
+            }
+          }
+
+          const response = await apiClient.post('/auth/login', {
+            email: credentials.email,
+            password: credentials.password,
+            captchaToken: credentials.captchaToken
+          });
           const { user, token } = response.data;
 
           // 保存token和用户信息到localStorage
@@ -67,10 +86,16 @@ export const useAuthStore = create<AuthState>()(
             error: null
           });
 
+          // 登录成功，重置登录尝试次数
+          get().resetLoginAttempts(credentials.email);
           toast.success('登录成功');
           return true;
         } catch (error: any) {
           const errorMessage = error.response?.data?.message || '登录失败';
+
+          // 增加登录失败次数
+          get().incrementLoginAttempts(credentials.email);
+
           set({
             isLoading: false,
             error: errorMessage,
@@ -88,7 +113,18 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true, error: null });
 
-          const response = await apiClient.post('/auth/register', data);
+          // 验证验证码
+          const captchaValid = await get().verifyCaptcha(data.captchaToken, 'register');
+          if (!captchaValid) {
+            throw new Error('验证码验证失败');
+          }
+
+          const response = await apiClient.post('/auth/register', {
+            name: data.name,
+            email: data.email,
+            password: data.password,
+            captchaToken: data.captchaToken
+          });
           const { user, token } = response.data;
 
           // 保存token到localStorage
@@ -174,6 +210,76 @@ export const useAuthStore = create<AuthState>()(
       // 设置加载状态
       setLoading: (loading) => {
         set({ isLoading: loading });
+      },
+
+      // 获取登录尝试信息
+      getLoginAttempts: (email: string): LoginAttempt => {
+        const attempts = get().loginAttempts[email];
+        if (!attempts) {
+          return {
+            email,
+            attempts: 0,
+            lastAttempt: 0,
+            requiresCaptcha: false
+          };
+        }
+
+        // 检查是否需要重置（超过1小时）
+        const now = Date.now();
+        if (now - attempts.lastAttempt > 60 * 60 * 1000) {
+          return {
+            email,
+            attempts: 0,
+            lastAttempt: 0,
+            requiresCaptcha: false
+          };
+        }
+
+        return attempts;
+      },
+
+      // 增加登录失败次数
+      incrementLoginAttempts: (email: string) => {
+        const current = get().getLoginAttempts(email);
+        const newAttempts = current.attempts + 1;
+        const requiresCaptcha = newAttempts >= 2; // 失败2次后需要验证码
+
+
+
+        set(state => ({
+          loginAttempts: {
+            ...state.loginAttempts,
+            [email]: {
+              email,
+              attempts: newAttempts,
+              lastAttempt: Date.now(),
+              requiresCaptcha
+            }
+          }
+        }));
+      },
+
+      // 重置登录尝试次数
+      resetLoginAttempts: (email: string) => {
+        set(state => {
+          const newAttempts = { ...state.loginAttempts };
+          delete newAttempts[email];
+          return { loginAttempts: newAttempts };
+        });
+      },
+
+      // 验证验证码
+      verifyCaptcha: async (token: string, action: 'login' | 'register'): Promise<boolean> => {
+        try {
+          const response = await apiClient.post('/auth/verify-captcha', {
+            token,
+            action
+          });
+          return response.data.success;
+        } catch (error) {
+          console.error('验证码验证失败:', error);
+          return false;
+        }
       }
     }),
     {
@@ -181,7 +287,8 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user,
         token: state.token,
-        isAuthenticated: state.isAuthenticated
+        isAuthenticated: state.isAuthenticated,
+        loginAttempts: state.loginAttempts
       })
     }
   )

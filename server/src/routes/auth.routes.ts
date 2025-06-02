@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
 import { authenticate } from '../middlewares/auth.middleware';
+import { CaptchaController } from '../controllers/captcha.controller';
 
 const router = Router();
 const authController = new AuthController();
+const captchaController = new CaptchaController();
 
 // 用户登录
 router.post('/login', (req, res) => authController.login(req, res));
@@ -22,5 +24,8 @@ router.get('/check', authenticate, (req, res) => authController.checkAuth(req, r
 
 // 刷新token
 router.post('/refresh', authenticate, (req, res) => authController.refreshToken(req, res));
+
+// 验证验证码
+router.post('/verify-captcha', (req, res) => captchaController.verifyCaptcha(req, res));
 
 export default router;

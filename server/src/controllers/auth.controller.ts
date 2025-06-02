@@ -1,12 +1,15 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { LoginRequestDto, RegisterRequestDto, ResetPasswordRequestDto, UpdatePasswordRequestDto } from '../models/auth.model';
+import { CaptchaService } from '../services/captcha.service';
 
 export class AuthController {
   private authService: AuthService;
+  private captchaService: CaptchaService;
 
   constructor() {
     this.authService = new AuthService();
+    this.captchaService = new CaptchaService();
   }
 
   /**
@@ -14,7 +17,17 @@ export class AuthController {
    */
   async login(req: Request, res: Response): Promise<void> {
     try {
-      const { email, password }: LoginRequestDto = req.body;
+      const { email, password, captchaToken } = req.body;
+
+      // 如果提供了验证码，先验证验证码
+      if (captchaToken) {
+        const captchaResult = await this.captchaService.verifySlidingPuzzle(captchaToken, 'login');
+        if (!captchaResult.success) {
+          res.status(400).json({ message: captchaResult.message || '验证码验证失败' });
+          return;
+        }
+      }
+
       const loginResponse = await this.authService.login(email, password);
       res.status(200).json(loginResponse);
     } catch (error) {
@@ -31,7 +44,21 @@ export class AuthController {
    */
   async register(req: Request, res: Response): Promise<void> {
     try {
-      const userData: RegisterRequestDto = req.body;
+      const { name, email, password, captchaToken } = req.body;
+
+      // 验证验证码（注册必须提供验证码）
+      if (!captchaToken) {
+        res.status(400).json({ message: '请完成验证码验证' });
+        return;
+      }
+
+      const captchaResult = await this.captchaService.verifySlidingPuzzle(captchaToken, 'register');
+      if (!captchaResult.success) {
+        res.status(400).json({ message: captchaResult.message || '验证码验证失败' });
+        return;
+      }
+
+      const userData: RegisterRequestDto = { name, email, password };
       const registerResponse = await this.authService.register(userData);
       res.status(201).json(registerResponse);
     } catch (error) {

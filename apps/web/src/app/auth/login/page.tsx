@@ -6,13 +6,16 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { toast } from "sonner";
 import { ThemeSwitcher } from "../../../components/theme/theme-switcher";
+import { SimpleSlidingCaptcha } from "@/components/captcha/simple-sliding-captcha";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isAuthenticated, isLoading, error, clearError } = useAuthStore();
+  const { login, isAuthenticated, isLoading, error, clearError, getLoginAttempts } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showCaptcha, setShowCaptcha] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   // 如果已登录，重定向到仪表盘
   useEffect(() => {
@@ -24,12 +27,71 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // 检查是否需要验证码
+    const loginAttempts = getLoginAttempts(email);
+
+    if (loginAttempts.requiresCaptcha && !captchaToken) {
+      setShowCaptcha(true);
+      return;
+    }
+
     try {
-      await login({ email, password });
-      // 成功提示已在store中处理
+      const success = await login({
+        email,
+        password,
+        captchaToken: captchaToken || undefined
+      });
+
+      if (success) {
+        // 登录成功，重置验证码状态
+        setCaptchaToken(null);
+        setShowCaptcha(false);
+      }
     } catch (err) {
       // 错误已在store中处理
+      // 如果登录失败且需要验证码，重置验证码
+      const updatedAttempts = getLoginAttempts(email);
+      if (updatedAttempts.requiresCaptcha) {
+        setCaptchaToken(null);
+      }
     }
+  };
+
+  // 处理验证码成功
+  const handleCaptchaSuccess = async (token: string) => {
+    setCaptchaToken(token);
+    setShowCaptcha(false);
+
+    // 直接调用登录API，不再通过handleSubmit
+    try {
+      const success = await login({
+        email,
+        password,
+        captchaToken: token
+      });
+
+      if (success) {
+        // 登录成功，重置验证码状态
+        setCaptchaToken(null);
+        setShowCaptcha(false);
+      }
+    } catch (err) {
+      // 错误已在store中处理
+      // 如果登录失败，重置验证码
+      setCaptchaToken(null);
+    }
+  };
+
+  // 处理验证码错误
+  const handleCaptchaError = (error: string) => {
+    toast.error(error);
+    setCaptchaToken(null);
+  };
+
+  // 处理验证码关闭
+  const handleCaptchaClose = () => {
+    setShowCaptcha(false);
+    setCaptchaToken(null);
   };
 
   // 清除错误
@@ -143,6 +205,15 @@ export default function LoginPage() {
           &copy; {new Date().getFullYear()} 只为记账 - 版权所有
         </div>
       </div>
+
+      {/* 验证码组件 */}
+      <SimpleSlidingCaptcha
+        isOpen={showCaptcha}
+        onClose={handleCaptchaClose}
+        onSuccess={handleCaptchaSuccess}
+        onError={handleCaptchaError}
+        title="安全验证"
+      />
     </div>
   );
 }
