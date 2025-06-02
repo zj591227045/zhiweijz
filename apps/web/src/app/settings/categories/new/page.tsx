@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PageContainer } from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,8 @@ const availableIcons = [
   'salary', 'part-time', 'investment', 'bonus', 'commission', 'other'
 ];
 
-export default function NewCategoryPage() {
+// 分离使用 useSearchParams 的组件
+function NewCategoryForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { createCategory, isLoading } = useCategoryStore();
@@ -251,5 +252,47 @@ export default function NewCategoryPage() {
         </Card>
       </div>
     </PageContainer>
+  );
+}
+
+// 主页面组件，用 Suspense 包装
+export default function NewCategoryPage() {
+  return (
+    <Suspense fallback={
+      <PageContainer title="添加分类" showBack>
+        <div className="max-w-2xl mx-auto p-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <i className="fas fa-palette" />
+                创建新分类
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                  <div className="h-10 bg-gray-200 rounded"></div>
+                </div>
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                  <div className="h-10 bg-gray-200 rounded"></div>
+                </div>
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                  <div className="grid grid-cols-6 gap-3">
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <div key={i} className="h-16 bg-gray-200 rounded-lg"></div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </PageContainer>
+    }>
+      <NewCategoryForm />
+    </Suspense>
   );
 }

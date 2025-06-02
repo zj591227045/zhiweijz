@@ -49,6 +49,61 @@ export class CategoryService {
     return result;
   }
 
+  /**
+   * 为用户创建默认分类配置
+   * 这个方法为指定用户创建所有默认分类的用户配置记录
+   */
+  async createUserDefaultCategories(userId: string): Promise<number> {
+    console.log(`CategoryService: 开始为用户 ${userId} 创建默认分类配置`);
+
+    try {
+      // 1. 获取所有默认分类
+      const defaultCategories = await this.categoryRepository.findDefaultCategories();
+      console.log(`CategoryService: 找到 ${defaultCategories.length} 个默认分类`);
+
+      if (defaultCategories.length === 0) {
+        console.log('CategoryService: 没有找到默认分类，跳过创建用户配置');
+        return 0;
+      }
+
+      // 2. 检查用户是否已有这些分类的配置
+      const existingConfigs = await this.userCategoryConfigRepository.findByUserId(userId);
+      const existingCategoryIds = new Set(existingConfigs.map(config => config.categoryId));
+      console.log(`CategoryService: 用户已有 ${existingConfigs.length} 个分类配置`);
+
+      // 3. 筛选出需要创建配置的默认分类
+      const categoriesToConfig = defaultCategories.filter(category =>
+        !existingCategoryIds.has(category.id)
+      );
+      console.log(`CategoryService: 需要创建配置的分类数量: ${categoriesToConfig.length}`);
+
+      if (categoriesToConfig.length === 0) {
+        console.log('CategoryService: 用户已有所有默认分类的配置，无需创建');
+        return 0;
+      }
+
+      // 4. 为这些分类创建用户配置，使用默认排序
+      const configsToCreate = categoriesToConfig.map(category => {
+        const defaultOrder = defaultCategoryOrder[category.type]?.[category.name] || 9999;
+        return {
+          userId,
+          categoryId: category.id,
+          displayOrder: defaultOrder,
+          isHidden: false
+        };
+      });
+
+      // 5. 批量创建配置
+      const createdCount = await this.userCategoryConfigRepository.createMany(configsToCreate);
+      console.log(`CategoryService: 成功为用户 ${userId} 创建了 ${createdCount} 个默认分类配置`);
+
+      return createdCount;
+    } catch (error) {
+      console.error(`CategoryService: 为用户 ${userId} 创建默认分类配置时发生错误:`, error);
+      throw error;
+    }
+  }
+
 
 
   /**
