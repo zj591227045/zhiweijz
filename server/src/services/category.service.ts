@@ -271,7 +271,7 @@ export class CategoryService {
    */
   async updateCategoryOrder(userId: string, categoryIds: string[], type: TransactionType): Promise<void> {
     console.log(`服务层: 开始更新分类排序，用户ID: ${userId}, 分类类型: ${type}`);
-    console.log(`服务层: 分类IDs: ${categoryIds.join(', ')}`);
+    console.log(`服务层: 新的分类排序: ${categoryIds.join(', ')}`);
 
     // 验证所有分类ID是否有效
     const categories = await this.categoryRepository.findByIds(categoryIds);
@@ -290,43 +290,95 @@ export class CategoryService {
       throw new Error('分类类型不匹配');
     }
 
-    // 获取当前用户的分类配置
-    const userConfigs = await this.userCategoryConfigRepository.findByUserId(userId);
-    const userConfigMap = new Map(userConfigs.map(config => [config.categoryId, config]));
+    // 获取当前该类型的所有分类的当前排序
+    const currentCategories = await this.getCategories(userId, type, undefined, true);
+    console.log(`服务层: 当前该类型分类数量: ${currentCategories.length}`);
 
-    // 获取默认分类的默认排序
-    const defaultCategories = await this.getDefaultCategories();
-    const defaultCategoryMap = new Map(defaultCategories.map(cat => [cat.id, cat]));
+    // 创建当前排序的映射（按照当前的displayOrder排序）
+    const currentOrderedCategories = currentCategories
+      .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
 
-    // 分析哪些分类的排序发生了变化
+    console.log(`服务层: 当前排序:`, currentOrderedCategories.map(cat => `${cat.name}(${cat.displayOrder})`).join(', '));
+    console.log(`服务层: 新的排序:`, categoryIds.map(id => {
+      const cat = categories.find(c => c.id === id);
+      return cat ? cat.name : id;
+    }).join(', '));
+
+    // 检查排序是否真的发生了变化
+    const currentOrder = currentOrderedCategories.map(cat => cat.id);
+    const hasOrderChanged = !categoryIds.every((id, index) => id === currentOrder[index]);
+
+    if (!hasOrderChanged) {
+      console.log(`服务层: 分类排序没有发生变化，无需更新`);
+      return;
+    }
+
+    // 找出位置发生变化的分类，只为这些分类生成新的排序ID
     const changedCategories: Array<{ categoryId: string; newOrder: number }> = [];
 
-    for (let i = 0; i < categoryIds.length; i++) {
-      const categoryId = categoryIds[i];
-      const newOrder = i;
-      const category = categories.find(cat => cat.id === categoryId);
+    for (let newIndex = 0; newIndex < categoryIds.length; newIndex++) {
+      const categoryId = categoryIds[newIndex];
+      const oldIndex = currentOrder.indexOf(categoryId);
 
-      if (!category) continue;
+      // 如果位置发生了变化，计算新的排序ID
+      if (oldIndex !== newIndex) {
+        const category = categories.find(cat => cat.id === categoryId);
+        if (!category) continue;
 
-      let currentOrder: number;
-      const userConfig = userConfigMap.get(categoryId);
+        let newDisplayOrder: number;
 
-      if (userConfig) {
-        // 如果用户已有配置，使用配置中的排序
-        currentOrder = userConfig.displayOrder;
-      } else if (category.isDefault) {
-        // 如果是默认分类且用户没有配置，使用默认排序
-        const defaultOrder = defaultCategoryOrder[category.type]?.[category.name] || 9999;
-        currentOrder = defaultOrder;
-      } else {
-        // 自定义分类默认排序
-        currentOrder = 10000;
-      }
+        if (newIndex === 0) {
+          // 移动到第一位：使用比第二个分类更小的排序ID
+          const secondCategoryId = categoryIds[1];
+          const secondCategory = categories.find(cat => cat.id === secondCategoryId);
 
-      // 如果排序发生了变化，记录下来
-      if (currentOrder !== newOrder) {
-        changedCategories.push({ categoryId, newOrder });
-        console.log(`服务层: 分类 ${categoryId} 排序从 ${currentOrder} 变更为 ${newOrder}`);
+          if (secondCategory && secondCategory.isDefault) {
+            const secondDefaultOrder = defaultCategoryOrder[secondCategory.type]?.[secondCategory.name] || 200;
+            newDisplayOrder = secondDefaultOrder - 50;
+          } else {
+            newDisplayOrder = 50;
+          }
+        } else if (newIndex === categoryIds.length - 1) {
+          // 移动到最后一位：使用比前一个分类更大的排序ID
+          const prevCategoryId = categoryIds[newIndex - 1];
+          const prevCategory = categories.find(cat => cat.id === prevCategoryId);
+
+          if (prevCategory && prevCategory.isDefault) {
+            const prevDefaultOrder = defaultCategoryOrder[prevCategory.type]?.[prevCategory.name] || 2200;
+            newDisplayOrder = prevDefaultOrder + 100;
+          } else {
+            newDisplayOrder = 2400;
+          }
+        } else {
+          // 移动到中间位置：使用插入式排序ID（如1801）
+          const prevCategoryId = categoryIds[newIndex - 1];
+          const nextCategoryId = categoryIds[newIndex + 1];
+
+          const prevCategory = categories.find(cat => cat.id === prevCategoryId);
+          const nextCategory = categories.find(cat => cat.id === nextCategoryId);
+
+          let prevOrder = 0;
+          let nextOrder = 10000;
+
+          if (prevCategory && prevCategory.isDefault) {
+            prevOrder = defaultCategoryOrder[prevCategory.type]?.[prevCategory.name] || 0;
+          }
+
+          if (nextCategory && nextCategory.isDefault) {
+            nextOrder = defaultCategoryOrder[nextCategory.type]?.[nextCategory.name] || 10000;
+          }
+
+          // 使用插入式排序ID，例如在1800和1900之间插入1801
+          if (nextOrder - prevOrder > 1) {
+            newDisplayOrder = prevOrder + 1;
+          } else {
+            // 如果空间不够，使用中间值
+            newDisplayOrder = Math.floor((prevOrder + nextOrder) / 2);
+          }
+        }
+
+        changedCategories.push({ categoryId, newOrder: newDisplayOrder });
+        console.log(`服务层: 分类 ${category.name}(${categoryId}) 从位置 ${oldIndex} 移动到位置 ${newIndex}，新排序ID: ${newDisplayOrder}`);
       }
     }
 
