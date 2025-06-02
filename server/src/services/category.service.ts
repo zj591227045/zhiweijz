@@ -49,23 +49,7 @@ export class CategoryService {
     return result;
   }
 
-  /**
-   * 为用户创建默认分类配置
-   */
-  async createUserDefaultCategories(userId: string): Promise<number> {
-    // 检查系统默认分类是否已存在，如果不存在则先创建
-    const defaultCategoriesExist = await this.categoryRepository.defaultCategoriesExist();
-    if (!defaultCategoriesExist) {
-      await this.initializeDefaultCategories();
-    }
 
-    // 获取所有默认分类
-    const defaultCategories = await this.categoryRepository.findDefaultCategories();
-
-    // 为用户创建默认分类配置
-    const categoryIds = defaultCategories.map(category => category.id);
-    return this.userCategoryConfigService.createDefaultUserCategoryConfigs(userId, categoryIds);
-  }
 
   /**
    * 创建分类

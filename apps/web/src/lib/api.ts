@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import { clearAuthCache } from "@/utils/cache-utils";
 
 // 是否为开发环境
 const isDev = process.env.NODE_ENV === 'development';
@@ -134,11 +135,11 @@ api.interceptors.response.use(
 
     // 处理401错误（未授权）
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // 如果是刷新token的请求失败，直接返回错误
+      // 如果是刷新token的请求失败，清除所有认证状态
       if (originalRequest.url === '/auth/refresh') {
-        // 清除认证状态，但不跳转
-        localStorage.removeItem("auth-token");
-        localStorage.removeItem("user");
+        console.log('Token刷新失败，清除所有认证状态');
+        // 使用统一的缓存清理函数
+        clearAuthCache();
         return Promise.reject(error);
       }
 
@@ -176,8 +177,9 @@ api.interceptors.response.use(
           return api(originalRequest);
         }
       } catch (refreshError) {
-        // 刷新token失败，但不跳转页面
-        // 让组件自己处理认证状态
+        console.log('Token刷新失败，清除认证状态');
+        // 使用统一的缓存清理函数
+        clearAuthCache();
       } finally {
         isRefreshing = false;
       }
@@ -355,11 +357,47 @@ export const apiClient = {
   // 清除所有缓存
   clearCache: () => {
     apiCache.clear();
+    console.log('API缓存已清除');
   },
 
   // 使特定URL模式的缓存失效
   invalidateCache: (urlPattern: RegExp) => {
     apiCache.invalidate(urlPattern);
+  },
+
+  // 全局缓存清理函数 - 用于登出时彻底清理
+  clearAllCache: () => {
+    // 清除API缓存
+    apiCache.clear();
+
+    // 清除localStorage中的所有缓存数据
+    if (typeof window !== 'undefined') {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (
+          key.includes('auth') ||
+          key.includes('account-book') ||
+          key.includes('budget') ||
+          key.includes('transaction') ||
+          key.includes('category') ||
+          key.includes('family') ||
+          key.includes('statistics') ||
+          key.includes('dashboard') ||
+          key.includes('ai-services') ||
+          key.includes('llm-cache') ||
+          key.includes('theme')
+        )) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        console.log('已清除localStorage项:', key);
+      });
+    }
+
+    console.log('所有缓存已清除');
   }
 };
 

@@ -5,6 +5,7 @@ import { persist } from 'zustand/middleware';
 import { apiClient } from '@/api/api-client';
 import { toast } from 'sonner';
 import { LoginAttempt } from '@/types/captcha';
+import { performLogoutCleanup, clearApiCache } from '@/utils/cache-utils';
 
 // 用户类型定义
 interface User {
@@ -72,6 +73,9 @@ export const useAuthStore = create<AuthState>()(
           });
           const { user, token } = response.data;
 
+          // 清除旧的API缓存，确保新用户不会看到旧数据
+          clearApiCache();
+
           // 保存token和用户信息到localStorage
           if (typeof window !== 'undefined') {
             localStorage.setItem('auth-token', token);
@@ -127,9 +131,13 @@ export const useAuthStore = create<AuthState>()(
           });
           const { user, token } = response.data;
 
+          // 清除旧的API缓存，确保新用户不会看到旧数据
+          clearApiCache();
+
           // 保存token到localStorage
           if (typeof window !== 'undefined') {
             localStorage.setItem('auth-token', token);
+            localStorage.setItem('user', JSON.stringify(user));
           }
 
           set({
@@ -158,21 +166,20 @@ export const useAuthStore = create<AuthState>()(
 
       // 登出
       logout: () => {
-        // 清除localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('auth-token');
-          localStorage.removeItem('user');
-        }
-
+        // 重置认证状态
         set({
           user: null,
           token: null,
           isAuthenticated: false,
           isLoading: false,
-          error: null
+          error: null,
+          loginAttempts: {} // 也清除登录尝试记录
         });
 
         toast.success('已退出登录');
+
+        // 执行完整的登出清理流程（包括缓存清理和页面跳转）
+        performLogoutCleanup();
       },
 
       // 更新用户资料

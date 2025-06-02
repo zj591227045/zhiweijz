@@ -81,19 +81,5 @@ export class UserCategoryConfigService {
     await this.userCategoryConfigRepository.delete(id);
   }
 
-  /**
-   * 为用户创建默认分类配置
-   * @param userId 用户ID
-   * @param categoryIds 默认分类ID列表
-   */
-  async createDefaultUserCategoryConfigs(userId: string, categoryIds: string[]): Promise<number> {
-    const configsData = categoryIds.map((categoryId, index) => ({
-      userId,
-      categoryId,
-      isHidden: false,
-      displayOrder: index,
-    }));
 
-    return this.userCategoryConfigRepository.createMany(configsData);
-  }
 }

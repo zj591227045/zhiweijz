@@ -6,6 +6,7 @@ import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
 import { useThemeStore, applyThemeConfig } from '@/store/theme-store';
 import { AuthInitializer } from '@/components/auth/auth-initializer';
+import { RouteGuard } from '@/components/auth/route-guard';
 
 // 创建QueryClient实例
 const queryClient = new QueryClient({
@@ -62,7 +63,9 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <AuthInitializer>
-          {children}
+          <RouteGuard>
+            {children}
+          </RouteGuard>
         </AuthInitializer>
         <Toaster position="top-center" />
       </ThemeProvider>

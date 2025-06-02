@@ -62,12 +62,12 @@ export class AuthService {
         // 不影响用户注册流程，继续执行
       }
 
-      // 为新用户创建默认分类
+      // 确保系统默认分类存在（不为用户创建配置记录）
       try {
         const categoryService = new CategoryService();
-        await categoryService.createUserDefaultCategories(newUser.id);
+        await categoryService.initializeDefaultCategories();
       } catch (categoryError) {
-        console.error('创建默认分类失败:', categoryError);
+        console.error('初始化默认分类失败:', categoryError);
         // 不影响用户注册流程，继续执行
       }
 

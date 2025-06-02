@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/auth-store';
+import { clearAuthCache } from '@/utils/cache-utils';
 
 interface AuthInitializerProps {
   children: React.ReactNode;
@@ -40,9 +41,10 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
                 error: null
               });
             } else {
-              // Token无效，清除存储
-              localStorage.removeItem('auth-token');
-              localStorage.removeItem('user');
+              // Token无效，清除认证相关缓存
+              console.log('Token验证失败，清除认证缓存');
+              clearAuthCache();
+
               setState({
                 token: null,
                 user: null,
@@ -53,8 +55,9 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
             }
           } catch (error) {
             console.error('解析用户数据失败:', error);
-            localStorage.removeItem('auth-token');
-            localStorage.removeItem('user');
+            // 清除认证相关缓存
+            clearAuthCache();
+
             setState({
               token: null,
               user: null,
