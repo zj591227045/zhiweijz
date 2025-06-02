@@ -66,12 +66,14 @@ export class CategoryController {
       const type = req.query.type as TransactionType | undefined;
       const familyId = req.query.familyId as string | undefined;
       const accountBookId = req.query.accountBookId as string | undefined;
+      const includeHidden = req.query.includeHidden === 'true';
 
       console.log('CategoryController.getCategories 参数:', {
         userId,
         type,
         familyId,
-        accountBookId
+        accountBookId,
+        includeHidden
       });
 
       // 如果指定了账本ID，需要获取该账本对应的家庭ID
@@ -104,7 +106,7 @@ export class CategoryController {
         }
       }
 
-      const categories = await this.categoryService.getCategories(userId, type, effectiveFamilyId);
+      const categories = await this.categoryService.getCategories(userId, type, effectiveFamilyId, includeHidden);
       res.status(200).json(categories);
     } catch (error) {
       console.error('获取分类列表失败:', error);

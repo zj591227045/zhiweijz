@@ -285,19 +285,23 @@ export class BudgetController {
 
       const accountBookId = req.query.accountBookId as string;
       const budgetType = (req.query.budgetType as string) || 'PERSONAL';
+      const targetUserId = req.query.targetUserId as string; // 目标用户ID（可选）
+      const familyMemberId = req.query.familyMemberId as string; // 托管成员ID（可选）
 
       if (!accountBookId) {
         res.status(400).json({ message: '账本ID不能为空' });
         return;
       }
 
-      console.log(`获取用户级别预算结转历史，用户ID: ${userId}, 账本ID: ${accountBookId}, 预算类型: ${budgetType}`);
+      console.log(`获取用户级别预算结转历史，请求用户ID: ${userId}, 账本ID: ${accountBookId}, 预算类型: ${budgetType}, 目标用户ID: ${targetUserId || '无'}, 托管成员ID: ${familyMemberId || '无'}`);
 
       // 获取用户级别的预算结转历史
       const rolloverHistory = await this.budgetService.getUserBudgetRolloverHistory(
-        userId,
+        targetUserId || userId, // 如果指定了目标用户ID，使用目标用户ID，否则使用当前用户ID
         accountBookId,
-        budgetType
+        budgetType,
+        familyMemberId,
+        userId // 传递当前用户ID用于权限验证
       );
 
       console.log(`获取到用户级别预算结转历史: ${rolloverHistory.length} 条记录`);

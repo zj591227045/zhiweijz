@@ -136,7 +136,7 @@ interface BudgetStatisticsState {
   fetchBudgetStatistics: (accountBookId: string, budgetType?: 'personal' | 'general', userId?: string) => Promise<void>;
   fetchBudgetTrends: (budgetId: string, viewMode?: 'daily' | 'weekly' | 'monthly', timeRange?: '6months' | '12months', familyMemberId?: string) => Promise<void>;
   fetchRolloverHistory: (budgetId: string) => Promise<void>;
-  fetchUserRolloverHistory: (accountBookId: string, budgetType?: string) => Promise<void>;
+  fetchUserRolloverHistory: (accountBookId: string, budgetType?: string, targetUserId?: string) => Promise<void>;
   resetState: () => void;
 }
 
@@ -246,11 +246,11 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
         }
       },
 
-      // 获取用户级别的预算结转历史
-      fetchUserRolloverHistory: async (accountBookId, budgetType = 'PERSONAL') => {
+      // 获取用户级别的预算结转历史（简化版本）
+      fetchUserRolloverHistory: async (accountBookId, budgetType = 'PERSONAL', targetUserId) => {
         try {
-          console.log(`获取用户级别预算结转历史，账本ID: ${accountBookId}, 预算类型: ${budgetType}`);
-          const response = await budgetService.getUserBudgetRolloverHistory(accountBookId, budgetType);
+          console.log(`获取用户级别预算结转历史，账本ID: ${accountBookId}, 预算类型: ${budgetType}, 目标用户ID: ${targetUserId || '当前用户'}`);
+          const response = await budgetService.getUserBudgetRolloverHistory(accountBookId, budgetType, targetUserId);
           console.log('获取到用户级别结转历史:', response);
           set({ rolloverHistory: response || [] });
           return response;

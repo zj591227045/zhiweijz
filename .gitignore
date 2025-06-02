@@ -10,6 +10,8 @@ apps/web/.next/
 next-env.d.ts
 client/
 test-reports
+data/
+scripts/db_backup/backups/
 
 # Environment variables
 .env

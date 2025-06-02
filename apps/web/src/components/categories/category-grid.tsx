@@ -9,9 +9,10 @@ import { getIconClass } from "@/lib/utils";
 interface CategoryGridProps {
   categories: Category[];
   isLoading: boolean;
+  isShowingHidden?: boolean;
 }
 
-export function CategoryGrid({ categories, isLoading }: CategoryGridProps) {
+export function CategoryGrid({ categories, isLoading, isShowingHidden = false }: CategoryGridProps) {
   const router = useRouter();
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -129,6 +130,7 @@ export function CategoryGrid({ categories, isLoading }: CategoryGridProps) {
         <DeleteConfirmDialog
           category={selectedCategory}
           onClose={() => setShowDeleteDialog(false)}
+          isShowingHidden={isShowingHidden}
         />
       )}
     </>

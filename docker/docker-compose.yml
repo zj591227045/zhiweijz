@@ -7,9 +7,9 @@ services:
     container_name: zhiweijz-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: zhiweijz
-      POSTGRES_USER: zhiweijz
-      POSTGRES_PASSWORD: zhiweijz123
+      POSTGRES_DB: ${DB_NAME:-zhiweijz}
+      POSTGRES_USER: ${DB_USER:-zhiweijz}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-zhiweijz123}
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -19,7 +19,7 @@ services:
     networks:
       - zhiweijz-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U zhiweijz -d zhiweijz"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-zhiweijz} -d ${DB_NAME:-zhiweijz}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -33,8 +33,8 @@ services:
     environment:
       NODE_ENV: production
       DOCKER_ENV: "true"
-      DATABASE_URL: postgresql://zhiweijz:zhiweijz123@postgres:5432/zhiweijz
-      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      DATABASE_URL: postgresql://${DB_USER:-zhiweijz}:${DB_PASSWORD:-zhiweijz123}@postgres:5432/${DB_NAME:-zhiweijz}
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       PORT: 3000
     ports:
       - "3000:3000"

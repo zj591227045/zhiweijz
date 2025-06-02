@@ -90,11 +90,38 @@ export const transactionService = {
   },
 };
 
-// 分类相关API
+// 分类相关API（集成缓存）
 export const categoryService = {
-  // 获取所有分类
-  getCategories: (params?: any) => {
-    return apiClient.get("/categories", { params });
+  // 获取所有分类（带缓存）
+  getCategories: async (params?: any) => {
+    // 动态导入缓存服务以避免循环依赖
+    const { categoryCacheService } = await import('../services/category-cache.service');
+    const { useAuthStore } = await import('../store/auth-store');
+
+    const userId = useAuthStore.getState().user?.id;
+    if (!userId) {
+      return apiClient.get("/categories", { params });
+    }
+
+    const type = params?.type as 'EXPENSE' | 'INCOME' | undefined;
+
+    // 尝试从缓存获取
+    const cachedCategories = categoryCacheService.getCachedCategories(userId, type);
+    if (cachedCategories) {
+      console.log('CategoryService: 使用缓存数据');
+      return cachedCategories;
+    }
+
+    // 从API获取数据
+    console.log('CategoryService: 从API获取数据');
+    const response = await apiClient.get("/categories", { params });
+
+    // 缓存数据
+    if (Array.isArray(response)) {
+      categoryCacheService.setCachedCategories(userId, response, type);
+    }
+
+    return response;
   },
 
   // 获取单个分类
@@ -102,20 +129,80 @@ export const categoryService = {
     return apiClient.get(`/categories/${id}`);
   },
 
-  // 创建分类
-  createCategory: (data: any) => {
-    return apiClient.post("/categories", data);
+  // 创建分类（清除缓存）
+  createCategory: async (data: any) => {
+    const response = await apiClient.post("/categories", data);
+
+    // 清除缓存
+    const { categoryCacheService } = await import('../services/category-cache.service');
+    const { useAuthStore } = await import('../store/auth-store');
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) {
+      categoryCacheService.clearAllUserCache(userId);
+      console.log('CategoryService: 创建分类后清除缓存');
+    }
+
+    return response;
   },
 
-  // 更新分类
-  updateCategory: (id: string, data: any) => {
-    return apiClient.put(`/categories/${id}`, data);
+  // 更新分类（清除缓存）
+  updateCategory: async (id: string, data: any) => {
+    const response = await apiClient.put(`/categories/${id}`, data);
+
+    // 清除缓存
+    const { categoryCacheService } = await import('../services/category-cache.service');
+    const { useAuthStore } = await import('../store/auth-store');
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) {
+      categoryCacheService.clearAllUserCache(userId);
+      console.log('CategoryService: 更新分类后清除缓存');
+    }
+
+    return response;
   },
 
-  // 删除分类
-  deleteCategory: (id: string) => {
-    return apiClient.delete(`/categories/${id}`);
+  // 删除分类（清除缓存）
+  deleteCategory: async (id: string) => {
+    const response = await apiClient.delete(`/categories/${id}`);
+
+    // 清除缓存
+    const { categoryCacheService } = await import('../services/category-cache.service');
+    const { useAuthStore } = await import('../store/auth-store');
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) {
+      categoryCacheService.clearAllUserCache(userId);
+      console.log('CategoryService: 删除分类后清除缓存');
+    }
+
+    return response;
   },
+
+  // 更新分类排序（清除缓存）
+  updateCategoryOrder: async (data: any) => {
+    const response = await apiClient.put("/categories/order", data);
+
+    // 清除缓存
+    const { categoryCacheService } = await import('../services/category-cache.service');
+    const { useAuthStore } = await import('../store/auth-store');
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) {
+      categoryCacheService.clearAllUserCache(userId);
+      console.log('CategoryService: 更新分类排序后清除缓存');
+    }
+
+    return response;
+  },
+
+  // 清除分类缓存
+  clearCache: async () => {
+    const { categoryCacheService } = await import('../services/category-cache.service');
+    const { useAuthStore } = await import('../store/auth-store');
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) {
+      categoryCacheService.clearAllUserCache(userId);
+      console.log('CategoryService: 手动清除缓存');
+    }
+  }
 };
 
 // 预算相关API
@@ -170,9 +257,18 @@ export const budgetService = {
     return apiClient.get(`/budgets/${budgetId}/rollover-history`);
   },
 
-  // 获取用户级别的预算结转历史
-  getUserBudgetRolloverHistory: (accountBookId: string, budgetType: string = 'PERSONAL') => {
-    return apiClient.get(`/budgets/rollover-history/user?accountBookId=${accountBookId}&budgetType=${budgetType}`);
+  // 获取用户级别的预算结转历史（简化版本）
+  getUserBudgetRolloverHistory: (accountBookId: string, budgetType: string = 'PERSONAL', targetUserId?: string) => {
+    const params = new URLSearchParams({
+      accountBookId,
+      budgetType
+    });
+
+    if (targetUserId) {
+      params.append('targetUserId', targetUserId);
+    }
+
+    return apiClient.get(`/budgets/user/rollover-history?${params.toString()}`);
   },
 };
 

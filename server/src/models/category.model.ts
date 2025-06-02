@@ -31,6 +31,8 @@ export interface CategoryResponseDto {
   userId?: string;
   familyId?: string;
   isDefault: boolean;
+  displayOrder?: number;
+  isHidden?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -53,10 +55,10 @@ export function toCategoryResponseDto(category: Category): CategoryResponseDto {
 }
 
 /**
- * 默认分类数据
+ * 默认分类数据（包含默认排序）
  */
 export const defaultCategories: CreateCategoryDto[] = [
-  // 支出分类
+  // 支出分类（按指定顺序）
   { name: '餐饮', type: TransactionType.EXPENSE, icon: 'restaurant', isDefault: true },
   { name: '购物', type: TransactionType.EXPENSE, icon: 'shopping', isDefault: true },
   { name: '日用', type: TransactionType.EXPENSE, icon: 'daily', isDefault: true },
@@ -81,7 +83,7 @@ export const defaultCategories: CreateCategoryDto[] = [
   { name: '维修', type: TransactionType.EXPENSE, icon: 'repair', isDefault: true },
   { name: '利息', type: TransactionType.EXPENSE, icon: 'interest', isDefault: true },
 
-  // 收入分类
+  // 收入分类（按指定顺序）
   { name: '工资', type: TransactionType.INCOME, icon: 'salary', isDefault: true },
   { name: '兼职', type: TransactionType.INCOME, icon: 'part-time', isDefault: true },
   { name: '理财', type: TransactionType.INCOME, icon: 'investment', isDefault: true },
@@ -89,3 +91,42 @@ export const defaultCategories: CreateCategoryDto[] = [
   { name: '提成', type: TransactionType.INCOME, icon: 'commission', isDefault: true },
   { name: '其他', type: TransactionType.INCOME, icon: 'other', isDefault: true }
 ];
+
+/**
+ * 默认分类排序映射
+ */
+export const defaultCategoryOrder: Record<string, Record<string, number>> = {
+  [TransactionType.EXPENSE]: {
+    '餐饮': 100,
+    '购物': 200,
+    '日用': 300,
+    '交通': 400,
+    '运动': 500,
+    '娱乐': 600,
+    '通讯': 700,
+    '服饰': 800,
+    '美容': 900,
+    '居家': 1000,
+    '孩子': 1100,
+    '长辈': 1200,
+    '社交': 1300,
+    '旅行': 1400,
+    '数码': 1500,
+    '汽车': 1600,
+    '医疗': 1700,
+    '还款': 1800,
+    '保险': 1900,
+    '学习': 2000,
+    '办公': 2100,
+    '维修': 2200,
+    '利息': 2300
+  },
+  [TransactionType.INCOME]: {
+    '工资': 100,
+    '兼职': 200,
+    '理财': 300,
+    '奖金': 400,
+    '提成': 500,
+    '其他': 600
+  }
+};

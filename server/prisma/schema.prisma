@@ -19,6 +19,7 @@ model User {
   bio                 String?
   birthDate           DateTime?            @map("birth_date")
   passwordChangedAt   DateTime?            @map("password_changed_at")
+  isCustodial         Boolean              @default(false) @map("is_custodial")
   accountBooks        AccountBook[]
   budgets             Budget[]
   budgetHistories     BudgetHistory[]

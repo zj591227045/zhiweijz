@@ -4,6 +4,8 @@ enum Role {
   MEMBER = 'MEMBER'
 }
 import { randomUUID } from 'crypto';
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import { FamilyRepository, FamilyWithMembers } from '../repositories/family.repository';
 import { UserRepository } from '../repositories/user.repository';
 import { AccountBookService } from './account-book.service';
@@ -890,7 +892,7 @@ export class FamilyService {
   }
 
   /**
-   * 添加托管成员
+   * 添加托管成员（现在创建为托管用户）
    */
   async addCustodialMember(familyId: string, userId: string, memberData: CreateCustodialMemberDto): Promise<FamilyMemberResponseDto> {
     // 获取家庭详情
@@ -905,18 +907,30 @@ export class FamilyService {
       throw new Error('无权添加托管成员');
     }
 
-    // 创建托管成员
+    // 创建托管用户
+    const custodialUser = await prisma.user.create({
+      data: {
+        email: `custodial_${Date.now()}_${Math.random().toString(36).substr(2, 9)}@internal.zhiweijz.local`,
+        passwordHash: await bcrypt.hash(crypto.randomUUID(), 10), // 随机密码，无法登录
+        name: memberData.name,
+        isCustodial: true,
+        birthDate: memberData.birthDate,
+      }
+    });
+
+    // 创建家庭成员记录，关联到托管用户
     const member = await this.familyRepository.createFamilyMember({
       familyId,
+      userId: custodialUser.id, // 关联到托管用户
       name: memberData.name,
       gender: memberData.gender,
       birthDate: memberData.birthDate,
       role: memberData.role || Role.MEMBER,
       isRegistered: false,
-      isCustodial: true,
+      isCustodial: false, // 现在通过user.isCustodial来标识
     });
 
-    // 为托管成员创建默认预算
+    // 为托管用户创建默认预算
     try {
       // 获取家庭账本
       const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(userId, familyId, { limit: 100 });
@@ -924,15 +938,15 @@ export class FamilyService {
         // 为每个家庭账本创建默认预算
         for (const accountBook of familyAccountBooks.data) {
           await this.familyBudgetService.createDefaultBudgetsForNewMember(
-            userId, // 使用当前用户ID作为预算的创建者
+            custodialUser.id, // 使用托管用户ID作为预算的所有者
             familyId,
             accountBook.id,
-            member.id // 传递托管成员ID
+            undefined // 不再使用familyMemberId
           );
         }
       }
     } catch (error) {
-      console.error(`为托管成员 ${member.id} 创建默认预算失败:`, error);
+      console.error(`为托管用户 ${custodialUser.id} 创建默认预算失败:`, error);
       // 不影响成员添加流程，继续执行
     }
 
@@ -940,7 +954,7 @@ export class FamilyService {
   }
 
   /**
-   * 更新托管成员
+   * 更新托管成员（新架构：检查用户的isCustodial字段）
    */
   async updateCustodialMember(familyId: string, memberId: string, userId: string, memberData: UpdateFamilyMemberDto): Promise<FamilyMemberResponseDto> {
     // 获取家庭成员
@@ -949,8 +963,16 @@ export class FamilyService {
       throw new Error('托管成员不存在');
     }
 
-    // 验证是否为托管成员
-    if (!member.isCustodial) {
+    // 获取关联的用户，验证是否为托管用户
+    if (!member.userId) {
+      throw new Error('家庭成员没有关联用户');
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: member.userId }
+    });
+
+    if (!user || !user.isCustodial) {
       throw new Error('该成员不是托管成员');
     }
 
@@ -960,14 +982,25 @@ export class FamilyService {
       throw new Error('无权更新托管成员');
     }
 
-    // 更新托管成员
+    // 更新托管用户信息
+    if (memberData.name || memberData.birthDate) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          ...(memberData.name && { name: memberData.name }),
+          ...(memberData.birthDate && { birthDate: memberData.birthDate }),
+        }
+      });
+    }
+
+    // 更新家庭成员记录
     const updatedMember = await this.familyRepository.updateFamilyMember(memberId, memberData);
 
     return toFamilyMemberResponseDto(updatedMember);
   }
 
   /**
-   * 删除托管成员
+   * 删除托管成员（新架构：检查用户的isCustodial字段）
    */
   async deleteCustodialMember(familyId: string, memberId: string, userId: string): Promise<void> {
     // 获取家庭成员
@@ -976,8 +1009,16 @@ export class FamilyService {
       throw new Error('托管成员不存在');
     }
 
-    // 验证是否为托管成员
-    if (!member.isCustodial) {
+    // 获取关联的用户，验证是否为托管用户
+    if (!member.userId) {
+      throw new Error('家庭成员没有关联用户');
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: member.userId }
+    });
+
+    if (!user || !user.isCustodial) {
       throw new Error('该成员不是托管成员');
     }
 
@@ -987,30 +1028,52 @@ export class FamilyService {
       throw new Error('无权删除托管成员');
     }
 
-    // 删除托管成员的预算
+    // 删除托管用户的预算（使用用户ID）
     try {
-      await this.familyBudgetService.deleteMemberBudgets(userId, familyId, member.id);
+      await this.familyBudgetService.deleteMemberBudgets(user.id, familyId, member.id);
     } catch (error) {
-      console.error(`删除托管成员 ${member.id} 的预算失败:`, error);
+      console.error(`删除托管用户 ${user.id} 的预算失败:`, error);
       // 不影响成员删除流程，继续执行
     }
 
-    // 删除托管成员的交易记录
+    // 删除托管用户的交易记录
     try {
-      // 这里应该调用交易服务删除与该托管成员相关的交易记录
-      // 由于目前没有实现交易相关功能，我们暂时跳过
-      console.log(`需要删除托管成员 ${member.id} 的交易记录`);
+      // 这里应该调用交易服务删除与该托管用户相关的交易记录
+      console.log(`需要删除托管用户 ${user.id} 的交易记录`);
     } catch (error) {
-      console.error(`删除托管成员 ${member.id} 的交易记录失败:`, error);
+      console.error(`删除托管用户 ${user.id} 的交易记录失败:`, error);
       // 不影响成员删除流程，继续执行
     }
 
-    // 删除托管成员
+    // 删除家庭成员记录
     await this.familyRepository.deleteFamilyMember(memberId);
+
+    // 删除托管用户（如果该用户不属于其他家庭）
+    try {
+      const otherFamilyMembers = await prisma.familyMember.findMany({
+        where: {
+          userId: user.id,
+          familyId: { not: familyId }
+        }
+      });
+
+      if (otherFamilyMembers.length === 0) {
+        // 该托管用户不属于其他家庭，可以安全删除
+        await prisma.user.delete({
+          where: { id: user.id }
+        });
+        console.log(`已删除托管用户 ${user.id}`);
+      } else {
+        console.log(`托管用户 ${user.id} 属于其他家庭，保留用户记录`);
+      }
+    } catch (error) {
+      console.error(`删除托管用户 ${user.id} 失败:`, error);
+      // 不影响成员删除流程，继续执行
+    }
   }
 
   /**
-   * 获取托管成员列表
+   * 获取托管成员列表（新架构：查询托管用户）
    */
   async getCustodialMembers(familyId: string, userId: string): Promise<FamilyMemberResponseDto[]> {
     // 获取家庭详情
@@ -1025,12 +1088,41 @@ export class FamilyService {
       throw new Error('无权访问此家庭');
     }
 
-    // 获取家庭成员列表
-    const members = await this.familyRepository.findFamilyMembers(familyId);
+    // 查询该家庭下的托管用户
+    const custodialUsers = await prisma.user.findMany({
+      where: {
+        isCustodial: true,
+        familyMembers: {
+          some: {
+            familyId: familyId
+          }
+        }
+      },
+      include: {
+        familyMembers: {
+          where: {
+            familyId: familyId
+          }
+        }
+      }
+    });
 
-    // 过滤出托管成员
-    const custodialMembers = members.filter(member => member.isCustodial);
-
-    return custodialMembers.map(member => toFamilyMemberResponseDto(member));
+    // 转换为 FamilyMemberResponseDto 格式
+    return custodialUsers.map(user => {
+      const familyMember = user.familyMembers[0]; // 该用户在此家庭中的成员记录
+      return {
+        id: familyMember?.id || user.id,
+        familyId: familyId,
+        userId: user.id,
+        name: user.name,
+        gender: familyMember?.gender || undefined,
+        birthDate: user.birthDate || familyMember?.birthDate || undefined,
+        role: familyMember?.role || 'MEMBER',
+        isRegistered: false, // 托管用户不允许登录
+        isCustodial: true,
+        createdAt: familyMember?.createdAt || user.createdAt,
+        updatedAt: familyMember?.updatedAt || user.updatedAt
+      };
+    });
   }
 }

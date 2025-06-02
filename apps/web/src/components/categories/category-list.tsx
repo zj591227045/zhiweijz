@@ -11,9 +11,10 @@ interface CategoryListProps {
   isLoading: boolean;
   onUpdateOrder?: (categoryIds: string[]) => Promise<void>;
   isSorting?: boolean;
+  isShowingHidden?: boolean;
 }
 
-export function CategoryList({ categories, isLoading, onUpdateOrder, isSorting }: CategoryListProps) {
+export function CategoryList({ categories, isLoading, onUpdateOrder, isSorting, isShowingHidden = false }: CategoryListProps) {
   const router = useRouter();
   const [draggedItem, setDraggedItem] = useState<Category | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -152,6 +153,7 @@ export function CategoryList({ categories, isLoading, onUpdateOrder, isSorting }
         <DeleteConfirmDialog
           category={selectedCategory}
           onClose={() => setShowDeleteDialog(false)}
+          isShowingHidden={isShowingHidden}
         />
       )}
 

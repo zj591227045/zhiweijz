@@ -17,11 +17,12 @@ export default function CategoryListPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedType, setSelectedType] = useState<TransactionType>(TransactionType.EXPENSE);
   const [isSorting, setIsSorting] = useState(false);
+  const [showHidden, setShowHidden] = useState(false);
 
   // 获取分类列表
   useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+    fetchCategories(undefined, undefined, showHidden);
+  }, [fetchCategories, showHidden]);
 
   // 从本地存储中获取视图模式
   useEffect(() => {
@@ -61,18 +62,31 @@ export default function CategoryListPage() {
   };
 
   // 过滤当前类型的分类
-  const filteredCategories = categories.filter(category => category.type === selectedType);
+  const filteredCategories = categories.filter(category => {
+    const typeMatch = category.type === selectedType;
+    const hiddenMatch = showHidden ? category.isHidden : !category.isHidden;
+    return typeMatch && hiddenMatch;
+  });
 
   // 右侧操作按钮
   const rightActions = (
-    <button className="icon-button" onClick={toggleViewMode}>
-      <i className={`fas fa-${viewMode === 'grid' ? 'list' : 'th'}`}></i>
-    </button>
+    <div className="flex gap-2">
+      <button
+        className={`icon-button ${showHidden ? 'active' : ''}`}
+        onClick={() => setShowHidden(!showHidden)}
+        title={showHidden ? '显示可见分类' : '显示隐藏分类'}
+      >
+        <i className={`fas fa-eye${showHidden ? '' : '-slash'}`}></i>
+      </button>
+      <button className="icon-button" onClick={toggleViewMode}>
+        <i className={`fas fa-${viewMode === 'grid' ? 'list' : 'th'}`}></i>
+      </button>
+    </div>
   );
 
   return (
     <PageContainer
-      title="分类管理"
+      title={`分类管理${showHidden ? ' - 隐藏分类' : ''}`}
       rightActions={rightActions}
       showBackButton={true}
       activeNavItem="profile"
@@ -83,13 +97,13 @@ export default function CategoryListPage() {
           className={`type-button ${selectedType === TransactionType.EXPENSE ? 'active' : ''}`}
           onClick={() => setSelectedType(TransactionType.EXPENSE)}
         >
-          支出分类
+          {showHidden ? '隐藏的支出分类' : '支出分类'}
         </button>
         <button
           className={`type-button ${selectedType === TransactionType.INCOME ? 'active' : ''}`}
           onClick={() => setSelectedType(TransactionType.INCOME)}
         >
-          收入分类
+          {showHidden ? '隐藏的收入分类' : '收入分类'}
         </button>
       </div>
 
@@ -98,6 +112,7 @@ export default function CategoryListPage() {
         <CategoryGrid
           categories={filteredCategories}
           isLoading={isLoading}
+          isShowingHidden={showHidden}
         />
       ) : (
         <CategoryList
@@ -105,6 +120,7 @@ export default function CategoryListPage() {
           isLoading={isLoading}
           onUpdateOrder={handleUpdateOrder}
           isSorting={isSorting}
+          isShowingHidden={showHidden}
         />
       )}
 

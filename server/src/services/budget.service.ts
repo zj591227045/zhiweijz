@@ -176,8 +176,9 @@ export class BudgetService {
       throw new Error('预算不存在');
     }
 
-    // 验证权限
-    if (budget.userId !== userId && !budget.familyId) {
+    // 验证权限 - 允许家庭成员查看家庭账本的所有预算
+    const hasAccess = await this.checkBudgetAccess(userId, budget);
+    if (!hasAccess) {
       throw new Error('无权访问此预算');
     }
 
@@ -217,8 +218,9 @@ export class BudgetService {
       throw new Error('预算不存在');
     }
 
-    // 验证权限
-    if (budget.userId !== userId && !budget.familyId) {
+    // 验证权限 - 允许家庭成员修改家庭账本的预算
+    const hasAccess = await this.checkBudgetAccess(userId, budget);
+    if (!hasAccess) {
       throw new Error('无权修改此预算');
     }
 
@@ -301,8 +303,9 @@ export class BudgetService {
       throw new Error('预算不存在');
     }
 
-    // 验证权限
-    if (budget.userId !== userId && !budget.familyId) {
+    // 验证权限 - 允许家庭成员删除家庭账本的预算
+    const hasAccess = await this.checkBudgetAccess(userId, budget);
+    if (!hasAccess) {
       throw new Error('无权删除此预算');
     }
 
@@ -404,17 +407,23 @@ export class BudgetService {
       throw new Error('预算不存在');
     }
 
-    // 验证权限
-    if (budget.userId !== userId && !budget.familyId) {
+    // 验证权限 - 允许家庭成员查看家庭账本的所有预算
+    const hasAccess = await this.checkBudgetAccess(userId, budget);
+    if (!hasAccess) {
       throw new Error('无权访问此预算');
     }
 
-    // 使用新的基于预算记录的查询方法
+    // 简化逻辑：直接使用预算的userId（包括托管用户）
+    if (!budget.userId) {
+      throw new Error('预算缺少用户ID');
+    }
+
     return this.getUserBudgetRolloverHistory(
-      userId,
+      budget.userId,
       budget.accountBookId || '',
       (budget as any).budgetType || 'PERSONAL',
-      budget.familyMemberId || undefined
+      undefined, // 不再使用familyMemberId
+      userId // 传递请求用户ID用于权限验证
     );
   }
 
@@ -425,22 +434,33 @@ export class BudgetService {
     userId: string,
     accountBookId: string,
     budgetType: string = 'PERSONAL',
-    familyMemberId?: string
+    familyMemberId?: string, // 保留兼容性，但不再使用
+    requestUserId?: string // 请求用户ID，用于权限验证
   ): Promise<any[]> {
-    // 构建查询条件
+    // 权限验证：如果指定了请求用户ID，验证权限
+    if (requestUserId && requestUserId !== userId) {
+      // 验证请求用户是否有权限查看目标用户的预算结转历史
+      const hasAccess = await this.checkAccountBookAccess(requestUserId, accountBookId);
+      if (!hasAccess) {
+        throw new Error('无权访问该账本的预算结转历史');
+      }
+    }
+
+    console.log('getUserBudgetRolloverHistory 参数:', {
+      userId,
+      accountBookId,
+      budgetType,
+      familyMemberId: '已废弃，不再使用',
+      requestUserId
+    });
+
+    // 构建查询条件 - 简化逻辑，只根据userId查询
     const whereCondition: any = {
       accountBookId,
       budgetType,
       rollover: true, // 只查询启用结转的预算
+      userId: userId, // 直接使用userId，包括托管用户
     };
-
-    // 根据是否为托管成员添加不同的过滤条件
-    if (familyMemberId) {
-      whereCondition.familyMemberId = familyMemberId;
-    } else {
-      whereCondition.userId = userId;
-      whereCondition.familyMemberId = null; // 排除托管成员预算
-    }
 
     // 查询历史预算记录
     const budgets = await prisma.budget.findMany({
@@ -554,11 +574,93 @@ export class BudgetService {
     console.log(`预算结转重新计算完成`);
   }
 
+  /**
+   * 检查用户是否有权限访问预算
+   * @param userId 用户ID
+   * @param budget 预算对象
+   * @returns 是否有权限
+   */
+  private async checkBudgetAccess(userId: string, budget: any): Promise<boolean> {
+    // 如果是用户自己的预算，直接允许
+    if (budget.userId === userId) {
+      return true;
+    }
 
+    // 如果是家庭预算，检查用户是否是家庭成员
+    if (budget.accountBookId) {
+      const accountBook = await prisma.accountBook.findUnique({
+        where: { id: budget.accountBookId },
+        include: {
+          family: {
+            include: {
+              members: {
+                where: { userId: { not: null } },
+                select: { userId: true }
+              }
+            }
+          }
+        }
+      });
 
+      if (accountBook) {
+        // 如果是个人账本，只有所有者可以访问
+        if (accountBook.type === 'PERSONAL') {
+          return accountBook.userId === userId;
+        }
 
+        // 如果是家庭账本，检查用户是否是家庭成员
+        if (accountBook.type === 'FAMILY' && accountBook.family) {
+          const familyUserIds = accountBook.family.members
+            .map(member => member.userId)
+            .filter(id => id !== null);
+          return familyUserIds.includes(userId);
+        }
+      }
+    }
 
+    return false;
+  }
 
+  /**
+   * 检查用户是否有权限访问账本
+   * @param userId 用户ID
+   * @param accountBookId 账本ID
+   * @returns 是否有权限
+   */
+  private async checkAccountBookAccess(userId: string, accountBookId: string): Promise<boolean> {
+    const accountBook = await prisma.accountBook.findUnique({
+      where: { id: accountBookId },
+      include: {
+        family: {
+          include: {
+            members: {
+              where: { userId: { not: null } },
+              select: { userId: true }
+            }
+          }
+        }
+      }
+    });
+
+    if (!accountBook) {
+      return false;
+    }
+
+    // 如果是个人账本，只有所有者可以访问
+    if (accountBook.type === 'PERSONAL') {
+      return accountBook.userId === userId;
+    }
+
+    // 如果是家庭账本，检查用户是否是家庭成员
+    if (accountBook.type === 'FAMILY' && accountBook.family) {
+      const familyUserIds = accountBook.family.members
+        .map(member => member.userId)
+        .filter(id => id !== null);
+      return familyUserIds.includes(userId);
+    }
+
+    return false;
+  }
 
   /**
    * 获取预算趋势数据
