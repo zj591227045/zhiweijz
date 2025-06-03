@@ -50,6 +50,7 @@ RUN apk update && apk add --no-cache \
     dumb-init \
     openssl \
     libc6-compat \
+    postgresql-client \
     && rm -rf /var/cache/apk/*
 
 # 创建非root用户
