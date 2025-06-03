@@ -11,7 +11,7 @@ if [ "$DOCKER_ENV" = "true" ]; then
     # 等待数据库连接可用
     echo "⏳ 等待数据库连接..."
     for i in $(seq 1 30); do
-        if npx prisma db execute --stdin <<< "SELECT 1;" > /dev/null 2>&1; then
+        if echo "SELECT 1;" | npx prisma db execute --stdin > /dev/null 2>&1; then
             echo "✅ 数据库连接成功"
             break
         fi
@@ -25,7 +25,7 @@ if [ "$DOCKER_ENV" = "true" ]; then
 
     # 检查是否为全新数据库
     echo "🔍 检查数据库状态..."
-    USER_TABLE_EXISTS=$(npx prisma db execute --stdin <<< "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'users';" 2>/dev/null | grep -o '[0-9]*' | tail -1 || echo "0")
+    USER_TABLE_EXISTS=$(echo "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'users';" | npx prisma db execute --stdin 2>/dev/null | grep -o '[0-9]*' | tail -1 || echo "0")
 
     if [ "$USER_TABLE_EXISTS" = "0" ]; then
         echo "📦 检测到全新数据库，执行初始化..."
@@ -50,13 +50,11 @@ if [ "$DOCKER_ENV" = "true" ]; then
 
         # 确保关键字段存在
         echo "🔧 确保关键字段存在..."
-        npx prisma db execute --stdin <<< "
-        ALTER TABLE users ADD COLUMN IF NOT EXISTS is_custodial BOOLEAN DEFAULT false;
-        ALTER TABLE budgets ADD COLUMN IF NOT EXISTS refresh_day INTEGER DEFAULT 1;
-        ALTER TABLE account_books ADD COLUMN IF NOT EXISTS created_by TEXT;
-        ALTER TABLE account_books ADD COLUMN IF NOT EXISTS user_llm_setting_id TEXT;
-        ALTER TABLE budgets ADD COLUMN IF NOT EXISTS family_member_id TEXT;
-        " || echo "⚠️ 部分字段添加失败，可能已存在"
+        echo "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_custodial BOOLEAN DEFAULT false;
+ALTER TABLE budgets ADD COLUMN IF NOT EXISTS refresh_day INTEGER DEFAULT 1;
+ALTER TABLE account_books ADD COLUMN IF NOT EXISTS created_by TEXT;
+ALTER TABLE account_books ADD COLUMN IF NOT EXISTS user_llm_setting_id TEXT;
+ALTER TABLE budgets ADD COLUMN IF NOT EXISTS family_member_id TEXT;" | npx prisma db execute --stdin || echo "⚠️ 部分字段添加失败，可能已存在"
     fi
 
     # 生成Prisma客户端
