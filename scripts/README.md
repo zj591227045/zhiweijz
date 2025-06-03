@@ -1,10 +1,79 @@
-# 只为记账 - 启动脚本
+# Scripts 目录结构
 
-本目录包含用于启动项目的脚本，这些脚本配置为实时显示调试日志。
+本目录包含智慧记账项目的各种脚本，按用途分类组织。
 
-## 可用脚本
+## 📁 目录结构
 
-### 1. 启动后端服务
+```
+scripts/
+├── deployment/         # 部署相关脚本
+├── testing/           # 测试脚本
+├── development/       # 开发相关脚本
+├── docker/           # Docker相关脚本
+├── database/         # 数据库相关脚本
+├── monitoring/       # 监控相关脚本
+├── utilities/        # 工具脚本
+└── README.md         # 本文件
+```
+
+## 🚀 deployment/ - 部署相关脚本
+
+| 脚本 | 用途 | 使用方法 |
+|------|------|----------|
+| `release-version.sh` | 版本发布脚本 | `./deployment/release-version.sh --minor` |
+| `start-backend.sh` | 启动后端服务 | `./deployment/start-backend.sh` |
+| `start-dev-frontend.sh` | 启动开发前端 | `./deployment/start-dev-frontend.sh` |
+
+## 🧪 testing/ - 测试脚本
+
+| 脚本 | 用途 | 使用方法 |
+|------|------|----------|
+| `demo-tests.js` | 演示测试 | `node testing/demo-tests.js` |
+| `run-full-tests.js` | 运行完整测试 | `node testing/run-full-tests.js` |
+| `test-android-setup.js` | Android设置测试 | `node testing/test-android-setup.js` |
+| `test-backend-api.js` | 后端API测试 | `node testing/test-backend-api.js` |
+| `test-backend-build.sh` | 后端构建测试 | `./testing/test-backend-build.sh` |
+| `test-e2e.js` | 端到端测试 | `node testing/test-e2e.js` |
+| `test-environment-guide.js` | 环境测试指南 | `node testing/test-environment-guide.js` |
+| `test-frontend.js` | 前端测试 | `node testing/test-frontend.js` |
+| `test-health-check.js` | 健康检查测试 | `node testing/test-health-check.js` |
+| `test-regression.js` | 回归测试 | `node testing/test-regression.js` |
+| `test-config.json` | 测试配置文件 | 配置文件 |
+| `regression-config.json` | 回归测试配置 | 配置文件 |
+
+## 🛠️ development/ - 开发相关脚本
+
+| 脚本 | 用途 | 使用方法 |
+|------|------|----------|
+| `check-env.sh` | 检查开发环境 | `./development/check-env.sh` |
+
+## 🐳 docker/ - Docker相关脚本
+
+| 脚本 | 用途 | 使用方法 |
+|------|------|----------|
+| `fix-docker-mirrors.sh` | 修复Docker镜像源 | `./docker/fix-docker-mirrors.sh` |
+| `setup-docker-mirrors.sh` | 设置Docker镜像源 | `./docker/setup-docker-mirrors.sh` |
+| `test-mirrors.sh` | 测试镜像源 | `./docker/test-mirrors.sh` |
+
+## 🗄️ database/ - 数据库相关脚本
+
+| 脚本 | 用途 | 使用方法 |
+|------|------|----------|
+| `db_backup/` | 数据库备份工具集 | 见db_backup/README.md |
+
+## 📊 monitoring/ - 监控相关脚本
+
+*预留目录，用于将来的监控脚本*
+
+## 🔧 utilities/ - 工具脚本
+
+| 脚本 | 用途 | 使用方法 |
+|------|------|----------|
+| `analyze-server-scripts.js` | 分析server目录脚本 | `node utilities/analyze-server-scripts.js` |
+
+## 🔧 常用操作
+
+### 部署相关
 
 ```bash
 # 确保脚本有执行权限

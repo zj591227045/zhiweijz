@@ -23,6 +23,14 @@ if [ "$DOCKER_ENV" = "true" ]; then
         sleep 2
     done
 
+    # 运行版本冲突解决器
+    echo "🔍 检查并解决版本冲突..."
+    if node scripts/migration/version-conflict-resolver.js; then
+        echo "✅ 版本冲突检查完成"
+    else
+        echo "⚠️ 版本冲突解决器执行失败，继续使用传统方式"
+    fi
+
     # 检查是否为全新数据库
     echo "🔍 检查数据库状态..."
     USER_TABLE_EXISTS=$(echo "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'users';" | npx prisma db execute --stdin 2>/dev/null | grep -o '[0-9]*' | tail -1 || echo "0")
@@ -65,7 +73,7 @@ ALTER TABLE budgets ADD COLUMN IF NOT EXISTS family_member_id TEXT;" | npx prism
 else
     echo "开发环境：执行Prisma迁移"
     # 开发环境使用Prisma迁移
-    ./scripts/init-database.sh
+    ./scripts/migration/init-database.sh
 fi
 
 echo "启动应用服务器..."

@@ -106,8 +106,8 @@ build_backend() {
     echo -e "${BLUE}构建后端镜像: ${DOCKER_USERNAME}/${BACKEND_IMAGE}:${BACKEND_VERSION}${NC}"
     
     # 验证关键文件存在
-    if [ ! -f "server/scripts/start.sh" ]; then
-        echo -e "${RED}❌ server/scripts/start.sh 不存在${NC}"
+    if [ ! -f "server/scripts/deployment/start.sh" ]; then
+        echo -e "${RED}❌ server/scripts/deployment/start.sh 不存在${NC}"
         exit 1
     fi
     

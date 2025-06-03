@@ -75,8 +75,8 @@ COPY --from=builder /app/server/scripts ./scripts
 # 创建必要目录并设置权限
 RUN mkdir -p uploads node_modules/prisma && \
     chown -R nodejs:nodejs uploads node_modules scripts && \
-    chmod +x scripts/*.sh && \
-    chmod +x scripts/migrate-refresh-day.sh
+    chmod +x scripts/deployment/*.sh && \
+    chmod +x scripts/migration/*.sh
 
 # 切换到非root用户
 USER nodejs
@@ -96,4 +96,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 ENTRYPOINT ["dumb-init", "--"]
 
 # 启动命令 - 使用启动脚本
-CMD ["./scripts/start.sh"]
+CMD ["./scripts/deployment/start.sh"]
