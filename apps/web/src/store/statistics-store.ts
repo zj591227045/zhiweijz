@@ -1,7 +1,7 @@
-import { create } from "zustand";
-import { apiClient } from "@/lib/api";
-import { StatisticsResponse } from "@/types";
-import { toast } from "sonner";
+import { create } from 'zustand';
+import { apiClient } from '@/lib/api-client';
+import { StatisticsResponse } from '@/types';
+import { toast } from 'sonner';
 
 interface DateRange {
   startDate: string;
@@ -27,7 +27,11 @@ interface StatisticsState {
   setCategoryChartType: (type: 'pie' | 'bar') => void;
   setTrendChartPeriod: (period: 'day' | 'week' | 'month') => void;
   setSelectedCategoryType: (type: 'expense' | 'income') => void;
-  fetchStatisticsData: (startDate: string, endDate: string, accountBookId?: string) => Promise<void>;
+  fetchStatisticsData: (
+    startDate: string,
+    endDate: string,
+    accountBookId?: string,
+  ) => Promise<void>;
   reset: () => void;
 }
 
@@ -57,12 +61,12 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
     console.log('开始获取统计数据:', { startDate, endDate, accountBookId });
     try {
       set({ isLoading: true, error: null });
-      
+
       let url = `/statistics/overview?startDate=${startDate}&endDate=${endDate}`;
       if (accountBookId) {
         url += `&accountBookId=${accountBookId}`;
       }
-      
+
       const response = await apiClient.get(url);
       console.log('获取到的统计数据:', response);
 
@@ -76,7 +80,7 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
               categoryId: cat.category?.id || '',
               categoryName: cat.category?.name || '',
               amount: cat.amount || 0,
-              percentage: cat.percentage || 0
+              percentage: cat.percentage || 0,
             }))
           : [],
         expenseByCategory: Array.isArray(response.topExpenseCategories)
@@ -84,36 +88,37 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
               categoryId: cat.category?.id || '',
               categoryName: cat.category?.name || '',
               amount: cat.amount || 0,
-              percentage: cat.percentage || 0
+              percentage: cat.percentage || 0,
             }))
           : [],
         // 使用API返回的每日统计数据
-        dailyStatistics: response.dailyStatistics || []
+        dailyStatistics: response.dailyStatistics || [],
       };
 
-      set({ 
+      set({
         statisticsData: transformedResponse,
         dateRange: { startDate, endDate },
-        isLoading: false
+        isLoading: false,
       });
     } catch (error) {
-      console.error("获取统计数据失败:", error);
+      console.error('获取统计数据失败:', error);
       set({ error: error as Error, isLoading: false });
-      toast.error("获取统计数据失败，请重试");
+      toast.error('获取统计数据失败，请重试');
     }
   },
 
   // 重置状态
-  reset: () => set({
-    statisticsData: null,
-    isLoading: false,
-    error: null,
-    dateRange: {
-      startDate: '',
-      endDate: '',
-    },
-    categoryChartType: 'pie',
-    trendChartPeriod: 'day',
-    selectedCategoryType: 'expense',
-  }),
+  reset: () =>
+    set({
+      statisticsData: null,
+      isLoading: false,
+      error: null,
+      dateRange: {
+        startDate: '',
+        endDate: '',
+      },
+      categoryChartType: 'pie',
+      trendChartPeriod: 'day',
+      selectedCategoryType: 'expense',
+    }),
 }));

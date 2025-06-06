@@ -1,6 +1,6 @@
-import dayjs from "dayjs";
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import dayjs from 'dayjs';
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 /**
  * 合并CSS类名
@@ -13,7 +13,7 @@ export function cn(...inputs: ClassValue[]) {
  * 格式化日期为输入框格式 (YYYY-MM-DD)
  */
 export function formatDateForInput(date: Date): string {
-  return dayjs(date).format("YYYY-MM-DD");
+  return dayjs(date).format('YYYY-MM-DD');
 }
 
 /**
@@ -27,15 +27,15 @@ export function formatDateForAPI(date: Date): string {
  * 获取当前月份字符串
  */
 export function getCurrentMonthString(): string {
-  return dayjs().format("YYYY-MM");
+  return dayjs().format('YYYY-MM');
 }
 
 /**
  * 获取当前月份的开始和结束日期
  */
 export function getCurrentMonthRange(): { startDate: string; endDate: string } {
-  const startDate = dayjs().startOf("month").format("YYYY-MM-DD");
-  const endDate = dayjs().endOf("month").format("YYYY-MM-DD");
+  const startDate = dayjs().startOf('month').format('YYYY-MM-DD');
+  const endDate = dayjs().endOf('month').format('YYYY-MM-DD');
   return { startDate, endDate };
 }
 
@@ -45,7 +45,7 @@ export function getCurrentMonthRange(): { startDate: string; endDate: string } {
  * @param currency 货币符号
  * @returns 格式化后的金额字符串
  */
-export function formatCurrency(amount: number | undefined | null, currency: string = "¥") {
+export function formatCurrency(amount: number | undefined | null, currency: string = '¥') {
   if (amount === undefined || amount === null) return `${currency}0.00`;
 
   // 处理负数
@@ -61,7 +61,7 @@ export function formatCurrency(amount: number | undefined | null, currency: stri
  * @param format 格式
  * @returns 格式化后的日期字符串
  */
-export function formatDate(date: Date | string, format: string = "YYYY-MM-DD") {
+export function formatDate(date: Date | string, format: string = 'YYYY-MM-DD') {
   return dayjs(date).format(format);
 }
 
@@ -71,11 +71,11 @@ export function formatDate(date: Date | string, format: string = "YYYY-MM-DD") {
  * @returns 相对时间字符串
  */
 export function getRelativeTime(date: Date | string) {
-  const relativeTime = require("dayjs/plugin/relativeTime");
-  const zhCN = require("dayjs/locale/zh-cn");
+  const relativeTime = require('dayjs/plugin/relativeTime');
+  const zhCN = require('dayjs/locale/zh-cn');
 
   dayjs.extend(relativeTime);
-  dayjs.locale("zh-cn");
+  dayjs.locale('zh-cn');
 
   return (dayjs(date) as any).fromNow();
 }
@@ -88,11 +88,11 @@ export function getRelativeTime(date: Date | string) {
  */
 export function debounce<T extends (...args: any[]) => any>(
   fn: T,
-  ms: number
+  ms: number,
 ): (...args: Parameters<T>) => void {
   let timeoutId: ReturnType<typeof setTimeout>;
 
-  return function(this: any, ...args: Parameters<T>) {
+  return function (this: any, ...args: Parameters<T>) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => fn.apply(this, args), ms);
   };
@@ -106,11 +106,11 @@ export function debounce<T extends (...args: any[]) => any>(
  */
 export function throttle<T extends (...args: any[]) => any>(
   fn: T,
-  ms: number
+  ms: number,
 ): (...args: Parameters<T>) => void {
   let lastTime = 0;
 
-  return function(this: any, ...args: Parameters<T>) {
+  return function (this: any, ...args: Parameters<T>) {
     const now = Date.now();
     if (now - lastTime >= ms) {
       fn.apply(this, args);
@@ -128,7 +128,7 @@ export function getCategoryIconClass(iconName?: string): string {
   if (!iconName) return 'fa-tag';
 
   // 如果图标名称已经包含完整的类名，则直接返回
-  if (iconName.startsWith("fa-")) {
+  if (iconName.startsWith('fa-')) {
     return iconName;
   }
 
@@ -210,7 +210,7 @@ export function getIconClass(iconName?: string): string {
   if (!iconName) return 'fas fa-tag';
 
   // 如果图标名称已经包含完整的类名，则直接返回
-  if (iconName.startsWith("fa-")) {
+  if (iconName.startsWith('fa-')) {
     return `fas ${iconName}`;
   }
 
@@ -257,13 +257,16 @@ export function formatDateRange(startDate: string, endDate: string): string {
  * @param currentDate 当前日期，默认为当前时间
  * @returns 上个月的开始和结束日期
  */
-export function getPreviousMonthRange(currentDate: Date = new Date()): { startDate: string; endDate: string } {
+export function getPreviousMonthRange(currentDate: Date = new Date()): {
+  startDate: string;
+  endDate: string;
+} {
   const start = dayjs(currentDate).subtract(1, 'month').startOf('month');
   const end = dayjs(currentDate).subtract(1, 'month').endOf('month');
 
   return {
     startDate: start.format('YYYY-MM-DD'),
-    endDate: end.format('YYYY-MM-DD')
+    endDate: end.format('YYYY-MM-DD'),
   };
 }
 
@@ -272,13 +275,16 @@ export function getPreviousMonthRange(currentDate: Date = new Date()): { startDa
  * @param currentDate 当前日期，默认为当前时间
  * @returns 下个月的开始和结束日期
  */
-export function getNextMonthRange(currentDate: Date = new Date()): { startDate: string; endDate: string } {
+export function getNextMonthRange(currentDate: Date = new Date()): {
+  startDate: string;
+  endDate: string;
+} {
   const start = dayjs(currentDate).add(1, 'month').startOf('month');
   const end = dayjs(currentDate).add(1, 'month').endOf('month');
 
   return {
     startDate: start.format('YYYY-MM-DD'),
-    endDate: end.format('YYYY-MM-DD')
+    endDate: end.format('YYYY-MM-DD'),
   };
 }
 

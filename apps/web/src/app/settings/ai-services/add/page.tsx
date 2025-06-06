@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { PageContainer } from "@/components/layout/page-container";
-import { AIServiceForm, AIServiceFormValues } from "@/components/ai-services/ai-service-form";
-import { useAIServicesStore } from "@/store/ai-services-store";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { PageContainer } from '@/components/layout/page-container';
+import { AIServiceForm, AIServiceFormValues } from '@/components/ai-services/ai-service-form';
+import { useAIServicesStore } from '@/store/ai-services-store';
+import { toast } from 'sonner';
 
 export default function AddAIServicePage() {
   const router = useRouter();
@@ -25,16 +25,8 @@ export default function AddAIServicePage() {
   };
 
   return (
-    <PageContainer
-      title="添加AI服务"
-      showBackButton={true}
-      activeNavItem="profile"
-    >
-      <AIServiceForm
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        isSubmitting={isLoading}
-      />
+    <PageContainer title="添加AI服务" showBackButton={true} activeNavItem="profile">
+      <AIServiceForm onSubmit={handleSubmit} onCancel={handleCancel} isSubmitting={isLoading} />
     </PageContainer>
   );
 }

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useTransactionFormStore } from "@/store/transaction-form-store";
-import { TransactionType } from "@/types";
+import { useTransactionFormStore } from '@/store/transaction-form-store';
+import { TransactionType } from '@/types';
 
 export function TransactionTypeToggle() {
   const { type, setType } = useTransactionFormStore();

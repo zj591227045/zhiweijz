@@ -1,19 +1,15 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import dayjs from "dayjs";
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import dayjs from 'dayjs';
 
 // 表单验证模式
 const profileFormSchema = z.object({
-  username: z.string()
-    .min(2, "用户名至少需要2个字符")
-    .max(20, "用户名最多20个字符"),
-  bio: z.string()
-    .max(200, "个人简介最多200个字符")
-    .optional(),
+  username: z.string().min(2, '用户名至少需要2个字符').max(20, '用户名最多20个字符'),
+  bio: z.string().max(200, '个人简介最多200个字符').optional(),
   birthDate: z.string().optional(),
 });
 
@@ -32,11 +28,11 @@ interface ProfileFormProps {
   isSubmitting?: boolean;
 }
 
-export function ProfileForm({ 
-  id = "profile-form", 
-  profile, 
-  onSubmit, 
-  isSubmitting = false 
+export function ProfileForm({
+  id = 'profile-form',
+  profile,
+  onSubmit,
+  isSubmitting = false,
 }: ProfileFormProps) {
   const {
     register,
@@ -46,19 +42,19 @@ export function ProfileForm({
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      username: profile?.username || "",
-      bio: profile?.bio || "",
-      birthDate: profile?.birthDate || "",
+      username: profile?.username || '',
+      bio: profile?.bio || '',
+      birthDate: profile?.birthDate || '',
     },
   });
 
-  const watchedUsername = watch("username");
-  const watchedBio = watch("bio");
+  const watchedUsername = watch('username');
+  const watchedBio = watch('bio');
 
   // 格式化日期
   const formatDate = (dateString?: string) => {
-    if (!dateString) return "";
-    return dayjs(dateString).format("YYYY年M月D日");
+    if (!dateString) return '';
+    return dayjs(dateString).format('YYYY年M月D日');
   };
 
   return (
@@ -70,8 +66,8 @@ export function ProfileForm({
         <input
           type="text"
           id="username"
-          className={`form-input ${errors.username ? "border-red-500" : ""}`}
-          {...register("username")}
+          className={`form-input ${errors.username ? 'border-red-500' : ''}`}
+          {...register('username')}
           maxLength={20}
         />
         <div className="flex justify-between items-center mt-1">
@@ -92,8 +88,8 @@ export function ProfileForm({
         </label>
         <textarea
           id="bio"
-          className={`form-textarea ${errors.bio ? "border-red-500" : ""}`}
-          {...register("bio")}
+          className={`form-textarea ${errors.bio ? 'border-red-500' : ''}`}
+          {...register('bio')}
           maxLength={200}
           placeholder="介绍一下自己..."
         ></textarea>
@@ -113,12 +109,7 @@ export function ProfileForm({
         <label className="form-label" htmlFor="birthDate">
           出生日期
         </label>
-        <input
-          type="date"
-          id="birthDate"
-          className="date-picker"
-          {...register("birthDate")}
-        />
+        <input type="date" id="birthDate" className="date-picker" {...register('birthDate')} />
       </div>
 
       <div className="form-group">

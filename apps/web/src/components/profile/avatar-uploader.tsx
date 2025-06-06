@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useRef, useState } from "react";
-import { toast } from "sonner";
+import { useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 interface AvatarUploaderProps {
   currentAvatar?: string;
@@ -10,11 +10,11 @@ interface AvatarUploaderProps {
   isUploading?: boolean;
 }
 
-export function AvatarUploader({ 
-  currentAvatar, 
-  username, 
-  onAvatarChange, 
-  isUploading = false 
+export function AvatarUploader({
+  currentAvatar,
+  username,
+  onAvatarChange,
+  isUploading = false,
 }: AvatarUploaderProps) {
   const [showUploadOptions, setShowUploadOptions] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -35,8 +35,8 @@ export function AvatarUploader({
   const handleTakePhoto = () => {
     // 在移动端，这会打开相机
     if (fileInputRef.current) {
-      fileInputRef.current.accept = "image/*";
-      fileInputRef.current.setAttribute("capture", "user");
+      fileInputRef.current.accept = 'image/*';
+      fileInputRef.current.setAttribute('capture', 'user');
       fileInputRef.current.click();
     }
     setShowUploadOptions(false);
@@ -45,8 +45,8 @@ export function AvatarUploader({
   // 处理从相册选择
   const handleChoosePhoto = () => {
     if (fileInputRef.current) {
-      fileInputRef.current.accept = "image/*";
-      fileInputRef.current.removeAttribute("capture");
+      fileInputRef.current.accept = 'image/*';
+      fileInputRef.current.removeAttribute('capture');
       fileInputRef.current.click();
     }
     setShowUploadOptions(false);
@@ -56,7 +56,7 @@ export function AvatarUploader({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      
+
       // 验证文件类型
       if (!file.type.startsWith('image/')) {
         toast.error('请选择图片文件');
@@ -89,7 +89,7 @@ export function AvatarUploader({
       return <img src={currentAvatar} alt="当前头像" className="avatar-image" />;
     } else {
       // 显示用户名首字母
-      return <div className="avatar-placeholder">{username?.charAt(0) || "用"}</div>;
+      return <div className="avatar-placeholder">{username?.charAt(0) || '用'}</div>;
     }
   };
 
@@ -124,7 +124,7 @@ export function AvatarUploader({
       <input
         type="file"
         ref={fileInputRef}
-        style={{ display: "none" }}
+        style={{ display: 'none' }}
         onChange={handleFileChange}
         accept="image/*"
       />

@@ -25,12 +25,11 @@ export function CategoryBudgetList({
   categoryBudgets,
   filter,
   onFilterChange,
-  enableCategoryBudget
+  enableCategoryBudget,
 }: CategoryBudgetListProps) {
   // 根据筛选条件过滤分类预算
-  const filteredBudgets = filter === 'all'
-    ? categoryBudgets
-    : categoryBudgets.filter(budget => budget.isOverspent);
+  const filteredBudgets =
+    filter === 'all' ? categoryBudgets : categoryBudgets.filter((budget) => budget.isOverspent);
 
   // 格式化金额
   const formatAmount = (amount: number) => {
@@ -63,11 +62,8 @@ export function CategoryBudgetList({
             <p>分类预算未启用</p>
           </div>
         ) : filteredBudgets.length > 0 ? (
-          filteredBudgets.map(budget => (
-            <div
-              key={budget.id}
-              className={`budget-item ${budget.isOverspent ? 'warning' : ''}`}
-            >
+          filteredBudgets.map((budget) => (
+            <div key={budget.id} className={`budget-item ${budget.isOverspent ? 'warning' : ''}`}>
               <div className="budget-category">
                 <i className={`fas ${getCategoryIconClass(budget.categoryIcon)} category-icon`}></i>
                 <span>{budget.categoryName}</span>

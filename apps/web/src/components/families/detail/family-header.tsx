@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface FamilyDetail {
   id: string;
@@ -21,7 +21,7 @@ interface FamilyHeaderProps {
 export function FamilyHeader({ family, isAdmin, onUpdate }: FamilyHeaderProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(family.name);
-  const [description, setDescription] = useState(family.description || "");
+  const [description, setDescription] = useState(family.description || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 格式化创建日期
@@ -30,7 +30,7 @@ export function FamilyHeader({ family, isAdmin, onUpdate }: FamilyHeaderProps) {
     return date.toLocaleDateString('zh-CN', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -39,7 +39,7 @@ export function FamilyHeader({ family, isAdmin, onUpdate }: FamilyHeaderProps) {
     if (isEditing) {
       // 取消编辑，恢复原始值
       setName(family.name);
-      setDescription(family.description || "");
+      setDescription(family.description || '');
     }
     setIsEditing(!isEditing);
   };
@@ -50,14 +50,14 @@ export function FamilyHeader({ family, isAdmin, onUpdate }: FamilyHeaderProps) {
       toast.error('家庭名称不能为空');
       return;
     }
-    
+
     setIsSubmitting(true);
     const success = await onUpdate(family.id, {
       name: name.trim(),
-      description: description.trim() || undefined
+      description: description.trim() || undefined,
     });
     setIsSubmitting(false);
-    
+
     if (success) {
       setIsEditing(false);
     }
@@ -69,9 +69,7 @@ export function FamilyHeader({ family, isAdmin, onUpdate }: FamilyHeaderProps) {
         // 编辑模式
         <div className="family-edit-form">
           <div className="form-group">
-            <label className="form-label">
-              家庭名称
-            </label>
+            <label className="form-label">家庭名称</label>
             <input
               type="text"
               value={name}
@@ -82,9 +80,7 @@ export function FamilyHeader({ family, isAdmin, onUpdate }: FamilyHeaderProps) {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">
-              家庭描述
-            </label>
+            <label className="form-label">家庭描述</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -95,11 +91,7 @@ export function FamilyHeader({ family, isAdmin, onUpdate }: FamilyHeaderProps) {
             />
           </div>
           <div className="form-actions">
-            <button
-              className="btn-secondary"
-              onClick={handleEditToggle}
-              disabled={isSubmitting}
-            >
+            <button className="btn-secondary" onClick={handleEditToggle} disabled={isSubmitting}>
               取消
             </button>
             <button
@@ -107,7 +99,7 @@ export function FamilyHeader({ family, isAdmin, onUpdate }: FamilyHeaderProps) {
               onClick={handleSave}
               disabled={isSubmitting || !name.trim()}
             >
-              {isSubmitting ? "保存中..." : "保存"}
+              {isSubmitting ? '保存中...' : '保存'}
             </button>
           </div>
         </div>
@@ -115,10 +107,8 @@ export function FamilyHeader({ family, isAdmin, onUpdate }: FamilyHeaderProps) {
         // 查看模式
         <div className="family-info">
           <div className="family-name">{family.name}</div>
-          {family.description && (
-            <div className="family-description">{family.description}</div>
-          )}
-          
+          {family.description && <div className="family-description">{family.description}</div>}
+
           <div className="family-meta">
             <div className="family-stat">
               <i className="fas fa-users"></i>
@@ -129,7 +119,7 @@ export function FamilyHeader({ family, isAdmin, onUpdate }: FamilyHeaderProps) {
               <span>创建于 {formatDate(family.createdAt)}</span>
             </div>
           </div>
-          
+
           {isAdmin && (
             <button className="edit-button" onClick={handleEditToggle}>
               <i className="fas fa-edit"></i>

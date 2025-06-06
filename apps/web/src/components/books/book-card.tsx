@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { AccountBook, AccountBookType } from "@/types";
-import { formatDate } from "@/lib/utils";
+import { useState } from 'react';
+import { AccountBook, AccountBookType } from '@/types';
+import { formatDate } from '@/lib/utils';
 
 interface BookCardProps {
   book: AccountBook;
@@ -13,14 +13,7 @@ interface BookCardProps {
   onReset?: () => void; // 可选的重置功能，仅用于家庭账本
 }
 
-export function BookCard({
-  book,
-  isActive,
-  onSwitch,
-  onEdit,
-  onDelete,
-  onReset,
-}: BookCardProps) {
+export function BookCard({ book, isActive, onSwitch, onEdit, onDelete, onReset }: BookCardProps) {
   const [showActions, setShowActions] = useState(false);
 
   // 格式化创建日期
@@ -59,10 +52,7 @@ export function BookCard({
   };
 
   return (
-    <div
-      className={`book-card ${isActive ? "active" : ""}`}
-      onClick={handleClick}
-    >
+    <div className={`book-card ${isActive ? 'active' : ''}`} onClick={handleClick}>
       <div className="book-header">
         <div className="book-title">
           {book.name}
@@ -93,9 +83,11 @@ export function BookCard({
         )}
         <div className="meta-item">
           <div className="meta-icon">
-            <i className={book.type === AccountBookType.FAMILY ? "fas fa-users" : "fas fa-user"}></i>
+            <i
+              className={book.type === AccountBookType.FAMILY ? 'fas fa-users' : 'fas fa-user'}
+            ></i>
           </div>
-          <div>{book.type === AccountBookType.FAMILY ? "家庭账本" : "个人账本"}</div>
+          <div>{book.type === AccountBookType.FAMILY ? '家庭账本' : '个人账本'}</div>
         </div>
         <div className="meta-item">
           <div className="meta-icon">

@@ -25,7 +25,7 @@ export function BudgetListPage() {
     setSelectedType,
     toggleShowExpiredBudgets,
     deleteBudget,
-    resetState
+    resetState,
   } = useBudgetListStore();
 
   const [budgetToDelete, setBudgetToDelete] = useState<string | null>(null);
@@ -98,7 +98,7 @@ export function BudgetListPage() {
 
     // 对于个人预算，默认隐藏已过期的预算
     const currentDate = new Date();
-    return budgets.filter(budget => {
+    return budgets.filter((budget) => {
       if (!budget.endDate) return true; // 无结束日期的预算始终显示
       const endDate = new Date(budget.endDate);
       return endDate >= currentDate; // 只显示未过期的预算
@@ -172,17 +172,11 @@ export function BudgetListPage() {
   return (
     <PageContainer title="预算管理" rightActions={rightActions} activeNavItem="budget">
       {/* 预算类型选择器 */}
-      <BudgetListTypeSelector
-        selectedType={selectedType}
-        onTypeChange={handleTypeChange}
-      />
+      <BudgetListTypeSelector selectedType={selectedType} onTypeChange={handleTypeChange} />
 
       {/* 预算统计链接 */}
       <div className="statistics-link-container">
-        <button
-          className="statistics-link"
-          onClick={() => router.push('/budgets/statistics')}
-        >
+        <button className="statistics-link" onClick={() => router.push('/budgets/statistics')}>
           <i className="fas fa-chart-line"></i>
           <span>查看预算统计</span>
         </button>
@@ -190,13 +184,9 @@ export function BudgetListPage() {
 
       <section className="budget-section active">
         <div className="section-header">
-          <h2>
-            {selectedType === 'PERSONAL' ? '个人预算' : '通用预算'}
-          </h2>
+          <h2>{selectedType === 'PERSONAL' ? '个人预算' : '通用预算'}</h2>
           <div className="section-description">
-            {selectedType === 'PERSONAL'
-              ? '每月自动刷新的个人预算'
-              : '长期或无期限的通用预算'}
+            {selectedType === 'PERSONAL' ? '每月自动刷新的个人预算' : '长期或无期限的通用预算'}
           </div>
         </div>
 
@@ -214,16 +204,11 @@ export function BudgetListPage() {
         )}
 
         {/* 预算列表 */}
-        <div className="budget-list">
-          {renderBudgetList()}
-        </div>
+        <div className="budget-list">{renderBudgetList()}</div>
 
         {/* 添加通用预算按钮 - 仅在通用预算页面显示 */}
         {selectedType === 'GENERAL' && (
-          <button
-            className="add-budget-button"
-            onClick={handleAddBudget}
-          >
+          <button className="add-budget-button" onClick={handleAddBudget}>
             <i className="fas fa-plus"></i>
             <span>添加通用预算</span>
           </button>
@@ -251,11 +236,7 @@ export function BudgetListPage() {
               >
                 取消
               </button>
-              <button
-                className="delete-button"
-                onClick={handleDeleteBudget}
-                disabled={isDeleting}
-              >
+              <button className="delete-button" onClick={handleDeleteBudget} disabled={isDeleting}>
                 {isDeleting ? '删除中...' : '确认删除'}
               </button>
             </div>

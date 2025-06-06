@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
@@ -31,7 +31,7 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
       if (themeConfig) {
         applyThemeConfig({
           theme: themeConfig.theme,
-          themeColor: themeConfig.themeColor
+          themeColor: themeConfig.themeColor,
         });
       }
 
@@ -63,9 +63,7 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <AuthInitializer>
-          <RouteGuard>
-            {children}
-          </RouteGuard>
+          <RouteGuard>{children}</RouteGuard>
         </AuthInitializer>
         <Toaster position="top-center" />
       </ThemeProvider>

@@ -1,7 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
-import { apiClient } from '../api/api-client';
+import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { Budget } from '@/types';
 
@@ -20,18 +20,21 @@ interface BudgetState {
   createBudget: (data: {
     amount: number;
     categoryId: string;
-    period: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
+    period: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
     startDate: string;
     endDate?: string;
     accountBookId: string;
   }) => Promise<boolean>;
-  updateBudget: (id: string, data: {
-    amount?: number;
-    categoryId?: string;
-    period?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
-    startDate?: string;
-    endDate?: string;
-  }) => Promise<boolean>;
+  updateBudget: (
+    id: string,
+    data: {
+      amount?: number;
+      categoryId?: string;
+      period?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+      startDate?: string;
+      endDate?: string;
+    },
+  ) => Promise<boolean>;
   deleteBudget: (id: string) => Promise<boolean>;
   refreshBudgets: () => Promise<void>;
   setCurrentAccountBookId: (accountBookId: string) => void;
@@ -61,7 +64,7 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
         if ('budgets' in response && Array.isArray(response.budgets)) {
           set({
             budgets: response.budgets,
-            isLoading: false
+            isLoading: false,
           });
           return;
         }
@@ -70,7 +73,7 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
         if ('data' in response && Array.isArray(response.data)) {
           set({
             budgets: response.data,
-            isLoading: false
+            isLoading: false,
           });
           return;
         }
@@ -80,7 +83,7 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
       if (Array.isArray(response)) {
         set({
           budgets: response,
-          isLoading: false
+          isLoading: false,
         });
         return;
       }
@@ -88,13 +91,13 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
       // 默认设置为空数组
       set({
         budgets: [],
-        isLoading: false
+        isLoading: false,
       });
     } catch (error) {
       console.error('获取预算列表失败:', error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : '获取预算列表失败'
+        error: error instanceof Error ? error.message : '获取预算列表失败',
       });
       toast.error('获取预算列表失败');
     }
@@ -134,13 +137,13 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
 
       set({
         budgets,
-        isLoading: false
+        isLoading: false,
       });
     } catch (error) {
       console.error('获取活跃预算失败:', error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : '获取活跃预算失败'
+        error: error instanceof Error ? error.message : '获取活跃预算失败',
       });
       toast.error('获取活跃预算失败');
     }
@@ -160,7 +163,7 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
       console.error(`获取预算 ${id} 失败:`, error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : `获取预算 ${id} 失败`
+        error: error instanceof Error ? error.message : `获取预算 ${id} 失败`,
       });
       toast.error(`获取预算详情失败`);
       return null;
@@ -189,7 +192,7 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
       console.error('创建预算失败:', error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : '创建预算失败'
+        error: error instanceof Error ? error.message : '创建预算失败',
       });
       toast.error('创建预算失败');
       return false;
@@ -211,7 +214,7 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
       console.error(`更新预算 ${id} 失败:`, error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : `更新预算 ${id} 失败`
+        error: error instanceof Error ? error.message : `更新预算 ${id} 失败`,
       });
       toast.error('更新预算失败');
       return false;
@@ -233,7 +236,7 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
       console.error(`删除预算 ${id} 失败:`, error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : `删除预算 ${id} 失败`
+        error: error instanceof Error ? error.message : `删除预算 ${id} 失败`,
       });
       toast.error('删除预算失败');
       return false;
@@ -253,5 +256,5 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
   // 设置当前账本ID
   setCurrentAccountBookId: (accountBookId) => {
     set({ currentAccountBookId: accountBookId });
-  }
+  },
 }));

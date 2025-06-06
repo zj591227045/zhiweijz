@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { useTransactionFormStore } from "@/store/transaction-form-store";
-import { NumericKeyboard } from "./numeric-keyboard";
+import { useEffect, useRef, useState } from 'react';
+import { useTransactionFormStore } from '@/store/transaction-form-store';
+import { NumericKeyboard } from './numeric-keyboard';
 
 export function AmountInput() {
   const { amount, setAmount, showKeyboardInitially } = useTransactionFormStore();
@@ -27,15 +27,15 @@ export function AmountInput() {
   // 处理键盘输入
   const handleKeyboardInput = (value: string) => {
     // 处理数字和小数点输入
-    if (value === "." && amount.includes(".")) {
+    if (value === '.' && amount.includes('.')) {
       // 已经有小数点了，不再添加
       return;
     }
 
     // 处理加减号
-    if (value === "+" || value === "-") {
+    if (value === '+' || value === '-') {
       // 如果是第一个字符，或者前一个字符是运算符，则替换
-      if (amount === "" || ["+", "-"].includes(amount.slice(-1))) {
+      if (amount === '' || ['+', '-'].includes(amount.slice(-1))) {
         setAmount(value);
       } else {
         // 否则追加
@@ -45,7 +45,7 @@ export function AmountInput() {
     }
 
     // 处理等号 - 计算表达式
-    if (value === "=") {
+    if (value === '=') {
       try {
         // 简单的表达式计算
         const result = evaluateExpression(amount);
@@ -53,7 +53,7 @@ export function AmountInput() {
           setAmount(result.toString());
         }
       } catch (error) {
-        console.error("计算表达式失败:", error);
+        console.error('计算表达式失败:', error);
       }
       return;
     }
@@ -78,12 +78,12 @@ export function AmountInput() {
   const evaluateExpression = (expression: string): number => {
     // 移除空格
     expression = expression.replace(/\s/g, '');
-    
+
     // 只允许数字、小数点、加号和减号
     if (!/^[0-9+\-\.]+$/.test(expression)) {
       throw new Error('Invalid expression');
     }
-    
+
     // 使用Function构造函数安全地计算表达式
     try {
       return Function('"use strict"; return (' + expression + ')')();

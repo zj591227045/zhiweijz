@@ -1,4 +1,4 @@
-import { apiClient } from "../api";
+import { apiClient } from '../api';
 
 // 账本类型定义
 export interface AccountBook {
@@ -65,10 +65,10 @@ export const aiService = {
       }
 
       console.log('发送获取LLM设置列表请求:', url);
-      console.log('认证令牌:', localStorage.getItem("auth-token"));
+      console.log('认证令牌:', localStorage.getItem('auth-token'));
 
       // 确保请求头中包含认证令牌
-      const token = localStorage.getItem("auth-token");
+      const token = localStorage.getItem('auth-token');
       if (!token) {
         console.warn('未找到认证令牌，请先登录');
         throw new Error('未找到认证令牌，请先登录');
@@ -124,16 +124,16 @@ export const aiService = {
       console.error('获取当前LLM设置失败:', error);
       // 如果API未实现，返回默认设置
       return {
-        id: "123e4567-e89b-12d3-a456-426614174000",
-        name: "默认设置",
-        provider: "siliconflow",
-        model: "Qwen/Qwen3-32B",
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        name: '默认设置',
+        provider: 'siliconflow',
+        model: 'Qwen/Qwen3-32B',
         temperature: 0.7,
         maxTokens: 1000,
-        createdAt: "2025-05-01T00:00:00.000Z",
-        updatedAt: "2025-05-01T00:00:00.000Z",
-        description: "默认的LLM设置",
-        baseUrl: "https://api.siliconflow.cn/v1"
+        createdAt: '2025-05-01T00:00:00.000Z',
+        updatedAt: '2025-05-01T00:00:00.000Z',
+        description: '默认的LLM设置',
+        baseUrl: 'https://api.siliconflow.cn/v1',
       };
     }
   },
@@ -146,7 +146,10 @@ export const aiService = {
       console.log('发送创建LLM设置请求: /api/ai/llm-settings', data);
 
       try {
-        const response = await apiClient.post<{ success: boolean; id: string }>('/api/ai/llm-settings', data);
+        const response = await apiClient.post<{ success: boolean; id: string }>(
+          '/api/ai/llm-settings',
+          data,
+        );
         console.log('创建LLM设置响应数据:', response);
 
         // 检查响应格式
@@ -157,7 +160,7 @@ export const aiService = {
           // 返回模拟响应
           return {
             success: true,
-            id: new Date().getTime().toString() // 使用时间戳作为临时ID
+            id: new Date().getTime().toString(), // 使用时间戳作为临时ID
           };
         }
       } catch (apiError) {
@@ -165,7 +168,7 @@ export const aiService = {
         // 返回模拟响应
         return {
           success: true,
-          id: new Date().getTime().toString() // 使用时间戳作为临时ID
+          id: new Date().getTime().toString(), // 使用时间戳作为临时ID
         };
       }
     } catch (error) {
@@ -185,7 +188,7 @@ export const aiService = {
       console.log('更新数据:', {
         ...data,
         apiKey: hasApiKey ? '******' : undefined, // 日志中隐藏API密钥
-        apiKeyIncluded: hasApiKey
+        apiKeyIncluded: hasApiKey,
       });
 
       try {
@@ -196,13 +199,13 @@ export const aiService = {
 
         // 确保所有必要字段都有值，防止验证失败
         const updateData: Record<string, any> = {
-          name: data.name || "默认服务名称",
-          provider: data.provider || "openai",
-          model: data.model || "gpt-3.5-turbo",
+          name: data.name || '默认服务名称',
+          provider: data.provider || 'openai',
+          model: data.model || 'gpt-3.5-turbo',
           temperature: data.temperature !== undefined ? data.temperature : 0.7,
           maxTokens: data.maxTokens !== undefined ? data.maxTokens : 1000,
-          description: data.description || "",
-          baseUrl: data.baseUrl || "",
+          description: data.description || '',
+          baseUrl: data.baseUrl || '',
         };
 
         // 只有当API密钥有值时才添加
@@ -217,19 +220,19 @@ export const aiService = {
         // 使用原生fetch API发送请求，绕过axios可能的问题
         console.log('使用fetch API发送PUT请求，数据:', {
           ...updateData,
-          apiKey: updateData.apiKey ? '******' : undefined
+          apiKey: updateData.apiKey ? '******' : undefined,
         });
 
         // 获取token
-        const token = localStorage.getItem("auth-token");
+        const token = localStorage.getItem('auth-token');
 
         const fetchResponse = await fetch(`/api${requestUrl}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : ''
+            Authorization: token ? `Bearer ${token}` : '',
           },
-          body: JSON.stringify(updateData)
+          body: JSON.stringify(updateData),
         });
 
         console.log('Fetch响应状态:', fetchResponse.status);
@@ -246,7 +249,6 @@ export const aiService = {
 
         // 无论服务器响应如何，都返回成功
         return { success: true };
-
       } catch (apiError) {
         console.error('更新LLM设置API错误:', apiError);
         // 详细记录错误信息
@@ -312,12 +314,12 @@ export const aiService = {
   }): Promise<{ success: boolean; message: string }> {
     try {
       // 检查是否使用现有API密钥
-      const isUsingExisting = data.apiKey === "USE_EXISTING";
+      const isUsingExisting = data.apiKey === 'USE_EXISTING';
 
       console.log('发送测试LLM连接请求: /ai/llm-settings/test', {
         ...data,
         apiKey: '******', // 隐藏API密钥
-        usingExistingKey: isUsingExisting
+        usingExistingKey: isUsingExisting,
       });
 
       // 尝试调用API
@@ -327,7 +329,10 @@ export const aiService = {
           ? { ...data, useExistingKey: true, apiKey: undefined }
           : data;
 
-        const response = await apiClient.post<{ success: boolean; message: string }>('/ai/llm-settings/test', requestData);
+        const response = await apiClient.post<{ success: boolean; message: string }>(
+          '/ai/llm-settings/test',
+          requestData,
+        );
         console.log('测试LLM连接响应数据:', response);
         return response;
       } catch (apiError) {
@@ -335,7 +340,8 @@ export const aiService = {
         // 返回错误信息
         return {
           success: false,
-          message: apiError instanceof Error ? apiError.message : '连接测试失败，请检查API密钥和服务地址'
+          message:
+            apiError instanceof Error ? apiError.message : '连接测试失败，请检查API密钥和服务地址',
         };
       }
     } catch (error) {
@@ -380,7 +386,7 @@ export const aiService = {
               baseUrl: response.baseUrl,
               description: response.description || '账本绑定的AI服务',
               createdAt: response.createdAt || new Date().toISOString(),
-              updatedAt: response.updatedAt || new Date().toISOString()
+              updatedAt: response.updatedAt || new Date().toISOString(),
             };
           } else {
             console.warn('响应缺少必要字段:', response);
@@ -403,17 +409,25 @@ export const aiService = {
   /**
    * 更新账本LLM设置
    */
-  async updateAccountLLMSettings(accountId: string, userLLMSettingId: string): Promise<{ success: boolean }> {
+  async updateAccountLLMSettings(
+    accountId: string,
+    userLLMSettingId: string,
+  ): Promise<{ success: boolean }> {
     try {
-      console.log(`准备更新账本 ${accountId} 的LLM设置，绑定到服务 ${userLLMSettingId || '(解绑)'}`);
+      console.log(
+        `准备更新账本 ${accountId} 的LLM设置，绑定到服务 ${userLLMSettingId || '(解绑)'}`,
+      );
 
       // 尝试使用不同的API路径
       try {
         // 首先尝试 /ai/account/:accountId/llm-settings 路径
         console.log(`尝试路径: /ai/account/${accountId}/llm-settings`);
-        const response = await apiClient.put<{ success: boolean }>(`/ai/account/${accountId}/llm-settings`, {
-          userLLMSettingId
-        });
+        const response = await apiClient.put<{ success: boolean }>(
+          `/ai/account/${accountId}/llm-settings`,
+          {
+            userLLMSettingId,
+          },
+        );
         console.log('更新账本LLM设置响应数据:', response);
 
         // 检查响应格式
@@ -431,9 +445,12 @@ export const aiService = {
         // 如果第一个路径失败，尝试 /account-books/:id/llm-settings 路径
         try {
           console.log(`尝试备用路径: /account-books/${accountId}/llm-settings`);
-          const response = await apiClient.put<{ success: boolean }>(`/account-books/${accountId}/llm-settings`, {
-            userLLMSettingId
-          });
+          const response = await apiClient.put<{ success: boolean }>(
+            `/account-books/${accountId}/llm-settings`,
+            {
+              userLLMSettingId,
+            },
+          );
           console.log('备用路径响应数据:', response);
 
           if (response && typeof response === 'object' && 'success' in response) {
@@ -452,15 +469,15 @@ export const aiService = {
             console.log(`尝试使用fetch API: /api/ai/account/${accountId}/llm-settings`);
 
             // 获取token
-            const token = localStorage.getItem("auth-token");
+            const token = localStorage.getItem('auth-token');
 
             const fetchResponse = await fetch(`/api/ai/account/${accountId}/llm-settings`, {
               method: 'PUT',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': token ? `Bearer ${token}` : ''
+                Authorization: token ? `Bearer ${token}` : '',
               },
-              body: JSON.stringify({ userLLMSettingId })
+              body: JSON.stringify({ userLLMSettingId }),
             });
 
             console.log('Fetch响应状态:', fetchResponse.status);
@@ -550,24 +567,24 @@ export const aiService = {
         // 返回模拟账本数据
         return [
           {
-            id: "1",
-            name: "默认账本",
-            description: "个人默认账本",
-            type: "PERSONAL",
+            id: '1',
+            name: '默认账本',
+            description: '个人默认账本',
+            type: 'PERSONAL',
             isDefault: true,
             createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
           },
           {
-            id: "2",
-            name: "家庭账本",
-            description: "家庭共享账本",
-            type: "FAMILY",
-            familyId: "family-1",
+            id: '2',
+            name: '家庭账本',
+            description: '家庭共享账本',
+            type: 'FAMILY',
+            familyId: 'family-1',
             isDefault: false,
             createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }
+            updatedAt: new Date().toISOString(),
+          },
         ];
       }
     } catch (error) {
@@ -575,15 +592,15 @@ export const aiService = {
       // 返回模拟账本数据
       return [
         {
-          id: "1",
-          name: "默认账本",
-          description: "个人默认账本",
-          type: "PERSONAL",
+          id: '1',
+          name: '默认账本',
+          description: '个人默认账本',
+          type: 'PERSONAL',
           isDefault: true,
           createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
+          updatedAt: new Date().toISOString(),
+        },
       ];
     }
-  }
+  },
 };

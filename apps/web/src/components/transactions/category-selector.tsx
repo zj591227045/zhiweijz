@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useTransactionFormStore } from "@/store/transaction-form-store";
-import { useCategoryStore } from "@/store/category-store";
-import { useAccountBookStore } from "@/store/account-book-store";
-import { getIconClass } from "@/lib/utils";
+import { useState } from 'react';
+import { useTransactionFormStore } from '@/store/transaction-form-store';
+import { useCategoryStore } from '@/store/category-store';
+import { useAccountBookStore } from '@/store/account-book-store';
+import { getIconClass } from '@/lib/utils';
 
 interface CategorySelectorProps {
   categories: any[];
@@ -19,11 +19,7 @@ export function CategorySelector({ categories, isLoading }: CategorySelectorProp
 
   // 处理分类选择
   const handleCategorySelect = (category: any) => {
-    setCategory(
-      category.id,
-      category.name,
-      category.icon || null
-    );
+    setCategory(category.id, category.name, category.icon || null);
 
     // 自动进入下一步
     setTimeout(() => {
@@ -80,16 +76,15 @@ export function CategorySelector({ categories, isLoading }: CategorySelectorProp
           className={`
             flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg
             transition-all duration-200
-            ${isRefreshing || isLoading
-              ? 'text-gray-400 cursor-not-allowed'
-              : 'text-blue-600 hover:bg-blue-50 active:bg-blue-100'
+            ${
+              isRefreshing || isLoading
+                ? 'text-gray-400 cursor-not-allowed'
+                : 'text-blue-600 hover:bg-blue-50 active:bg-blue-100'
             }
           `}
           title="刷新分类数据"
         >
-          <i
-            className={`fas fa-sync-alt ${isRefreshing ? 'fa-spin' : ''}`}
-          />
+          <i className={`fas fa-sync-alt ${isRefreshing ? 'fa-spin' : ''}`} />
           {isRefreshing ? '刷新中' : '刷新'}
         </button>
       </div>
@@ -98,10 +93,7 @@ export function CategorySelector({ categories, isLoading }: CategorySelectorProp
         {categories.length === 0 && !isLoading ? (
           <div className="text-center py-8 text-gray-500">
             <p>暂无分类数据</p>
-            <button
-              onClick={handleRefresh}
-              className="mt-2 text-blue-600 hover:text-blue-700"
-            >
+            <button onClick={handleRefresh} className="mt-2 text-blue-600 hover:text-blue-700">
               点击刷新
             </button>
           </div>
@@ -114,7 +106,7 @@ export function CategorySelector({ categories, isLoading }: CategorySelectorProp
                 onClick={() => handleCategorySelect(category)}
               >
                 <div className="category-icon-wrapper">
-                  <i className={getIconClass(category.icon || "")}></i>
+                  <i className={getIconClass(category.icon || '')}></i>
                 </div>
                 <span className="category-name">{category.name}</span>
               </div>

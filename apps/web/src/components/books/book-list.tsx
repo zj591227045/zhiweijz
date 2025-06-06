@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { BookCard } from "./book-card";
-import { EmptyState } from "./empty-state";
-import { AccountBook, AccountBookType } from "@/types";
+import { useState } from 'react';
+import { BookCard } from './book-card';
+import { EmptyState } from './empty-state';
+import { AccountBook, AccountBookType } from '@/types';
 
 interface BookListProps {
   books: AccountBook[];
@@ -26,8 +26,8 @@ export function BookList({
   const safeBooks = Array.isArray(books) ? books : [];
 
   // 分类账本：个人账本和家庭账本
-  const personalBooks = safeBooks.filter(book => book.type === AccountBookType.PERSONAL);
-  const familyBooks = safeBooks.filter(book => book.type === AccountBookType.FAMILY);
+  const personalBooks = safeBooks.filter((book) => book.type === AccountBookType.PERSONAL);
+  const familyBooks = safeBooks.filter((book) => book.type === AccountBookType.FAMILY);
 
   return (
     <div className="space-y-6">
@@ -78,11 +78,7 @@ export function BookList({
 
       {/* 如果没有任何账本，显示空状态 */}
       {personalBooks.length === 0 && familyBooks.length === 0 && (
-        <EmptyState 
-          title="暂无账本"
-          description="您还没有创建任何账本"
-          showButton={false}
-        />
+        <EmptyState title="暂无账本" description="您还没有创建任何账本" showButton={false} />
       )}
     </div>
   );

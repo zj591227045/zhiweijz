@@ -1,24 +1,24 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { EnhancedBottomNavigation } from "./enhanced-bottom-navigation";
-import { useThemeStore } from "@/store/theme-store";
-import { SettingsDialog } from "./settings-dialog";
-import "@/styles/settings-dialog.css";
+import React, { useState } from 'react';
+import { EnhancedBottomNavigation } from './enhanced-bottom-navigation';
+import { useThemeStore } from '@/store/theme-store';
+import { SettingsDialog } from './settings-dialog';
+import '@/styles/settings-dialog.css';
 
 // 将 activeNavItem 转换为路径
 function getPathFromActiveItem(activeNavItem?: string): string {
   switch (activeNavItem) {
-    case "home":
-      return "/dashboard";
-    case "statistics":
-      return "/statistics";
-    case "budget":
-      return "/budgets";
-    case "profile":
-      return "/settings";
+    case 'home':
+      return '/dashboard';
+    case 'statistics':
+      return '/statistics';
+    case 'budget':
+      return '/budgets';
+    case 'profile':
+      return '/settings';
     default:
-      return "/dashboard";
+      return '/dashboard';
   }
 }
 
@@ -83,29 +83,17 @@ export function PageContainer({
         <header className="header">
           <div className="flex items-center">
             {showBackButton && (
-              <button
-                className="icon-button mr-2"
-                onClick={handleBackClick}
-                aria-label="返回"
-              >
+              <button className="icon-button mr-2" onClick={handleBackClick} aria-label="返回">
                 <i className="fas fa-arrow-left"></i>
               </button>
             )}
             {title && <div className="header-title">{title}</div>}
           </div>
           <div className="header-actions">
-            <button
-              className="icon-button mr-2"
-              onClick={handleToggleTheme}
-              aria-label="切换主题"
-            >
-              <i className={`fas ${theme === "dark" ? "fa-sun" : "fa-moon"}`}></i>
+            <button className="icon-button mr-2" onClick={handleToggleTheme} aria-label="切换主题">
+              <i className={`fas ${theme === 'dark' ? 'fa-sun' : 'fa-moon'}`}></i>
             </button>
-            <button
-              className="icon-button mr-2"
-              onClick={handleSettingsClick}
-              aria-label="设置"
-            >
+            <button className="icon-button mr-2" onClick={handleSettingsClick} aria-label="设置">
               <i className="fas fa-cog"></i>
             </button>
             {rightActions}
@@ -114,18 +102,15 @@ export function PageContainer({
       )}
 
       {/* 主要内容区域 */}
-      <main className="main-content">
-        {children}
-      </main>
+      <main className="main-content">{children}</main>
 
       {/* 底部导航栏 */}
-      {showBottomNav && <EnhancedBottomNavigation currentPath={getPathFromActiveItem(activeNavItem)} />}
+      {showBottomNav && (
+        <EnhancedBottomNavigation currentPath={getPathFromActiveItem(activeNavItem)} />
+      )}
 
       {/* 设置弹窗 */}
-      <SettingsDialog
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
+      <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </div>
   );
 }

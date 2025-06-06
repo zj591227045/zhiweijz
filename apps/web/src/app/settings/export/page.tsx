@@ -35,12 +35,12 @@ export default function ExportPage() {
 
       const response = await exportService.exportTransactions(
         currentAccountBook.id,
-        selectedFormat
+        selectedFormat,
       );
 
       // 创建下载链接
       const blob = new Blob([response], {
-        type: selectedFormat === 'csv' ? 'text/csv' : 'application/json'
+        type: selectedFormat === 'csv' ? 'text/csv' : 'application/json',
       });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');

@@ -11,25 +11,14 @@ import { StatsSummaryCard } from './stats-summary-card';
 import { CategoryDistribution } from './category-distribution';
 import { TrendChart } from './trend-chart';
 import { AnalysisNavigation } from './analysis-navigation';
-import {
-  getCurrentMonthRange,
-  getPreviousMonthRange,
-  getNextMonthRange
-} from '@/lib/utils';
+import { getCurrentMonthRange, getPreviousMonthRange, getNextMonthRange } from '@/lib/utils';
 
 export function StatisticsPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const { currentAccountBook } = useAccountBookStore();
-  const {
-    statisticsData,
-    dateRange,
-    isLoading,
-    error,
-    fetchStatisticsData,
-    setDateRange,
-    reset
-  } = useStatisticsStore();
+  const { statisticsData, dateRange, isLoading, error, fetchStatisticsData, setDateRange, reset } =
+    useStatisticsStore();
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -141,9 +130,7 @@ export function StatisticsPage() {
           />
 
           {/* 收支趋势 */}
-          <TrendChart
-            dailyStatistics={statisticsData.dailyStatistics}
-          />
+          <TrendChart dailyStatistics={statisticsData.dailyStatistics} />
 
           {/* 统计导航 */}
           <AnalysisNavigation />

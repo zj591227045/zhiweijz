@@ -21,7 +21,9 @@ export function FamilyList({ families, onCreateFamily, onJoinFamily }: FamilyLis
             <div className="stat-label">家庭</div>
           </div>
           <div className="stat-item">
-            <div className="stat-value">{families.reduce((sum, family) => sum + (family.memberCount || 0), 0)}</div>
+            <div className="stat-value">
+              {families.reduce((sum, family) => sum + (family.memberCount || 0), 0)}
+            </div>
             <div className="stat-label">成员</div>
           </div>
         </div>
@@ -30,17 +32,11 @@ export function FamilyList({ families, onCreateFamily, onJoinFamily }: FamilyLis
       <div className="family-list-header">
         <h2 className="family-list-title">我的家庭</h2>
         <div className="family-action-buttons">
-          <button 
-            className="family-action-btn family-action-btn-primary"
-            onClick={onCreateFamily}
-          >
+          <button className="family-action-btn family-action-btn-primary" onClick={onCreateFamily}>
             <i className="fas fa-plus"></i>
             <span>创建家庭</span>
           </button>
-          <button 
-            className="family-action-btn family-action-btn-secondary"
-            onClick={onJoinFamily}
-          >
+          <button className="family-action-btn family-action-btn-secondary" onClick={onJoinFamily}>
             <i className="fas fa-sign-in-alt"></i>
             <span>加入家庭</span>
           </button>

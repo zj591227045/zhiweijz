@@ -1,4 +1,4 @@
-import { apiClient } from "@/api/api-client";
+import { apiClient } from '@/api/api-client';
 
 // 用户资料接口
 export interface UserProfile {
@@ -74,5 +74,5 @@ export const userService = {
       console.error('上传头像失败:', error);
       throw error;
     }
-  }
-}; 
+  },
+};

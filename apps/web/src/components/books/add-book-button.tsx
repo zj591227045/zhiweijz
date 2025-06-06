@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import Link from "next/link";
+import Link from 'next/link';
 
 interface AddBookButtonProps {
   onClick?: () => void;
   href?: string;
 }
 
-export function AddBookButton({ onClick, href = "/books/new" }: AddBookButtonProps) {
+export function AddBookButton({ onClick, href = '/books/new' }: AddBookButtonProps) {
   // 如果提供了onClick，使用div和onClick
   // 否则使用Link组件
   if (onClick) {

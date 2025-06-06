@@ -16,7 +16,7 @@ export function MemberList({
   members,
   userPermissions,
   onRoleChange,
-  onRemoveMember
+  onRemoveMember,
 }: MemberListProps) {
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
 
@@ -62,12 +62,16 @@ export function MemberList({
             />
 
             {/* 角色选择器 - 仅在展开状态且有权限时显示 */}
-            {expandedMemberId === member.memberId && userPermissions.canChangeRoles && !member.isCurrentUser && (
-              <RoleSelector
-                currentRole={member.role}
-                onRoleChange={(role) => handleRoleChange(member.memberId, member.username || '未知用户', role)}
-              />
-            )}
+            {expandedMemberId === member.memberId &&
+              userPermissions.canChangeRoles &&
+              !member.isCurrentUser && (
+                <RoleSelector
+                  currentRole={member.role}
+                  onRoleChange={(role) =>
+                    handleRoleChange(member.memberId, member.username || '未知用户', role)
+                  }
+                />
+              )}
           </div>
         );
       })}

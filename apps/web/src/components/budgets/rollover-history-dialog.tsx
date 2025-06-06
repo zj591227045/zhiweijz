@@ -12,7 +12,7 @@ export function RolloverHistoryDialog({ history, onClose }: RolloverHistoryDialo
   const formatAmount = (amount: number) => {
     return `¥${amount.toLocaleString(undefined, {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     })}`;
   };
 

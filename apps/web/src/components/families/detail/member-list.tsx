@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import Link from "next/link";
+import Link from 'next/link';
 
 interface FamilyMember {
   id: string;
@@ -35,7 +35,7 @@ export function MemberList({ members, isAdmin, familyId, onInvite }: MemberListP
     return date.toLocaleDateString('zh-CN', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -55,14 +55,14 @@ export function MemberList({ members, isAdmin, familyId, onInvite }: MemberListP
       <div className="members-preview">
         {displayMembers.map((member) => (
           <div key={member.id} className="member-item">
-            <div className="member-avatar">
-              {getAvatarText(member.username || member.name)}
-            </div>
+            <div className="member-avatar">{getAvatarText(member.username || member.name)}</div>
             <div className="member-details">
               <div className="member-name">
                 {member.username || member.name}
-                <span className={`member-role ${member.role === "ADMIN" ? "role-admin" : "role-member"}`}>
-                  {member.role === "ADMIN" ? "管理员" : "成员"}
+                <span
+                  className={`member-role ${member.role === 'ADMIN' ? 'role-admin' : 'role-member'}`}
+                >
+                  {member.role === 'ADMIN' ? '管理员' : '成员'}
                 </span>
               </div>
               <div className="member-joined">
@@ -71,7 +71,7 @@ export function MemberList({ members, isAdmin, familyId, onInvite }: MemberListP
             </div>
           </div>
         ))}
-        
+
         {members.length === 0 && (
           <div className="empty-state">
             <i className="fas fa-users"></i>

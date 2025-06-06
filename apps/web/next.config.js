@@ -2,8 +2,22 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  // Docker构建配置
-  output: 'standalone',
+  // 静态导出配置
+  output: process.env.NEXT_BUILD_MODE === 'export' ? 'export' : 'standalone',
+  
+  // 静态导出时的配置
+  ...(process.env.NEXT_BUILD_MODE === 'export' && {
+    distDir: 'out',
+    trailingSlash: true,
+    images: {
+      unoptimized: true
+    },
+    experimental: {
+      missingSuspenseWithCSRBailout: false,
+    },
+    // 在静态导出时跳过动态路由
+    generateBuildId: () => 'build',
+  }),
 
   // 开启调试日志
   logging: {
@@ -67,7 +81,7 @@ const nextConfig = {
       const isDocker = process.env.DOCKER_ENV === 'true' ||
                       process.env.NODE_ENV === 'production';
 
-      console.log(`[Next.js] Docker环境检测: ${isDocker}`);
+      //console.log(`[Next.js] Docker环境检测: ${isDocker}`);
 
       // 3. 根据环境选择后端地址
       if (isDocker) {

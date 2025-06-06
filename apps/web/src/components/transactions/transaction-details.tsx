@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useTransactionFormStore } from "@/store/transaction-form-store";
-import { useBudgetStore } from "@/store/budget-store";
-import { TransactionType } from "@/types";
-import { BudgetSelector } from "./budget-selector";
+import { useTransactionFormStore } from '@/store/transaction-form-store';
+import { useBudgetStore } from '@/store/budget-store';
+import { TransactionType } from '@/types';
+import { BudgetSelector } from './budget-selector';
 
 interface TransactionDetailsProps {
   onSubmit: () => void;
@@ -11,15 +11,8 @@ interface TransactionDetailsProps {
 }
 
 export function TransactionDetails({ onSubmit, isSubmitting }: TransactionDetailsProps) {
-  const {
-    type,
-    description,
-    date,
-    time,
-    setDescription,
-    setDate,
-    setTime
-  } = useTransactionFormStore();
+  const { type, description, date, time, setDescription, setDate, setTime } =
+    useTransactionFormStore();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,24 +38,14 @@ export function TransactionDetails({ onSubmit, isSubmitting }: TransactionDetail
       <div className="form-group">
         <label className="form-label">日期</label>
         <div className="form-input">
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-          />
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
         </div>
       </div>
 
       <div className="form-group">
         <label className="form-label">时间</label>
         <div className="form-input">
-          <input
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            required
-          />
+          <input type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
         </div>
       </div>
 
@@ -71,11 +54,7 @@ export function TransactionDetails({ onSubmit, isSubmitting }: TransactionDetail
 
       {/* 提交按钮 */}
       <div className="form-actions">
-        <button
-          type="submit"
-          className="save-button"
-          disabled={isSubmitting}
-        >
+        <button type="submit" className="save-button" disabled={isSubmitting}>
           {isSubmitting ? '保存中...' : '保存'}
         </button>
       </div>

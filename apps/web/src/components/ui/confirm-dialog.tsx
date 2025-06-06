@@ -21,7 +21,7 @@ export function ConfirmDialog({
   cancelText,
   onConfirm,
   onCancel,
-  isDangerous = false
+  isDangerous = false,
 }: ConfirmDialogProps) {
   if (!isOpen) return null;
 
@@ -38,13 +38,7 @@ export function ConfirmDialog({
           <button className="dialog-cancel" onClick={onCancel}>
             {cancelText}
           </button>
-          <button 
-            className={cn(
-              'dialog-confirm',
-              isDangerous && 'danger'
-            )}
-            onClick={onConfirm}
-          >
+          <button className={cn('dialog-confirm', isDangerous && 'danger')} onClick={onConfirm}>
             {confirmText}
           </button>
         </div>

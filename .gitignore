@@ -5,8 +5,10 @@ node_modules/
 dist/
 build/
 bak/
+.backup/
 # Next.js
 apps/web/.next/
+apps/web/out/
 next-env.d.ts
 client/
 test-reports

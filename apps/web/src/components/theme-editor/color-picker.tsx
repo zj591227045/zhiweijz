@@ -78,7 +78,7 @@ export function ColorPicker({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInputValue(value);
-    
+
     if (isValidColor(value)) {
       setCurrentColor(value);
     }
@@ -113,11 +113,13 @@ export function ColorPicker({
   // HSL转HEX
   const hslToHex = (h: number, s: number, l: number): string => {
     l /= 100;
-    const a = s * Math.min(l, 1 - l) / 100;
+    const a = (s * Math.min(l, 1 - l)) / 100;
     const f = (n: number) => {
       const k = (n + h / 30) % 12;
       const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-      return Math.round(255 * color).toString(16).padStart(2, '0');
+      return Math.round(255 * color)
+        .toString(16)
+        .padStart(2, '0');
     };
     return `#${f(0)}${f(8)}${f(4)}`.toUpperCase();
   };
@@ -138,10 +140,7 @@ export function ColorPicker({
         <div className="color-picker-body">
           {/* 当前颜色预览 */}
           <div className="color-preview-section">
-            <div
-              className="color-preview"
-              style={{ backgroundColor: currentColor }}
-            />
+            <div className="color-preview" style={{ backgroundColor: currentColor }} />
             <div className="color-input-container">
               <input
                 type="text"
@@ -188,16 +187,10 @@ export function ColorPicker({
         </div>
 
         <div className="color-picker-footer">
-          <button
-            onClick={onClose}
-            className="color-picker-button cancel-button"
-          >
+          <button onClick={onClose} className="color-picker-button cancel-button">
             取消
           </button>
-          <button
-            onClick={handleApply}
-            className="color-picker-button apply-button"
-          >
+          <button onClick={handleApply} className="color-picker-button apply-button">
             应用
           </button>
         </div>

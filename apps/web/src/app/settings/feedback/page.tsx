@@ -18,7 +18,7 @@ export default function FeedbackPage() {
     type: 'bug' as FeedbackType,
     title: '',
     content: '',
-    contact: ''
+    contact: '',
   });
 
   // 如果未登录，重定向到登录页
@@ -31,12 +31,12 @@ export default function FeedbackPage() {
   // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.title.trim()) {
       toast.error('请输入反馈标题');
       return;
     }
-    
+
     if (!formData.content.trim()) {
       toast.error('请输入反馈内容');
       return;
@@ -44,24 +44,24 @@ export default function FeedbackPage() {
 
     try {
       setIsSubmitting(true);
-      
+
       await feedbackService.submitFeedback({
         type: formData.type,
         title: formData.title.trim(),
         content: formData.content.trim(),
-        contact: formData.contact.trim() || undefined
+        contact: formData.contact.trim() || undefined,
       });
 
       toast.success('反馈提交成功，感谢您的建议！');
-      
+
       // 重置表单
       setFormData({
         type: 'bug',
         title: '',
         content: '',
-        contact: ''
+        contact: '',
       });
-      
+
       // 返回设置页面
       router.back();
     } catch (error) {
@@ -74,9 +74,9 @@ export default function FeedbackPage() {
 
   // 处理输入变化
   const handleInputChange = (field: keyof typeof formData, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -190,9 +190,7 @@ export default function FeedbackPage() {
               onChange={(e) => handleInputChange('contact', e.target.value)}
               maxLength={100}
             />
-            <div className="form-hint">
-              提供联系方式有助于我们更好地解决您的问题
-            </div>
+            <div className="form-hint">提供联系方式有助于我们更好地解决您的问题</div>
           </div>
 
           <div className="form-actions">

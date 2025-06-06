@@ -31,7 +31,7 @@ export function BudgetCarousel({
   familyMembers,
   selectedBudgetId,
   onBudgetSelect,
-  accountBookType
+  accountBookType,
 }: BudgetCarouselProps) {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -43,19 +43,23 @@ export function BudgetCarousel({
     let items: Array<BudgetCard | FamilyMember> = [];
     let activeIdx = 0;
 
-    if (accountBookType === 'FAMILY' && familyMembers.length > 0 && budgetCards.some(card => card.type === 'PERSONAL')) {
-      const validFamilyMembers = familyMembers.filter(member => member.budgetId);
+    if (
+      accountBookType === 'FAMILY' &&
+      familyMembers.length > 0 &&
+      budgetCards.some((card) => card.type === 'PERSONAL')
+    ) {
+      const validFamilyMembers = familyMembers.filter((member) => member.budgetId);
       items = validFamilyMembers;
 
       if (selectedBudgetId) {
-        const idx = validFamilyMembers.findIndex(member => member.budgetId === selectedBudgetId);
+        const idx = validFamilyMembers.findIndex((member) => member.budgetId === selectedBudgetId);
         if (idx !== -1) activeIdx = idx;
       }
     } else {
       items = budgetCards;
 
       if (selectedBudgetId) {
-        const idx = budgetCards.findIndex(card => card.id === selectedBudgetId);
+        const idx = budgetCards.findIndex((card) => card.id === selectedBudgetId);
         if (idx !== -1) activeIdx = idx;
       }
     }
@@ -85,7 +89,9 @@ export function BudgetCarousel({
   // 当选中的预算ID变化时，滚动到对应的卡片
   useEffect(() => {
     if (carouselRef.current && selectedBudgetId) {
-      const selectedCard = carouselRef.current.querySelector(`[data-budget-id="${selectedBudgetId}"]`);
+      const selectedCard = carouselRef.current.querySelector(
+        `[data-budget-id="${selectedBudgetId}"]`,
+      );
       if (selectedCard) {
         selectedCard.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
       }
@@ -117,9 +123,13 @@ export function BudgetCarousel({
     }
 
     // 如果是家庭账本且有家庭成员，并且当前是个人预算类型，显示家庭成员的预算
-    if (accountBookType === 'FAMILY' && familyMembers.length > 0 && budgetCards.some(card => card.type === 'PERSONAL')) {
+    if (
+      accountBookType === 'FAMILY' &&
+      familyMembers.length > 0 &&
+      budgetCards.some((card) => card.type === 'PERSONAL')
+    ) {
       // 确保每个家庭成员都有有效的预算ID
-      const validFamilyMembers = familyMembers.filter(member => member.budgetId);
+      const validFamilyMembers = familyMembers.filter((member) => member.budgetId);
 
       if (validFamilyMembers.length === 0) {
         return (
@@ -129,7 +139,7 @@ export function BudgetCarousel({
         );
       }
 
-      return validFamilyMembers.map(member => {
+      return validFamilyMembers.map((member) => {
         const isActive = member.budgetId === selectedBudgetId;
         return (
           <div
@@ -146,7 +156,7 @@ export function BudgetCarousel({
     }
 
     // 否则显示普通预算卡片
-    return budgetCards.map(card => {
+    return budgetCards.map((card) => {
       const isActive = card.id === selectedBudgetId;
       return (
         <div
@@ -178,7 +188,7 @@ export function BudgetCarousel({
                 const itemWidth = carouselRef.current.scrollWidth / totalItems;
                 carouselRef.current.scrollTo({
                   left: index * itemWidth,
-                  behavior: 'smooth'
+                  behavior: 'smooth',
                 });
               }
             }}
@@ -194,7 +204,7 @@ export function BudgetCarousel({
       const scrollAmount = direction === 'left' ? -200 : 200;
       carouselRef.current.scrollBy({
         left: scrollAmount,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }
   };
@@ -205,27 +215,17 @@ export function BudgetCarousel({
   return (
     <div className="carousel-container">
       {showArrows && (
-        <div
-          className="carousel-arrow left"
-          onClick={() => handleArrowClick('left')}
-        >
+        <div className="carousel-arrow left" onClick={() => handleArrowClick('left')}>
           <i className="fas fa-chevron-left"></i>
         </div>
       )}
 
-      <div
-        className="budget-carousel"
-        ref={carouselRef}
-        onScroll={handleScroll}
-      >
+      <div className="budget-carousel" ref={carouselRef} onScroll={handleScroll}>
         {renderCards()}
       </div>
 
       {showArrows && (
-        <div
-          className="carousel-arrow right"
-          onClick={() => handleArrowClick('right')}
-        >
+        <div className="carousel-arrow right" onClick={() => handleArrowClick('right')}>
           <i className="fas fa-chevron-right"></i>
         </div>
       )}

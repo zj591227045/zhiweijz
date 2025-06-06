@@ -29,11 +29,17 @@ export default function TestCachePage() {
     if (typeof window === 'undefined') return;
 
     localStorage.setItem('test-auth-data', JSON.stringify({ userId: '123', token: 'test-token' }));
-    localStorage.setItem('test-account-book-data', JSON.stringify({ bookId: '456', name: 'Test Book' }));
+    localStorage.setItem(
+      'test-account-book-data',
+      JSON.stringify({ bookId: '456', name: 'Test Book' }),
+    );
     localStorage.setItem('test-budget-data', JSON.stringify({ budgetId: '789', amount: 1000 }));
-    localStorage.setItem('test-transaction-data', JSON.stringify({ transactionId: '101', amount: 50 }));
+    localStorage.setItem(
+      'test-transaction-data',
+      JSON.stringify({ transactionId: '101', amount: 50 }),
+    );
     localStorage.setItem('test-other-data', JSON.stringify({ someKey: 'someValue' }));
-    
+
     checkLocalStorageCache();
   };
 
@@ -52,7 +58,7 @@ export default function TestCachePage() {
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <h1 className="text-2xl font-bold mb-6">缓存清理测试页面</h1>
-      
+
       {/* 用户信息 */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <h2 className="text-lg font-semibold mb-2">当前用户信息</h2>
@@ -71,49 +77,49 @@ export default function TestCachePage() {
           >
             检查缓存
           </button>
-          
+
           <button
             onClick={addTestData}
             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
           >
             添加测试数据
           </button>
-          
+
           <button
             onClick={testApiCache}
             className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
           >
             创建API缓存
           </button>
-          
+
           <button
             onClick={clearApiCache}
             className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
           >
             清除API缓存
           </button>
-          
+
           <button
             onClick={clearAuthCache}
             className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
           >
             清除认证缓存
           </button>
-          
+
           <button
             onClick={clearAllCache}
             className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
           >
             清除所有缓存
           </button>
-          
+
           <button
             onClick={logout}
             className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
           >
             登出（完整清理）
           </button>
-          
+
           <button
             onClick={() => window.location.reload()}
             className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"

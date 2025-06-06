@@ -1,7 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
-import { apiClient } from '@/api/api-client';
+import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 
 // LLM设置类型
@@ -56,10 +56,10 @@ export const useLLMCacheStore = create<LLMCacheState>((set, get) => ({
       set((state) => ({
         llmCache: {
           ...state.llmCache,
-          [accountBookId]: settings
+          [accountBookId]: settings,
         },
         isLoading: false,
-        error: null
+        error: null,
       }));
 
       return settings;
@@ -67,7 +67,7 @@ export const useLLMCacheStore = create<LLMCacheState>((set, get) => ({
       const errorMessage = error.response?.data?.message || '获取LLM设置失败';
       set({
         isLoading: false,
-        error: errorMessage
+        error: errorMessage,
       });
 
       // 返回默认设置
@@ -77,8 +77,8 @@ export const useLLMCacheStore = create<LLMCacheState>((set, get) => ({
       set((state) => ({
         llmCache: {
           ...state.llmCache,
-          [accountBookId]: defaultSettings
-        }
+          [accountBookId]: defaultSettings,
+        },
       }));
 
       return defaultSettings;
@@ -99,10 +99,10 @@ export const useLLMCacheStore = create<LLMCacheState>((set, get) => ({
       set((state) => ({
         llmCache: {
           ...state.llmCache,
-          [accountBookId]: updatedSettings
+          [accountBookId]: updatedSettings,
         },
         isLoading: false,
-        error: null
+        error: null,
       }));
 
       toast.success('LLM设置更新成功');
@@ -111,7 +111,7 @@ export const useLLMCacheStore = create<LLMCacheState>((set, get) => ({
       const errorMessage = error.response?.data?.message || '更新LLM设置失败';
       set({
         isLoading: false,
-        error: errorMessage
+        error: errorMessage,
       });
       toast.error(errorMessage);
       return false;
@@ -134,5 +134,5 @@ export const useLLMCacheStore = create<LLMCacheState>((set, get) => ({
   // 清除错误
   clearError: () => {
     set({ error: null });
-  }
+  },
 }));

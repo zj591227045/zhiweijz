@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { toast } from "sonner";
-import { PageContainer } from "@/components/layout/page-container";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { useThemeStore } from "@/store/theme-store";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { toast } from 'sonner';
+import { PageContainer } from '@/components/layout/page-container';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { useThemeStore } from '@/store/theme-store';
 
 // 导入样式
-import "./theme-settings.css";
+import './theme-settings.css';
 
 interface Theme {
   id: string;
@@ -35,8 +35,8 @@ const builtInThemes: Theme[] = [
     preview: {
       primaryColor: '#3B82F6',
       backgroundColor: '#F9FAFB',
-      textColor: '#1F2937'
-    }
+      textColor: '#1F2937',
+    },
   },
   {
     id: 'light-green',
@@ -47,8 +47,8 @@ const builtInThemes: Theme[] = [
     preview: {
       primaryColor: '#10B981',
       backgroundColor: '#F9FAFB',
-      textColor: '#1F2937'
-    }
+      textColor: '#1F2937',
+    },
   },
   {
     id: 'light-purple',
@@ -59,8 +59,8 @@ const builtInThemes: Theme[] = [
     preview: {
       primaryColor: '#8B5CF6',
       backgroundColor: '#F9FAFB',
-      textColor: '#1F2937'
-    }
+      textColor: '#1F2937',
+    },
   },
   {
     id: 'dark',
@@ -71,9 +71,9 @@ const builtInThemes: Theme[] = [
     preview: {
       primaryColor: '#60A5FA',
       backgroundColor: '#111827',
-      textColor: '#F3F4F6'
-    }
-  }
+      textColor: '#F3F4F6',
+    },
+  },
 ];
 
 export default function ThemeSettingsPage() {
@@ -90,9 +90,9 @@ export default function ThemeSettingsPage() {
       try {
         // 使用内置主题，并根据当前主题状态设置激活状态
         const currentThemeId = theme === 'dark' ? 'dark' : `light-${themeColor}`;
-        const themesWithActiveState = builtInThemes.map(t => ({
+        const themesWithActiveState = builtInThemes.map((t) => ({
           ...t,
-          isActive: t.id === currentThemeId
+          isActive: t.id === currentThemeId,
         }));
 
         setThemes(themesWithActiveState);
@@ -120,10 +120,12 @@ export default function ThemeSettingsPage() {
       }
 
       // 更新主题状态
-      setThemes(prev => prev.map(theme => ({
-        ...theme,
-        isActive: theme.id === themeId,
-      })));
+      setThemes((prev) =>
+        prev.map((theme) => ({
+          ...theme,
+          isActive: theme.id === themeId,
+        })),
+      );
 
       toast.success('主题切换成功');
     } catch (error) {
@@ -151,9 +153,9 @@ export default function ThemeSettingsPage() {
   const rightActions = null;
 
   // 分组主题
-  const builtInThemesList = themes.filter(theme => theme.type === 'built-in');
-  const customThemes = themes.filter(theme => theme.type === 'custom');
-  const activeTheme = themes.find(theme => theme.isActive);
+  const builtInThemesList = themes.filter((theme) => theme.type === 'built-in');
+  const customThemes = themes.filter((theme) => theme.type === 'custom');
+  const activeTheme = themes.find((theme) => theme.isActive);
 
   return (
     <PageContainer

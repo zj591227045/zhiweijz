@@ -1,28 +1,28 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useAuthStore } from "@/store/auth-store";
-import { PageContainer } from "@/components/layout/page-container";
-import { formatCurrency, getCategoryIconClass } from "@/lib/utils";
-import { apiClient } from "@/lib/api";
-import dayjs from "dayjs";
+import { useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuthStore } from '@/store/auth-store';
+import { PageContainer } from '@/components/layout/page-container';
+import { formatCurrency, getCategoryIconClass } from '@/lib/utils';
+import { apiClient } from '@/lib/api';
+import dayjs from 'dayjs';
 
 // 交易类型枚举
 export enum TransactionType {
-  EXPENSE = "EXPENSE",
-  INCOME = "INCOME",
+  EXPENSE = 'EXPENSE',
+  INCOME = 'INCOME',
 }
 
 // 日期范围类型
-export type DateRangeType = "current-month" | "last-month" | "custom";
+export type DateRangeType = 'current-month' | 'last-month' | 'custom';
 
 // 获取当前月份的开始和结束日期
 const getCurrentMonthRange = () => {
   const now = dayjs();
   return {
-    startDate: now.startOf("month").format("YYYY-MM-DD"),
-    endDate: now.endOf("month").format("YYYY-MM-DD"),
+    startDate: now.startOf('month').format('YYYY-MM-DD'),
+    endDate: now.endOf('month').format('YYYY-MM-DD'),
   };
 };
 
@@ -37,7 +37,7 @@ export function TransactionListPage() {
   const [statistics, setStatistics] = useState({
     income: 0,
     expense: 0,
-    balance: 0
+    balance: 0,
   });
 
   // 多选状态
@@ -53,16 +53,16 @@ export function TransactionListPage() {
   const [filters, setFilters] = useState({
     startDate: getCurrentMonthRange().startDate,
     endDate: getCurrentMonthRange().endDate,
-    transactionType: "ALL",
+    transactionType: 'ALL',
     categoryIds: [],
     accountBookId: null,
-    isFilterPanelOpen: false
+    isFilterPanelOpen: false,
   });
 
   // 筛选选项状态
   const [filterOptions, setFilterOptions] = useState({
     categories: [],
-    budgets: []
+    budgets: [],
   });
 
   // 创建滚动容器引用
@@ -71,7 +71,7 @@ export function TransactionListPage() {
   // 如果未登录，重定向到登录页
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push("/auth/login");
+      router.push('/auth/login');
     }
   }, [isAuthenticated, router]);
 
@@ -86,15 +86,15 @@ export function TransactionListPage() {
         startDate: filters.startDate,
         endDate: filters.endDate,
         limit: 20,
-        sort: "date:desc"
+        sort: 'date:desc',
       };
 
-      if (filters.transactionType !== "ALL") {
+      if (filters.transactionType !== 'ALL') {
         queryParams.type = filters.transactionType;
       }
 
       if (filters.categoryIds.length > 0) {
-        queryParams.categoryIds = filters.categoryIds.join(",");
+        queryParams.categoryIds = filters.categoryIds.join(',');
       }
 
       if (filters.accountBookId) {
@@ -107,20 +107,20 @@ export function TransactionListPage() {
       }
 
       // 获取交易数据
-      const response = await apiClient.get("/transactions", {
-        params: queryParams
+      const response = await apiClient.get('/transactions', {
+        params: queryParams,
       });
 
       // 获取统计数据
-      const statsResponse = await apiClient.get("/statistics/overview", {
+      const statsResponse = await apiClient.get('/statistics/overview', {
         params: {
           startDate: filters.startDate,
           endDate: filters.endDate,
           accountBookId: filters.accountBookId || undefined,
-          type: filters.transactionType !== "ALL" ? filters.transactionType : undefined,
-          categoryIds: filters.categoryIds.length > 0 ? filters.categoryIds.join(",") : undefined,
-          budgetId: budgetId || undefined
-        }
+          type: filters.transactionType !== 'ALL' ? filters.transactionType : undefined,
+          categoryIds: filters.categoryIds.length > 0 ? filters.categoryIds.join(',') : undefined,
+          budgetId: budgetId || undefined,
+        },
       });
 
       if (response && response.data) {
@@ -135,14 +135,14 @@ export function TransactionListPage() {
         setStatistics({
           income: statsResponse.income || 0,
           expense: statsResponse.expense || 0,
-          balance: (statsResponse.income || 0) - (statsResponse.expense || 0)
+          balance: (statsResponse.income || 0) - (statsResponse.expense || 0),
         });
       }
 
       setIsLoading(false);
     } catch (error) {
-      console.error("获取交易数据失败:", error);
-      setError("获取交易数据失败，请重试");
+      console.error('获取交易数据失败:', error);
+      setError('获取交易数据失败，请重试');
       setIsLoading(false);
     }
   };
@@ -158,24 +158,24 @@ export function TransactionListPage() {
     const fetchFilterOptions = async () => {
       try {
         // 获取分类数据
-        const categoriesResponse = await apiClient.get("/categories");
+        const categoriesResponse = await apiClient.get('/categories');
         if (categoriesResponse && categoriesResponse.data) {
-          setFilterOptions(prev => ({
+          setFilterOptions((prev) => ({
             ...prev,
-            categories: categoriesResponse.data
+            categories: categoriesResponse.data,
           }));
         }
 
         // 获取预算数据
-        const budgetsResponse = await apiClient.get("/budgets");
+        const budgetsResponse = await apiClient.get('/budgets');
         if (budgetsResponse && budgetsResponse.data) {
-          setFilterOptions(prev => ({
+          setFilterOptions((prev) => ({
             ...prev,
-            budgets: budgetsResponse.data
+            budgets: budgetsResponse.data,
           }));
         }
       } catch (error) {
-        console.error("获取筛选选项失败:", error);
+        console.error('获取筛选选项失败:', error);
       }
     };
 
@@ -190,8 +190,8 @@ export function TransactionListPage() {
 
     const groups: Record<string, any[]> = {};
 
-    transactions.forEach(transaction => {
-      const date = dayjs(transaction.date).format("YYYY-MM-DD");
+    transactions.forEach((transaction) => {
+      const date = dayjs(transaction.date).format('YYYY-MM-DD');
       if (!groups[date]) {
         groups[date] = [];
       }
@@ -200,17 +200,17 @@ export function TransactionListPage() {
 
     return Object.entries(groups)
       .map(([date, transactions]) => ({
-        date: dayjs(date).format("MM月DD日"),
-        transactions
+        date: dayjs(date).format('MM月DD日'),
+        transactions,
       }))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   };
 
   // 切换筛选面板
   const toggleFilterPanel = () => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      isFilterPanelOpen: !prev.isFilterPanelOpen
+      isFilterPanelOpen: !prev.isFilterPanelOpen,
     }));
   };
 
@@ -225,7 +225,7 @@ export function TransactionListPage() {
 
   // 处理交易选择
   const handleTransactionSelect = (transactionId: string) => {
-    setSelectedTransactions(prev => {
+    setSelectedTransactions((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(transactionId)) {
         newSet.delete(transactionId);
@@ -247,7 +247,7 @@ export function TransactionListPage() {
     if (selectedTransactions.size === transactions.length) {
       setSelectedTransactions(new Set());
     } else {
-      setSelectedTransactions(new Set(transactions.map(t => t.id)));
+      setSelectedTransactions(new Set(transactions.map((t) => t.id)));
     }
   };
 
@@ -257,8 +257,8 @@ export function TransactionListPage() {
 
     setIsDeleting(true);
     try {
-      const deletePromises = Array.from(selectedTransactions).map(id =>
-        apiClient.delete(`/transactions/${id}`)
+      const deletePromises = Array.from(selectedTransactions).map((id) =>
+        apiClient.delete(`/transactions/${id}`),
       );
 
       await Promise.all(deletePromises);
@@ -287,9 +287,11 @@ export function TransactionListPage() {
           <button
             className="icon-button"
             onClick={toggleSelectAll}
-            title={selectedTransactions.size === transactions.length ? "取消全选" : "全选"}
+            title={selectedTransactions.size === transactions.length ? '取消全选' : '全选'}
           >
-            <i className={`fas ${selectedTransactions.size === transactions.length ? 'fa-check-square' : 'fa-square'}`}></i>
+            <i
+              className={`fas ${selectedTransactions.size === transactions.length ? 'fa-check-square' : 'fa-square'}`}
+            ></i>
           </button>
           <button
             className="icon-button"
@@ -299,21 +301,13 @@ export function TransactionListPage() {
           >
             <i className="fas fa-trash-alt"></i>
           </button>
-          <button
-            className="icon-button"
-            onClick={toggleMultiSelectMode}
-            title="退出多选"
-          >
+          <button className="icon-button" onClick={toggleMultiSelectMode} title="退出多选">
             <i className="fas fa-times"></i>
           </button>
         </>
       ) : (
         <>
-          <button
-            className="icon-button"
-            onClick={toggleMultiSelectMode}
-            title="多选"
-          >
+          <button className="icon-button" onClick={toggleMultiSelectMode} title="多选">
             <i className="fas fa-check-square"></i>
           </button>
           <button className="icon-button">
@@ -329,19 +323,19 @@ export function TransactionListPage() {
 
   // 处理筛选条件变化
   const handleFilterChange = (key: string, value: any) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      [key]: value
+      [key]: value,
     }));
   };
 
   // 处理分类筛选
   const handleCategoryFilter = (categoryId: string, checked: boolean) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       categoryIds: checked
         ? [...prev.categoryIds, categoryId]
-        : prev.categoryIds.filter(id => id !== categoryId)
+        : prev.categoryIds.filter((id) => id !== categoryId),
     }));
   };
 
@@ -350,15 +344,19 @@ export function TransactionListPage() {
     setFilters({
       startDate: getCurrentMonthRange().startDate,
       endDate: getCurrentMonthRange().endDate,
-      transactionType: "ALL",
+      transactionType: 'ALL',
       categoryIds: [],
       accountBookId: null,
-      isFilterPanelOpen: false
+      isFilterPanelOpen: false,
     });
   };
 
   return (
-    <PageContainer title={budgetId ? "预算交易记录" : "交易记录"} rightActions={rightActions} activeNavItem="profile">
+    <PageContainer
+      title={budgetId ? '预算交易记录' : '交易记录'}
+      rightActions={rightActions}
+      activeNavItem="profile"
+    >
       <div ref={scrollContainerRef}>
         {/* 筛选区域 - 简化版 */}
         {filters.isFilterPanelOpen && (
@@ -366,8 +364,12 @@ export function TransactionListPage() {
             <div className="filter-header">
               <h3>筛选条件</h3>
               <div className="filter-actions">
-                <button onClick={resetFilters} className="reset-button">重置</button>
-                <button onClick={toggleFilterPanel} className="close-button">关闭</button>
+                <button onClick={resetFilters} className="reset-button">
+                  重置
+                </button>
+                <button onClick={toggleFilterPanel} className="close-button">
+                  关闭
+                </button>
               </div>
             </div>
 
@@ -401,7 +403,7 @@ export function TransactionListPage() {
                       type="radio"
                       name="transactionType"
                       value="ALL"
-                      checked={filters.transactionType === "ALL"}
+                      checked={filters.transactionType === 'ALL'}
                       onChange={(e) => handleFilterChange('transactionType', e.target.value)}
                     />
                     全部
@@ -411,7 +413,7 @@ export function TransactionListPage() {
                       type="radio"
                       name="transactionType"
                       value="INCOME"
-                      checked={filters.transactionType === "INCOME"}
+                      checked={filters.transactionType === 'INCOME'}
                       onChange={(e) => handleFilterChange('transactionType', e.target.value)}
                     />
                     收入
@@ -421,7 +423,7 @@ export function TransactionListPage() {
                       type="radio"
                       name="transactionType"
                       value="EXPENSE"
-                      checked={filters.transactionType === "EXPENSE"}
+                      checked={filters.transactionType === 'EXPENSE'}
                       onChange={(e) => handleFilterChange('transactionType', e.target.value)}
                     />
                     支出
@@ -452,7 +454,8 @@ export function TransactionListPage() {
                 <div className="filter-section">
                   <h4>当前预算</h4>
                   <div className="budget-info">
-                    {filterOptions.budgets.find((budget: any) => budget.id === budgetId)?.name || '未知预算'}
+                    {filterOptions.budgets.find((budget: any) => budget.id === budgetId)?.name ||
+                      '未知预算'}
                   </div>
                 </div>
               )}
@@ -506,13 +509,21 @@ export function TransactionListPage() {
                         </div>
                       )}
                       <div className="transaction-icon">
-                        <i className={`fas ${getCategoryIconClass(transaction.category?.icon)}`}></i>
+                        <i
+                          className={`fas ${getCategoryIconClass(transaction.category?.icon)}`}
+                        ></i>
                       </div>
                       <div className="transaction-details">
-                        <div className="transaction-title">{transaction.description || transaction.category?.name || '未分类'}</div>
-                        <div className="transaction-category">{transaction.category?.name || '未分类'}</div>
+                        <div className="transaction-title">
+                          {transaction.description || transaction.category?.name || '未分类'}
+                        </div>
+                        <div className="transaction-category">
+                          {transaction.category?.name || '未分类'}
+                        </div>
                       </div>
-                      <div className={`transaction-amount ${transaction.type === TransactionType.EXPENSE ? 'expense' : 'income'}`}>
+                      <div
+                        className={`transaction-amount ${transaction.type === TransactionType.EXPENSE ? 'expense' : 'income'}`}
+                      >
                         {transaction.type === TransactionType.EXPENSE ? '-' : '+'}
                         {formatCurrency(transaction.amount)}
                       </div>
@@ -550,11 +561,7 @@ export function TransactionListPage() {
                 >
                   取消
                 </button>
-                <button
-                  className="btn-danger"
-                  onClick={handleBatchDelete}
-                  disabled={isDeleting}
-                >
+                <button className="btn-danger" onClick={handleBatchDelete} disabled={isDeleting}>
                   {isDeleting ? '删除中...' : '确认删除'}
                 </button>
               </div>

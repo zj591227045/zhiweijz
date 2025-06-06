@@ -36,10 +36,10 @@ export function RecentTransactions({ familyId }: RecentTransactionsProps) {
       setIsLoading(true);
       const response = await fetch(`/api/families/${familyId}/transactions/recent?limit=5`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setTransactions(data || []);
@@ -73,7 +73,7 @@ export function RecentTransactions({ familyId }: RecentTransactionsProps) {
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) {
       return '刚刚';
     } else if (diffInHours < 24) {
@@ -83,7 +83,7 @@ export function RecentTransactions({ familyId }: RecentTransactionsProps) {
     } else {
       return date.toLocaleDateString('zh-CN', {
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
       });
     }
   };
@@ -142,7 +142,8 @@ export function RecentTransactions({ familyId }: RecentTransactionsProps) {
                 </div>
               </div>
               <div className={`transaction-amount ${transaction.type.toLowerCase()}`}>
-                {transaction.type === 'INCOME' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
+                {transaction.type === 'INCOME' ? '+' : '-'}
+                {formatCurrency(Math.abs(transaction.amount))}
               </div>
             </div>
           ))}

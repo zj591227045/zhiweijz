@@ -83,7 +83,7 @@ function ThemeEditorContent() {
 
   // 处理主题信息提交
   const handleThemeInfoSubmit = (data: ThemeInfoFormValues) => {
-    setTheme(prev => ({
+    setTheme((prev) => ({
       ...prev,
       name: data.name,
       description: data.description,
@@ -101,10 +101,10 @@ function ThemeEditorContent() {
   // 处理颜色变更
   const handleColorChange = (newColor: string) => {
     if (selectedVariable) {
-      setTheme(prev => ({
+      setTheme((prev) => ({
         ...prev,
-        variables: prev.variables.map(v =>
-          v.name === selectedVariable.name ? { ...v, value: newColor } : v
+        variables: prev.variables.map((v) =>
+          v.name === selectedVariable.name ? { ...v, value: newColor } : v,
         ),
       }));
       setHasUnsavedChanges(true);
@@ -159,7 +159,7 @@ function ThemeEditorContent() {
   // 应用主题预览
   const applyThemePreview = () => {
     const root = document.documentElement;
-    theme.variables.forEach(variable => {
+    theme.variables.forEach((variable) => {
       root.style.setProperty(variable.name, variable.value);
     });
   };
@@ -170,22 +170,21 @@ function ThemeEditorContent() {
   }, [theme.variables]);
 
   // 按分类分组变量
-  const groupedVariables = theme.variables.reduce((groups, variable) => {
-    const category = variable.category;
-    if (!groups[category]) {
-      groups[category] = [];
-    }
-    groups[category].push(variable);
-    return groups;
-  }, {} as Record<string, ThemeVariable[]>);
+  const groupedVariables = theme.variables.reduce(
+    (groups, variable) => {
+      const category = variable.category;
+      if (!groups[category]) {
+        groups[category] = [];
+      }
+      groups[category].push(variable);
+      return groups;
+    },
+    {} as Record<string, ThemeVariable[]>,
+  );
 
   if (isLoading) {
     return (
-      <PageContainer
-        title="主题编辑器"
-        showBackButton={true}
-        activeNavItem="profile"
-      >
+      <PageContainer title="主题编辑器" showBackButton={true} activeNavItem="profile">
         <div className="flex h-40 items-center justify-center">
           <p className="text-gray-500">加载中...</p>
         </div>
@@ -202,10 +201,7 @@ function ThemeEditorContent() {
     >
       {/* 主题信息表单 */}
       <div className="theme-info-section">
-        <ThemeInfoForm
-          initialData={theme}
-          onSubmit={handleThemeInfoSubmit}
-        />
+        <ThemeInfoForm initialData={theme} onSubmit={handleThemeInfoSubmit} />
       </div>
 
       {/* 颜色变量编辑 */}
@@ -221,10 +217,7 @@ function ThemeEditorContent() {
                   className="variable-item"
                   onClick={() => handleVariableClick(variable)}
                 >
-                  <div
-                    className="color-preview"
-                    style={{ backgroundColor: variable.value }}
-                  />
+                  <div className="color-preview" style={{ backgroundColor: variable.value }} />
                   <div className="variable-info">
                     <div className="variable-label">{variable.label}</div>
                     <div className="variable-value">{variable.value}</div>
@@ -274,17 +267,15 @@ function ThemeEditorContent() {
 
 export default function ThemeEditorPage() {
   return (
-    <Suspense fallback={
-      <PageContainer
-        title="主题编辑器"
-        showBackButton={true}
-        activeNavItem="profile"
-      >
-        <div className="flex h-40 items-center justify-center">
-          <p className="text-gray-500">加载中...</p>
-        </div>
-      </PageContainer>
-    }>
+    <Suspense
+      fallback={
+        <PageContainer title="主题编辑器" showBackButton={true} activeNavItem="profile">
+          <div className="flex h-40 items-center justify-center">
+            <p className="text-gray-500">加载中...</p>
+          </div>
+        </PageContainer>
+      }
+    >
       <ThemeEditorContent />
     </Suspense>
   );

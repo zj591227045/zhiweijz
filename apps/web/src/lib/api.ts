@@ -1,5 +1,5 @@
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
-import { clearAuthCache } from "@/utils/cache-utils";
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { clearAuthCache } from '@/utils/cache-utils';
 
 // 是否为开发环境
 const isDev = process.env.NODE_ENV === 'development';
@@ -58,7 +58,7 @@ const apiCache = new ApiCache();
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
   // 设置超时时间
   timeout: 30000, // 增加到30秒，智能记账API可能需要更长时间
@@ -73,30 +73,30 @@ api.interceptors.request.use(
     try {
       // 只在浏览器环境中尝试获取localStorage
       if (typeof window !== 'undefined') {
-        token = localStorage.getItem("auth-token");
-        if (isDev) console.log("API请求拦截器: 获取到token", token ? '成功' : '失败');
+        token = localStorage.getItem('auth-token');
+        if (isDev) console.log('API请求拦截器: 获取到token', token ? '成功' : '失败');
       }
     } catch (error) {
-      console.error("API请求拦截器: 获取token失败", error);
+      console.error('API请求拦截器: 获取token失败', error);
     }
 
     // 仅在开发环境输出详细日志
-    if (isDev) console.log("API请求:", config.method?.toUpperCase(), config.url);
+    if (isDev) console.log('API请求:', config.method?.toUpperCase(), config.url);
 
     // 如果token存在，添加到请求头
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      if (isDev) console.log("API请求拦截器: 添加Authorization头");
+      if (isDev) console.log('API请求拦截器: 添加Authorization头');
     } else if (isDev) {
-      console.warn("API请求拦截器: 没有token，请求可能会被拒绝");
+      console.warn('API请求拦截器: 没有token，请求可能会被拒绝');
     }
 
     return config;
   },
   (error) => {
-    console.error("API请求拦截器错误:", error);
+    console.error('API请求拦截器错误:', error);
     return Promise.reject(error);
-  }
+  },
 );
 
 // 标记是否正在刷新token
@@ -111,7 +111,7 @@ const subscribeTokenRefresh = (callback: (token: string) => void) => {
 
 // 执行队列中的请求
 const onTokenRefreshed = (token: string) => {
-  refreshSubscribers.forEach(callback => callback(token));
+  refreshSubscribers.forEach((callback) => callback(token));
   refreshSubscribers = [];
 };
 
@@ -120,15 +120,15 @@ api.interceptors.response.use(
   (response) => {
     // 仅在开发环境输出详细日志
     if (isDev) {
-      console.log("API响应:", response.status, response.config.url);
+      console.log('API响应:', response.status, response.config.url);
     }
     return response;
   },
   async (error: AxiosError) => {
     // 仅在开发环境输出详细日志
     if (isDev) {
-      console.error("API响应错误:", error.message);
-      console.error("错误详情:", error.response?.status, error.response?.data);
+      console.error('API响应错误:', error.message);
+      console.error('错误详情:', error.response?.status, error.response?.data);
     }
 
     const originalRequest = error.config as any;
@@ -165,7 +165,7 @@ api.interceptors.response.use(
 
         if (newToken) {
           // 更新localStorage中的token
-          localStorage.setItem("auth-token", newToken);
+          localStorage.setItem('auth-token', newToken);
 
           // 更新请求头
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
@@ -186,7 +186,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 // 生成缓存键
@@ -204,7 +204,10 @@ const getCacheKey = (url: string, params?: any): string => {
 // API方法
 export const apiClient = {
   // GET请求，支持缓存
-  get: <T = any>(url: string, config?: AxiosRequestConfig & { useCache?: boolean, cacheTTL?: number }): Promise<T> => {
+  get: <T = any>(
+    url: string,
+    config?: AxiosRequestConfig & { useCache?: boolean; cacheTTL?: number },
+  ): Promise<T> => {
     // 仅在开发环境输出详细日志
     if (isDev) console.log('API GET 请求:', url, config);
     const useCache = config?.useCache !== false; // 默认使用缓存
@@ -224,26 +227,32 @@ export const apiClient = {
 
       // 如果缓存中没有，发起请求并缓存结果
       if (isDev) console.log('缓存中没有数据，发起请求:', url);
-      return api.get(url, config).then((res: AxiosResponse) => {
-        if (isDev) console.log('API GET 响应数据:', url);
-        // 使用提供的TTL或默认值
-        apiCache.set(cacheKey, res.data, cacheTTL);
-        return res.data;
-      }).catch(error => {
-        console.error('API GET 请求错误:', url, error);
-        throw error;
-      });
+      return api
+        .get(url, config)
+        .then((res: AxiosResponse) => {
+          if (isDev) console.log('API GET 响应数据:', url);
+          // 使用提供的TTL或默认值
+          apiCache.set(cacheKey, res.data, cacheTTL);
+          return res.data;
+        })
+        .catch((error) => {
+          console.error('API GET 请求错误:', url, error);
+          throw error;
+        });
     }
 
     // 不使用缓存或没有参数，直接发起请求
     if (isDev) console.log('不使用缓存，直接发起请求:', url);
-    return api.get(url, config).then((res: AxiosResponse) => {
-      if (isDev) console.log('API GET 响应数据:', url);
-      return res.data;
-    }).catch(error => {
-      console.error('API GET 请求错误:', url, error);
-      throw error;
-    });
+    return api
+      .get(url, config)
+      .then((res: AxiosResponse) => {
+        if (isDev) console.log('API GET 响应数据:', url);
+        return res.data;
+      })
+      .catch((error) => {
+        console.error('API GET 请求错误:', url, error);
+        throw error;
+      });
   },
 
   // POST请求，会使相关GET缓存失效
@@ -251,23 +260,23 @@ export const apiClient = {
     return api.post(url, data, config).then((res: AxiosResponse) => {
       // 使相关缓存失效 - 修复缓存失效逻辑
       const baseUrl = url.split('?')[0]; // 移除查询参数
-      const urlParts = baseUrl.split('/').filter(part => part); // 移除空字符串
-      
+      const urlParts = baseUrl.split('/').filter((part) => part); // 移除空字符串
+
       if (isDev) console.log('POST请求完成，清除相关缓存:', baseUrl);
-      
+
       // 清除完全匹配的缓存
       apiCache.invalidate(new RegExp(`^${baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
-      
+
       // 清除带参数的缓存
       apiCache.invalidate(new RegExp(`^${baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?`));
-      
+
       // 对于更新操作，还要清除列表缓存（如 /transactions）
       if (urlParts.length > 1) {
         const listUrl = '/' + urlParts.slice(0, -1).join('/');
         apiCache.invalidate(new RegExp(`^${listUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
         apiCache.invalidate(new RegExp(`^${listUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?`));
       }
-      
+
       if (isDev) console.log('缓存清除完成');
       return res.data;
     });
@@ -278,23 +287,23 @@ export const apiClient = {
     return api.put(url, data, config).then((res: AxiosResponse) => {
       // 使相关缓存失效 - 修复缓存失效逻辑
       const baseUrl = url.split('?')[0]; // 移除查询参数
-      const urlParts = baseUrl.split('/').filter(part => part); // 移除空字符串
-      
+      const urlParts = baseUrl.split('/').filter((part) => part); // 移除空字符串
+
       if (isDev) console.log('PUT请求完成，清除相关缓存:', baseUrl);
-      
+
       // 清除完全匹配的缓存
       apiCache.invalidate(new RegExp(`^${baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
-      
+
       // 清除带参数的缓存
       apiCache.invalidate(new RegExp(`^${baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?`));
-      
+
       // 对于更新操作，还要清除列表缓存（如 /transactions）
       if (urlParts.length > 1) {
         const listUrl = '/' + urlParts.slice(0, -1).join('/');
         apiCache.invalidate(new RegExp(`^${listUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
         apiCache.invalidate(new RegExp(`^${listUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?`));
       }
-      
+
       if (isDev) console.log('缓存清除完成');
       return res.data;
     });
@@ -305,23 +314,23 @@ export const apiClient = {
     return api.patch(url, data, config).then((res: AxiosResponse) => {
       // 使相关缓存失效 - 修复缓存失效逻辑
       const baseUrl = url.split('?')[0]; // 移除查询参数
-      const urlParts = baseUrl.split('/').filter(part => part); // 移除空字符串
-      
+      const urlParts = baseUrl.split('/').filter((part) => part); // 移除空字符串
+
       if (isDev) console.log('PATCH请求完成，清除相关缓存:', baseUrl);
-      
+
       // 清除完全匹配的缓存
       apiCache.invalidate(new RegExp(`^${baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
-      
+
       // 清除带参数的缓存
       apiCache.invalidate(new RegExp(`^${baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?`));
-      
+
       // 对于更新操作，还要清除列表缓存（如 /transactions）
       if (urlParts.length > 1) {
         const listUrl = '/' + urlParts.slice(0, -1).join('/');
         apiCache.invalidate(new RegExp(`^${listUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
         apiCache.invalidate(new RegExp(`^${listUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?`));
       }
-      
+
       if (isDev) console.log('缓存清除完成');
       return res.data;
     });
@@ -332,23 +341,23 @@ export const apiClient = {
     return api.delete(url, config).then((res: AxiosResponse) => {
       // 使相关缓存失效 - 修复缓存失效逻辑
       const baseUrl = url.split('?')[0]; // 移除查询参数
-      const urlParts = baseUrl.split('/').filter(part => part); // 移除空字符串
-      
+      const urlParts = baseUrl.split('/').filter((part) => part); // 移除空字符串
+
       if (isDev) console.log('DELETE请求完成，清除相关缓存:', baseUrl);
-      
+
       // 清除完全匹配的缓存
       apiCache.invalidate(new RegExp(`^${baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
-      
+
       // 清除带参数的缓存
       apiCache.invalidate(new RegExp(`^${baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?`));
-      
+
       // 对于删除操作，还要清除列表缓存（如 /transactions）
       if (urlParts.length > 1) {
         const listUrl = '/' + urlParts.slice(0, -1).join('/');
         apiCache.invalidate(new RegExp(`^${listUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
         apiCache.invalidate(new RegExp(`^${listUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?`));
       }
-      
+
       if (isDev) console.log('缓存清除完成');
       return res.data;
     });
@@ -375,30 +384,31 @@ export const apiClient = {
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (
-          key.includes('auth') ||
-          key.includes('account-book') ||
-          key.includes('budget') ||
-          key.includes('transaction') ||
-          key.includes('category') ||
-          key.includes('family') ||
-          key.includes('statistics') ||
-          key.includes('dashboard') ||
-          key.includes('ai-services') ||
-          key.includes('llm-cache') ||
-          key.includes('theme')
-        )) {
+        if (
+          key &&
+          (key.includes('auth') ||
+            key.includes('account-book') ||
+            key.includes('budget') ||
+            key.includes('transaction') ||
+            key.includes('category') ||
+            key.includes('family') ||
+            key.includes('statistics') ||
+            key.includes('dashboard') ||
+            key.includes('ai-services') ||
+            key.includes('llm-cache') ||
+            key.includes('theme'))
+        ) {
           keysToRemove.push(key);
         }
       }
-      keysToRemove.forEach(key => {
+      keysToRemove.forEach((key) => {
         localStorage.removeItem(key);
         console.log('已清除localStorage项:', key);
       });
     }
 
     console.log('所有缓存已清除');
-  }
+  },
 };
 
 export default api;

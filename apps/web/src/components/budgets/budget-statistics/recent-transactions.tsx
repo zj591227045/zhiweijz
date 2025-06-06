@@ -38,11 +38,11 @@ export function RecentTransactions({ transactions, budgetId }: RecentTransaction
   const handleViewAll = () => {
     // 构建查询参数
     const params = new URLSearchParams();
-    
+
     if (budgetId) {
       params.set('budgetId', budgetId);
     }
-    
+
     // 重定向到交易列表页面
     const url = `/transactions${params.toString() ? `?${params.toString()}` : ''}`;
     router.push(url);
@@ -63,12 +63,14 @@ export function RecentTransactions({ transactions, budgetId }: RecentTransaction
     <section className="recent-transactions">
       <div className="section-header">
         <h2>最近交易</h2>
-        <button className="view-all" onClick={handleViewAll}>查看全部</button>
+        <button className="view-all" onClick={handleViewAll}>
+          查看全部
+        </button>
       </div>
 
       <div className="transaction-list">
         {transactions.length > 0 ? (
-          transactions.map(transaction => (
+          transactions.map((transaction) => (
             <div
               key={transaction.id}
               className="transaction-item"
@@ -76,7 +78,9 @@ export function RecentTransactions({ transactions, budgetId }: RecentTransaction
               style={{ cursor: 'pointer' }}
             >
               <div className="transaction-icon">
-                <i className={`fas ${getCategoryIconClass(transaction.category?.icon || transaction.categoryIcon || 'receipt')}`}></i>
+                <i
+                  className={`fas ${getCategoryIconClass(transaction.category?.icon || transaction.categoryIcon || 'receipt')}`}
+                ></i>
               </div>
               <div className="transaction-info">
                 <div className="transaction-title">{transaction.title}</div>

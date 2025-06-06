@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { memo } from "react";
-import { formatCurrency, getCategoryIconClass } from "../../lib/utils";
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { memo } from 'react';
+import { formatCurrency, getCategoryIconClass } from '../../lib/utils';
 
 // 交易类型枚举
 export enum TransactionType {
-  EXPENSE = "EXPENSE",
-  INCOME = "INCOME",
+  EXPENSE = 'EXPENSE',
+  INCOME = 'INCOME',
 }
 
 interface Transaction {
@@ -31,94 +31,107 @@ interface RecentTransactionsProps {
 }
 
 // 使用React.memo优化渲染性能
-export const RecentTransactions = memo(function RecentTransactions({ groupedTransactions }: RecentTransactionsProps) {
-  const router = useRouter();
+export const RecentTransactions = memo(
+  function RecentTransactions({ groupedTransactions }: RecentTransactionsProps) {
+    const router = useRouter();
 
-  // 处理交易项点击 - 直接进入编辑页面
-  const handleTransactionClick = (transactionId: string) => {
-    router.push(`/transactions/edit/${transactionId}`);
-  };
+    // 处理交易项点击 - 直接进入编辑页面
+    const handleTransactionClick = (transactionId: string) => {
+      router.push(`/transactions/edit/${transactionId}`);
+    };
 
-  // 获取图标类名
-  const getIconClass = (iconName: string, type: TransactionType) => {
-    // 如果是收入类型且没有图标名称，使用默认收入图标
-    if (type === TransactionType.INCOME && !iconName) {
-      return "fa-money-bill-wave";
-    }
+    // 获取图标类名
+    const getIconClass = (iconName: string, type: TransactionType) => {
+      // 如果是收入类型且没有图标名称，使用默认收入图标
+      if (type === TransactionType.INCOME && !iconName) {
+        return 'fa-money-bill-wave';
+      }
 
-    return getCategoryIconClass(iconName);
-  };
+      return getCategoryIconClass(iconName);
+    };
 
-  return (
-    <section className="recent-transactions">
-      <div className="section-header">
-        <h2>最近交易</h2>
-        <Link href="/transactions?refresh=true" className="view-all">查看全部</Link>
-      </div>
-
-      {groupedTransactions.length > 0 ? (
-        groupedTransactions.map((group) => (
-          <div key={group.date} className="transaction-group">
-            <div className="transaction-date">{group.date}</div>
-            <div className="transaction-list">
-              {group.transactions.map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className="transaction-item"
-                  onClick={() => handleTransactionClick(transaction.id)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <div className="transaction-icon">
-                    <i className={`fas ${getIconClass(transaction.categoryIcon || '', transaction.type)}`}></i>
-                  </div>
-                  <div className="transaction-details">
-                    <div className="transaction-title">{transaction.description || transaction.categoryName}</div>
-                    <div className="transaction-category">{transaction.categoryName}</div>
-                  </div>
-                  <div className={`transaction-amount ${transaction.type === TransactionType.EXPENSE ? 'expense' : 'income'}`}>
-                    {transaction.type === TransactionType.EXPENSE ? '-' : '+'}
-                    {formatCurrency(transaction.amount)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))
-      ) : (
-        <div className="transaction-list text-center">
-          暂无交易记录
+    return (
+      <section className="recent-transactions">
+        <div className="section-header">
+          <h2>最近交易</h2>
+          <Link href="/transactions?refresh=true" className="view-all">
+            查看全部
+          </Link>
         </div>
-      )}
-    </section>
-  );
-}, (prevProps, nextProps) => {
-  // 自定义比较函数，只有当交易数据真正变化时才重新渲染
-  if (prevProps.groupedTransactions.length !== nextProps.groupedTransactions.length) {
-    return false;
-  }
 
-  // 深度比较交易组数据
-  for (let i = 0; i < prevProps.groupedTransactions.length; i++) {
-    const prevGroup = prevProps.groupedTransactions[i];
-    const nextGroup = nextProps.groupedTransactions[i];
-
-    if (prevGroup.date !== nextGroup.date ||
-        prevGroup.transactions.length !== nextGroup.transactions.length) {
+        {groupedTransactions.length > 0 ? (
+          groupedTransactions.map((group) => (
+            <div key={group.date} className="transaction-group">
+              <div className="transaction-date">{group.date}</div>
+              <div className="transaction-list">
+                {group.transactions.map((transaction) => (
+                  <div
+                    key={transaction.id}
+                    className="transaction-item"
+                    onClick={() => handleTransactionClick(transaction.id)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className="transaction-icon">
+                      <i
+                        className={`fas ${getIconClass(transaction.categoryIcon || '', transaction.type)}`}
+                      ></i>
+                    </div>
+                    <div className="transaction-details">
+                      <div className="transaction-title">
+                        {transaction.description || transaction.categoryName}
+                      </div>
+                      <div className="transaction-category">{transaction.categoryName}</div>
+                    </div>
+                    <div
+                      className={`transaction-amount ${transaction.type === TransactionType.EXPENSE ? 'expense' : 'income'}`}
+                    >
+                      {transaction.type === TransactionType.EXPENSE ? '-' : '+'}
+                      {formatCurrency(transaction.amount)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="transaction-list text-center">暂无交易记录</div>
+        )}
+      </section>
+    );
+  },
+  (prevProps, nextProps) => {
+    // 自定义比较函数，只有当交易数据真正变化时才重新渲染
+    if (prevProps.groupedTransactions.length !== nextProps.groupedTransactions.length) {
       return false;
     }
 
-    // 比较每个交易
-    for (let j = 0; j < prevGroup.transactions.length; j++) {
-      const prevTx = prevGroup.transactions[j];
-      const nextTx = nextGroup.transactions[j];
+    // 深度比较交易组数据
+    for (let i = 0; i < prevProps.groupedTransactions.length; i++) {
+      const prevGroup = prevProps.groupedTransactions[i];
+      const nextGroup = nextProps.groupedTransactions[i];
 
-      if (prevTx.id !== nextTx.id ||
-          prevTx.amount !== nextTx.amount ||
-          prevTx.type !== nextTx.type) {
+      if (
+        prevGroup.date !== nextGroup.date ||
+        prevGroup.transactions.length !== nextGroup.transactions.length
+      ) {
         return false;
       }
-    }
-  }
 
-  return true;
-});
+      // 比较每个交易
+      for (let j = 0; j < prevGroup.transactions.length; j++) {
+        const prevTx = prevGroup.transactions[j];
+        const nextTx = nextGroup.transactions[j];
+
+        if (
+          prevTx.id !== nextTx.id ||
+          prevTx.amount !== nextTx.amount ||
+          prevTx.type !== nextTx.type
+        ) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  },
+);

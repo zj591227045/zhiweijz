@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev -p 3003",
     "build": "next build",
+    "build:static": "NEXT_BUILD_MODE=export next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest"

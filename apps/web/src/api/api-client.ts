@@ -24,7 +24,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // 响应拦截器 - 处理认证错误和数据格式
@@ -39,8 +39,14 @@ apiClient.interceptors.response.use(
       headers: response.headers,
       data: response.data,
       dataType: typeof response.data,
-      dataLength: Array.isArray(response.data) ? response.data.length :
-                  (response.data && typeof response.data === 'object' && response.data.data && Array.isArray(response.data.data)) ? response.data.data.length : 'N/A'
+      dataLength: Array.isArray(response.data)
+        ? response.data.length
+        : response.data &&
+            typeof response.data === 'object' &&
+            response.data.data &&
+            Array.isArray(response.data.data)
+          ? response.data.data.length
+          : 'N/A',
     });
     return response;
   },
@@ -54,7 +60,7 @@ apiClient.interceptors.response.use(
       message: error.message,
       responseData: error.response?.data,
       requestHeaders: error.config?.headers,
-      responseHeaders: error.response?.headers
+      responseHeaders: error.response?.headers,
     });
 
     if (error.response?.status === 401) {
@@ -68,5 +74,5 @@ apiClient.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );

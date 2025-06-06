@@ -1,4 +1,4 @@
-import { apiClient } from "@/api/api-client";
+import { apiClient } from '@/api/api-client';
 
 // 修改密码请求
 export interface ChangePasswordRequest {
@@ -42,5 +42,5 @@ export const securityService = {
       console.error('修改邮箱失败:', error);
       throw error;
     }
-  }
-}; 
+  },
+};

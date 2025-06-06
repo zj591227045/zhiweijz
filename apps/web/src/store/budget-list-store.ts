@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { apiClient } from '@/lib/api';
+import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { Budget } from '@/components/budgets/budget-list-card';
 
@@ -55,16 +55,16 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
       const personalResponse = await apiClient.get('/budgets', {
         params: {
           accountBookId,
-          budgetType: 'PERSONAL'
-        }
+          budgetType: 'PERSONAL',
+        },
       });
 
       // 获取通用预算
       const generalResponse = await apiClient.get('/budgets', {
         params: {
           accountBookId,
-          budgetType: 'GENERAL'
-        }
+          budgetType: 'GENERAL',
+        },
       });
 
       console.log('个人预算响应:', personalResponse);
@@ -108,7 +108,7 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
           spent: budget.spent,
           percentage: budget.percentage,
           progress: budget.progress,
-          remaining: budget.remaining
+          remaining: budget.remaining,
         });
 
         // 获取当前账本类型
@@ -129,15 +129,16 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
         }
 
         // 确保percentage字段存在，如果不存在则从progress字段获取或计算
-        const percentage = budget.percentage !== undefined
-          ? budget.percentage
-          : budget.progress !== undefined
-            ? budget.progress
-            : (() => {
-                // 计算总可用金额（基础预算 + 结转金额）
-                const totalAvailable = budget.amount + (budget.rolloverAmount || 0);
-                return totalAvailable > 0 ? (budget.spent / totalAvailable) * 100 : 0;
-              })();
+        const percentage =
+          budget.percentage !== undefined
+            ? budget.percentage
+            : budget.progress !== undefined
+              ? budget.progress
+              : (() => {
+                  // 计算总可用金额（基础预算 + 结转金额）
+                  const totalAvailable = budget.amount + (budget.rolloverAmount || 0);
+                  return totalAvailable > 0 ? (budget.spent / totalAvailable) * 100 : 0;
+                })();
 
         const processedBudget = {
           ...budget,
@@ -146,7 +147,7 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
           overSpent: percentage >= 100,
           accountBookType,
           userName,
-          familyMemberName
+          familyMemberName,
         };
 
         console.log('处理后的预算数据:', {
@@ -158,7 +159,7 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
           adjustedRemaining: processedBudget.adjustedRemaining,
           percentage: processedBudget.percentage,
           warning: processedBudget.warning,
-          overSpent: processedBudget.overSpent
+          overSpent: processedBudget.overSpent,
         });
 
         return processedBudget;
@@ -166,35 +167,36 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
 
       const processedGeneralBudgets = generalBudgetsData.map((budget: any) => {
         // 确保percentage字段存在，如果不存在则从progress字段获取或计算
-        const percentage = budget.percentage !== undefined
-          ? budget.percentage
-          : budget.progress !== undefined
-            ? budget.progress
-            : (() => {
-                // 计算总可用金额（基础预算 + 结转金额）
-                const totalAvailable = budget.amount + (budget.rolloverAmount || 0);
-                return totalAvailable > 0 ? (budget.spent / totalAvailable) * 100 : 0;
-              })();
+        const percentage =
+          budget.percentage !== undefined
+            ? budget.percentage
+            : budget.progress !== undefined
+              ? budget.progress
+              : (() => {
+                  // 计算总可用金额（基础预算 + 结转金额）
+                  const totalAvailable = budget.amount + (budget.rolloverAmount || 0);
+                  return totalAvailable > 0 ? (budget.spent / totalAvailable) * 100 : 0;
+                })();
 
         return {
           ...budget,
           percentage, // 确保percentage字段存在
           warning: percentage >= 80 && percentage < 100,
           overSpent: percentage >= 100,
-          accountBookType: budget.accountBookType || 'PERSONAL'
+          accountBookType: budget.accountBookType || 'PERSONAL',
         };
       });
 
       set({
         personalBudgets: processedPersonalBudgets,
         generalBudgets: processedGeneralBudgets,
-        isLoading: false
+        isLoading: false,
       });
     } catch (error) {
       console.error('获取预算列表失败:', error);
       set({
         isLoading: false,
-        error: '获取预算列表失败，请重试'
+        error: '获取预算列表失败，请重试',
       });
       toast.error('获取预算列表失败，请重试');
     }
@@ -228,8 +230,8 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
       const { personalBudgets, generalBudgets } = get();
 
       set({
-        personalBudgets: personalBudgets.filter(budget => budget.id !== budgetId),
-        generalBudgets: generalBudgets.filter(budget => budget.id !== budgetId)
+        personalBudgets: personalBudgets.filter((budget) => budget.id !== budgetId),
+        generalBudgets: generalBudgets.filter((budget) => budget.id !== budgetId),
       });
 
       toast.success('预算已删除');
@@ -248,7 +250,7 @@ export const useBudgetListStore = create<BudgetListState>((set, get) => ({
       generalBudgets: [],
       selectedType: 'PERSONAL',
       isLoading: false,
-      error: null
+      error: null,
     });
-  }
+  },
 }));

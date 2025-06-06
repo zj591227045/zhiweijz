@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import React from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
-import { useAccountBookStore } from "@/store/account-book-store";
-import { useLLMCacheStore } from "@/store/llm-cache-store";
-import { SmartAccountingDialog } from "../transactions/smart-accounting-dialog";
-import { toast } from "sonner";
-import "@/styles/smart-accounting-dialog.css";
+import React from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useAccountBookStore } from '@/store/account-book-store';
+import { useLLMCacheStore } from '@/store/llm-cache-store';
+import { SmartAccountingDialog } from '../transactions/smart-accounting-dialog';
+import { toast } from 'sonner';
+import '@/styles/smart-accounting-dialog.css';
 
 interface EnhancedBottomNavigationProps {
   currentPath?: string;
@@ -36,7 +36,7 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
         return;
       }
 
-      // 检查缓存
+      // 检查缓存 - 只监听当前账本的缓存
       const cachedSettings = llmCache[currentAccountBook.id];
       if (cachedSettings) {
         setHasLLMService(cachedSettings.bound);
@@ -54,7 +54,7 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
     };
 
     checkLLMService();
-  }, [currentAccountBook?.id, currentAccountBook?.userLLMSettingId, getLLMSettings, llmCache]);
+  }, [currentAccountBook?.id, currentAccountBook?.userLLMSettingId, getLLMSettings, llmCache[currentAccountBook?.id]]);
 
   const isActive = (path: string) => {
     if (currentPath) {
@@ -66,17 +66,17 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
   const handleAddButtonClick = (e: React.MouseEvent) => {
     e.preventDefault();
 
-    console.log("添加按钮点击，当前LLM服务绑定状态:", hasLLMService);
+    console.log('添加按钮点击，当前LLM服务绑定状态:', hasLLMService);
 
     // 如果明确知道账本未绑定LLM服务，直接跳转到手动记账页面
     if (hasLLMService === false) {
-      console.log("账本未绑定LLM服务，跳转到手动记账页面");
-      router.push("/transactions/new");
+      console.log('账本未绑定LLM服务，跳转到手动记账页面');
+      router.push('/transactions/new');
       return;
     }
 
     // 如果账本已绑定LLM服务或状态未知，打开智能记账对话框
-    console.log("账本已绑定LLM服务或状态未知，打开智能记账对话框");
+    console.log('账本已绑定LLM服务或状态未知，打开智能记账对话框');
     setIsSmartAccountingOpen(true);
   };
 
@@ -91,12 +91,20 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
           <i className="fas fa-chart-pie"></i>
           <span>统计</span>
         </Link>
-        <a href="#" onClick={handleAddButtonClick} className="nav-item add-button" style={{ zIndex: 101 }}>
+        <a
+          href="#"
+          onClick={handleAddButtonClick}
+          className="nav-item add-button"
+          style={{ zIndex: 101 }}
+        >
           <div className="add-icon">
             <i className="fas fa-plus"></i>
           </div>
         </a>
-        <Link href="/budgets/statistics" className={`nav-item ${isActive('/budgets') || (pathname && pathname.startsWith('/budgets/')) ? 'active' : ''}`}>
+        <Link
+          href="/budgets/statistics"
+          className={`nav-item ${isActive('/budgets') || (pathname && pathname.startsWith('/budgets/')) ? 'active' : ''}`}
+        >
           <i className="fas fa-wallet"></i>
           <span>预算</span>
         </Link>

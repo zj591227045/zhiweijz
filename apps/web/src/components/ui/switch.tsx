@@ -1,6 +1,6 @@
-"use client"
+'use client';
 
-import * as React from "react"
+import * as React from 'react';
 
 interface SwitchProps {
   checked?: boolean;
@@ -10,7 +10,7 @@ interface SwitchProps {
 }
 
 const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
-  ({ checked = false, onCheckedChange, disabled = false, className = "", ...props }, ref) => {
+  ({ checked = false, onCheckedChange, disabled = false, className = '', ...props }, ref) => {
     const handleClick = () => {
       if (!disabled && onCheckedChange) {
         onCheckedChange(!checked);
@@ -44,9 +44,9 @@ const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
         />
       </button>
     );
-  }
+  },
 );
 
-Switch.displayName = "Switch";
+Switch.displayName = 'Switch';
 
 export { Switch };

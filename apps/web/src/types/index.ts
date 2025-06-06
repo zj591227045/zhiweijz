@@ -28,8 +28,8 @@ export interface RegisterData {
  * 账本相关类型
  */
 export enum AccountBookType {
-  PERSONAL = "PERSONAL",
-  FAMILY = "FAMILY",
+  PERSONAL = 'PERSONAL',
+  FAMILY = 'FAMILY',
 }
 
 export interface AccountBook {
@@ -56,8 +56,8 @@ export interface AccountBook {
  * 交易相关类型
  */
 export enum TransactionType {
-  EXPENSE = "EXPENSE",
-  INCOME = "INCOME",
+  EXPENSE = 'EXPENSE',
+  INCOME = 'INCOME',
 }
 
 export interface Transaction {
@@ -127,7 +127,7 @@ export interface Budget {
   amount: number;
   categoryId: string;
   category?: Category;
-  period: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
+  period: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
   startDate: string;
   endDate?: string;
   accountBookId: string;
@@ -195,8 +195,8 @@ export interface TransactionGroup {
  * 家庭相关类型
  */
 export enum FamilyRole {
-  ADMIN = "ADMIN",
-  MEMBER = "MEMBER",
+  ADMIN = 'ADMIN',
+  MEMBER = 'MEMBER',
 }
 
 export interface Family {

@@ -12,7 +12,7 @@ export default function TransactionNewPage() {
   // 检查用户是否已认证
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push("/auth/login");
+      router.push('/auth/login');
     }
   }, [isAuthenticated, router]);
 

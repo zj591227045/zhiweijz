@@ -70,9 +70,7 @@ export function FamilyCard({ family }: FamilyCardProps) {
               <div className="family-card-name">{family.name}</div>
               <div className="family-card-meta">
                 <RoleBadge role={isCreator ? FamilyRole.ADMIN : FamilyRole.MEMBER} />
-                <span className="family-card-date">
-                  {formattedDate}
-                </span>
+                <span className="family-card-date">{formattedDate}</span>
               </div>
             </div>
             <div className="family-card-stats">
@@ -80,9 +78,7 @@ export function FamilyCard({ family }: FamilyCardProps) {
                 <i className="fas fa-users"></i>
                 <span>{family.memberCount || 0}名成员</span>
               </div>
-              <div className="family-card-role">
-                {isCreator ? '创建者' : '成员'}
-              </div>
+              <div className="family-card-role">{isCreator ? '创建者' : '成员'}</div>
             </div>
           </div>
           <div className="family-card-arrow">
@@ -93,9 +89,7 @@ export function FamilyCard({ family }: FamilyCardProps) {
 
       {/* 操作菜单 */}
       {showActions && (
-        <div className="dialog-overlay"
-          onClick={() => setShowActions(false)}
-        >
+        <div className="dialog-overlay" onClick={() => setShowActions(false)}>
           <div className="dialog-content" onClick={(e) => e.stopPropagation()}>
             <div className="dialog-header">
               <h3 className="dialog-title">{family.name}</h3>

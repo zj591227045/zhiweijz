@@ -50,10 +50,10 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
       setIsLoading(true);
       const response = await fetch(`/api/families/${familyId}/custodial-members`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         // API返回格式为 { members: [], totalCount: number }
@@ -101,7 +101,7 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       });
@@ -127,7 +127,7 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
   const handleEditMember = (member: CustodialMember) => {
     console.log('编辑托管成员:', member);
     setSelectedMember(member);
-    
+
     // 格式化生日日期为 YYYY-MM-DD 格式（HTML date input 需要的格式）
     let formattedBirthDate = '';
     if (member.birthDate) {
@@ -142,7 +142,7 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
         console.error('日期格式化失败:', member.birthDate, error);
       }
     }
-    
+
     const newFormData = {
       name: member.name,
       gender: member.gender || '男',
@@ -167,14 +167,17 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`/api/families/${familyId}/custodial-members/${selectedMember.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+      const response = await fetch(
+        `/api/families/${familyId}/custodial-members/${selectedMember.id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(formData),
         },
-        body: JSON.stringify(formData),
-      });
+      );
 
       if (response.ok) {
         toast.success('更新托管成员成功');
@@ -205,12 +208,15 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`/api/families/${familyId}/custodial-members/${selectedMember.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
+      const response = await fetch(
+        `/api/families/${familyId}/custodial-members/${selectedMember.id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       if (response.ok) {
         toast.success('删除托管成员成功');
@@ -245,14 +251,14 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
     try {
       const birth = new Date(birthDate);
       const today = new Date();
-      
+
       // 计算年龄
       let age = today.getFullYear() - birth.getFullYear();
       const monthDiff = today.getMonth() - birth.getMonth();
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
         age--;
       }
-      
+
       // 如果年龄小于1岁，显示月份
       if (age < 1) {
         let months = today.getMonth() - birth.getMonth();
@@ -264,7 +270,7 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
         }
         return months === 0 ? '新生儿' : `${months}个月`;
       }
-      
+
       return `${age}岁`;
     } catch (error) {
       console.error('年龄计算失败:', birthDate, error);
@@ -293,10 +299,7 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
           <span>托管成员</span>
         </div>
         {isAdmin && (
-          <button
-            className="add-button"
-            onClick={() => setIsAddDialogOpen(true)}
-          >
+          <button className="add-button" onClick={() => setIsAddDialogOpen(true)}>
             <i className="fas fa-plus"></i>
             <span>添加</span>
           </button>
@@ -323,16 +326,15 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
                 <div className="custodial-name">{member.name}</div>
                 <div className="custodial-info">
                   {member.gender && <span className="gender">{member.gender}</span>}
-                  {member.birthDate && <span className="age">{calculateAge(member.birthDate)}</span>}
+                  {member.birthDate && (
+                    <span className="age">{calculateAge(member.birthDate)}</span>
+                  )}
                   <span className="created-date">添加于 {formatDate(member.createdAt)}</span>
                 </div>
               </div>
               {isAdmin && (
                 <div className="custodial-actions">
-                  <button
-                    className="action-button edit"
-                    onClick={() => handleEditMember(member)}
-                  >
+                  <button className="action-button edit" onClick={() => handleEditMember(member)}>
                     <i className="fas fa-edit"></i>
                   </button>
                   <button
@@ -354,10 +356,7 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
           <i className="fas fa-child"></i>
           <p>暂无托管成员</p>
           {isAdmin && (
-            <button
-              className="btn-primary"
-              onClick={() => setIsAddDialogOpen(true)}
-            >
+            <button className="btn-primary" onClick={() => setIsAddDialogOpen(true)}>
               添加托管成员
             </button>
           )}
@@ -366,15 +365,18 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
 
       {/* 添加对话框 */}
       {isAddDialogOpen && (
-        <div className="dialog-overlay" onClick={() => {
-          setIsAddDialogOpen(false);
-          resetForm();
-        }}>
+        <div
+          className="dialog-overlay"
+          onClick={() => {
+            setIsAddDialogOpen(false);
+            resetForm();
+          }}
+        >
           <div className="dialog-content" onClick={(e) => e.stopPropagation()}>
             <div className="dialog-header">
               <h3 className="dialog-title">添加托管成员</h3>
-              <button 
-                className="dialog-close" 
+              <button
+                className="dialog-close"
                 onClick={() => {
                   setIsAddDialogOpen(false);
                   resetForm();
@@ -416,8 +418,8 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
               </div>
             </div>
             <div className="dialog-footer">
-              <button 
-                className="btn-secondary" 
+              <button
+                className="btn-secondary"
                 onClick={() => {
                   setIsAddDialogOpen(false);
                   resetForm();
@@ -426,8 +428,8 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
               >
                 取消
               </button>
-              <button 
-                className="btn-primary" 
+              <button
+                className="btn-primary"
                 onClick={handleAddMember}
                 disabled={isSubmitting || !formData.name}
               >
@@ -440,16 +442,19 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
 
       {/* 编辑对话框 */}
       {isEditDialogOpen && (
-        <div className="dialog-overlay" onClick={() => {
-          setIsEditDialogOpen(false);
-          setSelectedMember(null);
-          resetForm();
-        }}>
+        <div
+          className="dialog-overlay"
+          onClick={() => {
+            setIsEditDialogOpen(false);
+            setSelectedMember(null);
+            resetForm();
+          }}
+        >
           <div className="dialog-content" onClick={(e) => e.stopPropagation()}>
             <div className="dialog-header">
               <h3 className="dialog-title">编辑托管成员</h3>
-              <button 
-                className="dialog-close" 
+              <button
+                className="dialog-close"
                 onClick={() => {
                   setIsEditDialogOpen(false);
                   setSelectedMember(null);
@@ -492,8 +497,8 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
               </div>
             </div>
             <div className="dialog-footer">
-              <button 
-                className="btn-secondary" 
+              <button
+                className="btn-secondary"
                 onClick={() => {
                   setIsEditDialogOpen(false);
                   setSelectedMember(null);
@@ -503,8 +508,8 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
               >
                 取消
               </button>
-              <button 
-                className="btn-primary" 
+              <button
+                className="btn-primary"
                 onClick={handleUpdateMember}
                 disabled={isSubmitting || !formData.name}
               >
@@ -521,10 +526,7 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
           <div className="dialog-content" onClick={(e) => e.stopPropagation()}>
             <div className="dialog-header">
               <h3 className="dialog-title">删除托管成员</h3>
-              <button 
-                className="dialog-close" 
-                onClick={() => setIsDeleteDialogOpen(false)}
-              >
+              <button className="dialog-close" onClick={() => setIsDeleteDialogOpen(false)}>
                 <i className="fas fa-times"></i>
               </button>
             </div>
@@ -532,18 +534,14 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
               <p>确定要删除托管成员 "{selectedMember.name}" 吗？此操作无法撤销。</p>
             </div>
             <div className="dialog-footer">
-              <button 
-                className="btn-secondary" 
+              <button
+                className="btn-secondary"
                 onClick={() => setIsDeleteDialogOpen(false)}
                 disabled={isSubmitting}
               >
                 取消
               </button>
-              <button 
-                className="btn-danger" 
-                onClick={handleDeleteMember}
-                disabled={isSubmitting}
-              >
+              <button className="btn-danger" onClick={handleDeleteMember} disabled={isSubmitting}>
                 {isSubmitting ? '删除中...' : '删除'}
               </button>
             </div>

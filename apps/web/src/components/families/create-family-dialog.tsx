@@ -18,7 +18,7 @@ export function CreateFamilyDialog({ isOpen, onClose }: CreateFamilyDialogProps)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // 验证家庭名称
     if (!familyName.trim()) {
       setError('请输入家庭名称');
@@ -63,9 +63,7 @@ export function CreateFamilyDialog({ isOpen, onClose }: CreateFamilyDialogProps)
                 disabled={isSubmitting}
               />
             </div>
-            {error && (
-              <div className="text-red-500 text-sm mt-2">{error}</div>
-            )}
+            {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
           </div>
           <div className="dialog-footer">
             <button
@@ -76,11 +74,7 @@ export function CreateFamilyDialog({ isOpen, onClose }: CreateFamilyDialogProps)
             >
               取消
             </button>
-            <button
-              type="submit"
-              className="dialog-confirm"
-              disabled={isSubmitting}
-            >
+            <button type="submit" className="dialog-confirm" disabled={isSubmitting}>
               {isSubmitting ? '创建中...' : '创建'}
             </button>
           </div>

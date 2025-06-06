@@ -25,10 +25,10 @@ const defaultBaseThemes = [
   { id: 'auto', name: '跟随系统' },
 ];
 
-export function ThemeInfoForm({ 
-  initialData, 
-  onSubmit, 
-  baseThemes = defaultBaseThemes 
+export function ThemeInfoForm({
+  initialData,
+  onSubmit,
+  baseThemes = defaultBaseThemes,
 }: ThemeInfoFormProps) {
   const {
     register,
@@ -66,9 +66,7 @@ export function ThemeInfoForm({
           ) : (
             <div className="form-hint">最多30个字符</div>
           )}
-          <div className="character-counter">
-            {watchedName?.length || 0}/30
-          </div>
+          <div className="character-counter">{watchedName?.length || 0}/30</div>
         </div>
       </div>
 
@@ -111,9 +109,7 @@ export function ThemeInfoForm({
           ) : (
             <div className="form-hint">最多100个字符</div>
           )}
-          <div className="character-counter">
-            {watchedDescription?.length || 0}/100
-          </div>
+          <div className="character-counter">{watchedDescription?.length || 0}/100</div>
         </div>
       </div>
     </form>

@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Category } from "@/types";
-import { DeleteConfirmDialog } from "./delete-confirm-dialog";
-import { getIconClass } from "@/lib/utils";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Category } from '@/types';
+import { DeleteConfirmDialog } from './delete-confirm-dialog';
+import { getIconClass } from '@/lib/utils';
 
 interface CategoryGridProps {
   categories: Category[];
@@ -12,7 +12,11 @@ interface CategoryGridProps {
   isShowingHidden?: boolean;
 }
 
-export function CategoryGrid({ categories, isLoading, isShowingHidden = false }: CategoryGridProps) {
+export function CategoryGrid({
+  categories,
+  isLoading,
+  isShowingHidden = false,
+}: CategoryGridProps) {
   const router = useRouter();
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -28,7 +32,7 @@ export function CategoryGrid({ categories, isLoading, isShowingHidden = false }:
       const rect = (e.target as HTMLElement).getBoundingClientRect();
       setMenuPosition({
         x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2
+        y: rect.top + rect.height / 2,
       });
       setShowActionMenu(true);
     }, 500); // 500ms长按触发
@@ -118,12 +122,7 @@ export function CategoryGrid({ categories, isLoading, isShowingHidden = false }:
       )}
 
       {/* 点击其他区域关闭菜单 */}
-      {showActionMenu && (
-        <div
-          className="overlay"
-          onClick={() => setShowActionMenu(false)}
-        ></div>
-      )}
+      {showActionMenu && <div className="overlay" onClick={() => setShowActionMenu(false)}></div>}
 
       {/* 删除确认对话框 */}
       {showDeleteDialog && selectedCategory && (

@@ -21,7 +21,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
   useEffect(() => {
     // 检查是否在认证页面
     const isAuthPage = pathname.startsWith('/auth/');
-    
+
     // 如果在认证页面且已登录，重定向到仪表盘
     if (isAuthPage && isAuthenticated) {
       router.push('/dashboard');
@@ -43,7 +43,6 @@ export function RouteGuard({ children }: RouteGuardProps) {
       router.push('/auth/login');
       return;
     }
-
   }, [pathname, isAuthenticated, user, token, router]);
 
   return <>{children}</>;
@@ -80,6 +79,6 @@ export function useAuthGuard() {
     user,
     token,
     requireAuth,
-    requireGuest
+    requireGuest,
   };
 }

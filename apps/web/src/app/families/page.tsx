@@ -56,10 +56,7 @@ export default function FamiliesPage() {
         </div>
       ) : families.length === 0 ? (
         // 如果没有家庭，显示空状态
-        <EmptyState
-          onCreateFamily={handleCreateFamily}
-          onJoinFamily={handleJoinFamily}
-        />
+        <EmptyState onCreateFamily={handleCreateFamily} onJoinFamily={handleJoinFamily} />
       ) : (
         // 显示家庭列表
         <FamilyList
@@ -76,10 +73,7 @@ export default function FamiliesPage() {
       />
 
       {/* 加入家庭对话框 */}
-      <JoinFamilyDialog
-        isOpen={isJoinDialogOpen}
-        onClose={() => setIsJoinDialogOpen(false)}
-      />
+      <JoinFamilyDialog isOpen={isJoinDialogOpen} onClose={() => setIsJoinDialogOpen(false)} />
     </PageContainer>
   );
 }

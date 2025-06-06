@@ -56,9 +56,9 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
   return (
     <div
       className={cn(
-        "budget-card",
-        budget.overSpent && "danger",
-        budget.warning && !budget.overSpent && "warning"
+        'budget-card',
+        budget.overSpent && 'danger',
+        budget.warning && !budget.overSpent && 'warning',
       )}
       onClick={handleCardClick}
     >
@@ -68,10 +68,11 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
           <div className="budget-subtitle">
             <span className="budget-period">{budget.period}</span>
             {/* 如果是家庭账本且有用户名称或家庭成员名称，显示名称 */}
-            {currentAccountBook?.type === 'FAMILY' &&
-             budget.budgetType === 'PERSONAL' && (
+            {currentAccountBook?.type === 'FAMILY' && budget.budgetType === 'PERSONAL' && (
               <span className="budget-username">
-                <i className={`fas ${budget.familyMemberId ? 'fa-child' : 'fa-user'} mr-1 text-xs`}></i>
+                <i
+                  className={`fas ${budget.familyMemberId ? 'fa-child' : 'fa-user'} mr-1 text-xs`}
+                ></i>
                 {budget.familyMemberName || budget.userName}
               </span>
             )}
@@ -80,11 +81,7 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
         <div className="budget-actions">
           {/* 个人预算只显示编辑按钮，通用预算显示编辑和删除按钮 */}
           <div className="action-buttons">
-            <button
-              className="edit-button"
-              onClick={(e) => handleEdit(e)}
-              aria-label="编辑预算"
-            >
+            <button className="edit-button" onClick={(e) => handleEdit(e)} aria-label="编辑预算">
               <i className="fas fa-edit"></i>
             </button>
             {budget.budgetType === 'GENERAL' && (
@@ -100,9 +97,7 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
         </div>
       </div>
 
-      <div className="budget-amount">
-        {formatCurrency(budget.amount)}
-      </div>
+      <div className="budget-amount">{formatCurrency(budget.amount)}</div>
 
       <div className="budget-progress-section">
         <div className="budget-progress-container">
@@ -116,7 +111,7 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
               overflow: 'hidden',
               width: '100%',
               position: 'relative',
-              border: '1px solid #d1d5db'
+              border: '1px solid #d1d5db',
             }}
           >
             <div
@@ -128,22 +123,19 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
                 backgroundColor: budget.overSpent
                   ? '#ef4444'
                   : budget.warning && !budget.overSpent
-                  ? '#f59e0b'
-                  : '#3b82f6',
+                    ? '#f59e0b'
+                    : '#3b82f6',
                 borderRadius: '3px',
                 transition: 'width 0.3s ease',
                 position: 'relative',
-                minWidth: budget.percentage > 0 ? '2px' : '0' // 确保有进度时至少显示2px
+                minWidth: budget.percentage > 0 ? '2px' : '0', // 确保有进度时至少显示2px
               }}
             ></div>
           </div>
         </div>
         <div className="progress-info">
           <span className="spent">已用: {formatCurrency(budget.spent)}</span>
-          <span className={cn(
-            "remaining",
-            budget.overSpent && "negative"
-          )}>
+          <span className={cn('remaining', budget.overSpent && 'negative')}>
             {budget.overSpent
               ? `超支: ${formatCurrency(Math.abs(budget.adjustedRemaining ?? budget.remaining))}`
               : `剩余: ${formatCurrency(budget.adjustedRemaining ?? budget.remaining)}`}
@@ -153,10 +145,7 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
 
       <div className="budget-footer">
         {budget.rolloverAmount !== undefined && budget.rolloverAmount !== 0 ? (
-          <div className={cn(
-            "rollover-info",
-            budget.rolloverAmount < 0 && "negative"
-          )}>
+          <div className={cn('rollover-info', budget.rolloverAmount < 0 && 'negative')}>
             <i className="fas fa-exchange-alt"></i>
             <span>
               本月结转: {budget.rolloverAmount > 0 ? '+' : ''}

@@ -1,17 +1,24 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useAccountBookStore } from "@/store/account-book-store";
-import { AccountBook, AccountBookType } from "@/types";
-import { toast } from "sonner";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/auth-store';
+import { useAccountBooksStore } from '@/lib/stores/account-books-store';
+import { apiClient } from '@/lib/api-client';
+import { useAccountBookStore } from '@/store/account-book-store';
+import { AccountBook, AccountBookType } from '@/types';
+import { toast } from 'sonner';
 
 interface AccountBookSelectorProps {
   onClose?: () => void;
 }
 
 export function AccountBookSelector({ onClose }: AccountBookSelectorProps) {
-  const { accountBooks, currentAccountBook, setCurrentAccountBook, fetchAccountBooks } = useAccountBookStore();
+  const { accountBooks, currentAccountBook, setCurrentAccountBook, fetchAccountBooks } =
+    useAccountBookStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [familiesList, setFamiliesList] = useState([]);
+  const { isAuthenticated, token } = useAuthStore();
 
   // 获取账本列表
   useEffect(() => {
@@ -22,22 +29,18 @@ export function AccountBookSelector({ onClose }: AccountBookSelectorProps) {
         await fetchAccountBooks();
 
         // 获取用户的家庭列表
-        const response = await fetch('/api/families', {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+        const fetchFamilies = async () => {
+          if (!isAuthenticated || !token) return;
 
-        if (response.ok) {
-          const families = await response.json();
+          try {
+            const families = await apiClient.get('/families');
+            setFamiliesList(families);
+          } catch (error) {
+            console.error('获取家庭列表失败:', error);
+          }
+        };
 
-          // 为每个家庭获取账本
-          const fetchPromises = families.map((family: any) =>
-            useAccountBookStore.getState().fetchFamilyAccountBooks(family.id)
-          );
-
-          await Promise.all(fetchPromises);
-        }
+        await fetchFamilies();
       } catch (error) {
         console.error('加载账本失败:', error);
       } finally {
@@ -46,7 +49,7 @@ export function AccountBookSelector({ onClose }: AccountBookSelectorProps) {
     };
 
     loadAccountBooks();
-  }, [fetchAccountBooks]);
+  }, [fetchAccountBooks, isAuthenticated, token]);
 
   // 处理账本选择
   const handleSelectBook = (book: AccountBook) => {
@@ -71,8 +74,8 @@ export function AccountBookSelector({ onClose }: AccountBookSelectorProps) {
             <div className="account-book-section">
               <h4 className="account-book-section-title">个人账本</h4>
               {accountBooks
-                .filter(book => book.type === AccountBookType.PERSONAL)
-                .map(book => (
+                .filter((book) => book.type === AccountBookType.PERSONAL)
+                .map((book) => (
                   <div
                     key={book.id}
                     className={`account-book-item ${currentAccountBook?.id === book.id ? 'active' : ''}`}
@@ -80,20 +83,18 @@ export function AccountBookSelector({ onClose }: AccountBookSelectorProps) {
                   >
                     <i className="fas fa-book account-book-icon"></i>
                     <span className="account-book-name">{book.name}</span>
-                    {book.isDefault && (
-                      <span className="account-book-badge">默认</span>
-                    )}
+                    {book.isDefault && <span className="account-book-badge">默认</span>}
                   </div>
                 ))}
             </div>
 
             {/* 家庭账本 */}
-            {accountBooks.some(book => book.type === AccountBookType.FAMILY) && (
+            {accountBooks.some((book) => book.type === AccountBookType.FAMILY) && (
               <div className="account-book-section">
                 <h4 className="account-book-section-title">家庭账本</h4>
                 {accountBooks
-                  .filter(book => book.type === AccountBookType.FAMILY)
-                  .map(book => (
+                  .filter((book) => book.type === AccountBookType.FAMILY)
+                  .map((book) => (
                     <div
                       key={book.id}
                       className={`account-book-item ${currentAccountBook?.id === book.id ? 'active' : ''}`}
@@ -101,9 +102,7 @@ export function AccountBookSelector({ onClose }: AccountBookSelectorProps) {
                     >
                       <i className="fas fa-users account-book-icon"></i>
                       <span className="account-book-name">{book.name}</span>
-                      {book.isDefault && (
-                        <span className="account-book-badge">默认</span>
-                      )}
+                      {book.isDefault && <span className="account-book-badge">默认</span>}
                     </div>
                   ))}
               </div>
@@ -116,7 +115,7 @@ export function AccountBookSelector({ onClose }: AccountBookSelectorProps) {
             <p className="settings-empty-description">请先创建一个账本</p>
             <button
               className="settings-empty-button"
-              onClick={() => window.location.href = '/books/new'}
+              onClick={() => (window.location.href = '/books/new')}
             >
               创建账本
             </button>
@@ -125,4 +124,4 @@ export function AccountBookSelector({ onClose }: AccountBookSelectorProps) {
       </div>
     </div>
   );
-} 
+}

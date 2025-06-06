@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Category } from "@/types";
-import { useCategoryStore } from "@/store/category-store";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { Category } from '@/types';
+import { useCategoryStore } from '@/store/category-store';
+import { toast } from 'sonner';
 
 interface DeleteConfirmDialogProps {
   category: Category;
@@ -11,7 +11,11 @@ interface DeleteConfirmDialogProps {
   isShowingHidden?: boolean;
 }
 
-export function DeleteConfirmDialog({ category, onClose, isShowingHidden = false }: DeleteConfirmDialogProps) {
+export function DeleteConfirmDialog({
+  category,
+  onClose,
+  isShowingHidden = false,
+}: DeleteConfirmDialogProps) {
   const { deleteCategory, updateCategory } = useCategoryStore();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -46,11 +50,12 @@ export function DeleteConfirmDialog({ category, onClose, isShowingHidden = false
       }
     } catch (error) {
       console.error('操作失败:', error);
-      const errorMessage = isShowingHidden && category.isHidden
-        ? '显示分类失败'
-        : category.isDefault
-          ? '隐藏分类失败'
-          : '删除分类失败';
+      const errorMessage =
+        isShowingHidden && category.isHidden
+          ? '显示分类失败'
+          : category.isDefault
+            ? '隐藏分类失败'
+            : '删除分类失败';
       toast.error(errorMessage);
     } finally {
       setIsDeleting(false);
@@ -66,14 +71,9 @@ export function DeleteConfirmDialog({ category, onClose, isShowingHidden = false
               ? '显示分类'
               : category.isDefault
                 ? '隐藏分类'
-                : '删除分类'
-            }
+                : '删除分类'}
           </h3>
-          <button
-            className="dialog-close"
-            onClick={onClose}
-            disabled={isDeleting}
-          >
+          <button className="dialog-close" onClick={onClose} disabled={isDeleting}>
             <i className="fas fa-times"></i>
           </button>
         </div>
@@ -83,8 +83,7 @@ export function DeleteConfirmDialog({ category, onClose, isShowingHidden = false
               ? `确定要显示分类 "${category.name}" 吗？`
               : category.isDefault
                 ? `确定要隐藏分类 "${category.name}" 吗？`
-                : `确定要删除分类 "${category.name}" 吗？`
-            }
+                : `确定要删除分类 "${category.name}" 吗？`}
           </p>
           <p className="warning-text">
             <i className="fas fa-exclamation-triangle"></i>
@@ -92,16 +91,11 @@ export function DeleteConfirmDialog({ category, onClose, isShowingHidden = false
               ? '显示后该分类将在添加记录时可选。'
               : category.isDefault
                 ? '隐藏后该分类不会在添加记录时显示，但可以在分类管理中重新显示。'
-                : '此操作不可撤销，使用此分类的交易记录将变为未分类。'
-            }
+                : '此操作不可撤销，使用此分类的交易记录将变为未分类。'}
           </p>
         </div>
         <div className="dialog-footer">
-          <button
-            className="dialog-cancel"
-            onClick={onClose}
-            disabled={isDeleting}
-          >
+          <button className="dialog-cancel" onClick={onClose} disabled={isDeleting}>
             取消
           </button>
           <button
@@ -122,19 +116,18 @@ export function DeleteConfirmDialog({ category, onClose, isShowingHidden = false
                   ? '显示中...'
                   : category.isDefault
                     ? '隐藏中...'
-                    : '删除中...'
-                }
+                    : '删除中...'}
               </>
+            ) : isShowingHidden && category.isHidden ? (
+              '确认显示'
+            ) : category.isDefault ? (
+              '确认隐藏'
             ) : (
-              isShowingHidden && category.isHidden
-                ? '确认显示'
-                : category.isDefault
-                  ? '确认隐藏'
-                  : '确认删除'
+              '确认删除'
             )}
           </button>
         </div>
       </div>
     </div>
   );
-} 
+}

@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import "./categories.css";
-import { PageContainer } from "@/components/layout/page-container";
-import { CategoryGrid } from "@/components/categories/category-grid";
-import { CategoryList } from "@/components/categories/category-list";
-import { AddCategoryButton } from "@/components/categories/add-category-button";
-import { useCategoryStore } from "@/store/category-store";
-import { toast } from "sonner";
-import { Category, TransactionType } from "@/types";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import './categories.css';
+import { PageContainer } from '@/components/layout/page-container';
+import { CategoryGrid } from '@/components/categories/category-grid';
+import { CategoryList } from '@/components/categories/category-list';
+import { AddCategoryButton } from '@/components/categories/add-category-button';
+import { useCategoryStore } from '@/store/category-store';
+import { toast } from 'sonner';
+import { Category, TransactionType } from '@/types';
 
 export default function CategoryListPage() {
   const router = useRouter();
@@ -62,7 +62,7 @@ export default function CategoryListPage() {
   };
 
   // 过滤当前类型的分类
-  const filteredCategories = categories.filter(category => {
+  const filteredCategories = categories.filter((category) => {
     const typeMatch = category.type === selectedType;
     const hiddenMatch = showHidden ? category.isHidden : !category.isHidden;
     return typeMatch && hiddenMatch;

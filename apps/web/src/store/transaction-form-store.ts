@@ -67,19 +67,21 @@ export const useTransactionFormStore = create<TransactionFormState>((set) => ({
 
   setAmount: (amount) => set({ amount }),
 
-  setType: (type) => set({
-    type,
-    categoryId: '',
-    categoryName: '',
-    categoryIcon: null,
-    budgetId: ''
-  }),
+  setType: (type) =>
+    set({
+      type,
+      categoryId: '',
+      categoryName: '',
+      categoryIcon: null,
+      budgetId: '',
+    }),
 
-  setCategory: (id, name, icon) => set({
-    categoryId: id,
-    categoryName: name,
-    categoryIcon: icon
-  }),
+  setCategory: (id, name, icon) =>
+    set({
+      categoryId: id,
+      categoryName: name,
+      categoryIcon: icon,
+    }),
 
   setDescription: (description) => set({ description }),
 
@@ -93,11 +95,12 @@ export const useTransactionFormStore = create<TransactionFormState>((set) => ({
 
   goToStep: (step) => set({ currentStep: step }),
 
-  resetForm: () => set({
-    ...initialState,
-    date: getCurrentDate(),
-    time: getCurrentTime(),
-  }),
+  resetForm: () =>
+    set({
+      ...initialState,
+      date: getCurrentDate(),
+      time: getCurrentTime(),
+    }),
 
   fillSmartAccountingResult: (result) => {
     const updates: Partial<TransactionFormState> = {};
@@ -137,35 +140,35 @@ export const useTransactionFormStore = create<TransactionFormState>((set) => ({
       try {
         // 解析API返回的日期，但只取日期部分，时间使用当前本地时间
         const apiDate = new Date(result.date);
-        
+
         // 获取API返回的日期部分（本地时区）
         const year = apiDate.getFullYear();
         const month = (apiDate.getMonth() + 1).toString().padStart(2, '0');
         const day = apiDate.getDate().toString().padStart(2, '0');
         updates.date = `${year}-${month}-${day}`;
-        
+
         // 时间使用当前本地时间，而不是API返回的时间
         const now = new Date();
         const hours = now.getHours().toString().padStart(2, '0');
         const minutes = now.getMinutes().toString().padStart(2, '0');
         updates.time = `${hours}:${minutes}`;
-        
-        console.log("智能记账时间填充:", {
+
+        console.log('智能记账时间填充:', {
           apiDate: result.date,
           parsedDate: apiDate,
           finalDate: updates.date,
           finalTime: updates.time,
-          currentTime: now.toLocaleString()
+          currentTime: now.toLocaleString(),
         });
       } catch (dateError) {
-        console.error("日期转换错误:", dateError);
+        console.error('日期转换错误:', dateError);
         // 如果日期转换失败，使用当前本地日期和时间
         const now = new Date();
         const year = now.getFullYear();
         const month = (now.getMonth() + 1).toString().padStart(2, '0');
         const day = now.getDate().toString().padStart(2, '0');
         updates.date = `${year}-${month}-${day}`;
-        
+
         const hours = now.getHours().toString().padStart(2, '0');
         const minutes = now.getMinutes().toString().padStart(2, '0');
         updates.time = `${hours}:${minutes}`;
@@ -177,7 +180,7 @@ export const useTransactionFormStore = create<TransactionFormState>((set) => ({
       const month = (now.getMonth() + 1).toString().padStart(2, '0');
       const day = now.getDate().toString().padStart(2, '0');
       updates.date = `${year}-${month}-${day}`;
-      
+
       const hours = now.getHours().toString().padStart(2, '0');
       const minutes = now.getMinutes().toString().padStart(2, '0');
       updates.time = `${hours}:${minutes}`;

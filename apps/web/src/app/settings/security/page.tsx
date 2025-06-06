@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { PageContainer } from "@/components/layout/page-container";
-import { PasswordChangeForm } from "@/components/security/password-change-form";
-import { Modal } from "@/components/ui/modal";
-import { userService, UserProfile } from "@/lib/api/user-service";
-import { toast } from "sonner";
-import "@/styles/security.css";
+import { useState, useEffect } from 'react';
+import { PageContainer } from '@/components/layout/page-container';
+import { PasswordChangeForm } from '@/components/security/password-change-form';
+import { Modal } from '@/components/ui/modal';
+import { userService, UserProfile } from '@/lib/api/user-service';
+import { toast } from 'sonner';
+import '@/styles/security.css';
 
 export default function SecurityPage() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -42,18 +42,18 @@ export default function SecurityPage() {
   const devices = [
     {
       id: 1,
-      name: "iPhone 14 Pro",
-      type: "mobile",
-      location: "北京市",
-      lastActive: "刚刚",
+      name: 'iPhone 14 Pro',
+      type: 'mobile',
+      location: '北京市',
+      lastActive: '刚刚',
       isCurrent: true,
     },
     {
       id: 2,
-      name: "MacBook Pro",
-      type: "desktop",
-      location: "北京市",
-      lastActive: "2小时前",
+      name: 'MacBook Pro',
+      type: 'desktop',
+      location: '北京市',
+      lastActive: '2小时前',
       isCurrent: false,
     },
   ];
@@ -62,29 +62,25 @@ export default function SecurityPage() {
   const securityLogs = [
     {
       id: 1,
-      action: "登录成功",
-      device: "iPhone 14 Pro",
-      location: "北京市",
-      time: "2024年1月15日 14:30",
-      icon: "sign-in-alt",
+      action: '登录成功',
+      device: 'iPhone 14 Pro',
+      location: '北京市',
+      time: '2024年1月15日 14:30',
+      icon: 'sign-in-alt',
     },
     {
       id: 2,
-      action: "修改密码",
-      device: "MacBook Pro",
-      location: "北京市",
-      time: "2024年1月10日 09:15",
-      icon: "key",
+      action: '修改密码',
+      device: 'MacBook Pro',
+      location: '北京市',
+      time: '2024年1月10日 09:15',
+      icon: 'key',
     },
   ];
 
   if (isLoading) {
     return (
-      <PageContainer 
-        title="账户安全" 
-        showBackButton={true}
-        activeNavItem="profile"
-      >
+      <PageContainer title="账户安全" showBackButton={true} activeNavItem="profile">
         <div className="flex h-40 items-center justify-center">
           <p className="text-gray-500">加载中...</p>
         </div>
@@ -93,11 +89,7 @@ export default function SecurityPage() {
   }
 
   return (
-    <PageContainer 
-      title="账户安全" 
-      showBackButton={true}
-      activeNavItem="profile"
-    >
+    <PageContainer title="账户安全" showBackButton={true} activeNavItem="profile">
       <div className="security-page">
         {/* 账户凭证 */}
         <div className="security-section">
@@ -109,15 +101,13 @@ export default function SecurityPage() {
               </div>
               <div className="security-details">
                 <div className="security-title">修改密码</div>
-                <div className="security-description">
-                  定期修改密码以保护账户安全
-                </div>
+                <div className="security-description">定期修改密码以保护账户安全</div>
               </div>
               <div className="security-status">
                 <i className="fas fa-chevron-right"></i>
               </div>
             </div>
-            
+
             <div className="security-item" onClick={() => handleDevelopingFeature('修改邮箱')}>
               <div className="security-icon">
                 <i className="fas fa-envelope"></i>
@@ -132,7 +122,7 @@ export default function SecurityPage() {
                 <i className="fas fa-chevron-right"></i>
               </div>
             </div>
-            
+
             <div className="security-item" onClick={() => handleDevelopingFeature('安全问题')}>
               <div className="security-icon">
                 <i className="fas fa-question-circle"></i>
@@ -147,7 +137,7 @@ export default function SecurityPage() {
             </div>
           </div>
         </div>
-        
+
         {/* 登录安全 */}
         <div className="security-section">
           <div className="section-title">登录安全</div>
@@ -164,7 +154,7 @@ export default function SecurityPage() {
                 <i className="fas fa-chevron-right"></i>
               </div>
             </div>
-            
+
             <div className="security-item" onClick={() => handleDevelopingFeature('登录通知')}>
               <div className="security-icon">
                 <i className="fas fa-bell"></i>
@@ -177,7 +167,7 @@ export default function SecurityPage() {
                 <span className="status-badge status-warning">已关闭</span>
               </div>
             </div>
-            
+
             <div className="security-item" onClick={() => handleDevelopingFeature('安全日志')}>
               <div className="security-icon">
                 <i className="fas fa-history"></i>
@@ -192,7 +182,7 @@ export default function SecurityPage() {
             </div>
           </div>
         </div>
-        
+
         {/* 账户保护 */}
         <div className="security-section">
           <div className="section-title">账户保护</div>
@@ -209,7 +199,7 @@ export default function SecurityPage() {
                 <span className="status-badge status-warning">未设置</span>
               </div>
             </div>
-            
+
             <div className="security-item" onClick={() => handleDevelopingFeature('账户冻结保护')}>
               <div className="security-icon">
                 <i className="fas fa-shield-alt"></i>
@@ -242,11 +232,7 @@ export default function SecurityPage() {
       </Modal>
 
       {/* 修改邮箱模态框 - 开发中提示 */}
-      <Modal
-        isOpen={showEmailModal}
-        onClose={() => setShowEmailModal(false)}
-        title="修改邮箱"
-      >
+      <Modal isOpen={showEmailModal} onClose={() => setShowEmailModal(false)} title="修改邮箱">
         <div className="modal-body">
           <div className="text-center py-8">
             <i className="fas fa-tools text-4xl text-gray-400 mb-4"></i>
@@ -282,11 +268,7 @@ export default function SecurityPage() {
       </Modal>
 
       {/* 安全日志模态框 - 开发中提示 */}
-      <Modal
-        isOpen={showLogsModal}
-        onClose={() => setShowLogsModal(false)}
-        title="安全日志"
-      >
+      <Modal isOpen={showLogsModal} onClose={() => setShowLogsModal(false)} title="安全日志">
         <div className="modal-body">
           <div className="text-center py-8">
             <i className="fas fa-tools text-4xl text-gray-400 mb-4"></i>

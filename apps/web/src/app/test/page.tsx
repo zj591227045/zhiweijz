@@ -8,10 +8,11 @@ import { apiClient } from '@/api/api-client';
 export default function TestPage() {
   const [testResults, setTestResults] = useState<string[]>([]);
   const { isAuthenticated, user, token } = useAuthStore();
-  const { accountBooks, currentAccountBook, fetchAccountBooks, isLoading, error } = useAccountBookStore();
+  const { accountBooks, currentAccountBook, fetchAccountBooks, isLoading, error } =
+    useAccountBookStore();
 
   const addResult = (message: string) => {
-    setTestResults(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
+    setTestResults((prev) => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
   };
 
   const testLogin = async () => {
@@ -19,15 +20,15 @@ export default function TestPage() {
       addResult('开始测试登录...');
       const response = await apiClient.post('/auth/login', {
         email: 'zhangjie@jacksonz.cn',
-        password: 'Zj233401!'
+        password: 'Zj233401!',
       });
-      
+
       addResult(`登录成功: ${JSON.stringify(response.data)}`);
-      
+
       // 手动保存到localStorage
       localStorage.setItem('auth-token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      
+
       addResult('Token已保存到localStorage');
     } catch (error: any) {
       addResult(`登录失败: ${error.message}`);
@@ -71,7 +72,7 @@ export default function TestPage() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">前端调试测试页面</h1>
-      
+
       {/* 当前状态 */}
       <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-800 rounded">
         <h2 className="text-lg font-semibold mb-2">当前状态</h2>
@@ -117,7 +118,9 @@ export default function TestPage() {
           <h2 className="text-lg font-semibold mb-2">账本列表</h2>
           {accountBooks.map((book) => (
             <div key={book.id} className="p-2 border-b">
-              <p><strong>{book.name}</strong> ({book.type})</p>
+              <p>
+                <strong>{book.name}</strong> ({book.type})
+              </p>
               <p>ID: {book.id}</p>
               <p>默认: {book.isDefault ? '是' : '否'}</p>
             </div>

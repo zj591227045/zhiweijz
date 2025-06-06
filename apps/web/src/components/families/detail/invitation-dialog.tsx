@@ -38,7 +38,7 @@ export function InvitationDialog({ isOpen, onClose, familyId }: InvitationDialog
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ expiresInDays }),
       });
@@ -114,7 +114,7 @@ export function InvitationDialog({ isOpen, onClose, familyId }: InvitationDialog
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 

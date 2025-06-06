@@ -13,13 +13,14 @@ interface InvitationSectionProps {
 export function InvitationSection({
   invitation,
   isLoading,
-  onGenerateInvitation
+  onGenerateInvitation,
 }: InvitationSectionProps) {
   // 复制邀请链接
   const copyInviteLink = () => {
     if (!invitation) return;
 
-    navigator.clipboard.writeText(invitation.url)
+    navigator.clipboard
+      .writeText(invitation.url)
       .then(() => toast.success('邀请链接已复制到剪贴板'))
       .catch(() => toast.error('复制失败，请手动复制'));
   };
@@ -29,11 +30,12 @@ export function InvitationSection({
     if (!invitation) return;
 
     if (navigator.share) {
-      navigator.share({
-        title: '加入我的家庭账本',
-        text: '点击链接加入我的家庭账本',
-        url: invitation.url
-      })
+      navigator
+        .share({
+          title: '加入我的家庭账本',
+          text: '点击链接加入我的家庭账本',
+          url: invitation.url,
+        })
         .then(() => toast.success('分享成功'))
         .catch((error) => {
           if (error.name !== 'AbortError') {
@@ -88,17 +90,11 @@ export function InvitationSection({
       </div>
 
       <div className="invitation-actions">
-        <button
-          className="invitation-action-btn invitation-copy-btn"
-          onClick={copyInviteLink}
-        >
+        <button className="invitation-action-btn invitation-copy-btn" onClick={copyInviteLink}>
           <i className="fas fa-copy"></i>
           <span>复制链接</span>
         </button>
-        <button
-          className="invitation-action-btn invitation-share-btn"
-          onClick={shareInviteLink}
-        >
+        <button className="invitation-action-btn invitation-share-btn" onClick={shareInviteLink}>
           <i className="fas fa-share-alt"></i>
           <span>分享</span>
         </button>

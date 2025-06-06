@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { apiClient } from '@/api/api-client';
+import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { LoginAttempt } from '@/types/captcha';
 import { performLogoutCleanup, clearApiCache } from '@/utils/cache-utils';
@@ -29,8 +29,17 @@ interface AuthState {
   loginAttempts: Record<string, LoginAttempt>;
 
   // 操作方法
-  login: (credentials: { email: string; password: string; captchaToken?: string }) => Promise<boolean>;
-  register: (data: { name: string; email: string; password: string; captchaToken: string }) => Promise<boolean>;
+  login: (credentials: {
+    email: string;
+    password: string;
+    captchaToken?: string;
+  }) => Promise<boolean>;
+  register: (data: {
+    name: string;
+    email: string;
+    password: string;
+    captchaToken: string;
+  }) => Promise<boolean>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<boolean>;
   clearError: () => void;
@@ -58,20 +67,35 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true, error: null });
 
-          // 如果需要验证码，先验证验证码
-          if (credentials.captchaToken) {
-            const captchaValid = await get().verifyCaptcha(credentials.captchaToken, 'login');
-            if (!captchaValid) {
-              throw new Error('验证码验证失败');
-            }
-          }
-
+          // 直接传递给后端验证，不在前端重复验证
           const response = await apiClient.post('/auth/login', {
             email: credentials.email,
             password: credentials.password,
-            captchaToken: credentials.captchaToken
+            captchaToken: credentials.captchaToken,
           });
-          const { user, token } = response.data;
+          
+          // 调试：打印完整的响应数据
+          console.log('🔍 登录响应调试:', {
+            response: response,
+            responseData: response.data,
+            dataType: typeof response.data,
+            dataKeys: response.data ? Object.keys(response.data) : 'null'
+          });
+          
+          // 修复：根据实际响应结构获取数据
+          // 如果response.data存在就使用response.data，否则使用response本身
+          const responseData = response.data || response;
+          const { user, token } = responseData;
+
+          // 验证必要的数据
+          if (!token) {
+            throw new Error('服务器响应中缺少token');
+          }
+          if (!user) {
+            throw new Error('服务器响应中缺少用户信息');
+          }
+
+          console.log('🔍 登录数据验证通过:', { user, token: token ? '存在' : '不存在' });
 
           // 清除旧的API缓存，确保新用户不会看到旧数据
           clearApiCache();
@@ -80,6 +104,7 @@ export const useAuthStore = create<AuthState>()(
           if (typeof window !== 'undefined') {
             localStorage.setItem('auth-token', token);
             localStorage.setItem('user', JSON.stringify(user));
+            console.log('🔍 token和用户信息已保存到localStorage');
           }
 
           set({
@@ -87,7 +112,7 @@ export const useAuthStore = create<AuthState>()(
             token,
             isAuthenticated: true,
             isLoading: false,
-            error: null
+            error: null,
           });
 
           // 登录成功，重置登录尝试次数
@@ -105,7 +130,7 @@ export const useAuthStore = create<AuthState>()(
             error: errorMessage,
             isAuthenticated: false,
             user: null,
-            token: null
+            token: null,
           });
           toast.error(errorMessage);
           return false;
@@ -117,19 +142,17 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true, error: null });
 
-          // 验证验证码
-          const captchaValid = await get().verifyCaptcha(data.captchaToken, 'register');
-          if (!captchaValid) {
-            throw new Error('验证码验证失败');
-          }
-
+          // 直接传递给后端验证，不在前端重复验证
           const response = await apiClient.post('/auth/register', {
             name: data.name,
             email: data.email,
             password: data.password,
-            captchaToken: data.captchaToken
+            captchaToken: data.captchaToken,
           });
-          const { user, token } = response.data;
+          
+          // 修复：根据实际响应结构获取数据
+          const responseData = response.data || response;
+          const { user, token } = responseData;
 
           // 清除旧的API缓存，确保新用户不会看到旧数据
           clearApiCache();
@@ -145,7 +168,7 @@ export const useAuthStore = create<AuthState>()(
             token,
             isAuthenticated: true,
             isLoading: false,
-            error: null
+            error: null,
           });
 
           toast.success('注册成功');
@@ -157,7 +180,7 @@ export const useAuthStore = create<AuthState>()(
             error: errorMessage,
             isAuthenticated: false,
             user: null,
-            token: null
+            token: null,
           });
           toast.error(errorMessage);
           return false;
@@ -173,7 +196,7 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
           isLoading: false,
           error: null,
-          loginAttempts: {} // 也清除登录尝试记录
+          loginAttempts: {}, // 也清除登录尝试记录
         });
 
         toast.success('已退出登录');
@@ -193,7 +216,7 @@ export const useAuthStore = create<AuthState>()(
           set({
             user: updatedUser,
             isLoading: false,
-            error: null
+            error: null,
           });
 
           toast.success('资料更新成功');
@@ -202,7 +225,7 @@ export const useAuthStore = create<AuthState>()(
           const errorMessage = error.response?.data?.message || '更新失败';
           set({
             isLoading: false,
-            error: errorMessage
+            error: errorMessage,
           });
           toast.error(errorMessage);
           return false;
@@ -227,7 +250,7 @@ export const useAuthStore = create<AuthState>()(
             email,
             attempts: 0,
             lastAttempt: 0,
-            requiresCaptcha: false
+            requiresCaptcha: false,
           };
         }
 
@@ -238,7 +261,7 @@ export const useAuthStore = create<AuthState>()(
             email,
             attempts: 0,
             lastAttempt: 0,
-            requiresCaptcha: false
+            requiresCaptcha: false,
           };
         }
 
@@ -251,24 +274,22 @@ export const useAuthStore = create<AuthState>()(
         const newAttempts = current.attempts + 1;
         const requiresCaptcha = newAttempts >= 2; // 失败2次后需要验证码
 
-
-
-        set(state => ({
+        set((state) => ({
           loginAttempts: {
             ...state.loginAttempts,
             [email]: {
               email,
               attempts: newAttempts,
               lastAttempt: Date.now(),
-              requiresCaptcha
-            }
-          }
+              requiresCaptcha,
+            },
+          },
         }));
       },
 
       // 重置登录尝试次数
       resetLoginAttempts: (email: string) => {
-        set(state => {
+        set((state) => {
           const newAttempts = { ...state.loginAttempts };
           delete newAttempts[email];
           return { loginAttempts: newAttempts };
@@ -280,14 +301,14 @@ export const useAuthStore = create<AuthState>()(
         try {
           const response = await apiClient.post('/auth/verify-captcha', {
             token,
-            action
+            action,
           });
           return response.data.success;
         } catch (error) {
           console.error('验证码验证失败:', error);
           return false;
         }
-      }
+      },
     }),
     {
       name: 'auth-storage',
@@ -295,8 +316,8 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         token: state.token,
         isAuthenticated: state.isAuthenticated,
-        loginAttempts: state.loginAttempts
-      })
-    }
-  )
+        loginAttempts: state.loginAttempts,
+      }),
+    },
+  ),
 );

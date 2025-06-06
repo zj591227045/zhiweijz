@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { PageContainer } from "@/components/layout/page-container";
-import { BookList } from "@/components/books/book-list";
-import { AddBookButton } from "@/components/books/add-book-button";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { useAccountBookStore } from "@/store/account-book-store";
-import { toast } from "sonner";
-import { AccountBook } from "@/types";
-import "./books.css";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { PageContainer } from '@/components/layout/page-container';
+import { BookList } from '@/components/books/book-list';
+import { AddBookButton } from '@/components/books/add-book-button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { useAccountBookStore } from '@/store/account-book-store';
+import { toast } from 'sonner';
+import { AccountBook } from '@/types';
+import './books.css';
 
 export default function BookListPage() {
   const router = useRouter();
@@ -50,7 +50,7 @@ export default function BookListPage() {
 
           // 为每个家庭获取账本
           const fetchPromises = families.map((family: any) =>
-            useAccountBookStore.getState().fetchFamilyAccountBooks(family.id)
+            useAccountBookStore.getState().fetchFamilyAccountBooks(family.id),
           );
 
           await Promise.all(fetchPromises);
@@ -72,7 +72,7 @@ export default function BookListPage() {
 
   // 添加账本
   const handleAddBook = () => {
-    router.push("/books/new");
+    router.push('/books/new');
   };
 
   // 编辑账本
@@ -92,11 +92,11 @@ export default function BookListPage() {
 
     try {
       await deleteAccountBook(bookToDelete.id);
-      toast.success("账本删除成功");
+      toast.success('账本删除成功');
       setShowDeleteConfirm(false);
       setBookToDelete(null);
     } catch (error) {
-      toast.error("删除账本失败");
+      toast.error('删除账本失败');
     }
   };
 
@@ -176,11 +176,7 @@ export default function BookListPage() {
 
   // 右侧操作按钮
   const rightActions = (
-    <button
-      className="icon-button"
-      onClick={() => handleAddBook()}
-      aria-label="添加账本"
-    >
+    <button className="icon-button" onClick={() => handleAddBook()} aria-label="添加账本">
       <i className="fas fa-plus"></i>
     </button>
   );
@@ -189,11 +185,7 @@ export default function BookListPage() {
   const safeAccountBooks = Array.isArray(accountBooks) ? accountBooks : [];
 
   return (
-    <PageContainer
-      title="我的账本"
-      rightActions={rightActions}
-      activeNavItem="profile"
-    >
+    <PageContainer title="我的账本" rightActions={rightActions} activeNavItem="profile">
       {isLoading ? (
         <div className="flex h-40 items-center justify-center">
           <p className="text-gray-500">加载中...</p>

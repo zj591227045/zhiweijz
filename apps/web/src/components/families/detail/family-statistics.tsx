@@ -43,10 +43,10 @@ export function FamilyStatistics({ familyId }: FamilyStatisticsProps) {
       setIsLoading(true);
       const response = await fetch(`/api/families/${familyId}/statistics?period=${period}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setStatistics(data);
@@ -134,19 +134,19 @@ export function FamilyStatistics({ familyId }: FamilyStatisticsProps) {
 
       {/* 时间范围选择器 */}
       <div className="period-selector">
-        <button 
+        <button
           className={`period-tab ${period === 'month' ? 'active' : ''}`}
           onClick={() => setPeriod('month')}
         >
           本月
         </button>
-        <button 
+        <button
           className={`period-tab ${period === 'last_month' ? 'active' : ''}`}
           onClick={() => setPeriod('last_month')}
         >
           上月
         </button>
-        <button 
+        <button
           className={`period-tab ${period === 'all' ? 'active' : ''}`}
           onClick={() => setPeriod('all')}
         >

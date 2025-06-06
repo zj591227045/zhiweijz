@@ -6,7 +6,13 @@ import { PageContainer } from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 // 使用FontAwesome图标，不需要导入
 import { TransactionType } from '@/types';
@@ -17,11 +23,35 @@ import { getIconClass } from '@/lib/utils';
 
 // 可用的分类图标
 const availableIcons = [
-  'restaurant', 'shopping', 'daily', 'transport', 'sports', 'entertainment',
-  'communication', 'clothing', 'beauty', 'home', 'child', 'elder',
-  'social', 'travel', 'digital', 'car', 'medical', 'repayment',
-  'insurance', 'education', 'office', 'repair', 'interest',
-  'salary', 'part-time', 'investment', 'bonus', 'commission', 'other'
+  'restaurant',
+  'shopping',
+  'daily',
+  'transport',
+  'sports',
+  'entertainment',
+  'communication',
+  'clothing',
+  'beauty',
+  'home',
+  'child',
+  'elder',
+  'social',
+  'travel',
+  'digital',
+  'car',
+  'medical',
+  'repayment',
+  'insurance',
+  'education',
+  'office',
+  'repair',
+  'interest',
+  'salary',
+  'part-time',
+  'investment',
+  'bonus',
+  'commission',
+  'other',
 ];
 
 // 分离使用 useSearchParams 的组件
@@ -36,7 +66,7 @@ function NewCategoryForm() {
     name: '',
     type: (searchParams.get('type') as TransactionType) || TransactionType.EXPENSE,
     icon: 'other',
-    color: '#3B82F6'
+    color: '#3B82F6',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -82,7 +112,7 @@ function NewCategoryForm() {
         type: formData.type,
         icon: formData.icon,
         color: formData.color,
-        accountBookId: currentAccountBook.id
+        accountBookId: currentAccountBook.id,
       });
 
       if (success) {
@@ -97,19 +127,15 @@ function NewCategoryForm() {
 
   // 处理输入变化
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // 清除对应字段的错误
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
   return (
-    <PageContainer
-      title="添加分类"
-      showBack
-      onBack={() => router.push('/settings/categories')}
-    >
+    <PageContainer title="添加分类" showBack onBack={() => router.push('/settings/categories')}>
       <div className="max-w-2xl mx-auto p-4">
         <Card>
           <CardHeader>
@@ -131,9 +157,7 @@ function NewCategoryForm() {
                   maxLength={20}
                   className={errors.name ? 'border-red-500' : ''}
                 />
-                {errors.name && (
-                  <p className="text-sm text-red-500">{errors.name}</p>
-                )}
+                {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
               </div>
 
               {/* 分类类型 */}
@@ -151,9 +175,7 @@ function NewCategoryForm() {
                     <SelectItem value={TransactionType.INCOME}>收入</SelectItem>
                   </SelectContent>
                 </Select>
-                {errors.type && (
-                  <p className="text-sm text-red-500">{errors.type}</p>
-                )}
+                {errors.type && <p className="text-sm text-red-500">{errors.type}</p>}
               </div>
 
               {/* 分类图标 */}
@@ -168,9 +190,10 @@ function NewCategoryForm() {
                       className={`
                         p-3 rounded-lg border-2 transition-all duration-200
                         flex flex-col items-center gap-1
-                        ${formData.icon === iconName
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                        ${
+                          formData.icon === iconName
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
                         }
                       `}
                     >
@@ -181,9 +204,7 @@ function NewCategoryForm() {
                     </button>
                   ))}
                 </div>
-                {errors.icon && (
-                  <p className="text-sm text-red-500">{errors.icon}</p>
-                )}
+                {errors.icon && <p className="text-sm text-red-500">{errors.icon}</p>}
               </div>
 
               {/* 分类颜色 */}
@@ -238,11 +259,7 @@ function NewCategoryForm() {
                   <i className="fas fa-arrow-left mr-2" />
                   取消
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="flex-1"
-                >
+                <Button type="submit" disabled={isLoading} className="flex-1">
                   <i className="fas fa-save mr-2" />
                   {isLoading ? '创建中...' : '创建分类'}
                 </Button>
@@ -258,40 +275,42 @@ function NewCategoryForm() {
 // 主页面组件，用 Suspense 包装
 export default function NewCategoryPage() {
   return (
-    <Suspense fallback={
-      <PageContainer title="添加分类" showBack>
-        <div className="max-w-2xl mx-auto p-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <i className="fas fa-palette" />
-                创建新分类
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                  <div className="h-10 bg-gray-200 rounded"></div>
-                </div>
-                <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                  <div className="h-10 bg-gray-200 rounded"></div>
-                </div>
-                <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                  <div className="grid grid-cols-6 gap-3">
-                    {Array.from({ length: 12 }).map((_, i) => (
-                      <div key={i} className="h-16 bg-gray-200 rounded-lg"></div>
-                    ))}
+    <Suspense
+      fallback={
+        <PageContainer title="添加分类" showBack>
+          <div className="max-w-2xl mx-auto p-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <i className="fas fa-palette" />
+                  创建新分类
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                    <div className="h-10 bg-gray-200 rounded"></div>
+                  </div>
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                    <div className="h-10 bg-gray-200 rounded"></div>
+                  </div>
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                    <div className="grid grid-cols-6 gap-3">
+                      {Array.from({ length: 12 }).map((_, i) => (
+                        <div key={i} className="h-16 bg-gray-200 rounded-lg"></div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </PageContainer>
-    }>
+              </CardContent>
+            </Card>
+          </div>
+        </PageContainer>
+      }
+    >
       <NewCategoryForm />
     </Suspense>
   );

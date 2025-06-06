@@ -1,16 +1,16 @@
-import { apiClient } from "./api";
-import { getCurrentMonthRange } from "./utils";
+import { apiClient } from './api';
+import { getCurrentMonthRange } from './utils';
 
 // 账本相关API
 export const accountBookService = {
   // 获取所有账本
   getAccountBooks: () => {
-    return apiClient.get("/account-books");
+    return apiClient.get('/account-books');
   },
 
   // 获取默认账本
   getDefaultAccountBook: () => {
-    return apiClient.get("/account-books/default");
+    return apiClient.get('/account-books/default');
   },
 
   // 获取单个账本
@@ -20,7 +20,7 @@ export const accountBookService = {
 
   // 创建账本
   createAccountBook: (data: any) => {
-    return apiClient.post("/account-books", data);
+    return apiClient.post('/account-books', data);
   },
 
   // 更新账本
@@ -43,7 +43,7 @@ export const accountBookService = {
 export const transactionService = {
   // 获取所有交易
   getTransactions: (params?: any) => {
-    return apiClient.get("/transactions", { params });
+    return apiClient.get('/transactions', { params });
   },
 
   // 获取单个交易
@@ -53,7 +53,7 @@ export const transactionService = {
 
   // 创建交易
   createTransaction: (data: any) => {
-    return apiClient.post("/transactions", data);
+    return apiClient.post('/transactions', data);
   },
 
   // 更新交易
@@ -68,11 +68,11 @@ export const transactionService = {
 
   // 获取最近交易
   getRecentTransactions: (accountBookId: string, limit: number = 10) => {
-    return apiClient.get("/transactions", {
+    return apiClient.get('/transactions', {
       params: {
         accountBookId,
         limit,
-        sort: "date:desc",
+        sort: 'date:desc',
       },
     });
   },
@@ -81,10 +81,10 @@ export const transactionService = {
   getGroupedTransactions: (accountBookId: string, params?: any) => {
     const defaultParams = {
       accountBookId,
-      groupBy: "date",
-      sort: "date:desc",
+      groupBy: 'date',
+      sort: 'date:desc',
     };
-    return apiClient.get("/transactions/grouped", {
+    return apiClient.get('/transactions/grouped', {
       params: { ...defaultParams, ...params },
     });
   },
@@ -100,7 +100,7 @@ export const categoryService = {
 
     const userId = useAuthStore.getState().user?.id;
     if (!userId) {
-      return apiClient.get("/categories", { params });
+      return apiClient.get('/categories', { params });
     }
 
     const type = params?.type as 'EXPENSE' | 'INCOME' | undefined;
@@ -114,7 +114,7 @@ export const categoryService = {
 
     // 从API获取数据
     console.log('CategoryService: 从API获取数据');
-    const response = await apiClient.get("/categories", { params });
+    const response = await apiClient.get('/categories', { params });
 
     // 缓存数据
     if (Array.isArray(response)) {
@@ -131,7 +131,7 @@ export const categoryService = {
 
   // 创建分类（清除缓存）
   createCategory: async (data: any) => {
-    const response = await apiClient.post("/categories", data);
+    const response = await apiClient.post('/categories', data);
 
     // 清除缓存
     const { categoryCacheService } = await import('../services/category-cache.service');
@@ -179,7 +179,7 @@ export const categoryService = {
 
   // 更新分类排序（清除缓存）
   updateCategoryOrder: async (data: any) => {
-    const response = await apiClient.put("/categories/order", data);
+    const response = await apiClient.put('/categories/order', data);
 
     // 清除缓存
     const { categoryCacheService } = await import('../services/category-cache.service');
@@ -202,14 +202,14 @@ export const categoryService = {
       categoryCacheService.clearAllUserCache(userId);
       console.log('CategoryService: 手动清除缓存');
     }
-  }
+  },
 };
 
 // 预算相关API
 export const budgetService = {
   // 获取所有预算
   getBudgets: (params?: any) => {
-    return apiClient.get("/budgets", { params });
+    return apiClient.get('/budgets', { params });
   },
 
   // 获取单个预算
@@ -219,7 +219,7 @@ export const budgetService = {
 
   // 创建预算
   createBudget: (data: any) => {
-    return apiClient.post("/budgets", data);
+    return apiClient.post('/budgets', data);
   },
 
   // 更新预算
@@ -237,7 +237,7 @@ export const budgetService = {
     const defaultParams = {
       accountBookId,
     };
-    return apiClient.get("/statistics/budgets", {
+    return apiClient.get('/statistics/budgets', {
       params: { ...defaultParams, ...params },
     });
   },
@@ -258,10 +258,14 @@ export const budgetService = {
   },
 
   // 获取用户级别的预算结转历史（简化版本）
-  getUserBudgetRolloverHistory: (accountBookId: string, budgetType: string = 'PERSONAL', targetUserId?: string) => {
+  getUserBudgetRolloverHistory: (
+    accountBookId: string,
+    budgetType: string = 'PERSONAL',
+    targetUserId?: string,
+  ) => {
     const params = new URLSearchParams({
       accountBookId,
-      budgetType
+      budgetType,
     });
 
     if (targetUserId) {
@@ -282,23 +286,23 @@ export const statisticsService = {
       startDate,
       endDate,
     };
-    return apiClient.get("/statistics/overview", {
+    return apiClient.get('/statistics/overview', {
       params: { ...defaultParams, ...params },
     });
   },
 
   // 获取月度统计
   getMonthlyStatistics: (accountBookId: string, yearMonth: string) => {
-    const year = parseInt(yearMonth.split("-")[0]);
-    const month = parseInt(yearMonth.split("-")[1]);
+    const year = parseInt(yearMonth.split('-')[0]);
+    const month = parseInt(yearMonth.split('-')[1]);
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
 
-    return apiClient.get("/statistics/overview", {
+    return apiClient.get('/statistics/overview', {
       params: {
         accountBookId,
-        startDate: startDate.toISOString().split("T")[0],
-        endDate: endDate.toISOString().split("T")[0],
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
       },
     });
   },
@@ -306,7 +310,7 @@ export const statisticsService = {
   // 获取当前月份统计
   getCurrentMonthStatistics: (accountBookId: string) => {
     const { startDate, endDate } = getCurrentMonthRange();
-    return apiClient.get("/statistics/overview", {
+    return apiClient.get('/statistics/overview', {
       params: {
         accountBookId,
         startDate,
@@ -328,11 +332,15 @@ export const dashboardService = {
 export const exportService = {
   // 导出交易记录
   exportTransactions: (accountBookId: string, format: 'csv' | 'json' = 'csv') => {
-    return apiClient.post(`/transactions/export?accountBookId=${accountBookId}`, {
-      format,
-    }, {
-      responseType: 'blob',
-    });
+    return apiClient.post(
+      `/transactions/export?accountBookId=${accountBookId}`,
+      {
+        format,
+      },
+      {
+        responseType: 'blob',
+      },
+    );
   },
 };
 

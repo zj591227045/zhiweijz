@@ -15,11 +15,11 @@ export function MemberStatistics({
   members,
   totalExpense,
   period,
-  onPeriodChange
+  onPeriodChange,
 }: MemberStatisticsProps) {
   // 按消费金额排序成员
-  const sortedMembers = [...members].sort((a, b) =>
-    (b.statistics?.totalExpense || 0) - (a.statistics?.totalExpense || 0)
+  const sortedMembers = [...members].sort(
+    (a, b) => (b.statistics?.totalExpense || 0) - (a.statistics?.totalExpense || 0),
   );
 
   // 获取排名样式
@@ -39,28 +39,19 @@ export function MemberStatistics({
     <div className="stats-overview">
       <div className="period-selector">
         <button
-          className={cn(
-            "period-tab",
-            period === 'all' && "active"
-          )}
+          className={cn('period-tab', period === 'all' && 'active')}
           onClick={() => onPeriodChange('all')}
         >
           全部
         </button>
         <button
-          className={cn(
-            "period-tab",
-            period === 'month' && "active"
-          )}
+          className={cn('period-tab', period === 'month' && 'active')}
           onClick={() => onPeriodChange('month')}
         >
           本月
         </button>
         <button
-          className={cn(
-            "period-tab",
-            period === 'last_month' && "active"
-          )}
+          className={cn('period-tab', period === 'last_month' && 'active')}
           onClick={() => onPeriodChange('last_month')}
         >
           上月
@@ -70,9 +61,7 @@ export function MemberStatistics({
       <div className="member-ranking">
         {sortedMembers.map((member, index) => (
           <div key={member.memberId} className="ranking-item">
-            <div className={cn("rank-number", getRankClass(index))}>
-              {index + 1}
-            </div>
+            <div className={cn('rank-number', getRankClass(index))}>{index + 1}</div>
             <div className="ranking-avatar">
               {member.avatar ? (
                 <img src={member.avatar} alt={member.username || '用户'} />
@@ -93,9 +82,7 @@ export function MemberStatistics({
         ))}
 
         {members.length === 0 && (
-          <div className="text-center py-6 text-gray-500">
-            暂无成员消费数据
-          </div>
+          <div className="text-center py-6 text-gray-500">暂无成员消费数据</div>
         )}
       </div>
     </div>

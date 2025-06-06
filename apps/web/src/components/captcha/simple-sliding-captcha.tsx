@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
@@ -15,7 +15,7 @@ export const SimpleSlidingCaptcha: React.FC<SimpleSlidingCaptchaProps> = ({
   onClose,
   onSuccess,
   onError,
-  title = "请完成安全验证"
+  title = '请完成安全验证',
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [sliderPosition, setSliderPosition] = useState(0);
@@ -32,8 +32,6 @@ export const SimpleSlidingCaptcha: React.FC<SimpleSlidingCaptchaProps> = ({
   const generatePuzzle = useCallback(() => {
     if (typeof window === 'undefined') return;
 
-
-
     // 生成随机目标位置 (60-180px之间，避免边缘)
     const target = Math.random() * 120 + 60;
     setTargetPosition(target);
@@ -47,13 +45,11 @@ export const SimpleSlidingCaptcha: React.FC<SimpleSlidingCaptchaProps> = ({
       `linear-gradient(135deg, hsl(${hue1}, 80%, 75%) 0%, hsl(${hue2}, 70%, 65%) 50%, hsl(${hue3}, 75%, 70%) 100%)`,
       `radial-gradient(circle at 30% 30%, hsl(${hue1}, 85%, 80%) 0%, hsl(${hue2}, 75%, 70%) 40%, hsl(${hue3}, 80%, 60%) 100%)`,
       `linear-gradient(45deg, hsl(${hue1}, 90%, 80%) 0%, hsl(${hue2}, 85%, 75%) 25%, hsl(${hue3}, 80%, 70%) 50%, hsl(${hue1}, 75%, 65%) 100%)`,
-      `conic-gradient(from 45deg, hsl(${hue1}, 80%, 75%), hsl(${hue2}, 75%, 70%), hsl(${hue3}, 85%, 75%), hsl(${hue1}, 80%, 75%))`
+      `conic-gradient(from 45deg, hsl(${hue1}, 80%, 75%), hsl(${hue2}, 75%, 70%), hsl(${hue3}, 85%, 75%), hsl(${hue1}, 80%, 75%))`,
     ];
 
     const selectedPattern = patterns[Math.floor(Math.random() * patterns.length)];
     setBackgroundPattern(selectedPattern);
-
-
   }, []);
 
   // 处理拖拽开始
@@ -66,24 +62,25 @@ export const SimpleSlidingCaptcha: React.FC<SimpleSlidingCaptchaProps> = ({
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     dragStartX.current = clientX;
     initialSliderPosition.current = sliderPosition;
-
-
   };
 
   // 处理拖拽移动
-  const handleDragMove = useCallback((e: MouseEvent | TouchEvent) => {
-    if (!isDragging) return;
+  const handleDragMove = useCallback(
+    (e: MouseEvent | TouchEvent) => {
+      if (!isDragging) return;
 
-    e.preventDefault(); // 防止默认行为
+      e.preventDefault(); // 防止默认行为
 
-    // 使用相对位置计算，避免重复获取getBoundingClientRect
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const deltaX = clientX - dragStartX.current;
-    const newPosition = Math.max(0, Math.min(250, initialSliderPosition.current + deltaX));
+      // 使用相对位置计算，避免重复获取getBoundingClientRect
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const deltaX = clientX - dragStartX.current;
+      const newPosition = Math.max(0, Math.min(250, initialSliderPosition.current + deltaX));
 
-    // 直接更新状态
-    setSliderPosition(newPosition);
-  }, [isDragging]);
+      // 直接更新状态
+      setSliderPosition(newPosition);
+    },
+    [isDragging],
+  );
 
   // 处理拖拽结束
   const handleDragEnd = useCallback(() => {
@@ -92,8 +89,6 @@ export const SimpleSlidingCaptcha: React.FC<SimpleSlidingCaptchaProps> = ({
     setIsDragging(false);
     const endTime = Date.now();
     const duration = endTime - startTime;
-
-
 
     // 检查位置是否正确 (允许20像素误差，更宽松)
     const isCorrect = Math.abs(sliderPosition - targetPosition) <= 20;
@@ -111,18 +106,19 @@ export const SimpleSlidingCaptcha: React.FC<SimpleSlidingCaptchaProps> = ({
 
         setTimeout(() => {
           // 生成验证token
-          const token = btoa(JSON.stringify({
-            timestamp: Date.now(),
-            position: sliderPosition,
-            target: targetPosition,
-            duration
-          }));
+          const token = btoa(
+            JSON.stringify({
+              timestamp: Date.now(),
+              position: sliderPosition,
+              target: targetPosition,
+              duration,
+            }),
+          );
 
           onSuccess(token);
         }, 800);
       }, 500);
     } else {
-
       onError('验证失败，请重试');
       // 重置滑块位置
       setSliderPosition(0);
@@ -154,7 +150,6 @@ export const SimpleSlidingCaptcha: React.FC<SimpleSlidingCaptchaProps> = ({
   // 初始化拼图
   useEffect(() => {
     if (isOpen) {
-
       setSliderPosition(0);
       setIsSuccess(false);
       setIsVerifying(false);
@@ -167,11 +162,8 @@ export const SimpleSlidingCaptcha: React.FC<SimpleSlidingCaptchaProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* 背景遮罩 */}
-      <div 
-        className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      
+      <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={onClose} />
+
       {/* 验证码弹窗 */}
       <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 mx-4 w-full max-w-md border border-gray-200 dark:border-gray-700">
         {/* 标题栏 */}
@@ -180,9 +172,7 @@ export const SimpleSlidingCaptcha: React.FC<SimpleSlidingCaptchaProps> = ({
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-bold">🔒</span>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-              {title}
-            </h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h3>
           </div>
           <button
             onClick={onClose}
@@ -198,7 +188,7 @@ export const SimpleSlidingCaptcha: React.FC<SimpleSlidingCaptchaProps> = ({
             className="relative rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-600 shadow-inner"
             style={{
               height: '160px',
-              background: backgroundPattern || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+              background: backgroundPattern || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             }}
           >
             {/* 装饰性光效 */}
@@ -210,7 +200,9 @@ export const SimpleSlidingCaptcha: React.FC<SimpleSlidingCaptchaProps> = ({
               style={{ left: `${targetPosition}px` }}
             >
               <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white to-transparent opacity-30"></div>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-xl">🎯</div>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-xl">
+                🎯
+              </div>
             </div>
 
             {/* 拼图片段 */}
@@ -219,33 +211,37 @@ export const SimpleSlidingCaptcha: React.FC<SimpleSlidingCaptchaProps> = ({
                 isSuccess
                   ? 'bg-gradient-to-br from-green-400 to-green-600 scale-110 transition-all duration-500'
                   : isVerifying
-                  ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 animate-pulse'
-                  : 'bg-gradient-to-br from-blue-400 to-blue-600'
+                    ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 animate-pulse'
+                    : 'bg-gradient-to-br from-blue-400 to-blue-600'
               }`}
               style={{
                 left: `${sliderPosition}px`,
                 boxShadow: isSuccess
                   ? '0 8px 25px rgba(34, 197, 94, 0.4)'
                   : isVerifying
-                  ? '0 8px 25px rgba(234, 179, 8, 0.4)'
-                  : '0 8px 25px rgba(59, 130, 246, 0.4)',
-                transition: isDragging ? 'none' : (isSuccess || isVerifying ? 'all 0.5s ease' : 'none')
+                    ? '0 8px 25px rgba(234, 179, 8, 0.4)'
+                    : '0 8px 25px rgba(59, 130, 246, 0.4)',
+                transition: isDragging
+                  ? 'none'
+                  : isSuccess || isVerifying
+                    ? 'all 0.5s ease'
+                    : 'none',
               }}
             >
-              <div className="text-2xl">
-                {isSuccess ? '✅' : isVerifying ? '⏳' : '🧩'}
-              </div>
+              <div className="text-2xl">{isSuccess ? '✅' : isVerifying ? '⏳' : '🧩'}</div>
             </div>
 
             {/* 美化的提示文字 */}
             <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2">
-              <div className={`backdrop-blur-sm text-white text-sm px-4 py-2 rounded-full border border-white border-opacity-20 transition-all duration-300 ${
-                isSuccess
-                  ? 'bg-green-600 bg-opacity-80'
-                  : isVerifying
-                  ? 'bg-yellow-600 bg-opacity-80'
-                  : 'bg-black bg-opacity-60'
-              }`}>
+              <div
+                className={`backdrop-blur-sm text-white text-sm px-4 py-2 rounded-full border border-white border-opacity-20 transition-all duration-300 ${
+                  isSuccess
+                    ? 'bg-green-600 bg-opacity-80'
+                    : isVerifying
+                      ? 'bg-yellow-600 bg-opacity-80'
+                      : 'bg-black bg-opacity-60'
+                }`}
+              >
                 <span className="flex items-center space-x-2">
                   {isSuccess ? (
                     <>
@@ -292,7 +288,7 @@ export const SimpleSlidingCaptcha: React.FC<SimpleSlidingCaptchaProps> = ({
               className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-400 to-blue-500 opacity-20"
               style={{
                 width: `${sliderPosition}px`,
-                transition: isDragging ? 'none' : 'width 0.3s ease'
+                transition: isDragging ? 'none' : 'width 0.3s ease',
               }}
             ></div>
 
@@ -305,7 +301,7 @@ export const SimpleSlidingCaptcha: React.FC<SimpleSlidingCaptchaProps> = ({
               style={{
                 transform: `translateX(${sliderPosition}px)`,
                 boxShadow: '0 6px 20px rgba(59, 130, 246, 0.4)',
-                transition: isDragging ? 'none' : undefined
+                transition: isDragging ? 'none' : undefined,
               }}
               onMouseDown={handleDragStart}
               onTouchStart={handleDragStart}
@@ -322,9 +318,7 @@ export const SimpleSlidingCaptcha: React.FC<SimpleSlidingCaptchaProps> = ({
             <span>拖动滑块控制拼图块移动到目标位置</span>
             <span>🎮</span>
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-            验证成功后将自动提交
-          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">验证成功后将自动提交</p>
         </div>
       </div>
     </div>

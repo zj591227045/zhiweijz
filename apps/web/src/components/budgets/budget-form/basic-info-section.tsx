@@ -1,15 +1,9 @@
-"use client";
+'use client';
 
-import { useBudgetFormStore } from "@/store/budget-form-store";
+import { useBudgetFormStore } from '@/store/budget-form-store';
 
 export function BasicInfoSection() {
-  const { 
-    name,
-    amount,
-    errors,
-    setName,
-    setAmount
-  } = useBudgetFormStore();
+  const { name, amount, errors, setName, setAmount } = useBudgetFormStore();
 
   // 处理预算名称变更
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,7 +13,7 @@ export function BasicInfoSection() {
   // 处理预算金额变更
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    
+
     // 只允许输入数字和小数点
     if (/^$|^[0-9]+\.?[0-9]*$/.test(value)) {
       setAmount(value ? parseFloat(value) : 0);
@@ -32,7 +26,7 @@ export function BasicInfoSection() {
         <i className="fas fa-info-circle"></i>
         基本信息
       </div>
-      
+
       <div className="form-group">
         <label htmlFor="budget-name">预算名称</label>
         <input
@@ -45,7 +39,7 @@ export function BasicInfoSection() {
         />
         {errors.name && <div className="error-message">{errors.name}</div>}
       </div>
-      
+
       <div className="form-group">
         <label htmlFor="budget-amount">预算金额</label>
         <div className="amount-input">
@@ -54,7 +48,7 @@ export function BasicInfoSection() {
             type="text"
             id="budget-amount"
             placeholder="0.00"
-            value={amount || ""}
+            value={amount || ''}
             onChange={handleAmountChange}
           />
         </div>
@@ -62,4 +56,4 @@ export function BasicInfoSection() {
       </div>
     </div>
   );
-} 
+}

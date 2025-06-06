@@ -15,7 +15,7 @@ export function clearLocalStorageCache(): void {
 
   // 需要清除的键名模式
   const keysToRemove: string[] = [];
-  
+
   // 遍历所有localStorage键
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
@@ -25,7 +25,7 @@ export function clearLocalStorageCache(): void {
   }
 
   // 清除匹配的键
-  keysToRemove.forEach(key => {
+  keysToRemove.forEach((key) => {
     localStorage.removeItem(key);
     console.log('已清除localStorage项:', key);
   });
@@ -49,10 +49,10 @@ function shouldRemoveKey(key: string): boolean {
     'dashboard',
     'ai-services',
     'llm-cache',
-    'theme' // 可选：是否清除主题设置
+    'theme', // 可选：是否清除主题设置
   ];
 
-  return patterns.some(pattern => key.includes(pattern));
+  return patterns.some((pattern) => key.includes(pattern));
 }
 
 /**
@@ -76,13 +76,13 @@ export function clearApiCache(): void {
  */
 export function clearAllCache(): void {
   console.log('开始清除所有缓存...');
-  
+
   // 清除localStorage缓存
   clearLocalStorageCache();
-  
+
   // 清除API缓存
   clearApiCache();
-  
+
   console.log('所有缓存清除完成');
 }
 
@@ -95,15 +95,10 @@ export function clearAuthCache(): void {
   console.log('开始清除认证相关缓存...');
 
   // 认证相关的键名
-  const authKeys = [
-    'auth-token',
-    'user',
-    'auth-storage',
-    'account-book-storage'
-  ];
+  const authKeys = ['auth-token', 'user', 'auth-storage', 'account-book-storage'];
 
   // 清除认证相关的localStorage项
-  authKeys.forEach(key => {
+  authKeys.forEach((key) => {
     localStorage.removeItem(key);
     console.log('已清除认证缓存项:', key);
   });
@@ -112,21 +107,22 @@ export function clearAuthCache(): void {
   const keysToRemove: string[] = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key && (
-      key.includes('budget') ||
-      key.includes('transaction') ||
-      key.includes('category') ||
-      key.includes('family') ||
-      key.includes('statistics') ||
-      key.includes('dashboard') ||
-      key.includes('ai-services') ||
-      key.includes('llm-cache')
-    )) {
+    if (
+      key &&
+      (key.includes('budget') ||
+        key.includes('transaction') ||
+        key.includes('category') ||
+        key.includes('family') ||
+        key.includes('statistics') ||
+        key.includes('dashboard') ||
+        key.includes('ai-services') ||
+        key.includes('llm-cache'))
+    ) {
       keysToRemove.push(key);
     }
   }
 
-  keysToRemove.forEach(key => {
+  keysToRemove.forEach((key) => {
     localStorage.removeItem(key);
     console.log('已清除业务缓存项:', key);
   });
@@ -153,10 +149,10 @@ export function redirectToLogin(delay: number = 500): void {
  */
 export function performLogoutCleanup(): void {
   console.log('执行登出清理流程...');
-  
+
   // 清除所有缓存
   clearAllCache();
-  
+
   // 延迟跳转到登录页，确保清理完成
   redirectToLogin(500);
 }

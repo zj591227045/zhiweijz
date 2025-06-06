@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useBudgetFormStore } from "@/store/budget-form-store";
+import { useBudgetFormStore } from '@/store/budget-form-store';
 
 export function TimeSettingsSection() {
-  const { 
+  const {
     mode,
     budgetType,
     startDate,
@@ -16,7 +16,7 @@ export function TimeSettingsSection() {
     setEndDate,
     toggleUnlimited,
     setRefreshDay,
-    toggleRollover
+    toggleRollover,
   } = useBudgetFormStore();
 
   // 处理开始日期变更
@@ -55,11 +55,7 @@ export function TimeSettingsSection() {
 
         <div className="form-group">
           <label htmlFor="budget-refresh-day">刷新日期</label>
-          <select
-            id="budget-refresh-day"
-            value={refreshDay}
-            onChange={handleRefreshDayChange}
-          >
+          <select id="budget-refresh-day" value={refreshDay} onChange={handleRefreshDayChange}>
             <option value="1">每月1日</option>
             <option value="5">每月5日</option>
             <option value="10">每月10日</option>
@@ -77,11 +73,7 @@ export function TimeSettingsSection() {
           <div className="toggle-container">
             <span>启用结转</span>
             <label className="toggle-switch">
-              <input
-                type="checkbox"
-                checked={enableRollover}
-                onChange={handleRolloverToggle}
-              />
+              <input type="checkbox" checked={enableRollover} onChange={handleRolloverToggle} />
               <span className="toggle-slider"></span>
             </label>
           </div>
@@ -101,7 +93,7 @@ export function TimeSettingsSection() {
         <i className="fas fa-calendar"></i>
         时间设置
       </div>
-      
+
       <div className="form-group">
         <label htmlFor="budget-start-date">开始日期</label>
         <div className="date-input">
@@ -115,7 +107,7 @@ export function TimeSettingsSection() {
         </div>
         {errors.startDate && <div className="error-message">{errors.startDate}</div>}
       </div>
-      
+
       {!isUnlimited && (
         <div className="form-group">
           <label htmlFor="budget-end-date">结束日期</label>
@@ -136,11 +128,7 @@ export function TimeSettingsSection() {
         <div className="toggle-container">
           <span>无期限预算</span>
           <label className="toggle-switch">
-            <input
-              type="checkbox"
-              checked={isUnlimited}
-              onChange={handleUnlimitedToggle}
-            />
+            <input type="checkbox" checked={isUnlimited} onChange={handleUnlimitedToggle} />
             <span className="toggle-slider"></span>
           </label>
         </div>
@@ -151,4 +139,4 @@ export function TimeSettingsSection() {
       </div>
     </div>
   );
-} 
+}

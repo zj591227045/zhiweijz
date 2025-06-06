@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { TransactionType } from "@/types";
+import { useRouter } from 'next/navigation';
+import { TransactionType } from '@/types';
 
 interface AddCategoryButtonProps {
   type: TransactionType;

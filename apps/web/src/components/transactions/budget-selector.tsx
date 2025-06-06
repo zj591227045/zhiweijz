@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useCallback } from "react";
-import { cn } from "@/lib/utils";
-import { useTransactionFormStore } from "@/store/transaction-form-store";
-import { useAccountBookStore } from "@/store/account-book-store";
-import { useBudgetStore } from "@/store/budget-store";
-import { useAuthStore } from "@/store/auth-store";
-import "./budget-selector.css";
+import { useEffect, useState, useCallback } from 'react';
+import { cn } from '@/lib/utils';
+import { useTransactionFormStore } from '@/store/transaction-form-store';
+import { useAccountBookStore } from '@/store/account-book-store';
+import { useBudgetStore } from '@/store/budget-store';
+import { useAuthStore } from '@/store/auth-store';
+import './budget-selector.css';
 
 // 预算类型定义
 interface Budget {
@@ -34,10 +34,7 @@ interface Budget {
 }
 
 export function BudgetSelector() {
-  const {
-    budgetId,
-    setBudgetId
-  } = useTransactionFormStore();
+  const { budgetId, setBudgetId } = useTransactionFormStore();
 
   const { currentAccountBook } = useAccountBookStore();
   const { budgets, fetchActiveBudgets, isLoading } = useBudgetStore();
@@ -54,8 +51,8 @@ export function BudgetSelector() {
   }, [currentAccountBook?.id, fetchActiveBudgets]);
 
   // 筛选支出类型的预算并格式化数据
-  const formattedBudgets: Budget[] = budgets.map(budget => {
-    console.log("处理预算数据:", budget);
+  const formattedBudgets: Budget[] = budgets.map((budget) => {
+    console.log('处理预算数据:', budget);
 
     // 获取预算名称，优先使用name字段，其次使用分类名称
     let budgetName = '';
@@ -98,50 +95,50 @@ export function BudgetSelector() {
       startDate: (budget as any).startDate,
       endDate: (budget as any).endDate,
       remaining: (budget as any).remaining,
-      percentage: (budget as any).percentage
+      percentage: (budget as any).percentage,
     };
 
-    console.log("格式化后的预算:", formattedBudget);
+    console.log('格式化后的预算:', formattedBudget);
     return formattedBudget;
   });
 
   // 自动选择默认预算的逻辑
   const selectDefaultBudget = useCallback(() => {
-    console.log("selectDefaultBudget 调用:", {
+    console.log('selectDefaultBudget 调用:', {
       formattedBudgetsLength: formattedBudgets.length,
       selectedBudget,
       currentUser: currentUser?.name,
-      hasInitialized
+      hasInitialized,
     });
 
     if (formattedBudgets.length > 0 && !selectedBudget && currentUser && !hasInitialized) {
-      console.log("获取到活跃预算:", formattedBudgets);
-      console.log("当前登录用户:", currentUser);
+      console.log('获取到活跃预算:', formattedBudgets);
+      console.log('当前登录用户:', currentUser);
 
       // 查找与当前登录用户名称匹配的预算
-      const userBudget = formattedBudgets.find(b =>
-        b.familyMemberName === currentUser.name && b.budgetType === 'PERSONAL'
+      const userBudget = formattedBudgets.find(
+        (b) => b.familyMemberName === currentUser.name && b.budgetType === 'PERSONAL',
       );
 
       if (userBudget) {
-        console.log("找到当前用户的预算:", userBudget);
+        console.log('找到当前用户的预算:', userBudget);
         setSelectedBudget(userBudget);
         setBudgetId(userBudget.id);
         setHasInitialized(true);
       } else {
         // 如果没有找到匹配的预算，查找没有familyMemberId的个人预算
-        const personalBudget = formattedBudgets.find(b =>
-          !b.familyMemberId && b.budgetType === 'PERSONAL'
+        const personalBudget = formattedBudgets.find(
+          (b) => !b.familyMemberId && b.budgetType === 'PERSONAL',
         );
 
         if (personalBudget) {
-          console.log("设置默认个人预算:", personalBudget);
+          console.log('设置默认个人预算:', personalBudget);
           setSelectedBudget(personalBudget);
           setBudgetId(personalBudget.id);
           setHasInitialized(true);
         } else if (formattedBudgets.length > 0) {
           // 如果没有找到个人预算，使用第一个预算
-          console.log("未找到个人预算，使用第一个预算:", formattedBudgets[0]);
+          console.log('未找到个人预算，使用第一个预算:', formattedBudgets[0]);
           setSelectedBudget(formattedBudgets[0]);
           setBudgetId(formattedBudgets[0].id);
           setHasInitialized(true);
@@ -158,7 +155,7 @@ export function BudgetSelector() {
   // 根据budgetId查找选中的预算（仅在budgetId变化且没有selectedBudget时执行）
   useEffect(() => {
     if (budgetId && formattedBudgets.length > 0 && !selectedBudget) {
-      const budget = formattedBudgets.find(b => b.id === budgetId);
+      const budget = formattedBudgets.find((b) => b.id === budgetId);
       if (budget) {
         setSelectedBudget(budget);
       }
@@ -185,7 +182,7 @@ export function BudgetSelector() {
       style: 'currency',
       currency: 'CNY',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     }).format(amount);
   };
 
@@ -212,19 +209,14 @@ export function BudgetSelector() {
   return (
     <div className="budget-selector-container">
       {/* 预算选择器预览 */}
-      <div
-        className="budget-selector-preview"
-        onClick={() => setIsBudgetSelectorOpen(true)}
-      >
+      <div className="budget-selector-preview" onClick={() => setIsBudgetSelectorOpen(true)}>
         <div className="budget-selector-icon">
           <i className="fas fa-wallet"></i>
         </div>
         <div className="budget-selector-info">
           {selectedBudget ? (
             <>
-              <div className="budget-name">
-                {getBudgetDisplayName(selectedBudget)}
-              </div>
+              <div className="budget-name">{getBudgetDisplayName(selectedBudget)}</div>
               <div className="budget-balance">
                 余额: {formatAmount(calculateBudgetBalance(selectedBudget))}
               </div>
@@ -241,16 +233,10 @@ export function BudgetSelector() {
       {/* 预算选择器弹窗 */}
       {isBudgetSelectorOpen && (
         <div className="budget-selector-overlay" onClick={() => setIsBudgetSelectorOpen(false)}>
-          <div
-            className="budget-selector-drawer"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="budget-selector-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="budget-selector-header">
               <h3>选择预算</h3>
-              <button
-                className="close-button"
-                onClick={() => setIsBudgetSelectorOpen(false)}
-              >
+              <button className="close-button" onClick={() => setIsBudgetSelectorOpen(false)}>
                 <i className="fas fa-times"></i>
               </button>
             </div>
@@ -269,10 +255,7 @@ export function BudgetSelector() {
                 <div className="budget-list">
                   {/* 不使用预算选项 */}
                   <div
-                    className={cn(
-                      "budget-item",
-                      !selectedBudget && "active"
-                    )}
+                    className={cn('budget-item', !selectedBudget && 'active')}
                     onClick={handleClearBudget}
                   >
                     <div className="budget-item-info">
@@ -286,24 +269,22 @@ export function BudgetSelector() {
                   </div>
 
                   {/* 个人预算组 */}
-                  {formattedBudgets.filter(b => b.budgetType !== 'GENERAL').length > 0 && (
+                  {formattedBudgets.filter((b) => b.budgetType !== 'GENERAL').length > 0 && (
                     <>
                       <div className="budget-group-header">个人预算</div>
                       {formattedBudgets
-                        .filter(budget => budget.budgetType !== 'GENERAL')
+                        .filter((budget) => budget.budgetType !== 'GENERAL')
                         .map((budget) => (
                           <div
                             key={budget.id}
                             className={cn(
-                              "budget-item",
-                              selectedBudget?.id === budget.id && "active"
+                              'budget-item',
+                              selectedBudget?.id === budget.id && 'active',
                             )}
                             onClick={() => handleBudgetSelect(budget)}
                           >
                             <div className="budget-item-info">
-                              <div className="budget-item-name">
-                                {getBudgetDisplayName(budget)}
-                              </div>
+                              <div className="budget-item-name">{getBudgetDisplayName(budget)}</div>
                               <div className="budget-item-balance">
                                 余额: {formatAmount(calculateBudgetBalance(budget))}
                               </div>
@@ -319,24 +300,22 @@ export function BudgetSelector() {
                   )}
 
                   {/* 通用预算组 */}
-                  {formattedBudgets.filter(b => b.budgetType === 'GENERAL').length > 0 && (
+                  {formattedBudgets.filter((b) => b.budgetType === 'GENERAL').length > 0 && (
                     <>
                       <div className="budget-group-header">通用预算</div>
                       {formattedBudgets
-                        .filter(budget => budget.budgetType === 'GENERAL')
+                        .filter((budget) => budget.budgetType === 'GENERAL')
                         .map((budget) => (
                           <div
                             key={budget.id}
                             className={cn(
-                              "budget-item",
-                              selectedBudget?.id === budget.id && "active"
+                              'budget-item',
+                              selectedBudget?.id === budget.id && 'active',
                             )}
                             onClick={() => handleBudgetSelect(budget)}
                           >
                             <div className="budget-item-info">
-                              <div className="budget-item-name">
-                                {getBudgetDisplayName(budget)}
-                              </div>
+                              <div className="budget-item-name">{getBudgetDisplayName(budget)}</div>
                               <div className="budget-item-balance">
                                 余额: {formatAmount(calculateBudgetBalance(budget))}
                               </div>

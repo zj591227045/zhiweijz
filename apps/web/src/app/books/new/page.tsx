@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { PageContainer } from "@/components/layout/page-container";
-import { BookForm, BookFormValues } from "@/components/books/book-form";
-import { useAccountBookStore } from "@/store/account-book-store";
-import { toast } from "sonner";
-import "../book-form.css";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { PageContainer } from '@/components/layout/page-container';
+import { BookForm, BookFormValues } from '@/components/books/book-form';
+import { useAccountBookStore } from '@/store/account-book-store';
+import { toast } from 'sonner';
+import '../book-form.css';
 
 export default function CreateBookPage() {
   const router = useRouter();
@@ -16,19 +16,19 @@ export default function CreateBookPage() {
   // 提交表单
   const handleSubmit = async (data: BookFormValues) => {
     setIsSubmitting(true);
-    
+
     try {
       await createAccountBook({
         name: data.name,
         description: data.description,
         isDefault: data.isDefault,
       });
-      
-      toast.success("账本创建成功");
-      router.push("/books");
+
+      toast.success('账本创建成功');
+      router.push('/books');
     } catch (error) {
-      console.error("创建账本失败:", error);
-      toast.error("创建账本失败，请重试");
+      console.error('创建账本失败:', error);
+      toast.error('创建账本失败，请重试');
     } finally {
       setIsSubmitting(false);
     }
@@ -36,21 +36,13 @@ export default function CreateBookPage() {
 
   // 取消操作
   const handleCancel = () => {
-    router.push("/books");
+    router.push('/books');
   };
 
   return (
-    <PageContainer
-      title="创建账本"
-      showBackButton={true}
-      activeNavItem="profile"
-    >
+    <PageContainer title="创建账本" showBackButton={true} activeNavItem="profile">
       <div className="book-form">
-        <BookForm
-          id="book-form"
-          isSubmitting={isSubmitting}
-          onSubmit={handleSubmit}
-        />
+        <BookForm id="book-form" isSubmitting={isSubmitting} onSubmit={handleSubmit} />
       </div>
 
       {/* 底部操作按钮 */}
@@ -61,7 +53,7 @@ export default function CreateBookPage() {
             className="secondary-button"
             onClick={handleCancel}
             disabled={isSubmitting}
-            style={{ 
+            style={{
               flex: '1',
               padding: '14px',
               backgroundColor: 'transparent',
@@ -69,7 +61,7 @@ export default function CreateBookPage() {
               border: '1px solid var(--border-color, #e5e7eb)',
               borderRadius: '8px',
               fontWeight: '500',
-              fontSize: '16px'
+              fontSize: '16px',
             }}
           >
             取消

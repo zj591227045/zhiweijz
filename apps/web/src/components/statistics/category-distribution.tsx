@@ -1,7 +1,15 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+} from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
 import { formatCurrency, formatPercentage } from '@/lib/utils';
 import { CategoryStatistics } from '@/types';
@@ -17,23 +25,21 @@ interface CategoryDistributionProps {
 
 export function CategoryDistribution({
   expenseCategories,
-  incomeCategories
+  incomeCategories,
 }: CategoryDistributionProps) {
-  const {
-    categoryChartType,
-    setCategoryChartType,
-    selectedCategoryType,
-    setSelectedCategoryType
-  } = useStatisticsStore();
+  const { categoryChartType, setCategoryChartType, selectedCategoryType, setSelectedCategoryType } =
+    useStatisticsStore();
 
   const chartRef = useRef<any>(null);
   const [chartData, setChartData] = useState({
     labels: [] as string[],
-    datasets: [{
-      data: [] as number[],
-      backgroundColor: [] as string[],
-      borderWidth: 0
-    }]
+    datasets: [
+      {
+        data: [] as number[],
+        backgroundColor: [] as string[],
+        borderWidth: 0,
+      },
+    ],
   });
 
   // 获取当前选中类型的分类数据
@@ -45,18 +51,20 @@ export function CategoryDistribution({
       selectedCategoryType,
       categories,
       expenseCategories,
-      incomeCategories
+      incomeCategories,
     });
 
     if (!categories || categories.length === 0) {
       console.log('没有分类数据，显示暂无数据');
       setChartData({
         labels: ['暂无数据'],
-        datasets: [{
-          data: [1],
-          backgroundColor: ['#e5e7eb'],
-          borderWidth: 0
-        }]
+        datasets: [
+          {
+            data: [1],
+            backgroundColor: ['#e5e7eb'],
+            borderWidth: 0,
+          },
+        ],
       });
       return;
     }
@@ -72,16 +80,18 @@ export function CategoryDistribution({
       6: '#14B8A6', // 青色
       7: '#F97316', // 深橙色
       8: '#6366F1', // 靛蓝色
-      9: '#84CC16'  // 青柠色
+      9: '#84CC16', // 青柠色
     };
 
     const newChartData = {
-      labels: categories.map(cat => cat.categoryName),
-      datasets: [{
-        data: categories.map(cat => cat.amount),
-        backgroundColor: categories.map((_, index) => colorMap[index % 10] || '#6B7280'),
-        borderWidth: 0
-      }]
+      labels: categories.map((cat) => cat.categoryName),
+      datasets: [
+        {
+          data: categories.map((cat) => cat.amount),
+          backgroundColor: categories.map((_, index) => colorMap[index % 10] || '#6B7280'),
+          borderWidth: 0,
+        },
+      ],
     };
 
     console.log('设置图表数据:', newChartData);
@@ -91,8 +101,16 @@ export function CategoryDistribution({
   // 生成随机颜色（用于分类列表显示）
   const getRandomColor = (index: number) => {
     const colors = [
-      '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-      '#EC4899', '#14B8A6', '#F97316', '#6366F1', '#84CC16'
+      '#3B82F6',
+      '#10B981',
+      '#F59E0B',
+      '#EF4444',
+      '#8B5CF6',
+      '#EC4899',
+      '#14B8A6',
+      '#F97316',
+      '#6366F1',
+      '#84CC16',
     ];
     return colors[index % colors.length];
   };
@@ -103,30 +121,36 @@ export function CategoryDistribution({
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: false
+        display: false,
       },
       tooltip: {
         callbacks: {
-          label: function(context: any) {
+          label: function (context: any) {
             const label = context.label || '';
             const value = context.raw;
-            const total = context.chart.data.datasets[0].data.reduce((a: number, b: number) => a + b, 0);
+            const total = context.chart.data.datasets[0].data.reduce(
+              (a: number, b: number) => a + b,
+              0,
+            );
             const percentage = Math.round((value / total) * 100);
             return `${label}: ${formatCurrency(value)} (${percentage}%)`;
-          }
-        }
-      }
+          },
+        },
+      },
     },
-    scales: categoryChartType === 'bar' ? {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          callback: function(value: any) {
-            return formatCurrency(value);
+    scales:
+      categoryChartType === 'bar'
+        ? {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function (value: any) {
+                  return formatCurrency(value);
+                },
+              },
+            },
           }
-        }
-      }
-    } : undefined
+        : undefined,
   };
 
   return (
@@ -171,12 +195,10 @@ export function CategoryDistribution({
           <div className="empty-chart">
             <p>暂无{selectedCategoryType === 'expense' ? '支出' : '收入'}数据</p>
           </div>
+        ) : categoryChartType === 'pie' ? (
+          <Pie ref={chartRef} data={chartData} options={chartOptions} />
         ) : (
-          categoryChartType === 'pie' ? (
-            <Pie ref={chartRef} data={chartData} options={chartOptions} />
-          ) : (
-            <Bar ref={chartRef} data={chartData} options={chartOptions} />
-          )
+          <Bar ref={chartRef} data={chartData} options={chartOptions} />
         )}
       </div>
 
@@ -193,7 +215,9 @@ export function CategoryDistribution({
             <div key={index} className="legend-item">
               <div className="legend-color" style={{ backgroundColor: color as string }}></div>
               <div className="legend-label">{label}</div>
-              <div className="legend-value">{formatCurrency(value)} ({percentage}%)</div>
+              <div className="legend-value">
+                {formatCurrency(value)} ({percentage}%)
+              </div>
             </div>
           );
         })}

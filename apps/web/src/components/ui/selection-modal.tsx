@@ -24,7 +24,7 @@ export function SelectionModal({
   title,
   options,
   selectedValue,
-  onSelect
+  onSelect,
 }: SelectionModalProps) {
   if (!isOpen) return null;
 
@@ -35,21 +35,14 @@ export function SelectionModal({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div 
-        className="selection-modal" 
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="selection-modal" onClick={(e) => e.stopPropagation()}>
         <div className="selection-modal-header">
           <h3 className="selection-modal-title">{title}</h3>
-          <button 
-            className="selection-modal-close"
-            onClick={onClose}
-            aria-label="关闭"
-          >
+          <button className="selection-modal-close" onClick={onClose} aria-label="关闭">
             <i className="fas fa-times"></i>
           </button>
         </div>
-        
+
         <div className="selection-modal-body">
           {options.map((option) => (
             <div

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface SmartAccountingInputProps {
   accountBookId?: string;
@@ -19,29 +19,26 @@ interface SmartAccountingResult {
   date?: string;
 }
 
-export function SmartAccountingInput({ 
-  accountBookId, 
-  onSuccess 
-}: SmartAccountingInputProps) {
+export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccountingInputProps) {
   const router = useRouter();
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
   // 处理智能识别
   const handleSmartAccounting = async () => {
     if (!description.trim()) {
-      toast.error("请输入描述");
+      toast.error('请输入描述');
       return;
     }
 
     if (!accountBookId) {
-      toast.error("请先选择账本");
+      toast.error('请先选择账本');
       return;
     }
 
     try {
       setIsProcessing(true);
-      toast.info("正在进行智能识别，请稍候...");
+      toast.info('正在进行智能识别，请稍候...');
 
       // 调用智能记账API
       const response = await fetch(`/api/ai/smart-accounting`, {
@@ -57,21 +54,21 @@ export function SmartAccountingInput({
 
       if (response.ok) {
         const result: SmartAccountingResult = await response.json();
-        
+
         // 调用成功回调
         onSuccess?.(result);
-        
-        toast.success("智能识别成功");
-        
+
+        toast.success('智能识别成功');
+
         // 清空输入
-        setDescription("");
+        setDescription('');
       } else {
         const error = await response.json();
-        toast.error(error.message || "智能识别失败，请手动填写");
+        toast.error(error.message || '智能识别失败，请手动填写');
       }
     } catch (error) {
-      console.error("智能记账失败:", error);
-      toast.error("智能识别失败，请手动填写");
+      console.error('智能记账失败:', error);
+      toast.error('智能识别失败，请手动填写');
     } finally {
       setIsProcessing(false);
     }
@@ -80,18 +77,18 @@ export function SmartAccountingInput({
   // 处理直接添加记账
   const handleDirectAdd = async () => {
     if (!description.trim()) {
-      toast.error("请输入描述");
+      toast.error('请输入描述');
       return;
     }
 
     if (!accountBookId) {
-      toast.error("请先选择账本");
+      toast.error('请先选择账本');
       return;
     }
 
     try {
       setIsProcessing(true);
-      toast.info("正在处理，请稍候...");
+      toast.info('正在处理，请稍候...');
 
       // 调用直接添加记账API
       const response = await fetch(`/api/ai/smart-accounting/direct`, {
@@ -107,20 +104,20 @@ export function SmartAccountingInput({
 
       if (response.ok) {
         const result = await response.json();
-        toast.success("记账成功");
-        
+        toast.success('记账成功');
+
         // 清空输入
-        setDescription("");
-        
+        setDescription('');
+
         // 跳转到交易列表
-        router.push("/transactions");
+        router.push('/transactions');
       } else {
         const error = await response.json();
-        toast.error(error.message || "记账失败，请手动填写");
+        toast.error(error.message || '记账失败，请手动填写');
       }
     } catch (error) {
-      console.error("直接添加记账失败:", error);
-      toast.error("记账失败，请手动填写");
+      console.error('直接添加记账失败:', error);
+      toast.error('记账失败，请手动填写');
     } finally {
       setIsProcessing(false);
     }
@@ -150,7 +147,7 @@ export function SmartAccountingInput({
           onClick={handleSmartAccounting}
           disabled={isProcessing || !description.trim()}
         >
-          {isProcessing ? "识别中..." : "智能识别"}
+          {isProcessing ? '识别中...' : '智能识别'}
         </button>
 
         <button
@@ -158,7 +155,7 @@ export function SmartAccountingInput({
           onClick={handleDirectAdd}
           disabled={isProcessing || !description.trim()}
         >
-          {isProcessing ? "添加中..." : "直接添加"}
+          {isProcessing ? '添加中...' : '直接添加'}
         </button>
       </div>
     </div>

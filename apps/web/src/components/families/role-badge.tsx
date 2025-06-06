@@ -9,12 +9,7 @@ interface RoleBadgeProps {
 
 export function RoleBadge({ role }: RoleBadgeProps) {
   return (
-    <span
-      className={cn(
-        'role-badge',
-        role === 'ADMIN' ? 'admin' : 'member'
-      )}
-    >
+    <span className={cn('role-badge', role === 'ADMIN' ? 'admin' : 'member')}>
       {role === 'ADMIN' ? '管理员' : '成员'}
     </span>
   );

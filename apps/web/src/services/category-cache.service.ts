@@ -44,14 +44,14 @@ class CategoryCacheService {
     try {
       const cacheKey = this.getCacheKey(userId, type);
       const cachedData = localStorage.getItem(cacheKey);
-      
+
       if (!cachedData) {
         console.log('CategoryCache: 未找到缓存数据');
         return null;
       }
 
       const cache: CategoryCache = JSON.parse(cachedData);
-      
+
       // 检查缓存是否过期
       const now = Date.now();
       if (now - cache.timestamp > this.CACHE_DURATION) {
@@ -78,14 +78,18 @@ class CategoryCacheService {
   /**
    * 缓存分类数据
    */
-  setCachedCategories(userId: string, categories: CachedCategory[], type?: 'EXPENSE' | 'INCOME'): void {
+  setCachedCategories(
+    userId: string,
+    categories: CachedCategory[],
+    type?: 'EXPENSE' | 'INCOME',
+  ): void {
     try {
       const cacheKey = this.getCacheKey(userId, type);
       const cache: CategoryCache = {
         data: categories,
         timestamp: Date.now(),
         userId,
-        type
+        type,
       };
 
       localStorage.setItem(cacheKey, JSON.stringify(cache));
@@ -129,12 +133,12 @@ class CategoryCacheService {
   clearAllCache(): void {
     try {
       const keys = Object.keys(localStorage);
-      const categoryKeys = keys.filter(key => key.startsWith(this.CACHE_KEY_PREFIX));
-      
-      categoryKeys.forEach(key => {
+      const categoryKeys = keys.filter((key) => key.startsWith(this.CACHE_KEY_PREFIX));
+
+      categoryKeys.forEach((key) => {
         localStorage.removeItem(key);
       });
-      
+
       console.log(`CategoryCache: 清除所有缓存，共 ${categoryKeys.length} 个`);
     } catch (error) {
       console.error('CategoryCache: 清除所有缓存失败', error);
@@ -147,10 +151,10 @@ class CategoryCacheService {
   getCacheStats(): { totalCaches: number; totalSize: number } {
     try {
       const keys = Object.keys(localStorage);
-      const categoryKeys = keys.filter(key => key.startsWith(this.CACHE_KEY_PREFIX));
-      
+      const categoryKeys = keys.filter((key) => key.startsWith(this.CACHE_KEY_PREFIX));
+
       let totalSize = 0;
-      categoryKeys.forEach(key => {
+      categoryKeys.forEach((key) => {
         const data = localStorage.getItem(key);
         if (data) {
           totalSize += data.length;
@@ -159,7 +163,7 @@ class CategoryCacheService {
 
       return {
         totalCaches: categoryKeys.length,
-        totalSize
+        totalSize,
       };
     } catch (error) {
       console.error('CategoryCache: 获取缓存统计失败', error);
@@ -178,7 +182,10 @@ class CategoryCacheService {
   /**
    * 预热缓存（在用户登录时调用）
    */
-  async warmupCache(userId: string, fetchFunction: (type?: 'EXPENSE' | 'INCOME') => Promise<CachedCategory[]>): Promise<void> {
+  async warmupCache(
+    userId: string,
+    fetchFunction: (type?: 'EXPENSE' | 'INCOME') => Promise<CachedCategory[]>,
+  ): Promise<void> {
     try {
       console.log('CategoryCache: 开始预热缓存');
 
@@ -203,7 +210,10 @@ class CategoryCacheService {
   /**
    * 手动刷新缓存（用于添加记账页面的下拉刷新）
    */
-  async refreshCache(userId: string, fetchFunction: (type?: 'EXPENSE' | 'INCOME') => Promise<CachedCategory[]>): Promise<void> {
+  async refreshCache(
+    userId: string,
+    fetchFunction: (type?: 'EXPENSE' | 'INCOME') => Promise<CachedCategory[]>,
+  ): Promise<void> {
     try {
       console.log('CategoryCache: 手动刷新缓存');
 

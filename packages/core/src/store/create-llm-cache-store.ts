@@ -65,54 +65,23 @@ export const createLLMCacheStore = () => {
         
         console.log(`发起LLM设置API请求，账本ID: ${accountBookId}`);
         
-        // 获取认证token
-        const token = typeof window !== 'undefined' ? localStorage.getItem("auth-token") : null;
+        const llmSettings = await apiClient.get(`/ai/account/${accountBookId}/llm-settings`);
+        console.log(`获取到LLM设置并缓存，账本ID: ${accountBookId}`, llmSettings);
         
-        const response = await fetch(`/api/ai/account/${accountBookId}/llm-settings`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
-          }
-        });
+        // 缓存结果
+        set(state => ({
+          llmCache: {
+            ...state.llmCache,
+            [accountBookId]: llmSettings
+          },
+          cacheExpiry: {
+            ...state.cacheExpiry,
+            [accountBookId]: now + CACHE_DURATION
+          },
+          pendingRequests: new Set([...state.pendingRequests].filter(id => id !== accountBookId))
+        }));
         
-        if (response.ok) {
-          const llmSettings = await response.json();
-          console.log(`获取到LLM设置并缓存，账本ID: ${accountBookId}`, llmSettings);
-          
-          // 缓存结果
-          set(state => ({
-            llmCache: {
-              ...state.llmCache,
-              [accountBookId]: llmSettings
-            },
-            cacheExpiry: {
-              ...state.cacheExpiry,
-              [accountBookId]: now + CACHE_DURATION
-            },
-            pendingRequests: new Set([...state.pendingRequests].filter(id => id !== accountBookId))
-          }));
-          
-          return llmSettings;
-        } else {
-          console.log(`获取LLM设置失败，状态码: ${response.status}`);
-          const defaultSettings = { bound: false, message: '获取LLM设置失败' };
-          
-          // 缓存失败结果（较短的缓存时间）
-          set(state => ({
-            llmCache: {
-              ...state.llmCache,
-              [accountBookId]: defaultSettings
-            },
-            cacheExpiry: {
-              ...state.cacheExpiry,
-              [accountBookId]: now + 30000 // 30秒后重试
-            },
-            pendingRequests: new Set([...state.pendingRequests].filter(id => id !== accountBookId))
-          }));
-          
-          return defaultSettings;
-        }
+        return llmSettings;
       } catch (error) {
         console.error(`获取账本LLM设置失败:`, error);
         const defaultSettings = { bound: false, message: '网络错误' };

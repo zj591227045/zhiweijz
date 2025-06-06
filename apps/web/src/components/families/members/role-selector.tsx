@@ -13,20 +13,14 @@ export function RoleSelector({ currentRole, onRoleChange }: RoleSelectorProps) {
     <div className="role-selector">
       <div className="role-label">角色权限</div>
       <div className="role-options">
-        <button 
-          className={cn(
-            "role-option",
-            currentRole === 'ADMIN' && "active"
-          )}
+        <button
+          className={cn('role-option', currentRole === 'ADMIN' && 'active')}
           onClick={() => onRoleChange('ADMIN')}
         >
           管理员
         </button>
-        <button 
-          className={cn(
-            "role-option",
-            currentRole === 'MEMBER' && "active"
-          )}
+        <button
+          className={cn('role-option', currentRole === 'MEMBER' && 'active')}
           onClick={() => onRoleChange('MEMBER')}
         >
           成员

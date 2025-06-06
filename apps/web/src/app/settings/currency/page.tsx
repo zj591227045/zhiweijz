@@ -14,44 +14,44 @@ const CURRENCY_OPTIONS = [
     value: 'CNY',
     label: '人民币',
     description: '¥ (CNY)',
-    icon: 'fas fa-yen-sign'
+    icon: 'fas fa-yen-sign',
   },
   {
     value: 'USD',
     label: '美元',
     description: '$ (USD)',
-    icon: 'fas fa-dollar-sign'
+    icon: 'fas fa-dollar-sign',
   },
   {
     value: 'EUR',
     label: '欧元',
     description: '€ (EUR)',
-    icon: 'fas fa-euro-sign'
+    icon: 'fas fa-euro-sign',
   },
   {
     value: 'GBP',
     label: '英镑',
     description: '£ (GBP)',
-    icon: 'fas fa-pound-sign'
+    icon: 'fas fa-pound-sign',
   },
   {
     value: 'JPY',
     label: '日元',
     description: '¥ (JPY)',
-    icon: 'fas fa-yen-sign'
+    icon: 'fas fa-yen-sign',
   },
   {
     value: 'HKD',
     label: '港币',
     description: 'HK$ (HKD)',
-    icon: 'fas fa-dollar-sign'
+    icon: 'fas fa-dollar-sign',
   },
   {
     value: 'TWD',
     label: '新台币',
     description: 'NT$ (TWD)',
-    icon: 'fas fa-dollar-sign'
-  }
+    icon: 'fas fa-dollar-sign',
+  },
 ];
 
 export default function CurrencyPage() {
@@ -85,7 +85,7 @@ export default function CurrencyPage() {
     setSelectedCurrency(currency);
     localStorage.setItem('app-currency', currency);
 
-    const selectedOption = CURRENCY_OPTIONS.find(option => option.value === currency);
+    const selectedOption = CURRENCY_OPTIONS.find((option) => option.value === currency);
     toast.success(`货币已切换为 ${selectedOption?.label}`);
 
     // 关闭弹窗并返回设置页面
@@ -103,7 +103,7 @@ export default function CurrencyPage() {
     return null;
   }
 
-  const currentCurrency = CURRENCY_OPTIONS.find(option => option.value === selectedCurrency);
+  const currentCurrency = CURRENCY_OPTIONS.find((option) => option.value === selectedCurrency);
 
   return (
     <PageContainer title="货币设置" showBackButton={true} showBottomNav={false}>
@@ -112,7 +112,9 @@ export default function CurrencyPage() {
           <div className="setting-label">当前货币</div>
           <div className="setting-value">
             <i className={currentCurrency?.icon}></i>
-            <span>{currentCurrency?.label} ({currentCurrency?.description})</span>
+            <span>
+              {currentCurrency?.label} ({currentCurrency?.description})
+            </span>
           </div>
         </div>
 
@@ -121,10 +123,7 @@ export default function CurrencyPage() {
           <p className="note">注意：更改货币设置不会影响已有的交易记录，仅影响界面显示。</p>
         </div>
 
-        <button
-          className="change-currency-button"
-          onClick={() => setShowModal(true)}
-        >
+        <button className="change-currency-button" onClick={() => setShowModal(true)}>
           <i className="fas fa-coins"></i>
           更改货币
         </button>

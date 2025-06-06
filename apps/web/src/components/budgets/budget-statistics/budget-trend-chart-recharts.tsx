@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './budget-trend-chart.css';
 
 interface BudgetTrendChartProps {
@@ -32,7 +24,7 @@ const BudgetTrendChart: React.FC<BudgetTrendChartProps> = ({
   timeRange = '6months',
   isLoading = false,
   onTimeRangeChange,
-  onRolloverImpactToggle
+  onRolloverImpactToggle,
 }) => {
   const [chartHeight, setChartHeight] = useState(180);
 
@@ -61,7 +53,9 @@ const BudgetTrendChart: React.FC<BudgetTrendChartProps> = ({
           <h2>预算趋势</h2>
         </div>
         <div className="chart-container">
-          <div className="loading-indicator" style={{ height: chartHeight }}>加载中...</div>
+          <div className="loading-indicator" style={{ height: chartHeight }}>
+            加载中...
+          </div>
         </div>
       </section>
     );
@@ -144,7 +138,7 @@ const BudgetTrendChart: React.FC<BudgetTrendChartProps> = ({
                   borderRadius: 'var(--border-radius, 4px)',
                   color: 'var(--text-color)',
                   padding: '6px',
-                  fontSize: '12px'
+                  fontSize: '12px',
                 }}
                 formatter={(value, name) => {
                   if (name === 'total') {

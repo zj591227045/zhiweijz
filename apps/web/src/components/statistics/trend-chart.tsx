@@ -10,7 +10,7 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { useStatisticsStore } from '@/store/statistics-store';
@@ -27,7 +27,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 );
 
 interface TrendChartProps {
@@ -47,13 +47,13 @@ export function TrendChart({ dailyStatistics }: TrendChartProps) {
       return {
         labels: ['暂无数据'],
         income: [0],
-        expense: [0]
+        expense: [0],
       };
     }
 
     // 按日期排序
-    const sortedData = [...dailyStatistics].sort((a, b) =>
-      new Date(a.date).getTime() - new Date(b.date).getTime()
+    const sortedData = [...dailyStatistics].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     );
 
     console.log('排序后的每日统计数据:', sortedData);
@@ -61,9 +61,9 @@ export function TrendChart({ dailyStatistics }: TrendChartProps) {
     if (trendChartPeriod === 'day') {
       // 日视图：直接使用每日数据
       const result = {
-        labels: sortedData.map(item => dayjs(item.date).format('MM-DD')),
-        income: sortedData.map(item => item.income),
-        expense: sortedData.map(item => item.expense)
+        labels: sortedData.map((item) => dayjs(item.date).format('MM-DD')),
+        income: sortedData.map((item) => item.income),
+        expense: sortedData.map((item) => item.expense),
       };
       console.log('日视图数据:', result);
       return result;
@@ -71,7 +71,7 @@ export function TrendChart({ dailyStatistics }: TrendChartProps) {
       // 周视图：按周分组
       const weekData: Record<string, { income: number; expense: number }> = {};
 
-      sortedData.forEach(item => {
+      sortedData.forEach((item) => {
         const date = dayjs(item.date);
         const weekStart = date.startOf('week').format('YYYY-MM-DD');
 
@@ -86,9 +86,9 @@ export function TrendChart({ dailyStatistics }: TrendChartProps) {
       const weeks = Object.keys(weekData).sort();
 
       const result = {
-        labels: weeks.map(week => `${dayjs(week).format('MM-DD')}周`),
-        income: weeks.map(week => weekData[week].income),
-        expense: weeks.map(week => weekData[week].expense)
+        labels: weeks.map((week) => `${dayjs(week).format('MM-DD')}周`),
+        income: weeks.map((week) => weekData[week].income),
+        expense: weeks.map((week) => weekData[week].expense),
       };
       console.log('周视图数据:', result);
       return result;
@@ -96,7 +96,7 @@ export function TrendChart({ dailyStatistics }: TrendChartProps) {
       // 月视图：按月分组
       const monthData: Record<string, { income: number; expense: number }> = {};
 
-      sortedData.forEach(item => {
+      sortedData.forEach((item) => {
         const month = dayjs(item.date).format('YYYY-MM');
 
         if (!monthData[month]) {
@@ -110,9 +110,9 @@ export function TrendChart({ dailyStatistics }: TrendChartProps) {
       const months = Object.keys(monthData).sort();
 
       const result = {
-        labels: months.map(month => dayjs(month).format('MM月')),
-        income: months.map(month => monthData[month].income),
-        expense: months.map(month => monthData[month].expense)
+        labels: months.map((month) => dayjs(month).format('MM月')),
+        income: months.map((month) => monthData[month].income),
+        expense: months.map((month) => monthData[month].expense),
       };
       console.log('月视图数据:', result);
       return result;
@@ -131,7 +131,7 @@ export function TrendChart({ dailyStatistics }: TrendChartProps) {
         borderColor: '#22C55E',
         backgroundColor: 'rgba(34, 197, 94, 0.1)',
         fill: true,
-        tension: 0.4
+        tension: 0.4,
       },
       {
         label: '支出',
@@ -139,9 +139,9 @@ export function TrendChart({ dailyStatistics }: TrendChartProps) {
         borderColor: '#EF4444',
         backgroundColor: 'rgba(239, 68, 68, 0.1)',
         fill: true,
-        tension: 0.4
-      }
-    ]
+        tension: 0.4,
+      },
+    ],
   };
 
   // 图表配置
@@ -153,29 +153,29 @@ export function TrendChart({ dailyStatistics }: TrendChartProps) {
         position: 'top' as const,
         labels: {
           usePointStyle: true,
-          boxWidth: 6
-        }
+          boxWidth: 6,
+        },
       },
       tooltip: {
         callbacks: {
-          label: function(context: any) {
+          label: function (context: any) {
             const label = context.dataset.label || '';
             const value = context.raw;
             return `${label}: ${formatCurrency(value)}`;
-          }
-        }
-      }
+          },
+        },
+      },
     },
     scales: {
       y: {
         beginAtZero: true,
         ticks: {
-          callback: function(value: any) {
+          callback: function (value: any) {
             return formatCurrency(value);
-          }
-        }
-      }
-    }
+          },
+        },
+      },
+    },
   };
 
   return (

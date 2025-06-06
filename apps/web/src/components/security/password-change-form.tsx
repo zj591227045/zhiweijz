@@ -1,23 +1,26 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { toast } from "sonner";
-import { securityService } from "@/lib/api/security-service";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { toast } from 'sonner';
+import { securityService } from '@/lib/api/security-service';
 
 // 密码修改表单验证模式
-const passwordChangeSchema = z.object({
-  currentPassword: z.string().min(1, "请输入当前密码"),
-  newPassword: z.string()
-    .min(8, "新密码长度不能少于8个字符")
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "密码必须包含大小写字母和数字"),
-  confirmPassword: z.string(),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "两次输入的密码不一致",
-  path: ["confirmPassword"],
-});
+const passwordChangeSchema = z
+  .object({
+    currentPassword: z.string().min(1, '请输入当前密码'),
+    newPassword: z
+      .string()
+      .min(8, '新密码长度不能少于8个字符')
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, '密码必须包含大小写字母和数字'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: '两次输入的密码不一致',
+    path: ['confirmPassword'],
+  });
 
 type PasswordChangeFormValues = z.infer<typeof passwordChangeSchema>;
 
@@ -40,18 +43,18 @@ export function PasswordChangeForm({ onClose, onSuccess }: PasswordChangeFormPro
   } = useForm<PasswordChangeFormValues>({
     resolver: zodResolver(passwordChangeSchema),
     defaultValues: {
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
     },
   });
 
-  const newPassword = watch("newPassword");
+  const newPassword = watch('newPassword');
 
   // 计算密码强度
   const getPasswordStrength = (password: string) => {
     if (!password) return null;
-    
+
     let score = 0;
     if (password.length >= 8) score++;
     if (/[a-z]/.test(password)) score++;
@@ -59,9 +62,9 @@ export function PasswordChangeForm({ onClose, onSuccess }: PasswordChangeFormPro
     if (/\d/.test(password)) score++;
     if (/[^a-zA-Z\d]/.test(password)) score++;
 
-    if (score < 3) return "weak";
-    if (score < 4) return "medium";
-    return "strong";
+    if (score < 3) return 'weak';
+    if (score < 4) return 'medium';
+    return 'strong';
   };
 
   const passwordStrength = getPasswordStrength(newPassword);
@@ -83,7 +86,7 @@ export function PasswordChangeForm({ onClose, onSuccess }: PasswordChangeFormPro
   // 处理表单提交
   const onSubmit = async (data: PasswordChangeFormValues) => {
     setIsSubmitting(true);
-    
+
     try {
       await securityService.changePassword({
         currentPassword: data.currentPassword,
@@ -110,20 +113,22 @@ export function PasswordChangeForm({ onClose, onSuccess }: PasswordChangeFormPro
           <i className="fas fa-times"></i>
         </div>
       </div>
-      
+
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="modal-body">
           <div className="form-group">
-            <label className="form-label" htmlFor="current-password">当前密码</label>
+            <label className="form-label" htmlFor="current-password">
+              当前密码
+            </label>
             <div className="password-input-container">
-              <input 
-                type={showCurrentPassword ? "text" : "password"} 
-                id="current-password" 
+              <input
+                type={showCurrentPassword ? 'text' : 'password'}
+                id="current-password"
                 className={`form-input ${errors.currentPassword ? 'border-red-500' : ''}`}
                 placeholder="输入当前密码"
-                {...register("currentPassword")}
+                {...register('currentPassword')}
               />
-              <div 
+              <div
                 className="password-toggle"
                 onClick={() => setShowCurrentPassword(!showCurrentPassword)}
               >
@@ -134,21 +139,20 @@ export function PasswordChangeForm({ onClose, onSuccess }: PasswordChangeFormPro
               <div className="text-red-500 text-xs mt-1">{errors.currentPassword.message}</div>
             )}
           </div>
-          
+
           <div className="form-group">
-            <label className="form-label" htmlFor="new-password">新密码</label>
+            <label className="form-label" htmlFor="new-password">
+              新密码
+            </label>
             <div className="password-input-container">
-              <input 
-                type={showNewPassword ? "text" : "password"} 
-                id="new-password" 
+              <input
+                type={showNewPassword ? 'text' : 'password'}
+                id="new-password"
                 className={`form-input ${errors.newPassword ? 'border-red-500' : ''}`}
                 placeholder="输入新密码"
-                {...register("newPassword")}
+                {...register('newPassword')}
               />
-              <div 
-                className="password-toggle"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-              >
+              <div className="password-toggle" onClick={() => setShowNewPassword(!showNewPassword)}>
                 <i className={`fas fa-${showNewPassword ? 'eye-slash' : 'eye'}`}></i>
               </div>
             </div>
@@ -167,18 +171,20 @@ export function PasswordChangeForm({ onClose, onSuccess }: PasswordChangeFormPro
               <div className="text-red-500 text-xs mt-1">{errors.newPassword.message}</div>
             )}
           </div>
-          
+
           <div className="form-group">
-            <label className="form-label" htmlFor="confirm-password">确认新密码</label>
+            <label className="form-label" htmlFor="confirm-password">
+              确认新密码
+            </label>
             <div className="password-input-container">
-              <input 
-                type={showConfirmPassword ? "text" : "password"} 
-                id="confirm-password" 
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                id="confirm-password"
                 className={`form-input ${errors.confirmPassword ? 'border-red-500' : ''}`}
                 placeholder="再次输入新密码"
-                {...register("confirmPassword")}
+                {...register('confirmPassword')}
               />
-              <div 
+              <div
                 className="password-toggle"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
@@ -190,21 +196,17 @@ export function PasswordChangeForm({ onClose, onSuccess }: PasswordChangeFormPro
             )}
           </div>
         </div>
-        
+
         <div className="modal-footer">
-          <button 
+          <button
             type="button"
-            className="modal-button cancel-button" 
+            className="modal-button cancel-button"
             onClick={onClose}
             disabled={isSubmitting}
           >
             取消
           </button>
-          <button 
-            type="submit"
-            className="modal-button submit-button"
-            disabled={isSubmitting}
-          >
+          <button type="submit" className="modal-button submit-button" disabled={isSubmitting}>
             {isSubmitting ? '提交中...' : '确认修改'}
           </button>
         </div>

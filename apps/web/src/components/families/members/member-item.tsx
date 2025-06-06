@@ -18,7 +18,7 @@ export function MemberItem({
   canRemove,
   canChangeRole,
   onToggleRoleSelector,
-  onRemove
+  onRemove,
 }: MemberItemProps) {
   // 获取头像显示文本（用户名首字）
   const getAvatarText = (name: string) => {
@@ -38,14 +38,12 @@ export function MemberItem({
               getAvatarText(member.username || '')
             )}
           </div>
-          
+
           {/* 成员基本信息 - 在头像下方 */}
           <div className="member-info-container">
             <div className="member-name">
               {member.username || '未知用户'}
-              {member.isCurrentUser && (
-                <span className="current-user-badge">你</span>
-              )}
+              {member.isCurrentUser && <span className="current-user-badge">你</span>}
             </div>
             <div className="member-role">
               角色
@@ -59,7 +57,9 @@ export function MemberItem({
           <div className="detail-column">
             <div className="detail-item">
               <div className="detail-label">加入时间</div>
-              <div className="detail-value">{member.joinedAt ? formatDate(member.joinedAt) : '未知'}</div>
+              <div className="detail-value">
+                {member.joinedAt ? formatDate(member.joinedAt) : '未知'}
+              </div>
             </div>
             <div className="detail-item">
               <div className="detail-label">交易次数</div>
@@ -95,11 +95,7 @@ export function MemberItem({
             </button>
           )}
           {canRemove && (
-            <button
-              className="action-button danger"
-              onClick={onRemove}
-              aria-label="移除成员"
-            >
+            <button className="action-button danger" onClick={onRemove} aria-label="移除成员">
               <i className="fas fa-user-times"></i>
               <span className="action-text">移除成员</span>
             </button>

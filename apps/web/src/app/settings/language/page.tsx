@@ -14,20 +14,20 @@ const LANGUAGE_OPTIONS = [
     value: 'zh-CN',
     label: '简体中文',
     description: 'Simplified Chinese',
-    icon: 'fas fa-globe-asia'
+    icon: 'fas fa-globe-asia',
   },
   {
     value: 'zh-TW',
     label: '繁體中文',
     description: 'Traditional Chinese',
-    icon: 'fas fa-globe-asia'
+    icon: 'fas fa-globe-asia',
   },
   {
     value: 'en',
     label: 'English',
     description: 'English',
-    icon: 'fas fa-globe-americas'
-  }
+    icon: 'fas fa-globe-americas',
+  },
 ];
 
 export default function LanguagePage() {
@@ -61,7 +61,7 @@ export default function LanguagePage() {
     setSelectedLanguage(language);
     localStorage.setItem('app-language', language);
 
-    const selectedOption = LANGUAGE_OPTIONS.find(option => option.value === language);
+    const selectedOption = LANGUAGE_OPTIONS.find((option) => option.value === language);
     toast.success(`语言已切换为 ${selectedOption?.label}`);
 
     // 关闭弹窗并返回设置页面
@@ -79,7 +79,7 @@ export default function LanguagePage() {
     return null;
   }
 
-  const currentLanguage = LANGUAGE_OPTIONS.find(option => option.value === selectedLanguage);
+  const currentLanguage = LANGUAGE_OPTIONS.find((option) => option.value === selectedLanguage);
 
   return (
     <PageContainer title="语言设置" showBackButton={true} showBottomNav={false}>
@@ -94,13 +94,12 @@ export default function LanguagePage() {
 
         <div className="setting-description">
           <p>选择您偏好的应用界面语言。语言设置将保存在本地，下次打开应用时会自动应用。</p>
-          <p className="note">注意：当前版本仅支持界面语言选择，实际的语言切换功能将在后续版本中实现。</p>
+          <p className="note">
+            注意：当前版本仅支持界面语言选择，实际的语言切换功能将在后续版本中实现。
+          </p>
         </div>
 
-        <button
-          className="change-language-button"
-          onClick={() => setShowModal(true)}
-        >
+        <button className="change-language-button" onClick={() => setShowModal(true)}>
           <i className="fas fa-language"></i>
           更改语言
         </button>

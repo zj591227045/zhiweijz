@@ -47,7 +47,7 @@ export function BudgetStatisticsPage() {
     fetchBudgetStatistics,
     fetchBudgetTrends,
     fetchRolloverHistory,
-    resetState
+    resetState,
   } = useBudgetStatisticsStore();
 
   // 如果未登录，重定向到登录页
@@ -64,7 +64,7 @@ export function BudgetStatisticsPage() {
         await fetchBudgetStatistics(
           currentAccountBook.id,
           undefined, // 移除budgetType参数
-          undefined  // 移除userId参数
+          undefined, // 移除userId参数
         );
       }
     };
@@ -89,7 +89,7 @@ export function BudgetStatisticsPage() {
       fetchBudgetStatistics(
         currentAccountBook.id,
         undefined, // 移除budgetType参数
-        undefined  // 移除userId参数
+        undefined, // 移除userId参数
       );
     }
   };
@@ -99,10 +99,10 @@ export function BudgetStatisticsPage() {
     setSelectedBudgetId(budgetId);
 
     // 查找选中的预算卡片
-    const selectedCard = budgetCards.find(card => card.id === budgetId);
+    const selectedCard = budgetCards.find((card) => card.id === budgetId);
 
     // 查找选中的家庭成员
-    const selectedMember = familyMembers.find(member => member.budgetId === budgetId);
+    const selectedMember = familyMembers.find((member) => member.budgetId === budgetId);
 
     // 如果找到了预算卡片或家庭成员，更新overview和其他相关数据
     if (selectedCard || selectedMember) {
@@ -124,7 +124,7 @@ export function BudgetStatisticsPage() {
     // 如果已有预算ID，获取对应视图模式的趋势数据
     if (selectedBudgetId) {
       // 查找选中的家庭成员
-      const selectedMember = familyMembers.find(member => member.budgetId === selectedBudgetId);
+      const selectedMember = familyMembers.find((member) => member.budgetId === selectedBudgetId);
 
       // 如果是家庭成员的预算，传递家庭成员ID
       if (selectedMember) {
@@ -143,7 +143,7 @@ export function BudgetStatisticsPage() {
     // 如果已有预算ID，获取对应时间范围的趋势数据
     if (selectedBudgetId) {
       // 查找选中的家庭成员
-      const selectedMember = familyMembers.find(member => member.budgetId === selectedBudgetId);
+      const selectedMember = familyMembers.find((member) => member.budgetId === selectedBudgetId);
 
       // 如果是家庭成员的预算，传递家庭成员ID
       if (selectedMember) {
@@ -162,27 +162,16 @@ export function BudgetStatisticsPage() {
 
   // 右侧操作按钮
   const rightActions = (
-    <button
-      onClick={handleAddBudget}
-      className="icon-button"
-      aria-label="添加预算"
-    >
+    <button onClick={handleAddBudget} className="icon-button" aria-label="添加预算">
       <i className="fas fa-plus"></i>
     </button>
   );
 
   return (
-    <PageContainer
-      title="预算统计"
-      rightActions={rightActions}
-      activeNavItem="budget"
-    >
+    <PageContainer title="预算统计" rightActions={rightActions} activeNavItem="budget">
       {/* 预算类型选择器 */}
       <div className="budget-statistics-container">
-        <BudgetTypeSelector
-          activeType={budgetType}
-          onChange={handleBudgetTypeChange}
-        />
+        <BudgetTypeSelector activeType={budgetType} onChange={handleBudgetTypeChange} />
       </div>
 
       <div className="budget-statistics-container">
@@ -202,7 +191,7 @@ export function BudgetStatisticsPage() {
                   fetchBudgetStatistics(
                     currentAccountBook.id,
                     undefined, // 移除budgetType参数
-                    undefined  // 移除userId参数
+                    undefined, // 移除userId参数
                   );
                 }
               }}
@@ -248,10 +237,7 @@ export function BudgetStatisticsPage() {
                 />
 
                 {/* 最近交易 */}
-                <RecentTransactions
-                  transactions={recentTransactions}
-                  budgetId={selectedBudgetId}
-                />
+                <RecentTransactions transactions={recentTransactions} budgetId={selectedBudgetId} />
               </>
             ) : (
               <div className="no-budget-data">
@@ -259,10 +245,7 @@ export function BudgetStatisticsPage() {
                   <i className="fas fa-chart-pie"></i>
                   <h3>暂无预算数据</h3>
                   <p>请先创建预算或选择其他账本</p>
-                  <button
-                    className="create-budget-button"
-                    onClick={handleAddBudget}
-                  >
+                  <button className="create-budget-button" onClick={handleAddBudget}>
                     创建预算
                   </button>
                 </div>

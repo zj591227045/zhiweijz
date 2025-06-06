@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import './profile.css';
-import { PageContainer } from "@/components/layout/page-container";
-import { AvatarUploader } from "@/components/profile/avatar-uploader";
-import { ProfileForm, ProfileFormValues } from "@/components/profile/profile-form";
-import { userService, UserProfile } from "@/lib/api/user-service";
-import { toast } from "sonner";
+import { PageContainer } from '@/components/layout/page-container';
+import { AvatarUploader } from '@/components/profile/avatar-uploader';
+import { ProfileForm, ProfileFormValues } from '@/components/profile/profile-form';
+import { userService, UserProfile } from '@/lib/api/user-service';
+import { toast } from 'sonner';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -36,10 +36,10 @@ export default function ProfilePage() {
   // 处理头像上传
   const handleAvatarChange = async (file: File) => {
     setIsUploadingAvatar(true);
-    
+
     try {
       const data = await userService.uploadAvatar(file);
-      setProfile(prev => prev ? { ...prev, avatar: data.avatar } : null);
+      setProfile((prev) => (prev ? { ...prev, avatar: data.avatar } : null));
       toast.success('头像上传成功');
     } catch (error) {
       console.error('头像上传失败:', error);
@@ -52,7 +52,7 @@ export default function ProfilePage() {
   // 处理表单提交
   const handleSubmit = async (data: ProfileFormValues) => {
     setIsSubmitting(true);
-    
+
     try {
       const updatedProfile = await userService.updateUserProfile(data);
       setProfile(updatedProfile);
@@ -74,21 +74,13 @@ export default function ProfilePage() {
       disabled={isSubmitting}
       aria-label="保存"
     >
-      {isSubmitting ? (
-        <i className="fas fa-spinner fa-spin"></i>
-      ) : (
-        <i className="fas fa-save"></i>
-      )}
+      {isSubmitting ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-save"></i>}
     </button>
   );
 
   if (isLoading) {
     return (
-      <PageContainer
-        title="个人资料"
-        showBackButton={true}
-        activeNavItem="profile"
-      >
+      <PageContainer title="个人资料" showBackButton={true} activeNavItem="profile">
         <div className="flex h-40 items-center justify-center">
           <p className="text-gray-500">加载中...</p>
         </div>
@@ -122,12 +114,12 @@ export default function ProfilePage() {
       {/* 底部保存按钮 */}
       <div className="bottom-button-container">
         <button
-          className={`save-button ${isSubmitting ? "loading" : ""}`}
+          className={`save-button ${isSubmitting ? 'loading' : ''}`}
           type="submit"
           form="profile-form"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "保存中..." : "保存"}
+          {isSubmitting ? '保存中...' : '保存'}
         </button>
       </div>
     </PageContainer>

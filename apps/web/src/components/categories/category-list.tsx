@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { Category } from "@/types";
-import { DeleteConfirmDialog } from "./delete-confirm-dialog";
-import { getIconClass } from "@/lib/utils";
+import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { Category } from '@/types';
+import { DeleteConfirmDialog } from './delete-confirm-dialog';
+import { getIconClass } from '@/lib/utils';
 
 interface CategoryListProps {
   categories: Category[];
@@ -14,7 +14,13 @@ interface CategoryListProps {
   isShowingHidden?: boolean;
 }
 
-export function CategoryList({ categories, isLoading, onUpdateOrder, isSorting, isShowingHidden = false }: CategoryListProps) {
+export function CategoryList({
+  categories,
+  isLoading,
+  onUpdateOrder,
+  isSorting,
+  isShowingHidden = false,
+}: CategoryListProps) {
   const router = useRouter();
   const [draggedItem, setDraggedItem] = useState<Category | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -24,10 +30,10 @@ export function CategoryList({ categories, isLoading, onUpdateOrder, isSorting, 
   // 处理拖拽开始
   const handleDragStart = (e: React.DragEvent, category: Category) => {
     setDraggedItem(category);
-    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.effectAllowed = 'move';
     // 设置拖拽图像
-    const dragImage = document.createElement("div");
-    dragImage.classList.add("drag-image");
+    const dragImage = document.createElement('div');
+    dragImage.classList.add('drag-image');
     dragImage.textContent = category.name;
     document.body.appendChild(dragImage);
     e.dataTransfer.setDragImage(dragImage, 0, 0);
@@ -45,11 +51,9 @@ export function CategoryList({ categories, isLoading, onUpdateOrder, isSorting, 
 
     // 创建新的排序数组
     const reorderedCategories = [...categories];
-    const draggedItemIndex = reorderedCategories.findIndex(
-      (item) => item.id === draggedItem.id
-    );
+    const draggedItemIndex = reorderedCategories.findIndex((item) => item.id === draggedItem.id);
     const draggedOverItemIndex = reorderedCategories.findIndex(
-      (item) => item.id === draggedOverItem.current?.id
+      (item) => item.id === draggedOverItem.current?.id,
     );
 
     // 移除拖拽项并插入到新位置

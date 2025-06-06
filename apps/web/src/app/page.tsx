@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/auth-store";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function Home() {
   const router = useRouter();
@@ -11,10 +11,10 @@ export default function Home() {
   useEffect(() => {
     // 如果已登录，跳转到仪表盘页面
     if (isAuthenticated) {
-      router.push("/dashboard");
+      router.push('/dashboard');
     } else {
       // 如果未登录，跳转到登录页面
-      router.push("/auth/login");
+      router.push('/auth/login');
     }
   }, [isAuthenticated, router]);
 

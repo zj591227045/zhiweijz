@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { aiService, LLMSetting } from "@/lib/api/ai-service";
-import { useRouter } from "next/navigation";
-import "./ai-service-binding.css";
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import { aiService, LLMSetting } from '@/lib/api/ai-service';
+import { useRouter } from 'next/navigation';
+import './ai-service-binding.css';
 
 interface AIServiceBindingProps {
   accountBookId: string;
@@ -25,13 +25,13 @@ export function AIServiceBinding({ accountBookId }: AIServiceBindingProps) {
 
       try {
         // 获取所有AI服务（包括家庭成员可访问的服务）
-        console.log("正在获取所有AI服务列表...");
+        console.log('正在获取所有AI服务列表...');
         const servicesList = await aiService.getLLMSettingsList(accountBookId);
         console.log(`成功获取到 ${servicesList.length} 个AI服务:`, servicesList);
         setServices(servicesList);
 
         if (servicesList.length === 0) {
-          console.log("没有可用的AI服务，跳过获取绑定信息");
+          console.log('没有可用的AI服务，跳过获取绑定信息');
           setIsLoading(false);
           return;
         }
@@ -40,22 +40,22 @@ export function AIServiceBinding({ accountBookId }: AIServiceBindingProps) {
         console.log(`正在获取账本 ${accountBookId} 绑定的AI服务...`);
         try {
           const accountService = await aiService.getAccountLLMSettings(accountBookId);
-          console.log("获取到账本绑定的AI服务:", accountService);
+          console.log('获取到账本绑定的AI服务:', accountService);
 
           if (accountService && accountService.id) {
             console.log(`设置选中的服务ID: ${accountService.id}`);
             setSelectedServiceId(accountService.id);
 
             // 验证服务ID是否在服务列表中
-            const serviceExists = servicesList.some(s => s.id === accountService.id);
+            const serviceExists = servicesList.some((s) => s.id === accountService.id);
             if (!serviceExists) {
               console.warn(`警告: 绑定的服务ID ${accountService.id} 不在服务列表中`);
             }
           } else {
-            console.warn("获取到的账本服务缺少ID:", accountService);
+            console.warn('获取到的账本服务缺少ID:', accountService);
           }
         } catch (error) {
-          console.error("获取账本绑定的AI服务失败:", error);
+          console.error('获取账本绑定的AI服务失败:', error);
 
           // 如果获取失败，尝试从服务列表中找到第一个服务作为默认选择
           // 这是一个临时解决方案，实际上应该由后端提供正确的绑定信息
@@ -65,8 +65,8 @@ export function AIServiceBinding({ accountBookId }: AIServiceBindingProps) {
           }
         }
       } catch (error) {
-        console.error("加载AI服务数据失败:", error);
-        toast.error("加载AI服务数据失败");
+        console.error('加载AI服务数据失败:', error);
+        toast.error('加载AI服务数据失败');
       } finally {
         setIsLoading(false);
       }
@@ -75,14 +75,14 @@ export function AIServiceBinding({ accountBookId }: AIServiceBindingProps) {
     if (accountBookId) {
       fetchData();
     } else {
-      console.warn("没有提供账本ID，无法加载AI服务绑定信息");
+      console.warn('没有提供账本ID，无法加载AI服务绑定信息');
     }
   }, [accountBookId]);
 
   // 绑定AI服务
   const handleBindService = async (serviceId: string) => {
     if (!accountBookId) {
-      console.error("无法绑定AI服务：账本ID为空");
+      console.error('无法绑定AI服务：账本ID为空');
       return;
     }
 
@@ -91,29 +91,29 @@ export function AIServiceBinding({ accountBookId }: AIServiceBindingProps) {
 
     try {
       const result = await aiService.updateAccountLLMSettings(accountBookId, serviceId);
-      console.log("绑定AI服务结果:", result);
+      console.log('绑定AI服务结果:', result);
 
       if (result && result.success) {
         console.log(`成功绑定AI服务 ${serviceId} 到账本 ${accountBookId}`);
         setSelectedServiceId(serviceId);
-        toast.success("AI服务绑定成功");
+        toast.success('AI服务绑定成功');
 
         // 刷新服务列表，确保UI状态与后端一致
         const servicesList = await aiService.getLLMSettingsList(accountBookId);
         setServices(servicesList);
       } else {
-        console.warn("绑定AI服务返回未成功状态:", result);
+        console.warn('绑定AI服务返回未成功状态:', result);
         // 即使后端返回未成功，也更新UI状态以保持一致性
         setSelectedServiceId(serviceId);
-        toast.success("AI服务绑定成功");
+        toast.success('AI服务绑定成功');
       }
     } catch (error) {
-      console.error("绑定AI服务失败:", error);
+      console.error('绑定AI服务失败:', error);
 
       // 即使出错，也更新UI状态，因为后端可能已经成功处理了请求
-      console.log("尽管出错，仍然更新UI状态以保持一致性");
+      console.log('尽管出错，仍然更新UI状态以保持一致性');
       setSelectedServiceId(serviceId);
-      toast.success("AI服务绑定成功");
+      toast.success('AI服务绑定成功');
     } finally {
       setIsSaving(false);
     }
@@ -122,12 +122,12 @@ export function AIServiceBinding({ accountBookId }: AIServiceBindingProps) {
   // 解绑AI服务
   const handleUnbindService = async () => {
     if (!accountBookId) {
-      console.error("无法解绑AI服务：账本ID为空");
+      console.error('无法解绑AI服务：账本ID为空');
       return;
     }
 
     if (!selectedServiceId) {
-      console.error("无法解绑AI服务：未选中任何服务");
+      console.error('无法解绑AI服务：未选中任何服务');
       return;
     }
 
@@ -136,26 +136,26 @@ export function AIServiceBinding({ accountBookId }: AIServiceBindingProps) {
 
     try {
       // 传递空字符串表示解绑
-      const result = await aiService.updateAccountLLMSettings(accountBookId, "");
-      console.log("解绑AI服务结果:", result);
+      const result = await aiService.updateAccountLLMSettings(accountBookId, '');
+      console.log('解绑AI服务结果:', result);
 
       if (result && result.success) {
         console.log(`成功解绑账本 ${accountBookId} 的AI服务`);
         setSelectedServiceId(null);
-        toast.success("AI服务解绑成功");
+        toast.success('AI服务解绑成功');
       } else {
-        console.warn("解绑AI服务返回未成功状态:", result);
+        console.warn('解绑AI服务返回未成功状态:', result);
         // 即使后端返回未成功，也更新UI状态以保持一致性
         setSelectedServiceId(null);
-        toast.success("AI服务解绑成功");
+        toast.success('AI服务解绑成功');
       }
     } catch (error) {
-      console.error("解绑AI服务失败:", error);
+      console.error('解绑AI服务失败:', error);
 
       // 即使出错，也更新UI状态，因为后端可能已经成功处理了请求
-      console.log("尽管出错，仍然更新UI状态以保持一致性");
+      console.log('尽管出错，仍然更新UI状态以保持一致性');
       setSelectedServiceId(null);
-      toast.success("AI服务解绑成功");
+      toast.success('AI服务解绑成功');
     } finally {
       setIsSaving(false);
     }
@@ -168,7 +168,7 @@ export function AIServiceBinding({ accountBookId }: AIServiceBindingProps) {
 
   // 跳转到AI服务列表页面
   const handleManageServices = () => {
-    router.push("/settings/ai-services");
+    router.push('/settings/ai-services');
   };
 
   if (isLoading) {
@@ -184,18 +184,12 @@ export function AIServiceBinding({ accountBookId }: AIServiceBindingProps) {
     <div className="ai-service-binding">
       <div className="section-header">
         <h3 className="section-title">AI服务绑定</h3>
-        <button
-          type="button"
-          className="manage-services-button"
-          onClick={handleManageServices}
-        >
+        <button type="button" className="manage-services-button" onClick={handleManageServices}>
           管理AI服务
         </button>
       </div>
 
-      <div className="section-description">
-        绑定AI服务后，可以使用智能记账和其他AI功能
-      </div>
+      <div className="section-description">绑定AI服务后，可以使用智能记账和其他AI功能</div>
 
       {services.length === 0 ? (
         <div className="no-services">
@@ -203,7 +197,7 @@ export function AIServiceBinding({ accountBookId }: AIServiceBindingProps) {
           <button
             type="button"
             className="create-service-button"
-            onClick={() => router.push("/settings/ai-services/add")}
+            onClick={() => router.push('/settings/ai-services/add')}
           >
             创建AI服务
           </button>
@@ -215,10 +209,12 @@ export function AIServiceBinding({ accountBookId }: AIServiceBindingProps) {
               <div className="service-info">
                 <div className="service-name">{service.name}</div>
                 <div className="service-provider">
-                  {service.provider === "openai" ? "OpenAI" :
-                   service.provider === "siliconflow" ? "硅基流动" :
-                   service.provider}
-                  {" - "}
+                  {service.provider === 'openai'
+                    ? 'OpenAI'
+                    : service.provider === 'siliconflow'
+                      ? '硅基流动'
+                      : service.provider}
+                  {' - '}
                   {service.model}
                 </div>
                 {service.description && (
@@ -233,7 +229,7 @@ export function AIServiceBinding({ accountBookId }: AIServiceBindingProps) {
                     onClick={handleUnbindService}
                     disabled={isSaving}
                   >
-                    {isSaving ? "解绑中..." : "解除绑定"}
+                    {isSaving ? '解绑中...' : '解除绑定'}
                   </button>
                 ) : (
                   <button
@@ -242,7 +238,7 @@ export function AIServiceBinding({ accountBookId }: AIServiceBindingProps) {
                     onClick={() => handleBindService(service.id)}
                     disabled={isSaving}
                   >
-                    {isSaving ? "绑定中..." : "绑定"}
+                    {isSaving ? '绑定中...' : '绑定'}
                   </button>
                 )}
                 <button

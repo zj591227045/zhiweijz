@@ -1,36 +1,36 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/auth-store";
-import { toast } from "sonner";
-import { SimpleSlidingCaptcha } from "@/components/captcha/simple-sliding-captcha";
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/auth-store';
+import { toast } from 'sonner';
+import { SimpleSlidingCaptcha } from '@/components/captcha/simple-sliding-captcha';
 
 export default function RegisterPage() {
   const router = useRouter();
   const { register, isLoading, error, clearError } = useAuthStore();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [passwordError, setPasswordError] = useState("");
+  const [passwordError, setPasswordError] = useState('');
   const [showCaptcha, setShowCaptcha] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const validatePassword = () => {
     if (password !== confirmPassword) {
-      setPasswordError("两次输入的密码不一致");
+      setPasswordError('两次输入的密码不一致');
       return false;
     }
 
     if (password.length < 8) {
-      setPasswordError("密码长度至少为8位");
+      setPasswordError('密码长度至少为8位');
       return false;
     }
 
-    setPasswordError("");
+    setPasswordError('');
     return true;
   };
 
@@ -52,14 +52,14 @@ export default function RegisterPage() {
         name,
         email,
         password,
-        captchaToken
+        captchaToken,
       });
 
       if (success) {
-        router.push("/dashboard");
+        router.push('/dashboard');
       }
     } catch (error) {
-      console.error("注册失败:", error);
+      console.error('注册失败:', error);
       // 注册失败，重置验证码
       setCaptchaToken(null);
     }
@@ -76,14 +76,14 @@ export default function RegisterPage() {
         name,
         email,
         password,
-        captchaToken: token
+        captchaToken: token,
       });
 
       if (success) {
-        router.push("/dashboard");
+        router.push('/dashboard');
       }
     } catch (error) {
-      console.error("注册失败:", error);
+      console.error('注册失败:', error);
       // 注册失败，重置验证码
       setCaptchaToken(null);
     }
@@ -116,7 +116,7 @@ export default function RegisterPage() {
               backgroundColor: 'rgba(var(--error-color), 0.1)',
               borderColor: 'var(--error-color)',
               color: 'var(--error-color)',
-              border: '1px solid'
+              border: '1px solid',
             }}
           >
             <span>{error}</span>
@@ -167,7 +167,7 @@ export default function RegisterPage() {
           </label>
           <div className="password-input-wrapper">
             <input
-              type={showPassword ? "text" : "password"}
+              type={showPassword ? 'text' : 'password'}
               id="password"
               className="form-input full-width"
               placeholder="请输入密码"
@@ -180,7 +180,7 @@ export default function RegisterPage() {
               className="password-toggle"
               onClick={() => setShowPassword(!showPassword)}
             >
-              <i className={`fas ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
+              <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
             </button>
           </div>
         </div>
@@ -191,7 +191,7 @@ export default function RegisterPage() {
           </label>
           <div className="password-input-wrapper">
             <input
-              type={showPassword ? "text" : "password"}
+              type={showPassword ? 'text' : 'password'}
               id="confirmPassword"
               className="form-input full-width"
               placeholder="请再次输入密码"
@@ -201,21 +201,14 @@ export default function RegisterPage() {
             />
           </div>
           {passwordError && (
-            <p
-              className="text-sm mt-1"
-              style={{ color: 'var(--error-color)' }}
-            >
+            <p className="text-sm mt-1" style={{ color: 'var(--error-color)' }}>
               {passwordError}
             </p>
           )}
         </div>
 
-        <button
-          type="submit"
-          className="submit-button"
-          disabled={isLoading}
-        >
-          {isLoading ? "注册中..." : "注册"}
+        <button type="submit" className="submit-button" disabled={isLoading}>
+          {isLoading ? '注册中...' : '注册'}
         </button>
 
         <div className="auth-links">

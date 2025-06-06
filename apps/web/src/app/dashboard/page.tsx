@@ -1,19 +1,24 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { useAuthStore } from "@/store/auth-store";
-import { useAccountBookStore } from "@/store/account-book-store";
-import { PageContainer } from "@/components/layout/page-container";
-import { MonthlyOverview } from "@/components/dashboard/monthly-overview";
-import { BudgetProgress } from "@/components/dashboard/budget-progress";
-import { RecentTransactions } from "@/components/dashboard/recent-transactions";
-import { formatCurrency, formatDate } from "@/lib/utils";
-import { accountBookService, statisticsService, budgetService, transactionService } from "@/lib/api-services";
-import dayjs from "dayjs";
-import { TransactionType } from "@/components/dashboard/recent-transactions";
-import { useDashboardStore } from "@/store/dashboard-store";
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
+import { useAuthStore } from '@/store/auth-store';
+import { useAccountBookStore } from '@/store/account-book-store';
+import { PageContainer } from '@/components/layout/page-container';
+import { MonthlyOverview } from '@/components/dashboard/monthly-overview';
+import { BudgetProgress } from '@/components/dashboard/budget-progress';
+import { RecentTransactions } from '@/components/dashboard/recent-transactions';
+import { formatCurrency, formatDate } from '@/lib/utils';
+import {
+  accountBookService,
+  statisticsService,
+  budgetService,
+  transactionService,
+} from '@/lib/api-services';
+import dayjs from 'dayjs';
+import { TransactionType } from '@/components/dashboard/recent-transactions';
+import { useDashboardStore } from '@/store/dashboard-store';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -30,7 +35,7 @@ export default function DashboardPage() {
     fetchDashboardData,
     refreshDashboardData,
     setupTransactionListener,
-    cleanupTransactionListener
+    cleanupTransactionListener,
   } = useDashboardStore();
 
   // 认证检查和初始数据加载
@@ -40,7 +45,7 @@ export default function DashboardPage() {
     // 检查用户是否已登录
     if (!isAuthenticated) {
       console.log('🏠 [Dashboard] 用户未登录，重定向到登录页面');
-      router.push("/auth/login");
+      router.push('/auth/login');
       return;
     }
 
@@ -54,7 +59,7 @@ export default function DashboardPage() {
     console.log('🏠 [Dashboard] 账本变化检测:', {
       isAuthenticated,
       currentAccountBook,
-      accountBookId: currentAccountBook?.id
+      accountBookId: currentAccountBook?.id,
     });
 
     if (isAuthenticated && currentAccountBook?.id) {
@@ -64,18 +69,18 @@ export default function DashboardPage() {
       console.log('🏠 [Dashboard] 条件不满足，不获取仪表盘数据:', {
         isAuthenticated,
         hasCurrentAccountBook: !!currentAccountBook,
-        accountBookId: currentAccountBook?.id
+        accountBookId: currentAccountBook?.id,
       });
     }
   }, [currentAccountBook?.id, isAuthenticated]); // 只依赖账本ID和认证状态
 
   // 设置交易变化监听器
   useEffect(() => {
-    console.log("仪表盘页面：设置交易变化监听器");
+    console.log('仪表盘页面：设置交易变化监听器');
     setupTransactionListener();
 
     return () => {
-      console.log("仪表盘页面：清理交易变化监听器");
+      console.log('仪表盘页面：清理交易变化监听器');
       cleanupTransactionListener();
     };
   }, []); // 只在组件挂载时设置一次
@@ -84,14 +89,14 @@ export default function DashboardPage() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden && currentAccountBook?.id) {
-        console.log("页面重新获得焦点，刷新仪表盘数据");
+        console.log('页面重新获得焦点，刷新仪表盘数据');
         refreshDashboardData(currentAccountBook.id);
       }
     };
 
     const handleFocus = () => {
       if (currentAccountBook?.id) {
-        console.log("窗口重新获得焦点，刷新仪表盘数据");
+        console.log('窗口重新获得焦点，刷新仪表盘数据');
         refreshDashboardData(currentAccountBook.id);
       }
     };
@@ -101,15 +106,18 @@ export default function DashboardPage() {
       if (e.key === 'dashboard_refresh_signal' && e.newValue && currentAccountBook?.id) {
         try {
           const signal = JSON.parse(e.newValue);
-          console.log("监听到localStorage刷新信号:", signal);
+          console.log('监听到localStorage刷新信号:', signal);
 
           // 检查信号是否是最近5秒内的
-          if (Date.now() - signal.timestamp < 5000 && signal.accountBookId === currentAccountBook.id) {
-            console.log("根据storage事件刷新仪表盘数据");
+          if (
+            Date.now() - signal.timestamp < 5000 &&
+            signal.accountBookId === currentAccountBook.id
+          ) {
+            console.log('根据storage事件刷新仪表盘数据');
             refreshDashboardData(signal.accountBookId);
           }
         } catch (error) {
-          console.error("处理storage事件失败:", error);
+          console.error('处理storage事件失败:', error);
         }
       }
     };
@@ -128,7 +136,7 @@ export default function DashboardPage() {
   // 监听路由变化，当进入仪表盘页面时处理刷新信号
   useEffect(() => {
     if (pathname === '/dashboard' && currentAccountBook?.id) {
-      console.log("进入仪表盘页面，检查刷新信号");
+      console.log('进入仪表盘页面，检查刷新信号');
 
       // 检查localStorage中的刷新信号
       const checkRefreshSignal = () => {
@@ -136,29 +144,29 @@ export default function DashboardPage() {
           const signalStr = localStorage.getItem('dashboard_refresh_signal');
           if (signalStr) {
             const signal = JSON.parse(signalStr);
-            console.log("检测到仪表盘刷新信号:", signal);
+            console.log('检测到仪表盘刷新信号:', signal);
 
             // 检查信号是否是最近5秒内的（避免处理过期信号）
             if (Date.now() - signal.timestamp < 5000) {
-              console.log("处理仪表盘刷新信号，账本ID:", signal.accountBookId);
+              console.log('处理仪表盘刷新信号，账本ID:', signal.accountBookId);
 
               // 清除信号
               localStorage.removeItem('dashboard_refresh_signal');
 
               // 刷新数据
               if (signal.accountBookId && currentAccountBook?.id === signal.accountBookId) {
-                console.log("根据localStorage信号刷新仪表盘数据");
+                console.log('根据localStorage信号刷新仪表盘数据');
                 refreshDashboardData(signal.accountBookId);
                 return true; // 表示已处理刷新信号
               }
             } else {
               // 清除过期信号
               localStorage.removeItem('dashboard_refresh_signal');
-              console.log("清除过期的仪表盘刷新信号");
+              console.log('清除过期的仪表盘刷新信号');
             }
           }
         } catch (error) {
-          console.error("处理仪表盘刷新信号失败:", error);
+          console.error('处理仪表盘刷新信号失败:', error);
           localStorage.removeItem('dashboard_refresh_signal');
         }
         return false;
@@ -180,7 +188,6 @@ export default function DashboardPage() {
 
   return (
     <PageContainer title="仪表盘" rightActions={rightActions} activeNavItem="home">
-
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <div
@@ -195,7 +202,7 @@ export default function DashboardPage() {
             backgroundColor: 'rgba(var(--error-color), 0.1)',
             borderColor: 'var(--error-color)',
             color: 'var(--error-color)',
-            border: '1px solid'
+            border: '1px solid',
           }}
         >
           {error}
@@ -211,15 +218,10 @@ export default function DashboardPage() {
           />
 
           {/* 预算执行情况 */}
-          <BudgetProgress
-            categories={budgetCategories}
-            totalBudget={totalBudget}
-          />
+          <BudgetProgress categories={budgetCategories} totalBudget={totalBudget} />
 
           {/* 最近交易 */}
-          <RecentTransactions
-            groupedTransactions={groupedTransactions}
-          />
+          <RecentTransactions groupedTransactions={groupedTransactions} />
         </>
       )}
     </PageContainer>

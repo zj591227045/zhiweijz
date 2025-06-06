@@ -11,11 +11,7 @@ interface InvitationHistoryProps {
   onRefresh: () => Promise<void>;
 }
 
-export function InvitationHistory({
-  invitations,
-  isLoading,
-  onRefresh
-}: InvitationHistoryProps) {
+export function InvitationHistory({ invitations, isLoading, onRefresh }: InvitationHistoryProps) {
   const [expandedInvitationId, setExpandedInvitationId] = useState<string | null>(null);
 
   // 添加调试日志
@@ -23,7 +19,9 @@ export function InvitationHistory({
     console.log(`InvitationHistory: 收到 ${invitations.length} 条邀请记录`);
     console.log('邀请记录完整数据:', JSON.stringify(invitations));
     invitations.forEach((invitation, index) => {
-      console.log(`邀请记录 ${index + 1}: ID=${invitation.id}, 邀请码=${invitation.invitationCode}, isUsed=${invitation.isUsed}`);
+      console.log(
+        `邀请记录 ${index + 1}: ID=${invitation.id}, 邀请码=${invitation.invitationCode}, isUsed=${invitation.isUsed}`,
+      );
     });
   }, [invitations]);
 
@@ -34,7 +32,8 @@ export function InvitationHistory({
 
   // 复制邀请码
   const copyInvitationCode = (code: string) => {
-    navigator.clipboard.writeText(code)
+    navigator.clipboard
+      .writeText(code)
       .then(() => {
         alert('邀请码已复制到剪贴板');
       })
@@ -49,11 +48,7 @@ export function InvitationHistory({
       <div className="invitation-history">
         <div className="section-header">
           <h3 className="section-title">邀请码历史</h3>
-          <button
-            className="refresh-button"
-            onClick={onRefresh}
-            disabled={isLoading}
-          >
+          <button className="refresh-button" onClick={onRefresh} disabled={isLoading}>
             <i className="fas fa-sync-alt"></i>
           </button>
         </div>
@@ -71,11 +66,7 @@ export function InvitationHistory({
       <div className="invitation-history">
         <div className="section-header">
           <h3 className="section-title">邀请码历史</h3>
-          <button
-            className="refresh-button"
-            onClick={onRefresh}
-            disabled={isLoading}
-          >
+          <button className="refresh-button" onClick={onRefresh} disabled={isLoading}>
             <i className="fas fa-sync-alt"></i>
           </button>
         </div>
@@ -92,11 +83,7 @@ export function InvitationHistory({
     <div className="invitation-history">
       <div className="section-header">
         <h3 className="section-title">邀请码历史 ({invitations.length})</h3>
-        <button
-          className="refresh-button"
-          onClick={onRefresh}
-          disabled={isLoading}
-        >
+        <button className="refresh-button" onClick={onRefresh} disabled={isLoading}>
           <i className="fas fa-sync-alt"></i>
         </button>
       </div>
@@ -105,73 +92,67 @@ export function InvitationHistory({
         {invitations.map((invitation, index) => {
           console.log(`渲染邀请项 ${index}:`, invitation.id, invitation.invitationCode);
           return (
-          <div
-            key={`invitation-${invitation.id}-${index}`}
-            className={`invitation-item ${invitation.isUsed ? 'used' : 'active'}`}
-          >
             <div
-              className="invitation-summary"
-              onClick={() => toggleInvitationDetails(invitation.id)}
+              key={`invitation-${invitation.id}-${index}`}
+              className={`invitation-item ${invitation.isUsed ? 'used' : 'active'}`}
             >
-              <div className="invitation-code">
-                {invitation.invitationCode}
-                <button
-                  className="copy-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    copyInvitationCode(invitation.invitationCode);
-                  }}
-                >
-                  <i className="fas fa-copy"></i>
-                </button>
-              </div>
-              <div className="invitation-status">
-                <span className={`status-badge ${invitation.isUsed ? 'used' : 'active'}`}>
-                  {invitation.isUsed ? '已使用' : '未使用'}
-                </span>
-              </div>
-              <div className="invitation-date">
-                <div className="created-at">
-                  创建于: {formatDate(invitation.createdAt)}
+              <div
+                className="invitation-summary"
+                onClick={() => toggleInvitationDetails(invitation.id)}
+              >
+                <div className="invitation-code">
+                  {invitation.invitationCode}
+                  <button
+                    className="copy-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      copyInvitationCode(invitation.invitationCode);
+                    }}
+                  >
+                    <i className="fas fa-copy"></i>
+                  </button>
                 </div>
-                <div className="expires-at">
-                  有效期至: {formatDate(invitation.expiresAt)}
+                <div className="invitation-status">
+                  <span className={`status-badge ${invitation.isUsed ? 'used' : 'active'}`}>
+                    {invitation.isUsed ? '已使用' : '未使用'}
+                  </span>
+                </div>
+                <div className="invitation-date">
+                  <div className="created-at">创建于: {formatDate(invitation.createdAt)}</div>
+                  <div className="expires-at">有效期至: {formatDate(invitation.expiresAt)}</div>
+                </div>
+                <div className="toggle-icon">
+                  <i
+                    className={`fas fa-chevron-${expandedInvitationId === invitation.id ? 'up' : 'down'}`}
+                  ></i>
                 </div>
               </div>
-              <div className="toggle-icon">
-                <i className={`fas fa-chevron-${expandedInvitationId === invitation.id ? 'up' : 'down'}`}></i>
-              </div>
-            </div>
 
-            {expandedInvitationId === invitation.id && (
-              <div className="invitation-details">
-                {invitation.isUsed ? (
-                  <div className="used-info">
-                    <div className="used-at">
-                      使用时间: {formatDate(invitation.usedAt || '')}
+              {expandedInvitationId === invitation.id && (
+                <div className="invitation-details">
+                  {invitation.isUsed ? (
+                    <div className="used-info">
+                      <div className="used-at">使用时间: {formatDate(invitation.usedAt || '')}</div>
+                      {invitation.usedByUserName && (
+                        <div className="used-by">使用者: {invitation.usedByUserName}</div>
+                      )}
                     </div>
-                    {invitation.usedByUserName && (
-                      <div className="used-by">
-                        使用者: {invitation.usedByUserName}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="invite-link">
-                    <div className="link-label">邀请链接:</div>
-                    <div className="link-value">{invitation.url}</div>
-                    <button
-                      className="copy-link-button"
-                      onClick={() => copyInvitationCode(invitation.url)}
-                    >
-                      <i className="fas fa-copy"></i>
-                      <span>复制链接</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+                  ) : (
+                    <div className="invite-link">
+                      <div className="link-label">邀请链接:</div>
+                      <div className="link-value">{invitation.url}</div>
+                      <button
+                        className="copy-link-button"
+                        onClick={() => copyInvitationCode(invitation.url)}
+                      >
+                        <i className="fas fa-copy"></i>
+                        <span>复制链接</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           );
         })}
       </div>

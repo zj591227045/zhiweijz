@@ -56,7 +56,7 @@ export function useLLMSettings(options: UseLLMSettingsOptions = {}): UseLLMSetti
     } finally {
       setIsLoading(false);
     }
-  }, [accountBookId, getLLMSettings, clearStoreCache, skipCache]);
+  }, [accountBookId, getLLMSettings, clearStoreCache]);
 
   const refresh = useCallback(async () => {
     await fetchLLMSettings(true);
@@ -68,12 +68,12 @@ export function useLLMSettings(options: UseLLMSettingsOptions = {}): UseLLMSetti
     }
   }, [accountBookId, clearStoreCache]);
 
-  // 监听缓存变化
+  // 监听缓存变化 - 使用具体的缓存值而不是整个llmCache对象
   useEffect(() => {
     if (accountBookId && llmCache[accountBookId]) {
       setLLMSettings(llmCache[accountBookId]);
     }
-  }, [accountBookId, llmCache]);
+  }, [accountBookId, llmCache[accountBookId]]);
 
   // 初始化时获取LLM设置
   useEffect(() => {

@@ -27,7 +27,7 @@ export function BudgetOverview({ overview }: BudgetOverviewProps) {
     isRolloverHistoryOpen,
     toggleRolloverHistory,
     fetchRolloverHistory,
-    fetchUserRolloverHistory
+    fetchUserRolloverHistory,
   } = useBudgetStatisticsStore();
 
   // 处理结转历史按钮点击
@@ -46,7 +46,9 @@ export function BudgetOverview({ overview }: BudgetOverviewProps) {
 
         if (selectedBudgetId && familyMembers && familyMembers.length > 0) {
           // 在家庭成员中查找对应的用户ID
-          const selectedMember = familyMembers.find(member => member.budgetId === selectedBudgetId);
+          const selectedMember = familyMembers.find(
+            (member) => member.budgetId === selectedBudgetId,
+          );
           if (selectedMember) {
             // 如果找到了对应的家庭成员，获取其用户ID
             // 注意：现在托管成员也有userId了
@@ -75,7 +77,7 @@ export function BudgetOverview({ overview }: BudgetOverviewProps) {
   const formatAmount = (amount: number, showDecimals = true) => {
     return `¥${amount.toLocaleString(undefined, {
       minimumFractionDigits: showDecimals ? 2 : 0,
-      maximumFractionDigits: showDecimals ? 2 : 0
+      maximumFractionDigits: showDecimals ? 2 : 0,
     })}`;
   };
 
@@ -94,10 +96,12 @@ export function BudgetOverview({ overview }: BudgetOverviewProps) {
   return (
     <>
       <div className="overview-card" style={{ padding: '12px' }}>
-
         {/* 结转信息和预算金额横向对齐 */}
         <div className="budget-info-row" style={{ display: 'flex', justifyContent: 'flex-start' }}>
-          <div className="budget-amount-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <div
+            className="budget-amount-container"
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+          >
             <div className="budget-amount-label">&nbsp;&nbsp;&nbsp;预算金额</div>
             <div className="budget-amount">{formatAmount(overview.amount, false)}</div>
           </div>
@@ -105,7 +109,10 @@ export function BudgetOverview({ overview }: BudgetOverviewProps) {
           <div className="rollover-info">
             <div className={`rollover-badge ${getRolloverBadgeClass(overview.rollover)}`}>
               <i className="fas fa-exchange-alt"></i>
-              <span>本月结转: {overview.rollover >= 0 ? '+' : ''}{formatAmount(overview.rollover)}</span>
+              <span>
+                本月结转: {overview.rollover >= 0 ? '+' : ''}
+                {formatAmount(overview.rollover)}
+              </span>
             </div>
             <button className="rollover-history-button" onClick={handleRolloverHistoryClick}>
               <i className="fas fa-history"></i>
@@ -116,63 +123,60 @@ export function BudgetOverview({ overview }: BudgetOverviewProps) {
 
         {/* 结转历史对话框 */}
         {isRolloverHistoryOpen && (
-          <RolloverHistoryDialog
-            history={rolloverHistory}
-            onClose={toggleRolloverHistory}
-          />
+          <RolloverHistoryDialog history={rolloverHistory} onClose={toggleRolloverHistory} />
         )}
 
-      {/* 预算进度 - 优化样式 */}
-      <div className="budget-progress-container" style={{ marginBottom: '4px' }}>
-        <div className="budget-progress-info">
-          {/* 计算调整后的百分比：已用金额/(预算金额+结转金额) */}
-          {(() => {
-            const adjustedTotal = overview.amount + overview.rollover;
-            const adjustedPercentage = adjustedTotal > 0
-              ? (overview.spent / adjustedTotal) * 100
-              : 0;
-            return (
-              <div className="spent-amount">
-                已用: {formatAmount(overview.spent)} ({adjustedPercentage.toFixed(1)}%)
-              </div>
-            );
-          })()}
-          <div className={`remaining-amount ${(overview.amount + overview.rollover - overview.spent) >= 0 ? 'positive' : 'negative'}`}>
-            剩余: {formatAmount(overview.amount + overview.rollover - overview.spent)}
+        {/* 预算进度 - 优化样式 */}
+        <div className="budget-progress-container" style={{ marginBottom: '4px' }}>
+          <div className="budget-progress-info">
+            {/* 计算调整后的百分比：已用金额/(预算金额+结转金额) */}
+            {(() => {
+              const adjustedTotal = overview.amount + overview.rollover;
+              const adjustedPercentage =
+                adjustedTotal > 0 ? (overview.spent / adjustedTotal) * 100 : 0;
+              return (
+                <div className="spent-amount">
+                  已用: {formatAmount(overview.spent)} ({adjustedPercentage.toFixed(1)}%)
+                </div>
+              );
+            })()}
+            <div
+              className={`remaining-amount ${overview.amount + overview.rollover - overview.spent >= 0 ? 'positive' : 'negative'}`}
+            >
+              剩余: {formatAmount(overview.amount + overview.rollover - overview.spent)}
+            </div>
+          </div>
+          <div className="progress-bar">
+            {/* 使用调整后的百分比计算进度条宽度 */}
+            {(() => {
+              const adjustedTotal = overview.amount + overview.rollover;
+              const adjustedPercentage =
+                adjustedTotal > 0 ? (overview.spent / adjustedTotal) * 100 : 0;
+              return (
+                <div
+                  className={`progress ${getProgressColor(adjustedPercentage)}`}
+                  style={{ width: `${Math.min(adjustedPercentage, 100)}%` }}
+                ></div>
+              );
+            })()}
           </div>
         </div>
-        <div className="progress-bar">
-          {/* 使用调整后的百分比计算进度条宽度 */}
-          {(() => {
-            const adjustedTotal = overview.amount + overview.rollover;
-            const adjustedPercentage = adjustedTotal > 0
-              ? (overview.spent / adjustedTotal) * 100
-              : 0;
-            return (
-              <div
-                className={`progress ${getProgressColor(adjustedPercentage)}`}
-                style={{ width: `${Math.min(adjustedPercentage, 100)}%` }}
-              ></div>
-            );
-          })()}
-        </div>
-      </div>
 
-      {/* 预算统计 - 强制横向排列 */}
-      <div className="budget-stats-row" style={{ marginTop: '4px' }}>
-        <div className="stat-item">
-          <div className="stat-value">{overview.daysRemaining}天</div>
-          <div className="stat-label">剩余天数</div>
+        {/* 预算统计 - 强制横向排列 */}
+        <div className="budget-stats-row" style={{ marginTop: '4px' }}>
+          <div className="stat-item">
+            <div className="stat-value">{overview.daysRemaining}天</div>
+            <div className="stat-label">剩余天数</div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-value">{formatAmount(overview.dailySpent, false)}</div>
+            <div className="stat-label">日均消费</div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-value">{formatAmount(overview.dailyAvailable, false)}</div>
+            <div className="stat-label">日均可用</div>
+          </div>
         </div>
-        <div className="stat-item">
-          <div className="stat-value">{formatAmount(overview.dailySpent, false)}</div>
-          <div className="stat-label">日均消费</div>
-        </div>
-        <div className="stat-item">
-          <div className="stat-value">{formatAmount(overview.dailyAvailable, false)}</div>
-          <div className="stat-label">日均可用</div>
-        </div>
-      </div>
       </div>
     </>
   );

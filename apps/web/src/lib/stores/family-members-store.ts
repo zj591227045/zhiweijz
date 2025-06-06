@@ -53,7 +53,7 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
   userPermissions: {
     canInvite: false,
     canRemove: false,
-    canChangeRoles: false
+    canChangeRoles: false,
   },
   isLoading: false,
   isInvitationLoading: false,
@@ -79,7 +79,7 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
       const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -91,22 +91,22 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
           userPermissions: data.userPermissions || {
             canInvite: false,
             canRemove: false,
-            canChangeRoles: false
+            canChangeRoles: false,
           },
-          isLoading: false
+          isLoading: false,
         });
       } else {
         const errorData = await response.json();
         set({
           isLoading: false,
-          error: errorData.message || '获取家庭成员失败'
+          error: errorData.message || '获取家庭成员失败',
         });
       }
     } catch (error) {
       console.error('获取家庭成员失败:', error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : '获取家庭成员失败'
+        error: error instanceof Error ? error.message : '获取家庭成员失败',
       });
     }
   },
@@ -118,32 +118,35 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
 
     try {
       set({ isLoading: true, period, error: null });
-      const response = await fetch(`/api/families/${familyId}/members/statistics?period=${period}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+      const response = await fetch(
+        `/api/families/${familyId}/members/statistics?period=${period}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       if (response.ok) {
         const data = await response.json();
         set({
           members: data.members || [],
           totalExpense: data.totalExpense || 0,
-          isLoading: false
+          isLoading: false,
         });
       } else {
         const errorData = await response.json();
         set({
           isLoading: false,
-          error: errorData.message || '获取成员统计失败'
+          error: errorData.message || '获取成员统计失败',
         });
       }
     } catch (error) {
       console.error('获取成员统计失败:', error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : '获取成员统计失败'
+        error: error instanceof Error ? error.message : '获取成员统计失败',
       });
     }
   },
@@ -159,15 +162,15 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ role }),
       });
 
       if (response.ok) {
         // 更新本地状态
-        const members = get().members.map(member =>
-          member.memberId === memberId ? { ...member, role } : member
+        const members = get().members.map((member) =>
+          member.memberId === memberId ? { ...member, role } : member,
         );
 
         set({ members, isRoleUpdating: false });
@@ -176,7 +179,7 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
         const errorData = await response.json();
         set({
           isRoleUpdating: false,
-          error: errorData.message || '更新成员角色失败'
+          error: errorData.message || '更新成员角色失败',
         });
         return false;
       }
@@ -184,7 +187,7 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
       console.error('更新成员角色失败:', error);
       set({
         isRoleUpdating: false,
-        error: error instanceof Error ? error.message : '更新成员角色失败'
+        error: error instanceof Error ? error.message : '更新成员角色失败',
       });
       return false;
     }
@@ -200,20 +203,20 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
       const response = await fetch(`/api/families/${familyId}/members/${memberId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
         // 更新本地状态
-        const members = get().members.filter(member => member.memberId !== memberId);
+        const members = get().members.filter((member) => member.memberId !== memberId);
         set({ members, isRemoving: false });
         return true;
       } else {
         const errorData = await response.json();
         set({
           isRemoving: false,
-          error: errorData.message || '移除成员失败'
+          error: errorData.message || '移除成员失败',
         });
         return false;
       }
@@ -221,7 +224,7 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
       console.error('移除成员失败:', error);
       set({
         isRemoving: false,
-        error: error instanceof Error ? error.message : '移除成员失败'
+        error: error instanceof Error ? error.message : '移除成员失败',
       });
       return false;
     }
@@ -238,7 +241,7 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ expiresInDays }),
       });
@@ -255,7 +258,7 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
         const errorData = await response.json();
         set({
           isInvitationLoading: false,
-          error: errorData.message || '生成邀请链接失败'
+          error: errorData.message || '生成邀请链接失败',
         });
         return null;
       }
@@ -263,7 +266,7 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
       console.error('生成邀请链接失败:', error);
       set({
         isInvitationLoading: false,
-        error: error instanceof Error ? error.message : '生成邀请链接失败'
+        error: error instanceof Error ? error.message : '生成邀请链接失败',
       });
       return null;
     }
@@ -283,7 +286,7 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
       const response = await fetch(`/api/families/${familyId}/invitations`, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -305,7 +308,7 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
         const errorData = await response.json();
         set({
           isInvitationsLoading: false,
-          error: errorData.message || '获取邀请列表失败'
+          error: errorData.message || '获取邀请列表失败',
         });
         return [];
       }
@@ -313,7 +316,7 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
       console.error('获取邀请列表失败:', error);
       set({
         isInvitationsLoading: false,
-        error: error instanceof Error ? error.message : '获取邀请列表失败'
+        error: error instanceof Error ? error.message : '获取邀请列表失败',
       });
       return [];
     }
@@ -325,5 +328,5 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
     if (currentPeriod !== period) {
       set({ period });
     }
-  }
+  },
 }));

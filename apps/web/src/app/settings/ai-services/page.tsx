@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { toast } from "sonner";
-import { PageContainer } from "@/components/layout/page-container";
-import { useAuthStore } from "@/store/auth-store";
-import { useAIServicesStore } from "@/store/ai-services-store";
-import styles from "./ai-services.module.css";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { toast } from 'sonner';
+import { PageContainer } from '@/components/layout/page-container';
+import { useAuthStore } from '@/store/auth-store';
+import { useAIServicesStore } from '@/store/ai-services-store';
+import styles from './ai-services.module.css';
 
 interface AIService {
   id: string;
@@ -26,8 +26,8 @@ export default function AIServicesPage() {
   // 快速登录功能
   const quickLogin = async () => {
     await login({
-      email: "zhangjie@jacksonz.cn",
-      password: "Zj233401!"
+      email: 'zhangjie@jacksonz.cn',
+      password: 'Zj233401!',
     });
     // 登录后立即获取服务列表
     setTimeout(fetchServices, 500);
@@ -35,7 +35,7 @@ export default function AIServicesPage() {
 
   // 监听认证状态变化
   useEffect(() => {
-    console.log("认证状态变化:", isAuthenticated);
+    console.log('认证状态变化:', isAuthenticated);
   }, [isAuthenticated]);
 
   // 加载AI服务列表
@@ -45,11 +45,9 @@ export default function AIServicesPage() {
     }
   }, [isAuthenticated]);
 
-
-
   // 删除AI服务
   const handleDelete = async (id: string) => {
-    if (confirm("确定要删除此AI服务吗？")) {
+    if (confirm('确定要删除此AI服务吗？')) {
       await deleteService(id);
     }
   };
@@ -131,10 +129,13 @@ export default function AIServicesPage() {
                 <div className={styles.serviceName}>{service.name}</div>
                 <div className={styles.serviceDetails}>
                   <span className={styles.serviceProvider}>
-                    {service.provider === "openai" ? "OpenAI" :
-                     service.provider === "siliconflow" ? "硅基流动" :
-                     service.provider === "deepseek" ? "Deepseek" :
-                     service.provider}
+                    {service.provider === 'openai'
+                      ? 'OpenAI'
+                      : service.provider === 'siliconflow'
+                        ? '硅基流动'
+                        : service.provider === 'deepseek'
+                          ? 'Deepseek'
+                          : service.provider}
                   </span>
                   <span className={styles.serviceModel}>{service.model}</span>
                 </div>
@@ -143,13 +144,13 @@ export default function AIServicesPage() {
                 )}
               </div>
               <div className={styles.serviceActions}>
-                <Link href={`/settings/ai-services/edit/${service.id}`} className={styles.editButton}>
+                <Link
+                  href={`/settings/ai-services/edit/${service.id}`}
+                  className={styles.editButton}
+                >
                   <i className="fas fa-edit"></i>
                 </Link>
-                <button
-                  className={styles.deleteButton}
-                  onClick={() => handleDelete(service.id)}
-                >
+                <button className={styles.deleteButton} onClick={() => handleDelete(service.id)}>
                   <i className="fas fa-trash-alt"></i>
                 </button>
               </div>

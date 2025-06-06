@@ -1,7 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
-import { apiClient } from '../api/api-client';
+import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { CreateTransactionData, Transaction, TransactionType } from '@/types';
 
@@ -52,7 +52,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
         if ('data' in response && Array.isArray(response.data)) {
           set({
             transactions: response.data,
-            isLoading: false
+            isLoading: false,
           });
           return;
         }
@@ -62,7 +62,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       if (Array.isArray(response)) {
         set({
           transactions: response,
-          isLoading: false
+          isLoading: false,
         });
         return;
       }
@@ -70,13 +70,13 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       // 默认设置为空数组
       set({
         transactions: [],
-        isLoading: false
+        isLoading: false,
       });
     } catch (error) {
       console.error('获取交易列表失败:', error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : '获取交易列表失败'
+        error: error instanceof Error ? error.message : '获取交易列表失败',
       });
       toast.error('获取交易列表失败');
     }
@@ -104,14 +104,14 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
 
       set({
         isLoading: false,
-        transaction: transactionData
+        transaction: transactionData,
       });
     } catch (error) {
       console.error(`获取交易 ${id} 失败:`, error);
       set({
         isLoading: false,
         transaction: null,
-        error: error instanceof Error ? error.message : `获取交易 ${id} 失败`
+        error: error instanceof Error ? error.message : `获取交易 ${id} 失败`,
       });
       toast.error(`获取交易详情失败`);
     }
@@ -142,7 +142,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       console.error(`获取交易 ${id} 失败:`, error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : `获取交易 ${id} 失败`
+        error: error instanceof Error ? error.message : `获取交易 ${id} 失败`,
       });
       toast.error(`获取交易详情失败`);
       return null;
@@ -164,7 +164,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       console.error('创建交易失败:', error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : '创建交易失败'
+        error: error instanceof Error ? error.message : '创建交易失败',
       });
       toast.error('创建交易失败');
       return false;
@@ -186,7 +186,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       console.error(`更新交易 ${id} 失败:`, error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : `更新交易 ${id} 失败`
+        error: error instanceof Error ? error.message : `更新交易 ${id} 失败`,
       });
       toast.error('更新交易失败');
       return false;
@@ -208,10 +208,10 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       console.error(`删除交易 ${id} 失败:`, error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : `删除交易 ${id} 失败`
+        error: error instanceof Error ? error.message : `删除交易 ${id} 失败`,
       });
       toast.error('删除交易失败');
       return false;
     }
-  }
+  },
 }));

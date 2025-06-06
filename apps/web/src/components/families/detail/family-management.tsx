@@ -18,7 +18,7 @@ export function FamilyManagement({ isAdmin, familyId, onLeave, onDelete }: Famil
       title: '成员管理',
       description: '管理家庭成员',
       link: `/families/${familyId}/members`,
-      adminOnly: false
+      adminOnly: false,
     },
     {
       id: 'budget',
@@ -26,7 +26,7 @@ export function FamilyManagement({ isAdmin, familyId, onLeave, onDelete }: Famil
       title: '预算管理',
       description: '设置家庭预算',
       link: `/families/${familyId}/budget`,
-      adminOnly: true
+      adminOnly: true,
     },
     {
       id: 'categories',
@@ -34,7 +34,7 @@ export function FamilyManagement({ isAdmin, familyId, onLeave, onDelete }: Famil
       title: '分类管理',
       description: '自定义交易分类',
       link: `/families/${familyId}/categories`,
-      adminOnly: true
+      adminOnly: true,
     },
     {
       id: 'settings',
@@ -42,14 +42,12 @@ export function FamilyManagement({ isAdmin, familyId, onLeave, onDelete }: Famil
       title: '家庭设置',
       description: '高级设置选项',
       link: `/families/${familyId}/settings`,
-      adminOnly: true
-    }
+      adminOnly: true,
+    },
   ];
 
   // 过滤管理选项
-  const filteredOptions = managementOptions.filter(option => 
-    !option.adminOnly || isAdmin
-  );
+  const filteredOptions = managementOptions.filter((option) => !option.adminOnly || isAdmin);
 
   return (
     <div className="management-section">
@@ -59,7 +57,7 @@ export function FamilyManagement({ isAdmin, familyId, onLeave, onDelete }: Famil
           <span>家庭管理</span>
         </div>
       </div>
-      
+
       <div className="management-options">
         {filteredOptions.map((option) => (
           <Link href={option.link} key={option.id} className="management-option">
@@ -76,13 +74,13 @@ export function FamilyManagement({ isAdmin, familyId, onLeave, onDelete }: Famil
           </Link>
         ))}
       </div>
-      
+
       <div className="danger-zone">
         <div className="danger-title">
           <i className="fas fa-exclamation-triangle"></i>
           <span>危险操作</span>
         </div>
-        
+
         <div className="danger-actions">
           {isAdmin ? (
             <>
@@ -90,9 +88,7 @@ export function FamilyManagement({ isAdmin, familyId, onLeave, onDelete }: Famil
                 <i className="fas fa-trash-alt"></i>
                 <span>解散家庭</span>
               </button>
-              <div className="warning-text">
-                解散家庭将永久移除所有相关数据，此操作不可恢复。
-              </div>
+              <div className="warning-text">解散家庭将永久移除所有相关数据，此操作不可恢复。</div>
             </>
           ) : (
             <>
@@ -100,9 +96,7 @@ export function FamilyManagement({ isAdmin, familyId, onLeave, onDelete }: Famil
                 <i className="fas fa-sign-out-alt"></i>
                 <span>退出家庭</span>
               </button>
-              <div className="warning-text">
-                退出家庭后，您将无法访问该家庭的数据。
-              </div>
+              <div className="warning-text">退出家庭后，您将无法访问该家庭的数据。</div>
             </>
           )}
         </div>
