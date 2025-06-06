@@ -37,6 +37,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from 'sonner';
+import { fetchApi } from '@/lib/api-client';
 import Link from 'next/link';
 
 interface TransactionDetailClientProps {
@@ -89,12 +90,7 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
       try {
         setIsLoading(true);
         setError(null);
-        const response = await fetch(`/api/transactions/${transactionId}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetchApi(`/api/transactions/${transactionId}`);
 
         if (response.ok) {
           const data = await response.json();
@@ -126,11 +122,8 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
     setIsProcessing(true);
 
     try {
-      const response = await fetch(`/api/transactions/${transactionId}`, {
+      const response = await fetchApi(`/api/transactions/${transactionId}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       if (response.ok) {

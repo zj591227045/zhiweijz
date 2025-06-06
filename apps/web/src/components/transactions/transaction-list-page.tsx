@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { formatCurrency, getCategoryIconClass } from '@/lib/utils';
-import { apiClient } from '@/lib/api';
+import { apiClient } from '@/lib/api-client';
 import dayjs from 'dayjs';
 
 // 交易类型枚举

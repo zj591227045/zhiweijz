@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { apiClient } from '@/lib/api';
+import { apiClient } from '@/lib/api-client';
 import { useDashboardStore } from '@/store/dashboard-store';
 import '@/styles/smart-accounting-dialog.css';
 

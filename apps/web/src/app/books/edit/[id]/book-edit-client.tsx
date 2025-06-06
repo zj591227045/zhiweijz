@@ -27,6 +27,7 @@ const Save = ({ className }: { className?: string }) => (
   </svg>
 );
 import { toast } from 'sonner';
+import { fetchApi } from '@/lib/api-client';
 
 interface BookEditClientProps {
   params: {
@@ -77,12 +78,7 @@ export default function BookEditClient({ params }: BookEditClientProps) {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await fetch(`/api/books/${bookId}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetchApi(`/api/books/${bookId}`);
 
         if (response.ok) {
           const data = await response.json();
@@ -126,12 +122,8 @@ export default function BookEditClient({ params }: BookEditClientProps) {
     setIsSaving(true);
 
     try {
-      const response = await fetch(`/api/books/${bookId}`, {
+      const response = await fetchApi(`/api/books/${bookId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({
           name: formData.name.trim(),
           description: formData.description.trim() || null,

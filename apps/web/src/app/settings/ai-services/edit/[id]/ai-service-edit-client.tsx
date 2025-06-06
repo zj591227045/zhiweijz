@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { PageContainer } from '@/components/layout/page-container';
 import { AIServiceForm, AIServiceFormValues } from '@/components/ai-services/ai-service-form';
 import { toast } from 'sonner';
+import { fetchApi } from '@/lib/api-client';
 
 interface AIServiceEditClientProps {
   params: {
@@ -28,12 +29,7 @@ export default function AIServiceEditClient({ params }: AIServiceEditClientProps
   useEffect(() => {
     const fetchService = async () => {
       try {
-        const response = await fetch(`/api/ai/llm-settings/${id}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('auth-token')}`,
-          },
-        });
+        const response = await fetchApi(`/api/ai/llm-settings/${id}`);
 
         if (response.ok) {
           const data = await response.json();
@@ -61,12 +57,8 @@ export default function AIServiceEditClient({ params }: AIServiceEditClientProps
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`/api/ai/llm-settings/${id}`, {
+      const response = await fetchApi(`/api/ai/llm-settings/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('auth-token')}`,
-        },
         body: JSON.stringify(data),
       });
 

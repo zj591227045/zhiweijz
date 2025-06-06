@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { fetchApi } from '@/lib/api-client';
 
 interface SmartAccountingInputProps {
   accountBookId?: string;
@@ -41,11 +42,8 @@ export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccounti
       toast.info('正在进行智能识别，请稍候...');
 
       // 调用智能记账API
-      const response = await fetch(`/api/ai/smart-accounting`, {
+      const response = await fetchApi(`/api/ai/smart-accounting`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           description,
           accountBookId,
@@ -91,11 +89,8 @@ export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccounti
       toast.info('正在处理，请稍候...');
 
       // 调用直接添加记账API
-      const response = await fetch(`/api/ai/smart-accounting/direct`, {
+      const response = await fetchApi(`/api/ai/smart-accounting/direct`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           description,
           accountBookId,

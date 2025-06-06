@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { fetchApi } from '@/lib/api-client';
 import { useAuthStore } from '@/store/auth-store';
 
 interface InvitationDialogProps {
@@ -34,12 +35,8 @@ export function InvitationDialog({ isOpen, onClose, familyId }: InvitationDialog
 
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/families/${familyId}/invitations`, {
+      const response = await fetchApi(`/api/families/${familyId}/invitations`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ expiresInDays }),
       });
 

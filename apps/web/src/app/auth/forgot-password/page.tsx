@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { apiClient } from '@/lib/api';
+import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { ThemeSwitcher } from '@/components/theme/theme-switcher';
 

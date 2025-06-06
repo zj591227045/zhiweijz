@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useBudgetFormStore } from '@/store/budget-form-store';
 import { useAccountBookStore } from '@/store/account-book-store';
-import api from '@/lib/api';
+import { apiClient } from '@/lib/api-client';
 import { BasicInfoSection } from './basic-info-section';
 import { TimeSettingsSection } from './time-settings-section';
 import { CategoryBudgetSection } from './category-budget-section';
@@ -53,7 +53,7 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
         setIsDataLoading(true);
 
         // 加载分类数据
-        const categoriesResponse = await api.get('/categories?type=EXPENSE');
+        const categoriesResponse = await apiClient.get('/categories?type=EXPENSE');
         const categories = Array.isArray(categoriesResponse.data) ? categoriesResponse.data : [];
 
         // 设置数据到store

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import dayjs from 'dayjs';
 import { toast } from 'sonner';
-import api from '@/lib/api';
+import { apiClient } from '@/lib/api-client';
 import { useBudgetListStore } from './budget-list-store';
 
 // 分类类型
@@ -239,7 +239,7 @@ export const useBudgetFormStore = create<BudgetFormState>()(
       try {
         set({ isLoading: true });
 
-        const response = await api.get(`/budgets/${id}`);
+        const response = await apiClient.get(`/budgets/${id}`);
         const budget = response.data;
 
         // 根据预算类型设置不同的字段
@@ -400,10 +400,10 @@ export const useBudgetFormStore = create<BudgetFormState>()(
 
         // 发送请求
         if (mode === 'create') {
-          await api.post('/budgets', budgetData);
+          await apiClient.post('/budgets', budgetData);
           toast.success('预算创建成功');
         } else {
-          await api.put(`/budgets/${budgetId}`, budgetData);
+          await apiClient.put(`/budgets/${budgetId}`, budgetData);
           toast.success('预算更新成功');
         }
 

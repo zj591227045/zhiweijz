@@ -1,4 +1,4 @@
-import { apiClient } from '../api';
+import { apiClient, fetchApi } from '../api-client';
 
 // 账本类型定义
 export interface AccountBook {
@@ -471,12 +471,8 @@ export const aiService = {
             // 获取token
             const token = localStorage.getItem('auth-token');
 
-            const fetchResponse = await fetch(`/api/ai/account/${accountId}/llm-settings`, {
+            const fetchResponse = await fetchApi(`/api/ai/account/${accountId}/llm-settings`, {
               method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: token ? `Bearer ${token}` : '',
-              },
               body: JSON.stringify({ userLLMSettingId }),
             });
 

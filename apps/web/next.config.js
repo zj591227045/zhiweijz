@@ -4,6 +4,16 @@ const nextConfig = {
 
   // 静态导出配置
   output: process.env.NEXT_BUILD_MODE === 'export' ? 'export' : 'standalone',
+
+  // 环境变量配置
+  env: {
+    DOCKER_ENV: process.env.DOCKER_ENV || 'false',
+  },
+
+  // 公共运行时配置
+  publicRuntimeConfig: {
+    DOCKER_ENV: process.env.DOCKER_ENV === 'true',
+  },
   
   // 静态导出时的配置
   ...(process.env.NEXT_BUILD_MODE === 'export' && {

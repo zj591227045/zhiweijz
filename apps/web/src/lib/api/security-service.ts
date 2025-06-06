@@ -1,4 +1,4 @@
-import { apiClient } from '@/api/api-client';
+import { apiClient } from '@/lib/api-client';
 
 // 修改密码请求
 export interface ChangePasswordRequest {

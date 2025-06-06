@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { FamilyMember, InvitationData, UserPermissions, Role } from '@/types/family';
+import { fetchApi } from '@/lib/api-client';
 
 // 成员管理状态
 interface FamilyMembersState {
@@ -158,12 +159,8 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
 
     try {
       set({ isRoleUpdating: true, error: null });
-      const response = await fetch(`/api/families/${familyId}/members/${memberId}/role`, {
+      const response = await fetchApi(`/api/families/${familyId}/members/${memberId}/role`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ role }),
       });
 

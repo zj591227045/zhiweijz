@@ -1,4 +1,4 @@
-import { apiClient } from '@/api/api-client';
+import { apiClient } from '@/lib/api-client';
 
 // 用户资料接口
 export interface UserProfile {

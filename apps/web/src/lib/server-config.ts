@@ -3,7 +3,26 @@ const isDev = process.env.NODE_ENV === 'development';
 
 // 检查是否为Docker环境
 const isDockerEnvironment = (): boolean => {
-  return process.env.DOCKER_ENV === 'true' || process.env.NODE_ENV === 'docker';
+  // 检查环境变量
+  if (process.env.DOCKER_ENV === 'true' || process.env.NODE_ENV === 'docker') {
+    return true;
+  }
+  
+  // 在浏览器环境中检测
+  if (typeof window !== 'undefined') {
+    // 检查是否设置了Docker环境标记
+    const isDocker = (window as any).__DOCKER_ENV__ === true ||
+                     process.env.DOCKER_ENV === 'true';
+    
+    // 检查主机名是否为Docker内部网络
+    const hostname = window.location.hostname;
+    const isLocalDev = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('192.168');
+    
+    // 只有明确设置了Docker环境变量且不是本地开发环境时才认为是Docker
+    return isDocker && !isLocalDev;
+  }
+  
+  return false;
 };
 
 // 获取当前API基础URL

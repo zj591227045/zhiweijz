@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/auth-store';
 import { useAccountBookStore } from '@/store/account-book-store';
-import { apiClient } from '@/api/api-client';
+import { apiClient } from '@/lib/api-client';
 
 export default function TestPage() {
   const [testResults, setTestResults] = useState<string[]>([]);

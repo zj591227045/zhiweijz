@@ -34,6 +34,7 @@ const Save = ({ className }: { className?: string }) => (
   </svg>
 );
 import { toast } from 'sonner';
+import { fetchApi } from '@/lib/api-client';
 
 interface TransactionEditClientProps {
   params: {
@@ -98,18 +99,8 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
 
         // 并行获取交易详情和分类列表
         const [transactionResponse, categoriesResponse] = await Promise.all([
-          fetch(`/api/transactions/${transactionId}`, {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-          }),
-          fetch('/api/categories', {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-          }),
+          fetchApi(`/api/transactions/${transactionId}`),
+          fetchApi('/api/categories'),
         ]);
 
         if (transactionResponse.ok && categoriesResponse.ok) {
@@ -163,12 +154,8 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
       const amount = parseFloat(formData.amount);
       const finalAmount = formData.type === 'EXPENSE' ? -Math.abs(amount) : Math.abs(amount);
 
-      const response = await fetch(`/api/transactions/${transactionId}`, {
+      const response = await fetchApi(`/api/transactions/${transactionId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({
           amount: finalAmount,
           description: formData.description,

@@ -10,6 +10,7 @@ import { CustodialMembers } from '@/components/families/detail/custodial-members
 import { FamilyStatistics } from '@/components/families/detail/family-statistics';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from 'sonner';
+import { fetchApi } from '@/lib/api-client';
 import '../families.css';
 
 interface FamilyDetailClientProps {
@@ -72,12 +73,7 @@ export default function FamilyDetailClient({ params }: FamilyDetailClientProps) 
       try {
         setIsLoading(true);
         setError(null);
-        const response = await fetch(`/api/families/${familyId}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetchApi(`/api/families/${familyId}`);
 
         if (response.ok) {
           const data = await response.json();
@@ -107,12 +103,8 @@ export default function FamilyDetailClient({ params }: FamilyDetailClientProps) 
     }
 
     try {
-      const response = await fetch(`/api/families/${id}`, {
+      const response = await fetchApi(`/api/families/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify(data),
       });
 
@@ -143,12 +135,8 @@ export default function FamilyDetailClient({ params }: FamilyDetailClientProps) 
     setIsProcessing(true);
 
     try {
-      const response = await fetch(`/api/families/${familyId}/leave`, {
+      const response = await fetchApi(`/api/families/${familyId}/leave`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       if (response.ok) {
@@ -177,11 +165,8 @@ export default function FamilyDetailClient({ params }: FamilyDetailClientProps) 
     setIsProcessing(true);
 
     try {
-      const response = await fetch(`/api/families/${familyId}`, {
+      const response = await fetchApi(`/api/families/${familyId}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       if (response.ok) {

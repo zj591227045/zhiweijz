@@ -8,6 +8,7 @@ import { AddBookButton } from '@/components/books/add-book-button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { toast } from 'sonner';
+import { fetchApi } from '@/lib/api-client';
 import { AccountBook } from '@/types';
 import './books.css';
 
@@ -39,11 +40,7 @@ export default function BookListPage() {
         await fetchAccountBooks();
 
         // 获取用户的家庭列表
-        const response = await fetch('/api/families', {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+        const response = await fetchApi('/api/families');
 
         if (response.ok) {
           const families = await response.json();
@@ -115,11 +112,8 @@ export default function BookListPage() {
 
     try {
       // 设置为默认账本
-      await fetch(`/api/account-books/${bookToSwitch.id}/set-default`, {
+      await fetchApi(`/api/account-books/${bookToSwitch.id}/set-default`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
       });
 
       // 更新当前账本
@@ -149,11 +143,8 @@ export default function BookListPage() {
 
     try {
       // 调用API重置账本
-      const response = await fetch(`/api/account-books/${bookToReset.id}/reset`, {
+      const response = await fetchApi(`/api/account-books/${bookToReset.id}/reset`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ confirm: true }),
       });
 

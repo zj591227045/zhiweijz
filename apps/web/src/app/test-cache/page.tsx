@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useAuthStore } from '@/store/auth-store';
 import { clearAllCache, clearAuthCache, clearApiCache } from '@/utils/cache-utils';
-import { apiClient } from '@/lib/api';
+import { apiClient } from '@/lib/api-client';
 
 export default function TestCachePage() {
   const { user, isAuthenticated, logout } = useAuthStore();
