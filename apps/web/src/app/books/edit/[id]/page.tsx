@@ -16,6 +16,10 @@ export async function generateStaticParams() {
   return [];
 }
 
+// 静态导出配置
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+
 export default function EditBookPage({ params }: EditBookPageProps) {
   return <BookEditClient params={params} />;
 }

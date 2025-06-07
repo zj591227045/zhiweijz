@@ -9,6 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
+import { fetchApi } from '@/lib/api-client';
+
 // 简单的SVG图标组件
 const ArrowLeft = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -26,8 +29,6 @@ const Save = ({ className }: { className?: string }) => (
     />
   </svg>
 );
-import { toast } from 'sonner';
-import { fetchApi } from '@/lib/api-client';
 
 interface BookEditClientProps {
   params: {
@@ -59,6 +60,9 @@ export default function BookEditClient({ params }: BookEditClientProps) {
     currency: 'CNY',
   });
 
+  // 检查是否为静态导出的占位符
+  const isPlaceholder = bookId === 'placeholder';
+
   // 如果未登录，重定向到登录页
   useEffect(() => {
     if (!isAuthenticated) {
@@ -69,6 +73,13 @@ export default function BookEditClient({ params }: BookEditClientProps) {
   // 获取账本详情
   useEffect(() => {
     const fetchBookDetail = async () => {
+      // 如果是占位符，不执行数据获取
+      if (isPlaceholder) {
+        setError('请从账本列表中选择要编辑的账本');
+        setIsLoading(false);
+        return;
+      }
+
       if (!token) {
         setError('未提供认证令牌');
         setIsLoading(false);
@@ -78,7 +89,7 @@ export default function BookEditClient({ params }: BookEditClientProps) {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await fetchApi(`/api/books/${bookId}`);
+        const response = await fetchApi(`/api/account-books/${bookId}`);
 
         if (response.ok) {
           const data = await response.json();
@@ -86,10 +97,10 @@ export default function BookEditClient({ params }: BookEditClientProps) {
           setFormData({
             name: data.name,
             description: data.description || '',
-            currency: data.currency,
+            currency: data.currency || 'CNY',
           });
         } else {
-          const errorData = await response.json();
+          const errorData = await response.json().catch(() => ({ message: '获取账本详情失败' }));
           setError(errorData.message || '获取账本详情失败');
         }
       } catch (error) {
@@ -103,11 +114,16 @@ export default function BookEditClient({ params }: BookEditClientProps) {
     if (bookId && isAuthenticated) {
       fetchBookDetail();
     }
-  }, [bookId, token, isAuthenticated]);
+  }, [bookId, token, isAuthenticated, isPlaceholder]);
 
   // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isPlaceholder) {
+      toast.error('无法编辑占位符账本');
+      return;
+    }
 
     if (!token) {
       toast.error('未提供认证令牌');
@@ -122,7 +138,7 @@ export default function BookEditClient({ params }: BookEditClientProps) {
     setIsSaving(true);
 
     try {
-      const response = await fetchApi(`/api/books/${bookId}`, {
+      const response = await fetchApi(`/api/account-books/${bookId}`, {
         method: 'PUT',
         body: JSON.stringify({
           name: formData.name.trim(),
@@ -135,7 +151,7 @@ export default function BookEditClient({ params }: BookEditClientProps) {
         toast.success('账本更新成功');
         router.push('/books');
       } else {
-        const error = await response.json();
+        const error = await response.json().catch(() => ({ message: '更新账本失败' }));
         toast.error(error.message || '更新账本失败');
       }
     } catch (error) {
