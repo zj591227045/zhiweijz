@@ -1,3 +1,6 @@
+import { PageContainer } from '@/components/layout/page-container';
+import EditCategoryForm from '@/components/categories/edit-category-form';
+
 interface EditCategoryPageProps {
   params: {
     id: string;
@@ -15,12 +18,13 @@ export async function generateStaticParams() {
 }
 
 export default function EditCategoryPage({ params }: EditCategoryPageProps) {
-  // 临时占位符实现 - 后续可扩展为完整功能
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-4">编辑分类</h1>
-      <p className="text-muted-foreground">分类ID: {params.id}</p>
-      <p className="mt-4">此页面功能正在开发中...</p>
-    </div>
+    <PageContainer
+      title="编辑分类"
+      showBack
+      backUrl="/settings/categories"
+    >
+      <EditCategoryForm categoryId={params.id} />
+    </PageContainer>
   );
 }
