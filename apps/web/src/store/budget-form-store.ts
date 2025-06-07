@@ -237,16 +237,20 @@ export const useBudgetFormStore = create<BudgetFormState>()(
     // 加载预算数据（编辑模式）
     loadBudgetData: async (id) => {
       try {
-        set({ isLoading: true });
+        set({ isLoading: true, errors: {} });
 
-        const response = await apiClient.get(`/budgets/${id}`);
-        const budget = response.data;
+        const budget = await apiClient.get(`/budgets/${id}`);
+
+        // 检查数据是否有效
+        if (!budget) {
+          throw new Error('预算数据为空');
+        }
 
         // 根据预算类型设置不同的字段
         if (budget.budgetType === 'PERSONAL') {
           set({
-            name: budget.name,
-            amount: budget.amount,
+            name: budget.name || '',
+            amount: budget.amount || 0,
             budgetType: 'PERSONAL',
             refreshDay: budget.refreshDay || 1,
             enableRollover: budget.rollover || false,
@@ -258,11 +262,12 @@ export const useBudgetFormStore = create<BudgetFormState>()(
             isLoading: false,
           });
         } else {
+          // 默认为通用预算
           set({
-            name: budget.name,
-            amount: budget.amount,
+            name: budget.name || '',
+            amount: budget.amount || 0,
             budgetType: 'GENERAL',
-            startDate: dayjs(budget.startDate).format('YYYY-MM-DD'),
+            startDate: budget.startDate ? dayjs(budget.startDate).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
             endDate: budget.endDate ? dayjs(budget.endDate).format('YYYY-MM-DD') : '',
             isUnlimited: !budget.endDate,
             enableCategoryBudget: budget.enableCategoryBudget || false,
@@ -272,8 +277,32 @@ export const useBudgetFormStore = create<BudgetFormState>()(
         }
       } catch (error) {
         console.error('加载预算数据失败:', error);
-        toast.error('加载预算数据失败');
-        set({ isLoading: false });
+        
+        let errorMessage = '数据加载失败，请刷新页面重试';
+        
+        // 检查是否为认证错误
+        if (error.response?.status === 401) {
+          errorMessage = '请先登录账户';
+        } else if (error.response?.status === 404) {
+          errorMessage = '预算不存在或已被删除';
+        } else if (error.response?.status === 403) {
+          errorMessage = '没有权限访问此预算';
+        } else if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        toast.error(`加载预算数据失败: ${errorMessage}`);
+        
+        // 设置默认值以防止 undefined 错误
+        set({ 
+          isLoading: false,
+          budgetType: 'GENERAL', // 设置默认值
+          name: '',
+          amount: 0,
+          errors: { general: errorMessage }
+        });
       }
     },
 

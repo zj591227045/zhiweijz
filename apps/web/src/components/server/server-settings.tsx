@@ -87,17 +87,36 @@ export default function ServerSettings({ onClose, onSave }: ServerSettingsProps)
     setConnectionStatus(null);
 
     try {
+      console.log('🧪 开始测试连接到:', urlToTest);
       const isConnected = await testConnection(urlToTest);
       setConnectionStatus(isConnected ? 'success' : 'failed');
 
       if (isConnected) {
         toast.success('连接测试成功');
+        console.log('✅ 连接测试成功');
       } else {
-        toast.error('连接测试失败，请检查服务器地址');
+        toast.error('连接测试失败，请检查服务器地址和网络连接');
+        console.error('❌ 连接测试失败');
       }
-    } catch {
+    } catch (error) {
+      console.error('❌ 连接测试异常:', error);
       setConnectionStatus('failed');
-      toast.error('连接测试失败');
+      
+      // 根据错误类型提供更具体的提示
+      let errorMessage = '连接测试失败';
+      if (error instanceof Error) {
+        if (error.message.includes('CORS')) {
+          errorMessage = '跨域请求被阻止，请检查服务器CORS配置';
+        } else if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+          errorMessage = '网络连接失败，请检查服务器地址和网络状态';
+        } else if (error.name === 'AbortError') {
+          errorMessage = '连接超时，请检查服务器是否可访问';
+        } else {
+          errorMessage = `连接测试失败: ${error.message}`;
+        }
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsTestingConnection(false);
     }

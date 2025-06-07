@@ -153,22 +153,53 @@ export const useServerConfigStore = create<ServerConfigState>()(
             // 使用fetch进行连接测试
             const response = await fetch(`${testUrl}/health`, {
               method: 'GET',
+              mode: 'cors', // 明确设置CORS模式
               headers: {
                 'Content-Type': 'application/json',
               },
               signal: controller.signal,
+              // 不包含认证信息，因为这是公开的健康检查接口
+              credentials: 'omit',
             });
 
             clearTimeout(timeoutId);
-            const isConnected = response.ok;
-            console.log('🔗 连接测试结果:', isConnected ? '成功' : '失败');
-            return isConnected;
+            
+            // 检查响应状态
+            if (response.ok) {
+              // 尝试解析JSON以确保是有效的API响应
+              try {
+                const data = await response.json();
+                console.log('🔗 健康检查响应:', data);
+                const isConnected = response.status === 200 && data.status === 'healthy';
+                console.log('🔗 连接测试结果:', isConnected ? '成功' : '失败');
+                return isConnected;
+              } catch (jsonError) {
+                console.warn('🔗 响应不是有效的JSON，但HTTP状态正常');
+                return response.status === 200;
+              }
+            } else {
+              console.error('🔗 HTTP响应错误:', response.status, response.statusText);
+              return false;
+            }
           } catch (fetchError) {
             clearTimeout(timeoutId);
+            console.error('🔗 网络请求错误:', fetchError);
             throw fetchError;
           }
         } catch (error) {
           console.error('🔗 连接测试失败:', error);
+          
+          // 提供更详细的错误信息用于调试
+          if (error instanceof Error) {
+            if (error.name === 'AbortError') {
+              console.error('🔗 连接超时');
+            } else if (error.message.includes('CORS')) {
+              console.error('🔗 CORS错误');
+            } else if (error.message.includes('NetworkError')) {
+              console.error('🔗 网络错误');
+            }
+          }
+          
           return false;
         }
       },

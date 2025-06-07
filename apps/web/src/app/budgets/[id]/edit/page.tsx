@@ -1,3 +1,5 @@
+import { EditBudgetClientPage } from './edit-budget-client-page';
+
 interface EditBudgetPageProps {
   params: {
     id: string;
@@ -15,12 +17,6 @@ export async function generateStaticParams() {
 }
 
 export default function EditBudgetPage({ params }: EditBudgetPageProps) {
-  // 临时占位符实现 - 后续可扩展为完整功能
-  return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-4">编辑预算</h1>
-      <p className="text-muted-foreground">预算ID: {params.id}</p>
-      <p className="mt-4">此页面功能正在开发中...</p>
-    </div>
-  );
+  // 将实际逻辑委托给客户端组件
+  return <EditBudgetClientPage budgetId={params.id} />;
 }

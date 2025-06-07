@@ -33,6 +33,7 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
     isLoading,
     isSubmitting,
     resetForm,
+    errors,
   } = useBudgetFormStore();
 
   // 设置表单模式
@@ -40,6 +41,14 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
     setMode(mode);
     if (mode === 'edit' && budgetId) {
       setBudgetId(budgetId);
+      
+      // 简单检查：localStorage有token就继续
+      const hasToken = typeof window !== 'undefined' && localStorage.getItem('auth-token');
+      if (!hasToken) {
+        console.warn('⚠️ 没有认证令牌');
+        return;
+      }
+      
       loadBudgetData(budgetId);
     } else {
       resetForm();
@@ -89,6 +98,29 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
     router.push('/budgets');
   };
 
+  // 检查认证状态
+  const hasToken = typeof window !== 'undefined' && localStorage.getItem('auth-token');
+  if (!hasToken) {
+    return (
+      <div className="budget-form">
+        <div className="form-section">
+          <div className="error-message">
+            <i className="fas fa-lock"></i>
+            <span>请先登录账户</span>
+            <button 
+              type="button" 
+              onClick={() => window.location.href = '/auth/login'}
+              className="retry-button"
+            >
+              <i className="fas fa-sign-in-alt"></i>
+              登录
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // 如果正在加载，显示加载状态
   if (isLoading || isDataLoading) {
     return (
@@ -105,6 +137,27 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="budget-form">
+      {/* 错误提示 */}
+      {errors.general && (
+        <div className="form-section">
+          <div className="error-message">
+            <i className="fas fa-exclamation-triangle"></i>
+            <span>{errors.general}</span>
+            {mode === 'edit' && budgetId && (
+              <button 
+                type="button" 
+                onClick={() => loadBudgetData(budgetId)}
+                className="retry-button"
+                disabled={isLoading}
+              >
+                <i className="fas fa-redo"></i>
+                重试
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* 预算类型说明 - 仅在创建模式显示 */}
       {mode === 'create' && (
         <div className="form-section">
