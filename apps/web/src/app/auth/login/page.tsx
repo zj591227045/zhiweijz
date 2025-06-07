@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { ThemeSwitcher } from '../../../components/theme/theme-switcher';
 import { SimpleSlidingCaptcha } from '@/components/captcha/simple-sliding-captcha';
 import ServerSettings from '@/components/server/server-settings';
+import AnimatedBackground from '@/components/background/animated-background';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -110,13 +111,18 @@ export default function LoginPage() {
   }, [error, clearError]);
 
   return (
-    <div className="app-container min-h-screen flex flex-col">
-      <div className="auth-container px-3 sm:px-6 md:px-8 flex flex-col min-h-screen max-w-screen-xl mx-auto w-full box-border">
+    <div className="app-container h-screen flex flex-col overflow-hidden relative">
+      {/* 动态背景 */}
+      <AnimatedBackground />
+      
+      <div className="auth-container px-3 sm:px-6 md:px-8 flex flex-col h-full max-w-screen-xl mx-auto w-full box-border relative z-10">
         {/* 主题切换器 */}
-        <ThemeSwitcher />
+        <div className="flex-shrink-0">
+          <ThemeSwitcher />
+        </div>
 
         {/* Logo */}
-        <div className="logo-container my-8">
+        <div className="logo-container flex-shrink-0 mt-10 sm:mt-8 mb-2 sm:mb-8">
           <div className="hexagon-logo">
             <span>
               只为
@@ -127,8 +133,8 @@ export default function LoginPage() {
         </div>
 
         {/* 头部 */}
-        <div className="auth-header text-center mb-8">
-          <div className="app-logo text-3xl sm:text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+        <div className="auth-header text-center flex-shrink-0 mb-4 sm:mb-6">
+          <div className="app-logo font-bold text-blue-600 dark:text-blue-400 mb-2" style={{fontSize: '2.2rem'}}>
             只为记账
           </div>
           <div className="app-slogan text-gray-500 dark:text-gray-400 text-base sm:text-lg">
@@ -136,11 +142,12 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* 表单 */}
-        <form
-          onSubmit={handleSubmit}
-          className="auth-form flex flex-col gap-4 sm:gap-5 w-full max-w-[95%] sm:max-w-sm md:max-w-md mx-auto bg-white dark:bg-gray-800 p-4 sm:p-6 md:p-8 rounded-lg shadow-md box-border"
-        >
+        {/* 表单 - 使用 flex-1 占据剩余空间，并允许内容滚动 */}
+        <div className="flex-1 flex flex-col justify-center min-h-0">
+          <form
+            onSubmit={handleSubmit}
+            className="auth-form flex flex-col gap-3 sm:gap-4 w-full max-w-[95%] sm:max-w-sm md:max-w-md mx-auto bg-white/30 dark:bg-gray-800/30 backdrop-blur-md p-4 sm:p-6 md:p-8 rounded-lg shadow-lg box-border border border-white/30 dark:border-gray-700/40"
+          >
           <div className="form-group">
             <label
               htmlFor="email"
@@ -152,7 +159,7 @@ export default function LoginPage() {
               id="email"
               type="email"
               placeholder="请输入邮箱地址"
-              className="form-input p-2 sm:p-3 border rounded-md w-full box-border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm sm:text-base"
+              className="form-input p-2 sm:p-3 border rounded-md w-full box-border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm border-gray-300/60 dark:border-gray-600/60 dark:text-white text-sm sm:text-base focus:bg-white/90 dark:focus:bg-gray-700/90 transition-all duration-200"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -171,7 +178,7 @@ export default function LoginPage() {
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="请输入密码"
-                className="form-input p-2 sm:p-3 border rounded-md w-full box-border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm sm:text-base"
+                className="form-input p-2 sm:p-3 border rounded-md w-full box-border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm border-gray-300/60 dark:border-gray-600/60 dark:text-white text-sm sm:text-base focus:bg-white/90 dark:focus:bg-gray-700/90 transition-all duration-200"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -245,46 +252,50 @@ export default function LoginPage() {
             </Link>
           </div>
         </form>
+        </div>
 
-        {/* 服务器设置按钮 - 放在表单外，仅在非Docker环境显示 */}
-        {!isDocker && (
-          <div className="w-full max-w-[95%] sm:max-w-sm md:max-w-md mx-auto mt-4">
-            <button
-              type="button"
-              onClick={() => setShowServerSettings(true)}
-              className="relative flex items-center justify-center w-full px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors border border-gray-300 dark:border-gray-600 rounded-md text-xs sm:text-sm hover:border-blue-500 dark:hover:border-blue-400 bg-white dark:bg-gray-800"
-            >
-              <div className="flex items-center space-x-2">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                <span>服务器设置</span>
-              </div>
-              <span className={`absolute right-3 px-2 py-1 rounded-full text-xs font-medium ${
-                config.type === 'official' 
-                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' 
-                  : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-              }`}>
-                {config.type === 'official' ? '官方' : '自托管'}
-              </span>
-            </button>
+        {/* 底部区域 - 固定在底部 */}
+        <div className="flex-shrink-0 pt-4 sm:pt-6">
+          {/* 服务器设置按钮 - 放在表单外，仅在非Docker环境显示 */}
+          {!isDocker && (
+            <div className="w-full max-w-[95%] sm:max-w-sm md:max-w-md mx-auto mb-0 sm:mb-4">
+              <button
+                type="button"
+                onClick={() => setShowServerSettings(true)}
+                className="relative flex items-center justify-center w-full px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 border border-gray-300/50 dark:border-gray-600/50 rounded-md text-xs sm:text-sm hover:border-blue-500 dark:hover:border-blue-400 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-800/90"
+              >
+                <div className="flex items-center space-x-2">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  <span>服务器设置</span>
+                </div>
+                <span className={`absolute right-3 px-2 py-1 rounded-full text-xs font-medium ${
+                  config.type === 'official' 
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' 
+                    : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                }`}>
+                  {config.type === 'official' ? '官方' : '自托管'}
+                </span>
+              </button>
+            </div>
+          )}
+
+          {/* 页脚 */}
+          <div className="auth-footer text-center pb-4 sm:pb-6 text-gray-500 dark:text-gray-400 text-xs">
+            <div>&copy; {new Date().getFullYear()} 只为记账 - 版权所有</div>
           </div>
-        )}
-
-        {/* 页脚 */}
-        <div className="auth-footer mt-auto text-center py-4 sm:py-6 text-gray-500 dark:text-gray-400 text-xs mb-2">
-          <div>&copy; {new Date().getFullYear()} 只为记账 - 版权所有</div>
         </div>
       </div>
 

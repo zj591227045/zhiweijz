@@ -1,0 +1,168 @@
+/* 全局动画效果 */
+
+/* 渐变颜色变化动画 */
+@keyframes gradientShift {
+  0% {
+    filter: hue-rotate(0deg) brightness(1);
+  }
+  25% {
+    filter: hue-rotate(60deg) brightness(1.1);
+  }
+  50% {
+    filter: hue-rotate(120deg) brightness(0.9);
+  }
+  75% {
+    filter: hue-rotate(240deg) brightness(1.1);
+  }
+  100% {
+    filter: hue-rotate(360deg) brightness(1);
+  }
+}
+
+/* 波纹扩散动画 */
+@keyframes ripple {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(3);
+    opacity: 0;
+  }
+}
+
+/* 漂浮动画 */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translateY(-30px) translateX(15px) rotate(90deg);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(-15px) translateX(-15px) rotate(180deg);
+    opacity: 0.4;
+  }
+  75% {
+    transform: translateY(-35px) translateX(8px) rotate(270deg);
+    opacity: 0.9;
+  }
+}
+
+/* 脉冲动画 */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.3;
+  }
+}
+
+/* 流星轨迹动画 */
+@keyframes meteor {
+  0% {
+    transform: translateX(-100vw) translateY(100vh) rotate(45deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100vw) translateY(-100vh) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+/* 背景波动动画 */
+@keyframes backgroundWave {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* 旋转动画 */
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 慢速旋转 */
+@keyframes slowRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 渐变位置移动 */
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 0%;
+  }
+  25% {
+    background-position: 100% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  75% {
+    background-position: 0% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+/* 明暗模式兼容的动画类 */
+.animated-gradient {
+  background: linear-gradient(
+    45deg,
+    rgba(59, 130, 246, 0.1),
+    rgba(147, 51, 234, 0.1),
+    rgba(16, 185, 129, 0.1),
+    rgba(59, 130, 246, 0.1)
+  );
+  background-size: 400% 400%;
+  animation: gradientMove 20s ease infinite;
+}
+
+.dark .animated-gradient {
+  background: linear-gradient(
+    45deg,
+    rgba(59, 130, 246, 0.05),
+    rgba(147, 51, 234, 0.05),
+    rgba(16, 185, 129, 0.05),
+    rgba(59, 130, 246, 0.05)
+  );
+}
+
+/* 减少动画对性能的影响 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+} 
