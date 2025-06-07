@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { ApiConfigDebug } from '@/components/debug/api-config-debug';
+import ApiConfigDebug from '@/components/debug/api-config-debug';
 
 export default function TestApiPage() {
   const [result, setResult] = useState<any>(null);

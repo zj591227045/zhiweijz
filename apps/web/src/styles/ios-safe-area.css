@@ -1,0 +1,43 @@
+/* iOS安全区域适配 */
+@supports (padding-top: env(safe-area-inset-top)) {
+  :root {
+    --safe-area-inset-top: env(safe-area-inset-top);
+    --safe-area-inset-right: env(safe-area-inset-right);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom);
+    --safe-area-inset-left: env(safe-area-inset-left);
+  }
+}
+
+.capacitor-ios .header {
+  padding-top: max(12px, var(--safe-area-inset-top));
+  min-height: calc(56px + var(--safe-area-inset-top));
+}
+
+/* iPhone 16 Pro特殊处理 */
+@media only screen 
+  and (device-width: 402px) 
+  and (device-height: 874px) 
+  and (-webkit-device-pixel-ratio: 3) {
+  .header {
+    padding-top: max(32px, var(--safe-area-inset-top)) !important;
+  }
+}
+
+/* 通用iOS设备适配 */
+.capacitor-ios {
+  /* 确保内容不被状态栏遮挡 */
+  padding-top: var(--safe-area-inset-top);
+  padding-bottom: var(--safe-area-inset-bottom);
+  padding-left: var(--safe-area-inset-left);
+  padding-right: var(--safe-area-inset-right);
+}
+
+/* 主要内容区域适配 */
+.capacitor-ios .main-content {
+  padding-top: max(20px, var(--safe-area-inset-top));
+}
+
+/* 底部导航适配 */
+.capacitor-ios .bottom-nav {
+  padding-bottom: max(20px, var(--safe-area-inset-bottom));
+} 
