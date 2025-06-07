@@ -426,20 +426,23 @@
 }
 
 .category-grid .category-item.active .category-icon-wrapper {
-  background-color: var(--primary-color);
-  color: white;
+  background-color: rgba(248, 249, 250, 1);
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(var(--primary), 0.1);
 }
 
 .category-icon-wrapper {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background-color: rgba(59, 130, 246, 0.1);
+  background-color: rgba(248, 249, 250, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--primary-color);
   font-size: 20px;
+  border: 1px solid rgba(229, 231, 235, 0.6);
 }
 
 .category-grid .category-name {

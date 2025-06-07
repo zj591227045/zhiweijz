@@ -13,7 +13,7 @@ export function ThemeSwitcher() {
       setThemeColor('blue');
     } else if (newTheme === 'dark') {
       setTheme('dark');
-    } else if (newTheme === 'green' || newTheme === 'purple') {
+    } else if (newTheme === 'green' || newTheme === 'purple' || newTheme === 'pink' || newTheme === 'orange-light') {
       setTheme('light');
       setThemeColor(newTheme as any);
     }
@@ -68,6 +68,30 @@ export function ThemeSwitcher() {
           }}
           onClick={() => handleThemeChange('purple')}
           aria-label="紫色主题"
+        ></button>
+        <button
+          className="w-8 h-8 rounded-full"
+          style={{
+            backgroundColor: '#ec4899',
+            boxShadow:
+              themeColor === 'pink' && theme === 'light'
+                ? '0 0 0 2px var(--card-background), 0 0 0 4px #ec4899'
+                : 'none',
+          }}
+          onClick={() => handleThemeChange('pink')}
+          aria-label="粉色主题"
+        ></button>
+        <button
+          className="w-8 h-8 rounded-full"
+          style={{
+            backgroundColor: '#fb923c',
+            boxShadow:
+              themeColor === 'orange-light' && theme === 'light'
+                ? '0 0 0 2px var(--card-background), 0 0 0 4px #fb923c'
+                : 'none',
+          }}
+          onClick={() => handleThemeChange('orange-light')}
+          aria-label="橘黄主题"
         ></button>
       </div>
     </div>

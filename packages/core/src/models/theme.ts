@@ -6,7 +6,7 @@
 export type ThemeMode = 'light' | 'dark';
 
 // 主题颜色
-export type ThemeColor = 'blue' | 'green' | 'purple' | 'orange' | 'red';
+export type ThemeColor = 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'pink' | 'orange-light';
 
 // 基础主题类型
 export type BaseTheme = 'light' | 'dark' | 'blue' | 'green' | 'purple' | 'orange' | 'red';

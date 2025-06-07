@@ -63,6 +63,30 @@ const builtInThemes: Theme[] = [
     },
   },
   {
+    id: 'light-pink',
+    name: '浅色粉色',
+    description: '温柔的浅色粉色主题',
+    type: 'built-in',
+    isActive: false,
+    preview: {
+      primaryColor: '#EC4899',
+      backgroundColor: '#F9FAFB',
+      textColor: '#1F2937',
+    },
+  },
+  {
+    id: 'light-orange-light',
+    name: '浅色橘黄',
+    description: '活力的浅色橘黄主题',
+    type: 'built-in',
+    isActive: false,
+    preview: {
+      primaryColor: '#FB923C',
+      backgroundColor: '#F9FAFB',
+      textColor: '#1F2937',
+    },
+  },
+  {
     id: 'dark',
     name: '深色主题',
     description: '护眼的深色主题',

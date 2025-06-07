@@ -35,6 +35,22 @@ export function ThemeSwitcherPanel({ onClose }: ThemeSwitcherPanelProps) {
       icon: 'fa-gem',
     },
     {
+      theme: 'light' as Theme,
+      themeColor: 'pink' as ThemeColor,
+      name: '浅色粉色',
+      description: '温柔粉色主题',
+      color: '#ec4899',
+      icon: 'fa-heart',
+    },
+    {
+      theme: 'light' as Theme,
+      themeColor: 'orange-light' as ThemeColor,
+      name: '浅色橘黄',
+      description: '活力橘黄主题',
+      color: '#fb923c',
+      icon: 'fa-sun',
+    },
+    {
       theme: 'dark' as Theme,
       themeColor: 'blue' as ThemeColor,
       name: '深色主题',

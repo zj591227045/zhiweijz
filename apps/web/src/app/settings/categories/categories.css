@@ -68,17 +68,18 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: var(--category-icon-background, #f0f0f0);
+  background-color: rgba(248, 249, 250, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 8px;
   transition: background-color 0.2s ease;
+  border: 1px solid rgba(229, 231, 235, 0.6);
 }
 
 .category-icon i {
   font-size: 18px;
-  color: var(--category-icon-color, #333);
+  color: var(--primary-color);
   transition: color 0.2s ease;
 }
 

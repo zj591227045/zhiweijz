@@ -7,7 +7,7 @@ import { persist } from 'zustand/middleware';
 export type Theme = 'light' | 'dark';
 
 // 主题色
-export type ThemeColor = 'blue' | 'green' | 'purple' | 'orange' | 'red';
+export type ThemeColor = 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'pink' | 'orange-light';
 
 // 主题配置接口
 export interface ThemeConfig {
@@ -63,6 +63,8 @@ export function applyThemeConfig(config: ThemeConfig): void {
         'theme-purple',
         'theme-orange',
         'theme-red',
+        'theme-pink',
+        'theme-orange-light',
       );
       html.classList.add(`theme-${config.themeColor}`);
 
@@ -113,6 +115,26 @@ const themeVariables = {
       primaryForeground: '255, 255, 255',
       ring: '139, 92, 246',
     },
+    orange: {
+      primary: '234, 88, 12',
+      primaryForeground: '255, 255, 255',
+      ring: '234, 88, 12',
+    },
+    red: {
+      primary: '239, 68, 68',
+      primaryForeground: '255, 255, 255',
+      ring: '239, 68, 68',
+    },
+    pink: {
+      primary: '236, 72, 153',
+      primaryForeground: '255, 255, 255',
+      ring: '236, 72, 153',
+    },
+    'orange-light': {
+      primary: '251, 146, 60',
+      primaryForeground: '255, 255, 255',
+      ring: '251, 146, 60',
+    },
   },
 };
 
@@ -152,15 +174,9 @@ function applyThemeVariables(config: ThemeConfig): void {
     root.style.setProperty('--border-color', 'rgb(229, 231, 235)');
     root.style.setProperty('--success-color', 'rgb(34, 197, 94)');
     root.style.setProperty('--error-color', 'rgb(239, 68, 68)');
-
-    // 根据主题色设置主色调
-    if (themeColor === 'blue') {
-      root.style.setProperty('--primary-color', 'rgb(59, 130, 246)');
-    } else if (themeColor === 'green') {
-      root.style.setProperty('--primary-color', 'rgb(16, 185, 129)');
-    } else if (themeColor === 'purple') {
-      root.style.setProperty('--primary-color', 'rgb(139, 92, 246)');
-    }
+    
+    // 使用colorVars统一设置主题色
+    root.style.setProperty('--primary-color', `rgb(${colorVars.primary})`);
   }
 
   // 应用主题色变量
