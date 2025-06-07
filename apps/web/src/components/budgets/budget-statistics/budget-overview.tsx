@@ -27,48 +27,17 @@ export function BudgetOverview({ overview }: BudgetOverviewProps) {
     isRolloverHistoryOpen,
     toggleRolloverHistory,
     fetchRolloverHistory,
-    fetchUserRolloverHistory,
   } = useBudgetStatisticsStore();
 
   // 处理结转历史按钮点击
   const handleRolloverHistoryClick = async () => {
     try {
-      // 导入账本store和预算统计store获取当前状态
-      const { useAccountBookStore } = await import('@/store/account-book-store');
-      const { useBudgetStatisticsStore } = await import('@/store/budget-statistics-store');
-
-      const { currentAccountBook } = useAccountBookStore.getState();
-      const { selectedBudgetId, familyMembers } = useBudgetStatisticsStore.getState();
-
-      if (currentAccountBook) {
-        // 查找当前选中预算对应的用户ID
-        let targetUserId: string | undefined;
-
-        if (selectedBudgetId && familyMembers && familyMembers.length > 0) {
-          // 在家庭成员中查找对应的用户ID
-          const selectedMember = familyMembers.find(
-            (member) => member.budgetId === selectedBudgetId,
-          );
-          if (selectedMember) {
-            // 如果找到了对应的家庭成员，获取其用户ID
-            // 注意：现在托管成员也有userId了
-            targetUserId = selectedMember.userId || selectedMember.id; // 兼容旧数据
-            console.log('找到选中成员的用户ID:', targetUserId, '成员名称:', selectedMember.name);
-          }
-        }
-
-        // 使用新的用户级别API获取结转历史
-        await fetchUserRolloverHistory(currentAccountBook.id, 'PERSONAL', targetUserId);
-        toggleRolloverHistory();
-      } else {
-        // 降级到旧版本API
-        await fetchRolloverHistory(overview.id);
-        toggleRolloverHistory();
-      }
+      console.log('获取预算结转历史，预算ID:', overview.id);
+      await fetchRolloverHistory(overview.id);
+      toggleRolloverHistory();
     } catch (error) {
       console.error('获取结转历史失败:', error);
-      // 降级到旧版本API
-      await fetchRolloverHistory(overview.id);
+      // 如果失败，仍然打开对话框（会显示暂无数据）
       toggleRolloverHistory();
     }
   };

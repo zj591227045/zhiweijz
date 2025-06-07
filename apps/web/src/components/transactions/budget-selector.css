@@ -186,6 +186,89 @@
   font-size: 16px;
 }
 
+/* 推荐标识样式 */
+.recommended-badge {
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+.recommended-badge-small {
+  background-color: var(--success-color, #10b981);
+  color: white;
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-left: 6px;
+  font-weight: 500;
+}
+
+/* 预算详情样式 */
+.budget-details {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.budget-period {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.budget-period-small {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  opacity: 0.7;
+  margin-left: 4px;
+}
+
+/* 预算项详情样式 */
+.budget-item-details {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.budget-item-status {
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* 推荐预算项样式 */
+.budget-item.recommended {
+  border-left: 3px solid var(--success-color, #10b981);
+  background-color: rgba(16, 185, 129, 0.05);
+}
+
+.budget-item.recommended:hover {
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+/* 改进预算名称样式 */
+.budget-item-name {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.budget-name {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
 /* 动画 */
 @keyframes fadeIn {
   from {

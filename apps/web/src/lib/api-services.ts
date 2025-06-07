@@ -257,23 +257,14 @@ export const budgetService = {
     return apiClient.get(`/budgets/${budgetId}/rollover-history`);
   },
 
-  // 获取用户级别的预算结转历史（简化版本）
-  getUserBudgetRolloverHistory: (
-    accountBookId: string,
-    budgetType: string = 'PERSONAL',
-    targetUserId?: string,
-  ) => {
-    const params = new URLSearchParams({
-      accountBookId,
-      budgetType,
+  // 根据日期获取预算列表
+  getBudgetsByDate: (date: string, accountBookId: string) => {
+    return apiClient.get('/budgets/by-date', {
+      params: { date, accountBookId }
     });
-
-    if (targetUserId) {
-      params.append('targetUserId', targetUserId);
-    }
-
-    return apiClient.get(`/budgets/user/rollover-history?${params.toString()}`);
   },
+
+
 };
 
 // 统计相关API

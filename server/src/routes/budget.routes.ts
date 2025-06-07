@@ -11,6 +11,9 @@ router.use(authenticate);
 // 获取当前活跃的预算
 router.get('/active', (req, res) => budgetController.getActiveBudgets(req, res));
 
+// 根据日期获取预算列表
+router.get('/by-date', (req, res) => budgetController.getBudgetsByDate(req, res));
+
 // 获取预算列表
 router.get('/', (req, res) => budgetController.getBudgets(req, res));
 
@@ -32,17 +35,17 @@ router.get('/:id/categories', (req, res) => budgetController.getBudgetCategories
 // 获取预算趋势
 router.get('/:id/trends', (req, res) => budgetController.getBudgetTrends(req, res));
 
-// 获取预算结转历史（兼容旧版本）
+// 获取预算结转历史
 router.get('/:id/rollover-history', (req, res) => budgetController.getRolloverHistory(req, res));
-
-// 获取用户级别的预算结转历史
-router.get('/rollover-history/user', (req, res) => budgetController.getUserRolloverHistory(req, res));
 
 // 处理预算结转
 router.post('/:id/rollover', (req, res) => budgetController.processBudgetRollover(req, res));
 
 // 重新计算预算结转
 router.post('/:id/recalculate-rollover', (req, res) => budgetController.recalculateBudgetRollover(req, res));
+
+// 重新计算预算结转链条（修复历史交易影响）
+router.post('/:id/recalculate-rollover-chain', (req, res) => budgetController.recalculateBudgetRolloverChain(req, res));
 
 // 获取预算相关交易
 router.get('/:id/transactions', (req, res) => budgetController.getBudgetTransactions(req, res));

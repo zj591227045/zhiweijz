@@ -6,6 +6,7 @@ import { useTransactionFormStore } from '@/store/transaction-form-store';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { useBudgetStore } from '@/store/budget-store';
 import { useAuthStore } from '@/store/auth-store';
+import { budgetService } from '@/lib/api-services';
 import './budget-selector.css';
 
 // 预算类型定义
@@ -34,24 +35,75 @@ interface Budget {
 }
 
 export function BudgetSelector() {
-  const { budgetId, setBudgetId } = useTransactionFormStore();
+  const { budgetId, setBudgetId, date } = useTransactionFormStore();
 
   const { currentAccountBook } = useAccountBookStore();
-  const { budgets, fetchActiveBudgets, isLoading } = useBudgetStore();
   const { user: currentUser } = useAuthStore();
   const [isBudgetSelectorOpen, setIsBudgetSelectorOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [dateBudgets, setDateBudgets] = useState<Budget[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // 获取活跃预算数据
-  useEffect(() => {
-    if (currentAccountBook?.id) {
-      fetchActiveBudgets(currentAccountBook.id);
+  // 根据日期获取预算数据
+  const fetchBudgetsByDate = useCallback(async (transactionDate: string, accountBookId: string) => {
+    try {
+      setIsLoading(true);
+      console.log('根据日期获取预算:', { transactionDate, accountBookId });
+      
+      const response = await budgetService.getBudgetsByDate(transactionDate, accountBookId);
+      console.log('API响应完整信息:', response);
+      console.log('API响应类型:', typeof response);
+      console.log('API响应keys:', response ? Object.keys(response) : 'null');
+      
+      // 检查不同的响应格式
+      if (Array.isArray(response)) {
+        console.log('响应是数组格式，直接使用:', response);
+        console.log('设置dateBudgets状态，数组长度:', response.length);
+        setDateBudgets(response);
+        return response;
+      } else if (response?.data) {
+        const budgets = response.data;
+        console.log('从data字段获取到的预算:', budgets);
+        setDateBudgets(budgets);
+        return budgets;
+      } else if (response?.budgets) {
+        const budgets = response.budgets;
+        console.log('从budgets字段获取到的预算:', budgets);
+        setDateBudgets(budgets);
+        return budgets;
+      } else {
+        console.log('API响应格式不匹配:', response);
+        setDateBudgets([]);
+        return [];
+      }
+    } catch (error) {
+      console.error('根据日期获取预算失败:', error);
+      console.error('错误状态码:', error?.response?.status);
+      console.error('错误响应数据:', error?.response?.data);
+      console.error('错误详情:', error.response || error.message || error);
+      setDateBudgets([]);
+      return [];
+    } finally {
+      setIsLoading(false);
     }
-  }, [currentAccountBook?.id, fetchActiveBudgets]);
+  }, []);
 
-  // 筛选支出类型的预算并格式化数据
-  const formattedBudgets: Budget[] = budgets.map((budget) => {
+  // 监听日期和账本变化，重新获取预算
+  useEffect(() => {
+    if (date && currentAccountBook?.id) {
+      console.log('日期或账本变化，重新获取预算:', { date, accountBookId: currentAccountBook.id });
+      fetchBudgetsByDate(date, currentAccountBook.id);
+      // 重置已初始化状态和选中的预算
+      setHasInitialized(false);
+      setSelectedBudget(null);
+      setBudgetId('');
+    }
+  }, [date, currentAccountBook?.id, fetchBudgetsByDate, setBudgetId]);
+
+  // 使用日期获取的预算数据
+  console.log('准备格式化预算数据，dateBudgets长度:', dateBudgets.length, 'dateBudgets:', dateBudgets);
+  const formattedBudgets: Budget[] = dateBudgets.map((budget) => {
     console.log('处理预算数据:', budget);
 
     // 获取预算名称，优先使用name字段，其次使用分类名称
@@ -102,55 +154,60 @@ export function BudgetSelector() {
     return formattedBudget;
   });
 
-  // 自动选择默认预算的逻辑
-  const selectDefaultBudget = useCallback(() => {
-    console.log('selectDefaultBudget 调用:', {
+  // 智能推荐预算的逻辑
+  const selectRecommendedBudget = useCallback(() => {
+    console.log('selectRecommendedBudget 调用:', {
       formattedBudgetsLength: formattedBudgets.length,
       selectedBudget,
       currentUser: currentUser?.name,
       hasInitialized,
+      date
     });
 
     if (formattedBudgets.length > 0 && !selectedBudget && currentUser && !hasInitialized) {
-      console.log('获取到活跃预算:', formattedBudgets);
+      console.log('获取到日期匹配的预算:', formattedBudgets);
       console.log('当前登录用户:', currentUser);
 
-      // 查找与当前登录用户名称匹配的预算
+      // 优先级1: 查找与当前登录用户名称匹配的个人预算
       const userBudget = formattedBudgets.find(
         (b) => b.familyMemberName === currentUser.name && b.budgetType === 'PERSONAL',
       );
 
       if (userBudget) {
-        console.log('找到当前用户的预算:', userBudget);
+        console.log('智能推荐: 找到当前用户的个人预算:', userBudget);
         setSelectedBudget(userBudget);
         setBudgetId(userBudget.id);
         setHasInitialized(true);
-      } else {
-        // 如果没有找到匹配的预算，查找没有familyMemberId的个人预算
-        const personalBudget = formattedBudgets.find(
-          (b) => !b.familyMemberId && b.budgetType === 'PERSONAL',
-        );
+        return;
+      }
 
-        if (personalBudget) {
-          console.log('设置默认个人预算:', personalBudget);
-          setSelectedBudget(personalBudget);
-          setBudgetId(personalBudget.id);
-          setHasInitialized(true);
-        } else if (formattedBudgets.length > 0) {
-          // 如果没有找到个人预算，使用第一个预算
-          console.log('未找到个人预算，使用第一个预算:', formattedBudgets[0]);
-          setSelectedBudget(formattedBudgets[0]);
-          setBudgetId(formattedBudgets[0].id);
-          setHasInitialized(true);
-        }
+      // 优先级2: 查找没有familyMemberId的个人预算
+      const personalBudget = formattedBudgets.find(
+        (b) => !b.familyMemberId && b.budgetType === 'PERSONAL',
+      );
+
+      if (personalBudget) {
+        console.log('智能推荐: 设置默认个人预算:', personalBudget);
+        setSelectedBudget(personalBudget);
+        setBudgetId(personalBudget.id);
+        setHasInitialized(true);
+        return;
+      }
+
+      // 优先级3: 使用第一个预算（通用预算）
+      if (formattedBudgets.length > 0) {
+        console.log('智能推荐: 使用第一个可用预算:', formattedBudgets[0]);
+        setSelectedBudget(formattedBudgets[0]);
+        setBudgetId(formattedBudgets[0].id);
+        setHasInitialized(true);
       }
     }
-  }, [formattedBudgets, selectedBudget, currentUser, hasInitialized, setBudgetId]);
+  }, [formattedBudgets, selectedBudget, currentUser, hasInitialized, date, setBudgetId]);
 
-  // 当活跃预算数据加载完成后，设置默认预算
+  // 当日期预算数据加载完成后，智能推荐预算
   useEffect(() => {
-    selectDefaultBudget();
-  }, [selectDefaultBudget]);
+    selectRecommendedBudget();
+  }, [selectRecommendedBudget]);
 
   // 根据budgetId查找选中的预算（仅在budgetId变化且没有selectedBudget时执行）
   useEffect(() => {
@@ -206,6 +263,43 @@ export function BudgetSelector() {
     return budget.name;
   };
 
+  // 获取预算有效期显示
+  const getBudgetPeriod = (budget: Budget) => {
+    if (budget.startDate && budget.endDate) {
+      const start = new Date(budget.startDate);
+      const end = new Date(budget.endDate);
+      const startStr = `${start.getMonth() + 1}/${start.getDate()}`;
+      const endStr = `${end.getMonth() + 1}/${end.getDate()}`;
+      return `${startStr} - ${endStr}`;
+    }
+    return '未知周期';
+  };
+
+  // 判断预算是否推荐
+  const isRecommendedBudget = (budget: Budget) => {
+    // 优先推荐与当前用户匹配的个人预算
+    if (budget.familyMemberName === currentUser?.name && budget.budgetType === 'PERSONAL') {
+      return true;
+    }
+    // 其次推荐没有familyMemberId的个人预算
+    if (!budget.familyMemberId && budget.budgetType === 'PERSONAL') {
+      return true;
+    }
+    return false;
+  };
+
+  // 获取预算状态
+  const getBudgetStatus = (budget: Budget) => {
+    const balance = calculateBudgetBalance(budget);
+    if (balance < 0) {
+      return { status: 'over', text: '超支', color: '#ef4444' };
+    } else if (balance / (budget.amount + (budget.rolloverAmount || 0)) < 0.2) {
+      return { status: 'low', text: '余额不足', color: '#f59e0b' };
+    } else {
+      return { status: 'good', text: '正常', color: '#10b981' };
+    }
+  };
+
   return (
     <div className="budget-selector-container">
       {/* 预算选择器预览 */}
@@ -216,13 +310,21 @@ export function BudgetSelector() {
         <div className="budget-selector-info">
           {selectedBudget ? (
             <>
-              <div className="budget-name">{getBudgetDisplayName(selectedBudget)}</div>
-              <div className="budget-balance">
-                余额: {formatAmount(calculateBudgetBalance(selectedBudget))}
+              <div className="budget-name">
+                {getBudgetDisplayName(selectedBudget)}
+                {isRecommendedBudget(selectedBudget) && (
+                  <span className="recommended-badge">推荐</span>
+                )}
+              </div>
+              <div className="budget-details">
+                <span>余额: {formatAmount(calculateBudgetBalance(selectedBudget))}</span>
+                <span className="budget-period">({getBudgetPeriod(selectedBudget)})</span>
               </div>
             </>
           ) : (
-            <div className="budget-name">选择预算</div>
+            <div className="budget-name">
+              {date ? `选择 ${date} 的预算` : '请先选择日期'}
+            </div>
           )}
         </div>
         <div className="budget-selector-arrow">
@@ -244,13 +346,13 @@ export function BudgetSelector() {
               {isLoading ? (
                 <div className="loading-state">加载中...</div>
               ) : formattedBudgets.length === 0 ? (
-                <div className="no-budgets-message">
-                  <i className="fas fa-info-circle"></i>
-                  <span>没有可用的预算</span>
-                  <div style={{ fontSize: '12px', marginTop: '8px', color: '#666' }}>
-                    调试信息: budgets.length = {budgets.length}, isLoading = {isLoading.toString()}
+                                  <div className="no-budgets-message">
+                    <i className="fas fa-info-circle"></i>
+                    <span>{date ? `${date} 日期范围内没有可用的预算` : '没有可用的预算'}</span>
+                    <div style={{ fontSize: '12px', marginTop: '8px', color: '#666' }}>
+                      {date ? '请检查该日期是否在任何预算周期内' : '请先选择交易日期'}
+                    </div>
                   </div>
-                </div>
               ) : (
                 <div className="budget-list">
                   {/* 不使用预算选项 */}
@@ -274,28 +376,43 @@ export function BudgetSelector() {
                       <div className="budget-group-header">个人预算</div>
                       {formattedBudgets
                         .filter((budget) => budget.budgetType !== 'GENERAL')
-                        .map((budget) => (
-                          <div
-                            key={budget.id}
-                            className={cn(
-                              'budget-item',
-                              selectedBudget?.id === budget.id && 'active',
-                            )}
-                            onClick={() => handleBudgetSelect(budget)}
-                          >
-                            <div className="budget-item-info">
-                              <div className="budget-item-name">{getBudgetDisplayName(budget)}</div>
-                              <div className="budget-item-balance">
-                                余额: {formatAmount(calculateBudgetBalance(budget))}
+                        .map((budget) => {
+                          const budgetStatus = getBudgetStatus(budget);
+                          const isRecommended = isRecommendedBudget(budget);
+                          
+                          return (
+                            <div
+                              key={budget.id}
+                              className={cn(
+                                'budget-item',
+                                selectedBudget?.id === budget.id && 'active',
+                                isRecommended && 'recommended'
+                              )}
+                              onClick={() => handleBudgetSelect(budget)}
+                            >
+                              <div className="budget-item-info">
+                                <div className="budget-item-name">
+                                  {getBudgetDisplayName(budget)}
+                                  {isRecommended && (
+                                    <span className="recommended-badge-small">推荐</span>
+                                  )}
+                                </div>
+                                <div className="budget-item-details">
+                                  <span>余额: {formatAmount(calculateBudgetBalance(budget))}</span>
+                                  <span className="budget-period-small">({getBudgetPeriod(budget)})</span>
+                                </div>
+                                <div className="budget-item-status" style={{ color: budgetStatus.color }}>
+                                  {budgetStatus.text}
+                                </div>
                               </div>
+                              {selectedBudget?.id === budget.id && (
+                                <div className="budget-item-check">
+                                  <i className="fas fa-check"></i>
+                                </div>
+                              )}
                             </div>
-                            {selectedBudget?.id === budget.id && (
-                              <div className="budget-item-check">
-                                <i className="fas fa-check"></i>
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                          );
+                        })}
                     </>
                   )}
 
@@ -305,28 +422,43 @@ export function BudgetSelector() {
                       <div className="budget-group-header">通用预算</div>
                       {formattedBudgets
                         .filter((budget) => budget.budgetType === 'GENERAL')
-                        .map((budget) => (
-                          <div
-                            key={budget.id}
-                            className={cn(
-                              'budget-item',
-                              selectedBudget?.id === budget.id && 'active',
-                            )}
-                            onClick={() => handleBudgetSelect(budget)}
-                          >
-                            <div className="budget-item-info">
-                              <div className="budget-item-name">{getBudgetDisplayName(budget)}</div>
-                              <div className="budget-item-balance">
-                                余额: {formatAmount(calculateBudgetBalance(budget))}
+                        .map((budget) => {
+                          const budgetStatus = getBudgetStatus(budget);
+                          const isRecommended = isRecommendedBudget(budget);
+                          
+                          return (
+                            <div
+                              key={budget.id}
+                              className={cn(
+                                'budget-item',
+                                selectedBudget?.id === budget.id && 'active',
+                                isRecommended && 'recommended'
+                              )}
+                              onClick={() => handleBudgetSelect(budget)}
+                            >
+                              <div className="budget-item-info">
+                                <div className="budget-item-name">
+                                  {getBudgetDisplayName(budget)}
+                                  {isRecommended && (
+                                    <span className="recommended-badge-small">推荐</span>
+                                  )}
+                                </div>
+                                <div className="budget-item-details">
+                                  <span>余额: {formatAmount(calculateBudgetBalance(budget))}</span>
+                                  <span className="budget-period-small">({getBudgetPeriod(budget)})</span>
+                                </div>
+                                <div className="budget-item-status" style={{ color: budgetStatus.color }}>
+                                  {budgetStatus.text}
+                                </div>
                               </div>
+                              {selectedBudget?.id === budget.id && (
+                                <div className="budget-item-check">
+                                  <i className="fas fa-check"></i>
+                                </div>
+                              )}
                             </div>
-                            {selectedBudget?.id === budget.id && (
-                              <div className="budget-item-check">
-                                <i className="fas fa-check"></i>
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                          );
+                        })}
                     </>
                   )}
                 </div>

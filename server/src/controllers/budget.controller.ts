@@ -86,6 +86,48 @@ export class BudgetController {
   }
 
   /**
+   * 根据日期获取预算列表
+   */
+  async getBudgetsByDate(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const { date, accountBookId } = req.query;
+
+      if (!date) {
+        res.status(400).json({ message: '日期参数是必需的' });
+        return;
+      }
+
+      if (!accountBookId) {
+        res.status(400).json({ message: '账本ID参数是必需的' });
+        return;
+      }
+
+      console.log('BudgetController.getBudgetsByDate 请求参数:', {
+        userId,
+        date,
+        accountBookId
+      });
+
+      const budgets = await this.budgetService.getBudgetsByDate(
+        userId,
+        date as string,
+        accountBookId as string
+      );
+
+      res.status(200).json(budgets);
+    } catch (error) {
+      console.error('获取日期预算列表时发生错误:', error);
+      res.status(500).json({ message: '获取日期预算列表时发生错误' });
+    }
+  }
+
+  /**
    * 获取单个预算
    */
   async getBudget(req: Request, res: Response): Promise<void> {
@@ -272,49 +314,7 @@ export class BudgetController {
     }
   }
 
-  /**
-   * 获取用户级别的预算结转历史
-   */
-  async getUserRolloverHistory(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = req.user?.id;
-      if (!userId) {
-        res.status(401).json({ message: '未授权' });
-        return;
-      }
 
-      const accountBookId = req.query.accountBookId as string;
-      const budgetType = (req.query.budgetType as string) || 'PERSONAL';
-      const targetUserId = req.query.targetUserId as string; // 目标用户ID（可选）
-      const familyMemberId = req.query.familyMemberId as string; // 托管成员ID（可选）
-
-      if (!accountBookId) {
-        res.status(400).json({ message: '账本ID不能为空' });
-        return;
-      }
-
-      console.log(`获取用户级别预算结转历史，请求用户ID: ${userId}, 账本ID: ${accountBookId}, 预算类型: ${budgetType}, 目标用户ID: ${targetUserId || '无'}, 托管成员ID: ${familyMemberId || '无'}`);
-
-      // 获取用户级别的预算结转历史
-      const rolloverHistory = await this.budgetService.getUserBudgetRolloverHistory(
-        targetUserId || userId, // 如果指定了目标用户ID，使用目标用户ID，否则使用当前用户ID
-        accountBookId,
-        budgetType,
-        familyMemberId,
-        userId // 传递当前用户ID用于权限验证
-      );
-
-      console.log(`获取到用户级别预算结转历史: ${rolloverHistory.length} 条记录`);
-      res.status(200).json(rolloverHistory);
-    } catch (error) {
-      console.error('获取用户级别预算结转历史失败:', error);
-      if (error instanceof Error) {
-        res.status(404).json({ message: error.message });
-      } else {
-        res.status(500).json({ message: '获取用户级别预算结转历史时发生错误' });
-      }
-    }
-  }
 
   /**
    * 获取预算相关交易
@@ -408,9 +408,9 @@ export class BudgetController {
       }
 
       const budgetId = req.params.id;
-      const recalculateHistory = req.query.recalculateHistory === 'true';
+      const recalculateChain = req.query.recalculateChain !== 'false'; // 默认true
 
-      console.log(`重新计算预算结转，预算ID: ${budgetId}, 重新计算历史: ${recalculateHistory}`);
+      console.log(`重新计算预算结转，预算ID: ${budgetId}, 重新计算链条: ${recalculateChain}`);
 
       // 验证预算是否存在并且用户有权限访问
       const budget = await this.budgetService.getBudgetById(budgetId, userId);
@@ -420,7 +420,7 @@ export class BudgetController {
       }
 
       // 重新计算预算结转
-      await this.budgetService.recalculateBudgetRollover(budgetId);
+      await this.budgetService.recalculateBudgetRollover(budgetId, recalculateChain);
 
       // 获取更新后的预算信息
       const updatedBudget = await this.budgetService.getBudgetById(budgetId, userId);
@@ -439,6 +439,49 @@ export class BudgetController {
         res.status(400).json({ message: error.message });
       } else {
         res.status(500).json({ message: '重新计算预算结转时发生错误' });
+      }
+    }
+  }
+
+  /**
+   * 重新计算预算结转链条（用于修复历史交易影响）
+   */
+  async recalculateBudgetRolloverChain(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const budgetId = req.params.id;
+
+      console.log(`重新计算预算结转链条，起始预算ID: ${budgetId}`);
+
+      // 验证预算是否存在并且用户有权限访问
+      const budget = await this.budgetService.getBudgetById(budgetId, userId);
+      if (!budget) {
+        res.status(404).json({ message: '预算不存在' });
+        return;
+      }
+
+      // 强制重新计算整个链条
+      await this.budgetService.recalculateBudgetRollover(budgetId, true);
+
+      // 获取更新后的结转历史
+      const rolloverHistory = await this.budgetService.getBudgetRolloverHistory(budgetId, userId);
+
+      res.status(200).json({
+        message: '预算结转链条重新计算成功',
+        rolloverHistory,
+        recalculatedFrom: budgetId
+      });
+    } catch (error) {
+      console.error('重新计算预算结转链条失败:', error);
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '重新计算预算结转链条时发生错误' });
       }
     }
   }

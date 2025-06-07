@@ -1,61 +1,137 @@
 const { PrismaClient } = require('@prisma/client');
+
 const prisma = new PrismaClient();
 
-async function main() {
+const BUDGET_ID = '7ad6f6b2-e942-4c73-985f-0bce6d7d366d';
+
+async function createTestRolloverData() {
   try {
-    const budgetId = '0b1060ab-4d3a-46fe-8d95-ddd3d7f9deca';
-
-    // 检查预算是否存在
+    console.log('=== 创建测试结转历史数据 ===');
+    
+    // 1. 检查预算是否存在
     const budget = await prisma.budget.findUnique({
-      where: { id: budgetId }
+      where: { id: BUDGET_ID },
+      include: {
+        user: true,
+        accountBook: true
+      }
     });
-
+    
     if (!budget) {
-      console.log(`预算 ${budgetId} 不存在`);
-      return;
-    }
-
-    console.log(`为预算 ${budgetId} 创建测试结转历史数据`);
-
-    // 创建6个月的结转历史记录
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    // 删除现有的结转历史记录
-    await prisma.budgetHistory.deleteMany({
-      where: { budgetId }
-    });
-
-    // 创建新的结转历史记录
-    for (let i = 1; i <= 6; i++) {
-      const month = currentMonth - i;
-      const year = month < 0 ? currentYear - 1 : currentYear;
-      const adjustedMonth = month < 0 ? month + 12 : month;
-
-      const amount = Math.floor(Math.random() * 400) - 200;
-      const type = amount >= 0 ? 'SURPLUS' : 'DEFICIT';
-
-      await prisma.budgetHistory.create({
+      console.log(`预算ID ${BUDGET_ID} 不存在，正在创建测试预算...`);
+      
+      // 创建测试预算
+      const testBudget = await prisma.budget.create({
         data: {
-          budgetId,
-          period: `${year}年${adjustedMonth + 1}月`,
-          amount: Math.abs(amount),
-          type,
-          description: `${year}年${adjustedMonth + 1}月预算结转`,
-          createdAt: new Date(year, adjustedMonth, 15)
+          id: BUDGET_ID,
+          name: '测试预算',
+          amount: 5000,
+          period: 'MONTHLY',
+          budgetType: 'PERSONAL',
+          rollover: true,
+          rolloverAmount: 300,
+          startDate: new Date('2025-06-01'),
+          endDate: new Date('2025-06-30'),
+          createdAt: new Date(),
+          updatedAt: new Date(),
         }
       });
-
-      console.log(`创建了 ${year}年${adjustedMonth + 1}月 的结转记录，金额: ${amount}, 类型: ${type}`);
+      
+      console.log('✓ 测试预算创建成功:', testBudget.id);
+    } else {
+      console.log('✓ 找到预算:', budget.name);
+      
+      // 更新预算以确保启用结转
+      await prisma.budget.update({
+        where: { id: BUDGET_ID },
+        data: {
+          rollover: true,
+          rolloverAmount: 300
+        }
+      });
+      
+      console.log('✓ 预算已更新，启用结转功能');
     }
-
-    console.log('测试数据创建完成');
+    
+    // 2. 清除现有的结转历史记录
+    await prisma.budgetHistory.deleteMany({
+      where: { budgetId: BUDGET_ID }
+    });
+    
+    console.log('✓ 已清除现有结转历史记录');
+    
+    // 3. 创建测试结转历史记录
+    const testHistories = [
+      {
+        period: '2025年4月',
+        amount: 200,
+        type: 'SURPLUS',
+        description: '2025年4月预算结转',
+        budgetAmount: 5000,
+        spentAmount: 4800,
+        previousRollover: 0,
+      },
+      {
+        period: '2025年5月',
+        amount: 300,
+        type: 'SURPLUS',
+        description: '2025年5月预算结转',
+        budgetAmount: 5000,
+        spentAmount: 4900,
+        previousRollover: 200,
+      },
+      {
+        period: '2025年3月',
+        amount: 150,
+        type: 'DEFICIT',
+        description: '2025年3月预算结转',
+        budgetAmount: 5000,
+        spentAmount: 5150,
+        previousRollover: 0,
+      }
+    ];
+    
+    for (const historyData of testHistories) {
+      await prisma.budgetHistory.create({
+        data: {
+          budgetId: BUDGET_ID,
+          period: historyData.period,
+          amount: historyData.amount,
+          type: historyData.type,
+          description: historyData.description,
+          budgetAmount: historyData.budgetAmount,
+          spentAmount: historyData.spentAmount,
+          previousRollover: historyData.previousRollover,
+          userId: budget?.userId || null,
+          accountBookId: budget?.accountBookId || null,
+          budgetType: 'PERSONAL'
+        }
+      });
+      
+      console.log(`✓ 创建结转记录: ${historyData.period} - ${historyData.type === 'SURPLUS' ? '+' : '-'}${historyData.amount}`);
+    }
+    
+    // 4. 验证创建的数据
+    const createdHistories = await prisma.budgetHistory.findMany({
+      where: { budgetId: BUDGET_ID },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    console.log(`\n✓ 成功创建 ${createdHistories.length} 条结转历史记录:`);
+    createdHistories.forEach(history => {
+      console.log(`  - ${history.period}: ${history.type === 'SURPLUS' ? '+' : '-'}${history.amount}`);
+    });
+    
+    console.log('\n=== 测试数据创建完成 ===');
+    console.log(`预算ID: ${BUDGET_ID}`);
+    console.log('现在可以测试 API：');
+    console.log(`GET /api/budgets/${BUDGET_ID}/rollover-history`);
+    
   } catch (error) {
-    console.error('创建测试数据时出错:', error);
+    console.error('创建测试数据失败:', error);
   } finally {
     await prisma.$disconnect();
   }
 }
 
-main();
+createTestRolloverData(); 
