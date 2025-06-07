@@ -16,8 +16,8 @@ export async function generateStaticParams() {
   return [];
 }
 
-// 静态导出配置
-export const dynamic = 'force-dynamic';
+// 静态导出配置 - 移除force-dynamic以兼容静态导出
+// export const dynamic = 'force-dynamic';
 export const dynamicParams = true;
 
 export default function EditBookPage({ params }: EditBookPageProps) {
