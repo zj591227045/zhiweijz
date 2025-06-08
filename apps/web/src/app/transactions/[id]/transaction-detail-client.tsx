@@ -81,6 +81,13 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
   // 获取交易详情
   useEffect(() => {
     const fetchTransactionDetail = async () => {
+      // 如果是占位符，不执行数据获取
+      if (transactionId === 'placeholder') {
+        setError('这是一个静态导出的占位符页面。在实际应用中，请通过正确的路由访问交易详情页面。');
+        setIsLoading(false);
+        return;
+      }
+
       if (!token) {
         setError('未提供认证令牌');
         setIsLoading(false);

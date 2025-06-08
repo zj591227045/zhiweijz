@@ -301,8 +301,12 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
 
   // 获取交易详情和分类列表
   useEffect(() => {
-    if (params.id) {
+    if (params.id && params.id !== 'placeholder') {
       fetchTransaction(params.id);
+      fetchCategories();
+      fetchAccountBooks();
+    } else if (params.id === 'placeholder') {
+      // 静态导出占位符页面，显示提示信息
       fetchCategories();
       fetchAccountBooks();
     }
@@ -462,6 +466,21 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
             onClick={() => fetchTransaction(params.id)}
           >
             重试
+          </button>
+        </div>
+      ) : params.id === 'placeholder' ? (
+        <div className="placeholder-state">
+          <div className="placeholder-icon">
+            <i className="fas fa-info-circle"></i>
+          </div>
+          <div className="placeholder-message">
+            这是一个静态导出的占位符页面。在实际应用中，请通过正确的路由访问编辑页面。
+          </div>
+          <button
+            className="back-button"
+            onClick={handleBack}
+          >
+            返回交易列表
           </button>
         </div>
       ) : transaction ? (

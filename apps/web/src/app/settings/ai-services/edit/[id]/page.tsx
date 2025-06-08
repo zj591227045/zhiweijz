@@ -6,13 +6,15 @@ interface EditAIServicePageProps {
 
 // Next.js 14 静态导出必需函数
 export async function generateStaticParams() {
-  // 在静态导出模式下，返回占位符参数以满足Next.js 14的要求
-  if (process.env.NEXT_BUILD_MODE === 'export') {
+  // 生产环境（静态导出）时返回占位符参数
+  if (process.env.NODE_ENV === 'production') {
     return [{ id: 'placeholder' }];
   }
-  // 开发环境返回空数组，允许动态路由
+  // 开发环境返回空数组，允许完全动态路由
   return [];
 }
+
+export const dynamicParams = true;
 
 export default function EditAIServicePage({ params }: EditAIServicePageProps) {
   // 临时占位符实现 - 后续可扩展为完整功能

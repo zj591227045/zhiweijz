@@ -64,6 +64,13 @@ export default function FamilyDetailClient({ params }: FamilyDetailClientProps) 
   // 获取家庭详情
   useEffect(() => {
     const fetchFamilyDetail = async () => {
+      // 如果是占位符，不执行数据获取
+      if (familyId === 'placeholder') {
+        setError('这是一个静态导出的占位符页面。在实际应用中，请通过正确的路由访问家庭详情页面。');
+        setIsLoading(false);
+        return;
+      }
+
       if (!token) {
         setError('未提供认证令牌');
         setIsLoading(false);

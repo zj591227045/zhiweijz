@@ -58,6 +58,11 @@ export default function FamilyMembersClient({ params }: FamilyMembersClientProps
 
   // 设置家庭ID并加载数据
   useEffect(() => {
+    // 如果是占位符，不执行数据获取
+    if (familyId === 'placeholder') {
+      return;
+    }
+
     if (familyId && token) {
       console.log('设置家庭ID:', familyId);
       setFamilyId(familyId);
@@ -155,6 +160,30 @@ export default function FamilyMembersClient({ params }: FamilyMembersClientProps
   // 如果未认证，不显示任何内容
   if (!isAuthenticated) {
     return null;
+  }
+
+  // 如果是占位符，显示占位符信息
+  if (familyId === 'placeholder') {
+    return (
+      <PageContainer
+        title="成员管理"
+        showBackButton
+        backUrl="/families"
+        activeNavItem="profile"
+      >
+        <div className="flex flex-col items-center justify-center h-full space-y-4">
+          <div className="text-muted-foreground">
+            这是一个静态导出的占位符页面。在实际应用中，请通过正确的路由访问成员管理页面。
+          </div>
+          <button
+            className="btn btn-primary"
+            onClick={() => router.push('/families')}
+          >
+            返回家庭列表
+          </button>
+        </div>
+      </PageContainer>
+    );
   }
 
   // 如果正在加载，显示加载状态

@@ -42,6 +42,11 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
     if (mode === 'edit' && budgetId) {
       setBudgetId(budgetId);
       
+      // 如果是占位符，不执行数据加载
+      if (budgetId === 'placeholder') {
+        return;
+      }
+      
       // 简单检查：localStorage有token就继续
       const hasToken = typeof window !== 'undefined' && localStorage.getItem('auth-token');
       if (!hasToken) {
@@ -135,6 +140,20 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
     );
   }
 
+  // 如果是占位符，显示占位符信息
+  if (mode === 'edit' && budgetId === 'placeholder') {
+    return (
+      <div className="budget-form">
+        <div className="form-section">
+          <div className="placeholder-message">
+            <i className="fas fa-info-circle"></i>
+            <span>这是一个静态导出的占位符页面。在实际应用中，请通过正确的路由访问预算编辑页面。</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="budget-form">
       {/* 错误提示 */}
@@ -143,7 +162,7 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
           <div className="error-message">
             <i className="fas fa-exclamation-triangle"></i>
             <span>{errors.general}</span>
-            {mode === 'edit' && budgetId && (
+            {mode === 'edit' && budgetId && budgetId !== 'placeholder' && (
               <button 
                 type="button" 
                 onClick={() => loadBudgetData(budgetId)}
