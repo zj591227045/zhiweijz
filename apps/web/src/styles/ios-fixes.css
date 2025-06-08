@@ -1,21 +1,15 @@
 /* iOS Capacitor 专用样式修复 */
-/* 只在添加了 ios-app 类的时候生效，确保不影响web端 */
+/* 基于搜索结果中的proven方法：状态栏模糊 + 背景延伸 */
 
-/* iOS登录页面防滚动样式 */
-.ios-app .ios-login-container {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  overflow: hidden !important;
-  -webkit-overflow-scrolling: none !important;
-  touch-action: none !important;
+/* 移除导致主题切换器被遮挡的覆盖层 */
+
+/* iOS基础样式 - 保持安全区域适配 */
+.ios-app body {
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-/* 仅在登录页面禁止body滚动 */
+/* iOS登录页面防滚动样式 */
 .ios-app.login-page body {
   overflow: hidden !important;
   position: fixed !important;
@@ -34,105 +28,45 @@
   -webkit-overflow-scrolling: none !important;
 }
 
-/* 确保登录页面内容区域正确布局 */
+/* 登录页面容器样式 */
+.ios-app .ios-login-container {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+  -webkit-overflow-scrolling: none !important;
+  touch-action: none !important;
+}
+
+/* 登录页面内容区域 - 确保内容避开安全区域但背景延伸 */
 .ios-app .ios-login-container .auth-container {
   height: 100vh !important;
   overflow: hidden !important;
   display: flex !important;
   flex-direction: column !important;
+  /* 内容避开安全区域 */
+  padding-top: env(safe-area-inset-top, 0px) !important;
+  padding-left: env(safe-area-inset-left, 0px) !important;
+  padding-right: env(safe-area-inset-right, 0px) !important;
+  /* 底部不添加padding，让背景延伸 */
 }
 
-/* 防止登录页面子元素触发滚动 */
-.ios-app .ios-login-container * {
-  -webkit-overflow-scrolling: none !important;
-  overflow-scrolling: none !important;
+/* iOS主题切换器位置调整 - 确保不被灵动岛遮挡 */
+.ios-app .theme-switcher {
+  margin-top: 1rem !important;
 }
 
-/* 确保表单区域不会导致滚动 */
-.ios-app .ios-login-container .auth-form {
-  overflow: visible !important;
-  touch-action: manipulation !important;
-}
-
-/* 输入框保持正常的触摸行为用于键盘输入 */
+/* 输入框保持正常的触摸行为 */
 .ios-app .ios-login-container input,
 .ios-app .ios-login-container button {
   touch-action: manipulation !important;
 }
 
-/* iOS 灵动岛和安全区域精确适配 */
-/* 顶部标题栏适配 - 减少额外padding */
-.ios-app .header,
-.ios-app .page-header {
-  padding-top: env(safe-area-inset-top, 0px) !important;
-  background-color: var(--card-background) !important;
-  border-bottom: 1px solid var(--border-color) !important;
-  min-height: calc(56px + env(safe-area-inset-top, 0px)) !important;
-}
-
-/* 页面容器不需要额外的顶部padding */
-.ios-app .app-container {
-  /* 移除过度的padding-top */
-}
-
-/* 主要内容区域精确适配 - 只考虑标题栏高度 */
-.ios-app .main-content {
-  padding-top: calc(56px + env(safe-area-inset-top, 0px)) !important;
-}
-
-/* 状态栏样式适配 */
-.ios-app body {
-  background-color: var(--background-color) !important;
-}
-
-/* 确保标题栏在安全区域内正确显示 */
-.ios-app .header-title {
-  margin-top: 0 !important;
-  line-height: 1.4 !important;
-}
-
-/* 顶部操作按钮适配 */
-.ios-app .header-actions {
-  margin-top: 0 !important;
-}
-
-/* 登录页面内容区域适配 - 精确控制 */
-.ios-app .ios-login-container .auth-container {
-  padding-top: env(safe-area-inset-top, 0px) !important;
-  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
-}
-
-/* 底部导航栏精确适配 */
-.ios-app .bottom-nav {
-  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
-  height: calc(56px + env(safe-area-inset-bottom, 0px)) !important;
-  position: fixed !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-}
-
-/* 主要内容区域底部适配 - 减少额外间距 */
-.ios-app .main-content {
-  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 8px) !important;
-}
-
-/* 页面容器的全屏适配 - 移除过度padding */
-.ios-app .ios-page-container {
-  min-height: 100vh !important;
-  /* 移除不必要的padding，让子元素自己处理安全区域 */
-}
-
-/* iOS头部样式优化 */
-.ios-app .ios-header {
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 200 !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-}
-
-/* 确保非登录页面能够正常滚动 */
+/* 非登录页面能够正常滚动 */
 .ios-app:not(.login-page) body {
   overflow: auto !important;
   position: static !important;
@@ -151,9 +85,97 @@
   -webkit-overflow-scrolling: touch !important;
 }
 
-/* 非登录页面的内容区域允许正常滚动 */
+/* 动态背景组件延伸到全屏 */
+.ios-app .fixed.inset-0.-z-10 {
+  top: calc(-1 * env(safe-area-inset-top, 0px)) !important;
+  bottom: calc(-1 * env(safe-area-inset-bottom, 0px)) !important;
+  left: calc(-1 * env(safe-area-inset-left, 0px)) !important;
+  right: calc(-1 * env(safe-area-inset-right, 0px)) !important;
+}
+
+/* iOS应用容器背景延伸 */
+.ios-app .app-container {
+  position: relative !important;
+  min-height: 100vh !important;
+}
+
+/* 确保iOS页面容器也能正确处理安全区域 */
+.ios-app .ios-page-container {
+  position: relative !important;
+  min-height: 100vh !important;
+}
+
+/* 通过伪元素让背景延伸到安全区域 */
+.ios-app .app-container::before,
+.ios-app .ios-page-container::before {
+  content: '' !important;
+  position: fixed !important;
+  top: calc(-1 * env(safe-area-inset-top, 0px)) !important;
+  bottom: calc(-1 * env(safe-area-inset-bottom, 0px)) !important;
+  left: calc(-1 * env(safe-area-inset-left, 0px)) !important;
+  right: calc(-1 * env(safe-area-inset-right, 0px)) !important;
+  background: var(--background-color, #f9fafb) !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+}
+
+/* 暗色主题支持 */
+.dark .ios-app .app-container::before,
+.dark .ios-app .ios-page-container::before {
+  background: var(--background-color, #111827) !important;
+}
+
+/* iOS底部元素位置保持不变 - 确保组件不下移 */
+.ios-app .ios-login-container .auth-container > *:last-child {
+  /* 底部版权信息等元素位置保持原样，不受底部安全区域影响 */
+  margin-bottom: 0 !important;
+  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+}
+
+/* iOS 安全区域精确适配 */
+/* 顶部标题栏适配 */
+.ios-app .header,
+.ios-app .page-header {
+  padding-top: env(safe-area-inset-top, 0px) !important;
+  background-color: var(--card-background) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  min-height: calc(56px + env(safe-area-inset-top, 0px)) !important;
+}
+
+/* 主要内容区域适配 */
+.ios-app .main-content {
+  padding-top: calc(56px + env(safe-area-inset-top, 0px)) !important;
+  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 8px) !important;
+}
+
+/* 底部导航栏适配 */
+.ios-app .bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+  height: calc(56px + env(safe-area-inset-bottom, 0px)) !important;
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+}
+
+/* iOS头部样式优化 */
+.ios-app .ios-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 200 !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
+
+/* 确保非登录页面能够正常滚动，并使用proven方法延伸背景 */
 .ios-app:not(.login-page) .main-content {
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch !important;
-  touch-action: auto !important;
+}
+
+/* iOS页面主体背景延伸到全屏 */
+.ios-app body {
+  /* 让body背景延伸到全屏，但不影响内容定位 */
+  margin: 0 !important;
+  padding: 0 !important;
 } 

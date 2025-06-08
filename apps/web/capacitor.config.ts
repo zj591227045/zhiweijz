@@ -48,7 +48,6 @@ const config: CapacitorConfig = {
   ios: {
     path: '../ios',
     scheme: '只为记账',
-    contentInset: 'automatic',
     limitsNavigationsToAppBoundDomains: true,
     allowsLinkPreview: false,
     handleApplicationNotifications: false
