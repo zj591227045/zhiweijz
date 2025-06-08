@@ -14,113 +14,13 @@ const nextConfig = {
     unoptimized: true
   },
   
-  // SWC编译器配置，确保iOS兼容性
-  swcMinify: true,
-  compiler: {
-    removeConsole: false,
-  },
-  
-  // Capacitor环境和静态导出优化配置
+  // 禁用服务端功能
   experimental: {
     missingSuspenseWithCSRBailout: false,
-    // 完全禁用预获取，避免RSC相关问题
-    optimisticClientCache: false,
-    // 禁用服务端组件优化
-    serverComponentsExternalPackages: [],
   },
   
   // 构建配置
   generateBuildId: () => 'capacitor-build',
-  
-  // Webpack配置以完全禁用RSC并兼容iOS WebView
-  webpack: (config, { isServer, dev }) => {
-    // 确保编译目标兼容iOS 13+
-    config.target = isServer ? 'node' : ['web', 'es2018'];
-    
-    // 在客户端构建中完全禁用RSC
-    if (!isServer) {
-      // 创建一个空的RSC模块
-      const emptyModule = require.resolve('./src/lib/empty-module.js');
-      
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        // 禁用所有React Server Components相关模块
-        'react-server-dom-webpack/client': emptyModule,
-        'react-server-dom-webpack/server': emptyModule,
-        'react-server-dom-webpack': emptyModule,
-        'react-server-dom-webpack/client.browser': emptyModule,
-        'react-server-dom-webpack/client.edge': emptyModule,
-        'react-server-dom-webpack/server.browser': emptyModule,
-        'react-server-dom-webpack/server.edge': emptyModule,
-        'react-server-dom-webpack/writer': emptyModule,
-        'react-server-dom-webpack/writer.browser': emptyModule,
-        'react-server-dom-webpack/static': emptyModule,
-        'react-server-dom-webpack/static.browser': emptyModule,
-      };
-      
-      // 添加resolve fallbacks
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        'react-server-dom-webpack/client': false,
-        'react-server-dom-webpack/server': false,
-        'react-server-dom-webpack': false,
-        fs: false,
-        net: false,
-        tls: false,
-      };
-    }
-    
-    // 优化Capacitor环境的构建
-    if (!dev) {
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            default: {
-              minChunks: 2,
-              priority: -20,
-              reuseExistingChunk: true,
-            },
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              priority: -10,
-              chunks: 'all',
-            },
-          },
-        },
-      };
-    }
-    
-    // 替换有问题的模块
-    config.module.rules.push(
-      {
-        test: /node_modules\/react-server-dom-webpack/,
-        use: 'null-loader'
-      },
-      {
-        test: /createFromReadableStream/,
-        use: 'null-loader'
-      }
-    );
-    
-    // 定义全局变量来替换RSC函数
-    try {
-      const { DefinePlugin } = require('webpack');
-      config.plugins = config.plugins || [];
-      config.plugins.push(
-        new DefinePlugin({
-          'process.env.__NEXT_RSC_DISABLED__': JSON.stringify('true'),
-          'process.env.CAPACITOR_PLATFORM': JSON.stringify('true'),
-        })
-      );
-    } catch (error) {
-      console.warn('DefinePlugin配置失败:', error.message);
-    }
-    
-    return config;
-  },
   
   // 忽略构建错误
   typescript: {

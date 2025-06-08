@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import { getCategoryIconClass } from '@/lib/utils';
+import { smartNavigate } from '@/lib/navigation';
 
 interface Transaction {
   id: string;
@@ -31,7 +32,7 @@ export function RecentTransactions({ transactions, budgetId }: RecentTransaction
 
   // 处理交易项点击 - 直接进入编辑页面
   const handleTransactionClick = (transactionId: string) => {
-    router.push(`/transactions/edit/${transactionId}`);
+    smartNavigate(router, `/transactions/edit/${transactionId}`);
   };
 
   // 处理查看全部按钮点击
@@ -45,7 +46,7 @@ export function RecentTransactions({ transactions, budgetId }: RecentTransaction
 
     // 重定向到交易列表页面
     const url = `/transactions${params.toString() ? `?${params.toString()}` : ''}`;
-    router.push(url);
+    smartNavigate(router, url);
   };
 
   // 格式化日期

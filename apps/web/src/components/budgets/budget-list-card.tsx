@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { cn, formatCurrency, getCategoryIconClass } from '@/lib/utils';
 import { useAccountBookStore } from '@/store/account-book-store';
+import { smartNavigate } from '@/lib/navigation';
 
 export interface Budget {
   id: string;
@@ -39,7 +40,7 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     // 使用正确的路由路径
-    router.push(`/budgets/${budget.id}/edit`);
+    smartNavigate(router, `/budgets/${budget.id}/edit`);
   };
 
   // 处理删除预算
@@ -50,7 +51,7 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
 
   // 处理点击预算卡片
   const handleCardClick = () => {
-    router.push(`/budgets/${budget.id}/edit`);
+    smartNavigate(router, `/budgets/${budget.id}/edit`);
   };
 
   return (

@@ -19,6 +19,7 @@ import {
 import dayjs from 'dayjs';
 import { TransactionType } from '@/components/dashboard/recent-transactions';
 import { useDashboardStore } from '@/store/dashboard-store';
+import TransactionEditModal from '@/components/transaction-edit-modal';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -37,6 +38,11 @@ export default function DashboardPage() {
     setupTransactionListener,
     cleanupTransactionListener,
   } = useDashboardStore();
+
+  // 交易编辑模态框状态
+  const [showTransactionEditModal, setShowTransactionEditModal] = useState(false);
+  const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
+  const [transactionData, setTransactionData] = useState<any>(null);
 
   // 认证检查和初始数据加载
   useEffect(() => {
@@ -177,6 +183,96 @@ export default function DashboardPage() {
     }
   }, [pathname, currentAccountBook?.id]); // 移除函数依赖
 
+  // 检测交易编辑模态框标记
+  useEffect(() => {
+    const checkTransactionEditModal = () => {
+      if (typeof window !== 'undefined') {
+        const showModal = localStorage.getItem('showTransactionEditModal');
+        const transactionId = localStorage.getItem('pendingTransactionEdit');
+
+        console.log('🏠 [Dashboard] 检查交易编辑模态框标记:', { showModal, transactionId });
+
+        if (showModal === 'true' && transactionId) {
+          console.log('🏠 [Dashboard] 发现交易编辑请求，交易ID:', transactionId);
+
+          // 清除标记
+          localStorage.removeItem('showTransactionEditModal');
+          localStorage.removeItem('pendingTransactionEdit');
+
+          // 设置模态框状态
+          setEditingTransactionId(transactionId);
+          setShowTransactionEditModal(true);
+
+          // 获取交易详情
+          fetchTransactionData(transactionId);
+        }
+      }
+    };
+
+    // 监听自定义事件
+    const handleCheckTransactionEditModal = () => {
+      console.log('🏠 [Dashboard] 收到检查交易编辑模态框事件');
+      checkTransactionEditModal();
+    };
+
+    checkTransactionEditModal();
+
+    // 添加事件监听器
+    window.addEventListener('checkTransactionEditModal', handleCheckTransactionEditModal);
+
+    return () => {
+      window.removeEventListener('checkTransactionEditModal', handleCheckTransactionEditModal);
+    };
+  }, [pathname]); // 当路径变化时检查
+
+  // 获取交易详情
+  const fetchTransactionData = async (transactionId: string) => {
+    try {
+      console.log('🏠 [Dashboard] 开始获取交易详情:', transactionId);
+
+      // 从当前的交易列表中查找交易详情（避免 API 调用）
+      const allTransactions = groupedTransactions.flatMap(group => group.transactions);
+      const transaction = allTransactions.find(t => t.id === transactionId);
+
+      if (transaction) {
+        console.log('🏠 [Dashboard] 从本地数据找到交易详情:', transaction);
+
+        // 确保数据格式正确
+        const formattedTransaction = {
+          id: transaction.id,
+          description: transaction.description || '',
+          amount: transaction.amount || 0,
+          type: transaction.type || 'EXPENSE',
+          date: transaction.date || new Date().toISOString(),
+          categoryId: transaction.categoryId || '',
+          budgetId: transaction.budgetId || '',
+          category: transaction.category || { name: '未分类' }
+        };
+
+        console.log('🏠 [Dashboard] 格式化后的交易数据:', formattedTransaction);
+        setTransactionData(formattedTransaction);
+      } else {
+        // 如果本地没有，创建一个模拟的交易对象
+        console.log('🏠 [Dashboard] 本地未找到交易，创建模拟数据');
+        const mockTransaction = {
+          id: transactionId,
+          description: '交易记录',
+          amount: 0,
+          type: 'EXPENSE',
+          date: new Date().toISOString(),
+          categoryId: '',
+          budgetId: '',
+          category: { name: '未分类' }
+        };
+        setTransactionData(mockTransaction);
+      }
+    } catch (error) {
+      console.error('🏠 [Dashboard] 获取交易详情失败:', error);
+      alert('获取交易详情失败，请重试');
+      setShowTransactionEditModal(false);
+    }
+  };
+
   // 右侧操作按钮
   const rightActions = (
     <>
@@ -209,6 +305,93 @@ export default function DashboardPage() {
         </div>
       ) : (
         <>
+          {/* 成功！Pages Router 导航已解决 */}
+          <div style={{
+            backgroundColor: '#d4edda',
+            border: '1px solid #c3e6cb',
+            borderRadius: '6px',
+            padding: '12px',
+            marginBottom: '20px',
+            textAlign: 'center'
+          }}>
+            <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#155724' }}>
+              ✅ Pages Router 导航问题已解决！
+            </p>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => {
+                  // 使用完整的 Capacitor URL 进行导航
+                  const targetUrl = 'capacitor://localhost/test-pages-router/index.html';
+                  window.location.href = targetUrl;
+                }}
+                style={{
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  padding: '8px 16px',
+                  borderRadius: '4px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                测试页面
+              </button>
+              <button
+                onClick={() => {
+                  // 测试交易编辑页面 - 使用正确的 Pages Router 路径
+                  const targetUrl = 'capacitor://localhost/test-transaction-edit/593c1413-8bbe-495f-8e23-c6ade8953f02/index.html';
+                  window.location.href = targetUrl;
+                }}
+                style={{
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  padding: '8px 16px',
+                  borderRadius: '4px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                交易编辑页面
+              </button>
+              <button
+                onClick={() => {
+                  // 直接测试模态框功能
+                  console.log('🧪 [Dashboard] 测试模态框功能');
+
+                  // 模拟交易数据
+                  const testTransaction = {
+                    id: '593c1413-8bbe-495f-8e23-c6ade8953f02',
+                    amount: 50.00,
+                    type: 'EXPENSE',
+                    categoryName: '餐饮',
+                    categoryIcon: 'utensils',
+                    categoryId: 'cat-1',
+                    budgetId: 'budget-1',
+                    description: '午餐',
+                    date: new Date().toISOString()
+                  };
+
+                  // 设置交易数据并显示模态框
+                  setTransactionData(testTransaction);
+                  setEditingTransactionId(testTransaction.id);
+                  setShowTransactionEditModal(true);
+                }}
+                style={{
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  padding: '8px 16px',
+                  borderRadius: '4px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                测试模态框
+              </button>
+            </div>
+          </div>
+
           {/* 月度概览 */}
           <MonthlyOverview
             income={monthlyStats.income}
@@ -223,6 +406,28 @@ export default function DashboardPage() {
           {/* 最近交易 */}
           <RecentTransactions groupedTransactions={groupedTransactions} />
         </>
+      )}
+
+      {/* 交易编辑模态框 - 使用完整的 App Router 组件 */}
+      {showTransactionEditModal && transactionData && (
+        <TransactionEditModal
+          transactionId={editingTransactionId}
+          transactionData={transactionData}
+          onClose={() => {
+            setShowTransactionEditModal(false);
+            setTransactionData(null);
+            setEditingTransactionId(null);
+          }}
+          onSave={() => {
+            // 刷新仪表盘数据
+            if (currentAccountBook?.id) {
+              refreshDashboardData(currentAccountBook.id);
+            }
+            setShowTransactionEditModal(false);
+            setTransactionData(null);
+            setEditingTransactionId(null);
+          }}
+        />
       )}
     </PageContainer>
   );

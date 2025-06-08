@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { memo } from 'react';
 import { formatCurrency, getCategoryIconClass } from '../../lib/utils';
+import { smartNavigate } from '../../lib/navigation';
 
 // 交易类型枚举
 export enum TransactionType {
@@ -35,9 +36,16 @@ export const RecentTransactions = memo(
   function RecentTransactions({ groupedTransactions }: RecentTransactionsProps) {
     const router = useRouter();
 
-    // 处理交易项点击 - 直接进入编辑页面
+    // 处理交易项点击 - 触发模态框编辑
     const handleTransactionClick = (transactionId: string) => {
-      router.push(`/transactions/edit/${transactionId}`);
+      console.log('🔄 [RecentTransactions] 交易点击，ID:', transactionId);
+
+      // 设置 localStorage 标记来触发模态框
+      localStorage.setItem('showTransactionEditModal', 'true');
+      localStorage.setItem('pendingTransactionEdit', transactionId);
+
+      // 触发页面重新检查（通过触发一个自定义事件）
+      window.dispatchEvent(new CustomEvent('checkTransactionEditModal'));
     };
 
     // 获取图标类名

@@ -7,6 +7,7 @@ import { PageContainer } from '@/components/layout/page-container';
 import { formatCurrency, getCategoryIconClass } from '@/lib/utils';
 import { apiClient } from '@/lib/api-client';
 import dayjs from 'dayjs';
+import { smartNavigate } from '@/lib/navigation';
 
 // 交易类型枚举
 export enum TransactionType {
@@ -219,7 +220,7 @@ export function TransactionListPage() {
     if (isMultiSelectMode) {
       handleTransactionSelect(transactionId);
     } else {
-      router.push(`/transactions/edit/${transactionId}`);
+      smartNavigate(router, `/transactions/edit/${transactionId}`);
     }
   };
 
