@@ -34,6 +34,7 @@ i.fas, i.far, i.fab, i.fal, i.fad {
 @import url('../styles/dashboard.css');
 @import url('../styles/budget-form.css');
 @import url('../styles/animations.css');
+@import url('../styles/ios-fixes.css');
 
 @layer base {
   :root {

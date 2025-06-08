@@ -21,9 +21,66 @@ export default function LoginPage() {
   const [showCaptcha, setShowCaptcha] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [showServerSettings, setShowServerSettings] = useState(false);
+  const [isIOSApp, setIsIOSApp] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<{
+    isCapacitor: boolean;
+    platform: string;
+    userAgent: string;
+  } | null>(null);
 
   // 检测是否为Docker环境
   const isDocker = isDockerEnvironment();
+
+  // 检测iOS Capacitor环境
+  useEffect(() => {
+    const checkIOSCapacitor = async () => {
+      try {
+        // 检测是否在Capacitor环境中
+        if (typeof window !== 'undefined') {
+          // 动态导入Capacitor避免SSR问题
+          const capacitorModule = await import('@capacitor/core');
+          const { Capacitor } = capacitorModule;
+          
+          const isCapacitor = Capacitor.isNativePlatform();
+          const platform = Capacitor.getPlatform();
+          
+          console.log('Capacitor platform check:', { isCapacitor, platform });
+          
+          // 设置调试信息
+          setDebugInfo({
+            isCapacitor,
+            platform,
+            userAgent: navigator.userAgent
+          });
+          
+          if (isCapacitor && platform === 'ios') {
+            setIsIOSApp(true);
+            console.log('iOS Capacitor environment detected, applying iOS styles');
+            // 为body添加iOS专用类
+            document.body.classList.add('ios-app');
+            document.documentElement.classList.add('ios-app');
+            
+            // 添加调试信息
+            console.log('iOS app classes added to DOM');
+          }
+        }
+      } catch (error) {
+        // Capacitor不可用，说明在web环境中
+        console.log('Not in Capacitor environment:', error);
+      }
+    };
+
+    checkIOSCapacitor();
+
+    // 清理函数
+    return () => {
+      if (typeof window !== 'undefined') {
+        document.body.classList.remove('ios-app');
+        document.documentElement.classList.remove('ios-app');
+        console.log('iOS app classes removed from DOM');
+      }
+    };
+  }, []);
 
   // 如果已登录，重定向到仪表盘
   useEffect(() => {
@@ -111,7 +168,14 @@ export default function LoginPage() {
   }, [error, clearError]);
 
   return (
-    <div className="app-container h-screen flex flex-col overflow-hidden relative">
+    <div className={`app-container h-screen flex flex-col overflow-hidden relative ${isIOSApp ? 'ios-login-container' : ''}`}>
+      {/* 调试信息 - 仅在开发环境显示 */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed top-0 left-0 z-50 bg-red-500 text-white text-xs px-2 py-1 m-2 rounded">
+          {isIOSApp ? 'iOS App Mode' : 'Web Mode'}
+        </div>
+      )}
+      
       {/* 动态背景 */}
       <AnimatedBackground />
       
