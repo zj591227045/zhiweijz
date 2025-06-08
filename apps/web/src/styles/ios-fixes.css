@@ -66,6 +66,22 @@
   touch-action: manipulation !important;
 }
 
+/* iOS输入框防缩放优化 */
+.ios-app .ios-login-container input,
+.ios-app .ios-login-container textarea,
+.ios-app .ios-login-container select {
+  /* 确保字体大小至少16px，防止iOS自动缩放 */
+  font-size: 16px !important;
+  /* 禁用iOS自动缩放行为 */
+  -webkit-text-size-adjust: 100% !important;
+  /* 确保输入框在焦点时不会触发缩放 */
+  -webkit-appearance: none !important;
+  /* 禁用自动更正和建议 */
+  autocorrect: off !important;
+  autocapitalize: off !important;
+  spellcheck: false !important;
+}
+
 /* 非登录页面能够正常滚动 */
 .ios-app:not(.login-page) body {
   overflow: auto !important;
@@ -85,12 +101,29 @@
   -webkit-overflow-scrolling: touch !important;
 }
 
-/* 动态背景组件延伸到全屏 */
-.ios-app .fixed.inset-0.-z-10 {
+/* 动态背景组件延伸到全屏 - 使用Tailwind的-z-10类 */
+.ios-app .-z-10 {
   top: calc(-1 * env(safe-area-inset-top, 0px)) !important;
   bottom: calc(-1 * env(safe-area-inset-bottom, 0px)) !important;
   left: calc(-1 * env(safe-area-inset-left, 0px)) !important;
   right: calc(-1 * env(safe-area-inset-right, 0px)) !important;
+}
+
+/* 确保iOS登录页面动态背景正常显示 */
+.ios-app.login-page .-z-10 {
+  /* 强制显示动态背景 */
+  display: block !important;
+  /* 确保z-index层级正确 */
+  z-index: -10 !important;
+  /* 确保背景覆盖整个屏幕 */
+  position: fixed !important;
+  top: calc(-1 * env(safe-area-inset-top, 0px)) !important;
+  bottom: calc(-1 * env(safe-area-inset-bottom, 0px)) !important;
+  left: calc(-1 * env(safe-area-inset-left, 0px)) !important;
+  right: calc(-1 * env(safe-area-inset-right, 0px)) !important;
+  /* 确保不会被隐藏 */
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 /* iOS应用容器背景延伸 */
@@ -105,9 +138,9 @@
   min-height: 100vh !important;
 }
 
-/* 通过伪元素让背景延伸到安全区域 */
-.ios-app .app-container::before,
-.ios-app .ios-page-container::before {
+/* 通过伪元素让背景延伸到安全区域 - 但不在登录页面显示，以免覆盖动态背景 */
+.ios-app:not(.login-page) .app-container::before,
+.ios-app:not(.login-page) .ios-page-container::before {
   content: '' !important;
   position: fixed !important;
   top: calc(-1 * env(safe-area-inset-top, 0px)) !important;
@@ -119,9 +152,9 @@
   pointer-events: none !important;
 }
 
-/* 暗色主题支持 */
-.dark .ios-app .app-container::before,
-.dark .ios-app .ios-page-container::before {
+/* 暗色主题支持 - 但不在登录页面显示 */
+.dark .ios-app:not(.login-page) .app-container::before,
+.dark .ios-app:not(.login-page) .ios-page-container::before {
   background: var(--background-color, #111827) !important;
 }
 
