@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { EnhancedBottomNavigation } from './enhanced-bottom-navigation';
 import { useThemeStore } from '@/store/theme-store';
 import { SettingsDialog } from './settings-dialog';
@@ -56,6 +56,42 @@ export function PageContainer({
 }: PageContainerProps) {
   const { theme, toggleTheme } = useThemeStore();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isIOSApp, setIsIOSApp] = useState(false);
+
+  // 检测iOS Capacitor环境
+  useEffect(() => {
+    const checkIOSCapacitor = async () => {
+      try {
+        if (typeof window !== 'undefined') {
+          const capacitorModule = await import('@capacitor/core');
+          const { Capacitor } = capacitorModule;
+          
+          const isCapacitor = Capacitor.isNativePlatform();
+          const platform = Capacitor.getPlatform();
+          
+          if (isCapacitor && platform === 'ios') {
+            setIsIOSApp(true);
+            // 为body添加iOS专用类
+            document.body.classList.add('ios-app');
+            document.documentElement.classList.add('ios-app');
+          }
+        }
+      } catch (error) {
+        // Capacitor不可用，说明在web环境中
+        console.log('PageContainer: Not in Capacitor environment');
+      }
+    };
+
+    checkIOSCapacitor();
+
+    // 清理函数
+    return () => {
+      if (typeof window !== 'undefined') {
+        document.body.classList.remove('ios-app');
+        document.documentElement.classList.remove('ios-app');
+      }
+    };
+  }, []);
 
   const handleBackClick = () => {
     if (onBackClick) {
@@ -77,10 +113,10 @@ export function PageContainer({
   };
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${isIOSApp ? 'ios-page-container' : ''}`}>
       {/* 顶部导航栏 */}
       {(title || rightActions || showBackButton) && (
-        <header className="header">
+        <header className={`header ${isIOSApp ? 'ios-header' : ''}`}>
           <div className="flex items-center">
             {showBackButton && (
               <button className="icon-button mr-2" onClick={handleBackClick} aria-label="返回">

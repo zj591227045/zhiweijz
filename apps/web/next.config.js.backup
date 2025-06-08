@@ -28,6 +28,12 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   
+  // 动态路由配置
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
+    dynamicIO: false,
+  },
+  
   // 移除headers配置，因为静态导出不支持
 };
 

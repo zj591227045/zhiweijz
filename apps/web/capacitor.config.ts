@@ -23,8 +23,9 @@ const config: CapacitorConfig = {
       useDialog: true,
     },
     StatusBar: {
-      style: 'dark',
-      backgroundColor: '#4CAF50'
+      style: 'default',
+      backgroundColor: '#ffffff',
+      overlaysWebView: false
     },
     Keyboard: {
       resize: 'body',
@@ -48,7 +49,9 @@ const config: CapacitorConfig = {
     path: '../ios',
     scheme: '只为记账',
     contentInset: 'automatic',
-    limitsNavigationsToAppBoundDomains: true
+    limitsNavigationsToAppBoundDomains: true,
+    allowsLinkPreview: false,
+    handleApplicationNotifications: false
   }
 };
 
