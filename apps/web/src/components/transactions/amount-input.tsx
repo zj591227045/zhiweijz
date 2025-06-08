@@ -98,6 +98,7 @@ export function AmountInput() {
       inputRef.current.focus();
       // 根据状态决定是否显示键盘
       setShowKeyboard(showKeyboardInitially);
+      console.log('AmountInput: 键盘初始状态:', showKeyboardInitially);
     }
   }, [showKeyboardInitially]);
 

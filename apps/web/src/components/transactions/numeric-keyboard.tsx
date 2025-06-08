@@ -1,5 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+
 interface NumericKeyboardProps {
   onInput: (value: string) => void;
   onDelete: () => void;
@@ -7,6 +10,13 @@ interface NumericKeyboardProps {
 }
 
 export function NumericKeyboard({ onInput, onDelete, onComplete }: NumericKeyboardProps) {
+  const [mounted, setMounted] = useState(false);
+
+  // 确保只在客户端渲染
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // 处理数字按钮点击
   const handleNumberClick = (number: string) => {
     onInput(number);
@@ -67,7 +77,7 @@ export function NumericKeyboard({ onInput, onDelete, onComplete }: NumericKeyboa
     fontSize: '18px',
   } as const;
 
-  return (
+  const keyboardContent = (
     <div
       className="numeric-keyboard"
       style={{
@@ -77,11 +87,14 @@ export function NumericKeyboard({ onInput, onDelete, onComplete }: NumericKeyboa
         right: '0',
         backgroundColor: 'var(--background-color)',
         borderTop: '1px solid var(--border-color)',
-        zIndex: '9999',
+        zIndex: '99999', // 使用最高的z-index
         maxWidth: '480px',
         margin: '0 auto',
         padding: '8px 0',
         boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.1)',
+        // 确保在任何iOS容器之上
+        transform: 'translateZ(0)',
+        WebkitTransform: 'translateZ(0)',
       }}
     >
       {/* 第一行：7 8 9 = */}
@@ -149,4 +162,11 @@ export function NumericKeyboard({ onInput, onDelete, onComplete }: NumericKeyboa
       </div>
     </div>
   );
+
+  // 只在客户端渲染，并使用Portal渲染到body
+  if (!mounted) {
+    return null;
+  }
+
+  return createPortal(keyboardContent, document.body);
 }

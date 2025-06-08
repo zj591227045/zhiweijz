@@ -217,13 +217,13 @@
   padding-right: 12px !important;
 }
 
-/* iOS底部导航栏固定优化 - 增加高度避免被遮挡 */
+/* iOS底部导航栏固定优化 - 使用Portal渲染时的样式 */
 .ios-app .bottom-nav {
   position: fixed !important;
   bottom: 0 !important;
   left: 0 !important;
   right: 0 !important;
-  z-index: 200 !important; /* 确保在最顶层 */
+  z-index: 99998 !important; /* 确保在最顶层，但低于虚拟键盘 */
   /* 增加导航栏高度：基础高度 + 安全区域 + 额外保护空间 */
   height: calc(64px + env(safe-area-inset-bottom, 0px) + 8px) !important;
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px) !important;
@@ -236,6 +236,45 @@
   -webkit-backdrop-filter: blur(20px) !important;
   /* 半透明背景增强视觉效果 */
   background-color: rgba(var(--card-background-rgb, 255, 255, 255), 0.9) !important;
+  /* 强制硬件加速和层级优化 */
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
+  /* 确保不被任何容器裁剪 */
+  contain: none !important;
+  /* 确保可见性 */
+  visibility: visible !important;
+  opacity: 1 !important;
+  /* 防止被其他元素遮挡 */
+  pointer-events: auto !important;
+}
+
+/* Portal渲染的底部导航栏通用样式增强 */
+body > .bottom-nav {
+  /* 确保Portal渲染的导航栏始终可见 */
+  position: fixed !important;
+  z-index: 99998 !important;
+  /* 确保在所有设备上都能正确显示 */
+  -webkit-backface-visibility: hidden !important;
+  backface-visibility: hidden !important;
+  will-change: transform !important;
+}
+
+/* iOS环境下Portal渲染的底部导航栏特殊处理 */
+.ios-app body > .bottom-nav {
+  /* iOS专用的安全区域适配 */
+  height: calc(64px + env(safe-area-inset-bottom, 0px) + 8px) !important;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px) !important;
+  padding-top: 8px !important;
+  /* iOS专用的背景模糊 */
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  background-color: rgba(var(--card-background-rgb, 255, 255, 255), 0.9) !important;
+}
+
+/* 暗色主题下的Portal底部导航栏 */
+.dark .ios-app body > .bottom-nav {
+  background-color: rgba(var(--card-background-rgb, 31, 41, 55), 0.9) !important;
+  border-top-color: var(--border-color) !important;
 }
 
 /* iOS头部样式优化 */
@@ -280,4 +319,47 @@
   /* 让body背景延伸到全屏，但不影响内容定位 */
   margin: 0 !important;
   padding: 0 !important;
-} 
+}
+
+/* 虚拟键盘iOS适配 */
+.ios-app .numeric-keyboard {
+  /* 确保在最高层级 */
+  z-index: 99999 !important;
+  /* 适配安全区域 */
+  padding-bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+  /* 强制硬件加速 */
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
+  /* 确保不被任何容器裁剪 */
+  contain: none !important;
+  /* 确保可见性 */
+  visibility: visible !important;
+  opacity: 1 !important;
+  /* 防止被其他元素遮挡 */
+  pointer-events: auto !important;
+}
+
+/* 确保iOS环境下body可以显示固定定位的虚拟键盘 */
+.ios-app body {
+  position: relative !important;
+  overflow-x: hidden !important;
+}
+
+/* 在虚拟键盘显示时，确保页面内容可以正确显示 */
+.ios-app .app-container {
+  /* 不要限制子元素的层级 */
+  contain: layout style !important;
+  /* 确保不会裁剪固定定位的元素 */
+  overflow: visible !important;
+}
+
+/* 确保虚拟键盘在iOS Safari中正确显示 */
+@supports (-webkit-appearance: none) {
+  .ios-app .numeric-keyboard {
+    /* Safari专用优化 */
+    -webkit-backface-visibility: hidden !important;
+    backface-visibility: hidden !important;
+    will-change: transform !important;
+  }
+}
+

@@ -3,7 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { useLLMCacheStore } from '@/store/llm-cache-store';
 import { SmartAccountingDialog } from '../transactions/smart-accounting-dialog';
@@ -21,6 +22,12 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
   const { getLLMSettings, llmCache } = useLLMCacheStore();
   const [isSmartAccountingOpen, setIsSmartAccountingOpen] = useState(false);
   const [hasLLMService, setHasLLMService] = useState<boolean | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // 确保只在客户端渲染
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 使用缓存store直接检查LLM设置
   React.useEffect(() => {
@@ -80,9 +87,26 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
     setIsSmartAccountingOpen(true);
   };
 
-  return (
+  const navigationContent = (
     <>
-      <nav className="bottom-nav">
+      <nav className="bottom-nav" style={{
+        position: 'fixed',
+        bottom: '0',
+        left: '0',
+        right: '0',
+        height: '56px',
+        background: 'var(--card-background)',
+        display: 'flex',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.05)',
+        zIndex: '99998', // 比虚拟键盘低一点，但比其他内容高
+        maxWidth: '480px',
+        margin: '0 auto',
+        // 确保在任何容器之上
+        transform: 'translateZ(0)',
+        WebkitTransform: 'translateZ(0)',
+      }}>
         <Link href="/dashboard" className={`nav-item ${isActive('/dashboard') ? 'active' : ''}`}>
           <i className="fas fa-home"></i>
           <span>首页</span>
@@ -122,4 +146,11 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
       />
     </>
   );
+
+  // 只在客户端渲染，并使用Portal渲染到body
+  if (!mounted) {
+    return null;
+  }
+
+  return createPortal(navigationContent, document.body);
 }
