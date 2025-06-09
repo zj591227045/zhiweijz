@@ -6,6 +6,7 @@ import { PageContainer } from '@/components/layout/page-container';
 import { BookList } from '@/components/books/book-list';
 import { AddBookButton } from '@/components/books/add-book-button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import BookEditModal from '@/components/book-edit-modal';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { toast } from 'sonner';
 import { fetchApi } from '@/lib/api-client';
@@ -31,6 +32,8 @@ export default function BookListPage() {
   const [bookToSwitch, setBookToSwitch] = useState<AccountBook | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [bookToReset, setBookToReset] = useState<AccountBook | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [bookToEdit, setBookToEdit] = useState<AccountBook | null>(null);
 
   // 获取账本列表
   useEffect(() => {
@@ -72,9 +75,26 @@ export default function BookListPage() {
     router.push('/books/new');
   };
 
-  // 编辑账本
+  // 编辑账本 - 使用模态框
   const handleEditBook = (book: AccountBook) => {
-    router.push(`/books/edit/${book.id}`);
+    setBookToEdit(book);
+    setShowEditModal(true);
+  };
+
+  // 处理编辑模态框关闭
+  const handleEditModalClose = () => {
+    setShowEditModal(false);
+    setBookToEdit(null);
+  };
+
+  // 处理编辑保存成功
+  const handleEditSave = (updatedBook: AccountBook) => {
+    // 刷新账本列表
+    fetchAccountBooks();
+    // 如果编辑的是当前账本，更新当前账本
+    if (currentAccountBook?.id === updatedBook.id) {
+      setCurrentAccountBook(updatedBook);
+    }
   };
 
   // 删除账本
@@ -229,6 +249,14 @@ export default function BookListPage() {
         onConfirm={confirmResetBook}
         onCancel={() => setShowResetConfirm(false)}
         isDangerous
+      />
+
+      {/* 编辑账本模态框 */}
+      <BookEditModal
+        isOpen={showEditModal}
+        onClose={handleEditModalClose}
+        bookId={bookToEdit?.id || ''}
+        onSave={handleEditSave}
       />
     </PageContainer>
   );
