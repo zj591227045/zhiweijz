@@ -30,17 +30,22 @@ export interface Budget {
 interface BudgetListCardProps {
   budget: Budget;
   onDelete: (id: string) => void;
+  onEdit?: (id: string) => void;
 }
 
-export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
+export function BudgetListCard({ budget, onDelete, onEdit }: BudgetListCardProps) {
   const router = useRouter();
   const { currentAccountBook } = useAccountBookStore();
 
   // 处理编辑预算
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // 使用正确的路由路径
-    smartNavigate(router, `/budgets/${budget.id}/edit`);
+    if (onEdit) {
+      onEdit(budget.id);
+    } else {
+      // 回退到路由导航
+      smartNavigate(router, `/budgets/${budget.id}/edit`);
+    }
   };
 
   // 处理删除预算
@@ -51,7 +56,12 @@ export function BudgetListCard({ budget, onDelete }: BudgetListCardProps) {
 
   // 处理点击预算卡片
   const handleCardClick = () => {
-    smartNavigate(router, `/budgets/${budget.id}/edit`);
+    if (onEdit) {
+      onEdit(budget.id);
+    } else {
+      // 回退到路由导航
+      smartNavigate(router, `/budgets/${budget.id}/edit`);
+    }
   };
 
   return (

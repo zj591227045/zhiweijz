@@ -9,6 +9,7 @@ import { useAccountBookStore } from '@/store/account-book-store';
 import { BudgetListTypeSelector } from './budget-list-type-selector';
 import { BudgetListCard } from './budget-list-card';
 import { Budget } from './budget-list-card';
+import BudgetEditModal from '../budget-edit-modal';
 
 export function BudgetListPage() {
   const router = useRouter();
@@ -31,6 +32,10 @@ export function BudgetListPage() {
   const [budgetToDelete, setBudgetToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // 预算编辑模态框状态
+  const [editingBudgetId, setEditingBudgetId] = useState<string | null>(null);
+  const [showBudgetEditModal, setShowBudgetEditModal] = useState(false);
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -74,6 +79,28 @@ export function BudgetListPage() {
   // 处理添加预算
   const handleAddBudget = () => {
     router.push('/budgets/add');
+  };
+
+  // 处理编辑预算
+  const handleEditBudget = (budgetId: string) => {
+    setEditingBudgetId(budgetId);
+    setShowBudgetEditModal(true);
+  };
+
+  // 处理预算编辑模态框关闭
+  const handleBudgetEditModalClose = () => {
+    setShowBudgetEditModal(false);
+    setEditingBudgetId(null);
+  };
+
+  // 处理预算编辑保存
+  const handleBudgetEditSave = () => {
+    setShowBudgetEditModal(false);
+    setEditingBudgetId(null);
+    // 刷新预算列表
+    if (currentAccountBook?.id) {
+      fetchBudgets(currentAccountBook.id);
+    }
   };
 
   // 处理删除预算
@@ -152,6 +179,7 @@ export function BudgetListPage() {
       <BudgetListCard
         key={budget.id}
         budget={budget}
+        onEdit={handleEditBudget}
         onDelete={(id) => {
           setBudgetToDelete(id);
           setShowDeleteConfirm(true);
@@ -242,6 +270,15 @@ export function BudgetListPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 预算编辑模态框 */}
+      {showBudgetEditModal && editingBudgetId && (
+        <BudgetEditModal
+          budgetId={editingBudgetId}
+          onClose={handleBudgetEditModalClose}
+          onSave={handleBudgetEditSave}
+        />
       )}
     </PageContainer>
   );
