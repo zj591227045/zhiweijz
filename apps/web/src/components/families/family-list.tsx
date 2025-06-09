@@ -7,9 +7,10 @@ interface FamilyListProps {
   families: Family[];
   onCreateFamily: () => void;
   onJoinFamily: () => void;
+  onFamilyClick?: (familyId: string) => void;
 }
 
-export function FamilyList({ families, onCreateFamily, onJoinFamily }: FamilyListProps) {
+export function FamilyList({ families, onCreateFamily, onJoinFamily, onFamilyClick }: FamilyListProps) {
   return (
     <div className="space-y-4">
       <div className="book-header-card">
@@ -45,7 +46,7 @@ export function FamilyList({ families, onCreateFamily, onJoinFamily }: FamilyLis
 
       <div className="space-y-4">
         {families.map((family) => (
-          <FamilyCard key={family.id} family={family} />
+          <FamilyCard key={family.id} family={family} onFamilyClick={onFamilyClick} />
         ))}
       </div>
     </div>

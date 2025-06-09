@@ -9,6 +9,7 @@ import { CreateFamilyDialog } from '@/components/families/create-family-dialog';
 import { JoinFamilyDialog } from '@/components/families/join-family-dialog';
 import { EmptyState } from '@/components/families/empty-state';
 import { useFamilyStore } from '@/store/family-store';
+import FamilyDetailModal from '@/components/family-detail-modal';
 import './families.css';
 
 export default function FamiliesPage() {
@@ -17,6 +18,8 @@ export default function FamiliesPage() {
   const { families, isLoading, fetchFamilies } = useFamilyStore();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
+  const [selectedFamilyId, setSelectedFamilyId] = useState<string | null>(null);
+  const [isFamilyDetailModalOpen, setIsFamilyDetailModalOpen] = useState(false);
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -36,6 +39,34 @@ export default function FamiliesPage() {
 
   const handleJoinFamily = () => {
     setIsJoinDialogOpen(true);
+  };
+
+  // 处理家庭卡片点击
+  const handleFamilyClick = (familyId: string) => {
+    setSelectedFamilyId(familyId);
+    setIsFamilyDetailModalOpen(true);
+  };
+
+  // 处理模态框关闭
+  const handleModalClose = () => {
+    setIsFamilyDetailModalOpen(false);
+    setSelectedFamilyId(null);
+  };
+
+  // 处理编辑家庭
+  const handleEditFamily = (familyId: string) => {
+    // 关闭模态框并导航到编辑页面
+    setIsFamilyDetailModalOpen(false);
+    setSelectedFamilyId(null);
+    router.push(`/families/${familyId}/edit`);
+  };
+
+  // 处理管理成员
+  const handleManageMembers = (familyId: string) => {
+    // 关闭模态框并导航到成员管理页面
+    setIsFamilyDetailModalOpen(false);
+    setSelectedFamilyId(null);
+    router.push(`/families/${familyId}/members`);
   };
 
   // 右侧操作按钮
@@ -63,6 +94,7 @@ export default function FamiliesPage() {
           families={families}
           onCreateFamily={handleCreateFamily}
           onJoinFamily={handleJoinFamily}
+          onFamilyClick={handleFamilyClick}
         />
       )}
 
@@ -74,6 +106,17 @@ export default function FamiliesPage() {
 
       {/* 加入家庭对话框 */}
       <JoinFamilyDialog isOpen={isJoinDialogOpen} onClose={() => setIsJoinDialogOpen(false)} />
+
+      {/* 家庭详情模态框 */}
+      {selectedFamilyId && (
+        <FamilyDetailModal
+          familyId={selectedFamilyId}
+          isOpen={isFamilyDetailModalOpen}
+          onClose={handleModalClose}
+          onEdit={handleEditFamily}
+          onManageMembers={handleManageMembers}
+        />
+      )}
     </PageContainer>
   );
 }

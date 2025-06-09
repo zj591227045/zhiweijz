@@ -11,9 +11,10 @@ import { formatDate } from '@/lib/utils';
 
 interface FamilyCardProps {
   family: Family;
+  onFamilyClick?: (familyId: string) => void;
 }
 
-export function FamilyCard({ family }: FamilyCardProps) {
+export function FamilyCard({ family, onFamilyClick }: FamilyCardProps) {
   const { deleteFamily, leaveFamily } = useFamilyStore();
   const { user } = useAuthStore();
   const [showActions, setShowActions] = useState(false);
@@ -52,16 +53,25 @@ export function FamilyCard({ family }: FamilyCardProps) {
     }
   };
 
+  // 处理卡片点击
+  const handleCardClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onFamilyClick) {
+      onFamilyClick(family.id);
+    }
+  };
+
   return (
     <>
-      <Link href={`/families/${family.id}`}>
-        <div
-          className="family-card"
-          onContextMenu={(e) => {
-            e.preventDefault();
-            handleLongPress();
-          }}
-        >
+      <div
+        className="family-card"
+        onClick={handleCardClick}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          handleLongPress();
+        }}
+        style={{ cursor: 'pointer' }}
+      >
           <div className="family-card-avatar">
             <i className="fas fa-home"></i>
           </div>
@@ -85,7 +95,6 @@ export function FamilyCard({ family }: FamilyCardProps) {
             <i className="fas fa-chevron-right"></i>
           </div>
         </div>
-      </Link>
 
       {/* 操作菜单 */}
       {showActions && (
