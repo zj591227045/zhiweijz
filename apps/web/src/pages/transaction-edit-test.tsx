@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
+import { fetchApi } from '@/lib/api-client';
 
 // 交易类型
 interface Transaction {
@@ -39,7 +40,7 @@ export default function TransactionEditPage() {
         console.log('📝 [TransactionEdit] 开始获取交易详情:', id);
 
         // 模拟 API 调用
-        const response = await fetch(`/api/transactions/${id}`);
+        const response = await fetchApi(`/api/transactions/${id}`);
         
         if (!response.ok) {
           throw new Error('获取交易详情失败');

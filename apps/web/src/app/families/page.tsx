@@ -10,6 +10,7 @@ import { JoinFamilyDialog } from '@/components/families/join-family-dialog';
 import { EmptyState } from '@/components/families/empty-state';
 import { useFamilyStore } from '@/store/family-store';
 import FamilyDetailModal from '@/components/family-detail-modal';
+import FamilyMembersModal from '@/components/family-members-modal';
 import './families.css';
 
 export default function FamiliesPage() {
@@ -20,6 +21,8 @@ export default function FamiliesPage() {
   const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
   const [selectedFamilyId, setSelectedFamilyId] = useState<string | null>(null);
   const [isFamilyDetailModalOpen, setIsFamilyDetailModalOpen] = useState(false);
+  const [isFamilyMembersModalOpen, setIsFamilyMembersModalOpen] = useState(false);
+  const [membersFamilyId, setMembersFamilyId] = useState<string | null>(null);
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -63,10 +66,17 @@ export default function FamiliesPage() {
 
   // 处理管理成员
   const handleManageMembers = (familyId: string) => {
-    // 关闭模态框并导航到成员管理页面
+    // 关闭家庭详情模态框，打开成员管理模态框
     setIsFamilyDetailModalOpen(false);
     setSelectedFamilyId(null);
-    router.push(`/families/${familyId}/members`);
+    setMembersFamilyId(familyId);
+    setIsFamilyMembersModalOpen(true);
+  };
+
+  // 处理成员管理模态框关闭
+  const handleMembersModalClose = () => {
+    setIsFamilyMembersModalOpen(false);
+    setMembersFamilyId(null);
   };
 
   // 右侧操作按钮
@@ -115,6 +125,15 @@ export default function FamiliesPage() {
           onClose={handleModalClose}
           onEdit={handleEditFamily}
           onManageMembers={handleManageMembers}
+        />
+      )}
+
+      {/* 家庭成员管理模态框 */}
+      {membersFamilyId && (
+        <FamilyMembersModal
+          familyId={membersFamilyId}
+          isOpen={isFamilyMembersModalOpen}
+          onClose={handleMembersModalClose}
         />
       )}
     </PageContainer>

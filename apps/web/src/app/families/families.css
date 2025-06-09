@@ -197,27 +197,28 @@
 }
 
 .btn-primary {
-  background-color: var(--primary);
+  background-color: var(--primary-color);
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: var(--primary-dark);
+  background-color: var(--primary-color-dark);
 }
 
 .btn-primary:disabled {
-  background-color: var(--text-disabled);
+  background-color: var(--text-secondary);
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .btn-secondary {
-  background-color: var(--background-secondary);
+  background-color: var(--card-background);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: var(--background-tertiary);
+  background-color: var(--hover-background);
 }
 
 .btn-danger {
@@ -226,7 +227,7 @@
 }
 
 .btn-danger:hover:not(:disabled) {
-  background-color: var(--error-dark);
+  background-color: var(--error-color-dark);
 }
 
 /* 通用区域样式 */
@@ -249,7 +250,7 @@
 }
 
 .section-title i {
-  color: var(--primary);
+  color: var(--primary-color);
 }
 
 .view-all-link {
@@ -579,15 +580,47 @@
   text-align: center;
   color: var(--text-secondary);
   background-color: var(--card-background);
-  border-radius: 12px;
+  border-radius: var(--border-radius);
   margin: 0 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
 }
 
-.empty-state i {
-  font-size: 48px;
-  color: var(--border-color);
+.empty-state .empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
   margin-bottom: 16px;
+}
+
+.empty-state .empty-icon i {
+  font-size: 24px;
+  color: var(--primary-color);
+  margin: 0;
+}
+
+.empty-state .empty-text {
+  text-align: center;
+}
+
+.empty-state .empty-text p {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.empty-state .empty-text .empty-subtext {
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  color: var(--text-secondary) !important;
+  margin: 0 !important;
 }
 
 .empty-state p {
@@ -648,10 +681,10 @@
 }
 
 .btn-primary {
-  background-color: var(--primary);
+  background-color: var(--primary-color);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--border-radius);
   padding: 12px 24px;
   font-size: 14px;
   font-weight: 500;
@@ -664,9 +697,9 @@
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-dark);
+  background-color: var(--primary-color-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--card-shadow);
 }
 
 .btn-primary:disabled {
@@ -677,10 +710,10 @@
 }
 
 .btn-secondary {
-  background-color: var(--background-secondary);
+  background-color: var(--card-background);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--border-radius);
   padding: 12px 24px;
   font-size: 14px;
   font-weight: 500;
@@ -689,7 +722,7 @@
 }
 
 .btn-secondary:hover {
-  background-color: var(--background-tertiary);
+  background-color: var(--hover-background);
   border-color: var(--text-secondary);
 }
 
@@ -697,7 +730,7 @@
   background-color: var(--error-color);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--border-radius);
   padding: 12px 24px;
   font-size: 14px;
   font-weight: 500;
@@ -706,7 +739,7 @@
 }
 
 .btn-danger:hover {
-  background-color: #dc2626;
+  background-color: var(--error-color-dark);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
 }
@@ -725,10 +758,11 @@
 
 .period-selector {
   display: flex;
-  background-color: var(--background-secondary);
-  border-radius: 8px;
+  background-color: var(--card-background);
+  border-radius: var(--border-radius);
   padding: 4px;
   margin: 0 16px 16px;
+  border: 1px solid var(--border-color);
 }
 
 .period-tab {
@@ -745,8 +779,13 @@
 }
 
 .period-tab.active {
-  background-color: var(--primary);
+  background-color: var(--primary-color);
   color: white;
+}
+
+.period-tab:hover:not(.active) {
+  background-color: var(--hover-background);
+  color: var(--text-primary);
 }
 
 /* 管理区域 */
@@ -812,10 +851,11 @@
 
 .stats-overview {
   background-color: var(--card-background);
-  border-radius: 12px;
+  border-radius: var(--border-radius);
   margin: 0 16px 16px;
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
 }
 
 .stats-summary {
@@ -851,10 +891,11 @@
 .member-ranking,
 .category-ranking {
   background-color: var(--card-background);
-  border-radius: 12px;
+  border-radius: var(--border-radius);
   margin: 0 16px 16px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
 }
 
 .ranking-title {
@@ -884,7 +925,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background-color: var(--background-secondary);
+  background-color: var(--card-background);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -893,6 +934,7 @@
   color: var(--text-secondary);
   margin-right: 12px;
   flex-shrink: 0;
+  border: 1px solid var(--border-color);
 }
 
 .rank-number.top-1 {
@@ -1131,10 +1173,10 @@
 /* 成员管理页面的成员卡片 */
 .members-list .member-card {
   background-color: var(--card-background);
-  border-radius: 12px;
+  border-radius: var(--border-radius);
   margin: 0 16px 16px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--card-shadow);
   border: 1px solid var(--border-color);
   display: flex !important;
   flex-direction: column !important;
@@ -1350,7 +1392,7 @@
   display: flex;
   padding: 12px 16px;
   border-top: 1px solid var(--border-color);
-  background-color: var(--background-secondary);
+  background-color: var(--card-background);
   gap: 12px;
   width: 100%;
   box-sizing: border-box;
@@ -1868,7 +1910,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: var(--primary);
+  background-color: var(--primary-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2180,7 +2222,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 10000002;
   padding: 16px;
 }
 
@@ -2511,7 +2553,8 @@
 
 .empty-state i {
   font-size: 48px;
-  color: var(--text-disabled);
+  color: var(--text-secondary);
+  opacity: 0.5;
 }
 
 .empty-state p {
@@ -2600,21 +2643,22 @@
 }
 
 .members-list .member-card .member-actions-row .action-button.primary {
-  background-color: #f59e0b;
+  background-color: var(--warning-color);
   color: white;
 }
 
 .members-list .member-card .member-actions-row .action-button.primary:hover {
-  background-color: #d97706;
+  background-color: var(--warning-color);
+  opacity: 0.9;
 }
 
 .members-list .member-card .member-actions-row .action-button.danger {
-  background-color: #ef4444;
+  background-color: var(--error-color);
   color: white;
 }
 
 .members-list .member-card .member-actions-row .action-button.danger:hover {
-  background-color: #dc2626;
+  background-color: var(--error-color-dark);
 }
 
 .members-list .member-card .member-actions-row .action-button:disabled {
@@ -2750,6 +2794,155 @@
   align-items: center;
 }
 
+/* 深色模式适配 - 邀请码相关样式 */
+.dark .invitation-code,
+[data-theme="dark"] .invitation-code,
+.dark-theme .invitation-code {
+  background-color: var(--card-background);
+  color: var(--primary-color);
+}
+
+.dark .invite-code,
+[data-theme="dark"] .invite-code,
+.dark-theme .invite-code {
+  background-color: var(--card-background);
+  color: var(--primary-color);
+}
+
+.dark .invite-code-container,
+[data-theme="dark"] .invite-code-container,
+.dark-theme .invite-code-container {
+  background-color: transparent;
+}
+
+.dark .invitation-tip,
+[data-theme="dark"] .invitation-tip,
+.dark-theme .invitation-tip {
+  background-color: var(--card-background);
+  color: var(--text-secondary);
+}
+
+.dark .action-button,
+[data-theme="dark"] .action-button,
+.dark-theme .action-button {
+  background-color: var(--card-background);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.dark .action-button:hover,
+[data-theme="dark"] .action-button:hover,
+.dark-theme .action-button:hover {
+  background-color: var(--hover-background);
+}
+
+.dark .invitation-action-btn,
+[data-theme="dark"] .invitation-action-btn,
+.dark-theme .invitation-action-btn {
+  background-color: var(--card-background);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.dark .invitation-action-btn:hover,
+[data-theme="dark"] .invitation-action-btn:hover,
+.dark-theme .invitation-action-btn:hover {
+  background-color: var(--hover-background);
+}
+
+.dark .total-overview,
+[data-theme="dark"] .total-overview,
+.dark-theme .total-overview {
+  background-color: var(--card-background);
+}
+
+.dark .copy-code-button:hover,
+[data-theme="dark"] .copy-code-button:hover,
+.dark-theme .copy-code-button:hover {
+  background-color: var(--hover-background);
+}
+
+.dark .copy-button:hover,
+[data-theme="dark"] .copy-button:hover,
+.dark-theme .copy-button:hover {
+  background-color: var(--hover-background);
+}
+
+.dark .refresh-button:hover,
+[data-theme="dark"] .refresh-button:hover,
+.dark-theme .refresh-button:hover {
+  background-color: var(--hover-background);
+}
+
+.dark .regenerate-button,
+[data-theme="dark"] .regenerate-button,
+.dark-theme .regenerate-button {
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.dark .regenerate-button:hover,
+[data-theme="dark"] .regenerate-button:hover,
+.dark-theme .regenerate-button:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.dark .invitation-summary:hover,
+[data-theme="dark"] .invitation-summary:hover,
+.dark-theme .invitation-summary:hover {
+  background-color: var(--hover-background);
+}
+
+.dark .member-actions-row,
+[data-theme="dark"] .member-actions-row,
+.dark-theme .member-actions-row {
+  background-color: var(--card-background);
+  border-top-color: var(--border-color);
+}
+
+.dark .invitation-generate-btn,
+[data-theme="dark"] .invitation-generate-btn,
+.dark-theme .invitation-generate-btn {
+  background-color: var(--primary-color);
+  color: var(--primary-foreground, white);
+}
+
+.dark .invitation-generate-btn:hover,
+[data-theme="dark"] .invitation-generate-btn:hover,
+.dark-theme .invitation-generate-btn:hover {
+  background-color: var(--primary-color-dark);
+}
+
+.dark .invitation-section,
+[data-theme="dark"] .invitation-section,
+.dark-theme .invitation-section {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+}
+
+.dark .invitation-copy-btn:hover,
+[data-theme="dark"] .invitation-copy-btn:hover,
+.dark-theme .invitation-copy-btn:hover {
+  background-color: var(--hover-background);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.dark .invitation-share-btn:hover,
+[data-theme="dark"] .invitation-share-btn:hover,
+.dark-theme .invitation-share-btn:hover {
+  background-color: var(--hover-background);
+  border-color: var(--success-color);
+  color: var(--success-color);
+}
+
+.dark .statistics-note,
+[data-theme="dark"] .statistics-note,
+.dark-theme .statistics-note {
+  background-color: var(--card-background);
+}
+
 /* 角色标签 */
 .role-badge {
   display: inline-flex;
@@ -2808,6 +3001,24 @@
   max-width: 320px;
 }
 
+.empty-text {
+  text-align: center;
+}
+
+.empty-text p {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.empty-subtext {
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  color: var(--text-secondary) !important;
+  margin: 0 !important;
+}
+
 .empty-actions {
   display: flex;
   flex-direction: column;
@@ -2857,7 +3068,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 10000002;
 }
 
 .dialog-content {
@@ -2932,6 +3143,152 @@
 
 .dialog-confirm.danger {
   background-color: var(--error-color);
+}
+
+/* 深色模式适配 */
+.dark .members-list .member-card,
+[data-theme="dark"] .members-list .member-card,
+.dark-theme .members-list .member-card {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+  box-shadow: var(--card-shadow);
+}
+
+.dark .members-list .member-card .member-actions-row,
+[data-theme="dark"] .members-list .member-card .member-actions-row,
+.dark-theme .members-list .member-card .member-actions-row {
+  background-color: var(--card-background);
+  border-top-color: var(--border-color);
+}
+
+.dark .btn-secondary,
+[data-theme="dark"] .btn-secondary,
+.dark-theme .btn-secondary {
+  background-color: var(--card-background);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.dark .btn-secondary:hover,
+[data-theme="dark"] .btn-secondary:hover,
+.dark-theme .btn-secondary:hover {
+  background-color: var(--hover-background);
+}
+
+.dark .section-title,
+[data-theme="dark"] .section-title,
+.dark-theme .section-title {
+  color: var(--text-primary);
+}
+
+.dark .section-title i,
+[data-theme="dark"] .section-title i,
+.dark-theme .section-title i {
+  color: var(--primary-color);
+}
+
+/* 成员统计深色模式适配 */
+.dark .stats-overview,
+[data-theme="dark"] .stats-overview,
+.dark-theme .stats-overview {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+  box-shadow: var(--card-shadow);
+}
+
+.dark .period-selector,
+[data-theme="dark"] .period-selector,
+.dark-theme .period-selector {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+}
+
+.dark .period-tab,
+[data-theme="dark"] .period-tab,
+.dark-theme .period-tab {
+  color: var(--text-secondary);
+}
+
+.dark .period-tab.active,
+[data-theme="dark"] .period-tab.active,
+.dark-theme .period-tab.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.dark .period-tab:hover:not(.active),
+[data-theme="dark"] .period-tab:hover:not(.active),
+.dark-theme .period-tab:hover:not(.active) {
+  background-color: var(--hover-background);
+  color: var(--text-primary);
+}
+
+.dark .member-ranking,
+[data-theme="dark"] .member-ranking,
+.dark-theme .member-ranking {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+  box-shadow: var(--card-shadow);
+}
+
+.dark .ranking-avatar,
+[data-theme="dark"] .ranking-avatar,
+.dark-theme .ranking-avatar {
+  background-color: var(--primary-color);
+}
+
+.dark .rank-number,
+[data-theme="dark"] .rank-number,
+.dark-theme .rank-number {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+/* 空状态深色模式适配 */
+.dark .empty-state,
+[data-theme="dark"] .empty-state,
+.dark-theme .empty-state {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+}
+
+.dark .empty-state .empty-icon,
+[data-theme="dark"] .empty-state .empty-icon,
+.dark-theme .empty-state .empty-icon {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: var(--primary-color);
+}
+
+.dark .empty-state .empty-icon i,
+[data-theme="dark"] .empty-state .empty-icon i,
+.dark-theme .empty-state .empty-icon i {
+  color: var(--primary-color);
+}
+
+.dark .empty-state i,
+[data-theme="dark"] .empty-state i,
+.dark-theme .empty-state i {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.dark .empty-state p,
+[data-theme="dark"] .empty-state p,
+.dark-theme .empty-state p {
+  color: var(--text-primary);
+}
+
+.dark .empty-state .empty-text p,
+[data-theme="dark"] .empty-state .empty-text p,
+.dark-theme .empty-state .empty-text p {
+  color: var(--text-primary);
+}
+
+.dark .empty-state .empty-subtext,
+[data-theme="dark"] .empty-state .empty-subtext,
+.dark-theme .empty-state .empty-subtext {
+  color: var(--text-secondary);
 }
 
 

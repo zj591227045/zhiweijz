@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/auth-store';
+import { fetchApi } from '@/lib/api-client';
 
 interface FamilyStatisticsProps {
   familyId: string;
@@ -41,11 +42,7 @@ export function FamilyStatistics({ familyId }: FamilyStatisticsProps) {
 
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/families/${familyId}/statistics?period=${period}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetchApi(`/api/families/${familyId}/statistics?period=${period}`);
 
       if (response.ok) {
         const data = await response.json();

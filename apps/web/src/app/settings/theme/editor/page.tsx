@@ -7,6 +7,7 @@ import { ThemeInfoForm, ThemeInfoFormValues } from '@/components/theme-editor/th
 import { ColorPicker } from '@/components/theme-editor/color-picker';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from 'sonner';
+import { fetchApi } from '@/lib/api-client';
 
 interface ThemeVariable {
   name: string;
@@ -61,7 +62,7 @@ function ThemeEditorContent() {
       const fetchTheme = async () => {
         setIsLoading(true);
         try {
-          const response = await fetch(`/api/themes/${themeId}`);
+          const response = await fetchApi(`/api/themes/${themeId}`);
           if (response.ok) {
             const data = await response.json();
             setTheme(data);
@@ -123,11 +124,8 @@ function ThemeEditorContent() {
       const url = isEditMode ? `/api/themes/${themeId}` : '/api/themes';
       const method = isEditMode ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const response = await fetchApi(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(theme),
       });
 

@@ -45,11 +45,11 @@ export const getApiBaseUrl = (): string => {
       try {
         const parsedConfig = JSON.parse(storedConfig);
         const apiUrl = parsedConfig?.state?.config?.currentUrl || 'https://app.zhiweijz.cn:1443/api';
-        
+
         if (isDev) {
           console.log('📡 从LocalStorage获取API基础URL:', apiUrl);
         }
-        
+
         return apiUrl;
       } catch (parseError) {
         console.warn('⚠️ 解析服务器配置失败:', parseError);
@@ -66,4 +66,4 @@ export const getApiBaseUrl = (): string => {
     console.warn('⚠️ 获取服务器配置失败，使用默认值:', error);
     return '/api';
   }
-}; 
+};

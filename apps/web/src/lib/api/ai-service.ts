@@ -223,15 +223,8 @@ export const aiService = {
           apiKey: updateData.apiKey ? '******' : undefined,
         });
 
-        // 获取token
-        const token = localStorage.getItem('auth-token');
-
-        const fetchResponse = await fetch(`/api${requestUrl}`, {
+        const fetchResponse = await fetchApi(`/api${requestUrl}`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: token ? `Bearer ${token}` : '',
-          },
           body: JSON.stringify(updateData),
         });
 

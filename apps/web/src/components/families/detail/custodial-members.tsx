@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/auth-store';
+import { fetchApi } from '@/lib/api-client';
 
 interface CustodialMember {
   id: string;
@@ -48,11 +49,7 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
 
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/families/${familyId}/custodial-members`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetchApi(`/api/families/${familyId}/custodial-members`);
 
       if (response.ok) {
         const data = await response.json();
@@ -97,12 +94,8 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`/api/families/${familyId}/custodial-members`, {
+      const response = await fetchApi(`/api/families/${familyId}/custodial-members`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify(formData),
       });
 
@@ -167,14 +160,10 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(
+      const response = await fetchApi(
         `/api/families/${familyId}/custodial-members/${selectedMember.id}`,
         {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
           body: JSON.stringify(formData),
         },
       );
@@ -208,13 +197,10 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(
+      const response = await fetchApi(
         `/api/families/${familyId}/custodial-members/${selectedMember.id}`,
         {
           method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         },
       );
 

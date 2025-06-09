@@ -77,15 +77,15 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
       set({ isLoading: true, error: null });
       const url = `/api/families/${familyId}/members/statistics?period=${get().period}`;
       console.log('fetchMembers: 调用API:', url);
-      const response = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetchApi(url);
 
       if (response.ok) {
         const data = await response.json();
+        console.log('fetchMembers: 获取到的数据:', data);
+        console.log('fetchMembers: 成员数量:', data.members?.length || 0);
+        console.log('fetchMembers: 总支出:', data.totalExpense || 0);
+        console.log('fetchMembers: 用户权限:', data.userPermissions);
+
         set({
           members: data.members || [],
           totalExpense: data.totalExpense || 0,
@@ -119,15 +119,7 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
 
     try {
       set({ isLoading: true, period, error: null });
-      const response = await fetch(
-        `/api/families/${familyId}/members/statistics?period=${period}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      const response = await fetchApi(`/api/families/${familyId}/members/statistics?period=${period}`);
 
       if (response.ok) {
         const data = await response.json();
@@ -197,11 +189,8 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
 
     try {
       set({ isRemoving: true, error: null });
-      const response = await fetch(`/api/families/${familyId}/members/${memberId}`, {
+      const response = await fetchApi(`/api/families/${familyId}/members/${memberId}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       if (response.ok) {
@@ -234,12 +223,8 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
 
     try {
       set({ isInvitationLoading: true, error: null });
-      const response = await fetch(`/api/families/${familyId}/invitations`, {
+      const response = await fetchApi(`/api/families/${familyId}/invitations`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ expiresInDays }),
       });
 
@@ -280,12 +265,7 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
     try {
       console.log(`fetchInvitations: 开始获取家庭 ${familyId} 的邀请列表`);
       set({ isInvitationsLoading: true, error: null });
-      const response = await fetch(`/api/families/${familyId}/invitations`, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetchApi(`/api/families/${familyId}/invitations`);
 
       if (response.ok) {
         const data = await response.json();

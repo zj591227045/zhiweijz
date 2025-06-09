@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
+import { fetchApi } from '@/lib/api-client';
 
 interface RecentTransactionsProps {
   familyId: string;
@@ -34,11 +35,7 @@ export function RecentTransactions({ familyId }: RecentTransactionsProps) {
 
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/families/${familyId}/transactions/recent?limit=5`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetchApi(`/api/families/${familyId}/transactions/recent?limit=5`);
 
       if (response.ok) {
         const data = await response.json();

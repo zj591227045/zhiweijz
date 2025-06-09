@@ -3,19 +3,30 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
-import { fetchApi } from '@/lib/api-client';
+import { getApiBaseUrl } from '@/lib/server-config';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import './family-detail-modal.css';
 
 interface FamilyMember {
-  id: string;
-  userId: string;
+  memberId: string;
+  userId: string | null;
   username: string;
-  email: string;
+  avatar: string | null;
   role: 'ADMIN' | 'MEMBER';
   joinedAt: string;
-  name: string;
-  createdAt: string;
+  isCurrentUser: boolean;
+  isCustodial?: boolean;
+  statistics?: {
+    totalExpense: number;
+    percentage: number;
+    transactionCount: number;
+  };
+  // 兼容旧的数据结构
+  id?: string;
+  email?: string;
+  name?: string;
+  createdAt?: string;
 }
 
 interface Family {
@@ -27,6 +38,11 @@ interface Family {
   memberCount: number;
   creator?: {
     id: string;
+  };
+  userPermissions?: {
+    canInvite: boolean;
+    canRemove: boolean;
+    canChangeRoles: boolean;
   };
 }
 
@@ -111,8 +127,9 @@ export default function FamilyDetailModal({
   const [isCustodialSubmitting, setIsCustodialSubmitting] = useState(false);
 
   // 检查用户是否为管理员
-  const isAdmin = family?.creator?.id === user?.id || 
-    family?.members.some(member => member.userId === user?.id && member.role === 'ADMIN');
+  const isAdmin = family?.creator?.id === user?.id ||
+    family?.members.some(member => (member.userId === user?.id || member.isCurrentUser) && member.role === 'ADMIN') ||
+    family?.userPermissions?.canInvite || false;
 
   // 获取家庭详情
   const fetchFamilyDetail = async () => {
@@ -126,15 +143,67 @@ export default function FamilyDetailModal({
       setIsLoading(true);
       setError(null);
 
-      // 并行获取家庭详情、统计数据和托管成员
-      const [familyResponse, statsResponse, custodialResponse] = await Promise.all([
-        fetchApi(`/api/families/${familyId}`),
-        fetchApi(`/api/families/${familyId}/statistics?period=month`),
-        fetchApi(`/api/families/${familyId}/custodial-members`)
+      console.log('🔍 开始获取家庭详情数据:', { familyId, token: !!token });
+
+      // 获取API基础URL
+      const baseURL = getApiBaseUrl();
+
+      // 并行获取家庭详情、成员统计、家庭统计数据和托管成员
+      const [familyResponse, memberStatsResponse, statsResponse, custodialResponse] = await Promise.all([
+        fetch(`${baseURL}/families/${familyId}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        fetch(`${baseURL}/families/${familyId}/members/statistics?period=month`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        fetch(`${baseURL}/families/${familyId}/statistics?period=month`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        fetch(`${baseURL}/families/${familyId}/custodial-members`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        })
       ]);
+
+      console.log('📊 API响应状态:', {
+        family: familyResponse.status,
+        memberStats: memberStatsResponse.status,
+        stats: statsResponse.status,
+        custodial: custodialResponse.status
+      });
 
       if (familyResponse.ok) {
         const familyData = await familyResponse.json();
+        console.log('✅ 家庭详情获取成功:', familyData);
+
+        // 如果成员统计API成功，使用统计数据中的成员信息（包含消费数据）
+        if (memberStatsResponse.ok) {
+          const memberStatsData = await memberStatsResponse.json();
+          // 将详细的成员统计数据合并到家庭数据中
+          familyData.members = memberStatsData.members || [];
+          familyData.userPermissions = memberStatsData.userPermissions;
+          console.log('✅ 成员统计数据获取成功:', memberStatsData);
+        } else {
+          console.warn('⚠️ 成员统计API失败:', memberStatsResponse.status);
+          try {
+            const errorData = await memberStatsResponse.json();
+            console.warn('成员统计API错误详情:', errorData);
+          } catch (e) {
+            console.warn('无法解析成员统计API错误响应');
+          }
+        }
+
         setFamily(familyData);
         // 初始化编辑表单数据
         setEditFormData({
@@ -142,22 +211,47 @@ export default function FamilyDetailModal({
           description: familyData.description || ''
         });
       } else {
-        const errorData = await familyResponse.json();
-        setError(errorData.message || '获取家庭详情失败');
+        console.error('❌ 家庭详情API失败:', familyResponse.status);
+        try {
+          const errorData = await familyResponse.json();
+          console.error('家庭详情API错误详情:', errorData);
+          setError(errorData.message || '获取家庭详情失败');
+        } catch (e) {
+          console.error('无法解析家庭详情API错误响应');
+          setError('获取家庭详情失败');
+        }
       }
 
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();
         setStatistics(statsData);
+        console.log('✅ 家庭统计数据获取成功:', statsData);
+      } else {
+        console.warn('⚠️ 家庭统计API失败:', statsResponse.status);
+        try {
+          const errorData = await statsResponse.json();
+          console.warn('家庭统计API错误详情:', errorData);
+        } catch (e) {
+          console.warn('无法解析家庭统计API错误响应');
+        }
       }
 
       if (custodialResponse.ok) {
         const custodialData = await custodialResponse.json();
         setCustodialMembers(custodialData.members || []);
+        console.log('✅ 托管成员数据获取成功:', custodialData);
+      } else {
+        console.warn('⚠️ 托管成员API失败:', custodialResponse.status);
+        try {
+          const errorData = await custodialResponse.json();
+          console.warn('托管成员API错误详情:', errorData);
+        } catch (e) {
+          console.warn('无法解析托管成员API错误响应');
+        }
       }
     } catch (error) {
-      console.error('获取家庭详情失败:', error);
-      setError('获取家庭详情失败');
+      console.error('❌ 获取家庭详情失败:', error);
+      setError('获取家庭详情失败: ' + (error instanceof Error ? error.message : String(error)));
     } finally {
       setIsLoading(false);
     }
@@ -170,31 +264,176 @@ export default function FamilyDetailModal({
     }
   }, [isOpen, familyId, isAuthenticated, token]);
 
-  // 隐藏底层页面的头部和底部导航栏
+  // 管理 body 类以防止背景滚动和适配 iOS
   useEffect(() => {
     if (isOpen) {
-      const appContainer = document.querySelector('.app-container');
-      const pageHeader = appContainer?.querySelector('.header');
-      const bottomNav = document.querySelector('.bottom-nav');
-
-      if (pageHeader) {
-        (pageHeader as HTMLElement).style.display = 'none';
+      document.body.classList.add('family-detail-modal-open');
+      // 检测 iOS 环境并添加相应类
+      if (typeof window !== 'undefined') {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isCapacitor = !!(window as any).Capacitor;
+        if (isIOS) {
+          document.body.classList.add('ios-app');
+        }
+        if (isCapacitor) {
+          document.body.classList.add('capacitor-ios');
+        }
+        // iPhone 16 Pro 检测
+        if (window.screen.width === 402 && window.screen.height === 874) {
+          document.body.classList.add('iphone-16-pro');
+        }
       }
-      if (bottomNav) {
-        (bottomNav as HTMLElement).style.display = 'none';
+    } else {
+      document.body.classList.remove('family-detail-modal-open');
+    }
+
+    return () => {
+      document.body.classList.remove('family-detail-modal-open');
+    };
+  }, [isOpen]);
+
+  // 隐藏所有可能的顶部工具栏和底部导航栏
+  useEffect(() => {
+    if (isOpen) {
+      // 查找所有可能的头部元素
+      const selectors = [
+        '.app-container .header',
+        '.header',
+        '.page-header',
+        '.ios-header',
+        '.capacitor-header',
+        '.top-bar',
+        '.navigation-header',
+        '.app-header',
+        // iOS Capacitor 特定选择器
+        '.capacitor-ios .header',
+        '.ios-app .header',
+        // 可能的状态栏
+        '.status-bar',
+        '.capacitor-status-bar'
+      ];
+
+      const hiddenElements: HTMLElement[] = [];
+
+      // 隐藏所有找到的头部元素
+      selectors.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(element => {
+          const htmlElement = element as HTMLElement;
+          if (htmlElement && htmlElement.style.display !== 'none') {
+            htmlElement.style.display = 'none';
+            hiddenElements.push(htmlElement);
+          }
+        });
+      });
+
+      // 隐藏底部导航栏
+      const bottomNavSelectors = [
+        '.bottom-nav',
+        '.bottom-navigation',
+        '.tab-bar',
+        '.capacitor-tab-bar'
+      ];
+
+      bottomNavSelectors.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(element => {
+          const htmlElement = element as HTMLElement;
+          if (htmlElement && htmlElement.style.display !== 'none') {
+            htmlElement.style.display = 'none';
+            hiddenElements.push(htmlElement);
+          }
+        });
+      });
+
+      // 特殊处理：隐藏 body 上可能的工具栏
+      const body = document.body;
+      const originalOverflow = body.style.overflow;
+      body.style.overflow = 'hidden';
+
+      // iOS Capacitor 特殊处理：隐藏可能的原生工具栏
+      if (typeof window !== 'undefined' && (window as any).Capacitor) {
+        // 尝试隐藏 Capacitor 的状态栏
+        try {
+          const { StatusBar } = (window as any).Capacitor.Plugins;
+          if (StatusBar) {
+            StatusBar.hide();
+          }
+        } catch (error) {
+          console.log('StatusBar plugin not available:', error);
+        }
       }
 
       return () => {
-        // 恢复显示
-        if (pageHeader) {
-          (pageHeader as HTMLElement).style.display = '';
-        }
-        if (bottomNav) {
-          (bottomNav as HTMLElement).style.display = '';
+        // 恢复所有隐藏的元素
+        hiddenElements.forEach(element => {
+          element.style.display = '';
+        });
+
+        // 恢复 body 样式
+        body.style.overflow = originalOverflow;
+
+        // 恢复状态栏
+        if (typeof window !== 'undefined' && (window as any).Capacitor) {
+          try {
+            const { StatusBar } = (window as any).Capacitor.Plugins;
+            if (StatusBar) {
+              StatusBar.show();
+            }
+          } catch (error) {
+            console.log('StatusBar plugin not available:', error);
+          }
         }
       };
     }
   }, [isOpen]);
+
+  // 确保头部组件始终可见
+  useEffect(() => {
+    if (isOpen) {
+      // 延迟确保DOM已渲染
+      const timer = setTimeout(() => {
+        const header = document.querySelector('.family-detail-modal-header') as HTMLElement;
+        if (header) {
+          console.log('🔍 检查头部组件状态:', {
+            display: header.style.display,
+            visibility: header.style.visibility,
+            opacity: header.style.opacity,
+            zIndex: header.style.zIndex,
+            position: header.style.position,
+            height: header.style.height,
+            offsetHeight: header.offsetHeight,
+            clientHeight: header.clientHeight
+          });
+
+          // 强制确保头部可见
+          header.style.display = 'flex';
+          header.style.visibility = 'visible';
+          header.style.opacity = '1';
+          header.style.zIndex = '100001';
+          header.style.position = 'sticky';
+          header.style.top = '0';
+          header.style.height = '64px';
+          header.style.minHeight = '64px';
+          header.style.maxHeight = '64px';
+          header.style.flexShrink = '0';
+          header.style.width = '100%';
+          header.style.backgroundColor = 'var(--background-color)';
+          header.style.borderBottom = '1px solid var(--border-color)';
+          header.style.justifyContent = 'space-between';
+          header.style.alignItems = 'center';
+          header.style.padding = '0 16px';
+          header.style.boxSizing = 'border-box';
+
+          console.log('✅ 头部组件样式已强制设置');
+        } else {
+          console.error('❌ 未找到头部组件');
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, isLoading]);
 
   // 格式化日期
   const formatDate = (dateString: string) => {
@@ -278,8 +517,13 @@ export default function FamilyDetailModal({
 
     setIsEditSubmitting(true);
     try {
-      const response = await fetchApi(`/api/families/${familyId}`, {
+      const baseURL = getApiBaseUrl();
+      const response = await fetch(`${baseURL}/families/${familyId}`, {
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           name: editFormData.name.trim(),
           description: editFormData.description.trim() || undefined
@@ -312,8 +556,13 @@ export default function FamilyDetailModal({
 
     setIsProcessing(true);
     try {
-      const response = await fetchApi(`/api/families/${familyId}/leave`, {
+      const baseURL = getApiBaseUrl();
+      const response = await fetch(`${baseURL}/families/${familyId}/leave`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
@@ -342,8 +591,13 @@ export default function FamilyDetailModal({
 
     setIsProcessing(true);
     try {
-      const response = await fetchApi(`/api/families/${familyId}`, {
+      const baseURL = getApiBaseUrl();
+      const response = await fetch(`${baseURL}/families/${familyId}`, {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
@@ -386,8 +640,13 @@ export default function FamilyDetailModal({
 
     setIsCustodialSubmitting(true);
     try {
-      const response = await fetchApi(`/api/families/${familyId}/custodial-members`, {
+      const baseURL = getApiBaseUrl();
+      const response = await fetch(`${baseURL}/families/${familyId}/custodial-members`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           name: custodialFormData.name.trim(),
           gender: custodialFormData.gender,
@@ -438,8 +697,13 @@ export default function FamilyDetailModal({
 
     setIsCustodialSubmitting(true);
     try {
-      const response = await fetchApi(`/api/families/${familyId}/custodial-members/${selectedCustodialMember.id}`, {
+      const baseURL = getApiBaseUrl();
+      const response = await fetch(`${baseURL}/families/${familyId}/custodial-members/${selectedCustodialMember.id}`, {
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           name: custodialFormData.name.trim(),
           gender: custodialFormData.gender,
@@ -479,8 +743,13 @@ export default function FamilyDetailModal({
 
     setIsCustodialSubmitting(true);
     try {
-      const response = await fetchApi(`/api/families/${familyId}/custodial-members/${selectedCustodialMember.id}`, {
+      const baseURL = getApiBaseUrl();
+      const response = await fetch(`${baseURL}/families/${familyId}/custodial-members/${selectedCustodialMember.id}`, {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
@@ -504,31 +773,139 @@ export default function FamilyDetailModal({
 
   if (!isOpen) return null;
 
+  // 调试信息
+  console.log('🔍 FamilyDetailModal 渲染状态:', {
+    isOpen,
+    familyId,
+    isLoading,
+    error,
+    family: !!family
+  });
+
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      width: '100vw',
-      height: '100vh',
-      backgroundColor: 'var(--background-color)',
-      zIndex: 9999,
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      // 移动端优化
-      WebkitOverflowScrolling: 'touch',
-      // 确保可以接收触摸事件
-      touchAction: 'manipulation',
-      // 强制硬件加速
-      transform: 'translateZ(0)',
-      WebkitTransform: 'translateZ(0)',
-      // 动画效果
-      animation: 'fadeIn 0.3s ease-out'
-    }}>
+    <div
+      className="family-detail-modal-overlay"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        minHeight: '100vh',
+        maxHeight: '100vh',
+        backgroundColor: 'var(--background-color)',
+        zIndex: 9999999, // 进一步增加 z-index 值
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        // 移动端优化
+        WebkitOverflowScrolling: 'touch',
+        // 确保可以接收触摸事件
+        touchAction: 'manipulation',
+        // 强制硬件加速
+        transform: 'translateZ(0)',
+        WebkitTransform: 'translateZ(0)',
+        // 动画效果
+        animation: 'fadeIn 0.3s ease-out',
+        // iOS 安全区域适配 - 使用更强的覆盖
+        paddingTop: 'max(0px, env(safe-area-inset-top))',
+        paddingBottom: 'max(0px, env(safe-area-inset-bottom))',
+        paddingLeft: 'max(0px, env(safe-area-inset-left))',
+        paddingRight: 'max(0px, env(safe-area-inset-right))',
+        // iOS Capacitor 特殊处理
+        marginTop: 'calc(-1 * env(safe-area-inset-top, 0px))',
+        // 确保完全覆盖
+        isolation: 'isolate'
+      }}>
       <style jsx>{`
+        .family-detail-modal-overlay {
+          z-index: 9999999 !important;
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          min-height: 100vh !important;
+          max-height: 100vh !important;
+        }
+
+        /* 确保模态框在最顶层，覆盖所有其他元素 */
+        .family-detail-modal-overlay * {
+          z-index: inherit;
+        }
+
+        /* 确保模态框头部始终可见 */
+        .family-detail-modal-header {
+          display: flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          z-index: 10000001 !important;
+          position: sticky !important;
+          top: 0 !important;
+          height: 64px !important;
+          min-height: 64px !important;
+          max-height: 64px !important;
+          flex-shrink: 0 !important;
+          background-color: var(--background-color) !important;
+          border-bottom: 1px solid var(--border-color) !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+        }
+
+        /* 确保头部按钮可见 */
+        .family-detail-modal-header .icon-button {
+          display: flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+        }
+
+        /* 确保头部标题可见 */
+        .family-detail-modal-header .header-title {
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+        }
+
+        /* 强制隐藏所有可能的工具栏 */
+        body.family-detail-modal-open .header:not(.family-detail-modal-header),
+        body.family-detail-modal-open .page-header:not(.family-detail-modal-header),
+        body.family-detail-modal-open .ios-header:not(.family-detail-modal-header),
+        body.family-detail-modal-open .capacitor-header:not(.family-detail-modal-header),
+        body.family-detail-modal-open .top-bar:not(.family-detail-modal-header),
+        body.family-detail-modal-open .navigation-header:not(.family-detail-modal-header),
+        body.family-detail-modal-open .app-header:not(.family-detail-modal-header),
+        body.family-detail-modal-open .bottom-nav,
+        body.family-detail-modal-open .bottom-navigation,
+        body.family-detail-modal-open .tab-bar {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          height: 0 !important;
+          overflow: hidden !important;
+        }
+
+        /* iOS Capacitor 特殊适配 */
+        @supports (padding: max(0px)) {
+          .family-detail-modal-overlay {
+            padding-top: max(0px, env(safe-area-inset-top)) !important;
+            padding-bottom: max(0px, env(safe-area-inset-bottom)) !important;
+            padding-left: max(0px, env(safe-area-inset-left)) !important;
+            padding-right: max(0px, env(safe-area-inset-right)) !important;
+            margin-top: calc(-1 * env(safe-area-inset-top, 0px)) !important;
+          }
+        }
+
+        /* Capacitor iOS 特殊处理 */
+        .capacitor-ios .family-detail-modal-overlay {
+          top: 0 !important;
+          padding-top: 0 !important;
+          margin-top: 0 !important;
+        }
+
         @keyframes fadeIn {
           from {
             opacity: 0;
@@ -556,18 +933,67 @@ export default function FamilyDetailModal({
         position: 'relative',
         overflow: 'hidden',
         left: 0,
-        right: 0
+        right: 0,
+        display: 'flex',
+        flexDirection: 'column'
       }}>
         {/* 模态框专用头部 */}
-        <div className="header" style={{
+        <div
+          className="header family-detail-modal-header"
+          data-testid="family-detail-modal-header"
+          style={{
           height: '64px',
           minHeight: '64px',
-          display: 'flex',
+          maxHeight: '64px',
+          display: 'flex !important',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '0 16px'
+          padding: '0 16px',
+          backgroundColor: 'var(--background-color)',
+          borderBottom: '1px solid var(--border-color)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 100001, // 确保头部在最顶层
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          // 确保头部始终可见
+          visibility: 'visible !important',
+          opacity: '1 !important',
+          // 防止被其他元素覆盖
+          isolation: 'isolate',
+          // 强制硬件加速
+          transform: 'translateZ(0)',
+          WebkitTransform: 'translateZ(0)',
+          // 确保宽度
+          width: '100%',
+          boxSizing: 'border-box',
+          // 防止收缩
+          flexShrink: 0
         }}>
-          <button className="icon-button" onClick={onClose}>
+          <button
+            className="icon-button"
+            onClick={onClose}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              border: 'none',
+              backgroundColor: 'transparent',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              fontSize: '18px',
+              transition: 'background-color 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--hover-color, rgba(0, 0, 0, 0.05))';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
             <i className="fas fa-arrow-left"></i>
           </button>
           <div className="header-title" style={{
@@ -575,9 +1001,35 @@ export default function FamilyDetailModal({
             fontWeight: '600',
             color: 'var(--text-primary)',
             textAlign: 'center',
-            flex: 1
+            flex: 1,
+            margin: '0 8px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
           }}>家庭详情</div>
-          <button className="icon-button">
+          <button
+            className="icon-button"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              border: 'none',
+              backgroundColor: 'transparent',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              fontSize: '18px',
+              transition: 'background-color 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--hover-color, rgba(0, 0, 0, 0.05))';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
             <i className="fas fa-ellipsis-v"></i>
           </button>
         </div>
@@ -592,7 +1044,13 @@ export default function FamilyDetailModal({
           maxWidth: '100%',
           position: 'relative',
           // 移动端优化
-          WebkitOverflowScrolling: 'touch'
+          WebkitOverflowScrolling: 'touch',
+          // 确保不会覆盖头部
+          marginTop: 0,
+          paddingTop: 0,
+          // 确保内容区域高度正确
+          height: 'calc(100vh - 64px)',
+          maxHeight: 'calc(100vh - 64px)'
         }}>
           {isLoading ? (
             <div style={{
@@ -854,7 +1312,7 @@ export default function FamilyDetailModal({
                   gap: '12px'
                 }}>
                   {family.members.slice(0, 6).map((member) => (
-                    <div key={member.id} style={{
+                    <div key={member.memberId || member.id} style={{
                       backgroundColor: 'var(--background-color)',
                       border: '1px solid var(--border-color)',
                       borderRadius: '12px',
@@ -869,7 +1327,7 @@ export default function FamilyDetailModal({
                       <div style={{
                         width: '48px',
                         height: '48px',
-                        backgroundColor: 'var(--primary-color)',
+                        backgroundColor: member.isCurrentUser ? '#3b82f6' : (member.role === 'ADMIN' ? '#3b82f6' : '#6b7280'),
                         borderRadius: '50%',
                         display: 'flex',
                         alignItems: 'center',
@@ -878,7 +1336,7 @@ export default function FamilyDetailModal({
                         fontSize: '18px',
                         fontWeight: '600'
                       }}>
-                        {getAvatarText(member.username || member.name)}
+                        {getAvatarText(member.username || member.name || '?')}
                       </div>
 
                       {/* 成员姓名 */}
@@ -889,7 +1347,16 @@ export default function FamilyDetailModal({
                         textAlign: 'center',
                         lineHeight: '1.2'
                       }}>
-                        {member.username || member.name}
+                        {member.username || member.name || '未知用户'}
+                        {member.isCurrentUser && (
+                          <span style={{
+                            fontSize: '12px',
+                            color: 'var(--primary-color)',
+                            marginLeft: '4px'
+                          }}>
+                            (我)
+                          </span>
+                        )}
                       </div>
 
                       {/* 角色标签 */}
@@ -903,6 +1370,17 @@ export default function FamilyDetailModal({
                       }}>
                         {member.role === 'ADMIN' ? '管理员' : '成员'}
                       </div>
+
+                      {/* 消费统计（如果有） */}
+                      {member.statistics && (
+                        <div style={{
+                          fontSize: '12px',
+                          color: 'var(--text-secondary)',
+                          textAlign: 'center'
+                        }}>
+                          本月: {formatCurrency(member.statistics.totalExpense)}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1483,8 +1961,10 @@ export default function FamilyDetailModal({
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          zIndex: 10000,
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+          zIndex: 10000000, // 增加 z-index 确保在模态框之上
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1669,8 +2149,10 @@ export default function FamilyDetailModal({
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          zIndex: 10001,
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+          zIndex: 10000001, // 增加 z-index 确保在模态框之上
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1865,8 +2347,10 @@ export default function FamilyDetailModal({
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          zIndex: 10001,
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+          zIndex: 10000001, // 增加 z-index 确保在模态框之上
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -2064,8 +2548,10 @@ export default function FamilyDetailModal({
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          zIndex: 10001,
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+          zIndex: 10000001, // 增加 z-index 确保在模态框之上
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

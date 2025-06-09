@@ -1,0 +1,366 @@
+/* 家庭成员管理全屏模态框样式 */
+
+/* 模态框覆盖层 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  max-height: 100vh;
+  background-color: var(--background-color);
+  display: flex;
+  flex-direction: column;
+  z-index: 9999999;
+  animation: fadeIn 0.3s ease-out;
+  isolation: isolate;
+}
+
+/* 模态框容器 */
+.modal-container {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  background-color: var(--background-color);
+  display: flex;
+  flex-direction: column;
+  animation: slideInUp 0.3s ease-out;
+  overflow: hidden; /* 只隐藏水平滚动，垂直滚动由内容区域处理 */
+}
+
+/* 模态框头部 */
+.modal-header {
+  height: 64px;
+  min-height: 64px;
+  background-color: var(--card-background);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--card-shadow);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-back-button {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 18px;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.modal-back-button:hover {
+  background-color: var(--hover-background);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  flex: 1;
+  text-align: center;
+}
+
+.modal-action-button {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 18px;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.modal-action-button:hover {
+  background-color: var(--primary-color-light);
+}
+
+.modal-action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 模态框内容 */
+.modal-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
+  background-color: var(--background-color);
+  /* 确保滚动在所有设备上都能正常工作 */
+  -webkit-overflow-scrolling: touch;
+  /* 设置最小高度以确保内容可以滚动 */
+  min-height: 0;
+  /* 确保内容区域可以收缩 */
+  height: 0;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* 加载状态 */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+  gap: 16px;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-color);
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 错误状态 */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--error-color);
+  gap: 16px;
+}
+
+.error-state i {
+  font-size: 48px;
+  color: var(--error-color);
+}
+
+.error-state p {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .modal-container {
+    max-width: 100%;
+    border-radius: 0;
+  }
+  
+  .modal-header {
+    height: 56px;
+    min-height: 56px;
+  }
+  
+  .modal-title {
+    font-size: 16px;
+  }
+  
+  .modal-back-button,
+  .modal-action-button {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+}
+
+/* 确保模态框在最顶层 */
+.modal-overlay {
+  z-index: 9999999 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  max-height: 100vh !important;
+}
+
+/* 隐藏底层页面的滚动条，但保持模态框内的滚动 */
+body.modal-open {
+  overflow: hidden !important;
+  /* 防止iOS上的橡皮筋效果影响模态框 */
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 强制隐藏所有可能的工具栏 */
+body.modal-open .header:not(.modal-header),
+body.modal-open .page-header:not(.modal-header),
+body.modal-open .ios-header:not(.modal-header),
+body.modal-open .capacitor-header:not(.modal-header),
+body.modal-open .top-bar:not(.modal-header),
+body.modal-open .navigation-header:not(.modal-header),
+body.modal-open .app-header:not(.modal-header),
+body.modal-open .bottom-nav,
+body.modal-open .bottom-navigation,
+body.modal-open .tab-bar {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* 模态框打开时隐藏底层页面元素 */
+.modal-overlay ~ * {
+  pointer-events: none;
+}
+
+.modal-container * {
+  pointer-events: auto;
+}
+
+/* 适配 iOS 安全区域 */
+@supports (padding: max(0px)) {
+  .modal-header {
+    padding-top: max(16px, env(safe-area-inset-top));
+    height: max(64px, calc(64px + env(safe-area-inset-top)));
+  }
+  
+  .modal-content {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+/* 深色模式适配 - 使用标准主题变量 */
+.dark .modal-overlay,
+[data-theme="dark"] .modal-overlay,
+.dark-theme .modal-overlay {
+  background-color: var(--background-color);
+}
+
+.dark .modal-container,
+[data-theme="dark"] .modal-container,
+.dark-theme .modal-container {
+  background-color: var(--background-color);
+}
+
+.dark .modal-header,
+[data-theme="dark"] .modal-header,
+.dark-theme .modal-header {
+  background-color: var(--card-background);
+  border-bottom-color: var(--border-color);
+  box-shadow: var(--card-shadow);
+}
+
+.dark .modal-content,
+[data-theme="dark"] .modal-content,
+.dark-theme .modal-content {
+  background-color: var(--background-color);
+}
+
+.dark .modal-back-button:hover,
+[data-theme="dark"] .modal-back-button:hover,
+.dark-theme .modal-back-button:hover {
+  background-color: var(--hover-background);
+}
+
+.dark .modal-action-button:hover,
+[data-theme="dark"] .modal-action-button:hover,
+.dark-theme .modal-action-button:hover {
+  background-color: var(--primary-color-light);
+}
+
+/* 确保文本颜色在深色模式下正确显示 */
+.dark .modal-title,
+[data-theme="dark"] .modal-title,
+.dark-theme .modal-title,
+.dark .modal-back-button,
+[data-theme="dark"] .modal-back-button,
+.dark-theme .modal-back-button {
+  color: var(--text-primary);
+}
+
+.dark .modal-action-button,
+[data-theme="dark"] .modal-action-button,
+.dark-theme .modal-action-button {
+  color: var(--primary-color);
+}
+
+/* 移动设备和iOS特定的滚动修复 */
+@media (max-width: 768px) {
+  .modal-content {
+    /* 强制启用滚动 */
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch !important;
+    /* 确保在移动设备上滚动流畅 */
+    scroll-behavior: smooth;
+    /* 防止滚动时的弹跳效果影响模态框 */
+    overscroll-behavior: contain;
+  }
+}
+
+/* iOS Capacitor 特定修复 */
+.capacitor-ios .modal-content,
+.ios-app .modal-content {
+  /* iOS上的滚动优化 */
+  -webkit-overflow-scrolling: touch !important;
+  overflow-y: scroll !important;
+  /* 防止iOS上的滚动问题 */
+  transform: translateZ(0);
+  will-change: scroll-position;
+}
+
+/* 确保模态框内容区域有足够的空间进行滚动 */
+.modal-content > * {
+  /* 防止子元素阻止滚动 */
+  flex-shrink: 0;
+}
+
+/* 修复可能的z-index冲突 */
+.modal-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* 确保在所有情况下都能滚动 */
+.modal-overlay .modal-container .modal-content {
+  overflow-y: auto !important;
+  max-height: calc(100vh - 64px) !important; /* 减去头部高度 */
+}

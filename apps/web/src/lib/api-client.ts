@@ -92,7 +92,7 @@ class ApiClient {
 export const fetchApi = async (url: string, options: RequestInit = {}): Promise<Response> => {
   const baseURL = getApiBaseUrl();
   const fullUrl = url.startsWith('/api') ? baseURL + url.replace('/api', '') : baseURL + url;
-  
+
   // 自动添加认证token
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null;
   const headers = {
@@ -101,7 +101,12 @@ export const fetchApi = async (url: string, options: RequestInit = {}): Promise<
     ...options.headers,
   };
 
-  if (isDev) console.log('fetchApi 调用:', fullUrl, { method: options.method || 'GET' });
+  if (isDev) console.log('🚀 fetchApi 调用:', {
+    originalUrl: url,
+    fullUrl,
+    method: options.method || 'GET',
+    hasToken: !!token
+  });
 
   return fetch(fullUrl, {
     ...options,

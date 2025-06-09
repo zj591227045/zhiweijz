@@ -21,7 +21,7 @@
 .invitation-history .refresh-button {
   background: none;
   border: none;
-  color: var(--primary);
+  color: var(--primary-color);
   cursor: pointer;
   padding: 8px;
   border-radius: 50%;
@@ -31,20 +31,21 @@
 }
 
 .invitation-history .refresh-button:hover {
-  background-color: var(--primary-light);
+  background-color: var(--hover-background);
 }
 
 .invitation-history .refresh-button:disabled {
-  color: var(--text-disabled);
+  color: var(--text-secondary);
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .invitation-history .empty-state {
   padding: 24px;
   text-align: center;
   color: var(--text-secondary);
-  background-color: var(--background-secondary);
-  border-radius: 8px;
+  background-color: var(--card-background);
+  border-radius: var(--border-radius);
 }
 
 .invitation-history .invitation-list {
@@ -70,7 +71,7 @@
 
 .invitation-history .invitation-summary {
   padding: 12px;
-  background-color: var(--background-primary);
+  background-color: var(--card-background);
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -82,12 +83,13 @@
   align-items: center;
   font-family: monospace;
   font-weight: bold;
+  color: var(--text-primary);
 }
 
 .invitation-history .copy-button {
   background: none;
   border: none;
-  color: var(--primary);
+  color: var(--primary-color);
   cursor: pointer;
   margin-left: 8px;
 }
@@ -106,12 +108,12 @@
 }
 
 .invitation-history .status-badge.active {
-  background-color: var(--success-light);
-  color: var(--success);
+  background-color: var(--success-background);
+  color: var(--success-color);
 }
 
 .invitation-history .status-badge.used {
-  background-color: var(--background-secondary);
+  background-color: var(--card-background);
   color: var(--text-secondary);
 }
 
@@ -127,7 +129,7 @@
 
 .invitation-history .invitation-details {
   padding: 12px;
-  background-color: var(--background-secondary);
+  background-color: var(--card-background);
   border-top: 1px solid var(--border-color);
   height: auto; /* 自动适应内容高度 */
   overflow: visible; /* 确保内容不会被截断 */
@@ -147,14 +149,16 @@
 
 .invitation-history .link-label {
   font-weight: 500;
+  color: var(--text-primary);
 }
 
 .invitation-history .link-value {
   word-break: break-all;
   padding: 8px;
-  background-color: rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
+  background-color: var(--hover-background);
+  border-radius: var(--border-radius);
   font-family: monospace;
+  color: var(--text-primary);
 }
 
 .invitation-history .copy-link-button {
@@ -162,10 +166,84 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background-color: var(--primary);
-  color: white;
+  background-color: var(--primary-color);
+  color: var(--primary-foreground, white);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--border-radius);
   cursor: pointer;
   font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.invitation-history .copy-link-button:hover {
+  background-color: var(--primary-color-dark, var(--primary-color));
+}
+
+/* 深色模式适配 */
+.dark .invitation-history,
+[data-theme="dark"] .invitation-history,
+.dark-theme .invitation-history {
+  background-color: var(--background-color);
+}
+
+.dark .invitation-history .invitation-item,
+[data-theme="dark"] .invitation-history .invitation-item,
+.dark-theme .invitation-history .invitation-item {
+  border-color: var(--border-color);
+  background-color: var(--card-background);
+}
+
+.dark .invitation-history .invitation-summary,
+[data-theme="dark"] .invitation-history .invitation-summary,
+.dark-theme .invitation-history .invitation-summary {
+  background-color: var(--card-background);
+}
+
+.dark .invitation-history .invitation-details,
+[data-theme="dark"] .invitation-history .invitation-details,
+.dark-theme .invitation-history .invitation-details {
+  background-color: var(--card-background);
+  border-top-color: var(--border-color);
+}
+
+.dark .invitation-history .status-badge.active,
+[data-theme="dark"] .invitation-history .status-badge.active,
+.dark-theme .invitation-history .status-badge.active {
+  background-color: var(--success-background-dark);
+  color: var(--success-color);
+}
+
+.dark .invitation-history .status-badge.used,
+[data-theme="dark"] .invitation-history .status-badge.used,
+.dark-theme .invitation-history .status-badge.used {
+  background-color: var(--card-background-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.dark .invitation-history .link-value,
+[data-theme="dark"] .invitation-history .link-value,
+.dark-theme .invitation-history .link-value {
+  background-color: var(--hover-background);
+  color: var(--text-primary);
+}
+
+.dark .invitation-history .copy-link-button,
+[data-theme="dark"] .invitation-history .copy-link-button,
+.dark-theme .invitation-history .copy-link-button {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.dark .invitation-history .copy-link-button:hover,
+[data-theme="dark"] .invitation-history .copy-link-button:hover,
+.dark-theme .invitation-history .copy-link-button:hover {
+  background-color: var(--primary-color-dark);
+}
+
+.dark .invitation-history .empty-state,
+[data-theme="dark"] .invitation-history .empty-state,
+.dark-theme .invitation-history .empty-state {
+  background-color: var(--card-background);
+  color: var(--text-secondary);
 }

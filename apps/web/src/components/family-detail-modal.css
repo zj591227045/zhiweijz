@@ -1,0 +1,255 @@
+/* 家庭详情页全屏模态框样式 */
+
+/* 模态框覆盖层 - 确保在最顶层 */
+.family-detail-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 9999999 !important;
+  background-color: var(--background-color) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  
+  /* 移动端优化 */
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: manipulation !important;
+  
+  /* 强制硬件加速 */
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
+  
+  /* 动画效果 */
+  animation: fadeIn 0.3s ease-out !important;
+}
+
+/* 模态框头部 - 确保在最顶层且始终可见 */
+.family-detail-modal-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10000001 !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  background-color: var(--background-color) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: 64px !important;
+  min-height: 64px !important;
+  max-height: 64px !important;
+  flex-shrink: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 0 16px !important;
+}
+
+/* 确保头部按钮和标题可见 */
+.family-detail-modal-header .icon-button,
+.family-detail-modal-header .header-title {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: inherit !important;
+}
+
+/* iOS Capacitor 特殊适配 */
+@supports (padding: max(0px)) {
+  .family-detail-modal-overlay {
+    padding-top: max(0px, env(safe-area-inset-top)) !important;
+    padding-bottom: max(0px, env(safe-area-inset-bottom)) !important;
+    padding-left: max(0px, env(safe-area-inset-left)) !important;
+    padding-right: max(0px, env(safe-area-inset-right)) !important;
+  }
+
+  .family-detail-modal-header {
+    padding-top: max(8px, calc(8px + env(safe-area-inset-top))) !important;
+    padding-bottom: 8px !important;
+    height: max(64px, calc(64px + env(safe-area-inset-top))) !important;
+    min-height: max(64px, calc(64px + env(safe-area-inset-top))) !important;
+    /* 确保头部在安全区域内可见 */
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
+
+/* 确保模态框内容在最顶层 */
+.family-detail-modal-overlay * {
+  z-index: inherit;
+}
+
+/* 内部对话框确保在模态框之上 */
+.family-detail-modal-overlay .modal-dialog {
+  z-index: 10000002 !important;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 隐藏底层页面的滚动条 */
+body.family-detail-modal-open {
+  overflow: hidden !important;
+}
+
+/* 模态框打开时隐藏底层页面元素 */
+.family-detail-modal-overlay ~ * {
+  pointer-events: none !important;
+}
+
+.family-detail-modal-overlay * {
+  pointer-events: auto !important;
+}
+
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .family-detail-modal-overlay {
+    background-color: var(--background-color, #111827) !important;
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .family-detail-modal-header {
+    height: 56px !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
+    /* 确保小屏幕上头部可见 */
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .family-detail-modal-header .header-title {
+    font-size: 16px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .family-detail-modal-header .icon-button {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 16px !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
+
+/* iOS 特殊处理 - 确保覆盖原生工具栏 */
+.ios-app .family-detail-modal-overlay {
+  z-index: 999999 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+}
+
+/* Capacitor iOS 特殊适配 */
+.capacitor-ios .family-detail-modal-overlay {
+  z-index: 99999999 !important;
+  /* 确保覆盖状态栏 */
+  top: 0 !important;
+  /* 强制全屏覆盖 */
+  position: fixed !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  /* 强制覆盖所有原生元素 */
+  -webkit-transform: translateZ(0) !important;
+  transform: translateZ(0) !important;
+  will-change: transform !important;
+}
+
+/* iPhone 16 Pro 特殊处理 */
+.iphone-16-pro .family-detail-modal-overlay {
+  z-index: 999999999 !important;
+}
+
+/* 强制覆盖 Capacitor 状态栏 */
+.capacitor-ios .family-detail-modal-overlay::before {
+  content: '' !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: env(safe-area-inset-top, 44px) !important;
+  background-color: var(--background-color) !important;
+  z-index: inherit !important;
+  pointer-events: none !important;
+}
+
+/* 确保模态框内容不被状态栏遮挡 */
+.capacitor-ios .family-detail-modal-overlay .app-container {
+  padding-top: env(safe-area-inset-top, 44px) !important;
+}
+
+/* 强制显示头部组件 - 覆盖所有可能的隐藏样式 */
+.family-detail-modal-header,
+.family-detail-modal-overlay .family-detail-modal-header,
+.ios-app .family-detail-modal-header,
+.capacitor-ios .family-detail-modal-header,
+.iphone-16-pro .family-detail-modal-header {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10000001 !important;
+  height: 64px !important;
+  min-height: 64px !important;
+  max-height: 64px !important;
+  flex-shrink: 0 !important;
+  width: 100% !important;
+  background-color: var(--background-color) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 0 16px !important;
+  box-sizing: border-box !important;
+  /* 防止被其他元素覆盖 */
+  isolation: isolate !important;
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
+}
+
+/* 强制显示头部内的所有元素 */
+.family-detail-modal-header * {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: inherit !important;
+}
+
+.family-detail-modal-header .icon-button {
+  display: flex !important;
+}
+
+.family-detail-modal-header .header-title {
+  display: block !important;
+}

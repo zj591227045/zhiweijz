@@ -74,10 +74,14 @@ i.fas, i.far, i.fab, i.fal, i.fad {
     --text-color: #1f2937;
     --text-color-secondary: #6b7280;
     --primary-color: #3b82f6;
+    --primary-foreground: #ffffff;
     --primary-rgb: 59, 130, 246;
     --success-color: #22C55E;
+    --success-background: rgba(34, 197, 94, 0.1);
     --warning-color: #F59E0B;
+    --warning-background: rgba(245, 158, 11, 0.1);
     --error-color: #EF4444;
+    --error-background: rgba(239, 68, 68, 0.1);
     --danger-color: #EF4444;
     --border-radius: 0.5rem;
     --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -121,6 +125,7 @@ i.fas, i.far, i.fab, i.fal, i.fad {
 
     /* 自定义暗色主题变量 */
     --primary-color: #60a5fa; /* 暗色蓝色主题 */
+    --primary-foreground: #ffffff;
     --primary-rgb: 96, 165, 250;
     --text-primary: #f3f4f6;
     --text-secondary: #9ca3af;
@@ -131,9 +136,13 @@ i.fas, i.far, i.fab, i.fal, i.fad {
     --card-bg: #1f2937;
     --background-color: #111827;
     --success-color: #34d399;
+    --success-background: rgba(52, 211, 153, 0.1);
+    --success-background-dark: rgba(52, 211, 153, 0.2);
     --error-color: #f87171;
+    --error-background: rgba(248, 113, 113, 0.1);
     --danger-color: #f87171;
     --warning-color: #fbbf24;
+    --warning-background: rgba(251, 191, 36, 0.1);
     --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     --hover-background: rgba(255, 255, 255, 0.1);
     --primary-color-light: rgba(96, 165, 250, 0.2);

@@ -59,30 +59,38 @@ export function MemberStatistics({
       </div>
 
       <div className="member-ranking">
-        {sortedMembers.map((member, index) => (
-          <div key={member.memberId} className="ranking-item">
-            <div className={cn('rank-number', getRankClass(index))}>{index + 1}</div>
-            <div className="ranking-avatar">
-              {member.avatar ? (
-                <img src={member.avatar} alt={member.username || '用户'} />
-              ) : (
-                getAvatarText(member.username || '')
-              )}
-            </div>
-            <div className="ranking-details">
-              <div className="ranking-name">
-                {member.username || '未知用户'}
-                {member.isCurrentUser && ' (你)'}
+        {sortedMembers.length > 0 ? (
+          sortedMembers.map((member, index) => (
+            <div key={member.memberId} className="ranking-item">
+              <div className={cn('rank-number', getRankClass(index))}>{index + 1}</div>
+              <div className="ranking-avatar">
+                {member.avatar ? (
+                  <img src={member.avatar} alt={member.username || '用户'} />
+                ) : (
+                  getAvatarText(member.username || '')
+                )}
+              </div>
+              <div className="ranking-details">
+                <div className="ranking-name">
+                  {member.username || '未知用户'}
+                  {member.isCurrentUser && ' (你)'}
+                </div>
+              </div>
+              <div className="ranking-amount">
+                {formatCurrency(member.statistics?.totalExpense || 0)}
               </div>
             </div>
-            <div className="ranking-amount">
-              {formatCurrency(member.statistics?.totalExpense || 0)}
+          ))
+        ) : (
+          <div className="empty-state">
+            <div className="empty-icon">
+              <i className="fas fa-chart-bar"></i>
+            </div>
+            <div className="empty-text">
+              <p>暂无成员消费数据</p>
+              <p className="empty-subtext">成员产生消费记录后将在此显示统计信息</p>
             </div>
           </div>
-        ))}
-
-        {members.length === 0 && (
-          <div className="text-center py-6 text-gray-500">暂无成员消费数据</div>
         )}
       </div>
     </div>
