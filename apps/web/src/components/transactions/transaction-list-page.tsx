@@ -8,6 +8,7 @@ import { formatCurrency, getCategoryIconClass } from '@/lib/utils';
 import { apiClient } from '@/lib/api-client';
 import dayjs from 'dayjs';
 import { smartNavigate } from '@/lib/navigation';
+import TransactionEditModal from '@/components/transaction-edit-modal';
 
 // 交易类型枚举
 export enum TransactionType {
@@ -46,6 +47,10 @@ export function TransactionListPage() {
   const [selectedTransactions, setSelectedTransactions] = useState<Set<string>>(new Set());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // 交易编辑模态框状态
+  const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
+  const [editingTransactionData, setEditingTransactionData] = useState<any>(null);
 
   // 从URL参数获取预算ID
   const budgetId = searchParams.get('budgetId');
@@ -215,12 +220,15 @@ export function TransactionListPage() {
     }));
   };
 
-  // 处理交易项点击 - 多选模式下选择，否则进入编辑页面
+  // 处理交易项点击 - 多选模式下选择，否则打开编辑模态框
   const handleTransactionClick = (transactionId: string) => {
     if (isMultiSelectMode) {
       handleTransactionSelect(transactionId);
     } else {
-      smartNavigate(router, `/transactions/edit/${transactionId}`);
+      // 找到对应的交易数据
+      const transactionData = transactions.find(t => t.id === transactionId);
+      setEditingTransactionId(transactionId);
+      setEditingTransactionData(transactionData);
     }
   };
 
@@ -350,6 +358,20 @@ export function TransactionListPage() {
       accountBookId: null,
       isFilterPanelOpen: false,
     });
+  };
+
+  // 关闭交易编辑模态框
+  const handleCloseEditModal = () => {
+    setEditingTransactionId(null);
+    setEditingTransactionData(null);
+  };
+
+  // 处理交易保存成功
+  const handleTransactionSaved = () => {
+    // 重新获取交易数据
+    fetchTransactions();
+    // 关闭模态框
+    handleCloseEditModal();
   };
 
   return (
@@ -568,6 +590,16 @@ export function TransactionListPage() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* 交易编辑模态框 */}
+        {editingTransactionId && (
+          <TransactionEditModal
+            transactionId={editingTransactionId}
+            transactionData={editingTransactionData}
+            onClose={handleCloseEditModal}
+            onSave={handleTransactionSaved}
+          />
         )}
       </div>
     </PageContainer>

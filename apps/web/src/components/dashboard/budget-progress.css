@@ -1,0 +1,202 @@
+/* 预算执行情况组件独立样式 */
+
+.dashboard-budget-section {
+  background-color: var(--card-background, #ffffff);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.dashboard-budget-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.dashboard-budget-section .section-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  margin: 0;
+}
+
+.dashboard-budget-section .view-all {
+  font-size: 14px;
+  color: var(--primary-color, #3b82f6);
+  text-decoration: none;
+}
+
+.dashboard-budget-section .budget-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dashboard-budget-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0; /* 移除内边距，避免与外层容器冲突 */
+  background: transparent; /* 透明背景，避免重复背景 */
+  border: none; /* 移除边框 */
+  box-shadow: none; /* 移除阴影 */
+}
+
+.dashboard-budget-card .budget-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.dashboard-budget-category {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0; /* 允许收缩 */
+}
+
+.dashboard-category-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--primary-light, #e0f2fe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color, #3b82f6);
+  flex-shrink: 0; /* 不允许收缩 */
+}
+
+.dashboard-category-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #1f2937);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 预算金额容器 - 独立样式，避免冲突 */
+.dashboard-budget-amount {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0; /* 不允许收缩 */
+  min-width: 80px; /* 确保有足够的空间显示金额 */
+}
+
+.dashboard-budget-amount .percentage-display {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  line-height: 1.2;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.dashboard-budget-amount .amount-display {
+  font-size: 12px !important;
+  color: var(--text-secondary, #6b7280) !important;
+  line-height: 1.2;
+  margin: 0;
+  white-space: nowrap;
+  overflow: visible; /* 确保内容可见 */
+  text-overflow: clip; /* 不使用省略号 */
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.dashboard-budget-amount .amount-display .current {
+  font-weight: 500;
+  color: var(--text-primary, #1f2937);
+}
+
+.dashboard-budget-amount .amount-display .separator {
+  color: var(--text-secondary, #6b7280);
+  margin: 0;
+}
+
+.dashboard-budget-amount .amount-display .total {
+  color: var(--text-secondary, #6b7280);
+}
+
+/* 进度条样式 - 独立命名避免冲突 */
+.dashboard-progress-bar-custom {
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+  border: 1px solid #d1d5db;
+}
+
+.dashboard-progress-custom {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+  .dashboard-budget-section {
+    padding: 12px;
+  }
+  
+  .dashboard-category-icon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .dashboard-category-name {
+    font-size: 13px;
+  }
+  
+  .dashboard-budget-amount {
+    min-width: 70px;
+  }
+  
+  .dashboard-budget-amount .percentage-display {
+    font-size: 14px !important;
+  }
+  
+  .dashboard-budget-amount .amount-display {
+    font-size: 11px !important;
+  }
+}
+
+/* 确保在任何情况下都不会被其他样式覆盖 */
+.dashboard-budget-section .dashboard-budget-amount {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 2px !important;
+  flex-shrink: 0 !important;
+  min-width: 80px !important;
+}
+
+.dashboard-budget-section .dashboard-budget-amount .percentage-display {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+}
+
+.dashboard-budget-section .dashboard-budget-amount .amount-display {
+  font-size: 12px !important;
+  color: var(--text-secondary, #6b7280) !important;
+  line-height: 1.2 !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+}

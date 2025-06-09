@@ -37,6 +37,7 @@ const config: CapacitorConfig = {
     }
   },
   android: {
+    path: '../android',
     buildOptions: {
       keystorePath: undefined,
       keystorePassword: undefined,

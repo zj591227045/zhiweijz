@@ -115,6 +115,44 @@ useEffect(() => {
 
 ## 🎨 **组件设计模式**
 
+### **⚠️ 关键样式注意事项**
+
+#### **头部高度一致性**
+```css
+/* 确保头部高度在所有环境下一致 */
+.app-container .header {
+  height: 64px !important;
+  min-height: 64px !important;
+}
+
+/* iOS 环境特殊处理 */
+.ios-app .app-container .header,
+.capacitor-ios .app-container .header {
+  height: 64px !important;
+  min-height: 64px !important;
+  padding-top: 0 !important;
+}
+```
+
+#### **网格布局居中**
+```css
+/* 避免重复内边距导致偏移 */
+.step-content {
+  padding: 0; /* 不要重复设置内边距 */
+}
+
+.category-section {
+  margin: 0;
+  padding: 0;
+}
+
+.category-grid {
+  padding: 0;
+  margin: 0 auto;
+  max-width: 100%;
+}
+```
+
 ### **分段控制器**
 ```tsx
 <div style={{
@@ -194,6 +232,8 @@ useEffect(() => {
 ```
 docs/App/motion/
 ├── README.md                    # 总体方案（本文件）
+├── MIGRATION_CHECKLIST.md      # 迁移检查清单 ⭐ 必读
+├── ANDROID_COMPATIBILITY.md    # Android 兼容性指南
 ├── 01-transaction-detail.md     # 交易详情页迁移
 ├── 02-book-edit.md             # 账本编辑页迁移
 ├── 03-family-detail.md         # 家庭详情页迁移
@@ -203,8 +243,8 @@ docs/App/motion/
 ├── 07-ai-service-edit.md       # AI服务编辑页迁移
 └── templates/                  # 模板文件
     ├── modal-template.tsx      # 模态框模板
-    ├── form-template.tsx       # 表单模板
-    └── styles-template.ts      # 样式模板
+    ├── style-fixes.css         # 样式修复模板 ⭐ 必用
+    └── styles-template.ts      # 样式系统模板
 ```
 
 每个迁移文档包含：
@@ -249,10 +289,27 @@ docs/App/motion/
 2. **Android 测试** - 使用 Android 模拟器或真机
 3. **功能一致性** - 确保两平台功能完全一致
 
+## 🚨 **迁移必备检查清单**
+
+### **样式冲突预防**
+- [ ] **头部高度检查** - 确保使用 `64px !important` 覆盖全局样式
+- [ ] **内边距检查** - 避免在 `.step-content` 中重复设置 `padding`
+- [ ] **网格居中检查** - 确保 `.category-grid` 等网格组件正确居中
+- [ ] **iOS 兼容性** - 添加 `.ios-app` 和 `.capacitor-ios` 特殊样式
+- [ ] **CSS 优先级** - 使用具体选择器避免被全局样式覆盖
+
+### **测试验证要点**
+- [ ] **Web 移动端** - Chrome DevTools 移动设备模拟
+- [ ] **iOS Capacitor** - 真机或模拟器测试
+- [ ] **Android Capacitor** - 真机或模拟器测试
+- [ ] **头部高度一致性** - 对比 iOS 端确保视觉一致
+- [ ] **组件居中对齐** - 确保所有网格组件正确居中
+
 ## 🚀 **下一步行动**
 
-1. 按优先级依次迁移各个页面
-2. 每个页面迁移后在 iOS 和 Android 上测试
-3. 建立组件库复用通用模式
-4. 优化性能和用户体验
-5. 确保跨平台一致性
+1. **应用样式修复模板** - 为每个迁移页面应用头部和布局修复
+2. 按优先级依次迁移各个页面
+3. 每个页面迁移后在 iOS 和 Android 上测试
+4. 建立组件库复用通用模式
+5. 优化性能和用户体验
+6. 确保跨平台一致性

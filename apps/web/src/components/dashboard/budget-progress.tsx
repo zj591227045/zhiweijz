@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, memo, useMemo } from 'react';
 import { formatCurrency, getCategoryIconClass } from '../../lib/utils';
+import './budget-progress.css';
 
 interface BudgetCategory {
   id: string;

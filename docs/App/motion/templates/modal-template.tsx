@@ -125,8 +125,11 @@ export default function ModalTemplate({
         position: 'relative',
         overflow: 'hidden'
       }}>
-        {/* 专用头部 */}
-        <div className="header">
+        {/* 专用头部 - 确保高度一致性 */}
+        <div className="header" style={{
+          height: '64px',
+          minHeight: '64px'
+        }}>
           <button className="icon-button" onClick={onClose}>
             <i className="fas fa-arrow-left"></i>
           </button>

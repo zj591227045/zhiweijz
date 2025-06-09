@@ -41,6 +41,17 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
+# TypeScript build info
+*.tsbuildinfo
+
+# Backup files
+*.backup
+*.bak
+
+# iOS specific
+apps/ios/App/Podfile.lock
+apps/ios/App/Pods/
+
 # Testing
 coverage/
 
@@ -53,6 +64,24 @@ prisma/migrations/*_init/migration.sql
 .temp/
 tmp/
 temp/
+
+# Test and debug files
+test-*.js
+test-*.ts
+test-*.tsx
+test-*.md
+debug-*.js
+debug-*.ts
+fix-*.js
+fix-*.ts
+fix-*.sh
+create-test-*
+cleanup-*
+analyze-*
+check-*
+trigger-*
+verify-*
+cookies.txt
 
 # ===== Android/React Native =====
 

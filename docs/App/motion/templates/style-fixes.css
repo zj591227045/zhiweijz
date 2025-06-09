@@ -1,0 +1,277 @@
+/* 全屏模态框样式修复模板 */
+/* 基于交易编辑页面发现的样式问题制作 */
+
+/* ========================================
+   关键样式修复 - 必须应用到每个迁移页面
+   ======================================== */
+
+/* 1. 头部高度一致性修复 */
+/* 使用高优先级选择器确保样式生效 */
+.app-container .header {
+  height: 64px !important;
+  min-height: 64px !important;
+  background-color: var(--card-background);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* iOS 环境特殊处理 - 覆盖 iOS 特定样式 */
+.ios-app .app-container .header,
+.capacitor-ios .app-container .header {
+  height: 64px !important;
+  min-height: 64px !important;
+  padding-top: 0 !important;
+}
+
+/* 2. 布局居中修复 */
+/* 步骤内容容器 - 避免重复内边距 */
+.step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 0; /* 重要：不设置内边距避免偏移 */
+}
+
+/* 分类选择区域 - 确保居中 */
+.category-section {
+  margin: 0;
+  padding: 0;
+}
+
+/* 分类网格 - 确保完全居中 */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 0; /* 移除内边距 */
+  margin: 0 auto; /* 居中对齐 */
+  max-width: 100%;
+}
+
+/* 3. 通用网格布局修复 */
+/* 适用于所有网格组件 */
+.grid-container {
+  padding: 0;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+/* 2列网格 */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+/* 3列网格 */
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+/* 4列网格 */
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+/* 6列网格 */
+.grid-6 {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+/* ========================================
+   响应式设计优化
+   ======================================== */
+
+/* 移动端优化 */
+@media (max-width: 480px) {
+  .category-grid,
+  .grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .category-item {
+    padding: 12px 6px;
+  }
+
+  .category-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .category-name {
+    font-size: 12px;
+  }
+}
+
+/* ========================================
+   全屏模态框基础样式
+   ======================================== */
+
+/* 模态框容器 */
+.full-screen-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--background-color);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 模态框应用容器 */
+.modal-app-container {
+  max-width: none;
+  margin: 0;
+  width: 100%;
+  height: 100vh;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 模态框主要内容 */
+.modal-main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+
+/* 模态框内容包装器 */
+.modal-content-wrapper {
+  padding: 0 20px;
+}
+
+/* ========================================
+   iOS 风格组件样式
+   ======================================== */
+
+/* 分段控制器 */
+.ios-segmented-control {
+  display: flex;
+  background-color: var(--background-secondary);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 24px;
+}
+
+.ios-segmented-button {
+  flex: 1;
+  height: 40px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.ios-segmented-button.active {
+  color: white;
+}
+
+.ios-segmented-button.inactive {
+  background-color: transparent;
+  color: var(--text-color);
+}
+
+/* 卡片式输入框 */
+.ios-input-card {
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.ios-input-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.ios-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-size: 16px;
+  color: var(--text-color);
+  padding: 0;
+}
+
+/* 主要按钮 */
+.ios-primary-button {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  border: none;
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 次要按钮 */
+.ios-secondary-button {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 错误提示 */
+.ios-error-message {
+  background-color: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 16px 0;
+  color: #dc2626;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* 成功提示 */
+.ios-success-message {
+  background-color: #d1fae5;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 16px 0;
+  color: #065f46;
+  font-size: 14px;
+  text-align: center;
+}

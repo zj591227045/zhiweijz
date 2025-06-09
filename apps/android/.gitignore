@@ -1,0 +1,47 @@
+# Android Studio
+.gradle/
+.idea/
+local.properties
+*.iml
+.externalNativeBuild/
+.cxx/
+captures/
+
+# Build directories
+build/
+app/build/
+*/build/
+
+# Generated files
+capacitor-cordova-android-plugins/
+
+# Capacitor generated assets (web build output)
+app/src/main/assets/public/
+app/src/main/assets/capacitor.config.json
+app/src/main/assets/capacitor.plugins.json
+
+# Android specific temp files
+*.tmp
+*.temp
+
+# Keystore files
+*.keystore
+*.jks
+keystore.properties
+debug.keystore
+release.keystore
+
+# APK/Bundle files
+*.apk
+*.aab
+
+# Gradle Wrapper (uncomment if you want to ignore)
+# gradle/wrapper/gradle-wrapper.jar
+# gradlew
+# gradlew.bat
+
+# Android lint
+lint-results*.xml
+
+# Local configuration
+local.properties 

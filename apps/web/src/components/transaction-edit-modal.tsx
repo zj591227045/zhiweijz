@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuthStore } from '@/store/auth-store';
 import { useTransactionStore } from '@/store/transaction-store';
 import { useCategoryStore } from '@/store/category-store';
@@ -10,7 +10,10 @@ import { triggerTransactionChange } from '@/store/dashboard-store';
 import { formatDateForInput, getIconClass } from '@/lib/utils';
 import { TransactionType, UpdateTransactionData } from '@/types';
 import { toast } from 'sonner';
+import { NumericKeyboard } from './transactions/numeric-keyboard';
 import '../app/transactions/edit/[id]/transaction-edit.css';
+import './transactions/transaction-add.css';
+import './transactions/budget-selector.css';
 
 interface TransactionEditModalProps {
   transactionId: string | null;
@@ -129,196 +132,72 @@ function BudgetSelector({
   };
 
   return (
-    <div>
-      <label style={{
-        display: 'block',
-        fontSize: '14px',
-        fontWeight: '500',
-        color: 'var(--text-secondary)',
-        marginBottom: '8px'
-      }}>预算</label>
-
-      {/* iOS 风格预算选择器预览 */}
+    <div className="budget-selector-container">
+      <label className="form-label">预算</label>
+      {/* 预算选择器预览 - 恢复原始样式 */}
       <div
+        className="budget-selector-preview"
         onClick={() => setIsBudgetSelectorOpen(true)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '0',
-          backgroundColor: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          width: '100%'
-        }}
       >
-        <div style={{
-          width: '40px',
-          height: '40px',
-          borderRadius: '20px',
-          backgroundColor: 'var(--primary-color)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white'
-        }}>
+        <div className="budget-selector-icon">
           <i className="fas fa-wallet"></i>
         </div>
-        <div style={{ flex: 1 }}>
+        <div className="budget-selector-info">
           {selectedBudget ? (
             <>
-              <div style={{
-                fontSize: '16px',
-                fontWeight: '500',
-                color: 'var(--text-color)',
-                marginBottom: '2px'
-              }}>
+              <div className="budget-name">
                 {getBudgetDisplayName(selectedBudget)}
               </div>
-              <div style={{
-                fontSize: '14px',
-                color: 'var(--text-secondary)'
-              }}>
+              <div className="budget-balance">
                 余额: {formatAmount(calculateBudgetBalance(selectedBudget))}
               </div>
             </>
           ) : (
-            <div style={{
-              fontSize: '16px',
-              color: 'var(--text-secondary)'
-            }}>选择预算（可选）</div>
+            <div className="budget-name">选择预算（可选）</div>
           )}
         </div>
-        <div style={{
-          color: 'var(--text-secondary)',
-          fontSize: '14px'
-        }}>
-          更改
+        <div className="budget-selector-arrow">
+          <i className="fas fa-chevron-right"></i>
         </div>
       </div>
 
-      {/* iOS 风格预算选择器弹窗 */}
+      {/* 预算选择器弹窗 - 恢复原始样式 */}
       {isBudgetSelectorOpen && (
-        <div
-          onClick={() => setIsBudgetSelectorOpen(false)}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 10000,
-            display: 'flex',
-            alignItems: 'flex-end'
-          }}
-        >
+        <div className="budget-selector-overlay" onClick={() => setIsBudgetSelectorOpen(false)}>
           <div
+            className="budget-selector-drawer"
             onClick={(e) => e.stopPropagation()}
-            style={{
-              width: '100%',
-              backgroundColor: 'var(--background-color)',
-              borderTopLeftRadius: '20px',
-              borderTopRightRadius: '20px',
-              maxHeight: '70vh',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column'
-            }}
           >
-            {/* 弹窗头部 */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '20px',
-              borderBottom: '1px solid var(--border-color)'
-            }}>
-              <h3 style={{
-                fontSize: '18px',
-                fontWeight: '600',
-                color: 'var(--text-color)',
-                margin: 0
-              }}>选择预算</h3>
+            <div className="budget-selector-header">
+              <h3>选择预算</h3>
               <button
+                className="close-button"
                 onClick={() => setIsBudgetSelectorOpen(false)}
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '16px',
-                  border: 'none',
-                  backgroundColor: 'var(--background-secondary)',
-                  color: 'var(--text-secondary)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
               >
                 <i className="fas fa-times"></i>
               </button>
             </div>
-            {/* 弹窗内容 */}
-            <div style={{
-              flex: 1,
-              overflow: 'auto',
-              padding: '0 20px 20px'
-            }}>
+            <div className="budget-selector-content">
               {isLoading ? (
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '40px',
-                  color: 'var(--text-secondary)'
-                }}>加载中...</div>
+                <div className="loading-state">加载中...</div>
               ) : formattedBudgets.length === 0 ? (
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '40px',
-                  color: 'var(--text-secondary)',
-                  gap: '8px'
-                }}>
-                  <i className="fas fa-info-circle" style={{ fontSize: '24px' }}></i>
+                <div className="no-budgets-message">
+                  <i className="fas fa-info-circle"></i>
                   <span>没有可用的预算</span>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className="budget-list">
                   {/* 不使用预算选项 */}
                   <div
+                    className={`budget-item ${!selectedBudget ? 'active' : ''}`}
                     onClick={handleClearBudget}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '16px',
-                      borderRadius: '12px',
-                      backgroundColor: !selectedBudget ? 'var(--primary-color)' : 'var(--background-color)',
-                      border: `1px solid ${!selectedBudget ? 'var(--primary-color)' : 'var(--border-color)'}`,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
-                    }}
                   >
-                    <div style={{
-                      fontSize: '16px',
-                      fontWeight: '500',
-                      color: !selectedBudget ? 'white' : 'var(--text-color)'
-                    }}>不使用预算</div>
+                    <div className="budget-item-info">
+                      <div className="budget-item-name">不使用预算</div>
+                    </div>
                     {!selectedBudget && (
-                      <div style={{
-                        width: '20px',
-                        height: '20px',
-                        borderRadius: '10px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'white'
-                      }}>
-                        <i className="fas fa-check" style={{ fontSize: '12px' }}></i>
+                      <div className="budget-item-check">
+                        <i className="fas fa-check"></i>
                       </div>
                     )}
                   </div>
@@ -326,61 +205,26 @@ function BudgetSelector({
                   {/* 个人预算组 */}
                   {formattedBudgets.filter(b => b.budgetType !== 'GENERAL').length > 0 && (
                     <>
-                      <div style={{
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        color: 'var(--text-secondary)',
-                        margin: '16px 0 8px 0',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px'
-                      }}>个人预算</div>
+                      <div className="budget-group-header">个人预算</div>
                       {formattedBudgets
                         .filter(budget => budget.budgetType !== 'GENERAL')
                         .map((budget) => (
                           <div
                             key={budget.id}
+                            className={`budget-item ${selectedBudget?.id === budget.id ? 'active' : ''}`}
                             onClick={() => handleBudgetSelect(budget)}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              padding: '16px',
-                              borderRadius: '12px',
-                              backgroundColor: selectedBudget?.id === budget.id ? 'var(--primary-color)' : 'var(--background-color)',
-                              border: `1px solid ${selectedBudget?.id === budget.id ? 'var(--primary-color)' : 'var(--border-color)'}`,
-                              cursor: 'pointer',
-                              transition: 'all 0.2s ease',
-                              marginBottom: '4px'
-                            }}
                           >
-                            <div>
-                              <div style={{
-                                fontSize: '16px',
-                                fontWeight: '500',
-                                color: selectedBudget?.id === budget.id ? 'white' : 'var(--text-color)',
-                                marginBottom: '4px'
-                              }}>
+                            <div className="budget-item-info">
+                              <div className="budget-item-name">
                                 {getBudgetDisplayName(budget)}
                               </div>
-                              <div style={{
-                                fontSize: '14px',
-                                color: selectedBudget?.id === budget.id ? 'rgba(255, 255, 255, 0.8)' : 'var(--text-secondary)'
-                              }}>
+                              <div className="budget-item-balance">
                                 余额: {formatAmount(calculateBudgetBalance(budget))}
                               </div>
                             </div>
                             {selectedBudget?.id === budget.id && (
-                              <div style={{
-                                width: '20px',
-                                height: '20px',
-                                borderRadius: '10px',
-                                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: 'white'
-                              }}>
-                                <i className="fas fa-check" style={{ fontSize: '12px' }}></i>
+                              <div className="budget-item-check">
+                                <i className="fas fa-check"></i>
                               </div>
                             )}
                           </div>
@@ -391,61 +235,26 @@ function BudgetSelector({
                   {/* 通用预算组 */}
                   {formattedBudgets.filter(b => b.budgetType === 'GENERAL').length > 0 && (
                     <>
-                      <div style={{
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        color: 'var(--text-secondary)',
-                        margin: '16px 0 8px 0',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px'
-                      }}>通用预算</div>
+                      <div className="budget-group-header">通用预算</div>
                       {formattedBudgets
                         .filter(budget => budget.budgetType === 'GENERAL')
                         .map((budget) => (
                           <div
                             key={budget.id}
+                            className={`budget-item ${selectedBudget?.id === budget.id ? 'active' : ''}`}
                             onClick={() => handleBudgetSelect(budget)}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              padding: '16px',
-                              borderRadius: '12px',
-                              backgroundColor: selectedBudget?.id === budget.id ? 'var(--primary-color)' : 'var(--background-color)',
-                              border: `1px solid ${selectedBudget?.id === budget.id ? 'var(--primary-color)' : 'var(--border-color)'}`,
-                              cursor: 'pointer',
-                              transition: 'all 0.2s ease',
-                              marginBottom: '4px'
-                            }}
                           >
-                            <div>
-                              <div style={{
-                                fontSize: '16px',
-                                fontWeight: '500',
-                                color: selectedBudget?.id === budget.id ? 'white' : 'var(--text-color)',
-                                marginBottom: '4px'
-                              }}>
+                            <div className="budget-item-info">
+                              <div className="budget-item-name">
                                 {getBudgetDisplayName(budget)}
                               </div>
-                              <div style={{
-                                fontSize: '14px',
-                                color: selectedBudget?.id === budget.id ? 'rgba(255, 255, 255, 0.8)' : 'var(--text-secondary)'
-                              }}>
+                              <div className="budget-item-balance">
                                 余额: {formatAmount(calculateBudgetBalance(budget))}
                               </div>
                             </div>
                             {selectedBudget?.id === budget.id && (
-                              <div style={{
-                                width: '20px',
-                                height: '20px',
-                                borderRadius: '10px',
-                                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: 'white'
-                              }}>
-                                <i className="fas fa-check" style={{ fontSize: '12px' }}></i>
+                              <div className="budget-item-check">
+                                <i className="fas fa-check"></i>
                               </div>
                             )}
                           </div>
@@ -468,6 +277,18 @@ export default function TransactionEditModal({
   onClose,
   onSave
 }: TransactionEditModalProps) {
+  // 组件加载调试日志
+  console.log('🔍 [TransactionEditModal] 组件初始化', {
+    transactionId,
+    transactionData,
+    userAgent: navigator.userAgent,
+    isMobile: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
+    hasVisualViewport: !!window.visualViewport,
+    viewportHeight: window.visualViewport?.height || window.innerHeight,
+    documentHeight: document.documentElement.clientHeight,
+    timestamp: new Date().toISOString()
+  });
+
   const { isAuthenticated } = useAuthStore();
   const { transaction, isLoading, error, fetchTransaction, updateTransaction } = useTransactionStore();
   const { categories, fetchCategories } = useCategoryStore();
@@ -482,12 +303,19 @@ export default function TransactionEditModal({
     date: '',
     description: ''
   });
-  const [amountString, setAmountString] = useState('');
+
   const [budgetId, setBudgetId] = useState('');
   const [time, setTime] = useState('12:00');
   const [currentStep, setCurrentStep] = useState(2); // 默认进入第二步，与原有逻辑一致
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
+
+  // 虚拟键盘相关状态
+  const [showNumericKeyboard, setShowNumericKeyboard] = useState(false);
+  const [amountInput, setAmountInput] = useState('');
+
+  // 金额输入框引用
+  const amountInputRef = useRef<HTMLInputElement>(null);
 
   // 初始化数据
   useEffect(() => {
@@ -533,7 +361,8 @@ export default function TransactionEditModal({
 
       console.log('🔄 [TransactionEditModal] 设置表单数据:', newFormData);
       setFormData(newFormData);
-      setAmountString(Math.abs(dataToUse.amount)?.toString() || '0');
+      setAmountInput(dataToUse.amount?.toString() || '');
+
       setBudgetId(dataToUse.budgetId || '');
       setTime(`${hours}:${minutes}`);
       setCurrentStep(2); // 直接进入详情步骤
@@ -550,8 +379,8 @@ export default function TransactionEditModal({
 
   // 处理表单提交
   const handleSubmit = async () => {
-    const amount = parseFloat(amountString);
-    if (!amountString || amount <= 0) {
+    const amount = parseFloat(formData.amount?.toString() || '0');
+    if (!formData.amount || amount <= 0) {
       setFormError('请输入有效的金额');
       return;
     }
@@ -622,6 +451,161 @@ export default function TransactionEditModal({
     }));
   };
 
+  // 处理金额变化
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // 只允许数字和小数点，最多两位小数
+    if (/^\d*\.?\d{0,2}$/.test(value)) {
+      setAmountInput(value);
+      setFormData(prev => ({
+        ...prev,
+        amount: parseFloat(value) || 0
+      }));
+    }
+  };
+
+  // 虚拟键盘输入处理
+  const handleKeyboardInput = (value: string) => {
+    if (value === '=') {
+      // 处理计算逻辑
+      try {
+        // 简单的计算器逻辑，支持 +、- 运算
+        const result = Function('"use strict"; return (' + amountInput + ')')();
+        if (typeof result === 'number' && !isNaN(result) && result >= 0) {
+          const formattedResult = result.toFixed(2);
+          setAmountInput(formattedResult);
+          setFormData(prev => ({
+            ...prev,
+            amount: result
+          }));
+        }
+      } catch (error) {
+        console.warn('计算表达式无效:', amountInput);
+      }
+    } else {
+      // 普通输入
+      const newValue = amountInput + value;
+      // 验证输入格式
+      if (/^\d*\.?\d{0,2}$/.test(newValue) || /^[\d+\-.*]+$/.test(newValue)) {
+        setAmountInput(newValue);
+        // 如果是纯数字，更新表单数据
+        const numericValue = parseFloat(newValue);
+        if (!isNaN(numericValue)) {
+          setFormData(prev => ({
+            ...prev,
+            amount: numericValue
+          }));
+        }
+      }
+    }
+  };
+
+  // 虚拟键盘删除处理
+  const handleKeyboardDelete = () => {
+    const newValue = amountInput.slice(0, -1);
+    setAmountInput(newValue);
+    setFormData(prev => ({
+      ...prev,
+      amount: parseFloat(newValue) || 0
+    }));
+  };
+
+  // 虚拟键盘完成处理
+  const handleKeyboardComplete = () => {
+    setShowNumericKeyboard(false);
+    // 确保最终值是有效的数字
+    const finalValue = parseFloat(amountInput) || 0;
+    setFormData(prev => ({
+      ...prev,
+      amount: finalValue
+    }));
+  };
+
+  // 防止无限循环的标志
+  const focusingRef = useRef(false);
+
+  // 强制聚焦金额输入框的辅助函数
+  const focusAmountInput = () => {
+    // 防止无限循环
+    if (focusingRef.current) {
+      console.log('🔍 [focusAmountInput] 正在聚焦中，跳过');
+      return;
+    }
+
+    console.log('🔍 [focusAmountInput] 开始执行', {
+      inputRef: amountInputRef.current,
+      activeElement: document.activeElement,
+      documentHidden: document.hidden,
+      visibilityState: document.visibilityState,
+      timestamp: new Date().toISOString()
+    });
+
+    // 检查页面是否可见
+    if (document.hidden || document.visibilityState === 'hidden') {
+      console.warn('🔍 [focusAmountInput] 页面不可见，跳过聚焦');
+      return;
+    }
+
+    if (amountInputRef.current) {
+      focusingRef.current = true;
+      console.log('🔍 [focusAmountInput] 输入框引用存在，开始聚焦');
+
+      // 移除只读属性（如果有的话）
+      amountInputRef.current.removeAttribute('readonly');
+
+      // 强制聚焦
+      console.log('🔍 [focusAmountInput] 调用 focus()');
+      amountInputRef.current.focus();
+
+      // 检查是否成功聚焦
+      setTimeout(() => {
+        console.log('🔍 [focusAmountInput] 聚焦后状态', {
+          activeElement: document.activeElement,
+          isFocused: document.activeElement === amountInputRef.current
+        });
+        focusingRef.current = false;
+      }, 100);
+    } else {
+      console.warn('🔍 [focusAmountInput] 输入框引用不存在');
+    }
+  };
+
+  // 处理金额输入框聚焦 - 显示虚拟键盘
+  const handleAmountFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    console.log('🔍 [AmountInput] onFocus 事件触发 - 显示虚拟键盘');
+    e.preventDefault();
+    e.stopPropagation();
+
+    // 阻止系统键盘弹出
+    if (amountInputRef.current) {
+      amountInputRef.current.blur();
+    }
+
+    // 显示虚拟键盘
+    setShowNumericKeyboard(true);
+
+    // 初始化输入值
+    setAmountInput(formData.amount?.toString() || '');
+  };
+
+  // 处理金额输入框点击 - 显示虚拟键盘
+  const handleAmountClick = (e: React.MouseEvent<HTMLInputElement>) => {
+    console.log('🔍 [AmountInput] onClick 事件触发 - 显示虚拟键盘');
+    e.preventDefault();
+    e.stopPropagation();
+
+    // 阻止系统键盘弹出
+    if (amountInputRef.current) {
+      amountInputRef.current.blur();
+    }
+
+    // 显示虚拟键盘
+    setShowNumericKeyboard(true);
+
+    // 初始化输入值
+    setAmountInput(formData.amount?.toString() || '');
+  };
+
   // 处理交易类型变化
   const handleTypeChange = (type: TransactionType) => {
     setFormData(prev => ({
@@ -667,6 +651,63 @@ export default function TransactionEditModal({
     };
   }, []);
 
+  // 移动端键盘处理
+  useEffect(() => {
+    console.log('🔍 [KeyboardHandler] 初始化虚拟键盘检测', {
+      hasVisualViewport: !!window.visualViewport,
+      initialViewportHeight: window.visualViewport?.height || window.innerHeight,
+      documentHeight: document.documentElement.clientHeight
+    });
+
+    const handleResize = () => {
+      // 检测键盘是否弹出（移动端视口高度变化）
+      const viewportHeight = window.visualViewport?.height || window.innerHeight;
+      const documentHeight = document.documentElement.clientHeight;
+      const heightRatio = viewportHeight / documentHeight;
+
+      console.log('🔍 [KeyboardHandler] 视口大小变化', {
+        viewportHeight,
+        documentHeight,
+        heightRatio,
+        keyboardLikelyOpen: heightRatio < 0.75
+      });
+
+      if (heightRatio < 0.75) {
+        console.log('🔍 [KeyboardHandler] 检测到键盘可能已弹出');
+        // 键盘可能已弹出，确保输入框可见
+        if (amountInputRef.current) {
+          setTimeout(() => {
+            console.log('🔍 [KeyboardHandler] 滚动到输入框位置');
+            amountInputRef.current?.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center'
+            });
+          }, 100);
+        }
+      } else {
+        console.log('🔍 [KeyboardHandler] 键盘可能已收起');
+      }
+    };
+
+    // 监听视口变化
+    if (window.visualViewport) {
+      console.log('🔍 [KeyboardHandler] 使用 visualViewport API');
+      window.visualViewport.addEventListener('resize', handleResize);
+    } else {
+      console.log('🔍 [KeyboardHandler] 使用 window resize 事件');
+      window.addEventListener('resize', handleResize);
+    }
+
+    return () => {
+      console.log('🔍 [KeyboardHandler] 清理事件监听器');
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+      } else {
+        window.removeEventListener('resize', handleResize);
+      }
+    };
+  }, []);
+
   return (
     <div style={{
       position: 'fixed',
@@ -678,7 +719,14 @@ export default function TransactionEditModal({
       zIndex: 9999,
       display: 'flex',
       flexDirection: 'column',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      // 移动端优化
+      WebkitOverflowScrolling: 'touch',
+      // 确保可以接收触摸事件
+      touchAction: 'manipulation',
+      // 尝试修复虚拟键盘问题
+      transform: 'translateZ(0)', // 强制硬件加速
+      WebkitTransform: 'translateZ(0)'
     }}>
       {/* 使用完全相同的应用容器结构 */}
       <div className="app-container" style={{
@@ -688,7 +736,11 @@ export default function TransactionEditModal({
         height: '100vh',
         minHeight: '100vh',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        // 移动端优化
+        WebkitOverflowScrolling: 'touch',
+        // 确保输入框可以正常工作
+        isolation: 'isolate'
       }}>
         {/* 编辑交易的头部 */}
         <div className="header">
@@ -702,7 +754,13 @@ export default function TransactionEditModal({
         {/* 主要内容 */}
         <div className="main-content" style={{
           paddingBottom: '20px',
-          overflowY: 'auto'
+          overflowY: 'auto',
+          // 移动端键盘优化
+          WebkitOverflowScrolling: 'touch',
+          // 确保内容可以滚动到键盘上方
+          paddingBottom: 'env(safe-area-inset-bottom, 20px)',
+          // 防止键盘遮挡内容
+          minHeight: 'calc(100vh - 60px)' // 减去头部高度
         }}>
           <div style={{ padding: '0 20px' }}>
             {/* iOS 风格交易类型切换 */}
@@ -754,41 +812,76 @@ export default function TransactionEditModal({
             </div>
 
             {/* iOS 风格金额输入 */}
-            <div style={{
-              textAlign: 'center',
-              marginBottom: '32px'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                marginBottom: '8px'
-              }}>
+            <div
+              style={{
+                textAlign: 'center',
+                marginBottom: '24px'
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  marginBottom: '8px',
+                  padding: '16px',
+                  backgroundColor: 'var(--background-secondary)',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border-color)',
+                  minHeight: '60px',
+                  // 确保容器不会阻止点击事件
+                  pointerEvents: 'auto'
+                }}
+                // 点击容器显示虚拟键盘
+                onClick={(e) => {
+                  console.log('🔍 [AmountContainer] 容器被点击 - 显示虚拟键盘');
+                  e.stopPropagation();
+
+                  // 显示虚拟键盘
+                  setShowNumericKeyboard(true);
+
+                  // 初始化输入值
+                  setAmountInput(formData.amount?.toString() || '');
+                }}
+              >
                 <span style={{
-                  fontSize: '32px',
+                  fontSize: '24px',
                   fontWeight: '300',
-                  color: 'var(--text-secondary)'
+                  color: 'var(--text-secondary)',
+                  pointerEvents: 'none' // 防止符号阻止点击
                 }}>¥</span>
                 <input
-                  type="number"
-                  placeholder="0"
-                  value={amountString}
-                  onChange={(e) => setAmountString(e.target.value)}
-                  step="0.01"
-                  min="0"
+                  ref={amountInputRef}
+                  type="text"
+                  placeholder="0.00"
+                  value={formData.amount || ''}
+                  readOnly
+                  onFocus={handleAmountFocus}
+                  onClick={handleAmountClick}
                   disabled={isSubmitting}
                   style={{
-                    fontSize: '48px',
-                    fontWeight: '300',
+                    fontSize: '28px',
+                    fontWeight: '400',
                     color: 'var(--text-color)',
                     border: 'none',
                     outline: 'none',
                     backgroundColor: 'transparent',
                     textAlign: 'center',
-                    width: 'auto',
-                    minWidth: '100px',
-                    maxWidth: '200px'
+                    width: '100%',
+                    maxWidth: '200px',
+                    padding: '8px',
+                    cursor: 'pointer',
+                    // 移动端优化
+                    WebkitAppearance: 'none',
+                    // 确保输入框可以接收点击事件
+                    pointerEvents: 'auto',
+                    // 防止用户选择
+                    WebkitUserSelect: 'none',
+                    userSelect: 'none',
+                    // 确保在移动端可以点击
+                    WebkitTouchCallout: 'none',
+                    WebkitTapHighlightColor: 'transparent'
                   }}
                 />
               </div>
@@ -866,63 +959,23 @@ export default function TransactionEditModal({
             </div>
             {/* 第一步：分类选择 */}
             {currentStep === 1 && (
-              <div style={{ padding: '0 20px' }}>
-                <h3 style={{
-                  fontSize: '20px',
-                  fontWeight: '600',
-                  color: 'var(--text-color)',
-                  textAlign: 'center',
-                  marginBottom: '24px'
-                }}>选择分类</h3>
-
-                {/* iOS 风格分类网格 */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(4, 1fr)',
-                  gap: '16px',
-                  marginBottom: '20px'
-                }}>
-                  {filteredCategories.map(category => (
-                    <div
-                      key={category.id}
-                      onClick={() => !isSubmitting && handleCategorySelect(category.id)}
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '16px 8px',
-                        borderRadius: '12px',
-                        backgroundColor: formData.categoryId === category.id ? 'var(--primary-color)' : 'var(--background-color)',
-                        border: `1px solid ${formData.categoryId === category.id ? 'var(--primary-color)' : 'var(--border-color)'}`,
-                        cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                        transition: 'all 0.2s ease',
-                        opacity: isSubmitting ? 0.6 : 1,
-                        transform: formData.categoryId === category.id ? 'scale(0.98)' : 'scale(1)'
-                      }}
-                    >
-                      <div style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '20px',
-                        backgroundColor: formData.categoryId === category.id ? 'rgba(255, 255, 255, 0.2)' : 'var(--primary-color)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'white',
-                        fontSize: '18px'
-                      }}>
-                        <i className={getIconClass(category.icon)}></i>
+              <div className="step-content">
+                <h3 className="step-title">选择分类</h3>
+                <div className="category-section">
+                  <div className="category-grid">
+                    {filteredCategories.map(category => (
+                      <div
+                        key={category.id}
+                        className={`category-item ${formData.categoryId === category.id ? 'active' : ''} ${isSubmitting ? 'disabled' : ''}`}
+                        onClick={() => !isSubmitting && handleCategorySelect(category.id)}
+                      >
+                        <div className="category-icon-wrapper">
+                          <i className={getIconClass(category.icon)}></i>
+                        </div>
+                        <div className="category-name">{category.name}</div>
                       </div>
-                      <span style={{
-                        fontSize: '12px',
-                        fontWeight: '500',
-                        color: formData.categoryId === category.id ? 'white' : 'var(--text-color)',
-                        textAlign: 'center',
-                        lineHeight: '1.2'
-                      }}>{category.name}</span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -932,48 +985,14 @@ export default function TransactionEditModal({
               <div className="step-content">
                 <h3 className="step-title">填写详情</h3>
 
-                {/* 显示选中的分类 - iOS 风格卡片 */}
+                {/* 显示选中的分类 - 恢复原始样式 */}
                 {selectedCategory && (
-                  <div style={{
-                    backgroundColor: 'var(--background-color)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    marginBottom: '20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px'
-                  }}>
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '20px',
-                      backgroundColor: 'var(--primary-color)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white'
-                    }}>
+                  <div className="selected-category">
+                    <div className="category-icon-wrapper">
                       <i className={getIconClass(selectedCategory.icon)}></i>
                     </div>
-                    <span style={{
-                      flex: 1,
-                      fontSize: '16px',
-                      fontWeight: '500',
-                      color: 'var(--text-color)'
-                    }}>{selectedCategory.name}</span>
-                    <button
-                      onClick={() => setCurrentStep(1)}
-                      style={{
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        color: 'var(--primary-color)',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        cursor: 'pointer',
-                        padding: '4px 8px'
-                      }}
-                    >
+                    <span>{selectedCategory.name}</span>
+                    <button className="change-category-btn" onClick={() => setCurrentStep(1)}>
                       更改
                     </button>
                   </div>
@@ -1167,6 +1186,15 @@ export default function TransactionEditModal({
           </div>
         </div>
       </div>
+
+      {/* 虚拟数字键盘 */}
+      {showNumericKeyboard && (
+        <NumericKeyboard
+          onInput={handleKeyboardInput}
+          onDelete={handleKeyboardDelete}
+          onComplete={handleKeyboardComplete}
+        />
+      )}
     </div>
   );
 }

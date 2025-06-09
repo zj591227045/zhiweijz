@@ -9,13 +9,19 @@
     "build:static": "NEXT_BUILD_MODE=export next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest"
+    "test": "jest",
+    "build:ios": "./scripts/build-ios.sh",
+    "build:android": "./scripts/build-android.sh",
+    "run:android": "./scripts/run-android.sh",
+    "build:apk": "./scripts/build-apk.sh",
+    "clean:android": "./scripts/clean-android.sh"
   },
   "dependencies": {
     "@capacitor/app": "^7.0.1",
     "@capacitor/cli": "^7.3.0",
     "@capacitor/core": "^7.3.0",
     "@capacitor/haptics": "^7.0.1",
+    "@capacitor/android": "^7.3.0",
     "@capacitor/ios": "^7.3.0",
     "@capacitor/keyboard": "^7.0.1",
     "@capacitor/splash-screen": "^7.0.1",

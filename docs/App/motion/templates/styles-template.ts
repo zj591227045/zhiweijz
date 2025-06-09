@@ -85,6 +85,35 @@ export const IOSStyles = {
       overflow: 'hidden'
     },
 
+    // 模态框头部 - 确保高度一致性
+    modalHeader: {
+      height: '64px',
+      minHeight: '64px',
+      backgroundColor: 'var(--card-background)',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '0 16px',
+      position: 'sticky' as const,
+      top: 0,
+      zIndex: 100,
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
+    },
+
+    // 步骤内容容器 - 避免重复内边距
+    stepContent: {
+      display: 'flex',
+      flexDirection: 'column' as const,
+      gap: '20px',
+      padding: 0 // 重要：不设置内边距避免偏移
+    },
+
+    // 分类选择区域 - 确保居中
+    categorySection: {
+      margin: 0,
+      padding: 0
+    },
+
     // 卡片容器
     card: {
       backgroundColor: 'var(--background-color)',

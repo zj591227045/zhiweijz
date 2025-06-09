@@ -12,9 +12,10 @@
   overflow: visible;
 }
 
-/* 顶部导航栏 */
-.header {
-  height: 56px;
+/* 顶部导航栏 - 使用更高优先级确保样式生效 */
+.app-container .header {
+  height: 64px !important;
+  min-height: 64px !important;
   background-color: var(--card-background);
   display: flex;
   justify-content: space-between;
@@ -220,6 +221,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  padding: 0;
 }
 
 .step-title {
@@ -230,12 +232,20 @@
   margin-bottom: 8px;
 }
 
+/* 分类选择区域 */
+.category-section {
+  margin: 0;
+  padding: 0;
+}
+
 /* 分类网格 - 确保每行显示4个选项 */
 .category-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  padding: 0 8px;
+  padding: 0;
+  margin: 0 auto;
+  max-width: 100%;
 }
 
 .category-item {
@@ -807,6 +817,14 @@
   to {
     transform: translateY(0);
   }
+}
+
+/* iOS 特殊样式覆盖 - 确保头部高度一致 */
+.ios-app .app-container .header,
+.capacitor-ios .app-container .header {
+  height: 64px !important;
+  min-height: 64px !important;
+  padding-top: 0 !important;
 }
 
 /* 响应式设计 */
