@@ -12,6 +12,7 @@ interface CategoryListProps {
   onUpdateOrder?: (categoryIds: string[]) => Promise<void>;
   isSorting?: boolean;
   isShowingHidden?: boolean;
+  onEditCategory?: (categoryId: string) => void;
 }
 
 export function CategoryList({
@@ -20,6 +21,7 @@ export function CategoryList({
   onUpdateOrder,
   isSorting,
   isShowingHidden = false,
+  onEditCategory,
 }: CategoryListProps) {
   const router = useRouter();
   const [draggedItem, setDraggedItem] = useState<Category | null>(null);
@@ -79,7 +81,12 @@ export function CategoryList({
 
   // 处理编辑
   const handleEdit = (category: Category) => {
-    router.push(`/settings/categories/${category.id}/edit`);
+    if (onEditCategory) {
+      onEditCategory(category.id);
+    } else {
+      // 兼容旧的路由跳转方式
+      router.push(`/settings/categories/${category.id}/edit`);
+    }
   };
 
   // 处理删除

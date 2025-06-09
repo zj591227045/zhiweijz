@@ -23,13 +23,6 @@ export default function BudgetEditModal({
   onClose,
   onSave
 }: BudgetEditModalProps) {
-  // 组件加载调试日志
-  console.log('🔍 [BudgetEditModal] 组件初始化', {
-    budgetId,
-    userAgent: navigator.userAgent,
-    isMobile: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
-    timestamp: new Date().toISOString()
-  });
 
   const { isAuthenticated } = useAuthStore();
   const { currentAccountBook } = useAccountBookStore();

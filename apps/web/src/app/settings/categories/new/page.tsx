@@ -21,37 +21,19 @@ import { useAccountBookStore } from '@/store/account-book-store';
 import { toast } from 'sonner';
 import { getIconClass } from '@/lib/utils';
 
-// 可用的分类图标
+// 可用的分类图标 - 与编辑模态框保持一致
 const availableIcons = [
-  'restaurant',
-  'shopping',
-  'daily',
-  'transport',
-  'sports',
-  'entertainment',
-  'communication',
-  'clothing',
-  'beauty',
-  'home',
-  'child',
-  'elder',
-  'social',
-  'travel',
-  'digital',
-  'car',
-  'medical',
-  'repayment',
-  'insurance',
-  'education',
-  'office',
-  'repair',
-  'interest',
-  'salary',
-  'part-time',
-  'investment',
-  'bonus',
-  'commission',
-  'other',
+  'restaurant', 'shopping', 'daily', 'transport', 'sports', 'entertainment',
+  'clothing', 'clinic', 'beauty', 'housing', 'communication', 'electronics',
+  'social', 'travel', 'digital', 'car', 'medical', 'reading',
+  'investment', 'education', 'office', 'repair', 'insurance', 'salary',
+  'part-time', 'investment-income', 'bonus', 'commission', 'other'
+];
+
+// 预设颜色 - 与编辑模态框保持一致
+const presetColors = [
+  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+  '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
 ];
 
 // 分离使用 useSearchParams 的组件
@@ -61,12 +43,35 @@ function NewCategoryForm() {
   const { createCategory, isLoading } = useCategoryStore();
   const { currentAccountBook } = useAccountBookStore();
 
+  // 检测主题模式
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const checkTheme = () => {
+      const isDark = document.documentElement.classList.contains('dark') ||
+                     document.documentElement.getAttribute('data-theme') === 'dark' ||
+                     window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setIsDarkMode(isDark);
+    };
+
+    checkTheme();
+
+    // 监听主题变化
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   // 表单状态
   const [formData, setFormData] = useState({
     name: '',
     type: (searchParams.get('type') as TransactionType) || TransactionType.EXPENSE,
-    icon: 'other',
-    color: '#3B82F6',
+    icon: 'restaurant', // 使用第一个图标作为默认值
+    color: '#FF6B6B', // 使用第一个预设颜色作为默认值
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -135,140 +140,495 @@ function NewCategoryForm() {
   };
 
   return (
-    <PageContainer title="添加分类" showBack onBack={() => router.push('/settings/categories')}>
-      <div className="max-w-2xl mx-auto p-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: isDarkMode ? '#111827' : '#f9fafb',
+        paddingBottom: '24px'
+      }}
+    >
+      <PageContainer title="添加分类" showBack onBack={() => router.push('/settings/categories')}>
+        <div
+          className="max-w-2xl mx-auto p-4"
+          style={{
+            backgroundColor: isDarkMode ? '#111827' : '#f9fafb'
+          }}
+        >
+          {/* 页面标题卡片 */}
+          <div
+            style={{
+              backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+              border: isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb',
+              borderRadius: '16px',
+              padding: '24px',
+              marginBottom: '16px',
+              boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+            }}
+          >
+            <h1
+              style={{
+                color: isDarkMode ? '#f3f4f6' : '#1f2937',
+                fontSize: '20px',
+                fontWeight: '600',
+                margin: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
               <i className="fas fa-palette" />
               创建新分类
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* 分类名称 */}
-              <div className="space-y-2">
-                <Label htmlFor="name">分类名称 *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  placeholder="请输入分类名称"
-                  maxLength={20}
-                  className={errors.name ? 'border-red-500' : ''}
-                />
-                {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
-              </div>
-
-              {/* 分类类型 */}
-              <div className="space-y-2">
-                <Label htmlFor="type">分类类型 *</Label>
-                <Select
-                  value={formData.type}
-                  onValueChange={(value) => handleInputChange('type', value)}
+            </h1>
+          </div>
+          <form onSubmit={handleSubmit}>
+            {/* 分类类型选择器 */}
+            <div
+              style={{
+                backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+                border: isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb',
+                borderRadius: '16px',
+                padding: '24px',
+                marginBottom: '16px',
+                boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+              }}
+            >
+              <label
+                style={{
+                  color: isDarkMode ? '#9ca3af' : '#6b7280',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  marginBottom: '12px',
+                  display: 'block'
+                }}
+              >
+                分类类型
+              </label>
+              <div
+                style={{
+                  display: 'flex',
+                  backgroundColor: isDarkMode ? '#374151' : '#f3f4f6',
+                  borderRadius: '12px',
+                  padding: '4px',
+                  gap: '4px'
+                }}
+                role="radiogroup"
+                aria-label="选择分类类型"
+              >
+                <button
+                  type="button"
+                  onClick={() => handleInputChange('type', TransactionType.EXPENSE)}
+                  style={{
+                    flex: 1,
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    backgroundColor: formData.type === TransactionType.EXPENSE
+                      ? '#3b82f6'
+                      : 'transparent',
+                    color: formData.type === TransactionType.EXPENSE
+                      ? 'white'
+                      : isDarkMode ? '#f3f4f6' : '#1f2937'
+                  }}
+                  role="radio"
+                  aria-checked={formData.type === TransactionType.EXPENSE}
+                  aria-label="支出分类"
                 >
-                  <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="请选择分类类型" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={TransactionType.EXPENSE}>支出</SelectItem>
-                    <SelectItem value={TransactionType.INCOME}>收入</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.type && <p className="text-sm text-red-500">{errors.type}</p>}
+                  支出
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleInputChange('type', TransactionType.INCOME)}
+                  style={{
+                    flex: 1,
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    backgroundColor: formData.type === TransactionType.INCOME
+                      ? '#3b82f6'
+                      : 'transparent',
+                    color: formData.type === TransactionType.INCOME
+                      ? 'white'
+                      : isDarkMode ? '#f3f4f6' : '#1f2937'
+                  }}
+                  role="radio"
+                  aria-checked={formData.type === TransactionType.INCOME}
+                  aria-label="收入分类"
+                >
+                  收入
+                </button>
               </div>
+              {errors.type && (
+                <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '8px' }}>
+                  {errors.type}
+                </p>
+              )}
+            </div>
 
-              {/* 分类图标 */}
-              <div className="space-y-2">
-                <Label htmlFor="icon">分类图标 *</Label>
-                <div className="grid grid-cols-6 gap-3">
-                  {availableIcons.map((iconName) => (
-                    <button
-                      key={iconName}
-                      type="button"
-                      onClick={() => handleInputChange('icon', iconName)}
-                      className={`
-                        p-3 rounded-lg border-2 transition-all duration-200
-                        flex flex-col items-center gap-1
-                        ${
-                          formData.icon === iconName
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }
-                      `}
-                    >
-                      <i className={`${getIconClass(iconName)} text-xl`} />
-                      <span className="text-xs text-gray-600 truncate w-full text-center">
-                        {iconName}
+            {/* 基本信息表单 */}
+            <div
+              style={{
+                backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+                border: isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb',
+                borderRadius: '16px',
+                padding: '24px',
+                marginBottom: '16px',
+                boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+              }}
+            >
+              <label
+                htmlFor="name"
+                style={{
+                  color: isDarkMode ? '#9ca3af' : '#6b7280',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  marginBottom: '12px',
+                  display: 'block'
+                }}
+              >
+                分类名称 *
+              </label>
+              <input
+                id="name"
+                type="text"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                placeholder="输入分类名称"
+                maxLength={20}
+                style={{
+                  width: '100%',
+                  padding: '12px 0',
+                  border: 'none',
+                  borderBottom: `2px solid ${isDarkMode ? '#4b5563' : '#e5e7eb'}`,
+                  backgroundColor: 'transparent',
+                  color: isDarkMode ? '#f3f4f6' : '#1f2937',
+                  fontSize: '16px',
+                  outline: 'none',
+                  transition: 'border-color 0.2s ease'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderBottomColor = '#3b82f6';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderBottomColor = isDarkMode ? '#4b5563' : '#e5e7eb';
+                }}
+              />
+              {errors.name && (
+                <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '8px' }}>
+                  {errors.name}
+                </p>
+              )}
+            </div>
+
+            {/* 图标选择器 */}
+            <div
+              style={{
+                backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+                border: isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb',
+                borderRadius: '16px',
+                padding: '24px',
+                marginBottom: '16px',
+                boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+              }}
+            >
+              <label
+                style={{
+                  color: isDarkMode ? '#9ca3af' : '#6b7280',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  marginBottom: '12px',
+                  display: 'block'
+                }}
+              >
+                分类图标 *
+              </label>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: '12px',
+                  padding: '16px',
+                  backgroundColor: isDarkMode ? '#374151' : '#f3f4f6',
+                  borderRadius: '12px',
+                  maxHeight: '240px',
+                  overflowY: 'auto'
+                }}
+                role="radiogroup"
+                aria-label="选择分类图标"
+              >
+                {availableIcons.map((iconName) => (
+                  <button
+                    key={iconName}
+                    type="button"
+                    onClick={() => handleInputChange('icon', iconName)}
+                    style={{
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      border: formData.icon === iconName
+                        ? '2px solid #3b82f6'
+                        : isDarkMode ? '2px solid #4b5563' : '2px solid #e5e7eb',
+                      backgroundColor: formData.icon === iconName
+                        ? '#3b82f6'
+                        : isDarkMode ? '#1f2937' : '#ffffff',
+                      color: formData.icon === iconName
+                        ? 'white'
+                        : isDarkMode ? '#f3f4f6' : '#1f2937',
+                      fontSize: '20px',
+                      transition: 'all 0.2s ease'
+                    }}
+                    role="radio"
+                    aria-checked={formData.icon === iconName}
+                    aria-label={`图标 ${iconName}`}
+                    title={`选择 ${iconName} 图标`}
+                  >
+                    <i className={getIconClass(iconName)} aria-hidden="true" />
+                  </button>
+                ))}
+              </div>
+              {errors.icon && (
+                <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '8px' }}>
+                  {errors.icon}
+                </p>
+              )}
+            </div>
+
+            {/* 颜色选择器 */}
+            <div
+              style={{
+                backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+                border: isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb',
+                borderRadius: '16px',
+                padding: '24px',
+                marginBottom: '16px',
+                boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+              }}
+            >
+              <label
+                style={{
+                  color: isDarkMode ? '#9ca3af' : '#6b7280',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  marginBottom: '12px',
+                  display: 'block'
+                }}
+              >
+                分类颜色
+              </label>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: '16px',
+                  padding: '16px',
+                  backgroundColor: isDarkMode ? '#374151' : '#f3f4f6',
+                  borderRadius: '12px'
+                }}
+                role="radiogroup"
+                aria-label="选择分类颜色"
+              >
+                {presetColors.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => handleInputChange('color', color)}
+                    style={{
+                      backgroundColor: color,
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '50%',
+                      cursor: 'pointer',
+                      border: formData.color === color
+                        ? isDarkMode ? '3px solid #f3f4f6' : '3px solid #1f2937'
+                        : '3px solid transparent',
+                      position: 'relative',
+                      boxShadow: isDarkMode ? '0 2px 8px rgba(0, 0, 0, 0.3)' : '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      transition: 'all 0.2s ease',
+                      transform: formData.color === color ? 'scale(1.1)' : 'scale(1)'
+                    }}
+                    role="radio"
+                    aria-checked={formData.color === color}
+                    aria-label={`颜色 ${color}`}
+                    title={`选择颜色 ${color}`}
+                  >
+                    {formData.color === color && (
+                      <span style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: '14px',
+                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)'
+                      }}>
+                        ✓
                       </span>
-                    </button>
-                  ))}
-                </div>
-                {errors.icon && <p className="text-sm text-red-500">{errors.icon}</p>}
+                    )}
+                  </button>
+                ))}
               </div>
+            </div>
 
-              {/* 分类颜色 */}
-              <div className="space-y-2">
-                <Label htmlFor="color">分类颜色</Label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="color"
-                    id="color"
-                    value={formData.color}
-                    onChange={(e) => handleInputChange('color', e.target.value)}
-                    className="w-12 h-12 rounded-lg border border-gray-300 cursor-pointer"
-                  />
-                  <Input
-                    value={formData.color}
-                    onChange={(e) => handleInputChange('color', e.target.value)}
-                    placeholder="#3B82F6"
-                    className="flex-1"
-                  />
+            {/* 实时预览组件 */}
+            <div
+              style={{
+                backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+                border: isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb',
+                borderRadius: '16px',
+                padding: '24px',
+                marginBottom: '16px',
+                boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+              }}
+            >
+              <label
+                style={{
+                  color: isDarkMode ? '#9ca3af' : '#6b7280',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  marginBottom: '12px',
+                  display: 'block'
+                }}
+              >
+                预览效果
+              </label>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '16px',
+                  padding: '16px',
+                  backgroundColor: isDarkMode ? '#374151' : '#f3f4f6',
+                  borderRadius: '12px'
+                }}
+              >
+                <div
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: formData.color,
+                    color: 'white',
+                    fontSize: '20px'
+                  }}
+                >
+                  <i className={getIconClass(formData.icon)} aria-hidden="true" />
                 </div>
-              </div>
-
-              {/* 预览 */}
-              <div className="space-y-2">
-                <Label>预览</Label>
-                <div className="p-4 border rounded-lg bg-gray-50">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-12 h-12 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: formData.color + '20', color: formData.color }}
-                    >
-                      <i className={`${getIconClass(formData.icon)} text-xl`} />
-                    </div>
-                    <div>
-                      <div className="font-medium">{formData.name || '分类名称'}</div>
-                      <div className="text-sm text-gray-500">
-                        {formData.type === TransactionType.EXPENSE ? '支出' : '收入'}分类
-                      </div>
-                    </div>
+                <div>
+                  <div
+                    style={{
+                      color: isDarkMode ? '#f3f4f6' : '#1f2937',
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      marginBottom: '4px'
+                    }}
+                  >
+                    {formData.name || '分类名称'}
+                  </div>
+                  <div
+                    style={{
+                      color: isDarkMode ? '#9ca3af' : '#6b7280',
+                      fontSize: '14px'
+                    }}
+                  >
+                    {formData.type === TransactionType.EXPENSE ? '支出分类' : '收入分类'}
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* 操作按钮 */}
-              <div className="flex gap-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push('/settings/categories')}
-                  className="flex-1"
-                >
-                  <i className="fas fa-arrow-left mr-2" />
-                  取消
-                </Button>
-                <Button type="submit" disabled={isLoading} className="flex-1">
-                  <i className="fas fa-save mr-2" />
-                  {isLoading ? '创建中...' : '创建分类'}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </PageContainer>
+            {/* 操作按钮 */}
+            <div style={{ display: 'flex', gap: '12px', paddingTop: '16px' }}>
+              <button
+                type="button"
+                onClick={() => router.push('/settings/categories')}
+                style={{
+                  flex: 1,
+                  padding: '16px',
+                  borderRadius: '12px',
+                  border: isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb',
+                  backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+                  color: isDarkMode ? '#f3f4f6' : '#1f2937',
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = isDarkMode ? '#374151' : '#f3f4f6';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = isDarkMode ? '#1f2937' : '#ffffff';
+                }}
+              >
+                <i className="fas fa-arrow-left" />
+                取消
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading}
+                style={{
+                  flex: 1,
+                  padding: '16px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  backgroundColor: isLoading ? '#9ca3af' : '#3b82f6',
+                  color: 'white',
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isLoading) {
+                    e.currentTarget.style.backgroundColor = '#2563eb';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isLoading) {
+                    e.currentTarget.style.backgroundColor = '#3b82f6';
+                  }
+                }}
+              >
+                {isLoading ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin" />
+                    创建中...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-save" />
+                    创建分类
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </PageContainer>
+    </div>
   );
 }
 
@@ -277,38 +637,89 @@ export default function NewCategoryPage() {
   return (
     <Suspense
       fallback={
-        <PageContainer title="添加分类" showBack>
-          <div className="max-w-2xl mx-auto p-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+          <PageContainer title="添加分类" showBack>
+            <div className="max-w-2xl mx-auto p-4">
+              {/* 页面标题卡片 */}
+              <div
+                style={{
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '16px',
+                  padding: '24px',
+                  marginBottom: '16px',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                }}
+              >
+                <h1
+                  style={{
+                    color: '#1f2937',
+                    fontSize: '20px',
+                    fontWeight: '600',
+                    margin: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
                   <i className="fas fa-palette" />
                   创建新分类
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                    <div className="h-10 bg-gray-200 rounded"></div>
-                  </div>
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                    <div className="h-10 bg-gray-200 rounded"></div>
-                  </div>
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                    <div className="grid grid-cols-6 gap-3">
+                </h1>
+              </div>
+
+              {/* 加载骨架屏 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* 分类类型选择器骨架 */}
+                <div
+                  style={{
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '16px',
+                    padding: '24px',
+                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                  }}
+                >
+                  <div style={{ height: '16px', backgroundColor: '#e5e7eb', borderRadius: '4px', width: '80px', marginBottom: '12px' }}></div>
+                  <div style={{ height: '48px', backgroundColor: '#f3f4f6', borderRadius: '12px' }}></div>
+                </div>
+
+                {/* 基本信息表单骨架 */}
+                <div
+                  style={{
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '16px',
+                    padding: '24px',
+                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                  }}
+                >
+                  <div style={{ height: '16px', backgroundColor: '#e5e7eb', borderRadius: '4px', width: '100px', marginBottom: '12px' }}></div>
+                  <div style={{ height: '48px', backgroundColor: '#f3f4f6', borderRadius: '8px' }}></div>
+                </div>
+
+                {/* 图标选择器骨架 */}
+                <div
+                  style={{
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '16px',
+                    padding: '24px',
+                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                  }}
+                >
+                  <div style={{ height: '16px', backgroundColor: '#e5e7eb', borderRadius: '4px', width: '80px', marginBottom: '12px' }}></div>
+                  <div style={{ padding: '16px', backgroundColor: '#f3f4f6', borderRadius: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
                       {Array.from({ length: 12 }).map((_, i) => (
-                        <div key={i} className="h-16 bg-gray-200 rounded-lg"></div>
+                        <div key={i} style={{ width: '60px', height: '60px', backgroundColor: '#e5e7eb', borderRadius: '12px' }}></div>
                       ))}
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </PageContainer>
+              </div>
+            </div>
+          </PageContainer>
+        </div>
       }
     >
       <NewCategoryForm />

@@ -10,12 +10,14 @@ interface CategoryGridProps {
   categories: Category[];
   isLoading: boolean;
   isShowingHidden?: boolean;
+  onEditCategory?: (categoryId: string) => void;
 }
 
 export function CategoryGrid({
   categories,
   isLoading,
   isShowingHidden = false,
+  onEditCategory,
 }: CategoryGridProps) {
   const router = useRouter();
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
@@ -50,14 +52,23 @@ export function CategoryGrid({
 
   // 处理点击
   const handleClick = (category: Category) => {
-    // 如果是默认分类，只能编辑图标和颜色
-    router.push(`/settings/categories/${category.id}/edit`);
+    if (onEditCategory) {
+      onEditCategory(category.id);
+    } else {
+      // 兼容旧的路由跳转方式
+      router.push(`/settings/categories/${category.id}/edit`);
+    }
   };
 
   // 处理编辑
   const handleEdit = () => {
     if (selectedCategory) {
-      router.push(`/settings/categories/${selectedCategory.id}/edit`);
+      if (onEditCategory) {
+        onEditCategory(selectedCategory.id);
+      } else {
+        // 兼容旧的路由跳转方式
+        router.push(`/settings/categories/${selectedCategory.id}/edit`);
+      }
       setShowActionMenu(false);
     }
   };

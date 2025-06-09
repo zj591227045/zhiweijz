@@ -7,6 +7,7 @@ import { PageContainer } from '@/components/layout/page-container';
 import { CategoryGrid } from '@/components/categories/category-grid';
 import { CategoryList } from '@/components/categories/category-list';
 import { AddCategoryButton } from '@/components/categories/add-category-button';
+import CategoryEditModal from '@/components/category-edit-modal';
 import { useCategoryStore } from '@/store/category-store';
 import { toast } from 'sonner';
 import { Category, TransactionType } from '@/types';
@@ -18,6 +19,9 @@ export default function CategoryListPage() {
   const [selectedType, setSelectedType] = useState<TransactionType>(TransactionType.EXPENSE);
   const [isSorting, setIsSorting] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
+
+  // 分类编辑模态框状态
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
 
   // 获取分类列表
   useEffect(() => {
@@ -59,6 +63,23 @@ export default function CategoryListPage() {
     } finally {
       setIsSorting(false);
     }
+  };
+
+  // 处理分类编辑
+  const handleEditCategory = (categoryId: string) => {
+    setEditingCategoryId(categoryId);
+  };
+
+  // 关闭编辑模态框
+  const handleCloseEditModal = () => {
+    setEditingCategoryId(null);
+  };
+
+  // 保存分类编辑
+  const handleSaveCategory = () => {
+    setEditingCategoryId(null);
+    // 重新获取分类列表
+    fetchCategories(undefined, undefined, showHidden);
   };
 
   // 过滤当前类型的分类
@@ -113,6 +134,7 @@ export default function CategoryListPage() {
           categories={filteredCategories}
           isLoading={isLoading}
           isShowingHidden={showHidden}
+          onEditCategory={handleEditCategory}
         />
       ) : (
         <CategoryList
@@ -121,11 +143,21 @@ export default function CategoryListPage() {
           onUpdateOrder={handleUpdateOrder}
           isSorting={isSorting}
           isShowingHidden={showHidden}
+          onEditCategory={handleEditCategory}
         />
       )}
 
       {/* 添加分类按钮 */}
       <AddCategoryButton type={selectedType} />
+
+      {/* 分类编辑模态框 */}
+      {editingCategoryId && (
+        <CategoryEditModal
+          categoryId={editingCategoryId}
+          onClose={handleCloseEditModal}
+          onSave={handleSaveCategory}
+        />
+      )}
     </PageContainer>
   );
 }
