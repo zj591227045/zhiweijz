@@ -85,14 +85,15 @@ export function StatisticsPage() {
 
   return (
     <PageContainer title="统计分析" rightActions={rightActions} activeNavItem="statistics">
-      {/* 日期选择器 */}
-      <DateRangePicker
-        startDate={dateRange.startDate}
-        endDate={dateRange.endDate}
-        onPrevious={handlePreviousPeriod}
-        onNext={handleNextPeriod}
-        onToday={handleCurrentPeriod}
-      />
+      <div className="statistics-analysis-page">
+        {/* 日期选择器 */}
+        <DateRangePicker
+          startDate={dateRange.startDate}
+          endDate={dateRange.endDate}
+          onPrevious={handlePreviousPeriod}
+          onNext={handleNextPeriod}
+          onToday={handleCurrentPeriod}
+        />
 
       {isLoading ? (
         <div className="loading-state">
@@ -141,6 +142,7 @@ export function StatisticsPage() {
           <p>暂无统计数据</p>
         </div>
       )}
+      </div>
     </PageContainer>
   );
 }

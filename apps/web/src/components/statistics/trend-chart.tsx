@@ -208,8 +208,8 @@ export function TrendChart({ dailyStatistics }: TrendChartProps) {
         {dailyStatistics && dailyStatistics.length > 0 ? (
           <Line ref={chartRef} data={chartData} options={chartOptions} />
         ) : (
-          <div className="flex h-full items-center justify-center">
-            <p className="text-gray-500">暂无趋势数据</p>
+          <div className="empty-chart">
+            <p>暂无趋势数据</p>
           </div>
         )}
       </div>

@@ -169,10 +169,11 @@ export function BudgetStatisticsPage() {
 
   return (
     <PageContainer title="预算统计" rightActions={rightActions} activeNavItem="budget">
-      {/* 预算类型选择器 */}
-      <div className="budget-statistics-container">
-        <BudgetTypeSelector activeType={budgetType} onChange={handleBudgetTypeChange} />
-      </div>
+      <div className="budget-statistics-page">
+        {/* 预算类型选择器 */}
+        <div className="budget-statistics-container">
+          <BudgetTypeSelector activeType={budgetType} onChange={handleBudgetTypeChange} />
+        </div>
 
       <div className="budget-statistics-container">
         {isLoading ? (
@@ -253,6 +254,7 @@ export function BudgetStatisticsPage() {
             )}
           </>
         )}
+      </div>
       </div>
     </PageContainer>
   );

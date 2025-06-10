@@ -1,6 +1,6 @@
 import { StatisticsPage } from '@/components/statistics/statistics-page';
 import { Metadata } from 'next';
-import './statistics.css';
+import './statistics-analysis.css';
 
 export const metadata: Metadata = {
   title: '统计分析 - 只为记账',
