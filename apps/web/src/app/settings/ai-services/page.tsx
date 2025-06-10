@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { PageContainer } from '@/components/layout/page-container';
 import { useAuthStore } from '@/store/auth-store';
 import { useAIServicesStore } from '@/store/ai-services-store';
+import AiServiceEditModal from '@/components/ai-service-edit-modal';
 import styles from './ai-services.module.css';
 
 interface AIService {
@@ -22,6 +23,10 @@ export default function AIServicesPage() {
   const router = useRouter();
   const { isAuthenticated, login } = useAuthStore();
   const { services, isLoading, error, fetchServices, deleteService } = useAIServicesStore();
+
+  // 模态框状态
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingServiceId, setEditingServiceId] = useState<string>('');
 
   // 快速登录功能
   const quickLogin = async () => {
@@ -52,6 +57,29 @@ export default function AIServicesPage() {
     }
   };
 
+  // 打开编辑模态框
+  const handleEdit = (serviceId: string) => {
+    setEditingServiceId(serviceId);
+    setIsEditModalOpen(true);
+  };
+
+  // 打开新建模态框
+  const handleAdd = () => {
+    setEditingServiceId('new');
+    setIsEditModalOpen(true);
+  };
+
+  // 关闭模态框
+  const handleCloseModal = () => {
+    setIsEditModalOpen(false);
+    setEditingServiceId('');
+  };
+
+  // 保存成功回调
+  const handleSaveSuccess = () => {
+    fetchServices(); // 刷新列表
+  };
+
   // 右侧操作按钮
   const rightActions = (
     <div className={styles.actionButtons}>
@@ -62,9 +90,13 @@ export default function AIServicesPage() {
       >
         <i className="fas fa-sync-alt"></i>
       </button>
-      <Link href="/settings/ai-services/add" className={styles.iconButton} title="添加新服务">
+      <button
+        className={styles.iconButton}
+        onClick={handleAdd}
+        title="添加新服务"
+      >
         <i className="fas fa-plus"></i>
-      </Link>
+      </button>
     </div>
   );
 
@@ -117,9 +149,9 @@ export default function AIServicesPage() {
           </div>
           <h3>暂无AI服务</h3>
           <p>点击右上角添加按钮创建新的AI服务</p>
-          <Link href="/settings/ai-services/add" className={styles.addServiceButton}>
+          <button onClick={handleAdd} className={styles.addServiceButton}>
             添加AI服务
-          </Link>
+          </button>
         </div>
       ) : (
         <div className={styles.aiServicesList}>
@@ -144,12 +176,12 @@ export default function AIServicesPage() {
                 )}
               </div>
               <div className={styles.serviceActions}>
-                <Link
-                  href={`/settings/ai-services/edit/${service.id}`}
+                <button
+                  onClick={() => handleEdit(service.id)}
                   className={styles.editButton}
                 >
                   <i className="fas fa-edit"></i>
-                </Link>
+                </button>
                 <button className={styles.deleteButton} onClick={() => handleDelete(service.id)}>
                   <i className="fas fa-trash-alt"></i>
                 </button>
@@ -158,6 +190,14 @@ export default function AIServicesPage() {
           ))}
         </div>
       )}
+
+      {/* AI服务编辑模态框 */}
+      <AiServiceEditModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseModal}
+        serviceId={editingServiceId}
+        onSave={handleSaveSuccess}
+      />
     </PageContainer>
   );
 }

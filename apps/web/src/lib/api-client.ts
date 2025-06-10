@@ -114,4 +114,7 @@ export const fetchApi = async (url: string, options: RequestInit = {}): Promise<
   });
 };
 
-export const apiClient = new ApiClient(); 
+export const apiClient = new ApiClient();
+
+// 导出getApiBaseUrl函数供其他组件使用
+export { getApiBaseUrl };
