@@ -77,16 +77,25 @@ export function BudgetListCard({ budget, onDelete, onEdit }: BudgetListCardProps
         <div className="budget-title">
           <h3>{budget.name}</h3>
           <div className="budget-subtitle">
-            <span className="budget-period">{budget.period}</span>
-            {/* 如果是家庭账本且有用户名称或家庭成员名称，显示名称 */}
-            {currentAccountBook?.type === 'FAMILY' && budget.budgetType === 'PERSONAL' && (
-              <span className="budget-username">
-                <i
-                  className={`fas ${budget.familyMemberId ? 'fa-child' : 'fa-user'} mr-1 text-xs`}
-                ></i>
-                {budget.familyMemberName || budget.userName}
-              </span>
-            )}
+            <div className="budget-subtitle-left">
+              <span className="budget-period">{budget.period}</span>
+              {/* 如果是家庭账本且有用户名称或家庭成员名称，显示名称 */}
+              {currentAccountBook?.type === 'FAMILY' && budget.budgetType === 'PERSONAL' && (
+                <span className="budget-username">
+                  <i
+                    className={`fas ${budget.familyMemberId ? 'fa-child' : 'fa-user'} mr-1 text-xs`}
+                  ></i>
+                  {budget.familyMemberName || budget.userName}
+                </span>
+              )}
+            </div>
+            <div className="budget-days-remaining">
+              {budget.daysRemaining > 0
+                ? `剩余${budget.daysRemaining}天`
+                : budget.budgetType === 'GENERAL' && budget.daysRemaining === 0
+                  ? '无期限'
+                  : '已结束'}
+            </div>
           </div>
         </div>
         <div className="budget-actions">
@@ -108,7 +117,18 @@ export function BudgetListCard({ budget, onDelete, onEdit }: BudgetListCardProps
         </div>
       </div>
 
-      <div className="budget-amount">{formatCurrency(budget.amount)}</div>
+      <div className="budget-amount-section">
+        <div className="budget-amount">{formatCurrency(budget.amount)}</div>
+        {budget.rolloverAmount !== undefined && budget.rolloverAmount !== 0 && (
+          <div className={cn('rollover-info-compact', budget.rolloverAmount < 0 && 'negative')}>
+            <i className="fas fa-exchange-alt"></i>
+            <span>
+              本月结转: {budget.rolloverAmount > 0 ? '+' : ''}
+              {formatCurrency(budget.rolloverAmount)}
+            </span>
+          </div>
+        )}
+      </div>
 
       <div className="budget-progress-section">
         <div className="budget-progress-container">
@@ -154,31 +174,13 @@ export function BudgetListCard({ budget, onDelete, onEdit }: BudgetListCardProps
         </div>
       </div>
 
-      <div className="budget-footer">
-        {budget.rolloverAmount !== undefined && budget.rolloverAmount !== 0 ? (
-          <div className={cn('rollover-info', budget.rolloverAmount < 0 && 'negative')}>
-            <i className="fas fa-exchange-alt"></i>
-            <span>
-              本月结转: {budget.rolloverAmount > 0 ? '+' : ''}
-              {formatCurrency(budget.rolloverAmount)}
-            </span>
-          </div>
-        ) : budget.categoryIcon ? (
+      {budget.categoryIcon && (
+        <div className="budget-footer">
           <div className="category-icon">
             <i className={`fas ${getCategoryIconClass(budget.categoryIcon)}`}></i>
           </div>
-        ) : (
-          <div></div> // 空占位符，保持布局
-        )}
-
-        <div className="days-remaining">
-          {budget.daysRemaining > 0
-            ? `剩余${budget.daysRemaining}天`
-            : budget.budgetType === 'GENERAL' && budget.daysRemaining === 0
-              ? '无期限'
-              : '已结束'}
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -1,4 +1,11 @@
-/* 预算管理页面样式 */
+/* 预算管理页面样式 - 使用页面级作用域避免与预算统计页面冲突 */
+
+/* 页面级作用域容器 */
+.budget-list-page {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
 
 /* 应用容器 */
 .app-container {
@@ -159,88 +166,108 @@
   font-size: 12px;
 }
 
-/* 预算卡片 */
-.budget-list {
+/* 预算卡片 - 限制在预算列表页面作用域内 */
+.budget-list-page .budget-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
   margin-bottom: 24px;
 }
 
-.budget-card {
-  background-color: var(--card-background);
-  border-radius: var(--border-radius);
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  border: 1px solid var(--border-color);
+.budget-list-page .budget-card {
+  background-color: var(--card-background) !important;
+  border-radius: var(--border-radius) !important;
+  padding: 16px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+  cursor: pointer !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  border: 1px solid var(--border-color) !important;
 }
 
-.budget-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.budget-list-page .budget-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 
-.budget-card.warning .progress {
-  background-color: var(--warning-color);
+.budget-list-page .budget-card.warning .progress {
+  background-color: var(--warning-color) !important;
 }
 
-.budget-card.danger .progress {
-  background-color: var(--error-color);
+.budget-list-page .budget-card.danger .progress {
+  background-color: var(--error-color) !important;
 }
 
-.budget-header {
+.budget-list-page .budget-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 12px;
 }
 
-.budget-title {
+.budget-list-page .budget-title {
   flex: 1;
 }
 
-.budget-title h3 {
+.budget-list-page .budget-title h3 {
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 4px;
 }
 
-.budget-subtitle {
+.budget-list-page .budget-subtitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.budget-list-page .budget-subtitle-left {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
+  min-width: 0; /* 允许缩小 */
 }
 
-.budget-period {
+.budget-list-page .budget-period {
   font-size: 12px;
   color: var(--text-secondary);
+  white-space: nowrap; /* 防止换行 */
 }
 
-.budget-username {
+.budget-list-page .budget-days-remaining {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap; /* 防止换行 */
+  flex-shrink: 0; /* 防止缩小 */
+}
+
+.budget-list-page .budget-username {
   font-size: 12px;
   color: var(--primary-color);
   background-color: rgba(var(--primary-rgb), 0.1);
   padding: 2px 6px;
   border-radius: 4px;
+  white-space: nowrap; /* 防止换行 */
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.budget-actions {
+.budget-list-page .budget-actions {
   margin-left: 8px;
   display: flex;
   gap: 8px;
 }
 
-.budget-actions .action-buttons {
+.budget-list-page .budget-actions .action-buttons {
   display: flex;
   gap: 8px;
 }
 
-.edit-button, .delete-button {
+.budget-list-page .edit-button,
+.budget-list-page .delete-button {
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -252,56 +279,88 @@
   transition: all 0.2s ease;
 }
 
-.edit-button {
+.budget-list-page .edit-button {
   background-color: rgba(var(--primary-rgb), 0.1);
   color: var(--primary-color);
 }
 
-.edit-button:hover {
+.budget-list-page .edit-button:hover {
   background-color: rgba(var(--primary-rgb), 0.2);
 }
 
-.delete-button {
+.budget-list-page .delete-button {
   background-color: rgba(239, 68, 68, 0.1);
   color: var(--error-color);
 }
 
-.delete-button:hover {
+.budget-list-page .delete-button:hover {
   background-color: rgba(239, 68, 68, 0.2);
 }
 
-.budget-amount {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  color: var(--text-primary);
+/* 预算金额区域 - 包含金额和结转信息 */
+.budget-list-page .budget-amount-section {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 12px !important;
+  min-height: 28px !important; /* 确保统一高度 */
+}
+
+.budget-list-page .budget-amount {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  margin: 0 !important; /* 移除margin，由父容器控制 */
+}
+
+/* 紧凑的结转信息样式 */
+.budget-list-page .rollover-info-compact {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  font-size: 12px !important;
+  color: var(--success-color) !important;
+  background-color: rgba(34, 197, 94, 0.1) !important;
+  padding: 4px 8px !important;
+  border-radius: 12px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important; /* 防止压缩 */
+}
+
+.budget-list-page .rollover-info-compact.negative {
+  color: var(--error-color) !important;
+  background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+.budget-list-page .rollover-info-compact i {
+  font-size: 10px !important;
 }
 
 /* 新的进度条样式 - 避免与全局样式冲突 */
-.budget-progress-section {
-  margin-bottom: 12px;
+.budget-list-page .budget-progress-section {
+  margin-bottom: 12px !important;
 }
 
-.budget-progress-container {
-  margin-bottom: 8px;
+.budget-list-page .budget-progress-container {
+  margin-bottom: 8px !important;
 }
 
-.budget-progress-track {
-  height: 8px;
-  background-color: #e5e7eb;
-  border-radius: 4px;
-  overflow: hidden;
-  width: 100%;
-  position: relative;
-  border: 1px solid #d1d5db;
+.budget-list-page .budget-progress-track {
+  height: 8px !important;
+  background-color: #e5e7eb !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  position: relative !important;
+  border: 1px solid #d1d5db !important;
 }
 
-.budget-progress-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.3s ease;
-  position: relative;
-  min-width: 0;
+.budget-list-page .budget-progress-fill {
+  height: 100% !important;
+  border-radius: 3px !important;
+  transition: width 0.3s ease !important;
+  position: relative !important;
+  min-width: 0 !important;
 }
 
 /* 暗色主题下的进度条样式 */
@@ -331,42 +390,54 @@ html.dark .budget-progress-track,
   animation: progressFill 0.5s ease-out;
 }
 
-.progress-info {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--text-secondary);
+.budget-list-page .progress-info {
+  display: flex !important;
+  justify-content: space-between !important;
+  font-size: 12px !important;
+  color: var(--text-secondary) !important;
 }
 
-.remaining {
-  color: var(--success-color);
+.budget-list-page .remaining {
+  color: var(--success-color) !important;
 }
 
-.remaining.negative {
-  color: var(--error-color);
+.budget-list-page .remaining.negative {
+  color: var(--error-color) !important;
 }
 
-.budget-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
+.budget-list-page .budget-footer {
+  display: flex !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  font-size: 12px !important;
+  margin-top: 8px !important;
 }
 
-.rollover-info {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--success-color);
+/* 分类图标样式 */
+.budget-list-page .category-icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50% !important;
+  background-color: rgba(var(--primary-rgb), 0.1) !important;
+  color: var(--primary-color) !important;
+  font-size: 12px !important;
 }
 
-.rollover-info.negative {
-  color: var(--error-color);
+.budget-list-page .rollover-info {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  color: var(--success-color) !important;
 }
 
-.days-remaining {
-  color: var(--text-secondary);
+.budget-list-page .rollover-info.negative {
+  color: var(--error-color) !important;
 }
+
+/* 移除原来的days-remaining样式，现在使用budget-days-remaining */
 
 /* 添加预算按钮 */
 .add-budget-button {

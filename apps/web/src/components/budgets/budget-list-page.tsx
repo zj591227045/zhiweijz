@@ -199,8 +199,9 @@ export function BudgetListPage() {
 
   return (
     <PageContainer title="预算管理" rightActions={rightActions} activeNavItem="budget">
-      {/* 预算类型选择器 */}
-      <BudgetListTypeSelector selectedType={selectedType} onTypeChange={handleTypeChange} />
+      <div className="budget-list-page">
+        {/* 预算类型选择器 */}
+        <BudgetListTypeSelector selectedType={selectedType} onTypeChange={handleTypeChange} />
 
       {/* 预算统计链接 */}
       <div className="statistics-link-container">
@@ -280,6 +281,7 @@ export function BudgetListPage() {
           onSave={handleBudgetEditSave}
         />
       )}
+      </div>
     </PageContainer>
   );
 }
