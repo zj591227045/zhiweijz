@@ -23,7 +23,6 @@ interface AIServiceFormData {
   temperature: number;
   maxTokens: number;
   description: string;
-  isEnabled: boolean;
 }
 
 // 连接测试结果类型
@@ -55,8 +54,7 @@ export default function AiServiceEditModal({
     baseUrl: '',
     temperature: 0.7,
     maxTokens: 1000,
-    description: '',
-    isEnabled: true
+    description: ''
   });
 
   // Store hooks
@@ -112,8 +110,7 @@ export default function AiServiceEditModal({
           baseUrl: data.baseUrl || '',
           temperature: data.temperature || 0.7,
           maxTokens: data.maxTokens || 1000,
-          description: data.description || '',
-          isEnabled: data.isEnabled !== false
+          description: data.description || ''
         });
       } else {
         toast.error('获取AI服务详情失败');
@@ -307,8 +304,7 @@ export default function AiServiceEditModal({
         baseUrl: formData.baseUrl.trim() || undefined,
         temperature: formData.temperature,
         maxTokens: formData.maxTokens,
-        description: formData.description.trim() || undefined,
-        isEnabled: formData.isEnabled
+        description: formData.description.trim() || undefined
       };
 
       let response: Response;
@@ -391,10 +387,9 @@ export default function AiServiceEditModal({
 
         {/* 主要内容 */}
         <div className="main-content" style={{
-          paddingBottom: '20px',
+          paddingBottom: '100px', // 为底部按钮留出足够空间
           overflowY: 'auto',
           WebkitOverflowScrolling: 'touch',
-          paddingBottom: 'env(safe-area-inset-bottom, 20px)',
           minHeight: 'calc(100vh - 60px)'
         }}>
           <div style={{ padding: '0 20px' }}>
@@ -705,76 +700,7 @@ export default function AiServiceEditModal({
                   )}
                 </div>
 
-                {/* 服务状态卡片 */}
-                <div style={{
-                  backgroundColor: 'var(--background-color)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '12px',
-                  padding: '16px',
-                  marginBottom: '20px'
-                }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>服务状态</h3>
 
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                  }}>
-                    <div>
-                      <div style={{
-                        fontSize: '16px',
-                        fontWeight: '500',
-                        color: 'var(--text-color)',
-                        marginBottom: '4px'
-                      }}>启用服务</div>
-                      <div style={{
-                        fontSize: '14px',
-                        color: 'var(--text-secondary)'
-                      }}>启用后可在账本中使用此AI服务</div>
-                    </div>
-
-                    {/* iOS风格开关 */}
-                    <label style={{
-                      position: 'relative',
-                      display: 'inline-block',
-                      width: '50px',
-                      height: '30px',
-                      cursor: isSubmitting ? 'not-allowed' : 'pointer'
-                    }}>
-                      <input
-                        type="checkbox"
-                        checked={formData.isEnabled}
-                        onChange={(e) => setFormData(prev => ({ ...prev, isEnabled: e.target.checked }))}
-                        disabled={isSubmitting}
-                        style={{ display: 'none' }}
-                      />
-                      <span style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: formData.isEnabled ? '#34d399' : '#d1d5db',
-                        borderRadius: '15px',
-                        transition: 'all 0.3s ease',
-                        cursor: isSubmitting ? 'not-allowed' : 'pointer'
-                      }}>
-                        <span style={{
-                          position: 'absolute',
-                          content: '""',
-                          height: '26px',
-                          width: '26px',
-                          left: formData.isEnabled ? '22px' : '2px',
-                          bottom: '2px',
-                          backgroundColor: 'white',
-                          borderRadius: '50%',
-                          transition: 'all 0.3s ease',
-                          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
-                        }}></span>
-                      </span>
-                    </label>
-                  </div>
-                </div>
 
                 {/* 错误信息 */}
                 {formError && (

@@ -315,35 +315,28 @@ export class LLMProviderService {
     }
   ): Promise<string> {
     try {
-      // 使用原始SQL插入记录
-      const result = await this.prisma.$executeRaw`
-        INSERT INTO "user_llm_settings" (
-          "id", "user_id", "provider", "model", "api_key", "temperature", "max_tokens",
-          "created_at", "updated_at", "name", "description", "base_url"
-        ) VALUES (
-          gen_random_uuid(), ${userId}, ${settings.provider}, ${settings.model},
-          ${settings.apiKey || null}, ${settings.temperature || 0.7}, ${settings.maxTokens || 1000},
-          NOW(), NOW(), ${settings.name}, ${settings.description || null}, ${settings.baseUrl || null}
-        )
-        RETURNING "id"
-      `;
+      console.log('开始创建用户LLM设置:', { userId, settings });
 
-      // 获取插入的ID
-      const insertedId = await this.prisma.$queryRaw`
-        SELECT "id" FROM "user_llm_settings"
-        WHERE "user_id" = ${userId}
-        ORDER BY "created_at" DESC
-        LIMIT 1
-      `;
+      // 使用Prisma ORM方法创建记录，这样更安全可靠
+      const createdSetting = await this.prisma.userLLMSetting.create({
+        data: {
+          userId,
+          name: settings.name,
+          provider: settings.provider,
+          model: settings.model,
+          apiKey: settings.apiKey || null,
+          temperature: settings.temperature || 0.7,
+          maxTokens: settings.maxTokens || 1000,
+          baseUrl: settings.baseUrl || null,
+          description: settings.description || null,
+        },
+        select: {
+          id: true
+        }
+      });
 
-      const id = Array.isArray(insertedId) && insertedId.length > 0 ? insertedId[0].id : null;
-
-      if (!id) {
-        throw new Error('创建用户LLM设置失败');
-      }
-
-
-      return id;
+      console.log('成功创建用户LLM设置:', createdSetting.id);
+      return createdSetting.id;
     } catch (error) {
       console.error('创建用户LLM设置错误:', error);
       throw error;

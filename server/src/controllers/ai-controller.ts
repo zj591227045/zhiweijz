@@ -143,16 +143,36 @@ export class AIController {
    */
   public async createUserLLMSettings(req: Request, res: Response) {
     try {
+      console.log('收到创建用户LLM设置请求');
+      console.log('请求体:', req.body);
+      console.log('用户信息:', req.user);
+
       const userId = req.user?.id;
       const { name, provider, model, apiKey, temperature, maxTokens, baseUrl, description } = req.body;
 
+      console.log('解析的参数:', {
+        userId,
+        name,
+        provider,
+        model,
+        hasApiKey: !!apiKey,
+        temperature,
+        maxTokens,
+        baseUrl,
+        description
+      });
+
       if (!userId) {
+        console.log('用户未授权');
         return res.status(401).json({ error: '未授权' });
       }
 
       if (!name || !provider || !model) {
+        console.log('缺少必要参数:', { name, provider, model });
         return res.status(400).json({ error: '名称、提供商和模型不能为空' });
       }
+
+      console.log('开始创建用户LLM设置...');
 
       // 创建用户LLM设置
       const settingId = await this.llmProviderService.createUserLLMSetting(userId, {
@@ -166,9 +186,11 @@ export class AIController {
         description
       });
 
+      console.log('成功创建用户LLM设置，ID:', settingId);
       res.json({ success: true, id: settingId });
     } catch (error) {
       console.error('创建用户LLM设置错误:', error);
+      console.error('错误堆栈:', error instanceof Error ? error.stack : 'No stack trace');
       res.status(500).json({ error: '处理请求时出错' });
     }
   }

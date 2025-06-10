@@ -46,14 +46,20 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
       // 检查缓存 - 只监听当前账本的缓存
       const cachedSettings = llmCache[currentAccountBook.id];
       if (cachedSettings) {
-        setHasLLMService(cachedSettings.bound);
+        setHasLLMService(cachedSettings.bound || false);
         return;
       }
 
       // 使用缓存store获取LLM设置
       try {
         const settings = await getLLMSettings(currentAccountBook.id, null);
-        setHasLLMService(settings.bound);
+        // 确保settings存在且有bound属性
+        if (settings && typeof settings === 'object') {
+          setHasLLMService(settings.bound || false);
+        } else {
+          console.warn('LLM设置格式不正确:', settings);
+          setHasLLMService(false);
+        }
       } catch (error) {
         console.error('获取LLM设置失败:', error);
         setHasLLMService(false);

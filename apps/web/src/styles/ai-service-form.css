@@ -1,0 +1,259 @@
+/* AI服务表单样式 */
+
+/* 表单容器 */
+.ai-service-form {
+  padding: 20px;
+  padding-bottom: 120px; /* 为底部导航栏和按钮留出空间 */
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* 表单组 */
+.ai-service-form .form-group {
+  margin-bottom: 20px;
+}
+
+/* 表单标签 */
+.ai-service-form .form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-primary, #1f2937);
+  font-size: 14px;
+}
+
+/* 表单输入框 */
+.ai-service-form .form-input,
+.ai-service-form .form-textarea,
+.ai-service-form .form-select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  background-color: var(--background-secondary, #f9fafb);
+  color: var(--text-primary, #1f2937);
+  font-size: 16px;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.ai-service-form .form-input:focus,
+.ai-service-form .form-textarea:focus,
+.ai-service-form .form-select:focus {
+  outline: none;
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* 文本区域 */
+.ai-service-form .form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* 表单提示 */
+.ai-service-form .form-hint {
+  font-size: 12px;
+  color: var(--text-secondary, #6b7280);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* 高级设置 */
+.ai-service-form .advanced-settings {
+  margin: 24px 0;
+  padding: 16px;
+  background-color: var(--background-color, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+}
+
+.ai-service-form .advanced-toggle {
+  width: 100%;
+  padding: 12px;
+  background: none;
+  border: none;
+  color: var(--primary-color, #3b82f6);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ai-service-form .advanced-content {
+  margin-top: 16px;
+}
+
+/* 网格布局 */
+.ai-service-form .grid {
+  display: grid;
+}
+
+.ai-service-form .grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.ai-service-form .gap-4 {
+  gap: 16px;
+}
+
+/* 连接测试 */
+.ai-service-form .test-connection {
+  margin: 24px 0;
+  padding: 16px;
+  background-color: var(--background-color, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+}
+
+.ai-service-form .test-button {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: var(--primary-color, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-bottom: 12px;
+}
+
+.ai-service-form .test-button:hover:not(:disabled) {
+  background-color: rgba(59, 130, 246, 0.9);
+}
+
+.ai-service-form .test-button:disabled {
+  background-color: var(--text-secondary, #6b7280);
+  cursor: not-allowed;
+}
+
+.ai-service-form .test-result {
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.ai-service-form .test-result.success {
+  background-color: #dcfce7;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.ai-service-form .test-result.error {
+  background-color: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+/* 表单操作按钮 */
+.ai-service-form .form-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--background-color, #ffffff);
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  padding: 16px 20px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  gap: 12px;
+  z-index: 50;
+  max-width: 480px;
+  margin: 0 auto;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ai-service-form .cancel-button,
+.ai-service-form .submit-button {
+  flex: 1;
+  padding: 14px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ai-service-form .cancel-button {
+  background-color: var(--background-secondary, #f3f4f6);
+  color: var(--text-primary, #1f2937);
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.ai-service-form .cancel-button:hover:not(:disabled) {
+  background-color: var(--background-tertiary, #e5e7eb);
+}
+
+.ai-service-form .submit-button {
+  background-color: var(--primary-color, #3b82f6);
+  color: white;
+}
+
+.ai-service-form .submit-button:hover:not(:disabled) {
+  background-color: rgba(59, 130, 246, 0.9);
+}
+
+.ai-service-form .cancel-button:disabled,
+.ai-service-form .submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 工具类 */
+.ai-service-form .space-y-6 > * + * {
+  margin-top: 24px;
+}
+
+.ai-service-form .space-y-4 > * + * {
+  margin-top: 16px;
+}
+
+.ai-service-form .flex {
+  display: flex;
+}
+
+.ai-service-form .flex-1 {
+  flex: 1;
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+  .ai-service-form {
+    padding: 16px;
+    padding-bottom: 120px;
+  }
+  
+  .ai-service-form .form-actions {
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .ai-service-form .form-input,
+  .ai-service-form .form-textarea,
+  .ai-service-form .form-select {
+    background-color: var(--background-secondary, #374151);
+    border-color: var(--border-color, #4b5563);
+    color: var(--text-primary, #f9fafb);
+  }
+  
+  .ai-service-form .advanced-settings,
+  .ai-service-form .test-connection {
+    background-color: var(--background-secondary, #374151);
+    border-color: var(--border-color, #4b5563);
+  }
+  
+  .ai-service-form .form-actions {
+    background-color: var(--background-color, #1f2937);
+    border-color: var(--border-color, #4b5563);
+  }
+}

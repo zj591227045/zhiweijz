@@ -153,7 +153,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding-bottom: 72px;
+  padding-bottom: 120px; /* 增加底部间距，为固定按钮留出空间 */
   height: auto;
   min-height: 100%;
   max-height: none;

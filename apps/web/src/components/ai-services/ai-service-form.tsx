@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
+import '@/styles/ai-service-form.css';
 
 // 表单验证模式
 const formSchema = z.object({

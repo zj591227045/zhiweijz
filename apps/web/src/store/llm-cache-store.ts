@@ -50,7 +50,31 @@ export const useLLMCacheStore = create<LLMCacheState>((set, get) => ({
       // 使用正确的API端点获取账本LLM设置
       const response = await apiClient.get(`/ai/account/${accountBookId}/llm-settings`);
 
-      const settings = response.data;
+      // 由于API客户端的响应拦截器已经返回了response.data，所以response就是数据本身
+      const settings = response;
+
+      // 确保settings是一个对象且包含bound属性
+      if (!settings || typeof settings !== 'object') {
+        console.warn('LLM设置响应格式不正确:', settings);
+        const defaultSettings = { bound: false };
+
+        // 缓存默认设置
+        set((state) => ({
+          llmCache: {
+            ...state.llmCache,
+            [accountBookId]: defaultSettings,
+          },
+          isLoading: false,
+          error: null,
+        }));
+
+        return defaultSettings;
+      }
+
+      // 如果settings没有bound属性，设置默认值
+      if (typeof settings.bound === 'undefined') {
+        settings.bound = false;
+      }
 
       // 更新缓存
       set((state) => ({
@@ -64,7 +88,8 @@ export const useLLMCacheStore = create<LLMCacheState>((set, get) => ({
 
       return settings;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || '获取LLM设置失败';
+      console.error('获取LLM设置失败:', error);
+      const errorMessage = error.response?.data?.message || error.message || '获取LLM设置失败';
       set({
         isLoading: false,
         error: errorMessage,
@@ -93,7 +118,8 @@ export const useLLMCacheStore = create<LLMCacheState>((set, get) => ({
       // 使用正确的API端点更新账本LLM设置
       const response = await apiClient.put(`/ai/account/${accountBookId}/llm-settings`, settings);
 
-      const updatedSettings = response.data;
+      // 由于API客户端的响应拦截器已经返回了response.data，所以response就是数据本身
+      const updatedSettings = response;
 
       // 更新缓存
       set((state) => ({
@@ -108,7 +134,8 @@ export const useLLMCacheStore = create<LLMCacheState>((set, get) => ({
       toast.success('LLM设置更新成功');
       return true;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || '更新LLM设置失败';
+      console.error('更新LLM设置失败:', error);
+      const errorMessage = error.response?.data?.message || error.message || '更新LLM设置失败';
       set({
         isLoading: false,
         error: errorMessage,
