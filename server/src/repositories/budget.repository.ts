@@ -564,7 +564,7 @@ export class BudgetRepository {
       endDate: { gte: startDate },
     };
 
-    // 如果指定了账本ID，则查询该账本的所有预算（家庭成员可以查看家庭账本的所有预算）
+    // 如果指定了账本ID，则查询该账本的预算
     if (accountBookId) {
       where.accountBookId = accountBookId;
 
@@ -589,8 +589,9 @@ export class BudgetRepository {
         throw new Error('无权限查看该账本的预算');
       }
 
-      // 如果excludeFamilyMember为true，则只查询familyMemberId为null的记录
+      // 如果excludeFamilyMember为true，则只查询当前用户的预算
       if (excludeFamilyMember) {
+        where.userId = userId;
         where.familyMemberId = null;
       }
     } else {

@@ -320,7 +320,7 @@ export class StatisticsService {
       endDate: endDate.toISOString()
     });
 
-    // 获取月度预算 - 包含托管成员的预算（家庭成员可以查看所有预算）
+    // 获取月度预算 - 仅查询当前用户的预算（排除托管成员的预算）
     const budgets = await this.budgetRepository.findByPeriodAndDate(
       userId,
       BudgetPeriod.MONTHLY,
@@ -328,18 +328,35 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      false // 设置excludeFamilyMember为false，包含托管成员的预算
+      true // 设置excludeFamilyMember为true，仅查询当前用户的预算
     );
 
-    console.log(`找到 ${budgets.length} 个预算`);
+    console.log(`找到 ${budgets.length} 个当前用户的预算`);
 
     // 获取分类信息
     const categories = await this.getCategoriesMap(userId, familyId);
 
-    // 计算总预算
-    const totalBudget = budgets.reduce((sum: number, b: any) => sum + Number(b.amount), 0);
+    // 计算总预算金额（包含结转金额）
+    let totalBudget = 0;
+    let totalRolloverAmount = 0;
 
-    // 获取支出交易记录 - 包含家庭托管成员的交易记录（家庭成员可以查看所有交易）
+    for (const budget of budgets) {
+      const budgetAmount = Number(budget.amount);
+      const rolloverAmount = Number(budget.rolloverAmount || 0);
+      totalBudget += budgetAmount;
+      totalRolloverAmount += rolloverAmount;
+    }
+
+    // 总可用预算 = 本月预算 + 上月结转
+    const totalAvailableBudget = totalBudget + totalRolloverAmount;
+
+    console.log('预算金额计算:', {
+      totalBudget,
+      totalRolloverAmount,
+      totalAvailableBudget
+    });
+
+    // 获取支出交易记录 - 仅查询当前用户的交易记录（排除托管成员的交易记录）
     const transactions = await this.transactionRepository.findByDateRange(
       userId,
       TransactionType.EXPENSE,
@@ -347,24 +364,28 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      false // 设置excludeFamilyMember为false，包含家庭托管成员的交易记录
+      true // 设置excludeFamilyMember为true，仅查询当前用户的交易记录
     );
 
-    console.log(`找到 ${transactions.length} 条交易记录`);
+    console.log(`找到 ${transactions.length} 条当前用户的交易记录`);
 
     // 使用预算仓库的calculateSpentAmount方法来计算总支出
     const { BudgetRepository } = require('../repositories/budget.repository');
     const budgetRepository = new BudgetRepository();
-    
+
     let totalSpent = 0;
     for (const budget of budgets) {
       const spent = await budgetRepository.calculateSpentAmount(budget.id);
       totalSpent += spent;
     }
 
-    // 计算剩余金额和百分比
-    const remaining = totalBudget - totalSpent;
-    const percentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+    console.log('支出金额计算:', {
+      totalSpent
+    });
+
+    // 计算剩余金额和百分比（基于总可用预算）
+    const remaining = totalAvailableBudget - totalSpent;
+    const percentage = totalAvailableBudget > 0 ? (totalSpent / totalAvailableBudget) * 100 : 0;
 
     // 按分类计算预算执行情况
     const categoriesData = await this.calculateBudgetByCategory(budgets, transactions, categories);
@@ -454,8 +475,8 @@ export class StatisticsService {
 
     // 返回扩展的响应数据
     return {
-      // 原始预算统计数据
-      totalBudget,
+      // 原始预算统计数据（修正为基于总可用预算的计算）
+      totalBudget: totalAvailableBudget, // 使用总可用预算（包含结转金额）
       totalSpent,
       remaining,
       percentage,
@@ -466,7 +487,14 @@ export class StatisticsService {
       budgetCards,
       familyMembers,
       overview,
-      enableCategoryBudget: activeBudgets.length > 0 ? activeBudgets[0].enableCategoryBudget : false
+      enableCategoryBudget: activeBudgets.length > 0 ? activeBudgets[0].enableCategoryBudget : false,
+
+      // 添加详细的预算信息
+      budgetBreakdown: {
+        baseBudget: totalBudget,        // 本月设定的预算金额
+        rolloverAmount: totalRolloverAmount, // 上月结转金额
+        totalAvailable: totalAvailableBudget // 总可用预算
+      }
     };
   }
 

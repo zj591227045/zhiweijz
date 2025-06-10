@@ -108,7 +108,7 @@ export const BudgetProgress = memo(
           id: 'total',
           name: '个人预算',
           icon: 'money-bill',
-          budget: totalBudget.amount,
+          budget: totalBudget.amount, // 这里已经是包含结转金额的总可用预算
           spent: totalBudget.spent,
           percentage: totalBudget.percentage, // 直接使用后端计算的百分比
           period: 'MONTHLY',
