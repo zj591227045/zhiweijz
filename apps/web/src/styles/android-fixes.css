@@ -1,0 +1,270 @@
+/* Android平台专用样式修复 */
+
+/* Android设备检测 */
+.android-app {
+  /* Android专用标识类 */
+}
+
+/* Android状态栏适配 */
+.android-app body {
+  /* Android状态栏高度适配 */
+  padding-top: 24px; /* 标准状态栏高度 */
+  min-height: 100vh;
+  min-height: 100dvh; /* 动态视口高度 */
+}
+
+/* Android状态栏安全区域 */
+.android-app .main-content {
+  /* 确保主要内容不被状态栏遮挡 */
+  padding-top: 8px;
+  min-height: calc(100vh - 24px);
+  min-height: calc(100dvh - 24px);
+}
+
+/* Android顶部工具栏适配 */
+.android-app .top-toolbar,
+.android-app .header,
+.android-app .app-header {
+  /* 顶部工具栏避让状态栏 */
+  margin-top: 24px;
+  position: relative;
+  z-index: 1000;
+}
+
+/* Android页面头部适配 */
+.android-app .page-header {
+  /* 页面头部适配 */
+  padding-top: calc(24px + 16px); /* 状态栏高度 + 额外间距 */
+}
+
+/* Android模态框适配 */
+.android-app .modal-overlay {
+  /* 模态框覆盖整个屏幕包括状态栏 */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  position: fixed;
+  z-index: 9999;
+}
+
+.android-app .modal-content {
+  /* 模态框内容避让状态栏 */
+  margin-top: 24px;
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+}
+
+/* Android全屏模态框 */
+.android-app .fullscreen-modal {
+  /* 全屏模态框适配 */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  position: fixed;
+  z-index: 9999;
+}
+
+.android-app .fullscreen-modal .modal-header {
+  /* 全屏模态框头部适配 */
+  padding-top: calc(24px + 12px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Android底部导航栏适配 */
+.android-app .bottom-nav {
+  /* 底部导航栏适配 */
+  bottom: 0;
+  padding-bottom: 8px; /* Android导航栏间距 */
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Android输入框适配 */
+.android-app .input-container {
+  /* 输入框容器适配虚拟键盘 */
+  position: relative;
+}
+
+.android-app .keyboard-active {
+  /* 虚拟键盘激活时的样式 */
+  padding-bottom: 0;
+}
+
+/* Android滚动容器适配 */
+.android-app .scroll-container {
+  /* 滚动容器适配 */
+  height: calc(100vh - 24px);
+  height: calc(100dvh - 24px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Android卡片组件适配 */
+.android-app .card {
+  /* 卡片组件Android样式 */
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+}
+
+/* Android按钮适配 */
+.android-app .btn {
+  /* 按钮Android样式 */
+  border-radius: 8px;
+  min-height: 48px; /* Android最小触摸目标 */
+  padding: 12px 16px;
+}
+
+/* Android列表项适配 */
+.android-app .list-item {
+  /* 列表项Android样式 */
+  min-height: 48px; /* Android最小触摸目标 */
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Android表单适配 */
+.android-app .form-group {
+  /* 表单组Android样式 */
+  margin-bottom: 16px;
+}
+
+.android-app .form-input {
+  /* 表单输入框Android样式 */
+  min-height: 48px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+}
+
+/* Android加载状态 */
+.android-app .loading-spinner {
+  /* 加载动画Android样式 */
+  color: #3B82F6;
+}
+
+/* Android错误状态 */
+.android-app .error-message {
+  /* 错误消息Android样式 */
+  color: #ef4444;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+/* Android成功状态 */
+.android-app .success-message {
+  /* 成功消息Android样式 */
+  color: #10b981;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+/* Android暗色主题适配 */
+@media (prefers-color-scheme: dark) {
+  .android-app {
+    /* Android暗色主题 */
+    background: #111827;
+    color: #f9fafb;
+  }
+  
+  .android-app .card {
+    background: #1f2937;
+    border-color: #374151;
+  }
+  
+  .android-app .form-input {
+    background: #1f2937;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+  
+  .android-app .bottom-nav {
+    background: rgba(31, 41, 55, 0.95);
+  }
+  
+  .android-app .fullscreen-modal .modal-header {
+    background: rgba(31, 41, 55, 0.95);
+  }
+}
+
+/* Android高密度屏幕适配 */
+@media screen and (min-resolution: 2dppx) {
+  .android-app .icon {
+    /* 高密度屏幕图标优化 */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Android横屏适配 */
+@media screen and (orientation: landscape) {
+  .android-app body {
+    /* 横屏时状态栏可能不同 */
+    padding-top: 24px;
+  }
+  
+  .android-app .main-content {
+    /* 横屏主要内容适配 */
+    padding-top: 8px;
+  }
+}
+
+/* Android大屏设备适配 */
+@media screen and (min-width: 768px) {
+  .android-app .container {
+    /* 平板设备容器适配 */
+    max-width: 768px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+}
+
+/* Android可访问性增强 */
+.android-app .sr-only {
+  /* 屏幕阅读器专用 */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Android触摸反馈 */
+.android-app .touchable {
+  /* 触摸反馈效果 */
+  -webkit-tap-highlight-color: rgba(59, 130, 246, 0.1);
+  tap-highlight-color: rgba(59, 130, 246, 0.1);
+}
+
+.android-app .touchable:active {
+  /* 触摸激活状态 */
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+/* Android性能优化 */
+.android-app .gpu-accelerated {
+  /* GPU加速 */
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.android-app .smooth-scroll {
+  /* 平滑滚动 */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}

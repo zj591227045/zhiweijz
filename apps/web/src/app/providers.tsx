@@ -7,6 +7,7 @@ import { Toaster } from 'sonner';
 import { useThemeStore, applyThemeConfig } from '@/store/theme-store';
 import { AuthInitializer } from '@/components/auth/auth-initializer';
 import { RouteGuard } from '@/components/auth/route-guard';
+import { initializeAndroidPlatform } from '@/lib/android-platform';
 
 // 创建QueryClient实例
 const queryClient = new QueryClient({
@@ -21,9 +22,9 @@ const queryClient = new QueryClient({
 export function ClientProviders({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
-  // 在客户端挂载后应用主题
+  // 在客户端挂载后应用主题和平台适配
   useEffect(() => {
-    const applyTheme = () => {
+    const applyTheme = async () => {
       // 获取存储的主题配置
       const themeConfig = useThemeStore.getState();
 
@@ -33,6 +34,13 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
           theme: themeConfig.theme,
           themeColor: themeConfig.themeColor,
         });
+      }
+
+      // 初始化Android平台适配
+      try {
+        await initializeAndroidPlatform();
+      } catch (error) {
+        console.warn('Android平台适配初始化失败:', error);
       }
 
       setMounted(true);

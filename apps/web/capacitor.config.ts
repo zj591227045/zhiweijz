@@ -8,24 +8,20 @@ const config: CapacitorConfig = {
     androidScheme: 'https'
   },
   plugins: {
-    SplashScreen: {
+        SplashScreen: {
       launchShowDuration: 2000,
-      backgroundColor: "#4CAF50",
-      androidSplashResourceName: "splash",
-      androidScaleType: "CENTER_CROP",
+      backgroundColor: "#00000000",
+      androidSplashResourceName: "splash_background",
+      androidScaleType: "MATRIX",
       showSpinner: false,
-      androidSpinnerStyle: "large",
-      iosSpinnerStyle: "small",
-      spinnerColor: "#999999",
       splashFullScreen: true,
       splashImmersive: true,
-      layoutName: "launch_screen",
-      useDialog: true,
+      useDialog: false,
     },
     StatusBar: {
-      style: 'default',
-      backgroundColor: '#ffffff',
-      overlaysWebView: false
+      style: 'light',
+      backgroundColor: '#FFFFFF',
+      overlaysWebView: true
     },
     Keyboard: {
       resize: 'body',

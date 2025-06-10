@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 应用主色调 -->
+    <color name="colorPrimary">#3B82F6</color>
+    <color name="colorPrimaryDark">#1D4ED8</color>
+    <color name="colorAccent">#10B981</color>
+    
+    <!-- 启动图背景色 -->
+    <color name="splash_background">#00000000</color>
+    
+    <!-- 状态栏颜色 -->
+    <color name="status_bar_color">#FFFFFF</color>
+    
+    <!-- 导航栏颜色 -->
+    <color name="navigation_bar_color">#FFFFFF</color>
+    
+    <!-- 通用颜色 -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+</resources>
