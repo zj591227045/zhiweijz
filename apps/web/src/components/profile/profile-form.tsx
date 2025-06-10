@@ -34,24 +34,47 @@ export function ProfileForm({
   onSubmit,
   isSubmitting = false,
 }: ProfileFormProps) {
+  // 将 ISO 日期格式转换为 HTML date input 需要的格式 (YYYY-MM-DD)
+  const formatDateForInput = (dateString?: string) => {
+    if (!dateString) return '';
+    try {
+      return dayjs(dateString).format('YYYY-MM-DD');
+    } catch (error) {
+      console.error('日期格式转换失败:', error);
+      return '';
+    }
+  };
+
   const {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors },
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       username: profile?.username || '',
       bio: profile?.bio || '',
-      birthDate: profile?.birthDate || '',
+      birthDate: formatDateForInput(profile?.birthDate),
     },
   });
 
   const watchedUsername = watch('username');
   const watchedBio = watch('bio');
 
-  // 格式化日期
+  // 当 profile 数据更新时，重置表单值
+  useEffect(() => {
+    if (profile) {
+      reset({
+        username: profile.username || '',
+        bio: profile.bio || '',
+        birthDate: formatDateForInput(profile.birthDate),
+      });
+    }
+  }, [profile, reset]);
+
+  // 格式化日期用于显示
   const formatDate = (dateString?: string) => {
     if (!dateString) return '';
     return dayjs(dateString).format('YYYY年M月D日');

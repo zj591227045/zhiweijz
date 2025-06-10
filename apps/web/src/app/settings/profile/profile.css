@@ -212,6 +212,8 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  /* 为底部保存按钮留出足够空间 */
+  padding-bottom: 120px;
 }
 
 .form-group {
@@ -316,7 +318,7 @@
 /* 底部保存按钮 */
 .bottom-button-container {
   position: fixed;
-  bottom: 72px; /* 为底部导航栏留出空间 */
+  bottom: 56px; /* 底部导航栏高度 */
   left: 0;
   right: 0;
   background-color: var(--card-background);
@@ -326,7 +328,7 @@
   max-width: 480px;
   margin: 0 auto;
   backdrop-filter: blur(10px);
-  background-color: rgba(var(--card-background), 0.95);
+  background-color: rgba(var(--card-background-rgb, 255, 255, 255), 0.95);
 }
 
 .save-button {
@@ -396,22 +398,26 @@
     height: 90px;
     font-size: 32px;
   }
-  
+
   .profile-form {
     gap: 20px;
+    /* 移动端为底部保存按钮留出更多空间 */
+    padding-bottom: 140px;
   }
-  
+
   .form-input, .form-textarea, .readonly-field, .date-picker {
     padding: 14px;
     font-size: 16px; /* 防止iOS缩放 */
   }
-  
+
   .upload-options {
     padding: 20px 16px 28px;
   }
-  
+
   .bottom-button-container {
     padding: 12px;
+    /* 移动端调整底部位置 */
+    bottom: 56px;
   }
 }
 
@@ -462,21 +468,33 @@
   color: var(--text-secondary);
 }
 
+/* iOS 环境适配 */
+.ios-app .bottom-button-container {
+  /* iOS 环境下考虑安全区域 */
+  bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+.ios-app .profile-form {
+  /* iOS 环境下为底部按钮和安全区域留出更多空间 */
+  padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
+}
+
 /* 暗色主题适配 */
 @media (prefers-color-scheme: dark) {
   .upload-overlay {
     background-color: rgba(0, 0, 0, 0.7);
   }
-  
+
   .option-icon {
     box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.4);
   }
-  
+
   .save-button {
     box-shadow: 0 4px 16px rgba(var(--primary-rgb), 0.4);
   }
-  
+
   .save-button:hover {
     box-shadow: 0 8px 24px rgba(var(--primary-rgb), 0.5);
   }
-} 
+}
