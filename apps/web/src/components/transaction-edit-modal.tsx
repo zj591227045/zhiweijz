@@ -10,6 +10,7 @@ import { triggerTransactionChange } from '@/store/dashboard-store';
 import { formatDateForInput, getIconClass } from '@/lib/utils';
 import { TransactionType, UpdateTransactionData } from '@/types';
 import { toast } from 'sonner';
+import { budgetService } from '@/lib/api-services';
 import { NumericKeyboard } from './transactions/numeric-keyboard';
 import '../app/transactions/edit/[id]/transaction-edit.css';
 import './transactions/transaction-add.css';
@@ -34,58 +35,147 @@ interface BudgetDisplay {
   familyMemberId?: string;
   userId?: string;
   userName?: string;
+  startDate?: string;
+  endDate?: string;
+  category?: {
+    id: string;
+    name: string;
+    icon?: string;
+  };
+  period?: string;
 }
 
-// 预算选择器组件
+// 预算选择器组件 - 使用添加交易页面的完整功能
 function BudgetSelector({
   budgetId,
-  setBudgetId
+  setBudgetId,
+  transactionDate
 }: {
   budgetId: string;
   setBudgetId: (id: string) => void;
+  transactionDate: string;
 }) {
   const { currentAccountBook } = useAccountBookStore();
-  const { budgets, fetchActiveBudgets, isLoading } = useBudgetStore();
   const { user: currentUser } = useAuthStore();
   const [isBudgetSelectorOpen, setIsBudgetSelectorOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<BudgetDisplay | null>(null);
+  const [hasInitialized, setHasInitialized] = useState(false);
+  const [dateBudgets, setDateBudgets] = useState<BudgetDisplay[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // 获取活跃预算数据
-  useEffect(() => {
-    if (currentAccountBook?.id) {
-      fetchActiveBudgets(currentAccountBook.id);
+  // 根据日期获取预算数据 - 使用与添加交易页面相同的API
+  const fetchBudgetsByDate = useCallback(async (transactionDate: string, accountBookId: string) => {
+    try {
+      setIsLoading(true);
+      console.log('根据日期获取预算:', { transactionDate, accountBookId });
+
+      // 使用与添加交易页面相同的API
+      const response = await budgetService.getBudgetsByDate(transactionDate, accountBookId);
+      console.log('API响应完整信息:', response);
+
+      // 检查响应格式
+      if (!response || !Array.isArray(response)) {
+        console.warn('预算API响应格式不正确:', response);
+        setDateBudgets([]);
+        return [];
+      }
+
+      // 转换预算数据格式
+      const formattedBudgets: BudgetDisplay[] = response.map((budget: any) => ({
+        id: budget.id,
+        name: budget.name || budget.category?.name || '未知分类',
+        amount: budget.amount,
+        spent: budget.spent || 0,
+        rolloverAmount: budget.rolloverAmount || 0,
+        budgetType: budget.budgetType || 'PERSONAL',
+        familyMemberName: budget.familyMemberName || budget.userName,
+        familyMemberId: budget.familyMemberId,
+        userId: budget.userId,
+        userName: budget.userName,
+        startDate: budget.startDate,
+        endDate: budget.endDate,
+        category: budget.category,
+        period: budget.period
+      }));
+
+      console.log('格式化后的预算数据:', formattedBudgets);
+      setDateBudgets(formattedBudgets);
+      return formattedBudgets;
+    } catch (error) {
+      console.error('根据日期获取预算失败:', error);
+      console.error('错误详情:', error);
+      setDateBudgets([]);
+      return [];
+    } finally {
+      setIsLoading(false);
     }
-  }, [currentAccountBook?.id, fetchActiveBudgets]);
+  }, []);
 
-  // 筛选支出类型的预算并格式化数据
-  const formattedBudgets: BudgetDisplay[] = budgets.map(budget => ({
-    id: budget.id,
-    name: (budget as any).name || budget.category?.name || '未知分类',
-    amount: budget.amount,
-    spent: (budget as any).spent || 0,
-    rolloverAmount: (budget as any).rolloverAmount || 0,
-    budgetType: (budget as any).budgetType || 'PERSONAL',
-    familyMemberName: (budget as any).familyMemberName,
-    familyMemberId: (budget as any).familyMemberId,
-    userId: (budget as any).userId,
-    userName: (budget as any).userName
-  }));
+  // 监听日期和账本变化，重新获取预算
+  useEffect(() => {
+    if (transactionDate && currentAccountBook?.id) {
+      console.log('日期或账本变化，重新获取预算:', { transactionDate, accountBookId: currentAccountBook.id });
+      fetchBudgetsByDate(transactionDate, currentAccountBook.id);
+      // 重置已初始化状态和选中的预算
+      setHasInitialized(false);
+      setSelectedBudget(null);
+      setBudgetId('');
+    }
+  }, [transactionDate, currentAccountBook?.id, fetchBudgetsByDate, setBudgetId]);
 
-  // 根据budgetId查找选中的预算 - 使用useCallback避免循环依赖
-  const updateSelectedBudget = useCallback(() => {
-    if (budgetId && formattedBudgets.length > 0) {
-      const budget = formattedBudgets.find(b => b.id === budgetId);
+  // 使用日期获取的预算数据
+  const formattedBudgets: BudgetDisplay[] = dateBudgets;
+
+  // 智能推荐预算的逻辑
+  const selectRecommendedBudget = useCallback(() => {
+    if (formattedBudgets.length > 0 && !selectedBudget && currentUser && !hasInitialized) {
+      // 优先级1: 查找与当前登录用户名称匹配的个人预算
+      const userBudget = formattedBudgets.find(
+        (b) => b.familyMemberName === currentUser.name && b.budgetType === 'PERSONAL',
+      );
+
+      if (userBudget) {
+        setSelectedBudget(userBudget);
+        setBudgetId(userBudget.id);
+        setHasInitialized(true);
+        return;
+      }
+
+      // 优先级2: 查找没有familyMemberId的个人预算
+      const personalBudget = formattedBudgets.find(
+        (b) => !b.familyMemberId && b.budgetType === 'PERSONAL',
+      );
+
+      if (personalBudget) {
+        setSelectedBudget(personalBudget);
+        setBudgetId(personalBudget.id);
+        setHasInitialized(true);
+        return;
+      }
+
+      // 优先级3: 使用第一个预算（通用预算）
+      if (formattedBudgets.length > 0) {
+        setSelectedBudget(formattedBudgets[0]);
+        setBudgetId(formattedBudgets[0].id);
+        setHasInitialized(true);
+      }
+    }
+  }, [formattedBudgets, selectedBudget, currentUser, hasInitialized, setBudgetId]);
+
+  // 当日期预算数据加载完成后，智能推荐预算
+  useEffect(() => {
+    selectRecommendedBudget();
+  }, [selectRecommendedBudget]);
+
+  // 根据budgetId查找选中的预算
+  useEffect(() => {
+    if (budgetId && formattedBudgets.length > 0 && !selectedBudget) {
+      const budget = formattedBudgets.find((b) => b.id === budgetId);
       if (budget) {
         setSelectedBudget(budget);
       }
-    } else {
-      setSelectedBudget(null);
     }
-  }, [budgetId, formattedBudgets.length]);
-
-  useEffect(() => {
-    updateSelectedBudget();
-  }, [updateSelectedBudget]);
+  }, [budgetId, formattedBudgets, selectedBudget]);
 
   // 处理预算选择
   const handleBudgetSelect = (budget: BudgetDisplay) => {
@@ -131,10 +221,55 @@ function BudgetSelector({
     return budget.name;
   };
 
+  // 获取预算有效期显示
+  const getBudgetPeriod = (budget: BudgetDisplay) => {
+    if (budget.startDate && budget.endDate) {
+      const start = new Date(budget.startDate);
+      const end = new Date(budget.endDate);
+
+      // 如果是通用预算，显示包含年份的完整日期
+      if (budget.budgetType === 'GENERAL') {
+        const startStr = `${start.getFullYear()}/${start.getMonth() + 1}/${start.getDate()}`;
+        const endStr = `${end.getFullYear()}/${end.getMonth() + 1}/${end.getDate()}`;
+        return `${startStr} - ${endStr}`;
+      } else {
+        // 个人预算只显示月/日
+        const startStr = `${start.getMonth() + 1}/${start.getDate()}`;
+        const endStr = `${end.getMonth() + 1}/${end.getDate()}`;
+        return `${startStr} - ${endStr}`;
+      }
+    }
+    return '未知周期';
+  };
+
+  // 判断预算是否推荐
+  const isRecommendedBudget = (budget: BudgetDisplay) => {
+    // 优先推荐与当前用户匹配的个人预算
+    if (budget.familyMemberName === currentUser?.name && budget.budgetType === 'PERSONAL') {
+      return true;
+    }
+    // 其次推荐没有familyMemberId的个人预算
+    if (!budget.familyMemberId && budget.budgetType === 'PERSONAL') {
+      return true;
+    }
+    return false;
+  };
+
+  // 获取预算状态
+  const getBudgetStatus = (budget: BudgetDisplay) => {
+    const balance = calculateBudgetBalance(budget);
+    if (balance < 0) {
+      return { status: 'over', text: '超支', color: '#ef4444' };
+    } else if (balance / (budget.amount + (budget.rolloverAmount || 0)) < 0.2) {
+      return { status: 'low', text: '余额不足', color: '#f59e0b' };
+    } else {
+      return { status: 'good', text: '正常', color: '#10b981' };
+    }
+  };
+
   return (
     <div className="budget-selector-container">
-      <label className="form-label">预算</label>
-      {/* 预算选择器预览 - 恢复原始样式 */}
+      {/* 预算选择器预览 - 使用添加交易页面的完整样式 */}
       <div
         className="budget-selector-preview"
         onClick={() => setIsBudgetSelectorOpen(true)}
@@ -147,13 +282,19 @@ function BudgetSelector({
             <>
               <div className="budget-name">
                 {getBudgetDisplayName(selectedBudget)}
+                {isRecommendedBudget(selectedBudget) && (
+                  <span className="recommended-badge">推荐</span>
+                )}
               </div>
-              <div className="budget-balance">
-                余额: {formatAmount(calculateBudgetBalance(selectedBudget))}
+              <div className="budget-details">
+                <span>余额: {formatAmount(calculateBudgetBalance(selectedBudget))}</span>
+                <span className="budget-period">({getBudgetPeriod(selectedBudget)})</span>
               </div>
             </>
           ) : (
-            <div className="budget-name">选择预算（可选）</div>
+            <div className="budget-name">
+              {transactionDate ? `选择 ${transactionDate} 的预算` : '请先选择日期'}
+            </div>
           )}
         </div>
         <div className="budget-selector-arrow">
@@ -183,7 +324,10 @@ function BudgetSelector({
               ) : formattedBudgets.length === 0 ? (
                 <div className="no-budgets-message">
                   <i className="fas fa-info-circle"></i>
-                  <span>没有可用的预算</span>
+                  <span>{transactionDate ? `${transactionDate} 日期范围内没有可用的预算` : '没有可用的预算'}</span>
+                  <div style={{ fontSize: '12px', marginTop: '8px', color: '#666' }}>
+                    {transactionDate ? '请检查该日期是否在任何预算周期内' : '请先选择交易日期'}
+                  </div>
                 </div>
               ) : (
                 <div className="budget-list">
@@ -208,27 +352,39 @@ function BudgetSelector({
                       <div className="budget-group-header">个人预算</div>
                       {formattedBudgets
                         .filter(budget => budget.budgetType !== 'GENERAL')
-                        .map((budget) => (
-                          <div
-                            key={budget.id}
-                            className={`budget-item ${selectedBudget?.id === budget.id ? 'active' : ''}`}
-                            onClick={() => handleBudgetSelect(budget)}
-                          >
-                            <div className="budget-item-info">
-                              <div className="budget-item-name">
-                                {getBudgetDisplayName(budget)}
+                        .map((budget) => {
+                          const budgetStatus = getBudgetStatus(budget);
+                          const isRecommended = isRecommendedBudget(budget);
+
+                          return (
+                            <div
+                              key={budget.id}
+                              className={`budget-item ${selectedBudget?.id === budget.id ? 'active' : ''} ${isRecommended ? 'recommended' : ''}`}
+                              onClick={() => handleBudgetSelect(budget)}
+                            >
+                              <div className="budget-item-info">
+                                <div className="budget-item-name">
+                                  {getBudgetDisplayName(budget)}
+                                  {isRecommended && (
+                                    <span className="recommended-badge-small">推荐</span>
+                                  )}
+                                </div>
+                                <div className="budget-item-details">
+                                  <span>余额: {formatAmount(calculateBudgetBalance(budget))}</span>
+                                  <span className="budget-period-small">({getBudgetPeriod(budget)})</span>
+                                </div>
+                                <div className="budget-item-status" style={{ color: budgetStatus.color }}>
+                                  {budgetStatus.text}
+                                </div>
                               </div>
-                              <div className="budget-item-balance">
-                                余额: {formatAmount(calculateBudgetBalance(budget))}
-                              </div>
+                              {selectedBudget?.id === budget.id && (
+                                <div className="budget-item-check">
+                                  <i className="fas fa-check"></i>
+                                </div>
+                              )}
                             </div>
-                            {selectedBudget?.id === budget.id && (
-                              <div className="budget-item-check">
-                                <i className="fas fa-check"></i>
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                          );
+                        })}
                     </>
                   )}
 
@@ -238,27 +394,39 @@ function BudgetSelector({
                       <div className="budget-group-header">通用预算</div>
                       {formattedBudgets
                         .filter(budget => budget.budgetType === 'GENERAL')
-                        .map((budget) => (
-                          <div
-                            key={budget.id}
-                            className={`budget-item ${selectedBudget?.id === budget.id ? 'active' : ''}`}
-                            onClick={() => handleBudgetSelect(budget)}
-                          >
-                            <div className="budget-item-info">
-                              <div className="budget-item-name">
-                                {getBudgetDisplayName(budget)}
+                        .map((budget) => {
+                          const budgetStatus = getBudgetStatus(budget);
+                          const isRecommended = isRecommendedBudget(budget);
+
+                          return (
+                            <div
+                              key={budget.id}
+                              className={`budget-item ${selectedBudget?.id === budget.id ? 'active' : ''} ${isRecommended ? 'recommended' : ''}`}
+                              onClick={() => handleBudgetSelect(budget)}
+                            >
+                              <div className="budget-item-info">
+                                <div className="budget-item-name">
+                                  {getBudgetDisplayName(budget)}
+                                  {isRecommended && (
+                                    <span className="recommended-badge-small">推荐</span>
+                                  )}
+                                </div>
+                                <div className="budget-item-details">
+                                  <span>余额: {formatAmount(calculateBudgetBalance(budget))}</span>
+                                  <span className="budget-period-small">({getBudgetPeriod(budget)})</span>
+                                </div>
+                                <div className="budget-item-status" style={{ color: budgetStatus.color }}>
+                                  {budgetStatus.text}
+                                </div>
                               </div>
-                              <div className="budget-item-balance">
-                                余额: {formatAmount(calculateBudgetBalance(budget))}
-                              </div>
+                              {selectedBudget?.id === budget.id && (
+                                <div className="budget-item-check">
+                                  <i className="fas fa-check"></i>
+                                </div>
+                              )}
                             </div>
-                            {selectedBudget?.id === budget.id && (
-                              <div className="budget-item-check">
-                                <i className="fas fa-check"></i>
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                          );
+                        })}
                     </>
                   )}
                 </div>
@@ -753,12 +921,11 @@ export default function TransactionEditModal({
 
         {/* 主要内容 */}
         <div className="main-content" style={{
-          paddingBottom: '20px',
           overflowY: 'auto',
           // 移动端键盘优化
           WebkitOverflowScrolling: 'touch',
-          // 确保内容可以滚动到键盘上方
-          paddingBottom: 'env(safe-area-inset-bottom, 20px)',
+          // 确保内容可以滚动到键盘上方，包含安全区域
+          paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
           // 防止键盘遮挡内容
           minHeight: 'calc(100vh - 60px)' // 减去头部高度
         }}>
@@ -1109,7 +1276,11 @@ export default function TransactionEditModal({
                       borderRadius: '12px',
                       padding: '16px'
                     }}>
-                      <BudgetSelector budgetId={budgetId} setBudgetId={setBudgetId} />
+                      <BudgetSelector
+                        budgetId={budgetId}
+                        setBudgetId={setBudgetId}
+                        transactionDate={formData.date || ''}
+                      />
                     </div>
                   )}
                 </div>

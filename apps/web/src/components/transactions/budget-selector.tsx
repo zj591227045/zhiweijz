@@ -268,9 +268,18 @@ export function BudgetSelector() {
     if (budget.startDate && budget.endDate) {
       const start = new Date(budget.startDate);
       const end = new Date(budget.endDate);
-      const startStr = `${start.getMonth() + 1}/${start.getDate()}`;
-      const endStr = `${end.getMonth() + 1}/${end.getDate()}`;
-      return `${startStr} - ${endStr}`;
+
+      // 如果是通用预算，显示包含年份的完整日期
+      if (budget.budgetType === 'GENERAL') {
+        const startStr = `${start.getFullYear()}/${start.getMonth() + 1}/${start.getDate()}`;
+        const endStr = `${end.getFullYear()}/${end.getMonth() + 1}/${end.getDate()}`;
+        return `${startStr} - ${endStr}`;
+      } else {
+        // 个人预算只显示月/日
+        const startStr = `${start.getMonth() + 1}/${start.getDate()}`;
+        const endStr = `${end.getMonth() + 1}/${end.getDate()}`;
+        return `${startStr} - ${endStr}`;
+      }
     }
     return '未知周期';
   };

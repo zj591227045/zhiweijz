@@ -175,15 +175,174 @@ export function TransactionAddPage() {
       onBackClick={handleBackClick}
       showBottomNav={false}
     >
-      <div className="transaction-add-content">
-        {/* 交易类型切换 */}
-        <TransactionTypeToggle />
+      <div style={{ padding: '0 20px' }}>
+        {/* iOS 风格交易类型切换 */}
+        <div style={{
+          display: 'flex',
+          backgroundColor: 'var(--background-secondary)',
+          borderRadius: '12px',
+          padding: '4px',
+          marginBottom: '24px'
+        }}>
+          <button
+            onClick={() => useTransactionFormStore.getState().setType('EXPENSE')}
+            disabled={submitting}
+            style={{
+              flex: 1,
+              height: '40px',
+              borderRadius: '8px',
+              border: 'none',
+              backgroundColor: type === 'EXPENSE' ? '#ef4444' : 'transparent',
+              color: type === 'EXPENSE' ? 'white' : 'var(--text-color)',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              transition: 'all 0.3s ease',
+              opacity: submitting ? 0.6 : 1
+            }}
+          >
+            支出
+          </button>
+          <button
+            onClick={() => useTransactionFormStore.getState().setType('INCOME')}
+            disabled={submitting}
+            style={{
+              flex: 1,
+              height: '40px',
+              borderRadius: '8px',
+              border: 'none',
+              backgroundColor: type === 'INCOME' ? '#10b981' : 'transparent',
+              color: type === 'INCOME' ? 'white' : 'var(--text-color)',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              transition: 'all 0.3s ease',
+              opacity: submitting ? 0.6 : 1
+            }}
+          >
+            收入
+          </button>
+        </div>
 
-        {/* 金额输入 */}
-        <AmountInput />
+        {/* iOS 风格金额输入 */}
+        <div style={{
+          textAlign: 'center',
+          marginBottom: '24px'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            marginBottom: '8px',
+            padding: '16px',
+            backgroundColor: 'var(--background-secondary)',
+            borderRadius: '12px',
+            border: '1px solid var(--border-color)',
+            minHeight: '60px'
+          }}>
+            <span style={{
+              fontSize: '24px',
+              fontWeight: '300',
+              color: 'var(--text-secondary)'
+            }}>¥</span>
+            <input
+              type="text"
+              placeholder="0.00"
+              value={amount || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (/^\d*\.?\d{0,2}$/.test(value)) {
+                  useTransactionFormStore.getState().setAmount(value);
+                }
+              }}
+              disabled={submitting}
+              style={{
+                fontSize: '28px',
+                fontWeight: '400',
+                color: 'var(--text-color)',
+                border: 'none',
+                outline: 'none',
+                backgroundColor: 'transparent',
+                textAlign: 'center',
+                width: '100%',
+                maxWidth: '200px',
+                padding: '8px'
+              }}
+            />
+          </div>
+        </div>
 
-        {/* 步骤指示器 */}
-        <StepIndicator />
+        {/* iOS 风格步骤指示器 */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '24px 0',
+          gap: '16px'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <div style={{
+              width: '24px',
+              height: '24px',
+              borderRadius: '12px',
+              backgroundColor: currentStep >= 1 ? 'var(--primary-color)' : 'var(--border-color)',
+              color: currentStep >= 1 ? 'white' : 'var(--text-secondary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '12px',
+              fontWeight: '600',
+              transition: 'all 0.3s ease'
+            }}>
+              {currentStep > 1 ? '✓' : '1'}
+            </div>
+            <span style={{
+              fontSize: '14px',
+              fontWeight: '500',
+              color: currentStep >= 1 ? 'var(--primary-color)' : 'var(--text-secondary)'
+            }}>选择分类</span>
+          </div>
+
+          <div style={{
+            width: '32px',
+            height: '2px',
+            backgroundColor: currentStep >= 2 ? 'var(--primary-color)' : 'var(--border-color)',
+            borderRadius: '1px',
+            transition: 'all 0.3s ease'
+          }}></div>
+
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <div style={{
+              width: '24px',
+              height: '24px',
+              borderRadius: '12px',
+              backgroundColor: currentStep >= 2 ? 'var(--primary-color)' : 'var(--border-color)',
+              color: currentStep >= 2 ? 'white' : 'var(--text-secondary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '12px',
+              fontWeight: '600',
+              transition: 'all 0.3s ease'
+            }}>
+              2
+            </div>
+            <span style={{
+              fontSize: '14px',
+              fontWeight: '500',
+              color: currentStep >= 2 ? 'var(--primary-color)' : 'var(--text-secondary)'
+            }}>交易详情</span>
+          </div>
+        </div>
 
         {/* 第一步：分类选择 */}
         {currentStep === 1 && (
@@ -193,12 +352,56 @@ export function TransactionAddPage() {
         {/* 第二步：交易详情 */}
         {currentStep === 2 && (
           <div className="step-content" id="step-details">
-            <div className="selected-category">
-              <div className="category-icon-wrapper">
+            <h3 style={{
+              fontSize: '18px',
+              fontWeight: '600',
+              color: 'var(--text-primary)',
+              marginBottom: '16px',
+              textAlign: 'center'
+            }}>填写详情</h3>
+
+            {/* 显示选中的分类 */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '16px',
+              backgroundColor: 'var(--background-color)',
+              border: '1px solid var(--primary-color)',
+              borderRadius: '12px',
+              marginBottom: '16px'
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--primary-color)',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '18px'
+              }}>
                 <i className={getIconClass(categoryIcon || '')}></i>
               </div>
-              <span>{categoryName || '未选择分类'}</span>
-              <button className="change-category-btn" onClick={() => goToStep(1)}>
+              <span style={{
+                flex: 1,
+                fontSize: '16px',
+                fontWeight: '500',
+                color: 'var(--text-primary)'
+              }}>{categoryName || '未选择分类'}</span>
+              <button
+                onClick={() => goToStep(1)}
+                style={{
+                  background: 'none',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-secondary)',
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
                 更改
               </button>
             </div>
