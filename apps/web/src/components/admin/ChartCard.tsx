@@ -1,127 +1,216 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js';
+import { Line, Bar } from 'react-chartjs-2';
+
+// 注册Chart.js组件
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
+
 interface ChartCardProps {
   title: string;
-  data: any[];
+  data: Array<{ date: string | Date; count?: number; value?: number; [key: string]: any }>;
   isLoading?: boolean;
-  type: 'line' | 'bar';
-  dataKey: string;
-  xAxisKey: string;
-  color: string;
+  type?: 'line' | 'bar';
+  dataKey?: string;
+  xAxisKey?: string;
+  color?: string;
+  height?: number;
 }
 
-export function ChartCard({ 
-  title, 
-  data, 
-  isLoading = false, 
-  type, 
-  dataKey, 
-  xAxisKey, 
-  color 
+export function ChartCard({
+  title,
+  data,
+  isLoading = false,
+  type = 'line',
+  dataKey = 'count',
+  xAxisKey = 'date',
+  color = '#3B82F6',
+  height = 300
 }: ChartCardProps) {
-  
+  // 处理数据格式
+  const processedData = data.map(item => ({
+    ...item,
+    date: typeof item[xAxisKey] === 'string' 
+      ? new Date(item[xAxisKey]).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
+      : item[xAxisKey],
+    value: item[dataKey] || item.value || item.count || 0
+  }));
+
+  // Chart.js数据格式
+  const chartData = {
+    labels: processedData.map(item => item.date),
+    datasets: [
+      {
+        label: title,
+        data: processedData.map(item => item.value),
+        borderColor: color,
+        backgroundColor: type === 'line' 
+          ? `${color}20` 
+          : color,
+        borderWidth: 2,
+        fill: type === 'line',
+        tension: 0.3,
+        pointBackgroundColor: color,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+      },
+    ],
+  };
+
+  // Chart.js配置选项
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        backgroundColor: '#1f2937',
+        titleColor: '#f9fafb',
+        bodyColor: '#f9fafb',
+        borderColor: '#374151',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: false,
+        callbacks: {
+          label: (context: any) => {
+            return `${title}: ${context.parsed.y}`;
+          },
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: {
+          display: false,
+        },
+        border: {
+          display: false,
+        },
+        ticks: {
+          color: '#9ca3af',
+          font: {
+            size: 12,
+          },
+        },
+      },
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: '#f3f4f6',
+          drawBorder: false,
+        },
+        border: {
+          display: false,
+        },
+        ticks: {
+          color: '#9ca3af',
+          font: {
+            size: 12,
+          },
+          callback: (value: any) => {
+            if (value >= 1000) {
+              return (value / 1000).toFixed(1) + 'K';
+            }
+            return value;
+          },
+        },
+      },
+    },
+    interaction: {
+      intersect: false,
+      mode: 'index' as const,
+    },
+    elements: {
+      line: {
+        borderJoinStyle: 'round' as const,
+      },
+      point: {
+        hoverBorderWidth: 3,
+      },
+    },
+  };
+
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
-        <div className="h-4 bg-gray-200 rounded animate-pulse mb-4 w-32"></div>
-        <div className="h-64 bg-gray-100 rounded animate-pulse"></div>
+        <div className="animate-pulse">
+          <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
+        </div>
       </div>
     );
   }
 
-  // 简单的条形图实现（不使用外部图表库）
-  const maxValue = Math.max(...data.map(item => item[dataKey]));
-  
+  if (!data || data.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">{title}</h3>
+        <div className="flex items-center justify-center h-64 text-gray-500">
+          <div className="text-center">
+            <div className="text-4xl mb-2">📊</div>
+            <p>暂无数据</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">{title}</h3>
-      
-      {data.length === 0 ? (
-        <div className="h-64 flex items-center justify-center text-gray-500">
-          暂无数据
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+        <div className="text-sm text-gray-500">
+          最近{data.length}天
         </div>
-      ) : (
-        <div className="h-64">
-          {type === 'bar' ? (
-            <div className="flex items-end justify-between h-full space-x-1">
-              {data.map((item, index) => {
-                const height = maxValue > 0 ? (item[dataKey] / maxValue) * 100 : 0;
-                const date = new Date(item[xAxisKey]);
-                const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
-                
-                return (
-                  <div key={index} className="flex flex-col items-center flex-1">
-                    <div 
-                      className="w-full rounded-t"
-                      style={{ 
-                        height: `${height}%`,
-                        backgroundColor: color,
-                        minHeight: '2px'
-                      }}
-                    />
-                    <div className="text-xs text-gray-500 mt-2 transform -rotate-45">
-                      {dateStr}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            // 简单的折线图（使用SVG）
-            <div className="relative h-full">
-              <svg className="w-full h-full" viewBox="0 0 400 200">
-                {/* 生成折线 */}
-                {data.length > 1 && (
-                  <polyline
-                    fill="none"
-                    stroke={color}
-                    strokeWidth="2"
-                    points={data.map((item, index) => {
-                      const x = (index / (data.length - 1)) * 380 + 10;
-                      const y = maxValue > 0 ? 190 - (item[dataKey] / maxValue) * 180 : 190;
-                      return `${x},${y}`;
-                    }).join(' ')}
-                  />
-                )}
-                
-                {/* 数据点 */}
-                {data.map((item, index) => {
-                  const x = (index / Math.max(data.length - 1, 1)) * 380 + 10;
-                  const y = maxValue > 0 ? 190 - (item[dataKey] / maxValue) * 180 : 190;
-                  
-                  return (
-                    <circle
-                      key={index}
-                      cx={x}
-                      cy={y}
-                      r="3"
-                      fill={color}
-                    />
-                  );
-                })}
-              </svg>
-              
-              {/* X轴标签 */}
-              <div className="absolute bottom-0 left-0 right-0 flex justify-between text-xs text-gray-500">
-                {data.map((item, index) => {
-                  if (index % Math.ceil(data.length / 5) === 0) {
-                    const date = new Date(item[xAxisKey]);
-                    const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
-                    return <span key={index}>{dateStr}</span>;
-                  }
-                  return null;
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      </div>
       
-      {/* 数据汇总 */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
+      <div style={{ height: `${height}px` }}>
+        {type === 'line' ? (
+          <Line data={chartData} options={options} />
+        ) : (
+          <Bar data={chartData} options={options} />
+        )}
+      </div>
+
+      {/* 数据摘要 */}
+      <div className="mt-4 pt-4 border-t border-gray-100">
         <div className="flex justify-between text-sm text-gray-600">
-          <span>总计: {data.reduce((sum, item) => sum + item[dataKey], 0)}</span>
-          <span>平均: {data.length > 0 ? Math.round(data.reduce((sum, item) => sum + item[dataKey], 0) / data.length) : 0}</span>
+          <span>总计</span>
+          <span className="font-medium">
+            {processedData.reduce((sum, item) => sum + item.value, 0).toLocaleString()}
+          </span>
+        </div>
+        <div className="flex justify-between text-sm text-gray-600 mt-1">
+          <span>平均</span>
+          <span className="font-medium">
+            {Math.round(processedData.reduce((sum, item) => sum + item.value, 0) / processedData.length).toLocaleString()}
+          </span>
         </div>
       </div>
     </div>

@@ -21,4 +21,7 @@ router.get('/transactions', (req, res) => dashboardController.getTransactionStat
 // 获取系统资源使用情况
 router.get('/system', (req, res) => dashboardController.getSystemResources(req, res));
 
+// 获取图表数据
+router.get('/charts', (req, res) => dashboardController.getChartData(req, res));
+
 export default router; 

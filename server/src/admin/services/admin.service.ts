@@ -1,4 +1,4 @@
-import { PrismaClient, Admin, AdminRole } from '@prisma/client';
+import { PrismaClient, Admin, admin_role } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -52,7 +52,7 @@ export class AdminService {
     username: string;
     passwordHash: string;
     email?: string;
-    role?: AdminRole;
+    role?: admin_role;
   }): Promise<Admin> {
     try {
       return await prisma.admin.create({
@@ -60,7 +60,7 @@ export class AdminService {
           username: data.username,
           passwordHash: data.passwordHash,
           email: data.email,
-          role: data.role || AdminRole.ADMIN
+          role: data.role || admin_role.ADMIN
         }
       });
     } catch (error) {

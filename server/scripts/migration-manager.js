@@ -23,17 +23,17 @@ const logger = {
  */
 const MIGRATIONS_CONFIG = {
   // 当前最新版本
-  LATEST_VERSION: '1.1.0',
+  LATEST_VERSION: '1.2.0',
   
   // 迁移文件目录
   MIGRATIONS_DIR: path.join(__dirname, '../migrations/incremental'),
   
   // 版本升级路径
   UPGRADE_PATHS: {
-    '1.0.0': ['1.0.0-to-1.1.0'],
-    '1.1.0': [], // 已是最新版本
-    '1.2.0': [], // 预留版本
-    'fresh_install': ['base-schema', 'admin-features']
+    '1.0.0': ['1.0.0-to-1.1.0', '1.1.0-to-1.2.0'],
+    '1.1.0': ['1.1.0-to-1.2.0'],
+    '1.2.0': [], // 当前最新版本
+    'fresh_install': ['base-schema', 'admin-features', '1.1.0-to-1.2.0']
   }
 };
 

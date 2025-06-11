@@ -89,4 +89,52 @@ export class AdminDashboardController {
       });
     }
   }
+
+  /**
+   * 获取图表数据
+   * @param req 
+   * @param res 
+   */
+  async getChartData(req: Request, res: Response): Promise<void> {
+    try {
+      const { period = '7d', metrics = 'users,transactions,visits' } = req.query;
+      const metricsArray = (metrics as string).split(',');
+      
+      const chartData: any = {};
+
+      // 根据请求的指标获取对应数据
+      if (metricsArray.includes('users')) {
+        const userStats = await this.dashboardService.getUserStats(period as string);
+        chartData.users = userStats.dailyRegistrations.map(item => ({
+          date: item.date,
+          value: item.count
+        }));
+      }
+
+      if (metricsArray.includes('transactions')) {
+        const transactionStats = await this.dashboardService.getTransactionStats(period as string);
+        chartData.transactions = transactionStats.dailyTransactions.map(item => ({
+          date: item.date,
+          value: item.count
+        }));
+      }
+
+      if (metricsArray.includes('visits')) {
+        // 这里可以添加访问统计数据的获取逻辑
+        // 暂时返回模拟数据
+        chartData.visits = [];
+      }
+
+      res.json({
+        success: true,
+        data: chartData
+      });
+    } catch (error) {
+      console.error('获取图表数据错误:', error);
+      res.status(500).json({
+        success: false,
+        message: '获取图表数据失败'
+      });
+    }
+  }
 } 

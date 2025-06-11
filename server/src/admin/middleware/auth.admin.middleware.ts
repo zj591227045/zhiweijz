@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyAdminToken, AdminTokenPayload } from '../utils/jwt.admin';
-import { AdminRole } from '@prisma/client';
+import { admin_role } from '@prisma/client';
 
 // 扩展Express的Request接口，添加管理员信息
 declare global {
@@ -75,7 +75,7 @@ export function requireSuperAdmin(req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    if (req.admin.role !== AdminRole.SUPER_ADMIN) {
+    if (req.admin.role !== admin_role.SUPER_ADMIN) {
       res.status(403).json({
         success: false,
         message: '需要超级管理员权限'
@@ -106,7 +106,7 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction): v
       return;
     }
 
-    if (req.admin.role !== AdminRole.ADMIN && req.admin.role !== AdminRole.SUPER_ADMIN) {
+    if (req.admin.role !== admin_role.ADMIN && req.admin.role !== admin_role.SUPER_ADMIN) {
       res.status(403).json({
         success: false,
         message: '需要管理员权限'

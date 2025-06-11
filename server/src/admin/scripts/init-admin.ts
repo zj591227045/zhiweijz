@@ -1,4 +1,4 @@
-import { PrismaClient, AdminRole } from '@prisma/client';
+import { PrismaClient, admin_role } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -34,7 +34,7 @@ async function initDefaultAdmin() {
         username: defaultUsername,
         passwordHash,
         email: defaultEmail,
-        role: AdminRole.SUPER_ADMIN
+        role: admin_role.SUPER_ADMIN
       }
     });
 
