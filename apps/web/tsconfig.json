@@ -30,6 +30,12 @@
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "@zhiweijz/core": [
+        "../packages/core/src"
+      ],
+      "@zhiweijz/web": [
+        "../packages/web/src"
       ]
     },
     "strictNullChecks": true

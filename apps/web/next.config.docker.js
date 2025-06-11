@@ -27,6 +27,16 @@ const nextConfig = {
   env: {
     DOCKER_ENV: process.env.DOCKER_ENV || 'true',
   },
+  
+  // Webpack配置 - 处理内部包路径
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@zhiweijz/core': require('path').resolve(__dirname, '../packages/core/src'),
+      '@zhiweijz/web': require('path').resolve(__dirname, '../packages/web/src'),
+    };
+    return config;
+  },
 };
 
 module.exports = nextConfig; 
