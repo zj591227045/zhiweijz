@@ -19,6 +19,12 @@ export function RouteGuard({ children }: RouteGuardProps) {
   const { isAuthenticated, user, token } = useAuthStore();
 
   useEffect(() => {
+    // 管理员页面有自己的认证系统，不处理
+    const isAdminPage = pathname.startsWith('/admin');
+    if (isAdminPage) {
+      return;
+    }
+
     // 检查是否在认证页面
     const isAuthPage = pathname.startsWith('/auth/');
 

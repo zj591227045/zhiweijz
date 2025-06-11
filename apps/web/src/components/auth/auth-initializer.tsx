@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { apiClient } from '@/lib/api-client';
 
@@ -9,10 +10,17 @@ interface AuthInitializerProps {
 }
 
 export function AuthInitializer({ children }: AuthInitializerProps) {
+  const pathname = usePathname();
   const { setLoading } = useAuthStore();
 
   useEffect(() => {
     const initializeAuth = async () => {
+      // 管理员页面使用独立的认证系统，跳过普通用户认证初始化
+      const isAdminPage = pathname?.startsWith('/admin');
+      if (isAdminPage) {
+        return;
+      }
+
       setLoading(true);
       
       try {
@@ -50,7 +58,7 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
     };
 
     initializeAuth();
-  }, [setLoading]);
+  }, [setLoading, pathname]);
 
   return <>{children}</>;
 }
