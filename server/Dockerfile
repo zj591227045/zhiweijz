@@ -14,7 +14,7 @@ RUN apk add --no-cache \
 COPY server/package*.json ./
 
 # 安装所有依赖（包括devDependencies用于构建）
-RUN npm ci
+RUN npm install
 
 # 复制源代码
 COPY server/ .
@@ -41,7 +41,7 @@ WORKDIR /app
 COPY server/package*.json ./
 
 # 安装生产依赖
-RUN npm ci --only=production
+RUN npm install --only=production
 
 # 从构建阶段复制编译后的代码
 COPY --from=builder /app/dist ./dist

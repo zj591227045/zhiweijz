@@ -11,7 +11,7 @@ COPY apps/web/package*.json ./
 COPY package*.json ../
 
 # 安装所有依赖（构建时需要dev依赖）
-RUN npm install --ignore-scripts
+RUN npm ci --prefer-offline --no-audit
 
 # 构建阶段
 FROM node:18-alpine AS builder
@@ -21,9 +21,13 @@ WORKDIR /app
 # 复制依赖
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/package*.json ./
+COPY --from=deps /app/../package*.json ../
 
 # 复制源代码
 COPY apps/web/ ./
+
+# 使用Docker专用的配置文件
+RUN cp next.config.docker.js next.config.js
 
 # 复制共享包（如果存在）
 RUN mkdir -p ../packages
@@ -34,6 +38,7 @@ RUN mkdir -p ./public
 # 设置环境变量
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV DOCKER_ENV=true
 
 # 构建应用
 RUN npm run build
@@ -61,12 +66,15 @@ ENV DOCKER_ENV=true
 # 复制必要文件
 COPY --from=builder /app/package*.json ./
 
-# 复制public目录
+# 复制public目录（如果存在）
 COPY --from=builder /app/public ./public
 
 # 复制构建产物
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# 复制Next.js配置文件（如果standalone模式需要）
+COPY --from=builder /app/next.config.js ./next.config.js
 
 # 切换到非root用户
 USER nextjs

@@ -53,6 +53,7 @@ README.md
 # 脚本文件（除了必要的）
 scripts/
 !server/scripts/
+!apps/web/scripts/
 
 # 测试文件
 **/*.test.ts
