@@ -179,16 +179,25 @@ export const useAccountBookStore = create<AccountBookState>()(
       },
 
       // 设置当前账本
-      setCurrentAccountBook: (accountBook) => {
+      setCurrentAccountBook: async (accountBook) => {
         if (typeof accountBook === 'string') {
           // 如果传入的是账本ID，从列表中查找对应的账本
-          const { accountBooks } = get();
-          const foundBook = accountBooks.find((book) => book.id === accountBook);
+          const { accountBooks, fetchAccountBooks } = get();
+          let foundBook = accountBooks.find((book) => book.id === accountBook);
+
+          if (!foundBook) {
+            // 如果没找到，先刷新账本列表再查找
+            console.log('📚 [AccountBookStore] 账本ID未找到，刷新账本列表:', accountBook);
+            await fetchAccountBooks();
+            const updatedState = get();
+            foundBook = updatedState.accountBooks.find((book) => book.id === accountBook);
+          }
+
           if (foundBook) {
             console.log('📚 [AccountBookStore] 切换账本:', foundBook.name);
             set({ currentAccountBook: foundBook });
           } else {
-            console.warn('📚 [AccountBookStore] 未找到账本ID:', accountBook);
+            console.warn('📚 [AccountBookStore] 刷新后仍未找到账本ID:', accountBook);
           }
         } else {
           // 如果传入的是账本对象，直接设置

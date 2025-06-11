@@ -1918,3 +1918,394 @@ body.onboarding-active [class*="bottom-nav"] {
     padding: 12px 16px;
   }
 }
+
+/* 邀请码展示步骤样式 */
+.invite-code-display-section {
+  margin: 24px 0;
+}
+
+.invite-code-card {
+  background-color: var(--card-background);
+  border: 2px solid var(--primary-color);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.invite-code-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.invite-code-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background-color: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.invite-code-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0;
+}
+
+.invite-code-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.invite-code-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--primary-color);
+  font-family: 'Courier New', monospace;
+  letter-spacing: 4px;
+  padding: 12px 20px;
+  background-color: var(--primary-background);
+  border-radius: 12px;
+  border: 2px solid var(--primary-color);
+  min-width: 200px;
+}
+
+.invite-code-copy-button {
+  padding: 12px 20px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.invite-code-copy-button:hover {
+  background-color: var(--primary-hover);
+}
+
+.invite-code-copy-button.copied {
+  background-color: #10b981;
+}
+
+.invite-code-copy-button:disabled {
+  background-color: var(--border-color);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+.invite-code-instructions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.instruction-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.instruction-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: var(--primary-background);
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.instruction-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* 托管人员设置步骤样式 */
+.custodial-member-choice {
+  margin: 24px 0;
+}
+
+.choice-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.choice-option {
+  width: 100%;
+}
+
+.choice-button {
+  width: 100%;
+  background-color: var(--card-background);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+}
+
+.choice-button:hover {
+  border-color: var(--primary-color);
+  background-color: var(--hover-background);
+}
+
+.choice-button-primary:hover {
+  background-color: var(--primary-background);
+}
+
+.choice-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background-color: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.choice-button-secondary .choice-icon {
+  background-color: var(--text-secondary);
+}
+
+.choice-content {
+  flex: 1;
+}
+
+.choice-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0 0 4px 0;
+}
+
+.choice-description {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.custodial-members-list {
+  margin: 24px 0;
+  padding: 20px;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.list-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0 0 16px 0;
+}
+
+.members-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.member-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.member-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.member-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0 0 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.member-role {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.custodial-member-form {
+  margin: 24px 0;
+  padding: 20px;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.form-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0 0 20px 0;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-color);
+  margin-bottom: 8px;
+}
+
+.form-input,
+.form-select {
+  padding: 12px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 16px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  transition: border-color 0.2s ease;
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.form-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.form-actions {
+  margin-top: 20px;
+}
+
+.form-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.form-button-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.form-button-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.form-button-primary:disabled {
+  background-color: var(--border-color);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+/* 响应式设计 - 新步骤 */
+@media (max-width: 768px) {
+  /* 邀请码展示响应式 */
+  .invite-code-content {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .invite-code-value {
+    font-size: 24px;
+    letter-spacing: 2px;
+    min-width: auto;
+    width: 100%;
+  }
+
+  /* 托管人员表单响应式 */
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .members-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .choice-button {
+    padding: 16px;
+  }
+
+  .choice-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+}

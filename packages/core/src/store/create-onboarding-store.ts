@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import { StorageAdapter } from '../models/common';
 
 // 引导步骤类型
-export type OnboardingStep = 'account-type' | 'budget-setup' | 'theme-selection' | 'feature-intro';
+export type OnboardingStep = 'account-type' | 'invite-code-display' | 'custodial-member-setup' | 'budget-setup' | 'theme-selection' | 'feature-intro';
 
 // 账本类型选择
 export type AccountType = 'personal' | 'family';
@@ -37,7 +37,6 @@ export interface OnboardingState {
     name: string;
     gender?: 'male' | 'female' | 'other';
     birthDate?: string;
-    role?: string;
   }>;
   
   // 操作方法
@@ -65,13 +64,11 @@ export interface OnboardingState {
     name: string;
     gender?: 'male' | 'female' | 'other';
     birthDate?: string;
-    role?: string;
   }>) => void;
   addCustodialMember: (member: {
     name: string;
     gender?: 'male' | 'female' | 'other';
     birthDate?: string;
-    role?: string;
   }) => void;
 
   // 重置方法
@@ -135,7 +132,7 @@ export function createOnboardingStore(storage: StorageAdapter) {
         
         nextStep: () => {
           const { currentStep } = get();
-          const steps: OnboardingStep[] = ['account-type', 'budget-setup', 'theme-selection', 'feature-intro'];
+          const steps: OnboardingStep[] = ['account-type', 'invite-code-display', 'custodial-member-setup', 'budget-setup', 'theme-selection', 'feature-intro'];
           const currentIndex = steps.indexOf(currentStep);
 
           console.log('🔄 [OnboardingStore] nextStep called:', {
@@ -176,7 +173,7 @@ export function createOnboardingStore(storage: StorageAdapter) {
 
         previousStep: () => {
           const { currentStep } = get();
-          const steps: OnboardingStep[] = ['account-type', 'budget-setup', 'theme-selection', 'feature-intro'];
+          const steps: OnboardingStep[] = ['account-type', 'invite-code-display', 'custodial-member-setup', 'budget-setup', 'theme-selection', 'feature-intro'];
           const currentIndex = steps.indexOf(currentStep);
 
           if (currentIndex > 0) {
@@ -233,7 +230,6 @@ export function createOnboardingStore(storage: StorageAdapter) {
           name: string;
           gender?: 'male' | 'female' | 'other';
           birthDate?: string;
-          role?: string;
         }>) => {
           set({ custodialMembers: members });
         },
@@ -242,10 +238,11 @@ export function createOnboardingStore(storage: StorageAdapter) {
           name: string;
           gender?: 'male' | 'female' | 'other';
           birthDate?: string;
-          role?: string;
         }) => {
           const { custodialMembers } = get();
-          set({ custodialMembers: [...custodialMembers, member] });
+          const newMembers = [...custodialMembers, member];
+          set({ custodialMembers: newMembers });
+          console.log('✅ [OnboardingStore] Added custodial member:', member, 'Total members:', newMembers.length);
         },
         
         // 重置方法
@@ -273,7 +270,19 @@ export function createOnboardingStore(storage: StorageAdapter) {
         storage: {
           getItem: async (name: string) => {
             const value = await storage.getItem(name);
-            return value ? JSON.parse(value) : null;
+            if (!value) return null;
+
+            try {
+              const parsed = JSON.parse(value);
+              // 确保 custodialMembers 始终是数组
+              if (parsed.state && parsed.state.custodialMembers === undefined) {
+                parsed.state.custodialMembers = [];
+              }
+              return parsed;
+            } catch (error) {
+              console.error('Failed to parse onboarding storage:', error);
+              return null;
+            }
           },
           setItem: async (name: string, value: any) => {
             await storage.setItem(name, JSON.stringify(value));
@@ -281,6 +290,42 @@ export function createOnboardingStore(storage: StorageAdapter) {
           removeItem: async (name: string) => {
             await storage.removeItem(name);
           },
+        },
+        // 只持久化状态数据，不持久化函数
+        partialize: (state: OnboardingState) => {
+          return {
+            isCompleted: state.isCompleted,
+            currentStep: state.currentStep,
+            isVisible: state.isVisible,
+            selectedAccountType: state.selectedAccountType,
+            selectedFamilyAction: state.selectedFamilyAction,
+            familyName: state.familyName,
+            inviteCode: state.inviteCode,
+            budgetEnabled: state.budgetEnabled,
+            personalBudgetAmount: state.personalBudgetAmount,
+            familyBudgets: state.familyBudgets,
+            createdFamilyId: state.createdFamilyId,
+            createdInviteCode: state.createdInviteCode,
+            showCustodialMemberStep: state.showCustodialMemberStep,
+            custodialMembers: state.custodialMembers,
+          };
+        },
+        // 关键修复：自定义 merge 函数确保函数不会丢失
+        merge: (persistedState: any, currentState: OnboardingState) => {
+          console.log('🔄 [Persist] Merging states:', { persistedState, currentState });
+
+          // 将持久化的状态合并到当前状态，但保留所有函数
+          const mergedState = {
+            ...currentState, // 保留所有函数和初始状态
+            ...persistedState, // 覆盖持久化的数据
+            // 确保 custodialMembers 始终是数组
+            custodialMembers: Array.isArray(persistedState?.custodialMembers)
+              ? persistedState.custodialMembers
+              : [],
+          };
+
+          console.log('✅ [Persist] Merged state:', mergedState);
+          return mergedState;
         },
       }
     )

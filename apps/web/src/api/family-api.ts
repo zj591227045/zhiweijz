@@ -10,9 +10,8 @@ export interface JoinFamilyRequest {
 
 export interface CreateCustodialMemberRequest {
   name: string;
-  gender?: 'male' | 'female' | 'other';
+  gender?: string;
   birthDate?: string;
-  role?: string;
 }
 
 export interface FamilyResponse {
@@ -124,7 +123,7 @@ export class FamilyApiService {
   /**
    * 创建家庭邀请码
    */
-  static async createInvitation(familyId: string): Promise<{ inviteCode: string }> {
+  static async createInvitation(familyId: string): Promise<{ invitationCode: string }> {
     try {
       const response = await apiClient.post(`/families/${familyId}/invitations`);
       return response;

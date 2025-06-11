@@ -5,29 +5,36 @@ import { useOnboardingStore } from '@/store/onboarding-store';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { FamilyApiService } from '@/api/family-api';
 import { toast } from 'sonner';
-import type { AccountType, FamilyAction } from '@zhiweijz/core';
+import type { AccountType, FamilyAction, OnboardingStep } from '@zhiweijz/core';
 
 export function AccountTypeStep() {
+  const onboardingStore = useOnboardingStore();
+
+  // 解构所有需要的属性和方法
   const {
     selectedAccountType,
     selectedFamilyAction,
     familyName,
     inviteCode,
     createdFamilyId,
-    showCustodialMemberStep,
-    custodialMembers,
+
     setAccountType,
     setFamilyAction,
     setFamilyName,
     setInviteCode,
     setCreatedFamilyId,
     setCreatedInviteCode,
-    setShowCustodialMemberStep,
-    addCustodialMember,
-    nextStep,
-  } = useOnboardingStore();
 
-  const { currentAccountBook } = useAccountBookStore();
+    nextStep,
+    setCurrentStep,
+  } = onboardingStore;
+
+  // 调试：检查函数是否存在
+  console.log('🔍 [AccountType] Store functions check:', {
+    setCurrentStep: typeof setCurrentStep,
+  });
+
+  const { currentAccountBook, fetchAccountBooks, setCurrentAccountBook, accountBooks } = useAccountBookStore();
 
   const [localFamilyName, setLocalFamilyName] = useState(familyName);
   const [localInviteCode, setLocalInviteCode] = useState(inviteCode);
@@ -35,11 +42,21 @@ export function AccountTypeStep() {
   const [error, setError] = useState('');
   const [showSkipPrompt, setShowSkipPrompt] = useState(false);
 
-  // 托管用户相关状态
-  const [custodialMemberName, setCustodialMemberName] = useState('');
-  const [custodialMemberGender, setCustodialMemberGender] = useState<'male' | 'female' | 'other'>('male');
-  const [custodialMemberRole, setCustodialMemberRole] = useState('');
-  const [isCreatingCustodialMember, setIsCreatingCustodialMember] = useState(false);
+
+
+  // 专门的方法来跳转到预算设置步骤
+  const goToBudgetSetup = () => {
+    console.log('🎯 [AccountType] Going to budget-setup step');
+    setCurrentStep('budget-setup' as OnboardingStep);
+    console.log('✅ [AccountType] Step set to budget-setup');
+  };
+
+  // 专门的方法来跳转到邀请码展示步骤
+  const goToInviteCodeDisplay = () => {
+    console.log('🎯 [AccountType] Going to invite-code-display step');
+    setCurrentStep('invite-code-display' as OnboardingStep);
+    console.log('✅ [AccountType] Step set to invite-code-display');
+  };
 
   // 检查是否应该显示跳过提示
   useEffect(() => {
@@ -53,18 +70,21 @@ export function AccountTypeStep() {
 
   // 处理账本类型选择
   const handleAccountTypeSelect = (type: AccountType) => {
+    console.log('📝 [AccountType] Account type selected:', type);
     setAccountType(type);
     if (type === 'personal') {
       // 个人记账直接进入下一步
-      nextStep();
+      console.log('👤 [AccountType] Personal account selected, going to budget setup');
+      goToBudgetSetup();
     }
   };
 
   // 处理跳过账本类型设置
   const handleSkipAccountType = () => {
+    console.log('⏭️ [AccountType] Skipping account type selection');
     // 设置为家庭类型并跳转到下一步
     setAccountType('family');
-    nextStep();
+    goToBudgetSetup();
   };
 
   // 处理家庭操作选择
@@ -92,18 +112,62 @@ export function AccountTypeStep() {
       setFamilyName(localFamilyName);
       setCreatedFamilyId(response.id);
 
+      // 立即切换到新创建的家庭账本
+      try {
+        console.log('📚 [AccountType] Switching to family account book for family:', response.id);
+        // 先刷新账本列表
+        await fetchAccountBooks();
+
+        // 等待一小段时间确保状态更新
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // 重新获取最新的账本列表
+        const { accountBooks: latestAccountBooks } = useAccountBookStore.getState();
+
+        // 查找对应的家庭账本
+        const familyAccountBook = latestAccountBooks.find(book =>
+          book.familyId === response.id && book.type === 'FAMILY'
+        );
+
+        if (familyAccountBook) {
+          await setCurrentAccountBook(familyAccountBook.id);
+          console.log('✅ [AccountType] Successfully switched to family account book:', familyAccountBook.name);
+        } else {
+          console.warn('⚠️ [AccountType] Family account book not found for family:', response.id);
+          console.log('📚 [AccountType] Available account books:', latestAccountBooks.map(book => ({
+            id: book.id,
+            name: book.name,
+            type: book.type,
+            familyId: book.familyId
+          })));
+        }
+      } catch (error) {
+        console.error('❌ [AccountType] Failed to switch account book:', error);
+        // 不影响主流程，继续执行
+      }
+
       // 创建邀请码
       try {
         const inviteResponse = await FamilyApiService.createInvitation(response.id);
-        setCreatedInviteCode(inviteResponse.inviteCode);
+        console.log('📋 [AccountType] Invitation response:', inviteResponse);
+        // 后端返回的是 invitationCode，不是 inviteCode
+        setCreatedInviteCode(inviteResponse.invitationCode);
+        console.log('📋 [AccountType] Invitation code set:', inviteResponse.invitationCode);
       } catch (inviteError) {
+        console.error('📋 [AccountType] Failed to create invitation:', inviteError);
         // 不影响主流程，继续执行
       }
 
       toast.success('家庭创建成功！');
 
-      // 询问是否创建托管用户
-      setShowCustodialMemberStep(true);
+      console.log('🏠 [AccountType] Family created successfully:', {
+        familyId: response.id,
+        familyName: localFamilyName
+      });
+
+      // 跳转到邀请码展示步骤
+      console.log('📋 [AccountType] Going to invite code display step');
+      goToInviteCodeDisplay();
     } catch (err: any) {
       const errorMessage = err.message || '创建家庭失败，请重试';
       setError(errorMessage);
@@ -133,8 +197,43 @@ export function AccountTypeStep() {
       setCreatedFamilyId(response.id);
       setFamilyName(response.name);
 
+      // 立即切换到加入的家庭账本
+      try {
+        console.log('📚 [AccountType] Switching to joined family account book for family:', response.id);
+        // 先刷新账本列表
+        await fetchAccountBooks();
+
+        // 等待一小段时间确保状态更新
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // 重新获取最新的账本列表
+        const { accountBooks: latestAccountBooks } = useAccountBookStore.getState();
+
+        // 查找对应的家庭账本
+        const familyAccountBook = latestAccountBooks.find(book =>
+          book.familyId === response.id && book.type === 'FAMILY'
+        );
+
+        if (familyAccountBook) {
+          await setCurrentAccountBook(familyAccountBook.id);
+          console.log('✅ [AccountType] Successfully switched to joined family account book:', familyAccountBook.name);
+        } else {
+          console.warn('⚠️ [AccountType] Joined family account book not found for family:', response.id);
+          console.log('📚 [AccountType] Available account books:', latestAccountBooks.map(book => ({
+            id: book.id,
+            name: book.name,
+            type: book.type,
+            familyId: book.familyId
+          })));
+        }
+      } catch (error) {
+        console.error('❌ [AccountType] Failed to switch account book:', error);
+        // 不影响主流程，继续执行
+      }
+
       toast.success(`成功加入家庭：${response.name}`);
-      nextStep();
+      console.log('👥 [AccountType] Successfully joined family, going to budget setup');
+      goToBudgetSetup();
     } catch (err: any) {
       const errorMessage = err.message || '邀请码无效或已过期，请重试';
       setError(errorMessage);
@@ -144,61 +243,7 @@ export function AccountTypeStep() {
     }
   };
 
-  // 处理跳过托管用户创建
-  const handleSkipCustodialMember = () => {
-    setShowCustodialMemberStep(false);
-    nextStep();
-  };
 
-  // 处理添加托管用户
-  const handleAddCustodialMember = async () => {
-    if (!custodialMemberName.trim()) {
-      setError('请输入成员姓名');
-      return;
-    }
-
-    if (!createdFamilyId) {
-      setError('家庭ID不存在，请重新创建家庭');
-      return;
-    }
-
-    setIsCreatingCustodialMember(true);
-    setError('');
-
-    try {
-      await FamilyApiService.addCustodialMember(createdFamilyId, {
-        name: custodialMemberName.trim(),
-        gender: custodialMemberGender,
-        role: custodialMemberRole.trim() || '家庭成员',
-      });
-
-      // 添加到本地状态
-      addCustodialMember({
-        name: custodialMemberName.trim(),
-        gender: custodialMemberGender,
-        role: custodialMemberRole.trim() || '家庭成员',
-      });
-
-      // 重置表单
-      setCustodialMemberName('');
-      setCustodialMemberGender('male');
-      setCustodialMemberRole('');
-
-      toast.success(`成功添加托管成员：${custodialMemberName}`);
-    } catch (err: any) {
-      const errorMessage = err.message || '添加托管成员失败，请重试';
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setIsCreatingCustodialMember(false);
-    }
-  };
-
-  // 处理完成托管用户创建
-  const handleFinishCustodialMembers = () => {
-    setShowCustodialMemberStep(false);
-    nextStep();
-  };
 
   return (
     <div className="onboarding-step">
@@ -439,127 +484,7 @@ export function AccountTypeStep() {
         </div>
       )}
 
-      {/* 托管用户创建步骤 */}
-      {showCustodialMemberStep && (
-        <div className="custodial-member-section">
-          <div className="custodial-member-header">
-            <h3 className="custodial-member-title">
-              <i className="fas fa-baby"></i>
-              添加托管成员
-            </h3>
-            <p className="custodial-member-description">
-              是否有孩子、老人等无法自主记账的家庭成员？您可以为他们创建托管账户，代为管理他们的收支记录。
-            </p>
-          </div>
 
-          {/* 已添加的托管成员列表 */}
-          {custodialMembers.length > 0 && (
-            <div className="custodial-members-list">
-              <h4 className="list-title">已添加的托管成员</h4>
-              <div className="members-grid">
-                {custodialMembers.map((member, index) => (
-                  <div key={index} className="member-item">
-                    <div className="member-avatar">
-                      <i className={`fas ${member.gender === 'female' ? 'fa-female' : member.gender === 'male' ? 'fa-male' : 'fa-user'}`}></i>
-                    </div>
-                    <div className="member-info">
-                      <div className="member-name">{member.name}</div>
-                      <div className="member-role">{member.role || '家庭成员'}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 添加托管成员表单 */}
-          <div className="custodial-member-form">
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">成员姓名</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="请输入成员姓名"
-                  value={custodialMemberName}
-                  onChange={(e) => setCustodialMemberName(e.target.value)}
-                  disabled={isCreatingCustodialMember}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">性别</label>
-                <select
-                  className="form-select"
-                  value={custodialMemberGender}
-                  onChange={(e) => setCustodialMemberGender(e.target.value as 'male' | 'female' | 'other')}
-                  disabled={isCreatingCustodialMember}
-                >
-                  <option value="male">男</option>
-                  <option value="female">女</option>
-                  <option value="other">其他</option>
-                </select>
-              </div>
-            </div>
-            <div className="form-group">
-              <label className="form-label">关系/角色（可选）</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="如：儿子、女儿、父亲、母亲等"
-                value={custodialMemberRole}
-                onChange={(e) => setCustodialMemberRole(e.target.value)}
-                disabled={isCreatingCustodialMember}
-              />
-            </div>
-
-            {error && (
-              <div className="error-message">
-                <i className="fas fa-exclamation-triangle"></i>
-                <span>{error}</span>
-              </div>
-            )}
-
-            <div className="form-actions">
-              <button
-                type="button"
-                className="action-button add-button"
-                onClick={handleAddCustodialMember}
-                disabled={isCreatingCustodialMember || !custodialMemberName.trim()}
-              >
-                {isCreatingCustodialMember ? (
-                  <>
-                    <span className="loading-spinner"></span>
-                    添加中...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-plus"></i>
-                    添加成员
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* 底部按钮 */}
-          <div className="custodial-member-actions">
-            <button
-              className="onboarding-button onboarding-button-secondary"
-              onClick={handleSkipCustodialMember}
-              disabled={isCreatingCustodialMember}
-            >
-              跳过此步骤
-            </button>
-            <button
-              className="onboarding-button onboarding-button-primary"
-              onClick={handleFinishCustodialMembers}
-              disabled={isCreatingCustodialMember}
-            >
-              完成设置
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

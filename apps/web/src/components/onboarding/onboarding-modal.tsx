@@ -3,8 +3,10 @@
 import { useEffect } from 'react';
 import { useOnboardingStore } from '@/store/onboarding-store';
 import { AccountTypeStep } from './steps/account-type-step';
-import { ThemeSelectionStep } from './steps/theme-selection-step';
+import { InviteCodeDisplayStep } from './steps/invite-code-display-step';
+import { CustodialMemberSetupStep } from './steps/custodial-member-setup-step';
 import { BudgetSetupStep } from './steps/budget-setup-step';
+import { ThemeSelectionStep } from './steps/theme-selection-step';
 import { FeatureIntroStep } from './steps/feature-intro-step';
 import { SkipConfirmDialog } from './skip-confirm-dialog';
 import { useState } from 'react';
@@ -84,6 +86,10 @@ export function OnboardingModal() {
     switch (currentStep) {
       case 'account-type':
         return <AccountTypeStep />;
+      case 'invite-code-display':
+        return <InviteCodeDisplayStep />;
+      case 'custodial-member-setup':
+        return <CustodialMemberSetupStep />;
       case 'budget-setup':
         return <BudgetSetupStep />;
       case 'theme-selection':
@@ -100,6 +106,10 @@ export function OnboardingModal() {
     switch (currentStep) {
       case 'account-type':
         return '选择账本类型';
+      case 'invite-code-display':
+        return '邀请码分享';
+      case 'custodial-member-setup':
+        return '托管人员管理';
       case 'budget-setup':
         return '预算控制设置';
       case 'theme-selection':
@@ -113,7 +123,7 @@ export function OnboardingModal() {
 
   // 获取步骤进度
   const getStepProgress = () => {
-    const steps = ['account-type', 'budget-setup', 'theme-selection', 'feature-intro'];
+    const steps = ['account-type', 'invite-code-display', 'custodial-member-setup', 'budget-setup', 'theme-selection', 'feature-intro'];
     const currentIndex = steps.indexOf(currentStep);
     return {
       current: currentIndex + 1,

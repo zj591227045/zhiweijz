@@ -5,4 +5,5 @@ export * from './create-transaction-store';
 export * from './create-category-store';
 export * from './create-budget-store';
 export * from './create-onboarding-store';
+export * from './create-onboarding-store-simple';
 export * from './create-llm-cache-store';
