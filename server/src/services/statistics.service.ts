@@ -155,7 +155,7 @@ export class StatisticsService {
       }
     }
 
-    // 获取交易记录 - 排除家庭托管成员的交易记录
+    // 获取交易记录 - 不排除家庭成员的交易记录，统计该账本的所有交易
     const transactions = await this.transactionRepository.findByDateRange(
       userId,
       TransactionType.EXPENSE,
@@ -163,7 +163,7 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      true // 设置excludeFamilyMember为true，排除家庭托管成员的交易记录
+      false // 设置excludeFamilyMember为false，统计该账本的所有交易记录
     );
 
     // 获取分类信息
@@ -204,7 +204,7 @@ export class StatisticsService {
       }
     }
 
-    // 获取交易记录 - 排除家庭托管成员的交易记录
+    // 获取交易记录 - 不排除家庭成员的交易记录，统计该账本的所有交易
     const transactions = await this.transactionRepository.findByDateRange(
       userId,
       TransactionType.INCOME,
@@ -212,7 +212,7 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      true // 设置excludeFamilyMember为true，排除家庭托管成员的交易记录
+      false // 设置excludeFamilyMember为false，统计该账本的所有交易记录
     );
 
     // 获取分类信息
@@ -552,7 +552,7 @@ export class StatisticsService {
       }
     }
 
-    // 获取收入交易记录 - 排除家庭托管成员的交易记录
+    // 获取收入交易记录 - 不排除家庭成员的交易记录，统计该账本的所有交易
     const incomeTransactions = await this.transactionRepository.findByDateRange(
       userId,
       TransactionType.INCOME,
@@ -560,12 +560,12 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      true, // 设置excludeFamilyMember为true，排除家庭托管成员的交易记录
+      false, // 设置excludeFamilyMember为false，统计该账本的所有交易记录
       budgetId,
       categoryIds
     );
 
-    // 获取支出交易记录 - 排除家庭托管成员的交易记录
+    // 获取支出交易记录 - 不排除家庭成员的交易记录，统计该账本的所有交易
     const expenseTransactions = await this.transactionRepository.findByDateRange(
       userId,
       TransactionType.EXPENSE,
@@ -573,7 +573,7 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      true, // 设置excludeFamilyMember为true，排除家庭托管成员的交易记录
+      false, // 设置excludeFamilyMember为false，统计该账本的所有交易记录
       budgetId,
       categoryIds
     );

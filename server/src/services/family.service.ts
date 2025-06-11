@@ -640,19 +640,28 @@ export class FamilyService {
       const memberStats = new Map<string, { name: string; totalExpense: number }>();
 
       expenseTransactions.forEach(transaction => {
+        let member: any;
         let memberKey: string;
         let memberName: string;
 
         if (transaction.familyMemberId) {
-          // 托管成员的交易
-          const member = members.find(m => m.id === transaction.familyMemberId);
-          memberKey = transaction.familyMemberId;
-          memberName = member?.name || '未知托管成员';
+          // 有家庭成员ID的交易
+          member = members.find(m => m.id === transaction.familyMemberId);
+          if (member) {
+            memberKey = member.id; // 使用家庭成员ID作为统一标识
+            memberName = member.name || '未知家庭成员';
+          } else {
+            return; // 跳过找不到的成员
+          }
         } else if (transaction.userId) {
-          // 普通成员的交易
-          const member = members.find(m => m.userId === transaction.userId);
-          memberKey = transaction.userId;
-          memberName = member?.name || transaction.user?.name || '未知用户';
+          // 普通成员的交易（通过userId查找）
+          member = members.find(m => m.userId === transaction.userId);
+          if (member) {
+            memberKey = member.id; // 使用家庭成员ID作为统一标识
+            memberName = member.name || transaction.user?.name || '未知用户';
+          } else {
+            return; // 跳过找不到的成员
+          }
         } else {
           return; // 跳过无效交易
         }

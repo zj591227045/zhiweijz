@@ -165,6 +165,7 @@ export class TransactionService {
    * 创建交易记录
    */
   async createTransaction(userId: string, transactionData: CreateTransactionDto): Promise<TransactionResponseDto> {
+
     // 验证分类是否存在
     const category = await this.categoryRepository.findById(transactionData.categoryId);
     if (!category) {
@@ -174,6 +175,71 @@ export class TransactionService {
     // 验证交易类型与分类类型是否匹配
     if (category.type !== transactionData.type) {
       throw new Error('交易类型与分类类型不匹配');
+    }
+
+    // 检查账本信息以确定是否为家庭账本
+    let accountBook = null;
+    let finalFamilyId = transactionData.familyId;
+    
+    if (transactionData.accountBookId) {
+      accountBook = await prisma.accountBook.findUnique({
+        where: { id: transactionData.accountBookId },
+        include: {
+          family: true
+        }
+      });
+      
+      // 如果是家庭账本但没有传递familyId，从账本中获取
+      if (accountBook && accountBook.type === 'FAMILY' && accountBook.familyId && !finalFamilyId) {
+        finalFamilyId = accountBook.familyId;
+      }
+    }
+
+    // 如果是家庭账本，需要通过预算ID确定家庭成员ID
+    let finalFamilyMemberId = transactionData.familyMemberId;
+    
+    if (finalFamilyId && !finalFamilyMemberId && transactionData.budgetId) {
+      // 通过预算ID查找预算记录
+      const budget = await prisma.budget.findUnique({
+        where: { id: transactionData.budgetId },
+        include: {
+          familyMember: true,
+          user: true
+        }
+      });
+      
+      if (budget) {
+        if (budget.familyMemberId) {
+          // 预算直接关联到家庭成员（托管成员的预算）
+          finalFamilyMemberId = budget.familyMemberId;
+        } else if (budget.userId) {
+          // 预算关联到用户，需要查找该用户在家庭中的成员记录
+          const familyMember = await prisma.familyMember.findFirst({
+            where: {
+              familyId: finalFamilyId,
+              userId: budget.userId
+            }
+          });
+          
+          if (familyMember) {
+            finalFamilyMemberId = familyMember.id;
+          }
+        }
+      }
+    }
+    
+    // 如果通过预算无法确定家庭成员ID，则使用当前用户作为备选方案
+    if (finalFamilyId && !finalFamilyMemberId) {
+      const familyMember = await prisma.familyMember.findFirst({
+        where: {
+          familyId: finalFamilyId,
+          userId: userId
+        }
+      });
+      
+      if (familyMember) {
+        finalFamilyMemberId = familyMember.id;
+      }
     }
 
     // 检查是否为历史交易
@@ -186,8 +252,15 @@ export class TransactionService {
       consumptionDate: transactionData.date // 原始消费日期
     } : undefined;
 
+    // 更新交易数据，确保包含正确的familyId和familyMemberId
+    const finalTransactionData = {
+      ...transactionData,
+      familyId: finalFamilyId,
+      familyMemberId: finalFamilyMemberId
+    };
+
     // 创建交易记录
-    const transaction = await this.transactionRepository.create(userId, transactionData, transactionMetadata);
+    const transaction = await this.transactionRepository.create(userId, finalTransactionData, transactionMetadata);
 
     // 更新预算
     if (transactionData.accountBookId && transactionData.type === 'EXPENSE') {
@@ -300,6 +373,57 @@ export class TransactionService {
       }
     }
 
+    // 如果是家庭账本，需要通过预算ID确定家庭成员ID
+    let finalFamilyMemberId = transactionData.familyMemberId;
+    if (transaction.familyId && !finalFamilyMemberId) {
+      // 优先使用更新数据中的budgetId，如果没有则使用原交易的budgetId
+      const budgetId = transactionData.budgetId || transaction.budgetId;
+      
+      if (budgetId) {
+        // 通过预算ID查找预算记录
+        const budget = await prisma.budget.findUnique({
+          where: { id: budgetId },
+          include: {
+            familyMember: true,
+            user: true
+          }
+        });
+        
+        if (budget) {
+          if (budget.familyMemberId) {
+            // 预算直接关联到家庭成员（托管成员的预算）
+            finalFamilyMemberId = budget.familyMemberId;
+          } else if (budget.userId) {
+            // 预算关联到用户，需要查找该用户在家庭中的成员记录
+            const familyMember = await prisma.familyMember.findFirst({
+              where: {
+                familyId: transaction.familyId,
+                userId: budget.userId
+              }
+            });
+            
+            if (familyMember) {
+              finalFamilyMemberId = familyMember.id;
+            }
+          }
+        }
+      }
+      
+      // 如果通过预算无法确定家庭成员ID，且原交易也没有familyMemberId，则使用当前用户作为备选方案
+      if (!finalFamilyMemberId && !transaction.familyMemberId) {
+        const familyMember = await prisma.familyMember.findFirst({
+          where: {
+            familyId: transaction.familyId,
+            userId: userId
+          }
+        });
+        
+        if (familyMember) {
+          finalFamilyMemberId = familyMember.id;
+        }
+      }
+    }
+
     // 获取原交易记录
     const oldTransaction = await this.transactionRepository.findById(id);
 
@@ -319,8 +443,14 @@ export class TransactionService {
       consumptionDate: transactionData.date // 修改后的消费日期
     } : undefined;
 
+    // 更新交易数据，确保包含正确的familyMemberId
+    const finalTransactionData = {
+      ...transactionData,
+      ...(finalFamilyMemberId && { familyMemberId: finalFamilyMemberId })
+    };
+
     // 更新交易记录
-    const updatedTransaction = await this.transactionRepository.update(id, transactionData, transactionMetadata);
+    const updatedTransaction = await this.transactionRepository.update(id, finalTransactionData, transactionMetadata);
 
     // 如果金额、分类或日期发生变化，更新预算
     const hasRelevantChanges =

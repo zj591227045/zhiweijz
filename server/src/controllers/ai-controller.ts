@@ -809,6 +809,56 @@ export class AIController {
           now.getMilliseconds()
         );
 
+        // 如果是家庭账本，需要通过预算ID确定家庭成员ID
+        let familyMemberId = null;
+        if (accountBook.type === 'FAMILY' && accountBook.familyId) {
+          const budgetId = (smartResult as any).budgetId;
+          
+          if (budgetId) {
+            // 通过预算ID查找预算记录
+            const budget = await this.prisma.budget.findUnique({
+              where: { id: budgetId },
+              include: {
+                familyMember: true,
+                user: true
+              }
+            });
+            
+            if (budget) {
+              if (budget.familyMemberId) {
+                // 预算直接关联到家庭成员（托管成员的预算）
+                familyMemberId = budget.familyMemberId;
+              } else if (budget.userId) {
+                // 预算关联到用户，需要查找该用户在家庭中的成员记录
+                const familyMember = await this.prisma.familyMember.findFirst({
+                  where: {
+                    familyId: accountBook.familyId,
+                    userId: budget.userId
+                  }
+                });
+                
+                if (familyMember) {
+                  familyMemberId = familyMember.id;
+                }
+              }
+            }
+          }
+          
+          // 如果通过预算无法确定家庭成员ID，则使用当前用户作为备选方案
+          if (!familyMemberId) {
+            const familyMember = await this.prisma.familyMember.findFirst({
+              where: {
+                familyId: accountBook.familyId,
+                userId: targetUserId
+              }
+            });
+            
+            if (familyMember) {
+              familyMemberId = familyMember.id;
+            }
+          }
+        }
+
         const transactionData = {
           amount: (smartResult as any).amount,
           type: (smartResult as any).type as TransactionType,
@@ -817,8 +867,9 @@ export class AIController {
           date: dateObj,
           accountBookId: accountBookId,
           userId: targetUserId, // 使用目标用户ID
-          // 如果是家庭账本，添加家庭ID
+          // 如果是家庭账本，添加家庭ID和家庭成员ID
           familyId: accountBook.type === 'FAMILY' ? accountBook.familyId : null,
+          familyMemberId: familyMemberId,
           // 预算ID如果有的话
           budgetId: (smartResult as any).budgetId || null
         };
@@ -933,6 +984,56 @@ export class AIController {
           now.getMilliseconds()
         );
 
+        // 如果是家庭账本，需要通过预算ID确定家庭成员ID
+        let familyMemberId = null;
+        if (accountBook.type === 'FAMILY' && accountBook.familyId) {
+          const budgetId = smartResult.budgetId;
+          
+          if (budgetId) {
+            // 通过预算ID查找预算记录
+            const budget = await this.prisma.budget.findUnique({
+              where: { id: budgetId },
+              include: {
+                familyMember: true,
+                user: true
+              }
+            });
+            
+            if (budget) {
+              if (budget.familyMemberId) {
+                // 预算直接关联到家庭成员（托管成员的预算）
+                familyMemberId = budget.familyMemberId;
+              } else if (budget.userId) {
+                // 预算关联到用户，需要查找该用户在家庭中的成员记录
+                const familyMember = await this.prisma.familyMember.findFirst({
+                  where: {
+                    familyId: accountBook.familyId,
+                    userId: budget.userId
+                  }
+                });
+                
+                if (familyMember) {
+                  familyMemberId = familyMember.id;
+                }
+              }
+            }
+          }
+          
+          // 如果通过预算无法确定家庭成员ID，则使用当前用户作为备选方案
+          if (!familyMemberId) {
+            const familyMember = await this.prisma.familyMember.findFirst({
+              where: {
+                familyId: accountBook.familyId,
+                userId: userId
+              }
+            });
+            
+            if (familyMember) {
+              familyMemberId = familyMember.id;
+            }
+          }
+        }
+
         const transactionData = {
           amount: smartResult.amount,
           type: smartResult.type as TransactionType,
@@ -941,8 +1042,9 @@ export class AIController {
           date: dateObj,
           accountBookId: accountId,
           userId,
-          // 如果是家庭账本，添加家庭ID
+          // 如果是家庭账本，添加家庭ID和家庭成员ID
           familyId: accountBook.type === 'FAMILY' ? accountBook.familyId : null,
+          familyMemberId: familyMemberId,
           // 预算ID如果有的话
           budgetId: smartResult.budgetId || null
         };
