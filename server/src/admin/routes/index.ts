@@ -2,6 +2,8 @@ import { Router } from 'express';
 import authAdminRoutes from './auth.admin.routes';
 import dashboardAdminRoutes from './dashboard.admin.routes';
 import userAdminRoutes from './user.admin.routes';
+import systemConfigAdminRoutes from './system-config.admin.routes';
+import llmLogAdminRoutes from './llm-log.admin.routes';
 
 const router = Router();
 
@@ -9,5 +11,7 @@ const router = Router();
 router.use('/auth', authAdminRoutes);
 router.use('/dashboard', dashboardAdminRoutes);
 router.use('/users', userAdminRoutes);
+router.use('/system-configs', systemConfigAdminRoutes);
+router.use('/llm-logs', llmLogAdminRoutes);
 
 export default router; 

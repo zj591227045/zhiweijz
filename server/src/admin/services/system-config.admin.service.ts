@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { LLMProviderService } from '../../ai/llm/llm-provider-service';
 
 const prisma = new PrismaClient();
 
@@ -43,6 +44,11 @@ export interface LLMTestConfig {
 }
 
 export class SystemConfigAdminService {
+  private llmProviderService: LLMProviderService;
+
+  constructor() {
+    this.llmProviderService = new LLMProviderService();
+  }
   /**
    * 获取系统配置列表
    */
@@ -444,136 +450,44 @@ export class SystemConfigAdminService {
    * 测试LLM连接
    */
   async testLLMConnection(config: LLMTestConfig) {
+    const startTime = Date.now();
+    
     try {
-      // 这里实现LLM连接测试逻辑
-      // 可以发送一个简单的测试请求到LLM服务
+      console.log('开始测试LLM连接:', config);
       
-      // 模拟测试逻辑
-      const testMessage = "Hello, this is a test message.";
-      
-      // 根据不同的provider实现不同的测试逻辑
-      let testResult;
-      
-      switch (config.provider.toLowerCase()) {
-        case 'openai':
-          testResult = await this.testOpenAIConnection(config);
-          break;
-        case 'siliconflow':
-          testResult = await this.testSiliconFlowConnection(config);
-          break;
-        default:
-          testResult = await this.testGenericConnection(config);
-      }
+      // 使用LLMProviderService进行真实的连接测试
+      const testResult = await this.llmProviderService.testConnection({
+        provider: config.provider,
+        model: config.model,
+        apiKey: config.apiKey,
+        baseUrl: config.baseUrl
+      });
+
+      const responseTime = Date.now() - startTime;
 
       return {
         success: testResult.success,
         message: testResult.message,
-        responseTime: testResult.responseTime,
-        details: testResult.details
-      };
-    } catch (error) {
-      console.error('测试LLM连接错误:', error);
-      return {
-        success: false,
-        message: '连接测试失败',
-        error: error instanceof Error ? error.message : '未知错误'
-      };
-    }
-  }
-
-  /**
-   * 测试OpenAI连接
-   */
-  private async testOpenAIConnection(config: LLMTestConfig) {
-    const startTime = Date.now();
-    
-    try {
-      // 这里可以实现实际的OpenAI API测试
-      // 暂时返回模拟结果
-      const responseTime = Date.now() - startTime;
-      
-      return {
-        success: true,
-        message: 'OpenAI连接测试成功',
-        responseTime,
-        details: {
-          provider: 'OpenAI',
-          model: config.model,
-          status: 'connected'
-        }
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: 'OpenAI连接测试失败',
-        responseTime: Date.now() - startTime,
-        details: {
-          error: error instanceof Error ? error.message : '未知错误'
-        }
-      };
-    }
-  }
-
-  /**
-   * 测试硅基流动连接
-   */
-  private async testSiliconFlowConnection(config: LLMTestConfig) {
-    const startTime = Date.now();
-    
-    try {
-      // 这里可以实现实际的硅基流动API测试
-      // 暂时返回模拟结果
-      const responseTime = Date.now() - startTime;
-      
-      return {
-        success: true,
-        message: '硅基流动连接测试成功',
-        responseTime,
-        details: {
-          provider: 'SiliconFlow',
-          model: config.model,
-          status: 'connected'
-        }
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: '硅基流动连接测试失败',
-        responseTime: Date.now() - startTime,
-        details: {
-          error: error instanceof Error ? error.message : '未知错误'
-        }
-      };
-    }
-  }
-
-  /**
-   * 测试通用连接
-   */
-  private async testGenericConnection(config: LLMTestConfig) {
-    const startTime = Date.now();
-    
-    try {
-      // 这里可以实现通用的API测试
-      // 暂时返回模拟结果
-      const responseTime = Date.now() - startTime;
-      
-      return {
-        success: true,
-        message: '连接测试成功',
         responseTime,
         details: {
           provider: config.provider,
           model: config.model,
-          status: 'connected'
+          status: testResult.success ? 'connected' : 'failed',
+          ...(config.baseUrl && { baseUrl: config.baseUrl })
         }
       };
     } catch (error) {
+      console.error('测试LLM连接错误:', error);
+      const responseTime = Date.now() - startTime;
+      
       return {
         success: false,
-        message: '连接测试失败',
-        responseTime: Date.now() - startTime,
+        message: `连接测试失败: ${error instanceof Error ? error.message : '未知错误'}`,
+        responseTime,
         details: {
+          provider: config.provider,
+          model: config.model,
+          status: 'failed',
           error: error instanceof Error ? error.message : '未知错误'
         }
       };

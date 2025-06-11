@@ -20,7 +20,16 @@ interface AdminSidebarProps {
 const navigation = [
   { name: '仪表盘', href: '/admin', icon: HomeIcon, current: false },
   { name: '用户管理', href: '/admin/users', icon: UsersIcon, current: false },
-  { name: 'LLM管理', href: '/admin/llm', icon: CogIcon, current: false },
+  { 
+    name: 'LLM管理', 
+    href: '/admin/llm', 
+    icon: CogIcon, 
+    current: false,
+    children: [
+      { name: '配置管理', href: '/admin/llm', current: false },
+      { name: '调用日志', href: '/admin/llm/logs', current: false }
+    ]
+  },
   { name: '公告管理', href: '/admin/announcements', icon: SpeakerWaveIcon, current: false },
   { name: '统计分析', href: '/admin/analytics', icon: ChartBarIcon, current: false },
 ];
@@ -69,27 +78,53 @@ export function AdminSidebar({ isOpen, onClose, isMobile }: AdminSidebarProps) {
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
             {navItems.map((item) => {
               const Icon = item.icon;
+              const hasChildren = item.children && item.children.length > 0;
+              const isParentActive = hasChildren && item.children.some(child => pathname === child.href);
+              
               return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={isMobile ? onClose : undefined}
-                  className={`
-                    group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
-                    ${item.current
-                      ? 'bg-blue-50 border-blue-500 text-blue-700 border-r-2'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                    }
-                  `}
-                >
-                  <Icon
+                <div key={item.name}>
+                  <Link
+                    href={item.href}
+                    onClick={isMobile ? onClose : undefined}
                     className={`
-                      mr-3 h-5 w-5
-                      ${item.current ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'}
+                      group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
+                      ${item.current || isParentActive
+                        ? 'bg-blue-50 border-blue-500 text-blue-700 border-r-2'
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                      }
                     `}
-                  />
-                  {item.name}
-                </Link>
+                  >
+                    <Icon
+                      className={`
+                        mr-3 h-5 w-5
+                        ${item.current || isParentActive ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'}
+                      `}
+                    />
+                    {item.name}
+                  </Link>
+                  
+                  {/* 子菜单 */}
+                  {hasChildren && (
+                    <div className="ml-6 mt-1 space-y-1">
+                      {item.children.map((child) => (
+                        <Link
+                          key={child.name}
+                          href={child.href}
+                          onClick={isMobile ? onClose : undefined}
+                          className={`
+                            block px-3 py-2 text-sm rounded-md transition-colors
+                            ${pathname === child.href
+                              ? 'bg-blue-100 text-blue-700 font-medium'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            }
+                          `}
+                        >
+                          {child.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </nav>
