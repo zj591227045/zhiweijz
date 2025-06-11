@@ -143,24 +143,37 @@
   margin-left: 12px;
 }
 
+/* iOS安全区域适配 - 背景延伸到安全区域，内容保持在安全区域内 */
+@supports (padding: max(0px)) {
+  .ios-app .selection-modal-header,
+  .capacitor-ios .selection-modal-header {
+    /* 背景延伸到安全区域顶部 */
+    margin-top: calc(-1 * env(safe-area-inset-top, 0px)) !important;
+    /* 内容区域的padding保持在安全区域内 */
+    padding-top: calc(env(safe-area-inset-top, 0px) + 20px) !important;
+    /* 确保背景延伸效果 */
+    position: relative !important;
+  }
+}
+
 /* 移动端优化 */
 @media (max-width: 480px) {
   .modal-overlay {
     padding: 0;
     align-items: flex-end;
   }
-  
+
   .selection-modal {
     max-width: none;
     width: 100%;
     border-radius: 12px 12px 0 0;
     max-height: 90vh;
   }
-  
+
   .selection-modal-header {
     padding: 16px 20px 12px;
   }
-  
+
   .selection-option {
     padding: 14px 20px;
   }

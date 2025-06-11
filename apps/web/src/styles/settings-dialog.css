@@ -10,7 +10,9 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 25vh 16px;
+  padding: 16px;
+  /* 确保弹窗始终在屏幕中心，不受页面偏移影响 */
+  margin: 0;
 }
 
 .settings-dialog-content {
@@ -336,7 +338,7 @@
 /* 响应式设计 */
 @media (max-width: 480px) {
   .settings-dialog {
-    padding: 25vh 8px;
+    padding: 8px;
     align-items: center;
   }
 

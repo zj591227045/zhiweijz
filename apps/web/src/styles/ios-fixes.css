@@ -138,25 +138,7 @@
   min-height: 100vh !important;
 }
 
-/* 通过伪元素让背景延伸到安全区域 - 但不在登录页面显示，以免覆盖动态背景 */
-.ios-app:not(.login-page) .app-container::before,
-.ios-app:not(.login-page) .ios-page-container::before {
-  content: '' !important;
-  position: fixed !important;
-  top: calc(-1 * env(safe-area-inset-top, 0px)) !important;
-  bottom: calc(-1 * env(safe-area-inset-bottom, 0px)) !important;
-  left: calc(-1 * env(safe-area-inset-left, 0px)) !important;
-  right: calc(-1 * env(safe-area-inset-right, 0px)) !important;
-  background: var(--background-color, #f9fafb) !important;
-  z-index: -1 !important;
-  pointer-events: none !important;
-}
 
-/* 暗色主题支持 - 但不在登录页面显示 */
-.dark .ios-app:not(.login-page) .app-container::before,
-.dark .ios-app:not(.login-page) .ios-page-container::before {
-  background: var(--background-color, #111827) !important;
-}
 
 /* iOS暗色主题底部导航栏 */
 .dark .ios-app .bottom-nav {
@@ -185,13 +167,36 @@
 }
 
 /* iOS 安全区域精确适配 */
-/* 顶部标题栏适配 */
+/* 顶部标题栏适配 - 整个头部下移到安全区域下方 */
+/* 使用最高特异性的选择器确保覆盖所有样式 */
+html.ios-app body.ios-app .app-container .header,
+html.ios-app body.ios-app .ios-page-container .header,
+html.ios-app body.capacitor-ios .app-container .header,
+html.ios-app body.capacitor-ios .ios-page-container .header,
+body.ios-app .app-container .header,
+body.ios-app .ios-page-container .header,
+body.ios-app .header,
+body.capacitor-ios .app-container .header,
+body.capacitor-ios .ios-page-container .header,
+body.capacitor-ios .header,
+.ios-app .app-container .header,
+.ios-app .ios-page-container .header,
 .ios-app .header,
-.ios-app .page-header {
-  padding-top: env(safe-area-inset-top, 0px) !important;
+.ios-app .page-header,
+/* 增加更多选择器确保覆盖所有iOS环境 */
+html.ios-app .header,
+html.ios-app .page-header {
+  /* 整个头部下移到安全区域下方 */
+  margin-top: env(safe-area-inset-top, 0px) !important;
+  /* 保持原有的内边距 */
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
   background-color: var(--card-background) !important;
   border-bottom: 1px solid var(--border-color) !important;
-  min-height: calc(56px + env(safe-area-inset-top, 0px)) !important;
+  min-height: 56px !important;
+  /* 确保层级正确 */
+  position: relative !important;
+  z-index: 200 !important;
 }
 
 /* iOS主要内容区域适配 - 优化顶部和底部间距 */
@@ -277,15 +282,69 @@ body > .bottom-nav {
   border-top-color: var(--border-color) !important;
 }
 
-/* iOS头部样式优化 */
-.ios-app .ios-header {
+/* iOS头部样式优化 - 使用最高特异性选择器 */
+html.ios-app body.ios-app .ios-header,
+html.ios-app body.capacitor-ios .ios-header,
+.ios-app .ios-header,
+body.ios-app .ios-header,
+body.capacitor-ios .ios-header,
+/* 添加更多选择器确保覆盖页面特定的CSS */
+html.ios-app body.ios-app .app-container .ios-header,
+html.ios-app body.capacitor-ios .app-container .ios-header,
+html.ios-app body.ios-app .ios-page-container .ios-header,
+html.ios-app body.capacitor-ios .ios-page-container .ios-header,
+body.ios-app .app-container .ios-header,
+body.capacitor-ios .app-container .ios-header,
+body.ios-app .ios-page-container .ios-header,
+body.capacitor-ios .ios-page-container .ios-header,
+.ios-app .app-container .ios-header,
+.ios-app .ios-page-container .ios-header {
   position: sticky !important;
   top: 0 !important;
   z-index: 200 !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
-  /* 减少头部内边距 */
-  padding-bottom: 4px !important;
+  /* 整个头部下移到安全区域下方 */
+  margin-top: env(safe-area-inset-top, 0px) !important;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+  min-height: 56px !important;
+}
+
+/* 特殊处理：确保PageContainer中的header也能正确适配 - 使用最高特异性选择器 */
+html.ios-app body.ios-app .app-container header.header,
+html.ios-app body.capacitor-ios .app-container header.header,
+html.ios-app body.ios-app .ios-page-container header.header,
+html.ios-app body.capacitor-ios .ios-page-container header.header,
+body.ios-app .app-container header.header,
+body.capacitor-ios .app-container header.header,
+body.ios-app .ios-page-container header.header,
+body.capacitor-ios .ios-page-container header.header,
+/* 专门针对PageContainer中同时有header和ios-header类的元素 */
+html.ios-app body.ios-app .app-container header.header.ios-header,
+html.ios-app body.capacitor-ios .app-container header.header.ios-header,
+html.ios-app body.ios-app .ios-page-container header.header.ios-header,
+html.ios-app body.capacitor-ios .ios-page-container header.header.ios-header,
+body.ios-app .app-container header.header.ios-header,
+body.capacitor-ios .app-container header.header.ios-header,
+body.ios-app .ios-page-container header.header.ios-header,
+body.capacitor-ios .ios-page-container header.header.ios-header,
+.ios-app .app-container header.header.ios-header,
+.ios-app .ios-page-container header.header.ios-header,
+/* 添加模态框header的支持 */
+html.ios-app body.ios-app .modal-header,
+html.ios-app body.capacitor-ios .modal-header,
+body.ios-app .modal-header,
+body.capacitor-ios .modal-header,
+.ios-app .modal-header {
+  /* 整个头部下移到安全区域下方 */
+  margin-top: env(safe-area-inset-top, 0px) !important;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+  min-height: 56px !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 200 !important;
 }
 
 /* 优化iOS页面标题栏与内容的间距 */
@@ -319,6 +378,47 @@ body > .bottom-nav {
   /* 让body背景延伸到全屏，但不影响内容定位 */
   margin: 0 !important;
   padding: 0 !important;
+}
+
+/* iOS安全区域顶部背景填充 */
+.ios-app .app-container::before,
+.ios-app .ios-page-container::before {
+  content: '' !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: env(safe-area-inset-top, 0px) !important;
+  background-color: var(--card-background) !important;
+  z-index: 199 !important;
+  pointer-events: none !important;
+}
+
+/* 暗色主题下的安全区域背景 */
+.dark .ios-app .app-container::before,
+.dark .ios-app .ios-page-container::before {
+  background-color: var(--card-background) !important;
+}
+
+/* Dynamic Island适配 - 最高优先级样式 */
+/* 使用JavaScript添加的特殊类名，确保覆盖所有其他样式 */
+html.ios-app body.ios-app .dynamic-island-adapted,
+html.ios-app body.capacitor-ios .dynamic-island-adapted,
+body.ios-app .dynamic-island-adapted,
+body.capacitor-ios .dynamic-island-adapted,
+.ios-app .dynamic-island-adapted,
+.capacitor-ios .dynamic-island-adapted,
+header.dynamic-island-adapted,
+.header.dynamic-island-adapted,
+.ios-header.dynamic-island-adapted,
+.modal-header.dynamic-island-adapted {
+  margin-top: 44px !important;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+  min-height: 56px !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
 }
 
 /* 虚拟键盘iOS适配 */
@@ -362,4 +462,31 @@ body > .bottom-nav {
     will-change: transform !important;
   }
 }
+
+/* iOS Dynamic Island 适配样式 */
+/* 注意：由于CSS选择器匹配问题，实际的样式应用通过JavaScript完成 */
+/* 这里保留CSS作为备用方案 */
+.ios-app header,
+/* 旧的冲突规则已移除，使用下面统一的规则 */
+
+/* iOS 弹窗适配 - 确保弹窗始终在屏幕中心 */
+.ios-app .settings-dialog {
+  /* 重置任何可能的偏移，确保弹窗相对于屏幕定位 */
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  margin: 0 !important;
+  padding: 16px !important;
+  /* 确保弹窗在最顶层 */
+  z-index: 10000 !important;
+}
+
+.ios-app .settings-dialog-content {
+  /* 确保内容在屏幕中心 */
+  margin: auto !important;
+}
+
+/* iOS header适配已移至global-styles.css中的基础.header样式 */
 

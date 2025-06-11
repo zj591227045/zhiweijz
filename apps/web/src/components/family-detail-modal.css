@@ -192,30 +192,24 @@ body.family-detail-modal-open {
   z-index: 999999999 !important;
 }
 
-/* 强制覆盖 Capacitor 状态栏 */
-.capacitor-ios .family-detail-modal-overlay::before {
-  content: '' !important;
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  height: env(safe-area-inset-top, 44px) !important;
-  background-color: var(--background-color) !important;
-  z-index: inherit !important;
-  pointer-events: none !important;
-}
-
-/* 确保模态框内容不被状态栏遮挡 */
-.capacitor-ios .family-detail-modal-overlay .app-container {
-  padding-top: env(safe-area-inset-top, 44px) !important;
+/* iOS安全区域适配 - 背景延伸到安全区域，内容保持在安全区域内 */
+@supports (padding: max(0px)) {
+  .ios-app .family-detail-modal-header,
+  .capacitor-ios .family-detail-modal-header {
+    /* 背景延伸到安全区域顶部 */
+    margin-top: calc(-1 * env(safe-area-inset-top, 0px)) !important;
+    /* 内容区域的padding保持在安全区域内 */
+    padding-top: calc(env(safe-area-inset-top, 0px) + 16px) !important;
+    height: calc(64px + env(safe-area-inset-top, 0px)) !important;
+    min-height: calc(64px + env(safe-area-inset-top, 0px)) !important;
+    /* 确保背景延伸效果 */
+    position: relative !important;
+  }
 }
 
 /* 强制显示头部组件 - 覆盖所有可能的隐藏样式 */
 .family-detail-modal-header,
-.family-detail-modal-overlay .family-detail-modal-header,
-.ios-app .family-detail-modal-header,
-.capacitor-ios .family-detail-modal-header,
-.iphone-16-pro .family-detail-modal-header {
+.family-detail-modal-overlay .family-detail-modal-header {
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;

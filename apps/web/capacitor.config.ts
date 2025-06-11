@@ -21,7 +21,7 @@ const config: CapacitorConfig = {
     StatusBar: {
       style: 'light',
       backgroundColor: '#FFFFFF',
-      overlaysWebView: true
+      overlaysWebView: false
     },
     Keyboard: {
       resize: 'body',
@@ -47,7 +47,8 @@ const config: CapacitorConfig = {
     scheme: '只为记账',
     limitsNavigationsToAppBoundDomains: true,
     allowsLinkPreview: false,
-    handleApplicationNotifications: false
+    handleApplicationNotifications: false,
+    contentInset: 'always'
   }
 };
 

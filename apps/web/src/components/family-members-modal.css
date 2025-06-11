@@ -256,13 +256,25 @@ body.modal-open .tab-bar {
   pointer-events: auto;
 }
 
-/* 适配 iOS 安全区域 */
+/* 适配 iOS 安全区域 - 背景延伸到安全区域，内容保持在安全区域内 */
 @supports (padding: max(0px)) {
-  .modal-header {
-    padding-top: max(16px, env(safe-area-inset-top));
-    height: max(64px, calc(64px + env(safe-area-inset-top)));
+  .ios-app .modal-header,
+  .capacitor-ios .modal-header,
+  /* 增加更多选择器确保覆盖所有iOS环境 */
+  body.ios-app .modal-header,
+  body.capacitor-ios .modal-header,
+  html.ios-app .modal-header,
+  html.capacitor-ios .modal-header {
+    /* 背景延伸到安全区域顶部 */
+    margin-top: calc(-1 * env(safe-area-inset-top, 0px)) !important;
+    /* 内容区域的padding保持在安全区域内 */
+    padding-top: calc(env(safe-area-inset-top, 0px) + 16px) !important;
+    height: calc(64px + env(safe-area-inset-top, 0px)) !important;
+    min-height: calc(64px + env(safe-area-inset-top, 0px)) !important;
+    /* 确保背景延伸效果 */
+    position: relative !important;
   }
-  
+
   .modal-content {
     padding-bottom: max(16px, env(safe-area-inset-bottom));
   }

@@ -2,7 +2,10 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import '../styles/android-fixes.css';
+import '../styles/ios-fixes.css';
 import { ClientProviders } from './providers';
+import { PlatformDetector } from '@/components/platform-detector';
+
 
 const inter = Inter({
   subsets: ['latin'],
@@ -50,6 +53,7 @@ export default function RootLayout({
         <meta httpEquiv="Expires" content="0" />
       </head>
       <body className={inter.className} suppressHydrationWarning>
+        <PlatformDetector />
         <ClientProviders>{children}</ClientProviders>
       </body>
     </html>

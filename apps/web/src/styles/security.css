@@ -142,6 +142,19 @@
   flex-shrink: 0;
 }
 
+/* iOS安全区域适配 - 背景延伸到安全区域，内容保持在安全区域内 */
+@supports (padding: max(0px)) {
+  .ios-app .modal-header,
+  .capacitor-ios .modal-header {
+    /* 背景延伸到安全区域顶部 */
+    margin-top: calc(-1 * env(safe-area-inset-top, 0px)) !important;
+    /* 内容区域的padding保持在安全区域内 */
+    padding-top: calc(env(safe-area-inset-top, 0px) + 16px) !important;
+    /* 确保背景延伸效果 */
+    position: relative !important;
+  }
+}
+
 .modal-title {
   font-size: 18px;
   font-weight: 600;
