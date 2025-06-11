@@ -23,7 +23,8 @@
     "migrate:version": "node scripts/migration-manager.js version",
     "migrate:check": "node scripts/migration-manager.js check",
     "docker:start": "bash scripts/docker-start.sh",
-    "health": "node scripts/health-check.js"
+    "health": "node scripts/health-check.js",
+    "admin:init": "ts-node src/admin/scripts/init-admin.ts"
   },
   "dependencies": {
     "@langchain/core": "^0.3.56",

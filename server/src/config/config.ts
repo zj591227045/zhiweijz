@@ -13,6 +13,8 @@ interface Config {
   jwt: {
     secret: string;
     expiresIn: string | number;
+    adminSecret?: string;
+    adminExpiresIn?: string | number;
   };
   email?: {
     host: string;
@@ -34,6 +36,8 @@ const config: Config = {
   jwt: {
     secret: process.env.JWT_SECRET || 'your_jwt_secret',
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    adminSecret: process.env.JWT_ADMIN_SECRET || process.env.JWT_SECRET || 'your_admin_jwt_secret',
+    adminExpiresIn: process.env.JWT_ADMIN_EXPIRES_IN || '24h',
   },
 };
 

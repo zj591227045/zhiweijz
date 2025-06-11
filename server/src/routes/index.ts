@@ -13,6 +13,7 @@ import statisticsRoutes from './statistics.routes';
 import securityRoutes from './security.routes';
 import aiRoutes from './ai-routes';
 import feedbackRoutes from './feedback.routes';
+import adminRoutes from '../admin/routes';
 
 const router = Router();
 
@@ -31,5 +32,6 @@ router.use('/statistics', statisticsRoutes);
 router.use('/security', securityRoutes);
 router.use('/ai', aiRoutes);
 router.use('/feedback', feedbackRoutes);
+router.use('/admin', adminRoutes);
 
 export default router;
