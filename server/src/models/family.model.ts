@@ -84,6 +84,7 @@ export interface FamilyMemberResponseDto {
   role: Role;
   isRegistered: boolean;
   isCustodial: boolean;
+  isCurrentUser?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -137,14 +138,15 @@ export interface InvitationResponseDto {
 export function toFamilyResponseDto(
   family: Family,
   members?: FamilyMember[],
-  creator?: UserBriefDto
+  creator?: UserBriefDto,
+  currentUserId?: string
 ): FamilyResponseDto {
   return {
     id: family.id,
     name: family.name,
     createdBy: family.createdBy,
     creator,
-    members: members?.map(member => toFamilyMemberResponseDto(member)),
+    members: members?.map(member => toFamilyMemberResponseDto(member, currentUserId)),
     memberCount: members?.length,
     createdAt: family.createdAt,
     updatedAt: family.updatedAt,
@@ -174,7 +176,8 @@ export function toFamilyListResponseDto(
  * 将家庭成员实体转换为响应DTO
  */
 export function toFamilyMemberResponseDto(
-  member: FamilyMember & { user?: { id: string; name: string; email: string } | null }
+  member: FamilyMember & { user?: { id: string; name: string; email: string } | null },
+  currentUserId?: string
 ): FamilyMemberResponseDto {
   return {
     id: member.id,
@@ -191,6 +194,7 @@ export function toFamilyMemberResponseDto(
     role: member.role,
     isRegistered: member.isRegistered,
     isCustodial: member.isCustodial || false,
+    isCurrentUser: member.userId === currentUserId,
     createdAt: member.createdAt,
     updatedAt: member.updatedAt,
   };

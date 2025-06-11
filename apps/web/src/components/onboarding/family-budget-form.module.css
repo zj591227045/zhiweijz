@@ -1,0 +1,283 @@
+/* 家庭预算表单样式 */
+.family-budget-form {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.family-budget-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #10b981;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 头部区域 */
+.family-budget-header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.family-budget-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.family-budget-description {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* 批量设置区域 */
+.batch-budget-section {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.batch-budget-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.batch-budget-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.batch-budget-button {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.batch-budget-button:hover {
+  background: #f3f4f6;
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.batch-budget-button:active {
+  transform: translateY(1px);
+}
+
+/* 成员预算区域 */
+.member-budgets-section {
+  margin-bottom: 24px;
+}
+
+.member-budget-item {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: border-color 0.2s ease;
+}
+
+.member-budget-item:hover {
+  border-color: #10b981;
+}
+
+.member-info {
+  margin-bottom: 12px;
+}
+
+.member-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.current-user-badge {
+  font-size: 12px;
+  color: #10b981;
+  font-weight: 400;
+}
+
+.member-details {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.member-role,
+.member-type,
+.member-status {
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.member-role {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.member-type {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.member-status {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* 预算输入区域 */
+.budget-input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.budget-input-group {
+  display: flex;
+  align-items: center;
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 12px;
+  transition: border-color 0.2s ease;
+}
+
+.budget-input-group:focus-within {
+  border-color: #10b981;
+  background: #ffffff;
+}
+
+.budget-currency {
+  font-size: 16px;
+  color: #6b7280;
+  margin-right: 4px;
+}
+
+.budget-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 12px 0;
+  font-size: 16px;
+  color: #1f2937;
+  outline: none;
+}
+
+.budget-input::placeholder {
+  color: #9ca3af;
+}
+
+.budget-status {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.current-budget,
+.budget-spent {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.current-budget {
+  color: #059669;
+}
+
+.budget-spent {
+  color: #dc2626;
+}
+
+/* 预算汇总区域 */
+.budget-summary {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.summary-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #065f46;
+  margin-bottom: 12px;
+}
+
+.summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-label {
+  font-size: 13px;
+  color: #047857;
+}
+
+.summary-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: #065f46;
+}
+
+/* 响应式设计 */
+@media (max-width: 640px) {
+  .family-budget-form {
+    padding: 0 16px;
+  }
+  
+  .batch-budget-buttons {
+    flex-direction: column;
+  }
+  
+  .batch-budget-button {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .member-budget-item {
+    padding: 12px;
+  }
+  
+  .summary-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}

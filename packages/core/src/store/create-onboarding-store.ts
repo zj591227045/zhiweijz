@@ -151,6 +151,21 @@ export function createOnboardingStore(storage: StorageAdapter) {
             set({ currentStep: nextStepValue });
             console.log('✅ [OnboardingStore] Step changed to:', nextStepValue);
 
+            // 滚动到页面顶部
+            if (typeof window !== 'undefined') {
+              setTimeout(() => {
+                const onboardingContent = document.querySelector('.onboarding-modal-content');
+                if (onboardingContent) {
+                  onboardingContent.scrollTo({ top: 0, behavior: 'smooth' });
+                  console.log('📜 [OnboardingStore] Scrolled to top');
+                } else {
+                  // 备用方案：滚动整个页面
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  console.log('📜 [OnboardingStore] Scrolled page to top');
+                }
+              }, 100);
+            }
+
             // 验证步骤是否正确设置
             const newState = get();
             console.log('🔍 [OnboardingStore] Verification - current step is now:', newState.currentStep);
@@ -169,6 +184,21 @@ export function createOnboardingStore(storage: StorageAdapter) {
 
           set({ currentStep: step });
           console.log('✅ [OnboardingStore] Direct step change to:', step);
+
+          // 滚动到页面顶部
+          if (typeof window !== 'undefined') {
+            setTimeout(() => {
+              const onboardingContent = document.querySelector('.onboarding-modal-content');
+              if (onboardingContent) {
+                onboardingContent.scrollTo({ top: 0, behavior: 'smooth' });
+                console.log('📜 [OnboardingStore] Scrolled to top');
+              } else {
+                // 备用方案：滚动整个页面
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                console.log('📜 [OnboardingStore] Scrolled page to top');
+              }
+            }, 100);
+          }
         },
 
         previousStep: () => {
@@ -177,12 +207,46 @@ export function createOnboardingStore(storage: StorageAdapter) {
           const currentIndex = steps.indexOf(currentStep);
 
           if (currentIndex > 0) {
-            set({ currentStep: steps[currentIndex - 1] });
+            const prevStepValue = steps[currentIndex - 1];
+            set({ currentStep: prevStepValue });
+            console.log('🔄 [OnboardingStore] Previous step to:', prevStepValue);
+
+            // 滚动到页面顶部
+            if (typeof window !== 'undefined') {
+              setTimeout(() => {
+                const onboardingContent = document.querySelector('.onboarding-modal-content');
+                if (onboardingContent) {
+                  onboardingContent.scrollTo({ top: 0, behavior: 'smooth' });
+                  console.log('📜 [OnboardingStore] Scrolled to top');
+                } else {
+                  // 备用方案：滚动整个页面
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  console.log('📜 [OnboardingStore] Scrolled page to top');
+                }
+              }, 100);
+            }
           }
         },
         
         setCurrentStep: (step: OnboardingStep) => {
+          const { currentStep: prevStep } = get();
           set({ currentStep: step });
+          console.log('🔄 [OnboardingStore] setCurrentStep from:', prevStep, 'to:', step);
+
+          // 滚动到页面顶部
+          if (typeof window !== 'undefined') {
+            setTimeout(() => {
+              const onboardingContent = document.querySelector('.onboarding-modal-content');
+              if (onboardingContent) {
+                onboardingContent.scrollTo({ top: 0, behavior: 'smooth' });
+                console.log('📜 [OnboardingStore] Scrolled to top');
+              } else {
+                // 备用方案：滚动整个页面
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                console.log('📜 [OnboardingStore] Scrolled page to top');
+              }
+            }, 100);
+          }
         },
         
         // 数据设置方法
@@ -292,11 +356,12 @@ export function createOnboardingStore(storage: StorageAdapter) {
           },
         },
         // 只持久化状态数据，不持久化函数
+        // 注意：isVisible 不应该被持久化，因为它是临时状态
         partialize: (state: OnboardingState) => {
           return {
             isCompleted: state.isCompleted,
             currentStep: state.currentStep,
-            isVisible: state.isVisible,
+            // isVisible: state.isVisible, // 不持久化 isVisible
             selectedAccountType: state.selectedAccountType,
             selectedFamilyAction: state.selectedFamilyAction,
             familyName: state.familyName,
@@ -318,6 +383,8 @@ export function createOnboardingStore(storage: StorageAdapter) {
           const mergedState = {
             ...currentState, // 保留所有函数和初始状态
             ...persistedState, // 覆盖持久化的数据
+            // 确保 isVisible 始终从初始状态开始（不持久化）
+            isVisible: currentState.isVisible,
             // 确保 custodialMembers 始终是数组
             custodialMembers: Array.isArray(persistedState?.custodialMembers)
               ? persistedState.custodialMembers

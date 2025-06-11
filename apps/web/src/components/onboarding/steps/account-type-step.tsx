@@ -49,6 +49,21 @@ export function AccountTypeStep() {
     console.log('🎯 [AccountType] Going to budget-setup step');
     setCurrentStep('budget-setup' as OnboardingStep);
     console.log('✅ [AccountType] Step set to budget-setup');
+
+    // 滚动到页面顶部
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        const onboardingContent = document.querySelector('.onboarding-modal-content');
+        if (onboardingContent) {
+          onboardingContent.scrollTo({ top: 0, behavior: 'smooth' });
+          console.log('📜 [AccountType] Scrolled to top');
+        } else {
+          // 备用方案：滚动整个页面
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          console.log('📜 [AccountType] Scrolled page to top');
+        }
+      }, 100);
+    }
   };
 
   // 专门的方法来跳转到邀请码展示步骤
@@ -56,6 +71,21 @@ export function AccountTypeStep() {
     console.log('🎯 [AccountType] Going to invite-code-display step');
     setCurrentStep('invite-code-display' as OnboardingStep);
     console.log('✅ [AccountType] Step set to invite-code-display');
+
+    // 滚动到页面顶部
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        const onboardingContent = document.querySelector('.onboarding-modal-content');
+        if (onboardingContent) {
+          onboardingContent.scrollTo({ top: 0, behavior: 'smooth' });
+          console.log('📜 [AccountType] Scrolled to top');
+        } else {
+          // 备用方案：滚动整个页面
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          console.log('📜 [AccountType] Scrolled page to top');
+        }
+      }, 100);
+    }
   };
 
   // 检查是否应该显示跳过提示

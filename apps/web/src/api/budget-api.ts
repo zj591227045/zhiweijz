@@ -28,6 +28,8 @@ export interface BudgetResponse {
   rollover: boolean;
   enableCategoryBudget: boolean;
   familyMemberId?: string;
+  userId?: string;
+  budgetType?: 'PERSONAL' | 'FAMILY';
   createdAt: string;
   updatedAt: string;
   category?: {

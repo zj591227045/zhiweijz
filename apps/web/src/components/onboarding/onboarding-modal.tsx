@@ -65,6 +65,20 @@ export function OnboardingModal() {
     }
   }, [isVisible]);
 
+  // 监听步骤变化，确保滚动到顶部
+  useEffect(() => {
+    if (isVisible) {
+      // 延迟一点时间确保新步骤内容已渲染
+      setTimeout(() => {
+        const onboardingContent = document.querySelector('.onboarding-modal-content');
+        if (onboardingContent) {
+          onboardingContent.scrollTo({ top: 0, behavior: 'smooth' });
+          console.log('📜 [OnboardingModal] Scrolled to top on step change:', currentStep);
+        }
+      }, 150);
+    }
+  }, [currentStep, isVisible]);
+
   // 处理跳过按钮点击
   const handleSkipClick = () => {
     setShowSkipDialog(true);

@@ -38,6 +38,7 @@ export interface FamilyMember {
   role: 'admin' | 'member';
   isRegistered: boolean;
   isCustodial: boolean;
+  isCurrentUser?: boolean;
   joinedAt: string;
   user?: {
     id: string;

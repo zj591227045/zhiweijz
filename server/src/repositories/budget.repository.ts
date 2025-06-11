@@ -425,6 +425,13 @@ export class BudgetRepository {
         where,
         include: {
           category: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
+          },
           accountBook: {
             select: {
               id: true,
@@ -489,6 +496,13 @@ export class BudgetRepository {
       where,
       include: {
         category: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
         accountBook: {
           select: {
             id: true,
@@ -613,6 +627,13 @@ export class BudgetRepository {
       where,
       include: {
         category: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
         // 添加关联查询托管成员信息
         familyMember: {
           select: {

@@ -5,6 +5,7 @@ export interface AccountBookResponse {
   name: string;
   description?: string;
   userId: string;
+  type: 'PERSONAL' | 'FAMILY';
   familyId?: string;
   isDefault: boolean;
   createdAt: string;

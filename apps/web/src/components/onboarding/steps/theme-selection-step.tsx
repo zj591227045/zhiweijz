@@ -127,6 +127,21 @@ export function ThemeSelectionStep() {
     // 直接设置步骤为功能介绍，避免使用可能有问题的 nextStep()
     setCurrentStep('feature-intro' as any);
     console.log('🎨 [ThemeSelection] Step set to feature-intro');
+
+    // 滚动到页面顶部
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        const onboardingContent = document.querySelector('.onboarding-modal-content');
+        if (onboardingContent) {
+          onboardingContent.scrollTo({ top: 0, behavior: 'smooth' });
+          console.log('📜 [ThemeSelection] Scrolled to top');
+        } else {
+          // 备用方案：滚动整个页面
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          console.log('📜 [ThemeSelection] Scrolled page to top');
+        }
+      }, 100);
+    }
   };
 
   // 处理上一步

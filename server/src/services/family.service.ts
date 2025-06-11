@@ -99,7 +99,8 @@ export class FamilyService {
         id: creator.id,
         name: creator.name,
         email: creator.email,
-      }
+      },
+      userId
     );
   }
 
@@ -174,7 +175,8 @@ export class FamilyService {
         id: creator.id,
         name: creator.name,
         email: creator.email,
-      } : undefined
+      } : undefined,
+      userId
     );
   }
 
@@ -207,7 +209,8 @@ export class FamilyService {
         id: creator.id,
         name: creator.name,
         email: creator.email,
-      } : undefined
+      } : undefined,
+      userId
     );
   }
 
@@ -536,7 +539,7 @@ export class FamilyService {
     // 获取家庭成员列表
     const members = await this.familyRepository.findFamilyMembers(familyId);
 
-    return members.map(member => toFamilyMemberResponseDto(member));
+    return members.map(member => toFamilyMemberResponseDto(member, userId));
   }
 
   /**
@@ -959,7 +962,7 @@ export class FamilyService {
       // 不影响成员添加流程，继续执行
     }
 
-    return toFamilyMemberResponseDto(member);
+    return toFamilyMemberResponseDto(member, userId);
   }
 
   /**
