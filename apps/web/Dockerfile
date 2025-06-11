@@ -11,7 +11,7 @@ COPY apps/web/package*.json ./
 COPY package*.json ../
 
 # 安装所有依赖（构建时需要dev依赖）
-RUN npm ci --prefer-offline --no-audit
+RUN npm install --prefer-offline --no-audit
 
 # 构建阶段
 FROM node:18-alpine AS builder
