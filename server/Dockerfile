@@ -52,7 +52,8 @@ COPY server/scripts/ ./scripts/
 COPY server/prisma/ ./prisma/
 
 # 设置脚本执行权限
-RUN chmod +x scripts/*.sh scripts/*.js scripts/*/*.sh scripts/*/*.js
+RUN find scripts -name "*.sh" -type f -exec chmod +x {} \; && \
+    find scripts -name "*.js" -type f -exec chmod +x {} \;
 
 # 创建非root用户
 RUN addgroup -g 1001 -S nodejs
