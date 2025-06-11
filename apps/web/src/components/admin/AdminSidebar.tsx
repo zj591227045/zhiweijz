@@ -1,0 +1,108 @@
+'use client';
+
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { 
+  HomeIcon, 
+  UsersIcon, 
+  CogIcon, 
+  SpeakerWaveIcon,
+  ChartBarIcon,
+  XMarkIcon
+} from '@heroicons/react/24/outline';
+
+interface AdminSidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+  isMobile: boolean;
+}
+
+const navigation = [
+  { name: '仪表盘', href: '/admin', icon: HomeIcon, current: false },
+  { name: '用户管理', href: '/admin/users', icon: UsersIcon, current: false },
+  { name: 'LLM管理', href: '/admin/llm', icon: CogIcon, current: false },
+  { name: '公告管理', href: '/admin/announcements', icon: SpeakerWaveIcon, current: false },
+  { name: '统计分析', href: '/admin/analytics', icon: ChartBarIcon, current: false },
+];
+
+export function AdminSidebar({ isOpen, onClose, isMobile }: AdminSidebarProps) {
+  const pathname = usePathname();
+
+  const navItems = navigation.map(item => ({
+    ...item,
+    current: pathname === item.href,
+  }));
+
+  return (
+    <>
+      {/* 桌面端侧边栏 */}
+      <div className={`
+        ${isMobile ? 'fixed inset-y-0 left-0 z-50' : 'relative'}
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        ${isMobile ? 'w-64' : 'w-64'}
+        bg-white shadow-lg transition-transform duration-300 ease-in-out
+      `}>
+        <div className="flex flex-col h-full">
+          {/* Logo区域 */}
+          <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <span className="ml-3 text-lg font-semibold text-gray-900">只为记账</span>
+            </div>
+            
+            {/* 移动端关闭按钮 */}
+            {isMobile && (
+              <button
+                onClick={onClose}
+                className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            )}
+          </div>
+
+          {/* 导航菜单 */}
+          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={isMobile ? onClose : undefined}
+                  className={`
+                    group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
+                    ${item.current
+                      ? 'bg-blue-50 border-blue-500 text-blue-700 border-r-2'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    }
+                  `}
+                >
+                  <Icon
+                    className={`
+                      mr-3 h-5 w-5
+                      ${item.current ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'}
+                    `}
+                  />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* 底部信息 */}
+          <div className="p-4 border-t border-gray-200">
+            <div className="text-xs text-gray-500">
+              <p>管理后台</p>
+              <p className="mt-1">v1.0.0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+} 

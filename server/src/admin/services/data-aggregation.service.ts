@@ -1,0 +1,214 @@
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+/**
+ * 数据聚合服务
+ * 负责定时聚合访问日志和API调用数据，生成统计报告
+ */
+export class DataAggregationService {
+  private isRunning = false;
+
+  /**
+   * 启动定时任务
+   */
+  start() {
+    console.log('启动数据聚合定时任务...');
+
+    // 每小时执行一次聚合任务
+    setInterval(async () => {
+      await this.aggregateHourlyData();
+    }, 60 * 60 * 1000); // 1小时
+
+    // 每日执行一次日统计
+    setInterval(async () => {
+      const now = new Date();
+      if (now.getHours() === 1) { // 凌晨1点执行
+        await this.aggregateDailyData();
+      }
+    }, 60 * 60 * 1000); // 每小时检查一次
+
+    console.log('数据聚合定时任务已启动');
+  }
+
+  /**
+   * 每小时数据聚合
+   */
+  private async aggregateHourlyData() {
+    if (this.isRunning) return;
+    this.isRunning = true;
+
+    try {
+      console.log('开始执行每小时数据聚合...');
+      
+      const now = new Date();
+      const lastHour = new Date(now.getTime() - 60 * 60 * 1000);
+      lastHour.setMinutes(0, 0, 0);
+      
+      const currentHour = new Date(lastHour.getTime() + 60 * 60 * 1000);
+
+      // 聚合API调用数据
+      await this.aggregateApiCalls(lastHour, currentHour);
+      
+      console.log(`完成 ${lastHour.toISOString()} 的小时数据聚合`);
+    } catch (error) {
+      console.error('每小时数据聚合失败:', error);
+    } finally {
+      this.isRunning = false;
+    }
+  }
+
+  /**
+   * 每日数据聚合
+   */
+  private async aggregateDailyData() {
+    try {
+      console.log('开始执行每日数据聚合...');
+      
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(0, 0, 0, 0);
+      
+      const today = new Date(yesterday);
+      today.setDate(today.getDate() + 1);
+
+      // 聚合昨日数据
+      await this.generateDailyStats(yesterday, today);
+
+      console.log(`完成 ${yesterday.toISOString().split('T')[0]} 的每日数据聚合`);
+    } catch (error) {
+      console.error('每日数据聚合失败:', error);
+    }
+  }
+
+  /**
+   * 聚合API调用数据
+   */
+  private async aggregateApiCalls(startTime: Date, endTime: Date) {
+    try {
+      // 按端点统计API调用次数
+      const apiStats = await prisma.$queryRaw`
+        SELECT 
+          endpoint,
+          method,
+          COUNT(*) as total_calls,
+          AVG(duration) as avg_duration,
+          MIN(duration) as min_duration,
+          MAX(duration) as max_duration,
+          COUNT(CASE WHEN status_code >= 200 AND status_code < 300 THEN 1 END) as success_calls,
+          COUNT(CASE WHEN status_code >= 400 THEN 1 END) as error_calls
+        FROM api_call_logs 
+        WHERE created_at >= ${startTime} AND created_at < ${endTime}
+        GROUP BY endpoint, method
+      ` as Array<{
+        endpoint: string;
+        method: string;
+        total_calls: bigint;
+        avg_duration: number;
+        min_duration: number;
+        max_duration: number;
+        success_calls: bigint;
+        error_calls: bigint;
+      }>;
+
+      console.log(`聚合了 ${apiStats.length} 个API端点的数据`);
+    } catch (error) {
+      console.error('聚合API调用数据失败:', error);
+    }
+  }
+
+  /**
+   * 生成每日统计
+   */
+  private async generateDailyStats(startDate: Date, endDate: Date) {
+    try {
+      // 用户相关统计
+      const [newUsers, activeUsers, totalTransactions] = await Promise.all([
+        // 新注册用户数
+        prisma.user.count({
+          where: {
+            createdAt: {
+              gte: startDate,
+              lt: endDate
+            }
+          }
+        }),
+        
+        // 活跃用户数（有交易记录的用户）
+        prisma.user.count({
+          where: {
+            transactions: {
+              some: {
+                createdAt: {
+                  gte: startDate,
+                  lt: endDate
+                }
+              }
+            }
+          }
+        }),
+        
+        // 交易记录数
+        prisma.transaction.count({
+          where: {
+            createdAt: {
+              gte: startDate,
+              lt: endDate
+            }
+          }
+        })
+      ]);
+
+      console.log(`每日统计 - 新用户: ${newUsers}, 活跃用户: ${activeUsers}, 交易: ${totalTransactions}`);
+    } catch (error) {
+      console.error('生成每日统计失败:', error);
+    }
+  }
+
+  /**
+   * 清理旧数据
+   */
+  async cleanupOldData() {
+    try {
+      console.log('开始清理旧数据...');
+      
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      // 删除30天前的详细访问日志和API调用日志
+      const [deletedAccessLogs, deletedApiLogs] = await Promise.all([
+        prisma.accessLog.deleteMany({
+          where: {
+            createdAt: {
+              lt: thirtyDaysAgo
+            }
+          }
+        }),
+        prisma.apiCallLog.deleteMany({
+          where: {
+            createdAt: {
+              lt: thirtyDaysAgo
+            }
+          }
+        })
+      ]);
+
+      console.log(`清理完成: 访问日志 ${deletedAccessLogs.count} 条, API日志 ${deletedApiLogs.count} 条`);
+    } catch (error) {
+      console.error('清理旧数据失败:', error);
+    }
+  }
+
+  /**
+   * 手动执行聚合任务
+   */
+  async runManualAggregation() {
+    console.log('手动执行数据聚合...');
+    await this.aggregateHourlyData();
+    await this.aggregateDailyData();
+    console.log('手动聚合完成');
+  }
+}
+
+// 创建全局实例
+export const dataAggregationService = new DataAggregationService(); 

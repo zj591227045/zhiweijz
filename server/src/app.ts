@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import path from 'path';
 import config from './config/config';
 import routes from './routes';
+import { trackApiCall } from './middlewares/access-tracking.middleware';
 
 // 创建Express应用
 const app: Express = express();
@@ -46,6 +47,9 @@ app.use(morgan(logFormat, {
   // 过滤掉健康检查请求的日志
   skip: (req, res) => req.url === '/api/health'
 }));
+
+// API调用统计中间件
+app.use(trackApiCall);
 
 // 配置静态文件服务
 const dataDir = path.join(process.cwd(), '..', 'data');

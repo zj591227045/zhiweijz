@@ -24,7 +24,8 @@
     "migrate:check": "node scripts/migration-manager.js check",
     "docker:start": "bash scripts/docker-start.sh",
     "health": "node scripts/health-check.js",
-    "admin:init": "ts-node src/admin/scripts/init-admin.ts"
+    "admin:init": "ts-node src/admin/scripts/init-admin.ts",
+    "admin:aggregate": "ts-node src/admin/scripts/start-aggregation.ts --run-now"
   },
   "dependencies": {
     "@langchain/core": "^0.3.56",
