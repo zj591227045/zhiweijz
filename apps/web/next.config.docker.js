@@ -28,13 +28,21 @@ const nextConfig = {
     DOCKER_ENV: process.env.DOCKER_ENV || 'true',
   },
   
-  // Webpack配置 - 处理内部包路径
+  // Webpack配置 - 处理内部包路径和依赖
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@zhiweijz/core': require('path').resolve(__dirname, '../packages/core/src'),
       '@zhiweijz/web': require('path').resolve(__dirname, '../packages/web/src'),
     };
+    
+    // 确保内部包可以访问前端的依赖
+    config.resolve.modules = [
+      require('path').resolve(__dirname, 'node_modules'),
+      require('path').resolve(__dirname, '../node_modules'),
+      'node_modules'
+    ];
+    
     return config;
   },
 };

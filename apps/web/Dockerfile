@@ -30,6 +30,10 @@ COPY apps/web/ ./
 COPY packages/core/ ../packages/core/
 COPY packages/web/ ../packages/web/
 
+# 创建符号链接，让内部包能访问前端的依赖
+RUN ln -sf /app/node_modules ../packages/core/node_modules
+RUN ln -sf /app/node_modules ../packages/web/node_modules
+
 # 使用Docker专用的配置文件
 RUN cp next.config.docker.js next.config.js
 
