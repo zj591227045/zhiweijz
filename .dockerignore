@@ -55,6 +55,10 @@ scripts/
 !server/scripts/
 !apps/web/scripts/
 
+# 内部包（允许包含）
+!packages/core/
+!packages/web/
+
 # 测试文件
 **/*.test.ts
 **/*.test.js

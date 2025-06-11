@@ -10,6 +10,10 @@ WORKDIR /app
 COPY apps/web/package*.json ./
 COPY package*.json ../
 
+# 复制内部包的package.json
+COPY packages/core/package*.json ../packages/core/
+COPY packages/web/package*.json ../packages/web/
+
 # 安装所有依赖（构建时需要dev依赖）
 RUN npm install --prefer-offline --no-audit
 
@@ -26,11 +30,16 @@ COPY --from=deps /app/../package*.json ../
 # 复制源代码
 COPY apps/web/ ./
 
+# 复制内部包的源代码
+COPY packages/core/ ../packages/core/
+COPY packages/web/ ../packages/web/
+
+# 构建内部包
+RUN cd ../packages/core && npm run build
+RUN cd ../packages/web && npm run build
+
 # 使用Docker专用的配置文件
 RUN cp next.config.docker.js next.config.js
-
-# 复制共享包（如果存在）
-RUN mkdir -p ../packages
 
 # 确保public目录存在
 RUN mkdir -p ./public
