@@ -189,7 +189,7 @@ async function processTransaction(
         method = 'budget';
       } else if (transaction.budget.userId) {
         // 预算关联到用户，查找该用户在家庭中的成员记录
-        const familyMember = familyMembers.find(m => m.userId === transaction.budget.userId);
+        const familyMember = familyMembers.find((m: any) => m.userId === transaction.budget.userId);
         if (familyMember) {
           finalFamilyMemberId = familyMember.id;
           method = 'budget';
@@ -199,7 +199,7 @@ async function processTransaction(
 
     // 如果通过预算无法确定，使用交易创建者
     if (!finalFamilyMemberId && transaction.userId) {
-      const familyMember = familyMembers.find(m => m.userId === transaction.userId);
+      const familyMember = familyMembers.find((m: any) => m.userId === transaction.userId);
       if (familyMember) {
         finalFamilyMemberId = familyMember.id;
         method = 'user';

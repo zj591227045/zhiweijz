@@ -35,6 +35,12 @@ model User {
   llmSettings         UserLLMSetting[]
   settings            UserSetting[]
   verificationCodes   VerificationCode[]
+  
+  // 新增管理相关关联
+  announcementReads   AnnouncementRead[]
+  accessLogs          AccessLog[]
+  apiCallLogs         ApiCallLog[]
+  llmCallLogs         LlmCallLog[]
 
   @@map("users")
 }
@@ -258,6 +264,7 @@ model AccountBook {
   budgetHistories  BudgetHistory[]
   categories       Category[]
   transactions     Transaction[]
+  llmCallLogs      LlmCallLog[]
 
   @@map("account_books")
 }
@@ -391,6 +398,177 @@ model UserLLMSetting {
   @@map("user_llm_settings")
 }
 
+// =====================================
+// 管理员系统相关模型
+// =====================================
+
+model Admin {
+  id            String               @id @default(uuid())
+  username      String               @unique
+  passwordHash  String               @map("password_hash")
+  email         String?              @unique
+  role          AdminRole            @default(ADMIN)
+  createdAt     DateTime             @default(now()) @map("created_at")
+  updatedAt     DateTime             @updatedAt @map("updated_at")
+  lastLoginAt   DateTime?            @map("last_login_at")
+  isActive      Boolean              @default(true) @map("is_active")
+  
+  // 关联关系
+  createdConfigs    SystemConfig[]   @relation("ConfigCreator")
+  updatedConfigs    SystemConfig[]   @relation("ConfigUpdater")
+  createdAnnouncements Announcement[] @relation("AnnouncementCreator")
+  updatedAnnouncements Announcement[] @relation("AnnouncementUpdater")
+
+  @@map("admins")
+}
+
+model SystemConfig {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String?
+  description String?
+  category    String   @default("general")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdBy   String?  @map("created_by")
+  updatedBy   String?  @map("updated_by")
+  
+  // 关联关系
+  creator Admin? @relation("ConfigCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+  updater Admin? @relation("ConfigUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  @@map("system_configs")
+}
+
+model Announcement {
+  id             String               @id @default(uuid())
+  title          String
+  content        String
+  priority       AnnouncementPriority @default(NORMAL)
+  status         AnnouncementStatus   @default(DRAFT)
+  publishedAt    DateTime?            @map("published_at")
+  expiresAt      DateTime?            @map("expires_at")
+  targetUserType String               @default("all") @map("target_user_type")
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+  createdBy      String               @map("created_by")
+  updatedBy      String?              @map("updated_by")
+  
+  // 关联关系
+  creator        Admin                @relation("AnnouncementCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  updater        Admin?               @relation("AnnouncementUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+  readings       AnnouncementRead[]
+
+  @@map("announcements")
+}
+
+model AnnouncementRead {
+  id             String       @id @default(uuid())
+  announcementId String       @map("announcement_id")
+  userId         String       @map("user_id")
+  readAt         DateTime     @default(now()) @map("read_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  
+  // 关联关系
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([announcementId, userId])
+  @@map("announcement_reads")
+}
+
+// =====================================
+// 日志记录系统模型
+// =====================================
+
+model AccessLog {
+  id          String    @id @default(uuid())
+  userId      String?   @map("user_id")
+  userName    String?   @map("user_name")
+  path        String
+  method      String
+  queryParams String?   @map("query_params")
+  userAgent   String?   @map("user_agent")
+  ipAddress   String?   @map("ip_address")
+  referer     String?
+  duration    Int?      // 页面停留时间（毫秒）
+  createdAt   DateTime  @default(now()) @map("created_at")
+  
+  // 关联关系
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("access_logs")
+}
+
+model ApiCallLog {
+  id           String    @id @default(uuid())
+  endpoint     String
+  method       String
+  userId       String?   @map("user_id")
+  userName     String?   @map("user_name")
+  statusCode   Int       @map("status_code")
+  duration     Int       // 响应时间（毫秒）
+  requestSize  Int?      @map("request_size")
+  responseSize Int?      @map("response_size")
+  errorMessage String?   @map("error_message")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  
+  // 关联关系
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("api_call_logs")
+}
+
+model LlmCallLog {
+  id               String       @id @default(uuid())
+  userId           String       @map("user_id")
+  userName         String       @map("user_name")
+  accountBookId    String?      @map("account_book_id")
+  accountBookName  String?      @map("account_book_name")
+  provider         String
+  model            String
+  promptTokens     Int          @map("prompt_tokens")
+  completionTokens Int          @map("completion_tokens")
+  totalTokens      Int          @map("total_tokens")
+  userMessage      String       @map("user_message")
+  assistantMessage String?      @map("assistant_message")
+  systemPrompt     String?      @map("system_prompt")
+  isSuccess        Boolean      @map("is_success")
+  errorMessage     String?      @map("error_message")
+  duration         Int          // 响应时间（毫秒）
+  cost             Decimal?     @db.Decimal(10, 6)
+  createdAt        DateTime     @default(now()) @map("created_at")
+  
+  // 关联关系
+  user             User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  accountBook      AccountBook? @relation(fields: [accountBookId], references: [id], onDelete: SetNull)
+
+  @@map("llm_call_logs")
+}
+
+model StatisticsAggregation {
+  id         String   @id @default(uuid())
+  metricType String   @map("metric_type")
+  date       DateTime @db.Date
+  value      Decimal  @db.Decimal(20, 6)
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([metricType, date])
+  @@map("statistics_aggregations")
+}
+
+model SchemaVersion {
+  id            Int      @id @default(autoincrement())
+  version       String
+  description   String?
+  appliedAt     DateTime @default(now()) @map("applied_at")
+  migrationFile String?  @map("migration_file")
+
+  @@map("schema_versions")
+}
+
 enum TransactionType {
   INCOME
   EXPENSE
@@ -419,4 +597,22 @@ enum BudgetType {
 enum RolloverType {
   SURPLUS
   DEFICIT
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+}
+
+enum AnnouncementPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum AnnouncementStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }

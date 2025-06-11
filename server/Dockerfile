@@ -1,39 +1,23 @@
 # 多阶段构建 - 构建阶段
-FROM node:18-alpine3.17 AS builder
+FROM node:18-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app
 
-# 安装系统依赖 - 使用更稳定的方式
-RUN apk update && apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    curl \
-    openssl \
-    openssl-dev \
-    && rm -rf /var/cache/apk/*
+# 安装必要的系统依赖
+RUN apk add --no-cache \
+    bash \
+    postgresql-client \
+    curl
 
-# 复制根目录的package.json和package-lock.json
+# 复制package文件
 COPY package*.json ./
-COPY server/package*.json ./server/
 
-# 安装根目录依赖（包含开发依赖，用于构建）
-RUN npm install --legacy-peer-deps
+# 安装所有依赖（包括devDependencies用于构建）
+RUN npm ci
 
-# 切换到server目录并安装依赖（包含开发依赖，用于构建）
-WORKDIR /app/server
-RUN npm install --legacy-peer-deps
-
-# 复制server源代码
-COPY server/ ./
-
-# 复制Prisma schema
-COPY server/prisma ./prisma
-
-# 复制启动脚本
-COPY server/scripts/ ./scripts/
-RUN chmod +x ./scripts/*.sh
+# 复制源代码
+COPY . .
 
 # 生成Prisma客户端
 RUN npx prisma generate
@@ -42,58 +26,52 @@ RUN npx prisma generate
 RUN npm run build
 
 # 生产阶段
-FROM node:18-alpine3.17 AS production
+FROM node:18-alpine AS production
 
-# 安装系统依赖和curl用于健康检查
-RUN apk update && apk add --no-cache \
-    curl \
-    dumb-init \
-    openssl \
-    libc6-compat \
+# 安装必要的系统依赖
+RUN apk add --no-cache \
+    bash \
     postgresql-client \
-    && rm -rf /var/cache/apk/*
-
-# 创建非root用户
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+    curl
 
 # 设置工作目录
 WORKDIR /app
 
-# 复制package.json文件
-COPY --from=builder /app/server/package*.json ./
+# 复制package文件
+COPY package*.json ./
 
 # 安装生产依赖
-RUN npm install --only=production --legacy-peer-deps && npm cache clean --force
+RUN npm ci --only=production
 
-# 复制构建产物和必要文件
-COPY --from=builder /app/server/dist ./dist
-COPY --from=builder /app/server/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/server/prisma ./prisma
-COPY --from=builder /app/server/scripts ./scripts
+# 从构建阶段复制编译后的代码
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
-# 创建必要目录并设置权限
-RUN mkdir -p uploads node_modules/prisma && \
-    chown -R nodejs:nodejs uploads node_modules scripts && \
-    chmod +x scripts/deployment/*.sh && \
-    chmod +x scripts/migration/*.sh
+# 复制必要的运行时文件
+COPY scripts/ ./scripts/
+COPY prisma/ ./prisma/
 
-# 切换到非root用户
-USER nodejs
+# 设置脚本执行权限
+RUN chmod +x scripts/*.sh scripts/*.js
+
+# 创建非root用户
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodeuser -u 1001
+
+# 改变文件所有权
+RUN chown -R nodeuser:nodejs /app
+USER nodeuser
 
 # 暴露端口
 EXPOSE 3000
 
 # 设置环境变量
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV DOCKER_CONTAINER=true
 
 # 健康检查
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:3000/api/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
 
-# 使用dumb-init作为PID 1
-ENTRYPOINT ["dumb-init", "--"]
-
-# 启动命令 - 使用启动脚本
-CMD ["./scripts/deployment/start.sh"]
+# 启动命令 - 使用自动升级脚本
+CMD ["bash", "scripts/docker-start.sh"]

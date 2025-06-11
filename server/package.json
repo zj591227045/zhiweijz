@@ -5,6 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "start": "node dist/index.js",
+    "start:auto": "node scripts/auto-upgrade-on-start.js",
     "start:dev": "ts-node src/index.ts",
     "dev": "nodemon --exec ts-node src/index.ts",
     "build": "npx tsc",
@@ -14,7 +15,15 @@
     "test-budget-date-utils": "ts-node scripts/test-budget-date-utils.ts",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "prisma:generate": "npx prisma generate"
+    "prisma:generate": "npx prisma generate",
+    "db:upgrade": "node scripts/complete-upgrade.js",
+    "db:check": "node scripts/check-table-schema.js",
+    "migrate:status": "node scripts/migration-manager.js status",
+    "migrate:upgrade": "node scripts/migration-manager.js migrate",
+    "migrate:version": "node scripts/migration-manager.js version",
+    "migrate:check": "node scripts/migration-manager.js check",
+    "docker:start": "bash scripts/docker-start.sh",
+    "health": "node scripts/health-check.js"
   },
   "dependencies": {
     "@langchain/core": "^0.3.56",
