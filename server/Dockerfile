@@ -11,13 +11,13 @@ RUN apk add --no-cache \
     curl
 
 # 复制package文件
-COPY package*.json ./
+COPY server/package*.json ./
 
 # 安装所有依赖（包括devDependencies用于构建）
 RUN npm ci
 
 # 复制源代码
-COPY . .
+COPY server/ .
 
 # 生成Prisma客户端
 RUN npx prisma generate
@@ -38,7 +38,7 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # 复制package文件
-COPY package*.json ./
+COPY server/package*.json ./
 
 # 安装生产依赖
 RUN npm ci --only=production
@@ -48,11 +48,11 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 # 复制必要的运行时文件
-COPY scripts/ ./scripts/
-COPY prisma/ ./prisma/
+COPY server/scripts/ ./scripts/
+COPY server/prisma/ ./prisma/
 
 # 设置脚本执行权限
-RUN chmod +x scripts/*.sh scripts/*.js
+RUN chmod +x scripts/*.sh scripts/*.js scripts/*/*.sh scripts/*/*.js
 
 # 创建非root用户
 RUN addgroup -g 1001 -S nodejs
@@ -74,4 +74,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD curl -f http://localhost:3000/health || exit 1
 
 # 启动命令 - 使用自动升级脚本
-CMD ["bash", "scripts/docker-start.sh"]
+CMD ["bash", "scripts/deployment/start.sh"]

@@ -481,11 +481,19 @@ header.dynamic-island-adapted,
   padding: 16px !important;
   /* 确保弹窗在最顶层 */
   z-index: 10000 !important;
+  /* 重置任何可能影响定位的transform */
+  transform: none !important;
+  /* 确保弹窗始终相对于视口定位，不受父元素transform影响 */
+  will-change: auto !important;
 }
 
 .ios-app .settings-dialog-content {
   /* 确保内容在屏幕中心 */
   margin: auto !important;
+  /* 确保内容不受transform影响 */
+  transform: none !important;
+  /* 防止继承父元素的定位偏移 */
+  position: relative !important;
 }
 
 /* iOS header适配已移至global-styles.css中的基础.header样式 */

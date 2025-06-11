@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AccountBookSelector } from './account-book-selector';
 import { ThemeSwitcherPanel } from './theme-switcher-panel';
 
@@ -55,7 +56,8 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
     }
   };
 
-  return (
+  // 使用 Portal 渲染到 body，确保不受父元素 transform 影响
+  const modalContent = (
     <div className="settings-dialog" onClick={onClose}>
       <div className="settings-dialog-content" onClick={(e) => e.stopPropagation()}>
         <div className="settings-dialog-header">
@@ -91,4 +93,11 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
       </div>
     </div>
   );
+
+  // 确保在浏览器环境中渲染 Portal
+  if (typeof document !== 'undefined') {
+    return createPortal(modalContent, document.body);
+  }
+
+  return null;
 }

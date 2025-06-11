@@ -1,18 +1,22 @@
 /* 设置弹窗样式 */
 .settings-dialog {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 10000 !important;
   padding: 16px;
   /* 确保弹窗始终在屏幕中心，不受页面偏移影响 */
-  margin: 0;
+  margin: 0 !important;
+  /* 重置任何可能影响定位的transform */
+  transform: none !important;
+  /* 确保弹窗始终相对于视口定位，不受父元素transform影响 */
+  will-change: auto !important;
 }
 
 .settings-dialog-content {
@@ -26,6 +30,10 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
+  /* 确保内容不受transform影响 */
+  transform: none !important;
+  /* 防止继承父元素的定位偏移 */
+  position: relative;
 }
 
 .settings-dialog-header {
@@ -335,11 +343,19 @@
   margin-left: 8px;
 }
 
+/* 全局强制样式，确保在所有环境下都能正确定位 */
+.settings-dialog {
+  /* 强制使用视口作为定位基准 */
+  contain: none !important;
+  /* 防止被任何父级容器的overflow裁剪 */
+  overflow: visible !important;
+}
+
 /* 响应式设计 */
 @media (max-width: 480px) {
   .settings-dialog {
-    padding: 8px;
-    align-items: center;
+    padding: 8px !important;
+    align-items: center !important;
   }
 
   .settings-dialog-content {

@@ -52,7 +52,7 @@ README.md
 
 # 脚本文件（除了必要的）
 scripts/
-!scripts/init-db.sql
+!server/scripts/
 
 # 测试文件
 **/*.test.ts
