@@ -7,6 +7,7 @@ import { Toaster } from 'sonner';
 import { useThemeStore, applyThemeConfig } from '@/store/theme-store';
 import { AuthInitializer } from '@/components/auth/auth-initializer';
 import { RouteGuard } from '@/components/auth/route-guard';
+import { OnboardingProvider } from '@/components/onboarding/onboarding-provider';
 import { initializeAndroidPlatform } from '@/lib/android-platform';
 
 // 创建QueryClient实例
@@ -72,6 +73,7 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <AuthInitializer>
           <RouteGuard>{children}</RouteGuard>
+          <OnboardingProvider />
         </AuthInitializer>
         <Toaster position="top-center" />
       </ThemeProvider>

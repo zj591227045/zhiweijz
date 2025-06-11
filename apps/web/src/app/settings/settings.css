@@ -117,6 +117,18 @@
   cursor: pointer;
   text-decoration: none;
   color: inherit;
+  width: 100%;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.settings-item:hover {
+  background-color: var(--background-color);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .item-icon {

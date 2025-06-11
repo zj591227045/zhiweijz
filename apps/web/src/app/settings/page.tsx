@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
+import { useOnboardingStore } from '@/store/onboarding-store';
+import { useAccountBookStore } from '@/store/account-book-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { useThemeStore } from '@/store/theme-store';
 import './settings.css';
@@ -12,6 +14,8 @@ export default function SettingsPage() {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuthStore();
   const { theme, setTheme } = useThemeStore();
+  const { resetOnboarding, startOnboarding, setAccountType, setCurrentStep } = useOnboardingStore();
+  const { currentAccountBook } = useAccountBookStore();
   const [currentLanguage, setCurrentLanguage] = useState('简体中文');
   const [currentCurrency, setCurrentCurrency] = useState('人民币 (¥)');
 
@@ -55,6 +59,25 @@ export default function SettingsPage() {
       logout();
       router.push('/auth/login');
     }
+  };
+
+  // 处理重新查看引导
+  const handleRestartOnboarding = () => {
+    console.log('🔄 [Settings] Restarting onboarding...');
+
+    // 清理本地存储中的引导状态
+    try {
+      localStorage.removeItem('onboarding-storage');
+      console.log('🧹 [Settings] Cleared onboarding storage');
+    } catch (error) {
+      console.warn('⚠️ [Settings] Failed to clear storage:', error);
+    }
+
+    resetOnboarding();
+
+    // 始终从第一步开始，让用户重新体验完整的引导流程
+    console.log('🔄 [Settings] Starting onboarding from account-type step');
+    startOnboarding();
   };
 
   if (!isAuthenticated || !user) {
@@ -215,6 +238,18 @@ export default function SettingsPage() {
             <i className="fas fa-chevron-right"></i>
           </div>
         </Link>
+        <button className="settings-item" onClick={handleRestartOnboarding}>
+          <div className="item-icon">
+            <i className="fas fa-graduation-cap"></i>
+          </div>
+          <div className="item-content">
+            <div className="item-title">重新查看引导</div>
+            <div className="item-description">重新体验应用引导流程</div>
+          </div>
+          <div className="item-action">
+            <i className="fas fa-chevron-right"></i>
+          </div>
+        </button>
       </div>
 
       <div className="settings-group">

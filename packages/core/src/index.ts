@@ -15,3 +15,11 @@ export * from './hooks';
 
 // 导出状态管理 (放在最后避免重复导出)
 export * from './store';
+
+// 导出引导相关类型
+export type {
+  OnboardingStep,
+  AccountType,
+  FamilyAction,
+  OnboardingState,
+} from './store/create-onboarding-store';
