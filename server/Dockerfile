@@ -1,14 +1,17 @@
 # 多阶段构建 - 构建阶段
-FROM node:18-alpine AS builder
+FROM node:18-slim AS builder
 
 # 设置工作目录
 WORKDIR /app
 
 # 安装必要的系统依赖
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     bash \
     postgresql-client \
-    curl
+    curl \
+    openssl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # 复制package文件
 COPY server/package*.json ./
@@ -26,13 +29,16 @@ RUN npx prisma generate
 RUN npm run build
 
 # 生产阶段
-FROM node:18-alpine AS production
+FROM node:18-slim AS production
 
 # 安装必要的系统依赖
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     bash \
     postgresql-client \
-    curl
+    curl \
+    openssl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
 WORKDIR /app
@@ -56,8 +62,7 @@ RUN find scripts -name "*.sh" -type f -exec chmod +x {} \; && \
     find scripts -name "*.js" -type f -exec chmod +x {} \;
 
 # 创建非root用户
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodeuser -u 1001
+RUN groupadd -r nodejs && useradd -r -g nodejs nodeuser
 
 # 改变文件所有权
 RUN chown -R nodeuser:nodejs /app
