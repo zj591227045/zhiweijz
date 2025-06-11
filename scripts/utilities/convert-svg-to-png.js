@@ -11,21 +11,43 @@ const androidSizes = [
   { size: 192, folder: 'mipmap-xxxhdpi' }
 ];
 
-// iOS图标尺寸配置
+// iOS图标尺寸配置 - 与generate-app-icons.js保持一致
 const iosSizes = [
-  { size: 20, name: 'AppIcon-20.png' },
-  { size: 29, name: 'AppIcon-29.png' },
-  { size: 40, name: 'AppIcon-40.png' },
-  { size: 58, name: 'AppIcon-58.png' },
-  { size: 60, name: 'AppIcon-60.png' },
-  { size: 76, name: 'AppIcon-76.png' },
-  { size: 80, name: 'AppIcon-80.png' },
-  { size: 87, name: 'AppIcon-87.png' },
-  { size: 120, name: 'AppIcon-120.png' },
-  { size: 152, name: 'AppIcon-152.png' },
-  { size: 167, name: 'AppIcon-167.png' },
-  { size: 180, name: 'AppIcon-180.png' },
-  { size: 1024, name: 'AppIcon-1024.png' }
+  // iPhone 通知图标
+  { size: 40, name: 'AppIcon-20@2x.png' }, // 20pt @2x = 40px
+  { size: 60, name: 'AppIcon-20@3x.png' }, // 20pt @3x = 60px
+  
+  // iPhone 设置图标
+  { size: 58, name: 'AppIcon-29@2x.png' }, // 29pt @2x = 58px
+  { size: 87, name: 'AppIcon-29@3x.png' }, // 29pt @3x = 87px
+  
+  // iPhone Spotlight搜索图标
+  { size: 80, name: 'AppIcon-40@2x.png' }, // 40pt @2x = 80px
+  { size: 120, name: 'AppIcon-40@3x.png' }, // 40pt @3x = 120px
+  
+  // iPhone 应用图标
+  { size: 120, name: 'AppIcon-60@2x.png' }, // 60pt @2x = 120px
+  { size: 180, name: 'AppIcon-60@3x.png' }, // 60pt @3x = 180px
+  
+  // iPad 通知图标
+  { size: 20, name: 'AppIcon-20@1x.png' }, // 20pt @1x = 20px
+  { size: 40, name: 'AppIcon-20@2x-ipad.png' }, // 20pt @2x = 40px (iPad)
+  
+  // iPad 设置图标
+  { size: 29, name: 'AppIcon-29@1x.png' }, // 29pt @1x = 29px
+  { size: 58, name: 'AppIcon-29@2x-ipad.png' }, // 29pt @2x = 58px (iPad)
+  
+  // iPad Spotlight搜索图标
+  { size: 40, name: 'AppIcon-40@1x.png' }, // 40pt @1x = 40px
+  { size: 80, name: 'AppIcon-40@2x-ipad.png' }, // 40pt @2x = 80px (iPad)
+  
+  // iPad 应用图标
+  { size: 76, name: 'AppIcon-76@1x.png' }, // 76pt @1x = 76px
+  { size: 152, name: 'AppIcon-76@2x.png' }, // 76pt @2x = 152px
+  { size: 167, name: 'AppIcon-83.5@2x.png' }, // 83.5pt @2x = 167px
+  
+  // App Store 图标
+  { size: 1024, name: 'AppIcon-1024@1x.png' } // 1024pt @1x = 1024px
 ];
 
 // 转换SVG到PNG的函数

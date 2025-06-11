@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144" height="144" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- 定义渐变和效果 -->
+  <defs>
+    <!-- 科技感浅色渐变背景 -->
+    <linearGradient id="techGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f0f4f8;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#e2e8f0;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#cbd5e0;stop-opacity:1" />
+      <stop offset="75%" style="stop-color:#a0aec0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#718096;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 六边形蓝色渐变 -->
+    <linearGradient id="hexGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3182ce;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#2b77cb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e6bb8;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 文字阴影效果 -->
+    <filter id="textShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
+    </filter>
+    
+    <!-- 科技光效 -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- 圆角正方形背景 - 科技感浅色渐变 -->
+  <rect x="0" y="0" width="512" height="512" rx="80" ry="80" fill="url(#techGradient)"/>
+  
+  <!-- 科技装饰网格线 -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="0" y="0" width="512" height="512" rx="80" ry="80" fill="url(#grid)"/>
+
+  <!-- 六边形主体 - 蓝色渐变，增大10% -->
+  <polygon points="256,35 436,133 436,379 256,477 76,379 76,133"
+           fill="url(#hexGradient)"
+           stroke="rgba(255,255,255,0.2)"
+           stroke-width="2"
+           filter="url(#glow)"/>
+
+  <!-- 科技装饰元素 -->
+  <!-- 左上角科技点 -->
+  <circle cx="120" cy="120" r="3" fill="rgba(255,255,255,0.6)"/>
+  <circle cx="140" cy="100" r="2" fill="rgba(255,255,255,0.4)"/>
+
+  <!-- 右上角科技点 -->
+  <circle cx="392" cy="120" r="3" fill="rgba(255,255,255,0.6)"/>
+  <circle cx="372" cy="100" r="2" fill="rgba(255,255,255,0.4)"/>
+
+  <!-- 左下角科技点 -->
+  <circle cx="120" cy="392" r="3" fill="rgba(255,255,255,0.6)"/>
+  <circle cx="140" cy="412" r="2" fill="rgba(255,255,255,0.4)"/>
+
+  <!-- 右下角科技点 -->
+  <circle cx="392" cy="392" r="3" fill="rgba(255,255,255,0.6)"/>
+  <circle cx="372" cy="412" r="2" fill="rgba(255,255,255,0.4)"/>
+
+  <!-- 文字：只为 -->
+  <text x="256" y="200"
+        font-family="PingFang SC, Microsoft YaHei, Helvetica, sans-serif"
+        font-size="80"
+        font-weight="600"
+        fill="white"
+        text-anchor="middle"
+        filter="url(#textShadow)">只为</text>
+
+  <!-- 文字：记账 -->
+  <text x="256" y="320"
+        font-family="PingFang SC, Microsoft YaHei, Helvetica, sans-serif"
+        font-size="80"
+        font-weight="600"
+        fill="white"
+        text-anchor="middle"
+        filter="url(#textShadow)">记账</text>
+</svg>
