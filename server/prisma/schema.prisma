@@ -572,7 +572,7 @@ model SchemaVersion {
   version       String   @db.VarChar(20)
   description   String?
   appliedAt     DateTime @default(now()) @map("applied_at") @db.Timestamptz(6)
-  migrationFile String?  @map("migration_file") @db.VarChar(255)
+  migrationFile String?  @unique @map("migration_file") @db.VarChar(255)
 
   @@map("schema_versions")
 }

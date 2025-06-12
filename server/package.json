@@ -22,6 +22,7 @@
     "migrate:upgrade": "node scripts/migration-manager.js migrate",
     "migrate:version": "node scripts/migration-manager.js version",
     "migrate:check": "node scripts/migration-manager.js check",
+    "migrate:fix-constraint": "node scripts/fix-schema-versions-constraint.js",
     "docker:start": "bash scripts/docker-start.sh",
     "health": "node scripts/health-check.js",
     "admin:init": "ts-node src/admin/scripts/init-admin.ts",

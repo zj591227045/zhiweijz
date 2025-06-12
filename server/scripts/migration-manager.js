@@ -292,10 +292,23 @@ async function ensureSchemaVersionsTable() {
         id SERIAL PRIMARY KEY,
         version VARCHAR(20) NOT NULL,
         description TEXT,
-        migration_file VARCHAR(255) UNIQUE,
+        migration_file VARCHAR(255),
         applied_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       );
     `);
+    
+    // 确保migration_file字段有UNIQUE约束
+    await prisma.$executeRawUnsafe(`
+      DO $$ BEGIN
+        ALTER TABLE schema_versions ADD CONSTRAINT schema_versions_migration_file_unique UNIQUE (migration_file);
+      EXCEPTION
+        WHEN duplicate_table THEN null;
+        WHEN others THEN 
+          -- 如果约束已存在或其他错误，忽略
+          null;
+      END $$;
+    `);
+    
   } catch (error) {
     logger.warn(`创建schema_versions表失败: ${error.message}`);
   }
