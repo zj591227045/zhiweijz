@@ -36,42 +36,17 @@ const nextConfig = {
     NEXT_PUBLIC_IS_MOBILE: 'true',
   },
 
-
-
   // 页面扩展名配置
   pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
   
   // 自定义webpack配置
   webpack: (config, { dev, isServer }) => {
-    // 排除管理页面相关的文件
-    config.plugins.push(
-      new (require('webpack')).IgnorePlugin({
-        resourceRegExp: /^@\/app\/admin/,
-        contextRegExp: /src/,
-      })
-    );
-
-    config.plugins.push(
-      new (require('webpack')).IgnorePlugin({
-        resourceRegExp: /^@\/components\/admin/,
-        contextRegExp: /src/,
-      })
-    );
-
-    config.plugins.push(
-      new (require('webpack')).IgnorePlugin({
-        resourceRegExp: /^@\/store\/admin/,
-        contextRegExp: /src/,
-      })
-    );
-
     // 确保mobile-stub.js文件存在的路径别名
     const stubPath = path.resolve(__dirname, 'src/lib/mobile-stub.js');
     
     // 添加别名，将admin相关导入重定向到空模块
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@/app/admin': stubPath,
       '@/components/admin': stubPath,
       '@/store/admin': stubPath,
     };
