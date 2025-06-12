@@ -7,6 +7,7 @@ import { InviteCodeDisplayStep } from './steps/invite-code-display-step';
 import { CustodialMemberSetupStep } from './steps/custodial-member-setup-step';
 import { BudgetSetupStep } from './steps/budget-setup-step';
 import { ThemeSelectionStep } from './steps/theme-selection-step';
+import { AIServiceSetupStep } from './steps/ai-service-setup-step';
 import { FeatureIntroStep } from './steps/feature-intro-step';
 import { SkipConfirmDialog } from './skip-confirm-dialog';
 import { useState } from 'react';
@@ -108,6 +109,8 @@ export function OnboardingModal() {
         return <BudgetSetupStep />;
       case 'theme-selection':
         return <ThemeSelectionStep />;
+      case 'ai-service-setup':
+        return <AIServiceSetupStep />;
       case 'feature-intro':
         return <FeatureIntroStep />;
       default:
@@ -128,6 +131,8 @@ export function OnboardingModal() {
         return '预算控制设置';
       case 'theme-selection':
         return '主题选择';
+      case 'ai-service-setup':
+        return '开启AI服务';
       case 'feature-intro':
         return '功能介绍';
       default:
@@ -137,7 +142,7 @@ export function OnboardingModal() {
 
   // 获取步骤进度
   const getStepProgress = () => {
-    const steps = ['account-type', 'invite-code-display', 'custodial-member-setup', 'budget-setup', 'theme-selection', 'feature-intro'];
+    const steps = ['account-type', 'invite-code-display', 'custodial-member-setup', 'budget-setup', 'theme-selection', 'ai-service-setup', 'feature-intro'];
     const currentIndex = steps.indexOf(currentStep);
     return {
       current: currentIndex + 1,

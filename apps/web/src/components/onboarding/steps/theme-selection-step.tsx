@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useOnboardingStore } from '@/store/onboarding-store';
 import { useThemeStore } from '@/store/theme-store';
+import { OnboardingStep } from '@zhiweijz/core';
 
 export function ThemeSelectionStep() {
   console.log('🎨 [ThemeSelection] Component mounted');
   const { nextStep, previousStep, currentStep, setCurrentStep } = useOnboardingStore();
   const { theme, themeColor, setTheme, setThemeColor } = useThemeStore();
   const [selectedTheme, setSelectedTheme] = useState(`${theme}-${themeColor}`);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // 监听引导状态变化
   useEffect(() => {
@@ -118,15 +120,18 @@ export function ThemeSelectionStep() {
     console.log('🎨 [ThemeSelection] Theme selection completed');
   };
 
-  // 处理下一步
-  const handleNext = () => {
-    console.log('🎨 [ThemeSelection] Next button clicked');
-    console.log('🎨 [ThemeSelection] Current selected theme:', selectedTheme);
-    console.log('🎨 [ThemeSelection] Directly setting step to feature-intro');
+  // 专门的方法来跳转到AI服务设置步骤
+  const goToAIServiceSetup = () => {
+    console.log('🎯 [ThemeSelection] Directly going to ai-service-setup step');
 
-    // 直接设置步骤为功能介绍，避免使用可能有问题的 nextStep()
-    setCurrentStep('feature-intro' as any);
-    console.log('🎨 [ThemeSelection] Step set to feature-intro');
+    if (isNavigating) {
+      console.log('⚠️ [ThemeSelection] Already navigating, ignoring duplicate call');
+      return;
+    }
+
+    setIsNavigating(true);
+    setCurrentStep('ai-service-setup' as OnboardingStep);
+    console.log('✅ [ThemeSelection] Successfully set step to ai-service-setup');
 
     // 滚动到页面顶部
     if (typeof window !== 'undefined') {
@@ -140,8 +145,21 @@ export function ThemeSelectionStep() {
           window.scrollTo({ top: 0, behavior: 'smooth' });
           console.log('📜 [ThemeSelection] Scrolled page to top');
         }
+        setIsNavigating(false);
       }, 100);
+    } else {
+      setIsNavigating(false);
     }
+  };
+
+  // 处理下一步
+  const handleNext = () => {
+    console.log('🎨 [ThemeSelection] Next button clicked');
+    console.log('🎨 [ThemeSelection] Current selected theme:', selectedTheme);
+    console.log('🎨 [ThemeSelection] Going to AI service setup');
+
+    // 直接跳转到AI服务设置步骤，参考预算设置的跳转方式
+    goToAIServiceSetup();
   };
 
   // 处理上一步

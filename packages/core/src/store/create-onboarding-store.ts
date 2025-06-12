@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import { StorageAdapter } from '../models/common';
 
 // 引导步骤类型
-export type OnboardingStep = 'account-type' | 'invite-code-display' | 'custodial-member-setup' | 'budget-setup' | 'theme-selection' | 'feature-intro';
+export type OnboardingStep = 'account-type' | 'invite-code-display' | 'custodial-member-setup' | 'budget-setup' | 'theme-selection' | 'ai-service-setup' | 'feature-intro';
 
 // 账本类型选择
 export type AccountType = 'personal' | 'family';
@@ -132,7 +132,7 @@ export function createOnboardingStore(storage: StorageAdapter) {
         
         nextStep: () => {
           const { currentStep } = get();
-          const steps: OnboardingStep[] = ['account-type', 'invite-code-display', 'custodial-member-setup', 'budget-setup', 'theme-selection', 'feature-intro'];
+          const steps: OnboardingStep[] = ['account-type', 'invite-code-display', 'custodial-member-setup', 'budget-setup', 'theme-selection', 'ai-service-setup', 'feature-intro'];
           const currentIndex = steps.indexOf(currentStep);
 
           console.log('🔄 [OnboardingStore] nextStep called:', {
@@ -203,7 +203,7 @@ export function createOnboardingStore(storage: StorageAdapter) {
 
         previousStep: () => {
           const { currentStep } = get();
-          const steps: OnboardingStep[] = ['account-type', 'invite-code-display', 'custodial-member-setup', 'budget-setup', 'theme-selection', 'feature-intro'];
+          const steps: OnboardingStep[] = ['account-type', 'invite-code-display', 'custodial-member-setup', 'budget-setup', 'theme-selection', 'ai-service-setup', 'feature-intro'];
           const currentIndex = steps.indexOf(currentStep);
 
           if (currentIndex > 0) {
