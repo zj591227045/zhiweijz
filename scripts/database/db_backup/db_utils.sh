@@ -271,12 +271,7 @@ clean_database() {
     
     log "WARN" "清理数据库schema: $schema"
     
-    local query="
-    DROP SCHEMA IF EXISTS $schema CASCADE;
-    CREATE SCHEMA $schema;
-    GRANT ALL ON SCHEMA $schema TO $DB_USER;
-    GRANT ALL ON SCHEMA $schema TO public;
-    "
+    local query="DROP SCHEMA IF EXISTS $schema CASCADE; CREATE SCHEMA $schema; GRANT ALL ON SCHEMA $schema TO $DB_USER; GRANT ALL ON SCHEMA $schema TO public;"
     
     execute_pg_cmd psql -c "$query"
 }

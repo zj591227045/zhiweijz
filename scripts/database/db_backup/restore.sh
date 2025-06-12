@@ -56,28 +56,69 @@ list_backup_files() {
         
         if [ -f "$file" ]; then
             filesize=$(ls -lh "$file" | awk '{print $5}')
-            filedate=$(stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$file" 2>/dev/null || stat -c "%y" "$file" 2>/dev/null | cut -d'.' -f1)
+            filedate=$(stat -c "%y" "$file" 2>/dev/null | cut -d'.' -f1 || stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$file" 2>/dev/null)
         elif [ -d "$file" ]; then
             filesize=$(du -sh "$file" | cut -f1)
-            filedate=$(stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$file" 2>/dev/null || stat -c "%y" "$file" 2>/dev/null | cut -d'.' -f1)
+            filedate=$(stat -c "%y" "$file" 2>/dev/null | cut -d'.' -f1 || stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$file" 2>/dev/null)
         fi
         
         echo "  $((i+1)). $filename ($filesize) - $filedate"
     done
-    
-    echo "${files[@]}"
 }
 
 # 选择备份文件
 select_backup_file() {
     local backup_type="$1"
+    local backup_dir="$SCRIPT_DIR/$BACKUP_DIR"
     
-    local files_output=$(list_backup_files "$backup_type")
-    local files=($(echo "$files_output" | tail -1))
-    
-    if [ ${#files[@]} -eq 0 ]; then
+    if [ ! -d "$backup_dir" ]; then
+        log "ERROR" "备份目录不存在: $backup_dir"
         return 1
     fi
+    
+    local pattern=""
+    case $backup_type in
+        "full")
+            pattern="${BACKUP_PREFIX}_full_*"
+            ;;
+        "schema")
+            pattern="${BACKUP_PREFIX}_schema_*"
+            ;;
+        "data")
+            pattern="${BACKUP_PREFIX}_data_*"
+            ;;
+        "table")
+            pattern="${BACKUP_PREFIX}_table_*"
+            ;;
+        "all"|*)
+            pattern="${BACKUP_PREFIX}_*"
+            ;;
+    esac
+    
+    local files=($(ls -t "$backup_dir"/$pattern 2>/dev/null || true))
+    
+    if [ ${#files[@]} -eq 0 ]; then
+        log "WARN" "未找到匹配的备份文件"
+        return 1
+    fi
+    
+    echo "可用的备份文件:"
+    for i in "${!files[@]}"; do
+        local file="${files[$i]}"
+        local filename=$(basename "$file")
+        local filesize=""
+        local filedate=""
+        
+        if [ -f "$file" ]; then
+            filesize=$(ls -lh "$file" | awk '{print $5}')
+            filedate=$(stat -c "%y" "$file" 2>/dev/null | cut -d'.' -f1 || stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$file" 2>/dev/null)
+        elif [ -d "$file" ]; then
+            filesize=$(du -sh "$file" | cut -f1)
+            filedate=$(stat -c "%y" "$file" 2>/dev/null | cut -d'.' -f1 || stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$file" 2>/dev/null)
+        fi
+        
+        echo "  $((i+1)). $filename ($filesize) - $filedate"
+    done
     
     echo ""
     read -p "请选择要恢复的备份文件 (1-${#files[@]}): " choice
@@ -231,6 +272,12 @@ perform_restore() {
     log "INFO" "开始恢复数据库..."
     log "INFO" "备份文件: $(basename "$backup_file")"
     log "INFO" "恢复模式: $restore_mode"
+    
+    # 检查备份文件是否存在
+    if [ ! -f "$backup_file" ] && [ ! -d "$backup_file" ]; then
+        log "ERROR" "备份文件不存在: $backup_file"
+        return 1
+    fi
     
     # 准备恢复文件
     local restore_file=$(prepare_restore_file "$backup_file")
@@ -465,7 +512,8 @@ fi
             fi
             ;;
         "list")
-            list_backup_files "all" >/dev/null
+            list_backup_files "all"
+            return 0
             ;;
         *)
             echo "用法: $0 {interactive|full|schema|data|table|list} [backup_file] [table_names]"
