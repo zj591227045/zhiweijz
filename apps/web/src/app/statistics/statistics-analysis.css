@@ -17,12 +17,12 @@
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  background-color: #ffffff !important;
+  background-color: var(--card-background) !important;
   border-radius: 8px !important;
   padding: 12px 16px !important;
   margin-bottom: 16px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
-  border: 1px solid #e5e7eb !important;
+  box-shadow: var(--card-shadow) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 .statistics-analysis-page .date-arrow {
@@ -33,7 +33,7 @@
   justify-content: center !important;
   background: none !important;
   border: none !important;
-  color: #1f2937 !important;
+  color: var(--text-primary) !important;
   font-size: 16px !important;
   cursor: pointer !important;
 }
@@ -41,24 +41,24 @@
 .statistics-analysis-page .date-display {
   font-size: 16px !important;
   font-weight: 600 !important;
-  color: #1f2937 !important;
+  color: var(--text-primary) !important;
 }
 
 /* 统计概览卡片 */
 .statistics-analysis-page .summary-card {
-  background-color: #ffffff !important;
+  background-color: var(--card-background) !important;
   border-radius: 8px !important;
   padding: 16px !important;
   margin-bottom: 16px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
-  border: 1px solid #e5e7eb !important;
+  box-shadow: var(--card-shadow) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 .statistics-analysis-page .summary-header {
   font-size: 16px !important;
   font-weight: 600 !important;
   margin-bottom: 16px !important;
-  color: #1f2937 !important;
+  color: var(--text-primary) !important;
 }
 
 .statistics-analysis-page .summary-content {
@@ -74,7 +74,7 @@
 
 .statistics-analysis-page .summary-label {
   font-size: 12px !important;
-  color: #6b7280 !important;
+  color: var(--text-secondary) !important;
   margin-bottom: 4px !important;
 }
 
@@ -84,25 +84,25 @@
 }
 
 .statistics-analysis-page .summary-value.income {
-  color: #22c55e !important;
+  color: var(--success-color) !important;
 }
 
 .statistics-analysis-page .summary-value.expense {
-  color: #ef4444 !important;
+  color: var(--error-color) !important;
 }
 
 .statistics-analysis-page .summary-value.balance {
-  color: #3b82f6 !important;
+  color: var(--primary-color) !important;
 }
 
 /* 图表卡片 */
 .statistics-analysis-page .chart-card {
-  background-color: #ffffff !important;
+  background-color: var(--card-background) !important;
   border-radius: 8px !important;
   padding: 16px !important;
   margin-bottom: 16px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
-  border: 1px solid #e5e7eb !important;
+  box-shadow: var(--card-shadow) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 .statistics-analysis-page .chart-header {
@@ -115,7 +115,7 @@
 .statistics-analysis-page .chart-title {
   font-size: 16px !important;
   font-weight: 600 !important;
-  color: #1f2937 !important;
+  color: var(--text-primary) !important;
 }
 
 /* 筛选器按钮样式 - 使用最高优先级覆盖全局样式 */
@@ -139,9 +139,9 @@
 .statistics-analysis-page .chart-action,
 .statistics-analysis-page .chart-card .chart-action,
 .statistics-analysis-page .chart-header .chart-action {
-  background-color: #f3f4f6 !important;
-  border: 1px solid #e5e7eb !important;
-  color: #6b7280 !important;
+  background-color: var(--muted) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-secondary) !important;
   font-size: 14px !important;
   cursor: pointer !important;
   padding: 6px 12px !important;
@@ -159,17 +159,17 @@
 .statistics-analysis-page .chart-action:hover,
 .statistics-analysis-page .chart-card .chart-action:hover,
 .statistics-analysis-page .chart-header .chart-action:hover {
-  background-color: #e5e7eb !important;
-  border-color: #d1d5db !important;
+  background-color: var(--hover-background) !important;
+  border-color: var(--border-color) !important;
 }
 
 /* 激活状态 */
 .statistics-analysis-page .chart-action.active,
 .statistics-analysis-page .chart-card .chart-action.active,
 .statistics-analysis-page .chart-header .chart-action.active {
-  background-color: #3b82f6 !important;
+  background-color: var(--primary-color) !important;
   color: white !important;
-  border-color: #3b82f6 !important;
+  border-color: var(--primary-color) !important;
 }
 
 /* 特别针对有内联样式的容器 */
@@ -205,9 +205,9 @@
 }
 
 .statistics-analysis-page * .chart-action {
-  background-color: #f3f4f6 !important;
-  border: 1px solid #e5e7eb !important;
-  color: #6b7280 !important;
+  background-color: var(--muted) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-secondary) !important;
   font-size: 14px !important;
   cursor: pointer !important;
   padding: 6px 12px !important;
@@ -241,7 +241,7 @@
   font-size: 12px;
   color: var(--text-secondary);
   padding: 4px 8px;
-  background-color: var(--background-color);
+  background-color: var(--muted);
   border-radius: 4px;
 }
 
