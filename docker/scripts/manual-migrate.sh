@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# 手动数据库迁移脚本 - 最终版本
+# 手动数据库迁移脚本 - 安全版本
 # 用于Docker升级后手动执行数据库结构更新
 
 set -e
 
-echo "🔧 执行数据库迁移..."
+echo "🔧 执行安全数据库迁移..."
 
 # 检查容器状态
 if ! docker ps | grep -q "zhiweijz-backend"; then
@@ -13,11 +13,14 @@ if ! docker ps | grep -q "zhiweijz-backend"; then
     exit 1
 fi
 
-# 执行迁移
-echo "1️⃣ 执行Prisma迁移..."
-docker exec zhiweijz-backend npx prisma migrate deploy || {
-    echo "⚠️ 标准迁移失败，执行强制迁移..."
-    docker exec zhiweijz-backend npx prisma db push --force-reset --accept-data-loss
+# 优先使用增量迁移系统
+echo "1️⃣ 执行增量迁移..."
+docker exec zhiweijz-backend node scripts/migration-manager.js || {
+    echo "⚠️ 增量迁移失败，尝试标准Prisma迁移..."
+    docker exec zhiweijz-backend npx prisma migrate deploy || {
+        echo "⚠️ 标准迁移失败，执行安全的schema推送..."
+        docker exec zhiweijz-backend npx prisma db push
+    }
 }
 
 # 生成客户端
@@ -38,4 +41,4 @@ ALTER TABLE budgets ADD COLUMN IF NOT EXISTS family_member_id TEXT;
 echo "4️⃣ 重启后端容器..."
 docker-compose restart backend
 
-echo "✅ 数据库迁移完成！"
+echo "✅ 安全数据库迁移完成！"

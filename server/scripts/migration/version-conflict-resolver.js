@@ -216,16 +216,16 @@ class VersionConflictResolver {
       console.log('尝试重置迁移状态...');
       execSync('npx prisma migrate resolve --applied $(ls prisma/migrations | tail -1)', { stdio: 'inherit' });
       
-      // 方案2: 如果还有问题，强制同步
+      // 方案2: 如果还有问题，使用安全的schema推送
       const statusAfterReset = await this.checkMigrationStatus();
       if (statusAfterReset.hasConflict) {
-        console.log('强制同步数据库结构...');
-        execSync('npx prisma db push --force-reset --accept-data-loss', { stdio: 'inherit' });
+        console.log('执行安全的schema推送...');
+        execSync('npx prisma db push', { stdio: 'inherit' });
       }
     } catch (error) {
-      console.warn('Prisma迁移冲突解决失败，将使用备用方案:', error.message);
-      // 备用方案：直接推送当前schema
-      execSync('npx prisma db push --force-reset --accept-data-loss', { stdio: 'inherit' });
+      console.warn('Prisma迁移冲突解决失败，将使用安全的备用方案:', error.message);
+      // 备用方案：安全的schema推送（不重置数据）
+      execSync('npx prisma db push', { stdio: 'inherit' });
     }
   }
 

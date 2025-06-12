@@ -56,6 +56,7 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 # 复制必要的运行时文件
 COPY server/scripts/ ./scripts/
 COPY server/prisma/ ./prisma/
+COPY server/migrations/ ./migrations/
 
 # 设置脚本执行权限
 RUN find scripts -name "*.sh" -type f -exec chmod +x {} \; && \
@@ -73,11 +74,11 @@ EXPOSE 3000
 
 # 设置环境变量
 ENV NODE_ENV=production
-ENV DOCKER_CONTAINER=true
+ENV DOCKER_ENV=true
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD curl -f http://localhost:3000/health || exit 1
 
-# 启动命令 - 使用自动升级脚本
+# 启动命令 - 使用安全的启动脚本
 CMD ["bash", "scripts/deployment/start.sh"]
