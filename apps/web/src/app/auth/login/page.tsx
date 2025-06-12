@@ -11,6 +11,12 @@ import { SimpleSlidingCaptcha } from '@/components/captcha/simple-sliding-captch
 import ServerSettings from '@/components/server/server-settings';
 import AnimatedBackground from '@/components/background/animated-background';
 
+interface SystemInfo {
+  registrationEnabled: boolean;
+  isSelfHosted: boolean;
+  message?: string;
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const { login, isAuthenticated, isLoading, error, clearError, getLoginAttempts } = useAuthStore();
@@ -22,9 +28,52 @@ export default function LoginPage() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [showServerSettings, setShowServerSettings] = useState(false);
   const [isIOSApp, setIsIOSApp] = useState(false);
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
 
   // 检测是否为Docker环境
   const isDocker = isDockerEnvironment();
+
+  // 检查注册状态
+  useEffect(() => {
+    const checkRegistrationStatus = async () => {
+      // 如果是官方服务器，直接设置为允许注册，不进行API检查
+      if (config.type === 'official') {
+        setSystemInfo({
+          registrationEnabled: true,
+          isSelfHosted: false
+        });
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/system/registration-status');
+        const data = await response.json();
+        
+        if (data.success) {
+          setSystemInfo({
+            registrationEnabled: data.data.enabled,
+            isSelfHosted: true, // 自托管服务器
+            message: data.data.message
+          });
+        } else {
+          // 如果API失败，假设是自托管服务器且允许注册
+          setSystemInfo({
+            registrationEnabled: true,
+            isSelfHosted: true
+          });
+        }
+      } catch (error) {
+        console.error('检查注册状态失败:', error);
+        // 网络错误时，假设是自托管服务器且允许注册
+        setSystemInfo({
+          registrationEnabled: true,
+          isSelfHosted: true
+        });
+      }
+    };
+
+    checkRegistrationStatus();
+  }, [config.type]);
 
   // 检测iOS Capacitor环境
   useEffect(() => {
@@ -154,6 +203,29 @@ export default function LoginPage() {
       clearError();
     }
   }, [error, clearError]);
+
+  // 渲染注册链接
+  const renderRegisterLink = () => {
+    if (!systemInfo) {
+      return (
+        <span className="text-gray-500 dark:text-gray-400">检查注册状态中...</span>
+      );
+    }
+
+    if (systemInfo.isSelfHosted && !systemInfo.registrationEnabled) {
+      return (
+        <span className="auth-link text-blue-600 dark:text-blue-400 text-xs sm:text-sm">
+          用户注册已关闭，请联系管理员
+        </span>
+      );
+    }
+
+    return (
+      <Link href="/auth/register" className="auth-link">
+        立即注册
+      </Link>
+    );
+  };
 
   return (
     <div className={`app-container h-screen flex flex-col overflow-hidden relative ${isIOSApp ? 'ios-login-container' : ''}`}>
@@ -285,12 +357,7 @@ export default function LoginPage() {
           </button>
 
           <div className="auth-links flex justify-between mt-3 sm:mt-4">
-            <Link
-              href="/auth/register"
-              className="auth-link text-blue-600 dark:text-blue-400 text-xs sm:text-sm hover:underline"
-            >
-              注册账号
-            </Link>
+            {renderRegisterLink()}
             <Link
               href="/auth/forgot-password"
               className="auth-link text-blue-600 dark:text-blue-400 text-xs sm:text-sm hover:underline"

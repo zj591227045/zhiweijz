@@ -287,4 +287,55 @@ export class SystemConfigAdminController {
       });
     }
   }
+
+  /**
+   * 获取注册状态
+   */
+  async getRegistrationStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const enabled = await this.systemConfigAdminService.getRegistrationStatus();
+
+      res.json({
+        success: true,
+        data: { enabled }
+      });
+    } catch (error) {
+      console.error('获取注册状态错误:', error);
+      res.status(500).json({
+        success: false,
+        message: '获取注册状态失败'
+      });
+    }
+  }
+
+  /**
+   * 切换注册状态
+   */
+  async toggleRegistration(req: Request, res: Response): Promise<void> {
+    try {
+      const { enabled } = req.body;
+
+      if (typeof enabled !== 'boolean') {
+        res.status(400).json({
+          success: false,
+          message: '参数错误：enabled 必须是布尔值'
+        });
+        return;
+      }
+
+      await this.systemConfigAdminService.toggleRegistration(enabled, req.admin?.id);
+
+      res.json({
+        success: true,
+        data: { enabled },
+        message: `用户注册已${enabled ? '开放' : '关闭'}`
+      });
+    } catch (error) {
+      console.error('切换注册状态错误:', error);
+      res.status(500).json({
+        success: false,
+        message: '切换注册状态失败'
+      });
+    }
+  }
 } 

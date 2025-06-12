@@ -10,7 +10,8 @@ import {
   EyeIcon,
   EyeSlashIcon,
   ArrowUpIcon,
-  ArrowDownIcon
+  ArrowDownIcon,
+  CogIcon
 } from '@heroicons/react/24/outline';
 import { UserModal } from './UserModal';
 import { ConfirmModal } from './ConfirmModal';
@@ -44,6 +45,7 @@ interface UserManagementProps {
   statusFilter: 'all' | 'active' | 'inactive';
   sortBy: 'createdAt' | 'name' | 'email';
   sortOrder: 'asc' | 'desc';
+  registrationEnabled: boolean;
   onSearch: (term: string) => void;
   onPageChange: (page: number) => void;
   onStatusFilterChange: (status: 'all' | 'active' | 'inactive') => void;
@@ -51,6 +53,7 @@ interface UserManagementProps {
   onDeleteUser: (id: string) => Promise<boolean>;
   onToggleUserStatus: (id: string) => Promise<boolean>;
   onBatchOperation: (userIds: string[], operation: 'activate' | 'deactivate' | 'delete') => Promise<boolean>;
+  onToggleRegistration: (enabled: boolean) => Promise<boolean>;
 }
 
 export function UserManagement({
@@ -61,22 +64,25 @@ export function UserManagement({
   statusFilter,
   sortBy,
   sortOrder,
+  registrationEnabled,
   onSearch,
   onPageChange,
   onStatusFilterChange,
   onSortChange,
   onDeleteUser,
   onToggleUserStatus,
-  onBatchOperation
+  onBatchOperation,
+  onToggleRegistration
 }: UserManagementProps) {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{
-    type: 'delete' | 'toggle' | 'batch';
+    type: 'delete' | 'toggle' | 'batch' | 'toggleRegistration';
     user?: User;
     batchOperation?: 'activate' | 'deactivate' | 'delete';
+    registrationEnabled?: boolean;
   } | null>(null);
 
   // 全选/取消全选
@@ -131,6 +137,15 @@ export function UserManagement({
     setShowConfirmModal(true);
   };
 
+  // 处理注册开关切换
+  const handleToggleRegistration = () => {
+    setConfirmAction({ 
+      type: 'toggleRegistration', 
+      registrationEnabled: !registrationEnabled 
+    });
+    setShowConfirmModal(true);
+  };
+
   // 执行确认操作
   const executeConfirmAction = async () => {
     if (!confirmAction) return;
@@ -156,6 +171,11 @@ export function UserManagement({
             if (success) {
               setSelectedUsers(new Set());
             }
+          }
+          break;
+        case 'toggleRegistration':
+          if (typeof confirmAction.registrationEnabled === 'boolean') {
+            await onToggleRegistration(confirmAction.registrationEnabled);
           }
           break;
       }
@@ -195,6 +215,52 @@ export function UserManagement({
     });
   };
 
+  // 获取确认弹窗的内容
+  const getConfirmModalContent = () => {
+    if (!confirmAction) return { title: '', message: '', confirmText: '', confirmStyle: '' };
+    
+    switch (confirmAction.type) {
+      case 'delete':
+        return {
+          title: '确认删除用户',
+          message: `确定要删除用户 "${confirmAction.user?.name}" 吗？此操作不可撤销。`,
+          confirmText: '删除',
+          confirmStyle: 'bg-red-600 hover:bg-red-700'
+        };
+      case 'toggle':
+        const isActivating = !confirmAction.user?.isActive;
+        return {
+          title: `确认${isActivating ? '启用' : '禁用'}用户`,
+          message: `确定要${isActivating ? '启用' : '禁用'}用户 "${confirmAction.user?.name}" 吗？`,
+          confirmText: isActivating ? '启用' : '禁用',
+          confirmStyle: isActivating ? 'bg-green-600 hover:bg-green-700' : 'bg-yellow-600 hover:bg-yellow-700'
+        };
+      case 'batch':
+        const operationText = confirmAction.batchOperation === 'activate' ? '启用' : 
+                             confirmAction.batchOperation === 'deactivate' ? '禁用' : '删除';
+        return {
+          title: `确认批量${operationText}`,
+          message: `确定要${operationText} ${selectedUsers.size} 个用户吗？${confirmAction.batchOperation === 'delete' ? '此操作不可撤销。' : ''}`,
+          confirmText: operationText,
+          confirmStyle: confirmAction.batchOperation === 'delete' ? 'bg-red-600 hover:bg-red-700' :
+                       confirmAction.batchOperation === 'activate' ? 'bg-green-600 hover:bg-green-700' :
+                       'bg-yellow-600 hover:bg-yellow-700'
+        };
+      case 'toggleRegistration':
+        const enabling = confirmAction.registrationEnabled;
+        return {
+          title: `确认${enabling ? '开放' : '关闭'}用户注册`,
+          message: enabling 
+            ? '确定要开放用户注册吗？开放后，任何人都可以注册新账号。'
+            : '确定要关闭用户注册吗？关闭后，新用户将无法自行注册，只能由管理员创建账号。',
+          confirmText: enabling ? '开放注册' : '关闭注册',
+          confirmStyle: enabling ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
+        };
+      default:
+        return { title: '', message: '', confirmText: '', confirmStyle: '' };
+    }
+  };
+
   if (isLoading && users.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow">
@@ -217,6 +283,48 @@ export function UserManagement({
 
   return (
     <div className="space-y-6">
+      {/* 系统设置卡片 */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <CogIcon className="w-6 h-6 text-gray-600" />
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">系统设置</h3>
+              <p className="text-sm text-gray-600">管理用户注册和系统配置</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-700">开放用户注册</span>
+              <button
+                onClick={handleToggleRegistration}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  registrationEnabled ? 'bg-blue-600' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    registrationEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+              <span className={`text-sm font-medium ${
+                registrationEnabled ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {registrationEnabled ? '已开放' : '已关闭'}
+              </span>
+            </div>
+          </div>
+        </div>
+        {!registrationEnabled && (
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">
+              <strong>注意：</strong>用户注册已关闭，新用户无法自行注册。如需添加新用户，请使用"创建用户"功能。
+            </p>
+          </div>
+        )}
+      </div>
+
       {/* 工具栏 */}
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -514,10 +622,12 @@ export function UserManagement({
       {/* 用户编辑弹窗 */}
       {showUserModal && (
         <UserModal
+          isOpen={showUserModal}
+          onClose={() => setShowUserModal(false)}
           user={editingUser}
-          onClose={() => {
+          onSave={() => {
             setShowUserModal(false);
-            setEditingUser(null);
+            // 刷新用户列表的逻辑由父组件处理
           }}
         />
       )}
@@ -525,25 +635,13 @@ export function UserManagement({
       {/* 确认弹窗 */}
       {showConfirmModal && confirmAction && (
         <ConfirmModal
-          title={
-            confirmAction.type === 'delete' 
-              ? '确认删除用户'
-              : confirmAction.type === 'toggle'
-              ? `确认${confirmAction.user?.isActive ? '禁用' : '启用'}用户`
-              : `确认批量${confirmAction.batchOperation === 'activate' ? '启用' : confirmAction.batchOperation === 'deactivate' ? '禁用' : '删除'}`
-          }
-          message={
-            confirmAction.type === 'delete'
-              ? `确定要删除用户 "${confirmAction.user?.name}" 吗？此操作不可撤销。`
-              : confirmAction.type === 'toggle'
-              ? `确定要${confirmAction.user?.isActive ? '禁用' : '启用'}用户 "${confirmAction.user?.name}" 吗？`
-              : `确定要${confirmAction.batchOperation === 'activate' ? '启用' : confirmAction.batchOperation === 'deactivate' ? '禁用' : '删除'} ${selectedUsers.size} 个用户吗？`
-          }
+          isOpen={showConfirmModal}
+          onClose={() => setShowConfirmModal(false)}
           onConfirm={executeConfirmAction}
-          onCancel={() => {
-            setShowConfirmModal(false);
-            setConfirmAction(null);
-          }}
+          title={getConfirmModalContent().title}
+          message={getConfirmModalContent().message}
+          confirmText={getConfirmModalContent().confirmText}
+          confirmButtonClass={getConfirmModalContent().confirmStyle}
         />
       )}
     </div>

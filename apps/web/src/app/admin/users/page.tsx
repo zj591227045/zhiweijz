@@ -18,11 +18,14 @@ export default function UsersPage() {
     users, 
     isLoading, 
     pagination,
+    registrationEnabled,
     fetchUsers,
     searchUsers,
     deleteUser,
     toggleUserStatus,
-    batchOperation
+    batchOperation,
+    getRegistrationStatus,
+    toggleRegistration
   } = useUserManagement();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,7 +36,9 @@ export default function UsersPage() {
   // 只在认证完成且有token时才执行API请求
   useEffect(() => {
     if (isAuthenticated && token) {
-      console.log('🔍 [UsersPage] Fetching users, authenticated:', isAuthenticated, 'hasToken:', !!token);
+      console.log('🔍 [UsersPage] Fetching users and registration status, authenticated:', isAuthenticated, 'hasToken:', !!token);
+      
+      // 获取用户列表
       fetchUsers({
         page: 1,
         limit: 20,
@@ -41,8 +46,11 @@ export default function UsersPage() {
         sort: sortBy,
         order: sortOrder
       });
+      
+      // 获取注册状态
+      getRegistrationStatus();
     }
-  }, [isAuthenticated, token, statusFilter, sortBy, sortOrder, fetchUsers]);
+  }, [isAuthenticated, token, statusFilter, sortBy, sortOrder, fetchUsers, getRegistrationStatus]);
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
@@ -83,6 +91,10 @@ export default function UsersPage() {
     setSortOrder(order);
   };
 
+  const handleToggleRegistration = async (enabled: boolean) => {
+    return await toggleRegistration(enabled);
+  };
+
   // 如果未认证，显示加载状态
   if (!isAuthenticated || !token) {
     return (
@@ -110,6 +122,7 @@ export default function UsersPage() {
         statusFilter={statusFilter}
         sortBy={sortBy}
         sortOrder={sortOrder}
+        registrationEnabled={registrationEnabled}
         onSearch={handleSearch}
         onPageChange={handlePageChange}
         onStatusFilterChange={handleStatusFilterChange}
@@ -117,6 +130,7 @@ export default function UsersPage() {
         onDeleteUser={deleteUser}
         onToggleUserStatus={toggleUserStatus}
         onBatchOperation={batchOperation}
+        onToggleRegistration={handleToggleRegistration}
       />
     </div>
   );

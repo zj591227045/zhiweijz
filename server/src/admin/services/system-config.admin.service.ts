@@ -510,4 +510,50 @@ export class SystemConfigAdminService {
 
     return descriptions[key] || '系统配置';
   }
+
+  /**
+   * 获取注册状态
+   */
+  async getRegistrationStatus(): Promise<boolean> {
+    try {
+      const config = await prisma.systemConfig.findUnique({
+        where: { key: 'REGISTRATION_ENABLED' }
+      });
+
+      // 默认允许注册
+      return config ? config.value === 'true' : true;
+    } catch (error) {
+      console.error('获取注册状态错误:', error);
+      throw new Error('获取注册状态失败');
+    }
+  }
+
+  /**
+   * 切换注册状态
+   */
+  async toggleRegistration(enabled: boolean, updatedById?: string) {
+    try {
+      const config = await prisma.systemConfig.upsert({
+        where: { key: 'REGISTRATION_ENABLED' },
+        update: {
+          value: enabled.toString(),
+          updatedBy: updatedById,
+          updatedAt: new Date()
+        },
+        create: {
+          key: 'REGISTRATION_ENABLED',
+          value: enabled.toString(),
+          description: '是否允许用户注册',
+          category: 'auth',
+          createdBy: updatedById,
+          updatedBy: updatedById
+        }
+      });
+
+      return config;
+    } catch (error) {
+      console.error('切换注册状态错误:', error);
+      throw new Error('切换注册状态失败');
+    }
+  }
 } 
