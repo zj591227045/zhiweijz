@@ -220,9 +220,20 @@ build_restore_args() {
         args="-h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME --no-password"
         
         if [ "$USE_DOCKER" = "true" ]; then
-            args="$args --file=/backup/$(basename "$backup_file")"
+            # Docker模式下，需要将文件复制到备份目录，然后使用容器内路径
+            local backup_dir="$SCRIPT_DIR/$BACKUP_DIR"
+            local filename=$(basename "$backup_file")
+            
+            # 如果文件不在备份目录中，复制过去
+            if [[ "$backup_file" != "$backup_dir"* ]]; then
+                log "DEBUG" "复制备份文件到备份目录: $backup_file -> $backup_dir/$filename"
+                cp "$backup_file" "$backup_dir/$filename"
+                backup_file="$backup_dir/$filename"
+            fi
+            
+            args="$args -f /backup/$filename"
         else
-            args="$args --file=$backup_file"
+            args="$args -f $backup_file"
         fi
     else
         # 其他格式使用pg_restore恢复
@@ -254,7 +265,17 @@ build_restore_args() {
         fi
         
         if [ "$USE_DOCKER" = "true" ]; then
-            args="$args /backup/$(basename "$backup_file")"
+            local backup_dir="$SCRIPT_DIR/$BACKUP_DIR"
+            local filename=$(basename "$backup_file")
+            
+            # 如果文件不在备份目录中，复制过去
+            if [[ "$backup_file" != "$backup_dir"* ]]; then
+                log "DEBUG" "复制备份文件到备份目录: $backup_file -> $backup_dir/$filename"
+                cp "$backup_file" "$backup_dir/$filename"
+                backup_file="$backup_dir/$filename"
+            fi
+            
+            args="$args /backup/$filename"
         else
             args="$args $backup_file"
         fi

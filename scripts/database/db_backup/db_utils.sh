@@ -20,7 +20,6 @@ setup_pg_env() {
 build_docker_cmd() {
     local cmd="$1"
     shift
-    local args="$@"
     
     local docker_cmd="docker run --rm"
     
@@ -41,8 +40,33 @@ build_docker_cmd() {
         docker_cmd="$docker_cmd -v '$SCRIPT_DIR/$BACKUP_DIR:/backup'"
     fi
     
-    # 添加容器镜像和命令
-    docker_cmd="$docker_cmd $PG_CONTAINER_IMAGE $cmd $args"
+    # 添加容器镜像
+    docker_cmd="$docker_cmd $PG_CONTAINER_IMAGE"
+    
+    # 添加命令
+    docker_cmd="$docker_cmd $cmd"
+    
+    # 处理参数，特别是包含空格的SQL语句
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -c)
+                # SQL命令需要特殊处理，确保被正确引用
+                docker_cmd="$docker_cmd -c"
+                shift
+                if [ $# -gt 0 ]; then
+                    # 将SQL语句用单引号包围，并转义内部的单引号
+                    local sql_cmd="$1"
+                    sql_cmd=$(echo "$sql_cmd" | sed "s/'/'\"'\"'/g")
+                    docker_cmd="$docker_cmd '$sql_cmd'"
+                fi
+                ;;
+            *)
+                # 其他参数直接添加
+                docker_cmd="$docker_cmd $1"
+                ;;
+        esac
+        shift
+    done
     
     echo "$docker_cmd"
 }
@@ -272,29 +296,26 @@ clean_database() {
     
     log "WARN" "清理数据库schema: $schema"
     
-    # 设置PostgreSQL环境变量
-    setup_pg_env
-    
-    # 分步执行SQL命令，使用直接的psql调用
+    # 分步执行SQL命令，使用execute_pg_cmd函数来处理Docker环境
     log "DEBUG" "删除schema: $schema"
-    if ! psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" --no-password -c "DROP SCHEMA IF EXISTS $schema CASCADE;"; then
+    if ! execute_pg_cmd psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" --no-password -c "DROP SCHEMA IF EXISTS $schema CASCADE;"; then
         log "ERROR" "删除schema失败"
         return 1
     fi
     
     log "DEBUG" "创建schema: $schema"
-    if ! psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" --no-password -c "CREATE SCHEMA $schema;"; then
+    if ! execute_pg_cmd psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" --no-password -c "CREATE SCHEMA $schema;"; then
         log "ERROR" "创建schema失败"
         return 1
     fi
     
     log "DEBUG" "设置schema权限"
-    if ! psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" --no-password -c "GRANT ALL ON SCHEMA $schema TO $DB_USER;"; then
+    if ! execute_pg_cmd psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" --no-password -c "GRANT ALL ON SCHEMA $schema TO $DB_USER;"; then
         log "ERROR" "设置用户权限失败"
         return 1
     fi
     
-    if ! psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" --no-password -c "GRANT ALL ON SCHEMA $schema TO public;"; then
+    if ! execute_pg_cmd psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" --no-password -c "GRANT ALL ON SCHEMA $schema TO public;"; then
         log "ERROR" "设置公共权限失败"
         return 1
     fi
