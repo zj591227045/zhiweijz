@@ -59,7 +59,7 @@ const initialState = {
   date: getCurrentDate(),
   time: getCurrentTime(),
   budgetId: '',
-  showKeyboardInitially: true,
+  showKeyboardInitially: false,
 };
 
 export const useTransactionFormStore = create<TransactionFormState>((set) => ({

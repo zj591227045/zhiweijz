@@ -317,14 +317,6 @@ export function TransactionAddPage() {
         {/* 第二步：交易详情 */}
         {currentStep === 2 && (
           <div className="step-content" id="step-details">
-            <h3 style={{
-              fontSize: '18px',
-              fontWeight: '600',
-              color: 'var(--text-primary)',
-              marginBottom: '16px',
-              textAlign: 'center'
-            }}>填写详情</h3>
-
             {/* 显示选中的分类 */}
             <div style={{
               display: 'flex',
