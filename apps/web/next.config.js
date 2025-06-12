@@ -2,12 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   
-  // 只在生产环境启用静态导出配置
-  ...(process.env.NODE_ENV === 'production' && {
-    output: 'export',
-    distDir: 'out',
-    trailingSlash: true,
-  }),
+  // Capacitor静态导出配置
+  output: 'export',
+  distDir: 'out',
+  trailingSlash: true,
   
   // 图片优化配置
   images: {

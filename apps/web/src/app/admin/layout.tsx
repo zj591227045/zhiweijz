@@ -6,6 +6,7 @@ import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { useAdminAuth } from '@/store/admin/useAdminAuth';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
+import MobileNotSupported from '@/components/admin/MobileNotSupported';
 
 export default function AdminLayout({
   children,
@@ -32,6 +33,11 @@ export default function AdminLayout({
   // 如果是登录页面，不显示布局
   if (pathname === '/admin/login') {
     return <>{children}</>;
+  }
+
+  // 如果是移动端构建，直接返回404
+  if (process.env.IS_MOBILE_BUILD === 'true') {
+    return <MobileNotSupported />;
   }
 
   return (

@@ -28,6 +28,11 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   
+  // 环境变量 - 标识这是移动端构建
+  env: {
+    IS_MOBILE_BUILD: 'true',
+  },
+  
   // 移除headers配置，因为静态导出不支持
 };
 
