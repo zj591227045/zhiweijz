@@ -195,10 +195,14 @@ prepare_restore_file() {
     
     # 如果是压缩文件，需要解压
     if [[ "$backup_file" == *.gz ]]; then
-        log "INFO" "解压备份文件..."
+        log "INFO" "解压备份文件..." >&2  # 将日志输出重定向到stderr
         local temp_file="/tmp/$(basename "$backup_file" .gz)"
-        gunzip -c "$backup_file" > "$temp_file"
-        echo "$temp_file"
+        if gunzip -c "$backup_file" > "$temp_file"; then
+            echo "$temp_file"  # 只输出文件路径到stdout
+        else
+            log "ERROR" "解压备份文件失败" >&2
+            return 1
+        fi
     else
         echo "$backup_file"
     fi
@@ -224,11 +228,18 @@ build_restore_args() {
             local backup_dir="$SCRIPT_DIR/$BACKUP_DIR"
             local filename=$(basename "$backup_file")
             
+            # 确保备份目录存在
+            mkdir -p "$backup_dir"
+            
             # 如果文件不在备份目录中，复制过去
             if [[ "$backup_file" != "$backup_dir"* ]]; then
-                log "DEBUG" "复制备份文件到备份目录: $backup_file -> $backup_dir/$filename"
-                cp "$backup_file" "$backup_dir/$filename"
-                backup_file="$backup_dir/$filename"
+                log "DEBUG" "复制备份文件到备份目录: $backup_file -> $backup_dir/$filename" >&2
+                if cp "$backup_file" "$backup_dir/$filename"; then
+                    log "DEBUG" "文件复制成功" >&2
+                else
+                    log "ERROR" "文件复制失败" >&2
+                    return 1
+                fi
             fi
             
             args="$args -f /backup/$filename"
@@ -268,11 +279,18 @@ build_restore_args() {
             local backup_dir="$SCRIPT_DIR/$BACKUP_DIR"
             local filename=$(basename "$backup_file")
             
+            # 确保备份目录存在
+            mkdir -p "$backup_dir"
+            
             # 如果文件不在备份目录中，复制过去
             if [[ "$backup_file" != "$backup_dir"* ]]; then
-                log "DEBUG" "复制备份文件到备份目录: $backup_file -> $backup_dir/$filename"
-                cp "$backup_file" "$backup_dir/$filename"
-                backup_file="$backup_dir/$filename"
+                log "DEBUG" "复制备份文件到备份目录: $backup_file -> $backup_dir/$filename" >&2
+                if cp "$backup_file" "$backup_dir/$filename"; then
+                    log "DEBUG" "文件复制成功" >&2
+                else
+                    log "ERROR" "文件复制失败" >&2
+                    return 1
+                fi
             fi
             
             args="$args /backup/$filename"
