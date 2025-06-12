@@ -5,7 +5,7 @@ import { useTransactionFormStore } from '@/store/transaction-form-store';
 import { NumericKeyboard } from './numeric-keyboard';
 
 export function AmountInput() {
-  const { amount, setAmount, showKeyboardInitially } = useTransactionFormStore();
+  const { amount, setAmount, showKeyboardInitially, currentStep } = useTransactionFormStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const [showKeyboard, setShowKeyboard] = useState(false);
 
@@ -92,30 +92,65 @@ export function AmountInput() {
     }
   };
 
-  // 组件挂载时自动聚焦，根据状态决定是否显示键盘
+  // 监听 showKeyboardInitially 状态变化
   useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-      // 根据状态决定是否显示键盘
-      setShowKeyboard(showKeyboardInitially);
-      console.log('AmountInput: 键盘初始状态:', showKeyboardInitially);
+    console.log('AmountInput: showKeyboardInitially 变化:', showKeyboardInitially);
+    if (showKeyboardInitially) {
+      setShowKeyboard(true);
     }
   }, [showKeyboardInitially]);
 
+  // 组件挂载时自动聚焦
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
+
   return (
     <>
-      <div className="amount-input-container">
-        <div className="amount-display">
-          <span className="currency-symbol">¥</span>
+      <div style={{
+        textAlign: 'center',
+        marginBottom: '24px'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          marginBottom: '8px',
+          padding: '16px',
+          backgroundColor: 'var(--background-secondary)',
+          borderRadius: '12px',
+          border: '1px solid var(--border-color)',
+          minHeight: '60px'
+        }}>
+          <span style={{
+            fontSize: '24px',
+            fontWeight: '300',
+            color: 'var(--text-secondary)'
+          }}>¥</span>
           <input
             ref={inputRef}
             type="text"
-            className="amount-input"
             placeholder="0.00"
             value={amount}
             onChange={handleAmountChange}
             onClick={handleInputClick}
             readOnly // 使用虚拟键盘输入，禁用系统键盘
+            style={{
+              fontSize: '28px',
+              fontWeight: '400',
+              color: 'var(--text-color)',
+              border: 'none',
+              outline: 'none',
+              backgroundColor: 'transparent',
+              textAlign: 'center',
+              width: '100%',
+              maxWidth: '200px',
+              padding: '8px',
+              cursor: 'pointer'
+            }}
           />
         </div>
       </div>

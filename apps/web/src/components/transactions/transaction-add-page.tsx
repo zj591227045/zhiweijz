@@ -35,6 +35,7 @@ export function TransactionAddPage() {
     goToStep,
     resetForm,
     fillSmartAccountingResult,
+    setShowKeyboardInitially,
   } = useTransactionFormStore();
 
   const { createTransaction } = useTransactionStore();
@@ -80,6 +81,16 @@ export function TransactionAddPage() {
       }
     }
   }, [fillSmartAccountingResult]);
+
+  // 监听步骤变化，当进入第二步时自动显示虚拟键盘
+  useEffect(() => {
+    if (currentStep === 2) {
+      console.log('进入第二步，自动显示虚拟键盘');
+      setShowKeyboardInitially(true);
+    } else {
+      setShowKeyboardInitially(false);
+    }
+  }, [currentStep, setShowKeyboardInitially]);
 
   // 根据交易类型筛选分类
   const filteredCategories = categories.filter((category) => category.type === type);
@@ -224,54 +235,8 @@ export function TransactionAddPage() {
           </button>
         </div>
 
-        {/* iOS 风格金额输入 */}
-        <div style={{
-          textAlign: 'center',
-          marginBottom: '24px'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            marginBottom: '8px',
-            padding: '16px',
-            backgroundColor: 'var(--background-secondary)',
-            borderRadius: '12px',
-            border: '1px solid var(--border-color)',
-            minHeight: '60px'
-          }}>
-            <span style={{
-              fontSize: '24px',
-              fontWeight: '300',
-              color: 'var(--text-secondary)'
-            }}>¥</span>
-            <input
-              type="text"
-              placeholder="0.00"
-              value={amount || ''}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (/^\d*\.?\d{0,2}$/.test(value)) {
-                  useTransactionFormStore.getState().setAmount(value);
-                }
-              }}
-              disabled={submitting}
-              style={{
-                fontSize: '28px',
-                fontWeight: '400',
-                color: 'var(--text-color)',
-                border: 'none',
-                outline: 'none',
-                backgroundColor: 'transparent',
-                textAlign: 'center',
-                width: '100%',
-                maxWidth: '200px',
-                padding: '8px'
-              }}
-            />
-          </div>
-        </div>
+        {/* 使用 AmountInput 组件替代内联金额输入 */}
+        <AmountInput />
 
         {/* iOS 风格步骤指示器 */}
         <div style={{

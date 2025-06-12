@@ -100,6 +100,7 @@ export const useTransactionFormStore = create<TransactionFormState>((set) => ({
       ...initialState,
       date: getCurrentDate(),
       time: getCurrentTime(),
+      showKeyboardInitially: false, // 重置时不自动显示键盘
     }),
 
   fillSmartAccountingResult: (result) => {
