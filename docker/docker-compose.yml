@@ -73,7 +73,7 @@ services:
 
   # Nginx 反向代理
   nginx:
-    image: zj591227045/zhiweijz-nginx:latest
+    image: zj591227045/zhiweijz-nginx:0.1.2
     container_name: zhiweijz-nginx
     restart: unless-stopped
     ports:
@@ -81,13 +81,16 @@ services:
       - "${NGINX_HTTPS_PORT:-443}:443"
     volumes:
       - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      # SSL证书持久化存储
+      - nginx_ssl_certs:/etc/ssl/certs
+      - nginx_ssl_private:/etc/ssl/private
     networks:
       - zhiweijz-network
     depends_on:
       - frontend
       - backend
     healthcheck:
-      test: ["CMD", "sh", "-c", "curl -f http://localhost/health && (curl -s -o /dev/null -w '%{http_code}' http://localhost/ | grep -E '^[23]')"]
+      test: ["CMD", "sh", "-c", "curl -f http://localhost/health && curl -k -f https://localhost/health"]
       interval: 20s
       timeout: 15s
       retries: 3
@@ -95,6 +98,11 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  # SSL证书存储卷
+  nginx_ssl_certs:
+    driver: local
+  nginx_ssl_private:
     driver: local
 
 networks:
