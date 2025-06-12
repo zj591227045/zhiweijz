@@ -150,6 +150,111 @@
   margin: 0;
 }
 
+/* 全局AI服务总开关样式 */
+.globalAISwitch {
+  background-color: var(--card-background, white);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 16px;
+  padding: 20px 24px;
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.globalAISwitchHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.globalAISwitchInfo h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, rgb(31, 41, 55));
+  margin: 0 0 4px 0;
+}
+
+.globalAISwitchInfo p {
+  font-size: 14px;
+  color: var(--text-secondary, rgb(107, 114, 128));
+  margin: 0;
+}
+
+.globalAISwitchControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.globalAISwitchToggle {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 30px;
+}
+
+.globalAISwitchToggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.globalAISwitchSlider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 30px;
+}
+
+.globalAISwitchSlider::before {
+  position: absolute;
+  content: '';
+  height: 22px;
+  width: 22px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.globalAISwitchToggle input:checked + .globalAISwitchSlider {
+  background-color: var(--primary-color, rgb(59, 130, 246));
+}
+
+.globalAISwitchToggle input:checked + .globalAISwitchSlider::before {
+  transform: translateX(22px);
+}
+
+.globalAISwitchStatus {
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 40px;
+  text-align: center;
+}
+
+.globalAISwitchStatus.enabled {
+  color: rgb(34, 197, 94);
+}
+
+.globalAISwitchStatus.disabled {
+  color: rgb(107, 114, 128);
+}
+
+.globalAISwitchSpinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--primary-color, rgb(59, 130, 246));
+  animation: spin 1s linear infinite;
+}
+
 /* 开关样式 */
 .toggleSwitch {
   position: relative;

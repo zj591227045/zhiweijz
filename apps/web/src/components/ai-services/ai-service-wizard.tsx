@@ -30,25 +30,16 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
     fetchAccountActiveService
   } = useGlobalAIStore();
 
-  // 初始化当前配置
+  // 每次打开向导时重置到第一步
   useEffect(() => {
-    if (isOpen && globalConfig && activeService) {
-      if (globalConfig.enabled && activeService.type === 'official') {
-        setSelectedServiceType('official');
-      } else if (activeService.type === 'custom') {
-        setSelectedServiceType('custom');
-        // 从服务列表中找到匹配的自定义服务
-        const matchedService = services.find(service => 
-          service.provider === activeService.provider && 
-          service.model === activeService.model &&
-          service.name === activeService.name
-        );
-        if (matchedService) {
-          setSelectedCustomServiceId(matchedService.id);
-        }
-      }
+    if (isOpen) {
+      console.log('🚀 [AIServiceWizard] 打开向导，重置到第一步');
+      setCurrentStep('service-type');
+      setSelectedServiceType('official');
+      setSelectedCustomServiceId('');
+      setIsProcessing(false);
     }
-  }, [isOpen, globalConfig, activeService, services]);
+  }, [isOpen]);
 
   const handleServiceTypeSelect = (type: 'official' | 'custom') => {
     setSelectedServiceType(type);

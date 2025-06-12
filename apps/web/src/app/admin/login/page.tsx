@@ -77,14 +77,6 @@ export default function AdminLoginPage() {
             <p className="mt-2 text-sm text-gray-600">
               请使用管理员账户登录
             </p>
-            {/* 调试信息 - 更显眼 */}
-            <div className="mt-4 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-gray-700">
-              <div>调试信息:</div>
-              <div>isAuthenticated: {String(isAuthenticated)}</div>
-              <div>isLoading: {String(isLoading)}</div>
-              <div>error: {error || 'null'}</div>
-              <div>页面已渲染: ✅</div>
-            </div>
           </div>
 
           {/* 登录表单 */}

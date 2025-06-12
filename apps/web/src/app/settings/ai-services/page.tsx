@@ -40,15 +40,32 @@ export default function AIServicesPage() {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
 
   // 从全局AI store获取当前配置
-  const { activeServiceError } = useGlobalAIStore();
+  const { 
+    globalConfig, 
+    activeServiceError, 
+    isLoadingConfig, 
+    updateGlobalConfig,
+    fetchGlobalConfig
+  } = useGlobalAIStore();
 
   // 加载AI服务列表和当前账本激活服务
   useEffect(() => {
     if (isAuthenticated) {
       console.log('🔄 页面加载，开始获取AI服务列表');
       fetchServices();
+      fetchGlobalConfig();
     }
-  }, [isAuthenticated, fetchServices]);
+  }, [isAuthenticated, fetchServices, fetchGlobalConfig]);
+
+  // 处理全局AI服务总开关
+  const handleGlobalAIToggle = async (enabled: boolean) => {
+    try {
+      await updateGlobalConfig({ enabled });
+      toast.success(enabled ? 'AI服务已启用' : 'AI服务已禁用');
+    } catch (error) {
+      console.error('切换全局AI服务状态失败:', error);
+    }
+  };
 
   // 删除AI服务
   const handleDelete = async (id: string) => {
@@ -193,7 +210,107 @@ export default function AIServicesPage() {
         </div>
       )}
 
-
+      {/* 全局AI服务总开关 */}
+      <div style={{
+        backgroundColor: 'var(--card-background, white)',
+        borderRadius: '12px',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+        marginBottom: '16px',
+        padding: '20px 24px',
+        border: '1px solid var(--border-color, #e5e7eb)'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
+          <div>
+            <h3 style={{
+              fontSize: '18px',
+              fontWeight: '600',
+              color: 'var(--text-primary, rgb(31, 41, 55))',
+              margin: '0 0 4px 0'
+            }}>
+              AI服务开关
+            </h3>
+            <p style={{
+              fontSize: '14px',
+              color: 'var(--text-secondary, rgb(107, 114, 128))',
+              margin: 0
+            }}>
+            </p>
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            {isLoadingConfig ? (
+              <div style={{
+                width: '20px',
+                height: '20px',
+                border: '2px solid rgba(0, 0, 0, 0.1)',
+                borderRadius: '50%',
+                borderTopColor: 'var(--primary-color, rgb(59, 130, 246))',
+                animation: 'spin 1s linear infinite'
+              }}></div>
+            ) : (
+              <label style={{
+                position: 'relative',
+                display: 'inline-block',
+                width: '52px',
+                height: '30px'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={globalConfig?.enabled || false}
+                  onChange={(e) => handleGlobalAIToggle(e.target.checked)}
+                  style={{
+                    opacity: 0,
+                    width: 0,
+                    height: 0
+                  }}
+                />
+                <span style={{
+                  position: 'absolute',
+                  cursor: 'pointer',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: globalConfig?.enabled ? 'var(--primary-color, rgb(59, 130, 246))' : '#ccc',
+                  transition: '0.3s',
+                  borderRadius: '30px'
+                }}>
+                  <span style={{
+                    position: 'absolute',
+                    content: '',
+                    height: '22px',
+                    width: '22px',
+                    left: globalConfig?.enabled ? '26px' : '4px',
+                    bottom: '4px',
+                    backgroundColor: 'white',
+                    borderRadius: '50%',
+                    transition: '0.3s',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                  }}></span>
+                </span>
+              </label>
+            )}
+            
+            <span style={{
+              fontSize: '14px',
+              fontWeight: '500',
+              color: globalConfig?.enabled ? 'rgb(34, 197, 94)' : 'rgb(107, 114, 128)',
+              minWidth: '40px',
+              textAlign: 'center'
+            }}>
+              {globalConfig?.enabled ? '已启用' : '已禁用'}
+            </span>
+          </div>
+        </div>
+      </div>
 
       {/* 当前AI服务状态 */}
       <CurrentAIService onOpenWizard={handleOpenWizard} />
