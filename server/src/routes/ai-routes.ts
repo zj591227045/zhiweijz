@@ -34,6 +34,13 @@ router.post('/account/:accountId/smart-accounting/direct', authenticate, aiContr
 router.post('/smart-accounting/direct', authenticate, aiController.handleSmartAccountingDirectWithBody.bind(aiController));
 
 /**
+ * @route GET /api/ai/global-llm-config
+ * @desc 获取全局LLM配置
+ * @access Private
+ */
+router.get('/global-llm-config', authenticate, aiController.getGlobalLLMConfig.bind(aiController));
+
+/**
  * @route GET /api/ai/llm-settings
  * @desc 获取用户当前LLM设置
  * @access Private

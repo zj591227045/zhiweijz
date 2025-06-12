@@ -108,6 +108,29 @@ export class AIController {
   }
 
   /**
+   * 获取全局LLM配置（供普通用户查看）
+   * @param req 请求
+   * @param res 响应
+   */
+  public async getGlobalLLMConfig(req: Request, res: Response) {
+    try {
+      const globalConfig = await this.llmProviderService.getGlobalLLMConfig();
+      
+      res.json({
+        success: true,
+        data: globalConfig
+      });
+    } catch (error) {
+      console.error('获取全局LLM配置错误:', error);
+      res.status(500).json({ 
+        success: false,
+        error: '获取全局LLM配置失败',
+        data: { enabled: false }
+      });
+    }
+  }
+
+  /**
    * 获取用户LLM设置
    * @param req 请求
    * @param res 响应

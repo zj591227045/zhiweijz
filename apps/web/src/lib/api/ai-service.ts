@@ -55,6 +55,37 @@ export interface UpdateLLMSettingDto {
 // AI服务API
 export const aiService = {
   /**
+   * 获取全局LLM配置（普通用户可访问）
+   */
+  async getGlobalLLMConfig(): Promise<{
+    enabled: boolean;
+    provider?: string;
+    model?: string;
+    baseUrl?: string;
+    temperature?: number;
+    maxTokens?: number;
+  }> {
+    try {
+      console.log('发送获取全局LLM配置请求: /api/ai/global-llm-config');
+      const response = await apiClient.get<{
+        success: boolean;
+        data: {
+          enabled: boolean;
+          provider?: string;
+          model?: string;
+          baseUrl?: string;
+          temperature?: number;
+          maxTokens?: number;
+        };
+      }>('/api/ai/global-llm-config');
+      console.log('全局LLM配置响应数据:', response);
+      return response.data;
+    } catch (error) {
+      console.error('获取全局LLM配置失败:', error);
+      return { enabled: false };
+    }
+  },
+  /**
    * 获取用户所有LLM设置列表
    */
   async getLLMSettingsList(accountBookId?: string): Promise<LLMSetting[]> {

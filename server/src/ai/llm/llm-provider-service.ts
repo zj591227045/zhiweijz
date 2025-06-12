@@ -188,7 +188,16 @@ export class LLMProviderService {
         console.error('获取用户LLM设置错误:', error);
       }
 
-      // 如果没有用户设置，使用默认设置
+      // 如果没有用户设置，尝试使用全局配置
+      console.log(`尝试获取全局LLM配置`);
+      const globalConfig = await this.getFullGlobalLLMConfig();
+      
+      if (globalConfig) {
+        console.log(`使用全局LLM配置: ${globalConfig.provider}/${globalConfig.model}`);
+        return globalConfig;
+      }
+
+      // 如果没有全局配置，使用默认设置
       console.log(`使用默认LLM设置`);
       return {
         ...this.defaultSettings,
@@ -196,6 +205,18 @@ export class LLMProviderService {
       };
     } catch (error) {
       console.error('获取LLM设置错误:', error);
+      
+      // 即使出错，也尝试使用全局配置
+      try {
+        const globalConfig = await this.getFullGlobalLLMConfig();
+        if (globalConfig) {
+          console.log(`回退到全局LLM配置: ${globalConfig.provider}/${globalConfig.model}`);
+          return globalConfig;
+        }
+      } catch (globalError) {
+        console.error('获取全局LLM配置错误:', globalError);
+      }
+      
       return {
         ...this.defaultSettings,
         apiKey: process.env.SILICONFLOW_API_KEY || ''
@@ -445,6 +466,99 @@ export class LLMProviderService {
         success: false,
         message: `测试过程中发生错误: ${error instanceof Error ? error.message : String(error)}`
       };
+    }
+  }
+
+  /**
+   * 获取全局LLM配置
+   * @returns 全局LLM配置（不包含敏感信息）
+   */
+  public async getGlobalLLMConfig(): Promise<{
+    enabled: boolean;
+    provider?: string;
+    model?: string;
+    baseUrl?: string;
+    temperature?: number;
+    maxTokens?: number;
+  }> {
+    try {
+      const llmConfigs = await this.prisma.systemConfig.findMany({
+        where: {
+          category: 'llm'
+        }
+      });
+
+      // 转换为对象格式
+      const configObj: any = { enabled: false };
+      
+      llmConfigs.forEach(config => {
+        const key = config.key.replace('llm_global_', '');
+        if (key === 'enabled') {
+          configObj[key] = config.value === 'true';
+        } else if (key === 'temperature') {
+          configObj[key] = parseFloat(config.value || '0.7');
+        } else if (key === 'max_tokens') {
+          configObj['maxTokens'] = parseInt(config.value || '1000');
+        } else if (key !== 'api_key') { // 排除敏感信息
+          configObj[key] = config.value;
+        }
+      });
+
+      return configObj;
+    } catch (error) {
+      console.error('获取全局LLM配置错误:', error);
+      return { enabled: false };
+    }
+  }
+
+  /**
+   * 获取全局LLM配置（包含API Key，仅供内部使用）
+   * @returns 完整的全局LLM配置
+   */
+  private async getFullGlobalLLMConfig(): Promise<LLMSettings | null> {
+    try {
+      const llmConfigs = await this.prisma.systemConfig.findMany({
+        where: {
+          category: 'llm'
+        }
+      });
+
+      // 转换为对象格式
+      const configObj: any = {};
+      
+      llmConfigs.forEach(config => {
+        const key = config.key.replace('llm_global_', '');
+        if (key === 'enabled') {
+          configObj[key] = config.value === 'true';
+        } else if (key === 'temperature') {
+          configObj[key] = parseFloat(config.value || '0.7');
+        } else if (key === 'max_tokens') {
+          configObj['maxTokens'] = parseInt(config.value || '1000');
+        } else if (key === 'api_key') {
+          configObj['apiKey'] = config.value;
+        } else if (key === 'base_url') {
+          configObj['baseUrl'] = config.value;
+        } else {
+          configObj[key] = config.value;
+        }
+      });
+
+      // 检查是否启用且配置完整
+      if (configObj.enabled && configObj.provider && configObj.model) {
+        return {
+          provider: configObj.provider,
+          model: configObj.model,
+          apiKey: configObj.apiKey || '',
+          temperature: configObj.temperature || this.defaultSettings.temperature,
+          maxTokens: configObj.maxTokens || this.defaultSettings.maxTokens,
+          baseUrl: configObj.baseUrl
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error('获取完整全局LLM配置错误:', error);
+      return null;
     }
   }
 }

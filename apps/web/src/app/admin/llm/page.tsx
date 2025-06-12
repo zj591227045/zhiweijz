@@ -73,7 +73,7 @@ export default function LLMConfigPage() {
     {
       id: 'siliconflow',
       name: '硅基流动',
-      models: ['Qwen/Qwen3-32B', 'Qwen/Qwen2.5-32B-Instruct', 'Qwen/Qwen3-14B'],
+      models: ['Qwen/Qwen3-32B', 'Qwen/Qwen2.5-32B-Instruct', 'Qwen/Qwen3-14B', 'Qwen/Qwen3-8B'],
       defaultBaseUrl: 'https://api.siliconflow.cn/v1'
     },
     {
