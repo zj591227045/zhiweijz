@@ -21,6 +21,7 @@ export class LLMLogAdminController {
         model,
         isSuccess,
         accountBookId,
+        serviceType,
         startDate,
         endDate,
         search
@@ -34,6 +35,7 @@ export class LLMLogAdminController {
         model: model as string,
         isSuccess: isSuccess ? isSuccess === 'true' : undefined,
         accountBookId: accountBookId as string,
+        serviceType: serviceType as string,
         startDate: startDate as string,
         endDate: endDate as string,
         search: search as string

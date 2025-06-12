@@ -10,6 +10,7 @@ export interface LLMLogListParams {
   model?: string;
   isSuccess?: boolean;
   accountBookId?: string;
+  serviceType?: string;
   startDate?: string;
   endDate?: string;
   search?: string;
@@ -44,6 +45,7 @@ export class LLMLogAdminService {
         model,
         isSuccess,
         accountBookId,
+        serviceType,
         startDate,
         endDate,
         search
@@ -72,6 +74,10 @@ export class LLMLogAdminService {
 
       if (accountBookId) {
         where.accountBookId = accountBookId;
+      }
+
+      if (serviceType) {
+        where.serviceType = serviceType;
       }
 
       if (startDate && endDate) {

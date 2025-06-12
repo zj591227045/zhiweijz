@@ -41,6 +41,20 @@ CREATE TABLE IF NOT EXISTS admins (
     is_active BOOLEAN NOT NULL DEFAULT true
 );
 
+-- 确保username字段有UNIQUE约束（如果表已存在但缺少约束）
+DO $$ BEGIN
+    ALTER TABLE admins ADD CONSTRAINT admins_username_unique UNIQUE (username);
+EXCEPTION
+    WHEN duplicate_table THEN null;
+END $$;
+
+-- 确保email字段有UNIQUE约束（如果表已存在但缺少约束）
+DO $$ BEGIN
+    ALTER TABLE admins ADD CONSTRAINT admins_email_unique UNIQUE (email);
+EXCEPTION
+    WHEN duplicate_table THEN null;
+END $$;
+
 -- 系统配置表
 CREATE TABLE IF NOT EXISTS system_configs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -207,30 +221,25 @@ CREATE TRIGGER trigger_update_updated_at
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- 插入默认管理员账号
-INSERT INTO admins (username, password_hash, email, role, is_active) 
-VALUES ('admin', '$2b$10$Jm.mqOlmzYFUoGfT3U/G4uvcRoEd/6wvGSOSbeCvgltZBjDMKMKq6', 'admin@zhiweijz.com', 'SUPER_ADMIN', true)
-ON CONFLICT (username) 
-DO UPDATE SET 
-  password_hash = EXCLUDED.password_hash,
-  email = EXCLUDED.email,
-  role = EXCLUDED.role,
-  updated_at = NOW();
+INSERT INTO admins (username, password_hash, email, role, is_active) VALUES ('admin', '$2b$10$Jm.mqOlmzYFUoGfT3U/G4uvcRoEd/6wvGSOSbeCvgltZBjDMKMKq6', 'admin@zhiweijz.com', 'SUPER_ADMIN', true) ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash, email = EXCLUDED.email, role = EXCLUDED.role, updated_at = NOW();
 
--- 插入默认系统配置
-INSERT INTO system_configs (key, value, description, category) VALUES
-('allow_registration', 'true', '是否允许新用户注册', 'user_management'),
-('llm_global_enabled', 'false', '是否启用全局LLM配置', 'llm'),
-('llm_global_provider', 'openai', '全局LLM服务提供商', 'llm'),
-('llm_global_model', 'gpt-3.5-turbo', '全局LLM模型', 'llm'),
-('llm_global_api_key', '', '全局LLM API密钥', 'llm'),
-('llm_global_base_url', '', '全局LLM服务地址', 'llm'),
-('max_users', '1000', '最大用户数限制', 'limits'),
-('max_account_books_per_user', '10', '每用户最大账本数', 'limits'),
-('data_retention_days', '365', '数据保留天数', 'data_management'),
-('backup_enabled', 'true', '是否启用自动备份', 'data_management')
-ON CONFLICT (key) 
-DO UPDATE SET 
-  value = EXCLUDED.value,
-  description = EXCLUDED.description,
-  category = EXCLUDED.category,
-  updated_at = NOW(); 
+-- 插入默认系统配置（仅在不存在时插入，避免覆盖用户配置）
+INSERT INTO system_configs (key, value, description, category) VALUES ('allow_registration', 'true', '是否允许新用户注册', 'user_management') ON CONFLICT (key) DO UPDATE SET description = EXCLUDED.description, category = EXCLUDED.category;
+
+INSERT INTO system_configs (key, value, description, category) VALUES ('llm_global_enabled', 'false', '是否启用全局LLM配置', 'llm') ON CONFLICT (key) DO UPDATE SET description = EXCLUDED.description, category = EXCLUDED.category;
+
+INSERT INTO system_configs (key, value, description, category) VALUES ('llm_global_provider', 'openai', '全局LLM服务提供商', 'llm') ON CONFLICT (key) DO UPDATE SET description = EXCLUDED.description, category = EXCLUDED.category;
+
+INSERT INTO system_configs (key, value, description, category) VALUES ('llm_global_model', 'gpt-3.5-turbo', '全局LLM模型', 'llm') ON CONFLICT (key) DO UPDATE SET description = EXCLUDED.description, category = EXCLUDED.category;
+
+INSERT INTO system_configs (key, value, description, category) VALUES ('llm_global_api_key', '', '全局LLM API密钥', 'llm') ON CONFLICT (key) DO UPDATE SET description = EXCLUDED.description, category = EXCLUDED.category;
+
+INSERT INTO system_configs (key, value, description, category) VALUES ('llm_global_base_url', '', '全局LLM服务地址', 'llm') ON CONFLICT (key) DO UPDATE SET description = EXCLUDED.description, category = EXCLUDED.category;
+
+INSERT INTO system_configs (key, value, description, category) VALUES ('max_users', '1000', '最大用户数限制', 'limits') ON CONFLICT (key) DO UPDATE SET description = EXCLUDED.description, category = EXCLUDED.category;
+
+INSERT INTO system_configs (key, value, description, category) VALUES ('max_account_books_per_user', '10', '每用户最大账本数', 'limits') ON CONFLICT (key) DO UPDATE SET description = EXCLUDED.description, category = EXCLUDED.category;
+
+INSERT INTO system_configs (key, value, description, category) VALUES ('data_retention_days', '365', '数据保留天数', 'data_management') ON CONFLICT (key) DO UPDATE SET description = EXCLUDED.description, category = EXCLUDED.category;
+
+INSERT INTO system_configs (key, value, description, category) VALUES ('backup_enabled', 'true', '是否启用自动备份', 'data_management') ON CONFLICT (key) DO UPDATE SET description = EXCLUDED.description, category = EXCLUDED.category;

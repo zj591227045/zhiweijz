@@ -15,8 +15,8 @@ const formSchema = z.object({
   model: z.string().min(1, '请选择模型'),
   apiKey: z.string().min(1, 'API密钥不能为空'),
   baseUrl: z.string().optional(),
-  temperature: z.number().min(0).max(1).optional().default(0.7),
-  maxTokens: z.number().min(100).max(10000).optional().default(1000),
+  temperature: z.coerce.number().min(0).max(1).default(0.7),
+  maxTokens: z.coerce.number().min(100).max(10000).default(1000),
   description: z.string().optional(),
 });
 
@@ -65,8 +65,8 @@ export function AIServiceForm({
   const testConnection = async () => {
     const formData = watch();
 
-    if (!formData.provider || !formData.apiKey || !formData.baseURL) {
-      toast.error('请填写完整的配置信息');
+    if (!formData.provider || !formData.apiKey) {
+      toast.error('请填写服务提供商和API密钥');
       return;
     }
 
@@ -77,7 +77,7 @@ export function AIServiceForm({
       const data = await apiClient.post('/ai/llm-settings/test', {
         provider: formData.provider,
         apiKey: formData.apiKey,
-        baseURL: formData.baseURL,
+        baseURL: formData.baseUrl || '', // 修复字段名
         model: formData.model || 'gpt-3.5-turbo',
       });
 
@@ -125,6 +125,8 @@ export function AIServiceForm({
     { value: 'siliconflow', label: '硅基流动' },
     { value: 'deepseek', label: 'Deepseek' },
   ];
+
+
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="ai-service-form space-y-6">

@@ -5,7 +5,8 @@ import { useAuthStore } from '@/store/auth-store';
 import { fetchApi } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { AccountBook } from '@/types';
-import { aiService, LLMSetting } from '@/lib/api/ai-service';
+// AI服务管理已迁移到全局设置，移除相关导入
+// import { aiService, LLMSetting } from '@/lib/api/ai-service';
 
 interface BookEditModalProps {
   isOpen: boolean;
@@ -49,10 +50,10 @@ export default function BookEditModal({
   const [error, setError] = useState<string | null>(null);
   const [book, setBook] = useState<AccountBook | null>(null);
 
-  // AI服务相关状态
-  const [aiServices, setAiServices] = useState<LLMSetting[]>([]);
-  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
-  const [isLoadingServices, setIsLoadingServices] = useState(false);
+  // AI服务相关状态已移除，现在由全局AI服务管理
+  // const [aiServices, setAiServices] = useState<LLMSetting[]>([]);
+  // const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+  // const [isLoadingServices, setIsLoadingServices] = useState(false);
 
   // 获取账本详情
   useEffect(() => {
@@ -85,8 +86,8 @@ export default function BookEditModal({
             aiEnabled: data.aiService?.enabled || false
           });
 
-          // 获取AI服务列表和当前绑定的服务
-          await loadAIServices(data.id);
+          // AI服务管理已迁移到全局设置，无需在账本级别加载
+          // await loadAIServices(data.id);
         } else {
           const errorData = await response.json().catch(() => ({ message: '获取账本详情失败' }));
           setError(errorData.message || '获取账本详情失败');
@@ -102,33 +103,10 @@ export default function BookEditModal({
     fetchBookDetail();
   }, [isOpen, bookId, isAuthenticated]);
 
-  // 加载AI服务列表和当前绑定的服务
-  const loadAIServices = async (accountBookId: string) => {
-    try {
-      setIsLoadingServices(true);
-
-      // 获取所有可用的AI服务
-      const servicesList = await aiService.getLLMSettingsList(accountBookId);
-      setAiServices(servicesList);
-
-      // 获取当前账本绑定的AI服务
-      if (servicesList.length > 0) {
-        try {
-          const accountService = await aiService.getAccountLLMSettings(accountBookId);
-          if (accountService && accountService.id) {
-            setSelectedServiceId(accountService.id);
-          }
-        } catch (error) {
-          console.log('获取账本绑定的AI服务失败，可能未绑定:', error);
-          setSelectedServiceId(null);
-        }
-      }
-    } catch (error) {
-      console.error('加载AI服务失败:', error);
-    } finally {
-      setIsLoadingServices(false);
-    }
-  };
+  // 移除AI服务加载逻辑，现在由全局AI服务管理
+  // const loadAIServices = async (accountBookId: string) => {
+  //   // AI服务管理已迁移到全局设置
+  // };
 
   // 处理表单提交
   const handleSubmit = async () => {
@@ -157,25 +135,8 @@ export default function BookEditModal({
       if (response.ok) {
         const updatedBook = await response.json();
 
-        // 如果AI服务绑定发生变化，更新绑定
-        if (formData.aiEnabled && selectedServiceId) {
-          try {
-            await aiService.updateAccountLLMSettings(bookId, selectedServiceId);
-            console.log('AI服务绑定更新成功');
-          } catch (error) {
-            console.error('AI服务绑定更新失败:', error);
-            // 不阻止账本更新成功的流程
-          }
-        } else if (!formData.aiEnabled) {
-          // 如果禁用AI服务，解绑
-          try {
-            await aiService.updateAccountLLMSettings(bookId, '');
-            console.log('AI服务解绑成功');
-          } catch (error) {
-            console.error('AI服务解绑失败:', error);
-            // 不阻止账本更新成功的流程
-          }
-        }
+        // AI服务管理已迁移到全局设置，移除账本级别的AI服务绑定逻辑
+        // AI服务现在由全局AI服务管理界面统一管理
 
         toast.success('账本更新成功');
         onSave?.(updatedBook);
@@ -678,199 +639,28 @@ export default function BookEditModal({
                     </label>
                   </div>
 
-                  {/* AI服务开关 */}
+                  {/* AI服务管理已迁移到全局设置 */}
                   <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
                     padding: '16px',
-                    borderBottom: formData.aiEnabled && aiServices.length > 0 ? '1px solid var(--border-color)' : 'none'
+                    textAlign: 'center',
+                    color: 'var(--text-secondary)',
+                    backgroundColor: 'var(--muted, rgb(243, 244, 246))',
+                    borderRadius: '8px'
                   }}>
-                    <div>
-                      <div style={{
-                        fontSize: '16px',
-                        fontWeight: '500',
-                        color: 'var(--text-color)',
-                        marginBottom: '2px'
-                      }}>启用AI服务</div>
-                      <div style={{
-                        fontSize: '14px',
-                        color: 'var(--text-secondary)'
-                      }}>使用AI智能分析和建议</div>
+                    <i className="fas fa-info-circle" style={{
+                      fontSize: '20px',
+                      marginBottom: '8px',
+                      display: 'block'
+                    }}></i>
+                    <div style={{ fontSize: '14px', marginBottom: '4px' }}>
+                      AI服务管理已迁移到全局设置
                     </div>
-                    <label style={{
-                      position: 'relative',
-                      display: 'inline-block',
-                      width: '44px',
-                      height: '24px'
-                    }}>
-                      <input
-                        type="checkbox"
-                        checked={formData.aiEnabled}
-                        onChange={(e) => handleChange('aiEnabled', e.target.checked)}
-                        disabled={isSubmitting}
-                        style={{
-                          opacity: 0,
-                          width: 0,
-                          height: 0
-                        }}
-                      />
-                      <span style={{
-                        position: 'absolute',
-                        cursor: 'pointer',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: formData.aiEnabled ? 'var(--primary-color)' : 'var(--border-color)',
-                        transition: '0.3s',
-                        borderRadius: '24px'
-                      }}>
-                        <span style={{
-                          position: 'absolute',
-                          content: '""',
-                          height: '18px',
-                          width: '18px',
-                          left: formData.aiEnabled ? '23px' : '3px',
-                          bottom: '3px',
-                          backgroundColor: 'white',
-                          transition: '0.3s',
-                          borderRadius: '50%'
-                        }}></span>
-                      </span>
-                    </label>
+                    <div style={{ fontSize: '12px' }}>
+                      请前往"设置 > AI服务管理"进行配置
+                    </div>
                   </div>
 
-                  {/* AI服务选择器 - 仅在启用AI服务且有可用服务时显示 */}
-                  {formData.aiEnabled && aiServices.length > 0 && (
-                    <div style={{ padding: '16px' }}>
-                      <div style={{
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        color: 'var(--text-secondary)',
-                        marginBottom: '12px'
-                      }}>选择AI服务</div>
-
-                      {isLoadingServices ? (
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: '20px',
-                          color: 'var(--text-secondary)'
-                        }}>
-                          <div style={{
-                            width: '20px',
-                            height: '20px',
-                            border: '2px solid var(--border-color)',
-                            borderTop: '2px solid var(--primary-color)',
-                            borderRadius: '50%',
-                            animation: 'spin 1s linear infinite',
-                            marginRight: '8px'
-                          }}></div>
-                          加载中...
-                        </div>
-                      ) : (
-                        <div style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '8px'
-                        }}>
-                          {/* 不使用AI服务选项 */}
-                          <div
-                            onClick={() => setSelectedServiceId(null)}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              padding: '12px',
-                              backgroundColor: !selectedServiceId ? 'rgba(var(--primary-rgb), 0.1)' : 'var(--background-color)',
-                              border: !selectedServiceId ? '1px solid var(--primary-color)' : '1px solid var(--border-color)',
-                              borderRadius: '8px',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s ease'
-                            }}
-                          >
-                            <div>
-                              <div style={{
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                color: 'var(--text-color)'
-                              }}>不绑定AI服务</div>
-                              <div style={{
-                                fontSize: '12px',
-                                color: 'var(--text-secondary)'
-                              }}>使用系统默认AI功能</div>
-                            </div>
-                            {!selectedServiceId && (
-                              <i className="fas fa-check" style={{
-                                color: 'var(--primary-color)',
-                                fontSize: '14px'
-                              }}></i>
-                            )}
-                          </div>
-
-                          {/* AI服务列表 */}
-                          {aiServices.map((service) => (
-                            <div
-                              key={service.id}
-                              onClick={() => setSelectedServiceId(service.id)}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                padding: '12px',
-                                backgroundColor: selectedServiceId === service.id ? 'rgba(var(--primary-rgb), 0.1)' : 'var(--background-color)',
-                                border: selectedServiceId === service.id ? '1px solid var(--primary-color)' : '1px solid var(--border-color)',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease'
-                              }}
-                            >
-                              <div>
-                                <div style={{
-                                  fontSize: '14px',
-                                  fontWeight: '500',
-                                  color: 'var(--text-color)'
-                                }}>{service.name}</div>
-                                <div style={{
-                                  fontSize: '12px',
-                                  color: 'var(--text-secondary)'
-                                }}>{service.provider} - {service.model}</div>
-                              </div>
-                              {selectedServiceId === service.id && (
-                                <i className="fas fa-check" style={{
-                                  color: 'var(--primary-color)',
-                                  fontSize: '14px'
-                                }}></i>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* 无AI服务提示 */}
-                  {formData.aiEnabled && aiServices.length === 0 && !isLoadingServices && (
-                    <div style={{
-                      padding: '16px',
-                      textAlign: 'center',
-                      color: 'var(--text-secondary)'
-                    }}>
-                      <i className="fas fa-info-circle" style={{
-                        fontSize: '24px',
-                        marginBottom: '8px',
-                        display: 'block'
-                      }}></i>
-                      <div style={{ fontSize: '14px', marginBottom: '8px' }}>
-                        暂无可用的AI服务
-                      </div>
-                      <div style={{ fontSize: '12px' }}>
-                        请先在设置中配置AI服务
-                      </div>
-                    </div>
-                  )}
+                  {/* AI服务选择器已移除，现在由全局AI服务管理 */}
                 </div>
               </div>
             </div>

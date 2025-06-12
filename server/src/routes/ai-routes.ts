@@ -69,18 +69,25 @@ router.post('/llm-settings', authenticate, aiController.createUserLLMSettings.bi
 router.get('/llm-settings/:id', authenticate, aiController.getUserLLMSettingsById.bind(aiController));
 
 /**
- * @route GET /ai/account/:accountId/llm-settings
+ * @route GET /api/ai/account/:accountId/llm-settings
  * @desc 获取账本LLM设置
  * @access Private
  */
 router.get('/account/:accountId/llm-settings', authenticate, aiController.getAccountLLMSettings.bind(aiController));
 
 /**
- * @route PUT /ai/account/:accountId/llm-settings
+ * @route PUT /api/ai/account/:accountId/llm-settings
  * @desc 更新账本LLM设置 - 绑定到用户的LLM设置
  * @access Private
  */
 router.put('/account/:accountId/llm-settings', authenticate, aiController.updateAccountLLMSettings.bind(aiController));
+
+/**
+ * @route GET /api/ai/account/:accountId/active-service
+ * @desc 获取账本当前激活的AI服务详情
+ * @access Private
+ */
+router.get('/account/:accountId/active-service', authenticate, aiController.getAccountActiveAIService.bind(aiController));
 
 /**
  * @route PUT /api/ai/llm-settings/:id
@@ -97,7 +104,7 @@ router.put('/llm-settings/:id', authenticate, aiController.updateUserLLMSettings
 router.delete('/llm-settings/:id', authenticate, aiController.deleteUserLLMSettings.bind(aiController));
 
 /**
- * @route POST /ai/llm-settings/test
+ * @route POST /api/ai/llm-settings/test
  * @desc 测试LLM连接
  * @access Private
  */

@@ -32,19 +32,19 @@ export const useAIServicesStore = create<AIServicesState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      console.log('正在获取AI服务列表...');
+      console.log('🔄 正在获取AI服务列表...');
       const data = await aiService.getLLMSettingsList();
-      console.log('获取到的AI服务列表:', data);
+      console.log('🔄 获取到的AI服务列表:', data);
 
       // 确保返回的数据是数组
       if (Array.isArray(data)) {
-        console.log(`成功获取到 ${data.length} 个AI服务`);
+        console.log(`🔄 成功获取到 ${data.length} 个AI服务`);
         set({
           services: data,
           isLoading: false,
         });
       } else {
-        console.warn('API返回的数据不是数组:', data);
+        console.warn('🔄 API返回的数据不是数组:', data);
         set({
           services: [],
           isLoading: false,
@@ -53,7 +53,7 @@ export const useAIServicesStore = create<AIServicesState>((set, get) => ({
         toast.error('数据格式错误');
       }
     } catch (error) {
-      console.error('获取AI服务列表失败:', error);
+      console.error('🔄 获取AI服务列表失败:', error);
       set({
         isLoading: false,
         error: error instanceof Error ? error.message : '获取AI服务列表失败',

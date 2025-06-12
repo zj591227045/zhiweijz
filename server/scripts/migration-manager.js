@@ -23,17 +23,18 @@ const logger = {
  */
 const MIGRATIONS_CONFIG = {
   // 当前最新版本
-  LATEST_VERSION: '1.2.0',
+  LATEST_VERSION: '1.2.1',
   
   // 迁移文件目录
   MIGRATIONS_DIR: path.join(__dirname, '../migrations/incremental'),
   
   // 版本升级路径
   UPGRADE_PATHS: {
-    '1.0.0': ['1.0.0-to-1.1.0', '1.1.0-to-1.2.0'],
-    '1.1.0': ['1.1.0-to-1.2.0'],
-    '1.2.0': [], // 当前最新版本
-    'fresh_install': ['base-schema', 'admin-features', '1.1.0-to-1.2.0']
+    '1.0.0': ['1.0.0-to-1.1.0', '1.1.0-to-1.2.0', 'add-service-type-to-llm-call-logs'],
+    '1.1.0': ['1.1.0-to-1.2.0', 'add-service-type-to-llm-call-logs'],
+    '1.2.0': ['add-service-type-to-llm-call-logs'],
+    '1.2.1': [], // 当前最新版本
+    'fresh_install': ['base-schema', 'admin-features', '1.1.0-to-1.2.0', 'add-service-type-to-llm-call-logs']
   }
 };
 
@@ -129,12 +130,8 @@ async function executeMigration(migrationName) {
   // 解析SQL文件中的元数据
   const metadata = parseMigrationMetadata(sql);
   
-  // 分割SQL语句
-  const statements = sql
-    .replace(/^--.*$/gm, '') // 移除注释
-    .split(/;\s*$/m)
-    .map(stmt => stmt.trim())
-    .filter(stmt => stmt.length > 0 && !stmt.startsWith('/*META'));
+  // 分割SQL语句 - 支持PostgreSQL的DO $$块
+  const statements = parsePostgreSQLStatements(sql);
   
   logger.info(`执行 ${statements.length} 个SQL语句...`);
   
@@ -160,6 +157,60 @@ async function executeMigration(migrationName) {
   await recordMigration(migrationName, metadata);
   
   logger.success(`迁移 ${migrationName} 执行完成`);
+}
+
+/**
+ * 解析PostgreSQL语句，正确处理DO $$块
+ */
+function parsePostgreSQLStatements(sql) {
+  // 移除META注释块
+  sql = sql.replace(/\/\*META[\s\S]*?\*\//, '');
+  
+  // 移除单行注释
+  sql = sql.replace(/^--.*$/gm, '');
+  
+  // 简化的语句分割：按分号分割，然后重新组合特殊块
+  const rawStatements = sql.split(';').map(s => s.trim()).filter(s => s.length > 0);
+  const statements = [];
+  let current = '';
+  let inSpecialBlock = false;
+  
+  for (let i = 0; i < rawStatements.length; i++) {
+    const stmt = rawStatements[i];
+    
+    if (current) {
+      current += '; ' + stmt;
+    } else {
+      current = stmt;
+    }
+    
+    // 检查是否进入特殊块（DO $$块或函数定义）
+    if (stmt.includes('DO $$') || stmt.includes('CREATE OR REPLACE FUNCTION') || stmt.includes('RETURNS TRIGGER AS $$')) {
+      inSpecialBlock = true;
+      continue;
+    }
+    
+    // 检查是否退出特殊块
+    if (inSpecialBlock && (stmt.includes('END $$') || stmt.includes("$$ language"))) {
+      inSpecialBlock = false;
+      statements.push(current + ';');
+      current = '';
+      continue;
+    }
+    
+    // 如果不在特殊块中，每个分号结束一个语句
+    if (!inSpecialBlock) {
+      statements.push(current + ';');
+      current = '';
+    }
+  }
+  
+  // 添加最后一个语句（如果有）
+  if (current.trim()) {
+    statements.push(current + ';');
+  }
+  
+  return statements.filter(stmt => stmt.trim().length > 0);
 }
 
 /**

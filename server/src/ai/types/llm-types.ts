@@ -44,4 +44,28 @@ export interface Message {
   name?: string;
 }
 
+/**
+ * Token使用量信息
+ */
+export interface TokenUsage {
+  /** 提示tokens数量 */
+  prompt_tokens: number;
+  /** 完成tokens数量 */
+  completion_tokens: number;
+  /** 总tokens数量 */
+  total_tokens: number;
+  /** 思考tokens数量（可选，某些模型支持） */
+  reasoning_tokens?: number;
+}
+
+/**
+ * LLM响应结果
+ */
+export interface LLMResponse {
+  /** 生成的内容 */
+  content: string;
+  /** Token使用量信息 */
+  usage?: TokenUsage;
+}
+
 // WorkflowConfig 已移动到 workflow-types.ts 中

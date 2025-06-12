@@ -348,7 +348,7 @@ export default function ServerSettings({ onClose, onSave }: ServerSettingsProps)
               • <strong>自定义服务器</strong>：适合企业内部部署或个人服务器
             </div>
             <div>
-              • <strong>地址格式</strong>：支持 HTTP/HTTPS，可包含端口号
+              • <strong>地址格式</strong>：安全考虑仅支持HTTPS，可包含端口号
             </div>
             <div>
               • <strong>配置保存</strong>：设置会保存在本地，重新安装应用后需重新配置

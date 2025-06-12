@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { ADMIN_API_ENDPOINTS, adminApi } from '@/lib/admin-api-config';
 
 interface AdminInfo {
   id: string;
@@ -36,13 +37,7 @@ export const useAdminAuth = create<AdminAuthState>()(
         set({ isLoading: true, error: null });
         
         try {
-          const response = await fetch('/api/admin/auth/login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password }),
-          });
+          const response = await adminApi.post(ADMIN_API_ENDPOINTS.LOGIN, { username, password });
 
           const data = await response.json();
 
@@ -91,11 +86,7 @@ export const useAdminAuth = create<AdminAuthState>()(
         }
 
         try {
-          const response = await fetch('/api/admin/auth/check', {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          });
+          const response = await adminApi.get(ADMIN_API_ENDPOINTS.CHECK_AUTH, token);
 
           const data = await response.json();
 

@@ -529,6 +529,7 @@ model LlmCallLog {
   accountBookName  String?      @map("account_book_name") @db.VarChar(200)
   provider         String       @db.VarChar(50)
   model            String       @db.VarChar(100)
+  serviceType      String       @default("official") @map("service_type") @db.VarChar(20)
   promptTokens     Int          @default(0) @map("prompt_tokens")
   completionTokens Int          @default(0) @map("completion_tokens")
   totalTokens      Int          @default(0) @map("total_tokens")
@@ -547,6 +548,8 @@ model LlmCallLog {
   @@index([provider, model, createdAt(sort: Desc)], map: "idx_llm_call_logs_provider_model")
   @@index([isSuccess, createdAt(sort: Desc)], map: "idx_llm_call_logs_success")
   @@index([userId, createdAt(sort: Desc)], map: "idx_llm_call_logs_user_time")
+  @@index([serviceType, createdAt(sort: Desc)], map: "idx_llm_call_logs_service_type")
+  @@index([userId, serviceType, createdAt(sort: Desc)], map: "idx_llm_call_logs_user_service_type")
   @@map("llm_call_logs")
 }
 

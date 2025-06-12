@@ -1,5 +1,4 @@
 import { LLMProviderService } from '../llm/llm-provider-service';
-import { SystemMessage, HumanMessage } from '@langchain/core/messages';
 import { SMART_ACCOUNTING_SYSTEM_PROMPT, SMART_ACCOUNTING_USER_PROMPT } from '../prompts/accounting-prompts';
 import { SmartAccountingState } from '../types/accounting-types';
 import { SmartAccountingResponse } from '../../types/smart-accounting';
@@ -226,9 +225,6 @@ export class SmartAccounting {
    */
   private async analyzeTransactionHandler(state: SmartAccountingState) {
     try {
-      // 获取LLM设置
-      const llmSettings = await this.llmProviderService.getLLMSettings(state.userId, state.accountId, state.accountType);
-      const provider = this.llmProviderService.getProvider(llmSettings.provider);
 
       // 第一步：判断请求内容是否与记账相关
       const relevanceCheckPrompt = `
@@ -248,10 +244,10 @@ export class SmartAccounting {
 用户描述: ${state.description}
 `;
 
-      const relevanceResponse = await provider.generateChat([
-        new SystemMessage('你是一个专业的财务助手，负责判断用户描述是否与记账相关。'),
-        new HumanMessage(relevanceCheckPrompt)
-      ], llmSettings);
+      const relevanceResponse = await this.llmProviderService.generateChat([
+        { role: 'system', content: '你是一个专业的财务助手，负责判断用户描述是否与记账相关。' },
+        { role: 'user', content: relevanceCheckPrompt }
+      ], state.userId, state.accountId, state.accountType);
 
       const relevanceResult = relevanceResponse.trim();
 
@@ -292,10 +288,10 @@ export class SmartAccounting {
         .replace('{{currentDate}}', currentDate);
 
       // 调用LLM
-      const response = await provider.generateChat([
-        new SystemMessage(systemPrompt),
-        new HumanMessage(userPrompt)
-      ], llmSettings);
+      const response = await this.llmProviderService.generateChat([
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ], state.userId, state.accountId, state.accountType);
 
       // 解析响应
       const jsonMatch = response.match(/\{[\s\S]*\}/);

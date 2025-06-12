@@ -5,9 +5,14 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { PageContainer } from '@/components/layout/page-container';
-import { useAuthStore } from '@/store/auth-store';
+
 import { useAIServicesStore } from '@/store/ai-services-store';
-import AiServiceEditModal from '@/components/ai-service-edit-modal';
+import { useGlobalAIStore } from '@/store/global-ai-store';
+import { useAuthStore } from '@/store/auth-store';
+import { useAccountBookStore } from '@/store/account-book-store';
+  import AiServiceEditModal from '@/components/ai-service-edit-modal';
+  import { CurrentAIService } from '@/components/ai-services/current-ai-service';
+  import { AIServiceWizard } from '@/components/ai-services/ai-service-wizard';
 import styles from './ai-services.module.css';
 
 interface AIService {
@@ -21,34 +26,29 @@ interface AIService {
 
 export default function AIServicesPage() {
   const router = useRouter();
-  const { isAuthenticated, login } = useAuthStore();
   const { services, isLoading, error, fetchServices, deleteService } = useAIServicesStore();
+
+  // 获取认证状态和账本状态
+  const { isAuthenticated } = useAuthStore();
+  const { currentAccountBook } = useAccountBookStore();
 
   // 模态框状态
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingServiceId, setEditingServiceId] = useState<string>('');
 
-  // 快速登录功能
-  const quickLogin = async () => {
-    await login({
-      email: 'zhangjie@jacksonz.cn',
-      password: 'Zj233401!',
-    });
-    // 登录后立即获取服务列表
-    setTimeout(fetchServices, 500);
-  };
+  // 向导状态
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
 
-  // 监听认证状态变化
-  useEffect(() => {
-    console.log('认证状态变化:', isAuthenticated);
-  }, [isAuthenticated]);
+  // 从全局AI store获取当前配置
+  const { activeServiceError } = useGlobalAIStore();
 
-  // 加载AI服务列表
+  // 加载AI服务列表和当前账本激活服务
   useEffect(() => {
     if (isAuthenticated) {
+      console.log('🔄 页面加载，开始获取AI服务列表');
       fetchServices();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, fetchServices]);
 
   // 删除AI服务
   const handleDelete = async (id: string) => {
@@ -77,7 +77,25 @@ export default function AIServicesPage() {
 
   // 保存成功回调
   const handleSaveSuccess = () => {
+    console.log('🔄 AI服务保存成功，开始刷新列表');
     fetchServices(); // 刷新列表
+  };
+
+  // 打开向导
+  const handleOpenWizard = () => {
+    setIsWizardOpen(true);
+  };
+
+  // 关闭向导
+  const handleCloseWizard = () => {
+    setIsWizardOpen(false);
+  };
+
+  // 向导完成回调
+  const handleWizardComplete = () => {
+    console.log('🔄 AI服务配置完成，刷新页面');
+    // 可以在这里刷新相关数据
+    fetchServices();
   };
 
   // 右侧操作按钮
@@ -100,22 +118,55 @@ export default function AIServicesPage() {
     </div>
   );
 
+  // 如果用户未认证，显示提示信息
   if (!isAuthenticated) {
     return (
-      <div className={styles.loginContainer}>
-        <div className={styles.loginCard}>
-          <h2>需要登录</h2>
-          <p>请登录后查看AI服务设置</p>
-          <button onClick={quickLogin} className={styles.loginButton}>
-            快速登录 (测试账号)
-          </button>
-          <div className={styles.loginInfo}>
-            <p>使用测试账号：</p>
-            <p>邮箱：zhangjie@jacksonz.cn</p>
-            <p>密码：Zj233401!</p>
-          </div>
+      <PageContainer
+        title="AI服务管理"
+        showBackButton={true}
+        activeNavItem="profile"
+      >
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '40px 20px',
+          textAlign: 'center'
+        }}>
+          <i className="fas fa-lock" style={{
+            fontSize: '48px',
+            color: 'var(--text-secondary)',
+            marginBottom: '16px'
+          }}></i>
+          <h3 style={{
+            fontSize: '18px',
+            fontWeight: '600',
+            color: 'var(--text-primary)',
+            marginBottom: '8px'
+          }}>
+            需要登录
+          </h3>
+          <p style={{
+            fontSize: '14px',
+            color: 'var(--text-secondary)',
+            marginBottom: '24px'
+          }}>
+            请先登录以访问AI服务管理功能
+          </p>
+          <Link href="/auth/login" style={{
+            padding: '12px 24px',
+            backgroundColor: 'var(--primary-color)',
+            color: 'white',
+            textDecoration: 'none',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            前往登录
+          </Link>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -126,77 +177,314 @@ export default function AIServicesPage() {
       showBackButton={true}
       activeNavItem="profile"
     >
-      {isLoading ? (
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingSpinner}></div>
-          <p>加载中...</p>
-        </div>
-      ) : error ? (
-        <div className={styles.errorState}>
-          <div className={styles.errorIcon}>
-            <i className="fas fa-exclamation-triangle"></i>
-          </div>
-          <h3>加载失败</h3>
-          <p>{error}</p>
-          <button onClick={fetchServices} className={styles.retryButton}>
-            重试
-          </button>
-        </div>
-      ) : services.length === 0 ? (
-        <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>
-            <i className="fas fa-robot"></i>
-          </div>
-          <h3>暂无AI服务</h3>
-          <p>点击右上角添加按钮创建新的AI服务</p>
-          <button onClick={handleAdd} className={styles.addServiceButton}>
-            添加AI服务
-          </button>
-        </div>
-      ) : (
-        <div className={styles.aiServicesList}>
-          {services.map((service) => (
-            <div key={service.id} className={styles.aiServiceItem}>
-              <div className={styles.serviceInfo}>
-                <div className={styles.serviceName}>{service.name}</div>
-                <div className={styles.serviceDetails}>
-                  <span className={styles.serviceProvider}>
-                    {service.provider === 'openai'
-                      ? 'OpenAI'
-                      : service.provider === 'siliconflow'
-                        ? '硅基流动'
-                        : service.provider === 'deepseek'
-                          ? 'Deepseek'
-                          : service.provider}
-                  </span>
-                  <span className={styles.serviceModel}>{service.model}</span>
-                </div>
-                {service.description && (
-                  <div className={styles.serviceDescription}>{service.description}</div>
-                )}
-              </div>
-              <div className={styles.serviceActions}>
-                <button
-                  onClick={() => handleEdit(service.id)}
-                  className={styles.editButton}
-                >
-                  <i className="fas fa-edit"></i>
-                </button>
-                <button className={styles.deleteButton} onClick={() => handleDelete(service.id)}>
-                  <i className="fas fa-trash-alt"></i>
-                </button>
-              </div>
-            </div>
-          ))}
+      {/* 权限错误提示 */}
+      {activeServiceError?.includes('权限') && (
+        <div style={{
+          padding: '12px',
+          backgroundColor: 'rgba(255, 152, 0, 0.1)',
+          borderLeft: '4px solid rgba(255, 152, 0, 0.6)',
+          borderRadius: '4px',
+          marginBottom: '16px',
+          fontSize: '14px',
+          color: 'var(--text-primary)'
+        }}>
+          <strong>权限提示: </strong>
+          {activeServiceError}，部分功能可能受限。
         </div>
       )}
 
-      {/* AI服务编辑模态框 */}
+
+
+      {/* 当前AI服务状态 */}
+      <CurrentAIService onOpenWizard={handleOpenWizard} />
+
+      {/* 自定义服务管理 */}
+      <div style={{
+        backgroundColor: 'var(--card-background, white)',
+        borderRadius: '12px',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+        marginBottom: '16px',
+        overflow: 'hidden'
+      }}>
+        {/* 头部 */}
+        <div style={{
+          padding: '20px 24px 16px 24px',
+          borderBottom: '1px solid var(--border-color, #e5e7eb)'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <div>
+              <h3 style={{
+                fontSize: '18px',
+                fontWeight: '600',
+                color: 'var(--text-primary, rgb(31, 41, 55))',
+                margin: '0 0 4px 0'
+              }}>
+                自定义AI服务
+              </h3>
+              <p style={{
+                fontSize: '14px',
+                color: 'var(--text-secondary, rgb(107, 114, 128))',
+                margin: 0
+              }}>
+                管理您的自定义AI服务配置
+              </p>
+            </div>
+            <button
+              onClick={handleAdd}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: 'var(--primary-color, rgb(59, 130, 246))',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <i className="fas fa-plus"></i>
+              添加服务
+            </button>
+          </div>
+        </div>
+
+        {/* 服务列表 */}
+        <div style={{ padding: '16px 24px 24px 24px' }}>
+          {isLoading ? (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '40px 20px'
+            }}>
+              <div style={{
+                width: '20px',
+                height: '20px',
+                border: '2px solid rgba(0, 0, 0, 0.1)',
+                borderRadius: '50%',
+                borderTopColor: 'var(--primary-color)',
+                animation: 'spin 1s linear infinite',
+                marginRight: '12px'
+              }}></div>
+              <span style={{
+                fontSize: '14px',
+                color: 'var(--text-secondary)'
+              }}>
+                加载中...
+              </span>
+            </div>
+          ) : error ? (
+            <div style={{
+              padding: '40px 20px',
+              textAlign: 'center'
+            }}>
+              <i className="fas fa-exclamation-triangle" style={{
+                fontSize: '32px',
+                color: 'rgb(239, 68, 68)',
+                marginBottom: '12px'
+              }}></i>
+              <p style={{
+                fontSize: '16px',
+                fontWeight: '500',
+                color: 'rgb(239, 68, 68)',
+                margin: '0 0 8px 0'
+              }}>
+                加载失败
+              </p>
+              <p style={{
+                fontSize: '14px',
+                color: 'var(--text-secondary)',
+                margin: '0 0 20px 0'
+              }}>
+                {error}
+              </p>
+              <button
+                onClick={() => fetchServices()}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'var(--primary-color)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                重试
+              </button>
+            </div>
+          ) : services.length === 0 ? (
+            <div style={{
+              padding: '40px 20px',
+              textAlign: 'center'
+            }}>
+              <i className="fas fa-robot" style={{
+                fontSize: '32px',
+                color: 'var(--text-secondary)',
+                marginBottom: '12px'
+              }}></i>
+              <p style={{
+                fontSize: '16px',
+                fontWeight: '500',
+                color: 'var(--text-primary)',
+                margin: '0 0 8px 0'
+              }}>
+                暂无自定义服务
+              </p>
+              <p style={{
+                fontSize: '14px',
+                color: 'var(--text-secondary)',
+                margin: '0 0 20px 0'
+              }}>
+                您可以添加自己的AI服务配置，如OpenAI、Claude等
+              </p>
+              <button
+                onClick={handleAdd}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: 'var(--primary-color)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  margin: '0 auto'
+                }}
+              >
+                <i className="fas fa-plus"></i>
+                添加第一个服务
+              </button>
+            </div>
+          ) : (
+            <div style={{
+              display: 'grid',
+              gap: '12px'
+            }}>
+              {services.map((service) => (
+                <div
+                  key={service.id}
+                  style={{
+                    padding: '16px',
+                    border: '1px solid var(--border-color, #e5e7eb)',
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--card-background, white)',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    justifyContent: 'space-between',
+                    gap: '16px'
+                  }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: '4px'
+                      }}>
+                        <h4 style={{
+                          fontSize: '16px',
+                          fontWeight: '600',
+                          color: 'var(--text-primary)',
+                          margin: 0
+                        }}>
+                          {service.name}
+                        </h4>
+                      </div>
+                      <p style={{
+                        fontSize: '14px',
+                        color: 'var(--text-secondary)',
+                        margin: '0 0 8px 0'
+                      }}>
+                        {service.provider} · {service.model}
+                      </p>
+                      {service.description && (
+                        <p style={{
+                          fontSize: '13px',
+                          color: 'var(--text-secondary)',
+                          margin: 0
+                        }}>
+                          {service.description}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <button
+                        onClick={() => handleEdit(service.id)}
+                        style={{
+                          padding: '6px 12px',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '6px',
+                          backgroundColor: 'transparent',
+                          color: 'var(--text-secondary)',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                        title="编辑"
+                      >
+                        <i className="fas fa-edit"></i>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(service.id)}
+                        style={{
+                          padding: '6px 12px',
+                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                          borderRadius: '6px',
+                          backgroundColor: 'transparent',
+                          color: 'rgb(239, 68, 68)',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                        title="删除"
+                      >
+                        <i className="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 编辑模态框 */}
       <AiServiceEditModal
         isOpen={isEditModalOpen}
         onClose={handleCloseModal}
         serviceId={editingServiceId}
         onSave={handleSaveSuccess}
+      />
+
+      {/* AI服务设置向导 */}
+      <AIServiceWizard
+        isOpen={isWizardOpen}
+        onClose={handleCloseWizard}
+        onComplete={handleWizardComplete}
       />
     </PageContainer>
   );

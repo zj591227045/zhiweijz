@@ -66,7 +66,7 @@ export const aiService = {
     maxTokens?: number;
   }> {
     try {
-      console.log('发送获取全局LLM配置请求: /api/ai/global-llm-config');
+      console.log('发送获取全局LLM配置请求: /ai/global-llm-config');
       const response = await apiClient.get<{
         success: boolean;
         data: {
@@ -77,7 +77,7 @@ export const aiService = {
           temperature?: number;
           maxTokens?: number;
         };
-      }>('/api/ai/global-llm-config');
+      }>('/ai/global-llm-config');
       console.log('全局LLM配置响应数据:', response);
       return response.data;
     } catch (error) {
@@ -95,35 +95,35 @@ export const aiService = {
         url += `?accountBookId=${accountBookId}`;
       }
 
-      console.log('发送获取LLM设置列表请求:', url);
-      console.log('认证令牌:', localStorage.getItem('auth-token'));
+      console.log('🔄 发送获取LLM设置列表请求:', url);
+      console.log('🔄 认证令牌:', localStorage.getItem('auth-token') ? '存在' : '不存在');
 
       // 确保请求头中包含认证令牌
       const token = localStorage.getItem('auth-token');
       if (!token) {
-        console.warn('未找到认证令牌，请先登录');
+        console.warn('🔄 未找到认证令牌，请先登录');
         throw new Error('未找到认证令牌，请先登录');
       }
 
       // 发送请求
       const response = await apiClient.get<any>(url);
-      console.log('LLM设置列表响应数据:', response);
+      console.log('🔄 LLM设置列表响应数据:', response);
 
       // 处理响应数据
       if (Array.isArray(response)) {
-        console.log(`成功获取到 ${response.length} 个LLM设置`);
+        console.log(`🔄 成功获取到 ${response.length} 个LLM设置`);
         return response;
       } else if (response && typeof response === 'object') {
         // 尝试处理可能的包装响应
         if ('data' in response && Array.isArray(response.data)) {
-          console.log(`成功获取到 ${response.data.length} 个LLM设置（从data字段）`);
+          console.log(`🔄 成功获取到 ${response.data.length} 个LLM设置（从data字段）`);
           return response.data;
         } else {
-          console.warn('响应数据不是数组，也没有data数组字段:', response);
+          console.warn('🔄 响应数据不是数组，也没有data数组字段:', response);
           return [];
         }
       } else {
-        console.warn('响应数据格式不正确:', response);
+        console.warn('🔄 响应数据格式不正确:', response);
         return [];
       }
     } catch (error) {
@@ -147,8 +147,8 @@ export const aiService = {
    */
   async getCurrentLLMSettings(): Promise<LLMSetting> {
     try {
-      console.log('发送获取当前LLM设置请求: /api/ai/llm-settings');
-      const response = await apiClient.get<LLMSetting>('/api/ai/llm-settings');
+      console.log('发送获取当前LLM设置请求: /ai/llm-settings');
+      const response = await apiClient.get<LLMSetting>('/ai/llm-settings');
       console.log('当前LLM设置响应数据:', response);
       return response;
     } catch (error) {
@@ -174,11 +174,11 @@ export const aiService = {
    */
   async createLLMSettings(data: CreateLLMSettingDto): Promise<{ success: boolean; id: string }> {
     try {
-      console.log('发送创建LLM设置请求: /api/ai/llm-settings', data);
+      console.log('发送创建LLM设置请求: /ai/llm-settings', data);
 
       try {
         const response = await apiClient.post<{ success: boolean; id: string }>(
-          '/api/ai/llm-settings',
+          '/ai/llm-settings',
           data,
         );
         console.log('创建LLM设置响应数据:', response);
@@ -254,7 +254,7 @@ export const aiService = {
           apiKey: updateData.apiKey ? '******' : undefined,
         });
 
-        const fetchResponse = await fetchApi(`/api${requestUrl}`, {
+        const fetchResponse = await fetchApi(requestUrl, {
           method: 'PUT',
           body: JSON.stringify(updateData),
         });
@@ -302,7 +302,7 @@ export const aiService = {
    */
   async deleteLLMSettings(id: string): Promise<{ success: boolean }> {
     try {
-      console.log(`发送删除LLM设置请求: /ai/llm-settings/${id}`);
+      console.log(`🔄 发送删除LLM设置请求: /ai/llm-settings/${id}`);
 
       try {
         const response = await apiClient.delete<{ success: boolean }>(`/ai/llm-settings/${id}`);
@@ -340,7 +340,7 @@ export const aiService = {
       // 检查是否使用现有API密钥
       const isUsingExisting = data.apiKey === 'USE_EXISTING';
 
-      console.log('发送测试LLM连接请求: /ai/llm-settings/test', {
+      console.log('🔄 发送测试LLM连接请求: /ai/llm-settings/test', {
         ...data,
         apiKey: '******', // 隐藏API密钥
         usingExistingKey: isUsingExisting,
@@ -382,7 +382,7 @@ export const aiService = {
       console.log(`发送获取账本LLM设置请求，账本ID: ${accountId}`);
 
       // 使用API路径获取LLM设置
-      console.log(`使用API路径: /ai/account/${accountId}/llm-settings`);
+      console.log(`🔄 使用API路径: /ai/account/${accountId}/llm-settings`);
 
       try {
         const response = await apiClient.get<any>(`/ai/account/${accountId}/llm-settings`);
@@ -445,7 +445,7 @@ export const aiService = {
       // 尝试使用不同的API路径
       try {
         // 首先尝试 /ai/account/:accountId/llm-settings 路径
-        console.log(`尝试路径: /ai/account/${accountId}/llm-settings`);
+        console.log(`🔄 尝试路径: /ai/account/${accountId}/llm-settings`);
         const response = await apiClient.put<{ success: boolean }>(
           `/ai/account/${accountId}/llm-settings`,
           {
@@ -464,13 +464,13 @@ export const aiService = {
           return { success: true };
         }
       } catch (error1) {
-        console.warn(`尝试路径 /ai/account/${accountId}/llm-settings 失败:`, error1);
+        console.warn(`🔄 尝试路径 /ai/account/${accountId}/llm-settings 失败:`, error1);
 
-        // 如果第一个路径失败，尝试 /account-books/:id/llm-settings 路径
+        // 如果第一个路径失败，尝试 /ai/account-books/:id/llm-settings 路径
         try {
-          console.log(`尝试备用路径: /account-books/${accountId}/llm-settings`);
+          console.log(`🔄 尝试备用路径: /ai/account-books/${accountId}/llm-settings`);
           const response = await apiClient.put<{ success: boolean }>(
-            `/account-books/${accountId}/llm-settings`,
+            `/ai/account-books/${accountId}/llm-settings`,
             {
               userLLMSettingId,
             },
@@ -490,12 +490,12 @@ export const aiService = {
 
           // 如果两个路径都失败，尝试使用原生fetch API
           try {
-            console.log(`尝试使用fetch API: /api/ai/account/${accountId}/llm-settings`);
+            console.log(`尝试使用fetch API: /ai/account/${accountId}/llm-settings`);
 
             // 获取token
             const token = localStorage.getItem('auth-token');
 
-            const fetchResponse = await fetchApi(`/api/ai/account/${accountId}/llm-settings`, {
+            const fetchResponse = await fetchApi(`/ai/account/${accountId}/llm-settings`, {
               method: 'PUT',
               body: JSON.stringify({ userLLMSettingId }),
             });
@@ -537,7 +537,7 @@ export const aiService = {
    */
   async getAvailableProviders(): Promise<string[]> {
     try {
-      console.log('发送获取可用LLM提供商请求: /api/ai/providers');
+      console.log('发送获取可用LLM提供商请求: /ai/providers');
 
       try {
         const response = await apiClient.get<string[]>('/ai/providers');
@@ -560,7 +560,7 @@ export const aiService = {
    */
   async getAccountBooks(): Promise<AccountBook[]> {
     try {
-      console.log('发送获取账本列表请求: /api/account-books');
+      console.log('发送获取账本列表请求: /account-books');
 
       try {
         const response = await apiClient.get<{

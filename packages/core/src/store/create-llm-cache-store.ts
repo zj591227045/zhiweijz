@@ -65,7 +65,7 @@ export const createLLMCacheStore = () => {
         
         console.log(`发起LLM设置API请求，账本ID: ${accountBookId}`);
         
-        const llmSettings = await apiClient.get(`/ai/account/${accountBookId}/llm-settings`);
+        const llmSettings = await apiClient.get(`/api/ai/account/${accountBookId}/llm-settings`);
         console.log(`获取到LLM设置并缓存，账本ID: ${accountBookId}`, llmSettings);
         
         // 缓存结果

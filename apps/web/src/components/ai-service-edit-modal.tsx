@@ -216,7 +216,7 @@ export default function AiServiceEditModal({
       });
 
       // 使用项目的fetchApi函数，它会自动处理动态API URL和认证
-      const response = await fetchApi('/ai/llm-settings/test', {
+      const response = await fetchApi('/api/ai/llm-settings/test', {
         method: 'POST',
         body: JSON.stringify({
           provider: formData.provider,
@@ -311,13 +311,13 @@ export default function AiServiceEditModal({
 
       if (serviceId === 'new') {
         // 创建新服务
-        response = await fetchApi('/ai/llm-settings', {
+        response = await fetchApi('/api/ai/llm-settings', {
           method: 'POST',
           body: JSON.stringify(requestData)
         });
       } else {
         // 更新现有服务
-        response = await fetchApi(`/ai/llm-settings/${serviceId}`, {
+        response = await fetchApi(`/api/ai/llm-settings/${serviceId}`, {
           method: 'PUT',
           body: JSON.stringify(requestData)
         });
@@ -329,9 +329,22 @@ export default function AiServiceEditModal({
       });
 
       if (response.ok) {
+        console.log('💾 保存成功，调用回调函数');
         toast.success(serviceId === 'new' ? 'AI服务创建成功' : 'AI服务更新成功');
-        onSave?.();
-        onClose();
+
+        // 确保回调函数被调用
+        if (onSave) {
+          console.log('💾 调用onSave回调');
+          onSave();
+        } else {
+          console.warn('💾 onSave回调不存在');
+        }
+
+        // 延迟关闭模态框，确保回调先执行
+        setTimeout(() => {
+          console.log('💾 关闭模态框');
+          onClose();
+        }, 100);
       } else {
         const errorData = await response.json();
         console.error('💾 保存失败:', errorData);
@@ -730,7 +743,8 @@ export default function AiServiceEditModal({
             backgroundColor: 'var(--background-color)',
             borderTop: '1px solid var(--border-color)',
             padding: '16px 20px',
-            paddingBottom: 'env(safe-area-inset-bottom, 16px)'
+            paddingBottom: 'env(safe-area-inset-bottom, 16px)',
+            zIndex: 10000002 // 确保按钮在最顶层，高于模态框内容
           }}>
             <button
               onClick={handleSubmit}

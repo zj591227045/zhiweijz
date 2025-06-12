@@ -2,7 +2,7 @@ import { LLMProvider } from './llm-provider';
 import { OpenAIProvider } from './openai-provider';
 import { SiliconFlowProvider } from './siliconflow-provider';
 import { DeepseekProvider } from './deepseek-provider';
-import { LLMSettings, Message } from '../types/llm-types';
+import { LLMSettings, Message, LLMResponse } from '../types/llm-types';
 import { PrismaClient } from '@prisma/client';
 
 /**
@@ -22,6 +22,18 @@ export class LLMProviderService {
   };
   /** Prisma客户端 */
   private prisma: PrismaClient;
+
+  /**
+   * 简单的token估算方法（作为回退）
+   * @param text 文本内容
+   * @returns 估算的token数量
+   */
+  private estimateTokens(text: string): number {
+    // 简单估算：中文字符按1.5个字符=1token计算，其他按4个字符=1token
+    const chineseCharCount = (text.match(/[\u4e00-\u9fff]/g) || []).length;
+    const otherCharCount = text.length - chineseCharCount;
+    return Math.ceil(chineseCharCount / 1.5 + otherCharCount / 4);
+  }
 
   /**
    * 构造函数
@@ -82,114 +94,136 @@ export class LLMProviderService {
     accountType?: 'personal' | 'family'
   ): Promise<LLMSettings> {
     try {
-      // 如果提供了账本信息，优先使用账本绑定的UserLLMSetting
-      if (accountId) {
-        try {
-          // 查找账本
-          const accountBook = await this.prisma.accountBook.findUnique({
-            where: { id: accountId }
-          });
+      // 首先检查系统配置中的AI服务类型
+      const serviceTypeConfig = await this.prisma.systemConfig.findUnique({
+        where: { key: 'llm_service_type' }
+      });
 
-          // 如果账本存在
-          if (accountBook) {
-            // 查找关联的UserLLMSetting
-            // 由于Prisma客户端可能还没有更新，我们使用原始查询
-            const userLLMSettings = await this.prisma.$queryRaw`
-              SELECT u.* FROM "user_llm_settings" u
-              JOIN "account_books" a ON a."user_llm_setting_id" = u.id
-              WHERE a.id = ${accountId}
-            `;
+      const serviceType = serviceTypeConfig?.value || 'official';
+      console.log(`当前AI服务类型: ${serviceType}`);
 
-            // 使用第一个找到的设置
-            const userLLMSetting = Array.isArray(userLLMSettings) && userLLMSettings.length > 0 ? userLLMSettings[0] : null;
+      // 如果是官方AI服务，使用全局配置
+      if (serviceType === 'official') {
+        console.log('使用官方AI服务配置');
+        const globalConfig = await this.getFullGlobalLLMConfig();
+        
+        if (globalConfig) {
+          console.log(`使用全局LLM配置: ${globalConfig.provider}/${globalConfig.model}`);
+          return globalConfig;
+        }
+      }
 
-            if (userLLMSetting) {
-              console.log(`账本 ${accountId} 使用绑定的LLM设置: ${userLLMSetting.id}`);
+      // 如果是自定义AI服务，按原有逻辑查找用户/账本设置
+      if (serviceType === 'custom') {
+        console.log('使用自定义AI服务配置');
+        
+        // 如果提供了账本信息，优先使用账本绑定的UserLLMSetting
+        if (accountId) {
+          try {
+            // 查找账本
+            const accountBook = await this.prisma.accountBook.findUnique({
+              where: { id: accountId }
+            });
+
+            // 如果账本存在
+            if (accountBook) {
+              // 查找关联的UserLLMSetting
+              const userLLMSettings = await this.prisma.$queryRaw`
+                SELECT u.* FROM "user_llm_settings" u
+                JOIN "account_books" a ON a."user_llm_setting_id" = u.id
+                WHERE a.id = ${accountId}
+              `;
+
+              // 使用第一个找到的设置
+              const userLLMSetting = Array.isArray(userLLMSettings) && userLLMSettings.length > 0 ? userLLMSettings[0] : null;
+
+              if (userLLMSetting) {
+                console.log(`账本 ${accountId} 使用绑定的LLM设置: ${userLLMSetting.id}`);
+                return {
+                  provider: userLLMSetting.provider || this.defaultSettings.provider,
+                  model: userLLMSetting.model || this.defaultSettings.model,
+                  apiKey: userLLMSetting.api_key || process.env[`${(userLLMSetting.provider || this.defaultSettings.provider).toUpperCase()}_API_KEY`] || '',
+                  temperature: userLLMSetting.temperature || this.defaultSettings.temperature,
+                  maxTokens: userLLMSetting.max_tokens || this.defaultSettings.maxTokens,
+                  baseUrl: userLLMSetting.base_url
+                };
+              }
+            }
+
+            // 如果账本没有绑定UserLLMSetting，尝试使用旧的AccountLLMSetting
+            const accountSettings = await this.prisma.accountLLMSetting.findFirst({
+              where: { accountBookId: accountId }
+            });
+
+            if (accountSettings) {
+              console.log(`账本 ${accountId} 使用旧的AccountLLMSetting`);
               return {
-                provider: userLLMSetting.provider || this.defaultSettings.provider,
-                model: userLLMSetting.model || this.defaultSettings.model,
-                apiKey: userLLMSetting.api_key || process.env[`${(userLLMSetting.provider || this.defaultSettings.provider).toUpperCase()}_API_KEY`] || '',
-                temperature: userLLMSetting.temperature || this.defaultSettings.temperature,
-                maxTokens: userLLMSetting.max_tokens || this.defaultSettings.maxTokens,
-                baseUrl: userLLMSetting.base_url
+                provider: accountSettings.provider,
+                model: accountSettings.model,
+                apiKey: accountSettings.apiKey || process.env[`${accountSettings.provider.toUpperCase()}_API_KEY`] || '',
+                temperature: accountSettings.temperature,
+                maxTokens: accountSettings.maxTokens
               };
             }
+          } catch (error) {
+            console.error('获取账本LLM设置错误:', error);
+          }
+        }
+
+        // 如果没有账本设置或未提供账本信息，使用用户的默认LLM设置
+        try {
+          // 查找用户的默认LLM设置
+          const userLLMSettings = await this.prisma.$queryRaw`
+            SELECT * FROM "user_llm_settings"
+            WHERE "user_id" = ${userId}
+            LIMIT 1
+          `;
+
+          const userLLMSetting = Array.isArray(userLLMSettings) && userLLMSettings.length > 0 ? userLLMSettings[0] : null;
+
+          if (userLLMSetting) {
+            console.log(`用户 ${userId} 使用UserLLMSetting: ${userLLMSetting.id}`);
+            return {
+              provider: userLLMSetting.provider || this.defaultSettings.provider,
+              model: userLLMSetting.model || this.defaultSettings.model,
+              apiKey: userLLMSetting.api_key || process.env[`${(userLLMSetting.provider || this.defaultSettings.provider).toUpperCase()}_API_KEY`] || '',
+              temperature: userLLMSetting.temperature || this.defaultSettings.temperature,
+              maxTokens: userLLMSetting.max_tokens || this.defaultSettings.maxTokens,
+              baseUrl: userLLMSetting.base_url
+            };
           }
 
-          // 如果账本没有绑定UserLLMSetting，尝试使用旧的AccountLLMSetting
-          const accountSettings = await this.prisma.accountLLMSetting.findFirst({
-            where: { accountBookId: accountId }
+          // 如果没有找到UserLLMSetting，尝试从userSetting表获取
+          const userSettings = await this.prisma.userSetting.findFirst({
+            where: {
+              userId,
+              key: 'llm_settings'
+            }
           });
 
-          if (accountSettings) {
-            console.log(`账本 ${accountId} 使用旧的AccountLLMSetting`);
-            return {
-              provider: accountSettings.provider,
-              model: accountSettings.model,
-              apiKey: accountSettings.apiKey || process.env[`${accountSettings.provider.toUpperCase()}_API_KEY`] || '',
-              temperature: accountSettings.temperature,
-              maxTokens: accountSettings.maxTokens
-            };
+          if (userSettings && userSettings.value) {
+            try {
+              console.log(`用户 ${userId} 使用UserSetting中的llm_settings`);
+              const llmSettings = JSON.parse(userSettings.value);
+              return {
+                provider: llmSettings.provider || this.defaultSettings.provider,
+                model: llmSettings.model || this.defaultSettings.model,
+                apiKey: llmSettings.apiKey || process.env[`${llmSettings.provider.toUpperCase()}_API_KEY`] || '',
+                temperature: llmSettings.temperature || this.defaultSettings.temperature,
+                maxTokens: llmSettings.maxTokens || this.defaultSettings.maxTokens,
+                baseUrl: llmSettings.baseUrl
+              };
+            } catch (parseError) {
+              console.error('解析用户LLM设置错误:', parseError);
+            }
           }
         } catch (error) {
-          console.error('获取账本LLM设置错误:', error);
+          console.error('获取用户LLM设置错误:', error);
         }
       }
 
-      // 如果没有账本设置或未提供账本信息，使用用户的默认LLM设置
-      try {
-        // 查找用户的默认LLM设置
-        // 由于Prisma客户端可能还没有更新，我们使用原始查询
-        const userLLMSettings = await this.prisma.$queryRaw`
-          SELECT * FROM "user_llm_settings"
-          WHERE "user_id" = ${userId}
-          LIMIT 1
-        `;
-
-        const userLLMSetting = Array.isArray(userLLMSettings) && userLLMSettings.length > 0 ? userLLMSettings[0] : null;
-
-        if (userLLMSetting) {
-          console.log(`用户 ${userId} 使用UserLLMSetting: ${userLLMSetting.id}`);
-          return {
-            provider: userLLMSetting.provider || this.defaultSettings.provider,
-            model: userLLMSetting.model || this.defaultSettings.model,
-            apiKey: userLLMSetting.api_key || process.env[`${(userLLMSetting.provider || this.defaultSettings.provider).toUpperCase()}_API_KEY`] || '',
-            temperature: userLLMSetting.temperature || this.defaultSettings.temperature,
-            maxTokens: userLLMSetting.max_tokens || this.defaultSettings.maxTokens,
-            baseUrl: userLLMSetting.base_url
-          };
-        }
-
-        // 如果没有找到UserLLMSetting，尝试从userSetting表获取
-        const userSettings = await this.prisma.userSetting.findFirst({
-          where: {
-            userId,
-            key: 'llm_settings'
-          }
-        });
-
-        if (userSettings && userSettings.value) {
-          try {
-            console.log(`用户 ${userId} 使用UserSetting中的llm_settings`);
-            const llmSettings = JSON.parse(userSettings.value);
-            return {
-              provider: llmSettings.provider || this.defaultSettings.provider,
-              model: llmSettings.model || this.defaultSettings.model,
-              apiKey: llmSettings.apiKey || process.env[`${llmSettings.provider.toUpperCase()}_API_KEY`] || '',
-              temperature: llmSettings.temperature || this.defaultSettings.temperature,
-              maxTokens: llmSettings.maxTokens || this.defaultSettings.maxTokens,
-              baseUrl: llmSettings.baseUrl
-            };
-          } catch (parseError) {
-            console.error('解析用户LLM设置错误:', parseError);
-          }
-        }
-      } catch (error) {
-        console.error('获取用户LLM设置错误:', error);
-      }
-
-      // 如果没有用户设置，尝试使用全局配置
-      console.log(`尝试获取全局LLM配置`);
+      // 回退到全局配置
+      console.log(`回退到全局LLM配置`);
       const globalConfig = await this.getFullGlobalLLMConfig();
       
       if (globalConfig) {
@@ -380,7 +414,63 @@ export class LLMProviderService {
   ): Promise<string> {
     const settings = await this.getLLMSettings(userId, accountId, accountType);
     const provider = this.getProvider(settings.provider);
-    return provider.generateText(prompt, settings);
+    
+    // 确定服务类型
+    const globalConfig = await this.getGlobalLLMConfig();
+    const serviceType = globalConfig.enabled ? 'official' : 'custom';
+    
+    const startTime = Date.now();
+    let result: string = '';
+    let isSuccess = false;
+    let errorMessage: string | null = null;
+    let promptTokens = 0;
+    let completionTokens = 0;
+
+    try {
+      // 尝试使用带token使用量信息的方法
+      if (provider.generateTextWithUsage) {
+        const response: LLMResponse = await provider.generateTextWithUsage(prompt, settings);
+        result = response.content;
+        
+        if (response.usage) {
+          promptTokens = response.usage.prompt_tokens;
+          completionTokens = response.usage.completion_tokens;
+        } else {
+          // 如果API没有返回usage信息，回退到估算
+          promptTokens = this.estimateTokens(prompt);
+          completionTokens = this.estimateTokens(result);
+        }
+              } else {
+          // 回退到原来的方法
+          result = await provider.generateText(prompt, settings);
+          promptTokens = this.estimateTokens(prompt);
+          completionTokens = this.estimateTokens(result);
+        }
+      
+      isSuccess = true;
+      return result;
+    } catch (error) {
+      isSuccess = false;
+      errorMessage = error instanceof Error ? error.message : String(error);
+      throw error;
+    } finally {
+      const duration = Date.now() - startTime;
+      await this.logLLMCall({
+        userId,
+        accountId,
+        provider: settings.provider,
+        model: settings.model,
+        userMessage: prompt,
+        assistantMessage: result || null,
+        systemPrompt: null,
+        isSuccess,
+        errorMessage,
+        duration,
+        promptTokens,
+        completionTokens,
+        serviceType
+      });
+    }
   }
 
   /**
@@ -399,7 +489,70 @@ export class LLMProviderService {
   ): Promise<string> {
     const settings = await this.getLLMSettings(userId, accountId, accountType);
     const provider = this.getProvider(settings.provider);
-    return provider.generateChat(messages, settings);
+    
+    // 确定服务类型
+    const globalConfig = await this.getGlobalLLMConfig();
+    const serviceType = globalConfig.enabled ? 'official' : 'custom';
+    
+    const startTime = Date.now();
+    let result: string = '';
+    let isSuccess = false;
+    let errorMessage: string | null = null;
+    let promptTokens = 0;
+    let completionTokens = 0;
+
+    // 提取系统消息和用户消息
+    const systemMessage = messages.find(m => m.role === 'system')?.content || null;
+    const userMessage = messages.filter(m => m.role === 'user').map(m => m.content).join('\n');
+
+    try {
+      // 尝试使用带token使用量信息的方法
+      if (provider.generateChatWithUsage) {
+        const response: LLMResponse = await provider.generateChatWithUsage(messages, settings);
+        result = response.content;
+        
+        if (response.usage) {
+          promptTokens = response.usage.prompt_tokens;
+          completionTokens = response.usage.completion_tokens;
+        } else {
+          // 如果API没有返回usage信息，回退到估算
+          const promptText = (systemMessage || '') + userMessage;
+          promptTokens = this.estimateTokens(promptText);
+          completionTokens = this.estimateTokens(result);
+        }
+      } else {
+        // 回退到原来的方法
+        result = await provider.generateChat(messages, settings);
+        const promptText = (systemMessage || '') + userMessage;
+        promptTokens = this.estimateTokens(promptText);
+        completionTokens = this.estimateTokens(result);
+      }
+      
+      isSuccess = true;
+      return result;
+    } catch (error) {
+      isSuccess = false;
+      errorMessage = error instanceof Error ? error.message : String(error);
+      throw error;
+    } finally {
+      const duration = Date.now() - startTime;
+      
+      await this.logLLMCall({
+        userId,
+        accountId,
+        provider: settings.provider,
+        model: settings.model,
+        userMessage,
+        assistantMessage: result || null,
+        systemPrompt: systemMessage,
+        isSuccess,
+        errorMessage,
+        duration,
+        promptTokens,
+        completionTokens,
+        serviceType
+      });
+    }
   }
 
   /**
@@ -560,5 +713,134 @@ export class LLMProviderService {
       console.error('获取完整全局LLM配置错误:', error);
       return null;
     }
+  }
+
+  /**
+   * 记录LLM调用日志
+   * @param logData 日志数据
+   */
+  private async logLLMCall(logData: {
+    userId: string;
+    accountId?: string;
+    provider: string;
+    model: string;
+    userMessage: string;
+    assistantMessage: string | null;
+    systemPrompt: string | null;
+    isSuccess: boolean;
+    errorMessage: string | null;
+    duration: number;
+    promptTokens: number;
+    completionTokens: number;
+    serviceType?: string;
+  }): Promise<void> {
+    try {
+      // 获取用户信息
+      const user = await this.prisma.user.findUnique({
+        where: { id: logData.userId },
+        select: { name: true }
+      });
+
+      // 获取账本信息（如果提供了accountId）
+      let accountBook = null;
+      if (logData.accountId) {
+        accountBook = await this.prisma.accountBook.findUnique({
+          where: { id: logData.accountId },
+          select: { name: true }
+        });
+      }
+
+      // 计算总token数
+      const totalTokens = logData.promptTokens + logData.completionTokens;
+
+      // 计算成本（这里可以根据不同提供商的定价模型来计算）
+      const cost = this.calculateCost(logData.provider, logData.model, logData.promptTokens, logData.completionTokens);
+
+      // 确定服务类型：如果没有明确指定，则根据当前LLM设置来判断
+      let serviceType = logData.serviceType;
+      if (!serviceType) {
+        // 检查是否使用全局配置
+        const globalConfig = await this.getGlobalLLMConfig();
+        if (globalConfig.enabled) {
+          serviceType = 'official';
+        } else {
+          serviceType = 'custom';
+        }
+      }
+
+      // 创建日志记录
+      await this.prisma.llmCallLog.create({
+        data: {
+          userId: logData.userId,
+          userName: user?.name || 'Unknown User',
+          accountBookId: logData.accountId || null,
+          accountBookName: accountBook?.name || null,
+          provider: logData.provider,
+          model: logData.model,
+          serviceType: serviceType,
+          promptTokens: logData.promptTokens,
+          completionTokens: logData.completionTokens,
+          totalTokens: totalTokens,
+          userMessage: logData.userMessage,
+          assistantMessage: logData.assistantMessage,
+          systemPrompt: logData.systemPrompt,
+          isSuccess: logData.isSuccess,
+          errorMessage: logData.errorMessage,
+          duration: logData.duration,
+          cost: cost
+        }
+      });
+
+      console.log(`LLM调用日志已记录: ${logData.provider}/${logData.model}, tokens: ${totalTokens}, duration: ${logData.duration}ms, serviceType: ${serviceType}`);
+    } catch (error) {
+      console.error('记录LLM调用日志失败:', error);
+      // 不抛出错误，避免影响主要功能
+    }
+  }
+
+  /**
+   * 计算LLM调用成本
+   * @param provider 提供商
+   * @param model 模型
+   * @param promptTokens 输入token数量
+   * @param completionTokens 输出token数量
+   * @returns 成本（美元）
+   */
+  private calculateCost(provider: string, model: string, promptTokens: number, completionTokens: number): number {
+    // 定义不同提供商和模型的定价（每1K token的价格，单位：美元）
+    const pricing: Record<string, Record<string, { input: number; output: number }>> = {
+      'openai': {
+        'gpt-3.5-turbo': { input: 0.0015, output: 0.002 },
+        'gpt-4': { input: 0.03, output: 0.06 },
+        'gpt-4o': { input: 0.005, output: 0.015 },
+        'gpt-4o-mini': { input: 0.00015, output: 0.0006 }
+      },
+      'siliconflow': {
+        'Qwen/Qwen3-32B': { input: 0.0001, output: 0.0001 },
+        'Qwen/Qwen3-8B': { input: 0.00005, output: 0.00005 },
+        'deepseek-chat': { input: 0.00014, output: 0.00028 }
+      },
+      'deepseek': {
+        'deepseek-chat': { input: 0.00014, output: 0.00028 },
+        'deepseek-coder': { input: 0.00014, output: 0.00028 }
+      }
+    };
+
+    // 获取定价信息
+    const providerPricing = pricing[provider.toLowerCase()];
+    if (!providerPricing) {
+      return 0; // 未知提供商，返回0成本
+    }
+
+    const modelPricing = providerPricing[model];
+    if (!modelPricing) {
+      return 0; // 未知模型，返回0成本
+    }
+
+    // 计算成本
+    const inputCost = (promptTokens / 1000) * modelPricing.input;
+    const outputCost = (completionTokens / 1000) * modelPricing.output;
+    
+    return parseFloat((inputCost + outputCost).toFixed(6));
   }
 }

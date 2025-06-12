@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { LLMLogAdminController } from '../controllers/llm-log.admin.controller';
-import { requireAdmin } from '../middleware/auth.admin.middleware';
+import { authenticateAdmin, requireAdmin } from '../middleware/auth.admin.middleware';
 
 const router = Router();
 const llmLogController = new LLMLogAdminController();
 
 // 应用管理员认证中间件
+router.use(authenticateAdmin);
 router.use(requireAdmin);
 
 /**

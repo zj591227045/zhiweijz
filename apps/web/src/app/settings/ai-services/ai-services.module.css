@@ -117,6 +117,128 @@
   }
 }
 
+/* 全局AI配置样式 */
+.globalAIConfig {
+  background-color: var(--card-background, white);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.aiToggleSection {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.aiToggleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.aiToggleInfo h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, rgb(31, 41, 55));
+  margin: 0 0 4px 0;
+}
+
+.aiToggleInfo p {
+  font-size: 14px;
+  color: var(--text-secondary, rgb(107, 114, 128));
+  margin: 0;
+}
+
+/* 开关样式 */
+.toggleSwitch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 28px;
+}
+
+.toggleSwitch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggleSlider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 28px;
+  transition: 0.3s;
+}
+
+.toggleSlider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.toggleSwitch input:checked + .toggleSlider {
+  background-color: var(--primary-color, rgb(59, 130, 246));
+}
+
+.toggleSwitch input:checked + .toggleSlider:before {
+  transform: translateX(20px);
+}
+
+/* 服务类型选择 */
+.serviceTypeSection {
+  padding: 16px;
+}
+
+.serviceTypeTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, rgb(31, 41, 55));
+  margin: 0 0 12px 0;
+}
+
+.serviceTypeButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.serviceTypeButton {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  background-color: transparent;
+  color: var(--text-primary, rgb(31, 41, 55));
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.serviceTypeButton.active {
+  border-color: var(--primary-color, rgb(59, 130, 246));
+  background-color: rgba(59, 130, 246, 0.05);
+  color: var(--primary-color, rgb(59, 130, 246));
+}
+
+.serviceTypeButton i {
+  margin-right: 8px;
+}
+
 /* 空状态 */
 .emptyState {
   display: flex;

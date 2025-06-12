@@ -1104,21 +1104,34 @@ export class AIController {
    */
   private async checkAccountAccess(userId: string, accountId: string): Promise<boolean> {
     try {
+      console.log('🔑 [权限检查] 开始检查账本访问权限:', { userId, accountId });
+      
       const accountBook = await this.prisma.accountBook.findUnique({
         where: { id: accountId }
       });
 
       if (!accountBook) {
+        console.log('❌ [权限检查] 账本不存在');
         return false;
       }
 
+      console.log('📖 [权限检查] 账本信息:', {
+        accountBookId: accountBook.id,
+        accountBookUserId: accountBook.userId,
+        accountBookType: accountBook.type,
+        familyId: accountBook.familyId
+      });
+
       // 检查是否是用户自己的账本
       if (accountBook.userId === userId) {
+        console.log('✅ [权限检查] 用户是账本所有者，允许访问');
         return true;
       }
 
       // 检查是否是家庭账本且用户是家庭成员
       if (accountBook.type === 'FAMILY' && accountBook.familyId) {
+        console.log('👨‍👩‍👧‍👦 [权限检查] 检查家庭成员身份:', { familyId: accountBook.familyId });
+        
         const familyMember = await this.prisma.familyMember.findFirst({
           where: {
             familyId: accountBook.familyId,
@@ -1126,13 +1139,204 @@ export class AIController {
           }
         });
 
-        return !!familyMember;
+        const isFamilyMember = !!familyMember;
+        console.log('👨‍👩‍👧‍👦 [权限检查] 家庭成员检查结果:', { isFamilyMember, familyMemberId: familyMember?.id });
+
+        return isFamilyMember;
       }
 
+      console.log('❌ [权限检查] 不是个人账本也不是家庭成员，拒绝访问');
       return false;
     } catch (error) {
-      console.error('检查账本访问权限错误:', error);
+      console.error('❌ [权限检查] 检查账本访问权限错误:', error);
       return false;
+    }
+  }
+
+  /**
+   * 获取账本当前激活的AI服务详情
+   * @param req 请求
+   * @param res 响应
+   */
+  public async getAccountActiveAIService(req: Request, res: Response) {
+    try {
+      const userId = req.user?.id;
+      const { accountId } = req.params;
+
+      console.log('🔍 [AI服务] 获取账本激活AI服务:', { userId, accountId });
+
+      if (!userId) {
+        console.log('❌ [AI服务] 用户未授权');
+        return res.status(401).json({ error: '未授权' });
+      }
+
+      // 检查用户是否有权限访问该账本
+      const hasAccess = await this.checkAccountAccess(userId, accountId);
+      console.log('🔑 [AI服务] 账本访问权限检查结果:', { hasAccess, userId, accountId });
+      
+      if (!hasAccess) {
+        console.log('❌ [AI服务] 用户无权访问该账本');
+        return res.status(403).json({ error: '无权访问该账本' });
+      }
+
+      // 首先检查是否启用了全局AI服务
+      const globalConfig = await this.llmProviderService.getGlobalLLMConfig();
+      console.log('⚙️ [AI服务] 全局配置:', { enabled: globalConfig.enabled });
+
+      if (globalConfig.enabled) {
+        // 检查服务类型配置
+        const serviceType = await this.getSystemConfigValue('llm_service_type') || 'official';
+        console.log('🔍 [AI服务] 服务类型:', serviceType);
+
+        if (serviceType === 'official') {
+          // 如果启用了官方服务，返回官方服务信息
+          // 获取TOKEN使用量信息
+          const tokenUsage = await this.getTokenUsageForUser(userId);
+
+          const result = {
+            enabled: true,
+            type: 'official',
+            maxTokens: globalConfig.maxTokens || 1000,
+            dailyTokenLimit: 50000, // 官方服务的每日限制
+            usedTokens: tokenUsage.usedTokens || 0,
+            provider: globalConfig.provider,
+            model: globalConfig.model,
+            baseUrl: globalConfig.baseUrl
+          };
+
+          console.log('✅ [AI服务] 返回官方服务信息:', result);
+          return res.json(result);
+        }
+        // 如果是自定义服务类型，继续下面的逻辑检查账本绑定
+      }
+
+      // 如果没有启用全局服务，检查账本是否绑定了自定义服务
+      try {
+        const accountBook = await this.prisma.accountBook.findUnique({
+          where: { id: accountId }
+        });
+
+        console.log('📖 [AI服务] 账本信息:', { 
+          found: !!accountBook, 
+          userLLMSettingId: accountBook?.userLLMSettingId 
+        });
+
+        if (!accountBook || !accountBook.userLLMSettingId) {
+          const result = {
+            enabled: false,
+            type: null,
+            maxTokens: 1000
+          };
+          console.log('✅ [AI服务] 返回未启用状态:', result);
+          return res.json(result);
+        }
+
+        // 获取绑定的用户LLM设置
+        const userLLMSetting = await this.prisma.userLLMSetting.findUnique({
+          where: { id: accountBook.userLLMSettingId }
+        });
+
+        console.log('🤖 [AI服务] LLM设置信息:', { found: !!userLLMSetting });
+
+        if (!userLLMSetting) {
+          const result = {
+            enabled: false,
+            type: null,
+            maxTokens: 1000
+          };
+          console.log('✅ [AI服务] LLM设置不存在，返回未启用状态:', result);
+          return res.json(result);
+        }
+
+        // 返回自定义服务信息
+        const result = {
+          enabled: true,
+          type: 'custom',
+          maxTokens: userLLMSetting.maxTokens || 1000,
+          provider: userLLMSetting.provider,
+          model: userLLMSetting.model,
+          baseUrl: userLLMSetting.baseUrl,
+          name: userLLMSetting.name,
+          description: userLLMSetting.description
+        };
+
+        console.log('✅ [AI服务] 返回自定义服务信息:', result);
+        return res.json(result);
+      } catch (error) {
+        console.error('❌ [AI服务] 获取账本AI服务配置错误:', error);
+        const result = {
+          enabled: false,
+          type: null,
+          maxTokens: 1000
+        };
+        return res.json(result);
+      }
+    } catch (error) {
+      console.error('❌ [AI服务] 获取账本激活AI服务错误:', error);
+      res.status(500).json({ error: '处理请求时出错' });
+    }
+  }
+
+  /**
+   * 获取用户TOKEN使用量
+   * @param userId 用户ID
+   * @returns TOKEN使用量信息
+   */
+  private async getTokenUsageForUser(userId: string): Promise<{ usedTokens: number }> {
+    try {
+      // 获取今天的开始时间（00:00:00）
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // 获取明天的开始时间（用于范围查询）
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      console.log(`查询用户 ${userId} 今日官方AI服务token使用量，时间范围: ${today.toISOString()} - ${tomorrow.toISOString()}`);
+
+      // 查询今日该用户的所有官方AI服务LLM调用记录
+      const todayLogs = await this.prisma.llmCallLog.findMany({
+        where: {
+          userId: userId,
+          serviceType: 'official', // 只统计官方AI服务
+          createdAt: {
+            gte: today,
+            lt: tomorrow
+          },
+          isSuccess: true // 只统计成功的调用
+        },
+        select: {
+          totalTokens: true,
+          promptTokens: true,
+          completionTokens: true,
+          provider: true,
+          model: true,
+          serviceType: true,
+          createdAt: true
+        }
+      });
+
+      console.log(`找到 ${todayLogs.length} 条今日官方AI服务LLM调用记录`);
+
+      // 计算总token使用量
+      const usedTokens = todayLogs.reduce((total, log) => {
+        return total + (log.totalTokens || 0);
+      }, 0);
+
+      console.log(`用户 ${userId} 今日官方AI服务token使用量: ${usedTokens}`);
+
+      // 如果需要调试，可以打印详细信息
+      if (todayLogs.length > 0) {
+        console.log('今日官方AI服务LLM调用详情:');
+        todayLogs.forEach((log, index) => {
+          console.log(`  ${index + 1}. ${log.provider}/${log.model} (${log.serviceType}): ${log.totalTokens} tokens (${log.promptTokens} + ${log.completionTokens}) at ${log.createdAt}`);
+        });
+      }
+
+      return { usedTokens };
+    } catch (error) {
+      console.error('获取用户TOKEN使用量错误:', error);
+      return { usedTokens: 0 };
     }
   }
 
@@ -1196,6 +1400,23 @@ export class AIController {
     } catch (error) {
       console.error('检查LLM设置访问权限错误:', error);
       return false;
+    }
+  }
+
+  /**
+   * 获取系统配置值
+   * @param key 配置键
+   * @returns 配置值
+   */
+  private async getSystemConfigValue(key: string): Promise<string | null> {
+    try {
+      const config = await this.prisma.systemConfig.findUnique({
+        where: { key }
+      });
+      return config?.value || null;
+    } catch (error) {
+      console.error('获取系统配置值错误:', error);
+      return null;
     }
   }
 }
