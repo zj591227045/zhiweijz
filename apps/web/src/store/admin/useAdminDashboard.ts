@@ -87,8 +87,6 @@ interface AdminDashboardState {
   clearError: () => void;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
-
 export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
   overview: null,
   userStats: null,
@@ -115,7 +113,7 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
     }));
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/dashboard/overview`, {
+      const response = await fetch('/api/admin/dashboard/overview', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -153,7 +151,7 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
     }));
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/dashboard/users?period=${period}`, {
+      const response = await fetch(`/api/admin/dashboard/users?period=${period}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -191,7 +189,7 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
     }));
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/dashboard/transactions?period=${period}`, {
+      const response = await fetch(`/api/admin/dashboard/transactions?period=${period}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -229,7 +227,7 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
     }));
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/dashboard/system`, {
+      const response = await fetch('/api/admin/dashboard/system', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

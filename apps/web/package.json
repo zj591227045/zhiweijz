@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "next dev -p 3003",
     "build": "next build",
-    "build:static": "NEXT_BUILD_MODE=export next build",
+    "build:mobile": "IS_MOBILE_BUILD=true next build",
     "start": "next start",
     "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "build:static": "NEXT_BUILD_MODE=export next build",
     "test": "jest",
     "build:ios": "./scripts/build-ios.sh",
     "build:android": "./scripts/build-android.sh",

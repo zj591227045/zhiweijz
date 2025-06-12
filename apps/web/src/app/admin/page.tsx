@@ -1,8 +1,11 @@
 'use client';
 
 import { useEffect } from 'react';
+import { AdminDashboard } from '@/components/admin/AdminDashboard';
+import { useAdminDashboard } from '@/store/admin/useAdminDashboard';
+import { useAdminAuth } from '@/store/admin/useAdminAuth';
 
-export default function AdminPage() {
+export default function AdminDashboardPage() {
   // 如果是移动端构建，直接返回404
   if (process.env.IS_MOBILE_BUILD === 'true') {
     return (
@@ -15,75 +18,53 @@ export default function AdminPage() {
     );
   }
 
-  // Web端的原始代码
+  // Web端完整功能
+  const { isAuthenticated, token } = useAdminAuth();
+  const { fetchOverview, fetchUserStats, fetchTransactionStats, fetchSystemResources } = useAdminDashboard();
+
   useEffect(() => {
-    // 检查管理员登录状态
-    const adminToken = localStorage.getItem('admin_token');
-    if (!adminToken) {
-      window.location.href = '/admin/login';
-      return;
+    // 只在认证完成且有token时才执行API请求
+    if (isAuthenticated && token) {
+      console.log('🔍 [AdminDashboard] Fetching dashboard data, authenticated:', isAuthenticated, 'hasToken:', !!token);
+      
+      // 页面加载时获取所有仪表盘数据
+      const fetchAllData = async () => {
+        try {
+          await Promise.all([
+            fetchOverview(),
+            fetchUserStats('7d'),
+            fetchTransactionStats('7d'),
+            fetchSystemResources(),
+          ]);
+        } catch (error) {
+          console.error('获取仪表盘数据失败:', error);
+        }
+      };
+
+      fetchAllData();
     }
-  }, []);
+  }, [isAuthenticated, token, fetchOverview, fetchUserStats, fetchTransactionStats, fetchSystemResources]);
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">管理后台</h1>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* 用户管理 */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">用</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900">用户管理</h3>
-                    <p className="text-sm text-gray-500">管理系统用户</p>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <a
-                    href="/admin/users"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                  >
-                    进入管理
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* LLM配置 */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">AI</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900">LLM配置</h3>
-                    <p className="text-sm text-gray-500">配置AI模型</p>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <a
-                    href="/admin/llm"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                  >
-                    进入配置
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
+  // 如果未认证，显示加载状态
+  if (!isAuthenticated || !token) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-600">加载管理仪表盘...</p>
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">管理仪表盘</h1>
+        <p className="text-gray-600 mt-2">系统运行状态和数据统计概览</p>
+      </div>
+      
+      <AdminDashboard />
     </div>
   );
 } 

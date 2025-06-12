@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { toast } from 'sonner';
+import { useAdminAuth } from './useAdminAuth';
 
 interface User {
   id: string;
@@ -85,9 +86,10 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   registrationEnabled: true,
 
   // 获取用户列表
-  fetchUsers: async (params = {}) => {
+  fetchUsers: async (params: UserListParams = {}) => {
     set({ isLoading: true });
     try {
+      const token = useAdminAuth.getState().token;
       const queryParams = new URLSearchParams();
       
       if (params.page) queryParams.append('page', params.page.toString());
@@ -97,7 +99,11 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
       if (params.sort) queryParams.append('sort', params.sort);
       if (params.order) queryParams.append('order', params.order);
 
-      const response = await fetch(`/api/admin/users?${queryParams}`);
+      const response = await fetch(`/api/admin/users?${queryParams}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       
       if (!response.ok) {
         throw new Error('获取用户列表失败');
@@ -130,7 +136,12 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   getUserDetail: async (id: string) => {
     set({ isLoading: true });
     try {
-      const response = await fetch(`/api/admin/users/${id}`);
+      const token = useAdminAuth.getState().token;
+      const response = await fetch(`/api/admin/users/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       
       if (!response.ok) {
         throw new Error('获取用户详情失败');
@@ -154,10 +165,12 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   // 创建用户
   createUser: async (data: CreateUserData) => {
     try {
+      const token = useAdminAuth.getState().token;
       const response = await fetch('/api/admin/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(data),
       });
@@ -182,10 +195,12 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   // 更新用户
   updateUser: async (id: string, data: UpdateUserData) => {
     try {
+      const token = useAdminAuth.getState().token;
       const response = await fetch(`/api/admin/users/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(data),
       });
@@ -210,8 +225,12 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   // 删除用户
   deleteUser: async (id: string) => {
     try {
+      const token = useAdminAuth.getState().token;
       const response = await fetch(`/api/admin/users/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       const result = await response.json();
@@ -234,10 +253,12 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   // 重置密码
   resetPassword: async (id: string, newPassword: string) => {
     try {
+      const token = useAdminAuth.getState().token;
       const response = await fetch(`/api/admin/users/${id}/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ newPassword }),
       });
@@ -260,8 +281,12 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   // 切换用户状态
   toggleUserStatus: async (id: string) => {
     try {
+      const token = useAdminAuth.getState().token;
       const response = await fetch(`/api/admin/users/${id}/toggle-status`, {
         method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       const result = await response.json();
@@ -284,10 +309,12 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   // 批量操作
   batchOperation: async (userIds: string[], operation: 'activate' | 'deactivate' | 'delete') => {
     try {
+      const token = useAdminAuth.getState().token;
       const response = await fetch('/api/admin/users/batch', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ userIds, operation }),
       });
@@ -295,8 +322,7 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
       const result = await response.json();
       
       if (result.success) {
-        const operationText = operation === 'activate' ? '启用' : operation === 'deactivate' ? '禁用' : '删除';
-        toast.success(`批量${operationText}成功`);
+        toast.success(`批量${operation === 'activate' ? '启用' : operation === 'deactivate' ? '禁用' : '删除'}成功`);
         // 刷新用户列表
         await get().fetchUsers();
         return true;
@@ -310,35 +336,36 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
     }
   },
 
-  // 获取注册开关状态
+  // 获取注册状态
   getRegistrationStatus: async () => {
     try {
-      const response = await fetch('/api/admin/users/system/registration-status');
-      
-      if (!response.ok) {
-        throw new Error('获取注册开关状态失败');
-      }
+      const token = useAdminAuth.getState().token;
+      const response = await fetch('/api/admin/system-configs/registration', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
-      const result = await response.json();
-      
-      if (result.success) {
-        set({ registrationEnabled: result.data.isEnabled });
-      } else {
-        throw new Error(result.message || '获取注册开关状态失败');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          set({ registrationEnabled: result.data.enabled });
+        }
       }
     } catch (error) {
-      console.error('获取注册开关状态错误:', error);
-      toast.error(error instanceof Error ? error.message : '获取注册开关状态失败');
+      console.error('获取注册状态错误:', error);
     }
   },
 
-  // 切换注册开关
+  // 切换注册状态
   toggleRegistration: async (enabled: boolean) => {
     try {
-      const response = await fetch('/api/admin/users/system/toggle-registration', {
-        method: 'POST',
+      const token = useAdminAuth.getState().token;
+      const response = await fetch('/api/admin/system-configs/registration', {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ enabled }),
       });
@@ -346,20 +373,20 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
       const result = await response.json();
       
       if (result.success) {
-        toast.success(`用户注册已${enabled ? '开启' : '关闭'}`);
         set({ registrationEnabled: enabled });
+        toast.success(`用户注册已${enabled ? '启用' : '禁用'}`);
         return true;
       } else {
-        throw new Error(result.message || '切换注册开关失败');
+        throw new Error(result.message || '切换注册状态失败');
       }
     } catch (error) {
-      console.error('切换注册开关错误:', error);
-      toast.error(error instanceof Error ? error.message : '切换注册开关失败');
+      console.error('切换注册状态错误:', error);
+      toast.error(error instanceof Error ? error.message : '切换注册状态失败');
       return false;
     }
   },
 
-  // 清除选中用户
+  // 清空选中用户
   clearSelectedUser: () => {
     set({ selectedUser: null });
   },

@@ -23,8 +23,6 @@ interface AdminAuthState {
   clearError: () => void;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
-
 export const useAdminAuth = create<AdminAuthState>()(
   persist(
     (set, get) => ({
@@ -38,7 +36,7 @@ export const useAdminAuth = create<AdminAuthState>()(
         set({ isLoading: true, error: null });
         
         try {
-          const response = await fetch(`${API_BASE_URL}/api/admin/auth/login`, {
+          const response = await fetch('/api/admin/auth/login', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -93,7 +91,7 @@ export const useAdminAuth = create<AdminAuthState>()(
         }
 
         try {
-          const response = await fetch(`${API_BASE_URL}/api/admin/auth/check`, {
+          const response = await fetch('/api/admin/auth/check', {
             headers: {
               'Authorization': `Bearer ${token}`,
             },

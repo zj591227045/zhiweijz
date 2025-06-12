@@ -30,14 +30,18 @@ export default function AdminLayout({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // 如果是登录页面，不显示布局
-  if (pathname === '/admin/login') {
-    return <>{children}</>;
-  }
-
   // 如果是移动端构建，直接返回404
   if (process.env.IS_MOBILE_BUILD === 'true') {
     return <MobileNotSupported />;
+  }
+
+  // 如果是登录页面，只包裹AuthGuard但不显示布局
+  if (pathname === '/admin/login') {
+    return (
+      <AdminAuthGuard>
+        {children}
+      </AdminAuthGuard>
+    );
   }
 
   return (
