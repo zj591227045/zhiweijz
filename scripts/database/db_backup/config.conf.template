@@ -1,4 +1,9 @@
-# 数据库备份配置文件
+# 数据库备份配置文件模板
+# 使用说明：
+# 1. 复制此文件为 config.env: cp config.conf.template config.env
+# 2. 修改 config.env 中的配置值
+# 3. config.env 文件已被添加到 .gitignore，不会被提交到版本控制
+# 
 # 配置项说明：
 # - 以 # 开头的行为注释
 # - 配置格式：KEY=VALUE
@@ -6,7 +11,7 @@
 
 # ==================== 数据库连接配置 ====================
 # 数据库服务器IP地址
-DB_HOST=10.255.0.97
+DB_HOST=localhost
 
 # 数据库端口
 DB_PORT=5432
@@ -18,7 +23,7 @@ DB_NAME=zhiweijz
 DB_USER=zhiweijz
 
 # 数据库密码
-DB_PASSWORD=zhiweijz123
+DB_PASSWORD=your_password_here
 
 # ==================== 容器配置 ====================
 # PostgreSQL客户端容器镜像（用于备份和恢复）
@@ -111,8 +116,8 @@ NOTIFICATION_METHOD=email
 SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=backup@example.com
-SMTP_PASSWORD=your_password
+SMTP_PASSWORD=your_smtp_password
 NOTIFY_EMAIL=admin@example.com
 
 # Webhook通知URL（仅在NOTIFICATION_METHOD=webhook时有效）
-WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL 

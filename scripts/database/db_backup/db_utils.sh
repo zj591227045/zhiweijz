@@ -283,8 +283,13 @@ clean_database() {
 
 # 如果直接运行此脚本，执行测试
 if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
-    if ! init_config; then
+    init_config
+    local config_result=$?
+    if [ $config_result -eq 1 ]; then
         exit 1
+    elif [ $config_result -eq 2 ]; then
+        echo "请先编辑配置文件后重新运行"
+        exit 2
     fi
     
     echo "测试数据库工具..."

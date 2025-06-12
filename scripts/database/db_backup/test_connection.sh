@@ -5,9 +5,14 @@
 # 加载配置
 source ./config_loader.sh
 
-if ! init_config; then
+init_config
+local config_result=$?
+if [ $config_result -eq 1 ]; then
     echo "配置加载失败"
     exit 1
+elif [ $config_result -eq 2 ]; then
+    echo "请先编辑配置文件后重新运行"
+    exit 2
 fi
 
 echo "测试数据库连接..."

@@ -4,9 +4,27 @@
 
 ## 🚀 快速开始
 
-### 1. 配置数据库连接
+### 1. 初始化配置
 
-编辑 `config.conf` 文件，设置数据库连接参数：
+首次使用时，运行设置脚本来创建配置文件：
+
+```bash
+./setup.sh
+```
+
+或者手动创建配置文件：
+
+```bash
+# 复制配置模板
+cp config.conf.template config.env
+
+# 编辑配置文件
+nano config.env
+```
+
+### 2. 配置数据库连接
+
+编辑 `config.env` 文件，设置数据库连接参数：
 
 ```bash
 # 数据库连接配置
@@ -14,16 +32,27 @@ DB_HOST=10.255.0.97
 DB_PORT=5432
 DB_NAME=zhiweijz
 DB_USER=zhiweijz
-DB_PASSWORD=zhiweijz123
+DB_PASSWORD=your_password_here
 ```
 
-### 2. 启动管理界面
+**重要说明：**
+- `config.env` 文件包含敏感信息，已被添加到 `.gitignore`
+- 不会被提交到版本控制系统，避免密码泄露
+- 每个环境需要单独配置此文件
+
+### 3. 测试数据库连接
+
+```bash
+./test_connection.sh
+```
+
+### 4. 启动管理界面
 
 ```bash
 ./manager.sh
 ```
 
-### 3. 或者直接使用命令行
+### 5. 或者直接使用命令行
 
 ```bash
 # 完整备份
@@ -37,18 +66,25 @@ DB_PASSWORD=zhiweijz123
 
 ```
 db_backup/
-├── config.conf          # 配置文件
-├── config_loader.sh     # 配置加载器
-├── db_utils.sh          # 数据库工具函数
-├── backup.sh            # 备份脚本
-├── restore.sh           # 恢复脚本
-├── manager.sh           # 管理界面
-├── backups/             # 备份文件目录
-├── logs/                # 日志文件目录
-└── README.md            # 使用文档
+├── config.conf.template # 配置文件模板
+├── config.env          # 环境配置文件（需要创建，不会被提交）
+├── setup.sh            # 配置初始化脚本
+├── config_loader.sh    # 配置加载器
+├── db_utils.sh         # 数据库工具函数
+├── backup.sh           # 备份脚本
+├── restore.sh          # 恢复脚本
+├── manager.sh          # 管理界面
+├── test_connection.sh  # 连接测试脚本
+├── backups/            # 备份文件目录
+├── logs/               # 日志文件目录
+└── README.md           # 使用文档
 ```
 
 ## ⚙️ 配置选项
+
+### 配置文件说明
+- `config.conf.template`: 配置模板文件，包含所有配置项的说明
+- `config.env`: 实际使用的配置文件，包含敏感信息，不会被提交到Git
 
 ### 数据库连接
 - `DB_HOST`: 数据库服务器IP地址
@@ -80,6 +116,28 @@ db_backup/
 - `CLEAN_TARGET_DB`: 恢复时是否清理目标数据库
 
 ## 🔧 使用方法
+
+### 首次使用
+
+1. **运行设置脚本**：
+   ```bash
+   ./setup.sh
+   ```
+
+2. **编辑配置文件**：
+   ```bash
+   nano config.env
+   ```
+
+3. **测试连接**：
+   ```bash
+   ./test_connection.sh
+   ```
+
+4. **开始备份**：
+   ```bash
+   ./backup.sh full
+   ```
 
 ### 备份操作
 
@@ -164,7 +222,7 @@ db_backup/
 
 #### 4. 测试数据库连接
 ```bash
-./db_utils.sh
+./test_connection.sh
 ```
 
 ## 🔍 备份文件格式
@@ -193,16 +251,21 @@ db_backup/
 
 ## 🛡️ 安全特性
 
-### 1. 安全备份
+### 1. 配置文件安全
+- 敏感配置信息存储在 `config.env` 文件中
+- 该文件已被添加到 `.gitignore`，不会被提交到版本控制
+- 避免数据库密码等敏感信息泄露
+
+### 2. 安全备份
 恢复前自动创建当前数据库的安全备份，防止数据丢失。
 
-### 2. 配置验证
+### 3. 配置验证
 启动时自动验证配置文件的正确性。
 
-### 3. 连接测试
+### 4. 连接测试
 执行操作前测试数据库连接。
 
-### 4. 日志记录
+### 5. 日志记录
 详细的操作日志，便于问题排查。
 
 ## 📊 监控和维护
@@ -290,7 +353,7 @@ find /path/to/backups -name "*.sql*" -mtime -1 | grep -q . || echo "警告：24�
 
 如有问题或建议，请查看：
 1. 日志文件：`logs/backup.log`
-2. 配置文件：`config.conf`
+2. 配置文件：`config.env`
 3. 错误信息和解决方案
 
 ---

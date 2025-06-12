@@ -22,6 +22,9 @@ scripts/db_backup/backups/
 .env.test.local
 .env.production.local
 
+# Database backup tool configuration
+scripts/database/db_backup/config.env
+
 # Logs
 logs
 *.log

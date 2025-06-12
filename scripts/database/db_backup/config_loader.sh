@@ -5,7 +5,8 @@
 
 # 获取脚本目录
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_FILE="$SCRIPT_DIR/config.conf"
+CONFIG_ENV_FILE="$SCRIPT_DIR/config.env"
+CONFIG_TEMPLATE_FILE="$SCRIPT_DIR/config.conf.template"
 
 # 颜色输出
 RED='\033[0;31m'
@@ -38,14 +39,54 @@ log() {
     esac
 }
 
-# 加载配置文件
-load_config() {
-    if [ ! -f "$CONFIG_FILE" ]; then
-        log "ERROR" "配置文件不存在: $CONFIG_FILE"
-        return 1
+# 检查并创建配置文件
+check_and_create_config() {
+    if [ ! -f "$CONFIG_ENV_FILE" ]; then
+        if [ ! -f "$CONFIG_TEMPLATE_FILE" ]; then
+            log "ERROR" "配置模板文件不存在: $CONFIG_TEMPLATE_FILE"
+            return 1
+        fi
+        
+        log "WARN" "配置文件不存在: $CONFIG_ENV_FILE"
+        echo -e "${YELLOW}请按照以下步骤创建配置文件:${NC}"
+        echo "1. 复制模板文件:"
+        echo "   cp $CONFIG_TEMPLATE_FILE $CONFIG_ENV_FILE"
+        echo ""
+        echo "2. 编辑配置文件，修改数据库连接信息:"
+        echo "   nano $CONFIG_ENV_FILE"
+        echo ""
+        echo "3. 重新运行备份工具"
+        echo ""
+        
+        read -p "是否现在自动创建配置文件? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            cp "$CONFIG_TEMPLATE_FILE" "$CONFIG_ENV_FILE"
+            log "INFO" "已创建配置文件: $CONFIG_ENV_FILE"
+            log "WARN" "请编辑配置文件并修改数据库连接信息后重新运行"
+            return 2  # 返回特殊状态码，表示需要用户编辑配置
+        else
+            log "ERROR" "无法继续，请先创建配置文件"
+            return 1
+        fi
     fi
     
-    log "INFO" "加载配置文件: $CONFIG_FILE"
+    return 0
+}
+
+# 加载配置文件
+load_config() {
+    # 检查并创建配置文件
+    check_and_create_config
+    local check_result=$?
+    
+    if [ $check_result -eq 1 ]; then
+        return 1
+    elif [ $check_result -eq 2 ]; then
+        return 2
+    fi
+    
+    log "INFO" "加载配置文件: $CONFIG_ENV_FILE"
     
     # 读取配置文件，忽略注释和空行
     while IFS='=' read -r key value; do
@@ -65,7 +106,7 @@ load_config() {
         export "$key"="$value"
         log "DEBUG" "加载配置: $key=$value"
         
-    done < "$CONFIG_FILE"
+    done < "$CONFIG_ENV_FILE"
     
     log "INFO" "配置文件加载完成"
     return 0
@@ -200,8 +241,17 @@ create_directories() {
 
 # 初始化配置
 init_config() {
-    if ! load_config; then
+    local load_result
+    load_config
+    load_result=$?
+    
+    if [ $load_result -eq 1 ]; then
         return 1
+    elif [ $load_result -eq 2 ]; then
+        log "WARN" "配置文件已创建，但需要编辑后才能使用"
+        echo -e "${YELLOW}请编辑配置文件并重新运行：${NC}"
+        echo "  nano $CONFIG_ENV_FILE"
+        return 2
     fi
     
     if ! validate_config; then

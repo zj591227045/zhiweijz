@@ -281,10 +281,15 @@ main_loop() {
 # 主函数
 main() {
     # 初始化配置
-    if ! init_config; then
-        log "ERROR" "配置初始化失败"
-        exit 1
-    fi
+    init_config
+local config_result=$?
+if [ $config_result -eq 1 ]; then
+    log "ERROR" "配置初始化失败"
+    exit 1
+elif [ $config_result -eq 2 ]; then
+    log "ERROR" "请先编辑配置文件后重新运行"
+    exit 2
+fi
     
     # 显示欢迎信息
     echo -e "${MAGENTA}欢迎使用数据库备份管理系统${NC}"

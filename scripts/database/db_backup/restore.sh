@@ -407,10 +407,15 @@ main() {
     local target_tables="$3"
     
     # 初始化配置
-    if ! init_config; then
-        log "ERROR" "配置初始化失败"
-        exit 1
-    fi
+    init_config
+local config_result=$?
+if [ $config_result -eq 1 ]; then
+    log "ERROR" "配置初始化失败"
+    exit 1
+elif [ $config_result -eq 2 ]; then
+    log "ERROR" "请先编辑配置文件后重新运行"
+    exit 2
+fi
     
     # 测试数据库连接
     if ! test_connection; then
