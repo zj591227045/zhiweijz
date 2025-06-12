@@ -121,10 +121,12 @@ export class SystemConfigService {
         // 切换到官方服务
         console.log('切换到官方AI服务');
 
-        // 启用全局AI配置
+        // 启用全局AI配置，设置为官方服务
         await this.updateGlobalAIConfigInDB({
           enabled: true
         });
+        // 设置服务类型为官方
+        await this.upsertSystemConfig('llm_service_type', 'official');
 
         // 如果提供了账本ID，清除账本的自定义LLM设置绑定
         if (accountId) {
@@ -149,10 +151,12 @@ export class SystemConfigService {
           throw new Error('无效的服务ID或无权访问该服务');
         }
 
-        // 禁用全局AI配置
+        // 保持全局AI配置启用，但标记为使用自定义服务
         await this.updateGlobalAIConfigInDB({
-          enabled: false
+          enabled: true
         });
+        // 设置服务类型为自定义
+        await this.upsertSystemConfig('llm_service_type', 'custom');
 
         // 如果提供了账本ID，绑定账本到指定的LLM设置
         if (accountId) {

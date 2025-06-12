@@ -20,6 +20,8 @@ import dayjs from 'dayjs';
 import { TransactionType } from '@/components/dashboard/recent-transactions';
 import { useDashboardStore } from '@/store/dashboard-store';
 import TransactionEditModal from '@/components/transaction-edit-modal';
+import { useNotificationStore } from '@/store/notification-store';
+import { NotificationModal } from '@/components/notifications/NotificationModal';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -38,6 +40,14 @@ export default function DashboardPage() {
     setupTransactionListener,
     cleanupTransactionListener,
   } = useDashboardStore();
+
+  const {
+    unreadCount,
+    isModalOpen,
+    openModal,
+    closeModal,
+    checkUnreadOnLogin
+  } = useNotificationStore();
 
   // 交易编辑模态框状态
   const [showTransactionEditModal, setShowTransactionEditModal] = useState(false);
@@ -79,6 +89,14 @@ export default function DashboardPage() {
       });
     }
   }, [currentAccountBook?.id, isAuthenticated]); // 只依赖账本ID和认证状态
+
+  // 用户登录后检查未读通知
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log('🏠 [Dashboard] 用户已登录，检查未读通知');
+      checkUnreadOnLogin();
+    }
+  }, [isAuthenticated, user, checkUnreadOnLogin]);
 
   // 设置交易变化监听器
   useEffect(() => {
@@ -276,8 +294,17 @@ export default function DashboardPage() {
   // 右侧操作按钮
   const rightActions = (
     <>
-      <button className="icon-button">
+      <button 
+        className="icon-button relative" 
+        onClick={openModal}
+        aria-label="通知"
+      >
         <i className="fas fa-bell"></i>
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
       </button>
     </>
   );
@@ -342,6 +369,12 @@ export default function DashboardPage() {
           }}
         />
       )}
+
+      {/* 通知模态框 */}
+      <NotificationModal 
+        isOpen={isModalOpen} 
+        onClose={closeModal} 
+      />
     </PageContainer>
   );
 }

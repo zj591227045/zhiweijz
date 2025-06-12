@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccountBookStore } from '@/store/account-book-store';
-import { useLLMCacheStore } from '@/store/llm-cache-store';
+import { useGlobalAIStore } from '@/store/global-ai-store';
 import { SmartAccountingDialog } from '../transactions/smart-accounting-dialog';
 import { toast } from 'sonner';
 import '@/styles/smart-accounting-dialog.css';
@@ -19,9 +19,8 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
   const pathname = usePathname();
   const router = useRouter();
   const { currentAccountBook } = useAccountBookStore();
-  const { getLLMSettings, llmCache } = useLLMCacheStore();
+  const { globalConfig, fetchGlobalConfig } = useGlobalAIStore();
   const [isSmartAccountingOpen, setIsSmartAccountingOpen] = useState(false);
-  const [hasLLMService, setHasLLMService] = useState<boolean | null>(null);
   const [mounted, setMounted] = useState(false);
 
   // 确保只在客户端渲染
@@ -29,45 +28,10 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
     setMounted(true);
   }, []);
 
-  // 使用缓存store直接检查LLM设置
-  React.useEffect(() => {
-    const checkLLMService = async () => {
-      if (!currentAccountBook?.id) {
-        setHasLLMService(false);
-        return;
-      }
-
-      // 首先检查账本对象是否有userLLMSettingId字段
-      if (currentAccountBook.userLLMSettingId) {
-        setHasLLMService(true);
-        return;
-      }
-
-      // 检查缓存 - 只监听当前账本的缓存
-      const cachedSettings = llmCache[currentAccountBook.id];
-      if (cachedSettings) {
-        setHasLLMService(cachedSettings.bound || false);
-        return;
-      }
-
-      // 使用缓存store获取LLM设置
-      try {
-        const settings = await getLLMSettings(currentAccountBook.id, null);
-        // 确保settings存在且有bound属性
-        if (settings && typeof settings === 'object') {
-          setHasLLMService(settings.bound || false);
-        } else {
-          console.warn('LLM设置格式不正确:', settings);
-          setHasLLMService(false);
-        }
-      } catch (error) {
-        console.error('获取LLM设置失败:', error);
-        setHasLLMService(false);
-      }
-    };
-
-    checkLLMService();
-  }, [currentAccountBook?.id, currentAccountBook?.userLLMSettingId, getLLMSettings, llmCache[currentAccountBook?.id]]);
+  // 获取全局AI配置
+  useEffect(() => {
+    fetchGlobalConfig();
+  }, [fetchGlobalConfig]);
 
   const isActive = (path: string) => {
     if (currentPath) {
@@ -79,18 +43,16 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
   const handleAddButtonClick = (e: React.MouseEvent) => {
     e.preventDefault();
 
-    console.log('添加按钮点击，当前LLM服务绑定状态:', hasLLMService);
+    console.log('添加按钮点击，全局AI配置:', globalConfig);
 
-    // 如果明确知道账本未绑定LLM服务，直接跳转到手动记账页面
-    if (hasLLMService === false) {
-      console.log('账本未绑定LLM服务，跳转到手动记账页面');
+    // 使用全局AI配置的enabled字段来判断是否显示智能记账弹窗
+    if (globalConfig?.enabled) {
+      console.log('全局AI已启用，打开智能记账对话框');
+      setIsSmartAccountingOpen(true);
+    } else {
+      console.log('全局AI未启用，跳转到手动记账页面');
       router.push('/transactions/new');
-      return;
     }
-
-    // 如果账本已绑定LLM服务或状态未知，打开智能记账对话框
-    console.log('账本已绑定LLM服务或状态未知，打开智能记账对话框');
-    setIsSmartAccountingOpen(true);
   };
 
   const navigationContent = (

@@ -27,6 +27,10 @@ export const ADMIN_API_ENDPOINTS = {
   LLM_LOGS: `${API_BASE_URL}/api/admin/llm-logs`,
   LLM_LOGS_CLEANUP: `${API_BASE_URL}/api/admin/llm-logs/cleanup`,
   
+  // 公告管理相关
+  ANNOUNCEMENTS: `${API_BASE_URL}/api/admin/announcements`,
+  ANNOUNCEMENT_STATS: `${API_BASE_URL}/api/admin/announcements/stats`,
+  
   // 其他管理员API可以在这里添加
   DASHBOARD: `${API_BASE_URL}/api/admin/dashboard`,
   USERS: `${API_BASE_URL}/api/admin/users`,

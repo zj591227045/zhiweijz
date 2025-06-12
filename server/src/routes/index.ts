@@ -15,6 +15,7 @@ import aiRoutes from './ai-routes';
 import feedbackRoutes from './feedback.routes';
 import systemRoutes from './system.routes';
 import systemConfigRoutes from './system-config.routes';
+import userAnnouncementRoutes from './user/announcement.routes';
 import adminRoutes from '../admin/routes';
 
 const router = Router();
@@ -36,6 +37,7 @@ router.use('/ai', aiRoutes);
 router.use('/feedback', feedbackRoutes);
 router.use('/system', systemRoutes);
 router.use('/system-config', systemConfigRoutes);
+router.use('/user/announcements', userAnnouncementRoutes);
 router.use('/admin', adminRoutes);
 
 export default router;
