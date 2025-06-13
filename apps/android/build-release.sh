@@ -20,8 +20,8 @@ if [ ! -f "keystore.properties" ]; then
 fi
 
 # 检查密钥库文件是否存在
-if [ ! -f "zhiweijz-release-key.keystore" ]; then
-    echo "错误: zhiweijz-release-key.keystore 文件不存在！"
+if [ ! -f "app/zhiweijz-release-key.keystore" ]; then
+    echo "错误: app/zhiweijz-release-key.keystore 文件不存在！"
     echo "请先生成签名密钥库。"
     exit 1
 fi
