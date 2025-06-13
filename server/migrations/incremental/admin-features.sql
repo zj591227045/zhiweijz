@@ -191,14 +191,15 @@ CREATE TRIGGER trigger_update_updated_at
     BEFORE UPDATE ON statistics_aggregations 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- 插入默认管理员账号
+-- 插入默认管理员账号（仅在不存在时创建，避免重置现有密码）
 INSERT INTO admins (username, password_hash, email, role, is_active) 
 VALUES ('admin', '$2b$10$Jm.mqOlmzYFUoGfT3U/G4uvcRoEd/6wvGSOSbeCvgltZBjDMKMKq6', 'admin@zhiweijz.com', 'SUPER_ADMIN', true)
 ON CONFLICT (username) 
 DO UPDATE SET 
-  password_hash = EXCLUDED.password_hash,
-  email = EXCLUDED.email,
+  -- 只更新非敏感字段，保留现有密码
+  email = CASE WHEN admins.email IS NULL OR admins.email = '' THEN EXCLUDED.email ELSE admins.email END,
   role = EXCLUDED.role,
+  is_active = EXCLUDED.is_active,
   updated_at = NOW();
 
 -- 插入默认系统配置

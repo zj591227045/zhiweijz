@@ -58,6 +58,7 @@ services:
     environment:
       NODE_ENV: production
       DOCKER_ENV: "true"
+      IS_MOBILE_BUILD: "false"
       PORT: 3001
     networks:
       - zhiweijz-network
