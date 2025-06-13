@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { useAdminAuth } from './useAdminAuth';
 import { toast } from 'sonner';
 import { adminApi, ADMIN_API_ENDPOINTS } from '@/lib/admin-api-client';
 

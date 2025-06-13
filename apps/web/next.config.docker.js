@@ -1,4 +1,7 @@
 /** @type {import('next').NextConfig} */
+const webpack = require('webpack');
+const path = require('path');
+
 const nextConfig = {
   reactStrictMode: true,
   
@@ -13,6 +16,7 @@ const nextConfig = {
   // 实验性功能
   experimental: {
     missingSuspenseWithCSRBailout: false,
+    skipTrailingSlashRedirect: true,
   },
   
   // 忽略构建错误
@@ -30,27 +34,36 @@ const nextConfig = {
   },
   
   // Webpack配置 - 处理内部包路径和依赖
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     // 定义环境变量
     config.plugins.push(
-      new config.webpack.DefinePlugin({
+      new webpack.DefinePlugin({
         'process.env.IS_MOBILE_BUILD': JSON.stringify('false'),
         'process.env.DOCKER_ENV': JSON.stringify('true'),
       })
     );
     
+    // 处理路径别名 - 确保 @ 别名正确指向 src 目录
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@zhiweijz/core': require('path').resolve(__dirname, '../packages/core/src'),
-      '@zhiweijz/web': require('path').resolve(__dirname, '../packages/web/src'),
+      '@': path.resolve(__dirname, 'src'),
     };
     
-    // 确保内部包可以访问前端的依赖
+    // 确保模块解析路径正确
     config.resolve.modules = [
-      require('path').resolve(__dirname, 'node_modules'),
-      require('path').resolve(__dirname, '../node_modules'),
+      path.resolve(__dirname, 'src'),
+      path.resolve(__dirname, 'node_modules'),
       'node_modules'
     ];
+    
+    // 处理外部依赖
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push({
+        'utf-8-validate': 'commonjs utf-8-validate',
+        'bufferutil': 'commonjs bufferutil',
+      });
+    }
     
     return config;
   },
