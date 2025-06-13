@@ -134,6 +134,7 @@ model Transaction {
   updatedAt      DateTime        @updatedAt @map("updated_at")
   accountBookId  String?         @map("account_book_id")
   budgetId       String?         @map("budget_id")
+  metadata       Json?           @map("metadata")
   accountBook    AccountBook?    @relation(fields: [accountBookId], references: [id])
   budget         Budget?         @relation(fields: [budgetId], references: [id])
   category       Category        @relation(fields: [categoryId], references: [id])

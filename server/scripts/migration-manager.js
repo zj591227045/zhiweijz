@@ -23,18 +23,19 @@ const logger = {
  */
 const MIGRATIONS_CONFIG = {
   // 当前最新版本
-  LATEST_VERSION: '1.2.1',
+  LATEST_VERSION: '1.2.2',
   
   // 迁移文件目录
   MIGRATIONS_DIR: path.join(__dirname, '../migrations/incremental'),
   
   // 版本升级路径
   UPGRADE_PATHS: {
-    '1.0.0': ['1.0.0-to-1.1.0', '1.1.0-to-1.2.0', 'add-service-type-to-llm-call-logs'],
-    '1.1.0': ['1.1.0-to-1.2.0', 'add-service-type-to-llm-call-logs'],
-    '1.2.0': ['add-service-type-to-llm-call-logs'],
-    '1.2.1': [], // 当前最新版本
-    'fresh_install': ['base-schema', 'admin-features', '1.1.0-to-1.2.0', 'add-service-type-to-llm-call-logs']
+    '1.0.0': ['1.0.0-to-1.1.0', '1.1.0-to-1.2.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata'],
+    '1.1.0': ['1.1.0-to-1.2.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata'],
+    '1.2.0': ['add-service-type-to-llm-call-logs', 'add-transaction-metadata'],
+    '1.2.1': ['add-transaction-metadata'],
+    '1.2.2': [], // 当前最新版本
+    'fresh_install': ['base-schema', 'admin-features', '1.1.0-to-1.2.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata']
   }
 };
 
