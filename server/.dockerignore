@@ -3,6 +3,7 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+package-lock.json
 
 # 构建输出
 dist/
@@ -14,12 +15,16 @@ coverage/
 *.test.ts
 test/
 __tests__/
+jest.config.js
 
 # 开发工具
 .vscode/
 .idea/
 *.swp
 *.swo
+.eslintrc*
+.prettierrc*
+nodemon.json
 
 # 日志
 logs/
@@ -41,6 +46,7 @@ backups/
 # Git
 .git/
 .gitignore
+.gitattributes
 
 # 文档
 *.md
@@ -50,6 +56,7 @@ docs/
 # 缓存
 .cache/
 .npm/
+.yarn/
 
 # macOS
 .DS_Store
@@ -60,12 +67,18 @@ Thumbs.db
 # 上传文件
 uploads/
 
-# 开发配置
-nodemon.json
-jest.config.js
+# TypeScript配置
 tsconfig.json
 
 # Docker相关
 Dockerfile*
 docker-compose*.yml
-.dockerignore 
+.dockerignore
+
+# 开发脚本和工具
+create-test-data.js
+
+# 数据库相关开发文件
+migrations/
+*.db
+*.sqlite 

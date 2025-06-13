@@ -1,23 +1,26 @@
 # 多阶段构建 - 构建阶段
-FROM node:18-slim AS builder
+FROM node:18-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app
 
-# 安装必要的系统依赖
-RUN apt-get update && apt-get install -y \
-    bash \
-    postgresql-client \
+# 安装构建所需的系统依赖
+RUN apk update && apk add --no-cache \
+    python3 \
+    make \
+    g++ \
     curl \
     openssl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    openssl-dev \
+    bash \
+    postgresql-client \
+    && rm -rf /var/cache/apk/*
 
 # 复制package文件
 COPY server/package*.json ./
 
 # 安装所有依赖（包括devDependencies用于构建）
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # 复制源代码
 COPY server/ .
@@ -28,46 +31,52 @@ RUN npx prisma generate
 # 构建TypeScript代码
 RUN npm run build
 
-# 生产阶段
-FROM node:18-slim AS production
+# 清理开发依赖，只保留生产依赖
+RUN npm prune --production --legacy-peer-deps
 
-# 安装必要的系统依赖
-RUN apt-get update && apt-get install -y \
+# 清理npm缓存
+RUN npm cache clean --force
+
+# 生产阶段
+FROM node:18-alpine AS production
+
+# 安装运行时必要的系统依赖
+RUN apk update && apk add --no-cache \
     bash \
     postgresql-client \
     curl \
     openssl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    dumb-init \
+    libc6-compat \
+    && rm -rf /var/cache/apk/*
+
+# 创建非root用户
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
 
 # 设置工作目录
 WORKDIR /app
 
-# 复制package文件
-COPY server/package*.json ./
+# 从构建阶段复制package文件
+COPY --from=builder /app/package*.json ./
 
-# 安装生产依赖
-RUN npm install --only=production
+# 从构建阶段复制已清理的node_modules（只包含生产依赖）
+COPY --from=builder /app/node_modules ./node_modules
 
 # 从构建阶段复制编译后的代码
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
-# 复制必要的运行时文件
-COPY server/scripts/ ./scripts/
-COPY server/prisma/ ./prisma/
-COPY server/migrations/ ./migrations/
+# 只复制必要的运行时文件
+COPY --from=builder /app/scripts/deployment/ ./scripts/deployment/
+COPY --from=builder /app/prisma/schema.prisma ./prisma/
 
-# 设置脚本执行权限
-RUN find scripts -name "*.sh" -type f -exec chmod +x {} \; && \
-    find scripts -name "*.js" -type f -exec chmod +x {} \;
+# 创建必要目录并设置权限
+RUN mkdir -p uploads && \
+    chown -R nodejs:nodejs /app && \
+    chmod +x scripts/deployment/*.sh
 
-# 创建非root用户
-RUN groupadd -r nodejs && useradd -r -g nodejs nodeuser
-
-# 改变文件所有权
-RUN chown -R nodeuser:nodejs /app
-USER nodeuser
+# 切换到非root用户
+USER nodejs
 
 # 暴露端口
 EXPOSE 3000
@@ -75,10 +84,14 @@ EXPOSE 3000
 # 设置环境变量
 ENV NODE_ENV=production
 ENV DOCKER_ENV=true
+ENV PORT=3000
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:3000/health || exit 1
+  CMD curl -f http://localhost:3000/api/health || exit 1
+
+# 使用dumb-init作为PID 1，提供更好的信号处理
+ENTRYPOINT ["dumb-init", "--"]
 
 # 启动命令 - 使用安全的启动脚本
 CMD ["bash", "scripts/deployment/start.sh"]

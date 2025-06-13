@@ -26,10 +26,19 @@ const nextConfig = {
   // 环境变量
   env: {
     DOCKER_ENV: process.env.DOCKER_ENV || 'true',
+    IS_MOBILE_BUILD: 'false', // Docker环境不是移动端构建
   },
   
   // Webpack配置 - 处理内部包路径和依赖
   webpack: (config) => {
+    // 定义环境变量
+    config.plugins.push(
+      new config.webpack.DefinePlugin({
+        'process.env.IS_MOBILE_BUILD': JSON.stringify('false'),
+        'process.env.DOCKER_ENV': JSON.stringify('true'),
+      })
+    );
+    
     config.resolve.alias = {
       ...config.resolve.alias,
       '@zhiweijz/core': require('path').resolve(__dirname, '../packages/core/src'),
