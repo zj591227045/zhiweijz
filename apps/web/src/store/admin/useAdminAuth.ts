@@ -21,6 +21,7 @@ interface AdminAuthState {
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<boolean>;
   clearError: () => void;
 }
 
@@ -121,6 +122,36 @@ export const useAdminAuth = create<AdminAuthState>()(
             token: null,
             error: '认证失败，请重新登录',
           });
+        }
+      },
+
+      changePassword: async (oldPassword: string, newPassword: string) => {
+        set({ isLoading: true, error: null });
+        
+        try {
+          const response = await adminApi.post(ADMIN_API_ENDPOINTS.CHANGE_PASSWORD, {
+            oldPassword,
+            newPassword
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.message || '修改密码失败');
+          }
+
+          if (!data.success) {
+            throw new Error(data.message || '修改密码失败');
+          }
+
+          set({ isLoading: false, error: null });
+          return true;
+        } catch (error) {
+          set({
+            isLoading: false,
+            error: error instanceof Error ? error.message : '修改密码失败',
+          });
+          return false;
         }
       },
 

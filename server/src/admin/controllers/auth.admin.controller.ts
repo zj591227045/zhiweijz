@@ -141,4 +141,84 @@ export class AdminAuthController {
       });
     }
   }
+
+  /**
+   * 管理员修改密码
+   */
+  async changePassword(req: Request, res: Response): Promise<void> {
+    try {
+      const adminId = req.admin?.id;
+      const { oldPassword, newPassword } = req.body;
+
+      if (!adminId) {
+        res.status(401).json({
+          success: false,
+          message: '未认证'
+        });
+        return;
+      }
+
+      if (!oldPassword || !newPassword) {
+        res.status(400).json({
+          success: false,
+          message: '当前密码和新密码不能为空'
+        });
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        res.status(400).json({
+          success: false,
+          message: '新密码长度至少需要6位字符'
+        });
+        return;
+      }
+
+      // 查找管理员
+      const admin = await this.adminService.findById(adminId);
+      if (!admin) {
+        res.status(404).json({
+          success: false,
+          message: '管理员不存在'
+        });
+        return;
+      }
+
+      // 验证当前密码
+      const passwordValid = await bcrypt.compare(oldPassword, admin.passwordHash);
+      if (!passwordValid) {
+        res.status(400).json({
+          success: false,
+          message: '当前密码不正确'
+        });
+        return;
+      }
+
+      // 检查新密码是否与当前密码相同
+      if (oldPassword === newPassword) {
+        res.status(400).json({
+          success: false,
+          message: '新密码不能与当前密码相同'
+        });
+        return;
+      }
+
+      // 加密新密码
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // 更新密码
+      await this.adminService.updatePassword(adminId, hashedPassword);
+
+      res.json({
+        success: true,
+        message: '密码修改成功'
+      });
+    } catch (error) {
+      console.error('管理员修改密码错误:', error);
+      res.status(500).json({
+        success: false,
+        message: '服务器内部错误'
+      });
+    }
+  }
 } 

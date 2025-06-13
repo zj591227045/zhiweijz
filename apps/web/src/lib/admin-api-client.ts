@@ -43,6 +43,7 @@ export const ADMIN_API_ENDPOINTS = {
   // 认证相关
   LOGIN: '/api/admin/auth/login',
   CHECK_AUTH: '/api/admin/auth/check',
+  CHANGE_PASSWORD: '/api/admin/auth/change-password',
   
   // 用户管理
   USERS: '/api/admin/users',
