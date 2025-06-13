@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { toast } from 'sonner';
 import { useAdminAuth } from './useAdminAuth';
+import { adminApi, ADMIN_API_ENDPOINTS } from '@/lib/admin-api-client';
 
 interface User {
   id: string;
@@ -89,21 +90,7 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   fetchUsers: async (params: UserListParams = {}) => {
     set({ isLoading: true });
     try {
-      const token = useAdminAuth.getState().token;
-      const queryParams = new URLSearchParams();
-      
-      if (params.page) queryParams.append('page', params.page.toString());
-      if (params.limit) queryParams.append('limit', params.limit.toString());
-      if (params.search) queryParams.append('search', params.search);
-      if (params.status) queryParams.append('status', params.status);
-      if (params.sort) queryParams.append('sort', params.sort);
-      if (params.order) queryParams.append('order', params.order);
-
-      const response = await fetch(`/api/admin/users?${queryParams}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await adminApi.getWithParams(ADMIN_API_ENDPOINTS.USERS, params);
       
       if (!response.ok) {
         throw new Error('获取用户列表失败');
@@ -136,12 +123,7 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   getUserDetail: async (id: string) => {
     set({ isLoading: true });
     try {
-      const token = useAdminAuth.getState().token;
-      const response = await fetch(`/api/admin/users/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await adminApi.get(ADMIN_API_ENDPOINTS.USER_DETAIL(id));
       
       if (!response.ok) {
         throw new Error('获取用户详情失败');
@@ -165,15 +147,7 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   // 创建用户
   createUser: async (data: CreateUserData) => {
     try {
-      const token = useAdminAuth.getState().token;
-      const response = await fetch('/api/admin/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(data),
-      });
+      const response = await adminApi.post(ADMIN_API_ENDPOINTS.USERS, data);
 
       const result = await response.json();
       
@@ -195,15 +169,7 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   // 更新用户
   updateUser: async (id: string, data: UpdateUserData) => {
     try {
-      const token = useAdminAuth.getState().token;
-      const response = await fetch(`/api/admin/users/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(data),
-      });
+      const response = await adminApi.put(ADMIN_API_ENDPOINTS.USER_DETAIL(id), data);
 
       const result = await response.json();
       
@@ -225,13 +191,7 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   // 删除用户
   deleteUser: async (id: string) => {
     try {
-      const token = useAdminAuth.getState().token;
-      const response = await fetch(`/api/admin/users/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await adminApi.delete(ADMIN_API_ENDPOINTS.USER_DETAIL(id));
 
       const result = await response.json();
       
@@ -253,15 +213,7 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   // 重置密码
   resetPassword: async (id: string, newPassword: string) => {
     try {
-      const token = useAdminAuth.getState().token;
-      const response = await fetch(`/api/admin/users/${id}/reset-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ newPassword }),
-      });
+      const response = await adminApi.post(ADMIN_API_ENDPOINTS.USER_RESET_PASSWORD(id), { newPassword });
 
       const result = await response.json();
       
@@ -281,13 +233,7 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   // 切换用户状态
   toggleUserStatus: async (id: string) => {
     try {
-      const token = useAdminAuth.getState().token;
-      const response = await fetch(`/api/admin/users/${id}/toggle-status`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await adminApi.patch(ADMIN_API_ENDPOINTS.USER_TOGGLE_STATUS(id));
 
       const result = await response.json();
       
@@ -309,15 +255,7 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   // 批量操作
   batchOperation: async (userIds: string[], operation: 'activate' | 'deactivate' | 'delete') => {
     try {
-      const token = useAdminAuth.getState().token;
-      const response = await fetch('/api/admin/users/batch', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ userIds, operation }),
-      });
+      const response = await adminApi.post(ADMIN_API_ENDPOINTS.USER_BATCH, { userIds, operation });
 
       const result = await response.json();
       
@@ -339,12 +277,7 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   // 获取注册状态
   getRegistrationStatus: async () => {
     try {
-      const token = useAdminAuth.getState().token;
-      const response = await fetch('/api/admin/system-configs/registration', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await adminApi.get(ADMIN_API_ENDPOINTS.SYSTEM_CONFIG_REGISTRATION);
 
       if (response.ok) {
         const result = await response.json();
@@ -360,15 +293,7 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   // 切换注册状态
   toggleRegistration: async (enabled: boolean) => {
     try {
-      const token = useAdminAuth.getState().token;
-      const response = await fetch('/api/admin/system-configs/registration', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ enabled }),
-      });
+      const response = await adminApi.put(ADMIN_API_ENDPOINTS.SYSTEM_CONFIG_REGISTRATION, { enabled });
 
       const result = await response.json();
       

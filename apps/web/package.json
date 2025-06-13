@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3003",
+    "dev:web": "IS_WEB_BUILD=true next dev -p 3003",
     "build": "next build",
+    "build:web": "next build --config next.config.web.js",
     "build:mobile": "IS_MOBILE_BUILD=true next build",
     "start": "next start",
     "lint": "next lint",

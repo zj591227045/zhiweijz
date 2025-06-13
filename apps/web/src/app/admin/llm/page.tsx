@@ -21,6 +21,7 @@ import {
 } from '@heroicons/react/24/outline';
 import MobileNotSupported from '@/components/admin/MobileNotSupported';
 import { useAdminAuth } from '@/store/admin/useAdminAuth';
+import { adminApi, ADMIN_API_ENDPOINTS } from '@/lib/admin-api-client';
 
 interface LLMConfig {
   enabled: boolean;
@@ -90,12 +91,7 @@ export default function LLMConfigPage() {
   const loadConfig = async () => {
     setLoading(true);
     try {
-      const token = useAdminAuth.getState().token;
-      const response = await fetch('/api/admin/system-configs/llm/configs', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await adminApi.get(ADMIN_API_ENDPOINTS.SYSTEM_CONFIG_LLM);
 
       if (response.ok) {
         const data = await response.json();
@@ -117,15 +113,7 @@ export default function LLMConfigPage() {
   const saveConfig = async () => {
     setSaving(true);
     try {
-      const token = useAdminAuth.getState().token;
-      const response = await fetch('/api/admin/system-configs/llm/configs', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(config)
-      });
+      const response = await adminApi.put(ADMIN_API_ENDPOINTS.SYSTEM_CONFIG_LLM, config);
 
       if (response.ok) {
         const data = await response.json();
@@ -162,19 +150,11 @@ export default function LLMConfigPage() {
     setTestResult(null);
 
     try {
-      const token = useAdminAuth.getState().token;
-      const response = await fetch('/api/admin/system-configs/llm/test', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          provider: config.provider,
-          model: config.model,
-          apiKey: config.apiKey,
-          baseUrl: config.baseUrl
-        })
+      const response = await adminApi.post(`${ADMIN_API_ENDPOINTS.SYSTEM_CONFIG_LLM}/test`, {
+        provider: config.provider,
+        model: config.model,
+        apiKey: config.apiKey,
+        baseUrl: config.baseUrl
       });
 
       if (response.ok) {

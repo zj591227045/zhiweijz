@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { useAdminAuth } from './useAdminAuth';
 import { toast } from 'sonner';
+import { adminApi, ADMIN_API_ENDPOINTS } from '@/lib/admin-api-client';
 
 export interface Announcement {
   id: string;
@@ -112,23 +113,18 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
   fetchAnnouncements: async (page = 1) => {
     try {
       set({ isLoading: true });
-      const token = useAdminAuth.getState().token;
       const { searchTerm, statusFilter, priorityFilter } = get();
       
-      const params = new URLSearchParams({
+      const params: Record<string, any> = {
         page: page.toString(),
         limit: '20'
-      });
+      };
       
-      if (searchTerm) params.append('search', searchTerm);
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-      if (priorityFilter !== 'all') params.append('priority', priorityFilter);
+      if (searchTerm) params.search = searchTerm;
+      if (statusFilter !== 'all') params.status = statusFilter;
+      if (priorityFilter !== 'all') params.priority = priorityFilter;
 
-      const response = await fetch(`/api/admin/announcements?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await adminApi.getWithParams(ADMIN_API_ENDPOINTS.ANNOUNCEMENTS, params);
 
       const result = await response.json();
       
@@ -152,13 +148,8 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
   fetchAnnouncementById: async (id: string) => {
     try {
       set({ isLoading: true });
-      const token = useAdminAuth.getState().token;
       
-      const response = await fetch(`/api/admin/announcements/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await adminApi.get(`${ADMIN_API_ENDPOINTS.ANNOUNCEMENTS}/${id}`);
 
       const result = await response.json();
       
@@ -178,13 +169,7 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
   // 获取统计数据
   fetchStats: async () => {
     try {
-      const token = useAdminAuth.getState().token;
-      
-      const response = await fetch('/api/admin/announcements/stats', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await adminApi.get(ADMIN_API_ENDPOINTS.ANNOUNCEMENT_STATS);
 
       const result = await response.json();
       
@@ -200,16 +185,8 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
   createAnnouncement: async (data: CreateAnnouncementData) => {
     try {
       set({ isCreating: true });
-      const token = useAdminAuth.getState().token;
       
-      const response = await fetch('/api/admin/announcements', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await adminApi.post(ADMIN_API_ENDPOINTS.ANNOUNCEMENTS, data);
 
       const result = await response.json();
       
@@ -234,16 +211,8 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
   updateAnnouncement: async (id: string, data: UpdateAnnouncementData) => {
     try {
       set({ isUpdating: true });
-      const token = useAdminAuth.getState().token;
       
-      const response = await fetch(`/api/admin/announcements/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await adminApi.put(`${ADMIN_API_ENDPOINTS.ANNOUNCEMENTS}/${id}`, data);
 
       const result = await response.json();
       
@@ -269,14 +238,7 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
   // 发布公告
   publishAnnouncement: async (id: string) => {
     try {
-      const token = useAdminAuth.getState().token;
-      
-      const response = await fetch(`/api/admin/announcements/${id}/publish`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await adminApi.post(`${ADMIN_API_ENDPOINTS.ANNOUNCEMENTS}/${id}/publish`);
 
       const result = await response.json();
       
@@ -298,14 +260,7 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
   // 撤回公告
   unpublishAnnouncement: async (id: string) => {
     try {
-      const token = useAdminAuth.getState().token;
-      
-      const response = await fetch(`/api/admin/announcements/${id}/unpublish`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await adminApi.post(`${ADMIN_API_ENDPOINTS.ANNOUNCEMENTS}/${id}/unpublish`);
 
       const result = await response.json();
       
@@ -327,14 +282,7 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
   // 归档公告
   archiveAnnouncement: async (id: string) => {
     try {
-      const token = useAdminAuth.getState().token;
-      
-      const response = await fetch(`/api/admin/announcements/${id}/archive`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await adminApi.post(`${ADMIN_API_ENDPOINTS.ANNOUNCEMENTS}/${id}/archive`);
 
       const result = await response.json();
       
@@ -356,14 +304,7 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
   // 删除公告
   deleteAnnouncement: async (id: string) => {
     try {
-      const token = useAdminAuth.getState().token;
-      
-      const response = await fetch(`/api/admin/announcements/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await adminApi.delete(`${ADMIN_API_ENDPOINTS.ANNOUNCEMENTS}/${id}`);
 
       const result = await response.json();
       
@@ -385,16 +326,7 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
   // 批量操作
   batchOperation: async (ids: string[], operation: 'publish' | 'unpublish' | 'archive' | 'delete') => {
     try {
-      const token = useAdminAuth.getState().token;
-      
-      const response = await fetch('/api/admin/announcements/batch', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ ids, operation })
-      });
+      const response = await adminApi.post(`${ADMIN_API_ENDPOINTS.ANNOUNCEMENTS}/batch`, { ids, operation });
 
       const result = await response.json();
       

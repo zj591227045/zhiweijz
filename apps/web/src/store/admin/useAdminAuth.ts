@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { ADMIN_API_ENDPOINTS, adminApi } from '@/lib/admin-api-config';
+import { ADMIN_API_ENDPOINTS, adminApi } from '@/lib/admin-api-client';
 
 interface AdminInfo {
   id: string;
@@ -49,6 +49,11 @@ export const useAdminAuth = create<AdminAuthState>()(
             throw new Error(data.message || '登录失败');
           }
 
+          // 将token存储到localStorage供API客户端使用
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('auth-token', data.data.token);
+          }
+
           set({
             isAuthenticated: true,
             admin: data.data.admin,
@@ -69,6 +74,11 @@ export const useAdminAuth = create<AdminAuthState>()(
       },
 
       logout: () => {
+        // 清除localStorage中的token
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth-token');
+        }
+        
         set({
           isAuthenticated: false,
           admin: null,
@@ -86,7 +96,7 @@ export const useAdminAuth = create<AdminAuthState>()(
         }
 
         try {
-          const response = await adminApi.get(ADMIN_API_ENDPOINTS.CHECK_AUTH, token);
+          const response = await adminApi.get(ADMIN_API_ENDPOINTS.CHECK_AUTH);
 
           const data = await response.json();
 
@@ -100,6 +110,11 @@ export const useAdminAuth = create<AdminAuthState>()(
             error: null,
           });
         } catch (error) {
+          // 清除localStorage中的token
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('auth-token');
+          }
+          
           set({
             isAuthenticated: false,
             admin: null,

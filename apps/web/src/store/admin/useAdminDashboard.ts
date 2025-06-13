@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { useAdminAuth } from './useAdminAuth';
+import { adminApi, ADMIN_API_ENDPOINTS } from '@/lib/admin-api-client';
 
 interface OverviewStats {
   totalUsers: number;
@@ -101,24 +102,13 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
   error: null,
 
   fetchOverview: async () => {
-    const token = useAdminAuth.getState().token;
-    if (!token) {
-      set({ error: '未认证' });
-      return;
-    }
-
     set(state => ({
       isLoading: { ...state.isLoading, overview: true },
       error: null,
     }));
 
     try {
-      const response = await fetch('/api/admin/dashboard/overview', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
+      const response = await adminApi.get(ADMIN_API_ENDPOINTS.DASHBOARD_OVERVIEW);
       const data = await response.json();
 
       if (!response.ok || !data.success) {
@@ -139,24 +129,13 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
   },
 
   fetchUserStats: async (period: string) => {
-    const token = useAdminAuth.getState().token;
-    if (!token) {
-      set({ error: '未认证' });
-      return;
-    }
-
     set(state => ({
       isLoading: { ...state.isLoading, userStats: true },
       error: null,
     }));
 
     try {
-      const response = await fetch(`/api/admin/dashboard/users?period=${period}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
+      const response = await adminApi.getWithParams(ADMIN_API_ENDPOINTS.DASHBOARD_USERS, { period });
       const data = await response.json();
 
       if (!response.ok || !data.success) {
@@ -177,24 +156,13 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
   },
 
   fetchTransactionStats: async (period: string) => {
-    const token = useAdminAuth.getState().token;
-    if (!token) {
-      set({ error: '未认证' });
-      return;
-    }
-
     set(state => ({
       isLoading: { ...state.isLoading, transactionStats: true },
       error: null,
     }));
 
     try {
-      const response = await fetch(`/api/admin/dashboard/transactions?period=${period}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
+      const response = await adminApi.getWithParams(ADMIN_API_ENDPOINTS.DASHBOARD_TRANSACTIONS, { period });
       const data = await response.json();
 
       if (!response.ok || !data.success) {
@@ -215,24 +183,13 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
   },
 
   fetchSystemResources: async () => {
-    const token = useAdminAuth.getState().token;
-    if (!token) {
-      set({ error: '未认证' });
-      return;
-    }
-
     set(state => ({
       isLoading: { ...state.isLoading, systemResources: true },
       error: null,
     }));
 
     try {
-      const response = await fetch('/api/admin/dashboard/system', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
+      const response = await adminApi.get(ADMIN_API_ENDPOINTS.DASHBOARD_SYSTEM);
       const data = await response.json();
 
       if (!response.ok || !data.success) {
