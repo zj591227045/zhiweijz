@@ -354,13 +354,12 @@ export default function RegisterPage() {
       </form>
 
       {/* 验证码弹窗 */}
-      {showCaptcha && (
-        <SimpleSlidingCaptcha
-          onSuccess={handleCaptchaSuccess}
-          onError={handleCaptchaError}
-          onClose={handleCaptchaClose}
-        />
-      )}
+      <SimpleSlidingCaptcha
+        isOpen={showCaptcha}
+        onSuccess={handleCaptchaSuccess}
+        onError={handleCaptchaError}
+        onClose={handleCaptchaClose}
+      />
     </div>
   );
 }

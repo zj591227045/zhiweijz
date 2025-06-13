@@ -87,21 +87,44 @@
   padding: 0;
 }
 
-.submit-button {
+.submit-button,
+.btn-primary {
   background-color: var(--primary-color, #3b82f6);
   color: white;
   border: none;
   border-radius: var(--radius, 0.5rem);
-  padding: 14px;
+  padding: 16px 24px;
+  min-height: 48px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
 }
 
-.submit-button:hover {
-  opacity: 0.9;
+.submit-button:hover,
+.btn-primary:hover {
+  background-color: var(--primary-hover, rgba(59, 130, 246, 0.9));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.submit-button:active,
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.submit-button:disabled,
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
 }
 
 .auth-links {
@@ -130,6 +153,10 @@
 
 /* 响应式调整 */
 @media (max-width: 480px) {
+  .auth-container {
+    padding: 16px;
+  }
+  
   .auth-form {
     padding: 20px;
   }
@@ -140,5 +167,45 @@
   
   .app-slogan {
     font-size: 14px;
+  }
+  
+  .submit-button,
+  .btn-primary {
+    min-height: 50px;
+    font-size: 17px;
+    padding: 18px 24px;
+    border-radius: 12px;
+  }
+  
+  .form-input {
+    min-height: 44px;
+    font-size: 16px;
+    padding: 14px 16px;
+    border-radius: 12px;
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  .submit-button,
+  .btn-primary {
+    min-height: 50px;
+    font-size: 17px;
+    padding: 18px 24px;
+    border-radius: 12px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .submit-button:hover,
+  .btn-primary:hover {
+    transform: none;
+    background-color: var(--primary-color, #3b82f6);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+  }
+  
+  .submit-button:active,
+  .btn-primary:active {
+    background-color: var(--primary-active, rgba(59, 130, 246, 0.8));
+    transform: scale(0.98);
   }
 }
