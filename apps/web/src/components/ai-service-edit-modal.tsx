@@ -65,6 +65,7 @@ export default function AiServiceEditModal({
     { value: 'openai', label: 'OpenAI' },
     { value: 'siliconflow', label: '硅基流动' },
     { value: 'deepseek', label: 'Deepseek' },
+    { value: 'custom', label: '自定义 (OpenAI API兼容)' },
   ];
 
   // 根据提供商获取模型选项
@@ -84,6 +85,9 @@ export default function AiServiceEditModal({
         ];
       case 'deepseek':
         return [{ value: 'deepseek-chat', label: 'Deepseek Chat' }];
+      case 'custom':
+        // 自定义提供商不提供预定义模型，需要用户手动输入
+        return [];
       default:
         return [];
     }
@@ -533,7 +537,7 @@ export default function AiServiceEditModal({
                     </select>
                   </div>
 
-                  {/* 模型选择 */}
+                  {/* 模型选择/输入 */}
                   {formData.provider && (
                     <div style={{ marginBottom: '16px' }}>
                       <label style={{
@@ -543,29 +547,59 @@ export default function AiServiceEditModal({
                         color: 'var(--text-secondary)',
                         marginBottom: '8px'
                       }}>模型名称 *</label>
-                      <select
-                        name="model"
-                        value={formData.model}
-                        onChange={handleChange}
-                        disabled={isSubmitting}
-                        style={{
-                          width: '100%',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: '8px',
-                          padding: '12px',
-                          fontSize: '16px',
-                          color: 'var(--text-color)',
-                          backgroundColor: 'var(--background-secondary)',
-                          outline: 'none'
-                        }}
-                      >
-                        <option value="">请选择模型</option>
-                        {getModelOptions(formData.provider).map((model) => (
-                          <option key={model.value} value={model.value}>
-                            {model.label}
-                          </option>
-                        ))}
-                      </select>
+                      {formData.provider === 'custom' ? (
+                        <input
+                          type="text"
+                          name="model"
+                          value={formData.model}
+                          onChange={handleChange}
+                          placeholder="例如：gpt-3.5-turbo 或 claude-3-sonnet-20240229"
+                          disabled={isSubmitting}
+                          style={{
+                            width: '100%',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '8px',
+                            padding: '12px',
+                            fontSize: '16px',
+                            color: 'var(--text-color)',
+                            backgroundColor: 'var(--background-secondary)',
+                            outline: 'none'
+                          }}
+                        />
+                      ) : (
+                        <select
+                          name="model"
+                          value={formData.model}
+                          onChange={handleChange}
+                          disabled={isSubmitting}
+                          style={{
+                            width: '100%',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '8px',
+                            padding: '12px',
+                            fontSize: '16px',
+                            color: 'var(--text-color)',
+                            backgroundColor: 'var(--background-secondary)',
+                            outline: 'none'
+                          }}
+                        >
+                          <option value="">请选择模型</option>
+                          {getModelOptions(formData.provider).map((model) => (
+                            <option key={model.value} value={model.value}>
+                              {model.label}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      {formData.provider === 'custom' && (
+                        <div style={{
+                          fontSize: '12px',
+                          color: 'var(--text-secondary)',
+                          marginTop: '4px'
+                        }}>
+                          请输入兼容OpenAI API的模型名称
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -618,7 +652,7 @@ export default function AiServiceEditModal({
                   </div>
 
                   {/* Base URL */}
-                  {(formData.provider === 'openai' || formData.provider === 'deepseek') && (
+                  {(formData.provider === 'openai' || formData.provider === 'deepseek' || formData.provider === 'custom') && (
                     <div>
                       <label style={{
                         display: 'block',
@@ -626,7 +660,9 @@ export default function AiServiceEditModal({
                         fontWeight: '500',
                         color: 'var(--text-secondary)',
                         marginBottom: '8px'
-                      }}>API基础URL（可选）</label>
+                      }}>
+                        API基础URL{formData.provider === 'custom' ? ' *' : '（可选）'}
+                      </label>
                       <input
                         type="text"
                         name="baseUrl"
@@ -635,6 +671,8 @@ export default function AiServiceEditModal({
                         placeholder={
                           formData.provider === 'deepseek'
                             ? '默认：https://api.deepseek.com'
+                            : formData.provider === 'custom'
+                            ? '例如：https://api.anthropic.com/v1 或 https://api.moonshot.cn/v1'
                             : '例如：https://api.openai.com/v1'
                         }
                         disabled={isSubmitting}
@@ -656,6 +694,8 @@ export default function AiServiceEditModal({
                       }}>
                         {formData.provider === 'deepseek'
                           ? 'Deepseek API基础URL，留空使用默认地址'
+                          : formData.provider === 'custom'
+                          ? '请输入兼容OpenAI API格式的服务地址'
                           : '如果使用兼容OpenAI API的第三方服务，请填写API基础URL'}
                       </div>
                     </div>
@@ -675,7 +715,7 @@ export default function AiServiceEditModal({
                   <button
                     type="button"
                     onClick={handleTestConnection}
-                    disabled={isTesting || !formData.provider || !formData.apiKey || isSubmitting}
+                    disabled={isTesting || !formData.provider || !formData.apiKey || isSubmitting || (formData.provider === 'custom' && !formData.baseUrl)}
                     style={{
                       width: '100%',
                       height: '48px',
@@ -685,8 +725,8 @@ export default function AiServiceEditModal({
                       color: 'white',
                       fontSize: '16px',
                       fontWeight: '600',
-                      cursor: (isTesting || !formData.provider || !formData.apiKey || isSubmitting) ? 'not-allowed' : 'pointer',
-                      opacity: (isTesting || !formData.provider || !formData.apiKey || isSubmitting) ? 0.6 : 1,
+                      cursor: (isTesting || !formData.provider || !formData.apiKey || isSubmitting || (formData.provider === 'custom' && !formData.baseUrl)) ? 'not-allowed' : 'pointer',
+                      opacity: (isTesting || !formData.provider || !formData.apiKey || isSubmitting || (formData.provider === 'custom' && !formData.baseUrl)) ? 0.6 : 1,
                       transition: 'all 0.2s ease',
                       display: 'flex',
                       alignItems: 'center',
@@ -748,22 +788,22 @@ export default function AiServiceEditModal({
           }}>
             <button
               onClick={handleSubmit}
-              disabled={isSubmitting || !formData.name || !formData.provider || !formData.model || !formData.apiKey}
+              disabled={isSubmitting || !formData.name || !formData.provider || !formData.model || !formData.apiKey || (formData.provider === 'custom' && !formData.baseUrl)}
               style={{
                 width: '100%',
                 height: '48px',
                 borderRadius: '12px',
                 border: 'none',
-                backgroundColor: (isSubmitting || !formData.name || !formData.provider || !formData.model || !formData.apiKey)
+                backgroundColor: (isSubmitting || !formData.name || !formData.provider || !formData.model || !formData.apiKey || (formData.provider === 'custom' && !formData.baseUrl))
                   ? 'var(--text-secondary)'
                   : 'var(--primary-color)',
                 color: 'white',
                 fontSize: '16px',
                 fontWeight: '600',
-                cursor: (isSubmitting || !formData.name || !formData.provider || !formData.model || !formData.apiKey)
+                cursor: (isSubmitting || !formData.name || !formData.provider || !formData.model || !formData.apiKey || (formData.provider === 'custom' && !formData.baseUrl))
                   ? 'not-allowed'
                   : 'pointer',
-                opacity: (isSubmitting || !formData.name || !formData.provider || !formData.model || !formData.apiKey)
+                opacity: (isSubmitting || !formData.name || !formData.provider || !formData.model || !formData.apiKey || (formData.provider === 'custom' && !formData.baseUrl))
                   ? 0.6
                   : 1,
                 transition: 'all 0.2s ease',

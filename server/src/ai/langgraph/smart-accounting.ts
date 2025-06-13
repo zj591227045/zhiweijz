@@ -3,7 +3,7 @@ import { SMART_ACCOUNTING_SYSTEM_PROMPT, SMART_ACCOUNTING_USER_PROMPT } from '..
 import { SmartAccountingState } from '../types/accounting-types';
 import { SmartAccountingResponse } from '../../types/smart-accounting';
 import NodeCache from 'node-cache';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../../config/database';
 import dotenv from 'dotenv';
 
 /**
@@ -12,7 +12,6 @@ import dotenv from 'dotenv';
  */
 export class SmartAccounting {
   private llmProviderService: LLMProviderService;
-  private prisma: PrismaClient;
   private cache: NodeCache;
 
   /**
@@ -24,7 +23,6 @@ export class SmartAccounting {
     dotenv.config();
 
     this.llmProviderService = llmProviderService;
-    this.prisma = new PrismaClient();
     this.cache = new NodeCache({ stdTTL: 3600 }); // 1小时过期
 
     // 设置硅基流动API密钥
@@ -118,7 +116,7 @@ export class SmartAccounting {
   private async getBudgetListForPrompt(userId: string, accountId: string): Promise<string> {
     try {
       // 获取当前账本信息
-      const accountBook = await this.prisma.accountBook.findUnique({
+      const accountBook = await prisma.accountBook.findUnique({
         where: { id: accountId },
         include: {
           family: {
@@ -146,7 +144,7 @@ export class SmartAccounting {
       const currentDate = new Date();
 
       // 获取当前活跃的预算
-      const activeBudgets = await this.prisma.budget.findMany({
+      const activeBudgets = await prisma.budget.findMany({
         where: {
           OR: [
             // 账本预算
@@ -198,7 +196,7 @@ export class SmartAccounting {
             budgetDisplayName = budget.familyMember.user?.name || budget.familyMember.name;
           } else if (budget.userId) {
             // 家庭成员预算或个人预算
-            const user = await this.prisma.user.findUnique({
+            const user = await prisma.user.findUnique({
               where: { id: budget.userId },
               select: { name: true }
             });
@@ -260,7 +258,7 @@ export class SmartAccounting {
       }
 
       // 获取所有分类
-      const categories = await this.prisma.category.findMany({
+      const categories = await prisma.category.findMany({
         where: {
           OR: [
             { userId: state.userId },
@@ -331,9 +329,9 @@ export class SmartAccounting {
       console.error('智能分析错误:', error);
 
       // 回退到默认分类
-      const defaultCategory = await this.prisma.category.findFirst({
+      const defaultCategory = await prisma.category.findFirst({
         where: { name: '其他' }
-      }) || await this.prisma.category.findFirst();
+      }) || await prisma.category.findFirst();
 
       if (defaultCategory) {
         return {
@@ -387,7 +385,7 @@ export class SmartAccounting {
       // 1. 请求发起人在当前账本的个人预算
       // 2. 当前账本+分类+日期范围匹配的预算
       // 3. 请求发起人的个人预算（按分类匹配）
-      budget = await this.prisma.budget.findFirst({
+      budget = await prisma.budget.findFirst({
         where: {
           OR: [
             // 请求发起人在当前账本的个人预算（优先级最高）
@@ -453,7 +451,7 @@ export class SmartAccounting {
       const currentDate = new Date();
 
       // 获取账本信息
-      const accountBook = await this.prisma.accountBook.findUnique({
+      const accountBook = await prisma.accountBook.findUnique({
         where: { id: accountId },
         include: {
           family: {
@@ -478,7 +476,7 @@ export class SmartAccounting {
       }
 
       // 获取当前活跃的预算
-      const activeBudgets = await this.prisma.budget.findMany({
+      const activeBudgets = await prisma.budget.findMany({
         where: {
           OR: [
             // 账本预算
@@ -531,7 +529,7 @@ export class SmartAccounting {
             budgetDisplayName = budget.familyMember.user?.name || budget.familyMember.name;
           } else if (budget.userId) {
             // 家庭成员预算或个人预算
-            const user = await this.prisma.user.findUnique({
+            const user = await prisma.user.findUnique({
               where: { id: budget.userId },
               select: { name: true }
             });
@@ -554,7 +552,7 @@ export class SmartAccounting {
               return budget;
             }
           } else if (budget.userId) {
-            const user = await this.prisma.user.findUnique({
+            const user = await prisma.user.findUnique({
               where: { id: budget.userId },
               select: { name: true }
             });
@@ -586,7 +584,7 @@ export class SmartAccounting {
 
     try {
       // 验证账本是否存在并且用户有权限访问
-      const accountBook = await this.prisma.accountBook.findFirst({
+      const accountBook = await prisma.accountBook.findFirst({
         where: {
           id: state.accountId,
           OR: [
@@ -654,12 +652,12 @@ export class SmartAccounting {
 
     try {
       // 获取账本信息
-      const accountBook = await this.prisma.accountBook.findUnique({
+      const accountBook = await prisma.accountBook.findUnique({
         where: { id: state.accountId }
       });
 
       // 获取分类信息
-      const category = await this.prisma.category.findUnique({
+      const category = await prisma.category.findUnique({
         where: { id: state.analyzedTransaction.categoryId }
       });
 
@@ -667,7 +665,7 @@ export class SmartAccounting {
       let budget = null;
       let budgetOwnerName = null;
       if (state.matchedBudget?.id) {
-        budget = await this.prisma.budget.findUnique({
+        budget = await prisma.budget.findUnique({
           where: { id: state.matchedBudget.id },
           include: {
             user: {

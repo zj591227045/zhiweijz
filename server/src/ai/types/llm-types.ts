@@ -10,6 +10,8 @@ export interface LLMProviderOptions {
   temperature: number;
   /** 最大token数 */
   maxTokens?: number;
+  /** 基础URL (用于自定义提供商) */
+  baseUrl?: string;
   /** 其他可选参数 */
   [key: string]: any;
 }
@@ -28,6 +30,8 @@ export interface LLMSettings {
   temperature: number;
   /** 最大token数 */
   maxTokens?: number;
+  /** 基础URL (用于自定义提供商) */
+  baseUrl?: string;
   /** 其他可选参数 */
   [key: string]: any;
 }

@@ -2,8 +2,9 @@ import { LLMProvider } from './llm-provider';
 import { OpenAIProvider } from './openai-provider';
 import { SiliconFlowProvider } from './siliconflow-provider';
 import { DeepseekProvider } from './deepseek-provider';
+import { CustomProvider } from './custom-provider';
 import { LLMSettings, Message, LLMResponse } from '../types/llm-types';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../../config/database';
 
 /**
  * LLM提供商服务
@@ -20,9 +21,6 @@ export class LLMProviderService {
     temperature: 0.7,
     maxTokens: 1000,
   };
-  /** Prisma客户端 */
-  private prisma: PrismaClient;
-
   /**
    * 简单的token估算方法（作为回退）
    * @param text 文本内容
@@ -40,7 +38,6 @@ export class LLMProviderService {
    * 注册默认提供商
    */
   constructor() {
-    this.prisma = new PrismaClient();
 
     // 注册OpenAI提供商
     this.registerProvider(new OpenAIProvider());
@@ -50,6 +47,9 @@ export class LLMProviderService {
 
     // 注册Deepseek提供商
     this.registerProvider(new DeepseekProvider());
+
+    // 注册自定义提供商
+    this.registerProvider(new CustomProvider());
   }
 
   /**
@@ -95,7 +95,7 @@ export class LLMProviderService {
   ): Promise<LLMSettings> {
     try {
       // 首先检查系统配置中的AI服务类型
-      const serviceTypeConfig = await this.prisma.systemConfig.findUnique({
+      const serviceTypeConfig = await prisma.systemConfig.findUnique({
         where: { key: 'llm_service_type' }
       });
 
@@ -121,14 +121,14 @@ export class LLMProviderService {
         if (accountId) {
           try {
             // 查找账本
-            const accountBook = await this.prisma.accountBook.findUnique({
+            const accountBook = await prisma.accountBook.findUnique({
               where: { id: accountId }
             });
 
             // 如果账本存在
             if (accountBook) {
               // 查找关联的UserLLMSetting
-              const userLLMSettings = await this.prisma.$queryRaw`
+              const userLLMSettings = await prisma.$queryRaw`
                 SELECT u.* FROM "user_llm_settings" u
                 JOIN "account_books" a ON a."user_llm_setting_id" = u.id
                 WHERE a.id = ${accountId}
@@ -151,7 +151,7 @@ export class LLMProviderService {
             }
 
             // 如果账本没有绑定UserLLMSetting，尝试使用旧的AccountLLMSetting
-            const accountSettings = await this.prisma.accountLLMSetting.findFirst({
+            const accountSettings = await prisma.accountLLMSetting.findFirst({
               where: { accountBookId: accountId }
             });
 
@@ -173,7 +173,7 @@ export class LLMProviderService {
         // 如果没有账本设置或未提供账本信息，使用用户的默认LLM设置
         try {
           // 查找用户的默认LLM设置
-          const userLLMSettings = await this.prisma.$queryRaw`
+          const userLLMSettings = await prisma.$queryRaw`
             SELECT * FROM "user_llm_settings"
             WHERE "user_id" = ${userId}
             LIMIT 1
@@ -194,7 +194,7 @@ export class LLMProviderService {
           }
 
           // 如果没有找到UserLLMSetting，尝试从userSetting表获取
-          const userSettings = await this.prisma.userSetting.findFirst({
+          const userSettings = await prisma.userSetting.findFirst({
             where: {
               userId,
               key: 'llm_settings'
@@ -266,7 +266,7 @@ export class LLMProviderService {
   public async updateUserLLMSettings(userId: string, settings: Partial<LLMSettings>): Promise<void> {
     try {
       // 由于userLLMSetting表可能还不存在，我们使用userSetting表来存储LLM设置
-      const existingSettings = await this.prisma.userSetting.findFirst({
+      const existingSettings = await prisma.userSetting.findFirst({
         where: {
           userId,
           key: 'llm_settings'
@@ -283,7 +283,7 @@ export class LLMProviderService {
 
       if (existingSettings) {
         // 更新现有设置
-        await this.prisma.userSetting.update({
+        await prisma.userSetting.update({
           where: { id: existingSettings.id },
           data: {
             value: JSON.stringify(llmSettings)
@@ -291,7 +291,7 @@ export class LLMProviderService {
         });
       } else {
         // 创建新设置
-        await this.prisma.userSetting.create({
+        await prisma.userSetting.create({
           data: {
             userId,
             key: 'llm_settings',
@@ -316,7 +316,7 @@ export class LLMProviderService {
   ): Promise<void> {
     try {
       // 检查账本是否存在
-      const accountBook = await this.prisma.accountBook.findUnique({
+      const accountBook = await prisma.accountBook.findUnique({
         where: { id: accountId }
       });
 
@@ -325,7 +325,7 @@ export class LLMProviderService {
       }
 
       // 检查用户LLM设置是否存在
-      const userLLMSettings = await this.prisma.$queryRaw`
+      const userLLMSettings = await prisma.$queryRaw`
         SELECT * FROM "user_llm_settings"
         WHERE "id" = ${userLLMSettingId}
       `;
@@ -337,7 +337,7 @@ export class LLMProviderService {
       }
 
       // 更新账本的userLLMSettingId
-      await this.prisma.$executeRaw`
+      await prisma.$executeRaw`
         UPDATE "account_books"
         SET "user_llm_setting_id" = ${userLLMSettingId}
         WHERE "id" = ${accountId}
@@ -373,7 +373,7 @@ export class LLMProviderService {
       console.log('开始创建用户LLM设置:', { userId, settings });
 
       // 使用Prisma ORM方法创建记录，这样更安全可靠
-      const createdSetting = await this.prisma.userLLMSetting.create({
+      const createdSetting = await prisma.userLLMSetting.create({
         data: {
           userId,
           name: settings.name,
@@ -635,7 +635,7 @@ export class LLMProviderService {
     maxTokens?: number;
   }> {
     try {
-      const llmConfigs = await this.prisma.systemConfig.findMany({
+      const llmConfigs = await prisma.systemConfig.findMany({
         where: {
           category: 'llm'
         }
@@ -670,7 +670,7 @@ export class LLMProviderService {
    */
   private async getFullGlobalLLMConfig(): Promise<LLMSettings | null> {
     try {
-      const llmConfigs = await this.prisma.systemConfig.findMany({
+      const llmConfigs = await prisma.systemConfig.findMany({
         where: {
           category: 'llm'
         }
@@ -736,7 +736,7 @@ export class LLMProviderService {
   }): Promise<void> {
     try {
       // 获取用户信息
-      const user = await this.prisma.user.findUnique({
+      const user = await prisma.user.findUnique({
         where: { id: logData.userId },
         select: { name: true }
       });
@@ -744,7 +744,7 @@ export class LLMProviderService {
       // 获取账本信息（如果提供了accountId）
       let accountBook = null;
       if (logData.accountId) {
-        accountBook = await this.prisma.accountBook.findUnique({
+        accountBook = await prisma.accountBook.findUnique({
           where: { id: logData.accountId },
           select: { name: true }
         });
@@ -769,7 +769,7 @@ export class LLMProviderService {
       }
 
       // 创建日志记录
-      await this.prisma.llmCallLog.create({
+      await prisma.llmCallLog.create({
         data: {
           userId: logData.userId,
           userName: user?.name || 'Unknown User',
