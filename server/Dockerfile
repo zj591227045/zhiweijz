@@ -68,12 +68,15 @@ COPY --from=builder /app/dist ./dist
 
 # 只复制必要的运行时文件
 COPY --from=builder /app/scripts/deployment/ ./scripts/deployment/
+COPY --from=builder /app/scripts/migration-manager.js ./scripts/
 COPY --from=builder /app/prisma/schema.prisma ./prisma/
+COPY --from=builder /app/migrations/ ./migrations/
 
 # 创建必要目录并设置权限
 RUN mkdir -p uploads && \
     chown -R nodejs:nodejs /app && \
-    chmod +x scripts/deployment/*.sh
+    chmod +x scripts/deployment/*.sh && \
+    chmod +x scripts/migration-manager.js
 
 # 切换到非root用户
 USER nodejs
