@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { useServerConfigStore } from '@/store/server-config-store';
 import { toast } from 'sonner';
 import { SimpleSlidingCaptcha } from '@/components/captcha/simple-sliding-captcha';
+import { adminApiClient } from '@/lib/admin-api-client';
 
 interface SystemInfo {
   registrationEnabled: boolean;
@@ -43,8 +44,7 @@ export default function RegisterPage() {
       }
 
       try {
-        const response = await fetch('/api/system/registration-status');
-        const data = await response.json();
+        const data = await adminApiClient.get('/api/system/registration-status');
         
         if (data.success) {
           setSystemInfo({

@@ -10,6 +10,7 @@ import { ThemeSwitcher } from '../../../components/theme/theme-switcher';
 import { SimpleSlidingCaptcha } from '@/components/captcha/simple-sliding-captcha';
 import ServerSettings from '@/components/server/server-settings';
 import AnimatedBackground from '@/components/background/animated-background';
+import { adminApiClient } from '@/lib/admin-api-client';
 
 interface SystemInfo {
   registrationEnabled: boolean;
@@ -46,8 +47,7 @@ export default function LoginPage() {
       }
 
       try {
-        const response = await fetch('/api/system/registration-status');
-        const data = await response.json();
+        const data = await adminApiClient.get('/api/system/registration-status');
         
         if (data.success) {
           setSystemInfo({
