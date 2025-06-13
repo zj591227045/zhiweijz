@@ -32,6 +32,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# 例外：允许管理员 LLM 日志页面目录
+!apps/web/src/app/admin/llm/logs
+
 # IDE
 .idea/
 .vscode/*
