@@ -18,7 +18,7 @@ BACKEND_IMAGE="zhiweijz-backend"
 FRONTEND_IMAGE="zhiweijz-frontend"
 NGINX_IMAGE="zhiweijz-nginx"
 
-echo -e "${GREEN}智慧记账版本发布脚本${NC}"
+echo -e "${GREEN}只为记账版本发布脚本${NC}"
 echo "=================================="
 
 # 解析命令行参数

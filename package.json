@@ -1,6 +1,6 @@
 {
   "name": "zhiweijz",
-  "version": "1.0.0",
+  "version": "0.2.0",
   "description": "一个简单、纯粹、AI驱动的移动端记账工具。",
   "private": true,
   "workspaces": [
@@ -33,7 +33,10 @@
     "test:guide": "node scripts/test-environment-guide.js",
     "prisma:generate": "cd server && prisma generate",
     "prisma:migrate": "cd server && prisma migrate dev",
-    "prisma:studio": "cd server && prisma studio"
+    "prisma:studio": "cd server && prisma studio",
+    "version:show": "node scripts/update-version.js",
+    "version:update": "node scripts/update-version.js",
+    "android:build": "cd apps/android && ./build-release.sh"
   },
   "keywords": [],
   "author": "",
