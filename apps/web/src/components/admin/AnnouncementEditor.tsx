@@ -1,11 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Announcement, CreateAnnouncementData } from '@/store/admin/useAnnouncementManagement';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, LinkIcon, EyeIcon } from '@heroicons/react/24/outline';
 
 interface AnnouncementEditorProps {
   announcement?: Announcement | null;
   onSave: (data: CreateAnnouncementData) => Promise<void>;
   onCancel: () => void;
+}
+
+interface LinkModalData {
+  text: string;
+  url: string;
+  isInternal: boolean;
 }
 
 export function AnnouncementEditor({ announcement, onSave, onCancel }: AnnouncementEditorProps) {
@@ -20,6 +26,14 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkData, setLinkData] = useState<LinkModalData>({
+    text: '',
+    url: '',
+    isInternal: true
+  });
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 初始化表单数据
   useEffect(() => {
@@ -28,8 +42,8 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
         title: announcement.title,
         content: announcement.content,
         priority: announcement.priority,
-        publishedAt: announcement.publishedAt ? announcement.publishedAt.split('T')[0] : '',
-        expiresAt: announcement.expiresAt ? announcement.expiresAt.split('T')[0] : '',
+        publishedAt: announcement.publishedAt ? announcement.publishedAt.slice(0, 16) : '',
+        expiresAt: announcement.expiresAt ? announcement.expiresAt.slice(0, 16) : '',
         targetUserType: announcement.targetUserType
       });
     } else {
@@ -98,11 +112,13 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
       };
 
       if (formData.publishedAt) {
-        submitData.publishedAt = formData.publishedAt;
+        // 转换为ISO字符串格式
+        submitData.publishedAt = new Date(formData.publishedAt).toISOString();
       }
 
       if (formData.expiresAt) {
-        submitData.expiresAt = formData.expiresAt;
+        // 转换为ISO字符串格式
+        submitData.expiresAt = new Date(formData.expiresAt).toISOString();
       }
 
       await onSave(submitData);
@@ -121,6 +137,126 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
+
+  // 处理光标位置变化
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    const position = e.target.selectionStart;
+    setCursorPosition(position);
+    handleInputChange('content', value);
+  };
+
+  // 插入超链接
+  const handleInsertLink = () => {
+    if (contentTextareaRef.current) {
+      const textarea = contentTextareaRef.current;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selectedText = formData.content.substring(start, end);
+      
+      setLinkData({
+        text: selectedText || '',
+        url: '',
+        isInternal: true
+      });
+      setCursorPosition(start);
+      setShowLinkModal(true);
+    }
+  };
+
+  // 确认插入链接
+  const handleConfirmLink = () => {
+    if (!linkData.text.trim() || !linkData.url.trim()) {
+      return;
+    }
+
+    const linkMarkdown = `[${linkData.text}](${linkData.url})`;
+    const textarea = contentTextareaRef.current;
+    
+    if (textarea) {
+      const start = cursorPosition;
+      const end = cursorPosition;
+      const newContent = 
+        formData.content.substring(0, start) + 
+        linkMarkdown + 
+        formData.content.substring(end);
+      
+      handleInputChange('content', newContent);
+      
+      // 设置新的光标位置
+      setTimeout(() => {
+        const newPosition = start + linkMarkdown.length;
+        textarea.setSelectionRange(newPosition, newPosition);
+        textarea.focus();
+      }, 0);
+    }
+
+    setShowLinkModal(false);
+    setLinkData({ text: '', url: '', isInternal: true });
+  };
+
+  // 解析Markdown链接为HTML
+  const parseLinksToHtml = (content: string) => {
+    let result = content;
+    
+    // 1. 匹配标准Markdown链接格式 [文本](URL)
+    const standardLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    result = result.replace(standardLinkRegex, (match, text, url) => {
+      // 判断是否为内部链接
+      const isInternal = url.startsWith('/') || url.startsWith('#') || 
+                        (!url.startsWith('http://') && !url.startsWith('https://'));
+      const target = isInternal ? '_self' : '_blank';
+      const rel = isInternal ? '' : 'noopener noreferrer';
+      
+      return `<a href="${url}" target="${target}" ${rel ? `rel="${rel}"` : ''} 
+              style="color: #3b82f6; text-decoration: underline; cursor: pointer;">
+              ${text}
+              </a>`;
+    });
+    
+    // 2. 匹配方括号链接格式 [文本][URL]
+    const bracketLinkRegex = /\[([^\]]+)\]\[([^\]]+)\]/g;
+    result = result.replace(bracketLinkRegex, (match, text, url) => {
+      // 判断是否为内部链接
+      const isInternal = url.startsWith('/') || url.startsWith('#') || 
+                        (!url.startsWith('http://') && !url.startsWith('https://'));
+      const target = isInternal ? '_self' : '_blank';
+      const rel = isInternal ? '' : 'noopener noreferrer';
+      
+      return `<a href="${url}" target="${target}" ${rel ? `rel="${rel}"` : ''} 
+              style="color: #3b82f6; text-decoration: underline; cursor: pointer;">
+              ${text}
+              </a>`;
+    });
+    
+    // 3. 匹配纯URL格式（自动链接）
+    const urlRegex = /(https?:\/\/[^\s<>"{}|\\^`[\]]+)/g;
+    result = result.replace(urlRegex, (match, url) => {
+      // 检查是否已经被包装在链接标签中
+      if (result.includes(`href="${url}"`)) {
+        return match; // 已经是链接，不重复处理
+      }
+      
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer" 
+              style="color: #3b82f6; text-decoration: underline; cursor: pointer;">
+              ${url}
+              </a>`;
+    });
+    
+    return result;
+  };
+
+  // 获取内部页面选项
+  const getInternalPageOptions = () => [
+    { label: '仪表盘', value: '/dashboard' },
+    { label: '账本管理', value: '/account-books' },
+    { label: '交易记录', value: '/transactions' },
+    { label: '统计分析', value: '/analytics' },
+    { label: '设置', value: '/settings' },
+    { label: '个人资料', value: '/settings/profile' },
+    { label: '安全设置', value: '/settings/security' },
+    { label: '通知设置', value: '/settings/notifications' },
+  ];
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -166,26 +302,40 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
 
           {/* 内容 */}
           <div>
-            <label htmlFor="content" className="block text-sm font-medium text-gray-700">
-              公告内容 <span className="text-red-500">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+                公告内容 <span className="text-red-500">*</span>
+              </label>
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={handleInsertLink}
+                  className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <LinkIcon className="h-4 w-4 mr-1" />
+                  插入链接
+                </button>
+              </div>
+            </div>
             <textarea
+              ref={contentTextareaRef}
               id="content"
               rows={10}
               value={formData.content}
-              onChange={(e) => handleInputChange('content', e.target.value)}
+              onChange={handleContentChange}
               className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
                 errors.content ? 'border-red-300' : 'border-gray-300'
               }`}
-              placeholder="请输入公告内容，支持换行"
+              placeholder="请输入公告内容，支持换行和超链接。支持格式：[链接文本](链接地址) 或 [链接文本][链接地址]"
               maxLength={10000}
             />
             {errors.content && (
               <p className="mt-1 text-sm text-red-600">{errors.content}</p>
             )}
-            <p className="mt-1 text-sm text-gray-500">
-              {formData.content.length}/10000 字符
-            </p>
+            <div className="mt-1 flex items-center justify-between text-sm text-gray-500">
+              <span>支持链接格式：[文本](URL) 或 [文本][URL] 或直接输入URL</span>
+              <span>{formData.content.length}/10000 字符</span>
+            </div>
           </div>
 
           {/* 优先级和目标用户 */}
@@ -236,11 +386,9 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
               <input
                 type="datetime-local"
                 id="publishedAt"
-                value={formData.publishedAt ? `${formData.publishedAt}T00:00` : ''}
+                value={formData.publishedAt || ''}
                 onChange={(e) => {
-                  const value = e.target.value;
-                  const dateOnly = value ? value.split('T')[0] : '';
-                  handleInputChange('publishedAt', dateOnly);
+                  handleInputChange('publishedAt', e.target.value);
                 }}
                 className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
                   errors.publishedAt ? 'border-red-300' : 'border-gray-300'
@@ -262,13 +410,11 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
               <input
                 type="datetime-local"
                 id="expiresAt"
-                value={formData.expiresAt ? `${formData.expiresAt}T23:59` : ''}
+                value={formData.expiresAt || ''}
                 onChange={(e) => {
-                  const value = e.target.value;
-                  const dateOnly = value ? value.split('T')[0] : '';
-                  handleInputChange('expiresAt', dateOnly);
+                  handleInputChange('expiresAt', e.target.value);
                 }}
-                min={formData.publishedAt ? `${formData.publishedAt}T00:00` : new Date().toISOString().slice(0, 16)}
+                min={formData.publishedAt || new Date().toISOString().slice(0, 16)}
                 className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
                   errors.expiresAt ? 'border-red-300' : 'border-gray-300'
                 }`}
@@ -291,7 +437,7 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
               {formData.content ? (
                 <div className="prose prose-sm max-w-none">
                   <div dangerouslySetInnerHTML={{ 
-                    __html: formData.content.replace(/\n/g, '<br>') 
+                    __html: parseLinksToHtml(formData.content.replace(/\n/g, '<br>'))
                   }} />
                 </div>
               ) : (
@@ -318,6 +464,137 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
             </button>
           </div>
         </form>
+
+        {/* 链接插入模态框 */}
+        {showLinkModal && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-60">
+            <div className="relative top-1/2 transform -translate-y-1/2 mx-auto p-5 border w-11/12 max-w-md shadow-lg rounded-md bg-white">
+              <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+                <h3 className="text-lg font-medium text-gray-900">插入超链接</h3>
+                <button
+                  onClick={() => setShowLinkModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="mt-4 space-y-4">
+                {/* 链接类型选择 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    链接类型
+                  </label>
+                  <div className="flex space-x-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        checked={linkData.isInternal}
+                        onChange={() => setLinkData(prev => ({ ...prev, isInternal: true, url: '' }))}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">内部页面</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        checked={!linkData.isInternal}
+                        onChange={() => setLinkData(prev => ({ ...prev, isInternal: false, url: '' }))}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">外部链接</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* 链接文本 */}
+                <div>
+                  <label htmlFor="linkText" className="block text-sm font-medium text-gray-700">
+                    链接文本 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="linkText"
+                    value={linkData.text}
+                    onChange={(e) => setLinkData(prev => ({ ...prev, text: e.target.value }))}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="请输入链接显示的文本"
+                  />
+                </div>
+
+                {/* 链接地址 */}
+                <div>
+                  <label htmlFor="linkUrl" className="block text-sm font-medium text-gray-700">
+                    链接地址 <span className="text-red-500">*</span>
+                  </label>
+                  {linkData.isInternal ? (
+                    <select
+                      id="linkUrl"
+                      value={linkData.url}
+                      onChange={(e) => setLinkData(prev => ({ ...prev, url: e.target.value }))}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">请选择页面</option>
+                      {getInternalPageOptions().map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="url"
+                      id="linkUrl"
+                      value={linkData.url}
+                      onChange={(e) => setLinkData(prev => ({ ...prev, url: e.target.value }))}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="请输入完整的URL地址，如：https://example.com"
+                    />
+                  )}
+                </div>
+
+                {/* 预览 */}
+                {linkData.text && linkData.url && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      预览效果
+                    </label>
+                    <div className="p-3 bg-gray-50 rounded-md border">
+                      <a
+                        href={linkData.url}
+                        target={linkData.isInternal ? '_self' : '_blank'}
+                        rel={linkData.isInternal ? '' : 'noopener noreferrer'}
+                        className="text-blue-600 underline hover:text-blue-800"
+                        onClick={(e) => e.preventDefault()}
+                      >
+                        {linkData.text}
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 模态框按钮 */}
+              <div className="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setShowLinkModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  取消
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmLink}
+                  disabled={!linkData.text.trim() || !linkData.url.trim()}
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  插入链接
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

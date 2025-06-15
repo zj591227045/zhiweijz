@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react';
 import { useNotificationStore, UserAnnouncement } from '@/store/notification-store';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { useRouter } from 'next/navigation';
 import { 
   XMarkIcon,
   CheckIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
-  BellIcon
+  BellIcon,
+  CheckCircleIcon
 } from '@heroicons/react/24/outline';
 
 interface NotificationModalProps {
@@ -18,6 +20,7 @@ interface NotificationModalProps {
 }
 
 export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
+  const router = useRouter();
   const {
     announcements,
     unreadCount,
@@ -28,6 +31,40 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
   } = useNotificationStore();
 
   const [activeTab, setActiveTab] = useState<'unread' | 'all'>('unread');
+
+  // 检测是否为原生应用环境
+  const isNativeApp = typeof window !== 'undefined' && (
+    window.navigator.userAgent.includes('CapacitorJS') ||
+    window.navigator.userAgent.includes('Capacitor') ||
+    // 检测iOS应用
+    (window.navigator.userAgent.includes('iPhone') && window.navigator.standalone) ||
+    // 检测Android应用
+    window.navigator.userAgent.includes('wv') // WebView标识
+  );
+
+  // 计算Web移动端的padding
+  const getWebMobilePadding = () => {
+    if (typeof window === 'undefined') return { paddingTop: '2rem', paddingBottom: '2rem' };
+    
+    const viewportHeight = window.innerHeight;
+    const isMobile = viewportHeight < 800; // 简单的移动端检测
+    
+    if (isMobile) {
+      // 移动端：考虑底部导航栏，但确保居中
+      const topPadding = Math.max(16, (viewportHeight * 0.1)); // 至少16px，最多10%
+      const bottomPadding = Math.max(80, (viewportHeight * 0.1)); // 至少80px（底部导航栏），最多10%
+      return {
+        paddingTop: `${topPadding}px`,
+        paddingBottom: `${bottomPadding}px`
+      };
+    } else {
+      // 桌面端：简单居中
+      return {
+        paddingTop: '2rem',
+        paddingBottom: '2rem'
+      };
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -42,6 +79,84 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
   }, [isOpen, fetchAnnouncements, unreadCount]);
 
   if (!isOpen) return null;
+
+  // 解析Markdown链接为HTML
+  const parseLinksToHtml = (content: string) => {
+    let result = content;
+    
+    // 1. 匹配标准Markdown链接格式 [文本](URL)
+    const standardLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    result = result.replace(standardLinkRegex, (match, text, url) => {
+      // 判断是否为内部链接
+      const isInternal = url.startsWith('/') || url.startsWith('#') || 
+                        (!url.startsWith('http://') && !url.startsWith('https://'));
+      const target = isInternal ? '_self' : '_blank';
+      const rel = isInternal ? '' : 'noopener noreferrer';
+      
+      return `<a href="${url}" target="${target}" ${rel ? `rel="${rel}"` : ''} 
+              style="color: var(--primary-color, #3b82f6); text-decoration: underline; cursor: pointer;"
+              data-link="true">
+              ${text}
+              </a>`;
+    });
+    
+    // 2. 匹配方括号链接格式 [文本][URL]
+    const bracketLinkRegex = /\[([^\]]+)\]\[([^\]]+)\]/g;
+    result = result.replace(bracketLinkRegex, (match, text, url) => {
+      // 判断是否为内部链接
+      const isInternal = url.startsWith('/') || url.startsWith('#') || 
+                        (!url.startsWith('http://') && !url.startsWith('https://'));
+      const target = isInternal ? '_self' : '_blank';
+      const rel = isInternal ? '' : 'noopener noreferrer';
+      
+      return `<a href="${url}" target="${target}" ${rel ? `rel="${rel}"` : ''} 
+              style="color: var(--primary-color, #3b82f6); text-decoration: underline; cursor: pointer;"
+              data-link="true">
+              ${text}
+              </a>`;
+    });
+    
+    // 3. 匹配纯URL格式（自动链接）
+    const urlRegex = /(https?:\/\/[^\s<>"{}|\\^`[\]]+)/g;
+    result = result.replace(urlRegex, (match, url) => {
+      // 检查是否已经被包装在链接标签中
+      if (result.includes(`href="${url}"`)) {
+        return match; // 已经是链接，不重复处理
+      }
+      
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer" 
+              style="color: var(--primary-color, #3b82f6); text-decoration: underline; cursor: pointer;"
+              data-link="true">
+              ${url}
+              </a>`;
+    });
+    
+    return result;
+  };
+
+  // 处理链接点击
+  const handleLinkClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'A' && target.getAttribute('data-link') === 'true') {
+      e.stopPropagation(); // 阻止事件冒泡，避免触发已读逻辑
+      
+      const href = target.getAttribute('href');
+      if (href) {
+        // 判断是否为内部链接
+        const isInternal = href.startsWith('/') || href.startsWith('#') || 
+                          (!href.startsWith('http://') && !href.startsWith('https://'));
+        
+        if (isInternal) {
+          // 内部链接使用路由跳转
+          router.push(href);
+          onClose(); // 关闭模态框
+        } else {
+          // 外部链接在新窗口打开
+          window.open(href, '_blank', 'noopener,noreferrer');
+        }
+      }
+    }
+  };
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
@@ -73,10 +188,10 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
     }
   };
 
-  const handleAnnouncementClick = async (announcement: UserAnnouncement) => {
-    if (!announcement.isRead) {
-      await markAsRead(announcement.id);
-    }
+  // 单独的已读标记处理
+  const handleMarkAsRead = async (e: React.MouseEvent, announcementId: string) => {
+    e.stopPropagation(); // 阻止事件冒泡
+    await markAsRead(announcementId);
   };
 
   const handleMarkAllRead = async () => {
@@ -97,8 +212,15 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
         onClick={onClose}
       />
       
-      {/* 模态框内容 - 居中显示，避免与底部导航栏重叠 */}
-      <div className="flex items-center justify-center min-h-full p-4 pb-24">
+      {/* 模态框内容 - 居中显示，适配不同平台 */}
+      <div 
+        className="flex items-center justify-center min-h-full p-4"
+        style={isNativeApp ? {
+          // 原生应用：使用安全区域，保持原有逻辑
+          paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))',
+          paddingBottom: 'max(1rem, calc(env(safe-area-inset-bottom, 0px) + 1rem))'
+        } : getWebMobilePadding()}
+      >
         <div 
           className="relative w-full max-w-md transform overflow-hidden rounded-lg shadow-xl transition-all flex flex-col"
           style={{ 
@@ -222,28 +344,16 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
                 <BellIcon className="h-12 w-12 mb-2" style={{ color: 'var(--text-secondary)', opacity: 0.5 }} />
                 <p>{activeTab === 'unread' ? '暂无未读通知' : '暂无通知'}</p>
               </div>
-            ) : (
+            ) :
               <div>
                 {displayAnnouncements.map((announcement) => (
                   <div
                     key={announcement.id}
-                    className={`cursor-pointer transition-colors ${
+                    className={`transition-colors ${
                       !announcement.isRead ? 'bg-blue-50 dark:bg-blue-950/20' : ''
                     }`}
                     style={{
                       borderBottom: '1px solid var(--border-color)',
-                      ':hover': {
-                        backgroundColor: 'var(--hover-background)'
-                      }
-                    }}
-                    onClick={() => handleAnnouncementClick(announcement)}
-                    onMouseEnter={(e) => {
-                      if (!announcement.isRead) return;
-                      e.currentTarget.style.backgroundColor = 'var(--hover-background)';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!announcement.isRead) return;
-                      e.currentTarget.style.backgroundColor = 'transparent';
                     }}
                   >
                     <div className={`border-l-4 p-4 ${getPriorityColor(announcement.priority)}`}>
@@ -266,26 +376,40 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
                             >
                               {announcement.title}
                             </h4>
-                            {!announcement.isRead && (
-                              <div className="flex-shrink-0 ml-2">
-                                <div 
-                                  className="h-2 w-2 rounded-full"
-                                  style={{ backgroundColor: 'var(--primary-color)' }}
-                                ></div>
-                              </div>
-                            )}
+                            <div className="flex items-center space-x-2">
+                              {!announcement.isRead && (
+                                <div className="flex-shrink-0">
+                                  <div 
+                                    className="h-2 w-2 rounded-full"
+                                    style={{ backgroundColor: 'var(--primary-color)' }}
+                                  ></div>
+                                </div>
+                              )}
+                              {/* 独立的已读标记按钮 */}
+                              {!announcement.isRead && (
+                                <button
+                                  onClick={(e) => handleMarkAsRead(e, announcement.id)}
+                                  className="p-1 rounded-full transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
+                                  title="标记为已读"
+                                >
+                                  <CheckCircleIcon className="h-4 w-4" style={{ color: 'var(--primary-color)' }} />
+                                </button>
+                              )}
+                            </div>
                           </div>
                           
-                          <p 
+                          <div 
                             className={`mt-1 text-sm ${
                               !announcement.isRead ? 'font-medium' : ''
                             }`}
                             style={{ 
                               color: !announcement.isRead ? 'var(--text-primary)' : 'var(--text-secondary)'
                             }}
-                          >
-                            {announcement.content}
-                          </p>
+                            onClick={handleLinkClick}
+                            dangerouslySetInnerHTML={{
+                              __html: parseLinksToHtml(announcement.content)
+                            }}
+                          />
                           
                           <div className="mt-2 flex items-center justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
                             <span>
@@ -306,7 +430,7 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
                   </div>
                 ))}
               </div>
-            )}
+            }
           </div>
 
           {/* 底部 */}
