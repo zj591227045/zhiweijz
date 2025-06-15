@@ -50,8 +50,11 @@ const nextConfig = {
   
   // 自定义webpack配置
   webpack: (config, { dev, isServer }) => {
+    // 检查是否确实是移动端构建
+    const isMobileBuild = process.env.IS_MOBILE_BUILD === 'true';
+    
     // 只在移动端构建时排除管理页面相关的文件
-    if (!isWebBuild) {
+    if (isMobileBuild) {
       // 排除管理页面相关的文件
       config.plugins.push(
         new (require('webpack')).IgnorePlugin({

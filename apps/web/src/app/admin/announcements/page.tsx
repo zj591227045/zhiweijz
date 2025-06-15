@@ -1,5 +1,8 @@
 'use client';
 
+// 强制动态渲染，避免静态生成时的模块解析问题
+export const dynamic = 'force-dynamic';
+
 import { useEffect, useState } from 'react';
 import { useAnnouncementManagement } from '@/store/admin/useAnnouncementManagement';
 import { AnnouncementList } from '@/components/admin/AnnouncementList';

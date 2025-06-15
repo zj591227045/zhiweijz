@@ -143,7 +143,7 @@ class SmartAccountingProgressManager {
   }
 
   private createProgressContainer() {
-    if (this.progressContainer) return;
+    if (this.progressContainer || typeof document === 'undefined') return;
 
     this.progressContainer = document.createElement('div');
     this.progressContainer.id = 'smart-accounting-progress-container';
@@ -163,6 +163,7 @@ class SmartAccountingProgressManager {
   }
 
   showProgress(id: string, message: string, type: 'info' | 'success' | 'error' = 'info'): void {
+    if (typeof document === 'undefined') return;
     this.createProgressContainer();
     
     // 如果已经存在相同id的通知，更新它
@@ -296,6 +297,7 @@ class SmartAccountingProgressManager {
   }
 
   hideProgress(id: string): void {
+    if (typeof document === 'undefined') return;
     const progressToast = this.progressToasts.get(id);
     if (progressToast) {
       progressToast.style.animation = 'slideOutToTop 0.3s ease-out';
@@ -338,7 +340,10 @@ class SmartAccountingProgressManager {
 
 // 全局实例
 const smartAccountingProgressManager = SmartAccountingProgressManager.getInstance();
-(window as any).smartAccountingProgressManager = smartAccountingProgressManager;
+// 只在客户端环境下将实例绑定到window对象
+if (typeof window !== 'undefined') {
+  (window as any).smartAccountingProgressManager = smartAccountingProgressManager;
+}
 
 export function SmartAccountingDialog({
   isOpen,
