@@ -33,8 +33,8 @@
     </filter>
   </defs>
 
-  <!-- 圆角正方形背景 - 科技感浅色渐变 -->
-  <rect x="0" y="0" width="512" height="512" rx="80" ry="80" fill="url(#techGradient)"/>
+  <!-- 圆角正方形背景 - 使用iOS标准圆角半径 -->
+  <rect x="0" y="0" width="512" height="512" rx="102" ry="102" fill="url(#techGradient)"/>
 
   <!-- 科技装饰网格线 -->
   <defs>
@@ -42,7 +42,7 @@
       <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
     </pattern>
   </defs>
-  <rect x="0" y="0" width="512" height="512" rx="80" ry="80" fill="url(#grid)"/>
+  <rect x="0" y="0" width="512" height="512" rx="102" ry="102" fill="url(#grid)"/>
 
   <!-- 六边形主体 - 蓝色渐变，增大10% -->
   <polygon points="256,35 436,133 436,379 256,477 76,379 76,133"
