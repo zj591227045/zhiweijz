@@ -20,6 +20,19 @@ interface SmartAccountingResult {
   date?: string;
 }
 
+// 复用智能记账进度管理器
+declare global {
+  interface Window {
+    smartAccountingProgressManager?: any;
+  }
+}
+
+// 获取全局进度管理器实例
+const getProgressManager = () => {
+  if (typeof window === 'undefined') return null;
+  return window.smartAccountingProgressManager;
+};
+
 export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccountingInputProps) {
   const router = useRouter();
   const [description, setDescription] = useState('');
@@ -72,7 +85,7 @@ export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccounti
     }
   };
 
-  // 处理直接添加记账
+  // 处理直接添加记账 - 优化版本，使用顶部通知
   const handleDirectAdd = async () => {
     if (!description.trim()) {
       toast.error('请输入描述');
@@ -84,9 +97,59 @@ export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccounti
       return;
     }
 
+    // 获取进度管理器
+    const progressManager = getProgressManager();
+    if (!progressManager) {
+      // 如果进度管理器不可用，回退到原有逻辑
+      try {
+        setIsProcessing(true);
+        toast.info('正在处理，请稍候...');
+
+        const response = await fetchApi(`/api/ai/smart-accounting/direct`, {
+          method: 'POST',
+          body: JSON.stringify({
+            description,
+            accountBookId,
+          }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          toast.success('记账成功');
+          setDescription('');
+          router.push('/transactions');
+        } else {
+          const error = await response.json();
+          toast.error(error.message || '记账失败，请手动填写');
+        }
+      } catch (error) {
+        console.error('直接添加记账失败:', error);
+        toast.error('记账失败，请手动填写');
+      } finally {
+        setIsProcessing(false);
+      }
+      return;
+    }
+
+    // 生成唯一的进度ID
+    const progressId = `direct-add-input-${Date.now()}`;
+    
     try {
-      setIsProcessing(true);
-      toast.info('正在处理，请稍候...');
+      // 显示初始进度通知
+      progressManager.showProgress(progressId, '正在分析您的描述...', 'info');
+
+      // 后台异步处理
+      setTimeout(() => {
+        progressManager.updateProgress(progressId, '正在识别交易类型和金额...');
+      }, 1000);
+      
+      setTimeout(() => {
+        progressManager.updateProgress(progressId, '正在匹配最佳分类...');
+      }, 2000);
+      
+      setTimeout(() => {
+        progressManager.updateProgress(progressId, '正在创建交易记录...');
+      }, 3000);
 
       // 调用直接添加记账API
       const response = await fetchApi(`/api/ai/smart-accounting/direct`, {
@@ -99,22 +162,27 @@ export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccounti
 
       if (response.ok) {
         const result = await response.json();
-        toast.success('记账成功');
-
+        
+        // 显示成功通知
+        progressManager.showProgress(progressId, '记账成功！数据已更新', 'success');
+        
         // 清空输入
         setDescription('');
-
-        // 跳转到交易列表
-        router.push('/transactions');
+        
       } else {
         const error = await response.json();
-        toast.error(error.message || '记账失败，请手动填写');
+        progressManager.showProgress(progressId, error.message || '记账失败，请手动填写', 'error');
       }
     } catch (error) {
       console.error('直接添加记账失败:', error);
-      toast.error('记账失败，请手动填写');
-    } finally {
-      setIsProcessing(false);
+      
+      // 显示错误通知
+      let errorMessage = '记账失败，请重试';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      progressManager.showProgress(progressId, errorMessage, 'error');
     }
   };
 
@@ -148,9 +216,9 @@ export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccounti
         <button
           className="smart-accounting-button direct-button"
           onClick={handleDirectAdd}
-          disabled={isProcessing || !description.trim()}
+          disabled={!description.trim()}
         >
-          {isProcessing ? '添加中...' : '直接添加'}
+          直接添加
         </button>
       </div>
     </div>
