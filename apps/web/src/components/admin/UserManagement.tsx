@@ -11,10 +11,12 @@ import {
   EyeSlashIcon,
   ArrowUpIcon,
   ArrowDownIcon,
-  CogIcon
+  CogIcon,
+  KeyIcon
 } from '@heroicons/react/24/outline';
 import { UserModal } from './UserModal';
 import { ConfirmModal } from './ConfirmModal';
+import { ResetPasswordModal } from './ResetPasswordModal';
 
 interface User {
   id: string;
@@ -78,6 +80,8 @@ export function UserManagement({
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null);
   const [confirmAction, setConfirmAction] = useState<{
     type: 'delete' | 'toggle' | 'batch' | 'toggleRegistration';
     user?: User;
@@ -127,6 +131,12 @@ export function UserManagement({
   const handleToggleUserStatus = (user: User) => {
     setConfirmAction({ type: 'toggle', user });
     setShowConfirmModal(true);
+  };
+
+  // 处理重置密码
+  const handleResetPassword = (user: User) => {
+    setResetPasswordUser(user);
+    setShowResetPasswordModal(true);
   };
 
   // 处理批量操作
@@ -522,6 +532,13 @@ export function UserManagement({
                         <PencilIcon className="w-4 h-4" />
                       </button>
                       <button
+                        onClick={() => handleResetPassword(user)}
+                        className="text-orange-600 hover:text-orange-900"
+                        title="重置密码"
+                      >
+                        <KeyIcon className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() => handleToggleUserStatus(user)}
                         className={`${
                           user.isActive 
@@ -644,6 +661,16 @@ export function UserManagement({
           confirmButtonClass={getConfirmModalContent().confirmStyle}
         />
       )}
+
+      {/* 密码重置弹窗 */}
+      <ResetPasswordModal
+        isOpen={showResetPasswordModal}
+        onClose={() => {
+          setShowResetPasswordModal(false);
+          setResetPasswordUser(null);
+        }}
+        user={resetPasswordUser}
+      />
     </div>
   );
 } 
