@@ -162,7 +162,7 @@ class SmartAccountingProgressManager {
     document.body.appendChild(this.progressContainer);
   }
 
-  showProgress(id: string, message: string, type: 'info' | 'success' | 'error' = 'info', showRetryButton: boolean = false): void {
+  showProgress(id: string, message: string, type: 'info' | 'success' | 'error' = 'info'): void {
     this.createProgressContainer();
     
     // 如果已经存在相同id的通知，更新它
@@ -208,18 +208,8 @@ class SmartAccountingProgressManager {
       }
     };
 
-    const retryButtonHtml = showRetryButton ? `
-      <button onclick="smartAccountingProgressManager.retryRequest('${id}')" style="
-        background: var(--primary-color, #3b82f6);
-        color: white;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-size: 12px;
-        cursor: pointer;
-        margin-left: 8px;
-      ">重试</button>
-    ` : '';
+    // 构建HTML内容
+    const closeButtonId = `close-btn-${id}`;
 
     progressToast.innerHTML = `
       <div style="font-size: 18px;">${getIcon()}</div>
@@ -233,9 +223,8 @@ class SmartAccountingProgressManager {
         ` : ''}
       </div>
       <div style="display: flex; align-items: center;">
-        ${retryButtonHtml}
         ${type !== 'info' ? `
-          <button onclick="smartAccountingProgressManager.hideProgress('${id}')" style="
+          <button id="${closeButtonId}" style="
             background: none;
             border: none;
             color: var(--text-secondary, #6b7280);
@@ -250,6 +239,16 @@ class SmartAccountingProgressManager {
         ` : ''}
       </div>
     `;
+
+    // 添加关闭按钮事件监听器
+    if (type !== 'info') {
+      const closeButton = document.getElementById(closeButtonId);
+      if (closeButton) {
+        closeButton.addEventListener('click', () => {
+          this.hideProgress(id);
+        });
+      }
+    }
 
     // 添加样式
     if (!document.getElementById('smart-accounting-progress-styles')) {
@@ -292,7 +291,7 @@ class SmartAccountingProgressManager {
     if (type !== 'info') {
       setTimeout(() => {
         this.hideProgress(id);
-      }, type === 'error' && showRetryButton ? 10000 : 4000); // 错误且有重试按钮时显示10秒
+      }, 4000); // 显示4秒
     }
   }
 
@@ -331,20 +330,10 @@ class SmartAccountingProgressManager {
   // 完成记账请求
   completeRequest(id: string, success: boolean, message: string): void {
     this.removePendingRequest(id);
-    this.showProgress(id, message, success ? 'success' : 'error', !success);
+    this.showProgress(id, message, success ? 'success' : 'error');
   }
 
-  // 重试请求
-  retryRequest(id: string): void {
-    const pendingRequestsData = localStorage.getItem('smart-accounting-pending') || '{}';
-    const requests = JSON.parse(pendingRequestsData);
-    const request = requests[id];
-    
-    if (request) {
-      // 重新发起请求
-      window.location.reload(); // 简单的重试方式，重新加载页面
-    }
-  }
+
 }
 
 // 全局实例
@@ -421,7 +410,14 @@ export function SmartAccountingDialog({
         toast.error('请求超时，服务器处理时间过长，请稍后再试');
       } else if (error.response) {
         // 服务器返回了错误状态码
-        toast.error(`识别失败: ${error.response.data?.error || '服务器错误'}`);
+        const errorData = error.response.data;
+        
+        // 特殊处理"消息与记账无关"的情况
+        if (errorData?.info && errorData.info.includes('记账无关')) {
+          toast.info('您的描述似乎与记账无关，请尝试描述具体的消费或收入情况');
+        } else {
+          toast.error(`识别失败: ${errorData?.error || errorData?.message || '服务器错误'}`);
+        }
       } else if (error.request) {
         // 请求发送了但没有收到响应
         toast.error('未收到服务器响应，请检查网络连接');
@@ -511,7 +507,17 @@ export function SmartAccountingDialog({
         errorMessage = '请求超时，服务器可能仍在处理，请稍后检查记录';
         showRetry = false; // 超时情况下不提供重试，因为可能已经在处理
       } else if (error.response) {
-        errorMessage = `记账失败: ${error.response.data?.error || '服务器错误'}`;
+        const errorData = error.response.data;
+        
+        // 特殊处理"消息与记账无关"的情况  
+        if (errorData?.info && errorData.info.includes('记账无关')) {
+          errorMessage = '您的描述似乎与记账无关，请尝试描述具体的消费或收入情况';
+          // 对于无关内容，显示信息提示
+          smartAccountingProgressManager.completeRequest(progressId, false, errorMessage);
+          return;
+        } else {
+          errorMessage = `记账失败: ${errorData?.error || errorData?.message || '服务器错误'}`;
+        }
       } else if (error.request) {
         errorMessage = '网络连接异常，请检查网络后重试';
       }

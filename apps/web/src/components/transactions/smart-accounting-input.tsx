@@ -75,7 +75,12 @@ export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccounti
         setDescription('');
       } else {
         const error = await response.json();
-        toast.error(error.message || '智能识别失败，请手动填写');
+        // 特殊处理"消息与记账无关"的情况
+        if (error.info && error.info.includes('记账无关')) {
+          toast.info('您的描述似乎与记账无关，请尝试描述具体的消费或收入情况');
+        } else {
+          toast.error(error.message || error.error || '智能识别失败，请手动填写');
+        }
       }
     } catch (error) {
       console.error('智能记账失败:', error);
@@ -120,7 +125,12 @@ export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccounti
           router.push('/transactions');
         } else {
           const error = await response.json();
-          toast.error(error.message || '记账失败，请手动填写');
+          // 特殊处理"消息与记账无关"的情况
+          if (error.info && error.info.includes('记账无关')) {
+            toast.info('您的描述似乎与记账无关，请尝试描述具体的消费或收入情况');
+          } else {
+            toast.error(error.message || error.error || '记账失败，请手动填写');
+          }
         }
       } catch (error) {
         console.error('直接添加记账失败:', error);
@@ -171,7 +181,12 @@ export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccounti
         
       } else {
         const error = await response.json();
-        progressManager.showProgress(progressId, error.message || '记账失败，请手动填写', 'error');
+        // 特殊处理"消息与记账无关"的情况
+        if (error.info && error.info.includes('记账无关')) {
+          progressManager.showProgress(progressId, '您的描述似乎与记账无关，请尝试描述具体的消费或收入情况', 'info');
+        } else {
+          progressManager.showProgress(progressId, error.message || error.error || '记账失败，请手动填写', 'error');
+        }
       }
     } catch (error) {
       console.error('直接添加记账失败:', error);

@@ -21,6 +21,7 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
   const { currentAccountBook } = useAccountBookStore();
   const { globalConfig, fetchGlobalConfig } = useGlobalAIStore();
   const [isSmartAccountingOpen, setIsSmartAccountingOpen] = useState(false);
+
   const [mounted, setMounted] = useState(false);
 
   // 确保只在客户端渲染
@@ -32,6 +33,8 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
   useEffect(() => {
     fetchGlobalConfig();
   }, [fetchGlobalConfig]);
+
+
 
   const isActive = (path: string) => {
     if (currentPath) {
@@ -53,6 +56,10 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
       console.log('全局AI未启用，跳转到手动记账页面');
       router.push('/transactions/new');
     }
+  };
+
+  const handleDialogClose = () => {
+    setIsSmartAccountingOpen(false);
   };
 
   const navigationContent = (
@@ -107,11 +114,11 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
       </nav>
 
       {/* 智能记账对话框 */}
-      <SmartAccountingDialog
-        isOpen={isSmartAccountingOpen}
-        onClose={() => setIsSmartAccountingOpen(false)}
-        accountBookId={currentAccountBook?.id}
-      />
+              <SmartAccountingDialog
+          isOpen={isSmartAccountingOpen}
+          onClose={handleDialogClose}
+          accountBookId={currentAccountBook?.id}
+        />
     </>
   );
 
