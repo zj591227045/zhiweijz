@@ -458,7 +458,7 @@ export default function TransactionEditModal({
   });
 
   const { isAuthenticated } = useAuthStore();
-  const { transaction, isLoading, error, fetchTransaction, updateTransaction } = useTransactionStore();
+  const { transaction, isLoading, error, fetchTransaction, updateTransaction, deleteTransaction } = useTransactionStore();
   const { categories, fetchCategories } = useCategoryStore();
   const { currentAccountBook, fetchAccountBooks } = useAccountBookStore();
   const { fetchActiveBudgets } = useBudgetStore();
@@ -477,6 +477,10 @@ export default function TransactionEditModal({
   const [currentStep, setCurrentStep] = useState(2); // 默认进入第二步，与原有逻辑一致
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
+
+  // 删除相关状态
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // 虚拟键盘相关状态
   const [showNumericKeyboard, setShowNumericKeyboard] = useState(false);
@@ -792,7 +796,37 @@ export default function TransactionEditModal({
     setCurrentStep(2);
   };
 
+  // 处理删除交易
+  const handleDeleteTransaction = async () => {
+    if (!transactionId || transactionId === 'placeholder') {
+      setFormError('无效的交易ID');
+      return;
+    }
 
+    setIsDeleting(true);
+    setFormError('');
+
+    try {
+      const success = await deleteTransaction(transactionId);
+      if (success) {
+        toast.success('交易删除成功');
+        
+        // 触发交易变化事件，让仪表盘自动刷新
+        if (currentAccountBook?.id) {
+          triggerTransactionChange(currentAccountBook.id);
+        }
+
+        // 关闭确认对话框并关闭模态框
+        setShowDeleteConfirm(false);
+        onSave(); // 调用 onSave 来刷新数据并关闭模态框
+      }
+    } catch (error) {
+      console.error('删除交易失败:', error);
+      setFormError('删除交易失败，请重试');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // 隐藏仪表盘页面的头部，显示编辑交易的头部
   useEffect(() => {
@@ -1302,60 +1336,195 @@ export default function TransactionEditModal({
                 {/* iOS 风格操作按钮 */}
                 <div style={{
                   display: 'flex',
+                  flexDirection: 'column',
                   gap: '12px',
                   marginTop: '24px',
                   paddingBottom: '20px'
                 }}>
+                  {/* 保存和上一步按钮 */}
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button
+                      onClick={() => setCurrentStep(1)}
+                      disabled={isSubmitting || isDeleting}
+                      style={{
+                        flex: 1,
+                        height: '48px',
+                        borderRadius: '12px',
+                        border: '1px solid var(--border-color)',
+                        backgroundColor: 'var(--background-color)',
+                        color: 'var(--text-color)',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        cursor: (isSubmitting || isDeleting) ? 'not-allowed' : 'pointer',
+                        opacity: (isSubmitting || isDeleting) ? 0.6 : 1,
+                        transition: 'all 0.2s ease',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      上一步
+                    </button>
+                    <button
+                      onClick={handleSubmit}
+                      disabled={isSubmitting || isDeleting}
+                      style={{
+                        flex: 2,
+                        height: '48px',
+                        borderRadius: '12px',
+                        border: 'none',
+                        backgroundColor: 'var(--primary-color)',
+                        color: 'white',
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        cursor: (isSubmitting || isDeleting) ? 'not-allowed' : 'pointer',
+                        opacity: (isSubmitting || isDeleting) ? 0.6 : 1,
+                        transition: 'all 0.2s ease',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                      }}
+                    >
+                      {isSubmitting ? '保存中...' : '保存'}
+                    </button>
+                  </div>
+
+                  {/* 删除按钮 */}
                   <button
-                    onClick={() => setCurrentStep(1)}
-                    disabled={isSubmitting}
+                    onClick={() => setShowDeleteConfirm(true)}
+                    disabled={isSubmitting || isDeleting || !transactionId || transactionId === 'placeholder'}
                     style={{
-                      flex: 1,
+                      width: '100%',
                       height: '48px',
                       borderRadius: '12px',
-                      border: '1px solid var(--border-color)',
-                      backgroundColor: 'var(--background-color)',
-                      color: 'var(--text-color)',
+                      border: '1px solid #ef4444',
+                      backgroundColor: 'transparent',
+                      color: '#ef4444',
                       fontSize: '16px',
                       fontWeight: '500',
-                      cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                      opacity: isSubmitting ? 0.6 : 1,
-                      transition: 'all 0.2s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    上一步
-                  </button>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={isSubmitting}
-                    style={{
-                      flex: 2,
-                      height: '48px',
-                      borderRadius: '12px',
-                      border: 'none',
-                      backgroundColor: 'var(--primary-color)',
-                      color: 'white',
-                      fontSize: '16px',
-                      fontWeight: '600',
-                      cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                      opacity: isSubmitting ? 0.6 : 1,
+                      cursor: (isSubmitting || isDeleting || !transactionId || transactionId === 'placeholder') ? 'not-allowed' : 'pointer',
+                      opacity: (isSubmitting || isDeleting || !transactionId || transactionId === 'placeholder') ? 0.4 : 1,
                       transition: 'all 0.2s ease',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                      gap: '8px'
                     }}
                   >
-                    {isSubmitting ? '保存中...' : '保存'}
+                    <i className="fas fa-trash" style={{ fontSize: '14px' }}></i>
+                    删除记录
                   </button>
                 </div>
               </div>
             )}
           </div>
         </div>
+
+        {/* 删除确认对话框 */}
+        {showDeleteConfirm && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            padding: '20px'
+          }}>
+            <div style={{
+              backgroundColor: 'var(--background-color)',
+              borderRadius: '16px',
+              width: '100%',
+              maxWidth: '340px',
+              overflow: 'hidden',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+            }}>
+              {/* 对话框头部 */}
+              <div style={{
+                padding: '20px 20px 16px',
+                borderBottom: '1px solid var(--border-color)',
+                textAlign: 'center'
+              }}>
+                <h3 style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: 'var(--text-color)',
+                  margin: 0
+                }}>确认删除</h3>
+              </div>
+
+              {/* 对话框内容 */}
+              <div style={{
+                padding: '20px',
+                textAlign: 'center',
+                color: 'var(--text-secondary)',
+                fontSize: '16px',
+                lineHeight: '1.5'
+              }}>
+                <p style={{ margin: '0 0 8px' }}>
+                  确定要删除这条交易记录吗？
+                </p>
+                <p style={{ 
+                  margin: 0, 
+                  fontSize: '14px',
+                  color: '#ef4444',
+                  fontWeight: '500'
+                }}>
+                  此操作不可恢复，请谨慎操作。
+                </p>
+              </div>
+
+              {/* 对话框按钮 */}
+              <div style={{
+                display: 'flex',
+                borderTop: '1px solid var(--border-color)'
+              }}>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                  style={{
+                    flex: 1,
+                    padding: '16px',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    color: 'var(--text-secondary)',
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    cursor: isDeleting ? 'not-allowed' : 'pointer',
+                    opacity: isDeleting ? 0.6 : 1,
+                    borderRight: '1px solid var(--border-color)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleDeleteTransaction}
+                  disabled={isDeleting}
+                  style={{
+                    flex: 1,
+                    padding: '16px',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    color: '#ef4444',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    cursor: isDeleting ? 'not-allowed' : 'pointer',
+                    opacity: isDeleting ? 0.6 : 1,
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {isDeleting ? '删除中...' : '确认删除'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 虚拟数字键盘 */}
