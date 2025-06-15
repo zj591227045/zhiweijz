@@ -384,7 +384,12 @@ export const announcementService = {
         prisma.announcement.count({
           where: {
             createdAt: {
-              gte: new Date(new Date().setHours(0, 0, 0, 0))
+              gte: (() => {
+                const now = new Date();
+                const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+                beijingTime.setUTCHours(0, 0, 0, 0);
+                return new Date(beijingTime.getTime() - 8 * 60 * 60 * 1000);
+              })()
             }
           }
         }),

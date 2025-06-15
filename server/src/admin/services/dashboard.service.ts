@@ -5,10 +5,40 @@ const prisma = new PrismaClient();
 
 export class DashboardService {
   /**
+   * 获取北京时间的今日开始时间（UTC时间）
+   */
+  private getBeijingTodayStart(): Date {
+    const now = new Date();
+    // 转换为北京时间
+    const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    // 设置为北京时间的0点0分0秒
+    beijingTime.setUTCHours(0, 0, 0, 0);
+    // 转换回UTC时间（减去8小时）
+    return new Date(beijingTime.getTime() - 8 * 60 * 60 * 1000);
+  }
+
+  /**
+   * 获取指定天数前的北京时间日期开始时间（UTC时间）
+   */
+  private getBeijingDateStart(daysAgo: number): Date {
+    const now = new Date();
+    // 转换为北京时间
+    const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    // 减去指定天数
+    beijingTime.setUTCDate(beijingTime.getUTCDate() - daysAgo);
+    // 设置为北京时间的0点0分0秒
+    beijingTime.setUTCHours(0, 0, 0, 0);
+    // 转换回UTC时间（减去8小时）
+    return new Date(beijingTime.getTime() - 8 * 60 * 60 * 1000);
+  }
+
+  /**
    * 获取概览统计数据
    */
   async getOverviewStats() {
     try {
+      const todayStart = this.getBeijingTodayStart();
+      
       // 并行查询各种统计数据
       const [
         totalUsers,
@@ -24,20 +54,20 @@ export class DashboardService {
         // 总交易记录数
         prisma.transaction.count(),
         
-        // 今日新注册用户数
+        // 今日新注册用户数（按北京时间计算）
         prisma.user.count({
           where: {
             createdAt: {
-              gte: new Date(new Date().setHours(0, 0, 0, 0))
+              gte: todayStart
             }
           }
         }),
         
-        // 今日交易记录数
+        // 今日交易记录数（按北京时间计算）
         prisma.transaction.count({
           where: {
             createdAt: {
-              gte: new Date(new Date().setHours(0, 0, 0, 0))
+              gte: todayStart
             }
           }
         }),
@@ -88,18 +118,16 @@ export class DashboardService {
           days = 7;
       }
 
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
-      startDate.setHours(0, 0, 0, 0);
+      const startDate = this.getBeijingDateStart(days);
 
-      // 获取时间段内每日新注册用户数
+      // 获取时间段内每日新注册用户数（按北京时间分组）
       const dailyRegistrations = await prisma.$queryRaw`
         SELECT 
-          DATE(created_at) as date,
+          DATE(CONVERT_TZ(created_at, '+00:00', '+08:00')) as date,
           COUNT(*) as count
         FROM users 
         WHERE created_at >= ${startDate}
-        GROUP BY DATE(created_at)
+        GROUP BY DATE(CONVERT_TZ(created_at, '+00:00', '+08:00'))
         ORDER BY date ASC
       ` as Array<{ date: Date; count: bigint }>;
 
@@ -150,20 +178,18 @@ export class DashboardService {
           days = 7;
       }
 
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
-      startDate.setHours(0, 0, 0, 0);
+      const startDate = this.getBeijingDateStart(days);
 
-      // 获取时间段内每日交易数量
+      // 获取时间段内每日交易数量（按北京时间分组）
       const dailyTransactions = await prisma.$queryRaw`
         SELECT 
-          DATE(created_at) as date,
+          DATE(CONVERT_TZ(created_at, '+00:00', '+08:00')) as date,
           COUNT(*) as count,
           SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) as expense_amount,
           SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) as income_amount
         FROM transactions 
         WHERE created_at >= ${startDate}
-        GROUP BY DATE(created_at)
+        GROUP BY DATE(CONVERT_TZ(created_at, '+00:00', '+08:00'))
         ORDER BY date ASC
       ` as Array<{ 
         date: Date; 

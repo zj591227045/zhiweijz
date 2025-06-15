@@ -66,7 +66,7 @@ interface LLMLog {
 interface LogFilters {
   status: string;
   provider: string;
-  userId: string;
+  userEmail: string;
   serviceType: string;
   dateFrom: string;
   dateTo: string;
@@ -87,10 +87,19 @@ export default function LLMLogsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [globalStats, setGlobalStats] = useState({
+    totalCalls: 0,
+    successCalls: 0,
+    failedCalls: 0,
+    totalTokens: 0,
+    promptTokens: 0,
+    completionTokens: 0,
+    avgResponseTime: 0
+  });
   const [filters, setFilters] = useState<LogFilters>({
     status: '',
     provider: '',
-    userId: '',
+    userEmail: '',
     serviceType: '',
     dateFrom: '',
     dateTo: '',
@@ -163,8 +172,9 @@ export default function LLMLogsPage() {
       };
       
       // 添加过滤条件
+      if (filters.status) params.isSuccess = filters.status === 'success' ? 'true' : 'false';
       if (filters.provider) params.provider = filters.provider;
-      if (filters.userId) params.userId = filters.userId;
+      if (filters.userEmail) params.userEmail = filters.userEmail;
       if (filters.serviceType) params.serviceType = filters.serviceType;
       if (filters.dateFrom) params.startDate = filters.dateFrom;
       if (filters.dateTo) params.endDate = filters.dateTo;
@@ -250,11 +260,92 @@ export default function LLMLogsPage() {
     setShowDetails(true);
   };
 
+  // 重置过滤器函数
+  const resetFilters = () => {
+    setFilters({
+      status: '',
+      provider: '',
+      userEmail: '',
+      serviceType: '',
+      dateFrom: '',
+      dateTo: '',
+      timeRange: ''
+    });
+    setCurrentPage(1);
+  };
+
+  // 获取全局统计数据
+  const loadGlobalStats = async () => {
+    try {
+      const params: Record<string, any> = {};
+      
+      // 使用相同的过滤条件
+      if (filters.status) params.isSuccess = filters.status === 'success' ? 'true' : 'false';
+      if (filters.provider) params.provider = filters.provider;
+      if (filters.userEmail) params.userEmail = filters.userEmail;
+      if (filters.serviceType) params.serviceType = filters.serviceType;
+      if (filters.dateFrom) params.startDate = filters.dateFrom;
+      if (filters.dateTo) params.endDate = filters.dateTo;
+
+      // 获取所有记录进行统计
+      params.page = '1';
+      params.pageSize = '10000'; // 获取大量记录用于统计
+
+      const response = await adminApi.getWithParams(ADMIN_API_ENDPOINTS.LLM_LOGS, params);
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          const allLogs = data.data.logs;
+          const successLogs = allLogs.filter((log: LLMLog) => log.isSuccess);
+          const failedLogs = allLogs.filter((log: LLMLog) => !log.isSuccess);
+          
+                    const totalTokens = allLogs.reduce((sum: number, log: LLMLog) => sum + (log.totalTokens || 0), 0);
+          const promptTokens = allLogs.reduce((sum: number, log: LLMLog) => sum + (log.promptTokens || 0), 0);
+          const completionTokens = allLogs.reduce((sum: number, log: LLMLog) => sum + (log.completionTokens || 0), 0);
+          
+          // 计算平均响应时间
+          const logsWithDuration = allLogs.filter((log: LLMLog) => log.duration && log.duration > 0);
+          const avgResponseTime = logsWithDuration.length > 0 
+            ? logsWithDuration.reduce((sum: number, log: LLMLog) => sum + (log.duration || 0), 0) / logsWithDuration.length 
+            : 0;
+
+          setGlobalStats({
+            totalCalls: allLogs.length,
+            successCalls: successLogs.length,
+            failedCalls: failedLogs.length,
+            totalTokens,
+            promptTokens,
+            completionTokens,
+            avgResponseTime
+          });
+        }
+      }
+    } catch (error) {
+      console.error('获取全局统计数据错误:', error);
+    }
+  };
+
   useEffect(() => {
     if (isAuthenticated && token) {
       loadLogs();
+      loadGlobalStats();
     }
   }, [isAuthenticated, token, filters]);
+
+  // 页面初始化时清除过滤器状态
+  useEffect(() => {
+    // 重置过滤器为初始状态
+    setFilters({
+      status: '',
+      provider: '',
+      userEmail: '',
+      serviceType: '',
+      dateFrom: '',
+      dateTo: '',
+      timeRange: ''
+    });
+  }, []); // 空依赖数组确保只在组件挂载时执行一次
 
   // 如果未认证，显示加载状态
   if (!isAuthenticated || !token) {
@@ -294,7 +385,7 @@ export default function LLMLogsPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => loadLogs(currentPage)} disabled={loading}>
+          <Button variant="outline" onClick={() => { loadLogs(currentPage); loadGlobalStats(); }} disabled={loading}>
             <RefreshCcw className="h-4 w-4 mr-2" />
             刷新
           </Button>
@@ -312,7 +403,7 @@ export default function LLMLogsPage() {
               <FileText className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">总调用次数</p>
-                <p className="text-2xl font-bold">{totalCount}</p>
+                <p className="text-2xl font-bold">{globalStats.totalCalls}</p>
               </div>
             </div>
           </CardContent>
@@ -325,7 +416,7 @@ export default function LLMLogsPage() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">成功调用</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {logs.filter(log => log.isSuccess).length}
+                  {globalStats.successCalls}
                 </p>
               </div>
             </div>
@@ -339,7 +430,7 @@ export default function LLMLogsPage() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">失败调用</p>
                 <p className="text-2xl font-bold text-red-600">
-                  {logs.filter(log => !log.isSuccess).length}
+                  {globalStats.failedCalls}
                 </p>
               </div>
             </div>
@@ -353,11 +444,8 @@ export default function LLMLogsPage() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">平均响应时间</p>
                 <p className="text-2xl font-bold">
-                  {logs.length > 0 
-                    ? formatResponseTime(
-                        logs.filter(log => log.duration).reduce((sum, log) => sum + (log.duration || 0), 0) / 
-                        logs.filter(log => log.duration).length
-                      )
+                  {globalStats.avgResponseTime > 0 
+                    ? formatResponseTime(globalStats.avgResponseTime)
                     : '-'
                   }
                 </p>
@@ -373,10 +461,10 @@ export default function LLMLogsPage() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Token消耗</p>
                 <p className="text-2xl font-bold text-purple-600">
-                  {formatTokenCount(tokenStats.totalTokens)}
+                  {formatTokenCount(globalStats.totalTokens)}
                 </p>
                 <p className="text-xs text-gray-500">
-                  输入: {formatTokenCount(tokenStats.promptTokens)} | 输出: {formatTokenCount(tokenStats.completionTokens)}
+                  输入: {formatTokenCount(globalStats.promptTokens)} | 输出: {formatTokenCount(globalStats.completionTokens)}
                 </p>
               </div>
             </div>
@@ -460,28 +548,32 @@ export default function LLMLogsPage() {
             </div>
             
             <div>
-              <Label htmlFor="userId">用户ID</Label>
+              <Label htmlFor="userEmail">用户邮箱</Label>
               <Input
-                id="userId"
-                placeholder="输入用户ID"
-                value={filters.userId}
-                onChange={(e) => setFilters(prev => ({ ...prev, userId: e.target.value }))}
+                id="userEmail"
+                placeholder="输入用户邮箱地址"
+                value={filters.userEmail}
+                onChange={(e) => setFilters(prev => ({ ...prev, userEmail: e.target.value }))}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
               />
             </div>
             
-                         <div>
-               <Label htmlFor="serviceType">服务类型</Label>
-               <select
-                 id="serviceType"
-                 className="w-full p-2 border rounded-md"
-                 value={filters.serviceType}
-                 onChange={(e) => setFilters(prev => ({ ...prev, serviceType: e.target.value }))}
-               >
-                 <option value="">全部</option>
-                 <option value="official">官方AI服务</option>
-                 <option value="custom">自定义AI服务</option>
-               </select>
-             </div>
+            <div>
+              <Label htmlFor="serviceType">服务类型</Label>
+              <select
+                id="serviceType"
+                className="w-full p-2 border rounded-md"
+                value={filters.serviceType}
+                onChange={(e) => setFilters(prev => ({ ...prev, serviceType: e.target.value }))}
+              >
+                <option value="">全部</option>
+                <option value="official">官方AI服务</option>
+                <option value="custom">自定义AI服务</option>
+              </select>
+            </div>
             
             <div>
               <Label htmlFor="dateFrom">开始日期</Label>
@@ -502,6 +594,18 @@ export default function LLMLogsPage() {
                 onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value, timeRange: '' }))}
               />
             </div>
+          </div>
+          
+          {/* 重置按钮 */}
+          <div className="mt-4 flex justify-end">
+            <Button 
+              variant="outline" 
+              onClick={resetFilters}
+              className="flex items-center gap-2"
+            >
+              <RefreshCcw className="h-4 w-4" />
+              重置筛选条件
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -551,7 +655,7 @@ export default function LLMLogsPage() {
                         </div>
                         <p className="text-sm text-gray-600">
                           <User className="h-4 w-4 inline mr-1" />
-                          {log.user?.name || log.userName || log.userId}
+                          {log.user?.email || log.user?.name || log.userName || log.userId}
                         </p>
                       </div>
                     </div>

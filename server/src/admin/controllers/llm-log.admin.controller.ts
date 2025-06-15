@@ -16,7 +16,7 @@ export class LLMLogAdminController {
       const {
         page,
         pageSize,
-        userId,
+        userEmail,
         provider,
         model,
         isSuccess,
@@ -30,7 +30,7 @@ export class LLMLogAdminController {
       const params: LLMLogListParams = {
         page: page ? parseInt(page as string) : undefined,
         pageSize: pageSize ? parseInt(pageSize as string) : undefined,
-        userId: userId as string,
+        userEmail: userEmail as string,
         provider: provider as string,
         model: model as string,
         isSuccess: isSuccess ? isSuccess === 'true' : undefined,
@@ -199,7 +199,7 @@ export class LLMLogAdminController {
   async exportLLMLogs(req: Request, res: Response): Promise<void> {
     try {
       const {
-        userId,
+        userEmail,
         provider,
         model,
         isSuccess,
@@ -210,7 +210,7 @@ export class LLMLogAdminController {
       } = req.query;
 
       const params: LLMLogListParams = {
-        userId: userId as string,
+        userEmail: userEmail as string,
         provider: provider as string,
         model: model as string,
         isSuccess: isSuccess ? isSuccess === 'true' : undefined,

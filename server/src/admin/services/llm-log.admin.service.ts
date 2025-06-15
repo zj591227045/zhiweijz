@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 export interface LLMLogListParams {
   page?: number;
   pageSize?: number;
-  userId?: string;
+  userEmail?: string;
   provider?: string;
   model?: string;
   isSuccess?: boolean;
@@ -40,7 +40,7 @@ export class LLMLogAdminService {
       const {
         page = 1,
         pageSize = 20,
-        userId,
+        userEmail,
         provider,
         model,
         isSuccess,
@@ -56,8 +56,11 @@ export class LLMLogAdminService {
       // 构建查询条件
       const where: any = {};
 
-      if (userId) {
-        where.userId = userId;
+      if (userEmail) {
+        // 通过用户邮箱查询，需要关联user表
+        where.user = {
+          email: { contains: userEmail, mode: 'insensitive' }
+        };
       }
 
       if (provider) {
@@ -100,7 +103,9 @@ export class LLMLogAdminService {
           { userName: { contains: search, mode: 'insensitive' } },
           { accountBookName: { contains: search, mode: 'insensitive' } },
           { userMessage: { contains: search, mode: 'insensitive' } },
-          { assistantMessage: { contains: search, mode: 'insensitive' } }
+          { assistantMessage: { contains: search, mode: 'insensitive' } },
+          { user: { email: { contains: search, mode: 'insensitive' } } },
+          { user: { name: { contains: search, mode: 'insensitive' } } }
         ];
       }
 
@@ -421,7 +426,7 @@ export class LLMLogAdminService {
   async exportLLMLogs(params: LLMLogListParams) {
     try {
       const {
-        userId,
+        userEmail,
         provider,
         model,
         isSuccess,
@@ -434,7 +439,7 @@ export class LLMLogAdminService {
       // 构建查询条件（与getLLMLogs类似）
       const where: any = {};
 
-      if (userId) where.userId = userId;
+      if (userEmail) where.user = { email: { contains: userEmail, mode: 'insensitive' } };
       if (provider) where.provider = { contains: provider, mode: 'insensitive' };
       if (model) where.model = { contains: model, mode: 'insensitive' };
       if (isSuccess !== undefined) where.isSuccess = isSuccess;
@@ -456,7 +461,9 @@ export class LLMLogAdminService {
           { userName: { contains: search, mode: 'insensitive' } },
           { accountBookName: { contains: search, mode: 'insensitive' } },
           { userMessage: { contains: search, mode: 'insensitive' } },
-          { assistantMessage: { contains: search, mode: 'insensitive' } }
+          { assistantMessage: { contains: search, mode: 'insensitive' } },
+          { user: { email: { contains: search, mode: 'insensitive' } } },
+          { user: { name: { contains: search, mode: 'insensitive' } } }
         ];
       }
 

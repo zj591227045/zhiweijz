@@ -994,8 +994,7 @@ export class AIController {
       // 从智能记账结果创建交易记录
       try {
         // 准备交易数据
-        // 处理日期，使用当前本地时间而不是智能记账返回的日期
-        // 智能记账的日期通常只包含日期部分，我们需要使用当前时间
+        // 处理日期，使用当前本地时间
         const now = new Date();
         const dateObj = new Date(
           now.getFullYear(),
@@ -1284,13 +1283,14 @@ export class AIController {
    */
   private async getTokenUsageForUser(userId: string): Promise<{ usedTokens: number }> {
     try {
-      // 获取今天的开始时间（00:00:00）
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      // 获取今天的开始时间（北京时间00:00:00对应的UTC时间）
+      const now = new Date();
+      const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+      beijingTime.setUTCHours(0, 0, 0, 0);
+      const today = new Date(beijingTime.getTime() - 8 * 60 * 60 * 1000);
       
       // 获取明天的开始时间（用于范围查询）
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
 
       console.log(`查询用户 ${userId} 今日官方AI服务token使用量，时间范围: ${today.toISOString()} - ${tomorrow.toISOString()}`);
 

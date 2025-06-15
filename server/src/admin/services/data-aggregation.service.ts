@@ -23,7 +23,7 @@ export class DataAggregationService {
     // 每日执行一次日统计
     setInterval(async () => {
       const now = new Date();
-      if (now.getHours() === 1) { // 凌晨1点执行
+      if (now.getHours() === 16) { // UTC晚上16点执行，对应北京时间凌晨0点
         await this.aggregateDailyData();
       }
     }, 60 * 60 * 1000); // 每小时检查一次
@@ -65,17 +65,23 @@ export class DataAggregationService {
     try {
       console.log('开始执行每日数据聚合...');
       
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      yesterday.setHours(0, 0, 0, 0);
+      // 获取北京时间的昨日边界
+      const now = new Date();
+      const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
       
-      const today = new Date(yesterday);
-      today.setDate(today.getDate() + 1);
+      // 设置为北京时间昨日的0点0分0秒
+      beijingTime.setUTCDate(beijingTime.getUTCDate() - 1);
+      beijingTime.setUTCHours(0, 0, 0, 0);
+      const yesterday = new Date(beijingTime.getTime() - 8 * 60 * 60 * 1000); // 转换回UTC
+      
+      // 设置为北京时间今日的0点0分0秒
+      const todayBeijing = new Date(yesterday.getTime() + 24 * 60 * 60 * 1000);
 
-      // 聚合昨日数据
-      await this.generateDailyStats(yesterday, today);
+      // 聚合昨日数据（按北京时间边界）
+      await this.generateDailyStats(yesterday, todayBeijing);
 
-      console.log(`完成 ${yesterday.toISOString().split('T')[0]} 的每日数据聚合`);
+      const yesterdayDateStr = new Date(yesterday.getTime() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
+      console.log(`完成 ${yesterdayDateStr} 的每日数据聚合（北京时间）`);
     } catch (error) {
       console.error('每日数据聚合失败:', error);
     }
