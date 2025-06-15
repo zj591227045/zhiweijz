@@ -733,9 +733,9 @@ export class AIController {
   public async handleSmartAccountingDirectWithBody(req: Request, res: Response) {
     try {
       const { description, accountBookId, userName, includeDebugInfo } = req.body;
-      const userId = req.user?.id;
+      const requestUserId = req.user?.id; // API调用者（如A账号）
 
-      if (!userId) {
+      if (!requestUserId) {
         return res.status(401).json({ error: '未授权' });
       }
 
@@ -747,12 +747,12 @@ export class AIController {
         return res.status(400).json({ error: '账本ID不能为空' });
       }
 
-      // 检查账本是否存在并且用户有权限访问
+      // 检查账本是否存在并且请求者有权限访问
       const accountBook = await this.prisma.accountBook.findFirst({
         where: {
           id: accountBookId,
           OR: [
-            { userId },
+            { userId: requestUserId },
             {
               type: 'FAMILY',
               familyId: {
@@ -761,7 +761,7 @@ export class AIController {
               family: {
                 members: {
                   some: {
-                    userId
+                    userId: requestUserId
                   }
                 }
               }
@@ -774,13 +774,18 @@ export class AIController {
         return res.status(404).json({ error: '账本不存在或无权访问' });
       }
 
-      // 如果提供了用户名称，验证该用户是否为家庭成员
-      let targetUserId = userId; // 默认使用请求发起人的ID
-      if (userName && accountBook.type === 'FAMILY') {
+      // 确定实际的记账用户ID（支持家庭成员代记账场景）
+      let actualUserId = requestUserId; // 默认使用请求发起人的ID
+      let actualUserName = 'Unknown';
+
+      // 如果提供了用户名称且是家庭账本，查找对应的家庭成员
+      if (userName && accountBook.type === 'FAMILY' && accountBook.familyId) {
+        console.log(`🔍 [用户识别] 查找家庭成员: ${userName}`);
+        
         // 查找家庭成员
         const familyMember = await this.prisma.familyMember.findFirst({
           where: {
-            familyId: accountBook.familyId || undefined,
+            familyId: accountBook.familyId,
             OR: [
               { name: userName },
               {
@@ -796,14 +801,33 @@ export class AIController {
         });
 
         if (familyMember && familyMember.userId) {
-          targetUserId = familyMember.userId;
+          actualUserId = familyMember.userId;
+          actualUserName = familyMember.user?.name || familyMember.name;
+          console.log(`✅ [用户识别] 找到家庭成员: ${actualUserName} (ID: ${actualUserId})`);
+        } else {
+          console.log(`⚠️ [用户识别] 未找到家庭成员: ${userName}, 使用请求发起人`);
+          // 获取请求发起人的名称
+          const requestUser = await this.prisma.user.findUnique({
+            where: { id: requestUserId },
+            select: { name: true }
+          });
+          actualUserName = requestUser?.name || 'Unknown';
         }
+      } else {
+        // 个人账本或未提供用户名，使用请求发起人
+        const requestUser = await this.prisma.user.findUnique({
+          where: { id: requestUserId },
+          select: { name: true }
+        });
+        actualUserName = requestUser?.name || 'Unknown';
       }
 
-      // 处理描述
+      console.log(`📝 [记账处理] 实际记账用户: ${actualUserName} (ID: ${actualUserId})`);
+
+      // 使用实际用户ID进行智能记账分析
       const smartResult = await this.smartAccounting.processDescription(
         description,
-        targetUserId,
+        actualUserId, // 使用实际的记账用户ID，这样预算匹配会优先使用该用户的预算
         accountBookId,
         accountBook.type,
         includeDebugInfo || false
@@ -832,53 +856,22 @@ export class AIController {
           now.getMilliseconds()
         );
 
-        // 如果是家庭账本，需要通过预算ID确定家庭成员ID
+        // 如果是家庭账本，确定家庭成员ID
         let familyMemberId = null;
         if (accountBook.type === 'FAMILY' && accountBook.familyId) {
-          const budgetId = (smartResult as any).budgetId;
-          
-          if (budgetId) {
-            // 通过预算ID查找预算记录
-            const budget = await this.prisma.budget.findUnique({
-              where: { id: budgetId },
-              include: {
-                familyMember: true,
-                user: true
-              }
-            });
-            
-            if (budget) {
-              if (budget.familyMemberId) {
-                // 预算直接关联到家庭成员（托管成员的预算）
-                familyMemberId = budget.familyMemberId;
-              } else if (budget.userId) {
-                // 预算关联到用户，需要查找该用户在家庭中的成员记录
-                const familyMember = await this.prisma.familyMember.findFirst({
-                  where: {
-                    familyId: accountBook.familyId,
-                    userId: budget.userId
-                  }
-                });
-                
-                if (familyMember) {
-                  familyMemberId = familyMember.id;
-                }
-              }
+          // 查找实际记账用户在家庭中的成员记录
+          const familyMember = await this.prisma.familyMember.findFirst({
+            where: {
+              familyId: accountBook.familyId,
+              userId: actualUserId
             }
-          }
+          });
           
-          // 如果通过预算无法确定家庭成员ID，则使用当前用户作为备选方案
-          if (!familyMemberId) {
-            const familyMember = await this.prisma.familyMember.findFirst({
-              where: {
-                familyId: accountBook.familyId,
-                userId: targetUserId
-              }
-            });
-            
-            if (familyMember) {
-              familyMemberId = familyMember.id;
-            }
+          if (familyMember) {
+            familyMemberId = familyMember.id;
+            console.log(`👨‍👩‍👧‍👦 [家庭成员] 设置家庭成员ID: ${familyMemberId}`);
+          } else {
+            console.log(`⚠️ [家庭成员] 用户 ${actualUserId} 不是家庭 ${accountBook.familyId} 的成员`);
           }
         }
 
@@ -889,7 +882,7 @@ export class AIController {
           description: (smartResult as any).note || description,
           date: dateObj,
           accountBookId: accountBookId,
-          userId: targetUserId, // 使用目标用户ID
+          userId: actualUserId, // 使用实际的记账用户ID
           // 如果是家庭账本，添加家庭ID和家庭成员ID
           familyId: accountBook.type === 'FAMILY' ? accountBook.familyId : null,
           familyMemberId: familyMemberId,
@@ -897,10 +890,19 @@ export class AIController {
           budgetId: (smartResult as any).budgetId || null
         };
 
+        console.log(`💾 [交易创建] 创建交易记录:`, {
+          amount: transactionData.amount,
+          userId: transactionData.userId,
+          familyMemberId: transactionData.familyMemberId,
+          budgetId: transactionData.budgetId
+        });
+
         // 创建交易记录
         const transaction = await this.prisma.transaction.create({
           data: transactionData
         });
+
+        console.log(`✅ [交易创建] 交易记录创建成功: ${transaction.id}`);
 
         // 返回创建的交易记录
         res.status(201).json({

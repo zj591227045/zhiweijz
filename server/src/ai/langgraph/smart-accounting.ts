@@ -226,7 +226,7 @@ export class SmartAccounting {
 
       // 第一步：判断请求内容是否与记账相关
       const relevanceCheckPrompt = `
-你是一个专业的财务助手。请判断以下用户描述是否与记账有关。
+你是一个专业的财务助手。请判断以下用户描述是否与记账相关。
 
 判断标准：
 1. 包含金额信息（必须）
@@ -268,13 +268,14 @@ export class SmartAccounting {
         }
       });
 
-      // 准备分类列表
-      const categoryList = categories.map((c: any) =>
-        `- ID: ${c.id}, 名称: ${c.name}, 类型: ${c.type === 'EXPENSE' ? '支出' : '收入'}`
-      ).join('\n');
+      // 使用简化的分类列表
+      const categoryList = await this.getSimplifiedCategoryListForPrompt(state.userId, state.accountId || '');
 
-      // 获取预算列表
-      const budgetList = await this.getBudgetListForPrompt(state.userId, state.accountId || '');
+      // 按需获取预算列表
+      const needBudgetInfo = this.hasBudgetKeywords(state.description);
+      const budgetList = needBudgetInfo 
+        ? `预算列表：${await this.getBudgetListForPrompt(state.userId, state.accountId || '')}`
+        : '';
 
       // 准备提示
       const currentDate = new Date().toISOString().split('T')[0];
@@ -364,12 +365,14 @@ export class SmartAccounting {
 
     try {
       let budget = null;
+      console.log(`🎯 [预算匹配] 开始为用户 ${state.userId} 匹配预算`);
 
       // 如果LLM识别出了预算名称，优先根据预算名称匹配
       if (state.analyzedTransaction.budgetName) {
+        console.log(`🔍 [预算匹配] 尝试根据预算名称匹配: ${state.analyzedTransaction.budgetName}`);
         budget = await this.findBudgetByName(state.analyzedTransaction.budgetName, state.userId, state.accountId);
         if (budget) {
-          console.log(`根据预算名称找到匹配的预算: ${budget.id} - ${budget.name}`);
+          console.log(`✅ [预算匹配] 根据预算名称找到匹配的预算: ${budget.id} - ${budget.name}`);
           return {
             ...state,
             matchedBudget: {
@@ -377,51 +380,71 @@ export class SmartAccounting {
               name: budget.name
             }
           };
+        } else {
+          console.log(`❌ [预算匹配] 未找到名称匹配的预算，使用默认逻辑`);
         }
       }
 
       // 如果没有识别出预算名称或根据名称未找到，则使用默认逻辑
       // 优先级：
-      // 1. 请求发起人在当前账本的个人预算
-      // 2. 当前账本+分类+日期范围匹配的预算
-      // 3. 请求发起人的个人预算（按分类匹配）
+      // 1. 请求发起人在当前账本的个人预算（优先级最高）
+      // 2. 请求发起人的个人预算（按分类匹配）
+      // 3. 当前账本+分类+日期范围匹配的预算
+      
+      console.log(`🔍 [预算匹配] 查找用户 ${state.userId} 在账本 ${state.accountId} 的个人预算`);
+      
+      // 首先尝试找到请求发起人的个人预算
       budget = await prisma.budget.findFirst({
         where: {
-          OR: [
-            // 请求发起人在当前账本的个人预算（优先级最高）
-            {
-              userId: state.userId,
-              accountBookId: state.accountId,
-              startDate: { lte: state.analyzedTransaction.date },
-              endDate: { gte: state.analyzedTransaction.date }
-            },
-            // 当前账本预算（按分类匹配）
-            {
-              accountBookId: state.accountId,
-              categoryId: state.analyzedTransaction.categoryId,
-              startDate: { lte: state.analyzedTransaction.date },
-              endDate: { gte: state.analyzedTransaction.date }
-            },
-            // 请求发起人的个人预算（按分类匹配，但限制在当前账本）
-            {
-              userId: state.userId,
-              accountBookId: state.accountId,
-              categoryId: state.analyzedTransaction.categoryId,
-              startDate: { lte: state.analyzedTransaction.date },
-              endDate: { gte: state.analyzedTransaction.date }
-            }
-          ]
+          userId: state.userId,
+          accountBookId: state.accountId,
+          startDate: { lte: state.analyzedTransaction.date },
+          endDate: { gte: state.analyzedTransaction.date }
         },
         orderBy: [
-          // 优先使用请求发起人的预算
-          { userId: state.userId ? 'desc' : 'asc' },
-          // 然后是账本预算
-          { accountBookId: 'desc' }
+          // 优先匹配分类
+          { categoryId: state.analyzedTransaction.categoryId ? 'desc' : 'asc' }
         ]
       });
 
       if (budget) {
-        console.log(`找到匹配的预算: ${budget.id} - ${budget.name}`);
+        console.log(`✅ [预算匹配] 找到用户个人预算: ${budget.id} - ${budget.name} (分类匹配: ${budget.categoryId === state.analyzedTransaction.categoryId ? '是' : '否'})`);
+      }
+
+      // 如果没有找到发起人的个人预算，再尝试其他预算
+      if (!budget) {
+        console.log(`🔍 [预算匹配] 未找到个人预算，查找账本通用预算`);
+        budget = await prisma.budget.findFirst({
+          where: {
+            OR: [
+              // 当前账本预算（按分类匹配）
+              {
+                accountBookId: state.accountId,
+                categoryId: state.analyzedTransaction.categoryId,
+                startDate: { lte: state.analyzedTransaction.date },
+                endDate: { gte: state.analyzedTransaction.date }
+              },
+              // 通用账本预算
+              {
+                accountBookId: state.accountId,
+                categoryId: null,
+                startDate: { lte: state.analyzedTransaction.date },
+                endDate: { gte: state.analyzedTransaction.date }
+              }
+            ]
+          },
+          orderBy: [
+            // 优先匹配分类的预算
+            { categoryId: 'desc' }
+          ]
+        });
+
+        if (budget) {
+          console.log(`✅ [预算匹配] 找到账本预算: ${budget.id} - ${budget.name} (类型: ${budget.categoryId ? '分类预算' : '通用预算'})`);
+        }
+      }
+
+      if (budget) {
         return {
           ...state,
           matchedBudget: {
@@ -431,7 +454,7 @@ export class SmartAccounting {
         };
       }
 
-      console.log(`未找到匹配的预算，分类ID: ${state.analyzedTransaction.categoryId}`);
+      console.log(`❌ [预算匹配] 未找到任何匹配的预算，分类ID: ${state.analyzedTransaction.categoryId}`);
       return state;
     } catch (error) {
       console.error('预算匹配错误:', error);
@@ -766,6 +789,49 @@ export class SmartAccounting {
       };
 
       return { ...state, result };
+    }
+  }
+
+  /**
+   * 检测描述是否包含预算相关关键词
+   * @param description 用户描述
+   * @returns 是否需要加载预算信息
+   */
+  private hasBudgetKeywords(description: string): boolean {
+    const budgetKeywords = [
+      '预算', '记账', '账上', '记在', '分配', '预算给', 
+      '从预算', '预算中', '预算里', '记到', '记入'
+    ];
+    
+    return budgetKeywords.some(keyword => description.includes(keyword));
+  }
+
+  /**
+   * 获取简化的分类列表用于LLM提示（仅名称和类型）
+   * @param userId 用户ID
+   * @param accountId 账本ID
+   * @returns 简化的分类列表字符串
+   */
+  private async getSimplifiedCategoryListForPrompt(userId: string, accountId: string): Promise<string> {
+    try {
+      // 获取所有分类
+      const categories = await prisma.category.findMany({
+        where: {
+          OR: [
+            { userId: userId },
+            { isDefault: true },
+            { accountBookId: accountId }
+          ]
+        }
+      });
+
+      // 只返回ID、名称和类型
+      return categories.map((c: any) =>
+        `${c.id}:${c.name}(${c.type === 'EXPENSE' ? '支出' : '收入'})`
+      ).join(',');
+    } catch (error) {
+      console.error('获取分类列表失败:', error);
+      return '';
     }
   }
 }
