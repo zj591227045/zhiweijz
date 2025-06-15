@@ -42,12 +42,14 @@ interface AuthState {
   }) => Promise<boolean>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<boolean>;
+  updateAvatar: (avatarUrl: string) => Promise<boolean>;
   clearError: () => void;
   setLoading: (loading: boolean) => void;
   getLoginAttempts: (email: string) => LoginAttempt;
   incrementLoginAttempts: (email: string) => void;
   resetLoginAttempts: (email: string) => void;
   verifyCaptcha: (token: string, action: 'login' | 'register') => Promise<boolean>;
+  syncUserToLocalStorage: (updatedUser: User) => boolean;
 }
 
 // 创建认证状态管理
@@ -210,14 +212,21 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true, error: null });
 
-          const response = await apiClient.put('/users/profile', data);
-          const updatedUser = response.data;
+          const response = await apiClient.put('/users/me/profile', data);
+          const updatedUser = response.data || response;
 
+          // 更新 zustand store 中的用户信息
           set({
             user: updatedUser,
             isLoading: false,
             error: null,
           });
+
+          // 同步更新 localStorage 中的用户信息
+          if (typeof window !== 'undefined' && updatedUser) {
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            console.log('🔍 用户信息已同步更新到localStorage:', updatedUser);
+          }
 
           toast.success('资料更新成功');
           return true;
@@ -228,6 +237,55 @@ export const useAuthStore = create<AuthState>()(
             error: errorMessage,
           });
           toast.error(errorMessage);
+          return false;
+        }
+      },
+
+      // 同步用户信息到本地存储（不执行API调用）
+      syncUserToLocalStorage: (updatedUser: User) => {
+        try {
+          // 更新 zustand store 中的用户信息
+          set({
+            user: updatedUser,
+          });
+
+          // 同步更新 localStorage 中的用户信息
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            console.log('🔍 用户信息已同步更新到localStorage:', updatedUser);
+          }
+
+          return true;
+        } catch (error: any) {
+          console.error('同步用户信息到localStorage失败:', error);
+          return false;
+        }
+      },
+
+      // 更新用户头像
+      updateAvatar: async (avatarUrl: string) => {
+        try {
+          const currentUser = get().user;
+          if (!currentUser) {
+            throw new Error('用户未登录');
+          }
+
+          const updatedUser = { ...currentUser, avatar: avatarUrl };
+
+          // 更新 zustand store 中的用户信息
+          set({
+            user: updatedUser,
+          });
+
+          // 同步更新 localStorage 中的用户信息
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            console.log('🔍 头像信息已同步更新到localStorage:', updatedUser);
+          }
+
+          return true;
+        } catch (error: any) {
+          console.error('更新头像失败:', error);
           return false;
         }
       },

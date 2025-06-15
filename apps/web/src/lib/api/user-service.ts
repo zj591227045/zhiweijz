@@ -9,6 +9,7 @@ export interface UserProfile {
   bio?: string;
   birthDate?: string;
   createdAt: string;
+  registrationOrder?: number; // 用户注册序号
 }
 
 // 更新用户资料请求体

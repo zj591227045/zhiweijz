@@ -57,4 +57,20 @@ export class UserRepository {
   async findAll(): Promise<User[]> {
     return prisma.user.findMany();
   }
+
+  /**
+   * 计算在指定日期之前注册的用户数量（排除托管用户）
+   */
+  async countUsersBeforeDate(date: Date): Promise<number> {
+    return prisma.user.count({
+      where: {
+        createdAt: {
+          lt: date,
+        },
+        isCustodial: {
+          not: true, // 排除托管用户
+        },
+      },
+    });
+  }
 }

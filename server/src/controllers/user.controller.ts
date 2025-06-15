@@ -25,6 +25,9 @@ export class UserController {
       }
 
       const user = await this.userService.getUserById(userId);
+      
+      // 获取用户注册序号
+      const registrationOrder = await this.userService.getUserRegistrationOrder(userId);
 
       // 转换为前端需要的格式
       const profile = {
@@ -34,7 +37,8 @@ export class UserController {
         avatar: user.avatar,
         bio: user.bio,
         birthDate: user.birthDate,
-        createdAt: user.createdAt
+        createdAt: user.createdAt,
+        registrationOrder: registrationOrder
       };
 
       res.status(200).json(profile);

@@ -7,10 +7,12 @@ import { PageContainer } from '@/components/layout/page-container';
 import { AvatarUploader } from '@/components/profile/avatar-uploader';
 import { ProfileForm, ProfileFormValues } from '@/components/profile/profile-form';
 import { userService, UserProfile } from '@/lib/api/user-service';
+import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { user: authUser, syncUserToLocalStorage, updateAvatar } = useAuthStore();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,6 +42,10 @@ export default function ProfilePage() {
     try {
       const data = await userService.uploadAvatar(file);
       setProfile((prev) => (prev ? { ...prev, avatar: data.avatar } : null));
+      
+      // 同步更新 auth store 中的头像信息
+      await updateAvatar(data.avatar);
+      
       toast.success('头像上传成功');
     } catch (error) {
       console.error('头像上传失败:', error);
@@ -54,9 +60,28 @@ export default function ProfilePage() {
     setIsSubmitting(true);
 
     try {
+      // 调用 userService 更新数据库
       const updatedProfile = await userService.updateUserProfile(data);
       setProfile(updatedProfile);
-      toast.success('个人资料更新成功');
+      
+      // 同步更新 auth store 和 localStorage（将前端格式转换为后端格式）
+      const success = syncUserToLocalStorage({
+        id: updatedProfile.id,
+        name: updatedProfile.username, // 注意：前端使用username，后端使用name
+        email: updatedProfile.email,
+        avatar: updatedProfile.avatar,
+        bio: updatedProfile.bio,
+        birthDate: updatedProfile.birthDate,
+        createdAt: updatedProfile.createdAt,
+      });
+      
+      if (success) {
+        console.log('🔍 用户资料更新成功，localStorage已同步更新');
+        toast.success('个人资料更新成功');
+      } else {
+        console.warn('⚠️ localStorage同步失败，但数据库更新成功');
+        toast.success('个人资料更新成功');
+      }
     } catch (error) {
       console.error('更新个人资料失败:', error);
       toast.error('更新个人资料失败');
@@ -99,6 +124,7 @@ export default function ProfilePage() {
       <AvatarUploader
         currentAvatar={profile?.avatar}
         username={profile?.username}
+        registrationOrder={profile?.registrationOrder}
         onAvatarChange={handleAvatarChange}
         isUploading={isUploadingAvatar}
       />

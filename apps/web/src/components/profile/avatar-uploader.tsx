@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 interface AvatarUploaderProps {
   currentAvatar?: string;
   username?: string;
+  registrationOrder?: number;
   onAvatarChange: (file: File) => void;
   isUploading?: boolean;
 }
@@ -13,6 +14,7 @@ interface AvatarUploaderProps {
 export function AvatarUploader({
   currentAvatar,
   username,
+  registrationOrder,
   onAvatarChange,
   isUploading = false,
 }: AvatarUploaderProps) {
@@ -118,6 +120,19 @@ export function AvatarUploader({
             </div>
           )}
         </div>
+
+        {/* 用户序号显示 */}
+        {registrationOrder && (
+          <div className="user-order-badge">
+            <div className="order-text">
+              您是<span className="app-name">「只为记账」</span>的第
+              <span className="order-number">{registrationOrder.toLocaleString()}</span>名用户
+            </div>
+            <div className="order-decoration">
+              <i className="fas fa-crown"></i>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 隐藏的文件输入 */}

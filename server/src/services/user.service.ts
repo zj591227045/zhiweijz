@@ -126,4 +126,20 @@ export class UserService {
 
     return user;
   }
+
+  /**
+   * 获取用户注册序号（该用户是第几个注册的用户）
+   */
+  async getUserRegistrationOrder(userId: string): Promise<number> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new Error('用户不存在');
+    }
+
+    // 计算在该用户注册时间之前注册的用户数量
+    const earlierUsersCount = await this.userRepository.countUsersBeforeDate(user.createdAt);
+    
+    // 用户序号 = 之前注册的用户数量 + 1
+    return earlierUsersCount + 1;
+  }
 }

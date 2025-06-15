@@ -23,6 +23,7 @@ interface ProfileFormProps {
     birthDate?: string;
     email: string;
     createdAt: string;
+    registrationOrder?: number;
   };
   onSubmit: (data: ProfileFormValues) => void;
   isSubmitting?: boolean;
