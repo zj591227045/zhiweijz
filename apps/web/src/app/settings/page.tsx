@@ -80,6 +80,22 @@ export default function SettingsPage() {
     startOnboarding();
   };
 
+  // 处理导入记录
+  const handleImportRecords = () => {
+    const importUrl = 'https://import.zhiweijz.cn:1443';
+    
+    // 只在新窗口打开导入页面，不使用fallback策略
+    if (typeof window !== 'undefined') {
+      try {
+        // 尝试在新窗口打开，不检查结果
+        window.open(importUrl, '_blank', 'noopener,noreferrer');
+      } catch (error) {
+        // 静默处理错误，不进行任何跳转
+        console.warn('Failed to open new window:', error);
+      }
+    }
+  };
+
   if (!isAuthenticated || !user) {
     return null;
   }
@@ -174,6 +190,18 @@ export default function SettingsPage() {
             <i className="fas fa-chevron-right"></i>
           </div>
         </Link>
+        <button className="settings-item" onClick={handleImportRecords}>
+          <div className="item-icon">
+            <i className="fas fa-file-import"></i>
+          </div>
+          <div className="item-content">
+            <div className="item-title">导入记录</div>
+            <div className="item-description">从其他应用导入记账数据</div>
+          </div>
+          <div className="item-action">
+            <i className="fas fa-external-link-alt"></i>
+          </div>
+        </button>
         <Link href="/settings/export" className="settings-item">
           <div className="item-icon">
             <i className="fas fa-file-export"></i>

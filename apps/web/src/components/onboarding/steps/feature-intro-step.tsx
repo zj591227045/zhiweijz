@@ -45,11 +45,38 @@ const features: FeatureItem[] = [
       '剩余预算计算',
     ],
   },
+  {
+    id: 'import-records',
+    icon: 'fas fa-file-import',
+    title: '导入记录',
+    description: '从其他应用导入数据',
+    details: [
+      '支持多种格式导入',
+      '智能数据解析',
+      '快速数据迁移',
+    ],
+  },
 ];
 
 export function FeatureIntroStep() {
   const { completeOnboarding, previousStep } = useOnboardingStore();
   const [isCompleting, setIsCompleting] = useState(false);
+
+  // 处理导入记录
+  const handleImportRecords = () => {
+    const importUrl = 'https://import.zhiweijz.cn:1443';
+    
+    // 只在新窗口打开导入页面，不使用fallback策略
+    if (typeof window !== 'undefined') {
+      try {
+        // 尝试在新窗口打开，不检查结果
+        window.open(importUrl, '_blank', 'noopener,noreferrer');
+      } catch (error) {
+        // 静默处理错误，不进行任何跳转
+        console.warn('Failed to open new window:', error);
+      }
+    }
+  };
 
   // 处理完成引导
   const handleComplete = async () => {
@@ -81,13 +108,23 @@ export function FeatureIntroStep() {
       {/* 所有功能介绍 */}
       <div className="features-overview">
         {features.map((feature, index) => (
-          <div key={feature.id} className="feature-overview-card">
+          <div 
+            key={feature.id} 
+            className={`feature-overview-card ${feature.id === 'import-records' ? 'clickable' : ''}`}
+            onClick={feature.id === 'import-records' ? handleImportRecords : undefined}
+            style={feature.id === 'import-records' ? { cursor: 'pointer' } : {}}
+          >
             <div className="feature-overview-header">
               <div className="feature-overview-icon">
                 <i className={feature.icon}></i>
               </div>
               <div className="feature-overview-content">
-                <div className="feature-overview-title">{feature.title}</div>
+                <div className="feature-overview-title">
+                  {feature.title}
+                  {feature.id === 'import-records' && (
+                    <i className="fas fa-external-link-alt" style={{ marginLeft: '8px', fontSize: '12px', opacity: 0.7 }}></i>
+                  )}
+                </div>
                 <div className="feature-overview-description">{feature.description}</div>
               </div>
             </div>
