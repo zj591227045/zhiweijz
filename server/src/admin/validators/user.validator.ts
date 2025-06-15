@@ -33,6 +33,13 @@ export const UpdateUserSchema = z.object({
   
   bio: z.string()
     .max(200, '个人简介长度不能超过200个字符')
+    .optional(),
+    
+  dailyLlmTokenLimit: z.number()
+    .int('Token限额必须是整数')
+    .min(0, 'Token限额不能为负数')
+    .max(1000000, 'Token限额不能超过1,000,000')
+    .nullable()
     .optional()
 });
 

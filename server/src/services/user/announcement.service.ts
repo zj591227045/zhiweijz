@@ -29,17 +29,21 @@ export const announcementService = {
             { expiresAt: { gt: new Date() } } // 未过期
           ]
         },
-        include: {
-          readings: {
-            where: { userId },
-            select: { id: true }
-          }
-        },
         orderBy: [
           { priority: 'desc' }, // 优先级高的在前
           { publishedAt: 'desc' } // 发布时间新的在前
         ]
       });
+
+      // 获取用户已读的公告ID列表
+      const readAnnouncements = await prisma.announcementRead.findMany({
+        where: { 
+          userId,
+          announcementId: { in: announcements.map(a => a.id) }
+        },
+        select: { announcementId: true }
+      });
+      const readIds = new Set(readAnnouncements.map(r => r.announcementId));
 
       // 转换数据格式，添加已读状态
       const result = announcements.map(announcement => ({
@@ -49,7 +53,7 @@ export const announcementService = {
         priority: announcement.priority,
         publishedAt: announcement.publishedAt?.toISOString() || '',
         expiresAt: announcement.expiresAt?.toISOString() || null,
-        isRead: announcement.readings.length > 0
+        isRead: readIds.has(announcement.id)
       }));
 
       return result;
@@ -116,8 +120,8 @@ export const announcementService = {
         throw new Error('用户不存在');
       }
 
-      // 获取用户可见的所有未读公告
-      const unreadAnnouncements = await prisma.announcement.findMany({
+      // 获取用户可见的所有公告
+      const allAnnouncements = await prisma.announcement.findMany({
         where: {
           status: 'PUBLISHED',
           publishedAt: {
@@ -127,13 +131,23 @@ export const announcementService = {
           OR: [
             { expiresAt: null },
             { expiresAt: { gt: new Date() } }
-          ],
-          readings: {
-            none: { userId }
-          }
+          ]
         },
         select: { id: true }
       });
+
+      // 获取已读的公告ID
+      const readAnnouncements = await prisma.announcementRead.findMany({
+        where: { 
+          userId,
+          announcementId: { in: allAnnouncements.map(a => a.id) }
+        },
+        select: { announcementId: true }
+      });
+      const readIds = new Set(readAnnouncements.map(r => r.announcementId));
+
+      // 筛选出未读的公告
+      const unreadAnnouncements = allAnnouncements.filter(a => !readIds.has(a.id));
 
       if (unreadAnnouncements.length === 0) {
         return 0;

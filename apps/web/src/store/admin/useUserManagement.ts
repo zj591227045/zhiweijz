@@ -15,6 +15,7 @@ interface User {
   lastLoginAt?: string;
   transactionCount: number;
   accountBookCount: number;
+  dailyLlmTokenLimit?: number | null;
 }
 
 interface UserDetail extends User {
@@ -53,6 +54,7 @@ interface UpdateUserData {
   name?: string;
   email?: string;
   bio?: string;
+  dailyLlmTokenLimit?: number | null;
 }
 
 interface UserManagementState {

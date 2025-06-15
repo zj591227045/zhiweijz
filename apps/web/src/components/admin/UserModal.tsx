@@ -12,6 +12,7 @@ interface User {
   bio?: string;
   avatar?: string;
   isActive: boolean;
+  dailyLlmTokenLimit?: number | null;
 }
 
 interface UserModalProps {
@@ -27,6 +28,7 @@ export function UserModal({ user, onClose }: UserModalProps) {
     email: '',
     password: '',
     bio: '',
+    dailyLlmTokenLimit: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -38,6 +40,7 @@ export function UserModal({ user, onClose }: UserModalProps) {
         email: user.email || '',
         password: '',
         bio: user.bio || '',
+        dailyLlmTokenLimit: user.dailyLlmTokenLimit?.toString() || '',
       });
     }
   }, [user]);
@@ -72,6 +75,18 @@ export function UserModal({ user, onClose }: UserModalProps) {
       newErrors.bio = '个人简介长度不能超过200个字符';
     }
 
+    // 验证Token限额
+    if (formData.dailyLlmTokenLimit.trim()) {
+      const tokenLimit = parseInt(formData.dailyLlmTokenLimit);
+      if (isNaN(tokenLimit)) {
+        newErrors.dailyLlmTokenLimit = 'Token限额必须是数字';
+      } else if (tokenLimit < 0) {
+        newErrors.dailyLlmTokenLimit = 'Token限额不能为负数';
+      } else if (tokenLimit > 1000000) {
+        newErrors.dailyLlmTokenLimit = 'Token限额不能超过1,000,000';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -91,19 +106,35 @@ export function UserModal({ user, onClose }: UserModalProps) {
       
       if (user) {
         // 编辑用户
-        success = await updateUser(user.id, {
+        const updateData: any = {
           name: formData.name.trim(),
           email: formData.email.trim(),
           bio: formData.bio.trim() || undefined,
-        });
+        };
+        
+        // 处理Token限额
+        if (formData.dailyLlmTokenLimit.trim()) {
+          updateData.dailyLlmTokenLimit = parseInt(formData.dailyLlmTokenLimit);
+        } else {
+          updateData.dailyLlmTokenLimit = null; // 空值表示使用全局限额
+        }
+        
+        success = await updateUser(user.id, updateData);
       } else {
         // 创建用户
-        success = await createUser({
+        const createData: any = {
           name: formData.name.trim(),
           email: formData.email.trim(),
           password: formData.password,
           bio: formData.bio.trim() || undefined,
-        });
+        };
+        
+        // 处理Token限额
+        if (formData.dailyLlmTokenLimit.trim()) {
+          createData.dailyLlmTokenLimit = parseInt(formData.dailyLlmTokenLimit);
+        }
+        
+        success = await createUser(createData);
       }
 
       if (success) {
@@ -232,6 +263,31 @@ export function UserModal({ user, onClose }: UserModalProps) {
             )}
             <p className="mt-1 text-xs text-gray-500">
               {formData.bio.length}/200
+            </p>
+          </div>
+
+          {/* Token限额 */}
+          <div>
+            <label htmlFor="dailyLlmTokenLimit" className="block text-sm font-medium text-gray-700 mb-1">
+              每日LLM Token限额
+            </label>
+            <input
+              type="number"
+              id="dailyLlmTokenLimit"
+              value={formData.dailyLlmTokenLimit}
+              onChange={(e) => handleInputChange('dailyLlmTokenLimit', e.target.value)}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.dailyLlmTokenLimit ? 'border-red-300' : 'border-gray-300'
+              }`}
+              placeholder="留空使用全局限额"
+              min="0"
+              max="1000000"
+            />
+            {errors.dailyLlmTokenLimit && (
+              <p className="mt-1 text-sm text-red-600">{errors.dailyLlmTokenLimit}</p>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              留空将使用全局限额。优先级：用户个人限额 → 全局限额
             </p>
           </div>
 

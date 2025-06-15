@@ -36,6 +36,11 @@ interface LLMConfig {
   maxTokens: number;
 }
 
+interface TokenLimitConfig {
+  tokenLimitEnabled: boolean;
+  globalLlmTokenLimit: number;
+}
+
 interface TestResult {
   success: boolean;
   message: string;
@@ -59,6 +64,11 @@ export default function LLMConfigPage() {
     baseUrl: '',
     temperature: 0.7,
     maxTokens: 1000
+  });
+
+  const [tokenConfig, setTokenConfig] = useState<TokenLimitConfig>({
+    tokenLimitEnabled: true,
+    globalLlmTokenLimit: 50000
   });
 
   const [loading, setLoading] = useState(false);
@@ -94,19 +104,29 @@ export default function LLMConfigPage() {
   const loadConfig = async () => {
     setLoading(true);
     try {
-      const response = await adminApi.get(ADMIN_API_ENDPOINTS.SYSTEM_CONFIG_LLM);
+      const [llmResponse, tokenResponse] = await Promise.all([
+        adminApi.get(ADMIN_API_ENDPOINTS.SYSTEM_CONFIG_LLM),
+        adminApi.get('/api/admin/token-limit/global/settings')
+      ]);
 
-      if (response.ok) {
-        const data = await response.json();
+      if (llmResponse.ok) {
+        const data = await llmResponse.json();
         if (data.success) {
           setConfig(data.data.configs);
         }
       } else {
         toast.error('获取LLM配置失败');
       }
+
+      if (tokenResponse.ok) {
+        const tokenData = await tokenResponse.json();
+        if (tokenData.success) {
+          setTokenConfig(tokenData.data);
+        }
+      }
     } catch (error) {
-      console.error('获取LLM配置错误:', error);
-      toast.error('获取LLM配置失败');
+      console.error('获取配置错误:', error);
+      toast.error('获取配置失败');
     } finally {
       setLoading(false);
     }
@@ -116,22 +136,45 @@ export default function LLMConfigPage() {
   const saveConfig = async () => {
     setSaving(true);
     try {
-      const response = await adminApi.put(ADMIN_API_ENDPOINTS.SYSTEM_CONFIG_LLM, config);
+      const [llmResponse, tokenResponse] = await Promise.all([
+        adminApi.put(ADMIN_API_ENDPOINTS.SYSTEM_CONFIG_LLM, config),
+        adminApi.put('/api/admin/token-limit/global/settings', tokenConfig)
+      ]);
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          toast.success('LLM配置保存成功');
-          setTestResult(null); // 清空测试结果
-        } else {
-          toast.error(data.message || '保存LLM配置失败');
+      let allSuccess = true;
+      let errorMessages = [];
+
+      if (llmResponse.ok) {
+        const data = await llmResponse.json();
+        if (!data.success) {
+          allSuccess = false;
+          errorMessages.push(data.message || 'LLM配置保存失败');
         }
       } else {
-        toast.error('保存LLM配置失败');
+        allSuccess = false;
+        errorMessages.push('LLM配置保存失败');
+      }
+
+      if (tokenResponse.ok) {
+        const tokenData = await tokenResponse.json();
+        if (!tokenData.success) {
+          allSuccess = false;
+          errorMessages.push(tokenData.message || 'Token限额配置保存失败');
+        }
+      } else {
+        allSuccess = false;
+        errorMessages.push('Token限额配置保存失败');
+      }
+
+      if (allSuccess) {
+        toast.success('配置保存成功');
+        setTestResult(null); // 清空测试结果
+      } else {
+        toast.error(errorMessages.join(', '));
       }
     } catch (error) {
-      console.error('保存LLM配置错误:', error);
-      toast.error('保存LLM配置失败');
+      console.error('保存配置错误:', error);
+      toast.error('保存配置失败');
     } finally {
       setSaving(false);
     }
@@ -427,6 +470,68 @@ export default function LLMConfigPage() {
               <p className="text-xs text-gray-600">
                 限制AI回答的最大长度
               </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Token限额管理 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Token限额管理
+          </CardTitle>
+          <CardDescription>
+            控制全局LLM Token使用限额，防止过度消费
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Token限额开关 */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label htmlFor="token-limit-enabled">启用Token限额</Label>
+              <p className="text-sm text-gray-600">
+                启用后，系统将强制执行每日Token使用限额
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="token-limit-enabled"
+                checked={tokenConfig.tokenLimitEnabled}
+                onCheckedChange={(checked) =>
+                  setTokenConfig(prev => ({ ...prev, tokenLimitEnabled: checked }))
+                }
+              />
+              <Badge variant={tokenConfig.tokenLimitEnabled ? "default" : "secondary"}>
+                {tokenConfig.tokenLimitEnabled ? "已启用" : "已禁用"}
+              </Badge>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* 全局Token限额设置 */}
+          <div className="space-y-2">
+            <Label htmlFor="global-token-limit">全局每日Token限额</Label>
+            <Input
+              id="global-token-limit"
+              type="number"
+              min="1000"
+              max="1000000"
+              value={tokenConfig.globalLlmTokenLimit}
+              onChange={(e) => setTokenConfig(prev => ({ 
+                ...prev, 
+                globalLlmTokenLimit: parseInt(e.target.value) || 50000 
+              }))}
+              disabled={!tokenConfig.tokenLimitEnabled}
+            />
+            <p className="text-sm text-gray-600">
+              设置所有用户的默认每日Token使用限额。用户个人限额（如果设置）将优先于此全局限额。
+            </p>
+            <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+              <strong>限额层级：</strong> 用户个人限额 → 全局限额<br/>
+              <strong>推荐设置：</strong> 一般用户 10,000-50,000 tokens/天
             </div>
           </div>
         </CardContent>

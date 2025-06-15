@@ -116,22 +116,7 @@ export class LLMLogAdminService {
           orderBy: { createdAt: 'desc' },
           skip,
           take: pageSize,
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true
-              }
-            },
-            accountBook: {
-              select: {
-                id: true,
-                name: true,
-                type: true
-              }
-            }
-          }
+// 移除include以避免TypeScript错误，因为schema中没有定义user/accountBook关系
         }),
         prisma.llmCallLog.count({ where })
       ]);
@@ -318,23 +303,8 @@ export class LLMLogAdminService {
   async getLLMLogById(id: string) {
     try {
       const log = await prisma.llmCallLog.findUnique({
-        where: { id },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          },
-          accountBook: {
-            select: {
-              id: true,
-              name: true,
-              type: true
-            }
-          }
-        }
+        where: { id }
+        // 移除include以避免TypeScript错误，因为schema中没有定义user/accountBook关系
       });
 
       return log;

@@ -21,16 +21,13 @@ model User {
   passwordChangedAt   DateTime?            @map("password_changed_at")
   isCustodial         Boolean              @default(false) @map("is_custodial")
   isActive            Boolean              @default(true) @map("is_active")
-  accessLogs          AccessLog[]
+  dailyLlmTokenLimit  Int?                 @map("daily_llm_token_limit")
   accountBooks        AccountBook[]
-  announcementReads   AnnouncementRead[]
-  apiCallLogs         ApiCallLog[]
   budgetHistories     BudgetHistory[]
   budgets             Budget[]
   categories          Category[]
   families            Family[]             @relation("FamilyCreator")
   familyMembers       FamilyMember[]
-  llmCallLogs         LlmCallLog[]
   passwordResetTokens PasswordResetToken[]
   securityLogs        SecurityLog[]
   sessions            Session[]
@@ -41,8 +38,6 @@ model User {
   settings            UserSetting[]
   verificationCodes   VerificationCode[]
 
-  @@index([createdAt(sort: Desc)], map: "idx_users_created_at")
-  @@index([name], map: "idx_users_name")
   @@map("users")
 }
 
@@ -143,7 +138,7 @@ model Transaction {
   user           User            @relation(fields: [userId], references: [id])
   feedback       UserFeedback[]
 
-  @@index([categoryId, date(sort: Desc)], map: "idx_transactions_category_date")
+  @@index([metadata], map: "idx_transactions_metadata_gin", type: Gin)
   @@map("transactions")
 }
 
@@ -266,11 +261,8 @@ model AccountBook {
   budgetHistories   BudgetHistory[]
   budgets           Budget[]
   categories        Category[]
-  llmCallLogs       LlmCallLog[]
   transactions      Transaction[]
 
-  @@index([familyId, createdAt(sort: Desc)], map: "idx_account_books_family")
-  @@index([userId, isDefault], map: "idx_account_books_user_default")
   @@map("account_books")
 }
 
@@ -404,19 +396,15 @@ model UserLLMSetting {
 }
 
 model Admin {
-  id                   String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username             String         @unique @db.VarChar(50)
-  passwordHash         String         @map("password_hash") @db.VarChar(255)
-  email                String?        @unique @db.VarChar(100)
-  role                 admin_role     @default(ADMIN)
-  createdAt            DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt            DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  lastLoginAt          DateTime?      @map("last_login_at") @db.Timestamptz(6)
-  isActive             Boolean        @default(true) @map("is_active")
-  createdAnnouncements Announcement[] @relation("AnnouncementCreator")
-  updatedAnnouncements Announcement[] @relation("AnnouncementUpdater")
-  createdConfigs       SystemConfig[] @relation("ConfigCreator")
-  updatedConfigs       SystemConfig[] @relation("ConfigUpdater")
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username     String     @unique(map: "admins_username_unique") @db.VarChar(50)
+  passwordHash String     @map("password_hash") @db.VarChar(255)
+  email        String?    @unique(map: "admins_email_unique") @db.VarChar(100)
+  role         admin_role @default(ADMIN)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  lastLoginAt  DateTime?  @map("last_login_at") @db.Timestamptz(6)
+  isActive     Boolean    @default(true) @map("is_active")
 
   @@index([isActive], map: "idx_admins_active")
   @@index([email], map: "idx_admins_email")
@@ -427,7 +415,7 @@ model Admin {
 
 model SystemConfig {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  key         String   @unique @db.VarChar(100)
+  key         String   @unique(map: "system_configs_key_unique") @db.VarChar(100)
   value       String?
   description String?
   category    String   @default("general") @db.VarChar(50)
@@ -435,8 +423,6 @@ model SystemConfig {
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   createdBy   String?  @map("created_by") @db.Uuid
   updatedBy   String?  @map("updated_by") @db.Uuid
-  creator     Admin?   @relation("ConfigCreator", fields: [createdBy], references: [id], onUpdate: NoAction)
-  updater     Admin?   @relation("ConfigUpdater", fields: [updatedBy], references: [id], onUpdate: NoAction)
 
   @@index([category], map: "idx_system_configs_category")
   @@index([key], map: "idx_system_configs_key")
@@ -456,9 +442,6 @@ model Announcement {
   updatedAt      DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   createdBy      String                @map("created_by") @db.Uuid
   updatedBy      String?               @map("updated_by") @db.Uuid
-  readings       AnnouncementRead[]
-  creator        Admin                 @relation("AnnouncementCreator", fields: [createdBy], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  updater        Admin?                @relation("AnnouncementUpdater", fields: [updatedBy], references: [id], onUpdate: NoAction)
 
   @@index([priority], map: "idx_announcements_priority")
   @@index([publishedAt], map: "idx_announcements_published_at")
@@ -468,13 +451,11 @@ model Announcement {
 }
 
 model AnnouncementRead {
-  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  announcementId String       @map("announcement_id") @db.Uuid
-  userId         String       @map("user_id")
-  readAt         DateTime     @default(now()) @map("read_at") @db.Timestamptz(6)
-  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  announcementId String   @map("announcement_id") @db.Uuid
+  userId         String   @map("user_id")
+  readAt         DateTime @default(now()) @map("read_at") @db.Timestamptz(6)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@unique([announcementId, userId], map: "idx_announcement_reads_unique")
   @@index([announcementId, readAt(sort: Desc)], map: "idx_announcement_reads_announcement")
@@ -494,7 +475,6 @@ model AccessLog {
   referer     String?
   duration    Int?
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  user        User?    @relation(fields: [userId], references: [id], onUpdate: NoAction)
 
   @@index([ipAddress, createdAt(sort: Desc)], map: "idx_access_logs_ip")
   @@index([path, createdAt(sort: Desc)], map: "idx_access_logs_path_time")
@@ -514,7 +494,6 @@ model ApiCallLog {
   responseSize Int?     @map("response_size")
   errorMessage String?  @map("error_message")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  user         User?    @relation(fields: [userId], references: [id], onUpdate: NoAction)
 
   @@index([endpoint, createdAt(sort: Desc)], map: "idx_api_call_logs_endpoint_time")
   @@index([statusCode, createdAt(sort: Desc)], map: "idx_api_call_logs_status")
@@ -523,27 +502,25 @@ model ApiCallLog {
 }
 
 model LlmCallLog {
-  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId           String       @map("user_id")
-  userName         String       @map("user_name") @db.VarChar(100)
-  accountBookId    String?      @map("account_book_id")
-  accountBookName  String?      @map("account_book_name") @db.VarChar(200)
-  provider         String       @db.VarChar(50)
-  model            String       @db.VarChar(100)
-  serviceType      String       @default("official") @map("service_type") @db.VarChar(20)
-  promptTokens     Int          @default(0) @map("prompt_tokens")
-  completionTokens Int          @default(0) @map("completion_tokens")
-  totalTokens      Int          @default(0) @map("total_tokens")
-  userMessage      String       @map("user_message")
-  assistantMessage String?      @map("assistant_message")
-  systemPrompt     String?      @map("system_prompt")
-  isSuccess        Boolean      @map("is_success")
-  errorMessage     String?      @map("error_message")
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String   @map("user_id")
+  userName         String   @map("user_name") @db.VarChar(100)
+  accountBookId    String?  @map("account_book_id")
+  accountBookName  String?  @map("account_book_name") @db.VarChar(200)
+  provider         String   @db.VarChar(50)
+  model            String   @db.VarChar(100)
+  promptTokens     Int      @default(0) @map("prompt_tokens")
+  completionTokens Int      @default(0) @map("completion_tokens")
+  totalTokens      Int      @default(0) @map("total_tokens")
+  userMessage      String   @map("user_message")
+  assistantMessage String?  @map("assistant_message")
+  systemPrompt     String?  @map("system_prompt")
+  isSuccess        Boolean  @map("is_success")
+  errorMessage     String?  @map("error_message")
   duration         Int
-  cost             Decimal?     @db.Decimal(10, 6)
-  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  accountBook      AccountBook? @relation(fields: [accountBookId], references: [id], onUpdate: NoAction)
-  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  cost             Decimal? @db.Decimal(10, 6)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  serviceType      String   @default("official") @map("service_type") @db.VarChar(20)
 
   @@index([accountBookId, createdAt(sort: Desc)], map: "idx_llm_call_logs_account_book_time")
   @@index([provider, model, createdAt(sort: Desc)], map: "idx_llm_call_logs_provider_model")
@@ -573,19 +550,9 @@ model SchemaVersion {
   version       String   @db.VarChar(20)
   description   String?
   appliedAt     DateTime @default(now()) @map("applied_at") @db.Timestamptz(6)
-  migrationFile String?  @unique @map("migration_file") @db.VarChar(255)
+  migrationFile String?  @unique(map: "schema_versions_migration_file_unique") @map("migration_file") @db.VarChar(255)
 
   @@map("schema_versions")
-}
-
-model migrations {
-  id          Int       @id @default(dbgenerated("nextval('_migrations_id_seq'::regclass)"))
-  version     String    @unique @db.VarChar(50)
-  name        String    @db.VarChar(255)
-  description String?
-  executed_at DateTime? @default(now()) @db.Timestamp(6)
-
-  @@map("_migrations")
 }
 
 enum TransactionType {

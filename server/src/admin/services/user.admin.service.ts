@@ -23,6 +23,7 @@ export interface UpdateUserData {
   name?: string;
   email?: string;
   bio?: string;
+  dailyLlmTokenLimit?: number | null;
 }
 
 export class UserAdminService {
@@ -76,6 +77,7 @@ export class UserAdminService {
             isActive: true,
             createdAt: true,
             updatedAt: true,
+            dailyLlmTokenLimit: true,
             _count: {
               select: {
                 transactions: true,
@@ -126,6 +128,7 @@ export class UserAdminService {
           isActive: true,
           createdAt: true,
           updatedAt: true,
+          dailyLlmTokenLimit: true,
           _count: {
             select: {
               transactions: true,
@@ -245,6 +248,7 @@ export class UserAdminService {
           ...(data.name && { name: data.name }),
           ...(data.email && { email: data.email }),
           ...(data.bio && { bio: data.bio }),
+          ...(data.dailyLlmTokenLimit !== undefined && { dailyLlmTokenLimit: data.dailyLlmTokenLimit }),
           updatedAt: new Date()
         },
         select: {
@@ -255,7 +259,8 @@ export class UserAdminService {
           avatar: true,
           isActive: true,
           createdAt: true,
-          updatedAt: true
+          updatedAt: true,
+          dailyLlmTokenLimit: true
         }
       });
 

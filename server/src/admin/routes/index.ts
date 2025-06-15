@@ -5,6 +5,7 @@ import userAdminRoutes from './user.admin.routes';
 import systemConfigAdminRoutes from './system-config.admin.routes';
 import llmLogAdminRoutes from './llm-log.admin.routes';
 import announcementAdminRoutes from './announcement.admin.routes';
+import tokenLimitAdminRoutes from './token-limit.admin.routes';
 
 const router = Router();
 
@@ -15,5 +16,6 @@ router.use('/users', userAdminRoutes);
 router.use('/system-configs', systemConfigAdminRoutes);
 router.use('/llm-logs', llmLogAdminRoutes);
 router.use('/announcements', announcementAdminRoutes);
+router.use('/token-limit', tokenLimitAdminRoutes);
 
 export default router; 

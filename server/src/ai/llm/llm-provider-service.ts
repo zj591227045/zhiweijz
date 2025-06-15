@@ -4,6 +4,7 @@ import { SiliconFlowProvider } from './siliconflow-provider';
 import { DeepseekProvider } from './deepseek-provider';
 import { CustomProvider } from './custom-provider';
 import { LLMSettings, Message, LLMResponse } from '../types/llm-types';
+import { TokenLimitService } from '../../services/token-limit.service';
 import prisma from '../../config/database';
 
 /**
@@ -13,6 +14,8 @@ import prisma from '../../config/database';
 export class LLMProviderService {
   /** 提供商映射 */
   private providers: Map<string, LLMProvider> = new Map();
+  /** Token限制服务 */
+  private tokenLimitService: TokenLimitService = new TokenLimitService();
   /** 默认设置 */
   private defaultSettings: LLMSettings = {
     provider: 'siliconflow',
@@ -412,6 +415,14 @@ export class LLMProviderService {
     accountId?: string,
     accountType?: 'personal' | 'family'
   ): Promise<string> {
+    // 💡 Token限制检查 - 预估prompt的token数量
+    const estimatedPromptTokens = this.estimateTokens(prompt);
+    const tokenCheck = await this.tokenLimitService.canUseTokens(userId, estimatedPromptTokens);
+    
+    if (!tokenCheck.canUse) {
+      throw new Error(`Token使用受限: ${tokenCheck.reason}`);
+    }
+
     const settings = await this.getLLMSettings(userId, accountId, accountType);
     const provider = this.getProvider(settings.provider);
     
@@ -487,6 +498,15 @@ export class LLMProviderService {
     accountId?: string,
     accountType?: 'personal' | 'family'
   ): Promise<string> {
+    // 💡 Token限制检查 - 预估所有消息的token数量
+    const allMessagesText = messages.map(m => m.content).join('\n');
+    const estimatedPromptTokens = this.estimateTokens(allMessagesText);
+    const tokenCheck = await this.tokenLimitService.canUseTokens(userId, estimatedPromptTokens);
+    
+    if (!tokenCheck.canUse) {
+      throw new Error(`Token使用受限: ${tokenCheck.reason}`);
+    }
+
     const settings = await this.getLLMSettings(userId, accountId, accountType);
     const provider = this.getProvider(settings.provider);
     

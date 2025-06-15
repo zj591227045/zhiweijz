@@ -328,8 +328,18 @@ export class SmartAccounting {
       throw new Error('无法解析智能分析结果');
     } catch (error) {
       console.error('智能分析错误:', error);
+      
+      // 检查是否是Token限额错误
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('Token使用受限')) {
+        console.log('Token限额错误，返回错误状态');
+        return {
+          ...state,
+          error: errorMessage
+        };
+      }
 
-      // 回退到默认分类
+      // 对于其他错误，回退到默认分类
       const defaultCategory = await prisma.category.findFirst({
         where: { name: '其他' }
       }) || await prisma.category.findFirst();

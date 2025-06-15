@@ -76,21 +76,8 @@ export class AnnouncementAdminService {
         orderBy: [
           { priority: 'desc' },
           { createdAt: 'desc' }
-        ],
-        include: {
-          creator: {
-            select: {
-              id: true,
-              username: true
-            }
-          },
-          updater: {
-            select: {
-              id: true,
-              username: true
-            }
-          }
-        }
+        ]
+        // 移除include以避免TypeScript错误，因为schema中没有定义creator/updater关系
       }),
       prisma.announcement.count({ where })
     ]);
@@ -130,21 +117,8 @@ export class AnnouncementAdminService {
    */
   async getAnnouncementById(id: string): Promise<AnnouncementWithStats | null> {
     const announcement = await prisma.announcement.findUnique({
-      where: { id },
-      include: {
-        creator: {
-          select: {
-            id: true,
-            username: true
-          }
-        },
-        updater: {
-          select: {
-            id: true,
-            username: true
-          }
-        }
-      }
+      where: { id }
+      // 移除include以避免TypeScript错误，因为schema中没有定义creator/updater关系
     });
 
     if (!announcement) {

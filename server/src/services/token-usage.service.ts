@@ -170,7 +170,12 @@ export class TokenUsageService {
 
       const usedTokens = Number(todayStats._sum.totalTokens) || 0;
       const totalCalls = successfulCalls + failedCalls;
-      const dailyLimit = 50000; // 每日免费TOKEN额度
+      
+      // 使用TokenLimitService获取真实的限额
+      const { TokenLimitService } = await import('./token-limit.service');
+      const tokenLimitService = new TokenLimitService();
+      const dailyLimit = await tokenLimitService.getUserDailyTokenLimit(userId);
+      
       const remainingTokens = Math.max(0, dailyLimit - usedTokens);
       const usagePercentage = dailyLimit > 0 ? Math.round((usedTokens / dailyLimit) * 100) : 0;
 

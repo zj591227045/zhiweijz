@@ -100,6 +100,19 @@ export class AIController {
         return res.status(500).json({ error: '智能记账处理失败' });
       }
 
+      // 检查是否有错误信息（如内容与记账无关或Token限额）
+      if ('error' in result) {
+        // 检查是否是Token限额错误
+        if (result.error.includes('Token使用受限')) {
+          return res.status(429).json({ 
+            error: result.error,
+            type: 'TOKEN_LIMIT_EXCEEDED'
+          });
+        }
+        // 其他错误（如内容与记账无关）
+        return res.status(400).json({ info: result.error });
+      }
+
       res.json(result);
     } catch (error) {
       console.error('智能记账错误:', error);
@@ -837,8 +850,16 @@ export class AIController {
         return res.status(500).json({ error: '智能记账处理失败' });
       }
 
-      // 检查是否有错误信息（如内容与记账无关）
+      // 检查是否有错误信息（如内容与记账无关或Token限额）
       if ('error' in smartResult) {
+        // 检查是否是Token限额错误
+        if (smartResult.error.includes('Token使用受限')) {
+          return res.status(429).json({ 
+            error: smartResult.error,
+            type: 'TOKEN_LIMIT_EXCEEDED'
+          });
+        }
+        // 其他错误（如内容与记账无关）
         return res.status(400).json({ info: smartResult.error });
       }
 
@@ -985,8 +1006,16 @@ export class AIController {
         return res.status(500).json({ error: '智能记账处理失败' });
       }
 
-      // 检查是否有错误信息（如内容与记账无关）
+      // 检查是否有错误信息（如内容与记账无关或Token限额）
       if ('error' in result) {
+        // 检查是否是Token限额错误
+        if (result.error.includes('Token使用受限')) {
+          return res.status(429).json({ 
+            error: result.error,
+            type: 'TOKEN_LIMIT_EXCEEDED'
+          });
+        }
+        // 其他错误（如内容与记账无关）
         return res.status(400).json({ info: result.error });
       }
 
@@ -1194,11 +1223,16 @@ export class AIController {
           // 获取TOKEN使用量信息
           const tokenUsage = await this.getTokenUsageForUser(userId);
 
+          // 使用TokenLimitService获取真实的Token限额
+          const { TokenLimitService } = await import('../services/token-limit.service');
+          const tokenLimitService = new TokenLimitService();
+          const dailyTokenLimit = await tokenLimitService.getUserDailyTokenLimit(userId);
+
           const result = {
             enabled: true,
             type: 'official',
             maxTokens: globalConfig.maxTokens || 1000,
-            dailyTokenLimit: 50000, // 官方服务的每日限制
+            dailyTokenLimit: dailyTokenLimit,
             usedTokens: tokenUsage.usedTokens || 0,
             provider: globalConfig.provider,
             model: globalConfig.model,

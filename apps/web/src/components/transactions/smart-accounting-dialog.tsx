@@ -417,8 +417,21 @@ export function SmartAccountingDialog({
         // 服务器返回了错误状态码
         const errorData = error.response.data;
         
+        // 特殊处理Token限额错误（HTTP 429）
+        if (error.response.status === 429 && errorData?.type === 'TOKEN_LIMIT_EXCEEDED') {
+          // 关闭模态框
+          onClose();
+          
+          // 生成唯一的进度ID
+          const progressId = `smart-accounting-${Date.now()}`;
+          
+          // 使用与直接记账相同的浮窗通知
+          const errorMessage = errorData.error || 'Token使用量已达限额，请稍后再试';
+          smartAccountingProgressManager.completeRequest(progressId, false, errorMessage);
+          return;
+        }
         // 特殊处理"消息与记账无关"的情况
-        if (errorData?.info && errorData.info.includes('记账无关')) {
+        else if (errorData?.info && errorData.info.includes('记账无关')) {
           toast.info('您的描述似乎与记账无关，请尝试描述具体的消费或收入情况');
         } else {
           toast.error(`识别失败: ${errorData?.error || errorData?.message || '服务器错误'}`);
@@ -451,6 +464,9 @@ export function SmartAccountingDialog({
     // 生成唯一的进度ID
     const progressId = `direct-add-${Date.now()}`;
     
+    // 定时器数组，用于在错误时清除
+    const progressTimers: NodeJS.Timeout[] = [];
+    
     try {
       // 关闭模态框，让用户可以进行其他操作
       onClose();
@@ -459,17 +475,17 @@ export function SmartAccountingDialog({
       smartAccountingProgressManager.startRequest(progressId, accountBookId, description);
 
       // 后台异步处理，不阻塞用户操作
-      setTimeout(() => {
+      progressTimers.push(setTimeout(() => {
         smartAccountingProgressManager.updateProgress(progressId, '正在识别交易类型和金额...');
-      }, 1000);
+      }, 1000));
       
-      setTimeout(() => {
+      progressTimers.push(setTimeout(() => {
         smartAccountingProgressManager.updateProgress(progressId, '正在匹配最佳分类...');
-      }, 2000);
+      }, 2000));
       
-      setTimeout(() => {
+      progressTimers.push(setTimeout(() => {
         smartAccountingProgressManager.updateProgress(progressId, '正在创建交易记录...');
-      }, 3000);
+      }, 3000));
 
       // 调用直接添加记账API，使用apiClient确保认证令牌被正确添加
       const response = await apiClient.post(
@@ -482,6 +498,9 @@ export function SmartAccountingDialog({
 
       if (response && response.id) {
         console.log('记账成功，交易ID:', response.id);
+        
+        // 清除进度定时器（虽然可能已经执行完毕）
+        progressTimers.forEach(timer => clearTimeout(timer));
         
         // 在后台刷新数据
         if (accountBookId) {
@@ -499,10 +518,15 @@ export function SmartAccountingDialog({
         smartAccountingProgressManager.completeRequest(progressId, true, '记账完成，数据已更新');
 
       } else {
+        // 清除进度定时器
+        progressTimers.forEach(timer => clearTimeout(timer));
         smartAccountingProgressManager.completeRequest(progressId, false, '记账失败，请手动填写');
       }
     } catch (error: any) {
       console.error('直接添加记账失败:', error);
+
+      // 清除所有进度定时器
+      progressTimers.forEach(timer => clearTimeout(timer));
 
       // 显示错误通知，包含重试选项
       let errorMessage = '记账失败，请重试';
@@ -514,8 +538,15 @@ export function SmartAccountingDialog({
       } else if (error.response) {
         const errorData = error.response.data;
         
+        // 特殊处理Token限额错误（HTTP 429）
+        if (error.response.status === 429 && errorData?.type === 'TOKEN_LIMIT_EXCEEDED') {
+          errorMessage = `${errorData.error || 'Token使用量已达限额，请稍后再试'}`;
+          showRetry = false; // Token限额错误不提供重试
+          smartAccountingProgressManager.completeRequest(progressId, false, errorMessage);
+          return;
+        }
         // 特殊处理"消息与记账无关"的情况  
-        if (errorData?.info && errorData.info.includes('记账无关')) {
+        else if (errorData?.info && errorData.info.includes('记账无关')) {
           errorMessage = '您的描述似乎与记账无关，请尝试描述具体的消费或收入情况';
           // 对于无关内容，显示信息提示
           smartAccountingProgressManager.completeRequest(progressId, false, errorMessage);

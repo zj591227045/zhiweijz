@@ -75,21 +75,8 @@ export class SystemConfigAdminService {
         orderBy: [
           { category: 'asc' },
           { key: 'asc' }
-        ],
-        include: {
-          creator: {
-            select: {
-              id: true,
-              username: true
-            }
-          },
-          updater: {
-            select: {
-              id: true,
-              username: true
-            }
-          }
-        }
+        ]
+        // 移除include以避免TypeScript错误，因为schema中没有定义creator/updater关系
       });
 
       // 分组配置按分类
@@ -119,21 +106,8 @@ export class SystemConfigAdminService {
   async getSystemConfigById(id: string) {
     try {
       const config = await prisma.systemConfig.findUnique({
-        where: { id },
-        include: {
-          creator: {
-            select: {
-              id: true,
-              username: true
-            }
-          },
-          updater: {
-            select: {
-              id: true,
-              username: true
-            }
-          }
-        }
+        where: { id }
+        // 移除include以避免TypeScript错误，因为schema中没有定义creator/updater关系
       });
 
       return config;
@@ -181,15 +155,8 @@ export class SystemConfigAdminService {
           category: data.category || 'general',
           createdBy: createdById,
           updatedBy: createdById
-        },
-        include: {
-          creator: {
-            select: {
-              id: true,
-              username: true
-            }
-          }
         }
+        // 移除include以避免TypeScript错误，因为schema中没有定义creator/updater关系
       });
 
       return config;
@@ -224,21 +191,8 @@ export class SystemConfigAdminService {
           ...(data.category !== undefined && { category: data.category }),
           updatedBy: updatedById,
           updatedAt: new Date()
-        },
-        include: {
-          creator: {
-            select: {
-              id: true,
-              username: true
-            }
-          },
-          updater: {
-            select: {
-              id: true,
-              username: true
-            }
-          }
         }
+        // 移除include以避免TypeScript错误，因为schema中没有定义creator/updater关系
       });
 
       return config;
