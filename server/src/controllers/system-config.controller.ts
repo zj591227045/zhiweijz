@@ -1,26 +1,123 @@
 import { Request, Response } from 'express';
 import { SystemConfigService } from '../services/system-config.service';
+import { LLMProviderService } from '../ai/llm/llm-provider-service';
 import { TokenUsageService } from '../services/token-usage.service';
 
 export class SystemConfigController {
   private systemConfigService: SystemConfigService;
   private tokenUsageService: TokenUsageService;
+  private llmProviderService: LLMProviderService;
 
   constructor() {
     this.systemConfigService = new SystemConfigService();
     this.tokenUsageService = new TokenUsageService();
+    this.llmProviderService = new LLMProviderService();
   }
 
   /**
    * 获取全局AI配置
+   * 注意：此方法现在会检查用户级别的AI服务类型选择
    */
   async getGlobalAIConfig(req: Request, res: Response): Promise<void> {
     try {
+      const userId = req.user?.id;
+
+      // 如果有用户信息，检查用户的AI服务类型选择
+      if (userId) {
+        // 🔥 首先获取用户的AI服务类型选择
+        const userServiceType = await this.systemConfigService.getUserAIServiceType(userId);
+        console.log(`🔍 [getGlobalAIConfig] 用户 ${userId} 的AI服务类型: ${userServiceType}`);
+
+        if (userServiceType === 'custom') {
+          // 🔥 用户选择了自定义服务，返回自定义服务信息
+          console.log(`🔍 [getGlobalAIConfig] 用户选择了自定义服务，获取自定义配置`);
+          
+          // 获取用户的自定义LLM设置
+          const userLLMSetting = await this.llmProviderService.getUserDefaultLLMSetting(userId);
+          
+          if (userLLMSetting) {
+            console.log(`✅ [getGlobalAIConfig] 返回用户自定义LLM配置: ${userLLMSetting.name}`);
+            res.json({
+              success: true,
+              data: {
+                enabled: true,
+                provider: userLLMSetting.provider,
+                model: userLLMSetting.model,
+                baseUrl: userLLMSetting.baseUrl,
+                temperature: userLLMSetting.temperature,
+                maxTokens: userLLMSetting.maxTokens,
+                // 自定义服务没有每日Token限制，使用用户设置的maxTokens
+                dailyTokenLimit: userLLMSetting.maxTokens || 1000,
+                serviceType: 'custom',
+                customServiceName: userLLMSetting.name
+              }
+            });
+            return;
+          } else {
+            console.log(`⚠️ [getGlobalAIConfig] 用户选择了自定义服务但没有找到配置，回退到官方服务`);
+            // 没有找到自定义配置，回退到官方服务
+          }
+        }
+
+        // 🔥 用户选择了官方服务，或者自定义服务回退，使用官方服务逻辑
+        console.log(`🔍 [getGlobalAIConfig] 使用官方AI服务逻辑`);
+        const settings = await this.llmProviderService.getLLMSettings(userId);
+        
+        // 如果是多提供商模式，返回多提供商配置信息
+        if ((settings as any).isMultiProvider) {
+          // 获取多提供商配置概览
+          const multiProviderConfig = await this.llmProviderService.multiProviderService.loadMultiProviderConfig();
+          
+          if (multiProviderConfig?.enabled) {
+            const activeProviders = multiProviderConfig.providers.filter(p => p.enabled);
+            
+            res.json({
+              success: true,
+              data: {
+                enabled: true,
+                provider: 'multi-provider',
+                model: `${activeProviders.length} 个提供商`,
+                baseUrl: 'Multi-Provider Mode',
+                temperature: 0.7,
+                maxTokens: 1000,
+                dailyTokenLimit: 50000, // 保持dailyTokenLimit字段以兼容前端
+                isMultiProvider: true,
+                providersCount: activeProviders.length,
+                primaryProvider: activeProviders.length > 0 ? activeProviders[0].name : null,
+                serviceType: 'official'
+              }
+            });
+            return;
+          }
+        }
+        
+        // 否则返回实际的LLM设置（需要补充dailyTokenLimit字段）
+        const globalAIConfig = await this.systemConfigService.getGlobalAIConfig();
+        res.json({
+          success: true,
+          data: {
+            enabled: true,
+            provider: settings.provider,
+            model: settings.model,
+            baseUrl: settings.baseUrl,
+            temperature: settings.temperature,
+            maxTokens: settings.maxTokens,
+            dailyTokenLimit: globalAIConfig.dailyTokenLimit, // 从全局配置获取dailyTokenLimit
+            serviceType: 'official'
+          }
+        });
+        return;
+      }
+
+      // 如果没有用户信息，回退到原有逻辑
       const config = await this.systemConfigService.getGlobalAIConfig();
 
       res.json({
         success: true,
-        data: config
+        data: {
+          ...config,
+          serviceType: 'official'
+        }
       });
     } catch (error) {
       console.error('获取全局AI配置错误:', error);
@@ -130,6 +227,38 @@ export class SystemConfigController {
       res.status(500).json({
         success: false,
         message: '更新全局AI配置失败'
+      });
+    }
+  }
+
+  /**
+   * 获取用户的AI服务类型选择
+   */
+  async getUserAIServiceType(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: '用户未认证'
+        });
+        return;
+      }
+
+      const serviceType = await this.systemConfigService.getUserAIServiceType(userId);
+
+      res.json({
+        success: true,
+        data: {
+          serviceType
+        }
+      });
+    } catch (error) {
+      console.error('获取用户AI服务类型错误:', error);
+      res.status(500).json({
+        success: false,
+        message: '获取用户AI服务类型失败'
       });
     }
   }

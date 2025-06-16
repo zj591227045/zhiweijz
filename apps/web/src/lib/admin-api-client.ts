@@ -69,6 +69,14 @@ export const ADMIN_API_ENDPOINTS = {
   // LLM日志
   LLM_LOGS: '/api/admin/llm-logs',
   LLM_LOGS_CLEANUP: '/api/admin/llm-logs/cleanup',
+  
+  // 多提供商LLM管理
+  MULTI_PROVIDER_LLM: '/api/admin/multi-provider-llm',
+  MULTI_PROVIDER_LLM_CONFIG: '/api/admin/multi-provider-llm/config',
+  MULTI_PROVIDER_LLM_CONFIG_PRIORITY: '/api/admin/multi-provider-llm/config/priority-info',
+  MULTI_PROVIDER_LLM_PROVIDERS: '/api/admin/multi-provider-llm/providers',
+  MULTI_PROVIDER_LLM_HEALTH: '/api/admin/multi-provider-llm/health',
+  MULTI_PROVIDER_LLM_TEMPLATES: '/api/admin/multi-provider-llm/templates',
 } as const;
 
 /**

@@ -27,6 +27,7 @@ const navigation = [
     current: false,
     children: [
       { name: '配置管理', href: '/admin/llm', current: false },
+      { name: '多提供商管理', href: '/admin/multi-provider-llm', current: false },
       { name: '调用日志', href: '/admin/llm/logs', current: false }
     ]
   },

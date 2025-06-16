@@ -571,6 +571,7 @@ export default function LLMLogsPage() {
               >
                 <option value="">全部</option>
                 <option value="official">官方AI服务</option>
+                <option value="multi-provider">多供应商AI服务</option>
                 <option value="custom">自定义AI服务</option>
               </select>
             </div>
@@ -645,12 +646,19 @@ export default function LLMLogsPage() {
                           <p className="font-medium">{log.provider} / {log.model}</p>
                           <Badge 
                             variant="outline" 
-                            className={log.serviceType === 'official' 
-                              ? "text-green-700 border-green-300 bg-green-50" 
-                              : "text-orange-700 border-orange-300 bg-orange-50"
+                            className={
+                              log.serviceType === 'official' 
+                                ? "text-green-700 border-green-300 bg-green-50" 
+                                : log.serviceType === 'multi-provider'
+                                ? "text-blue-700 border-blue-300 bg-blue-50"
+                                : "text-orange-700 border-orange-300 bg-orange-50"
                             }
                           >
-                            {log.serviceType === 'official' ? '官方' : '自定义'}
+                            {log.serviceType === 'official' 
+                              ? '官方' 
+                              : log.serviceType === 'multi-provider' 
+                              ? '多供应商' 
+                              : '自定义'}
                           </Badge>
                         </div>
                         <p className="text-sm text-gray-600">
@@ -764,12 +772,19 @@ export default function LLMLogsPage() {
                   <div className="mt-1">
                     <Badge 
                       variant="outline" 
-                      className={selectedLog.serviceType === 'official' 
-                        ? "text-green-700 border-green-300 bg-green-50" 
-                        : "text-orange-700 border-orange-300 bg-orange-50"
+                      className={
+                        selectedLog.serviceType === 'official' 
+                          ? "text-green-700 border-green-300 bg-green-50" 
+                          : selectedLog.serviceType === 'multi-provider'
+                          ? "text-blue-700 border-blue-300 bg-blue-50"
+                          : "text-orange-700 border-orange-300 bg-orange-50"
                       }
                     >
-                      {selectedLog.serviceType === 'official' ? '官方AI服务' : '自定义AI服务'}
+                      {selectedLog.serviceType === 'official' 
+                        ? '官方AI服务' 
+                        : selectedLog.serviceType === 'multi-provider' 
+                        ? '多供应商AI服务' 
+                        : '自定义AI服务'}
                     </Badge>
                   </div>
                 </div>

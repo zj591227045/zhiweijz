@@ -122,11 +122,60 @@ export class AIController {
 
   /**
    * 获取全局LLM配置（供普通用户查看）
+   * 注意：此方法现在会检查多提供商配置的优先级
    * @param req 请求
    * @param res 响应
    */
   public async getGlobalLLMConfig(req: Request, res: Response) {
     try {
+      const userId = req.user?.id;
+
+      // 如果有用户信息，使用多提供商优先级逻辑
+      if (userId) {
+        const settings = await this.llmProviderService.getLLMSettings(userId);
+        
+        // 如果是多提供商模式，返回多提供商配置信息
+        if (settings.isMultiProvider) {
+          // 获取多提供商配置概览
+          const multiProviderConfig = await this.llmProviderService.multiProviderService.loadMultiProviderConfig();
+          
+          if (multiProviderConfig?.enabled) {
+            const activeProviders = multiProviderConfig.providers.filter(p => p.enabled);
+            
+            res.json({
+              success: true,
+              data: {
+                enabled: true,
+                provider: 'multi-provider',
+                model: `${activeProviders.length} 个提供商`,
+                baseUrl: 'Multi-Provider Mode',
+                temperature: 0.7,
+                maxTokens: 1000,
+                isMultiProvider: true,
+                providersCount: activeProviders.length,
+                primaryProvider: activeProviders.length > 0 ? activeProviders[0].name : null
+              }
+            });
+            return;
+          }
+        }
+        
+        // 否则返回实际的LLM设置（移除敏感信息）
+        res.json({
+          success: true,
+          data: {
+            enabled: true,
+            provider: settings.provider,
+            model: settings.model,
+            baseUrl: settings.baseUrl,
+            temperature: settings.temperature,
+            maxTokens: settings.maxTokens
+          }
+        });
+        return;
+      }
+
+      // 如果没有用户信息，回退到原有逻辑
       const globalConfig = await this.llmProviderService.getGlobalLLMConfig();
       
       res.json({
@@ -1214,9 +1263,9 @@ export class AIController {
       console.log('⚙️ [AI服务] 全局配置:', { enabled: globalConfig.enabled });
 
       if (globalConfig.enabled) {
-        // 检查服务类型配置
-        const serviceType = await this.getSystemConfigValue('llm_service_type') || 'official';
-        console.log('🔍 [AI服务] 服务类型:', serviceType);
+        // 检查用户的AI服务类型配置（从user_settings表读取）
+        const serviceType = await this.getUserAIServiceType(userId);
+        console.log('🔍 [AI服务] 用户选择的服务类型:', serviceType);
 
         if (serviceType === 'official') {
           // 如果启用了官方服务，返回官方服务信息
@@ -1241,8 +1290,46 @@ export class AIController {
 
           console.log('✅ [AI服务] 返回官方服务信息:', result);
           return res.json(result);
+        } else if (serviceType === 'custom') {
+          // 如果是自定义服务类型，获取用户的默认自定义LLM设置
+          try {
+            const userLLMSetting = await this.getUserDefaultLLMSetting(userId);
+            
+            if (!userLLMSetting) {
+              console.log('❌ [AI服务] 用户没有默认的自定义LLM设置');
+              const result = {
+                enabled: false,
+                type: null,
+                maxTokens: 1000
+              };
+              return res.json(result);
+            }
+
+            // 返回用户的自定义服务信息
+            const result = {
+              enabled: true,
+              type: 'custom',
+              maxTokens: userLLMSetting.maxTokens || 1000,
+              provider: userLLMSetting.provider,
+              model: userLLMSetting.model,
+              baseUrl: userLLMSetting.baseUrl,
+              name: userLLMSetting.name,
+              description: userLLMSetting.description
+            };
+
+            console.log('✅ [AI服务] 返回用户自定义服务信息:', result);
+            return res.json(result);
+          } catch (error) {
+            console.error('❌ [AI服务] 获取用户自定义LLM设置失败:', error);
+            const result = {
+              enabled: false,
+              type: null,
+              maxTokens: 1000
+            };
+            return res.json(result);
+          }
         }
-        // 如果是自定义服务类型，继续下面的逻辑检查账本绑定
+        // 如果服务类型不是official或custom，继续下面的逻辑检查账本绑定（兼容旧版本）
       }
 
       // 如果没有启用全局服务，检查账本是否绑定了自定义服务
@@ -1330,11 +1417,13 @@ export class AIController {
 
       console.log(`查询用户 ${userId} 今日官方AI服务token使用量，时间范围: ${today.toISOString()} - ${tomorrow.toISOString()}`);
 
-      // 查询今日该用户的所有官方AI服务LLM调用记录
+      // 查询今日该用户的官方AI服务LLM调用记录（全局LLM + 多提供商）
       const todayLogs = await this.prisma.llmCallLog.findMany({
         where: {
           userId: userId,
-          serviceType: 'official', // 只统计官方AI服务
+          serviceType: {
+            in: ['official', 'multi-provider'] // 只统计官方AI服务（全局LLM + 多提供商）
+          },
           createdAt: {
             gte: today,
             lt: tomorrow
@@ -1452,6 +1541,56 @@ export class AIController {
       return config?.value || null;
     } catch (error) {
       console.error('获取系统配置值错误:', error);
+      return null;
+    }
+  }
+
+  /**
+   * 获取用户的AI服务类型选择
+   * @param userId 用户ID
+   * @returns AI服务类型 ('official' 或 'custom')
+   */
+  private async getUserAIServiceType(userId: string): Promise<'official' | 'custom'> {
+    try {
+      const userSetting = await this.prisma.userSetting.findUnique({
+        where: {
+          userId_key: {
+            userId: userId,
+            key: 'ai_service_type'
+          }
+        }
+      });
+
+      if (userSetting && userSetting.value === 'custom') {
+        return 'custom';
+      }
+      
+      // 默认返回 'official'
+      return 'official';
+    } catch (error) {
+      console.error(`获取用户 ${userId} 的AI服务类型失败:`, error);
+      return 'official';
+    }
+  }
+
+  /**
+   * 获取用户的默认自定义LLM设置
+   * @param userId 用户ID
+   * @returns 用户的默认LLM设置
+   */
+  private async getUserDefaultLLMSetting(userId: string): Promise<any | null> {
+    try {
+      // 查找用户的第一个LLM设置作为默认设置
+      const userLLMSetting = await this.prisma.userLLMSetting.findFirst({
+        where: { 
+          userId: userId
+        },
+        orderBy: { createdAt: 'asc' }
+      });
+
+      return userLLMSetting;
+    } catch (error) {
+      console.error(`获取用户 ${userId} 的默认LLM设置失败:`, error);
       return null;
     }
   }

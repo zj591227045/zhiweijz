@@ -282,7 +282,40 @@ export default function LLMConfigPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          全局 LLM 配置
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">
+          配置系统默认的AI服务提供商（单一提供商模式）
+        </p>
+        
+        {/* 配置优先级说明 */}
+        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <div className="flex items-start space-x-3">
+            <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100">配置优先级说明</h3>
+              <p className="text-sm text-blue-800 dark:text-blue-200 mt-1">
+                • <strong>全局LLM配置</strong>：单一提供商模式，适合简单场景<br/>
+                • <strong>多提供商配置</strong>：支持多个提供商、优先级、故障转移等高级功能<br/>
+                • 当多提供商模式启用时，系统将优先使用多提供商配置，全局配置将被忽略
+              </p>
+              <div className="mt-2">
+                <Button
+                  variant="link"
+                  className="h-auto p-0 text-blue-700 dark:text-blue-300 text-sm"
+                  onClick={() => window.open('/admin/multi-provider-llm', '_blank')}
+                >
+                  前往多提供商管理 →
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 页面头部 */}
       <div className="flex items-center justify-between">
         <div>

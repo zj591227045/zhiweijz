@@ -121,12 +121,8 @@ export class SystemConfigService {
         // 切换到官方服务
         console.log('切换到官方AI服务');
 
-        // 启用全局AI配置，设置为官方服务
-        await this.updateGlobalAIConfigInDB({
-          enabled: true
-        });
-        // 设置服务类型为官方
-        await this.upsertSystemConfig('llm_service_type', 'official');
+        // 🔥 修改：存储为用户级别的配置，而不是系统级别
+        await this.setUserAIServiceType(userId, 'official');
 
         // 如果提供了账本ID，清除账本的自定义LLM设置绑定
         if (accountId) {
@@ -145,18 +141,14 @@ export class SystemConfigService {
 
         console.log(`切换到自定义AI服务: ${serviceId}`);
 
-        // 验证服务ID是否存在并属于该用户或其家庭成员
-        const isValidService = await this.validateUserLLMSetting(userId, serviceId, accountId);
+        // 验证服务ID是否存在并属于该用户
+        const isValidService = await this.validateUserLLMSettingOwnership(userId, serviceId);
         if (!isValidService) {
-          throw new Error('无效的服务ID或无权访问该服务');
+          throw new Error('无效的服务ID或您没有权限使用该服务');
         }
 
-        // 保持全局AI配置启用，但标记为使用自定义服务
-        await this.updateGlobalAIConfigInDB({
-          enabled: true
-        });
-        // 设置服务类型为自定义
-        await this.upsertSystemConfig('llm_service_type', 'custom');
+        // 🔥 修改：存储为用户级别的配置，而不是系统级别
+        await this.setUserAIServiceType(userId, 'custom');
 
         // 如果提供了账本ID，绑定账本到指定的LLM设置
         if (accountId) {
@@ -476,9 +468,62 @@ export class SystemConfigService {
   }
 
   /**
-   * 验证用户LLM设置是否有效
+   * 获取用户的AI服务类型选择
    */
-  private async validateUserLLMSetting(userId: string, serviceId: string, accountId?: string): Promise<boolean> {
+  async getUserAIServiceType(userId: string): Promise<'official' | 'custom'> {
+    try {
+      const userServiceTypeSetting = await prisma.userSetting.findUnique({
+        where: {
+          userId_key: {
+            userId,
+            key: 'ai_service_type'
+          }
+        }
+      });
+
+      const serviceType = userServiceTypeSetting?.value || 'official';
+      console.log(`获取用户 ${userId} 的AI服务类型: ${serviceType}`);
+      
+      return serviceType as 'official' | 'custom';
+    } catch (error) {
+      console.error('获取用户AI服务类型失败:', error);
+      return 'official'; // 默认返回官方服务
+    }
+  }
+
+  /**
+   * 存储用户级别的AI服务类型
+   */
+  private async setUserAIServiceType(userId: string, serviceType: 'official' | 'custom'): Promise<void> {
+    try {
+      await prisma.userSetting.upsert({
+        where: { 
+          userId_key: {
+            userId,
+            key: 'ai_service_type'
+          }
+        },
+        update: { 
+          value: serviceType,
+          updatedAt: new Date()
+        },
+        create: {
+          userId,
+          key: 'ai_service_type',
+          value: serviceType
+        }
+      });
+      console.log(`已存储用户 ${userId} 的AI服务类型为 ${serviceType}`);
+    } catch (error) {
+      console.error('存储用户级别的AI服务类型失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 验证用户LLM设置所有权
+   */
+  private async validateUserLLMSettingOwnership(userId: string, serviceId: string): Promise<boolean> {
     try {
       // 查询LLM设置
       const llmSetting = await prisma.userLLMSetting.findUnique({
@@ -489,44 +534,10 @@ export class SystemConfigService {
         return false;
       }
 
-      // 如果是用户自己的设置，直接允许
-      if (llmSetting.userId === userId) {
-        return true;
-      }
-
-      // 如果提供了账本ID，检查是否为家庭账本且LLM设置属于家庭成员
-      if (accountId) {
-        const accountBook = await prisma.accountBook.findUnique({
-          where: { id: accountId },
-          include: {
-            family: {
-              include: {
-                members: {
-                  where: { userId: { not: null } },
-                  select: { userId: true }
-                }
-              }
-            }
-          }
-        });
-
-        if (accountBook?.type === 'FAMILY' && accountBook.family) {
-          const familyUserIds = accountBook.family.members
-            .map(member => member.userId)
-            .filter(id => id !== null);
-
-          // 检查当前用户是否是家庭成员
-          const isCurrentUserFamilyMember = familyUserIds.includes(userId);
-          // 检查LLM设置所有者是否是家庭成员
-          const isLLMOwnerFamilyMember = familyUserIds.includes(llmSetting.userId);
-
-          return isCurrentUserFamilyMember && isLLMOwnerFamilyMember;
-        }
-      }
-
-      return false;
+      // 只有设置的所有者才能使用该设置
+      return llmSetting.userId === userId;
     } catch (error) {
-      console.error('验证用户LLM设置错误:', error);
+      console.error('验证用户LLM设置所有权错误:', error);
       return false;
     }
   }

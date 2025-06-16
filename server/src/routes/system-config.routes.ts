@@ -44,6 +44,13 @@ router.get('/token-usage/today', (req, res) => systemConfigController.getTodayTo
 router.put('/global-ai', (req, res) => systemConfigController.updateGlobalAIConfig(req, res));
 
 /**
+ * @route GET /api/system-config/ai-service/user-type
+ * @desc 获取用户的AI服务类型选择
+ * @access User
+ */
+router.get('/ai-service/user-type', (req, res) => systemConfigController.getUserAIServiceType(req, res));
+
+/**
  * @route POST /api/system-config/ai-service/switch
  * @desc 切换AI服务类型
  * @access User
