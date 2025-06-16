@@ -14,7 +14,7 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   padding: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 8px; /* 进一步减少间距从12px到8px */
 }
 
 .balance-header {
@@ -84,14 +84,16 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   padding: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 8px; /* 进一步减少间距从12px到8px */
 }
 
+/* 统一的区块标题样式 - 确保预算执行情况和最近交易对齐 */
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px; /* 减少标题下方间距从16px到14px */
+  width: 100%;
 }
 
 .section-header h2 {
@@ -99,24 +101,29 @@
   font-weight: 600;
   color: var(--text-primary, #1f2937);
   margin: 0;
+  text-align: left; /* 确保标题左对齐 */
+  flex: 1;
 }
 
 .view-all {
   font-size: 14px;
   color: var(--primary-color, #3b82f6);
   text-decoration: none;
+  text-align: right; /* 确保查看全部按钮右对齐 */
+  white-space: nowrap; /* 防止文字换行 */
+  margin-left: auto; /* 确保按钮在右侧 */
 }
 
 .budget-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px; /* 减少间距从10px到8px */
 }
 
 .budget-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px; /* 减少间距从8px到6px */
 }
 
 .budget-info {
@@ -176,62 +183,78 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   padding: 16px;
+  margin-bottom: 8px; /* 减少间距 */
 }
 
 .transaction-group {
-  margin-bottom: 16px;
+  margin-bottom: 10px; /* 减少交易组间距从12px到10px */
 }
 
 .transaction-date {
   font-size: 14px;
   color: var(--text-secondary, #6b7280);
-  margin-bottom: 8px;
-  padding-bottom: 4px;
+  margin-bottom: 6px; /* 减少日期下方间距从8px到6px */
+  padding-bottom: 3px; /* 减少内边距从4px到3px */
   border-bottom: 1px solid var(--border-color, #e5e7eb);
 }
 
 .transaction-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px; /* 减少交易项间距从10px到8px */
 }
 
 .transaction-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px; /* 减少间距从12px到10px */
+  padding: 6px 0; /* 减少上下内边距从8px到6px */
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-radius: 8px;
+}
+
+.transaction-item:hover {
+  background-color: var(--background-hover, rgba(0, 0, 0, 0.02));
 }
 
 .transaction-icon {
-  width: 40px;
-  height: 40px;
+  width: 34px; /* 进一步减小图标大小从36px到34px */
+  height: 34px;
   border-radius: 50%;
-  background-color: var(--background-hover, #e5e7eb);
+  background-color: var(--primary-light, #e0f2fe);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-primary, #1f2937);
+  color: var(--primary-color, #3b82f6);
+  flex-shrink: 0;
 }
 
 .transaction-details {
   flex: 1;
+  min-width: 0;
 }
 
 .transaction-title {
-  font-size: 16px;
   font-weight: 500;
+  font-size: 14px;
   color: var(--text-primary, #1f2937);
-  margin-bottom: 2px;
+  margin-bottom: 1px; /* 减少间距从2px到1px */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .transaction-category {
-  font-size: 14px;
+  font-size: 12px;
   color: var(--text-secondary, #6b7280);
 }
 
 .transaction-amount {
-  font-size: 16px;
   font-weight: 600;
+  font-size: 14px;
+  text-align: right;
+  flex-shrink: 0;
 }
 
 .transaction-amount.expense {
@@ -245,12 +268,40 @@
 /* 响应式调整 */
 @media (min-width: 640px) {
   .dashboard-container {
-    padding: 24px;
+    padding: 20px;
   }
-  
+
   .balance-card,
   .budget-progress,
   .recent-transactions {
     padding: 20px;
+    margin-bottom: 12px; /* 大屏设备稍微增加间距 */
+  }
+  
+  .section-header {
+    margin-bottom: 16px; /* 大屏设备恢复标准间距 */
+  }
+  
+  .transaction-group {
+    margin-bottom: 12px;
+  }
+  
+  .transaction-date {
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+  }
+  
+  .transaction-list {
+    gap: 10px;
+  }
+  
+  .transaction-item {
+    gap: 12px;
+    padding: 8px 0;
+  }
+  
+  .transaction-icon {
+    width: 36px;
+    height: 36px;
   }
 }

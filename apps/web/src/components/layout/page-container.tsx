@@ -30,6 +30,7 @@ interface PageContainerProps {
   onBackClick?: () => void;
   activeNavItem?: string;
   showBottomNav?: boolean;
+  className?: string;
 }
 
 /**
@@ -44,6 +45,7 @@ interface PageContainerProps {
  * @param onBackClick 返回按钮点击事件
  * @param activeNavItem 当前激活的导航项
  * @param showBottomNav 是否显示底部导航栏
+ * @param className 自定义CSS类名
  */
 export function PageContainer({
   children,
@@ -53,6 +55,7 @@ export function PageContainer({
   onBackClick,
   activeNavItem,
   showBottomNav = true,
+  className,
 }: PageContainerProps) {
   const { theme, toggleTheme } = useThemeStore();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -138,7 +141,7 @@ export function PageContainer({
       )}
 
       {/* 主要内容区域 */}
-      <main className="main-content">{children}</main>
+      <main className={`main-content ${className || ''}`}>{children}</main>
 
       {/* 底部导航栏 */}
       {showBottomNav && (

@@ -5,14 +5,15 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   padding: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 8px; /* 与主样式保持一致 */
 }
 
 .dashboard-budget-section .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px; /* 与主样式保持一致 */
+  width: 100%; /* 确保标题栏占满宽度 */
 }
 
 .dashboard-budget-section .section-header h2 {
@@ -20,24 +21,29 @@
   font-weight: 600;
   color: var(--text-primary, #1f2937);
   margin: 0;
+  text-align: left; /* 明确左对齐 */
+  flex: 1; /* 让标题占据剩余空间 */
 }
 
 .dashboard-budget-section .view-all {
   font-size: 14px;
   color: var(--primary-color, #3b82f6);
   text-decoration: none;
+  text-align: right; /* 明确右对齐 */
+  white-space: nowrap; /* 防止换行 */
+  margin-left: auto; /* 确保在右侧 */
 }
 
 .dashboard-budget-section .budget-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px; /* 与主样式保持一致 */
 }
 
 .dashboard-budget-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px; /* 与主样式保持一致 */
   padding: 0; /* 移除内边距，避免与外层容器冲突 */
   background: transparent; /* 透明背景，避免重复背景 */
   border: none; /* 移除边框 */
@@ -85,7 +91,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  gap: 1px; /* 减少间距从2px到1px */
   flex-shrink: 0; /* 不允许收缩 */
   min-width: 80px; /* 确保有足够的空间显示金额 */
 }
@@ -170,33 +176,41 @@
   }
 }
 
+/* 大屏设备样式调整 */
+@media (min-width: 640px) {
+  .dashboard-budget-section {
+    margin-bottom: 12px; /* 大屏设备稍微增加间距 */
+  }
+  
+  .dashboard-budget-section .section-header {
+    margin-bottom: 16px; /* 大屏设备恢复标准间距 */
+  }
+  
+  .dashboard-budget-section .budget-content {
+    gap: 10px; /* 大屏设备稍微增加间距 */
+  }
+  
+  .dashboard-budget-card {
+    gap: 8px; /* 大屏设备稍微增加间距 */
+  }
+  
+  .dashboard-budget-amount {
+    gap: 2px; /* 大屏设备恢复标准间距 */
+  }
+}
+
 /* 确保在任何情况下都不会被其他样式覆盖 */
-.dashboard-budget-section .dashboard-budget-amount {
+.dashboard-budget-section .section-header {
   display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-end !important;
-  gap: 2px !important;
-  flex-shrink: 0 !important;
-  min-width: 80px !important;
+  justify-content: space-between !important;
+  align-items: center !important;
 }
 
-.dashboard-budget-section .dashboard-budget-amount .percentage-display {
-  font-size: 16px !important;
-  font-weight: 600 !important;
-  line-height: 1.2 !important;
-  margin: 0 !important;
-  white-space: nowrap !important;
-}
-
-.dashboard-budget-section .dashboard-budget-amount .amount-display {
-  font-size: 12px !important;
-  color: var(--text-secondary, #6b7280) !important;
-  line-height: 1.2 !important;
-  margin: 0 !important;
-  white-space: nowrap !important;
-  overflow: visible !important;
-  text-overflow: clip !important;
+.dashboard-budget-section .section-header .flex {
   display: flex !important;
   align-items: center !important;
-  gap: 2px !important;
+}
+
+.dashboard-budget-section .section-header .flex h2 {
+  margin-right: 8px !important;
 }

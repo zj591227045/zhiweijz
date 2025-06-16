@@ -188,18 +188,38 @@ body.ios-app .header {
   background-color: var(--hover-background, rgba(0, 0, 0, 0.05));
 }
 
-/* 主要内容区域 */
+/* 主要内容区域 - 优化间距以显示更多内容 */
 .main-content {
   flex: 1;
   overflow-y: visible;
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding-bottom: 120px; /* 增加底部间距，为固定按钮留出空间 */
+  gap: 12px; /* 减少间距从20px到12px，让首屏显示更多内容 */
+  padding-bottom: 90px; /* 减少底部间距从120px到90px */
   height: auto;
   min-height: 100%;
   max-height: none;
+}
+
+/* 仪表盘页面特殊优化 */
+.main-content.dashboard-content {
+  gap: 10px; /* 仪表盘页面使用更小的间距 */
+  padding-bottom: 80px; /* 进一步减少底部间距 */
+}
+
+/* 响应式调整 - 大屏设备保持适当间距 */
+@media (min-width: 640px) {
+  .main-content {
+    padding: 20px;
+    gap: 16px; /* 大屏设备稍微增加间距 */
+    padding-bottom: 100px;
+  }
+  
+  .main-content.dashboard-content {
+    gap: 14px;
+    padding-bottom: 90px;
+  }
 }
 
 /* 登录页面样式 */

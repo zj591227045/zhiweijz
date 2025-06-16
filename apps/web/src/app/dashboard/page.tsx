@@ -310,7 +310,12 @@ export default function DashboardPage() {
   );
 
   return (
-    <PageContainer title="仪表盘" rightActions={rightActions} activeNavItem="home">
+    <PageContainer 
+      title="仪表盘" 
+      rightActions={rightActions} 
+      activeNavItem="home"
+      className="dashboard-content"
+    >
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <div
