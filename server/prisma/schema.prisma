@@ -405,6 +405,10 @@ model Admin {
   updatedAt    DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   lastLoginAt  DateTime?  @map("last_login_at") @db.Timestamptz(6)
   isActive     Boolean    @default(true) @map("is_active")
+  
+  // Relations
+  createdAnnouncements Announcement[] @relation("AnnouncementCreator")
+  updatedAnnouncements Announcement[] @relation("AnnouncementUpdater")
 
   @@index([isActive], map: "idx_admins_active")
   @@index([email], map: "idx_admins_email")
@@ -442,6 +446,11 @@ model Announcement {
   updatedAt      DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   createdBy      String                @map("created_by") @db.Uuid
   updatedBy      String?               @map("updated_by") @db.Uuid
+  
+  // Relations
+  creator        Admin                 @relation("AnnouncementCreator", fields: [createdBy], references: [id])
+  updater        Admin?                @relation("AnnouncementUpdater", fields: [updatedBy], references: [id])
+  readings       AnnouncementRead[]
 
   @@index([priority], map: "idx_announcements_priority")
   @@index([publishedAt], map: "idx_announcements_published_at")
@@ -456,6 +465,9 @@ model AnnouncementRead {
   userId         String   @map("user_id")
   readAt         DateTime @default(now()) @map("read_at") @db.Timestamptz(6)
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  
+  // Relations
+  announcement   Announcement @relation(fields: [announcementId], references: [id])
 
   @@unique([announcementId, userId], map: "idx_announcement_reads_unique")
   @@index([announcementId, readAt(sort: Desc)], map: "idx_announcement_reads_announcement")

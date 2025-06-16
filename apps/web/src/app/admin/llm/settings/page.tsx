@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Settings, Save, AlertCircle, CheckCircle } from 'lucide-react';
-import { adminApi } from '@/lib/api/admin';
+import { adminApi } from '@/lib/admin-api-client';
 import { toast } from 'sonner';
 
 interface LLMSettings {
@@ -34,8 +34,9 @@ export default function LLMSettingsPage() {
     try {
       setLoading(true);
       const response = await adminApi.get('/token-limit/global');
-      if (response.data.success) {
-        const data = response.data.data;
+      const responseData = await response.json();
+      if (responseData.success) {
+        const data = responseData.data;
         setSettings(data);
         setFormData({
           globalDailyTokenLimit: data.globalDailyTokenLimit,
@@ -58,8 +59,9 @@ export default function LLMSettingsPage() {
       const response = await adminApi.post('/token-limit/global/limit', {
         dailyLimit: formData.globalDailyTokenLimit
       });
+      const responseData = await response.json();
       
-      if (response.data.success) {
+      if (responseData.success) {
         toast.success('全局Token限额设置成功');
         await loadSettings();
       }
@@ -77,8 +79,9 @@ export default function LLMSettingsPage() {
       const response = await adminApi.post('/token-limit/toggle-feature', {
         enabled
       });
+      const responseData = await response.json();
       
-      if (response.data.success) {
+      if (responseData.success) {
         toast.success(enabled ? 'Token限额功能已启用' : 'Token限额功能已禁用');
         setFormData(prev => ({ ...prev, tokenLimitEnabled: enabled }));
         await loadSettings();
@@ -95,8 +98,9 @@ export default function LLMSettingsPage() {
       const response = await adminApi.post('/token-limit/toggle-enforcement', {
         enforced
       });
+      const responseData = await response.json();
       
-      if (response.data.success) {
+      if (responseData.success) {
         toast.success(enforced ? 'Token限额强制执行已启用' : 'Token限额强制执行已禁用');
         setFormData(prev => ({ ...prev, tokenLimitEnforced: enforced }));
         await loadSettings();
@@ -161,7 +165,6 @@ export default function LLMSettingsPage() {
                 </p>
               </div>
               <Switch
-                id="feature-enabled"
                 checked={formData.tokenLimitEnabled}
                 onCheckedChange={toggleFeature}
               />
@@ -178,7 +181,6 @@ export default function LLMSettingsPage() {
                 </p>
               </div>
               <Switch
-                id="enforcement-enabled"
                 checked={formData.tokenLimitEnforced}
                 onCheckedChange={toggleEnforcement}
                 disabled={!formData.tokenLimitEnabled}
