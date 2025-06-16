@@ -123,11 +123,11 @@ export class DashboardService {
       // 获取时间段内每日新注册用户数（按北京时间分组）
       const dailyRegistrations = await prisma.$queryRaw`
         SELECT 
-          DATE(CONVERT_TZ(created_at, '+00:00', '+08:00')) as date,
+          DATE((created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Shanghai') as date,
           COUNT(*) as count
         FROM users 
         WHERE created_at >= ${startDate}
-        GROUP BY DATE(CONVERT_TZ(created_at, '+00:00', '+08:00'))
+        GROUP BY DATE((created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Shanghai')
         ORDER BY date ASC
       ` as Array<{ date: Date; count: bigint }>;
 
@@ -183,13 +183,13 @@ export class DashboardService {
       // 获取时间段内每日交易数量（按北京时间分组）
       const dailyTransactions = await prisma.$queryRaw`
         SELECT 
-          DATE(CONVERT_TZ(created_at, '+00:00', '+08:00')) as date,
+          DATE((created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Shanghai') as date,
           COUNT(*) as count,
           SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) as expense_amount,
           SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) as income_amount
         FROM transactions 
         WHERE created_at >= ${startDate}
-        GROUP BY DATE(CONVERT_TZ(created_at, '+00:00', '+08:00'))
+        GROUP BY DATE((created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Shanghai')
         ORDER BY date ASC
       ` as Array<{ 
         date: Date; 

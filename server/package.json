@@ -26,7 +26,8 @@
     "docker:start": "bash scripts/docker-start.sh",
     "health": "node scripts/health-check.js",
     "admin:init": "ts-node src/admin/scripts/init-admin.ts",
-    "admin:aggregate": "ts-node src/admin/scripts/start-aggregation.ts --run-now"
+    "admin:aggregate": "ts-node src/admin/scripts/start-aggregation.ts --run-now",
+    "db:enable-user-ai": "node ../scripts/database/enable-user-ai-services.js"
   },
   "dependencies": {
     "@langchain/core": "^0.3.56",

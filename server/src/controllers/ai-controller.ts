@@ -1302,8 +1302,8 @@ export class AIController {
                 type: null,
                 maxTokens: 1000
               };
-              return res.json(result);
-            }
+          return res.json(result);
+        }
 
             // 返回用户的自定义服务信息
             const result = {

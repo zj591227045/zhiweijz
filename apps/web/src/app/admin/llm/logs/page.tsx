@@ -648,10 +648,10 @@ export default function LLMLogsPage() {
                             variant="outline" 
                             className={
                               log.serviceType === 'official' 
-                                ? "text-green-700 border-green-300 bg-green-50" 
+                              ? "text-green-700 border-green-300 bg-green-50" 
                                 : log.serviceType === 'multi-provider'
                                 ? "text-blue-700 border-blue-300 bg-blue-50"
-                                : "text-orange-700 border-orange-300 bg-orange-50"
+                              : "text-orange-700 border-orange-300 bg-orange-50"
                             }
                           >
                             {log.serviceType === 'official' 
@@ -774,10 +774,10 @@ export default function LLMLogsPage() {
                       variant="outline" 
                       className={
                         selectedLog.serviceType === 'official' 
-                          ? "text-green-700 border-green-300 bg-green-50" 
+                        ? "text-green-700 border-green-300 bg-green-50" 
                           : selectedLog.serviceType === 'multi-provider'
                           ? "text-blue-700 border-blue-300 bg-blue-50"
-                          : "text-orange-700 border-orange-300 bg-orange-50"
+                        : "text-orange-700 border-orange-300 bg-orange-50"
                       }
                     >
                       {selectedLog.serviceType === 'official' 
