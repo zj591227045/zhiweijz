@@ -36,7 +36,9 @@
     "prisma:studio": "cd server && prisma studio",
     "version:show": "node scripts/update-version.js",
     "version:update": "node scripts/update-version.js",
-    "android:build": "cd apps/android && ./build-release.sh"
+    "android:build": "cd apps/android && ./build-release.sh",
+    "db:enable-user-ai": "node scripts/database/enable-user-ai-services.js",
+    "db:reset-password": "node scripts/database/reset-user-password.js"
   },
   "keywords": [],
   "author": "",
