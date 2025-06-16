@@ -238,13 +238,17 @@ export class SystemConfigService {
         return acc;
       }, {} as Record<string, string>);
 
+      // 检查是否启用了全局AI配置
+      const enabled = configMap['llm_global_enabled'] === 'true';
+
       return {
-        enabled: configMap['llm_global_enabled'] === 'true',
-        provider: configMap['llm_global_provider'] || 'openai',
-        model: configMap['llm_global_model'] || 'gpt-3.5-turbo',
-        baseUrl: configMap['llm_global_base_url'] || '',
-        temperature: parseFloat(configMap['llm_global_temperature'] || '0.7'),
-        maxTokens: parseInt(configMap['llm_global_max_tokens'] || '1000'),
+        enabled,
+        // 只有当服务启用时才返回具体的配置，否则返回空值
+        provider: enabled ? (configMap['llm_global_provider'] || 'openai') : '',
+        model: enabled ? (configMap['llm_global_model'] || 'gpt-3.5-turbo') : '',
+        baseUrl: enabled ? (configMap['llm_global_base_url'] || '') : '',
+        temperature: enabled ? parseFloat(configMap['llm_global_temperature'] || '0.7') : 0.7,
+        maxTokens: enabled ? parseInt(configMap['llm_global_max_tokens'] || '1000') : 1000,
         dailyTokenLimit: parseInt(configMap['llm_daily_token_limit'] || '50000')
       };
     } catch (error) {
@@ -488,6 +492,59 @@ export class SystemConfigService {
     } catch (error) {
       console.error('获取用户AI服务类型失败:', error);
       return 'official'; // 默认返回官方服务
+    }
+  }
+
+  /**
+   * 获取用户级别的AI服务启用状态
+   */
+  async getUserAIServiceEnabled(userId: string): Promise<boolean> {
+    try {
+      const userAIEnabledSetting = await prisma.userSetting.findUnique({
+        where: {
+          userId_key: {
+            userId,
+            key: 'ai_service_enabled'
+          }
+        }
+      });
+
+      const enabled = userAIEnabledSetting?.value === 'true';
+      console.log(`获取用户 ${userId} 的AI服务启用状态: ${enabled}`);
+      
+      return enabled;
+    } catch (error) {
+      console.error('获取用户AI服务启用状态失败:', error);
+      return false; // 默认返回禁用
+    }
+  }
+
+  /**
+   * 设置用户级别的AI服务启用状态
+   */
+  async setUserAIServiceEnabled(userId: string, enabled: boolean): Promise<void> {
+    try {
+      await prisma.userSetting.upsert({
+        where: { 
+          userId_key: {
+            userId,
+            key: 'ai_service_enabled'
+          }
+        },
+        update: { 
+          value: enabled.toString(),
+          updatedAt: new Date()
+        },
+        create: {
+          userId,
+          key: 'ai_service_enabled',
+          value: enabled.toString()
+        }
+      });
+      console.log(`已设置用户 ${userId} 的AI服务启用状态为 ${enabled}`);
+    } catch (error) {
+      console.error('设置用户AI服务启用状态失败:', error);
+      throw error;
     }
   }
 

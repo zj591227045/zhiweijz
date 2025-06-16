@@ -82,17 +82,17 @@ async function recordAccess(req: Request, res: Response, duration: number): Prom
     const userAgent = req.get('User-Agent') || null;
     const ip = getClientIP(req);
 
-    // 记录API调用日志
-    await prisma.apiCallLog.create({
-      data: {
-        endpoint: req.path,
-        method: req.method,
-        userId,
-        statusCode: res.statusCode,
-        duration,
-        createdAt: new Date()
-      }
-    });
+    // 停止记录API调用日志 - 避免数据量过大
+    // await prisma.apiCallLog.create({
+    //   data: {
+    //     endpoint: req.path,
+    //     method: req.method,
+    //     userId,
+    //     statusCode: res.statusCode,
+    //     duration,
+    //     createdAt: new Date()
+    //   }
+    // });
 
     // 如果是前端页面访问（非API调用），记录访问日志
     if (!req.path.startsWith('/api/')) {
@@ -207,16 +207,19 @@ async function recordApiCall(req: Request, res: Response, duration: number): Pro
   try {
     const userId = req.user?.id || null;
 
-    await prisma.apiCallLog.create({
-      data: {
-        endpoint: req.path,
-        method: req.method,
-        userId,
-        statusCode: res.statusCode,
-        duration,
-        createdAt: new Date()
-      }
-    });
+    // 停止记录API调用日志 - 避免数据量过大
+    // await prisma.apiCallLog.create({
+    //   data: {
+    //     endpoint: req.path,
+    //     method: req.method,
+    //     userId,
+    //     statusCode: res.statusCode,
+    //     duration,
+    //     createdAt: new Date()
+    //   }
+    // });
+    
+    console.log(`API调用跟踪: ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
   } catch (error) {
     console.error('记录API调用数据失败:', error);
   }

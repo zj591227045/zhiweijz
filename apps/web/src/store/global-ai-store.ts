@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 interface GlobalAIState {
   // 数据状态
   globalConfig: GlobalAIConfig | null;
+  userAIEnabled: boolean; // 用户级别AI服务启用状态
   serviceStatus: AIServiceStatus | null;
   todayUsage: TodayTokenUsage | null;
   tokenStats: TokenUsageStats | null;
@@ -15,6 +16,7 @@ interface GlobalAIState {
   
   // 加载状态
   isLoadingConfig: boolean;
+  isLoadingUserAI: boolean; // 用户AI状态加载中
   isLoadingStatus: boolean;
   isLoadingUsage: boolean;
   isLoadingStats: boolean;
@@ -22,6 +24,7 @@ interface GlobalAIState {
   
   // 错误状态
   configError: string | null;
+  userAIError: string | null; // 用户AI状态错误
   statusError: string | null;
   usageError: string | null;
   statsError: string | null;
@@ -29,11 +32,13 @@ interface GlobalAIState {
 
   // 操作方法
   fetchGlobalConfig: () => Promise<void>;
+  fetchUserAIEnabled: () => Promise<void>; // 获取用户AI服务状态
   fetchServiceStatus: () => Promise<void>;
   fetchTodayUsage: () => Promise<void>;
   fetchTokenStats: (params?: TokenUsageParams) => Promise<void>;
   fetchAccountActiveService: (accountId: string) => Promise<void>;
   updateGlobalConfig: (config: Partial<GlobalAIConfig>) => Promise<void>;
+  toggleUserAIService: (enabled: boolean) => Promise<void>; // 切换用户AI服务状态
   switchServiceType: (serviceType: 'official' | 'custom', serviceId?: string, accountId?: string) => Promise<void>;
   testServiceConnection: (serviceType: 'official' | 'custom', serviceId?: string) => Promise<{ success: boolean; message: string; responseTime?: number }>;
   refreshAll: (accountId?: string) => Promise<void>;
@@ -44,18 +49,21 @@ interface GlobalAIState {
 export const useGlobalAIStore = create<GlobalAIState>((set, get) => ({
   // 初始状态
   globalConfig: null,
+  userAIEnabled: false, // 默认用户AI服务未启用
   serviceStatus: null,
   todayUsage: null,
   tokenStats: null,
   activeService: null,
   
   isLoadingConfig: false,
+  isLoadingUserAI: false, // 用户AI状态加载状态
   isLoadingStatus: false,
   isLoadingUsage: false,
   isLoadingStats: false,
   isLoadingActiveService: false,
   
   configError: null,
+  userAIError: null, // 用户AI状态错误
   statusError: null,
   usageError: null,
   statsError: null,
@@ -71,6 +79,35 @@ export const useGlobalAIStore = create<GlobalAIState>((set, get) => ({
       const errorMessage = error instanceof Error ? error.message : '获取全局AI配置失败';
       set({ configError: errorMessage, isLoadingConfig: false });
       console.error('获取全局AI配置失败:', error);
+    }
+  },
+
+  // 获取用户级别AI服务启用状态
+  fetchUserAIEnabled: async () => {
+    set({ isLoadingUserAI: true, userAIError: null });
+    try {
+      const enabled = await systemConfigApi.getUserAIServiceEnabled();
+      set({ userAIEnabled: enabled, isLoadingUserAI: false });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '获取用户AI服务状态失败';
+      set({ userAIError: errorMessage, isLoadingUserAI: false });
+      console.error('获取用户AI服务状态失败:', error);
+    }
+  },
+
+  // 切换用户级别AI服务状态
+  toggleUserAIService: async (enabled: boolean) => {
+    set({ isLoadingUserAI: true, userAIError: null });
+    try {
+      await systemConfigApi.toggleUserAIService(enabled);
+      set({ userAIEnabled: enabled, isLoadingUserAI: false });
+      toast.success(enabled ? 'AI服务已启用' : 'AI服务已禁用');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '切换用户AI服务状态失败';
+      set({ userAIError: errorMessage, isLoadingUserAI: false });
+      toast.error(errorMessage);
+      console.error('切换用户AI服务状态失败:', error);
+      throw error;
     }
   },
 
@@ -213,9 +250,10 @@ export const useGlobalAIStore = create<GlobalAIState>((set, get) => ({
 
   // 刷新所有数据
   refreshAll: async (accountId?: string) => {
-    const { fetchGlobalConfig, fetchServiceStatus, fetchTodayUsage, fetchAccountActiveService } = get();
+    const { fetchGlobalConfig, fetchUserAIEnabled, fetchServiceStatus, fetchTodayUsage, fetchAccountActiveService } = get();
     await Promise.all([
       fetchGlobalConfig(),
+      fetchUserAIEnabled(), // 同时获取用户AI服务状态
       fetchServiceStatus(),
       fetchTodayUsage(),
       fetchAccountActiveService(accountId || '')
@@ -226,6 +264,7 @@ export const useGlobalAIStore = create<GlobalAIState>((set, get) => ({
   clearErrors: () => {
     set({
       configError: null,
+      userAIError: null, // 清除用户AI错误状态
       statusError: null,
       usageError: null,
       statsError: null,

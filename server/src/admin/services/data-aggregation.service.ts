@@ -92,32 +92,34 @@ export class DataAggregationService {
    */
   private async aggregateApiCalls(startTime: Date, endTime: Date) {
     try {
-      // 按端点统计API调用次数
-      const apiStats = await prisma.$queryRaw`
-        SELECT 
-          endpoint,
-          method,
-          COUNT(*) as total_calls,
-          AVG(duration) as avg_duration,
-          MIN(duration) as min_duration,
-          MAX(duration) as max_duration,
-          COUNT(CASE WHEN status_code >= 200 AND status_code < 300 THEN 1 END) as success_calls,
-          COUNT(CASE WHEN status_code >= 400 THEN 1 END) as error_calls
-        FROM api_call_logs 
-        WHERE created_at >= ${startTime} AND created_at < ${endTime}
-        GROUP BY endpoint, method
-      ` as Array<{
-        endpoint: string;
-        method: string;
-        total_calls: bigint;
-        avg_duration: number;
-        min_duration: number;
-        max_duration: number;
-        success_calls: bigint;
-        error_calls: bigint;
-      }>;
+      // 停止API调用日志聚合 - 因为已经停止记录api_call_logs
+      // // 按端点统计API调用次数
+      // const apiStats = await prisma.$queryRaw`
+      //   SELECT 
+      //     endpoint,
+      //     method,
+      //     COUNT(*) as total_calls,
+      //     AVG(duration) as avg_duration,
+      //     MIN(duration) as min_duration,
+      //     MAX(duration) as max_duration,
+      //     COUNT(CASE WHEN status_code >= 200 AND status_code < 300 THEN 1 END) as success_calls,
+      //     COUNT(CASE WHEN status_code >= 400 THEN 1 END) as error_calls
+      //   FROM api_call_logs 
+      //   WHERE created_at >= ${startTime} AND created_at < ${endTime}
+      //   GROUP BY endpoint, method
+      // ` as Array<{
+      //   endpoint: string;
+      //   method: string;
+      //   total_calls: bigint;
+      //   avg_duration: number;
+      //   min_duration: number;
+      //   max_duration: number;
+      //   success_calls: bigint;
+      //   error_calls: bigint;
+      // }>;
 
-      console.log(`聚合了 ${apiStats.length} 个API端点的数据`);
+      // console.log(`聚合了 ${apiStats.length} 个API端点的数据`);
+      console.log('API调用数据聚合已禁用');
     } catch (error) {
       console.error('聚合API调用数据失败:', error);
     }
@@ -181,25 +183,25 @@ export class DataAggregationService {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      // 删除30天前的详细访问日志和API调用日志
-      const [deletedAccessLogs, deletedApiLogs] = await Promise.all([
-        prisma.accessLog.deleteMany({
-          where: {
-            createdAt: {
-              lt: thirtyDaysAgo
-            }
+      // 删除30天前的详细访问日志（API调用日志清理已禁用）
+      const deletedAccessLogs = await prisma.accessLog.deleteMany({
+        where: {
+          createdAt: {
+            lt: thirtyDaysAgo
           }
-        }),
-        prisma.apiCallLog.deleteMany({
-          where: {
-            createdAt: {
-              lt: thirtyDaysAgo
-            }
-          }
-        })
-      ]);
+        }
+      });
 
-      console.log(`清理完成: 访问日志 ${deletedAccessLogs.count} 条, API日志 ${deletedApiLogs.count} 条`);
+      // API调用日志清理已禁用
+      // const deletedApiLogs = await prisma.apiCallLog.deleteMany({
+      //   where: {
+      //     createdAt: {
+      //       lt: thirtyDaysAgo
+      //     }
+      //   }
+      // });
+
+      console.log(`清理完成: 访问日志 ${deletedAccessLogs.count} 条`);
     } catch (error) {
       console.error('清理旧数据失败:', error);
     }

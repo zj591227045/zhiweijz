@@ -21,9 +21,9 @@ export class LLMProviderService {
   public multiProviderService: MultiProviderLLMService = new MultiProviderLLMService();
   /** 默认设置 */
   private defaultSettings: LLMSettings = {
-    provider: 'siliconflow',
-    apiKey: process.env.SILICONFLOW_API_KEY || '',
-    model: 'Qwen/Qwen3-32B',
+    provider: '',
+    apiKey: '',
+    model: '',
     temperature: 0.7,
     maxTokens: 1000,
   };
@@ -298,7 +298,7 @@ export class LLMProviderService {
         console.log(`使用默认LLM设置`);
         return {
           ...this.defaultSettings,
-          apiKey: process.env.SILICONFLOW_API_KEY || ''
+          apiKey: ''
         };
       }
 
@@ -390,7 +390,7 @@ export class LLMProviderService {
       console.log(`使用默认LLM设置`);
       return {
         ...this.defaultSettings,
-        apiKey: process.env.SILICONFLOW_API_KEY || ''
+        apiKey: ''
       };
     } catch (error) {
       console.error('获取LLM设置错误:', error);
@@ -408,7 +408,7 @@ export class LLMProviderService {
       
       return {
         ...this.defaultSettings,
-        apiKey: process.env.SILICONFLOW_API_KEY || ''
+        apiKey: ''
       };
     }
   }

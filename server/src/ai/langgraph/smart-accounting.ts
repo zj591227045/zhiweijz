@@ -25,8 +25,8 @@ export class SmartAccounting {
     this.llmProviderService = llmProviderService;
     this.cache = new NodeCache({ stdTTL: 3600 }); // 1小时过期
 
-    // 设置硅基流动API密钥
-    process.env.SILICONFLOW_API_KEY = process.env.SILICONFLOW_API_KEY || 'sk-limqgsnsbmlwuxltjfmshpkfungijbliynwmmcknjupedyme';
+    // 移除硬编码的API密钥 - 应该通过环境变量或配置文件设置
+    // process.env.SILICONFLOW_API_KEY = process.env.SILICONFLOW_API_KEY || 'sk-limqgsnsbmlwuxltjfmshpkfungijbliynwmmcknjupedyme';
   }
 
   /**

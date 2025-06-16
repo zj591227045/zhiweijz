@@ -157,14 +157,14 @@ export const aiService = {
       return {
         id: '123e4567-e89b-12d3-a456-426614174000',
         name: '默认设置',
-        provider: 'siliconflow',
-        model: 'Qwen/Qwen3-32B',
+        provider: '',
+        model: '',
         temperature: 0.7,
         maxTokens: 1000,
         createdAt: '2025-05-01T00:00:00.000Z',
         updatedAt: '2025-05-01T00:00:00.000Z',
         description: '默认的LLM设置',
-        baseUrl: 'https://api.siliconflow.cn/v1',
+        baseUrl: '',
       };
     }
   },

@@ -58,6 +58,20 @@ router.get('/ai-service/user-type', (req, res) => systemConfigController.getUser
 router.post('/ai-service/switch', (req, res) => systemConfigController.switchAIServiceType(req, res));
 
 /**
+ * @route GET /api/system-config/ai-service/enabled
+ * @desc 获取用户级别的AI服务启用状态
+ * @access User
+ */
+router.get('/ai-service/enabled', (req, res) => systemConfigController.getUserAIServiceEnabled(req, res));
+
+/**
+ * @route POST /api/system-config/ai-service/toggle
+ * @desc 切换用户级别的AI服务启用状态
+ * @access User
+ */
+router.post('/ai-service/toggle', (req, res) => systemConfigController.toggleUserAIService(req, res));
+
+/**
  * @route POST /api/system-config/ai-service/test
  * @desc 测试AI服务连接
  * @access User

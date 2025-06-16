@@ -8,11 +8,12 @@ import { PageContainer } from '@/components/layout/page-container';
 
 import { useAIServicesStore } from '@/store/ai-services-store';
 import { useGlobalAIStore } from '@/store/global-ai-store';
+import { systemConfigApi } from '@/lib/api/system-config';
 import { useAuthStore } from '@/store/auth-store';
 import { useAccountBookStore } from '@/store/account-book-store';
-  import AiServiceEditModal from '@/components/ai-service-edit-modal';
-  import { CurrentAIService } from '@/components/ai-services/current-ai-service';
-  import { AIServiceWizard } from '@/components/ai-services/ai-service-wizard';
+import AiServiceEditModal from '@/components/ai-service-edit-modal';
+import { CurrentAIService } from '@/components/ai-services/current-ai-service';
+import { AIServiceWizard } from '@/components/ai-services/ai-service-wizard';
 import styles from './ai-services.module.css';
 
 interface AIService {
@@ -39,31 +40,38 @@ export default function AIServicesPage() {
   // 向导状态
   const [isWizardOpen, setIsWizardOpen] = useState(false);
 
-  // 从全局AI store获取当前配置
+  // 从全局AI store获取当前配置和用户AI服务状态
   const { 
     globalConfig, 
+    userAIEnabled, // 用户级别AI服务状态
     activeServiceError, 
-    isLoadingConfig, 
+    isLoadingConfig,
+    isLoadingUserAI, // 用户AI状态加载中
+    userAIError, // 用户AI状态错误
     updateGlobalConfig,
-    fetchGlobalConfig
+    fetchGlobalConfig,
+    fetchUserAIEnabled, // 获取用户AI服务状态
+    toggleUserAIService // 切换用户AI服务状态
   } = useGlobalAIStore();
 
   // 加载AI服务列表和当前账本激活服务
   useEffect(() => {
     if (isAuthenticated) {
-      console.log('🔄 页面加载，开始获取AI服务列表');
+      console.log('🔄 页面加载，开始获取AI服务列表和用户AI服务状态');
       fetchServices();
       fetchGlobalConfig();
+      fetchUserAIEnabled(); // 获取用户级别AI服务状态
     }
-  }, [isAuthenticated, fetchServices, fetchGlobalConfig]);
+  }, [isAuthenticated, fetchServices, fetchGlobalConfig, fetchUserAIEnabled]);
 
   // 处理全局AI服务总开关
   const handleGlobalAIToggle = async (enabled: boolean) => {
     try {
-      await updateGlobalConfig({ enabled });
-      toast.success(enabled ? 'AI服务已启用' : 'AI服务已禁用');
+      // 使用 store 中的切换方法，它已经包含了错误处理和状态更新
+      await toggleUserAIService(enabled);
     } catch (error) {
-      console.error('切换全局AI服务状态失败:', error);
+      // 错误处理已经在 store 中完成，这里可以不做额外处理
+      console.error('切换用户AI服务状态失败:', error);
     }
   };
 
@@ -246,7 +254,7 @@ export default function AIServicesPage() {
             alignItems: 'center',
             gap: '12px'
           }}>
-            {isLoadingConfig ? (
+            {isLoadingUserAI ? (
               <div style={{
                 width: '20px',
                 height: '20px',
@@ -264,7 +272,7 @@ export default function AIServicesPage() {
               }}>
                 <input
                   type="checkbox"
-                  checked={globalConfig?.enabled || false}
+                  checked={userAIEnabled}
                   onChange={(e) => handleGlobalAIToggle(e.target.checked)}
                   style={{
                     opacity: 0,
@@ -279,7 +287,7 @@ export default function AIServicesPage() {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  backgroundColor: globalConfig?.enabled ? 'var(--primary-color, rgb(59, 130, 246))' : '#ccc',
+                  backgroundColor: userAIEnabled ? 'var(--primary-color, rgb(59, 130, 246))' : '#ccc',
                   transition: '0.3s',
                   borderRadius: '30px'
                 }}>
@@ -288,7 +296,7 @@ export default function AIServicesPage() {
                     content: '',
                     height: '22px',
                     width: '22px',
-                    left: globalConfig?.enabled ? '26px' : '4px',
+                    left: userAIEnabled ? '26px' : '4px',
                     bottom: '4px',
                     backgroundColor: 'white',
                     borderRadius: '50%',
@@ -302,11 +310,11 @@ export default function AIServicesPage() {
             <span style={{
               fontSize: '14px',
               fontWeight: '500',
-              color: globalConfig?.enabled ? 'rgb(34, 197, 94)' : 'rgb(107, 114, 128)',
+              color: userAIEnabled ? 'rgb(34, 197, 94)' : 'rgb(107, 114, 128)',
               minWidth: '40px',
               textAlign: 'center'
             }}>
-              {globalConfig?.enabled ? '已启用' : '已禁用'}
+              {userAIEnabled ? '已启用' : '已禁用'}
             </span>
           </div>
         </div>

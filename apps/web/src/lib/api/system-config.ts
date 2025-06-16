@@ -214,6 +214,46 @@ export const systemConfigApi = {
   },
 
   /**
+   * 获取用户级别的AI服务启用状态
+   */
+  async getUserAIServiceEnabled(): Promise<boolean> {
+    try {
+      console.log('发送获取用户AI服务状态请求: /system-config/ai-service/enabled');
+      const response = await apiClient.get<{
+        success: boolean;
+        data: { enabled: boolean };
+      }>('/system-config/ai-service/enabled');
+      console.log('获取用户AI服务状态响应数据:', response);
+      return response.data.enabled;
+    } catch (error) {
+      console.error('获取用户AI服务状态失败:', error);
+      // 如果API调用失败，默认返回false
+      return false;
+    }
+  },
+
+  /**
+   * 切换用户级别的AI服务启用状态
+   */
+  async toggleUserAIService(enabled: boolean): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    try {
+      console.log('发送切换用户AI服务状态请求: /system-config/ai-service/toggle', { enabled });
+      const response = await apiClient.post<{
+        success: boolean;
+        message: string;
+      }>('/system-config/ai-service/toggle', { enabled });
+      console.log('切换用户AI服务状态响应数据:', response);
+      return response;
+    } catch (error) {
+      console.error('切换用户AI服务状态失败:', error);
+      throw new Error('切换用户AI服务状态失败');
+    }
+  },
+
+  /**
    * 测试AI服务连接
    */
   async testAIServiceConnection(serviceType: 'official' | 'custom', serviceId?: string): Promise<{

@@ -22,9 +22,34 @@ export class SystemConfigController {
     try {
       const userId = req.user?.id;
 
-      // 如果有用户信息，检查用户的AI服务类型选择
+      // 🔥 首先检查全局AI配置是否启用
+      const globalConfig = await this.systemConfigService.getGlobalAIConfig();
+      
+      // 如果有用户信息，检查用户的AI服务设置
       if (userId) {
-        // 🔥 首先获取用户的AI服务类型选择
+        // 🔥🔥 最高优先级：检查用户级别的AI服务启用状态
+        const userAIEnabled = await this.systemConfigService.getUserAIServiceEnabled(userId);
+        console.log(`🔍 [getGlobalAIConfig] 用户 ${userId} 的AI服务启用状态: ${userAIEnabled}`);
+        
+        if (!userAIEnabled) {
+          console.log(`❌ [getGlobalAIConfig] 用户已禁用AI服务，返回禁用状态`);
+          res.json({
+            success: true,
+            data: {
+              enabled: false,
+              provider: '',
+              model: '',
+              baseUrl: '',
+              temperature: 0.7,
+              maxTokens: 1000,
+              dailyTokenLimit: globalConfig.dailyTokenLimit,
+              serviceType: 'disabled_by_user'
+            }
+          });
+          return;
+        }
+
+        // 🔥 其次获取用户的AI服务类型选择
         const userServiceType = await this.systemConfigService.getUserAIServiceType(userId);
         console.log(`🔍 [getGlobalAIConfig] 用户 ${userId} 的AI服务类型: ${userServiceType}`);
 
@@ -54,12 +79,47 @@ export class SystemConfigController {
             });
             return;
           } else {
-            console.log(`⚠️ [getGlobalAIConfig] 用户选择了自定义服务但没有找到配置，回退到官方服务`);
-            // 没有找到自定义配置，回退到官方服务
+            console.log(`⚠️ [getGlobalAIConfig] 用户选择了自定义服务但没有找到配置，检查全局服务`);
+            // 没有找到自定义配置，检查全局服务是否启用
+            if (!globalConfig.enabled) {
+              console.log(`❌ [getGlobalAIConfig] 全局AI服务未启用，返回禁用状态`);
+              res.json({
+                success: true,
+                data: {
+                  enabled: false,
+                  provider: '',
+                  model: '',
+                  baseUrl: '',
+                  temperature: 0.7,
+                  maxTokens: 1000,
+                  dailyTokenLimit: globalConfig.dailyTokenLimit,
+                  serviceType: 'custom'
+                }
+              });
+              return;
+            }
           }
         }
 
-        // 🔥 用户选择了官方服务，或者自定义服务回退，使用官方服务逻辑
+        // 🔥 用户选择了官方服务，或者自定义服务回退，检查全局服务状态
+        if (!globalConfig.enabled) {
+          console.log(`❌ [getGlobalAIConfig] 全局AI服务未启用，返回禁用状态`);
+          res.json({
+            success: true,
+            data: {
+              enabled: false,
+              provider: '',
+              model: '',
+              baseUrl: '',
+              temperature: 0.7,
+              maxTokens: 1000,
+              dailyTokenLimit: globalConfig.dailyTokenLimit,
+              serviceType: 'official'
+            }
+          });
+          return;
+        }
+
         console.log(`🔍 [getGlobalAIConfig] 使用官方AI服务逻辑`);
         const settings = await this.llmProviderService.getLLMSettings(userId);
         
@@ -80,7 +140,7 @@ export class SystemConfigController {
                 baseUrl: 'Multi-Provider Mode',
                 temperature: 0.7,
                 maxTokens: 1000,
-                dailyTokenLimit: 50000, // 保持dailyTokenLimit字段以兼容前端
+                dailyTokenLimit: globalConfig.dailyTokenLimit, // 保持dailyTokenLimit字段以兼容前端
                 isMultiProvider: true,
                 providersCount: activeProviders.length,
                 primaryProvider: activeProviders.length > 0 ? activeProviders[0].name : null,
@@ -92,7 +152,6 @@ export class SystemConfigController {
         }
         
         // 否则返回实际的LLM设置（需要补充dailyTokenLimit字段）
-        const globalAIConfig = await this.systemConfigService.getGlobalAIConfig();
         res.json({
           success: true,
           data: {
@@ -102,20 +161,18 @@ export class SystemConfigController {
             baseUrl: settings.baseUrl,
             temperature: settings.temperature,
             maxTokens: settings.maxTokens,
-            dailyTokenLimit: globalAIConfig.dailyTokenLimit, // 从全局配置获取dailyTokenLimit
+            dailyTokenLimit: globalConfig.dailyTokenLimit, // 从全局配置获取dailyTokenLimit
             serviceType: 'official'
           }
         });
         return;
       }
 
-      // 如果没有用户信息，回退到原有逻辑
-      const config = await this.systemConfigService.getGlobalAIConfig();
-
+      // 如果没有用户信息，直接返回全局配置
       res.json({
         success: true,
         data: {
-          ...config,
+          ...globalConfig,
           serviceType: 'official'
         }
       });
@@ -295,6 +352,67 @@ export class SystemConfigController {
       res.status(500).json({
         success: false,
         message: '切换AI服务类型失败'
+      });
+    }
+  }
+
+  /**
+   * 获取用户级别的AI服务启用状态
+   */
+  async getUserAIServiceEnabled(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: '用户未认证'
+        });
+        return;
+      }
+
+      const enabled = await this.systemConfigService.getUserAIServiceEnabled(userId);
+
+      res.json({
+        success: true,
+        data: { enabled }
+      });
+    } catch (error) {
+      console.error('获取用户AI服务状态错误:', error);
+      res.status(500).json({
+        success: false,
+        message: '获取用户AI服务状态失败'
+      });
+    }
+  }
+
+  /**
+   * 切换用户级别的AI服务启用状态
+   */
+  async toggleUserAIService(req: Request, res: Response): Promise<void> {
+    try {
+      const { enabled } = req.body;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: '用户未认证'
+        });
+        return;
+      }
+
+      await this.systemConfigService.setUserAIServiceEnabled(userId, enabled);
+
+      res.json({
+        success: true,
+        message: enabled ? 'AI服务已启用' : 'AI服务已禁用'
+      });
+    } catch (error) {
+      console.error('切换用户AI服务状态错误:', error);
+      res.status(500).json({
+        success: false,
+        message: '切换AI服务状态失败'
       });
     }
   }
