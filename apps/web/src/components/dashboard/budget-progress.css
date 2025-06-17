@@ -90,22 +90,26 @@
 .dashboard-budget-amount {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-end; /* 改为右对齐 */
   gap: 1px; /* 减少间距从2px到1px */
   flex-shrink: 0; /* 不允许收缩 */
-  min-width: 80px; /* 确保有足够的空间显示金额 */
+  min-width: 120px; /* 增加最小宽度以容纳更长的数字 */
+  max-width: 150px; /* 设置最大宽度避免过度拉伸 */
+  text-align: right; /* 明确设置右对齐 */
 }
 
 .dashboard-budget-amount .percentage-display {
-  font-size: 16px !important;
+  font-size: 18px !important; /* 增大字体 */
   font-weight: 600 !important;
   line-height: 1.2;
   margin: 0;
   white-space: nowrap;
+  text-align: right; /* 右对齐 */
+  width: 100%; /* 占满容器宽度 */
 }
 
 .dashboard-budget-amount .amount-display {
-  font-size: 12px !important;
+  font-size: 13px !important; /* 稍微增大字体 */
   color: var(--text-secondary, #6b7280) !important;
   line-height: 1.2;
   margin: 0;
@@ -114,7 +118,10 @@
   text-overflow: clip; /* 不使用省略号 */
   display: flex;
   align-items: center;
+  justify-content: flex-end; /* 右对齐 */
   gap: 2px;
+  text-align: right; /* 右对齐 */
+  width: 100%; /* 占满容器宽度 */
 }
 
 .dashboard-budget-amount .amount-display .current {
@@ -124,7 +131,7 @@
 
 .dashboard-budget-amount .amount-display .separator {
   color: var(--text-secondary, #6b7280);
-  margin: 0;
+  margin: 0 2px; /* 添加左右间距 */
 }
 
 .dashboard-budget-amount .amount-display .total {
@@ -164,15 +171,16 @@
   }
   
   .dashboard-budget-amount {
-    min-width: 70px;
+    min-width: 100px; /* 移动端也增加最小宽度 */
+    max-width: 130px; /* 移动端适当减小最大宽度 */
   }
-  
+
   .dashboard-budget-amount .percentage-display {
-    font-size: 14px !important;
+    font-size: 16px !important; /* 移动端稍微减小但仍保持可读性 */
   }
-  
+
   .dashboard-budget-amount .amount-display {
-    font-size: 11px !important;
+    font-size: 12px !important; /* 移动端稍微增大字体 */
   }
 }
 
@@ -196,6 +204,16 @@
   
   .dashboard-budget-amount {
     gap: 2px; /* 大屏设备恢复标准间距 */
+    min-width: 140px; /* 大屏设备增加最小宽度 */
+    max-width: 180px; /* 大屏设备增加最大宽度 */
+  }
+
+  .dashboard-budget-amount .percentage-display {
+    font-size: 20px !important; /* 大屏设备进一步增大字体 */
+  }
+
+  .dashboard-budget-amount .amount-display {
+    font-size: 14px !important; /* 大屏设备增大字体 */
   }
 }
 

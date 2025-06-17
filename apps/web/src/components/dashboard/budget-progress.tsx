@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, memo, useMemo } from 'react';
-import { formatCurrency, getCategoryIconClass } from '../../lib/utils';
+import { getCategoryIconClass } from '../../lib/utils';
 import './budget-progress.css';
 
 interface BudgetCategory {
@@ -24,6 +24,23 @@ interface BudgetProgressProps {
     percentage: number;
   };
 }
+
+// 改进的货币格式化函数，支持千分位分隔符
+const formatCurrency = (amount: number | undefined | null, currency: string = '¥'): string => {
+  if (amount === undefined || amount === null) return `${currency}0.00`;
+
+  // 处理负数
+  const isNegative = amount < 0;
+  const absAmount = Math.abs(amount);
+
+  // 使用 Intl.NumberFormat 添加千分位分隔符
+  const formattedNumber = new Intl.NumberFormat('zh-CN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(absAmount);
+
+  return isNegative ? `-${currency}${formattedNumber}` : `${currency}${formattedNumber}`;
+};
 
 // 使用React.memo优化渲染性能
 export const BudgetProgress = memo(
@@ -167,34 +184,20 @@ export const BudgetProgress = memo(
                       <div
                         className="percentage-display"
                         style={{
-                          fontSize: '16px',
-                          fontWeight: '600',
                           color:
                             category.percentage > 100
                               ? 'var(--error-color)'
                               : category.percentage > 80
                                 ? 'var(--warning-color)'
                                 : 'var(--primary-color)',
-                          marginBottom: '2px',
                         }}
                       >
                         {category.percentage.toFixed(1)}%
                       </div>
-                      {/* 显示金额，字体更小，不换行 */}
-                      <div
-                        className="amount-display"
-                        style={{
-                          fontSize: '12px',
-                          color: 'var(--text-secondary)',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
-                      >
+                      {/* 显示金额，使用CSS样式 */}
+                      <div className="amount-display">
                         <span className="current">{formatCurrency(category.spent)}</span>
-                        <span className="separator" style={{ margin: '0 2px' }}>
-                          /
-                        </span>
+                        <span className="separator">/</span>
                         <span className="total">{formatCurrency(category.budget)}</span>
                       </div>
                     </div>
