@@ -27,7 +27,7 @@ services:
 
   # 后端服务
   backend:
-    image: zj591227045/zhiweijz-backend:0.1.5
+    image: zj591227045/zhiweijz-backend:0.2.3
     container_name: zhiweijz-backend
     restart: unless-stopped
     environment:
@@ -36,6 +36,11 @@ services:
       DATABASE_URL: postgresql://${DB_USER:-zhiweijz}:${DB_PASSWORD:-zhiweijz123}@postgres:5432/${DB_NAME:-zhiweijz}
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       PORT: 3000
+      # 微信公众号配置
+      WECHAT_APP_ID: ${WECHAT_APP_ID}
+      WECHAT_APP_SECRET: ${WECHAT_APP_SECRET}
+      WECHAT_TOKEN: ${WECHAT_TOKEN}
+      WECHAT_ENCODING_AES_KEY: ${WECHAT_ENCODING_AES_KEY}
     ports:
       - "3000:3000"
     networks:
@@ -52,7 +57,7 @@ services:
 
   # 前端服务
   frontend:
-    image: zj591227045/zhiweijz-frontend:0.1.3
+    image: zj591227045/zhiweijz-frontend:0.2.3
     container_name: zhiweijz-frontend
     restart: unless-stopped
     environment:
@@ -74,7 +79,7 @@ services:
 
   # Nginx 反向代理
   nginx:
-    image: zj591227045/zhiweijz-nginx:0.1.2
+    image: zj591227045/zhiweijz-nginx:0.2.0
     container_name: zhiweijz-nginx
     restart: unless-stopped
     ports:
