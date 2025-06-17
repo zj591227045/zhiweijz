@@ -6,6 +6,7 @@ import prisma from '../config/database';
 import { AIController } from '../controllers/ai-controller';
 import { WechatBindingService } from './wechat-binding.service';
 import { WechatSmartAccountingService } from './wechat-smart-accounting.service';
+import { WechatQueryIntentService } from './wechat-query-intent.service';
 
 export interface WechatMessage {
   ToUserName: string;
@@ -34,6 +35,7 @@ export class WechatService {
   private aiController: AIController;
   private bindingService: WechatBindingService;
   private smartAccountingService: WechatSmartAccountingService;
+  private queryIntentService: WechatQueryIntentService;
   private isEnabled: boolean;
 
   constructor() {
@@ -57,6 +59,7 @@ export class WechatService {
     this.aiController = new AIController();
     this.bindingService = new WechatBindingService();
     this.smartAccountingService = new WechatSmartAccountingService();
+    this.queryIntentService = new WechatQueryIntentService();
   }
 
   /**
@@ -336,14 +339,46 @@ export class WechatService {
       return await this.handleAccountBookChoice(openid, cleanContent);
     }
 
-    // 检查是否是明显的非记账内容
-    if (this.isNonAccountingContent(cleanContent)) {
-      return '这似乎不是记账信息。\n\n请发送记账信息，例如："50 餐饮 午餐"，或发送"帮助"查看使用说明。';
-    }
+    // 使用智能意图识别
+    const intent = this.queryIntentService.recognizeIntent(cleanContent);
 
-    // 智能记账处理 - 异步处理，返回空字符串避免超时
-    this.handleSmartAccountingAsync(openid, binding.user_id, binding.default_account_book_id, cleanContent, true);
-    return ''; // 返回空字符串，通过客服消息API异步发送结果
+    // 根据识别的意图处理
+    switch (intent.type) {
+      case 'balance':
+        return await this.handleBalanceQuery(binding.user_id, binding.default_account_book_id);
+
+      case 'category':
+        return await this.handleCategoryStats(binding.user_id, binding.default_account_book_id);
+
+      case 'budget':
+        return await this.handleBudgetQuery(binding.user_id, binding.default_account_book_id);
+
+      case 'recent':
+        return await this.handleRecentQuery(binding.user_id, binding.default_account_book_id, intent.limit || 5);
+
+      case 'timeRange':
+        if (intent.timeRange) {
+          return await this.handleTimeRangeQuery(
+            binding.user_id,
+            binding.default_account_book_id,
+            intent.timeRange.start,
+            intent.timeRange.end,
+            intent.timeRange.period
+          );
+        }
+        return await this.handleBalanceQuery(binding.user_id, binding.default_account_book_id);
+
+      case 'accounting':
+      default:
+        // 检查是否是明显的非记账内容
+        if (this.isNonAccountingContent(cleanContent)) {
+          return '这似乎不是记账信息。\n\n请发送记账信息，例如："50 餐饮 午餐"，或发送"帮助"查看使用说明。';
+        }
+
+        // 智能记账处理 - 异步处理，返回空字符串避免超时
+        this.handleSmartAccountingAsync(openid, binding.user_id, binding.default_account_book_id, cleanContent, true);
+        return ''; // 返回空字符串，通过客服消息API异步发送结果
+    }
   }
 
   /**
@@ -620,6 +655,42 @@ export class WechatService {
     } catch (error) {
       console.error('分类统计查询失败:', error);
       return '分类统计查询失败，请稍后重试。';
+    }
+  }
+
+  /**
+   * 处理预算查询
+   */
+  private async handleBudgetQuery(userId: string, accountBookId: string): Promise<string> {
+    try {
+      return await this.smartAccountingService.getBudgetStatus(userId, accountBookId);
+    } catch (error) {
+      console.error('获取预算状态失败:', error);
+      return '获取预算状态失败，请稍后重试。';
+    }
+  }
+
+  /**
+   * 处理最近交易查询
+   */
+  private async handleRecentQuery(userId: string, accountBookId: string, limit: number = 5): Promise<string> {
+    try {
+      return await this.smartAccountingService.getRecentTransactions(userId, accountBookId, limit);
+    } catch (error) {
+      console.error('获取最近交易失败:', error);
+      return '获取最近交易失败，请稍后重试。';
+    }
+  }
+
+  /**
+   * 处理时间范围查询
+   */
+  private async handleTimeRangeQuery(userId: string, accountBookId: string, startDate: Date, endDate: Date, period: string): Promise<string> {
+    try {
+      return await this.smartAccountingService.getTimeRangeStats(userId, accountBookId, startDate, endDate, period);
+    } catch (error) {
+      console.error('获取时间范围统计失败:', error);
+      return '获取时间范围统计失败，请稍后重试。';
     }
   }
 

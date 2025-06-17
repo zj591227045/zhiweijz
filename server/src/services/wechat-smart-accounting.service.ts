@@ -520,7 +520,7 @@ export class WechatSmartAccountingService {
         });
 
         const spentAmount = Number(spent._sum.amount || 0);
-        const totalAmount = budget.amount + (budget.rolloverAmount || 0);
+        const totalAmount = Number(budget.amount) + Number(budget.rolloverAmount || 0);
         const remaining = totalAmount - spentAmount;
         const percentage = totalAmount > 0 ? (spentAmount / totalAmount) * 100 : 0;
 
