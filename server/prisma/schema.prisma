@@ -266,7 +266,6 @@ model AccountBook {
   budgets              Budget[]
   categories           Category[]
   transactions         Transaction[]
-  wechat_user_bindings wechat_user_bindings[]
 
   @@map("account_books")
 }
@@ -595,7 +594,6 @@ model wechat_user_bindings {
   created_at              DateTime              @default(now())
   updated_at              DateTime
   wechat_message_logs     wechat_message_logs[]
-  account_books           AccountBook?          @relation(fields: [default_account_book_id], references: [id], onUpdate: NoAction, map: "fk_wechat_user_bindings_account_book")
   users                   User                  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_wechat_user_bindings_user")
 
   @@index([is_active], map: "idx_wechat_user_bindings_is_active")

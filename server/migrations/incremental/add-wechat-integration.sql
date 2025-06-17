@@ -11,10 +11,10 @@ AUTHOR: zhiweijz-team
 
 -- 1. 创建微信用户绑定表
 CREATE TABLE IF NOT EXISTS wechat_user_bindings (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     openid VARCHAR(50) NOT NULL,
     user_id TEXT NOT NULL,
-    default_account_book_id UUID,
+    default_account_book_id TEXT,
     zhiwei_token TEXT,
     zhiwei_refresh_token TEXT,
     token_expires_at TIMESTAMP WITH TIME ZONE,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS wechat_user_bindings (
 
 -- 2. 创建微信消息日志表
 CREATE TABLE IF NOT EXISTS wechat_message_logs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     openid VARCHAR(50) NOT NULL,
     message_type VARCHAR(20) NOT NULL,
     content TEXT,
@@ -56,17 +56,20 @@ DO $$ BEGIN
     END IF;
 END $$;
 
-DO $$ BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.table_constraints 
-        WHERE constraint_name = 'fk_wechat_user_bindings_account_book'
-    ) THEN
-        ALTER TABLE wechat_user_bindings 
-        ADD CONSTRAINT fk_wechat_user_bindings_account_book 
-        FOREIGN KEY (default_account_book_id) REFERENCES account_books(id) 
-        ON DELETE SET NULL;
-    END IF;
-END $$;
+-- 暂时注释掉这个外键约束，因为需要类型转换
+-- 在Prisma schema中default_account_book_id定义为String类型
+-- 而account_books.id是UUID类型，需要在应用层面处理这个关联
+-- DO $$ BEGIN
+--     IF NOT EXISTS (
+--         SELECT 1 FROM information_schema.table_constraints 
+--         WHERE constraint_name = 'fk_wechat_user_bindings_account_book'
+--     ) THEN
+--         ALTER TABLE wechat_user_bindings 
+--         ADD CONSTRAINT fk_wechat_user_bindings_account_book 
+--         FOREIGN KEY (default_account_book_id) REFERENCES account_books(id) 
+--         ON DELETE SET NULL;
+--     END IF;
+-- END $$;
 
 -- 注释掉有问题的外键约束
 -- 微信消息日志不应该强制要求openid在绑定表中存在
