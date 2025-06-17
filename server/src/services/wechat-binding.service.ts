@@ -217,24 +217,33 @@ export class WechatBindingService {
   async getBindingInfo(openid: string) {
     try {
       const binding = await prisma.wechat_user_bindings.findUnique({
-        where: { openid },
-        include: {
-          users: true,
-          account_books: true
-        }
+        where: { openid }
       });
 
       if (!binding) {
         return null;
       }
 
+      // 手动获取用户信息
+      const user = await prisma.user.findUnique({
+        where: { id: binding.user_id }
+      });
+
+      // 手动获取账本信息（如果有默认账本）
+      let accountBook = null;
+      if (binding.default_account_book_id) {
+        accountBook = await prisma.accountBook.findUnique({
+          where: { id: binding.default_account_book_id }
+        });
+      }
+
       return {
         openid: binding.openid,
         userId: binding.user_id,
-        userName: binding.users.name,
-        userEmail: binding.users.email,
+        userName: user?.name || '',
+        userEmail: user?.email || '',
         defaultAccountBookId: binding.default_account_book_id,
-        defaultAccountBookName: binding.account_books?.name,
+        defaultAccountBookName: accountBook?.name,
         isActive: binding.is_active,
         createdAt: binding.created_at
       };

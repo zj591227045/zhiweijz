@@ -719,11 +719,7 @@ export class WechatService {
    */
   private async getUserBinding(openid: string) {
     return await prisma.wechat_user_bindings.findUnique({
-      where: { openid },
-      include: {
-        users: true,
-        account_books: true
-      }
+      where: { openid }
     });
   }
 
