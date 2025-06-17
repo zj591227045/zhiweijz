@@ -5,12 +5,16 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { AccountDeletionModal } from '@/components/modals/account-deletion-modal';
+import { PrivacyPolicyModal } from '@/components/modals/privacy-policy-modal';
+import { TermsOfServiceModal } from '@/components/modals/terms-of-service-modal';
 import '@/styles/settings-pages.css';
 
 export default function AboutPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const [showDeletionModal, setShowDeletionModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -18,6 +22,21 @@ export default function AboutPage() {
       router.push('/auth/login');
     }
   }, [isAuthenticated, router]);
+
+  // 处理官方网站点击
+  const handleOfficialWebsite = () => {
+    window.open('https://www.zhiweijz.cn', '_blank');
+  };
+
+  // 处理隐私政策点击
+  const handlePrivacyPolicy = () => {
+    setShowPrivacyModal(true);
+  };
+
+  // 处理服务条款点击
+  const handleTermsOfService = () => {
+    setShowTermsModal(true);
+  };
 
   if (!isAuthenticated) {
     return null;
@@ -100,15 +119,15 @@ export default function AboutPage() {
           </div>
 
           <div className="about-links">
-            <button className="link-button">
+            <button className="link-button" onClick={handleOfficialWebsite}>
               <i className="fas fa-globe"></i>
               官方网站
             </button>
-            <button className="link-button">
+            <button className="link-button" onClick={handlePrivacyPolicy}>
               <i className="fas fa-shield-alt"></i>
               隐私政策
             </button>
-            <button className="link-button">
+            <button className="link-button" onClick={handleTermsOfService}>
               <i className="fas fa-file-contract"></i>
               服务条款
             </button>
@@ -131,6 +150,18 @@ export default function AboutPage() {
       <AccountDeletionModal
         isOpen={showDeletionModal}
         onClose={() => setShowDeletionModal(false)}
+      />
+
+      {/* 隐私政策弹窗 */}
+      <PrivacyPolicyModal
+        isOpen={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
+      />
+
+      {/* 服务条款弹窗 */}
+      <TermsOfServiceModal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
       />
     </PageContainer>
   );

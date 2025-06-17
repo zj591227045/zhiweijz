@@ -349,8 +349,8 @@
 
 /* 统计导航 */
 .statistics-analysis-page .stats-navigation {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  justify-content: center;
   gap: 12px;
   margin-top: 24px;
 }
