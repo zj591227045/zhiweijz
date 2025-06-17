@@ -142,7 +142,7 @@ export default function LLMConfigPage() {
       ]);
 
       let allSuccess = true;
-      let errorMessages = [];
+      let errorMessages: string[] = [];
 
       if (llmResponse.ok) {
         const data = await llmResponse.json();
@@ -304,7 +304,7 @@ export default function LLMConfigPage() {
               </p>
               <div className="mt-2">
                 <Button
-                  variant="link"
+                  variant="ghost"
                   className="h-auto p-0 text-blue-700 dark:text-blue-300 text-sm"
                   onClick={() => window.open('/admin/multi-provider-llm', '_blank')}
                 >
@@ -361,7 +361,6 @@ export default function LLMConfigPage() {
             </div>
             <div className="flex items-center gap-2">
               <Switch
-                id="service-enabled"
                 checked={config.enabled}
                 onCheckedChange={(checked) =>
                   setConfig(prev => ({ ...prev, enabled: checked }))
@@ -530,7 +529,6 @@ export default function LLMConfigPage() {
             </div>
             <div className="flex items-center gap-2">
               <Switch
-                id="token-limit-enabled"
                 checked={tokenConfig.tokenLimitEnabled}
                 onCheckedChange={(checked) =>
                   setTokenConfig(prev => ({ ...prev, tokenLimitEnabled: checked }))

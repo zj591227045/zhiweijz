@@ -16,8 +16,10 @@ const nextConfig = {
   // 实验性功能
   experimental: {
     missingSuspenseWithCSRBailout: false,
-    skipTrailingSlashRedirect: true,
   },
+  
+  // skipTrailingSlashRedirect 已经从 experimental 中移出
+  skipTrailingSlashRedirect: true,
   
   // 忽略构建错误
   typescript: {
@@ -42,6 +44,7 @@ const nextConfig = {
         'process.env.DOCKER_ENV': JSON.stringify('true'),
       })
     );
+    
     
     // 处理路径别名 - 确保 @ 别名正确指向 src 目录
     config.resolve.alias = {
