@@ -47,6 +47,13 @@ const nextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname, 'src'),
+      '@/data': path.resolve(__dirname, 'src/data'),
+      '@/components': path.resolve(__dirname, 'src/components'),
+      '@/lib': path.resolve(__dirname, 'src/lib'),
+      '@/store': path.resolve(__dirname, 'src/store'),
+      '@/styles': path.resolve(__dirname, 'src/styles'),
+      '@/utils': path.resolve(__dirname, 'src/utils'),
+      '@/types': path.resolve(__dirname, 'src/types'),
     };
     
     // 确保模块解析路径正确
