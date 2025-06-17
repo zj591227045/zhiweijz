@@ -18,6 +18,19 @@ router.get('/me/profile', authenticate, (req, res) => userController.getUserProf
 // 更新当前用户的个人资料 - 需要认证
 router.put('/me/profile', authenticate, (req, res) => userController.updateUserProfile(req, res));
 
+// 用户注销相关路由
+// 发起注销请求 - 需要认证
+router.post('/me/request-deletion', authenticate, (req, res) => userController.requestDeletion(req, res));
+
+// 取消注销请求 - 需要认证
+router.post('/me/cancel-deletion', authenticate, (req, res) => userController.cancelDeletion(req, res));
+
+// 查询注销状态 - 需要认证
+router.get('/me/deletion-status', authenticate, (req, res) => userController.getDeletionStatus(req, res));
+
+// 验证密码 - 需要认证
+router.post('/me/verify-password', authenticate, (req, res) => userController.verifyPassword(req, res));
+
 // 上传当前用户的头像 - 需要认证
 router.post('/me/avatar', authenticate, avatarUpload.single('avatar'), (req, res) => userController.uploadAvatar(req, res));
 

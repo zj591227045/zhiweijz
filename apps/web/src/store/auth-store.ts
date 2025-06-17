@@ -27,6 +27,9 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   loginAttempts: Record<string, LoginAttempt>;
+  isDeletionRequested: boolean;
+  deletionScheduledAt: string | null;
+  remainingHours: number;
 
   // 操作方法
   login: (credentials: {
@@ -50,6 +53,8 @@ interface AuthState {
   resetLoginAttempts: (email: string) => void;
   verifyCaptcha: (token: string, action: 'login' | 'register') => Promise<boolean>;
   syncUserToLocalStorage: (updatedUser: User) => boolean;
+  checkDeletionStatus: () => Promise<void>;
+  setDeletionStatus: (isDeletionRequested: boolean, deletionScheduledAt?: string, remainingHours?: number) => void;
 }
 
 // 创建认证状态管理
@@ -63,6 +68,9 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
       loginAttempts: {},
+      isDeletionRequested: false,
+      deletionScheduledAt: null,
+      remainingHours: 0,
 
       // 登录
       login: async (credentials) => {
@@ -119,10 +127,30 @@ export const useAuthStore = create<AuthState>()(
 
           // 登录成功，重置登录尝试次数
           get().resetLoginAttempts(credentials.email);
+
+          // 检查用户注销状态
+          await get().checkDeletionStatus();
+
           toast.success('登录成功');
           return true;
         } catch (error: any) {
           const errorMessage = error.response?.data?.message || '登录失败';
+
+          // 检查是否是注销冷静期错误
+          if (error.response?.status === 423) {
+            const data = error.response.data;
+            if (data.isDeletionRequested) {
+              set({
+                isDeletionRequested: true,
+                deletionScheduledAt: data.deletionScheduledAt,
+                remainingHours: data.remainingHours,
+                isLoading: false,
+                error: errorMessage,
+              });
+              toast.error(`账户正在注销中，剩余 ${data.remainingHours} 小时`);
+              return false;
+            }
+          }
 
           // 增加登录失败次数
           get().incrementLoginAttempts(credentials.email);
@@ -199,6 +227,9 @@ export const useAuthStore = create<AuthState>()(
           isLoading: false,
           error: null,
           loginAttempts: {}, // 也清除登录尝试记录
+          isDeletionRequested: false,
+          deletionScheduledAt: null,
+          remainingHours: 0,
         });
 
         toast.success('已退出登录');
@@ -367,6 +398,48 @@ export const useAuthStore = create<AuthState>()(
           return false;
         }
       },
+
+      // 检查用户注销状态
+      checkDeletionStatus: async () => {
+        try {
+          const response = await apiClient.get('/users/me/deletion-status');
+          const data = response.data || response;
+
+          set({
+            isDeletionRequested: data.isDeletionRequested || false,
+            deletionScheduledAt: data.deletionScheduledAt || null,
+            remainingHours: data.remainingHours || 0,
+          });
+        } catch (error: any) {
+          console.error('检查注销状态失败:', error);
+
+          // 如果是423错误，说明用户在冷静期
+          if (error.response?.status === 423) {
+            const data = error.response.data;
+            set({
+              isDeletionRequested: true,
+              deletionScheduledAt: data.deletionScheduledAt || null,
+              remainingHours: data.remainingHours || 0,
+            });
+          } else {
+            // 其他错误，重置状态
+            set({
+              isDeletionRequested: false,
+              deletionScheduledAt: null,
+              remainingHours: 0,
+            });
+          }
+        }
+      },
+
+      // 设置注销状态
+      setDeletionStatus: (isDeletionRequested: boolean, deletionScheduledAt?: string, remainingHours?: number) => {
+        set({
+          isDeletionRequested,
+          deletionScheduledAt: deletionScheduledAt || null,
+          remainingHours: remainingHours || 0,
+        });
+      },
     }),
     {
       name: 'auth-storage',
@@ -375,6 +448,9 @@ export const useAuthStore = create<AuthState>()(
         token: state.token,
         isAuthenticated: state.isAuthenticated,
         loginAttempts: state.loginAttempts,
+        isDeletionRequested: state.isDeletionRequested,
+        deletionScheduledAt: state.deletionScheduledAt,
+        remainingHours: state.remainingHours,
       }),
     },
   ),

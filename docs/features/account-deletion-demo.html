@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户注销功能演示</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --text-color: #1f2937;
+            --text-secondary: #6b7280;
+            --background-color: #ffffff;
+            --card-background: #ffffff;
+            --border-color: #e5e7eb;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .demo-container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .demo-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 16px;
+        }
+
+        .demo-description {
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .demo-button {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .demo-button:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+        }
+
+        .features-list {
+            text-align: left;
+            margin-top: 32px;
+            padding: 24px;
+            background: #f9fafb;
+            border-radius: 12px;
+        }
+
+        .features-list h3 {
+            margin: 0 0 16px 0;
+            color: var(--text-color);
+            font-size: 18px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .feature-item i {
+            color: var(--success-color);
+            margin-right: 8px;
+            width: 16px;
+        }
+
+        /* 模拟注销弹窗样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 20px;
+            animation: fadeInOverlay 0.3s ease-out;
+        }
+
+        .modal-container {
+            background: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 
+                0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            animation: slideInModal 0.3s ease-out;
+            position: relative;
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 10;
+            color: var(--text-secondary);
+        }
+
+        .modal-close-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+            transform: scale(1.1);
+        }
+
+        .deletion-step {
+            padding: 32px;
+            text-align: center;
+        }
+
+        .step-header h3 {
+            margin: 0 0 8px 0;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .step-header p {
+            margin: 0 0 24px 0;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .warning-content {
+            background: linear-gradient(135deg, 
+                rgba(239, 68, 68, 0.05) 0%, 
+                rgba(239, 68, 68, 0.08) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .warning-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .warning-item i {
+            color: #ef4444;
+            margin-right: 8px;
+        }
+
+        .step-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        .step-actions button {
+            flex: 1;
+            min-height: 48px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .btn-outline {
+            background: var(--card-background);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        .btn-outline:hover {
+            background: var(--background-color);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-destructive {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border-color: #dc2626;
+        }
+
+        .btn-destructive:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+        }
+
+        @keyframes fadeInOverlay {
+            from {
+                opacity: 0;
+                backdrop-filter: blur(0px);
+            }
+            to {
+                opacity: 1;
+                backdrop-filter: blur(8px);
+            }
+        }
+
+        @keyframes slideInModal {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1 class="demo-title">用户注销功能演示</h1>
+        <p class="demo-description">
+            点击下方按钮体验全新的用户注销功能，包含三次确认机制和24小时冷静期。
+        </p>
+        
+        <button class="demo-button" onclick="showModal()">
+            <i class="fas fa-user-times"></i>
+            注销账户
+        </button>
+
+        <div class="features-list">
+            <h3>功能特性</h3>
+            <div class="feature-item">
+                <i class="fas fa-check"></i>
+                三次确认机制防止误操作
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-check"></i>
+                24小时冷静期可随时取消
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-check"></i>
+                模糊背景和居中显示
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-check"></i>
+                符合主题变量的美观设计
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-check"></i>
+                完整的数据安全保护
+            </div>
+        </div>
+    </div>
+
+    <!-- 模拟注销弹窗 -->
+    <div class="modal-overlay" id="deletionModal">
+        <div class="modal-container">
+            <button class="modal-close-btn" onclick="hideModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="deletion-step">
+                <div class="step-header">
+                    <i class="fas fa-exclamation-triangle" style="color: #ef4444; font-size: 48px; margin-bottom: 16px;"></i>
+                    <h3>注销账户警告</h3>
+                    <p>请仔细阅读以下注销后果说明</p>
+                </div>
+                
+                <div class="warning-content">
+                    <div class="warning-item">
+                        <i class="fas fa-times-circle"></i>
+                        <span>所有个人数据将被永久删除，无法恢复</span>
+                    </div>
+                    <div class="warning-item">
+                        <i class="fas fa-times-circle"></i>
+                        <span>账户将被彻底删除，无法重新激活</span>
+                    </div>
+                    <div class="warning-item">
+                        <i class="fas fa-times-circle"></i>
+                        <span>所有记账流水和历史记录将被清空</span>
+                    </div>
+                    <div class="warning-item">
+                        <i class="fas fa-times-circle"></i>
+                        <span>如果您是账本管理员，需要先转移管理权</span>
+                    </div>
+                </div>
+
+                <div class="step-actions">
+                    <button class="btn-outline" onclick="hideModal()">取消</button>
+                    <button class="btn-destructive" onclick="alert('这是演示版本，实际使用时会进入密码验证步骤')">我已了解，继续</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showModal() {
+            document.getElementById('deletionModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideModal() {
+            document.getElementById('deletionModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // 点击背景关闭弹窗
+        document.getElementById('deletionModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideModal();
+            }
+        });
+    </script>
+</body>
+</html>

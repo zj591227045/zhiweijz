@@ -3,6 +3,7 @@ import { UserService } from '../services/user.service';
 import { CreateUserDto, UpdateUserDto, UpdateProfileDto } from '../models/user.model';
 import { UserSettingService } from '../services/user-setting.service';
 import { getFileUrl } from '../middlewares/upload.middleware';
+import { comparePasswords } from '../utils/password';
 
 export class UserController {
   private userService: UserService;
@@ -263,6 +264,151 @@ export class UserController {
       res.status(200).json(users);
     } catch (error) {
       res.status(500).json({ message: '获取用户列表时发生错误' });
+    }
+  }
+
+  /**
+   * 发起注销请求
+   */
+  async requestDeletion(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const { password, confirmText } = req.body;
+
+      // 验证密码
+      if (!password) {
+        res.status(400).json({ message: '请输入当前密码' });
+        return;
+      }
+
+      // 验证确认文字
+      if (confirmText !== '确认注销') {
+        res.status(400).json({ message: '请输入正确的确认文字' });
+        return;
+      }
+
+      // 获取用户信息验证密码
+      const user = await this.userService.getUserByIdWithPassword(userId);
+      const isPasswordValid = await comparePasswords(password, user.passwordHash);
+
+      if (!isPasswordValid) {
+        res.status(400).json({ message: '密码错误' });
+        return;
+      }
+
+      // 检查用户是否是账本的唯一管理员
+      const isOnlyAdmin = await this.userService.checkIfOnlyAccountBookAdmin(userId);
+      if (isOnlyAdmin) {
+        res.status(400).json({
+          message: '您是某些账本的唯一管理员，请先转移管理权或删除账本后再注销账户'
+        });
+        return;
+      }
+
+      // 发起注销请求
+      const result = await this.userService.requestDeletion(userId);
+
+      res.status(200).json({
+        message: '注销请求已提交，24小时后将自动删除账户',
+        deletionScheduledAt: result.deletionScheduledAt
+      });
+    } catch (error) {
+      console.error('发起注销请求失败:', error);
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '发起注销请求失败' });
+      }
+    }
+  }
+
+  /**
+   * 取消注销请求
+   */
+  async cancelDeletion(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      await this.userService.cancelDeletion(userId);
+
+      res.status(200).json({ message: '注销请求已取消' });
+    } catch (error) {
+      console.error('取消注销请求失败:', error);
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '取消注销请求失败' });
+      }
+    }
+  }
+
+  /**
+   * 查询注销状态
+   */
+  async getDeletionStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const status = await this.userService.getDeletionStatus(userId);
+
+      res.status(200).json(status);
+    } catch (error) {
+      console.error('查询注销状态失败:', error);
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '查询注销状态失败' });
+      }
+    }
+  }
+
+  /**
+   * 验证密码
+   */
+  async verifyPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const { password } = req.body;
+      if (!password) {
+        res.status(400).json({ message: '请输入密码' });
+        return;
+      }
+
+      // 获取用户信息验证密码
+      const user = await this.userService.getUserByIdWithPassword(userId);
+      const isPasswordValid = await comparePasswords(password, user.passwordHash);
+
+      if (!isPasswordValid) {
+        res.status(400).json({ message: '密码错误' });
+        return;
+      }
+
+      res.status(200).json({ message: '密码验证成功' });
+    } catch (error) {
+      console.error('密码验证失败:', error);
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '密码验证失败' });
+      }
     }
   }
 }

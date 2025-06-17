@@ -30,6 +30,7 @@ export default function LoginPage() {
   const [showServerSettings, setShowServerSettings] = useState(false);
   const [isIOSApp, setIsIOSApp] = useState(false);
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
+  const [urlMessage, setUrlMessage] = useState<string | null>(null);
 
   // 检测是否为Docker环境
   const isDocker = isDockerEnvironment();
@@ -118,6 +119,28 @@ export default function LoginPage() {
       }
     };
   }, []);
+
+  // 检查URL参数中的消息
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const message = urlParams.get('message');
+      if (message) {
+        setUrlMessage(decodeURIComponent(message));
+        // 显示消息后清除URL参数
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }
+    }
+  }, []);
+
+  // 显示URL消息
+  useEffect(() => {
+    if (urlMessage) {
+      toast.success(urlMessage);
+      setUrlMessage(null);
+    }
+  }, [urlMessage]);
 
   // 如果已登录，重定向到仪表盘
   useEffect(() => {

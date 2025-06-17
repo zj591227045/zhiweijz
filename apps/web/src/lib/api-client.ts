@@ -26,7 +26,24 @@ class ApiClient {
         config.baseURL = baseURL;
 
         // 自动添加认证token
-        const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null;
+        let token = null;
+        if (typeof window !== 'undefined') {
+          // 首先尝试从auth-token获取（直接存储）
+          token = localStorage.getItem('auth-token');
+
+          // 如果没有找到，尝试从auth-storage获取（Zustand持久化存储）
+          if (!token) {
+            try {
+              const authStorage = localStorage.getItem('auth-storage');
+              if (authStorage) {
+                const parsed = JSON.parse(authStorage);
+                token = parsed.state?.token || null;
+              }
+            } catch (error) {
+              console.warn('解析auth-storage失败:', error);
+            }
+          }
+        }
         if (isDev) console.log('🔍 API请求token检查:', { 
           hasToken: !!token, 
           tokenPrefix: token ? token.substring(0, 20) + '...' : 'null',
@@ -53,13 +70,19 @@ class ApiClient {
       },
       (error) => {
         if (error.response?.status === 401) {
-          // Token过期，清除本地存储
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('auth-token');
-            localStorage.removeItem('user');
-            localStorage.removeItem('account-book-storage');
-            localStorage.removeItem('auth-storage');
-            window.location.href = '/auth/login';
+          // 检查是否是注销相关的请求，如果是则不自动跳转
+          const isDeletionRelated = error.config?.url?.includes('/users/me/') &&
+            (error.config.url.includes('deletion') || error.config.url.includes('cancel-deletion'));
+
+          if (!isDeletionRelated) {
+            // Token过期，清除本地存储
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('auth-token');
+              localStorage.removeItem('user');
+              localStorage.removeItem('account-book-storage');
+              localStorage.removeItem('auth-storage');
+              window.location.href = '/auth/login';
+            }
           }
         }
         return Promise.reject(error);
@@ -94,7 +117,24 @@ export const fetchApi = async (url: string, options: RequestInit = {}): Promise<
   const fullUrl = url.startsWith('/api') ? baseURL + url.replace('/api', '') : baseURL + url;
 
   // 自动添加认证token
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null;
+  let token = null;
+  if (typeof window !== 'undefined') {
+    // 首先尝试从auth-token获取（直接存储）
+    token = localStorage.getItem('auth-token');
+
+    // 如果没有找到，尝试从auth-storage获取（Zustand持久化存储）
+    if (!token) {
+      try {
+        const authStorage = localStorage.getItem('auth-storage');
+        if (authStorage) {
+          const parsed = JSON.parse(authStorage);
+          token = parsed.state?.token || null;
+        }
+      } catch (error) {
+        console.warn('解析auth-storage失败:', error);
+      }
+    }
+  }
   const headers = {
     'Content-Type': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` }),

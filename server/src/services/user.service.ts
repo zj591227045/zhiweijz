@@ -44,6 +44,17 @@ export class UserService {
   }
 
   /**
+   * 根据ID获取用户（包含密码哈希）
+   */
+  async getUserByIdWithPassword(id: string): Promise<User> {
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      throw new Error('用户不存在');
+    }
+    return user;
+  }
+
+  /**
    * 更新用户信息
    */
   async updateUser(id: string, userData: UpdateUserDto): Promise<UserResponseDto> {
@@ -138,8 +149,107 @@ export class UserService {
 
     // 计算在该用户注册时间之前注册的用户数量
     const earlierUsersCount = await this.userRepository.countUsersBeforeDate(user.createdAt);
-    
+
     // 用户序号 = 之前注册的用户数量 + 1
     return earlierUsersCount + 1;
+  }
+
+  /**
+   * 发起注销请求
+   */
+  async requestDeletion(userId: string): Promise<{ deletionScheduledAt: Date }> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new Error('用户不存在');
+    }
+
+    // 检查是否已经有注销请求
+    if (user.deletionRequestedAt) {
+      throw new Error('已存在注销请求');
+    }
+
+    const now = new Date();
+    const deletionScheduledAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24小时后
+
+    await this.userRepository.update(userId, {
+      deletionRequestedAt: now,
+      deletionScheduledAt: deletionScheduledAt
+    });
+
+    return { deletionScheduledAt };
+  }
+
+  /**
+   * 取消注销请求
+   */
+  async cancelDeletion(userId: string): Promise<void> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new Error('用户不存在');
+    }
+
+    if (!user.deletionRequestedAt) {
+      throw new Error('没有待取消的注销请求');
+    }
+
+    await this.userRepository.update(userId, {
+      deletionRequestedAt: null,
+      deletionScheduledAt: null
+    });
+  }
+
+  /**
+   * 查询注销状态
+   */
+  async getDeletionStatus(userId: string): Promise<{
+    isDeletionRequested: boolean;
+    deletionRequestedAt?: Date;
+    deletionScheduledAt?: Date;
+    remainingHours?: number;
+  }> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new Error('用户不存在');
+    }
+
+    if (!user.deletionRequestedAt || !user.deletionScheduledAt) {
+      return { isDeletionRequested: false };
+    }
+
+    const now = new Date();
+    const remainingMs = user.deletionScheduledAt.getTime() - now.getTime();
+    const remainingHours = Math.max(0, Math.ceil(remainingMs / (1000 * 60 * 60)));
+
+    return {
+      isDeletionRequested: true,
+      deletionRequestedAt: user.deletionRequestedAt,
+      deletionScheduledAt: user.deletionScheduledAt,
+      remainingHours
+    };
+  }
+
+  /**
+   * 检查用户是否是某些账本的唯一管理员
+   */
+  async checkIfOnlyAccountBookAdmin(userId: string): Promise<boolean> {
+    return await this.userRepository.checkIfOnlyAccountBookAdmin(userId);
+  }
+
+  /**
+   * 执行用户数据删除（由定时任务调用）
+   */
+  async executeUserDeletion(userId: string): Promise<void> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      return; // 用户已不存在
+    }
+
+    // 检查是否到了删除时间
+    if (!user.deletionScheduledAt || new Date() < user.deletionScheduledAt) {
+      return; // 还未到删除时间
+    }
+
+    // 执行数据清理
+    await this.userRepository.deleteUserData(userId);
   }
 }

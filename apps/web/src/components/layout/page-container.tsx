@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { EnhancedBottomNavigation } from './enhanced-bottom-navigation';
 import { useThemeStore } from '@/store/theme-store';
 import { SettingsDialog } from './settings-dialog';
+import { DeletionStatusBanner } from '@/components/ui/deletion-status-banner';
 import '@/styles/settings-dialog.css';
 
 // 将 activeNavItem 转换为路径
@@ -139,6 +140,9 @@ export function PageContainer({
           </div>
         </header>
       )}
+
+      {/* 注销状态横幅 */}
+      <DeletionStatusBanner />
 
       {/* 主要内容区域 */}
       <main className={`main-content ${className || ''}`}>{children}</main>

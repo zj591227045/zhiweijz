@@ -10,6 +10,11 @@ import { RouteGuard } from '@/components/auth/route-guard';
 import { OnboardingProvider } from '@/components/onboarding/onboarding-provider';
 import { initializeAndroidPlatform } from '@/lib/android-platform';
 
+// 在开发环境下加载调试工具
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  import('@/utils/debug-auth');
+}
+
 // 创建QueryClient实例
 const queryClient = new QueryClient({
   defaultOptions: {

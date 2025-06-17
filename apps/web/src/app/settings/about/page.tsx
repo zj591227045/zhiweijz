@@ -1,14 +1,16 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { PageContainer } from '@/components/layout/page-container';
+import { AccountDeletionModal } from '@/components/modals/account-deletion-modal';
 import '@/styles/settings-pages.css';
 
 export default function AboutPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
+  const [showDeletionModal, setShowDeletionModal] = useState(false);
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -110,6 +112,13 @@ export default function AboutPage() {
               <i className="fas fa-file-contract"></i>
               服务条款
             </button>
+            <button
+              className="link-button delete-account-button"
+              onClick={() => setShowDeletionModal(true)}
+            >
+              <i className="fas fa-user-times"></i>
+              注销账户
+            </button>
           </div>
 
           <div className="about-footer">
@@ -117,6 +126,12 @@ export default function AboutPage() {
           </div>
         </div>
       </div>
+
+      {/* 注销账户弹窗 */}
+      <AccountDeletionModal
+        isOpen={showDeletionModal}
+        onClose={() => setShowDeletionModal(false)}
+      />
     </PageContainer>
   );
 }

@@ -249,7 +249,7 @@
 
 .about-features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 }
 
@@ -340,7 +340,7 @@
 
 .about-links {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   margin-bottom: 24px;
 }
@@ -367,7 +367,7 @@
   }
 
   .about-links {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .link-button {
@@ -407,6 +407,28 @@
 .link-button i {
   color: var(--primary-color, #3b82f6);
   font-size: 20px;
+}
+
+/* 注销账户按钮特殊样式 */
+.delete-account-button {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.delete-account-button:hover {
+  background: rgba(239, 68, 68, 0.05);
+  border-color: #dc2626;
+  color: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
+
+.delete-account-button i {
+  color: #ef4444;
+}
+
+.delete-account-button:hover i {
+  color: #dc2626;
 }
 
 .about-footer {

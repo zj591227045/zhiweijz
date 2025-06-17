@@ -22,6 +22,8 @@ model User {
   isCustodial          Boolean                @default(false) @map("is_custodial")
   isActive             Boolean                @default(true) @map("is_active")
   dailyLlmTokenLimit   Int?                   @map("daily_llm_token_limit")
+  deletionRequestedAt  DateTime?              @map("deletion_requested_at")
+  deletionScheduledAt  DateTime?              @map("deletion_scheduled_at")
   accountBooks         AccountBook[]
   budgetHistories      BudgetHistory[]
   budgets              Budget[]

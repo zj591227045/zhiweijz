@@ -74,3 +74,17 @@ export interface UpdateProfileDto {
   bio?: string;
   birthDate?: Date;
 }
+
+// 用户注销请求DTO
+export interface UserDeletionRequestDto {
+  password: string;
+  confirmText: string;
+}
+
+// 用户注销状态DTO
+export interface UserDeletionStatusDto {
+  isDeletionRequested: boolean;
+  deletionRequestedAt?: Date;
+  deletionScheduledAt?: Date;
+  remainingHours?: number;
+}

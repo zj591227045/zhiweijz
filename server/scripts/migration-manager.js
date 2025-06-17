@@ -23,7 +23,7 @@ const logger = {
  */
 const MIGRATIONS_CONFIG = {
   // 当前最新版本
-  LATEST_VERSION: '1.3.1',
+  LATEST_VERSION: '1.3.2',
 
   // 迁移文件目录
   MIGRATIONS_DIR: path.join(__dirname, '../migrations/incremental'),
@@ -37,8 +37,9 @@ const MIGRATIONS_CONFIG = {
     '1.2.2': ['1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration'],
     '1.2.3': ['1.2.2-to-1.3.0', 'add-wechat-integration'],
     '1.3.0': ['add-wechat-integration'],
-    '1.3.1': [], // 当前最新版本
-    'fresh_install': ['base-schema', 'admin-features', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration']
+    '1.3.1': ['add-user-deletion-fields'],
+    '1.3.2': [], // 当前最新版本
+    'fresh_install': ['base-schema', 'admin-features', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields']
   }
 };
 

@@ -1,0 +1,523 @@
+/* 注销账户弹窗样式 */
+
+/* 确保模态框在最顶层且不受其他元素影响 */
+body.modal-open {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+}
+
+/* 自定义模态框覆盖层 - 确保全屏显示 */
+.account-deletion-modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 2147483647 !important; /* 使用最大z-index值 */
+  pointer-events: auto !important;
+  isolation: isolate !important;
+  /* 确保不受父容器影响 */
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
+  /* 确保在所有设备上都能正确显示 */
+  -webkit-backface-visibility: hidden !important;
+  backface-visibility: hidden !important;
+}
+
+.account-deletion-modal .modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 2147483647 !important; /* 使用最大z-index值 */
+  padding: 20px !important;
+  animation: fadeInOverlay 0.3s ease-out !important;
+  pointer-events: auto !important;
+  /* 确保覆盖层在最顶层 */
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
+}
+
+/* 自定义模态框容器 */
+.account-deletion-modal .modal-container {
+  background: var(--card-background, #ffffff) !important;
+  border: 1px solid var(--border-color, #e5e7eb) !important;
+  border-radius: 16px !important;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  max-width: 500px !important;
+  width: 100% !important;
+  max-height: 90vh !important;
+  overflow: hidden !important;
+  animation: slideInModal 0.3s ease-out !important;
+  position: relative !important;
+}
+
+/* 关闭按钮 */
+.modal-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+  color: var(--text-secondary, #6b7280);
+}
+
+.modal-close-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--text-color, #374151);
+  transform: scale(1.1);
+}
+
+.modal-close-btn i {
+  font-size: 14px;
+}
+
+/* 模态框动画 */
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+@keyframes slideInModal {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.account-deletion-modal {
+  max-width: 500px;
+  width: 100%;
+}
+
+.deletion-step {
+  padding: 32px;
+  background: var(--background-color, #ffffff);
+  border-radius: 16px;
+}
+
+.step-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.step-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-color, #1f2937);
+  letter-spacing: -0.025em;
+}
+
+.step-header p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary, #6b7280);
+}
+
+/* 图标样式增强 */
+.step-header i {
+  display: block;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* 警告内容 */
+.warning-content {
+  background: linear-gradient(135deg,
+    rgba(239, 68, 68, 0.05) 0%,
+    rgba(239, 68, 68, 0.08) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.warning-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.warning-item:last-child {
+  margin-bottom: 0;
+}
+
+.warning-item i {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+/* 表单组 */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* 错误消息 */
+.error-message {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background: linear-gradient(135deg,
+    rgba(239, 68, 68, 0.08) 0%,
+    rgba(239, 68, 68, 0.12) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 12px;
+  color: var(--error-color, #dc2626);
+  font-size: 14px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.error-message i {
+  margin-right: 8px;
+}
+
+/* 步骤操作按钮 */
+.step-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.step-actions button {
+  flex: 1;
+  min-height: 48px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 主要按钮样式 */
+.step-actions button[variant="destructive"] {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border-color: #dc2626;
+}
+
+.step-actions button[variant="destructive"]:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+}
+
+/* 次要按钮样式 */
+.step-actions button[variant="outline"] {
+  background: var(--card-background, #ffffff);
+  color: var(--text-color, #374151);
+  border-color: var(--border-color, #d1d5db);
+}
+
+.step-actions button[variant="outline"]:hover:not(:disabled) {
+  background: var(--background-color, #f9fafb);
+  border-color: var(--primary-color, #3b82f6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 默认按钮样式 */
+.step-actions button[variant="default"] {
+  background: linear-gradient(135deg, var(--primary-color, #3b82f6) 0%, #2563eb 100%);
+  color: white;
+  border-color: var(--primary-color, #3b82f6);
+}
+
+.step-actions button[variant="default"]:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+}
+
+/* 冷静期信息 */
+.cooldown-info {
+  background: linear-gradient(135deg,
+    rgba(245, 158, 11, 0.08) 0%,
+    rgba(245, 158, 11, 0.12) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 12px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-item .label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.info-item .value {
+  color: #374151;
+  font-weight: 600;
+}
+
+/* 响应式设计 */
+@media (max-width: 640px) {
+  .account-deletion-modal .modal-overlay {
+    padding: 16px !important;
+  }
+
+  .account-deletion-modal .modal-container {
+    max-width: none !important;
+    width: calc(100% - 32px) !important;
+    margin: 0 auto !important;
+  }
+
+  .deletion-step {
+    padding: 24px 20px;
+  }
+
+  .step-header h3 {
+    font-size: 18px;
+  }
+
+  .step-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .step-actions button {
+    width: 100%;
+    min-height: 52px;
+  }
+
+  .warning-content,
+  .cooldown-info,
+  .error-message {
+    padding: 16px;
+  }
+
+  .form-group input {
+    padding: 14px;
+    font-size: 16px; /* 防止iOS缩放 */
+  }
+}
+
+/* 深色主题适配 */
+@media (prefers-color-scheme: dark) {
+  .account-deletion-modal .modal-overlay {
+    background-color: rgba(0, 0, 0, 0.8) !important;
+  }
+
+  .account-deletion-modal .modal-container {
+    background: var(--card-background, #1f2937) !important;
+    border-color: var(--border-color, #374151) !important;
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.3),
+      0 10px 10px -5px rgba(0, 0, 0, 0.2),
+      0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .deletion-step {
+    background: var(--background-color, #111827);
+  }
+
+  .warning-content {
+    background: linear-gradient(135deg,
+      rgba(239, 68, 68, 0.1) 0%,
+      rgba(239, 68, 68, 0.15) 100%);
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+
+  .warning-item {
+    color: var(--text-color, #f3f4f6);
+  }
+
+  .cooldown-info {
+    background: linear-gradient(135deg,
+      rgba(245, 158, 11, 0.1) 0%,
+      rgba(245, 158, 11, 0.15) 100%);
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+
+  .info-item .label {
+    color: var(--text-secondary, #9ca3af);
+  }
+
+  .info-item .value {
+    color: var(--text-color, #f3f4f6);
+  }
+
+  .error-message {
+    background: linear-gradient(135deg,
+      rgba(239, 68, 68, 0.1) 0%,
+      rgba(239, 68, 68, 0.15) 100%);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #f87171;
+  }
+
+  .form-group input {
+    background: var(--card-background, #374151);
+    border-color: var(--border-color, #4b5563);
+    color: var(--text-color, #f3f4f6);
+  }
+
+  .form-group input:focus {
+    border-color: var(--primary-color, #60a5fa);
+    box-shadow:
+      0 0 0 4px rgba(96, 165, 250, 0.1),
+      0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .form-group input::placeholder {
+    color: var(--text-secondary, #6b7280);
+  }
+
+  .modal-close-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary, #9ca3af);
+  }
+
+  .modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--text-color, #f3f4f6);
+  }
+}
+
+/* 动画效果 */
+.deletion-step {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 按钮状态 */
+.step-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.step-actions button:disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* 输入框样式 */
+.form-group input {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  font-size: 14px;
+  background: var(--card-background, #ffffff);
+  color: var(--text-color, #374151);
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow:
+    0 0 0 4px rgba(59, 130, 246, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+.form-group input::placeholder {
+  color: var(--text-secondary, #9ca3af);
+}
+
+/* 深色主题输入框 */
+@media (prefers-color-scheme: dark) {
+  .form-group input {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f3f4f6;
+  }
+  
+  .form-group input:focus {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+  }
+  
+  .form-group input::placeholder {
+    color: #6b7280;
+  }
+}
