@@ -9,6 +9,7 @@ import { ProfileForm, ProfileFormValues } from '@/components/profile/profile-for
 import { userService, UserProfile } from '@/lib/api/user-service';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
+import { PresetAvatar } from '@/data/preset-avatars';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -35,21 +36,38 @@ export default function ProfilePage() {
     fetchProfile();
   }, []);
 
-  // 处理头像上传
-  const handleAvatarChange = async (file: File) => {
+  // 处理头像变更
+  const handleAvatarChange = async (avatarData: { type: 'preset'; data: PresetAvatar } | { type: 'file'; data: File }) => {
     setIsUploadingAvatar(true);
 
     try {
-      const data = await userService.uploadAvatar(file);
-      setProfile((prev) => (prev ? { ...prev, avatar: data.avatar } : null));
-      
-      // 同步更新 auth store 中的头像信息
-      await updateAvatar(data.avatar);
-      
-      toast.success('头像上传成功');
+      let avatarUrl: string;
+
+      if (avatarData.type === 'preset') {
+        // 预设头像，保存头像ID到数据库
+        const data = await userService.updateAvatarId(avatarData.data.id);
+        avatarUrl = data.avatar;
+
+        // 更新本地状态
+        setProfile((prev) => (prev ? { ...prev, avatar: avatarUrl } : null));
+
+        // 同步更新 auth store 中的头像信息
+        await updateAvatar(avatarUrl);
+
+        toast.success('头像更换成功');
+      } else {
+        // 文件上传（暂时保留，但不会被调用）
+        const data = await userService.uploadAvatar(avatarData.data);
+        avatarUrl = data.avatar;
+
+        setProfile((prev) => (prev ? { ...prev, avatar: avatarUrl } : null));
+        await updateAvatar(avatarUrl);
+
+        toast.success('头像上传成功');
+      }
     } catch (error) {
-      console.error('头像上传失败:', error);
-      toast.error('头像上传失败');
+      console.error('头像变更失败:', error);
+      toast.error('头像变更失败');
     } finally {
       setIsUploadingAvatar(false);
     }

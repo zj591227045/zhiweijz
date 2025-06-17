@@ -8,6 +8,7 @@ import { useOnboardingStore } from '@/store/onboarding-store';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { useThemeStore } from '@/store/theme-store';
+import { AvatarDisplay } from '@/components/ui/avatar-display';
 import './settings.css';
 
 export default function SettingsPage() {
@@ -104,7 +105,12 @@ export default function SettingsPage() {
     <PageContainer title="设置" activeNavItem="profile">
       <div className="user-card">
         <div className="user-avatar">
-          <i className="fas fa-user"></i>
+          <AvatarDisplay
+            avatar={user.avatar}
+            username={user.name}
+            size="large"
+            alt="用户头像"
+          />
         </div>
         <div className="user-info">
           <div className="user-name">{user.name}</div>

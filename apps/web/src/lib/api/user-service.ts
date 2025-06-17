@@ -76,4 +76,19 @@ export const userService = {
       throw error;
     }
   },
+
+  /**
+   * 更新用户头像ID（预设头像）
+   */
+  async updateAvatarId(avatarId: string): Promise<{ avatar: string }> {
+    try {
+      console.log('发送更新头像ID请求: /users/me/avatar', { avatarId });
+      const response = await apiClient.put('/users/me/avatar', { avatarId });
+      console.log('更新头像ID响应数据:', response);
+      return response;
+    } catch (error) {
+      console.error('更新头像ID失败:', error);
+      throw error;
+    }
+  },
 };

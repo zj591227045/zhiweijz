@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminAuth } from '@/store/admin/useAdminAuth';
+import { AvatarDisplay } from '@/components/ui/avatar-display';
 import { ChangePasswordModal } from './ChangePasswordModal';
 import { 
   Bars3Icon,
@@ -60,11 +61,13 @@ export function AdminHeader({ onMenuClick, isMobile }: AdminHeaderProps) {
                 className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 {/* 头像 */}
-                <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-medium text-white">
-                    {admin?.username?.charAt(0).toUpperCase() || 'A'}
-                  </span>
-                </div>
+                <AvatarDisplay
+                  avatar={admin?.avatar}
+                  username={admin?.username}
+                  size="small"
+                  className="h-8 w-8"
+                  alt="管理员头像"
+                />
                 
                 {/* 用户信息 */}
                 <div className="hidden sm:block text-left">

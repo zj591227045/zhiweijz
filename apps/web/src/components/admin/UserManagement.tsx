@@ -17,6 +17,7 @@ import {
 import { UserModal } from './UserModal';
 import { ConfirmModal } from './ConfirmModal';
 import { ResetPasswordModal } from './ResetPasswordModal';
+import { AvatarDisplay } from '@/components/ui/avatar-display';
 
 interface User {
   id: string;
@@ -469,18 +470,13 @@ export function UserManagement({
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        {user.avatar ? (
-                          <img 
-                            className="h-10 w-10 rounded-full object-cover" 
-                            src={user.avatar} 
-                            alt={user.name} 
-                          />
-                        ) : (
-                          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                            <UserIcon className="h-6 w-6 text-gray-500" />
-                          </div>
-                        )}
+                      <div className="flex-shrink-0">
+                        <AvatarDisplay
+                          avatar={user.avatar}
+                          username={user.name}
+                          size="medium"
+                          alt={user.name}
+                        />
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">

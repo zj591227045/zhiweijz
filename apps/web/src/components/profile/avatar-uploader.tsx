@@ -1,13 +1,14 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { toast } from 'sonner';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { presetAvatars, avatarCategories, PresetAvatar, getAvatarUrl, getAvatarUrlById } from '@/data/preset-avatars';
 
 interface AvatarUploaderProps {
-  currentAvatar?: string;
+  currentAvatar?: string; // 现在存储头像ID而不是URL
   username?: string;
   registrationOrder?: number;
-  onAvatarChange: (file: File) => void;
+  onAvatarChange: (avatarData: { type: 'preset'; data: PresetAvatar } | { type: 'file'; data: File }) => void;
   isUploading?: boolean;
 }
 
@@ -18,77 +19,154 @@ export function AvatarUploader({
   onAvatarChange,
   isUploading = false,
 }: AvatarUploaderProps) {
-  const [showUploadOptions, setShowUploadOptions] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('standard');
+  const [selectedAvatar, setSelectedAvatar] = useState<PresetAvatar | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 处理头像点击
   const handleAvatarClick = () => {
     if (isUploading) return;
-    setShowUploadOptions(true);
+    setShowAvatarSelector(true);
   };
 
-  // 处理取消上传
-  const handleCancelUpload = () => {
-    setShowUploadOptions(false);
+  // 处理取消选择
+  const handleCancelSelection = () => {
+    setShowAvatarSelector(false);
   };
 
-  // 处理拍照
-  const handleTakePhoto = () => {
-    // 在移动端，这会打开相机
-    if (fileInputRef.current) {
-      fileInputRef.current.accept = 'image/*';
-      fileInputRef.current.setAttribute('capture', 'user');
-      fileInputRef.current.click();
-    }
-    setShowUploadOptions(false);
+  // 处理头像选择
+  const handleAvatarSelect = (avatar: PresetAvatar) => {
+    setSelectedAvatar(avatar);
+    onAvatarChange({ type: 'preset', data: avatar });
+    setShowAvatarSelector(false);
   };
 
-  // 处理从相册选择
-  const handleChoosePhoto = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.accept = 'image/*';
-      fileInputRef.current.removeAttribute('capture');
-      fileInputRef.current.click();
-    }
-    setShowUploadOptions(false);
+  // 获取当前分类的头像
+  const getCurrentCategoryAvatars = () => {
+    return presetAvatars.filter(avatar => avatar.category === selectedCategory);
   };
 
-  // 处理文件选择
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
+  // 渲染头像选择器弹窗
+  const renderAvatarSelector = () => {
+    if (!showAvatarSelector || !mounted) return null;
 
-      // 验证文件类型
-      if (!file.type.startsWith('image/')) {
-        toast.error('请选择图片文件');
-        return;
-      }
+    const modalContent = (
+      <>
+        <div
+          className="avatar-selector-overlay"
+          onClick={handleCancelSelection}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 9999,
+            backdropFilter: 'blur(4px)'
+          }}
+        ></div>
+        <div
+          className="avatar-selector"
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: 'var(--card-background, #ffffff)',
+            borderRadius: '20px',
+            padding: 0,
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+            zIndex: 10000,
+            width: '90vw',
+            maxWidth: '420px',
+            maxHeight: '80vh',
+            display: 'flex',
+            flexDirection: 'column',
+            animation: 'scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
+        >
+          <div className="selector-header">
+            <div className="selector-title">选择头像</div>
+            <button className="selector-close" onClick={handleCancelSelection}>
+              <i className="fas fa-times"></i>
+            </button>
+          </div>
 
-      // 验证文件大小 (5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('图片大小不能超过5MB');
-        return;
-      }
+          {/* 分类选择 */}
+          <div className="category-tabs">
+            {avatarCategories.map(category => (
+              <button
+                key={category.id}
+                className={`category-tab ${selectedCategory === category.id ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(category.id)}
+              >
+                <span className="category-icon">{category.icon}</span>
+                <span className="category-name">{category.name}</span>
+              </button>
+            ))}
+          </div>
 
-      // 创建预览
-      const reader = new FileReader();
-      reader.onload = () => {
-        setPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+          {/* 头像网格 */}
+          <div className="avatar-grid">
+            {getCurrentCategoryAvatars().map(avatar => (
+              <button
+                key={avatar.id}
+                className="avatar-option"
+                onClick={() => handleAvatarSelect(avatar)}
+                style={{ backgroundColor: avatar.color }}
+                title={avatar.name}
+              >
+                <img
+                  src={getAvatarUrl(avatar)}
+                  alt={avatar.name}
+                  className="avatar-option-image"
+                />
+              </button>
+            ))}
+          </div>
 
-      // 调用回调
-      onAvatarChange(file);
-    }
+          {/* 底部说明 */}
+          <div className="selector-footer">
+            <p className="future-feature-note">
+              <i className="fas fa-info-circle"></i>
+              在未来的版本中将添加上传自定义图片作为头像的功能
+            </p>
+          </div>
+        </div>
+      </>
+    );
+
+    return createPortal(modalContent, document.body);
   };
 
   // 获取头像显示内容
   const getAvatarContent = () => {
-    if (previewUrl) {
-      return <img src={previewUrl} alt="头像预览" className="avatar-image" />;
+    if (selectedAvatar) {
+      return (
+        <img
+          src={getAvatarUrl(selectedAvatar)}
+          alt={selectedAvatar.name}
+          className="avatar-image"
+        />
+      );
     } else if (currentAvatar) {
-      return <img src={currentAvatar} alt="当前头像" className="avatar-image" />;
+      // 检查是否是头像ID
+      const avatarUrl = getAvatarUrlById(currentAvatar);
+      if (avatarUrl) {
+        return <img src={avatarUrl} alt="当前头像" className="avatar-image" />;
+      } else if (currentAvatar.startsWith('http') || currentAvatar.startsWith('/')) {
+        // 兼容旧的URL格式
+        return <img src={currentAvatar} alt="当前头像" className="avatar-image" />;
+      } else {
+        // 可能是旧的emoji格式，显示为文字
+        return <div className="avatar-placeholder">{currentAvatar}</div>;
+      }
     } else {
       // 显示用户名首字母
       return <div className="avatar-placeholder">{username?.charAt(0) || '用'}</div>;
@@ -109,8 +187,8 @@ export function AvatarUploader({
           {!isUploading && (
             <div className="avatar-overlay">
               <div className="avatar-overlay-text">
-                <i className="fas fa-camera"></i>
-                更换头像
+                <i className="fas fa-palette"></i>
+                选择头像
               </div>
             </div>
           )}
@@ -135,39 +213,8 @@ export function AvatarUploader({
         )}
       </div>
 
-      {/* 隐藏的文件输入 */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        style={{ display: 'none' }}
-        onChange={handleFileChange}
-        accept="image/*"
-      />
-
-      {/* 头像上传选项 */}
-      {showUploadOptions && (
-        <>
-          <div className="upload-overlay" onClick={handleCancelUpload}></div>
-          <div className="upload-options">
-            <div className="upload-title">更换头像</div>
-            <div className="upload-option" onClick={handleTakePhoto}>
-              <div className="option-icon">
-                <i className="fas fa-camera"></i>
-              </div>
-              <div className="option-text">拍照</div>
-            </div>
-            <div className="upload-option" onClick={handleChoosePhoto}>
-              <div className="option-icon">
-                <i className="fas fa-image"></i>
-              </div>
-              <div className="option-text">从相册选择</div>
-            </div>
-            <div className="cancel-upload" onClick={handleCancelUpload}>
-              取消
-            </div>
-          </div>
-        </>
-      )}
+      {/* 头像选择器 - 使用Portal渲染到body */}
+      {renderAvatarSelector()}
     </>
   );
 }

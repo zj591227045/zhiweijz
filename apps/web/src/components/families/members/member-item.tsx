@@ -4,6 +4,7 @@ import { FamilyMember } from '@/types/family';
 import { formatDate } from '@/lib/utils/date-utils';
 import { formatCurrency } from '@/lib/utils/format-utils';
 import { RoleBadge } from './role-badge';
+import { AvatarDisplay } from '@/components/ui/avatar-display';
 
 interface MemberItemProps {
   member: FamilyMember;
@@ -20,11 +21,6 @@ export function MemberItem({
   onToggleRoleSelector,
   onRemove,
 }: MemberItemProps) {
-  // 获取头像显示文本（用户名首字）
-  const getAvatarText = (name: string) => {
-    return name && name.length > 0 ? name.charAt(0).toUpperCase() : '?';
-  };
-
   return (
     <>
       {/* 成员信息和详情的横向容器 */}
@@ -32,11 +28,12 @@ export function MemberItem({
         {/* 头像和基本信息区域 - 上下排列 */}
         <div className="member-avatar-container">
           <div className="member-avatar">
-            {member.avatar ? (
-              <img src={member.avatar} alt={member.username || '用户'} />
-            ) : (
-              getAvatarText(member.username || '')
-            )}
+            <AvatarDisplay
+              avatar={member.avatar}
+              username={member.username}
+              size="large"
+              alt={member.username || '用户'}
+            />
           </div>
 
           {/* 成员基本信息 - 在头像下方 */}
