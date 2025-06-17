@@ -59,6 +59,23 @@ interface SystemResources {
       '15min': number;
     };
   };
+  disk: {
+    drives: Array<{
+      drive: string;
+      total: number;
+      used: number;
+      free: number;
+      usagePercent: number;
+      filesystem: string;
+      note?: string;
+      error?: string;
+    }>;
+    total: number;
+    used: number;
+    free: number;
+    usagePercent: number;
+    error?: string;
+  };
   uptime: {
     system: number;
     process: number;

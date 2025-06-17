@@ -1,5 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import os from 'os';
+import * as fs from 'fs';
+import { promisify } from 'util';
 
 const prisma = new PrismaClient();
 
@@ -256,6 +258,9 @@ export class DashboardService {
       const uptime = os.uptime();
       const processUptime = process.uptime();
 
+      // 获取磁盘空间信息
+      const diskInfo = await this.getDiskSpaceInfo();
+
       return {
         memory: {
           total: totalMemory,
@@ -278,6 +283,7 @@ export class DashboardService {
             '15min': loadAverage[2]
           }
         },
+        disk: diskInfo,
         uptime: {
           system: uptime,
           process: processUptime
@@ -290,4 +296,221 @@ export class DashboardService {
       throw new Error('获取系统资源数据失败');
     }
   }
-} 
+
+  /**
+   * 获取磁盘空间信息
+   */
+  private async getDiskSpaceInfo() {
+    try {
+      const platform = os.platform();
+      const diskInfo: any = {
+        drives: [],
+        total: 0,
+        used: 0,
+        free: 0,
+        usagePercent: 0
+      };
+
+      if (platform === 'win32') {
+        // Windows 系统
+        diskInfo.drives = await this.getWindowsDiskInfo();
+      } else {
+        // Unix-like 系统 (Linux, macOS)
+        diskInfo.drives = await this.getUnixDiskInfo();
+      }
+
+      // 计算总计
+      diskInfo.total = diskInfo.drives.reduce((sum: number, drive: any) => sum + drive.total, 0);
+      diskInfo.used = diskInfo.drives.reduce((sum: number, drive: any) => sum + drive.used, 0);
+      diskInfo.free = diskInfo.drives.reduce((sum: number, drive: any) => sum + drive.free, 0);
+      diskInfo.usagePercent = diskInfo.total > 0 ? (diskInfo.used / diskInfo.total) * 100 : 0;
+
+      return diskInfo;
+    } catch (error) {
+      console.error('获取磁盘空间信息错误:', error);
+      return {
+        drives: [],
+        total: 0,
+        used: 0,
+        free: 0,
+        usagePercent: 0,
+        error: '无法获取磁盘信息'
+      };
+    }
+  }
+
+  /**
+   * 获取 Windows 系统磁盘信息
+   */
+  private async getWindowsDiskInfo() {
+    const drives = [];
+
+    try {
+      // 使用 child_process 执行 wmic 命令获取磁盘信息
+      const { exec } = require('child_process');
+      const { promisify } = require('util');
+      const execAsync = promisify(exec);
+
+      try {
+        const { stdout } = await execAsync('wmic logicaldisk get size,freespace,caption');
+        const lines = stdout.split('\n').filter((line: string) => line.trim() && !line.includes('Caption'));
+
+        for (const line of lines) {
+          const parts = line.trim().split(/\s+/);
+          if (parts.length >= 3) {
+            const caption = parts[0];
+            const freeSpace = parseInt(parts[1]) || 0;
+            const totalSpace = parseInt(parts[2]) || 0;
+            const usedSpace = totalSpace - freeSpace;
+
+            if (totalSpace > 0) {
+              drives.push({
+                drive: caption,
+                total: totalSpace,
+                used: usedSpace,
+                free: freeSpace,
+                usagePercent: (usedSpace / totalSpace) * 100,
+                filesystem: 'NTFS'
+              });
+            }
+          }
+        }
+      } catch (wmicError) {
+        console.warn('无法使用 wmic 获取磁盘信息:', wmicError);
+
+        // 备用方法：检查常见驱动器
+        const driveLetters = ['C:', 'D:', 'E:', 'F:'];
+        for (const driveLetter of driveLetters) {
+          try {
+            await promisify(fs.access)(driveLetter + '\\');
+            drives.push({
+              drive: driveLetter,
+              total: 0,
+              used: 0,
+              free: 0,
+              usagePercent: 0,
+              filesystem: 'NTFS',
+              note: '无法获取详细空间信息'
+            });
+          } catch (error) {
+            // 驱动器不存在，跳过
+            continue;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('获取 Windows 磁盘信息错误:', error);
+    }
+
+    // 如果没有获取到任何驱动器信息，返回当前工作目录的信息
+    if (drives.length === 0) {
+      const currentDrive = process.cwd().substring(0, 2);
+      drives.push({
+        drive: currentDrive,
+        total: 0,
+        used: 0,
+        free: 0,
+        usagePercent: 0,
+        filesystem: 'Unknown',
+        note: '无法获取磁盘信息'
+      });
+    }
+
+    return drives;
+  }
+
+  /**
+   * 获取 Unix-like 系统磁盘信息
+   */
+  private async getUnixDiskInfo() {
+    const drives = [];
+
+    try {
+      // 使用 df 命令获取磁盘信息
+      const { exec } = require('child_process');
+      const { promisify } = require('util');
+      const execAsync = promisify(exec);
+
+      try {
+        const { stdout } = await execAsync('df -h');
+        const lines = stdout.split('\n').slice(1); // 跳过标题行
+
+        for (const line of lines) {
+          if (line.trim()) {
+            const parts = line.trim().split(/\s+/);
+            if (parts.length >= 6) {
+              const filesystem = parts[0];
+              const total = this.parseSize(parts[1]);
+              const used = this.parseSize(parts[2]);
+              const free = this.parseSize(parts[3]);
+              const usagePercent = parseFloat(parts[4].replace('%', '')) || 0;
+              const mountPoint = parts[5];
+
+              // 只包含主要的挂载点
+              if (mountPoint === '/' || mountPoint.startsWith('/home') ||
+                  mountPoint.startsWith('/var') || mountPoint.startsWith('/usr')) {
+                drives.push({
+                  drive: mountPoint,
+                  total,
+                  used,
+                  free,
+                  usagePercent,
+                  filesystem: filesystem.includes('/') ? filesystem.split('/').pop() : filesystem
+                });
+              }
+            }
+          }
+        }
+      } catch (dfError) {
+        console.warn('无法使用 df 命令获取磁盘信息:', dfError);
+
+        // 备用方法：返回基本的根目录信息
+        drives.push({
+          drive: '/',
+          total: 0,
+          used: 0,
+          free: 0,
+          usagePercent: 0,
+          filesystem: 'Unknown',
+          note: '无法获取详细磁盘信息'
+        });
+      }
+    } catch (error) {
+      console.error('获取 Unix 磁盘信息错误:', error);
+      drives.push({
+        drive: '/',
+        total: 0,
+        used: 0,
+        free: 0,
+        usagePercent: 0,
+        filesystem: 'Unknown',
+        error: '无法获取磁盘信息'
+      });
+    }
+
+    return drives;
+  }
+
+  /**
+   * 解析磁盘大小字符串 (如 "10G", "500M", "1.5T")
+   */
+  private parseSize(sizeStr: string): number {
+    if (!sizeStr || sizeStr === '-') return 0;
+
+    const units: { [key: string]: number } = {
+      'K': 1024,
+      'M': 1024 * 1024,
+      'G': 1024 * 1024 * 1024,
+      'T': 1024 * 1024 * 1024 * 1024
+    };
+
+    const match = sizeStr.match(/^([\d.]+)([KMGT]?)$/i);
+    if (match) {
+      const value = parseFloat(match[1]);
+      const unit = match[2].toUpperCase();
+      return value * (units[unit] || 1);
+    }
+
+    return 0;
+  }
+}

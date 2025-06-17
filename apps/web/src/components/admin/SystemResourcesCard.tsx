@@ -124,6 +124,60 @@ export function SystemResourcesCard({ data, isLoading = false }: SystemResources
           </div>
         )}
 
+        {/* 磁盘使用情况 */}
+        {data.disk && (
+          <div>
+            <div className="flex justify-between text-sm text-gray-600 mb-1">
+              <span>磁盘使用</span>
+              <span>{data.disk.usagePercent.toFixed(1)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  data.disk.usagePercent > 80 ? 'bg-red-500' :
+                  data.disk.usagePercent > 60 ? 'bg-yellow-500' : 'bg-green-500'
+                }`}
+                style={{ width: `${data.disk.usagePercent}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>已用: {formatBytes(data.disk.used || 0)}</span>
+              <span>总计: {formatBytes(data.disk.total || 0)}</span>
+            </div>
+
+            {/* 磁盘驱动器详情 */}
+            {data.disk.drives && data.disk.drives.length > 0 && (
+              <div className="mt-2 space-y-1">
+                <div className="text-xs text-gray-500 mb-1">驱动器详情:</div>
+                {data.disk.drives.slice(0, 3).map((drive: any, index: number) => (
+                  <div key={index} className="flex justify-between text-xs">
+                    <span className="text-gray-600">{drive.drive}</span>
+                    <span className="font-medium">
+                      {formatBytes(drive.used)} / {formatBytes(drive.total)}
+                      {drive.total > 0 && (
+                        <span className="ml-1 text-gray-500">
+                          ({drive.usagePercent.toFixed(0)}%)
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                ))}
+                {data.disk.drives.length > 3 && (
+                  <div className="text-xs text-gray-500 text-center">
+                    ... 还有 {data.disk.drives.length - 3} 个驱动器
+                  </div>
+                )}
+              </div>
+            )}
+
+            {data.disk.error && (
+              <div className="text-xs text-red-500 mt-1">
+                {data.disk.error}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* 系统信息 */}
         <div className="pt-2 border-t border-gray-200">
           <div className="grid grid-cols-1 gap-2 text-xs text-gray-600">

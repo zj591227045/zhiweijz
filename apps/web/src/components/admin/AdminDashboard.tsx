@@ -5,6 +5,7 @@ import { useAdminDashboard } from '@/store/admin/useAdminDashboard';
 import { StatsCard } from './StatsCard';
 import { ChartCard } from './ChartCard';
 import { SystemResourcesCard } from './SystemResourcesCard';
+import { DiskMonitoringCard } from './DiskMonitoringCard';
 import { 
   UsersIcon, 
   CreditCardIcon, 
@@ -194,11 +195,19 @@ export function AdminDashboard() {
         </div>
 
         {/* 系统资源 */}
-        <SystemResourcesCard 
+        <SystemResourcesCard
           data={systemResources}
+          isLoading={isLoading.systemResources}
+        />
+      </div>
+
+      {/* 磁盘空间监控 */}
+      <div className="grid grid-cols-1 gap-6">
+        <DiskMonitoringCard
+          data={systemResources?.disk || null}
           isLoading={isLoading.systemResources}
         />
       </div>
     </div>
   );
-} 
+}
