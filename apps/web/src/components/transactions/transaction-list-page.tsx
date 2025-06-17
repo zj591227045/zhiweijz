@@ -33,6 +33,7 @@ export function TransactionListPage() {
   const searchParams = useSearchParams();
   const { isAuthenticated } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [groupedTransactions, setGroupedTransactions] = useState<any[]>([]);
@@ -40,6 +41,13 @@ export function TransactionListPage() {
     income: 0,
     expense: 0,
     balance: 0,
+  });
+
+  // 分页状态
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    hasMore: true,
+    total: 0,
   });
 
   // 多选状态
@@ -81,16 +89,22 @@ export function TransactionListPage() {
     }
   }, [isAuthenticated, router]);
 
-  // 获取交易数据的函数
-  const fetchTransactions = async () => {
+  // 获取交易数据的函数（重置数据）
+  const fetchTransactions = async (resetData = true) => {
     try {
-      setIsLoading(true);
+      if (resetData) {
+        setIsLoading(true);
+        setPagination({ currentPage: 1, hasMore: true, total: 0 });
+      } else {
+        setIsLoadingMore(true);
+      }
       setError(null);
 
       // 构建查询参数
       const queryParams: Record<string, any> = {
         startDate: filters.startDate,
         endDate: filters.endDate,
+        page: resetData ? 1 : pagination.currentPage + 1,
         limit: 20,
         sort: 'date:desc',
       };
@@ -117,46 +131,104 @@ export function TransactionListPage() {
         params: queryParams,
       });
 
-      // 获取统计数据
-      const statsResponse = await apiClient.get('/statistics/overview', {
-        params: {
-          startDate: filters.startDate,
-          endDate: filters.endDate,
-          accountBookId: filters.accountBookId || undefined,
-          type: filters.transactionType !== 'ALL' ? filters.transactionType : undefined,
-          categoryIds: filters.categoryIds.length > 0 ? filters.categoryIds.join(',') : undefined,
-          budgetId: budgetId || undefined,
-        },
-      });
-
       if (response && response.data) {
-        setTransactions(response.data);
+        const newTransactions = response.data;
+        const newTotal = response.total || 0;
+        const currentPage = queryParams.page;
+        const hasMore = newTransactions.length === queryParams.limit && (currentPage * queryParams.limit) < newTotal;
 
-        // 按日期分组交易
-        const grouped = groupTransactionsByDate(response.data);
-        setGroupedTransactions(grouped);
-      }
+        if (resetData) {
+          setTransactions(newTransactions);
+          // 获取统计数据（只在重置时获取）
+          const statsResponse = await apiClient.get('/statistics/overview', {
+            params: {
+              startDate: filters.startDate,
+              endDate: filters.endDate,
+              accountBookId: filters.accountBookId || undefined,
+              type: filters.transactionType !== 'ALL' ? filters.transactionType : undefined,
+              categoryIds: filters.categoryIds.length > 0 ? filters.categoryIds.join(',') : undefined,
+              budgetId: budgetId || undefined,
+            },
+          });
 
-      if (statsResponse) {
-        setStatistics({
-          income: statsResponse.income || 0,
-          expense: statsResponse.expense || 0,
-          balance: (statsResponse.income || 0) - (statsResponse.expense || 0),
+          if (statsResponse) {
+            setStatistics({
+              income: statsResponse.income || 0,
+              expense: statsResponse.expense || 0,
+              balance: (statsResponse.income || 0) - (statsResponse.expense || 0),
+            });
+          }
+        } else {
+          // 追加新数据
+          setTransactions(prev => {
+            const updatedTransactions = [...prev, ...newTransactions];
+            // 立即更新分组数据
+            const grouped = groupTransactionsByDate(updatedTransactions);
+            setGroupedTransactions(grouped);
+            return updatedTransactions;
+          });
+        }
+
+        // 更新分页状态
+        setPagination({
+          currentPage,
+          hasMore,
+          total: newTotal,
         });
+
+        // 如果是重置数据，重新分组
+        if (resetData) {
+          const grouped = groupTransactionsByDate(newTransactions);
+          setGroupedTransactions(grouped);
+        }
       }
 
-      setIsLoading(false);
+      if (resetData) {
+        setIsLoading(false);
+      } else {
+        setIsLoadingMore(false);
+      }
     } catch (error) {
       console.error('获取交易数据失败:', error);
       setError('获取交易数据失败，请重试');
-      setIsLoading(false);
+      if (resetData) {
+        setIsLoading(false);
+      } else {
+        setIsLoadingMore(false);
+      }
     }
   };
+
+  // 加载更多数据
+  const loadMoreTransactions = async () => {
+    if (!pagination.hasMore || isLoadingMore || isLoading) return;
+    await fetchTransactions(false);
+  };
+
+  // 滚动监听器
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!scrollContainerRef.current) return;
+
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+      const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100; // 提前100px触发
+
+      if (isNearBottom && pagination.hasMore && !isLoadingMore && !isLoading) {
+        loadMoreTransactions();
+      }
+    };
+
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+      return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    }
+  }, [pagination.hasMore, isLoadingMore, isLoading]);
 
   // 获取交易数据
   useEffect(() => {
     if (!isAuthenticated) return;
-    fetchTransactions();
+    fetchTransactions(true);
   }, [isAuthenticated, filters, budgetId]);
 
   // 获取筛选选项数据
@@ -380,7 +452,7 @@ export function TransactionListPage() {
       rightActions={rightActions}
       activeNavItem="profile"
     >
-      <div ref={scrollContainerRef}>
+      <div ref={scrollContainerRef} style={{ height: '100vh', overflowY: 'auto' }}>
         {/* 筛选区域 - 简化版 */}
         {filters.isFilterPanelOpen && (
           <div className="filter-panel">
@@ -555,6 +627,21 @@ export function TransactionListPage() {
                 </div>
               </div>
             ))}
+
+            {/* 加载更多指示器 */}
+            {isLoadingMore && (
+              <div className="loading-more">
+                <div className="loading-spinner"></div>
+                <span>加载更多...</span>
+              </div>
+            )}
+
+            {/* 没有更多数据提示 */}
+            {!pagination.hasMore && transactions.length > 0 && (
+              <div className="no-more-data">
+                <span>已加载全部 {pagination.total} 条记录</span>
+              </div>
+            )}
           </div>
         ) : (
           <div className="empty-state">

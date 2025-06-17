@@ -522,3 +522,45 @@
 .icon-button:disabled:hover {
   background-color: transparent;
 }
+
+/* 加载更多指示器 */
+.loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  gap: 8px;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-color);
+  border-top: 2px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 没有更多数据提示 */
+.no-more-data {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  border-top: 1px solid var(--border-color);
+  margin-top: 16px;
+}
+
+.no-more-data span {
+  background-color: var(--background-secondary);
+  padding: 8px 16px;
+  border-radius: 16px;
+}

@@ -21,6 +21,9 @@ router.put('/me/profile', authenticate, (req, res) => userController.updateUserP
 // 上传当前用户的头像 - 需要认证
 router.post('/me/avatar', authenticate, avatarUpload.single('avatar'), (req, res) => userController.uploadAvatar(req, res));
 
+// 更新当前用户的头像ID（预设头像） - 需要认证
+router.put('/me/avatar', authenticate, (req, res) => userController.updateAvatarId(req, res));
+
 // 获取单个用户 - 需要认证
 router.get('/:id', authenticate, (req, res) => userController.getUser(req, res));
 

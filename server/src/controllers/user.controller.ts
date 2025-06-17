@@ -144,6 +144,44 @@ export class UserController {
   }
 
   /**
+   * 更新用户头像ID（预设头像）
+   */
+  async updateAvatarId(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const { avatarId } = req.body;
+      if (!avatarId || typeof avatarId !== 'string') {
+        res.status(400).json({ message: '头像ID不能为空' });
+        return;
+      }
+
+      console.log('更新用户头像ID:', { userId, avatarId });
+
+      // 更新用户头像ID
+      const updateData: UpdateUserDto = {
+        avatar: avatarId
+      };
+
+      await this.userService.updateUser(userId, updateData);
+
+      // 返回头像ID
+      res.status(200).json({ avatar: avatarId });
+    } catch (error) {
+      console.error('更新头像ID失败:', error);
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '更新头像ID失败' });
+      }
+    }
+  }
+
+  /**
    * 创建新用户
    */
   async createUser(req: Request, res: Response): Promise<void> {
