@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信绑定测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        input, button {
+            padding: 8px 12px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #218838;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 微信绑定功能测试</h1>
+        
+        <div class="info">
+            <strong>说明：</strong>这是一个测试页面，用于验证微信绑定功能是否正常工作。
+        </div>
+
+        <div class="test-section">
+            <h3>1. 访问绑定页面</h3>
+            <p>点击下面的链接访问微信绑定页面：</p>
+            <a href="/public/wechat-binding.html" class="btn" target="_blank">打开绑定页面</a>
+            <a href="/public/wechat-binding.html?openid=test_user_123" class="btn" target="_blank">带测试OpenID打开</a>
+        </div>
+
+        <div class="test-section">
+            <h3>2. 测试登录API</h3>
+            <p>测试用户登录并获取账本列表：</p>
+            <input type="email" id="testEmail" placeholder="邮箱地址" value="test@example.com">
+            <input type="password" id="testPassword" placeholder="密码" value="123456">
+            <button onclick="testLogin()">测试登录</button>
+            <div id="loginResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. 测试绑定API</h3>
+            <p>测试微信账号绑定：</p>
+            <input type="text" id="testOpenId" placeholder="OpenID" value="test_openid_123">
+            <input type="text" id="testUserId" placeholder="用户ID">
+            <input type="text" id="testAccountBookId" placeholder="账本ID">
+            <button onclick="testBinding()">测试绑定</button>
+            <div id="bindingResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. 微信菜单配置</h3>
+            <p>当前菜单配置：</p>
+            <ul>
+                <li><strong>访问官网：</strong> https://www.zhiweijz.cn</li>
+                <li><strong>账号绑定：</strong> https://wxapp.zhiweijz.cn/public/wechat-binding.html</li>
+                <li><strong>下载App：</strong> https://www.zhiweijz.cn/downloads</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>5. 环境信息</h3>
+            <p id="envInfo"></p>
+        </div>
+    </div>
+
+    <script>
+        // 显示环境信息
+        document.getElementById('envInfo').innerHTML = `
+            <strong>当前URL：</strong> ${window.location.href}<br>
+            <strong>User Agent：</strong> ${navigator.userAgent}<br>
+            <strong>是否微信环境：</strong> ${/MicroMessenger/i.test(navigator.userAgent) ? '是' : '否'}
+        `;
+
+        // 测试登录API
+        async function testLogin() {
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+            const resultDiv = document.getElementById('loginResult');
+
+            if (!email || !password) {
+                alert('请填写邮箱和密码');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/wechat/login-and-get-books', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+                resultDiv.style.display = 'block';
+                resultDiv.textContent = JSON.stringify(result, null, 2);
+
+                // 如果登录成功，自动填充用户ID和第一个账本ID
+                if (result.success && result.data) {
+                    document.getElementById('testUserId').value = result.data.user.id;
+                    if (result.data.accountBooks.length > 0) {
+                        document.getElementById('testAccountBookId').value = result.data.accountBooks[0].id;
+                    }
+                }
+            } catch (error) {
+                resultDiv.style.display = 'block';
+                resultDiv.textContent = '请求失败: ' + error.message;
+            }
+        }
+
+        // 测试绑定API
+        async function testBinding() {
+            const openid = document.getElementById('testOpenId').value;
+            const userId = document.getElementById('testUserId').value;
+            const accountBookId = document.getElementById('testAccountBookId').value;
+            const resultDiv = document.getElementById('bindingResult');
+
+            if (!openid || !userId || !accountBookId) {
+                alert('请填写所有必要参数');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/wechat/bind-account', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ openid, userId, accountBookId })
+                });
+
+                const result = await response.json();
+                resultDiv.style.display = 'block';
+                resultDiv.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultDiv.style.display = 'block';
+                resultDiv.textContent = '请求失败: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

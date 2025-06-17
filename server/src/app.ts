@@ -58,6 +58,11 @@ app.use(trackApiCall);
 const dataDir = path.join(process.cwd(), '..', 'data');
 app.use('/data', express.static(dataDir));
 
+// 临时启用public目录访问（仅用于微信域名验证）
+// ⚠️ 验证完成后需要立即移除此配置
+const publicDir = path.join(process.cwd(), 'public');
+app.use(express.static(publicDir));
+
 // 根路由
 app.get('/', (req: Request, res: Response) => {
   res.json({ message: '欢迎使用只为记账API' });

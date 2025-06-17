@@ -12,6 +12,7 @@
 - **预算管理**: 个人和家庭预算设置，支持预算透支顺延
 - **家庭账本**: 多用户共享账本，支持未注册用户(如孩子)的支出记录
 - **AI驱动**: 智能交易分类，消费模式分析，预算建议
+- **微信集成**: 支持微信服务号智能记账，便捷的移动端记账体验
 
 ## 技术栈
 
@@ -116,6 +117,13 @@ docker pull zj591227045/zhiweijz-backend:latest
 - [详细部署文档](docker/docs/DEPLOYMENT.md)
 - [故障排除指南](docker/docs/TROUBLESHOOTING.md)
 
+### 微信集成文档
+
+- [微信集成快速启动](docs/wechat_integration/quick_start.md)
+- [微信集成API文档](docs/wechat_integration/api_integration.md)
+- [微信集成部署指南](docs/wechat_integration/deployment_guide.md)
+- [微信集成项目总结](docs/wechat_integration/project_summary.md)
+
 ## 开发指南
 
 ### 环境要求
@@ -179,6 +187,25 @@ yarn workspace @zhiweijz/ios-app ios
 
 # 构建应用
 yarn workspace @zhiweijz/ios-app build
+```
+
+**微信集成开发**：
+
+```bash
+# 进入服务器目录
+cd server
+
+# 启动微信集成开发环境（包含环境检查）
+npm run wechat:dev
+
+# 运行微信集成测试
+npm run wechat:test
+
+# 清理微信消息日志
+npm run wechat:cleanup
+
+# 检查微信服务状态
+curl http://localhost:3000/api/wechat/health
 ```
 
 ### 代码共享指南

@@ -753,7 +753,7 @@ export class SmartAccounting {
         // 预算信息
         budgetId: state.matchedBudget?.id,
         budgetName: budget?.name || state.matchedBudget?.name,
-        budgetOwnerName: budgetOwnerName,
+        budgetOwnerName: budgetOwnerName || undefined,
         budgetType: budget?.period === 'MONTHLY' ? 'PERSONAL' : 'GENERAL',
 
         // 用户信息
@@ -792,6 +792,7 @@ export class SmartAccounting {
         accountType: state.accountType || 'personal',
         budgetId: state.matchedBudget?.id,
         budgetName: state.matchedBudget?.name,
+        budgetOwnerName: undefined, // 添加缺失的 budgetOwnerName 字段
         userId: state.userId,
         confidence: state.analyzedTransaction.confidence,
         createdAt: new Date(),

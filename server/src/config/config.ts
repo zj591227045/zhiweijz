@@ -25,6 +25,12 @@ interface Config {
   openai?: {
     apiKey: string;
   };
+  wechat?: {
+    appId: string;
+    appSecret: string;
+    token: string;
+    encodingAESKey?: string;
+  };
 }
 
 const config: Config = {
@@ -54,6 +60,16 @@ if (process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && p
 if (process.env.OPENAI_API_KEY) {
   config.openai = {
     apiKey: process.env.OPENAI_API_KEY,
+  };
+}
+
+// 微信配置
+if (process.env.WECHAT_APP_ID && process.env.WECHAT_APP_SECRET && process.env.WECHAT_TOKEN) {
+  config.wechat = {
+    appId: process.env.WECHAT_APP_ID,
+    appSecret: process.env.WECHAT_APP_SECRET,
+    token: process.env.WECHAT_TOKEN,
+    encodingAESKey: process.env.WECHAT_ENCODING_AES_KEY,
   };
 }
 

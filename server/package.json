@@ -6,13 +6,13 @@
   "scripts": {
     "start": "node dist/index.js",
     "start:auto": "node scripts/auto-upgrade-on-start.js",
-    "start:dev": "ts-node src/index.ts",
-    "dev": "nodemon --exec ts-node src/index.ts",
+    "start:dev": "ts-node -r tsconfig-paths/register src/index.ts",
+    "dev": "nodemon --exec \"ts-node -r tsconfig-paths/register src/index.ts\"",
     "build": "npx tsc",
     "test": "jest",
-    "budget-scheduler": "ts-node scripts/budget-scheduler.ts",
-    "test-budget-auto-continuation": "ts-node scripts/test-budget-auto-continuation.ts",
-    "test-budget-date-utils": "ts-node scripts/test-budget-date-utils.ts",
+    "budget-scheduler": "ts-node -r tsconfig-paths/register scripts/budget-scheduler.ts",
+    "test-budget-auto-continuation": "ts-node -r tsconfig-paths/register scripts/test-budget-auto-continuation.ts",
+    "test-budget-date-utils": "ts-node -r tsconfig-paths/register scripts/test-budget-date-utils.ts",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "prisma:generate": "npx prisma generate",
@@ -25,9 +25,14 @@
     "migrate:fix-constraint": "node scripts/fix-schema-versions-constraint.js",
     "docker:start": "bash scripts/docker-start.sh",
     "health": "node scripts/health-check.js",
-    "admin:init": "ts-node src/admin/scripts/init-admin.ts",
-    "admin:aggregate": "ts-node src/admin/scripts/start-aggregation.ts --run-now",
-    "db:enable-user-ai": "node ../scripts/database/enable-user-ai-services.js"
+    "admin:init": "ts-node -r tsconfig-paths/register src/admin/scripts/init-admin.ts",
+    "admin:aggregate": "ts-node -r tsconfig-paths/register src/admin/scripts/start-aggregation.ts --run-now",
+    "create-wechat-menu": "ts-node -r tsconfig-paths/register scripts/create-wechat-menu.ts",
+    "cleanup-wechat-verification": "node scripts/cleanup-wechat-verification.js",
+    "db:enable-user-ai": "node ../scripts/database/enable-user-ai-services.js",
+    "wechat:dev": "node scripts/start-wechat-dev.js",
+    "wechat:test": "node scripts/test-wechat-integration.js",
+    "wechat:cleanup": "node -e \"require('./dist/services/wechat-config.service').WechatConfigService.prototype.cleanupOldLogs(30)\""
   },
   "dependencies": {
     "@langchain/core": "^0.3.56",
@@ -37,6 +42,7 @@
     "@types/archiver": "^6.0.3",
     "@types/multer": "^1.4.12",
     "@types/uuid": "^10.0.0",
+    "@types/xml2js": "^0.4.14",
     "archiver": "^7.0.1",
     "axios": "^1.9.0",
     "bcrypt": "^5.1.0",
@@ -56,7 +62,8 @@
     "prisma": "5.20.0",
     "react-swipeable": "^7.0.2",
     "typescript": "^5.1.6",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "xml2js": "^0.6.2"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",

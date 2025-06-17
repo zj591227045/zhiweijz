@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信账号绑定 - 只为记账</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .form-container {
+            padding: 30px 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .account-book-item {
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .account-book-item:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .account-book-item.selected {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .account-book-item h4 {
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .account-book-item p {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .account-books-container {
+            display: none;
+        }
+
+        .account-book-item {
+            display: block;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .account-book-item input[type="radio"] {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .account-book-item input[type="radio"]:checked {
+            accent-color: #667eea;
+        }
+
+        .account-book-item:has(input[type="radio"]:checked) {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .book-content {
+            padding-right: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 账号绑定</h1>
+            <p>绑定您的只为记账账号，开启智能记账</p>
+        </div>
+
+        <div class="form-container">
+            <div class="message" id="message"></div>
+            
+            <form id="bindingForm" method="POST" action="/api/wechat/login-and-get-books">
+                <div class="form-group">
+                    <label for="email">邮箱地址</label>
+                    <input type="email" id="email" name="email" required placeholder="请输入您的邮箱">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" name="password" required placeholder="请输入您的密码">
+                </div>
+
+                <input type="hidden" name="openid" value="{{OPENID_PLACEHOLDER}}">
+
+                <button type="submit" class="btn" id="loginBtn">登录并获取账本</button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <span>正在处理...</span>
+            </div>
+
+            <div class="account-books-container" id="accountBooksContainer">
+                <h3 style="margin-bottom: 16px; color: #333;">选择要绑定的账本：</h3>
+                <form method="POST" action="/api/wechat/bind-account" id="bindAccountForm">
+                    <input type="hidden" name="openid" value="{{OPENID_PLACEHOLDER}}">
+                    <input type="hidden" name="userId" id="hiddenUserId">
+                    <div id="accountBooksList"></div>
+
+                    <button type="submit" class="btn" id="bindBtn" style="margin-top: 20px;">确认绑定</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 只为记账 - 让记账更简单</p>
+        </div>
+    </div>
+
+    <script>
+        // 处理登录表单提交
+        document.getElementById('bindingForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const loginBtn = document.getElementById('loginBtn');
+            const loading = document.getElementById('loading');
+            const message = document.getElementById('message');
+
+            loginBtn.disabled = true;
+            loading.style.display = 'block';
+            message.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/wechat/login-and-get-books', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.text();
+
+                if (response.ok) {
+                    // 登录成功，显示返回的账本选择页面
+                    document.body.innerHTML = result;
+                } else {
+                    message.textContent = '登录失败，请检查账号密码';
+                    message.className = 'message error';
+                    message.style.display = 'block';
+                }
+            } catch (error) {
+                message.textContent = '网络错误，请稍后重试';
+                message.className = 'message error';
+                message.style.display = 'block';
+            } finally {
+                loginBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

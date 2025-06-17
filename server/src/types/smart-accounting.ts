@@ -10,6 +10,7 @@ export interface SmartAccountingResult {
   accountType: string;
   budgetId?: string;
   budgetName?: string;
+  budgetOwnerName?: string;
   budgetType?: string;
   userId: string;
   confidence: number;

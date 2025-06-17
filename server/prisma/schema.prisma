@@ -9,35 +9,37 @@ datasource db {
 }
 
 model User {
-  id                  String               @id @default(uuid())
-  email               String               @unique
-  passwordHash        String               @map("password")
-  name                String
-  createdAt           DateTime             @default(now()) @map("created_at")
-  updatedAt           DateTime             @updatedAt @map("updated_at")
-  avatar              String?
-  bio                 String?
-  birthDate           DateTime?            @map("birth_date")
-  passwordChangedAt   DateTime?            @map("password_changed_at")
-  isCustodial         Boolean              @default(false) @map("is_custodial")
-  isActive            Boolean              @default(true) @map("is_active")
-  dailyLlmTokenLimit  Int?                 @map("daily_llm_token_limit")
-  accountBooks        AccountBook[]
-  budgetHistories     BudgetHistory[]
-  budgets             Budget[]
-  categories          Category[]
-  families            Family[]             @relation("FamilyCreator")
-  familyMembers       FamilyMember[]
-  passwordResetTokens PasswordResetToken[]
-  securityLogs        SecurityLog[]
-  sessions            Session[]
-  transactions        Transaction[]
-  categoryConfigs     UserCategoryConfig[]
-  feedback            UserFeedback[]
-  llmSettings         UserLLMSetting[]
-  settings            UserSetting[]
-  verificationCodes   VerificationCode[]
+  id                   String                 @id @default(uuid())
+  email                String                 @unique
+  passwordHash         String                 @map("password")
+  name                 String
+  createdAt            DateTime               @default(now()) @map("created_at")
+  updatedAt            DateTime               @updatedAt @map("updated_at")
+  avatar               String?
+  bio                  String?
+  birthDate            DateTime?              @map("birth_date")
+  passwordChangedAt    DateTime?              @map("password_changed_at")
+  isCustodial          Boolean                @default(false) @map("is_custodial")
+  isActive             Boolean                @default(true) @map("is_active")
+  dailyLlmTokenLimit   Int?                   @map("daily_llm_token_limit")
+  accountBooks         AccountBook[]
+  budgetHistories      BudgetHistory[]
+  budgets              Budget[]
+  categories           Category[]
+  families             Family[]               @relation("FamilyCreator")
+  familyMembers        FamilyMember[]
+  passwordResetTokens  PasswordResetToken[]
+  securityLogs         SecurityLog[]
+  sessions             Session[]
+  transactions         Transaction[]
+  categoryConfigs      UserCategoryConfig[]
+  feedback             UserFeedback[]
+  llmSettings          UserLLMSetting[]
+  settings             UserSetting[]
+  verificationCodes    VerificationCode[]
+  wechat_user_bindings wechat_user_bindings[]
 
+  @@index([isActive], map: "idx_users_is_active")
   @@map("users")
 }
 
@@ -243,25 +245,26 @@ model AccountLLMSetting {
 }
 
 model AccountBook {
-  id                String             @id @default(uuid())
-  name              String
-  description       String?
-  userId            String             @map("user_id")
-  isDefault         Boolean            @default(false) @map("is_default")
-  createdAt         DateTime           @default(now()) @map("created_at")
-  updatedAt         DateTime           @updatedAt @map("updated_at")
-  familyId          String?            @map("family_id")
-  type              AccountBookType    @default(PERSONAL) @map("type")
-  createdBy         String?            @map("created_by")
-  userLLMSettingId  String?            @map("user_llm_setting_id")
-  family            Family?            @relation(fields: [familyId], references: [id])
-  user              User               @relation(fields: [userId], references: [id])
-  userLLMSetting    UserLLMSetting?    @relation(fields: [userLLMSettingId], references: [id])
-  accountLLMSetting AccountLLMSetting?
-  budgetHistories   BudgetHistory[]
-  budgets           Budget[]
-  categories        Category[]
-  transactions      Transaction[]
+  id                   String                 @id @default(uuid())
+  name                 String
+  description          String?
+  userId               String                 @map("user_id")
+  isDefault            Boolean                @default(false) @map("is_default")
+  createdAt            DateTime               @default(now()) @map("created_at")
+  updatedAt            DateTime               @updatedAt @map("updated_at")
+  familyId             String?                @map("family_id")
+  type                 AccountBookType        @default(PERSONAL) @map("type")
+  createdBy            String?                @map("created_by")
+  userLLMSettingId     String?                @map("user_llm_setting_id")
+  family               Family?                @relation(fields: [familyId], references: [id])
+  user                 User                   @relation(fields: [userId], references: [id])
+  userLLMSetting       UserLLMSetting?        @relation(fields: [userLLMSettingId], references: [id])
+  accountLLMSetting    AccountLLMSetting?
+  budgetHistories      BudgetHistory[]
+  budgets              Budget[]
+  categories           Category[]
+  transactions         Transaction[]
+  wechat_user_bindings wechat_user_bindings[]
 
   @@map("account_books")
 }
@@ -396,17 +399,15 @@ model UserLLMSetting {
 }
 
 model Admin {
-  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username     String     @unique(map: "admins_username_unique") @db.VarChar(50)
-  passwordHash String     @map("password_hash") @db.VarChar(255)
-  email        String?    @unique(map: "admins_email_unique") @db.VarChar(100)
-  role         admin_role @default(ADMIN)
-  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt    DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  lastLoginAt  DateTime?  @map("last_login_at") @db.Timestamptz(6)
-  isActive     Boolean    @default(true) @map("is_active")
-  
-  // Relations
+  id                   String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username             String         @unique(map: "admins_username_unique") @db.VarChar(50)
+  passwordHash         String         @map("password_hash") @db.VarChar(255)
+  email                String?        @unique(map: "admins_email_unique") @db.VarChar(100)
+  role                 admin_role     @default(ADMIN)
+  createdAt            DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  lastLoginAt          DateTime?      @map("last_login_at") @db.Timestamptz(6)
+  isActive             Boolean        @default(true) @map("is_active")
   createdAnnouncements Announcement[] @relation("AnnouncementCreator")
   updatedAnnouncements Announcement[] @relation("AnnouncementUpdater")
 
@@ -446,11 +447,9 @@ model Announcement {
   updatedAt      DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   createdBy      String                @map("created_by") @db.Uuid
   updatedBy      String?               @map("updated_by") @db.Uuid
-  
-  // Relations
+  readings       AnnouncementRead[]
   creator        Admin                 @relation("AnnouncementCreator", fields: [createdBy], references: [id])
   updater        Admin?                @relation("AnnouncementUpdater", fields: [updatedBy], references: [id])
-  readings       AnnouncementRead[]
 
   @@index([priority], map: "idx_announcements_priority")
   @@index([publishedAt], map: "idx_announcements_published_at")
@@ -460,13 +459,11 @@ model Announcement {
 }
 
 model AnnouncementRead {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  announcementId String   @map("announcement_id") @db.Uuid
-  userId         String   @map("user_id")
-  readAt         DateTime @default(now()) @map("read_at") @db.Timestamptz(6)
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  
-  // Relations
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  announcementId String       @map("announcement_id") @db.Uuid
+  userId         String       @map("user_id")
+  readAt         DateTime     @default(now()) @map("read_at") @db.Timestamptz(6)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   announcement   Announcement @relation(fields: [announcementId], references: [id])
 
   @@unique([announcementId, userId], map: "idx_announcement_reads_unique")
@@ -565,6 +562,43 @@ model SchemaVersion {
   migrationFile String?  @unique(map: "schema_versions_migration_file_unique") @map("migration_file") @db.VarChar(255)
 
   @@map("schema_versions")
+}
+
+model wechat_message_logs {
+  id                   String               @id
+  openid               String
+  message_type         String
+  content              String?
+  response             String?
+  status               String               @default("pending")
+  error_message        String?
+  processing_time      Int?
+  created_at           DateTime             @default(now())
+  wechat_user_bindings wechat_user_bindings @relation(fields: [openid], references: [openid], onDelete: Cascade, onUpdate: NoAction, map: "fk_wechat_message_logs_binding")
+
+  @@index([message_type], map: "idx_wechat_message_logs_message_type")
+  @@index([openid, created_at(sort: Desc)], map: "idx_wechat_message_logs_openid_time")
+  @@index([status, created_at(sort: Desc)], map: "idx_wechat_message_logs_status_time")
+}
+
+model wechat_user_bindings {
+  id                      String                @id
+  openid                  String                @unique
+  user_id                 String
+  default_account_book_id String?
+  zhiwei_token            String?
+  zhiwei_refresh_token    String?
+  token_expires_at        DateTime?
+  is_active               Boolean               @default(true)
+  created_at              DateTime              @default(now())
+  updated_at              DateTime
+  wechat_message_logs     wechat_message_logs[]
+  account_books           AccountBook?          @relation(fields: [default_account_book_id], references: [id], onUpdate: NoAction, map: "fk_wechat_user_bindings_account_book")
+  users                   User                  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_wechat_user_bindings_user")
+
+  @@index([is_active], map: "idx_wechat_user_bindings_is_active")
+  @@index([openid], map: "idx_wechat_user_bindings_openid")
+  @@index([user_id], map: "idx_wechat_user_bindings_user_id")
 }
 
 enum TransactionType {

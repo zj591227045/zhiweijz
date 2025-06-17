@@ -12,7 +12,7 @@ echo -e "${YELLOW}实时日志将被显示${NC}"
 # 设置环境变量以启用详细日志
 export DEBUG=express:*,prisma:*,app:*
 export NODE_ENV=development
-export LOG_LEVEL=debug
+#export LOG_LEVEL=debug
 
 # 切换到项目根目录
 cd "$(dirname "$0")/.."

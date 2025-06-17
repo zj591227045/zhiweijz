@@ -1,22 +1,22 @@
 /** @type {import('next').NextConfig} */
 const path = require('path');
 
-// 检查是否是Web端构建
-const isWebBuild = process.env.IS_WEB_BUILD === 'true';
+// 检查是否是移动端构建（默认为Web端构建）
+const isMobileBuild = process.env.IS_MOBILE_BUILD === 'true';
 
 const nextConfig = {
   reactStrictMode: true,
   
   // 根据构建类型设置不同的配置
-  ...(isWebBuild ? {
-    // Web端配置 - 不导出静态文件
-    // output: 'standalone', // 如果需要的话
-  } : {
+  ...(isMobileBuild ? {
     // 移动端配置 - Capacitor静态导出配置
     output: 'export',
     distDir: 'out',
     trailingSlash: true,
     generateBuildId: () => 'mobile-build',
+  } : {
+    // Web端配置 - 不导出静态文件
+    // output: 'standalone', // 如果需要的话
   }),
   
   // 图片优化配置
@@ -39,8 +39,8 @@ const nextConfig = {
   
   // 环境变量 - 根据构建类型设置
   env: {
-    IS_MOBILE_BUILD: isWebBuild ? 'false' : 'true',
-    NEXT_PUBLIC_IS_MOBILE: isWebBuild ? 'false' : 'true',
+    IS_MOBILE_BUILD: isMobileBuild ? 'true' : 'false',
+    NEXT_PUBLIC_IS_MOBILE: isMobileBuild ? 'true' : 'false',
   },
 
 
@@ -51,10 +51,10 @@ const nextConfig = {
   // 自定义webpack配置
   webpack: (config, { dev, isServer }) => {
     // 检查是否确实是移动端构建
-    const isMobileBuild = process.env.IS_MOBILE_BUILD === 'true';
+    const isMobileBuildWebpack = process.env.IS_MOBILE_BUILD === 'true';
     
     // 只在移动端构建时排除管理页面相关的文件
-    if (isMobileBuild) {
+    if (isMobileBuildWebpack) {
       // 排除管理页面相关的文件
       config.plugins.push(
         new (require('webpack')).IgnorePlugin({
@@ -106,8 +106,8 @@ const nextConfig = {
     // 定义全局变量
     config.plugins.push(
       new (require('webpack')).DefinePlugin({
-        'process.env.IS_MOBILE_BUILD': JSON.stringify(isWebBuild ? 'false' : 'true'),
-        'process.env.NEXT_PUBLIC_IS_MOBILE': JSON.stringify(isWebBuild ? 'false' : 'true'),
+        'process.env.IS_MOBILE_BUILD': JSON.stringify(isMobileBuild ? 'true' : 'false'),
+        'process.env.NEXT_PUBLIC_IS_MOBILE': JSON.stringify(isMobileBuild ? 'true' : 'false'),
       })
     );
 
