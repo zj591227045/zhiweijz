@@ -16,8 +16,10 @@ const nextConfig = {
   // 实验性功能
   experimental: {
     missingSuspenseWithCSRBailout: false,
-    skipTrailingSlashRedirect: true,
   },
+  
+  // skipTrailingSlashRedirect 已经从 experimental 中移出
+  skipTrailingSlashRedirect: true,
   
   // 忽略构建错误
   typescript: {
@@ -43,10 +45,18 @@ const nextConfig = {
       })
     );
     
+    
     // 处理路径别名 - 确保 @ 别名正确指向 src 目录
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname, 'src'),
+      '@/data': path.resolve(__dirname, 'src/data'),
+      '@/components': path.resolve(__dirname, 'src/components'),
+      '@/lib': path.resolve(__dirname, 'src/lib'),
+      '@/store': path.resolve(__dirname, 'src/store'),
+      '@/styles': path.resolve(__dirname, 'src/styles'),
+      '@/utils': path.resolve(__dirname, 'src/utils'),
+      '@/types': path.resolve(__dirname, 'src/types'),
     };
     
     // 确保模块解析路径正确
