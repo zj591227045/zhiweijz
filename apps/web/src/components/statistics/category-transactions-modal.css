@@ -1,0 +1,481 @@
+/* 分类交易记录模态框样式 */
+.category-transactions-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 99999; /* 确保在最顶层 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.3s ease-out;
+  /* 确保模态框可见和可交互 */
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  /* 强制硬件加速 */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.category-transactions-modal {
+  background-color: var(--card-background, #ffffff);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  /* 确保模态框本身不会影响定位 */
+  position: relative;
+  margin: auto;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* 模态框头部 */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  background-color: var(--card-background, #ffffff);
+  flex-shrink: 0;
+}
+
+.modal-title-section {
+  flex: 1;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  margin: 0 0 4px 0;
+}
+
+.modal-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary, #6b7280);
+  margin: 0;
+}
+
+.modal-close-button {
+  background: none;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  color: var(--text-secondary, #6b7280);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.modal-close-button:hover {
+  background-color: var(--hover-background, #f3f4f6);
+  color: var(--text-primary, #111827);
+}
+
+/* 统计摘要 */
+.modal-summary {
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+  background-color: var(--background-secondary, #f9fafb);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  flex-shrink: 0;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.summary-label {
+  font-size: 12px;
+  color: var(--text-secondary, #6b7280);
+  margin-bottom: 4px;
+}
+
+.summary-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+}
+
+.summary-divider {
+  width: 1px;
+  height: 32px;
+  background-color: var(--border-color, #e5e7eb);
+  margin: 0 16px;
+}
+
+/* 模态框内容 */
+.modal-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0;
+}
+
+/* 加载和错误状态 */
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: var(--text-secondary, #6b7280);
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-color, #e5e7eb);
+  border-top: 3px solid var(--primary-color, #3b82f6);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-state i {
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: var(--error-color, #ef4444);
+}
+
+/* 交易分组 */
+.transaction-groups {
+  padding: 0;
+}
+
+.transaction-group {
+  margin-bottom: 0;
+}
+
+.transaction-date {
+  padding: 12px 24px 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary, #6b7280);
+  background-color: var(--background-secondary, #f9fafb);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.transaction-list {
+  background-color: var(--card-background, #ffffff);
+}
+
+/* 交易项 */
+.transaction-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  transition: background-color 0.2s ease;
+}
+
+.transaction-item:last-child {
+  border-bottom: none;
+}
+
+.transaction-item:hover {
+  background-color: var(--hover-background, #f9fafb);
+}
+
+.transaction-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: var(--primary-light, #dbeafe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.transaction-icon i {
+  font-size: 16px;
+  color: var(--primary-color, #3b82f6);
+}
+
+.transaction-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.transaction-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #111827);
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transaction-category {
+  font-size: 12px;
+  color: var(--text-secondary, #6b7280);
+}
+
+.transaction-amount {
+  font-size: 16px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.transaction-amount.expense {
+  color: var(--error-color, #ef4444);
+}
+
+.transaction-amount.income {
+  color: var(--success-color, #10b981);
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--text-secondary, #6b7280);
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 16px;
+}
+
+/* 桌面端优化 - 确保居中显示 */
+@media (min-width: 769px) {
+  .category-transactions-modal-overlay {
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 20px;
+  }
+
+  .category-transactions-modal {
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    border-radius: 16px;
+    animation: slideIn 0.3s ease-out;
+  }
+}
+
+/* 移动端优化 - 也在中央显示 */
+@media (max-width: 768px) {
+  .category-transactions-modal-overlay {
+    padding: 16px;
+    align-items: center; /* 改为居中显示 */
+    justify-content: center;
+    /* 确保移动端全屏覆盖 */
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important; /* 动态视口高度 */
+  }
+
+  .category-transactions-modal {
+    max-width: none;
+    width: 100%;
+    border-radius: 16px; /* 移动端也使用圆角 */
+    max-height: 90vh;
+    max-height: 90dvh; /* 动态视口高度 */
+    animation: slideIn 0.3s ease-out; /* 使用相同的动画 */
+  }
+
+
+
+  .modal-header {
+    padding: 16px 20px;
+  }
+
+  .modal-title {
+    font-size: 16px;
+  }
+
+  .modal-subtitle {
+    font-size: 13px;
+  }
+
+  .modal-summary {
+    padding: 12px 20px;
+  }
+
+  .transaction-date {
+    padding: 10px 20px 6px;
+    font-size: 13px;
+  }
+
+  .transaction-item {
+    padding: 14px 20px;
+  }
+
+  .transaction-icon {
+    width: 36px;
+    height: 36px;
+    margin-right: 10px;
+  }
+
+  .transaction-icon i {
+    font-size: 14px;
+  }
+
+  .transaction-title {
+    font-size: 13px;
+  }
+
+  .transaction-category {
+    font-size: 11px;
+  }
+
+  .transaction-amount {
+    font-size: 14px;
+  }
+}
+
+/* iOS安全区域适配 */
+@supports (padding: max(0px)) {
+  .ios-app .category-transactions-modal,
+  .capacitor-ios .category-transactions-modal {
+    max-height: calc(95vh - env(safe-area-inset-bottom, 0px));
+  }
+
+  .ios-app .modal-header,
+  .capacitor-ios .modal-header {
+    padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  }
+}
+
+/* 暗色主题适配 */
+.dark .category-transactions-modal {
+  background-color: var(--card-background, #1f2937);
+  color: var(--text-primary, #f9fafb);
+}
+
+.dark .modal-header {
+  border-bottom-color: var(--border-color, #374151);
+}
+
+.dark .modal-summary {
+  background-color: var(--background-secondary, #111827);
+  border-bottom-color: var(--border-color, #374151);
+}
+
+.dark .transaction-date {
+  background-color: var(--background-secondary, #111827);
+  border-bottom-color: var(--border-color, #374151);
+}
+
+.dark .transaction-item {
+  border-bottom-color: var(--border-color, #374151);
+}
+
+.dark .transaction-item:hover {
+  background-color: var(--hover-background, #374151);
+}
+
+/* 确保模态框在所有环境下都能正确全屏显示 */
+body:has(.category-transactions-modal-overlay) {
+  overflow: hidden; /* 防止背景滚动 */
+}
+
+/* 兼容性处理 - 如果浏览器不支持 :has() */
+.modal-open {
+  overflow: hidden !important;
+}
+
+/* 确保模态框在 Portal 渲染时的样式 */
+body > .category-transactions-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 99999 !important;
+  /* 确保居中显示 */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  /* 重置任何可能的父级样式影响 */
+  margin: 0 !important;
+  padding: 20px !important;
+  box-sizing: border-box !important;
+}
+
+/* 确保模态框内容在Portal中正确显示 */
+body > .category-transactions-modal-overlay > .category-transactions-modal {
+  position: relative !important;
+  max-width: 600px !important;
+  width: 100% !important;
+  max-height: 90vh !important;
+  margin: 0 !important;
+}
+
+/* 移动端Portal样式 - 也居中显示 */
+@media (max-width: 768px) {
+  body > .category-transactions-modal-overlay {
+    align-items: center !important; /* 改为居中 */
+    justify-content: center !important;
+    padding: 16px !important;
+  }
+
+  body > .category-transactions-modal-overlay > .category-transactions-modal {
+    max-width: none !important;
+    border-radius: 16px !important; /* 移动端也使用圆角 */
+    max-height: 90vh !important;
+    max-height: 90dvh !important;
+  }
+}

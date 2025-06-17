@@ -245,6 +245,85 @@
   border-radius: 4px;
 }
 
+/* 可点击的图例项样式 */
+.statistics-analysis-page .legend-item-clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+}
+
+.statistics-analysis-page .legend-item-clickable:hover {
+  background-color: var(--hover-background, #f3f4f6);
+  border-color: var(--border-color, #e5e7eb);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.statistics-analysis-page .legend-item-clickable:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* 图例箭头 */
+.statistics-analysis-page .legend-arrow {
+  color: var(--text-tertiary, #9ca3af);
+  font-size: 10px;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.statistics-analysis-page .legend-item-clickable:hover .legend-arrow {
+  color: var(--primary-color, #3b82f6);
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+/* 移动端图例优化 */
+@media (max-width: 768px) {
+  .statistics-analysis-page .legend-item-clickable {
+    padding: 12px 16px;
+    margin: 2px 0;
+    border-radius: 8px;
+  }
+
+  .statistics-analysis-page .legend-item-clickable:hover {
+    transform: none; /* 移动端不使用hover变换效果 */
+  }
+
+  .statistics-analysis-page .legend-arrow {
+    opacity: 1; /* 移动端始终显示箭头 */
+  }
+
+  .statistics-analysis-page .legend-color {
+    width: 14px;
+    height: 14px;
+  }
+
+  .statistics-analysis-page .legend-label {
+    font-size: 15px;
+  }
+
+  .statistics-analysis-page .legend-value {
+    font-size: 13px;
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  .statistics-analysis-page .legend-item-clickable:hover {
+    background-color: var(--muted);
+    transform: none;
+    box-shadow: none;
+  }
+
+  .statistics-analysis-page .legend-item-clickable:active {
+    background-color: var(--hover-background, #f3f4f6);
+    transform: scale(0.98);
+  }
+}
+
 .statistics-analysis-page .legend-color {
   width: 12px;
   height: 12px;

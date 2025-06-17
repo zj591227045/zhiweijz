@@ -14,6 +14,9 @@ import { Pie, Bar } from 'react-chartjs-2';
 import { formatCurrency, formatPercentage } from '@/lib/utils';
 import { CategoryStatistics } from '@/types';
 import { useStatisticsStore } from '@/store/statistics-store';
+import { useAccountBookStore } from '@/store/account-book-store';
+import { CategoryTransactionsModal } from './category-transactions-modal';
+import './category-transactions-modal.css';
 
 // 注册Chart.js组件
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
@@ -27,10 +30,18 @@ export function CategoryDistribution({
   expenseCategories,
   incomeCategories,
 }: CategoryDistributionProps) {
-  const { categoryChartType, setCategoryChartType, selectedCategoryType, setSelectedCategoryType } =
+  const { categoryChartType, setCategoryChartType, selectedCategoryType, setSelectedCategoryType, dateRange } =
     useStatisticsStore();
+  const { currentAccountBook } = useAccountBookStore();
 
   const chartRef = useRef<any>(null);
+
+  // 模态框状态
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<{
+    name: string;
+    id?: string;
+  } | null>(null);
   const [chartData, setChartData] = useState({
     labels: [] as string[],
     datasets: [
@@ -97,6 +108,24 @@ export function CategoryDistribution({
     console.log('设置图表数据:', newChartData);
     setChartData(newChartData);
   }, [expenseCategories, incomeCategories, selectedCategoryType, categories]);
+
+  // 处理图例点击
+  const handleLegendClick = (categoryName: string, index: number) => {
+    // 查找对应的分类数据
+    const categoryData = categories.find(cat => cat.categoryName === categoryName);
+
+    setSelectedCategory({
+      name: categoryName,
+      id: categoryData?.categoryId,
+    });
+    setIsModalOpen(true);
+  };
+
+  // 关闭模态框
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCategory(null);
+  };
 
   // 生成随机颜色（用于分类列表显示）
   const getRandomColor = (index: number) => {
@@ -212,16 +241,40 @@ export function CategoryDistribution({
           const percentage = Math.round((value / total) * 100);
 
           return (
-            <div key={index} className="legend-item">
+            <div
+              key={index}
+              className="legend-item legend-item-clickable"
+              onClick={() => handleLegendClick(label, index)}
+              title={`点击查看 ${label} 的交易记录`}
+            >
               <div className="legend-color" style={{ backgroundColor: color as string }}></div>
               <div className="legend-label">{label}</div>
               <div className="legend-value">
                 {formatCurrency(value)} ({percentage}%)
               </div>
+              <div className="legend-arrow">
+                <i className="fas fa-chevron-right"></i>
+              </div>
             </div>
           );
         })}
       </div>
+
+      {/* 分类交易记录模态框 */}
+      {selectedCategory && (
+        <CategoryTransactionsModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          categoryName={selectedCategory.name}
+          categoryId={selectedCategory.id}
+          filters={{
+            startDate: dateRange.startDate,
+            endDate: dateRange.endDate,
+            accountBookId: currentAccountBook?.id,
+            transactionType: selectedCategoryType === 'expense' ? 'EXPENSE' : 'INCOME',
+          }}
+        />
+      )}
     </div>
   );
 }
