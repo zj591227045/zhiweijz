@@ -12,18 +12,21 @@ export function AIServiceSetupStep() {
   const { nextStep, previousStep, setCurrentStep } = useOnboardingStore();
   const { currentAccountBook } = useAccountBookStore();
   const { services, fetchServices } = useAIServicesStore();
-  const { 
+  const {
     globalConfig,
     activeService,
+    userAIEnabled,
     isLoadingConfig,
-    updateGlobalConfig,
+    isLoadingUserAI,
+    toggleUserAIService,
     switchServiceType,
     fetchGlobalConfig,
+    fetchUserAIEnabled,
     fetchAccountActiveService
   } = useGlobalAIStore();
 
   // 向导状态
-  const [currentWizardStep, setCurrentWizardStep] = useState<'global-toggle' | 'service-type' | 'custom-service' | 'confirmation'>('global-toggle');
+  const [currentWizardStep, setCurrentWizardStep] = useState<'user-toggle' | 'service-type' | 'custom-service' | 'confirmation'>('user-toggle');
   const [selectedServiceType, setSelectedServiceType] = useState<'official' | 'custom'>('official');
   const [selectedCustomServiceId, setSelectedCustomServiceId] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -32,11 +35,12 @@ export function AIServiceSetupStep() {
   // 初始化数据
   useEffect(() => {
     fetchGlobalConfig();
+    fetchUserAIEnabled();
     fetchServices();
     if (currentAccountBook?.id) {
       fetchAccountActiveService(currentAccountBook.id);
     }
-  }, [fetchGlobalConfig, fetchServices, fetchAccountActiveService, currentAccountBook?.id]);
+  }, [fetchGlobalConfig, fetchUserAIEnabled, fetchServices, fetchAccountActiveService, currentAccountBook?.id]);
 
   // 专门的方法来跳转到功能介绍步骤
   const goToFeatureIntro = () => {
@@ -70,13 +74,12 @@ export function AIServiceSetupStep() {
     }
   };
 
-  // 处理全局AI服务总开关
-  const handleGlobalAIToggle = async (enabled: boolean) => {
+  // 处理用户级别AI服务开关
+  const handleUserAIToggle = async (enabled: boolean) => {
     try {
       setIsProcessing(true);
-      await updateGlobalConfig({ enabled });
-      toast.success(enabled ? 'AI服务已启用' : 'AI服务已禁用');
-      
+      await toggleUserAIService(enabled);
+
       if (enabled) {
         // 如果启用了AI服务，继续到服务类型选择
         setCurrentWizardStep('service-type');
@@ -86,7 +89,7 @@ export function AIServiceSetupStep() {
         goToFeatureIntro();
       }
     } catch (error) {
-      console.error('切换全局AI服务状态失败:', error);
+      console.error('切换用户AI服务状态失败:', error);
       toast.error('设置失败，请重试');
     } finally {
       setIsProcessing(false);
@@ -112,7 +115,7 @@ export function AIServiceSetupStep() {
   // 处理返回
   const handleBack = () => {
     if (currentWizardStep === 'service-type') {
-      setCurrentWizardStep('global-toggle');
+      setCurrentWizardStep('user-toggle');
     } else if (currentWizardStep === 'custom-service') {
       setCurrentWizardStep('service-type');
     } else if (currentWizardStep === 'confirmation') {
@@ -168,7 +171,7 @@ export function AIServiceSetupStep() {
   // 获取当前步骤标题
   const getCurrentStepTitle = () => {
     switch (currentWizardStep) {
-      case 'global-toggle': return '启用AI服务';
+      case 'user-toggle': return '启用AI服务';
       case 'service-type': return '选择服务类型';
       case 'custom-service': return '选择自定义服务';
       case 'confirmation': return '确认配置';
@@ -188,8 +191,8 @@ export function AIServiceSetupStep() {
         <div className="progress-steps">
           {[1, 2, 3, 4].map((step, index) => {
             const stepNames = ['启用AI', '选择类型', '选择服务', '确认配置'];
-            const isActive = 
-              (currentWizardStep === 'global-toggle' && index === 0) ||
+            const isActive =
+              (currentWizardStep === 'user-toggle' && index === 0) ||
               (currentWizardStep === 'service-type' && index === 1) ||
               (currentWizardStep === 'custom-service' && index === 2) ||
               (currentWizardStep === 'confirmation' && index === 3);
@@ -245,8 +248,8 @@ export function AIServiceSetupStep() {
         </p>
       </div>
 
-      {/* 全局开关步骤 */}
-      {currentWizardStep === 'global-toggle' && (
+      {/* 用户AI服务开关步骤 */}
+      {currentWizardStep === 'user-toggle' && (
         <div className="ai-wizard-content">
           <div className="ai-service-benefits">
             <h4>AI服务为您带来：</h4>
@@ -275,7 +278,7 @@ export function AIServiceSetupStep() {
             <div className="toggle-options">
               <button
                 className="toggle-option-button primary"
-                onClick={() => handleGlobalAIToggle(true)}
+                onClick={() => handleUserAIToggle(true)}
                 disabled={isProcessing}
               >
                 <div className="toggle-option-icon">
@@ -289,7 +292,7 @@ export function AIServiceSetupStep() {
 
               <button
                 className="toggle-option-button secondary"
-                onClick={() => handleGlobalAIToggle(false)}
+                onClick={() => handleUserAIToggle(false)}
                 disabled={isProcessing}
               >
                 <div className="toggle-option-icon">
@@ -403,7 +406,7 @@ export function AIServiceSetupStep() {
 
           <div className="configuration-summary">
             <div className="summary-item">
-              <div className="summary-label">全局AI服务</div>
+              <div className="summary-label">AI服务</div>
               <div className="summary-value enabled">已启用</div>
             </div>
             <div className="summary-item">
@@ -445,10 +448,10 @@ export function AIServiceSetupStep() {
       <div className="onboarding-button-group">
         <button
           className="onboarding-button onboarding-button-secondary"
-          onClick={currentWizardStep === 'global-toggle' ? previousStep : handleBack}
+          onClick={currentWizardStep === 'user-toggle' ? previousStep : handleBack}
           disabled={isProcessing}
         >
-          {currentWizardStep === 'global-toggle' ? '上一步' : '返回'}
+          {currentWizardStep === 'user-toggle' ? '上一步' : '返回'}
         </button>
         
         <button

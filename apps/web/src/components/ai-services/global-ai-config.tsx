@@ -43,18 +43,10 @@ export function GlobalAIConfig({ onServiceTypeChange, selectedType, hasCustomSer
 
     setIsToggling(true);
     try {
-      await updateGlobalConfig({ enabled });
-      setAiEnabled(enabled);
-
-      if (!enabled) {
-        // 如果关闭AI功能，显示提示信息
-        toast.info('AI功能已关闭');
-      } else {
-        toast.success('AI功能已启用');
-      }
+      // 显示权限提示
+      toast.error('普通用户无权修改全局AI配置，请联系管理员');
+      setAiEnabled(!enabled); // 恢复原状态
     } catch (error) {
-      // 如果更新失败，恢复原状态
-      setAiEnabled(!enabled);
       console.error('切换AI功能失败:', error);
     } finally {
       setIsToggling(false);
@@ -90,16 +82,9 @@ export function GlobalAIConfig({ onServiceTypeChange, selectedType, hasCustomSer
         // 切换到自定义服务类型
         // 对于自定义服务，我们只需要禁用全局AI配置，具体的服务选择由用户在自定义服务列表中进行
         try {
-          // 先禁用全局AI配置（不指定serviceId，只是切换类型）
-          await updateGlobalConfig({ enabled: false });
-          onServiceTypeChange('custom');
-          
-          // 如果没有可用的自定义服务，给出提示
-          if (!hasCustomServices) {
-            toast.info('已切换到自定义服务模式，请添加并选择自定义AI服务');
-          } else {
-            toast.success('已切换到自定义AI服务模式，请选择具体的服务');
-          }
+          // 显示权限提示
+          toast.error('普通用户无权修改全局AI配置，请联系管理员');
+          throw new Error('权限不足');
         } catch (error) {
           console.error('切换到自定义服务模式失败:', error);
           throw error;
@@ -182,10 +167,28 @@ export function GlobalAIConfig({ onServiceTypeChange, selectedType, hasCustomSer
       marginBottom: '16px',
       overflow: 'hidden'
     }}>
+      {/* 权限提示 */}
+      <div style={{
+        padding: '16px',
+        backgroundColor: 'rgba(239, 68, 68, 0.05)',
+        borderBottom: '1px solid rgba(239, 68, 68, 0.2)'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          color: 'rgb(239, 68, 68)',
+          fontSize: '14px'
+        }}>
+          <i className="fas fa-lock" style={{ marginRight: '8px' }}></i>
+          <span>全局AI配置现在只能由管理员修改。如需调整，请联系系统管理员。</span>
+        </div>
+      </div>
+
       {/* AI功能总开关 */}
       <div style={{
         padding: '16px',
-        borderBottom: '1px solid var(--border-color, #e5e7eb)'
+        borderBottom: '1px solid var(--border-color, #e5e7eb)',
+        opacity: 0.6 // 降低透明度表示不可用
       }}>
         <div style={{
           display: 'flex',
@@ -219,7 +222,7 @@ export function GlobalAIConfig({ onServiceTypeChange, selectedType, hasCustomSer
               type="checkbox"
               checked={aiEnabled}
               onChange={(e) => handleAIToggle(e.target.checked)}
-              disabled={isToggling || isLoadingConfig}
+              disabled={true} // 始终禁用
               style={{
                 opacity: 0,
                 width: 0,
@@ -281,7 +284,7 @@ export function GlobalAIConfig({ onServiceTypeChange, selectedType, hasCustomSer
           }}>
             <button
               onClick={() => handleServiceTypeChange('official')}
-              disabled={isSwitching || !aiEnabled}
+              disabled={true} // 始终禁用
               style={{
                 flex: 1,
                 padding: '12px 16px',
@@ -319,7 +322,7 @@ export function GlobalAIConfig({ onServiceTypeChange, selectedType, hasCustomSer
             </button>
             <button
               onClick={() => handleServiceTypeChange('custom')}
-              disabled={isSwitching || !aiEnabled}
+              disabled={true} // 始终禁用
               style={{
                 flex: 1,
                 padding: '12px 16px',

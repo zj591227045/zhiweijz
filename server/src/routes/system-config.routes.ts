@@ -36,12 +36,7 @@ router.get('/token-usage', (req, res) => systemConfigController.getTokenUsage(re
  */
 router.get('/token-usage/today', (req, res) => systemConfigController.getTodayTokenUsage(req, res));
 
-/**
- * @route PUT /api/system-config/global-ai
- * @desc 更新全局AI配置
- * @access User
- */
-router.put('/global-ai', (req, res) => systemConfigController.updateGlobalAIConfig(req, res));
+// 全局AI配置更新已移至管理员接口 /api/admin/system-configs/llm/configs
 
 /**
  * @route GET /api/system-config/ai-service/user-type

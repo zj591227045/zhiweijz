@@ -268,24 +268,13 @@ export class SystemConfigController {
   }
 
   /**
-   * 更新全局AI配置
+   * 更新全局AI配置 - 已禁用，仅管理员可操作
    */
   async updateGlobalAIConfig(req: Request, res: Response): Promise<void> {
-    try {
-      const config = req.body;
-      const updatedConfig = await this.systemConfigService.updateGlobalAIConfig(config);
-
-      res.json({
-        success: true,
-        data: updatedConfig
-      });
-    } catch (error) {
-      console.error('更新全局AI配置错误:', error);
-      res.status(500).json({
-        success: false,
-        message: '更新全局AI配置失败'
-      });
-    }
+    res.status(403).json({
+      success: false,
+      message: '普通用户无权修改全局AI配置，请联系管理员'
+    });
   }
 
   /**

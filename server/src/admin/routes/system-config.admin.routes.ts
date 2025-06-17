@@ -38,6 +38,20 @@ router.get('/llm/configs', (req, res) => systemConfigController.getLLMConfigs(re
 router.put('/llm/configs', (req, res) => systemConfigController.updateLLMConfigs(req, res));
 
 /**
+ * @route GET /api/admin/system-configs/global-ai
+ * @desc 获取全局AI配置（管理员版本）
+ * @access Admin
+ */
+router.get('/global-ai', (req, res) => systemConfigController.getGlobalAIConfig(req, res));
+
+/**
+ * @route PUT /api/admin/system-configs/global-ai
+ * @desc 更新全局AI配置（管理员版本）
+ * @access Admin
+ */
+router.put('/global-ai', (req, res) => systemConfigController.updateGlobalAIConfig(req, res));
+
+/**
  * @route POST /api/admin/system-configs/llm/test
  * @desc 测试LLM连接
  * @access Admin

@@ -175,21 +175,11 @@ export const systemConfigApi = {
   },
 
   /**
-   * 更新全局AI配置
+   * 更新全局AI配置 - 已禁用，仅管理员可操作
    */
   async updateGlobalAIConfig(config: Partial<GlobalAIConfig>): Promise<GlobalAIConfig> {
-    try {
-      console.log('发送更新全局AI配置请求: /system-config/global-ai', config);
-      const response = await apiClient.put<{
-        success: boolean;
-        data: GlobalAIConfig;
-      }>('/system-config/global-ai', config);
-      console.log('更新全局AI配置响应数据:', response);
-      return response.data;
-    } catch (error) {
-      console.error('更新全局AI配置失败:', error);
-      throw new Error('更新全局AI配置失败');
-    }
+    console.warn('updateGlobalAIConfig: 普通用户无权修改全局AI配置，请联系管理员');
+    throw new Error('普通用户无权修改全局AI配置，请联系管理员');
   },
 
   /**

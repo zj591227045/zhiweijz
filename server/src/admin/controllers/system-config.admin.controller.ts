@@ -338,4 +338,54 @@ export class SystemConfigAdminController {
       });
     }
   }
-} 
+
+  /**
+   * 获取全局AI配置（管理员版本）
+   */
+  async getGlobalAIConfig(req: Request, res: Response): Promise<void> {
+    try {
+      const configs = await this.systemConfigAdminService.getLLMConfigs();
+
+      res.json({
+        success: true,
+        data: configs
+      });
+    } catch (error) {
+      console.error('获取全局AI配置错误:', error);
+      res.status(500).json({
+        success: false,
+        message: '获取全局AI配置失败'
+      });
+    }
+  }
+
+  /**
+   * 更新全局AI配置（管理员版本）
+   */
+  async updateGlobalAIConfig(req: Request, res: Response): Promise<void> {
+    try {
+      const { enabled, provider, model, apiKey, baseUrl, temperature, maxTokens } = req.body;
+
+      await this.systemConfigAdminService.updateLLMConfigs({
+        enabled,
+        provider,
+        model,
+        apiKey,
+        baseUrl,
+        temperature,
+        maxTokens
+      }, req.admin?.id);
+
+      res.json({
+        success: true,
+        message: '全局AI配置更新成功'
+      });
+    } catch (error) {
+      console.error('更新全局AI配置错误:', error);
+      res.status(500).json({
+        success: false,
+        message: '更新全局AI配置失败'
+      });
+    }
+  }
+}
