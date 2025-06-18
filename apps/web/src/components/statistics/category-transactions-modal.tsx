@@ -55,14 +55,24 @@ export function CategoryTransactionsModal({
   const fetchTransactions = async () => {
     if (!isOpen) return;
 
+    console.log('开始获取分类交易数据:', {
+      categoryName,
+      categoryId,
+      filters,
+    });
+
     setIsLoading(true);
     setError(null);
 
     try {
       // 构建查询参数
+      // 确保时间范围包含完整的一天
+      const startDateTime = dayjs(filters.startDate).startOf('day').toISOString();
+      const endDateTime = dayjs(filters.endDate).endOf('day').toISOString();
+
       const queryParams: Record<string, any> = {
-        startDate: filters.startDate,
-        endDate: filters.endDate,
+        startDate: startDateTime,
+        endDate: endDateTime,
         type: filters.transactionType,
         limit: 100, // 限制数量，避免数据过多
         sort: 'date:desc',
@@ -76,10 +86,14 @@ export function CategoryTransactionsModal({
         queryParams.categoryIds = categoryId;
       }
 
+      console.log('API请求参数:', queryParams);
+
       // 获取交易数据
       const response = await apiClient.get('/transactions', {
         params: queryParams,
       });
+
+      console.log('API响应:', response);
 
       if (response && response.data) {
         const transactionData = response.data;
@@ -137,9 +151,21 @@ export function CategoryTransactionsModal({
   // 当模态框打开时获取数据
   useEffect(() => {
     if (isOpen) {
+      console.log('模态框打开，开始获取交易数据:', {
+        isOpen,
+        categoryId,
+        filters,
+      });
       fetchTransactions();
     }
-  }, [isOpen, filters, categoryId]);
+  }, [
+    isOpen,
+    categoryId,
+    filters.startDate,
+    filters.endDate,
+    filters.accountBookId,
+    filters.transactionType,
+  ]);
 
   // 管理body滚动
   useEffect(() => {

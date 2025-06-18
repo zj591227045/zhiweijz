@@ -83,12 +83,21 @@ export class TransactionRepository {
     // 构建查询条件
     const where: Prisma.TransactionWhereInput = {
       ...(type && { type }),
-      ...(startDate && { date: { gte: startDate } }),
-      ...(endDate && { date: { lte: endDate } }),
       ...(categoryId && { categoryId }),
       ...(familyId && { familyId }),
       ...(familyMemberId && { familyMemberId }),
     };
+
+    // 处理日期范围过滤
+    if (startDate || endDate) {
+      where.date = {};
+      if (startDate) {
+        where.date.gte = startDate;
+      }
+      if (endDate) {
+        where.date.lte = endDate;
+      }
+    }
 
     // 如果指定了账本ID，则查询该账本的所有交易记录（家庭成员可以查看家庭账本的所有记录）
     if (params.accountBookId) {
@@ -371,13 +380,22 @@ export class TransactionRepository {
     const where: Prisma.TransactionWhereInput = {
       userId,
       type,
-      ...(params.startDate && { date: { gte: params.startDate } }),
-      ...(params.endDate && { date: { lte: params.endDate } }),
       ...(params.categoryId && { categoryId: params.categoryId }),
       ...(params.familyId && { familyId: params.familyId }),
       ...(params.familyMemberId && { familyMemberId: params.familyMemberId }),
       ...(params.accountBookId && { accountBookId: params.accountBookId }),
     };
+
+    // 处理日期范围过滤
+    if (params.startDate || params.endDate) {
+      where.date = {};
+      if (params.startDate) {
+        where.date.gte = params.startDate;
+      }
+      if (params.endDate) {
+        where.date.lte = params.endDate;
+      }
+    }
 
     // 处理多个分类ID
     if (params.categoryIds && params.categoryIds.length > 0) {
