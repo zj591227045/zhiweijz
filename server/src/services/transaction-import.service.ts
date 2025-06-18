@@ -1,6 +1,7 @@
 import { TransactionType } from '@prisma/client';
 import { TransactionRepository } from '../repositories/transaction.repository';
 import { CategoryRepository } from '../repositories/category.repository';
+import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from '../models/transaction.model';
 import { parse as csvParse } from 'csv-parse/sync';
 
@@ -28,10 +29,12 @@ export interface ImportResult {
 export class TransactionImportService {
   private transactionRepository: TransactionRepository;
   private categoryRepository: CategoryRepository;
+  private transactionService: TransactionService;
 
   constructor() {
     this.transactionRepository = new TransactionRepository();
     this.categoryRepository = new CategoryRepository();
+    this.transactionService = new TransactionService();
   }
 
   /**
@@ -98,8 +101,8 @@ export class TransactionImportService {
           date: new Date(record.date),
         };
 
-        // 保存交易记录
-        await this.transactionRepository.create(userId, transactionData);
+        // 保存交易记录 - 使用交易服务来确保正确设置家庭相关字段
+        await this.transactionService.createTransaction(userId, transactionData);
         result.success++;
       } catch (error) {
         result.failed++;

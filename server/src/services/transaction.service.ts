@@ -210,17 +210,18 @@ export class TransactionService {
       
       if (budget) {
         if (budget.familyMemberId) {
-          // 预算直接关联到家庭成员（托管成员的预算）
+          // 预算直接关联到家庭成员（旧架构的托管成员预算）
           finalFamilyMemberId = budget.familyMemberId;
         } else if (budget.userId) {
-          // 预算关联到用户，需要查找该用户在家庭中的成员记录
+          // 预算关联到用户（包括普通用户和托管用户），需要查找该用户在家庭中的成员记录
+          // 这是统一的处理逻辑：无论是普通用户还是托管用户，都通过userId查找对应的familyMember.id
           const familyMember = await prisma.familyMember.findFirst({
             where: {
               familyId: finalFamilyId,
               userId: budget.userId
             }
           });
-          
+
           if (familyMember) {
             finalFamilyMemberId = familyMember.id;
           }
@@ -701,26 +702,11 @@ export class TransactionService {
         where.categoryId = budget.categoryId;
       }
 
-      // 处理成员过滤
+      // 处理成员过滤 - 统一使用familyMemberId
       if (familyMemberId) {
-        // 检查是否为托管成员ID
-        const familyMember = await prisma.familyMember.findUnique({
-          where: { id: familyMemberId },
-          select: { id: true, userId: true, isCustodial: true }
-        });
-
-        if (familyMember) {
-          if (familyMember.isCustodial) {
-            // 如果是托管成员，使用familyMemberId过滤
-            where.familyMemberId = familyMemberId;
-          } else if (familyMember.userId) {
-            // 如果是普通家庭成员，使用userId过滤
-            where.userId = familyMember.userId;
-          }
-        } else {
-          // 如果找不到家庭成员，默认使用userId查询
-          where.userId = familyMemberId;
-        }
+        // 统一使用familyMemberId过滤，无论是托管成员还是普通成员
+        // 因为交易记录的familyMemberId字段已经正确设置了归属关系
+        where.familyMemberId = familyMemberId;
       }
       // 如果预算本身关联了托管成员，使用预算的familyMemberId查询
       else if (budget.familyMemberId) {

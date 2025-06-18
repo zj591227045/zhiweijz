@@ -832,7 +832,8 @@ export class FamilyService {
       let transactionCount = 0;
 
       try {
-        // 查询该成员的支出交易
+        // 统一使用familyMemberId查询所有成员的交易记录
+        // 无论是托管成员还是普通成员，都通过familyMemberId进行归属
         const whereCondition = {
           accountBookId: { in: accountBookIds },
           type: 'EXPENSE' as const,
@@ -840,10 +841,7 @@ export class FamilyService {
             gte: startDate,
             lte: endDate,
           },
-          ...(member.isCustodial
-            ? { familyMemberId: member.id } // 托管成员通过familyMemberId查询
-            : member.userId ? { userId: member.userId } : {}     // 普通成员通过userId查询，但要确保userId不为null
-          ),
+          familyMemberId: member.id, // 统一使用familyMemberId查询
         };
 
         const transactions = await prisma.transaction.findMany({
@@ -859,6 +857,21 @@ export class FamilyService {
         transactionCount = 0;
       }
 
+      // 检查成员是否为托管成员（通过关联的用户判断）
+      let isCustodial = false;
+      if (member.userId) {
+        try {
+          const user = await prisma.user.findUnique({
+            where: { id: member.userId },
+            select: { isCustodial: true }
+          });
+          isCustodial = user?.isCustodial || false;
+        } catch (error) {
+          console.error(`检查用户 ${member.userId} 是否为托管用户失败:`, error);
+          isCustodial = false;
+        }
+      }
+
       return {
         memberId: member.id,
         userId: member.userId,
@@ -867,7 +880,7 @@ export class FamilyService {
         role: member.role,
         joinedAt: member.createdAt,
         isCurrentUser: member.userId === userId,
-        isCustodial: member.isCustodial || false,
+        isCustodial: isCustodial, // 使用从用户表查询的结果
         statistics: {
           totalExpense: memberExpense,
           percentage: 0, // 稍后计算

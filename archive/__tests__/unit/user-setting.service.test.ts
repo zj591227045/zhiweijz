@@ -1,6 +1,6 @@
-import { UserSettingService } from '../../src/services/user-setting.service';
-import { UserSettingRepository } from '../../src/repositories/user-setting.repository';
-import { UserSettingKey } from '../../src/models/user-setting.model';
+import { UserSettingService } from '../../../server/src/services/user-setting.service';
+import { UserSettingRepository } from '../../../server/src/repositories/user-setting.repository';
+import { UserSettingKey } from '../../../server/src/models/user-setting.model';
 
 // 模拟依赖
 jest.mock('../../src/repositories/user-setting.repository');

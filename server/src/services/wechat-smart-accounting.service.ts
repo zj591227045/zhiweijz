@@ -164,6 +164,62 @@ export class WechatSmartAccountingService {
         transactionDate = beijingTime;
       }
 
+      // 获取账本信息以确定是否为家庭账本
+      const accountBook = await prisma.accountBook.findUnique({
+        where: { id: result.accountId },
+        select: { type: true, familyId: true }
+      });
+
+      // 确定家庭ID和家庭成员ID
+      let finalFamilyId: string | null = null;
+      let finalFamilyMemberId: string | null = null;
+
+      if (accountBook?.type === 'FAMILY' && accountBook.familyId) {
+        finalFamilyId = accountBook.familyId;
+
+        // 如果有预算ID，通过预算确定家庭成员ID
+        if (result.budgetId) {
+          const budget = await prisma.budget.findUnique({
+            where: { id: result.budgetId },
+            include: { familyMember: true, user: true }
+          });
+
+          if (budget) {
+            if (budget.familyMemberId) {
+              // 预算直接关联到家庭成员（旧架构的托管成员预算）
+              finalFamilyMemberId = budget.familyMemberId;
+            } else if (budget.userId) {
+              // 预算关联到用户（包括普通用户和托管用户），需要查找该用户在家庭中的成员记录
+              // 这是统一的处理逻辑：无论是普通用户还是托管用户，都通过userId查找对应的familyMember.id
+              const familyMember = await prisma.familyMember.findFirst({
+                where: {
+                  familyId: finalFamilyId,
+                  userId: budget.userId
+                }
+              });
+
+              if (familyMember) {
+                finalFamilyMemberId = familyMember.id;
+              }
+            }
+          }
+        }
+
+        // 如果通过预算无法确定家庭成员ID，则使用当前用户作为备选方案
+        if (!finalFamilyMemberId) {
+          const familyMember = await prisma.familyMember.findFirst({
+            where: {
+              familyId: finalFamilyId,
+              userId: userId
+            }
+          });
+
+          if (familyMember) {
+            finalFamilyMemberId = familyMember.id;
+          }
+        }
+      }
+
       const transaction = await prisma.transaction.create({
         data: {
           id: crypto.randomUUID(),
@@ -175,6 +231,9 @@ export class WechatSmartAccountingService {
           accountBookId: result.accountId,
           userId: userId,
           budgetId: result.budgetId || null,
+          // 如果是家庭账本，添加家庭ID和家庭成员ID
+          familyId: finalFamilyId,
+          familyMemberId: finalFamilyMemberId,
           createdAt: new Date(),
           updatedAt: new Date()
         },
