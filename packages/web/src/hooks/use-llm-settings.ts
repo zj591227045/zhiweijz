@@ -73,7 +73,7 @@ export function useLLMSettings(options: UseLLMSettingsOptions = {}): UseLLMSetti
     if (accountBookId && llmCache[accountBookId]) {
       setLLMSettings(llmCache[accountBookId]);
     }
-  }, [accountBookId, llmCache[accountBookId]]);
+  }, [accountBookId, accountBookId ? llmCache[accountBookId] : undefined]);
 
   // 初始化时获取LLM设置
   useEffect(() => {
