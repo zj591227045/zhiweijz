@@ -45,6 +45,32 @@ export class BudgetService {
       budgetData.isAutoCalculated = true;
     }
 
+    // 如果指定了账本ID但没有设置家庭相关字段，自动设置
+    if (budgetData.accountBookId && !budgetData.familyId) {
+      const accountBook = await prisma.accountBook.findUnique({
+        where: { id: budgetData.accountBookId },
+        select: { type: true, familyId: true }
+      });
+
+      if (accountBook && accountBook.type === 'FAMILY' && accountBook.familyId) {
+        budgetData.familyId = accountBook.familyId;
+
+        // 如果没有设置familyMemberId，查找用户在家庭中的成员记录
+        if (!budgetData.familyMemberId) {
+          const familyMember = await prisma.familyMember.findFirst({
+            where: {
+              familyId: accountBook.familyId,
+              userId: userId
+            }
+          });
+
+          if (familyMember) {
+            budgetData.familyMemberId = familyMember.id;
+          }
+        }
+      }
+    }
+
     // 创建预算
     const budget = await this.budgetRepository.create(userId, budgetData);
 
