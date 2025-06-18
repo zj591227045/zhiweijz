@@ -2,15 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { formatCurrency, getCategoryIconClass } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { apiClient } from '@/lib/api-client';
 import dayjs from 'dayjs';
-
-// 交易类型枚举
-export enum TransactionType {
-  EXPENSE = 'EXPENSE',
-  INCOME = 'INCOME',
-}
+import { UnifiedTransactionList, TransactionType } from '../common/unified-transaction-list';
+import '../common/unified-transaction-list.css';
 
 interface Transaction {
   id: string;
@@ -108,7 +104,7 @@ export function CategoryTransactionsModal({
     }
   };
 
-  // 按日期分组交易
+  // 按日期分组交易 - 转换为统一组件格式
   const groupTransactionsByDate = (transactions: Transaction[]) => {
     if (!Array.isArray(transactions)) return [];
 
@@ -125,10 +121,17 @@ export function CategoryTransactionsModal({
     return Object.entries(groups)
       .map(([date, transactions]) => ({
         date: dayjs(date).format('MM月DD日'),
-        fullDate: date,
-        transactions,
+        transactions: transactions.map(transaction => ({
+          id: transaction.id,
+          amount: transaction.amount,
+          type: transaction.type,
+          categoryName: transaction.category?.name || '未分类',
+          categoryIcon: transaction.category?.icon || transaction.categoryIcon,
+          description: transaction.description,
+          date: dayjs(transaction.date).format('HH:mm')
+        }))
       }))
-      .sort((a, b) => new Date(b.fullDate).getTime() - new Date(a.fullDate).getTime());
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   };
 
   // 当模态框打开时获取数据
@@ -183,61 +186,13 @@ export function CategoryTransactionsModal({
 
         {/* 模态框内容 */}
         <div className="modal-content">
-          {isLoading ? (
-            <div className="loading-state">
-              <div className="loading-spinner"></div>
-              <span>加载中...</span>
-            </div>
-          ) : error ? (
-            <div className="error-state">
-              <i className="fas fa-exclamation-triangle"></i>
-              <span>{error}</span>
-            </div>
-          ) : groupedTransactions.length > 0 ? (
-            <div className="transaction-groups">
-              {groupedTransactions.map((group) => (
-                <div key={group.fullDate} className="transaction-group">
-                  <div className="transaction-date">{group.date}</div>
-                  <div className="transaction-list">
-                    {group.transactions.map((transaction: Transaction) => (
-                      <div key={transaction.id} className="transaction-item">
-                        <div className="transaction-icon">
-                          <i
-                            className={`fas ${getCategoryIconClass(
-                              transaction.category?.icon || transaction.categoryIcon || 'receipt'
-                            )}`}
-                          ></i>
-                        </div>
-                        <div className="transaction-details">
-                          <div className="transaction-title">
-                            {transaction.description || transaction.category?.name || '未分类'}
-                          </div>
-                          <div className="transaction-category">
-                            {transaction.category?.name || '未分类'}
-                          </div>
-                        </div>
-                        <div
-                          className={`transaction-amount ${
-                            transaction.type === TransactionType.EXPENSE ? 'expense' : 'income'
-                          }`}
-                        >
-                          {transaction.type === TransactionType.EXPENSE ? '-' : '+'}
-                          {formatCurrency(transaction.amount)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state">
-              <div className="empty-icon">
-                <i className="fas fa-receipt"></i>
-              </div>
-              <div className="empty-text">该分类暂无交易记录</div>
-            </div>
-          )}
+          <UnifiedTransactionList
+            groupedTransactions={groupedTransactions}
+            showDateHeaders={true}
+            emptyMessage="该分类暂无交易记录"
+            isLoading={isLoading}
+            error={error}
+          />
         </div>
       </div>
     </div>,

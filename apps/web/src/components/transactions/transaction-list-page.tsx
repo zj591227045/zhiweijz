@@ -9,12 +9,11 @@ import { apiClient } from '@/lib/api-client';
 import dayjs from 'dayjs';
 import { smartNavigate } from '@/lib/navigation';
 import TransactionEditModal from '@/components/transaction-edit-modal';
+import { UnifiedTransactionList } from '../common/unified-transaction-list';
+import '../common/unified-transaction-list.css';
 
-// 交易类型枚举
-export enum TransactionType {
-  EXPENSE = 'EXPENSE',
-  INCOME = 'INCOME',
-}
+// 导入交易类型枚举
+import { TransactionType } from '../common/unified-transaction-list';
 
 // 日期范围类型
 export type DateRangeType = 'current-month' | 'last-month' | 'custom';
@@ -262,7 +261,7 @@ export function TransactionListPage() {
     }
   }, [isAuthenticated]);
 
-  // 按日期分组交易
+  // 按日期分组交易 - 转换为统一组件格式
   const groupTransactionsByDate = (transactions: any[]) => {
     if (!Array.isArray(transactions)) return [];
 
@@ -279,7 +278,15 @@ export function TransactionListPage() {
     return Object.entries(groups)
       .map(([date, transactions]) => ({
         date: dayjs(date).format('MM月DD日'),
-        transactions,
+        transactions: transactions.map(transaction => ({
+          id: transaction.id,
+          amount: transaction.amount,
+          type: transaction.type,
+          categoryName: transaction.categoryName || transaction.category?.name,
+          categoryIcon: transaction.categoryIcon || transaction.category?.icon,
+          description: transaction.description || transaction.title,
+          date: dayjs(transaction.date).format('HH:mm')
+        }))
       }))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   };
@@ -578,80 +585,21 @@ export function TransactionListPage() {
         </div>
 
         {/* 交易列表 */}
-        {isLoading ? (
-          <div className="loading-state">加载中...</div>
-        ) : error ? (
-          <div className="error-state">{error}</div>
-        ) : groupedTransactions.length > 0 ? (
-          <div className="transaction-groups">
-            {groupedTransactions.map((group) => (
-              <div key={group.date} className="transaction-group">
-                <div className="transaction-date">{group.date}</div>
-                <div className="transaction-list">
-                  {group.transactions.map((transaction: any) => (
-                    <div
-                      key={transaction.id}
-                      className={`transaction-item ${isMultiSelectMode ? 'multi-select-mode' : ''} ${selectedTransactions.has(transaction.id) ? 'selected' : ''}`}
-                      onClick={() => handleTransactionClick(transaction.id)}
-                    >
-                      {isMultiSelectMode && (
-                        <div className="transaction-checkbox">
-                          <input
-                            type="checkbox"
-                            checked={selectedTransactions.has(transaction.id)}
-                            onChange={() => handleTransactionSelect(transaction.id)}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </div>
-                      )}
-                      <div className="transaction-icon">
-                        <i
-                          className={`fas ${getCategoryIconClass(transaction.category?.icon)}`}
-                        ></i>
-                      </div>
-                      <div className="transaction-details">
-                        <div className="transaction-title">
-                          {transaction.description || transaction.category?.name || '未分类'}
-                        </div>
-                        <div className="transaction-category">
-                          {transaction.category?.name || '未分类'}
-                        </div>
-                      </div>
-                      <div
-                        className={`transaction-amount ${transaction.type === TransactionType.EXPENSE ? 'expense' : 'income'}`}
-                      >
-                        {transaction.type === TransactionType.EXPENSE ? '-' : '+'}
-                        {formatCurrency(transaction.amount)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-
-            {/* 加载更多指示器 */}
-            {isLoadingMore && (
-              <div className="loading-more">
-                <div className="loading-spinner"></div>
-                <span>加载更多...</span>
-              </div>
-            )}
-
-            {/* 没有更多数据提示 */}
-            {!pagination.hasMore && transactions.length > 0 && (
-              <div className="no-more-data">
-                <span>已加载全部 {pagination.total} 条记录</span>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="empty-state">
-            <div className="empty-icon">
-              <i className="fas fa-receipt"></i>
-            </div>
-            <div className="empty-text">暂无交易记录</div>
-          </div>
-        )}
+        <UnifiedTransactionList
+          groupedTransactions={groupedTransactions}
+          onTransactionClick={handleTransactionClick}
+          showDateHeaders={true}
+          emptyMessage="暂无交易记录"
+          isLoading={isLoading}
+          error={error}
+          isMultiSelectMode={isMultiSelectMode}
+          selectedTransactions={selectedTransactions}
+          onTransactionSelect={handleTransactionSelect}
+          isLoadingMore={isLoadingMore}
+          hasMore={pagination.hasMore}
+          totalCount={pagination.total}
+          className="transactions-page"
+        />
 
         {/* 批量删除确认对话框 */}
         {showDeleteConfirm && (

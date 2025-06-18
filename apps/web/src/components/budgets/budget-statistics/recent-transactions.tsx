@@ -2,8 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
-import { getCategoryIconClass } from '@/lib/utils';
 import { smartNavigate } from '@/lib/navigation';
+import { UnifiedTransactionList, TransactionType } from '../../common/unified-transaction-list';
+import '../../common/unified-transaction-list.css';
 
 interface Transaction {
   id: string;
@@ -13,7 +14,7 @@ interface Transaction {
   categoryId: string;
   categoryName: string;
   categoryIcon: string;
-  type: 'EXPENSE' | 'INCOME';
+  type: TransactionType;
   description?: string;
   category?: {
     id: string;
@@ -49,16 +50,19 @@ export function RecentTransactions({ transactions, budgetId }: RecentTransaction
     smartNavigate(router, url);
   };
 
-  // 格式化日期
-  const formatDate = (dateString: string) => {
-    return dayjs(dateString).format('M月D日 HH:mm');
-  };
-
-  // 格式化金额
-  const formatAmount = (amount: number, type: 'EXPENSE' | 'INCOME') => {
-    const prefix = type === 'EXPENSE' ? '-' : '+';
-    return `${prefix}¥${amount.toLocaleString()}`;
-  };
+  // 将交易数据转换为分组格式以适配统一组件
+  const groupedTransactions = transactions.length > 0 ? [{
+    date: '最近交易',
+    transactions: transactions.map(transaction => ({
+      id: transaction.id,
+      amount: transaction.amount,
+      type: transaction.type,
+      categoryName: transaction.categoryName,
+      categoryIcon: transaction.categoryIcon || transaction.category?.icon,
+      description: transaction.title || transaction.description,
+      date: dayjs(transaction.date).format('M月D日 HH:mm')
+    }))
+  }] : [];
 
   return (
     <section className="recent-transactions">
@@ -69,38 +73,13 @@ export function RecentTransactions({ transactions, budgetId }: RecentTransaction
         </button>
       </div>
 
-      <div className="transaction-list">
-        {transactions.length > 0 ? (
-          transactions.map((transaction) => (
-            <div
-              key={transaction.id}
-              className="transaction-item"
-              onClick={() => handleTransactionClick(transaction.id)}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="transaction-icon">
-                <i
-                  className={`fas ${getCategoryIconClass(transaction.category?.icon || transaction.categoryIcon || 'receipt')}`}
-                ></i>
-              </div>
-              <div className="transaction-info">
-                <div className="transaction-title">{transaction.title}</div>
-                {transaction.description && (
-                  <div className="transaction-description">{transaction.description}</div>
-                )}
-                <div className="transaction-date">{formatDate(transaction.date)}</div>
-              </div>
-              <div className={`transaction-amount ${transaction.type.toLowerCase()}`}>
-                {formatAmount(transaction.amount, transaction.type)}
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="empty-message">
-            <p>暂无交易记录</p>
-          </div>
-        )}
-      </div>
+      <UnifiedTransactionList
+        groupedTransactions={groupedTransactions}
+        onTransactionClick={handleTransactionClick}
+        showDateHeaders={false}
+        emptyMessage="暂无交易记录"
+        className="budget-statistics-page"
+      />
     </section>
   );
 }

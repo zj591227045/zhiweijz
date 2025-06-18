@@ -1,0 +1,252 @@
+/* 统一交易列表样式 - 基于仪表盘最近交易组件的标准样式 */
+
+.unified-transaction-list {
+  /* 基础容器样式 */
+}
+
+/* 交易组 */
+.unified-transaction-list .transaction-group {
+  margin-bottom: 10px; /* 与仪表盘保持一致 */
+}
+
+/* 交易日期 */
+.unified-transaction-list .transaction-date {
+  font-size: 14px;
+  color: var(--text-secondary, #6b7280);
+  margin-bottom: 6px; /* 与仪表盘保持一致 */
+  padding-bottom: 3px; /* 与仪表盘保持一致 */
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+/* 交易列表 */
+.unified-transaction-list .transaction-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* 与仪表盘保持一致 */
+}
+
+/* 交易项 */
+.unified-transaction-list .transaction-item {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* 与仪表盘保持一致 */
+  padding: 6px 0; /* 与仪表盘保持一致 */
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-radius: 8px;
+}
+
+.unified-transaction-list .transaction-item:hover {
+  background-color: var(--background-hover, rgba(0, 0, 0, 0.02));
+}
+
+/* 交易图标 */
+.unified-transaction-list .transaction-icon {
+  width: 34px; /* 与仪表盘保持一致 */
+  height: 34px;
+  border-radius: 50%;
+  background-color: var(--primary-light, #e0f2fe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color, #3b82f6);
+  flex-shrink: 0;
+}
+
+/* 交易详情 */
+.unified-transaction-list .transaction-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.unified-transaction-list .transaction-title {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--text-primary, #1f2937);
+  margin-bottom: 1px; /* 与仪表盘保持一致 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.unified-transaction-list .transaction-category {
+  font-size: 12px;
+  color: var(--text-secondary, #6b7280);
+}
+
+/* 交易金额 */
+.unified-transaction-list .transaction-amount {
+  font-weight: 600;
+  font-size: 14px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.unified-transaction-list .transaction-amount.expense {
+  color: var(--error-color, #EF4444);
+}
+
+.unified-transaction-list .transaction-amount.income {
+  color: var(--success-color, #22C55E);
+}
+
+/* 状态样式 */
+.unified-transaction-list .loading-state,
+.unified-transaction-list .error-state,
+.unified-transaction-list .empty-state {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-secondary, #6b7280);
+  font-size: 14px;
+}
+
+.unified-transaction-list .error-state {
+  color: var(--error-color, #EF4444);
+}
+
+/* 多选功能样式 */
+.unified-transaction-list .transaction-checkbox {
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.unified-transaction-list .transaction-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.unified-transaction-list .transaction-item.multi-select-mode {
+  padding-left: 0;
+}
+
+.unified-transaction-list .transaction-item.selected {
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
+  border-left: 3px solid var(--primary-color, #3b82f6);
+}
+
+/* 加载更多和统计样式 */
+.unified-transaction-list .loading-more,
+.unified-transaction-list .no-more-data {
+  padding: 16px;
+  text-align: center;
+  color: var(--text-secondary, #6b7280);
+  font-size: 14px;
+}
+
+.unified-transaction-list .loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-color, #e5e7eb);
+  border-top: 2px solid var(--primary-color, #3b82f6);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 响应式调整 - 与仪表盘保持一致 */
+@media (min-width: 640px) {
+  .unified-transaction-list .transaction-group {
+    margin-bottom: 12px;
+  }
+  
+  .unified-transaction-list .transaction-date {
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+  }
+  
+  .unified-transaction-list .transaction-list {
+    gap: 10px;
+  }
+  
+  .unified-transaction-list .transaction-item {
+    gap: 12px;
+    padding: 8px 0;
+  }
+  
+  .unified-transaction-list .transaction-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* 特殊场景样式覆盖 */
+
+/* 模态框中的交易列表 - 适配模态框环境 */
+.modal-content .unified-transaction-list .transaction-date {
+  padding: 12px 24px 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary, #6b7280);
+  background-color: var(--background-secondary, #f9fafb);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin-bottom: 0;
+}
+
+.modal-content .unified-transaction-list .transaction-list {
+  background-color: var(--card-background, #ffffff);
+  gap: 0;
+}
+
+.modal-content .unified-transaction-list .transaction-item {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 0;
+  gap: 12px;
+}
+
+.modal-content .unified-transaction-list .transaction-item:last-child {
+  border-bottom: none;
+}
+
+.modal-content .unified-transaction-list .transaction-item:hover {
+  background-color: var(--hover-background, #f9fafb);
+}
+
+/* 页面级交易列表 - 适配页面环境 */
+.transactions-page .unified-transaction-list .transaction-date {
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  background-color: var(--background-secondary);
+  border-radius: 8px 8px 0 0;
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.transactions-page .unified-transaction-list .transaction-list {
+  background-color: var(--card-background);
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+  gap: 0;
+}
+
+.transactions-page .unified-transaction-list .transaction-item {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+  border-radius: 0;
+  gap: 12px;
+}
+
+.transactions-page .unified-transaction-list .transaction-item:last-child {
+  border-bottom: none;
+}
+
+/* 预算统计页面的交易列表 - 保持与仪表盘一致 */
+.budget-statistics-page .unified-transaction-list .transaction-list {
+  margin-top: 15px;
+}
+
+.budget-statistics-page .unified-transaction-list .transaction-item:hover {
+  background-color: var(--background-hover, rgba(0, 0, 0, 0.02));
+}

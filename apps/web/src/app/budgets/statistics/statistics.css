@@ -640,28 +640,6 @@
   background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
 }
 
-/* 预算统计页面的最近交易样式 - 与仪表盘保持一致 */
-.budget-statistics-page .transaction-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px; /* 与仪表盘保持一致的间距 */
-  margin-top: 15px;
-}
-
-.budget-statistics-page .transaction-item {
-  display: flex;
-  align-items: center;
-  gap: 10px; /* 与仪表盘保持一致的间距 */
-  padding: 6px 0; /* 与仪表盘保持一致的内边距 */
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  border-radius: 8px;
-}
-
-.budget-statistics-page .transaction-item:hover {
-  background-color: var(--background-hover, rgba(0, 0, 0, 0.02));
-}
-
 .budget-statistics-page .transaction-icon {
   width: 34px; /* 与仪表盘保持一致的图标大小 */
   height: 34px;

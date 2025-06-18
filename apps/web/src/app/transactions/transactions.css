@@ -68,100 +68,7 @@
   max-height: none;
 }
 
-/* 交易组 */
-.transaction-group {
-  margin-bottom: 16px;
-}
-
-/* 交易列表页面专用的日期样式 - 限制作用域避免影响其他页面 */
-.transactions-page .transaction-date {
-  font-size: 14px;
-  color: var(--text-secondary);
-  padding: 8px 16px;
-  background-color: var(--background-secondary);
-  border-radius: 8px 8px 0 0;
-}
-
-/* 交易列表 */
-.transaction-list {
-  background-color: var(--card-background);
-  border-radius: 0 0 8px 8px;
-  overflow: hidden;
-}
-
-/* 交易项 */
-.transaction-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-color);
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.transaction-item:last-child {
-  border-bottom: none;
-}
-
-.transaction-item:hover {
-  background-color: var(--background-hover);
-}
-
-/* 交易图标 */
-.transaction-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: var(--background-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 12px;
-  flex-shrink: 0;
-}
-
-.transaction-icon i {
-  font-size: 18px;
-  color: var(--text-primary);
-}
-
-/* 交易详情 */
-.transaction-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.transaction-title {
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--text-primary);
-  margin-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.transaction-category {
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-/* 交易金额 */
-.transaction-amount {
-  font-size: 16px;
-  font-weight: 500;
-  margin-left: 12px;
-  text-align: right;
-  flex-shrink: 0;
-}
-
-.transaction-amount.income {
-  color: var(--success-color);
-}
-
-.transaction-amount.expense {
-  color: var(--error-color);
-}
+/* 交易列表样式已由统一组件处理 */
 
 /* 交易统计摘要 */
 .transaction-summary {
@@ -402,28 +309,7 @@
   color: var(--text-primary);
 }
 
-/* 多选模式样式 */
-.transaction-item.multi-select-mode {
-  padding-left: 8px;
-}
-
-.transaction-checkbox {
-  margin-right: 8px;
-  display: flex;
-  align-items: center;
-}
-
-.transaction-checkbox input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  cursor: pointer;
-}
-
-.transaction-item.selected {
-  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
-  border-left: 3px solid var(--primary-color);
-}
+/* 多选模式样式已由统一组件处理 */
 
 /* 模态框样式 */
 .modal-overlay {
@@ -524,44 +410,4 @@
   background-color: transparent;
 }
 
-/* 加载更多指示器 */
-.loading-more {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  color: var(--text-secondary);
-  font-size: 14px;
-  gap: 8px;
-}
-
-.loading-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--border-color);
-  border-top: 2px solid var(--primary-color);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* 没有更多数据提示 */
-.no-more-data {
-  display: flex;
-  justify-content: center;
-  padding: 20px;
-  color: var(--text-secondary);
-  font-size: 14px;
-  border-top: 1px solid var(--border-color);
-  margin-top: 16px;
-}
-
-.no-more-data span {
-  background-color: var(--background-secondary);
-  padding: 8px 16px;
-  border-radius: 16px;
-}
+/* 加载更多和统计样式已由统一组件处理 */
