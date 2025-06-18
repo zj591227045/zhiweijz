@@ -66,6 +66,9 @@ COPY --from=builder /app/node_modules ./node_modules
 # 从构建阶段复制编译后的代码
 COPY --from=builder /app/dist ./dist
 
+# 复制微信相关的静态文件（绑定页面等）
+COPY --from=builder /app/public ./public
+
 # 只复制必要的运行时文件
 COPY --from=builder /app/scripts/deployment/ ./scripts/deployment/
 COPY --from=builder /app/scripts/migration-manager.js ./scripts/
