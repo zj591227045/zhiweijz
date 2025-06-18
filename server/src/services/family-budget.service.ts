@@ -2,6 +2,9 @@ import { BudgetRepository } from '../repositories/budget.repository';
 import { FamilyRepository } from '../repositories/family.repository';
 import { CreateBudgetDto } from '../models/budget.model';
 import { BudgetPeriod, FamilyMember } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 /**
  * 家庭预算服务
@@ -21,11 +24,23 @@ export class FamilyBudgetService {
    * @param userId 用户ID
    * @param familyId 家庭ID
    * @param accountBookId 账本ID
-   * @param memberId 可选的成员ID，用于托管成员
+   * @param memberId 可选的成员ID，用于托管成员（已废弃，现在统一通过userId查找）
    */
   async createDefaultBudgetsForNewMember(userId: string, familyId: string, accountBookId: string, memberId?: string): Promise<void> {
     try {
-      console.log(`为新家庭成员创建默认预算，家庭ID: ${familyId}, 账本ID: ${accountBookId}, 成员ID: ${memberId || '无'}`);
+      console.log(`为新家庭成员创建默认预算，用户ID: ${userId}, 家庭ID: ${familyId}, 账本ID: ${accountBookId}`);
+
+      // 查找用户在家庭中的成员记录
+      const familyMember = await prisma.familyMember.findFirst({
+        where: {
+          familyId: familyId,
+          userId: userId
+        }
+      });
+
+      if (!familyMember) {
+        throw new Error(`用户 ${userId} 不是家庭 ${familyId} 的成员`);
+      }
 
       // 获取当前月份的起止日期
       const today = new Date();
@@ -45,11 +60,12 @@ export class FamilyBudgetService {
         enableCategoryBudget: false,
         isAutoCalculated: false,
         budgetType: 'PERSONAL', // 确保创建的是个人预算
-        familyMemberId: memberId // 如果是托管成员，设置成员ID
+        familyMemberId: familyMember.id // 统一设置家庭成员ID
       };
 
       // 创建预算
       await this.budgetRepository.create(userId, budgetData);
+      console.log(`成功为用户 ${userId} 创建默认预算，家庭成员ID: ${familyMember.id}`);
     } catch (error) {
       console.error('为新家庭成员创建默认预算失败:', error);
       throw new Error('为新家庭成员创建默认预算失败');

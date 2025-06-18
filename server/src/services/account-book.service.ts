@@ -18,6 +18,9 @@ import {
   toAccountLLMSettingResponseDto,
 } from '../models/account-llm-setting.model';
 import { CreateBudgetDto } from '../models/budget.model';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export class AccountBookService {
   private accountBookRepository: AccountBookRepository;
@@ -405,6 +408,12 @@ export class AccountBookService {
    * @private
    */
   private async createDefaultPersonalBudget(userId: string, accountBookId: string): Promise<void> {
+    // 获取账本信息以确定是否为家庭账本
+    const accountBook = await this.accountBookRepository.findById(accountBookId);
+    if (!accountBook) {
+      throw new Error('账本不存在');
+    }
+
     // 获取当前月份的起止日期
     const today = new Date();
     const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -423,6 +432,23 @@ export class AccountBookService {
       isAutoCalculated: false,
       budgetType: 'PERSONAL'
     };
+
+    // 如果是家庭账本，设置家庭相关字段
+    if (accountBook.type === 'FAMILY' && accountBook.familyId) {
+      budgetData.familyId = accountBook.familyId;
+
+      // 查找用户在家庭中的成员记录
+      const familyMember = await prisma.familyMember.findFirst({
+        where: {
+          familyId: accountBook.familyId,
+          userId: userId
+        }
+      });
+
+      if (familyMember) {
+        budgetData.familyMemberId = familyMember.id;
+      }
+    }
 
     // 创建预算
     await this.budgetRepository.create(userId, budgetData);
