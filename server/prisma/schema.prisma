@@ -601,6 +601,27 @@ model wechat_user_bindings {
   @@index([user_id], map: "idx_wechat_user_bindings_user_id")
 }
 
+model user_deletion_logs {
+  id               String    @id @default(uuid())
+  userId           String    @map("user_id")
+  email            String    @map("email")
+  name             String?   @map("name")
+  requestedAt      DateTime  @map("requested_at") @db.Timestamptz(6)
+  scheduledAt      DateTime  @map("scheduled_at") @db.Timestamptz(6)
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletionReason   String?   @map("deletion_reason")
+  adminUserId      String?   @map("admin_user_id")
+  status           String    @default("pending") @map("status")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([userId], map: "idx_user_deletion_logs_user_id")
+  @@index([status], map: "idx_user_deletion_logs_status")
+  @@index([scheduledAt], map: "idx_user_deletion_logs_scheduled_at")
+  @@index([createdAt], map: "idx_user_deletion_logs_created_at")
+  @@map("user_deletion_logs")
+}
+
 enum TransactionType {
   INCOME
   EXPENSE
