@@ -1,5 +1,5 @@
-/* 预算趋势图样式 */
-.budget-trends {
+/* 预算趋势图样式 - 限制在预算统计页面作用域内 */
+.budget-statistics-page .budget-trends {
   margin-bottom: 15px;
   padding: 12px;
   background-color: var(--card-bg);
@@ -7,14 +7,14 @@
   box-shadow: var(--card-shadow);
 }
 
-.section-header {
+.budget-statistics-page .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
 }
 
-.section-header h2 {
+.budget-statistics-page .section-header h2 {
   font-size: 15px;
   font-weight: 600;
   margin: 0;
@@ -28,19 +28,19 @@
 
 
 /* 图表选项样式 */
-.chart-options {
+.budget-statistics-page .chart-options {
   display: flex;
   justify-content: flex-end;
   align-items: center;
   margin: 4px 0;
 }
 
-.time-range-selector {
+.budget-statistics-page .time-range-selector {
   display: flex;
   gap: 4px;
 }
 
-.time-option {
+.budget-statistics-page .time-option {
   padding: 3px 8px;
   border: none;
   background-color: var(--background-color, #f5f5f5);
@@ -52,17 +52,17 @@
   transition: all 0.2s ease;
 }
 
-.time-option:hover {
+.budget-statistics-page .time-option:hover {
   background-color: var(--hover-background);
 }
 
-.time-option.active {
+.budget-statistics-page .time-option.active {
   background-color: var(--primary-color);
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.rollover-toggle {
+.budget-statistics-page .rollover-toggle {
   padding: 3px 8px;
   border: none;
   background-color: var(--background-color, #f5f5f5);
@@ -76,17 +76,17 @@
   align-items: center;
 }
 
-.rollover-toggle:hover {
+.budget-statistics-page .rollover-toggle:hover {
   background-color: var(--hover-background);
 }
 
-.rollover-toggle.active {
+.budget-statistics-page .rollover-toggle.active {
   background-color: var(--primary-color);
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.rollover-toggle span {
+.budget-statistics-page .rollover-toggle span {
   margin-left: 2px;
 }
 

@@ -73,7 +73,8 @@
   margin-bottom: 16px;
 }
 
-.transaction-date {
+/* 交易列表页面专用的日期样式 - 限制作用域避免影响其他页面 */
+.transactions-page .transaction-date {
   font-size: 14px;
   color: var(--text-secondary);
   padding: 8px 16px;

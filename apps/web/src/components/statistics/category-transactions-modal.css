@@ -192,7 +192,8 @@
   margin-bottom: 0;
 }
 
-.transaction-date {
+/* 分类交易模态框专用的日期样式 - 限制作用域避免影响其他页面 */
+.category-transactions-modal .transaction-date {
   padding: 12px 24px 8px;
   font-size: 14px;
   font-weight: 500;

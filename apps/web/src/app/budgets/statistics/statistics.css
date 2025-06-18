@@ -14,8 +14,8 @@
   margin: 0 auto;
 }
 
-/* 定义CSS变量映射，解决变量名不一致的问题 */
-:root {
+/* 定义CSS变量映射，限制在预算统计页面作用域内，避免全局污染 */
+.budget-statistics-page {
   --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   --primary: var(--primary-color, #3b82f6);
   --success: var(--success-color, #22c55e);
@@ -114,7 +114,7 @@
 }
 
 /* 预算概览卡片 */
-.overview-card {
+.budget-statistics-page .overview-card {
   background-color: var(--card-bg, #ffffff);
   border-radius: var(--border-radius, 12px);
   padding: 24px;
@@ -124,7 +124,7 @@
   flex-direction: column;
 }
 
-.budget-name {
+.budget-statistics-page .budget-name {
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 4px;
@@ -312,7 +312,7 @@
   overflow-x: hidden; /* 防止水平溢出 */
 }
 
-.stat-item {
+.budget-statistics-page .stat-item {
   text-align: center;
   flex: 1;
   min-width: 80px;
@@ -323,32 +323,32 @@
   transition: all 0.2s ease;
 }
 
-.budget-stats-row .stat-item {
+.budget-statistics-page .budget-stats-row .stat-item {
   flex: 1 1 0; /* 允许伸缩，基础大小为0，让它们平均分配空间 */
   min-width: 0; /* 允许缩小到容器宽度 */
   max-width: 33.33%; /* 最大宽度为容器的三分之一 */
 }
 
-.stat-item:hover {
+.budget-statistics-page .stat-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-.stat-value {
+.budget-statistics-page .stat-value {
   font-size: 18px;
   font-weight: 700;
   color: var(--primary-color, #3b82f6);
   margin-bottom: 4px;
 }
 
-.stat-label {
+.budget-statistics-page .stat-label {
   font-size: 13px;
   color: var(--text-color-secondary, #64748b);
   font-weight: 500;
 }
 
 /* 预算趋势图表 */
-.budget-trends {
+.budget-statistics-page .budget-trends {
   margin-bottom: 20px;
   padding: 20px;
   background-color: var(--card-bg);
@@ -370,7 +370,7 @@
   color: var(--text-color);
 }
 
-.view-options {
+.budget-statistics-page .view-options {
   display: flex;
   gap: 8px;
   background-color: var(--background-color, #f5f5f5);
@@ -378,7 +378,7 @@
   padding: 4px;
 }
 
-.view-option {
+.budget-statistics-page .view-option {
   padding: 8px 16px;
   border-radius: 6px;
   background: none;
@@ -390,11 +390,11 @@
   transition: all 0.2s ease;
 }
 
-.view-option:hover {
+.budget-statistics-page .view-option:hover {
   background-color: var(--hover-background);
 }
 
-.view-option.active {
+.budget-statistics-page .view-option.active {
   background-color: var(--primary-color);
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -515,7 +515,7 @@
 }
 
 /* 分类预算样式 */
-.category-budgets {
+.budget-statistics-page .category-budgets {
   margin-bottom: 20px;
   padding: 20px;
   background-color: var(--card-bg);
@@ -523,7 +523,7 @@
   box-shadow: var(--card-shadow);
 }
 
-.budget-list {
+.budget-statistics-page .budget-list {
   margin-top: 15px;
 }
 
@@ -614,8 +614,8 @@
   font-size: 15px;
 }
 
-/* 最近交易样式 */
-.recent-transactions {
+/* 预算统计页面的最近交易容器样式 */
+.budget-statistics-page .recent-transactions {
   margin-bottom: 20px;
   padding: 20px;
   background-color: var(--card-bg);
@@ -623,7 +623,7 @@
   box-shadow: var(--card-shadow);
 }
 
-.view-all {
+.budget-statistics-page .view-all {
   font-size: 14px;
   color: var(--primary-color);
   text-decoration: none;
@@ -636,72 +636,86 @@
   transition: background-color 0.2s ease;
 }
 
-.view-all:hover {
+.budget-statistics-page .view-all:hover {
   background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
 }
 
-.transaction-list {
+/* 预算统计页面的最近交易样式 - 与仪表盘保持一致 */
+.budget-statistics-page .transaction-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* 与仪表盘保持一致的间距 */
   margin-top: 15px;
 }
 
-.transaction-item {
+.budget-statistics-page .transaction-item {
   display: flex;
   align-items: center;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border-color);
+  gap: 10px; /* 与仪表盘保持一致的间距 */
+  padding: 6px 0; /* 与仪表盘保持一致的内边距 */
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-radius: 8px;
 }
 
-.transaction-item:last-child {
-  border-bottom: none;
+.budget-statistics-page .transaction-item:hover {
+  background-color: var(--background-hover, rgba(0, 0, 0, 0.02));
 }
 
-.transaction-icon {
-  width: 44px;
-  height: 44px;
+.budget-statistics-page .transaction-icon {
+  width: 34px; /* 与仪表盘保持一致的图标大小 */
+  height: 34px;
   border-radius: 50%;
-  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
+  background-color: var(--primary-light, #e0f2fe);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 14px;
   color: var(--primary-color);
-  font-size: 18px;
+  flex-shrink: 0;
+  font-size: 16px; /* 调整图标字体大小 */
 }
 
-.transaction-info {
+.budget-statistics-page .transaction-info {
   flex: 1;
+  min-width: 0;
 }
 
-.transaction-title {
+.budget-statistics-page .transaction-title {
   font-weight: 500;
-  margin-bottom: 4px;
-  color: var(--text-color);
-  font-size: 15px;
+  font-size: 14px; /* 与仪表盘保持一致 */
+  color: var(--text-primary, #1f2937);
+  margin-bottom: 1px; /* 与仪表盘保持一致 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.transaction-description {
-  font-size: 13px;
-  color: var(--text-color-secondary);
-  margin-bottom: 4px;
-  line-height: 1.3;
+.budget-statistics-page .transaction-description {
+  font-size: 12px; /* 与仪表盘保持一致 */
+  color: var(--text-secondary, #6b7280);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.transaction-date {
-  font-size: 13px;
-  color: var(--text-color-secondary);
+.budget-statistics-page .transaction-date {
+  font-size: 12px; /* 与仪表盘保持一致 */
+  color: var(--text-secondary, #6b7280);
 }
 
-.transaction-amount {
+.budget-statistics-page .transaction-amount {
   font-weight: 600;
-  font-size: 16px;
+  font-size: 14px; /* 与仪表盘保持一致 */
+  text-align: right;
+  flex-shrink: 0;
 }
 
-.transaction-amount.expense {
-  color: var(--danger-color, #ef4444);
+.budget-statistics-page .transaction-amount.expense {
+  color: var(--error-color, #EF4444);
 }
 
-.transaction-amount.income {
-  color: var(--success-color, #22c55e);
+.budget-statistics-page .transaction-amount.income {
+  color: var(--success-color, #22C55E);
 }
 
 /* 结转历史对话框样式 */
@@ -952,33 +966,26 @@
   transform: translateY(-1px);
 }
 
-/* 解决Tailwind样式冲突，提高自定义样式优先级 */
-.budget-overview .overview-card {
-  background-color: var(--card-bg, #ffffff);
-  border-radius: var(--border-radius, 10px);
-  padding: 20px;
-  box-shadow: var(--card-shadow);
+/* 解决Tailwind样式冲突，提高自定义样式优先级 - 限制在页面作用域内 */
+.budget-statistics-page .budget-overview .overview-card {
+  background-color: var(--card-bg, #ffffff) !important;
+  border-radius: var(--border-radius, 10px) !important;
+  padding: 20px !important;
+  box-shadow: var(--card-shadow) !important;
 }
 
-.budget-trends {
-  background-color: var(--card-bg, #ffffff);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: var(--card-shadow);
+.budget-statistics-page .budget-trends {
+  background-color: var(--card-bg, #ffffff) !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  box-shadow: var(--card-shadow) !important;
 }
 
-.category-budgets {
-  background-color: var(--card-bg, #ffffff);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: var(--card-shadow);
-}
-
-.recent-transactions {
-  background-color: var(--card-bg, #ffffff);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: var(--card-shadow);
+.budget-statistics-page .category-budgets {
+  background-color: var(--card-bg, #ffffff) !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  box-shadow: var(--card-shadow) !important;
 }
 
 /* 确保预算选择器样式正确应用 */

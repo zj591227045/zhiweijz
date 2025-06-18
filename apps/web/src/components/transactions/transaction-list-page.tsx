@@ -452,7 +452,8 @@ export function TransactionListPage() {
       rightActions={rightActions}
       activeNavItem="profile"
     >
-      <div ref={scrollContainerRef} style={{ height: '100vh', overflowY: 'auto' }}>
+      <div className="transactions-page">
+        <div ref={scrollContainerRef} style={{ height: '100vh', overflowY: 'auto' }}>
         {/* 筛选区域 - 简化版 */}
         {filters.isFilterPanelOpen && (
           <div className="filter-panel">
@@ -688,6 +689,7 @@ export function TransactionListPage() {
             onSave={handleTransactionSaved}
           />
         )}
+        </div>
       </div>
     </PageContainer>
   );
