@@ -10,9 +10,26 @@
  * 2. 本地环境：node scripts/comprehensive-family-fix.js [accountBookId] [preview|fix]
  */
 
-const { PrismaClient } = require('@prisma/client');
+// 根据运行环境选择正确的Prisma客户端路径
+let PrismaClient;
+let prisma;
 
-const prisma = new PrismaClient();
+try {
+  // 尝试从服务器目录加载
+  PrismaClient = require('../server/node_modules/@prisma/client').PrismaClient;
+} catch (error) {
+  try {
+    // 尝试从根目录加载
+    PrismaClient = require('@prisma/client').PrismaClient;
+  } catch (error2) {
+    console.error('❌ 无法加载Prisma客户端');
+    console.error('请确保已安装依赖并生成Prisma客户端：');
+    console.error('  cd server && npm install && npx prisma generate');
+    process.exit(1);
+  }
+}
+
+prisma = new PrismaClient();
 
 async function main() {
   const accountBookId = process.argv[2];
