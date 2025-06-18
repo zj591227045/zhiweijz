@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
+import { useAccountBookStore } from '@/store/account-book-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { formatCurrency, getCategoryIconClass } from '@/lib/utils';
 import { apiClient } from '@/lib/api-client';
@@ -31,6 +32,7 @@ export function TransactionListPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated } = useAuthStore();
+  const { currentAccountBook } = useAccountBookStore();
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,8 +69,8 @@ export function TransactionListPage() {
     startDate: getCurrentMonthRange().startDate,
     endDate: getCurrentMonthRange().endDate,
     transactionType: 'ALL',
-    categoryIds: [],
-    accountBookId: null,
+    categoryIds: [] as string[],
+    accountBookId: currentAccountBook?.id || null,
     isFilterPanelOpen: false,
   });
 
@@ -87,6 +89,16 @@ export function TransactionListPage() {
       router.push('/auth/login');
     }
   }, [isAuthenticated, router]);
+
+  // 监听当前账本变化，更新筛选条件
+  useEffect(() => {
+    if (currentAccountBook) {
+      setFilters(prev => ({
+        ...prev,
+        accountBookId: currentAccountBook.id,
+      }));
+    }
+  }, [currentAccountBook]);
 
   // 获取交易数据的函数（重置数据）
   const fetchTransactions = async (resetData = true) => {
@@ -434,7 +446,7 @@ export function TransactionListPage() {
       endDate: getCurrentMonthRange().endDate,
       transactionType: 'ALL',
       categoryIds: [],
-      accountBookId: null,
+      accountBookId: currentAccountBook?.id || null,
       isFilterPanelOpen: false,
     });
   };

@@ -21,6 +21,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTransactionStore } from '../../store/transaction-store';
 import { useCategoryStore } from '../../store/category-store';
 import { useAuthStore } from '../../store/auth-store';
+import { useAccountBookStore } from '../../store/account-book-store';
 import { NavigationProps, TransactionsStackParamList } from '../../navigation/types';
 import dayjs from 'dayjs';
 
@@ -39,12 +40,13 @@ interface TransactionListScreenProps extends NavigationProps<'TransactionList'> 
 const TransactionListScreen: React.FC<TransactionListScreenProps> = ({ navigation }) => {
   const theme = useTheme();
   const { isAuthenticated } = useAuthStore();
-  const { 
-    transactions, 
-    isLoading, 
-    error, 
-    fetchTransactions, 
-    clearError 
+  const { currentAccountBook } = useAccountBookStore();
+  const {
+    transactions,
+    isLoading,
+    error,
+    fetchTransactions,
+    clearError
   } = useTransactionStore();
   const { categories, fetchCategories } = useCategoryStore();
 
@@ -61,6 +63,7 @@ const TransactionListScreen: React.FC<TransactionListScreenProps> = ({ navigatio
     endDate: dayjs().endOf('month').format('YYYY-MM-DD'),
     transactionType: 'ALL',
     categoryIds: [] as string[],
+    accountBookId: currentAccountBook?.id || null,
   });
 
   // 检查认证状态
@@ -70,6 +73,16 @@ const TransactionListScreen: React.FC<TransactionListScreenProps> = ({ navigatio
       console.log('用户未认证，需要登录');
     }
   }, [isAuthenticated]);
+
+  // 监听当前账本变化，更新筛选条件
+  useEffect(() => {
+    if (currentAccountBook) {
+      setFilters(prev => ({
+        ...prev,
+        accountBookId: currentAccountBook.id,
+      }));
+    }
+  }, [currentAccountBook]);
 
   // 获取数据
   useEffect(() => {
@@ -89,6 +102,7 @@ const TransactionListScreen: React.FC<TransactionListScreenProps> = ({ navigatio
         sort: 'date:desc',
         ...(filters.transactionType !== 'ALL' && { type: filters.transactionType }),
         ...(filters.categoryIds.length > 0 && { categoryIds: filters.categoryIds.join(',') }),
+        ...(filters.accountBookId && { accountBookId: filters.accountBookId }),
       };
 
       await fetchTransactions(queryParams);

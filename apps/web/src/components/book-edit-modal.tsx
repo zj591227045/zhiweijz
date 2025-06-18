@@ -656,7 +656,7 @@ export default function BookEditModal({
                       AI服务管理已迁移到全局设置
                     </div>
                     <div style={{ fontSize: '12px' }}>
-                      请前往"设置 > AI服务管理"进行配置
+                      请前往"设置 &gt; AI服务管理"进行配置
                     </div>
                   </div>
 
