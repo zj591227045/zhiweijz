@@ -27,7 +27,7 @@ services:
 
   # 后端服务
   backend:
-    image: zj591227045/zhiweijz-backend:0.2.3
+    image: zj591227045/zhiweijz-backend:0.2.5
     container_name: zhiweijz-backend
     restart: unless-stopped
     environment:
@@ -57,7 +57,7 @@ services:
 
   # 前端服务
   frontend:
-    image: zj591227045/zhiweijz-frontend:0.2.3
+    image: zj591227045/zhiweijz-frontend:0.2.5
     container_name: zhiweijz-frontend
     restart: unless-stopped
     environment:
