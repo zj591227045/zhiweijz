@@ -81,6 +81,9 @@ debug-*.ts
 fix-*.js
 fix-*.ts
 fix-*.sh
+
+# 例外：允许前端调试工具
+!apps/web/src/utils/debug-auth.ts
 create-test-*
 cleanup-*
 analyze-*
