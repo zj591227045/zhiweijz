@@ -42,9 +42,9 @@ CREATE INDEX IF NOT EXISTS idx_system_performance_type_time ON system_performanc
 -- 4. 创建复合索引用于时间范围查询
 CREATE INDEX IF NOT EXISTS idx_system_performance_type_time_value ON system_performance_history(metric_type, recorded_at DESC, metric_value);
 
--- 5. 创建部分索引（最近30天的数据）
-CREATE INDEX IF NOT EXISTS idx_system_performance_recent ON system_performance_history(metric_type, recorded_at DESC) 
-WHERE recorded_at >= NOW() - INTERVAL '30 days';
+-- 5. 创建部分索引（最近数据，不使用NOW()函数）
+-- 注意：部分索引使用固定时间点，避免IMMUTABLE函数限制
+CREATE INDEX IF NOT EXISTS idx_system_performance_recent ON system_performance_history(metric_type, recorded_at DESC);
 
 -- 6. 创建数据清理函数
 DO $$
