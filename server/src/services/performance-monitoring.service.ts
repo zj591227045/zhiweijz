@@ -409,6 +409,8 @@ export class PerformanceMonitoringService {
    */
   private async saveMetric(metric: PerformanceMetric) {
     try {
+      const additionalDataJson = metric.additionalData ? JSON.stringify(metric.additionalData) : null;
+
       await prisma.$executeRaw`
         INSERT INTO system_performance_history (
           metric_type,
@@ -418,7 +420,7 @@ export class PerformanceMonitoringService {
         ) VALUES (
           ${metric.metricType},
           ${metric.metricValue},
-          ${JSON.stringify(metric.additionalData)},
+          ${additionalDataJson}::jsonb,
           ${metric.recordedAt || new Date()}
         )
       `;
