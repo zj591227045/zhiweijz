@@ -93,7 +93,7 @@ SELECT
 FROM system_performance_history
 WHERE recorded_at >= NOW() - INTERVAL '7 days'
 GROUP BY metric_type, DATE_TRUNC('hour', recorded_at)
-ORDER BY hour_time DESC;
+ORDER BY hour_time ASC;
 
 CREATE OR REPLACE VIEW system_performance_daily AS
 SELECT
@@ -106,7 +106,7 @@ SELECT
 FROM system_performance_history
 WHERE recorded_at >= NOW() - INTERVAL '30 days'
 GROUP BY metric_type, DATE_TRUNC('day', recorded_at)
-ORDER BY day_time DESC;
+ORDER BY day_time ASC;
 
 -- 8. 插入系统配置
 INSERT INTO system_configs (key, value, description, category) 

@@ -488,7 +488,7 @@ export class PerformanceMonitoringService {
         FROM system_performance_history
         WHERE metric_type = $1 AND ${timeCondition}
         GROUP BY ${groupBy}
-        ORDER BY time_period DESC
+        ORDER BY time_period ASC
         LIMIT $2
       `;
 
