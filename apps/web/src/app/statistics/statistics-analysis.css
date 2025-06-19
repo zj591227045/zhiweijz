@@ -716,8 +716,8 @@
   text-overflow: ellipsis;
 }
 
-/* 自定义日期范围选择器样式 */
-.statistics-analysis-page .custom-date-range-picker {
+/* 自定义日期范围选择器样式 - 兼容移动端优化版本 */
+.statistics-analysis-page .custom-date-range-picker:not(.mobile-optimized) {
   background-color: var(--card-background);
   border: 1px solid var(--border-color);
   border-radius: 8px;

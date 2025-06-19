@@ -3,7 +3,7 @@
 /* 时间范围类型选择器Portal下拉菜单 */
 .time-range-type-dropdown-portal {
   position: fixed !important;
-  z-index: 2147483647 !important; /* 使用最大可能的z-index值 */
+  z-index: 210 !important; /* 下拉菜单层级 */
   background-color: #ffffff !important;
   border: 1px solid #e5e7eb !important;
   border-radius: 6px !important;
