@@ -32,6 +32,12 @@ export interface AnnouncementWithStats extends Announcement {
   readCount: number;
   totalUsers: number;
   readRate: number;
+  creator: {
+    username: string;
+  };
+  updater?: {
+    username: string;
+  } | null;
 }
 
 export class AnnouncementAdminService {
@@ -76,8 +82,15 @@ export class AnnouncementAdminService {
         orderBy: [
           { priority: 'desc' },
           { createdAt: 'desc' }
-        ]
-        // 移除include以避免TypeScript错误，因为schema中没有定义creator/updater关系
+        ],
+        include: {
+          creator: {
+            select: { username: true }
+          },
+          updater: {
+            select: { username: true }
+          }
+        }
       }),
       prisma.announcement.count({ where })
     ]);
@@ -96,7 +109,9 @@ export class AnnouncementAdminService {
           ...announcement,
           readCount,
           totalUsers,
-          readRate: totalUsers > 0 ? (readCount / totalUsers) * 100 : 0
+          readRate: totalUsers > 0 ? (readCount / totalUsers) * 100 : 0,
+          creator: announcement.creator,
+          updater: announcement.updater
         };
       })
     );
@@ -117,8 +132,15 @@ export class AnnouncementAdminService {
    */
   async getAnnouncementById(id: string): Promise<AnnouncementWithStats | null> {
     const announcement = await prisma.announcement.findUnique({
-      where: { id }
-      // 移除include以避免TypeScript错误，因为schema中没有定义creator/updater关系
+      where: { id },
+      include: {
+        creator: {
+          select: { username: true }
+        },
+        updater: {
+          select: { username: true }
+        }
+      }
     });
 
     if (!announcement) {
@@ -137,7 +159,9 @@ export class AnnouncementAdminService {
       ...announcement,
       readCount,
       totalUsers,
-      readRate: totalUsers > 0 ? (readCount / totalUsers) * 100 : 0
+      readRate: totalUsers > 0 ? (readCount / totalUsers) * 100 : 0,
+      creator: announcement.creator,
+      updater: announcement.updater
     };
   }
 
@@ -159,6 +183,14 @@ export class AnnouncementAdminService {
         status,
         createdBy,
         updatedBy: createdBy
+      },
+      include: {
+        creator: {
+          select: { username: true }
+        },
+        updater: {
+          select: { username: true }
+        }
       }
     });
   }

@@ -210,7 +210,7 @@ export function AnnouncementList({
                   {/* 元信息 */}
                   <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
                     <div className="flex items-center space-x-4">
-                      <span>创建者: {announcement.creator.username}</span>
+                      <span>创建者: {announcement.creator?.username || '未知'}</span>
                       <span>
                         创建时间: {formatDistanceToNow(new Date(announcement.createdAt), { 
                           addSuffix: true, 
