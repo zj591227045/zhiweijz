@@ -3,6 +3,7 @@ import config from './config/config';
 import { startAggregationService } from './admin/scripts/start-aggregation';
 import { connectDatabase, disconnectDatabase } from './config/database';
 import { UserDeletionService } from './services/user-deletion.service';
+import { taskSchedulerService } from './services/task-scheduler.service';
 
 // 连接数据库
 connectDatabase();
@@ -18,11 +19,18 @@ const server = app.listen(config.port, '0.0.0.0', () => {
   // 启动用户注销定时任务
   const userDeletionService = new UserDeletionService();
   userDeletionService.startScheduledDeletion();
+
+  // 启动任务调度器（包含性能监控）
+  taskSchedulerService.startScheduler().catch(console.error);
 });
 
 // 处理进程终止信号
 const gracefulShutdown = async () => {
   console.log('正在关闭服务器...');
+
+  // 停止任务调度器
+  await taskSchedulerService.gracefulShutdown();
+
   server.close(async () => {
     console.log('服务器已关闭');
     await disconnectDatabase();

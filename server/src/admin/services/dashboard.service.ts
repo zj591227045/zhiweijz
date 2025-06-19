@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import os from 'os';
 import * as fs from 'fs';
 import { promisify } from 'util';
+import { performanceMonitoringService } from '../../services/performance-monitoring.service';
 
 const prisma = new PrismaClient();
 
@@ -512,5 +513,92 @@ export class DashboardService {
     }
 
     return 0;
+  }
+
+  /**
+   * 获取系统性能历史数据
+   */
+  async getPerformanceHistory(
+    metricType: 'disk' | 'cpu' | 'memory',
+    timeRange: 'hour' | 'day' | 'week' | '30days'
+  ) {
+    try {
+      const data = await performanceMonitoringService.getPerformanceHistory(
+        metricType,
+        timeRange,
+        1000
+      ) as Array<{
+        time_period: string;
+        avg_value: number;
+        min_value: number;
+        max_value: number;
+        sample_count: number;
+      }>;
+
+      return {
+        metricType,
+        timeRange,
+        data: data.map((item) => ({
+          time: item.time_period,
+          avgValue: parseFloat(item.avg_value?.toString() || '0'),
+          minValue: parseFloat(item.min_value?.toString() || '0'),
+          maxValue: parseFloat(item.max_value?.toString() || '0'),
+          sampleCount: Number(item.sample_count || 0)
+        }))
+      };
+    } catch (error) {
+      console.error('获取性能历史数据错误:', error);
+      throw new Error('获取性能历史数据失败');
+    }
+  }
+
+  /**
+   * 获取性能统计信息
+   */
+  async getPerformanceStats(
+    metricType: 'disk' | 'cpu' | 'memory',
+    hours: number = 24
+  ) {
+    try {
+      const stats = await performanceMonitoringService.getPerformanceStats(
+        metricType,
+        hours
+      );
+
+      return {
+        metricType,
+        hours,
+        avgValue: parseFloat(stats.avg_value?.toString() || '0'),
+        minValue: parseFloat(stats.min_value?.toString() || '0'),
+        maxValue: parseFloat(stats.max_value?.toString() || '0'),
+        sampleCount: Number(stats.sample_count || 0)
+      };
+    } catch (error) {
+      console.error('获取性能统计信息错误:', error);
+      throw new Error('获取性能统计信息失败');
+    }
+  }
+
+  /**
+   * 获取所有性能历史数据（用于仪表盘）
+   */
+  async getAllPerformanceHistory(timeRange: 'hour' | 'day' | 'week' | '30days') {
+    try {
+      const [diskHistory, cpuHistory, memoryHistory] = await Promise.all([
+        this.getPerformanceHistory('disk', timeRange),
+        this.getPerformanceHistory('cpu', timeRange),
+        this.getPerformanceHistory('memory', timeRange)
+      ]);
+
+      return {
+        timeRange,
+        disk: diskHistory,
+        cpu: cpuHistory,
+        memory: memoryHistory
+      };
+    } catch (error) {
+      console.error('获取所有性能历史数据错误:', error);
+      throw new Error('获取所有性能历史数据失败');
+    }
   }
 }

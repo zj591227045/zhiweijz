@@ -91,6 +91,122 @@ export class AdminDashboardController {
   }
 
   /**
+   * 获取系统性能历史数据
+   */
+  async getPerformanceHistory(req: Request, res: Response): Promise<void> {
+    try {
+      const { metricType, timeRange } = req.query;
+
+      // 验证参数
+      if (!metricType || !['disk', 'cpu', 'memory'].includes(metricType as string)) {
+        res.status(400).json({
+          success: false,
+          message: '无效的指标类型，必须是 disk、cpu 或 memory'
+        });
+        return;
+      }
+
+      if (!timeRange || !['hour', 'day', 'week', '30days'].includes(timeRange as string)) {
+        res.status(400).json({
+          success: false,
+          message: '无效的时间范围，必须是 hour、day、week 或 30days'
+        });
+        return;
+      }
+
+      const data = await this.dashboardService.getPerformanceHistory(
+        metricType as 'disk' | 'cpu' | 'memory',
+        timeRange as 'hour' | 'day' | 'week' | '30days'
+      );
+
+      res.json({
+        success: true,
+        data
+      });
+    } catch (error) {
+      console.error('获取性能历史数据错误:', error);
+      res.status(500).json({
+        success: false,
+        message: '获取性能历史数据失败'
+      });
+    }
+  }
+
+  /**
+   * 获取所有性能历史数据
+   */
+  async getAllPerformanceHistory(req: Request, res: Response): Promise<void> {
+    try {
+      const { timeRange = 'day' } = req.query;
+
+      if (!['hour', 'day', 'week', '30days'].includes(timeRange as string)) {
+        res.status(400).json({
+          success: false,
+          message: '无效的时间范围，必须是 hour、day、week 或 30days'
+        });
+        return;
+      }
+
+      const data = await this.dashboardService.getAllPerformanceHistory(
+        timeRange as 'hour' | 'day' | 'week' | '30days'
+      );
+
+      res.json({
+        success: true,
+        data
+      });
+    } catch (error) {
+      console.error('获取所有性能历史数据错误:', error);
+      res.status(500).json({
+        success: false,
+        message: '获取所有性能历史数据失败'
+      });
+    }
+  }
+
+  /**
+   * 获取性能统计信息
+   */
+  async getPerformanceStats(req: Request, res: Response): Promise<void> {
+    try {
+      const { metricType, hours = '24' } = req.query;
+
+      if (!metricType || !['disk', 'cpu', 'memory'].includes(metricType as string)) {
+        res.status(400).json({
+          success: false,
+          message: '无效的指标类型，必须是 disk、cpu 或 memory'
+        });
+        return;
+      }
+
+      const hoursNum = parseInt(hours as string);
+      if (isNaN(hoursNum) || hoursNum <= 0) {
+        res.status(400).json({
+          success: false,
+          message: '无效的小时数'
+        });
+        return;
+      }
+
+      const data = await this.dashboardService.getPerformanceStats(
+        metricType as 'disk' | 'cpu' | 'memory',
+        hoursNum
+      );
+
+      res.json({
+        success: true,
+        data
+      });
+    } catch (error) {
+      console.error('获取性能统计信息错误:', error);
+      res.status(500).json({
+        success: false,
+        message: '获取性能统计信息失败'
+      });
+    }
+  }
+
+  /**
    * 获取图表数据
    * @param req 
    * @param res 

@@ -57,6 +57,9 @@ export const ADMIN_API_ENDPOINTS = {
   DASHBOARD_USERS: '/api/admin/dashboard/users',
   DASHBOARD_TRANSACTIONS: '/api/admin/dashboard/transactions',
   DASHBOARD_SYSTEM: '/api/admin/dashboard/system',
+  DASHBOARD_PERFORMANCE_HISTORY: '/api/admin/dashboard/performance/history',
+  DASHBOARD_PERFORMANCE_ALL: '/api/admin/dashboard/performance/all',
+  DASHBOARD_PERFORMANCE_STATS: '/api/admin/dashboard/performance/stats',
   
   // 系统配置
   SYSTEM_CONFIG_REGISTRATION: '/api/admin/system-configs/registration',

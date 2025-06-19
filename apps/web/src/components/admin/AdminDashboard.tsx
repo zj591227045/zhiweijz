@@ -5,7 +5,7 @@ import { useAdminDashboard } from '@/store/admin/useAdminDashboard';
 import { StatsCard } from './StatsCard';
 import { ChartCard } from './ChartCard';
 import { SystemResourcesCard } from './SystemResourcesCard';
-import { DiskMonitoringCard } from './DiskMonitoringCard';
+import { PerformanceHistoryCard } from './PerformanceHistoryCard';
 import { 
   UsersIcon, 
   CreditCardIcon, 
@@ -201,10 +201,27 @@ export function AdminDashboard() {
         />
       </div>
 
-      {/* 磁盘空间监控 */}
-      <div className="grid grid-cols-1 gap-6">
-        <DiskMonitoringCard
-          data={systemResources?.disk || null}
+      {/* 系统性能历史图表 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <PerformanceHistoryCard
+          metricType="disk"
+          title="磁盘使用率"
+          color="#EF4444"
+          unit="%"
+          isLoading={isLoading.systemResources}
+        />
+        <PerformanceHistoryCard
+          metricType="cpu"
+          title="CPU使用率"
+          color="#F59E0B"
+          unit="%"
+          isLoading={isLoading.systemResources}
+        />
+        <PerformanceHistoryCard
+          metricType="memory"
+          title="内存使用率"
+          color="#10B981"
+          unit="%"
           isLoading={isLoading.systemResources}
         />
       </div>
