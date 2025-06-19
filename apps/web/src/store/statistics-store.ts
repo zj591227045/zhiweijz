@@ -19,6 +19,7 @@ interface StatisticsState {
   categoryChartType: 'pie' | 'bar';
   trendChartPeriod: 'day' | 'week' | 'month';
   selectedCategoryType: 'expense' | 'income';
+  selectedTagIds: string[];
 
   // 操作方法
   setIsLoading: (isLoading: boolean) => void;
@@ -27,10 +28,12 @@ interface StatisticsState {
   setCategoryChartType: (type: 'pie' | 'bar') => void;
   setTrendChartPeriod: (period: 'day' | 'week' | 'month') => void;
   setSelectedCategoryType: (type: 'expense' | 'income') => void;
+  setSelectedTagIds: (tagIds: string[]) => void;
   fetchStatisticsData: (
     startDate: string,
     endDate: string,
     accountBookId?: string,
+    tagIds?: string[],
   ) => Promise<void>;
   reset: () => void;
 }
@@ -47,6 +50,7 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
   categoryChartType: 'pie',
   trendChartPeriod: 'day',
   selectedCategoryType: 'expense',
+  selectedTagIds: [],
 
   // 操作方法
   setIsLoading: (isLoading) => set({ isLoading }),
@@ -55,16 +59,22 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
   setCategoryChartType: (type) => set({ categoryChartType: type }),
   setTrendChartPeriod: (period) => set({ trendChartPeriod: period }),
   setSelectedCategoryType: (type) => set({ selectedCategoryType: type }),
+  setSelectedTagIds: (tagIds) => set({ selectedTagIds: tagIds }),
 
   // 获取统计数据
-  fetchStatisticsData: async (startDate, endDate, accountBookId) => {
-    console.log('开始获取统计数据:', { startDate, endDate, accountBookId });
+  fetchStatisticsData: async (startDate, endDate, accountBookId, tagIds) => {
+    console.log('开始获取统计数据:', { startDate, endDate, accountBookId, tagIds });
     try {
       set({ isLoading: true, error: null });
 
       let url = `/statistics/overview?startDate=${startDate}&endDate=${endDate}`;
       if (accountBookId) {
         url += `&accountBookId=${accountBookId}`;
+      }
+      if (tagIds && tagIds.length > 0) {
+        tagIds.forEach(tagId => {
+          url += `&tagIds=${tagId}`;
+        });
       }
 
       const response = await apiClient.get(url);
@@ -120,5 +130,6 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
       categoryChartType: 'pie',
       trendChartPeriod: 'day',
       selectedCategoryType: 'expense',
+      selectedTagIds: [],
     }),
 }));

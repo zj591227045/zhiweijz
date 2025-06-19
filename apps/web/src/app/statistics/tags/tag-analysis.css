@@ -1,0 +1,165 @@
+/* 标签分析页面专用样式 - 隔离样式避免与统计分析页面冲突 */
+
+/* 页面级作用域容器 */
+.tag-analysis-page {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  isolation: isolate; /* 创建新的层叠上下文 */
+}
+
+/* 重置可能的全局样式冲突 */
+.tag-analysis-page * {
+  box-sizing: border-box !important;
+}
+
+/* 图表容器样式 - 强制覆盖可能的冲突 */
+.tag-analysis-page .chart-container {
+  width: 100% !important;
+  height: 320px !important;
+  position: relative !important;
+  display: block !important;
+  background-color: #f9fafb !important;
+  border-radius: 8px !important;
+  overflow: visible !important;
+}
+
+/* Recharts 组件样式强制覆盖 */
+.tag-analysis-page .recharts-wrapper {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  position: relative !important;
+  z-index: 100 !important;
+  background-color: transparent !important;
+}
+
+.tag-analysis-page .recharts-responsive-container {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  position: relative !important;
+  background-color: transparent !important;
+}
+
+.tag-analysis-page .recharts-surface {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-color: transparent !important;
+}
+
+.tag-analysis-page svg {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 100 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-color: transparent !important;
+}
+
+/* 强制覆盖可能的隐藏样式 */
+.tag-analysis-page .recharts-wrapper,
+.tag-analysis-page .recharts-responsive-container,
+.tag-analysis-page .recharts-surface,
+.tag-analysis-page svg,
+.tag-analysis-page .recharts-pie,
+.tag-analysis-page .recharts-bar-chart,
+.tag-analysis-page .recharts-cartesian-grid,
+.tag-analysis-page .recharts-xaxis,
+.tag-analysis-page .recharts-yaxis {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* 图表切换按钮样式 */
+.tag-analysis-page .chart-type-button {
+  background-color: #f3f4f6 !important;
+  border: 1px solid #d1d5db !important;
+  color: #6b7280 !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  padding: 8px 16px !important;
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+}
+
+.tag-analysis-page .chart-type-button.active {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: white !important;
+}
+
+.tag-analysis-page .chart-type-button:hover {
+  background-color: #e5e7eb !important;
+  border-color: #9ca3af !important;
+}
+
+.tag-analysis-page .chart-type-button.active:hover {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+/* 图例样式 */
+.tag-analysis-page .legend-container {
+  background-color: #f9fafb !important;
+  border-radius: 8px !important;
+  padding: 16px !important;
+}
+
+.tag-analysis-page .legend-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 8px 0 !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+.tag-analysis-page .legend-item:last-child {
+  border-bottom: none !important;
+}
+
+.tag-analysis-page .legend-color {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+}
+
+/* 卡片样式 */
+.tag-analysis-page .stats-card {
+  background-color: white !important;
+  border-radius: 12px !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  padding: 16px !important;
+  margin-bottom: 16px !important;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .tag-analysis-page .chart-container {
+    height: 280px !important;
+  }
+  
+  .tag-analysis-page .chart-type-button {
+    padding: 6px 12px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* 确保图表在移动端正确显示 */
+@media (max-width: 480px) {
+  .tag-analysis-page .chart-container {
+    height: 260px !important;
+  }
+}

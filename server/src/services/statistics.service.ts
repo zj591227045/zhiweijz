@@ -542,7 +542,8 @@ export class StatisticsService {
     accountBookId?: string,
     budgetId?: string,
     type?: string,
-    categoryIds?: string[]
+    categoryIds?: string[],
+    tagIds?: string[]
   ): Promise<FinancialOverviewResponseDto> {
     // 验证用户是否为家庭成员
     if (familyId) {
@@ -562,7 +563,8 @@ export class StatisticsService {
       accountBookId,
       false, // 设置excludeFamilyMember为false，统计该账本的所有交易记录
       budgetId,
-      categoryIds
+      categoryIds,
+      tagIds
     );
 
     // 获取支出交易记录 - 不排除家庭成员的交易记录，统计该账本的所有交易
@@ -575,7 +577,8 @@ export class StatisticsService {
       accountBookId,
       false, // 设置excludeFamilyMember为false，统计该账本的所有交易记录
       budgetId,
-      categoryIds
+      categoryIds,
+      tagIds
     );
 
     // 获取分类信息
@@ -874,5 +877,57 @@ export class StatisticsService {
     // 检查用户是否为家庭成员
     const member = await this.familyRepository.findFamilyMemberByUserAndFamily(userId, familyId);
     return !!member;
+  }
+
+  /**
+   * 获取标签统计
+   */
+  async getTagStatistics(
+    userId: string,
+    accountBookId: string,
+    startDate: Date,
+    endDate: Date,
+    tagIds?: string[],
+    transactionType?: 'income' | 'expense',
+    categoryIds?: string[]
+  ): Promise<any> {
+    // 验证用户是否有权访问账本
+    const { AccountBookRepository } = require('../repositories/account-book.repository');
+    const accountBookRepository = new AccountBookRepository();
+
+    const accountBook = await accountBookRepository.findById(accountBookId);
+    if (!accountBook) {
+      throw new Error('账本不存在');
+    }
+
+    // 验证权限
+    if (accountBook.type === 'PERSONAL') {
+      if (accountBook.userId !== userId) {
+        throw new Error('无权访问此账本');
+      }
+    } else if (accountBook.type === 'FAMILY') {
+      if (!accountBook.familyId) {
+        throw new Error('账本数据错误：家庭账本缺少家庭ID');
+      }
+      const isMember = await this.isUserFamilyMember(userId, accountBook.familyId);
+      if (!isMember) {
+        throw new Error('无权访问此家庭账本');
+      }
+    }
+
+    // 获取标签统计数据
+    const { TagService } = require('./tag.service');
+    const tagService = new TagService();
+
+    const statistics = await tagService.getTagStatistics({
+      accountBookId,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      tagIds,
+      transactionType,
+      categoryIds
+    });
+
+    return statistics;
   }
 }

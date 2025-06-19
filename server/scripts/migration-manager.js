@@ -23,24 +23,25 @@ const logger = {
  */
 const MIGRATIONS_CONFIG = {
   // 当前最新版本
-  LATEST_VERSION: '1.4.0',
+  LATEST_VERSION: '1.5.0',
 
   // 迁移文件目录
   MIGRATIONS_DIR: path.join(__dirname, '../migrations/incremental'),
 
   // 版本升级路径
   UPGRADE_PATHS: {
-    '1.0.0': ['1.0.0-to-1.1.0', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2'],
-    '1.1.0': ['1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2'],
-    '1.2.0': ['1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2'],
-    '1.2.1': ['1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2'],
-    '1.2.2': ['1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2'],
-    '1.2.3': ['1.2.2-to-1.3.0', 'add-wechat-integration', 'add-user-deletion-fields-v2'],
-    '1.3.0': ['add-wechat-integration', 'add-user-deletion-fields-v2'],
-    '1.3.1': ['add-user-deletion-fields-v2'],
-    '1.3.2': ['add-user-deletion-fields-v2'], // 升级到1.4.0
-    '1.4.0': [], // 当前最新版本
-    'fresh_install': ['base-schema', 'admin-features', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2']
+    '1.0.0': ['1.0.0-to-1.1.0', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0'],
+    '1.1.0': ['1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0'],
+    '1.2.0': ['1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0'],
+    '1.2.1': ['1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0'],
+    '1.2.2': ['1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0'],
+    '1.2.3': ['1.2.2-to-1.3.0', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0'],
+    '1.3.0': ['add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0'],
+    '1.3.1': ['add-user-deletion-fields-v2', '1.4.0-to-1.5.0'],
+    '1.3.2': ['add-user-deletion-fields-v2', '1.4.0-to-1.5.0'],
+    '1.4.0': ['1.4.0-to-1.5.0'], // 升级到1.5.0
+    '1.5.0': [], // 当前最新版本
+    'fresh_install': ['base-schema', 'admin-features', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0']
   }
 };
 

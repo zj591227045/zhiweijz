@@ -5,6 +5,223 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 移动端标签组件动画和样式 */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+/* 背景模糊效果增强 */
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+.backdrop-blur-md {
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+.backdrop-blur-lg {
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+/* 强制模糊效果 - 用于标签选择器 */
+.tag-selector-backdrop {
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 999999999 !important;
+  /* 确保支持backdrop-filter的浏览器 */
+  will-change: backdrop-filter !important;
+  /* 确保覆盖所有内容 */
+  pointer-events: auto !important;
+}
+
+/* 如果不支持backdrop-filter，使用更深的背景色 */
+@supports not (backdrop-filter: blur(1px)) {
+  .tag-selector-backdrop {
+    background: rgba(0, 0, 0, 0.85) !important;
+  }
+}
+
+/* 确保标签选择器容器有最高优先级 */
+.tag-selector-container {
+  z-index: 1000000000 !important;
+  position: fixed !important;
+}
+
+/* 从底部滑出动画 */
+@keyframes slideUpFromBottom {
+  from {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 滑出关闭动画 */
+@keyframes slideDownToBottom {
+  from {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+  }
+}
+
+/* 居中模态框淡入动画 */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 居中模态框淡出动画 */
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+/* 自定义阴影 */
+.shadow-modal {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25),
+              0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* 渐变边框效果 */
+.border-gradient {
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, #3b82f6, #8b5cf6) border-box;
+  border: 2px solid transparent;
+}
+
+/* 移动端触摸优化 */
+@media (hover: none) and (pointer: coarse) {
+  .hover\:bg-gray-50:hover {
+    background-color: rgb(249 250 251);
+  }
+
+  .hover\:shadow-md:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* 自定义缩放效果 */
+.active\:scale-98:active {
+  transform: scale(0.98);
+}
+
+.active\:scale-95:active {
+  transform: scale(0.95);
+}
+
+.hover\:scale-105:hover {
+  transform: scale(1.05);
+}
+
+/* 边框宽度 */
+.border-3 {
+  border-width: 3px;
+}
+
+/* 标签贴纸样式增强 */
+.tag-sticker {
+  position: relative;
+  overflow: hidden;
+}
+
+.tag-sticker::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 100%);
+  pointer-events: none;
+}
+
+/* 最小高度工具类 */
+.min-h-\[40px\] {
+  min-height: 40px;
+}
+
+.min-h-\[44px\] {
+  min-height: 44px;
+}
+
+/* 视口高度工具类 */
+.min-h-\[40vh\] {
+  min-height: 40vh;
+}
+
+.max-h-\[80vh\] {
+  max-height: 80vh;
+}
+
 /* 确保FontAwesome图标正确显示 - 覆盖Tailwind的重置样式 */
 .fas, .far, .fab, .fal, .fad {
   font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "Font Awesome 6 Brands" !important;

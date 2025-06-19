@@ -2,6 +2,8 @@
 
 import { memo } from 'react';
 import { formatCurrency, getCategoryIconClass } from '../../lib/utils';
+import { TagDisplay } from '../tags/tag-display';
+import { TagResponseDto } from '@/lib/api/types/tag.types';
 
 // 交易类型枚举
 export enum TransactionType {
@@ -24,6 +26,7 @@ interface Transaction {
     name: string;
     icon: string;
   };
+  tags?: TagResponseDto[];
 }
 
 interface GroupedTransactions {
@@ -156,6 +159,16 @@ export const UnifiedTransactionList = memo(
                       {transaction.description || transaction.title || transaction.categoryName}
                     </div>
                     <div className="transaction-category">{transaction.categoryName || transaction.category?.name}</div>
+                    {transaction.tags && transaction.tags.length > 0 && (
+                      <div className="transaction-tags">
+                        <TagDisplay
+                          tags={transaction.tags}
+                          size="small"
+                          maxDisplay={2}
+                          className="mt-1"
+                        />
+                      </div>
+                    )}
                   </div>
                   <div
                     className={`transaction-amount ${transaction.type === TransactionType.EXPENSE ? 'expense' : 'income'}`}

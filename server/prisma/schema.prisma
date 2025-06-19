@@ -40,6 +40,7 @@ model User {
   settings             UserSetting[]
   verificationCodes    VerificationCode[]
   wechat_user_bindings wechat_user_bindings[]
+  tags                 Tag[]
 
   @@index([isActive], map: "idx_users_is_active")
   @@map("users")
@@ -141,6 +142,7 @@ model Transaction {
   familyMember   FamilyMember?   @relation(fields: [familyMemberId], references: [id])
   user           User            @relation(fields: [userId], references: [id])
   feedback       UserFeedback[]
+  transactionTags TransactionTag[]
 
   @@index([metadata], map: "idx_transactions_metadata_gin", type: Gin)
   @@map("transactions")
@@ -266,6 +268,7 @@ model AccountBook {
   budgets              Budget[]
   categories           Category[]
   transactions         Transaction[]
+  tags                 Tag[]
 
   @@map("account_books")
 }
@@ -668,4 +671,45 @@ enum announcement_status {
   DRAFT
   PUBLISHED
   ARCHIVED
+}
+
+model Tag {
+  id             String           @id @default(uuid())
+  name           String           @db.VarChar(50)
+  color          String           @default("#3B82F6") @db.VarChar(7)
+  description    String?
+  accountBookId  String           @map("account_book_id")
+  createdBy      String           @map("created_by")
+  isActive       Boolean          @default(true) @map("is_active")
+  usageCount     Int              @default(0) @map("usage_count")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  accountBook    AccountBook      @relation(fields: [accountBookId], references: [id], onDelete: Cascade)
+  creator        User             @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  transactionTags TransactionTag[]
+
+  @@unique([name, accountBookId], map: "tags_name_account_book_unique")
+  @@index([accountBookId], map: "idx_tags_account_book_id")
+  @@index([name], map: "idx_tags_name")
+  @@index([createdBy], map: "idx_tags_created_by")
+  @@index([usageCount(sort: Desc)], map: "idx_tags_usage_count")
+  @@index([createdAt(sort: Desc)], map: "idx_tags_created_at")
+  @@index([accountBookId, isActive], map: "idx_tags_account_book_active")
+  @@map("tags")
+}
+
+model TransactionTag {
+  id            String      @id @default(uuid())
+  transactionId String      @map("transaction_id")
+  tagId         String      @map("tag_id") @db.Uuid
+  createdAt     DateTime    @default(now()) @map("created_at")
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  tag           Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([transactionId, tagId], map: "transaction_tags_unique")
+  @@index([transactionId], map: "idx_transaction_tags_transaction_id")
+  @@index([tagId], map: "idx_transaction_tags_tag_id")
+  @@index([createdAt(sort: Desc)], map: "idx_transaction_tags_created_at")
+  @@index([tagId, transactionId], map: "idx_transaction_tags_tag_transaction")
+  @@map("transaction_tags")
 }

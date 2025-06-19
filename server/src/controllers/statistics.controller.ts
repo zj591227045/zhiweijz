@@ -204,6 +204,7 @@ export class StatisticsController {
       const budgetId = value.budgetId;
       const type = value.type;
       const categoryIds = value.categoryIds ? value.categoryIds.split(',') : undefined;
+      const tagIds = value.tagIds ? (Array.isArray(value.tagIds) ? value.tagIds : [value.tagIds]) : undefined;
 
       // 获取财务概览
       try {
@@ -215,7 +216,8 @@ export class StatisticsController {
           accountBookId,
           budgetId,
           type,
-          categoryIds
+          categoryIds,
+          tagIds
         );
         res.status(200).json(overview);
       } catch (error) {
@@ -228,6 +230,62 @@ export class StatisticsController {
     } catch (error) {
       console.error('获取财务概览失败:', error);
       res.status(500).json({ message: '获取财务概览失败' });
+    }
+  }
+
+  /**
+   * 获取按标签统计
+   */
+  async getTagStatistics(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      // 验证查询参数
+      const { error, value } = validateDateRangeQuery(req.query);
+      if (error) {
+        res.status(400).json({ message: error.details[0].message });
+        return;
+      }
+
+      // 解析查询参数
+      const startDate = value.startDate ? new Date(value.startDate) : new Date(new Date().setMonth(new Date().getMonth() - 1));
+      const endDate = value.endDate ? new Date(value.endDate) : new Date();
+      const accountBookId = value.accountBookId;
+      const tagIds = value.tagIds ? (Array.isArray(value.tagIds) ? value.tagIds : [value.tagIds]) : undefined;
+      const transactionType = value.type as 'income' | 'expense' | undefined;
+      const categoryIds = value.categoryIds ? value.categoryIds.split(',') : undefined;
+
+      if (!accountBookId) {
+        res.status(400).json({ message: '账本ID是必需的' });
+        return;
+      }
+
+      // 获取标签统计
+      try {
+        const statistics = await this.statisticsService.getTagStatistics(
+          userId,
+          accountBookId,
+          startDate,
+          endDate,
+          tagIds,
+          transactionType,
+          categoryIds
+        );
+        res.status(200).json(statistics);
+      } catch (error) {
+        if (error instanceof Error && error.message === '无权访问此账本') {
+          res.status(403).json({ message: error.message });
+        } else {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('获取标签统计失败:', error);
+      res.status(500).json({ message: '获取标签统计失败' });
     }
   }
 }

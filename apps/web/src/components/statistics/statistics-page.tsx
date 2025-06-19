@@ -11,14 +11,24 @@ import { StatsSummaryCard } from './stats-summary-card';
 import { CategoryDistribution } from './category-distribution';
 import { TrendChart } from './trend-chart';
 import { AnalysisNavigation } from './analysis-navigation';
+import { TagFilterSelector } from './tag-filter-selector';
 import { getCurrentMonthRange, getPreviousMonthRange, getNextMonthRange } from '@/lib/utils';
 
 export function StatisticsPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const { currentAccountBook } = useAccountBookStore();
-  const { statisticsData, dateRange, isLoading, error, fetchStatisticsData, setDateRange, reset } =
-    useStatisticsStore();
+  const {
+    statisticsData,
+    dateRange,
+    selectedTagIds,
+    isLoading,
+    error,
+    fetchStatisticsData,
+    setDateRange,
+    setSelectedTagIds,
+    reset
+  } = useStatisticsStore();
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -33,7 +43,7 @@ export function StatisticsPage() {
       // 设置初始日期范围为当前月份
       const { startDate, endDate } = getCurrentMonthRange();
       setDateRange({ startDate, endDate });
-      fetchStatisticsData(startDate, endDate, currentAccountBook.id);
+      fetchStatisticsData(startDate, endDate, currentAccountBook.id, selectedTagIds);
     }
 
     // 组件卸载时重置状态
@@ -47,7 +57,7 @@ export function StatisticsPage() {
       setDateRange({ startDate, endDate });
 
       if (currentAccountBook?.id) {
-        fetchStatisticsData(startDate, endDate, currentAccountBook.id);
+        fetchStatisticsData(startDate, endDate, currentAccountBook.id, selectedTagIds);
       }
     }
   };
@@ -59,7 +69,7 @@ export function StatisticsPage() {
       setDateRange({ startDate, endDate });
 
       if (currentAccountBook?.id) {
-        fetchStatisticsData(startDate, endDate, currentAccountBook.id);
+        fetchStatisticsData(startDate, endDate, currentAccountBook.id, selectedTagIds);
       }
     }
   };
@@ -70,7 +80,7 @@ export function StatisticsPage() {
     setDateRange({ startDate, endDate });
 
     if (currentAccountBook?.id) {
-      fetchStatisticsData(startDate, endDate, currentAccountBook.id);
+      fetchStatisticsData(startDate, endDate, currentAccountBook.id, selectedTagIds);
     }
   };
 
@@ -95,6 +105,23 @@ export function StatisticsPage() {
           onToday={handleCurrentPeriod}
         />
 
+        {/* 标签筛选器 */}
+        {currentAccountBook?.id && (
+          <div className="mb-4">
+            <TagFilterSelector
+              accountBookId={currentAccountBook.id}
+              selectedTagIds={selectedTagIds}
+              onSelectionChange={(tagIds) => {
+                setSelectedTagIds(tagIds);
+                // 标签变化时重新获取数据
+                if (dateRange.startDate && dateRange.endDate) {
+                  fetchStatisticsData(dateRange.startDate, dateRange.endDate, currentAccountBook.id, tagIds);
+                }
+              }}
+            />
+          </div>
+        )}
+
       {isLoading ? (
         <div className="loading-state">
           <i className="fas fa-spinner fa-spin"></i>
@@ -108,7 +135,7 @@ export function StatisticsPage() {
             className="retry-button"
             onClick={() => {
               if (dateRange.startDate && dateRange.endDate && currentAccountBook?.id) {
-                fetchStatisticsData(dateRange.startDate, dateRange.endDate, currentAccountBook.id);
+                fetchStatisticsData(dateRange.startDate, dateRange.endDate, currentAccountBook.id, selectedTagIds);
               }
             }}
           >

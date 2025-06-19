@@ -13,8 +13,8 @@
 - **PATCH**：错误修复和小优化
 
 ### 当前版本状态
-- **当前稳定版本**：1.2.1
-- **下一个计划版本**：1.3.0（预留）
+- **当前稳定版本**：1.5.0
+- **下一个计划版本**：1.6.0（预留）
 
 ## 迁移文件命名规范
 
@@ -371,15 +371,17 @@ END $$;
 ```javascript
 const MIGRATIONS_CONFIG = {
   // 更新最新版本
-  LATEST_VERSION: '1.2.1',
-  
+  LATEST_VERSION: '1.5.0',
+
   // 更新升级路径
   UPGRADE_PATHS: {
-    '1.0.0': ['1.0.0-to-1.1.0', '1.1.0-to-1.2.0', 'add-service-type-to-llm-call-logs'],
-    '1.1.0': ['1.1.0-to-1.2.0', 'add-service-type-to-llm-call-logs'],
-    '1.2.0': ['add-service-type-to-llm-call-logs'],
-    '1.2.1': [], // 新的最新版本
-    'fresh_install': ['base-schema', 'admin-features', '1.1.0-to-1.2.0', 'add-service-type-to-llm-call-logs']
+    '1.0.0': ['1.0.0-to-1.1.0', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0'],
+    '1.1.0': ['1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0'],
+    '1.2.0': ['1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0'],
+    '1.3.0': ['add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0'],
+    '1.4.0': ['1.4.0-to-1.5.0'],
+    '1.5.0': [], // 新的最新版本
+    'fresh_install': ['base-schema', 'admin-features', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0']
   }
 };
 ```
@@ -471,7 +473,17 @@ npm run migrate:check
 - 数据导入导出
 - 自定义报表
 
-#### 1.5.0 版本（多租户支持）
+#### 1.5.0 版本（标签系统）✅ 已完成
+- 交易记录多标签管理
+- 账本级别标签共享
+- 标签统计分析功能
+
+#### 1.6.0 版本（标签系统增强）
+- 标签模板和预设
+- 智能标签推荐
+- 标签使用统计报表
+
+#### 1.7.0 版本（多租户支持）
 - 租户隔离
 - 权限细分
 - 资源配额

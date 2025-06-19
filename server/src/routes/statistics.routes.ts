@@ -17,4 +17,7 @@ router.get('/budgets', authenticate, (req, res) => statisticsController.getBudge
 // 获取财务概览
 router.get('/overview', authenticate, (req, res) => statisticsController.getFinancialOverview(req, res));
 
+// 获取按标签统计
+router.get('/by-tags', authenticate, (req, res) => statisticsController.getTagStatistics(req, res));
+
 export default router;

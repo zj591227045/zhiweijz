@@ -1,0 +1,202 @@
+/* 移动端标签组件动画样式 */
+
+/* 底部弹出动画 */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-down {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* 标签按钮动画 */
+@keyframes tag-bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+}
+
+.tag-button-active {
+  animation: tag-bounce 0.2s ease-in-out;
+}
+
+/* 渐入动画 */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* 标签推荐按钮悬浮效果 */
+.tag-recommendation-button {
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform: translateY(0);
+}
+
+.tag-recommendation-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.tag-recommendation-button:active {
+  transform: translateY(0);
+  transition: transform 0.1s;
+}
+
+/* 加载动画优化 */
+@keyframes spin-smooth {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-smooth {
+  animation: spin-smooth 1s linear infinite;
+}
+
+/* 脉冲动画 */
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 移动端触摸反馈 */
+.touch-feedback {
+  position: relative;
+  overflow: hidden;
+}
+
+.touch-feedback::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.touch-feedback:active::before {
+  width: 200px;
+  height: 200px;
+}
+
+/* 标签选择器特定样式 */
+.mobile-tag-selector {
+  /* 确保在移动端有足够的触摸区域 */
+  min-height: 44px;
+}
+
+.mobile-tag-selector .tag-item {
+  min-height: 48px;
+  padding: 12px 16px;
+}
+
+/* 响应式设计 */
+@media (max-width: 640px) {
+  .mobile-tag-section {
+    padding: 12px;
+  }
+  
+  .tag-recommendation-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+  }
+  
+  .mobile-tag-button {
+    min-height: 44px;
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .mobile-tag-selector {
+    background-color: #1f2937;
+    color: #f9fafb;
+  }
+  
+  .tag-recommendation-button {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+    border-color: #6b7280;
+    color: #e5e7eb;
+  }
+  
+  .tag-recommendation-button:hover {
+    background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* 无障碍支持 */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-up,
+  .animate-slide-down,
+  .animate-fade-in,
+  .tag-recommendation-button,
+  .touch-feedback::before {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+  .tag-recommendation-button {
+    border-width: 2px;
+    border-color: currentColor;
+  }
+  
+  .mobile-tag-selector {
+    border: 2px solid currentColor;
+  }
+}

@@ -15,6 +15,9 @@ import { NumericKeyboard } from './transactions/numeric-keyboard';
 import '../app/transactions/edit/[id]/transaction-edit.css';
 import './transactions/transaction-add.css';
 import './transactions/budget-selector.css';
+import { MobileTagSection } from './tags/mobile-tag-section';
+import { tagApi } from '@/lib/api/tag-api';
+import { TagResponseDto } from '@/lib/api/types/tag.types';
 
 interface TransactionEditModalProps {
   transactionId: string | null;
@@ -472,6 +475,9 @@ export default function TransactionEditModal({
     description: ''
   });
 
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [transactionTags, setTransactionTags] = useState<TagResponseDto[]>([]);
+
   const [budgetId, setBudgetId] = useState('');
   const [time, setTime] = useState('12:00');
   const [currentStep, setCurrentStep] = useState(2); // 默认进入第二步，与原有逻辑一致
@@ -538,6 +544,20 @@ export default function TransactionEditModal({
       setBudgetId(dataToUse.budgetId || '');
       setTime(`${hours}:${minutes}`);
       setCurrentStep(2); // 直接进入详情步骤
+
+      // 获取交易的标签
+      if (transactionId && transactionId !== 'placeholder') {
+        tagApi.getTransactionTags(transactionId)
+          .then(response => {
+            if (response.success) {
+              setTransactionTags(response.data);
+              setSelectedTagIds(response.data.map(tag => tag.id));
+            }
+          })
+          .catch(error => {
+            console.error('获取交易标签失败:', error);
+          });
+      }
     }
   }, [transaction, transactionData]);
 
@@ -598,6 +618,33 @@ export default function TransactionEditModal({
       const success = await updateTransaction(transactionId!, updateData);
       if (success) {
         toast.success('交易更新成功');
+
+        // 更新交易标签
+        if (transactionId && transactionId !== 'placeholder') {
+          try {
+            // 获取当前交易的标签
+            const currentTagsResponse = await tagApi.getTransactionTags(transactionId);
+            const currentTagIds = currentTagsResponse.success ?
+              currentTagsResponse.data.map(tag => tag.id) : [];
+
+            // 计算需要添加和移除的标签
+            const tagsToAdd = selectedTagIds.filter(id => !currentTagIds.includes(id));
+            const tagsToRemove = currentTagIds.filter(id => !selectedTagIds.includes(id));
+
+            // 添加新标签
+            if (tagsToAdd.length > 0) {
+              await tagApi.addTransactionTags(transactionId, { tagIds: tagsToAdd });
+            }
+
+            // 移除标签
+            for (const tagId of tagsToRemove) {
+              await tagApi.removeTransactionTag(transactionId, tagId);
+            }
+          } catch (error) {
+            console.error('更新交易标签失败:', error);
+            // 标签更新失败不影响交易更新成功的提示
+          }
+        }
 
         // 触发交易变化事件，让仪表盘自动刷新
         if (currentAccountBook?.id) {
@@ -1317,6 +1364,40 @@ export default function TransactionEditModal({
                       />
                     </div>
                   )}
+
+                  {/* 移动端优化的标签选择 */}
+                  {currentAccountBook?.id && (
+                    <div style={{
+                      backgroundColor: 'var(--background-color)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '12px',
+                      padding: '16px',
+                      marginBottom: '16px' // 增加底部间距，避免与保存按钮重叠
+                    }}>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        color: 'var(--text-secondary)',
+                        marginBottom: '12px'
+                      }}>标签</label>
+
+                      {/* 使用移动端优化的标签组件 */}
+                      <MobileTagSection
+                        accountBookId={currentAccountBook.id}
+                        categoryId={formData.categoryId}
+                        description={formData.description}
+                        amount={parseFloat(formData.amount) || undefined}
+                        selectedTagIds={selectedTagIds}
+                        onSelectionChange={setSelectedTagIds}
+                        disabled={isSubmitting}
+                        onTagSelectionComplete={() => {
+                          // 标签选择完成时的自动保存逻辑可以在这里添加
+                          console.log('标签选择完成，当前选中:', selectedTagIds);
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* 错误信息 */}
@@ -1338,8 +1419,8 @@ export default function TransactionEditModal({
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '12px',
-                  marginTop: '24px',
-                  paddingBottom: '20px'
+                  marginTop: '32px',
+                  paddingBottom: '32px'
                 }}>
                   {/* 保存和上一步按钮 */}
                   <div style={{ display: 'flex', gap: '12px' }}>

@@ -2,8 +2,13 @@
 
 import { useTransactionFormStore } from '@/store/transaction-form-store';
 import { useBudgetStore } from '@/store/budget-store';
+import { useAccountBookStore } from '@/store/account-book-store';
 import { TransactionType } from '@/types';
 import { BudgetSelector } from './budget-selector';
+import { TagSelector } from '../tags/tag-selector';
+import { TagRecommendation } from '../tags/tag-recommendation';
+import { TagTemplateSelector } from '../tags/tag-template';
+import { MobileTagSection } from '../tags/mobile-tag-section';
 
 interface TransactionDetailsProps {
   onSubmit: () => void;
@@ -11,8 +16,9 @@ interface TransactionDetailsProps {
 }
 
 export function TransactionDetails({ onSubmit, isSubmitting }: TransactionDetailsProps) {
-  const { type, description, date, time, setDescription, setDate, setTime } =
+  const { type, description, date, time, tagIds, categoryId, amount, setDescription, setDate, setTime, setTagIds } =
     useTransactionFormStore();
+  const { currentAccountBook } = useAccountBookStore();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,14 +139,57 @@ export function TransactionDetails({ onSubmit, isSubmitting }: TransactionDetail
             <BudgetSelector />
           </div>
         )}
+
+        {/* 移动端优化的标签选择 */}
+        {currentAccountBook?.id && (
+          <div style={{
+            backgroundColor: 'var(--background-color)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '12px',
+            padding: '16px',
+            marginBottom: '16px' // 增加底部间距，避免与保存按钮重叠
+          }}>
+            <label style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: 'var(--text-secondary)',
+              marginBottom: '12px'
+            }}>标签</label>
+
+            {/* 使用移动端优化的标签组件 */}
+            <MobileTagSection
+              accountBookId={currentAccountBook.id}
+              categoryId={categoryId}
+              description={description}
+              amount={parseFloat(amount) || undefined}
+              selectedTagIds={tagIds}
+              onSelectionChange={setTagIds}
+              disabled={isSubmitting}
+              onTagSelectionComplete={() => {
+                // 标签选择完成时的自动保存逻辑可以在这里添加
+                console.log('标签选择完成，当前选中:', tagIds);
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* iOS 风格操作按钮 */}
       <div style={{
         display: 'flex',
         gap: '12px',
-        marginTop: '24px',
-        paddingBottom: '20px'
+        marginTop: '32px', // 增加顶部间距
+        paddingBottom: '32px', // 增加底部间距
+        position: 'sticky', // 让按钮固定在底部
+        bottom: '0',
+        backgroundColor: 'var(--background-color)',
+        borderTop: '1px solid var(--border-color)',
+        marginLeft: '-20px',
+        marginRight: '-20px',
+        paddingLeft: '20px',
+        paddingRight: '20px',
+        paddingTop: '16px'
       }}>
         <button
           type="submit"

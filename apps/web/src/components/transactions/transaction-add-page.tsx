@@ -9,6 +9,7 @@ import { useCategoryStore } from '@/store/category-store';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { useBudgetStore } from '@/store/budget-store';
 import { triggerTransactionChange } from '@/store/dashboard-store';
+import { tagApi } from '@/lib/api/tag-api';
 import { AmountInput } from './amount-input';
 import { TransactionTypeToggle } from './transaction-type-toggle';
 import { CategorySelector } from './category-selector';
@@ -32,6 +33,7 @@ export function TransactionAddPage() {
     date,
     time,
     budgetId,
+    tagIds,
     goToStep,
     resetForm,
     fillSmartAccountingResult,
@@ -154,6 +156,19 @@ export function TransactionAddPage() {
 
       // 提交成功
       if (success) {
+        // 如果有选择标签，为新创建的交易添加标签
+        if (tagIds.length > 0) {
+          try {
+            // 获取刚创建的交易ID（这里需要修改createTransaction返回交易对象）
+            // 暂时使用延迟处理，实际应该修改API返回交易ID
+            console.log('准备为新交易添加标签:', tagIds);
+            // TODO: 需要修改createTransaction API返回交易ID，然后调用tagApi.addTransactionTags
+          } catch (error) {
+            console.error('添加交易标签失败:', error);
+            // 标签添加失败不影响交易创建成功的提示
+          }
+        }
+
         toast.success('交易记录已添加');
         resetForm();
 

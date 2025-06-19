@@ -277,7 +277,8 @@ export class TransactionRepository {
     accountBookId?: string,
     excludeFamilyMember: boolean = false,
     budgetId?: string,
-    categoryIds?: string[]
+    categoryIds?: string[],
+    tagIds?: string[]
   ): Promise<any[]> {
     console.log('TransactionRepository.findByDateRange 参数:', {
       userId,
@@ -288,7 +289,8 @@ export class TransactionRepository {
       accountBookId,
       excludeFamilyMember,
       budgetId,
-      categoryIds
+      categoryIds,
+      tagIds
     });
 
     const whereConditions: any = {
@@ -340,10 +342,26 @@ export class TransactionRepository {
       };
     }
 
+    // 处理标签ID过滤
+    if (tagIds && tagIds.length > 0) {
+      whereConditions.transactionTags = {
+        some: {
+          tagId: {
+            in: tagIds
+          }
+        }
+      };
+    }
+
     const transactions = await prisma.transaction.findMany({
       where: whereConditions,
       include: {
         category: true,
+        transactionTags: {
+          include: {
+            tag: true
+          }
+        }
       },
     });
 

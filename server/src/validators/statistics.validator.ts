@@ -12,6 +12,7 @@ interface DateRangeQuery {
   budgetId?: string;
   type?: string;
   categoryIds?: string;
+  tagIds?: string | string[];
 }
 
 /**
@@ -51,6 +52,13 @@ export function validateDateRangeQuery(query: any) {
     }),
     categoryIds: Joi.string().messages({
       'string.base': 'categoryIds必须是有效的字符串',
+    }),
+    tagIds: Joi.alternatives().try(
+      Joi.string().uuid(),
+      Joi.array().items(Joi.string().uuid())
+    ).messages({
+      'string.guid': '标签ID必须是有效的UUID',
+      'array.base': '标签ID必须是UUID字符串或UUID数组',
     }),
   });
 

@@ -15,6 +15,7 @@ interface TransactionFormState {
   date: string;
   time: string;
   budgetId?: string;
+  tagIds: string[];
 
   // 虚拟键盘控制
   showKeyboardInitially: boolean;
@@ -27,6 +28,7 @@ interface TransactionFormState {
   setDate: (date: string) => void;
   setTime: (time: string) => void;
   setBudgetId: (id: string) => void;
+  setTagIds: (tagIds: string[]) => void;
   setShowKeyboardInitially: (show: boolean) => void;
   goToStep: (step: number) => void;
   resetForm: () => void;
@@ -59,6 +61,7 @@ const initialState = {
   date: getCurrentDate(),
   time: getCurrentTime(),
   budgetId: '',
+  tagIds: [],
   showKeyboardInitially: false,
 };
 
@@ -74,6 +77,7 @@ export const useTransactionFormStore = create<TransactionFormState>((set) => ({
       categoryName: '',
       categoryIcon: null,
       budgetId: '',
+      tagIds: [],
     }),
 
   setCategory: (id, name, icon) =>
@@ -90,6 +94,8 @@ export const useTransactionFormStore = create<TransactionFormState>((set) => ({
   setTime: (time) => set({ time }),
 
   setBudgetId: (id) => set({ budgetId: id }),
+
+  setTagIds: (tagIds) => set({ tagIds }),
 
   setShowKeyboardInitially: (show) => set({ showKeyboardInitially: show }),
 
