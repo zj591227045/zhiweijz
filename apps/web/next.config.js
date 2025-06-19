@@ -75,12 +75,17 @@ const mobileConfig = {
     ];
 
     // 定义全局变量
-    config.plugins.push(
-      new (require('webpack')).DefinePlugin({
-        'process.env.IS_MOBILE_BUILD': JSON.stringify('true'),
-        'process.env.NEXT_PUBLIC_IS_MOBILE': JSON.stringify('true'),
-      })
-    );
+    try {
+      const webpack = require('webpack');
+      config.plugins.push(
+        new webpack.DefinePlugin({
+          'process.env.IS_MOBILE_BUILD': JSON.stringify('true'),
+          'process.env.NEXT_PUBLIC_IS_MOBILE': JSON.stringify('true'),
+        })
+      );
+    } catch (error) {
+      console.warn('Webpack not available, skipping DefinePlugin');
+    }
 
     return config;
   },
@@ -112,12 +117,17 @@ const webConfig = {
     ];
 
     // 定义全局变量
-    config.plugins.push(
-      new (require('webpack')).DefinePlugin({
-        'process.env.IS_MOBILE_BUILD': JSON.stringify('false'),
-        'process.env.NEXT_PUBLIC_IS_MOBILE': JSON.stringify('false'),
-      })
-    );
+    try {
+      const webpack = require('webpack');
+      config.plugins.push(
+        new webpack.DefinePlugin({
+          'process.env.IS_MOBILE_BUILD': JSON.stringify('false'),
+          'process.env.NEXT_PUBLIC_IS_MOBILE': JSON.stringify('false'),
+        })
+      );
+    } catch (error) {
+      console.warn('Webpack not available, skipping DefinePlugin');
+    }
 
     return config;
   },

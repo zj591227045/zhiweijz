@@ -9,23 +9,19 @@ echo "🤖 开始构建Android应用..."
 echo "📦 备份原始配置..."
 cp next.config.js next.config.js.backup
 
-# 2. 使用移动端专用配置构建Next.js应用
-echo "🔧 应用移动端配置（排除admin页面）..."
-cp next.config.mobile.js next.config.js
-
-# 3. 构建静态文件（使用移动端构建模式）
+# 2. 构建静态文件（使用移动端构建模式）
 echo "🏗️ 构建静态文件（移动端模式）..."
-echo "   - 设置 NEXT_PUBLIC_IS_MOBILE=true"
+echo "   - 设置 BUILD_MODE=mobile"
 echo "   - 排除admin管理页面"
 echo "   - 使用静态导出模式"
-NEXT_PUBLIC_IS_MOBILE=true IS_MOBILE_BUILD=true NEXT_BUILD_MODE=export npm run build
+BUILD_MODE=mobile npm run build:mobile
 
-# 4. 恢复原配置
+# 3. 恢复原配置
 echo "🔄 恢复原始配置..."
 cp next.config.js.backup next.config.js
 rm next.config.js.backup
 
-# 5. 检查构建结果
+# 4. 检查构建结果
 echo "🔍 检查构建结果..."
 if [ ! -d "out" ]; then
     echo "❌ 构建失败：out目录不存在"
@@ -41,7 +37,7 @@ else
     echo "⚠️ admin页面可能未完全排除，但不影响移动端功能"
 fi
 
-# 6. 检查Android平台状态
+# 5. 检查Android平台状态
 if [ ! -d "../android" ]; then
     echo "📱 添加Android平台..."
     npx cap add android
@@ -55,7 +51,7 @@ else
     fi
 fi
 
-# 7. 同步到Capacitor Android项目
+# 6. 同步到Capacitor Android项目
 echo "📱 同步到Android项目..."
 if npx cap sync android; then
     echo "✅ 同步成功"
@@ -75,7 +71,7 @@ else
     fi
 fi
 
-# 8. 验证同步结果
+# 7. 验证同步结果
 if [ -d "../android/app/src/main/assets/public" ]; then
     echo "✅ 文件同步验证成功"
     echo "📊 同步文件数量: $(find ../android/app/src/main/assets/public -type f | wc -l)"
@@ -84,7 +80,7 @@ else
     exit 1
 fi
 
-# 9. 打开Android Studio
+# 8. 打开Android Studio
 echo "🚀 打开Android Studio..."
 npx cap open android
 
