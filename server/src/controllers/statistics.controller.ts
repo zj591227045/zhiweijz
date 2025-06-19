@@ -199,6 +199,7 @@ export class StatisticsController {
       // 解析查询参数
       const startDate = value.startDate ? new Date(value.startDate) : new Date(new Date().setMonth(new Date().getMonth() - 1));
       const endDate = value.endDate ? new Date(value.endDate) : new Date();
+      const groupBy = (value.groupBy || 'day') as 'day' | 'week' | 'month' | 'category';
       const familyId = value.familyId;
       const accountBookId = value.accountBookId;
       const budgetId = value.budgetId;
@@ -212,6 +213,7 @@ export class StatisticsController {
           userId,
           startDate,
           endDate,
+          groupBy,
           familyId,
           accountBookId,
           budgetId,

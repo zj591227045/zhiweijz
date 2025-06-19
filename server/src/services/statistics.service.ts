@@ -538,6 +538,7 @@ export class StatisticsService {
     userId: string,
     startDate: Date,
     endDate: Date,
+    groupBy: 'day' | 'week' | 'month' | 'category' = 'day',
     familyId?: string,
     accountBookId?: string,
     budgetId?: string,
@@ -646,39 +647,40 @@ export class StatisticsService {
         };
       });
 
-    // 按日期分组收入和支出
-    const dailyIncomeMap = new Map<string, number>();
-    for (const t of incomeTransactions) {
-      const date = new Date(t.date).toISOString().split('T')[0]; // YYYY-MM-DD
-      const current = dailyIncomeMap.get(date) || 0;
-      dailyIncomeMap.set(date, current + Number(t.amount));
+    // 按时间分组收入和支出
+    const incomeByPeriod = this.groupTransactionsByDate(incomeTransactions, groupBy);
+    const expenseByPeriod = this.groupTransactionsByDate(expenseTransactions, groupBy);
+
+    // 合并收入和支出数据，生成统计数据
+    const periodMap = new Map<string, { income: number; expense: number }>();
+
+    // 添加收入数据
+    for (const item of incomeByPeriod) {
+      periodMap.set(item.date, { income: item.amount, expense: 0 });
     }
 
-    const dailyExpenseMap = new Map<string, number>();
-    for (const t of expenseTransactions) {
-      const date = new Date(t.date).toISOString().split('T')[0]; // YYYY-MM-DD
-      const current = dailyExpenseMap.get(date) || 0;
-      dailyExpenseMap.set(date, current + Number(t.amount));
+    // 添加支出数据
+    for (const item of expenseByPeriod) {
+      const existing = periodMap.get(item.date) || { income: 0, expense: 0 };
+      periodMap.set(item.date, { ...existing, expense: item.amount });
     }
 
-    // 生成日期范围内的所有日期
-    const allDates = new Set<string>();
-    const currentDate = new Date(startDate);
-    while (currentDate <= endDate) {
-      allDates.add(currentDate.toISOString().split('T')[0]);
-      currentDate.setDate(currentDate.getDate() + 1);
+    // 生成时间范围内的所有时间段
+    const allPeriods = this.generatePeriodRange(startDate, endDate, groupBy);
+
+    // 确保所有时间段都有数据
+    for (const period of allPeriods) {
+      if (!periodMap.has(period)) {
+        periodMap.set(period, { income: 0, expense: 0 });
+      }
     }
 
-    // 添加已有交易的日期
-    dailyIncomeMap.forEach((_, date) => allDates.add(date));
-    dailyExpenseMap.forEach((_, date) => allDates.add(date));
-
-    // 生成每日统计数据
-    const dailyStatistics = Array.from(allDates)
-      .map(date => ({
+    // 生成统计数据
+    const dailyStatistics = Array.from(periodMap.entries())
+      .map(([date, data]) => ({
         date,
-        income: dailyIncomeMap.get(date) || 0,
-        expense: dailyExpenseMap.get(date) || 0
+        income: data.income,
+        expense: data.expense
       }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
@@ -690,6 +692,49 @@ export class StatisticsService {
       topExpenseCategories,
       dailyStatistics
     };
+  }
+
+  /**
+   * 生成时间段范围
+   */
+  private generatePeriodRange(
+    startDate: Date,
+    endDate: Date,
+    groupBy: 'day' | 'week' | 'month' | 'category'
+  ): string[] {
+    const periods: string[] = [];
+    const current = new Date(startDate);
+
+    switch (groupBy) {
+      case 'day':
+        while (current <= endDate) {
+          periods.push(current.toISOString().split('T')[0]);
+          current.setDate(current.getDate() + 1);
+        }
+        break;
+      case 'week':
+        // 找到开始日期所在周的周一
+        const startDay = current.getDay();
+        const startDiff = current.getDate() - startDay + (startDay === 0 ? -6 : 1);
+        current.setDate(startDiff);
+
+        while (current <= endDate) {
+          periods.push(current.toISOString().split('T')[0]);
+          current.setDate(current.getDate() + 7);
+        }
+        break;
+      case 'month':
+        current.setDate(1); // 设置为月初
+        while (current <= endDate) {
+          const year = current.getFullYear();
+          const month = String(current.getMonth() + 1).padStart(2, '0');
+          periods.push(`${year}-${month}`);
+          current.setMonth(current.getMonth() + 1);
+        }
+        break;
+    }
+
+    return periods;
   }
 
   /**

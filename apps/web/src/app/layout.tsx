@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import '../styles/z-index-layers.css';
 import '../styles/android-fixes.css';
 import '../styles/ios-fixes.css';
 import { ClientProviders } from './providers';

@@ -253,6 +253,7 @@ i.fas, i.far, i.fab, i.fal, i.fad {
 @import url('../styles/animations.css');
 @import url('../styles/ios-fixes.css');
 @import url('../styles/ios-safe-area.css');
+@import url('../styles/portal-dropdown.css');
 
 @layer base {
   :root {

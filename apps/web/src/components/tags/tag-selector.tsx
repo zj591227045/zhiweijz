@@ -202,7 +202,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
 
       {/* 下拉选择框 */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-hidden">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[100] max-h-80 overflow-hidden">
           {/* 搜索框 */}
           <div className="p-3 border-b border-gray-200">
             <div className="relative">
@@ -523,7 +523,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
                      0 -4px 6px -2px rgba(0, 0, 0, 0.05),
                      0 0 0 1px var(--primary-color),
                      0 0 20px rgba(var(--primary-rgb), 0.15)`,
-          zIndex: 1000000000,
+          zIndex: 210, // 模态框标准层级
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column'

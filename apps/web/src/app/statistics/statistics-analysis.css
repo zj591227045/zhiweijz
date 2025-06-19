@@ -5,6 +5,7 @@
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
+  overflow: visible !important; /* 确保下拉菜单可以显示 */
 }
 
 /* 重置可能的全局样式冲突 */
@@ -472,6 +473,367 @@
   text-align: center;
 }
 
+/* 增强的日期范围选择器样式 */
+.statistics-analysis-page .enhanced-date-range-picker {
+  margin-bottom: 16px;
+}
+
+/* 周模式显示样式 - 优化布局 */
+.statistics-analysis-page .week-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  position: relative;
+}
+
+.statistics-analysis-page .week-main {
+  font-size: 16px; /* 与月模式、年模式保持一致的字体大小 */
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  order: 2; /* 确保在中间 */
+}
+
+.statistics-analysis-page .week-date-start {
+  font-size: 11px;
+  color: var(--text-secondary, #6b7280);
+  font-weight: 400;
+  white-space: nowrap;
+  order: 1; /* 确保在左边 */
+}
+
+.statistics-analysis-page .week-date-end {
+  font-size: 11px;
+  color: var(--text-secondary, #6b7280);
+  font-weight: 400;
+  white-space: nowrap;
+  order: 3; /* 确保在右边 */
+}
+
+/* 水平布局的时间范围控制器 */
+.statistics-analysis-page .time-range-controls-horizontal {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin-bottom: 12px;
+  width: 100%;
+  flex-direction: row !important;
+  overflow: visible !important; /* 确保下拉菜单可以显示 */
+  position: relative;
+}
+
+
+
+/* 时间范围类型选择器样式 - 方形按钮设计 */
+.statistics-analysis-page .time-range-type-selector {
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  z-index: 5; /* 基础组件层级 */
+}
+
+.statistics-analysis-page .time-range-type-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.statistics-analysis-page .time-range-type-button:hover {
+  background-color: var(--hover-background);
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.statistics-analysis-page .time-range-type-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.statistics-analysis-page .time-range-type-button.open {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.statistics-analysis-page .time-range-type-button.open .time-range-type-arrow {
+  color: white;
+  opacity: 1;
+}
+
+.statistics-analysis-page .time-range-type-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.statistics-analysis-page .time-range-type-text {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.statistics-analysis-page .time-range-type-arrow {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 8px;
+  transition: transform 0.2s ease;
+  opacity: 0.7;
+}
+
+.statistics-analysis-page .time-range-type-arrow.open {
+  transform: rotate(180deg);
+}
+
+/* 下拉菜单样式 - Portal渲染到body，使用全局样式 */
+.time-range-type-dropdown {
+  position: fixed !important;
+  min-width: 120px !important;
+  background-color: var(--card-background, #ffffff) !important;
+  border: 1px solid var(--border-color, #e5e7eb) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+  z-index: 110 !important; /* 下拉菜单标准层级 */
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* 下拉菜单选项样式 - 全局样式，适用于Portal渲染的元素 */
+.time-range-type-options {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+}
+
+.time-range-type-option {
+  padding: 10px 16px;
+  color: var(--text-primary, #1f2937);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.time-range-type-option:hover {
+  background-color: var(--hover-background, #f3f4f6);
+}
+
+.time-range-type-option.active {
+  background-color: var(--primary-color, #3b82f6);
+  color: white;
+}
+
+/* 水平布局的日期导航器样式 */
+.statistics-analysis-page .date-navigator-horizontal {
+  display: flex;
+  align-items: center;
+  background-color: var(--card-background);
+  border-radius: 8px;
+  padding: 4px;
+  border: 1px solid var(--border-color);
+  flex: 1;
+  height: 36px; /* 固定高度与模式切换器一致 */
+  min-width: 0; /* 确保flex项目可以收缩 */
+  position: relative; /* 为周模式的绝对定位提供参考 */
+}
+
+.statistics-analysis-page .date-navigator-horizontal .date-arrow {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.statistics-analysis-page .date-navigator-horizontal .date-arrow:hover:not(:disabled) {
+  background-color: var(--hover-background);
+  color: var(--primary-color);
+}
+
+.statistics-analysis-page .date-navigator-horizontal .date-arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.statistics-analysis-page .date-navigator-horizontal .date-display {
+  flex: 1;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 8px; /* 恢复正常内边距 */
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statistics-analysis-page .date-navigator-horizontal .date-display:hover {
+  background-color: var(--hover-background);
+  color: var(--primary-color);
+}
+
+/* 自定义日期显示样式 */
+.statistics-analysis-page .custom-date-display {
+  flex: 1;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 6px 8px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 自定义日期范围选择器样式 */
+.statistics-analysis-page .custom-date-range-picker {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 8px;
+}
+
+.statistics-analysis-page .quick-ranges {
+  margin-bottom: 16px;
+}
+
+.statistics-analysis-page .quick-ranges-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.statistics-analysis-page .quick-ranges-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.statistics-analysis-page .quick-range-button {
+  padding: 6px 12px;
+  background-color: var(--muted);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.statistics-analysis-page .quick-range-button:hover {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.statistics-analysis-page .date-inputs {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.statistics-analysis-page .date-input-group {
+  flex: 1;
+}
+
+.statistics-analysis-page .date-input-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.statistics-analysis-page .date-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--text-primary);
+  background-color: var(--card-background);
+  transition: border-color 0.2s ease;
+}
+
+.statistics-analysis-page .date-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.statistics-analysis-page .date-display-text {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+  min-height: 14px;
+}
+
+.statistics-analysis-page .date-range-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+.statistics-analysis-page .date-range-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--error-color);
+  font-size: 12px;
+  background-color: rgba(239, 68, 68, 0.1);
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.statistics-analysis-page .date-range-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  background-color: var(--muted);
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
 /* 媒体查询覆盖 - 确保筛选器在小屏幕上仍然横向排列 */
 @media (max-width: 768px) {
   .statistics-analysis-page .chart-actions,
@@ -489,5 +851,70 @@
   .statistics-analysis-page .chart-header .chart-action {
     flex-shrink: 0 !important;
     min-width: 48px !important;
+  }
+
+  /* 移动端时间范围选择器优化 - 保持水平布局 */
+  .statistics-analysis-page .time-range-controls-horizontal {
+    flex-direction: row !important;
+    gap: 8px !important;
+    align-items: center !important;
+  }
+
+  .statistics-analysis-page .date-navigator-horizontal {
+    height: 40px; /* 移动端固定高度与模式切换器一致 */
+  }
+
+  .statistics-analysis-page .time-range-type-selector {
+    width: 40px;
+  }
+
+  .statistics-analysis-page .time-range-type-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .statistics-analysis-page .time-range-type-text {
+    font-size: 14px;
+  }
+
+  .statistics-analysis-page .time-range-type-arrow {
+    font-size: 9px;
+    bottom: 3px;
+    right: 3px;
+  }
+
+  .statistics-analysis-page .date-navigator-horizontal .date-arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .statistics-analysis-page .date-navigator-horizontal .date-display {
+    font-size: 15px;
+    padding: 8px 12px; /* 移动端恢复正常内边距 */
+  }
+
+  /* 移动端周模式样式调整 */
+  .statistics-analysis-page .week-main {
+    font-size: 16px; /* 与移动端月模式、年模式保持一致 */
+  }
+
+  .statistics-analysis-page .week-date-start,
+  .statistics-analysis-page .week-date-end {
+    font-size: 10px; /* 移动端减小日期字体 */
+  }
+
+  .statistics-analysis-page .quick-ranges-buttons {
+    justify-content: center;
+  }
+
+  .statistics-analysis-page .date-inputs {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .statistics-analysis-page .date-range-separator {
+    transform: rotate(90deg);
+    margin: 0;
   }
 }

@@ -3,6 +3,8 @@ import { apiClient } from '@/lib/api-client';
 import { StatisticsResponse } from '@/types';
 import { toast } from 'sonner';
 
+export type TimeRangeType = 'week' | 'month' | 'year' | 'custom';
+
 interface DateRange {
   startDate: string;
   endDate: string;
@@ -16,6 +18,7 @@ interface StatisticsState {
 
   // 视图状态
   dateRange: DateRange;
+  timeRangeType: TimeRangeType;
   categoryChartType: 'pie' | 'bar';
   trendChartPeriod: 'day' | 'week' | 'month';
   selectedCategoryType: 'expense' | 'income';
@@ -25,6 +28,7 @@ interface StatisticsState {
   setIsLoading: (isLoading: boolean) => void;
   setError: (error: Error | null) => void;
   setDateRange: (dateRange: DateRange) => void;
+  setTimeRangeType: (type: TimeRangeType) => void;
   setCategoryChartType: (type: 'pie' | 'bar') => void;
   setTrendChartPeriod: (period: 'day' | 'week' | 'month') => void;
   setSelectedCategoryType: (type: 'expense' | 'income') => void;
@@ -34,6 +38,7 @@ interface StatisticsState {
     endDate: string,
     accountBookId?: string,
     tagIds?: string[],
+    timeRangeType?: TimeRangeType,
   ) => Promise<void>;
   reset: () => void;
 }
@@ -47,6 +52,7 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
     startDate: '',
     endDate: '',
   },
+  timeRangeType: 'month',
   categoryChartType: 'pie',
   trendChartPeriod: 'day',
   selectedCategoryType: 'expense',
@@ -56,14 +62,15 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
   setIsLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
   setDateRange: (dateRange) => set({ dateRange }),
+  setTimeRangeType: (timeRangeType) => set({ timeRangeType }),
   setCategoryChartType: (type) => set({ categoryChartType: type }),
   setTrendChartPeriod: (period) => set({ trendChartPeriod: period }),
   setSelectedCategoryType: (type) => set({ selectedCategoryType: type }),
   setSelectedTagIds: (tagIds) => set({ selectedTagIds: tagIds }),
 
   // 获取统计数据
-  fetchStatisticsData: async (startDate, endDate, accountBookId, tagIds) => {
-    console.log('开始获取统计数据:', { startDate, endDate, accountBookId, tagIds });
+  fetchStatisticsData: async (startDate, endDate, accountBookId, tagIds, timeRangeType) => {
+    console.log('开始获取统计数据:', { startDate, endDate, accountBookId, tagIds, timeRangeType });
     try {
       set({ isLoading: true, error: null });
 
@@ -75,6 +82,35 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
         tagIds.forEach(tagId => {
           url += `&tagIds=${tagId}`;
         });
+      }
+
+      // 根据时间范围类型设置groupBy参数
+      if (timeRangeType) {
+        let groupBy = 'day';
+        switch (timeRangeType) {
+          case 'week':
+            groupBy = 'week';
+            break;
+          case 'month':
+            groupBy = 'month';
+            break;
+          case 'year':
+            groupBy = 'month'; // 年视图按月聚合
+            break;
+          case 'custom':
+            // 自定义范围根据时间跨度自动选择
+            const daysDiff = new Date(endDate).getTime() - new Date(startDate).getTime();
+            const days = Math.ceil(daysDiff / (1000 * 60 * 60 * 24));
+            if (days <= 31) {
+              groupBy = 'day';
+            } else if (days <= 365) {
+              groupBy = 'week';
+            } else {
+              groupBy = 'month';
+            }
+            break;
+        }
+        url += `&groupBy=${groupBy}`;
       }
 
       const response = await apiClient.get(url);
@@ -108,6 +144,7 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
       set({
         statisticsData: transformedResponse,
         dateRange: { startDate, endDate },
+        timeRangeType: timeRangeType || get().timeRangeType,
         isLoading: false,
       });
     } catch (error) {
@@ -127,6 +164,7 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
         startDate: '',
         endDate: '',
       },
+      timeRangeType: 'month',
       categoryChartType: 'pie',
       trendChartPeriod: 'day',
       selectedCategoryType: 'expense',

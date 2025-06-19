@@ -1,18 +1,18 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { useAccountBookStore } from '@/store/account-book-store';
-import { useStatisticsStore } from '@/store/statistics-store';
-import { DateRangePicker } from './date-range-picker';
+import { useStatisticsStore, TimeRangeType } from '@/store/statistics-store';
+import { EnhancedDateRangePicker } from './enhanced-date-range-picker';
 import { StatsSummaryCard } from './stats-summary-card';
 import { CategoryDistribution } from './category-distribution';
 import { TrendChart } from './trend-chart';
 import { AnalysisNavigation } from './analysis-navigation';
 import { TagFilterSelector } from './tag-filter-selector';
-import { getCurrentMonthRange, getPreviousMonthRange, getNextMonthRange } from '@/lib/utils';
+import { getCurrentMonthRange } from '@/lib/utils';
 
 export function StatisticsPage() {
   const router = useRouter();
@@ -21,11 +21,13 @@ export function StatisticsPage() {
   const {
     statisticsData,
     dateRange,
+    timeRangeType,
     selectedTagIds,
     isLoading,
     error,
     fetchStatisticsData,
     setDateRange,
+    setTimeRangeType,
     setSelectedTagIds,
     reset
   } = useStatisticsStore();
@@ -43,44 +45,27 @@ export function StatisticsPage() {
       // 设置初始日期范围为当前月份
       const { startDate, endDate } = getCurrentMonthRange();
       setDateRange({ startDate, endDate });
-      fetchStatisticsData(startDate, endDate, currentAccountBook.id, selectedTagIds);
+      setTimeRangeType('month');
+      fetchStatisticsData(startDate, endDate, currentAccountBook.id, selectedTagIds, 'month');
     }
 
     // 组件卸载时重置状态
     return () => reset();
-  }, [currentAccountBook?.id, fetchStatisticsData, setDateRange, reset]);
+  }, [currentAccountBook?.id, fetchStatisticsData, setDateRange, setTimeRangeType, reset]);
 
-  // 处理上一个时间段
-  const handlePreviousPeriod = () => {
-    if (dateRange.startDate && dateRange.endDate) {
-      const { startDate, endDate } = getPreviousMonthRange(new Date(dateRange.startDate));
-      setDateRange({ startDate, endDate });
-
-      if (currentAccountBook?.id) {
-        fetchStatisticsData(startDate, endDate, currentAccountBook.id, selectedTagIds);
-      }
-    }
-  };
-
-  // 处理下一个时间段
-  const handleNextPeriod = () => {
-    if (dateRange.startDate && dateRange.endDate) {
-      const { startDate, endDate } = getNextMonthRange(new Date(dateRange.startDate));
-      setDateRange({ startDate, endDate });
-
-      if (currentAccountBook?.id) {
-        fetchStatisticsData(startDate, endDate, currentAccountBook.id, selectedTagIds);
-      }
-    }
-  };
-
-  // 处理当前时间段
-  const handleCurrentPeriod = () => {
-    const { startDate, endDate } = getCurrentMonthRange();
-    setDateRange({ startDate, endDate });
+  // 处理日期范围变化
+  const handleDateRangeChange = (newDateRange: { startDate: string; endDate: string }, rangeType: TimeRangeType) => {
+    setDateRange(newDateRange);
+    setTimeRangeType(rangeType);
 
     if (currentAccountBook?.id) {
-      fetchStatisticsData(startDate, endDate, currentAccountBook.id, selectedTagIds);
+      fetchStatisticsData(
+        newDateRange.startDate,
+        newDateRange.endDate,
+        currentAccountBook.id,
+        selectedTagIds,
+        rangeType
+      );
     }
   };
 
@@ -96,13 +81,11 @@ export function StatisticsPage() {
   return (
     <PageContainer title="统计分析" rightActions={rightActions} activeNavItem="statistics">
       <div className="statistics-analysis-page">
-        {/* 日期选择器 */}
-        <DateRangePicker
+        {/* 增强的日期范围选择器 */}
+        <EnhancedDateRangePicker
           startDate={dateRange.startDate}
           endDate={dateRange.endDate}
-          onPrevious={handlePreviousPeriod}
-          onNext={handleNextPeriod}
-          onToday={handleCurrentPeriod}
+          onDateRangeChange={handleDateRangeChange}
         />
 
         {/* 标签筛选器 */}
@@ -115,7 +98,7 @@ export function StatisticsPage() {
                 setSelectedTagIds(tagIds);
                 // 标签变化时重新获取数据
                 if (dateRange.startDate && dateRange.endDate) {
-                  fetchStatisticsData(dateRange.startDate, dateRange.endDate, currentAccountBook.id, tagIds);
+                  fetchStatisticsData(dateRange.startDate, dateRange.endDate, currentAccountBook.id, tagIds, timeRangeType);
                 }
               }}
             />
@@ -135,7 +118,7 @@ export function StatisticsPage() {
             className="retry-button"
             onClick={() => {
               if (dateRange.startDate && dateRange.endDate && currentAccountBook?.id) {
-                fetchStatisticsData(dateRange.startDate, dateRange.endDate, currentAccountBook.id, selectedTagIds);
+                fetchStatisticsData(dateRange.startDate, dateRange.endDate, currentAccountBook.id, selectedTagIds, timeRangeType);
               }
             }}
           >

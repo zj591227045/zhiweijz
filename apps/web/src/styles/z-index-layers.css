@@ -1,0 +1,233 @@
+/* Z-Index 层级系统 - 统一管理所有组件的z-index值 */
+
+/* 
+  Z-Index 层级规范：
+  1-9: 基础层级（普通元素、卡片等）
+  10-99: 页面级组件（导航栏、侧边栏等）
+  100-199: 弹出层（下拉菜单、工具提示等）
+  200-299: 模态框和对话框
+  300-399: 通知和警告
+  400-499: 全屏覆盖层
+  500+: 紧急层级（错误提示、调试工具等）
+*/
+
+/* 基础层级 (1-9) */
+.z-base {
+  z-index: 1;
+}
+
+.z-card {
+  z-index: 2;
+}
+
+.z-content {
+  z-index: 3;
+}
+
+/* 页面级组件 (10-99) */
+.z-header {
+  z-index: 10;
+}
+
+.z-navigation {
+  z-index: 20;
+}
+
+.z-sidebar {
+  z-index: 30;
+}
+
+.z-bottom-nav {
+  z-index: 40;
+}
+
+/* 弹出层 (100-199) */
+.z-dropdown {
+  z-index: 100;
+}
+
+.z-tooltip {
+  z-index: 110;
+}
+
+.z-popover {
+  z-index: 120;
+}
+
+.z-menu {
+  z-index: 130;
+}
+
+/* 模态框和对话框 (200-299) */
+.z-modal-backdrop {
+  z-index: 200;
+}
+
+.z-modal {
+  z-index: 210;
+}
+
+.z-dialog {
+  z-index: 220;
+}
+
+.z-drawer {
+  z-index: 230;
+}
+
+/* 通知和警告 (300-399) */
+.z-notification {
+  z-index: 300;
+}
+
+.z-toast {
+  z-index: 310;
+}
+
+.z-alert {
+  z-index: 320;
+}
+
+/* 全屏覆盖层 (400-499) */
+.z-overlay {
+  z-index: 400;
+}
+
+.z-loading {
+  z-index: 410;
+}
+
+.z-fullscreen {
+  z-index: 420;
+}
+
+/* 紧急层级 (500+) */
+.z-debug {
+  z-index: 500;
+}
+
+.z-emergency {
+  z-index: 999;
+}
+
+/* 具体组件的z-index设置 */
+
+/* 页面容器 */
+.app-container {
+  z-index: 1;
+}
+
+/* 顶部导航栏 */
+.header {
+  z-index: 10;
+}
+
+/* 底部导航栏 */
+.bottom-navigation {
+  z-index: 40;
+}
+
+/* 时间范围选择器 */
+.time-range-type-selector {
+  z-index: 5;
+}
+
+.time-range-type-dropdown {
+  z-index: 110; /* 下拉菜单层级 */
+}
+
+/* 标签选择器 */
+.tag-selector-dropdown {
+  z-index: 100; /* 普通下拉菜单层级 */
+}
+
+.tag-selector-modal {
+  z-index: 210; /* 模态框层级 */
+}
+
+/* 图表组件 */
+.chart-container {
+  z-index: 2;
+}
+
+.recharts-wrapper {
+  z-index: 1;
+}
+
+/* 卡片组件 */
+.summary-card,
+.chart-card,
+.stats-card {
+  z-index: 2;
+}
+
+/* 筛选器 */
+.filter-dropdown {
+  z-index: 105;
+}
+
+/* 日期选择器 */
+.date-picker-dropdown {
+  z-index: 115;
+}
+
+/* 设置对话框 */
+.settings-dialog {
+  z-index: 220;
+}
+
+/* 确认对话框 */
+.confirm-dialog {
+  z-index: 230;
+}
+
+/* 通知组件 */
+.notification-toast {
+  z-index: 310;
+}
+
+/* 加载状态 */
+.loading-overlay {
+  z-index: 410;
+}
+
+/* 错误提示 */
+.error-banner {
+  z-index: 320;
+}
+
+/* 调试工具 */
+.debug-panel {
+  z-index: 500;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  /* 移动端可能需要调整某些层级 */
+  .mobile-menu {
+    z-index: 250;
+  }
+  
+  .mobile-drawer {
+    z-index: 240;
+  }
+}
+
+/* 确保重要元素始终可见 */
+.always-on-top {
+  z-index: 999 !important;
+}
+
+/* 调试用 - 显示z-index值 */
+.debug-z-index::after {
+  content: attr(data-z-index);
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: red;
+  color: white;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  pointer-events: none;
+}
