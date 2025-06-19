@@ -9,20 +9,20 @@
   bottom: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
-  z-index: 9999999 !important;
+  z-index: 230 !important;
   background-color: var(--background-color) !important;
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
-  
+
   /* 移动端优化 */
   -webkit-overflow-scrolling: touch !important;
   touch-action: manipulation !important;
-  
+
   /* 强制硬件加速 */
   transform: translateZ(0) !important;
   -webkit-transform: translateZ(0) !important;
-  
+
   /* 动画效果 */
   animation: fadeIn 0.3s ease-out !important;
 }

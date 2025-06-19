@@ -320,7 +320,7 @@ export class StatisticsService {
       endDate: endDate.toISOString()
     });
 
-    // 获取月度预算 - 仅查询当前用户的预算（排除托管成员的预算）
+    // 获取月度预算 - 查询当前用户的个人预算（包括用户自己创建的预算）
     const budgets = await this.budgetRepository.findByPeriodAndDate(
       userId,
       BudgetPeriod.MONTHLY,
@@ -328,7 +328,7 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      true // 设置excludeFamilyMember为true，仅查询当前用户的预算
+      false // 设置excludeFamilyMember为false，查询用户的个人预算
     );
 
     console.log(`找到 ${budgets.length} 个当前用户的预算`);
@@ -356,7 +356,7 @@ export class StatisticsService {
       totalAvailableBudget
     });
 
-    // 获取支出交易记录 - 仅查询当前用户的交易记录（排除托管成员的交易记录）
+    // 获取支出交易记录 - 查询当前用户的交易记录（包括用户自己的交易）
     const transactions = await this.transactionRepository.findByDateRange(
       userId,
       TransactionType.EXPENSE,
@@ -364,7 +364,7 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      true // 设置excludeFamilyMember为true，仅查询当前用户的交易记录
+      false // 设置excludeFamilyMember为false，查询用户的交易记录
     );
 
     console.log(`找到 ${transactions.length} 条当前用户的交易记录`);

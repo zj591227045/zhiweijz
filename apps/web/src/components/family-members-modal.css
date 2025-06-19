@@ -14,7 +14,7 @@
   background-color: var(--background-color);
   display: flex;
   flex-direction: column;
-  z-index: 9999999;
+  z-index: 230;
   animation: fadeIn 0.3s ease-out;
   isolation: isolate;
 }
@@ -208,7 +208,7 @@
 
 /* 确保模态框在最顶层 */
 .modal-overlay {
-  z-index: 9999999 !important;
+  z-index: 230 !important;
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;

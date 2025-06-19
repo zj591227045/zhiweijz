@@ -16,7 +16,7 @@ body.modal-open {
   bottom: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
-  z-index: 2147483647 !important; /* 使用最大z-index值 */
+  z-index: 240 !important; /* 内容模态框层级 */
   pointer-events: auto !important;
   isolation: isolate !important;
   /* 确保不受父容器影响 */

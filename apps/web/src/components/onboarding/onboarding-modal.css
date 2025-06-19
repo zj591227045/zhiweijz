@@ -18,7 +18,7 @@ body.onboarding-active [class*="bottom-nav"] {
   background-color: var(--background-color);
   display: flex;
   flex-direction: column;
-  z-index: 9999;
+  z-index: 250;
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -37,7 +37,7 @@ body.onboarding-active [class*="bottom-nav"] {
   padding: 16px 20px;
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 10;
 }
 
 .onboarding-header-content {

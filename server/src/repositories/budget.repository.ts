@@ -603,11 +603,14 @@ export class BudgetRepository {
         throw new Error('无权限查看该账本的预算');
       }
 
-      // 如果excludeFamilyMember为true，则只查询当前用户的预算
+      // 始终限制为当前用户相关的预算
+      where.userId = userId;
+
+      // 如果excludeFamilyMember为true，则只查询个人预算（排除托管成员预算）
       if (excludeFamilyMember) {
-        where.userId = userId;
         where.familyMemberId = null;
       }
+      // 如果excludeFamilyMember为false，则查询所有用户相关的预算（包括托管成员预算）
     } else {
       // 如果没有指定账本ID，则只查询用户自己的预算
       where.userId = userId;

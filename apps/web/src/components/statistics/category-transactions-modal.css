@@ -8,7 +8,7 @@
   width: 100vw;
   height: 100vh;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 99999; /* 确保在最顶层 */
+  z-index: 220; /* 对话框层级 */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -342,7 +342,7 @@ body > .category-transactions-modal-overlay {
   bottom: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
-  z-index: 99999 !important;
+  z-index: 220 !important;
   /* 确保居中显示 */
   display: flex !important;
   align-items: center !important;

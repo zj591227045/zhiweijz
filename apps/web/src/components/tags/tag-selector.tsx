@@ -469,7 +469,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
 
   // 使用Portal渲染到body，避免父容器的层级限制
   const modalContent = (
-    <div className="tag-selector-container fixed inset-0" style={{ zIndex: 999999999 }}>
+    <div className="tag-selector-container fixed inset-0" style={{ zIndex: 200 }}>
       {/* 背景遮罩 - 增强模糊效果和视觉区分 */}
       <div
         className="tag-selector-backdrop transition-all duration-300"
@@ -479,10 +479,10 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
           left: 0,
           right: 0,
           bottom: 0,
-          zIndex: 999999999,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
+          zIndex: 200,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
           willChange: 'backdrop-filter'
         }}
         onClick={(e) => {
