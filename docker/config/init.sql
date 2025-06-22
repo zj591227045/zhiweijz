@@ -47,7 +47,12 @@ CREATE TABLE public.users (
     avatar text,
     bio text,
     birth_date timestamp(3) without time zone,
-    password_changed_at timestamp(3) without time zone
+    password_changed_at timestamp(3) without time zone,
+    is_custodial boolean DEFAULT false NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    daily_llm_token_limit integer,
+    deletion_requested_at timestamp(3) without time zone,
+    deletion_scheduled_at timestamp(3) without time zone
 );
 
 -- 创建账本表
@@ -118,7 +123,8 @@ CREATE TABLE public.transactions (
     created_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(3) without time zone NOT NULL,
     account_book_id text,
-    budget_id text
+    budget_id text,
+    metadata jsonb
 );
 
 -- 创建预算历史表
@@ -317,6 +323,10 @@ ALTER TABLE ONLY public.ai_models ADD CONSTRAINT ai_models_pkey PRIMARY KEY (id)
 
 -- 添加唯一约束
 CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email);
+
+-- 添加索引
+CREATE INDEX idx_users_is_active ON public.users USING btree (is_active);
+CREATE INDEX idx_transactions_metadata_gin ON public.transactions USING gin (metadata);
 CREATE UNIQUE INDEX sessions_token_key ON public.sessions USING btree (token);
 CREATE UNIQUE INDEX user_settings_user_id_key_key ON public.user_settings USING btree (user_id, key);
 CREATE UNIQUE INDEX password_reset_tokens_token_key ON public.password_reset_tokens USING btree (token);
@@ -329,6 +339,10 @@ CREATE UNIQUE INDEX user_category_configs_user_id_category_id_key ON public.user
 ALTER TABLE ONLY public.account_books ADD CONSTRAINT account_books_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE RESTRICT;
 ALTER TABLE ONLY public.transactions ADD CONSTRAINT transactions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE RESTRICT;
 ALTER TABLE ONLY public.transactions ADD CONSTRAINT transactions_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+ALTER TABLE ONLY public.transactions ADD CONSTRAINT transactions_budget_id_fkey FOREIGN KEY (budget_id) REFERENCES public.budgets(id) ON UPDATE CASCADE ON DELETE SET NULL;
+ALTER TABLE ONLY public.transactions ADD CONSTRAINT transactions_account_book_id_fkey FOREIGN KEY (account_book_id) REFERENCES public.account_books(id) ON UPDATE CASCADE ON DELETE SET NULL;
+ALTER TABLE ONLY public.transactions ADD CONSTRAINT transactions_family_id_fkey FOREIGN KEY (family_id) REFERENCES public.families(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+ALTER TABLE ONLY public.transactions ADD CONSTRAINT transactions_family_member_id_fkey FOREIGN KEY (family_member_id) REFERENCES public.family_members(id) ON UPDATE CASCADE ON DELETE SET NULL;
 ALTER TABLE ONLY public.budget_histories ADD CONSTRAINT budget_histories_budget_id_fkey FOREIGN KEY (budget_id) REFERENCES public.budgets(id) ON UPDATE CASCADE ON DELETE CASCADE;
 ALTER TABLE ONLY public.families ADD CONSTRAINT families_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE RESTRICT;
 ALTER TABLE ONLY public.family_members ADD CONSTRAINT family_members_family_id_fkey FOREIGN KEY (family_id) REFERENCES public.families(id) ON UPDATE CASCADE ON DELETE RESTRICT;

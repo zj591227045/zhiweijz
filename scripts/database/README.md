@@ -205,4 +205,87 @@ const prisma = new PrismaClient({
 **重要提醒**：此脚本会修改生产数据库中的用户设置，请在运行前确保：
 1. 已充分测试脚本功能
 2. 已备份相关数据
-3. 已获得相应的运维授权 
+3. 已获得相应的运维授权
+
+# 数据库字段修复指南
+
+## 问题描述
+
+在全新部署时可能会遇到 `users.is_custodial` 字段不存在的错误：
+```
+Invalid `prisma.user.findUnique()` invocation: The column `users.is_custodial` does not exist in the current database.
+```
+
+## 解决方案
+
+### 方案一：全新部署修复
+
+如果是全新部署，数据库初始化文件已经修复，直接重新初始化数据库即可。
+
+### 方案二：现有数据库修复
+
+如果是现有的数据库实例，请执行以下修复脚本：
+
+```bash
+# 进入数据库容器
+docker exec -it <数据库容器名> psql -U <用户名> -d <数据库名>
+
+# 或者直接执行 SQL 文件
+docker exec -i <数据库容器名> psql -U <用户名> -d <数据库名> < scripts/database/fix-missing-fields.sql
+```
+
+### 方案三：手动修复
+
+如果需要手动修复，请按以下顺序执行 SQL 命令：
+
+```sql
+-- 添加缺失的字段
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_custodial BOOLEAN DEFAULT false NOT NULL;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true NOT NULL;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS daily_llm_token_limit INTEGER;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_requested_at TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_scheduled_at TIMESTAMP WITHOUT TIME ZONE;
+
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS metadata JSONB;
+
+-- 创建索引
+CREATE INDEX IF NOT EXISTS idx_users_is_active ON users (is_active);
+CREATE INDEX IF NOT EXISTS idx_transactions_metadata_gin ON transactions USING gin (metadata);
+```
+
+## 修复的字段
+
+### users 表
+- `is_custodial`: 是否为托管账户（布尔值，默认 false）
+- `is_active`: 账户是否激活（布尔值，默认 true）
+- `daily_llm_token_limit`: 每日 LLM 令牌限制（整数，可空）
+- `deletion_requested_at`: 删除请求时间（时间戳，可空）
+- `deletion_scheduled_at`: 计划删除时间（时间戳，可空）
+
+### transactions 表
+- `metadata`: 交易元数据（JSONB，可空）
+
+## 验证修复
+
+修复完成后，可以通过以下 SQL 验证字段是否存在：
+
+```sql
+-- 检查 users 表字段
+SELECT column_name, data_type, is_nullable, column_default 
+FROM information_schema.columns 
+WHERE table_name = 'users' 
+AND column_name IN ('is_custodial', 'is_active', 'daily_llm_token_limit', 'deletion_requested_at', 'deletion_scheduled_at');
+
+-- 检查 transactions 表字段
+SELECT column_name, data_type, is_nullable, column_default 
+FROM information_schema.columns 
+WHERE table_name = 'transactions' 
+AND column_name = 'metadata';
+```
+
+## 注意事项
+
+1. 在执行修复前，建议备份数据库
+2. 修复脚本使用 `IF NOT EXISTS` 语法，可以安全地重复执行
+3. 如果是生产环境，建议在维护窗口期间执行修复
+4. 修复完成后，重启应用服务以确保 Prisma 客户端重新连接数据库 
