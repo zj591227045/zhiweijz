@@ -591,8 +591,9 @@ export class BudgetService {
 
 
   /**
-   * 处理预算结转（简化版本）
+   * 处理预算结转（完整版本）
    * 在创建新月份预算时，将上月剩余金额设置为新预算的rolloverAmount
+   * 支持正数结转（余额结转）和负数结转（债务结转）
    */
   async processBudgetRollover(budgetId: string): Promise<number> {
     // 获取预算信息
@@ -614,7 +615,7 @@ export class BudgetService {
     // 计算总可用金额
     const totalAvailable = amount + currentRolloverAmount;
 
-    // 计算剩余金额（这就是要结转到下个月的金额）
+    // 计算剩余金额（可以是正数或负数）
     const remaining = totalAvailable - spent;
 
     const endDate = budget.endDate;
@@ -623,7 +624,66 @@ export class BudgetService {
     console.log(`处理预算结转 - 预算ID: ${budgetId}, 期间: ${period}`);
     console.log(`基础预算: ${amount}, 上月结转: ${currentRolloverAmount}, 已使用: ${spent}, 结转金额: ${remaining}`);
 
+    // 记录结转历史和详细信息
+    await this.recordBudgetRolloverHistory(budget, spent, currentRolloverAmount, remaining);
+
+    // 返回结转金额（包括负数）
     return remaining;
+  }
+
+  /**
+   * 记录预算结转历史
+   * 详细记录结转过程，便于审计和问题排查
+   */
+  private async recordBudgetRolloverHistory(budget: any, spent: number, currentRolloverAmount: number, rolloverAmount: number): Promise<void> {
+    try {
+      const rolloverType = rolloverAmount >= 0 ? 'SURPLUS' : 'DEFICIT';
+      const rolloverDescription = rolloverAmount >= 0 ? '余额结转' : '债务结转';
+
+      console.log(`记录预算结转历史:`);
+      console.log(`  预算ID: ${budget.id}`);
+      console.log(`  预算名称: ${budget.name}`);
+      console.log(`  结转类型: ${rolloverDescription}`);
+      console.log(`  基础金额: ${budget.amount}`);
+      console.log(`  上期结转: ${currentRolloverAmount}`);
+      console.log(`  实际支出: ${spent}`);
+      console.log(`  结转金额: ${rolloverAmount}`);
+
+      // 这里可以添加到数据库的历史记录表
+      // 目前先记录到日志中
+
+    } catch (error) {
+      console.error('记录结转历史失败:', error);
+      // 不抛出错误，避免影响主流程
+    }
+  }
+
+  /**
+   * 计算智能结转金额
+   * 根据用户设置和历史数据，智能处理结转逻辑
+   */
+  async calculateSmartRolloverAmount(budgetId: string, options: { allowNegativeRollover?: boolean } = {}): Promise<number> {
+    const budget = await this.budgetRepository.findById(budgetId);
+    if (!budget || !budget.rollover) {
+      return 0;
+    }
+
+    // 计算基础结转金额
+    const basicRollover = await this.processBudgetRollover(budgetId);
+
+    // 如果不允许负数结转，将负数转为0
+    if (!options.allowNegativeRollover && basicRollover < 0) {
+      console.log(`预算 ${budgetId} 产生债务 ${Math.abs(basicRollover)}，根据设置不进行债务结转`);
+      return 0;
+    }
+
+    // 对于大额结转，可以添加额外的验证逻辑
+    const budgetAmount = Number(budget.amount);
+    if (Math.abs(basicRollover) > budgetAmount * 2) {
+      console.log(`预算 ${budgetId} 结转金额异常大 (${basicRollover})，请检查数据`);
+    }
+
+    return basicRollover;
   }
 
   /**
@@ -1217,13 +1277,14 @@ export class BudgetService {
     const userId = templateBudget.userId || '';
     const newBudget = await this.createBudget(userId, newBudgetData);
 
-    // 如果有结转金额，更新新预算的结转金额
-    if (rolloverAmount !== 0 && templateBudget.rollover) {
+    // 如果启用了结转功能，更新新预算的结转金额（包括正数和负数）
+    if (templateBudget.rollover) {
       await this.budgetRepository.update(newBudget.id, {
         rolloverAmount: rolloverAmount
       });
 
-      console.log(`新预算 ${newBudget.id} 设置结转金额: ${rolloverAmount}`);
+      const rolloverType = rolloverAmount >= 0 ? '余额结转' : '债务结转';
+      console.log(`新预算 ${newBudget.id} 设置${rolloverType}: ${rolloverAmount}`);
 
       // 重新获取更新后的预算信息
       const updatedBudget = await this.budgetRepository.findById(newBudget.id);

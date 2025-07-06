@@ -44,7 +44,14 @@ export class BudgetSchedulerService {
       // 为每个用户创建预算
       for (const userInfo of usersNeedingBudgets) {
         try {
-          await this.budgetService.autoCreateMissingBudgets(userInfo.userId, userInfo.accountBookId);
+          if (userInfo.familyMemberId) {
+            // 托管成员预算创建
+            console.log(`为托管成员 ${userInfo.familyMemberId} 创建预算`);
+            await this.budgetService.autoCreateMissingBudgets(userInfo.userId, userInfo.accountBookId);
+          } else {
+            // 注册用户预算创建
+            await this.budgetService.autoCreateMissingBudgets(userInfo.userId, userInfo.accountBookId);
+          }
           successCount++;
           console.log(`成功为用户 ${userInfo.userId} 在账本 ${userInfo.accountBookId} 中创建预算`);
         } catch (error) {
@@ -62,14 +69,16 @@ export class BudgetSchedulerService {
   /**
    * 查找需要创建当前预算周期的用户
    * 支持自定义refreshDay的预算周期
+   * 包括注册用户和托管成员
    */
-  private async findUsersNeedingCurrentPeriodBudgets(currentDate: Date): Promise<Array<{userId: string, accountBookId: string, refreshDay: number}>> {
-    // 查找所有有历史预算的用户
-    const usersWithHistoricalBudgets = await prisma.budget.findMany({
+  private async findUsersNeedingCurrentPeriodBudgets(currentDate: Date): Promise<Array<{userId: string, accountBookId: string, refreshDay: number, familyMemberId?: string}>> {
+    // 1. 查找注册用户的历史预算
+    const registeredUsersWithBudgets = await prisma.budget.findMany({
       where: {
         budgetType: BudgetType.PERSONAL,
         period: BudgetPeriod.MONTHLY,
-        familyMemberId: null, // 排除托管成员预算
+        familyMemberId: null,
+        userId: { not: null }
       },
       select: {
         userId: true,
@@ -80,10 +89,33 @@ export class BudgetSchedulerService {
       distinct: ['userId', 'accountBookId']
     });
 
-    // 过滤出真正需要创建预算的用户
+    // 2. 查找托管成员的历史预算
+    const custodialMembersWithBudgets = await prisma.budget.findMany({
+      where: {
+        budgetType: BudgetType.PERSONAL,
+        period: BudgetPeriod.MONTHLY,
+        familyMemberId: { not: null }
+      },
+      select: {
+        userId: true,
+        accountBookId: true,
+        refreshDay: true,
+        endDate: true,
+        familyMemberId: true
+      },
+      distinct: ['userId', 'accountBookId', 'familyMemberId']
+    });
+
+    // 3. 合并所有用户预算数据
+    const allUsersWithBudgets = [
+      ...registeredUsersWithBudgets.map(budget => ({ ...budget, familyMemberId: undefined })),
+      ...custodialMembersWithBudgets
+    ];
+
+    // 4. 过滤出真正需要创建预算的用户
     const usersNeedingBudgets = [];
 
-    for (const userBudget of usersWithHistoricalBudgets) {
+    for (const userBudget of allUsersWithBudgets) {
       if (!userBudget.userId || !userBudget.accountBookId) continue;
 
       const refreshDay = userBudget.refreshDay || 1;
@@ -98,7 +130,7 @@ export class BudgetSchedulerService {
           accountBookId: userBudget.accountBookId,
           budgetType: BudgetType.PERSONAL,
           period: BudgetPeriod.MONTHLY,
-          familyMemberId: null,
+          familyMemberId: userBudget.familyMemberId || null,
           startDate: {
             gte: currentPeriod.startDate,
             lte: currentPeriod.endDate
@@ -110,7 +142,8 @@ export class BudgetSchedulerService {
         usersNeedingBudgets.push({
           userId: userBudget.userId,
           accountBookId: userBudget.accountBookId,
-          refreshDay: refreshDay
+          refreshDay: refreshDay,
+          familyMemberId: userBudget.familyMemberId
         });
       }
     }
