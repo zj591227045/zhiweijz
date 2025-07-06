@@ -448,13 +448,13 @@ EOF
 echo ""
 echo "🔧 开始运行预算修复..."
 
-# 将脚本复制到容器并执行
-docker cp "$TEMP_SCRIPT" zhiweijz-backend:/tmp/budget-fix-temp.js
-docker exec zhiweijz-backend node /tmp/budget-fix-temp.js $DRY_RUN
+# 将脚本复制到容器的工作目录并执行
+docker cp "$TEMP_SCRIPT" zhiweijz-backend:/app/budget-fix-temp.js
+docker exec -w /app zhiweijz-backend node budget-fix-temp.js $DRY_RUN
 
 # 清理临时文件
 rm -f "$TEMP_SCRIPT"
-docker exec zhiweijz-backend rm -f /tmp/budget-fix-temp.js
+docker exec zhiweijz-backend rm -f /app/budget-fix-temp.js
 
 echo ""
 echo "✅ 修复完成"

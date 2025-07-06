@@ -293,13 +293,13 @@ EOF
 echo ""
 echo "🔍 开始运行预算诊断..."
 
-# 将脚本复制到容器并执行
-docker cp "$TEMP_SCRIPT" zhiweijz-backend:/tmp/budget-diagnosis-temp.js
-docker exec zhiweijz-backend node /tmp/budget-diagnosis-temp.js
+# 将脚本复制到容器的工作目录并执行
+docker cp "$TEMP_SCRIPT" zhiweijz-backend:/app/budget-diagnosis-temp.js
+docker exec -w /app zhiweijz-backend node budget-diagnosis-temp.js
 
 # 清理临时文件
 rm -f "$TEMP_SCRIPT"
-docker exec zhiweijz-backend rm -f /tmp/budget-diagnosis-temp.js
+docker exec zhiweijz-backend rm -f /app/budget-diagnosis-temp.js
 
 echo ""
 echo "✅ 诊断完成"
