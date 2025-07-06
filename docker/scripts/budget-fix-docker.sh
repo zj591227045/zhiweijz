@@ -15,11 +15,27 @@ if [ ! -f "docker-compose.yml" ]; then
 fi
 
 # 检查容器状态
-BACKEND_STATUS=$(docker-compose ps -q backend)
+echo "🔍 检查容器状态..."
+
+# 显示当前容器状态
+docker-compose ps
+
+BACKEND_STATUS=$(docker-compose ps -q backend 2>/dev/null)
 if [ -z "$BACKEND_STATUS" ]; then
     echo "❌ 错误: 后端容器未运行"
+    echo "请先启动服务: docker-compose up -d"
     exit 1
 fi
+
+# 检查后端容器是否真正运行
+BACKEND_RUNNING=$(docker inspect --format='{{.State.Running}}' zhiweijz-backend 2>/dev/null)
+if [ "$BACKEND_RUNNING" != "true" ]; then
+    echo "❌ 错误: 后端容器未正常运行"
+    echo "容器状态: $(docker inspect --format='{{.State.Status}}' zhiweijz-backend 2>/dev/null)"
+    exit 1
+fi
+
+echo "✅ 容器状态正常"
 
 # 询问执行模式
 echo ""

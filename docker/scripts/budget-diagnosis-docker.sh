@@ -31,17 +31,47 @@ fi
 # 检查容器状态
 echo ""
 echo "🔍 检查容器状态..."
-BACKEND_STATUS=$(docker-compose ps -q backend)
+
+# 检查docker-compose是否可用
+if ! docker-compose --version &> /dev/null; then
+    echo "❌ 错误: docker-compose 命令不可用"
+    echo "请检查 Docker Compose 是否正确安装"
+    exit 1
+fi
+
+# 显示当前容器状态
+echo "当前容器状态:"
+docker-compose ps
+
+# 检查后端容器
+BACKEND_STATUS=$(docker-compose ps -q backend 2>/dev/null)
 if [ -z "$BACKEND_STATUS" ]; then
     echo "❌ 错误: 后端容器未运行"
     echo "请先启动服务: docker-compose up -d"
     exit 1
 fi
 
-POSTGRES_STATUS=$(docker-compose ps -q postgres)
+# 检查后端容器是否真正运行
+BACKEND_RUNNING=$(docker inspect --format='{{.State.Running}}' zhiweijz-backend 2>/dev/null)
+if [ "$BACKEND_RUNNING" != "true" ]; then
+    echo "❌ 错误: 后端容器未正常运行"
+    echo "容器状态: $(docker inspect --format='{{.State.Status}}' zhiweijz-backend 2>/dev/null)"
+    exit 1
+fi
+
+# 检查数据库容器
+POSTGRES_STATUS=$(docker-compose ps -q postgres 2>/dev/null)
 if [ -z "$POSTGRES_STATUS" ]; then
     echo "❌ 错误: 数据库容器未运行"
     echo "请先启动服务: docker-compose up -d"
+    exit 1
+fi
+
+# 检查数据库容器是否真正运行
+POSTGRES_RUNNING=$(docker inspect --format='{{.State.Running}}' zhiweijz-postgres 2>/dev/null)
+if [ "$POSTGRES_RUNNING" != "true" ]; then
+    echo "❌ 错误: 数据库容器未正常运行"
+    echo "容器状态: $(docker inspect --format='{{.State.Status}}' zhiweijz-postgres 2>/dev/null)"
     exit 1
 fi
 
