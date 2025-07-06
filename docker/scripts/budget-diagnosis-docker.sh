@@ -14,10 +14,19 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
-    echo "❌ 错误: 未找到 docker-compose 命令"
+# 检查Docker Compose（支持新旧版本）
+DOCKER_COMPOSE_CMD=""
+if docker compose version &> /dev/null; then
+    DOCKER_COMPOSE_CMD="docker compose"
+elif command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE_CMD="docker-compose"
+else
+    echo "❌ 错误: 未找到 docker compose 或 docker-compose 命令"
+    echo "请安装 Docker Compose"
     exit 1
 fi
+
+echo "使用 Docker Compose 命令: $DOCKER_COMPOSE_CMD"
 
 # 检查是否在正确的目录
 if [ ! -f "docker-compose.yml" ]; then
@@ -32,22 +41,15 @@ fi
 echo ""
 echo "🔍 检查容器状态..."
 
-# 检查docker-compose是否可用
-if ! docker-compose --version &> /dev/null; then
-    echo "❌ 错误: docker-compose 命令不可用"
-    echo "请检查 Docker Compose 是否正确安装"
-    exit 1
-fi
-
 # 显示当前容器状态
 echo "当前容器状态:"
-docker-compose ps
+$DOCKER_COMPOSE_CMD ps
 
 # 检查后端容器
-BACKEND_STATUS=$(docker-compose ps -q backend 2>/dev/null)
+BACKEND_STATUS=$($DOCKER_COMPOSE_CMD ps -q backend 2>/dev/null)
 if [ -z "$BACKEND_STATUS" ]; then
     echo "❌ 错误: 后端容器未运行"
-    echo "请先启动服务: docker-compose up -d"
+    echo "请先启动服务: $DOCKER_COMPOSE_CMD up -d"
     exit 1
 fi
 
@@ -60,10 +62,10 @@ if [ "$BACKEND_RUNNING" != "true" ]; then
 fi
 
 # 检查数据库容器
-POSTGRES_STATUS=$(docker-compose ps -q postgres 2>/dev/null)
+POSTGRES_STATUS=$($DOCKER_COMPOSE_CMD ps -q postgres 2>/dev/null)
 if [ -z "$POSTGRES_STATUS" ]; then
     echo "❌ 错误: 数据库容器未运行"
-    echo "请先启动服务: docker-compose up -d"
+    echo "请先启动服务: $DOCKER_COMPOSE_CMD up -d"
     exit 1
 fi
 

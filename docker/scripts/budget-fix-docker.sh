@@ -14,16 +14,27 @@ if [ ! -f "docker-compose.yml" ]; then
     exit 1
 fi
 
+# 检查Docker Compose（支持新旧版本）
+DOCKER_COMPOSE_CMD=""
+if docker compose version &> /dev/null; then
+    DOCKER_COMPOSE_CMD="docker compose"
+elif command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE_CMD="docker-compose"
+else
+    echo "❌ 错误: 未找到 docker compose 或 docker-compose 命令"
+    exit 1
+fi
+
 # 检查容器状态
 echo "🔍 检查容器状态..."
 
 # 显示当前容器状态
-docker-compose ps
+$DOCKER_COMPOSE_CMD ps
 
-BACKEND_STATUS=$(docker-compose ps -q backend 2>/dev/null)
+BACKEND_STATUS=$($DOCKER_COMPOSE_CMD ps -q backend 2>/dev/null)
 if [ -z "$BACKEND_STATUS" ]; then
     echo "❌ 错误: 后端容器未运行"
-    echo "请先启动服务: docker-compose up -d"
+    echo "请先启动服务: $DOCKER_COMPOSE_CMD up -d"
     exit 1
 fi
 

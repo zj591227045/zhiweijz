@@ -324,10 +324,10 @@ async createBudgetForPeriod(templateBudget: any, period: any, rolloverAmount: nu
 4. **Docker环境监控**
    ```bash
    # 检查容器状态
-   docker-compose ps
+   docker compose ps
 
    # 查看后端日志
-   docker-compose logs backend
+   docker compose logs backend
 
    # 检查数据库连接
    docker exec zhiweijz-postgres pg_isready -U zhiweijz
@@ -354,7 +354,7 @@ async createBudgetForPeriod(templateBudget: any, period: any, rolloverAmount: nu
 ### 快速验证流程
 ```bash
 # 1. 检查容器状态
-docker-compose ps
+docker compose ps
 
 # 2. 运行诊断
 bash scripts/budget-diagnosis-docker.sh

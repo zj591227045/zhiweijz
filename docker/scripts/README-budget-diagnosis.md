@@ -68,8 +68,8 @@ docker exec zhiweijz-postgres pg_dump -U zhiweijz zhiweijz > backup_$(date +%Y%m
 ### Q: 脚本报错"容器未运行"
 A: 确保Docker服务已启动：
 ```bash
-docker-compose up -d
-docker-compose ps  # 检查容器状态
+docker compose up -d
+docker compose ps  # 检查容器状态
 ```
 
 ### Q: 权限错误
@@ -81,7 +81,7 @@ chmod +x scripts/*.sh
 ### Q: 数据库连接失败
 A: 检查数据库容器状态：
 ```bash
-docker-compose logs postgres
+docker compose logs postgres
 docker exec zhiweijz-postgres pg_isready -U zhiweijz
 ```
 
@@ -152,13 +152,20 @@ docker exec zhiweijz-postgres pg_isready -U zhiweijz
 
 ### 日志监控
 关注以下日志：
-- 预算创建失败日志
-- 定时任务执行日志
-- 数据库连接错误
+```bash
+# 查看后端日志
+docker compose logs backend
+
+# 查看数据库日志
+docker compose logs postgres
+
+# 查看所有服务日志
+docker compose logs
+```
 
 ## 联系支持
 
 如果遇到脚本无法解决的问题，请提供：
 1. 诊断脚本的完整输出
-2. Docker容器日志：`docker-compose logs backend`
-3. 数据库状态：`docker-compose ps`
+2. Docker容器日志：`docker compose logs backend`
+3. 数据库状态：`docker compose ps`
