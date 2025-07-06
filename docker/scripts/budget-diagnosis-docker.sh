@@ -1,14 +1,66 @@
+#!/bin/bash
+
+# Docker环境预算诊断脚本
+# 在Docker容器中运行预算管理系统诊断
+
+set -e
+
+echo "=== Docker环境预算管理系统诊断工具 ==="
+echo "当前时间: $(date)"
+
+# 检查Docker环境
+if ! command -v docker &> /dev/null; then
+    echo "❌ 错误: 未找到 Docker 命令"
+    exit 1
+fi
+
+if ! command -v docker-compose &> /dev/null; then
+    echo "❌ 错误: 未找到 docker-compose 命令"
+    exit 1
+fi
+
+# 检查是否在正确的目录
+if [ ! -f "docker-compose.yml" ]; then
+    echo "❌ 错误: 请在包含 docker-compose.yml 的目录下运行此脚本"
+    echo "正确的运行方式:"
+    echo "  cd docker"
+    echo "  bash scripts/budget-diagnosis-docker.sh"
+    exit 1
+fi
+
+# 检查容器状态
+echo ""
+echo "🔍 检查容器状态..."
+BACKEND_STATUS=$(docker-compose ps -q backend)
+if [ -z "$BACKEND_STATUS" ]; then
+    echo "❌ 错误: 后端容器未运行"
+    echo "请先启动服务: docker-compose up -d"
+    exit 1
+fi
+
+POSTGRES_STATUS=$(docker-compose ps -q postgres)
+if [ -z "$POSTGRES_STATUS" ]; then
+    echo "❌ 错误: 数据库容器未运行"
+    echo "请先启动服务: docker-compose up -d"
+    exit 1
+fi
+
+echo "✅ 容器状态正常"
+
+# 创建临时诊断脚本
+TEMP_SCRIPT="/tmp/budget-diagnosis-temp.js"
+
+cat > "$TEMP_SCRIPT" << 'EOF'
 /**
- * 预算管理系统快速检查脚本
- * 用于快速识别预算创建和结转问题
+ * Docker环境预算诊断脚本
  */
 
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
-async function quickCheck() {
-  console.log('🔍 预算管理系统快速检查');
+async function quickDiagnosis() {
+  console.log('🔍 Docker环境预算管理系统快速诊断');
   console.log('='.repeat(50));
 
   try {
@@ -22,13 +74,11 @@ async function quickCheck() {
 
     console.log(`检查期间: ${currentYear}-${currentMonth}`);
 
-    // 1. 统计家庭账本数量
+    // 1. 基础统计
     const familyAccountBooks = await prisma.accountBook.count({
       where: { type: 'FAMILY' }
     });
-    console.log(`\n📊 家庭账本数量: ${familyAccountBooks}`);
-
-    // 2. 统计家庭成员数量
+    
     const totalFamilyMembers = await prisma.familyMember.count();
     const registeredMembers = await prisma.familyMember.count({
       where: { userId: { not: null }, isCustodial: false }
@@ -37,12 +87,13 @@ async function quickCheck() {
       where: { isCustodial: true }
     });
 
-    console.log(`👥 家庭成员统计:`);
-    console.log(`   总成员: ${totalFamilyMembers}`);
+    console.log(`\n📊 基础统计:`);
+    console.log(`   家庭账本数量: ${familyAccountBooks}`);
+    console.log(`   家庭成员总数: ${totalFamilyMembers}`);
     console.log(`   注册成员: ${registeredMembers}`);
     console.log(`   托管成员: ${custodialMembers}`);
 
-    // 3. 统计当前月份预算
+    // 2. 当前月份预算统计
     const currentMonthBudgets = await prisma.budget.count({
       where: {
         startDate: { gte: currentMonthStart },
@@ -74,12 +125,12 @@ async function quickCheck() {
     console.log(`   个人预算: ${personalBudgets}`);
     console.log(`   托管预算: ${custodialBudgets}`);
 
-    // 4. 检查定时任务覆盖范围
+    // 3. 定时任务覆盖分析
     const schedulerWouldProcess = await prisma.budget.count({
       where: {
         budgetType: 'PERSONAL',
         period: 'MONTHLY',
-        familyMemberId: null, // 定时任务的查询条件
+        familyMemberId: null,
       },
       distinct: ['userId', 'accountBookId']
     });
@@ -102,7 +153,7 @@ async function quickCheck() {
       console.log(`   ✅ 覆盖完整`);
     }
 
-    // 5. 检查结转预算
+    // 4. 预算结转分析
     const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
     const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
     const lastMonthStart = new Date(lastMonthYear, lastMonth - 1, 1);
@@ -130,11 +181,7 @@ async function quickCheck() {
     console.log(`   上月启用结转: ${rolloverBudgetsLastMonth} 个预算`);
     console.log(`   当月有结转金额: ${currentBudgetsWithRollover} 个预算`);
 
-    if (rolloverBudgetsLastMonth > currentBudgetsWithRollover) {
-      console.log(`   ⚠️  可能的结转问题: ${rolloverBudgetsLastMonth - currentBudgetsWithRollover} 个预算`);
-    }
-
-    // 6. 快速问题识别
+    // 5. 问题识别
     console.log(`\n🚨 问题识别:`);
     
     const issues = [];
@@ -147,7 +194,7 @@ async function quickCheck() {
       issues.push(`可能存在预算结转问题，${rolloverBudgetsLastMonth - currentBudgetsWithRollover} 个预算结转可能失败`);
     }
 
-    // 检查是否有家庭账本缺少成员预算
+    // 检查家庭账本预算完整性
     const familyAccountBooksWithMembers = await prisma.accountBook.findMany({
       where: { type: 'FAMILY' },
       include: {
@@ -185,26 +232,43 @@ async function quickCheck() {
       });
     }
 
-    // 7. 建议操作
     console.log(`\n💡 建议操作:`);
     if (issues.length > 0) {
-      console.log(`   1. 运行详细诊断: node server/scripts/budget-diagnosis.js`);
-      console.log(`   2. 预览修复操作: node server/scripts/budget-fix.js --dry-run`);
-      console.log(`   3. 执行数据修复: node server/scripts/budget-fix.js`);
+      console.log(`   1. 运行详细诊断: docker exec zhiweijz-backend node /tmp/budget-diagnosis-detailed.js`);
+      console.log(`   2. 执行数据修复: docker exec zhiweijz-backend node /tmp/budget-fix.js`);
     } else {
       console.log(`   系统运行正常，建议定期检查`);
     }
 
   } catch (error) {
-    console.error('检查过程中发生错误:', error);
+    console.error('诊断过程中发生错误:', error);
   } finally {
     await prisma.$disconnect();
   }
 }
 
-// 执行检查
-if (require.main === module) {
-  quickCheck().catch(console.error);
-}
+quickDiagnosis().catch(console.error);
+EOF
 
-module.exports = { quickCheck };
+echo ""
+echo "🔍 开始运行预算诊断..."
+
+# 将脚本复制到容器并执行
+docker cp "$TEMP_SCRIPT" zhiweijz-backend:/tmp/budget-diagnosis-temp.js
+docker exec zhiweijz-backend node /tmp/budget-diagnosis-temp.js
+
+# 清理临时文件
+rm -f "$TEMP_SCRIPT"
+docker exec zhiweijz-backend rm -f /tmp/budget-diagnosis-temp.js
+
+echo ""
+echo "✅ 诊断完成"
+
+# 询问是否需要运行修复
+echo ""
+read -p "是否需要运行数据修复? (y/N): " run_fix
+
+if [[ $run_fix =~ ^[Yy]$ ]]; then
+    echo "准备运行数据修复..."
+    bash "$(dirname "$0")/budget-fix-docker.sh"
+fi

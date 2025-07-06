@@ -274,30 +274,30 @@ async createBudgetForPeriod(templateBudget: any, period: any, rolloverAmount: nu
 
 1. **备份数据库**
    ```bash
-   # 创建数据库备份
-   pg_dump your_database > backup_$(date +%Y%m%d_%H%M%S).sql
+   # Docker环境数据库备份
+   docker exec zhiweijz-postgres pg_dump -U zhiweijz zhiweijz > backup_$(date +%Y%m%d_%H%M%S).sql
    ```
 
 2. **应用代码修复**
    - 按照上述修复方案修改相关文件
-   - 运行测试确保修复正确
+   - 重新构建和部署Docker镜像
 
 3. **数据修复**
    ```bash
-   # 先预览修复效果
-   node server/scripts/budget-diagnosis.js
-   
-   # 预览修复操作
-   node server/scripts/budget-fix.js --dry-run
-   
-   # 执行实际修复
-   node server/scripts/budget-fix.js
+   # 进入docker目录
+   cd docker
+
+   # 运行诊断
+   bash scripts/budget-diagnosis-docker.sh
+
+   # 运行修复（支持预览模式）
+   bash scripts/budget-fix-docker.sh
    ```
 
 4. **验证修复结果**
    ```bash
    # 再次运行诊断脚本验证
-   node server/scripts/budget-diagnosis.js
+   bash scripts/budget-diagnosis-docker.sh
    ```
 
 ### 2. 监控和预防
@@ -308,6 +308,10 @@ async createBudgetForPeriod(templateBudget: any, period: any, rolloverAmount: nu
    - 设置预算缺失告警
 
 2. **定期数据检查**
+   ```bash
+   # 设置定期检查（可添加到cron job）
+   0 2 1 * * cd /path/to/docker && bash scripts/budget-diagnosis-docker.sh
+   ```
    - 每月运行诊断脚本
    - 监控预算结转准确性
    - 检查家庭成员预算完整性
@@ -317,17 +321,53 @@ async createBudgetForPeriod(templateBudget: any, period: any, rolloverAmount: nu
    - 添加详细的执行日志
    - 实现任务执行状态监控
 
+4. **Docker环境监控**
+   ```bash
+   # 检查容器状态
+   docker-compose ps
+
+   # 查看后端日志
+   docker-compose logs backend
+
+   # 检查数据库连接
+   docker exec zhiweijz-postgres pg_isready -U zhiweijz
+   ```
+
 ## 风险评估
 
 ### 低风险
 - 代码逻辑修复：不会影响现有数据
 - 诊断脚本：只读操作，无风险
+- 预览模式：不修改数据，完全安全
 
 ### 中等风险
-- 数据修复脚本：会创建新的预算记录
-- 建议先在测试环境验证
+- 数据修复脚本（执行模式）：会创建新的预算记录
+- 建议先使用预览模式验证
 
-### 注意事项
-- 修复前务必备份数据库
+### Docker环境注意事项
+- 修复前务必备份数据库：`docker exec zhiweijz-postgres pg_dump -U zhiweijz zhiweijz > backup.sql`
+- 确保容器正常运行：`docker-compose ps`
 - 建议在业务低峰期执行
 - 执行后及时验证修复效果
+- 脚本会自动清理临时文件，无需手动处理
+
+### 快速验证流程
+```bash
+# 1. 检查容器状态
+docker-compose ps
+
+# 2. 运行诊断
+bash scripts/budget-diagnosis-docker.sh
+
+# 3. 预览修复（安全）
+bash scripts/budget-fix-docker.sh  # 选择预览模式
+
+# 4. 备份数据库
+docker exec zhiweijz-postgres pg_dump -U zhiweijz zhiweijz > backup.sql
+
+# 5. 执行修复
+bash scripts/budget-fix-docker.sh  # 选择执行模式
+
+# 6. 验证结果
+bash scripts/budget-diagnosis-docker.sh
+```

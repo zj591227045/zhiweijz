@@ -1,10 +1,73 @@
+#!/bin/bash
+
+# Docker环境预算修复脚本
+# 在Docker容器中运行预算管理系统数据修复
+
+set -e
+
+echo "=== Docker环境预算管理系统数据修复工具 ==="
+echo "当前时间: $(date)"
+
+# 检查Docker环境
+if [ ! -f "docker-compose.yml" ]; then
+    echo "❌ 错误: 请在包含 docker-compose.yml 的目录下运行此脚本"
+    exit 1
+fi
+
+# 检查容器状态
+BACKEND_STATUS=$(docker-compose ps -q backend)
+if [ -z "$BACKEND_STATUS" ]; then
+    echo "❌ 错误: 后端容器未运行"
+    exit 1
+fi
+
+# 询问执行模式
+echo ""
+echo "选择执行模式:"
+echo "1. 预览模式 (不会修改数据)"
+echo "2. 执行模式 (会修改数据库)"
+echo "3. 取消"
+
+read -p "请输入选项 (1-3): " mode
+
+case $mode in
+    1)
+        DRY_RUN="--dry-run"
+        echo "🔍 预览模式: 不会实际修改数据"
+        ;;
+    2)
+        DRY_RUN=""
+        echo ""
+        echo "⚠️  警告: 这将修改数据库数据!"
+        echo "建议先备份数据库:"
+        echo "  docker exec zhiweijz-postgres pg_dump -U zhiweijz zhiweijz > backup_\$(date +%Y%m%d_%H%M%S).sql"
+        echo ""
+        read -p "确认执行数据修复? (y/N): " confirm
+        if [[ ! $confirm =~ ^[Yy]$ ]]; then
+            echo "已取消操作"
+            exit 0
+        fi
+        echo "🔧 执行模式: 将修改数据库数据"
+        ;;
+    3)
+        echo "已取消操作"
+        exit 0
+        ;;
+    *)
+        echo "❌ 无效选项"
+        exit 1
+        ;;
+esac
+
+# 创建修复脚本
+TEMP_SCRIPT="/tmp/budget-fix-temp.js"
+
+cat > "$TEMP_SCRIPT" << 'EOF'
 /**
- * 预算管理系统数据修复脚本
- * 用于修复家庭账本成员预算创建失败和预算结转功能失效的问题
+ * Docker环境预算修复脚本
  */
 
 const { PrismaClient } = require('@prisma/client');
-const dayjs = require('dayjs');
 
 const prisma = new PrismaClient();
 
@@ -13,30 +76,20 @@ class BudgetFixService {
     this.currentDate = new Date();
     this.currentYear = this.currentDate.getFullYear();
     this.currentMonth = this.currentDate.getMonth() + 1;
-    this.lastMonth = this.currentMonth === 1 ? 12 : this.currentMonth - 1;
-    this.lastMonthYear = this.currentMonth === 1 ? this.currentYear - 1 : this.currentYear;
     this.dryRun = process.argv.includes('--dry-run');
   }
 
-  /**
-   * 主修复函数
-   */
   async runFix() {
     console.log('='.repeat(80));
-    console.log('预算管理系统数据修复脚本');
+    console.log('Docker环境预算管理系统数据修复');
     console.log(`执行时间: ${new Date().toLocaleString()}`);
     console.log(`当前月份: ${this.currentYear}-${this.currentMonth}`);
     console.log(`模式: ${this.dryRun ? '预览模式 (不会实际修改数据)' : '执行模式'}`);
     console.log('='.repeat(80));
 
     try {
-      // 1. 修复缺失的家庭成员预算
       await this.fixMissingFamilyMemberBudgets();
-      
-      // 2. 修复预算结转问题
       await this.fixBudgetRolloverIssues();
-      
-      // 3. 验证修复结果
       await this.verifyFixResults();
       
       console.log('\n✅ 修复完成!');
@@ -48,18 +101,13 @@ class BudgetFixService {
     }
   }
 
-  /**
-   * 修复缺失的家庭成员预算
-   */
   async fixMissingFamilyMemberBudgets() {
     console.log('\n🔧 1. 修复缺失的家庭成员预算');
     console.log('-'.repeat(50));
 
-    // 获取当前月份的起止日期
     const currentMonthStart = new Date(this.currentYear, this.currentMonth - 1, 1);
     const currentMonthEnd = new Date(this.currentYear, this.currentMonth, 0);
 
-    // 查询所有家庭账本
     const familyAccountBooks = await prisma.accountBook.findMany({
       where: { type: 'FAMILY' },
       include: {
@@ -135,7 +183,6 @@ class BudgetFixService {
           console.log(`  ❌ 缺少托管预算: ${member.name}`);
           
           if (!this.dryRun) {
-            // 托管成员预算需要关联到家庭创建者
             await this.createMemberBudget(accountBook.userId, accountBook, member.id, member.name);
             totalFixed++;
             console.log(`  ✅ 已创建托管预算`);
@@ -151,9 +198,6 @@ class BudgetFixService {
     console.log(`\n修复统计: ${this.dryRun ? '预计' : '实际'}创建了 ${totalFixed} 个预算`);
   }
 
-  /**
-   * 创建成员预算
-   */
   async createMemberBudget(userId, accountBook, familyMemberId, memberName) {
     const currentMonthStart = new Date(this.currentYear, this.currentMonth - 1, 1);
     const currentMonthEnd = new Date(this.currentYear, this.currentMonth, 0);
@@ -200,9 +244,6 @@ class BudgetFixService {
     return newBudget;
   }
 
-  /**
-   * 计算结转金额
-   */
   async calculateRolloverAmount(budgetId) {
     const budget = await prisma.budget.findUnique({
       where: { id: budgetId }
@@ -231,23 +272,20 @@ class BudgetFixService {
     const totalAvailable = Number(budget.amount) + Number(budget.rolloverAmount || 0);
     const remaining = totalAvailable - spent;
 
-    return Math.max(0, remaining); // 只结转正数
+    return Math.max(0, remaining);
   }
 
-  /**
-   * 修复预算结转问题
-   */
   async fixBudgetRolloverIssues() {
     console.log('\n🔄 2. 修复预算结转问题');
     console.log('-'.repeat(50));
 
-    // 获取上个月和当前月份的起止日期
-    const lastMonthStart = new Date(this.lastMonthYear, this.lastMonth - 1, 1);
-    const lastMonthEnd = new Date(this.lastMonthYear, this.lastMonth, 0);
+    const lastMonth = this.currentMonth === 1 ? 12 : this.currentMonth - 1;
+    const lastMonthYear = this.currentMonth === 1 ? this.currentYear - 1 : this.currentYear;
+    const lastMonthStart = new Date(lastMonthYear, lastMonth - 1, 1);
+    const lastMonthEnd = new Date(lastMonthYear, lastMonth, 0);
     const currentMonthStart = new Date(this.currentYear, this.currentMonth - 1, 1);
     const currentMonthEnd = new Date(this.currentYear, this.currentMonth, 0);
 
-    // 查询上个月启用结转的预算
     const lastMonthRolloverBudgets = await prisma.budget.findMany({
       where: {
         startDate: { gte: lastMonthStart },
@@ -262,10 +300,8 @@ class BudgetFixService {
     let fixedCount = 0;
 
     for (const lastBudget of lastMonthRolloverBudgets) {
-      // 计算应该结转的金额
       const shouldRollover = await this.calculateRolloverAmount(lastBudget.id);
       
-      // 查找对应的当月预算
       const currentBudgetQuery = {
         startDate: { gte: currentMonthStart },
         endDate: { lte: currentMonthEnd },
@@ -304,22 +340,16 @@ class BudgetFixService {
         } else if (shouldRollover > 0) {
           console.log(`  ✅ 结转金额正确: 预算 ${currentBudget.id}`);
         }
-      } else {
-        console.log(`  ⚠️  未找到对应的当月预算: ${lastBudget.id}`);
       }
     }
 
     console.log(`\n结转修复统计: ${this.dryRun ? '预计' : '实际'}修复了 ${fixedCount} 个预算的结转金额`);
   }
 
-  /**
-   * 验证修复结果
-   */
   async verifyFixResults() {
     console.log('\n✅ 3. 验证修复结果');
     console.log('-'.repeat(50));
 
-    // 重新运行诊断逻辑来验证修复效果
     const currentMonthStart = new Date(this.currentYear, this.currentMonth - 1, 1);
     const currentMonthEnd = new Date(this.currentYear, this.currentMonth, 0);
 
@@ -377,8 +407,19 @@ async function main() {
   await fix.runFix();
 }
 
-if (require.main === module) {
-  main().catch(console.error);
-}
+main().catch(console.error);
+EOF
 
-module.exports = { BudgetFixService };
+echo ""
+echo "🔧 开始运行预算修复..."
+
+# 将脚本复制到容器并执行
+docker cp "$TEMP_SCRIPT" zhiweijz-backend:/tmp/budget-fix-temp.js
+docker exec zhiweijz-backend node /tmp/budget-fix-temp.js $DRY_RUN
+
+# 清理临时文件
+rm -f "$TEMP_SCRIPT"
+docker exec zhiweijz-backend rm -f /tmp/budget-fix-temp.js
+
+echo ""
+echo "✅ 修复完成"
