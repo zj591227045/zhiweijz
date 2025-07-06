@@ -33,9 +33,17 @@ $DOCKER_COMPOSE_CMD ps
 
 BACKEND_STATUS=$($DOCKER_COMPOSE_CMD ps -q backend 2>/dev/null)
 if [ -z "$BACKEND_STATUS" ]; then
-    echo "❌ 错误: 后端容器未运行"
-    echo "请先启动服务: $DOCKER_COMPOSE_CMD up -d"
-    exit 1
+    # 尝试使用项目名称检查
+    BACKEND_STATUS=$($DOCKER_COMPOSE_CMD -p zhiweijz ps -q backend 2>/dev/null)
+    if [ -z "$BACKEND_STATUS" ]; then
+        echo "❌ 错误: 后端容器未运行"
+        echo "请先启动服务: $DOCKER_COMPOSE_CMD up -d"
+        echo "或者使用项目名称: $DOCKER_COMPOSE_CMD -p zhiweijz up -d"
+        exit 1
+    else
+        echo "检测到使用项目名称 'zhiweijz'"
+        DOCKER_COMPOSE_CMD="$DOCKER_COMPOSE_CMD -p zhiweijz"
+    fi
 fi
 
 # 检查后端容器是否真正运行
