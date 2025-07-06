@@ -166,22 +166,33 @@ async function quickDiagnosis() {
     console.log(`   托管预算: ${custodialBudgets}`);
 
     // 3. 定时任务覆盖分析
-    const schedulerWouldProcess = await prisma.budget.count({
+    const schedulerWouldProcessData = await prisma.budget.findMany({
       where: {
         budgetType: 'PERSONAL',
         period: 'MONTHLY',
         familyMemberId: null,
       },
+      select: {
+        userId: true,
+        accountBookId: true
+      },
       distinct: ['userId', 'accountBookId']
     });
+    const schedulerWouldProcess = schedulerWouldProcessData.length;
 
-    const actualUsersWithBudgets = await prisma.budget.count({
+    const actualUsersWithBudgetsData = await prisma.budget.findMany({
       where: {
         budgetType: 'PERSONAL',
         period: 'MONTHLY'
       },
+      select: {
+        userId: true,
+        accountBookId: true,
+        familyMemberId: true
+      },
       distinct: ['userId', 'accountBookId', 'familyMemberId']
     });
+    const actualUsersWithBudgets = actualUsersWithBudgetsData.length;
 
     console.log(`\n⏰ 定时任务覆盖分析:`);
     console.log(`   定时任务会处理: ${schedulerWouldProcess} 个用户`);
