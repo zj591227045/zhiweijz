@@ -24,13 +24,13 @@ export class SystemConfigController {
 
       // 🔥 首先检查全局AI配置是否启用
       const globalConfig = await this.systemConfigService.getGlobalAIConfig();
-      
+
       // 如果有用户信息，检查用户的AI服务设置
       if (userId) {
         // 🔥🔥 最高优先级：检查用户级别的AI服务启用状态
         const userAIEnabled = await this.systemConfigService.getUserAIServiceEnabled(userId);
         console.log(`🔍 [getGlobalAIConfig] 用户 ${userId} 的AI服务启用状态: ${userAIEnabled}`);
-        
+
         if (!userAIEnabled) {
           console.log(`❌ [getGlobalAIConfig] 用户已禁用AI服务，返回禁用状态`);
           res.json({
@@ -43,8 +43,8 @@ export class SystemConfigController {
               temperature: 0.7,
               maxTokens: 1000,
               dailyTokenLimit: globalConfig.dailyTokenLimit,
-              serviceType: 'disabled_by_user'
-            }
+              serviceType: 'disabled_by_user',
+            },
           });
           return;
         }
@@ -56,10 +56,10 @@ export class SystemConfigController {
         if (userServiceType === 'custom') {
           // 🔥 用户选择了自定义服务，返回自定义服务信息
           console.log(`🔍 [getGlobalAIConfig] 用户选择了自定义服务，获取自定义配置`);
-          
+
           // 获取用户的自定义LLM设置
           const userLLMSetting = await this.llmProviderService.getUserDefaultLLMSetting(userId);
-          
+
           if (userLLMSetting) {
             console.log(`✅ [getGlobalAIConfig] 返回用户自定义LLM配置: ${userLLMSetting.name}`);
             res.json({
@@ -74,8 +74,8 @@ export class SystemConfigController {
                 // 自定义服务没有每日Token限制，使用用户设置的maxTokens
                 dailyTokenLimit: userLLMSetting.maxTokens || 1000,
                 serviceType: 'custom',
-                customServiceName: userLLMSetting.name
-              }
+                customServiceName: userLLMSetting.name,
+              },
             });
             return;
           } else {
@@ -93,8 +93,8 @@ export class SystemConfigController {
                   temperature: 0.7,
                   maxTokens: 1000,
                   dailyTokenLimit: globalConfig.dailyTokenLimit,
-                  serviceType: 'custom'
-                }
+                  serviceType: 'custom',
+                },
               });
               return;
             }
@@ -114,23 +114,24 @@ export class SystemConfigController {
               temperature: 0.7,
               maxTokens: 1000,
               dailyTokenLimit: globalConfig.dailyTokenLimit,
-              serviceType: 'official'
-            }
+              serviceType: 'official',
+            },
           });
           return;
         }
 
         console.log(`🔍 [getGlobalAIConfig] 使用官方AI服务逻辑`);
         const settings = await this.llmProviderService.getLLMSettings(userId);
-        
+
         // 如果是多提供商模式，返回多提供商配置信息
         if ((settings as any).isMultiProvider) {
           // 获取多提供商配置概览
-          const multiProviderConfig = await this.llmProviderService.multiProviderService.loadMultiProviderConfig();
-          
+          const multiProviderConfig =
+            await this.llmProviderService.multiProviderService.loadMultiProviderConfig();
+
           if (multiProviderConfig?.enabled) {
-            const activeProviders = multiProviderConfig.providers.filter(p => p.enabled);
-            
+            const activeProviders = multiProviderConfig.providers.filter((p) => p.enabled);
+
             res.json({
               success: true,
               data: {
@@ -144,13 +145,13 @@ export class SystemConfigController {
                 isMultiProvider: true,
                 providersCount: activeProviders.length,
                 primaryProvider: activeProviders.length > 0 ? activeProviders[0].name : null,
-                serviceType: 'official'
-              }
+                serviceType: 'official',
+              },
             });
             return;
           }
         }
-        
+
         // 否则返回实际的LLM设置（需要补充dailyTokenLimit字段）
         res.json({
           success: true,
@@ -162,8 +163,8 @@ export class SystemConfigController {
             temperature: settings.temperature,
             maxTokens: settings.maxTokens,
             dailyTokenLimit: globalConfig.dailyTokenLimit, // 从全局配置获取dailyTokenLimit
-            serviceType: 'official'
-          }
+            serviceType: 'official',
+          },
         });
         return;
       }
@@ -173,14 +174,14 @@ export class SystemConfigController {
         success: true,
         data: {
           ...globalConfig,
-          serviceType: 'official'
-        }
+          serviceType: 'official',
+        },
       });
     } catch (error) {
       console.error('获取全局AI配置错误:', error);
       res.status(500).json({
         success: false,
-        message: '获取全局AI配置失败'
+        message: '获取全局AI配置失败',
       });
     }
   }
@@ -194,13 +195,13 @@ export class SystemConfigController {
 
       res.json({
         success: true,
-        data: status
+        data: status,
       });
     } catch (error) {
       console.error('获取AI服务状态错误:', error);
       res.status(500).json({
         success: false,
-        message: '获取AI服务状态失败'
+        message: '获取AI服务状态失败',
       });
     }
   }
@@ -214,7 +215,7 @@ export class SystemConfigController {
       if (!userId) {
         res.status(401).json({
           success: false,
-          message: '用户未认证'
+          message: '用户未认证',
         });
         return;
       }
@@ -222,18 +223,18 @@ export class SystemConfigController {
       const { startDate, endDate } = req.query;
       const usage = await this.tokenUsageService.getUserTokenUsage(userId, {
         startDate: startDate as string,
-        endDate: endDate as string
+        endDate: endDate as string,
       });
 
       res.json({
         success: true,
-        data: usage
+        data: usage,
       });
     } catch (error) {
       console.error('获取TOKEN使用量错误:', error);
       res.status(500).json({
         success: false,
-        message: '获取TOKEN使用量失败'
+        message: '获取TOKEN使用量失败',
       });
     }
   }
@@ -247,7 +248,7 @@ export class SystemConfigController {
       if (!userId) {
         res.status(401).json({
           success: false,
-          message: '用户未认证'
+          message: '用户未认证',
         });
         return;
       }
@@ -256,13 +257,13 @@ export class SystemConfigController {
 
       res.json({
         success: true,
-        data: usage
+        data: usage,
       });
     } catch (error) {
       console.error('获取今日TOKEN使用量错误:', error);
       res.status(500).json({
         success: false,
-        message: '获取今日TOKEN使用量失败'
+        message: '获取今日TOKEN使用量失败',
       });
     }
   }
@@ -273,7 +274,7 @@ export class SystemConfigController {
   async updateGlobalAIConfig(req: Request, res: Response): Promise<void> {
     res.status(403).json({
       success: false,
-      message: '普通用户无权修改全局AI配置，请联系管理员'
+      message: '普通用户无权修改全局AI配置，请联系管理员',
     });
   }
 
@@ -287,7 +288,7 @@ export class SystemConfigController {
       if (!userId) {
         res.status(401).json({
           success: false,
-          message: '用户未认证'
+          message: '用户未认证',
         });
         return;
       }
@@ -297,14 +298,14 @@ export class SystemConfigController {
       res.json({
         success: true,
         data: {
-          serviceType
-        }
+          serviceType,
+        },
       });
     } catch (error) {
       console.error('获取用户AI服务类型错误:', error);
       res.status(500).json({
         success: false,
-        message: '获取用户AI服务类型失败'
+        message: '获取用户AI服务类型失败',
       });
     }
   }
@@ -320,7 +321,7 @@ export class SystemConfigController {
       if (!userId) {
         res.status(401).json({
           success: false,
-          message: '用户未认证'
+          message: '用户未认证',
         });
         return;
       }
@@ -329,18 +330,18 @@ export class SystemConfigController {
         userId,
         serviceType,
         serviceId,
-        accountId
+        accountId,
       );
 
       res.json({
         success: result.success,
-        message: result.message
+        message: result.message,
       });
     } catch (error) {
       console.error('切换AI服务类型错误:', error);
       res.status(500).json({
         success: false,
-        message: '切换AI服务类型失败'
+        message: '切换AI服务类型失败',
       });
     }
   }
@@ -355,7 +356,7 @@ export class SystemConfigController {
       if (!userId) {
         res.status(401).json({
           success: false,
-          message: '用户未认证'
+          message: '用户未认证',
         });
         return;
       }
@@ -364,13 +365,13 @@ export class SystemConfigController {
 
       res.json({
         success: true,
-        data: { enabled }
+        data: { enabled },
       });
     } catch (error) {
       console.error('获取用户AI服务状态错误:', error);
       res.status(500).json({
         success: false,
-        message: '获取用户AI服务状态失败'
+        message: '获取用户AI服务状态失败',
       });
     }
   }
@@ -386,7 +387,7 @@ export class SystemConfigController {
       if (!userId) {
         res.status(401).json({
           success: false,
-          message: '用户未认证'
+          message: '用户未认证',
         });
         return;
       }
@@ -395,13 +396,13 @@ export class SystemConfigController {
 
       res.json({
         success: true,
-        message: enabled ? 'AI服务已启用' : 'AI服务已禁用'
+        message: enabled ? 'AI服务已启用' : 'AI服务已禁用',
       });
     } catch (error) {
       console.error('切换用户AI服务状态错误:', error);
       res.status(500).json({
         success: false,
-        message: '切换AI服务状态失败'
+        message: '切换AI服务状态失败',
       });
     }
   }
@@ -417,7 +418,7 @@ export class SystemConfigController {
       if (!userId) {
         res.status(401).json({
           success: false,
-          message: '用户未认证'
+          message: '用户未认证',
         });
         return;
       }
@@ -426,20 +427,20 @@ export class SystemConfigController {
       const result = await this.systemConfigService.testAIServiceConnection(
         userId,
         serviceType,
-        serviceId
+        serviceId,
       );
       const responseTime = Date.now() - startTime;
 
       res.json({
         success: result.success,
         message: result.message,
-        responseTime
+        responseTime,
       });
     } catch (error) {
       console.error('测试AI服务连接错误:', error);
       res.status(500).json({
         success: false,
-        message: '测试AI服务连接失败'
+        message: '测试AI服务连接失败',
       });
     }
   }

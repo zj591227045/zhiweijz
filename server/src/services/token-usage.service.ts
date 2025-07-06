@@ -39,55 +39,51 @@ export class TokenUsageService {
   async getUserTokenUsage(userId: string, params: TokenUsageParams = {}): Promise<TokenUsageStats> {
     try {
       const { startDate, endDate } = params;
-      
+
       // 构建日期过滤条件
       const dateFilter: any = {
         userId,
-        isSuccess: true // 只统计成功的调用
+        isSuccess: true, // 只统计成功的调用
       };
 
       if (startDate) {
         dateFilter.createdAt = {
           ...dateFilter.createdAt,
-          gte: new Date(startDate)
+          gte: new Date(startDate),
         };
       }
 
       if (endDate) {
         dateFilter.createdAt = {
           ...dateFilter.createdAt,
-          lte: new Date(endDate)
+          lte: new Date(endDate),
         };
       }
 
       // 获取基础统计
-      const [
-        totalStats,
-        callStats,
-        failedCallStats
-      ] = await Promise.all([
+      const [totalStats, callStats, failedCallStats] = await Promise.all([
         // Token统计
         prisma.llmCallLog.aggregate({
           where: dateFilter,
           _sum: {
             totalTokens: true,
             promptTokens: true,
-            completionTokens: true
-          }
+            completionTokens: true,
+          },
         }),
-        
+
         // 成功调用统计
         prisma.llmCallLog.count({
-          where: dateFilter
+          where: dateFilter,
         }),
-        
+
         // 失败调用统计
         prisma.llmCallLog.count({
           where: {
             ...dateFilter,
-            isSuccess: false
-          }
-        })
+            isSuccess: false,
+          },
+        }),
       ]);
 
       // 获取每日使用量
@@ -108,7 +104,7 @@ export class TokenUsageService {
         successfulCalls,
         failedCalls,
         averageTokensPerCall: totalCalls > 0 ? Math.round(totalTokens / totalCalls) : 0,
-        dailyUsage
+        dailyUsage,
       };
     } catch (error) {
       console.error('获取用户TOKEN使用量错误:', error);
@@ -126,56 +122,52 @@ export class TokenUsageService {
       const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
 
       // 获取今日统计
-      const [
-        todayStats,
-        successfulCalls,
-        failedCalls
-      ] = await Promise.all([
+      const [todayStats, successfulCalls, failedCalls] = await Promise.all([
         prisma.llmCallLog.aggregate({
           where: {
             userId,
             createdAt: {
               gte: startOfDay,
-              lt: endOfDay
+              lt: endOfDay,
             },
-            isSuccess: true
+            isSuccess: true,
           },
           _sum: {
-            totalTokens: true
-          }
+            totalTokens: true,
+          },
         }),
-        
+
         prisma.llmCallLog.count({
           where: {
             userId,
             createdAt: {
               gte: startOfDay,
-              lt: endOfDay
+              lt: endOfDay,
             },
-            isSuccess: true
-          }
+            isSuccess: true,
+          },
         }),
-        
+
         prisma.llmCallLog.count({
           where: {
             userId,
             createdAt: {
               gte: startOfDay,
-              lt: endOfDay
+              lt: endOfDay,
             },
-            isSuccess: false
-          }
-        })
+            isSuccess: false,
+          },
+        }),
       ]);
 
       const usedTokens = Number(todayStats._sum.totalTokens) || 0;
       const totalCalls = successfulCalls + failedCalls;
-      
+
       // 使用TokenLimitService获取真实的限额
       const { TokenLimitService } = await import('./token-limit.service');
       const tokenLimitService = new TokenLimitService();
       const dailyLimit = await tokenLimitService.getUserDailyTokenLimit(userId);
-      
+
       const remainingTokens = Math.max(0, dailyLimit - usedTokens);
       const usagePercentage = dailyLimit > 0 ? Math.round((usedTokens / dailyLimit) * 100) : 0;
 
@@ -186,7 +178,7 @@ export class TokenUsageService {
         failedCalls,
         dailyLimit,
         remainingTokens,
-        usagePercentage
+        usagePercentage,
       };
     } catch (error) {
       console.error('获取今日TOKEN使用量错误:', error);
@@ -197,14 +189,19 @@ export class TokenUsageService {
   /**
    * 获取每日TOKEN使用量
    */
-  private async getDailyTokenUsage(userId: string, params: TokenUsageParams = {}): Promise<Array<{
-    date: string;
-    tokens: number;
-    calls: number;
-  }>> {
+  private async getDailyTokenUsage(
+    userId: string,
+    params: TokenUsageParams = {},
+  ): Promise<
+    Array<{
+      date: string;
+      tokens: number;
+      calls: number;
+    }>
+  > {
     try {
       const { startDate, endDate } = params;
-      
+
       // 默认查询最近30天
       const defaultEndDate = new Date();
       const defaultStartDate = new Date();
@@ -214,11 +211,13 @@ export class TokenUsageService {
       const end = endDate ? new Date(endDate) : defaultEndDate;
 
       // 使用原生SQL查询每日统计
-      const dailyStats = await prisma.$queryRaw<Array<{
-        date: string;
-        tokens: bigint;
-        calls: bigint;
-      }>>`
+      const dailyStats = await prisma.$queryRaw<
+        Array<{
+          date: string;
+          tokens: bigint;
+          calls: bigint;
+        }>
+      >`
         SELECT 
           DATE(created_at) as date,
           COALESCE(SUM(total_tokens), 0) as tokens,
@@ -232,10 +231,10 @@ export class TokenUsageService {
         ORDER BY date DESC
       `;
 
-      return dailyStats.map(stat => ({
+      return dailyStats.map((stat) => ({
         date: stat.date,
         tokens: Number(stat.tokens),
-        calls: Number(stat.calls)
+        calls: Number(stat.calls),
       }));
     } catch (error) {
       console.error('获取每日TOKEN使用量错误:', error);

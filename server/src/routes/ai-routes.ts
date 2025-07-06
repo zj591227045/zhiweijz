@@ -17,21 +17,33 @@ router.get('/providers', aiController.getProviders.bind(aiController));
  * @desc 智能记账 - 需要提供账本ID作为URL参数
  * @access Private
  */
-router.post('/account/:accountId/smart-accounting', authenticate, aiController.handleSmartAccounting.bind(aiController));
+router.post(
+  '/account/:accountId/smart-accounting',
+  authenticate,
+  aiController.handleSmartAccounting.bind(aiController),
+);
 
 /**
  * @route POST /ai/account/:accountId/smart-accounting/direct
  * @desc 智能记账并直接创建交易记录 - 需要提供账本ID作为URL参数
  * @access Private
  */
-router.post('/account/:accountId/smart-accounting/direct', authenticate, aiController.handleSmartAccountingDirect.bind(aiController));
+router.post(
+  '/account/:accountId/smart-accounting/direct',
+  authenticate,
+  aiController.handleSmartAccountingDirect.bind(aiController),
+);
 
 /**
  * @route POST /ai/smart-accounting/direct
  * @desc 智能记账并直接创建交易记录 - 账本ID在请求体中提供，支持家庭成员调用
  * @access Private
  */
-router.post('/smart-accounting/direct', authenticate, aiController.handleSmartAccountingDirectWithBody.bind(aiController));
+router.post(
+  '/smart-accounting/direct',
+  authenticate,
+  aiController.handleSmartAccountingDirectWithBody.bind(aiController),
+);
 
 /**
  * @route GET /api/ai/global-llm-config
@@ -52,7 +64,11 @@ router.get('/llm-settings', authenticate, aiController.getUserLLMSettings.bind(a
  * @desc 获取用户所有LLM设置列表
  * @access Private
  */
-router.get('/llm-settings/list', authenticate, aiController.getUserLLMSettingsList.bind(aiController));
+router.get(
+  '/llm-settings/list',
+  authenticate,
+  aiController.getUserLLMSettingsList.bind(aiController),
+);
 
 /**
  * @route POST /api/ai/llm-settings
@@ -66,42 +82,66 @@ router.post('/llm-settings', authenticate, aiController.createUserLLMSettings.bi
  * @desc 获取用户LLM设置详情
  * @access Private
  */
-router.get('/llm-settings/:id', authenticate, aiController.getUserLLMSettingsById.bind(aiController));
+router.get(
+  '/llm-settings/:id',
+  authenticate,
+  aiController.getUserLLMSettingsById.bind(aiController),
+);
 
 /**
  * @route GET /api/ai/account/:accountId/llm-settings
  * @desc 获取账本LLM设置
  * @access Private
  */
-router.get('/account/:accountId/llm-settings', authenticate, aiController.getAccountLLMSettings.bind(aiController));
+router.get(
+  '/account/:accountId/llm-settings',
+  authenticate,
+  aiController.getAccountLLMSettings.bind(aiController),
+);
 
 /**
  * @route PUT /api/ai/account/:accountId/llm-settings
  * @desc 更新账本LLM设置 - 绑定到用户的LLM设置
  * @access Private
  */
-router.put('/account/:accountId/llm-settings', authenticate, aiController.updateAccountLLMSettings.bind(aiController));
+router.put(
+  '/account/:accountId/llm-settings',
+  authenticate,
+  aiController.updateAccountLLMSettings.bind(aiController),
+);
 
 /**
  * @route GET /api/ai/account/:accountId/active-service
  * @desc 获取账本当前激活的AI服务详情
  * @access Private
  */
-router.get('/account/:accountId/active-service', authenticate, aiController.getAccountActiveAIService.bind(aiController));
+router.get(
+  '/account/:accountId/active-service',
+  authenticate,
+  aiController.getAccountActiveAIService.bind(aiController),
+);
 
 /**
  * @route PUT /api/ai/llm-settings/:id
  * @desc 更新用户LLM设置
  * @access Private
  */
-router.put('/llm-settings/:id', authenticate, aiController.updateUserLLMSettingsById.bind(aiController));
+router.put(
+  '/llm-settings/:id',
+  authenticate,
+  aiController.updateUserLLMSettingsById.bind(aiController),
+);
 
 /**
  * @route DELETE /api/ai/llm-settings/:id
  * @desc 删除用户LLM设置
  * @access Private
  */
-router.delete('/llm-settings/:id', authenticate, aiController.deleteUserLLMSettings.bind(aiController));
+router.delete(
+  '/llm-settings/:id',
+  authenticate,
+  aiController.deleteUserLLMSettings.bind(aiController),
+);
 
 /**
  * @route POST /api/ai/llm-settings/test

@@ -27,7 +27,7 @@ afterAll(async () => {
       email: testUser.email,
     },
   });
-  
+
   // 关闭Prisma连接
   await prisma.$disconnect();
 });
@@ -35,42 +35,40 @@ afterAll(async () => {
 describe('用户API', () => {
   let userId: string;
   let authToken: string;
-  
+
   // 在测试前创建用户并获取令牌
   beforeAll(async () => {
-    const response = await request(app)
-      .post('/api/auth/register')
-      .send(testUser);
-    
+    const response = await request(app).post('/api/auth/register').send(testUser);
+
     userId = response.body.user.id;
     authToken = response.body.token;
   });
-  
+
   it('应该能够获取用户信息', async () => {
     const response = await request(app)
       .get(`/api/users/${userId}`)
       .set('Authorization', `Bearer ${authToken}`);
-    
+
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('id');
     expect(response.body.email).toBe(testUser.email);
     expect(response.body.name).toBe(testUser.name);
   });
-  
+
   it('应该能够更新用户信息', async () => {
     const updatedName = '更新的用户名';
-    
+
     const response = await request(app)
       .put(`/api/users/${userId}`)
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         name: updatedName,
       });
-    
+
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('id');
     expect(response.body.name).toBe(updatedName);
-    
+
     // 恢复原始名称
     await request(app)
       .put(`/api/users/${userId}`)
@@ -79,12 +77,12 @@ describe('用户API', () => {
         name: testUser.name,
       });
   });
-  
+
   it('应该能够获取所有用户', async () => {
     const response = await request(app)
       .get('/api/users')
       .set('Authorization', `Bearer ${authToken}`);
-    
+
     expect(response.status).toBe(200);
     expect(Array.isArray(response.body)).toBe(true);
   });

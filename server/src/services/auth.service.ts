@@ -84,11 +84,9 @@ export class AuthService {
         if (defaultAccountBook) {
           await userSettingService.createOrUpdateUserSetting(newUser.id, {
             key: UserSettingKey.DEFAULT_ACCOUNT_BOOK_ID,
-            value: defaultAccountBook.id
+            value: defaultAccountBook.id,
           });
         }
-
-
       } catch (settingError) {
         console.error('初始化用户设置失败:', settingError);
         // 不影响用户注册流程，继续执行
@@ -140,7 +138,7 @@ export class AuthService {
       const emailSent = await emailService.sendPasswordResetEmail(
         user.email,
         resetToken.token,
-        user.name
+        user.name,
       );
 
       if (!emailSent) {

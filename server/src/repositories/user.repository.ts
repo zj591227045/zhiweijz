@@ -34,11 +34,14 @@ export class UserRepository {
   /**
    * 更新用户信息
    */
-  async update(id: string, userData: UpdateUserDto & {
-    passwordHash?: string;
-    deletionRequestedAt?: Date | null;
-    deletionScheduledAt?: Date | null;
-  }): Promise<User> {
+  async update(
+    id: string,
+    userData: UpdateUserDto & {
+      passwordHash?: string;
+      deletionRequestedAt?: Date | null;
+      deletionScheduledAt?: Date | null;
+    },
+  ): Promise<User> {
     const { password, ...updateData } = userData;
     return prisma.user.update({
       where: { id },
@@ -142,7 +145,7 @@ export class UserRepository {
         const otherMembers = await tx.user_account_books.findMany({
           where: {
             account_book_id: book.id,
-            user_id: { not: userId }
+            user_id: { not: userId },
           },
         });
 
@@ -153,7 +156,7 @@ export class UserRepository {
           });
         } else {
           // 如果有其他成员，转移管理权给第一个其他成员
-          const otherAdmin = otherMembers.find(member => member.can_edit);
+          const otherAdmin = otherMembers.find((member) => member.can_edit);
           if (otherAdmin) {
             await tx.accountBook.update({
               where: { id: book.id },

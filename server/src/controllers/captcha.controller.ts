@@ -19,7 +19,7 @@ export class CaptchaController {
       if (!token || !action) {
         res.status(400).json({
           success: false,
-          message: '缺少必要参数'
+          message: '缺少必要参数',
         });
         return;
       }
@@ -27,13 +27,13 @@ export class CaptchaController {
       if (!['login', 'register'].includes(action)) {
         res.status(400).json({
           success: false,
-          message: '无效的操作类型'
+          message: '无效的操作类型',
         });
         return;
       }
 
       const result = await this.captchaService.verifySlidingPuzzle(token, action);
-      
+
       if (result.success) {
         res.status(200).json(result);
       } else {
@@ -43,7 +43,7 @@ export class CaptchaController {
       console.error('验证码验证失败:', error);
       res.status(500).json({
         success: false,
-        message: '服务器错误'
+        message: '服务器错误',
       });
     }
   }
@@ -56,24 +56,24 @@ export class CaptchaController {
       if (process.env.NODE_ENV === 'production') {
         res.status(403).json({
           success: false,
-          message: '生产环境不允许生成测试验证码'
+          message: '生产环境不允许生成测试验证码',
         });
         return;
       }
 
       const { position = 100, target = 100, duration = 2000 } = req.body;
       const token = this.captchaService.generateTestToken(position, target, duration);
-      
+
       res.status(200).json({
         success: true,
         token,
-        message: '测试验证码生成成功'
+        message: '测试验证码生成成功',
       });
     } catch (error) {
       console.error('生成测试验证码失败:', error);
       res.status(500).json({
         success: false,
-        message: '服务器错误'
+        message: '服务器错误',
       });
     }
   }

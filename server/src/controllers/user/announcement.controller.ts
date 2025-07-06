@@ -9,7 +9,7 @@ export const announcementController = {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          message: '用户未认证'
+          message: '用户未认证',
         });
       }
 
@@ -17,13 +17,13 @@ export const announcementController = {
 
       res.json({
         success: true,
-        data: announcements
+        data: announcements,
       });
     } catch (error) {
       console.error('获取用户公告失败:', error);
       res.status(500).json({
         success: false,
-        message: '获取公告失败'
+        message: '获取公告失败',
       });
     }
   },
@@ -37,14 +37,14 @@ export const announcementController = {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          message: '用户未认证'
+          message: '用户未认证',
         });
       }
 
       if (!announcementId) {
         return res.status(400).json({
           success: false,
-          message: '公告ID不能为空'
+          message: '公告ID不能为空',
         });
       }
 
@@ -52,13 +52,13 @@ export const announcementController = {
 
       res.json({
         success: true,
-        message: '标记已读成功'
+        message: '标记已读成功',
       });
     } catch (error) {
       console.error('标记已读失败:', error);
       res.status(500).json({
         success: false,
-        message: '标记已读失败'
+        message: '标记已读失败',
       });
     }
   },
@@ -70,7 +70,7 @@ export const announcementController = {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          message: '用户未认证'
+          message: '用户未认证',
         });
       }
 
@@ -78,14 +78,14 @@ export const announcementController = {
 
       res.json({
         success: true,
-        message: `已标记 ${count} 条公告为已读`
+        message: `已标记 ${count} 条公告为已读`,
       });
     } catch (error) {
       console.error('标记全部已读失败:', error);
       res.status(500).json({
         success: false,
-        message: '标记全部已读失败'
+        message: '标记全部已读失败',
       });
     }
-  }
-}; 
+  },
+};

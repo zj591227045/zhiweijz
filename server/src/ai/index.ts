@@ -46,14 +46,14 @@ export function createWorkflowManager(llmProviderService: LLMProviderService): W
 export function createAIService() {
   // 创建LLM提供商服务
   const llmProviderService = createLLMProviderService();
-  
+
   // 创建工作流管理器
   const workflowManager = createWorkflowManager(llmProviderService);
-  
+
   return {
     llmProviderService,
     workflowManager,
-    
+
     /**
      * 运行简单工作流
      * @param input 输入文本

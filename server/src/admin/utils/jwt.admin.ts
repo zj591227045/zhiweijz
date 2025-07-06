@@ -19,9 +19,9 @@ export function generateAdminToken(payload: AdminTokenPayload): string {
   const options: any = {
     expiresIn: config.jwt.adminExpiresIn || '24h', // 管理员token有效期较短
     issuer: 'zhiweijz-admin',
-    audience: 'admin'
+    audience: 'admin',
   };
-  
+
   return jwt.sign(payload, config.jwt.adminSecret || config.jwt.secret, options);
 }
 
@@ -32,15 +32,11 @@ export function generateAdminToken(payload: AdminTokenPayload): string {
  */
 export function verifyAdminToken(token: string): AdminTokenPayload {
   try {
-    const decoded = jwt.verify(
-      token, 
-      config.jwt.adminSecret || config.jwt.secret,
-      {
-        issuer: 'zhiweijz-admin',
-        audience: 'admin'
-      }
-    ) as AdminTokenPayload;
-    
+    const decoded = jwt.verify(token, config.jwt.adminSecret || config.jwt.secret, {
+      issuer: 'zhiweijz-admin',
+      audience: 'admin',
+    }) as AdminTokenPayload;
+
     return decoded;
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
@@ -64,4 +60,4 @@ export function decodeAdminToken(token: string): AdminTokenPayload | null {
   } catch (error) {
     return null;
   }
-} 
+}

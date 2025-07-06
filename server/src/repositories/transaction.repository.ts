@@ -1,5 +1,9 @@
 import { PrismaClient, Transaction, TransactionType, Prisma } from '@prisma/client';
-import { CreateTransactionDto, UpdateTransactionDto, TransactionQueryParams } from '../models/transaction.model';
+import {
+  CreateTransactionDto,
+  UpdateTransactionDto,
+  TransactionQueryParams,
+} from '../models/transaction.model';
 
 const prisma = new PrismaClient();
 
@@ -10,7 +14,11 @@ export class TransactionRepository {
    * @param transactionData 交易数据
    * @param metadata 元数据（可选）
    */
-  async create(userId: string, transactionData: CreateTransactionDto, metadata?: any): Promise<any> {
+  async create(
+    userId: string,
+    transactionData: CreateTransactionDto,
+    metadata?: any,
+  ): Promise<any> {
     // 构建基本数据
     const data: any = {
       amount: new Prisma.Decimal(transactionData.amount),
@@ -33,7 +41,9 @@ export class TransactionRepository {
 
         // 如果是历史交易，记录创建时间和消费日期
         if (metadata.isHistorical) {
-          console.log(`记录历史交易元数据: 创建时间=${metadata.createdAt}, 消费日期=${metadata.consumptionDate}`);
+          console.log(
+            `记录历史交易元数据: 创建时间=${metadata.createdAt}, 消费日期=${metadata.consumptionDate}`,
+          );
         }
       } catch (error) {
         console.error('添加交易元数据失败:', error);
@@ -65,7 +75,10 @@ export class TransactionRepository {
   /**
    * 查询交易记录列表
    */
-  async findAll(userId: string, params: TransactionQueryParams): Promise<{ transactions: any[]; total: number }> {
+  async findAll(
+    userId: string,
+    params: TransactionQueryParams,
+  ): Promise<{ transactions: any[]; total: number }> {
     const {
       type,
       startDate,
@@ -77,7 +90,7 @@ export class TransactionRepository {
       page = 1,
       limit = 20,
       sortBy = 'date',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
     } = params;
 
     // 构建查询条件
@@ -112,12 +125,12 @@ export class TransactionRepository {
             {
               family: {
                 members: {
-                  some: { userId: userId } // 家庭账本成员
-                }
-              }
-            }
-          ]
-        }
+                  some: { userId: userId }, // 家庭账本成员
+                },
+              },
+            },
+          ],
+        },
       });
 
       if (!accountBook) {
@@ -131,7 +144,7 @@ export class TransactionRepository {
     // 处理多个分类ID
     if (categoryIds && categoryIds.length > 0) {
       where.categoryId = {
-        in: categoryIds
+        in: categoryIds,
       };
     }
 
@@ -139,7 +152,7 @@ export class TransactionRepository {
     // 首先按日期排序，然后按创建时间排序，确保同一天的交易按创建时间排序
     const orderBy: Prisma.TransactionOrderByWithRelationInput[] = [
       { [sortBy]: sortOrder },
-      { createdAt: sortOrder }
+      { createdAt: sortOrder },
     ];
 
     // 查询总数
@@ -167,9 +180,13 @@ export class TransactionRepository {
    */
   async update(id: string, transactionData: UpdateTransactionDto, metadata?: any): Promise<any> {
     const data: Prisma.TransactionUpdateInput = {
-      ...(transactionData.amount !== undefined && { amount: new Prisma.Decimal(transactionData.amount) }),
+      ...(transactionData.amount !== undefined && {
+        amount: new Prisma.Decimal(transactionData.amount),
+      }),
       ...(transactionData.categoryId && { categoryId: transactionData.categoryId }),
-      ...(transactionData.description !== undefined && { description: transactionData.description }),
+      ...(transactionData.description !== undefined && {
+        description: transactionData.description,
+      }),
       ...(transactionData.date && { date: transactionData.date }),
       ...(transactionData.familyMemberId && { familyMemberId: transactionData.familyMemberId }),
       ...(transactionData.budgetId && { budgetId: transactionData.budgetId }),
@@ -180,7 +197,7 @@ export class TransactionRepository {
       try {
         // 获取现有元数据
         const existingTransaction = await prisma.transaction.findUnique({
-          where: { id }
+          where: { id },
         });
 
         // 合并现有元数据和新元数据
@@ -189,7 +206,9 @@ export class TransactionRepository {
 
         // 如果是历史交易，记录更新时间和消费日期
         if (metadata.isHistorical) {
-          console.log(`更新历史交易元数据: 更新时间=${metadata.updatedAt}, 消费日期=${metadata.consumptionDate}`);
+          console.log(
+            `更新历史交易元数据: 更新时间=${metadata.updatedAt}, 消费日期=${metadata.consumptionDate}`,
+          );
         }
       } catch (error) {
         console.error('更新交易元数据失败:', error);
@@ -217,7 +236,12 @@ export class TransactionRepository {
   /**
    * 获取用户的交易统计
    */
-  async getStatistics(userId: string, type: TransactionType, startDate: Date, endDate: Date): Promise<{ total: number; count: number }> {
+  async getStatistics(
+    userId: string,
+    type: TransactionType,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<{ total: number; count: number }> {
     const result = await prisma.transaction.aggregate({
       where: {
         userId,
@@ -242,8 +266,15 @@ export class TransactionRepository {
   /**
    * 按分类统计交易
    */
-  async getStatisticsByCategory(userId: string, type: TransactionType, startDate: Date, endDate: Date): Promise<Array<{ categoryId: string; total: number; count: number }>> {
-    const results = await prisma.$queryRaw<Array<{ categoryId: string; total: string; count: string }>>`
+  async getStatisticsByCategory(
+    userId: string,
+    type: TransactionType,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<Array<{ categoryId: string; total: number; count: number }>> {
+    const results = await prisma.$queryRaw<
+      Array<{ categoryId: string; total: string; count: string }>
+    >`
       SELECT
         "categoryId",
         SUM("amount") as total,
@@ -258,7 +289,7 @@ export class TransactionRepository {
       ORDER BY total DESC
     `;
 
-    return results.map(result => ({
+    return results.map((result) => ({
       categoryId: result.categoryId,
       total: Number(result.total),
       count: Number(result.count),
@@ -278,7 +309,7 @@ export class TransactionRepository {
     excludeFamilyMember: boolean = false,
     budgetId?: string,
     categoryIds?: string[],
-    tagIds?: string[]
+    tagIds?: string[],
   ): Promise<any[]> {
     console.log('TransactionRepository.findByDateRange 参数:', {
       userId,
@@ -290,7 +321,7 @@ export class TransactionRepository {
       excludeFamilyMember,
       budgetId,
       categoryIds,
-      tagIds
+      tagIds,
     });
 
     const whereConditions: any = {
@@ -319,12 +350,12 @@ export class TransactionRepository {
             {
               family: {
                 members: {
-                  some: { userId: userId } // 家庭账本成员
-                }
-              }
-            }
-          ]
-        }
+                  some: { userId: userId }, // 家庭账本成员
+                },
+              },
+            },
+          ],
+        },
       });
 
       if (!accountBook) {
@@ -338,7 +369,7 @@ export class TransactionRepository {
     // 处理分类ID过滤
     if (categoryIds && categoryIds.length > 0) {
       whereConditions.categoryId = {
-        in: categoryIds
+        in: categoryIds,
       };
     }
 
@@ -347,9 +378,9 @@ export class TransactionRepository {
       whereConditions.transactionTags = {
         some: {
           tagId: {
-            in: tagIds
-          }
-        }
+            in: tagIds,
+          },
+        },
       };
     }
 
@@ -359,19 +390,26 @@ export class TransactionRepository {
         category: true,
         transactionTags: {
           include: {
-            tag: true
-          }
-        }
+            tag: true,
+          },
+        },
       },
     });
 
-    console.log(`找到 ${transactions.length} 条交易记录，其中 ${transactions.filter(t => t.category).length} 条有关联的分类信息`);
+    console.log(
+      `找到 ${transactions.length} 条交易记录，其中 ${
+        transactions.filter((t) => t.category).length
+      } 条有关联的分类信息`,
+    );
 
     // 检查是否有交易没有关联到分类
-    const transactionsWithoutCategory = transactions.filter(t => !t.category);
+    const transactionsWithoutCategory = transactions.filter((t) => !t.category);
     if (transactionsWithoutCategory.length > 0) {
       console.log(`警告: ${transactionsWithoutCategory.length} 条交易没有关联到分类`);
-      console.log('没有分类的交易ID:', transactionsWithoutCategory.map(t => t.id));
+      console.log(
+        '没有分类的交易ID:',
+        transactionsWithoutCategory.map((t) => t.id),
+      );
     }
 
     return transactions;
@@ -392,8 +430,12 @@ export class TransactionRepository {
       familyId?: string;
       familyMemberId?: string;
       accountBookId?: string;
-    }
-  ): Promise<{ total: number; count: number; byCategory: Array<{ categoryId: string; total: number; count: number }> }> {
+    },
+  ): Promise<{
+    total: number;
+    count: number;
+    byCategory: Array<{ categoryId: string; total: number; count: number }>;
+  }> {
     // 构建查询条件
     const where: Prisma.TransactionWhereInput = {
       userId,
@@ -418,7 +460,7 @@ export class TransactionRepository {
     // 处理多个分类ID
     if (params.categoryIds && params.categoryIds.length > 0) {
       where.categoryId = {
-        in: params.categoryIds
+        in: params.categoryIds,
       };
     }
 
@@ -444,11 +486,13 @@ export class TransactionRepository {
     });
 
     // 处理按分类统计结果
-    const byCategory = categoryResults.map(item => ({
-      categoryId: item.categoryId,
-      total: item._sum.amount ? Number(item._sum.amount) : 0,
-      count: item._count.id,
-    })).sort((a, b) => b.total - a.total);
+    const byCategory = categoryResults
+      .map((item) => ({
+        categoryId: item.categoryId,
+        total: item._sum.amount ? Number(item._sum.amount) : 0,
+        count: item._count.id,
+      }))
+      .sort((a, b) => b.total - a.total);
 
     return {
       total: result._sum.amount ? Number(result._sum.amount) : 0,

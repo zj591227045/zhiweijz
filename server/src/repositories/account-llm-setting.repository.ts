@@ -1,15 +1,21 @@
 import { AccountLLMSetting } from '@prisma/client';
 import prisma from '../config/database';
-import { CreateAccountLLMSettingDto, UpdateAccountLLMSettingDto } from '../models/account-llm-setting.model';
+import {
+  CreateAccountLLMSettingDto,
+  UpdateAccountLLMSettingDto,
+} from '../models/account-llm-setting.model';
 
 export class AccountLLMSettingRepository {
   /**
    * 创建或更新账本LLM设置
    */
-  async upsert(accountBookId: string, settingData: CreateAccountLLMSettingDto): Promise<AccountLLMSetting> {
+  async upsert(
+    accountBookId: string,
+    settingData: CreateAccountLLMSettingDto,
+  ): Promise<AccountLLMSetting> {
     // 先查找是否已存在设置
     const existingSetting = await this.findByAccountBookId(accountBookId);
-    
+
     if (existingSetting) {
       // 如果存在，则更新
       return prisma.accountLLMSetting.update({

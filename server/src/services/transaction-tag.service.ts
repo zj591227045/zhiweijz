@@ -50,7 +50,7 @@ export class TransactionTagService {
   async addTransactionTags(
     userId: string,
     transactionId: string,
-    data: AddTransactionTagsDto
+    data: AddTransactionTagsDto,
   ): Promise<{ addedTags: TagResponseDto[]; skippedTags: string[] }> {
     // 检查交易记录权限
     await this.checkTransactionPermission(userId, transactionId);
@@ -145,7 +145,7 @@ export class TransactionTagService {
    */
   async batchOperateTransactionTags(
     userId: string,
-    data: BatchTransactionTagsDto
+    data: BatchTransactionTagsDto,
   ): Promise<BatchTransactionTagsResponse> {
     const { transactionIds, action, tagIds } = data;
 
@@ -183,7 +183,9 @@ export class TransactionTagService {
                 where: { transactionId },
               });
               // 再添加新标签
-              const replaceResult = await this.addTransactionTags(userId, transactionId, { tagIds });
+              const replaceResult = await this.addTransactionTags(userId, transactionId, {
+                tagIds,
+              });
               added += replaceResult.addedTags.length;
               break;
           }

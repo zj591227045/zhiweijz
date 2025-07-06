@@ -43,34 +43,44 @@ router.get('/token-usage/today', (req, res) => systemConfigController.getTodayTo
  * @desc 获取用户的AI服务类型选择
  * @access User
  */
-router.get('/ai-service/user-type', (req, res) => systemConfigController.getUserAIServiceType(req, res));
+router.get('/ai-service/user-type', (req, res) =>
+  systemConfigController.getUserAIServiceType(req, res),
+);
 
 /**
  * @route POST /api/system-config/ai-service/switch
  * @desc 切换AI服务类型
  * @access User
  */
-router.post('/ai-service/switch', (req, res) => systemConfigController.switchAIServiceType(req, res));
+router.post('/ai-service/switch', (req, res) =>
+  systemConfigController.switchAIServiceType(req, res),
+);
 
 /**
  * @route GET /api/system-config/ai-service/enabled
  * @desc 获取用户级别的AI服务启用状态
  * @access User
  */
-router.get('/ai-service/enabled', (req, res) => systemConfigController.getUserAIServiceEnabled(req, res));
+router.get('/ai-service/enabled', (req, res) =>
+  systemConfigController.getUserAIServiceEnabled(req, res),
+);
 
 /**
  * @route POST /api/system-config/ai-service/toggle
  * @desc 切换用户级别的AI服务启用状态
  * @access User
  */
-router.post('/ai-service/toggle', (req, res) => systemConfigController.toggleUserAIService(req, res));
+router.post('/ai-service/toggle', (req, res) =>
+  systemConfigController.toggleUserAIService(req, res),
+);
 
 /**
  * @route POST /api/system-config/ai-service/test
  * @desc 测试AI服务连接
  * @access User
  */
-router.post('/ai-service/test', (req, res) => systemConfigController.testAIServiceConnection(req, res));
+router.post('/ai-service/test', (req, res) =>
+  systemConfigController.testAIServiceConnection(req, res),
+);
 
 export default router;

@@ -34,7 +34,13 @@ router.patch('/:id/toggle-status', userAdminController.toggleUserStatus.bind(use
 router.post('/batch', userAdminController.batchOperation.bind(userAdminController));
 
 // 注册开关相关
-router.get('/system/registration-status', userAdminController.getRegistrationStatus.bind(userAdminController));
-router.post('/system/toggle-registration', userAdminController.toggleRegistration.bind(userAdminController));
+router.get(
+  '/system/registration-status',
+  userAdminController.getRegistrationStatus.bind(userAdminController),
+);
+router.post(
+  '/system/toggle-registration',
+  userAdminController.toggleRegistration.bind(userAdminController),
+);
 
-export default router; 
+export default router;

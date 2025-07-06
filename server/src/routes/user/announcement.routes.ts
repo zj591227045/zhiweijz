@@ -13,4 +13,4 @@ router.post('/:id/read', authenticate, announcementController.markAsRead);
 // 标记所有公告为已读
 router.post('/read-all', authenticate, announcementController.markAllAsRead);
 
-export default router; 
+export default router;

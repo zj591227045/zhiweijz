@@ -30,7 +30,7 @@ export class UserSettingRepository {
    * 批量创建或更新用户设置
    */
   async batchUpsert(userId: string, settings: CreateUserSettingDto[]): Promise<number> {
-    const operations = settings.map(setting => 
+    const operations = settings.map((setting) =>
       prisma.userSetting.upsert({
         where: {
           userId_key: {
@@ -46,7 +46,7 @@ export class UserSettingRepository {
           key: setting.key,
           value: setting.value,
         },
-      })
+      }),
     );
 
     const results = await Promise.all(operations);
@@ -84,7 +84,11 @@ export class UserSettingRepository {
   /**
    * 更新用户设置
    */
-  async update(userId: string, key: string, settingData: UpdateUserSettingDto): Promise<UserSetting> {
+  async update(
+    userId: string,
+    key: string,
+    settingData: UpdateUserSettingDto,
+  ): Promise<UserSetting> {
     return prisma.userSetting.update({
       where: {
         userId_key: {
@@ -121,7 +125,7 @@ export class UserSettingRepository {
         userId,
       },
     });
-    
+
     return result.count;
   }
 }

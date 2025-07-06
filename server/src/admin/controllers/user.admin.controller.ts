@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import { UserAdminService } from '../services/user.admin.service';
-import { CreateUserSchema, UpdateUserSchema, ResetPasswordSchema } from '../validators/user.validator';
+import {
+  CreateUserSchema,
+  UpdateUserSchema,
+  ResetPasswordSchema,
+} from '../validators/user.validator';
 
 export class UserAdminController {
   private userAdminService: UserAdminService;
@@ -20,7 +24,7 @@ export class UserAdminController {
         search,
         status,
         sort = 'createdAt',
-        order = 'desc'
+        order = 'desc',
       } = req.query;
 
       const result = await this.userAdminService.getUsers({
@@ -29,18 +33,18 @@ export class UserAdminController {
         search: search as string,
         status: status as 'active' | 'inactive',
         sort: sort as string,
-        order: order as 'asc' | 'desc'
+        order: order as 'asc' | 'desc',
       });
 
       res.json({
         success: true,
-        data: result
+        data: result,
       });
     } catch (error) {
       console.error('获取用户列表错误:', error);
       res.status(500).json({
         success: false,
-        message: '获取用户列表失败'
+        message: '获取用户列表失败',
       });
     }
   }
@@ -56,20 +60,20 @@ export class UserAdminController {
       if (!user) {
         res.status(404).json({
           success: false,
-          message: '用户不存在'
+          message: '用户不存在',
         });
         return;
       }
 
       res.json({
         success: true,
-        data: { user }
+        data: { user },
       });
     } catch (error) {
       console.error('获取用户详情错误:', error);
       res.status(500).json({
         success: false,
-        message: '获取用户详情失败'
+        message: '获取用户详情失败',
       });
     }
   }
@@ -84,7 +88,7 @@ export class UserAdminController {
         res.status(400).json({
           success: false,
           message: '参数验证失败',
-          errors: validation.error.errors
+          errors: validation.error.errors,
         });
         return;
       }
@@ -94,19 +98,19 @@ export class UserAdminController {
       res.status(201).json({
         success: true,
         data: { user },
-        message: '用户创建成功'
+        message: '用户创建成功',
       });
     } catch (error) {
       console.error('创建用户错误:', error);
       if (error instanceof Error && error.message.includes('已存在')) {
         res.status(409).json({
           success: false,
-          message: error.message
+          message: error.message,
         });
       } else {
         res.status(500).json({
           success: false,
-          message: '创建用户失败'
+          message: '创建用户失败',
         });
       }
     }
@@ -119,12 +123,12 @@ export class UserAdminController {
     try {
       const { id } = req.params;
       const validation = UpdateUserSchema.safeParse(req.body);
-      
+
       if (!validation.success) {
         res.status(400).json({
           success: false,
           message: '参数验证失败',
-          errors: validation.error.errors
+          errors: validation.error.errors,
         });
         return;
       }
@@ -134,19 +138,19 @@ export class UserAdminController {
       res.json({
         success: true,
         data: { user },
-        message: '用户更新成功'
+        message: '用户更新成功',
       });
     } catch (error) {
       console.error('更新用户错误:', error);
       if (error instanceof Error && error.message.includes('不存在')) {
         res.status(404).json({
           success: false,
-          message: error.message
+          message: error.message,
         });
       } else {
         res.status(500).json({
           success: false,
-          message: '更新用户失败'
+          message: '更新用户失败',
         });
       }
     }
@@ -162,19 +166,19 @@ export class UserAdminController {
 
       res.json({
         success: true,
-        message: '用户删除成功'
+        message: '用户删除成功',
       });
     } catch (error) {
       console.error('删除用户错误:', error);
       if (error instanceof Error && error.message.includes('不存在')) {
         res.status(404).json({
           success: false,
-          message: error.message
+          message: error.message,
         });
       } else {
         res.status(500).json({
           success: false,
-          message: '删除用户失败'
+          message: '删除用户失败',
         });
       }
     }
@@ -187,12 +191,12 @@ export class UserAdminController {
     try {
       const { id } = req.params;
       const validation = ResetPasswordSchema.safeParse(req.body);
-      
+
       if (!validation.success) {
         res.status(400).json({
           success: false,
           message: '参数验证失败',
-          errors: validation.error.errors
+          errors: validation.error.errors,
         });
         return;
       }
@@ -201,19 +205,19 @@ export class UserAdminController {
 
       res.json({
         success: true,
-        message: '密码重置成功'
+        message: '密码重置成功',
       });
     } catch (error) {
       console.error('重置密码错误:', error);
       if (error instanceof Error && error.message.includes('不存在')) {
         res.status(404).json({
           success: false,
-          message: error.message
+          message: error.message,
         });
       } else {
         res.status(500).json({
           success: false,
-          message: '重置密码失败'
+          message: '重置密码失败',
         });
       }
     }
@@ -230,19 +234,19 @@ export class UserAdminController {
       res.json({
         success: true,
         data: { user },
-        message: `用户${user.isActive ? '启用' : '禁用'}成功`
+        message: `用户${user.isActive ? '启用' : '禁用'}成功`,
       });
     } catch (error) {
       console.error('切换用户状态错误:', error);
       if (error instanceof Error && error.message.includes('不存在')) {
         res.status(404).json({
           success: false,
-          message: error.message
+          message: error.message,
         });
       } else {
         res.status(500).json({
           success: false,
-          message: '切换用户状态失败'
+          message: '切换用户状态失败',
         });
       }
     }
@@ -258,7 +262,7 @@ export class UserAdminController {
       if (!Array.isArray(userIds) || userIds.length === 0) {
         res.status(400).json({
           success: false,
-          message: '用户ID列表不能为空'
+          message: '用户ID列表不能为空',
         });
         return;
       }
@@ -266,7 +270,7 @@ export class UserAdminController {
       if (!['activate', 'deactivate', 'delete'].includes(operation)) {
         res.status(400).json({
           success: false,
-          message: '不支持的操作类型'
+          message: '不支持的操作类型',
         });
         return;
       }
@@ -276,13 +280,15 @@ export class UserAdminController {
       res.json({
         success: true,
         data: result,
-        message: `批量${operation === 'activate' ? '启用' : operation === 'deactivate' ? '禁用' : '删除'}成功`
+        message: `批量${
+          operation === 'activate' ? '启用' : operation === 'deactivate' ? '禁用' : '删除'
+        }成功`,
       });
     } catch (error) {
       console.error('批量操作错误:', error);
       res.status(500).json({
         success: false,
-        message: '批量操作失败'
+        message: '批量操作失败',
       });
     }
   }
@@ -296,13 +302,13 @@ export class UserAdminController {
 
       res.json({
         success: true,
-        data: { isEnabled }
+        data: { isEnabled },
       });
     } catch (error) {
       console.error('获取注册开关状态错误:', error);
       res.status(500).json({
         success: false,
-        message: '获取注册开关状态失败'
+        message: '获取注册开关状态失败',
       });
     }
   }
@@ -313,11 +319,11 @@ export class UserAdminController {
   async toggleRegistration(req: Request, res: Response): Promise<void> {
     try {
       const { enabled } = req.body;
-      
+
       if (typeof enabled !== 'boolean') {
         res.status(400).json({
           success: false,
-          message: '参数类型错误'
+          message: '参数类型错误',
         });
         return;
       }
@@ -326,14 +332,14 @@ export class UserAdminController {
 
       res.json({
         success: true,
-        message: `用户注册已${enabled ? '开启' : '关闭'}`
+        message: `用户注册已${enabled ? '开启' : '关闭'}`,
       });
     } catch (error) {
       console.error('切换注册开关错误:', error);
       res.status(500).json({
         success: false,
-        message: '切换注册开关失败'
+        message: '切换注册开关失败',
       });
     }
   }
-} 
+}

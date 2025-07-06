@@ -15,7 +15,9 @@ router.get('/', (req, res) => categoryBudgetController.getCategoryBudgets(req, r
 router.post('/', (req, res) => categoryBudgetController.createCategoryBudget(req, res));
 
 // 根据预算ID获取分类预算列表
-router.get('/budget/:budgetId', (req, res) => categoryBudgetController.getCategoryBudgetsByBudgetId(req, res));
+router.get('/budget/:budgetId', (req, res) =>
+  categoryBudgetController.getCategoryBudgetsByBudgetId(req, res),
+);
 
 // 获取单个分类预算
 router.get('/:id', (req, res) => categoryBudgetController.getCategoryBudget(req, res));

@@ -17,7 +17,6 @@ export interface WechatMenuConfig {
 }
 
 export class WechatConfigService {
-  
   /**
    * 获取微信自定义菜单配置
    */
@@ -25,21 +24,21 @@ export class WechatConfigService {
     return {
       button: [
         {
-          type: "view",
-          name: "访问官网",
-          url: "https://www.zhiweijz.cn"
+          type: 'view',
+          name: '访问官网',
+          url: 'https://www.zhiweijz.cn',
         },
         {
-          type: "view",
-          name: "账号绑定",
-          url: "https://www.zhiweijz.cn"
+          type: 'view',
+          name: '账号绑定',
+          url: 'https://www.zhiweijz.cn',
         },
         {
-          type: "view",
-          name: "下载App",
-          url: "https://www.zhiweijz.cn/downloads"
-        }
-      ]
+          type: 'view',
+          name: '下载App',
+          url: 'https://www.zhiweijz.cn/downloads',
+        },
+      ],
     };
   }
 
@@ -49,25 +48,29 @@ export class WechatConfigService {
   async getServiceStatus() {
     try {
       // 检查配置
-      const hasConfig = !!(config.wechat?.appId && config.wechat?.appSecret && config.wechat?.token);
-      
+      const hasConfig = !!(
+        config.wechat?.appId &&
+        config.wechat?.appSecret &&
+        config.wechat?.token
+      );
+
       // 检查数据库连接
       const dbConnected = await this.checkDatabaseConnection();
-      
+
       // 获取统计信息
       const stats = await this.getServiceStats();
-      
+
       return {
         configured: hasConfig,
         databaseConnected: dbConnected,
-        ...stats
+        ...stats,
       };
     } catch (error) {
       console.error('获取微信服务状态失败:', error);
       return {
         configured: false,
         databaseConnected: false,
-        error: error instanceof Error ? error.message : '未知错误'
+        error: error instanceof Error ? error.message : '未知错误',
       };
     }
   }
@@ -91,7 +94,7 @@ export class WechatConfigService {
     try {
       // 获取绑定用户数
       const totalBindings = await prisma.wechat_user_bindings.count({
-        where: { is_active: true }
+        where: { is_active: true },
       });
 
       // 获取今日消息数
@@ -100,40 +103,40 @@ export class WechatConfigService {
       const todayMessages = await prisma.wechat_message_logs.count({
         where: {
           created_at: {
-            gte: today
-          }
-        }
+            gte: today,
+          },
+        },
       });
 
       // 获取今日成功处理的消息数
       const todaySuccessMessages = await prisma.wechat_message_logs.count({
         where: {
           created_at: {
-            gte: today
+            gte: today,
           },
-          status: 'success'
-        }
+          status: 'success',
+        },
       });
 
       // 获取最近7天的消息统计
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
-      
+
       const weeklyStats = await prisma.wechat_message_logs.groupBy({
         by: ['status'],
         where: {
           created_at: {
-            gte: weekAgo
-          }
+            gte: weekAgo,
+          },
         },
         _count: {
-          id: true
-        }
+          id: true,
+        },
       });
 
       const weeklyTotal = weeklyStats.reduce((sum, stat) => sum + stat._count.id, 0);
-      const weeklySuccess = weeklyStats.find(s => s.status === 'success')?._count.id || 0;
-      const successRate = weeklyTotal > 0 ? (weeklySuccess / weeklyTotal * 100).toFixed(1) : '0';
+      const weeklySuccess = weeklyStats.find((s) => s.status === 'success')?._count.id || 0;
+      const successRate = weeklyTotal > 0 ? ((weeklySuccess / weeklyTotal) * 100).toFixed(1) : '0';
 
       return {
         totalBindings,
@@ -141,7 +144,7 @@ export class WechatConfigService {
         todaySuccessMessages,
         weeklyTotal,
         weeklySuccess,
-        successRate: `${successRate}%`
+        successRate: `${successRate}%`,
       };
     } catch (error) {
       console.error('获取服务统计失败:', error);
@@ -151,7 +154,7 @@ export class WechatConfigService {
         todaySuccessMessages: 0,
         weeklyTotal: 0,
         weeklySuccess: 0,
-        successRate: '0%'
+        successRate: '0%',
       };
     }
   }
@@ -167,9 +170,9 @@ export class WechatConfigService {
       const result = await prisma.wechat_message_logs.deleteMany({
         where: {
           created_at: {
-            lt: cutoffDate
-          }
-        }
+            lt: cutoffDate,
+          },
+        },
       });
 
       console.log(`清理了 ${result.count} 条过期的微信消息日志`);
@@ -192,22 +195,22 @@ export class WechatConfigService {
         where: {
           status: 'failed',
           created_at: {
-            gte: startDate
-          }
+            gte: startDate,
+          },
         },
         select: {
           error_message: true,
           created_at: true,
-          message_type: true
+          message_type: true,
         },
         orderBy: {
-          created_at: 'desc'
-        }
+          created_at: 'desc',
+        },
       });
 
       // 统计错误类型
       const errorTypes: { [key: string]: number } = {};
-      errorLogs.forEach(log => {
+      errorLogs.forEach((log) => {
         const errorType = this.categorizeError(log.error_message || '未知错误');
         errorTypes[errorType] = (errorTypes[errorType] || 0) + 1;
       });
@@ -215,14 +218,14 @@ export class WechatConfigService {
       return {
         totalErrors: errorLogs.length,
         errorTypes,
-        recentErrors: errorLogs.slice(0, 10)
+        recentErrors: errorLogs.slice(0, 10),
       };
     } catch (error) {
       console.error('获取错误统计失败:', error);
       return {
         totalErrors: 0,
         errorTypes: {},
-        recentErrors: []
+        recentErrors: [],
       };
     }
   }
@@ -232,7 +235,7 @@ export class WechatConfigService {
    */
   private categorizeError(errorMessage: string): string {
     const lowerMessage = errorMessage.toLowerCase();
-    
+
     if (lowerMessage.includes('database') || lowerMessage.includes('数据库')) {
       return '数据库错误';
     }
@@ -248,7 +251,7 @@ export class WechatConfigService {
     if (lowerMessage.includes('signature') || lowerMessage.includes('签名')) {
       return '签名验证错误';
     }
-    
+
     return '其他错误';
   }
 
@@ -264,29 +267,30 @@ export class WechatConfigService {
         by: ['openid'],
         where: {
           created_at: {
-            gte: startDate
-          }
+            gte: startDate,
+          },
         },
         _count: {
-          id: true
-        }
+          id: true,
+        },
       });
 
       const totalActiveUsers = activeUsers.length;
       const totalMessages = activeUsers.reduce((sum, user) => sum + user._count.id, 0);
-      const avgMessagesPerUser = totalActiveUsers > 0 ? (totalMessages / totalActiveUsers).toFixed(1) : '0';
+      const avgMessagesPerUser =
+        totalActiveUsers > 0 ? (totalMessages / totalActiveUsers).toFixed(1) : '0';
 
       return {
         totalActiveUsers,
         totalMessages,
-        avgMessagesPerUser
+        avgMessagesPerUser,
       };
     } catch (error) {
       console.error('获取活跃用户统计失败:', error);
       return {
         totalActiveUsers: 0,
         totalMessages: 0,
-        avgMessagesPerUser: '0'
+        avgMessagesPerUser: '0',
       };
     }
   }

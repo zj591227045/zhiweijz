@@ -27,52 +27,46 @@ afterAll(async () => {
       email: testUser.email,
     },
   });
-  
+
   // 关闭Prisma连接
   await prisma.$disconnect();
 });
 
 describe('认证API', () => {
   let authToken: string;
-  
+
   it('应该能够注册新用户', async () => {
-    const response = await request(app)
-      .post('/api/auth/register')
-      .send(testUser);
-    
+    const response = await request(app).post('/api/auth/register').send(testUser);
+
     expect(response.status).toBe(201);
     expect(response.body).toHaveProperty('token');
     expect(response.body).toHaveProperty('user');
     expect(response.body.user).toHaveProperty('id');
     expect(response.body.user.email).toBe(testUser.email);
     expect(response.body.user.name).toBe(testUser.name);
-    
+
     // 保存令牌用于后续测试
     authToken = response.body.token;
   });
-  
+
   it('应该能够登录', async () => {
-    const response = await request(app)
-      .post('/api/auth/login')
-      .send({
-        email: testUser.email,
-        password: testUser.password,
-      });
-    
+    const response = await request(app).post('/api/auth/login').send({
+      email: testUser.email,
+      password: testUser.password,
+    });
+
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('token');
     expect(response.body).toHaveProperty('user');
     expect(response.body.user.email).toBe(testUser.email);
   });
-  
+
   it('应该拒绝错误的登录凭据', async () => {
-    const response = await request(app)
-      .post('/api/auth/login')
-      .send({
-        email: testUser.email,
-        password: 'wrongpassword',
-      });
-    
+    const response = await request(app).post('/api/auth/login').send({
+      email: testUser.email,
+      password: 'wrongpassword',
+    });
+
     expect(response.status).toBe(401);
     expect(response.body).toHaveProperty('message');
   });

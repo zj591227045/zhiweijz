@@ -11,7 +11,6 @@ export interface BindingResult {
 }
 
 export class WechatBindingService {
-  
   /**
    * 验证用户账号密码并创建绑定
    */
@@ -19,20 +18,20 @@ export class WechatBindingService {
     try {
       // 1. 验证用户账号密码
       const user = await prisma.user.findUnique({
-        where: { email }
+        where: { email },
       });
 
       if (!user) {
         return {
           success: false,
-          message: '用户不存在，请检查邮箱地址'
+          message: '用户不存在，请检查邮箱地址',
         };
       }
 
       if (!user.isActive) {
         return {
           success: false,
-          message: '账号已被禁用，请联系管理员'
+          message: '账号已被禁用，请联系管理员',
         };
       }
 
@@ -41,13 +40,13 @@ export class WechatBindingService {
       if (!isPasswordValid) {
         return {
           success: false,
-          message: '密码错误，请重新输入'
+          message: '密码错误，请重新输入',
         };
       }
 
       // 2. 检查是否已经绑定
       const existingBinding = await prisma.wechat_user_bindings.findUnique({
-        where: { openid }
+        where: { openid },
       });
 
       if (existingBinding) {
@@ -56,8 +55,8 @@ export class WechatBindingService {
           where: { openid },
           data: {
             user_id: user.id,
-            is_active: true
-          }
+            is_active: true,
+          },
         });
       } else {
         // 创建新绑定
@@ -67,8 +66,8 @@ export class WechatBindingService {
             openid,
             user_id: user.id,
             is_active: true,
-            updated_at: new Date()
-          }
+            updated_at: new Date(),
+          },
         });
       }
 
@@ -81,15 +80,14 @@ export class WechatBindingService {
         data: {
           userId: user.id,
           userName: user.name,
-          accountBooks
-        }
+          accountBooks,
+        },
       };
-
     } catch (error) {
       console.error('绑定用户账号失败:', error);
       return {
         success: false,
-        message: '绑定失败，请稍后重试'
+        message: '绑定失败，请稍后重试',
       };
     }
   }
@@ -100,13 +98,13 @@ export class WechatBindingService {
   async setDefaultAccountBook(openid: string, accountBookId: string): Promise<BindingResult> {
     try {
       const binding = await prisma.wechat_user_bindings.findUnique({
-        where: { openid }
+        where: { openid },
       });
 
       if (!binding) {
         return {
           success: false,
-          message: '请先绑定账号'
+          message: '请先绑定账号',
         };
       }
 
@@ -119,27 +117,27 @@ export class WechatBindingService {
             {
               type: 'FAMILY',
               familyId: {
-                not: null
+                not: null,
               },
               family: {
                 members: {
                   some: {
-                    userId: binding.user_id
-                  }
-                }
-              }
-            }
-          ]
+                    userId: binding.user_id,
+                  },
+                },
+              },
+            },
+          ],
         },
         include: {
-          family: true
-        }
+          family: true,
+        },
       });
 
       if (!accountBook) {
         return {
           success: false,
-          message: '账本不存在或无权访问'
+          message: '账本不存在或无权访问',
         };
       }
 
@@ -147,8 +145,8 @@ export class WechatBindingService {
       await prisma.wechat_user_bindings.update({
         where: { openid },
         data: {
-          default_account_book_id: accountBookId
-        }
+          default_account_book_id: accountBookId,
+        },
       });
 
       return {
@@ -156,15 +154,14 @@ export class WechatBindingService {
         message: `已设置"${accountBook.name}"为默认账本`,
         data: {
           accountBookId,
-          accountBookName: accountBook.name
-        }
+          accountBookName: accountBook.name,
+        },
       };
-
     } catch (error) {
       console.error('设置默认账本失败:', error);
       return {
         success: false,
-        message: '设置失败，请稍后重试'
+        message: '设置失败，请稍后重试',
       };
     }
   }
@@ -182,19 +179,16 @@ export class WechatBindingService {
               type: 'FAMILY',
               family: {
                 members: {
-                  some: { userId: userId }
-                }
-              }
-            }
-          ]
+                  some: { userId: userId },
+                },
+              },
+            },
+          ],
         },
         include: {
-          family: true
+          family: true,
         },
-        orderBy: [
-          { isDefault: 'desc' },
-          { createdAt: 'desc' }
-        ]
+        orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }],
       });
 
       return accountBooks.map((book: any) => ({
@@ -202,9 +196,8 @@ export class WechatBindingService {
         name: book.name,
         type: book.type,
         isDefault: book.isDefault,
-        familyName: book.family?.name
+        familyName: book.family?.name,
       }));
-
     } catch (error) {
       console.error('获取账本列表失败:', error);
       return [];
@@ -217,7 +210,7 @@ export class WechatBindingService {
   async getBindingInfo(openid: string) {
     try {
       const binding = await prisma.wechat_user_bindings.findUnique({
-        where: { openid }
+        where: { openid },
       });
 
       if (!binding) {
@@ -226,14 +219,14 @@ export class WechatBindingService {
 
       // 手动获取用户信息
       const user = await prisma.user.findUnique({
-        where: { id: binding.user_id }
+        where: { id: binding.user_id },
       });
 
       // 手动获取账本信息（如果有默认账本）
       let accountBook = null;
       if (binding.default_account_book_id) {
         accountBook = await prisma.accountBook.findUnique({
-          where: { id: binding.default_account_book_id }
+          where: { id: binding.default_account_book_id },
         });
       }
 
@@ -245,9 +238,8 @@ export class WechatBindingService {
         defaultAccountBookId: binding.default_account_book_id,
         defaultAccountBookName: accountBook?.name,
         isActive: binding.is_active,
-        createdAt: binding.created_at
+        createdAt: binding.created_at,
       };
-
     } catch (error) {
       console.error('获取绑定信息失败:', error);
       return null;
@@ -260,13 +252,13 @@ export class WechatBindingService {
   async unbindAccount(openid: string): Promise<BindingResult> {
     try {
       const binding = await prisma.wechat_user_bindings.findUnique({
-        where: { openid }
+        where: { openid },
       });
 
       if (!binding) {
         return {
           success: false,
-          message: '未找到绑定信息'
+          message: '未找到绑定信息',
         };
       }
 
@@ -274,20 +266,19 @@ export class WechatBindingService {
       await prisma.wechat_user_bindings.update({
         where: { openid },
         data: {
-          is_active: false
-        }
+          is_active: false,
+        },
       });
 
       return {
         success: true,
-        message: '已成功解除绑定'
+        message: '已成功解除绑定',
       };
-
     } catch (error) {
       console.error('解除绑定失败:', error);
       return {
         success: false,
-        message: '解除绑定失败，请稍后重试'
+        message: '解除绑定失败，请稍后重试',
       };
     }
   }
@@ -299,7 +290,7 @@ export class WechatBindingService {
     return jwt.sign(
       { openid, type: 'wechat_binding' },
       config.jwt.secret,
-      { expiresIn: '10m' } // 10分钟有效期
+      { expiresIn: '10m' }, // 10分钟有效期
     );
   }
 

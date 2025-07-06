@@ -3,13 +3,13 @@ import { OpenAIProvider } from './openai-provider';
 import { SiliconFlowProvider } from './siliconflow-provider';
 import { DeepseekProvider } from './deepseek-provider';
 import { CustomProvider } from './custom-provider';
-import { 
-  LLMProviderInstance, 
-  MultiProviderLLMConfig, 
-  ProviderHealthStatus, 
+import {
+  LLMProviderInstance,
+  MultiProviderLLMConfig,
+  ProviderHealthStatus,
   LLMRequestResult,
   Message,
-  LLMSettings
+  LLMSettings,
 } from '../types/llm-types';
 import axios from 'axios';
 import prisma from '../../config/database';
@@ -47,7 +47,7 @@ export class MultiProviderLLMService {
     this.healthCheckInterval = setInterval(() => {
       this.performHealthCheck();
     }, 5 * 60 * 1000);
-    
+
     // 启动时立即执行一次健康检查
     setTimeout(() => {
       this.performHealthCheck();
@@ -60,7 +60,7 @@ export class MultiProviderLLMService {
   public async loadMultiProviderConfig(): Promise<MultiProviderLLMConfig | null> {
     try {
       const config = await prisma.systemConfig.findUnique({
-        where: { key: 'llm_multi_provider_config' }
+        where: { key: 'llm_multi_provider_config' },
       });
 
       if (!config || !config.value) {
@@ -68,10 +68,10 @@ export class MultiProviderLLMService {
       }
 
       const multiProviderConfig: MultiProviderLLMConfig = JSON.parse(config.value);
-      
+
       // 更新内存中的提供商实例
       this.providerInstances.clear();
-      multiProviderConfig.providers.forEach(provider => {
+      multiProviderConfig.providers.forEach((provider) => {
         this.providerInstances.set(provider.id, provider);
       });
 
@@ -93,17 +93,17 @@ export class MultiProviderLLMService {
           key: 'llm_multi_provider_config',
           value: JSON.stringify(config),
           category: 'llm',
-          description: '多提供商LLM配置'
+          description: '多提供商LLM配置',
         },
         update: {
           value: JSON.stringify(config),
-          updatedAt: new Date()
-        }
+          updatedAt: new Date(),
+        },
       });
 
       // 更新内存中的提供商实例
       this.providerInstances.clear();
-      config.providers.forEach(provider => {
+      config.providers.forEach((provider) => {
         this.providerInstances.set(provider.id, provider);
       });
 
@@ -119,12 +119,12 @@ export class MultiProviderLLMService {
    */
   private getAvailableProviders(): LLMProviderInstance[][] {
     const providers = Array.from(this.providerInstances.values())
-      .filter(p => p.enabled && p.healthy)
+      .filter((p) => p.enabled && p.healthy)
       .sort((a, b) => a.priority - b.priority);
 
     // 按优先级分组
     const groupedProviders: { [priority: number]: LLMProviderInstance[] } = {};
-    providers.forEach(provider => {
+    providers.forEach((provider) => {
       if (!groupedProviders[provider.priority]) {
         groupedProviders[provider.priority] = [];
       }
@@ -137,7 +137,10 @@ export class MultiProviderLLMService {
   /**
    * 从同优先级提供商中选择一个（负载均衡）
    */
-  private selectProviderFromGroup(providers: LLMProviderInstance[], strategy: string): LLMProviderInstance | null {
+  private selectProviderFromGroup(
+    providers: LLMProviderInstance[],
+    strategy: string,
+  ): LLMProviderInstance | null {
     if (providers.length === 0) return null;
     if (providers.length === 1) return providers[0];
 
@@ -176,26 +179,29 @@ export class MultiProviderLLMService {
   public async generateText(prompt: string, userId?: string): Promise<LLMRequestResult> {
     const startTime = Date.now();
     const config = await this.loadMultiProviderConfig();
-    
+
     if (!config || !config.enabled) {
       // 回退到单提供商模式
       return this.fallbackToSingleProvider(prompt, userId);
     }
 
     const providerGroups = this.getAvailableProviders();
-    
+
     if (providerGroups.length === 0) {
       return {
         success: false,
         error: '没有可用的LLM提供商',
-        responseTime: Date.now() - startTime
+        responseTime: Date.now() - startTime,
       };
     }
 
     // 按优先级逐级尝试
     for (const providerGroup of providerGroups) {
-      const selectedProvider = this.selectProviderFromGroup(providerGroup, config.loadBalancing.strategy);
-      
+      const selectedProvider = this.selectProviderFromGroup(
+        providerGroup,
+        config.loadBalancing.strategy,
+      );
+
       if (!selectedProvider) continue;
 
       const provider = this.providers.get(selectedProvider.provider);
@@ -207,25 +213,25 @@ export class MultiProviderLLMService {
           model: selectedProvider.model,
           baseUrl: selectedProvider.baseUrl,
           temperature: selectedProvider.temperature,
-          maxTokens: selectedProvider.maxTokens
+          maxTokens: selectedProvider.maxTokens,
         };
 
         const result = await provider.generateText(prompt, providerOptions);
-        
+
         return {
           success: true,
           data: result,
           providerId: selectedProvider.id,
-          responseTime: Date.now() - startTime
+          responseTime: Date.now() - startTime,
         };
       } catch (error) {
         console.error(`提供商 ${selectedProvider.name} 调用失败:`, error);
-        
+
         // 标记该提供商为不健康
         selectedProvider.healthy = false;
         selectedProvider.lastHealthCheck = new Date();
         this.providerInstances.set(selectedProvider.id, selectedProvider);
-        
+
         // 如果启用了故障转移，继续尝试下一个提供商
         if (config.failover.enabled) {
           continue;
@@ -234,7 +240,7 @@ export class MultiProviderLLMService {
             success: false,
             error: error instanceof Error ? error.message : String(error),
             providerId: selectedProvider.id,
-            responseTime: Date.now() - startTime
+            responseTime: Date.now() - startTime,
           };
         }
       }
@@ -243,7 +249,7 @@ export class MultiProviderLLMService {
     return {
       success: false,
       error: '所有LLM提供商都不可用',
-      responseTime: Date.now() - startTime
+      responseTime: Date.now() - startTime,
     };
   }
 
@@ -253,26 +259,29 @@ export class MultiProviderLLMService {
   public async generateChat(messages: Message[], userId?: string): Promise<LLMRequestResult> {
     const startTime = Date.now();
     const config = await this.loadMultiProviderConfig();
-    
+
     if (!config || !config.enabled) {
       // 回退到单提供商模式
       return this.fallbackToSingleProviderChat(messages, userId);
     }
 
     const providerGroups = this.getAvailableProviders();
-    
+
     if (providerGroups.length === 0) {
       return {
         success: false,
         error: '没有可用的LLM提供商',
-        responseTime: Date.now() - startTime
+        responseTime: Date.now() - startTime,
       };
     }
 
     // 按优先级逐级尝试
     for (const providerGroup of providerGroups) {
-      const selectedProvider = this.selectProviderFromGroup(providerGroup, config.loadBalancing.strategy);
-      
+      const selectedProvider = this.selectProviderFromGroup(
+        providerGroup,
+        config.loadBalancing.strategy,
+      );
+
       if (!selectedProvider) continue;
 
       const provider = this.providers.get(selectedProvider.provider);
@@ -284,25 +293,25 @@ export class MultiProviderLLMService {
           model: selectedProvider.model,
           baseUrl: selectedProvider.baseUrl,
           temperature: selectedProvider.temperature,
-          maxTokens: selectedProvider.maxTokens
+          maxTokens: selectedProvider.maxTokens,
         };
 
         const result = await provider.generateChat(messages, providerOptions);
-        
+
         return {
           success: true,
           data: result,
           providerId: selectedProvider.id,
-          responseTime: Date.now() - startTime
+          responseTime: Date.now() - startTime,
         };
       } catch (error) {
         console.error(`提供商 ${selectedProvider.name} 调用失败:`, error);
-        
+
         // 标记该提供商为不健康
         selectedProvider.healthy = false;
         selectedProvider.lastHealthCheck = new Date();
         this.providerInstances.set(selectedProvider.id, selectedProvider);
-        
+
         // 如果启用了故障转移，继续尝试下一个提供商
         if (config.failover.enabled) {
           continue;
@@ -311,7 +320,7 @@ export class MultiProviderLLMService {
             success: false,
             error: error instanceof Error ? error.message : String(error),
             providerId: selectedProvider.id,
-            responseTime: Date.now() - startTime
+            responseTime: Date.now() - startTime,
           };
         }
       }
@@ -320,31 +329,37 @@ export class MultiProviderLLMService {
     return {
       success: false,
       error: '所有LLM提供商都不可用',
-      responseTime: Date.now() - startTime
+      responseTime: Date.now() - startTime,
     };
   }
 
   /**
    * 回退到单提供商模式（文本生成）
    */
-  private async fallbackToSingleProvider(prompt: string, userId?: string): Promise<LLMRequestResult> {
+  private async fallbackToSingleProvider(
+    prompt: string,
+    userId?: string,
+  ): Promise<LLMRequestResult> {
     // 这里可以调用原有的 LLMProviderService
     // 为简化实现，这里直接返回错误
     return {
       success: false,
-      error: '多提供商服务未启用，且单提供商回退失败'
+      error: '多提供商服务未启用，且单提供商回退失败',
     };
   }
 
   /**
    * 回退到单提供商模式（聊天）
    */
-  private async fallbackToSingleProviderChat(messages: Message[], userId?: string): Promise<LLMRequestResult> {
+  private async fallbackToSingleProviderChat(
+    messages: Message[],
+    userId?: string,
+  ): Promise<LLMRequestResult> {
     // 这里可以调用原有的 LLMProviderService
     // 为简化实现，这里直接返回错误
     return {
       success: false,
-      error: '多提供商服务未启用，且单提供商回退失败'
+      error: '多提供商服务未启用，且单提供商回退失败',
     };
   }
 
@@ -362,13 +377,15 @@ export class MultiProviderLLMService {
 
       try {
         const healthStatus = await this.checkProviderHealth(providerInstance);
-        
+
         // 更新健康状态
         providerInstance.healthy = healthStatus.healthy;
         providerInstance.lastHealthCheck = new Date();
         this.providerInstances.set(providerInstance.id, providerInstance);
 
-        console.log(`提供商 ${providerInstance.name} 健康检查: ${healthStatus.healthy ? '✓' : '✗'}`);
+        console.log(
+          `提供商 ${providerInstance.name} 健康检查: ${healthStatus.healthy ? '✓' : '✗'}`,
+        );
       } catch (error) {
         console.error(`提供商 ${providerInstance.name} 健康检查失败:`, error);
         providerInstance.healthy = false;
@@ -381,8 +398,9 @@ export class MultiProviderLLMService {
 
     // 更新数据库中的健康状态
     if (config) {
-      config.providers = Array.from(this.providerInstances.values())
-        .filter(p => config.providers.some(cp => cp.id === p.id));
+      config.providers = Array.from(this.providerInstances.values()).filter((p) =>
+        config.providers.some((cp) => cp.id === p.id),
+      );
       await this.saveMultiProviderConfig(config);
     }
   }
@@ -390,9 +408,11 @@ export class MultiProviderLLMService {
   /**
    * 检查单个提供商的健康状态
    */
-  public async checkProviderHealth(providerInstance: LLMProviderInstance): Promise<ProviderHealthStatus> {
+  public async checkProviderHealth(
+    providerInstance: LLMProviderInstance,
+  ): Promise<ProviderHealthStatus> {
     const startTime = Date.now();
-    
+
     try {
       const modelsUrl = this.getModelsUrl(providerInstance);
       if (!modelsUrl) {
@@ -401,29 +421,29 @@ export class MultiProviderLLMService {
 
       const response = await axios.get(modelsUrl, {
         headers: {
-          'Authorization': `Bearer ${providerInstance.apiKey}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${providerInstance.apiKey}`,
+          'Content-Type': 'application/json',
         },
-        timeout: 10000 // 10秒超时
+        timeout: 10000, // 10秒超时
       });
 
       const responseTime = Date.now() - startTime;
-      
+
       return {
         providerId: providerInstance.id,
         healthy: response.status === 200,
         responseTime,
-        checkedAt: new Date()
+        checkedAt: new Date(),
       };
     } catch (error) {
       const responseTime = Date.now() - startTime;
-      
+
       return {
         providerId: providerInstance.id,
         healthy: false,
         responseTime,
         error: error instanceof Error ? error.message : String(error),
-        checkedAt: new Date()
+        checkedAt: new Date(),
       };
     }
   }
@@ -433,7 +453,7 @@ export class MultiProviderLLMService {
    */
   private getModelsUrl(providerInstance: LLMProviderInstance): string | null {
     let baseUrl = providerInstance.baseUrl;
-    
+
     // 如果没有自定义baseUrl，使用默认URL
     if (!baseUrl) {
       switch (providerInstance.provider.toLowerCase()) {
@@ -463,10 +483,10 @@ export class MultiProviderLLMService {
     const config = await this.loadMultiProviderConfig();
     if (!config) return [];
 
-    return config.providers.map(provider => ({
+    return config.providers.map((provider) => ({
       providerId: provider.id,
       healthy: provider.healthy,
-      checkedAt: provider.lastHealthCheck || new Date()
+      checkedAt: provider.lastHealthCheck || new Date(),
     }));
   }
 
@@ -484,20 +504,20 @@ export class MultiProviderLLMService {
   public async getConfigPriorityInfo() {
     try {
       const multiProviderConfig = await this.loadMultiProviderConfig();
-      
+
       if (multiProviderConfig?.enabled && multiProviderConfig.providers.length > 0) {
-        const activeProviders = multiProviderConfig.providers.filter(p => p.enabled).length;
+        const activeProviders = multiProviderConfig.providers.filter((p) => p.enabled).length;
         return {
           mode: 'multi-provider',
           description: '当前使用多提供商配置',
           activeProviders: activeProviders,
-          note: '多提供商模式激活时，全局LLM配置将被忽略'
+          note: '多提供商模式激活时，全局LLM配置将被忽略',
         };
       } else {
         return {
           mode: 'single-provider',
           description: '当前使用全局LLM配置（单一提供商）',
-          note: '多提供商模式未启用或无可用提供商，系统回退到全局LLM配置'
+          note: '多提供商模式未启用或无可用提供商，系统回退到全局LLM配置',
         };
       }
     } catch (error) {
@@ -515,4 +535,4 @@ export class MultiProviderLLMService {
       this.healthCheckInterval = null;
     }
   }
-} 
+}

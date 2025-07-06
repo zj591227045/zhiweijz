@@ -53,7 +53,7 @@ export function toUserResponseDto(user: User): UserResponseDto {
     bio: userWithExtras.bio,
     birthDate: userWithExtras.birthDate,
     createdAt,
-    updatedAt
+    updatedAt,
   };
 }
 

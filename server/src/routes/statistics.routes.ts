@@ -6,16 +6,24 @@ const router = Router();
 const statisticsController = new StatisticsController();
 
 // 获取支出统计
-router.get('/expenses', authenticate, (req, res) => statisticsController.getExpenseStatistics(req, res));
+router.get('/expenses', authenticate, (req, res) =>
+  statisticsController.getExpenseStatistics(req, res),
+);
 
 // 获取收入统计
-router.get('/income', authenticate, (req, res) => statisticsController.getIncomeStatistics(req, res));
+router.get('/income', authenticate, (req, res) =>
+  statisticsController.getIncomeStatistics(req, res),
+);
 
 // 获取预算执行情况
-router.get('/budgets', authenticate, (req, res) => statisticsController.getBudgetStatistics(req, res));
+router.get('/budgets', authenticate, (req, res) =>
+  statisticsController.getBudgetStatistics(req, res),
+);
 
 // 获取财务概览
-router.get('/overview', authenticate, (req, res) => statisticsController.getFinancialOverview(req, res));
+router.get('/overview', authenticate, (req, res) =>
+  statisticsController.getFinancialOverview(req, res),
+);
 
 // 获取按标签统计
 router.get('/by-tags', authenticate, (req, res) => statisticsController.getTagStatistics(req, res));

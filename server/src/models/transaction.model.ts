@@ -118,7 +118,10 @@ export interface TransactionPaginatedResponseDto {
 /**
  * 将交易记录实体转换为响应DTO
  */
-export function toTransactionResponseDto(transaction: PrismaTransaction, category?: CategoryResponseDto): TransactionResponseDto {
+export function toTransactionResponseDto(
+  transaction: PrismaTransaction,
+  category?: CategoryResponseDto,
+): TransactionResponseDto {
   return {
     id: transaction.id,
     amount: Number(transaction.amount),

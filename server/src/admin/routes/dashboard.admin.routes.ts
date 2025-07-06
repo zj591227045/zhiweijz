@@ -25,10 +25,14 @@ router.get('/system', (req, res) => dashboardController.getSystemResources(req, 
 router.get('/charts', (req, res) => dashboardController.getChartData(req, res));
 
 // 获取系统性能历史数据
-router.get('/performance/history', (req, res) => dashboardController.getPerformanceHistory(req, res));
+router.get('/performance/history', (req, res) =>
+  dashboardController.getPerformanceHistory(req, res),
+);
 
 // 获取所有性能历史数据
-router.get('/performance/all', (req, res) => dashboardController.getAllPerformanceHistory(req, res));
+router.get('/performance/all', (req, res) =>
+  dashboardController.getAllPerformanceHistory(req, res),
+);
 
 // 获取性能统计信息
 router.get('/performance/stats', (req, res) => dashboardController.getPerformanceStats(req, res));

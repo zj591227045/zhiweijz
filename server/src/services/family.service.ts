@@ -1,7 +1,7 @@
 // 定义角色枚举
 enum Role {
   ADMIN = 'ADMIN',
-  MEMBER = 'MEMBER'
+  MEMBER = 'MEMBER',
 }
 import { randomUUID } from 'crypto';
 import bcrypt from 'bcrypt';
@@ -79,9 +79,8 @@ export class FamilyService {
           await this.familyBudgetService.createDefaultBudgetsForNewMember(
             userId,
             family.id,
-            accountBook.id
+            accountBook.id,
           );
-
         }
       } catch (budgetError) {
         console.error(`为家庭创建者 ${userId} 创建默认预算失败:`, budgetError);
@@ -100,7 +99,7 @@ export class FamilyService {
         name: creator.name,
         email: creator.email,
       },
-      userId
+      userId,
     );
   }
 
@@ -109,7 +108,11 @@ export class FamilyService {
    * @private
    * @returns 创建的账本
    */
-  private async createDefaultFamilyAccountBook(userId: string, familyId: string, familyName: string): Promise<any> {
+  private async createDefaultFamilyAccountBook(
+    userId: string,
+    familyId: string,
+    familyName: string,
+  ): Promise<any> {
     const accountBook = await this.accountBookService.createFamilyAccountBook(userId, familyId, {
       name: `${familyName}家庭账本`,
       description: '系统自动创建的家庭账本',
@@ -137,12 +140,14 @@ export class FamilyService {
         toFamilyListResponseDto(
           family,
           members.length,
-          creator ? {
-            id: creator.id,
-            name: creator.name,
-            email: creator.email,
-          } : undefined
-        )
+          creator
+            ? {
+                id: creator.id,
+                name: creator.name,
+                email: creator.email,
+              }
+            : undefined,
+        ),
       );
     }
 
@@ -171,19 +176,25 @@ export class FamilyService {
     return toFamilyResponseDto(
       family,
       family.members,
-      creator ? {
-        id: creator.id,
-        name: creator.name,
-        email: creator.email,
-      } : undefined,
-      userId
+      creator
+        ? {
+            id: creator.id,
+            name: creator.name,
+            email: creator.email,
+          }
+        : undefined,
+      userId,
     );
   }
 
   /**
    * 更新家庭
    */
-  async updateFamily(id: string, userId: string, familyData: UpdateFamilyDto): Promise<FamilyResponseDto> {
+  async updateFamily(
+    id: string,
+    userId: string,
+    familyData: UpdateFamilyDto,
+  ): Promise<FamilyResponseDto> {
     // 获取家庭详情
     const family = await this.familyRepository.findFamilyById(id);
     if (!family) {
@@ -205,12 +216,14 @@ export class FamilyService {
     return toFamilyResponseDto(
       updatedFamily,
       family.members,
-      creator ? {
-        id: creator.id,
-        name: creator.name,
-        email: creator.email,
-      } : undefined,
-      userId
+      creator
+        ? {
+            id: creator.id,
+            name: creator.name,
+            email: creator.email,
+          }
+        : undefined,
+      userId,
     );
   }
 
@@ -231,7 +244,9 @@ export class FamilyService {
 
     // 获取家庭关联的所有账本
     try {
-      const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(userId, id, { limit: 100 });
+      const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(userId, id, {
+        limit: 100,
+      });
 
       // 删除每个家庭账本
       if (familyAccountBooks && familyAccountBooks.data && familyAccountBooks.data.length > 0) {
@@ -257,7 +272,11 @@ export class FamilyService {
   /**
    * 添加家庭成员
    */
-  async addFamilyMember(familyId: string, userId: string, memberData: CreateFamilyMemberDto): Promise<FamilyMemberResponseDto> {
+  async addFamilyMember(
+    familyId: string,
+    userId: string,
+    memberData: CreateFamilyMemberDto,
+  ): Promise<FamilyMemberResponseDto> {
     // 获取家庭详情
     const family = await this.familyRepository.findFamilyById(familyId);
     if (!family) {
@@ -279,7 +298,10 @@ export class FamilyService {
       }
 
       // 检查用户是否已经是家庭成员
-      const existingMember = await this.familyRepository.findFamilyMemberByUserAndFamily(memberData.userId, familyId);
+      const existingMember = await this.familyRepository.findFamilyMemberByUserAndFamily(
+        memberData.userId,
+        familyId,
+      );
       if (existingMember) {
         throw new Error('用户已经是家庭成员');
       }
@@ -291,21 +313,26 @@ export class FamilyService {
       userId: memberData.userId,
       name: memberData.name || (userInfo ? userInfo.name : '未命名成员'),
       role: memberData.role || Role.MEMBER,
-      isRegistered: memberData.isRegistered !== undefined ? memberData.isRegistered : !!memberData.userId,
+      isRegistered:
+        memberData.isRegistered !== undefined ? memberData.isRegistered : !!memberData.userId,
     });
 
     // 如果是已注册用户，为其创建默认预算
     if (member.userId && member.isRegistered) {
       try {
         // 获取家庭账本
-        const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(userId, familyId, { limit: 100 });
+        const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(
+          userId,
+          familyId,
+          { limit: 100 },
+        );
         if (familyAccountBooks && familyAccountBooks.data && familyAccountBooks.data.length > 0) {
           // 为每个家庭账本创建默认预算
           for (const accountBook of familyAccountBooks.data) {
             await this.familyBudgetService.createDefaultBudgetsForNewMember(
               member.userId,
               familyId,
-              accountBook.id
+              accountBook.id,
             );
           }
         }
@@ -321,7 +348,12 @@ export class FamilyService {
   /**
    * 更新家庭成员
    */
-  async updateFamilyMember(familyId: string, memberId: string, userId: string, memberData: UpdateFamilyMemberDto): Promise<FamilyMemberResponseDto> {
+  async updateFamilyMember(
+    familyId: string,
+    memberId: string,
+    userId: string,
+    memberData: UpdateFamilyMemberDto,
+  ): Promise<FamilyMemberResponseDto> {
     // 获取家庭成员
     const member = await this.familyRepository.findFamilyMemberById(memberId);
     if (!member || member.familyId !== familyId) {
@@ -357,7 +389,10 @@ export class FamilyService {
     }
 
     // 不能删除自己
-    const userMember = await this.familyRepository.findFamilyMemberByUserAndFamily(userId, familyId);
+    const userMember = await this.familyRepository.findFamilyMemberByUserAndFamily(
+      userId,
+      familyId,
+    );
     if (userMember && userMember.id === memberId) {
       throw new Error('不能删除自己');
     }
@@ -379,7 +414,12 @@ export class FamilyService {
   /**
    * 创建邀请链接
    */
-  async createInvitation(familyId: string, userId: string, invitationData: CreateInvitationDto, baseUrl: string): Promise<InvitationResponseDto> {
+  async createInvitation(
+    familyId: string,
+    userId: string,
+    invitationData: CreateInvitationDto,
+    baseUrl: string,
+  ): Promise<InvitationResponseDto> {
     // 获取家庭详情
     const family = await this.familyRepository.findFamilyById(familyId);
     if (!family) {
@@ -401,7 +441,11 @@ export class FamilyService {
     expiresAt.setHours(expiresAt.getHours() + expiresInHours);
 
     // 创建邀请
-    const invitation = await this.familyRepository.createInvitation(familyId, invitationCode, expiresAt);
+    const invitation = await this.familyRepository.createInvitation(
+      familyId,
+      invitationCode,
+      expiresAt,
+    );
 
     return toInvitationResponseDto(invitation, baseUrl);
   }
@@ -409,7 +453,11 @@ export class FamilyService {
   /**
    * 获取家庭邀请列表
    */
-  async getFamilyInvitations(familyId: string, userId: string, baseUrl: string): Promise<InvitationResponseDto[]> {
+  async getFamilyInvitations(
+    familyId: string,
+    userId: string,
+    baseUrl: string,
+  ): Promise<InvitationResponseDto[]> {
     // 获取家庭详情
     const family = await this.familyRepository.findFamilyById(familyId);
     if (!family) {
@@ -426,15 +474,20 @@ export class FamilyService {
     const invitations = await this.familyRepository.findFamilyInvitations(familyId);
 
     // 转换为响应DTO
-    return invitations.map(invitation => toInvitationResponseDto(invitation, baseUrl));
+    return invitations.map((invitation) => toInvitationResponseDto(invitation, baseUrl));
   }
 
   /**
    * 接受邀请
    */
-  async acceptInvitation(userId: string, invitationData: AcceptInvitationDto): Promise<FamilyMemberResponseDto> {
+  async acceptInvitation(
+    userId: string,
+    invitationData: AcceptInvitationDto,
+  ): Promise<FamilyMemberResponseDto> {
     // 获取邀请
-    const invitation = await this.familyRepository.findInvitationByCode(invitationData.invitationCode);
+    const invitation = await this.familyRepository.findInvitationByCode(
+      invitationData.invitationCode,
+    );
     if (!invitation) {
       throw new Error('邀请不存在或已过期');
     }
@@ -451,7 +504,10 @@ export class FamilyService {
     }
 
     // 检查用户是否已经是家庭成员
-    const existingMember = await this.familyRepository.findFamilyMemberByUserAndFamily(userId, invitation.familyId);
+    const existingMember = await this.familyRepository.findFamilyMemberByUserAndFamily(
+      userId,
+      invitation.familyId,
+    );
     if (existingMember) {
       throw new Error('您已经是该家庭的成员');
     }
@@ -468,14 +524,18 @@ export class FamilyService {
     // 为新成员创建默认预算
     try {
       // 获取家庭账本
-      const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(userId, invitation.familyId, { limit: 100 });
+      const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(
+        userId,
+        invitation.familyId,
+        { limit: 100 },
+      );
       if (familyAccountBooks && familyAccountBooks.data && familyAccountBooks.data.length > 0) {
         // 为每个家庭账本创建默认预算
         for (const accountBook of familyAccountBooks.data) {
           await this.familyBudgetService.createDefaultBudgetsForNewMember(
             userId,
             invitation.familyId,
-            accountBook.id
+            accountBook.id,
           );
         }
       }
@@ -539,7 +599,7 @@ export class FamilyService {
     // 获取家庭成员列表
     const members = await this.familyRepository.findFamilyMembers(familyId);
 
-    return members.map(member => toFamilyMemberResponseDto(member, userId));
+    return members.map((member) => toFamilyMemberResponseDto(member, userId));
   }
 
   /**
@@ -584,7 +644,11 @@ export class FamilyService {
 
     try {
       // 获取家庭的所有账本
-      const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(userId, familyId, { limit: 100 });
+      const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(
+        userId,
+        familyId,
+        { limit: 100 },
+      );
 
       if (!familyAccountBooks || !familyAccountBooks.data || familyAccountBooks.data.length === 0) {
         // 如果没有家庭账本，返回空数据
@@ -593,12 +657,12 @@ export class FamilyService {
           totalExpense: 0,
           balance: 0,
           memberStats: [],
-          categoryStats: []
+          categoryStats: [],
         };
       }
 
       // 获取所有家庭账本的ID
-      const accountBookIds = familyAccountBooks.data.map(book => book.id);
+      const accountBookIds = familyAccountBooks.data.map((book) => book.id);
 
       // 获取家庭账本的收入交易
       const incomeTransactions = await prisma.transaction.findMany({
@@ -642,14 +706,14 @@ export class FamilyService {
       // 计算成员消费统计
       const memberStats = new Map<string, { name: string; totalExpense: number }>();
 
-      expenseTransactions.forEach(transaction => {
+      expenseTransactions.forEach((transaction) => {
         let member: any;
         let memberKey: string;
         let memberName: string;
 
         if (transaction.familyMemberId) {
           // 有家庭成员ID的交易
-          member = members.find(m => m.id === transaction.familyMemberId);
+          member = members.find((m) => m.id === transaction.familyMemberId);
           if (member) {
             memberKey = member.id; // 使用家庭成员ID作为统一标识
             memberName = member.name || '未知家庭成员';
@@ -658,7 +722,7 @@ export class FamilyService {
           }
         } else if (transaction.userId) {
           // 普通成员的交易（通过userId查找）
-          member = members.find(m => m.userId === transaction.userId);
+          member = members.find((m) => m.userId === transaction.userId);
           if (member) {
             memberKey = member.id; // 使用家庭成员ID作为统一标识
             memberName = member.name || transaction.user?.name || '未知用户';
@@ -675,43 +739,50 @@ export class FamilyService {
       });
 
       // 转换为数组并计算百分比，按百分比降序排列
-      const memberStatsArray = Array.from(memberStats.entries()).map(([memberId, stats]) => ({
-        memberId,
-        memberName: stats.name,
-        totalExpense: stats.totalExpense,
-        percentage: totalExpense > 0 ? Math.round((stats.totalExpense / totalExpense) * 100) : 0
-      })).sort((a, b) => b.percentage - a.percentage);
+      const memberStatsArray = Array.from(memberStats.entries())
+        .map(([memberId, stats]) => ({
+          memberId,
+          memberName: stats.name,
+          totalExpense: stats.totalExpense,
+          percentage: totalExpense > 0 ? Math.round((stats.totalExpense / totalExpense) * 100) : 0,
+        }))
+        .sort((a, b) => b.percentage - a.percentage);
 
       // 计算分类消费统计
       const categoryStats = new Map<string, { name: string; icon: string; totalExpense: number }>();
 
-      expenseTransactions.forEach(transaction => {
+      expenseTransactions.forEach((transaction) => {
         const categoryId = transaction.categoryId;
         const categoryName = transaction.category?.name || '其他';
         const categoryIcon = transaction.category?.icon || 'tag';
 
-        const current = categoryStats.get(categoryId) || { name: categoryName, icon: categoryIcon, totalExpense: 0 };
+        const current = categoryStats.get(categoryId) || {
+          name: categoryName,
+          icon: categoryIcon,
+          totalExpense: 0,
+        };
         current.totalExpense += Number(transaction.amount);
         categoryStats.set(categoryId, current);
       });
 
       // 转换为数组并计算百分比，按百分比降序排列
-      const categoryStatsArray = Array.from(categoryStats.entries()).map(([categoryId, stats]) => ({
-        categoryId,
-        categoryName: stats.name,
-        categoryIcon: stats.icon,
-        totalExpense: stats.totalExpense,
-        percentage: totalExpense > 0 ? Math.round((stats.totalExpense / totalExpense) * 100) : 0
-      })).sort((a, b) => b.percentage - a.percentage);
+      const categoryStatsArray = Array.from(categoryStats.entries())
+        .map(([categoryId, stats]) => ({
+          categoryId,
+          categoryName: stats.name,
+          categoryIcon: stats.icon,
+          totalExpense: stats.totalExpense,
+          percentage: totalExpense > 0 ? Math.round((stats.totalExpense / totalExpense) * 100) : 0,
+        }))
+        .sort((a, b) => b.percentage - a.percentage);
 
       return {
         totalIncome,
         totalExpense,
         balance,
         memberStats: memberStatsArray,
-        categoryStats: categoryStatsArray
+        categoryStats: categoryStatsArray,
       };
-
     } catch (error) {
       console.error('获取家庭统计数据失败:', error);
 
@@ -721,7 +792,7 @@ export class FamilyService {
         totalExpense: 0,
         balance: 0,
         memberStats: [],
-        categoryStats: []
+        categoryStats: [],
       };
     }
   }
@@ -789,11 +860,15 @@ export class FamilyService {
     }
 
     // 获取家庭的所有账本
-    const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(userId, familyId, { limit: 100 });
+    const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(
+      userId,
+      familyId,
+      { limit: 100 },
+    );
 
     if (!familyAccountBooks || !familyAccountBooks.data || familyAccountBooks.data.length === 0) {
       // 如果没有家庭账本，返回空统计数据
-      const emptyMemberStatistics = members.map(member => ({
+      const emptyMemberStatistics = members.map((member) => ({
         memberId: member.id,
         userId: member.userId,
         username: member.name || '未知用户',
@@ -805,8 +880,8 @@ export class FamilyService {
         statistics: {
           totalExpense: 0,
           percentage: 0,
-          transactionCount: 0
-        }
+          transactionCount: 0,
+        },
       }));
 
       const isAdmin = await this.isUserFamilyAdmin(userId, familyId);
@@ -818,87 +893,93 @@ export class FamilyService {
         userPermissions: {
           canInvite: isAdmin,
           canRemove: isAdmin,
-          canChangeRoles: isAdmin
-        }
+          canChangeRoles: isAdmin,
+        },
       };
     }
 
     // 获取所有家庭账本的ID
-    const accountBookIds = familyAccountBooks.data.map(book => book.id);
+    const accountBookIds = familyAccountBooks.data.map((book) => book.id);
 
     // 获取真实的交易统计数据
-    const memberStatistics = await Promise.all(members.map(async (member) => {
-      let memberExpense = 0;
-      let transactionCount = 0;
+    const memberStatistics = await Promise.all(
+      members.map(async (member) => {
+        let memberExpense = 0;
+        let transactionCount = 0;
 
-      try {
-        // 统一使用familyMemberId查询所有成员的交易记录
-        // 无论是托管成员还是普通成员，都通过familyMemberId进行归属
-        const whereCondition = {
-          accountBookId: { in: accountBookIds },
-          type: 'EXPENSE' as const,
-          date: {
-            gte: startDate,
-            lte: endDate,
-          },
-          familyMemberId: member.id, // 统一使用familyMemberId查询
-        };
-
-        const transactions = await prisma.transaction.findMany({
-          where: whereCondition,
-        });
-
-        memberExpense = transactions.reduce((sum, t) => sum + Number(t.amount), 0);
-        transactionCount = transactions.length;
-      } catch (error) {
-        console.error(`获取成员 ${member.id} 的交易数据失败:`, error);
-        // 如果查询失败，使用默认值
-        memberExpense = 0;
-        transactionCount = 0;
-      }
-
-      // 检查成员是否为托管成员（通过关联的用户判断）
-      let isCustodial = false;
-      if (member.userId) {
         try {
-          const user = await prisma.user.findUnique({
-            where: { id: member.userId },
-            select: { isCustodial: true }
-          });
-          isCustodial = user?.isCustodial || false;
-        } catch (error) {
-          console.error(`检查用户 ${member.userId} 是否为托管用户失败:`, error);
-          isCustodial = false;
-        }
-      }
+          // 统一使用familyMemberId查询所有成员的交易记录
+          // 无论是托管成员还是普通成员，都通过familyMemberId进行归属
+          const whereCondition = {
+            accountBookId: { in: accountBookIds },
+            type: 'EXPENSE' as const,
+            date: {
+              gte: startDate,
+              lte: endDate,
+            },
+            familyMemberId: member.id, // 统一使用familyMemberId查询
+          };
 
-      return {
-        memberId: member.id,
-        userId: member.userId,
-        username: member.name || '未知用户',
-        avatar: null, // 实际应用中应该从用户表获取
-        role: member.role,
-        joinedAt: member.createdAt,
-        isCurrentUser: member.userId === userId,
-        isCustodial: isCustodial, // 使用从用户表查询的结果
-        statistics: {
-          totalExpense: memberExpense,
-          percentage: 0, // 稍后计算
-          transactionCount: transactionCount
+          const transactions = await prisma.transaction.findMany({
+            where: whereCondition,
+          });
+
+          memberExpense = transactions.reduce((sum, t) => sum + Number(t.amount), 0);
+          transactionCount = transactions.length;
+        } catch (error) {
+          console.error(`获取成员 ${member.id} 的交易数据失败:`, error);
+          // 如果查询失败，使用默认值
+          memberExpense = 0;
+          transactionCount = 0;
         }
-      };
-    }));
+
+        // 检查成员是否为托管成员（通过关联的用户判断）
+        let isCustodial = false;
+        if (member.userId) {
+          try {
+            const user = await prisma.user.findUnique({
+              where: { id: member.userId },
+              select: { isCustodial: true },
+            });
+            isCustodial = user?.isCustodial || false;
+          } catch (error) {
+            console.error(`检查用户 ${member.userId} 是否为托管用户失败:`, error);
+            isCustodial = false;
+          }
+        }
+
+        return {
+          memberId: member.id,
+          userId: member.userId,
+          username: member.name || '未知用户',
+          avatar: null, // 实际应用中应该从用户表获取
+          role: member.role,
+          joinedAt: member.createdAt,
+          isCurrentUser: member.userId === userId,
+          isCustodial: isCustodial, // 使用从用户表查询的结果
+          statistics: {
+            totalExpense: memberExpense,
+            percentage: 0, // 稍后计算
+            transactionCount: transactionCount,
+          },
+        };
+      }),
+    );
 
     // 计算总支出
-    const totalExpense = memberStatistics.reduce((sum, member) => sum + member.statistics.totalExpense, 0);
+    const totalExpense = memberStatistics.reduce(
+      (sum, member) => sum + member.statistics.totalExpense,
+      0,
+    );
 
     // 计算每个成员的消费占比
-    const updatedMemberStatistics = memberStatistics.map(member => ({
+    const updatedMemberStatistics = memberStatistics.map((member) => ({
       ...member,
       statistics: {
         ...member.statistics,
-        percentage: totalExpense > 0 ? Math.round((member.statistics.totalExpense / totalExpense) * 100) : 0
-      }
+        percentage:
+          totalExpense > 0 ? Math.round((member.statistics.totalExpense / totalExpense) * 100) : 0,
+      },
     }));
 
     // 计算用户权限
@@ -911,15 +992,19 @@ export class FamilyService {
       userPermissions: {
         canInvite: isAdmin,
         canRemove: isAdmin,
-        canChangeRoles: isAdmin
-      }
+        canChangeRoles: isAdmin,
+      },
     };
   }
 
   /**
    * 添加托管成员（现在创建为托管用户）
    */
-  async addCustodialMember(familyId: string, userId: string, memberData: CreateCustodialMemberDto): Promise<FamilyMemberResponseDto> {
+  async addCustodialMember(
+    familyId: string,
+    userId: string,
+    memberData: CreateCustodialMemberDto,
+  ): Promise<FamilyMemberResponseDto> {
     // 获取家庭详情
     const family = await this.familyRepository.findFamilyById(familyId);
     if (!family) {
@@ -935,12 +1020,14 @@ export class FamilyService {
     // 创建托管用户
     const custodialUser = await prisma.user.create({
       data: {
-        email: `custodial_${Date.now()}_${Math.random().toString(36).substr(2, 9)}@internal.zhiweijz.local`,
+        email: `custodial_${Date.now()}_${Math.random()
+          .toString(36)
+          .substr(2, 9)}@internal.zhiweijz.local`,
         passwordHash: await bcrypt.hash(crypto.randomUUID(), 10), // 随机密码，无法登录
         name: memberData.name,
         isCustodial: true,
         birthDate: memberData.birthDate,
-      }
+      },
     });
 
     // 创建家庭成员记录，关联到托管用户
@@ -958,7 +1045,11 @@ export class FamilyService {
     // 为托管用户创建默认预算
     try {
       // 获取家庭账本
-      const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(userId, familyId, { limit: 100 });
+      const familyAccountBooks = await this.accountBookService.getFamilyAccountBooks(
+        userId,
+        familyId,
+        { limit: 100 },
+      );
       if (familyAccountBooks && familyAccountBooks.data && familyAccountBooks.data.length > 0) {
         // 为每个家庭账本创建默认预算
         for (const accountBook of familyAccountBooks.data) {
@@ -966,7 +1057,7 @@ export class FamilyService {
             custodialUser.id, // 使用托管用户ID作为预算的所有者
             familyId,
             accountBook.id,
-            undefined // 不再使用familyMemberId
+            undefined, // 不再使用familyMemberId
           );
         }
       }
@@ -981,7 +1072,12 @@ export class FamilyService {
   /**
    * 更新托管成员（新架构：检查用户的isCustodial字段）
    */
-  async updateCustodialMember(familyId: string, memberId: string, userId: string, memberData: UpdateFamilyMemberDto): Promise<FamilyMemberResponseDto> {
+  async updateCustodialMember(
+    familyId: string,
+    memberId: string,
+    userId: string,
+    memberData: UpdateFamilyMemberDto,
+  ): Promise<FamilyMemberResponseDto> {
     // 获取家庭成员
     const member = await this.familyRepository.findFamilyMemberById(memberId);
     if (!member || member.familyId !== familyId) {
@@ -994,7 +1090,7 @@ export class FamilyService {
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: member.userId }
+      where: { id: member.userId },
     });
 
     if (!user || !user.isCustodial) {
@@ -1014,7 +1110,7 @@ export class FamilyService {
         data: {
           ...(memberData.name && { name: memberData.name }),
           ...(memberData.birthDate && { birthDate: memberData.birthDate }),
-        }
+        },
       });
     }
 
@@ -1040,7 +1136,7 @@ export class FamilyService {
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: member.userId }
+      where: { id: member.userId },
     });
 
     if (!user || !user.isCustodial) {
@@ -1078,14 +1174,14 @@ export class FamilyService {
       const otherFamilyMembers = await prisma.familyMember.findMany({
         where: {
           userId: user.id,
-          familyId: { not: familyId }
-        }
+          familyId: { not: familyId },
+        },
       });
 
       if (otherFamilyMembers.length === 0) {
         // 该托管用户不属于其他家庭，可以安全删除
         await prisma.user.delete({
-          where: { id: user.id }
+          where: { id: user.id },
         });
         console.log(`已删除托管用户 ${user.id}`);
       } else {
@@ -1119,21 +1215,21 @@ export class FamilyService {
         isCustodial: true,
         familyMembers: {
           some: {
-            familyId: familyId
-          }
-        }
+            familyId: familyId,
+          },
+        },
       },
       include: {
         familyMembers: {
           where: {
-            familyId: familyId
-          }
-        }
-      }
+            familyId: familyId,
+          },
+        },
+      },
     });
 
     // 转换为 FamilyMemberResponseDto 格式
-    return custodialUsers.map(user => {
+    return custodialUsers.map((user) => {
       const familyMember = user.familyMembers[0]; // 该用户在此家庭中的成员记录
       return {
         id: familyMember?.id || user.id,
@@ -1146,7 +1242,7 @@ export class FamilyService {
         isRegistered: false, // 托管用户不允许登录
         isCustodial: true,
         createdAt: familyMember?.createdAt || user.createdAt,
-        updatedAt: familyMember?.updatedAt || user.updatedAt
+        updatedAt: familyMember?.updatedAt || user.updatedAt,
       };
     });
   }

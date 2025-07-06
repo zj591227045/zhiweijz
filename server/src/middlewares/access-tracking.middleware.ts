@@ -13,17 +13,11 @@ const TRACKED_PATHS = [
   '/api/families',
   '/api/statistics',
   '/api/ai',
-  '/api/auth'
+  '/api/auth',
 ];
 
 // 排除的路径（健康检查、静态资源等）
-const EXCLUDED_PATHS = [
-  '/api/health',
-  '/data/',
-  '/favicon.ico',
-  '/_next/',
-  '/static/'
-];
+const EXCLUDED_PATHS = ['/api/health', '/data/', '/favicon.ico', '/_next/', '/static/'];
 
 /**
  * 前端访问统计中间件
@@ -31,10 +25,11 @@ const EXCLUDED_PATHS = [
  */
 export function trackAccess(req: Request, res: Response, next: NextFunction): void {
   const startTime = Date.now();
-  
+
   // 检查是否需要跟踪此路径
-  const shouldTrack = TRACKED_PATHS.some(path => req.path.startsWith(path)) &&
-                     !EXCLUDED_PATHS.some(path => req.path.startsWith(path));
+  const shouldTrack =
+    TRACKED_PATHS.some((path) => req.path.startsWith(path)) &&
+    !EXCLUDED_PATHS.some((path) => req.path.startsWith(path));
 
   if (!shouldTrack) {
     next();
@@ -43,7 +38,12 @@ export function trackAccess(req: Request, res: Response, next: NextFunction): vo
 
   // 重写 res.end 方法来捕获响应
   const originalEnd = res.end.bind(res);
-  res.end = function(this: Response, chunk?: any, encoding?: BufferEncoding | (() => void), cb?: () => void): Response {
+  res.end = function (
+    this: Response,
+    chunk?: any,
+    encoding?: BufferEncoding | (() => void),
+    cb?: () => void,
+  ): Response {
     const duration = Date.now() - startTime;
 
     // 异步记录访问日志，不阻塞响应
@@ -103,8 +103,8 @@ async function recordAccess(req: Request, res: Response, duration: number): Prom
           method: req.method,
           userAgent,
           ipAddress: ip,
-          createdAt: new Date()
-        }
+          createdAt: new Date(),
+        },
       });
     }
   } catch (error) {
@@ -119,12 +119,12 @@ async function recordAccess(req: Request, res: Response, duration: number): Prom
 function generateSessionId(req: Request): string {
   // 尝试从请求头获取会话ID
   let sessionId = req.get('X-Session-ID');
-  
+
   if (!sessionId) {
     // 如果没有会话ID，生成一个新的
     sessionId = generateUUID();
   }
-  
+
   return sessionId;
 }
 
@@ -145,9 +145,9 @@ function getClientIP(req: Request): string {
  * 生成UUID
  */
 function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }
@@ -158,7 +158,7 @@ function generateUUID(): string {
  */
 export function trackApiCall(req: Request, res: Response, next: NextFunction): void {
   const startTime = Date.now();
-  
+
   // 只跟踪API调用
   if (!req.path.startsWith('/api/')) {
     next();
@@ -166,16 +166,21 @@ export function trackApiCall(req: Request, res: Response, next: NextFunction): v
   }
 
   // 排除某些路径
-  if (EXCLUDED_PATHS.some(path => req.path.startsWith(path))) {
+  if (EXCLUDED_PATHS.some((path) => req.path.startsWith(path))) {
     next();
     return;
   }
 
   // 重写 res.end 方法
   const originalEnd = res.end.bind(res);
-  res.end = function(this: Response, chunk?: any, encoding?: BufferEncoding | (() => void), cb?: () => void): Response {
+  res.end = function (
+    this: Response,
+    chunk?: any,
+    encoding?: BufferEncoding | (() => void),
+    cb?: () => void,
+  ): Response {
     const duration = Date.now() - startTime;
-    
+
     // 异步记录API调用日志
     setImmediate(async () => {
       try {
@@ -218,9 +223,9 @@ async function recordApiCall(req: Request, res: Response, duration: number): Pro
     //     createdAt: new Date()
     //   }
     // });
-    
+
     console.log(`API调用跟踪: ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
   } catch (error) {
     console.error('记录API调用数据失败:', error);
   }
-} 
+}

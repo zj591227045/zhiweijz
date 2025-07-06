@@ -5,7 +5,7 @@ import {
   parseWechatXML,
   verifyWechatSignature,
   wechatErrorHandler,
-  wechatLogger
+  wechatLogger,
 } from '../middlewares/wechat.middleware';
 
 const router = Router();
@@ -19,15 +19,19 @@ const wechatController = new WechatController();
 router.get('/health', wechatController.health.bind(wechatController));
 
 // 绑定页面（用户直接访问，不需要任何中间件）
-router.get('/binding-page', (req, res, next) => {
-  console.log('🔍 绑定页面路由被访问:', {
-    method: req.method,
-    path: req.path,
-    userAgent: req.get('User-Agent'),
-    query: req.query
-  });
-  next();
-}, wechatController.getBindingPage.bind(wechatController));
+router.get(
+  '/binding-page',
+  (req, res, next) => {
+    console.log('🔍 绑定页面路由被访问:', {
+      method: req.method,
+      path: req.path,
+      userAgent: req.get('User-Agent'),
+      query: req.query,
+    });
+    next();
+  },
+  wechatController.getBindingPage.bind(wechatController),
+);
 
 // 登录和绑定API（网页调用，不需要微信签名验证）
 router.post('/login-and-get-books', wechatController.loginAndGetBooks.bind(wechatController));
@@ -41,21 +45,38 @@ router.post('/unbind-account', wechatController.unbindAccount.bind(wechatControl
  * @desc 微信服务器回调接口
  * @access Public
  */
-router.all('/callback', wechatLogger, verifyWechatSignature, parseWechatXML, wechatController.callback.bind(wechatController));
+router.all(
+  '/callback',
+  wechatLogger,
+  verifyWechatSignature,
+  parseWechatXML,
+  wechatController.callback.bind(wechatController),
+);
 
 /**
  * @route GET /api/wechat/verify
  * @desc 微信服务器验证接口
  * @access Public
  */
-router.get('/verify', wechatLogger, verifyWechatSignature, wechatController.verify.bind(wechatController));
+router.get(
+  '/verify',
+  wechatLogger,
+  verifyWechatSignature,
+  wechatController.verify.bind(wechatController),
+);
 
 /**
  * @route POST /api/wechat/message
  * @desc 处理微信消息接口
  * @access Public
  */
-router.post('/message', wechatLogger, verifyWechatSignature, parseWechatXML, wechatController.handleMessage.bind(wechatController));
+router.post(
+  '/message',
+  wechatLogger,
+  verifyWechatSignature,
+  parseWechatXML,
+  wechatController.handleMessage.bind(wechatController),
+);
 
 // === 需要身份验证的管理路由 ===
 

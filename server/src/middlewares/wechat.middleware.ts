@@ -16,7 +16,7 @@ export const parseWechatXML = async (req: Request, res: Response, next: NextFunc
 
     // 获取原始XML数据
     let xmlData = '';
-    
+
     req.on('data', (chunk) => {
       xmlData += chunk.toString();
     });
@@ -25,7 +25,7 @@ export const parseWechatXML = async (req: Request, res: Response, next: NextFunc
       try {
         if (xmlData) {
           // 解析XML
-          const result = await parseXML(xmlData) as any;
+          const result = (await parseXML(xmlData)) as any;
 
           // 将解析后的数据添加到请求对象
           req.body = result.xml || {};
@@ -42,7 +42,6 @@ export const parseWechatXML = async (req: Request, res: Response, next: NextFunc
       console.error('请求数据读取失败:', error);
       res.status(400).send('Request data error');
     });
-
   } catch (error) {
     console.error('微信XML中间件错误:', error);
     res.status(500).send('Internal server error');
@@ -63,8 +62,8 @@ export const verifyWechatSignature = (req: Request, res: Response, next: NextFun
       query: req.query,
       headers: {
         'user-agent': req.get('User-Agent'),
-        'content-type': req.get('Content-Type')
-      }
+        'content-type': req.get('Content-Type'),
+      },
     });
 
     if (!signature || !timestamp || !nonce) {
@@ -78,7 +77,7 @@ export const verifyWechatSignature = (req: Request, res: Response, next: NextFun
       signature: signature as string,
       timestamp: timestamp as string,
       nonce: nonce as string,
-      echostr: req.query.echostr as string
+      echostr: req.query.echostr as string,
     };
 
     next();
@@ -98,7 +97,7 @@ export const wechatErrorHandler = (error: any, req: Request, res: Response, next
     url: req.url,
     method: req.method,
     body: req.body,
-    query: req.query
+    query: req.query,
   });
 
   // 对于微信服务器的请求，总是返回success避免重试
@@ -109,7 +108,7 @@ export const wechatErrorHandler = (error: any, req: Request, res: Response, next
   // 其他请求返回JSON错误
   res.status(500).json({
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+    message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong',
   });
 };
 
@@ -118,13 +117,13 @@ export const wechatErrorHandler = (error: any, req: Request, res: Response, next
  */
 export const wechatLogger = (req: Request, res: Response, next: NextFunction) => {
   const startTime = Date.now();
-  
+
   // 记录请求开始
   console.log(`[微信请求] ${req.method} ${req.path}`, {
     query: req.query,
     userAgent: req.get('User-Agent'),
     ip: req.ip,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 
   // 监听响应结束

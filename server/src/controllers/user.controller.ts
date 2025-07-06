@@ -26,7 +26,7 @@ export class UserController {
       }
 
       const user = await this.userService.getUserById(userId);
-      
+
       // 获取用户注册序号
       const registrationOrder = await this.userService.getUserRegistrationOrder(userId);
 
@@ -39,7 +39,7 @@ export class UserController {
         bio: user.bio,
         birthDate: user.birthDate,
         createdAt: user.createdAt,
-        registrationOrder: registrationOrder
+        registrationOrder: registrationOrder,
       };
 
       res.status(200).json(profile);
@@ -73,7 +73,7 @@ export class UserController {
       const updateData: UpdateUserDto = {
         name: profileData.username.trim(),
         bio: profileData.bio?.trim() || undefined,
-        birthDate: profileData.birthDate ? new Date(profileData.birthDate) : undefined
+        birthDate: profileData.birthDate ? new Date(profileData.birthDate) : undefined,
       };
 
       console.log('转换后的更新数据:', updateData);
@@ -89,7 +89,7 @@ export class UserController {
         avatar: updatedUser.avatar,
         bio: updatedUser.bio,
         birthDate: updatedUser.birthDate,
-        createdAt: updatedUser.createdAt
+        createdAt: updatedUser.createdAt,
       };
 
       console.log('更新用户资料成功:', profile);
@@ -127,7 +127,7 @@ export class UserController {
 
       // 更新用户头像
       const updateData: UpdateUserDto = {
-        avatar: avatarUrl
+        avatar: avatarUrl,
       };
 
       await this.userService.updateUser(userId, updateData);
@@ -165,7 +165,7 @@ export class UserController {
 
       // 更新用户头像ID
       const updateData: UpdateUserDto = {
-        avatar: avatarId
+        avatar: avatarId,
       };
 
       await this.userService.updateUser(userId, updateData);
@@ -305,7 +305,7 @@ export class UserController {
       const isOnlyAdmin = await this.userService.checkIfOnlyAccountBookAdmin(userId);
       if (isOnlyAdmin) {
         res.status(400).json({
-          message: '您是某些账本的唯一管理员，请先转移管理权或删除账本后再注销账户'
+          message: '您是某些账本的唯一管理员，请先转移管理权或删除账本后再注销账户',
         });
         return;
       }
@@ -315,7 +315,7 @@ export class UserController {
 
       res.status(200).json({
         message: '注销请求已提交，24小时后将自动删除账户',
-        deletionScheduledAt: result.deletionScheduledAt
+        deletionScheduledAt: result.deletionScheduledAt,
       });
     } catch (error) {
       console.error('发起注销请求失败:', error);

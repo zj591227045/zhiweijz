@@ -34,7 +34,9 @@ export interface UserCategoryConfigResponseDto {
 /**
  * 将用户分类配置实体转换为响应DTO
  */
-export function toUserCategoryConfigResponseDto(config: UserCategoryConfig): UserCategoryConfigResponseDto {
+export function toUserCategoryConfigResponseDto(
+  config: UserCategoryConfig,
+): UserCategoryConfigResponseDto {
   return {
     id: config.id,
     userId: config.userId,

@@ -7,14 +7,14 @@ import { FamilyRepository } from '../repositories/family.repository';
 // 手动定义枚举，因为在测试环境中可能无法正确导入
 enum TransactionType {
   INCOME = 'INCOME',
-  EXPENSE = 'EXPENSE'
+  EXPENSE = 'EXPENSE',
 }
 
 enum BudgetPeriod {
   DAILY = 'DAILY',
   WEEKLY = 'WEEKLY',
   MONTHLY = 'MONTHLY',
-  YEARLY = 'YEARLY'
+  YEARLY = 'YEARLY',
 }
 
 // 模拟依赖
@@ -51,19 +51,19 @@ describe('StatisticsService', () => {
 
     // 模拟StatisticsService中的依赖注入
     jest.mock('../repositories/transaction.repository', () => ({
-      TransactionRepository: jest.fn().mockImplementation(() => mockTransactionRepository)
+      TransactionRepository: jest.fn().mockImplementation(() => mockTransactionRepository),
     }));
 
     jest.mock('../repositories/category.repository', () => ({
-      CategoryRepository: jest.fn().mockImplementation(() => mockCategoryRepository)
+      CategoryRepository: jest.fn().mockImplementation(() => mockCategoryRepository),
     }));
 
     jest.mock('../repositories/budget.repository', () => ({
-      BudgetRepository: jest.fn().mockImplementation(() => mockBudgetRepository)
+      BudgetRepository: jest.fn().mockImplementation(() => mockBudgetRepository),
     }));
 
     jest.mock('../repositories/family.repository', () => ({
-      FamilyRepository: jest.fn().mockImplementation(() => mockFamilyRepository)
+      FamilyRepository: jest.fn().mockImplementation(() => mockFamilyRepository),
     }));
 
     // 创建服务实例
@@ -144,28 +144,30 @@ describe('StatisticsService', () => {
         TransactionType.EXPENSE,
         startDate,
         endDate,
-        undefined
+        undefined,
       );
       expect(mockCategoryRepository.findByUserId).toHaveBeenCalledWith(userId);
-      expect(result).toEqual(expect.objectContaining({
-        total: 300, // 100 + 200
-        data: expect.arrayContaining([
-          expect.objectContaining({
-            date: expect.any(String),
-            amount: expect.any(Number),
-          }),
-        ]),
-        byCategory: expect.arrayContaining([
-          expect.objectContaining({
-            category: expect.objectContaining({
-              id: expect.any(String),
-              name: expect.any(String),
+      expect(result).toEqual(
+        expect.objectContaining({
+          total: 300, // 100 + 200
+          data: expect.arrayContaining([
+            expect.objectContaining({
+              date: expect.any(String),
+              amount: expect.any(Number),
             }),
-            amount: expect.any(Number),
-            percentage: expect.any(Number),
-          }),
-        ]),
-      }));
+          ]),
+          byCategory: expect.arrayContaining([
+            expect.objectContaining({
+              category: expect.objectContaining({
+                id: expect.any(String),
+                name: expect.any(String),
+              }),
+              amount: expect.any(Number),
+              percentage: expect.any(Number),
+            }),
+          ]),
+        }),
+      );
     });
 
     it('should throw an error if user is not a family member', async () => {
@@ -180,8 +182,9 @@ describe('StatisticsService', () => {
       jest.spyOn(statisticsService, 'isUserFamilyMember' as any).mockResolvedValue(false);
 
       // 调用被测试的方法并验证异常
-      await expect(statisticsService.getExpenseStatistics(userId, startDate, endDate, 'day', familyId))
-        .rejects.toThrow('无权访问此家庭数据');
+      await expect(
+        statisticsService.getExpenseStatistics(userId, startDate, endDate, 'day', familyId),
+      ).rejects.toThrow('无权访问此家庭数据');
       expect((statisticsService as any).isUserFamilyMember).toHaveBeenCalledWith(userId, familyId);
       expect(mockTransactionRepository.findByDateRange).not.toHaveBeenCalled();
     });
@@ -305,34 +308,36 @@ describe('StatisticsService', () => {
         BudgetPeriod.MONTHLY,
         expect.any(Date),
         expect.any(Date),
-        undefined
+        undefined,
       );
       expect(mockTransactionRepository.findByDateRange).toHaveBeenCalledWith(
         userId,
         TransactionType.EXPENSE,
         expect.any(Date),
         expect.any(Date),
-        undefined
+        undefined,
       );
       expect(mockCategoryRepository.findByUserId).toHaveBeenCalledWith(userId);
-      expect(result).toEqual(expect.objectContaining({
-        totalBudget: 1500, // 1000 + 500
-        totalSpent: 500, // 300 + 200
-        remaining: 1000, // 1500 - 500
-        percentage: expect.any(Number),
-        categories: expect.arrayContaining([
-          expect.objectContaining({
-            category: expect.objectContaining({
-              id: expect.any(String),
-              name: expect.any(String),
+      expect(result).toEqual(
+        expect.objectContaining({
+          totalBudget: 1500, // 1000 + 500
+          totalSpent: 500, // 300 + 200
+          remaining: 1000, // 1500 - 500
+          percentage: expect.any(Number),
+          categories: expect.arrayContaining([
+            expect.objectContaining({
+              category: expect.objectContaining({
+                id: expect.any(String),
+                name: expect.any(String),
+              }),
+              budget: expect.any(Number),
+              spent: expect.any(Number),
+              remaining: expect.any(Number),
+              percentage: expect.any(Number),
             }),
-            budget: expect.any(Number),
-            spent: expect.any(Number),
-            remaining: expect.any(Number),
-            percentage: expect.any(Number),
-          }),
-        ]),
-      }));
+          ]),
+        }),
+      );
     });
   });
 
@@ -403,28 +408,30 @@ describe('StatisticsService', () => {
         TransactionType.INCOME,
         startDate,
         endDate,
-        undefined
+        undefined,
       );
       expect(mockCategoryRepository.findByUserId).toHaveBeenCalledWith(userId);
-      expect(result).toEqual(expect.objectContaining({
-        total: 3000, // 1000 + 2000
-        data: expect.arrayContaining([
-          expect.objectContaining({
-            date: expect.any(String),
-            amount: expect.any(Number),
-          }),
-        ]),
-        byCategory: expect.arrayContaining([
-          expect.objectContaining({
-            category: expect.objectContaining({
-              id: expect.any(String),
-              name: expect.any(String),
+      expect(result).toEqual(
+        expect.objectContaining({
+          total: 3000, // 1000 + 2000
+          data: expect.arrayContaining([
+            expect.objectContaining({
+              date: expect.any(String),
+              amount: expect.any(Number),
             }),
-            amount: expect.any(Number),
-            percentage: expect.any(Number),
-          }),
-        ]),
-      }));
+          ]),
+          byCategory: expect.arrayContaining([
+            expect.objectContaining({
+              category: expect.objectContaining({
+                id: expect.any(String),
+                name: expect.any(String),
+              }),
+              amount: expect.any(Number),
+              percentage: expect.any(Number),
+            }),
+          ]),
+        }),
+      );
     });
   });
 
@@ -528,7 +535,8 @@ describe('StatisticsService', () => {
       // 设置模拟行为
       // 模拟isUserFamilyMember方法
       jest.spyOn(statisticsService, 'isUserFamilyMember' as any).mockResolvedValue(true);
-      mockTransactionRepository.findByDateRange = jest.fn()
+      mockTransactionRepository.findByDateRange = jest
+        .fn()
         .mockImplementation((userId, type, startDate, endDate, familyId) => {
           if (type === TransactionType.INCOME) {
             return Promise.resolve(mockIncomeTransactions);
@@ -544,31 +552,33 @@ describe('StatisticsService', () => {
       // 验证结果
       expect(mockTransactionRepository.findByDateRange).toHaveBeenCalledTimes(2);
       expect(mockCategoryRepository.findByUserId).toHaveBeenCalledWith(userId);
-      expect(result).toEqual(expect.objectContaining({
-        income: 8000, // 5000 + 3000
-        expense: 3000, // 1000 + 2000
-        netIncome: 5000, // 8000 - 3000
-        topIncomeCategories: expect.arrayContaining([
-          expect.objectContaining({
-            category: expect.objectContaining({
-              id: expect.any(String),
-              name: expect.any(String),
+      expect(result).toEqual(
+        expect.objectContaining({
+          income: 8000, // 5000 + 3000
+          expense: 3000, // 1000 + 2000
+          netIncome: 5000, // 8000 - 3000
+          topIncomeCategories: expect.arrayContaining([
+            expect.objectContaining({
+              category: expect.objectContaining({
+                id: expect.any(String),
+                name: expect.any(String),
+              }),
+              amount: expect.any(Number),
+              percentage: expect.any(Number),
             }),
-            amount: expect.any(Number),
-            percentage: expect.any(Number),
-          }),
-        ]),
-        topExpenseCategories: expect.arrayContaining([
-          expect.objectContaining({
-            category: expect.objectContaining({
-              id: expect.any(String),
-              name: expect.any(String),
+          ]),
+          topExpenseCategories: expect.arrayContaining([
+            expect.objectContaining({
+              category: expect.objectContaining({
+                id: expect.any(String),
+                name: expect.any(String),
+              }),
+              amount: expect.any(Number),
+              percentage: expect.any(Number),
             }),
-            amount: expect.any(Number),
-            percentage: expect.any(Number),
-          }),
-        ]),
-      }));
+          ]),
+        }),
+      );
     });
 
     it('should throw an error if user is not a family member', async () => {
@@ -583,8 +593,9 @@ describe('StatisticsService', () => {
       jest.spyOn(statisticsService, 'isUserFamilyMember' as any).mockResolvedValue(false);
 
       // 调用被测试的方法并验证异常
-      await expect(statisticsService.getFinancialOverview(userId, startDate, endDate, familyId))
-        .rejects.toThrow('无权访问此家庭数据');
+      await expect(
+        statisticsService.getFinancialOverview(userId, startDate, endDate, familyId),
+      ).rejects.toThrow('无权访问此家庭数据');
       expect((statisticsService as any).isUserFamilyMember).toHaveBeenCalledWith(userId, familyId);
       expect(mockTransactionRepository.findByDateRange).not.toHaveBeenCalled();
     });

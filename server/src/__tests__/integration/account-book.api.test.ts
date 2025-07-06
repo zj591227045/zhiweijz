@@ -66,12 +66,10 @@ describe('账本API集成测试', () => {
     });
 
     it('未授权用户应该无法创建账本', async () => {
-      const response = await request(app)
-        .post('/api/account-books')
-        .send({
-          name: '未授权账本',
-          description: '这个账本不应该被创建',
-        });
+      const response = await request(app).post('/api/account-books').send({
+        name: '未授权账本',
+        description: '这个账本不应该被创建',
+      });
 
       expect(response.status).toBe(401);
     });
@@ -161,11 +159,9 @@ describe('账本API集成测试', () => {
     });
 
     it('未授权用户应该无法更新账本', async () => {
-      const response = await request(app)
-        .put(`/api/account-books/${accountBookId}`)
-        .send({
-          name: '未授权更新',
-        });
+      const response = await request(app).put(`/api/account-books/${accountBookId}`).send({
+        name: '未授权更新',
+      });
 
       expect(response.status).toBe(401);
     });

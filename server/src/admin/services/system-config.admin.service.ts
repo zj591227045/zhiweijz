@@ -55,7 +55,7 @@ export class SystemConfigAdminService {
   async getSystemConfigs(params: SystemConfigListParams) {
     try {
       const { category, search } = params;
-      
+
       // 构建查询条件
       const where: any = {};
 
@@ -66,16 +66,13 @@ export class SystemConfigAdminService {
       if (search) {
         where.OR = [
           { key: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } }
+          { description: { contains: search, mode: 'insensitive' } },
         ];
       }
 
       const configs = await prisma.systemConfig.findMany({
         where,
-        orderBy: [
-          { category: 'asc' },
-          { key: 'asc' }
-        ]
+        orderBy: [{ category: 'asc' }, { key: 'asc' }],
         // 移除include以避免TypeScript错误，因为schema中没有定义creator/updater关系
       });
 
@@ -92,7 +89,7 @@ export class SystemConfigAdminService {
       return {
         configs,
         configsByCategory,
-        total: configs.length
+        total: configs.length,
       };
     } catch (error) {
       console.error('获取系统配置列表错误:', error);
@@ -106,7 +103,7 @@ export class SystemConfigAdminService {
   async getSystemConfigById(id: string) {
     try {
       const config = await prisma.systemConfig.findUnique({
-        where: { id }
+        where: { id },
         // 移除include以避免TypeScript错误，因为schema中没有定义creator/updater关系
       });
 
@@ -123,7 +120,7 @@ export class SystemConfigAdminService {
   async getSystemConfigByKey(key: string) {
     try {
       const config = await prisma.systemConfig.findUnique({
-        where: { key }
+        where: { key },
       });
 
       return config;
@@ -140,7 +137,7 @@ export class SystemConfigAdminService {
     try {
       // 检查key是否已存在
       const existingConfig = await prisma.systemConfig.findUnique({
-        where: { key: data.key }
+        where: { key: data.key },
       });
 
       if (existingConfig) {
@@ -154,8 +151,8 @@ export class SystemConfigAdminService {
           description: data.description,
           category: data.category || 'general',
           createdBy: createdById,
-          updatedBy: createdById
-        }
+          updatedBy: createdById,
+        },
         // 移除include以避免TypeScript错误，因为schema中没有定义creator/updater关系
       });
 
@@ -176,7 +173,7 @@ export class SystemConfigAdminService {
     try {
       // 检查配置是否存在
       const existingConfig = await prisma.systemConfig.findUnique({
-        where: { id }
+        where: { id },
       });
 
       if (!existingConfig) {
@@ -190,8 +187,8 @@ export class SystemConfigAdminService {
           ...(data.description !== undefined && { description: data.description }),
           ...(data.category !== undefined && { category: data.category }),
           updatedBy: updatedById,
-          updatedAt: new Date()
-        }
+          updatedAt: new Date(),
+        },
         // 移除include以避免TypeScript错误，因为schema中没有定义creator/updater关系
       });
 
@@ -212,7 +209,7 @@ export class SystemConfigAdminService {
     try {
       // 检查配置是否存在
       const existingConfig = await prisma.systemConfig.findUnique({
-        where: { id }
+        where: { id },
       });
 
       if (!existingConfig) {
@@ -220,7 +217,7 @@ export class SystemConfigAdminService {
       }
 
       await prisma.systemConfig.delete({
-        where: { id }
+        where: { id },
       });
 
       return true;
@@ -247,35 +244,35 @@ export class SystemConfigAdminService {
             update: {
               value: configData.value,
               updatedBy: updatedById,
-              updatedAt: new Date()
+              updatedAt: new Date(),
             },
             create: {
               key: configData.key,
               value: configData.value,
               category: 'general',
               createdBy: updatedById,
-              updatedBy: updatedById
-            }
+              updatedBy: updatedById,
+            },
           });
 
           results.push({
             key: configData.key,
             success: true,
-            config
+            config,
           });
         } catch (error) {
           results.push({
             key: configData.key,
             success: false,
-            error: error instanceof Error ? error.message : '更新失败'
+            error: error instanceof Error ? error.message : '更新失败',
           });
         }
       }
 
       return {
         results,
-        successCount: results.filter(r => r.success).length,
-        totalCount: results.length
+        successCount: results.filter((r) => r.success).length,
+        totalCount: results.length,
       };
     } catch (error) {
       console.error('批量更新系统配置错误:', error);
@@ -290,14 +287,14 @@ export class SystemConfigAdminService {
     try {
       const llmConfigs = await prisma.systemConfig.findMany({
         where: {
-          category: 'llm'
+          category: 'llm',
         },
-        orderBy: { key: 'asc' }
+        orderBy: { key: 'asc' },
       });
 
       // 转换为对象格式
       const configObj: any = {};
-      llmConfigs.forEach(config => {
+      llmConfigs.forEach((config) => {
         const key = config.key.replace('llm_global_', '');
         if (key === 'enabled') {
           configObj[key] = config.value === 'true';
@@ -327,49 +324,49 @@ export class SystemConfigAdminService {
       if (data.enabled !== undefined) {
         updates.push({
           key: 'llm_global_enabled',
-          value: data.enabled.toString()
+          value: data.enabled.toString(),
         });
       }
 
       if (data.provider !== undefined) {
         updates.push({
           key: 'llm_global_provider',
-          value: data.provider
+          value: data.provider,
         });
       }
 
       if (data.model !== undefined) {
         updates.push({
           key: 'llm_global_model',
-          value: data.model
+          value: data.model,
         });
       }
 
       if (data.apiKey !== undefined) {
         updates.push({
           key: 'llm_global_api_key',
-          value: data.apiKey
+          value: data.apiKey,
         });
       }
 
       if (data.baseUrl !== undefined) {
         updates.push({
           key: 'llm_global_base_url',
-          value: data.baseUrl
+          value: data.baseUrl,
         });
       }
 
       if (data.temperature !== undefined) {
         updates.push({
           key: 'llm_global_temperature',
-          value: data.temperature.toString()
+          value: data.temperature.toString(),
         });
       }
 
       if (data.maxTokens !== undefined) {
         updates.push({
           key: 'llm_global_max_tokens',
-          value: data.maxTokens.toString()
+          value: data.maxTokens.toString(),
         });
       }
 
@@ -380,7 +377,7 @@ export class SystemConfigAdminService {
           update: {
             value: update.value,
             updatedBy: updatedById,
-            updatedAt: new Date()
+            updatedAt: new Date(),
           },
           create: {
             key: update.key,
@@ -388,8 +385,8 @@ export class SystemConfigAdminService {
             category: 'llm',
             description: this.getLLMConfigDescription(update.key),
             createdBy: updatedById,
-            updatedBy: updatedById
-          }
+            updatedBy: updatedById,
+          },
         });
       }
 
@@ -405,16 +402,16 @@ export class SystemConfigAdminService {
    */
   async testLLMConnection(config: LLMTestConfig) {
     const startTime = Date.now();
-    
+
     try {
       console.log('开始测试LLM连接:', config);
-      
+
       // 使用LLMProviderService进行真实的连接测试
       const testResult = await this.llmProviderService.testConnection({
         provider: config.provider,
         model: config.model,
         apiKey: config.apiKey,
-        baseUrl: config.baseUrl
+        baseUrl: config.baseUrl,
       });
 
       const responseTime = Date.now() - startTime;
@@ -427,13 +424,13 @@ export class SystemConfigAdminService {
           provider: config.provider,
           model: config.model,
           status: testResult.success ? 'connected' : 'failed',
-          ...(config.baseUrl && { baseUrl: config.baseUrl })
-        }
+          ...(config.baseUrl && { baseUrl: config.baseUrl }),
+        },
       };
     } catch (error) {
       console.error('测试LLM连接错误:', error);
       const responseTime = Date.now() - startTime;
-      
+
       return {
         success: false,
         message: `连接测试失败: ${error instanceof Error ? error.message : '未知错误'}`,
@@ -442,8 +439,8 @@ export class SystemConfigAdminService {
           provider: config.provider,
           model: config.model,
           status: 'failed',
-          error: error instanceof Error ? error.message : '未知错误'
-        }
+          error: error instanceof Error ? error.message : '未知错误',
+        },
       };
     }
   }
@@ -453,13 +450,13 @@ export class SystemConfigAdminService {
    */
   private getLLMConfigDescription(key: string): string {
     const descriptions: { [key: string]: string } = {
-      'llm_global_enabled': '是否启用全局LLM配置',
-      'llm_global_provider': '全局LLM服务提供商',
-      'llm_global_model': '全局LLM模型',
-      'llm_global_api_key': '全局LLM API密钥',
-      'llm_global_base_url': '全局LLM服务地址',
-      'llm_global_temperature': '全局LLM温度参数',
-      'llm_global_max_tokens': '全局LLM最大Token数'
+      llm_global_enabled: '是否启用全局LLM配置',
+      llm_global_provider: '全局LLM服务提供商',
+      llm_global_model: '全局LLM模型',
+      llm_global_api_key: '全局LLM API密钥',
+      llm_global_base_url: '全局LLM服务地址',
+      llm_global_temperature: '全局LLM温度参数',
+      llm_global_max_tokens: '全局LLM最大Token数',
     };
 
     return descriptions[key] || '系统配置';
@@ -471,7 +468,7 @@ export class SystemConfigAdminService {
   async getRegistrationStatus(): Promise<boolean> {
     try {
       const config = await prisma.systemConfig.findUnique({
-        where: { key: 'REGISTRATION_ENABLED' }
+        where: { key: 'REGISTRATION_ENABLED' },
       });
 
       // 默认允许注册
@@ -492,7 +489,7 @@ export class SystemConfigAdminService {
         update: {
           value: enabled.toString(),
           updatedBy: updatedById,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         create: {
           key: 'REGISTRATION_ENABLED',
@@ -500,8 +497,8 @@ export class SystemConfigAdminService {
           description: '是否允许用户注册',
           category: 'auth',
           createdBy: updatedById,
-          updatedBy: updatedById
-        }
+          updatedBy: updatedById,
+        },
       });
 
       return config;
@@ -510,4 +507,4 @@ export class SystemConfigAdminService {
       throw new Error('切换注册状态失败');
     }
   }
-} 
+}

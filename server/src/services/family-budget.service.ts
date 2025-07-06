@@ -26,16 +26,23 @@ export class FamilyBudgetService {
    * @param accountBookId 账本ID
    * @param memberId 可选的成员ID，用于托管成员（已废弃，现在统一通过userId查找）
    */
-  async createDefaultBudgetsForNewMember(userId: string, familyId: string, accountBookId: string, memberId?: string): Promise<void> {
+  async createDefaultBudgetsForNewMember(
+    userId: string,
+    familyId: string,
+    accountBookId: string,
+    memberId?: string,
+  ): Promise<void> {
     try {
-      console.log(`为新家庭成员创建默认预算，用户ID: ${userId}, 家庭ID: ${familyId}, 账本ID: ${accountBookId}`);
+      console.log(
+        `为新家庭成员创建默认预算，用户ID: ${userId}, 家庭ID: ${familyId}, 账本ID: ${accountBookId}`,
+      );
 
       // 查找用户在家庭中的成员记录
       const familyMember = await prisma.familyMember.findFirst({
         where: {
           familyId: familyId,
-          userId: userId
-        }
+          userId: userId,
+        },
       });
 
       if (!familyMember) {
@@ -60,7 +67,7 @@ export class FamilyBudgetService {
         enableCategoryBudget: false,
         isAutoCalculated: false,
         budgetType: 'PERSONAL', // 确保创建的是个人预算
-        familyMemberId: familyMember.id // 统一设置家庭成员ID
+        familyMemberId: familyMember.id, // 统一设置家庭成员ID
       };
 
       // 创建预算
@@ -140,20 +147,19 @@ export class FamilyBudgetService {
               member.id, // 使用成员ID
               budget.startDate,
               budget.endDate,
-              true // 标记为托管成员
+              true, // 标记为托管成员
             );
 
             // 计算占总预算的百分比
-            const percentage = Number(budget.amount) > 0
-              ? (spent / Number(budget.amount)) * 100
-              : 0;
+            const percentage =
+              Number(budget.amount) > 0 ? (spent / Number(budget.amount)) * 100 : 0;
 
             return {
               memberId: member.id,
               memberName: member.name,
               spent,
               percentage,
-              isCustodial: true
+              isCustodial: true,
             };
           }
           // 如果是普通成员但没有userId
@@ -163,7 +169,7 @@ export class FamilyBudgetService {
               memberName: member.name,
               spent: 0,
               percentage: 0,
-              isCustodial: false
+              isCustodial: false,
             };
           }
           // 普通成员
@@ -174,23 +180,22 @@ export class FamilyBudgetService {
               member.userId,
               budget.startDate,
               budget.endDate,
-              false // 标记为非托管成员
+              false, // 标记为非托管成员
             );
 
             // 计算占总预算的百分比
-            const percentage = Number(budget.amount) > 0
-              ? (spent / Number(budget.amount)) * 100
-              : 0;
+            const percentage =
+              Number(budget.amount) > 0 ? (spent / Number(budget.amount)) * 100 : 0;
 
             return {
               memberId: member.userId,
               memberName: member.name,
               spent,
               percentage,
-              isCustodial: false
+              isCustodial: false,
             };
           }
-        })
+        }),
       );
 
       return memberSummaries;

@@ -39,19 +39,19 @@ export const announcementService = {
 
       // 构建查询条件
       const where: any = {};
-      
+
       if (status) {
         where.status = status;
       }
-      
+
       if (priority) {
         where.priority = priority;
       }
-      
+
       if (search) {
         where.OR = [
           { title: { contains: search, mode: 'insensitive' } },
-          { content: { contains: search, mode: 'insensitive' } }
+          { content: { contains: search, mode: 'insensitive' } },
         ];
       }
 
@@ -63,24 +63,22 @@ export const announcementService = {
         where,
         include: {
           creator: {
-            select: { username: true }
+            select: { username: true },
           },
           updater: {
-            select: { username: true }
+            select: { username: true },
           },
           _count: {
-            select: { readings: true }
-          }
+            select: { readings: true },
+          },
         },
-        orderBy: [
-          { createdAt: 'desc' }
-        ],
+        orderBy: [{ createdAt: 'desc' }],
         skip,
-        take: limit
+        take: limit,
       });
 
       // 转换数据格式
-      const result = announcements.map(announcement => ({
+      const result = announcements.map((announcement) => ({
         id: announcement.id,
         title: announcement.title,
         content: announcement.content,
@@ -93,7 +91,7 @@ export const announcementService = {
         updatedAt: announcement.updatedAt.toISOString(),
         creator: announcement.creator.username,
         updater: announcement.updater?.username || null,
-        readCount: announcement._count.readings
+        readCount: announcement._count.readings,
       }));
 
       return {
@@ -102,8 +100,8 @@ export const announcementService = {
           page,
           limit,
           total,
-          totalPages: Math.ceil(total / limit)
-        }
+          totalPages: Math.ceil(total / limit),
+        },
       };
     } catch (error) {
       console.error('获取公告列表失败:', error);
@@ -118,15 +116,15 @@ export const announcementService = {
         where: { id },
         include: {
           creator: {
-            select: { username: true }
+            select: { username: true },
           },
           updater: {
-            select: { username: true }
+            select: { username: true },
           },
           _count: {
-            select: { readings: true }
-          }
-        }
+            select: { readings: true },
+          },
+        },
       });
 
       if (!announcement) {
@@ -146,7 +144,7 @@ export const announcementService = {
         updatedAt: announcement.updatedAt.toISOString(),
         creator: announcement.creator.username,
         updater: announcement.updater?.username || null,
-        readCount: announcement._count.readings
+        readCount: announcement._count.readings,
       };
     } catch (error) {
       console.error('获取公告详情失败:', error);
@@ -166,67 +164,13 @@ export const announcementService = {
           expiresAt: data.expiresAt,
           targetUserType: data.targetUserType,
           createdBy: data.createdBy,
-          status: data.publishedAt ? 'PUBLISHED' : 'DRAFT'
+          status: data.publishedAt ? 'PUBLISHED' : 'DRAFT',
         },
         include: {
           creator: {
-            select: { username: true }
-          }
-        }
-      });
-
-      return {
-        id: announcement.id,
-        title: announcement.title,
-        content: announcement.content,
-        priority: announcement.priority,
-        status: announcement.status,
-        publishedAt: announcement.publishedAt?.toISOString() || null,
-        expiresAt: announcement.expiresAt?.toISOString() || null,
-        targetUserType: announcement.targetUserType,
-        createdAt: announcement.createdAt.toISOString(),
-        updatedAt: announcement.updatedAt.toISOString(),
-        creator: announcement.creator.username
-      };
-    } catch (error) {
-      console.error('创建公告失败:', error);
-      throw error;
-    }
-  },
-
-  // 更新公告
-  async updateAnnouncement(id: string, data: UpdateAnnouncementData) {
-    try {
-      // 检查公告是否存在
-      const existingAnnouncement = await prisma.announcement.findUnique({
-        where: { id }
-      });
-
-      if (!existingAnnouncement) {
-        throw new Error('公告不存在');
-      }
-
-      // 如果设置了发布时间，自动将状态设为已发布
-      const updateData: any = {
-        ...data,
-        updatedAt: new Date()
-      };
-
-      if (data.publishedAt && existingAnnouncement.status === 'DRAFT') {
-        updateData.status = 'PUBLISHED';
-      }
-
-      const announcement = await prisma.announcement.update({
-        where: { id },
-        data: updateData,
-        include: {
-          creator: {
-            select: { username: true }
+            select: { username: true },
           },
-          updater: {
-            select: { username: true }
-          }
-        }
+        },
       });
 
       return {
@@ -241,7 +185,61 @@ export const announcementService = {
         createdAt: announcement.createdAt.toISOString(),
         updatedAt: announcement.updatedAt.toISOString(),
         creator: announcement.creator.username,
-        updater: announcement.updater?.username || null
+      };
+    } catch (error) {
+      console.error('创建公告失败:', error);
+      throw error;
+    }
+  },
+
+  // 更新公告
+  async updateAnnouncement(id: string, data: UpdateAnnouncementData) {
+    try {
+      // 检查公告是否存在
+      const existingAnnouncement = await prisma.announcement.findUnique({
+        where: { id },
+      });
+
+      if (!existingAnnouncement) {
+        throw new Error('公告不存在');
+      }
+
+      // 如果设置了发布时间，自动将状态设为已发布
+      const updateData: any = {
+        ...data,
+        updatedAt: new Date(),
+      };
+
+      if (data.publishedAt && existingAnnouncement.status === 'DRAFT') {
+        updateData.status = 'PUBLISHED';
+      }
+
+      const announcement = await prisma.announcement.update({
+        where: { id },
+        data: updateData,
+        include: {
+          creator: {
+            select: { username: true },
+          },
+          updater: {
+            select: { username: true },
+          },
+        },
+      });
+
+      return {
+        id: announcement.id,
+        title: announcement.title,
+        content: announcement.content,
+        priority: announcement.priority,
+        status: announcement.status,
+        publishedAt: announcement.publishedAt?.toISOString() || null,
+        expiresAt: announcement.expiresAt?.toISOString() || null,
+        targetUserType: announcement.targetUserType,
+        createdAt: announcement.createdAt.toISOString(),
+        updatedAt: announcement.updatedAt.toISOString(),
+        creator: announcement.creator.username,
+        updater: announcement.updater?.username || null,
       };
     } catch (error) {
       console.error('更新公告失败:', error);
@@ -254,7 +252,7 @@ export const announcementService = {
     try {
       // 检查公告是否存在
       const existingAnnouncement = await prisma.announcement.findUnique({
-        where: { id }
+        where: { id },
       });
 
       if (!existingAnnouncement) {
@@ -263,7 +261,7 @@ export const announcementService = {
 
       // 删除公告（会级联删除相关的已读记录）
       await prisma.announcement.delete({
-        where: { id }
+        where: { id },
       });
 
       return true;
@@ -282,16 +280,16 @@ export const announcementService = {
           status: 'PUBLISHED',
           publishedAt: data.publishedAt,
           updatedBy: data.updatedBy,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         include: {
           creator: {
-            select: { username: true }
+            select: { username: true },
           },
           updater: {
-            select: { username: true }
-          }
-        }
+            select: { username: true },
+          },
+        },
       });
 
       return {
@@ -306,7 +304,7 @@ export const announcementService = {
         createdAt: announcement.createdAt.toISOString(),
         updatedAt: announcement.updatedAt.toISOString(),
         creator: announcement.creator.username,
-        updater: announcement.updater?.username || null
+        updater: announcement.updater?.username || null,
       };
     } catch (error) {
       console.error('发布公告失败:', error);
@@ -322,16 +320,16 @@ export const announcementService = {
         data: {
           status: 'ARCHIVED',
           updatedBy,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         include: {
           creator: {
-            select: { username: true }
+            select: { username: true },
           },
           updater: {
-            select: { username: true }
-          }
-        }
+            select: { username: true },
+          },
+        },
       });
 
       return {
@@ -346,7 +344,7 @@ export const announcementService = {
         createdAt: announcement.createdAt.toISOString(),
         updatedAt: announcement.updatedAt.toISOString(),
         creator: announcement.creator.username,
-        updater: announcement.updater?.username || null
+        updater: announcement.updater?.username || null,
       };
     } catch (error) {
       console.error('撤回公告失败:', error);
@@ -364,21 +362,21 @@ export const announcementService = {
         archivedCount,
         todayCount,
         weekCount,
-        totalReadCount
+        totalReadCount,
       ] = await Promise.all([
         // 总公告数
         prisma.announcement.count(),
         // 已发布公告数
         prisma.announcement.count({
-          where: { status: 'PUBLISHED' }
+          where: { status: 'PUBLISHED' },
         }),
         // 草稿公告数
         prisma.announcement.count({
-          where: { status: 'DRAFT' }
+          where: { status: 'DRAFT' },
         }),
         // 已归档公告数
         prisma.announcement.count({
-          where: { status: 'ARCHIVED' }
+          where: { status: 'ARCHIVED' },
         }),
         // 今日创建公告数
         prisma.announcement.count({
@@ -389,36 +387,36 @@ export const announcementService = {
                 const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
                 beijingTime.setUTCHours(0, 0, 0, 0);
                 return new Date(beijingTime.getTime() - 8 * 60 * 60 * 1000);
-              })()
-            }
-          }
+              })(),
+            },
+          },
         }),
         // 本周创建公告数
         prisma.announcement.count({
           where: {
             createdAt: {
-              gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-            }
-          }
+              gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+            },
+          },
         }),
         // 总阅读次数
-        prisma.announcementRead.count()
+        prisma.announcementRead.count(),
       ]);
 
       // 获取优先级分布
       const priorityStats = await prisma.announcement.groupBy({
         by: ['priority'],
         _count: {
-          id: true
-        }
+          id: true,
+        },
       });
 
       // 获取状态分布
       const statusStats = await prisma.announcement.groupBy({
         by: ['status'],
         _count: {
-          id: true
-        }
+          id: true,
+        },
       });
 
       return {
@@ -429,20 +427,20 @@ export const announcementService = {
           archived: archivedCount,
           todayCreated: todayCount,
           weekCreated: weekCount,
-          totalReads: totalReadCount
+          totalReads: totalReadCount,
         },
-        priorityDistribution: priorityStats.map(stat => ({
+        priorityDistribution: priorityStats.map((stat) => ({
           priority: stat.priority,
-          count: stat._count.id
+          count: stat._count.id,
         })),
-        statusDistribution: statusStats.map(stat => ({
+        statusDistribution: statusStats.map((stat) => ({
           status: stat.status,
-          count: stat._count.id
-        }))
+          count: stat._count.id,
+        })),
       };
     } catch (error) {
       console.error('获取公告统计失败:', error);
       throw error;
     }
-  }
-}; 
+  },
+};

@@ -7,7 +7,7 @@ import { hashPassword } from '../../utils/password';
 // 手动定义Role枚举，因为在测试环境中可能无法正确导入
 enum Role {
   ADMIN = 'ADMIN',
-  MEMBER = 'MEMBER'
+  MEMBER = 'MEMBER',
 }
 
 describe('Family API Integration Tests', () => {
@@ -27,14 +27,14 @@ describe('Family API Integration Tests', () => {
   };
 
   // 测试家庭数据
-  let testFamily = {
+  const testFamily = {
     id: '',
     name: 'Test Family',
     createdBy: '',
   };
 
   // 测试邀请数据
-  let testInvitation = {
+  const testInvitation = {
     id: '',
     invitationCode: '',
   };
@@ -53,7 +53,7 @@ describe('Family API Integration Tests', () => {
       passwordHash: 'hashed-password',
       name: testUser1.name,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     // 模拟用户2
@@ -63,7 +63,7 @@ describe('Family API Integration Tests', () => {
       passwordHash: 'hashed-password',
       name: testUser2.name,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     // 设置模拟返回值
@@ -108,7 +108,7 @@ describe('Family API Integration Tests', () => {
         name: testFamily.name,
         createdBy: testUser1.id,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // 模拟家庭成员创建
@@ -120,7 +120,7 @@ describe('Family API Integration Tests', () => {
         role: 'ADMIN',
         isRegistered: true,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // 设置模拟返回值
@@ -128,7 +128,7 @@ describe('Family API Integration Tests', () => {
       prisma.familyMember.create.mockResolvedValueOnce(mockFamilyMember);
       prisma.family.findUnique.mockResolvedValueOnce({
         ...mockFamily,
-        members: [mockFamilyMember]
+        members: [mockFamilyMember],
       });
 
       const response = await request(app)
@@ -168,7 +168,7 @@ describe('Family API Integration Tests', () => {
   });
 
   describe('GET /api/families', () => {
-    it('should return user\'s families', async () => {
+    it("should return user's families", async () => {
       const response = await request(app)
         .get('/api/families')
         .set('Authorization', `Bearer ${token1}`);
@@ -182,8 +182,7 @@ describe('Family API Integration Tests', () => {
     });
 
     it('should return 401 if not authenticated', async () => {
-      const response = await request(app)
-        .get('/api/families');
+      const response = await request(app).get('/api/families');
 
       expect(response.status).toBe(401);
     });
@@ -281,7 +280,7 @@ describe('Family API Integration Tests', () => {
         .send({
           name: memberName,
           role: 'MEMBER',
-          isRegistered: false
+          isRegistered: false,
         });
 
       expect(response.status).toBe(201);
@@ -299,7 +298,7 @@ describe('Family API Integration Tests', () => {
         .send({
           name: 'Unauthorized Member',
           role: 'MEMBER',
-          isRegistered: false
+          isRegistered: false,
         });
 
       expect(response.status).toBe(403);

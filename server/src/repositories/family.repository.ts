@@ -100,8 +100,8 @@ export class FamilyRepository {
 
     // 合并并去重
     const allFamilies = [...createdFamilies, ...memberFamilies];
-    const uniqueFamilies = allFamilies.filter((family, index, self) =>
-      index === self.findIndex(f => f.id === family.id)
+    const uniqueFamilies = allFamilies.filter(
+      (family, index, self) => index === self.findIndex((f) => f.id === family.id),
     );
 
     return uniqueFamilies;
@@ -139,7 +139,7 @@ export class FamilyRepository {
         select: { id: true },
       });
 
-      const budgetIds = familyBudgets.map(budget => budget.id);
+      const budgetIds = familyBudgets.map((budget) => budget.id);
 
       if (budgetIds.length > 0) {
         await tx.categoryBudget.deleteMany({
@@ -157,7 +157,7 @@ export class FamilyRepository {
         where: { familyId: id },
         data: {
           familyId: null,
-          familyMemberId: null
+          familyMemberId: null,
         },
       });
 
@@ -203,7 +203,10 @@ export class FamilyRepository {
   /**
    * 查找用户在家庭中的成员记录
    */
-  async findFamilyMemberByUserAndFamily(userId: string, familyId: string): Promise<FamilyMember | null> {
+  async findFamilyMemberByUserAndFamily(
+    userId: string,
+    familyId: string,
+  ): Promise<FamilyMember | null> {
     return prisma.familyMember.findFirst({
       where: {
         userId,
@@ -233,12 +236,15 @@ export class FamilyRepository {
   /**
    * 更新家庭成员
    */
-  async updateFamilyMember(id: string, data: {
-    name?: string;
-    gender?: string;
-    birthDate?: Date;
-    role?: Role;
-  }): Promise<FamilyMember> {
+  async updateFamilyMember(
+    id: string,
+    data: {
+      name?: string;
+      gender?: string;
+      birthDate?: Date;
+      role?: Role;
+    },
+  ): Promise<FamilyMember> {
     return prisma.familyMember.update({
       where: { id },
       data,
@@ -257,7 +263,11 @@ export class FamilyRepository {
   /**
    * 创建邀请
    */
-  async createInvitation(familyId: string, invitationCode: string, expiresAt: Date): Promise<Invitation> {
+  async createInvitation(
+    familyId: string,
+    invitationCode: string,
+    expiresAt: Date,
+  ): Promise<Invitation> {
     return prisma.invitation.create({
       data: {
         familyId,
@@ -292,14 +302,18 @@ export class FamilyRepository {
   /**
    * 标记邀请为已使用
    */
-  async markInvitationAsUsed(id: string, usedByUserId: string, usedByUserName: string): Promise<Invitation> {
+  async markInvitationAsUsed(
+    id: string,
+    usedByUserId: string,
+    usedByUserName: string,
+  ): Promise<Invitation> {
     return prisma.invitation.update({
       where: { id },
       data: {
         isUsed: true,
         usedAt: new Date(),
         usedByUserId,
-        usedByUserName
+        usedByUserName,
       },
     });
   }

@@ -73,9 +73,13 @@ export class EmailService {
    * @param resetToken 重置令牌
    * @param userName 用户名
    */
-  async sendPasswordResetEmail(email: string, resetToken: string, userName: string): Promise<boolean> {
+  async sendPasswordResetEmail(
+    email: string,
+    resetToken: string,
+    userName: string,
+  ): Promise<boolean> {
     const resetUrl = `${config.frontendUrl}/reset-password?token=${resetToken}`;
-    
+
     const subject = '【只为记账】密码重置';
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

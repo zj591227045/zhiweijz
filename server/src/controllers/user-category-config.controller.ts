@@ -46,7 +46,7 @@ export class UserCategoryConfigController {
 
       // 查找是否已存在配置
       const existingConfigs = await this.userCategoryConfigService.getUserCategoryConfigs(userId);
-      const existingConfig = existingConfigs.find(config => config.categoryId === categoryId);
+      const existingConfig = existingConfigs.find((config) => config.categoryId === categoryId);
 
       let result;
       if (existingConfig) {
@@ -54,14 +54,14 @@ export class UserCategoryConfigController {
         result = await this.userCategoryConfigService.updateUserCategoryConfigByUserIdAndCategoryId(
           userId,
           categoryId,
-          configData
+          configData,
         );
       } else {
         // 创建新配置
         result = await this.userCategoryConfigService.createUserCategoryConfig({
           userId,
           categoryId,
-          ...configData
+          ...configData,
         });
       }
 
@@ -92,22 +92,23 @@ export class UserCategoryConfigController {
 
         // 查找是否已存在配置
         const existingConfigs = await this.userCategoryConfigService.getUserCategoryConfigs(userId);
-        const existingConfig = existingConfigs.find(config => config.categoryId === categoryId);
+        const existingConfig = existingConfigs.find((config) => config.categoryId === categoryId);
 
         let result;
         if (existingConfig) {
           // 更新现有配置
-          result = await this.userCategoryConfigService.updateUserCategoryConfigByUserIdAndCategoryId(
-            userId,
-            categoryId,
-            updateData
-          );
+          result =
+            await this.userCategoryConfigService.updateUserCategoryConfigByUserIdAndCategoryId(
+              userId,
+              categoryId,
+              updateData,
+            );
         } else {
           // 创建新配置
           result = await this.userCategoryConfigService.createUserCategoryConfig({
             userId,
             categoryId,
-            ...updateData
+            ...updateData,
           });
         }
 

@@ -19,13 +19,13 @@ export class TokenLimitAdminController {
     try {
       const limit = await this.tokenLimitService.getGlobalLlmTokenLimit();
       const isEnabled = await this.tokenLimitService.isTokenLimitEnabled();
-      
+
       res.json({
         success: true,
         data: {
           globalLlmTokenLimit: limit,
-          tokenLimitEnabled: isEnabled
-        }
+          tokenLimitEnabled: isEnabled,
+        },
       });
     } catch (error) {
       console.error('获取全局LLM设置失败:', error);
@@ -58,15 +58,15 @@ export class TokenLimitAdminController {
         message: '全局LLM设置更新成功',
         data: {
           globalLlmTokenLimit,
-          tokenLimitEnabled
-        }
+          tokenLimitEnabled,
+        },
       });
     } catch (error) {
       console.error('更新全局LLM设置失败:', error);
       if (error instanceof AppError) {
         res.status(error.statusCode).json({
           success: false,
-          message: error.message
+          message: error.message,
         });
         return;
       }
@@ -80,16 +80,16 @@ export class TokenLimitAdminController {
   async getUserTokenLimits(req: Request, res: Response): Promise<void> {
     try {
       const { page = 1, limit = 20, search } = req.query;
-      
+
       const result = await this.tokenLimitService.getUsersWithTokenLimits({
         page: parseInt(page as string),
         limit: parseInt(limit as string),
-        search: search as string
+        search: search as string,
       });
 
       res.json({
         success: true,
-        data: result
+        data: result,
       });
     } catch (error) {
       console.error('获取用户Token限额失败:', error);
@@ -116,14 +116,14 @@ export class TokenLimitAdminController {
 
       res.json({
         success: true,
-        message: '用户Token限额设置成功'
+        message: '用户Token限额设置成功',
       });
     } catch (error) {
       console.error('设置用户Token限额失败:', error);
       if (error instanceof AppError) {
         res.status(error.statusCode).json({
           success: false,
-          message: error.message
+          message: error.message,
         });
         return;
       }
@@ -151,14 +151,14 @@ export class TokenLimitAdminController {
       res.json({
         success: true,
         message: `批量设置成功，共更新${result.count}个用户`,
-        data: { count: result.count }
+        data: { count: result.count },
       });
     } catch (error) {
       console.error('批量设置用户Token限额失败:', error);
       if (error instanceof AppError) {
         res.status(error.statusCode).json({
           success: false,
-          message: error.message
+          message: error.message,
         });
         return;
       }
@@ -182,18 +182,18 @@ export class TokenLimitAdminController {
 
       res.json({
         success: true,
-        data: trends
+        data: trends,
       });
     } catch (error) {
       console.error('获取Token使用量趋势失败:', error);
       if (error instanceof AppError) {
         res.status(error.statusCode).json({
           success: false,
-          message: error.message
+          message: error.message,
         });
         return;
       }
       throw new AppError('获取Token使用量趋势失败', 500);
     }
   }
-} 
+}

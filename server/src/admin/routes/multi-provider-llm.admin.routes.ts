@@ -35,21 +35,27 @@ router.post('/providers', (req, res) => multiProviderLLMController.addProviderIn
  * @desc 更新提供商实例
  * @access Admin
  */
-router.put('/providers/:id', (req, res) => multiProviderLLMController.updateProviderInstance(req, res));
+router.put('/providers/:id', (req, res) =>
+  multiProviderLLMController.updateProviderInstance(req, res),
+);
 
 /**
  * @route DELETE /api/admin/multi-provider-llm/providers/:id
  * @desc 删除提供商实例
  * @access Admin
  */
-router.delete('/providers/:id', (req, res) => multiProviderLLMController.deleteProviderInstance(req, res));
+router.delete('/providers/:id', (req, res) =>
+  multiProviderLLMController.deleteProviderInstance(req, res),
+);
 
 /**
  * @route POST /api/admin/multi-provider-llm/providers/:id/test
  * @desc 测试提供商实例连接
  * @access Admin
  */
-router.post('/providers/:id/test', (req, res) => multiProviderLLMController.testProviderInstance(req, res));
+router.post('/providers/:id/test', (req, res) =>
+  multiProviderLLMController.testProviderInstance(req, res),
+);
 
 /**
  * @route GET /api/admin/multi-provider-llm/health
@@ -77,6 +83,8 @@ router.get('/templates', (req, res) => multiProviderLLMController.getProviderTem
  * @desc 获取配置优先级信息（多提供商vs全局配置）
  * @access Admin
  */
-router.get('/config/priority-info', (req, res) => multiProviderLLMController.getConfigPriorityInfo(req, res));
+router.get('/config/priority-info', (req, res) =>
+  multiProviderLLMController.getConfigPriorityInfo(req, res),
+);
 
-export default router; 
+export default router;

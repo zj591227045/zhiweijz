@@ -29,7 +29,7 @@ export class MultiProviderLLMAdminService {
       // 如果启用多提供商模式，需要检查是否与全局LLM配置冲突
       if (config.enabled) {
         console.log('启用多提供商模式，系统将优先使用多提供商配置');
-        
+
         // 可选：自动禁用全局LLM配置以避免混淆
         // 这是一个可选的业务逻辑，可以根据需要启用
         // await this.disableGlobalLLMConfig();
@@ -38,7 +38,7 @@ export class MultiProviderLLMAdminService {
       // 获取当前配置
       const currentConfig = await this.multiProviderService.loadMultiProviderConfig();
       const updatedConfig = { ...currentConfig, ...config } as MultiProviderLLMConfig;
-      
+
       await this.multiProviderService.saveMultiProviderConfig(updatedConfig);
     } catch (error) {
       console.error('更新多提供商配置失败:', error);
@@ -53,19 +53,19 @@ export class MultiProviderLLMAdminService {
   async getConfigPriorityInfo() {
     try {
       const multiProviderConfig = await this.multiProviderService.loadMultiProviderConfig();
-      
+
       if (multiProviderConfig?.enabled && multiProviderConfig.providers.length > 0) {
         return {
           mode: 'multi-provider',
           description: '当前使用多提供商配置',
           activeProviders: multiProviderConfig.providers.filter((p: any) => p.enabled).length,
-          note: '多提供商模式激活时，全局LLM配置将被忽略'
+          note: '多提供商模式激活时，全局LLM配置将被忽略',
         };
       } else {
         return {
           mode: 'single-provider',
           description: '当前使用全局LLM配置（单一提供商）',
-          note: '多提供商模式未启用或无可用提供商，系统回退到全局LLM配置'
+          note: '多提供商模式未启用或无可用提供商，系统回退到全局LLM配置',
         };
       }
     } catch (error) {
@@ -86,4 +86,4 @@ export class MultiProviderLLMAdminService {
       console.error('禁用全局LLM配置失败:', error);
     }
   }
-} 
+}

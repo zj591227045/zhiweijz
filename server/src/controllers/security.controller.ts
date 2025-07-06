@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import { SecurityService } from '../services/security.service';
-import { 
-  ChangePasswordDto, 
-  ChangeEmailDto, 
+import {
+  ChangePasswordDto,
+  ChangeEmailDto,
   SendVerificationCodeDto,
-  SecurityLogQueryParams
+  SecurityLogQueryParams,
 } from '../models/security.model';
 
 export class SecurityController {
@@ -173,7 +173,7 @@ export class SecurityController {
         limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
         type: req.query.type as any,
         startDate: req.query.startDate as string,
-        endDate: req.query.endDate as string
+        endDate: req.query.endDate as string,
       };
 
       const result = await this.securityService.getSecurityLogs(userId, params);

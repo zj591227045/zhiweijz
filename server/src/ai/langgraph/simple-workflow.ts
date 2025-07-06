@@ -34,7 +34,7 @@ export class SimpleWorkflow extends BaseWorkflow<SimpleWorkflowState> {
       defaultProvider: 'openai',
       defaultModel: 'gpt-3.5-turbo',
       defaultTemperature: 0.7,
-    }
+    },
   ) {
     super(llmProviderService, config);
   }
@@ -51,7 +51,7 @@ export class SimpleWorkflow extends BaseWorkflow<SimpleWorkflowState> {
         try {
           // 准备消息
           const messages: Message[] = [];
-          
+
           // 添加系统消息
           if (state.systemMessage) {
             messages.push({
@@ -59,26 +59,26 @@ export class SimpleWorkflow extends BaseWorkflow<SimpleWorkflowState> {
               content: state.systemMessage,
             });
           }
-          
+
           // 添加用户消息
           let userMessage = state.input;
           if (state.promptTemplate) {
             userMessage = state.promptTemplate.replace('{input}', state.input);
           }
-          
+
           messages.push({
             role: 'user',
             content: userMessage,
           });
-          
+
           // 调用LLM
           const output = await this.llmProviderService.generateChat(
             messages,
             state.userId || '',
             state.accountId,
-            state.accountType
+            state.accountType,
           );
-          
+
           // 返回结果
           return {
             ...state,
@@ -108,7 +108,7 @@ export class SimpleWorkflow extends BaseWorkflow<SimpleWorkflowState> {
       accountId: initialState.accountId,
       accountType: initialState.accountType,
     };
-    
+
     // 创建并运行工作流
     const workflow = this.createWorkflow();
     return await workflow.invoke(state);

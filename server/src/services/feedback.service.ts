@@ -13,7 +13,7 @@ export class FeedbackService {
    */
   async createFeedback(userId: string, data: CreateFeedbackDto): Promise<FeedbackResponseDto> {
     const feedback = await this.feedbackRepository.create(userId, data);
-    
+
     return {
       id: feedback.id,
       userId: feedback.userId,
@@ -28,8 +28,8 @@ export class FeedbackService {
    */
   async getUserFeedbacks(userId: string): Promise<FeedbackResponseDto[]> {
     const feedbacks = await this.feedbackRepository.findByUserId(userId);
-    
-    return feedbacks.map(feedback => ({
+
+    return feedbacks.map((feedback) => ({
       id: feedback.id,
       userId: feedback.userId,
       feedbackType: feedback.feedbackType,

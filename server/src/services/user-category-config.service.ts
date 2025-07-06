@@ -3,7 +3,7 @@ import {
   CreateUserCategoryConfigDto,
   UpdateUserCategoryConfigDto,
   UserCategoryConfigResponseDto,
-  toUserCategoryConfigResponseDto
+  toUserCategoryConfigResponseDto,
 } from '../models/user-category-config.model';
 
 export class UserCategoryConfigService {
@@ -16,7 +16,9 @@ export class UserCategoryConfigService {
   /**
    * 创建用户分类配置
    */
-  async createUserCategoryConfig(configData: CreateUserCategoryConfigDto): Promise<UserCategoryConfigResponseDto> {
+  async createUserCategoryConfig(
+    configData: CreateUserCategoryConfigDto,
+  ): Promise<UserCategoryConfigResponseDto> {
     const config = await this.userCategoryConfigRepository.create(configData);
     return toUserCategoryConfigResponseDto(config);
   }
@@ -52,7 +54,7 @@ export class UserCategoryConfigService {
    */
   async updateUserCategoryConfig(
     id: string,
-    configData: UpdateUserCategoryConfigDto
+    configData: UpdateUserCategoryConfigDto,
   ): Promise<UserCategoryConfigResponseDto> {
     const config = await this.userCategoryConfigRepository.update(id, configData);
     return toUserCategoryConfigResponseDto(config);
@@ -64,12 +66,12 @@ export class UserCategoryConfigService {
   async updateUserCategoryConfigByUserIdAndCategoryId(
     userId: string,
     categoryId: string,
-    configData: UpdateUserCategoryConfigDto
+    configData: UpdateUserCategoryConfigDto,
   ): Promise<UserCategoryConfigResponseDto> {
     const config = await this.userCategoryConfigRepository.updateByUserIdAndCategoryId(
       userId,
       categoryId,
-      configData
+      configData,
     );
     return toUserCategoryConfigResponseDto(config);
   }
@@ -80,6 +82,4 @@ export class UserCategoryConfigService {
   async deleteUserCategoryConfig(id: string): Promise<void> {
     await this.userCategoryConfigRepository.delete(id);
   }
-
-
 }

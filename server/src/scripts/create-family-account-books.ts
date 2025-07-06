@@ -37,7 +37,9 @@ async function createFamilyAccountBook(familyId: string, familyName: string, cre
     },
   });
 
-  console.log(`为家庭 ${familyName} (${familyId}) 创建了账本: ${accountBook.name} (${accountBook.id})`);
+  console.log(
+    `为家庭 ${familyName} (${familyId}) 创建了账本: ${accountBook.name} (${accountBook.id})`,
+  );
 
   // 注意：不再自动创建预算
   // 预算将在家庭成员添加时自动创建

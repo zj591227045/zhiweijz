@@ -39,7 +39,10 @@ export class BudgetRepository {
   /**
    * 根据托管成员ID和家庭ID查找预算
    */
-  async findByFamilyMemberAndFamily(familyMemberId: string, familyId: string): Promise<BudgetWithCategory[]> {
+  async findByFamilyMemberAndFamily(
+    familyMemberId: string,
+    familyId: string,
+  ): Promise<BudgetWithCategory[]> {
     return prisma.budget.findMany({
       where: {
         familyMemberId,
@@ -64,12 +67,12 @@ export class BudgetRepository {
     memberId: string,
     startDate: Date,
     endDate: Date,
-    isCustodial: boolean = false
+    isCustodial: boolean = false,
   ): Promise<number> {
     // 获取预算信息
     const budget = await prisma.budget.findUnique({
       where: { id: budgetId },
-      select: { familyId: true, accountBookId: true }
+      select: { familyId: true, accountBookId: true },
     });
 
     if (!budget) {
@@ -107,7 +110,7 @@ export class BudgetRepository {
     // 计算总支出
     const totalSpent = transactions.reduce(
       (sum, transaction) => sum + Number(transaction.amount),
-      0
+      0,
     );
 
     return totalSpent;
@@ -152,8 +155,8 @@ export class BudgetRepository {
           select: {
             id: true,
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         // 添加关联查询托管成员信息
         familyMember: {
@@ -162,9 +165,9 @@ export class BudgetRepository {
             name: true,
             gender: true,
             birthDate: true,
-            isCustodial: true
-          }
-        }
+            isCustodial: true,
+          },
+        },
       },
     });
   }
@@ -172,7 +175,10 @@ export class BudgetRepository {
   /**
    * 查询预算列表
    */
-  async findAll(userId: string, params: BudgetQueryParams): Promise<{ budgets: BudgetWithCategory[]; total: number }> {
+  async findAll(
+    userId: string,
+    params: BudgetQueryParams,
+  ): Promise<{ budgets: BudgetWithCategory[]; total: number }> {
     const {
       period,
       categoryId,
@@ -182,12 +188,12 @@ export class BudgetRepository {
       page = 1,
       limit = 20,
       sortBy = 'startDate',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
     } = params;
 
     console.log('BudgetRepository.findAll 参数:', {
       userId,
-      params
+      params,
     });
 
     // 构建查询条件
@@ -204,12 +210,12 @@ export class BudgetRepository {
             {
               family: {
                 members: {
-                  some: { userId: userId } // 家庭账本成员
-                }
-              }
-            }
-          ]
-        }
+                  some: { userId: userId }, // 家庭账本成员
+                },
+              },
+            },
+          ],
+        },
       });
 
       if (!accountBook) {
@@ -241,10 +247,7 @@ export class BudgetRepository {
         where.startDate = { lte: now };
         where.endDate = { gte: now };
       } else {
-        where.OR = [
-          { startDate: { gt: now } },
-          { endDate: { lt: now } }
-        ];
+        where.OR = [{ startDate: { gt: now } }, { endDate: { lt: now } }];
       }
     }
 
@@ -270,16 +273,16 @@ export class BudgetRepository {
           select: {
             id: true,
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         accountBook: {
           select: {
             id: true,
             name: true,
             type: true,
-            familyId: true
-          }
+            familyId: true,
+          },
         },
         // 添加关联查询托管成员信息
         familyMember: {
@@ -288,9 +291,9 @@ export class BudgetRepository {
             name: true,
             gender: true,
             birthDate: true,
-            isCustodial: true
-          }
-        }
+            isCustodial: true,
+          },
+        },
       },
     });
 
@@ -309,8 +312,12 @@ export class BudgetRepository {
       ...(budgetData.startDate !== undefined && { startDate: budgetData.startDate }),
       ...(budgetData.endDate !== undefined && { endDate: budgetData.endDate }),
       ...(budgetData.rollover !== undefined && { rollover: budgetData.rollover }),
-      ...(budgetData.enableCategoryBudget !== undefined && { enableCategoryBudget: budgetData.enableCategoryBudget }),
-      ...(budgetData.isAutoCalculated !== undefined && { isAutoCalculated: budgetData.isAutoCalculated }),
+      ...(budgetData.enableCategoryBudget !== undefined && {
+        enableCategoryBudget: budgetData.enableCategoryBudget,
+      }),
+      ...(budgetData.isAutoCalculated !== undefined && {
+        isAutoCalculated: budgetData.isAutoCalculated,
+      }),
       ...(budgetData.budgetType !== undefined && { budgetType: budgetData.budgetType }),
       ...(budgetData.refreshDay !== undefined && { refreshDay: budgetData.refreshDay }),
     };
@@ -337,10 +344,10 @@ export class BudgetRepository {
    * 计算预算已使用金额
    */
   async calculateSpentAmount(budgetId: string): Promise<number> {
-    const budget = await prisma.budget.findUnique({
+    const budget = (await prisma.budget.findUnique({
       where: { id: budgetId },
       include: { category: true },
-    }) as BudgetWithCategory | null;
+    })) as BudgetWithCategory | null;
 
     if (!budget) {
       throw new Error('预算不存在');
@@ -353,7 +360,7 @@ export class BudgetRepository {
       categoryId: budget.categoryId,
       accountBookId: budget.accountBookId,
       startDate: budget.startDate,
-      endDate: budget.endDate
+      endDate: budget.endDate,
     });
 
     // 构建查询条件 - 直接使用budgetId过滤
@@ -369,7 +376,7 @@ export class BudgetRepository {
     console.log('使用预算ID过滤交易记录:', {
       budgetId,
       startDate: budget.startDate,
-      endDate: budget.endDate
+      endDate: budget.endDate,
     });
 
     // 计算总支出
@@ -388,7 +395,11 @@ export class BudgetRepository {
    * 包括用户的个人预算和用户所属家庭的预算
    * 可选根据账本ID进行过滤
    */
-  async findActiveBudgets(userId: string, date: Date = new Date(), accountBookId?: string): Promise<BudgetWithCategory[]> {
+  async findActiveBudgets(
+    userId: string,
+    date: Date = new Date(),
+    accountBookId?: string,
+  ): Promise<BudgetWithCategory[]> {
     // 如果指定了账本ID，则查询该账本的所有预算（家庭成员可以查看家庭账本的所有预算）
     if (accountBookId) {
       // 验证用户是否有权限查看该账本
@@ -400,12 +411,12 @@ export class BudgetRepository {
             {
               family: {
                 members: {
-                  some: { userId: userId } // 家庭账本成员
-                }
-              }
-            }
-          ]
-        }
+                  some: { userId: userId }, // 家庭账本成员
+                },
+              },
+            },
+          ],
+        },
       });
 
       if (!accountBook) {
@@ -429,16 +440,16 @@ export class BudgetRepository {
             select: {
               id: true,
               name: true,
-              email: true
-            }
+              email: true,
+            },
           },
           accountBook: {
             select: {
               id: true,
               name: true,
               type: true,
-              familyId: true
-            }
+              familyId: true,
+            },
           },
           // 添加关联查询托管成员信息
           familyMember: {
@@ -447,9 +458,9 @@ export class BudgetRepository {
               name: true,
               gender: true,
               birthDate: true,
-              isCustodial: true
-            }
-          }
+              isCustodial: true,
+            },
+          },
         },
       });
     }
@@ -461,11 +472,11 @@ export class BudgetRepository {
       select: { familyId: true },
     });
 
-    const familyIds = familyMembers.map(member => member.familyId);
+    const familyIds = familyMembers.map((member) => member.familyId);
 
     // 2. 构建查询条件：包括用户个人预算和用户所属家庭的预算
     const where = {
-      OR: [] as any[]
+      OR: [] as any[],
     };
 
     // 添加用户个人预算条件
@@ -500,16 +511,16 @@ export class BudgetRepository {
           select: {
             id: true,
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         accountBook: {
           select: {
             id: true,
             name: true,
             type: true,
-            familyId: true
-          }
+            familyId: true,
+          },
         },
         // 添加关联查询托管成员信息
         familyMember: {
@@ -518,9 +529,9 @@ export class BudgetRepository {
             name: true,
             gender: true,
             birthDate: true,
-            isCustodial: true
-          }
-        }
+            isCustodial: true,
+          },
+        },
       },
     });
   }
@@ -528,7 +539,10 @@ export class BudgetRepository {
   /**
    * 根据账本ID查找活跃的预算
    */
-  async findActiveByAccountBookId(accountBookId: string, date: Date = new Date()): Promise<BudgetWithCategory | null> {
+  async findActiveByAccountBookId(
+    accountBookId: string,
+    date: Date = new Date(),
+  ): Promise<BudgetWithCategory | null> {
     return prisma.budget.findFirst({
       where: {
         accountBookId,
@@ -559,7 +573,7 @@ export class BudgetRepository {
     endDate: Date,
     familyId?: string,
     accountBookId?: string,
-    excludeFamilyMember: boolean = true
+    excludeFamilyMember: boolean = true,
   ): Promise<BudgetWithCategory[]> {
     console.log('BudgetRepository.findByPeriodAndDate 参数:', {
       userId,
@@ -568,7 +582,7 @@ export class BudgetRepository {
       endDate,
       familyId,
       accountBookId,
-      excludeFamilyMember
+      excludeFamilyMember,
     });
 
     // 构建基础查询条件
@@ -591,12 +605,12 @@ export class BudgetRepository {
             {
               family: {
                 members: {
-                  some: { userId: userId } // 家庭账本成员
-                }
-              }
-            }
-          ]
-        }
+                  some: { userId: userId }, // 家庭账本成员
+                },
+              },
+            },
+          ],
+        },
       });
 
       if (!accountBook) {
@@ -634,8 +648,8 @@ export class BudgetRepository {
           select: {
             id: true,
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         // 添加关联查询托管成员信息
         familyMember: {
@@ -644,9 +658,9 @@ export class BudgetRepository {
             name: true,
             gender: true,
             birthDate: true,
-            isCustodial: true
-          }
-        }
+            isCustodial: true,
+          },
+        },
       },
     });
   }

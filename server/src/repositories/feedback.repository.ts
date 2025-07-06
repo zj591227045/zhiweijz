@@ -13,8 +13,10 @@ export class FeedbackRepository {
    */
   async create(userId: string, data: CreateFeedbackDto) {
     // 将title和content合并到content字段中
-    const content = `标题: ${data.title}\n\n内容: ${data.content}${data.contact ? `\n\n联系方式: ${data.contact}` : ''}`;
-    
+    const content = `标题: ${data.title}\n\n内容: ${data.content}${
+      data.contact ? `\n\n联系方式: ${data.contact}` : ''
+    }`;
+
     return this.prisma.userFeedback.create({
       data: {
         userId,

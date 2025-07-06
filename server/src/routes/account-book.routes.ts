@@ -27,19 +27,34 @@ router.put('/:id', accountBookController.updateAccountBook.bind(accountBookContr
 router.delete('/:id', accountBookController.deleteAccountBook.bind(accountBookController));
 
 // 设置默认账本
-router.post('/:id/set-default', accountBookController.setDefaultAccountBook.bind(accountBookController));
+router.post(
+  '/:id/set-default',
+  accountBookController.setDefaultAccountBook.bind(accountBookController),
+);
 
 // 获取账本LLM设置
-router.get('/:id/llm-settings', accountBookController.getAccountBookLLMSetting.bind(accountBookController));
+router.get(
+  '/:id/llm-settings',
+  accountBookController.getAccountBookLLMSetting.bind(accountBookController),
+);
 
 // 更新账本LLM设置
-router.put('/:id/llm-settings', accountBookController.updateAccountBookLLMSetting.bind(accountBookController));
+router.put(
+  '/:id/llm-settings',
+  accountBookController.updateAccountBookLLMSetting.bind(accountBookController),
+);
 
 // 创建家庭账本
-router.post('/family/:familyId', accountBookController.createFamilyAccountBook.bind(accountBookController));
+router.post(
+  '/family/:familyId',
+  accountBookController.createFamilyAccountBook.bind(accountBookController),
+);
 
 // 获取家庭账本列表
-router.get('/family/:familyId', accountBookController.getFamilyAccountBooks.bind(accountBookController));
+router.get(
+  '/family/:familyId',
+  accountBookController.getFamilyAccountBooks.bind(accountBookController),
+);
 
 // 重置家庭账本
 router.post('/:id/reset', accountBookController.resetFamilyAccountBook.bind(accountBookController));

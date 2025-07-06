@@ -8,7 +8,7 @@ import {
   SecurityLog,
   SecurityLogType,
   SecurityLogQueryParams,
-  UserSecurity
+  UserSecurity,
 } from '../models/security.model';
 import bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
@@ -30,7 +30,7 @@ export class SecurityService {
   async changePassword(userId: string, data: ChangePasswordDto): Promise<void> {
     // 获取用户 - 直接从数据库获取以访问密码哈希
     const user = await this.prisma.user.findUnique({
-      where: { id: userId }
+      where: { id: userId },
     });
 
     if (!user) {
@@ -56,8 +56,8 @@ export class SecurityService {
       where: { id: userId },
       data: {
         passwordHash: hashedPassword,
-        passwordChangedAt: new Date()
-      }
+        passwordChangedAt: new Date(),
+      },
     });
 
     // 记录安全日志
@@ -65,8 +65,8 @@ export class SecurityService {
       type: SecurityLogType.PASSWORD_CHANGE,
       description: '密码已修改',
       deviceInfo: '未知设备', // 实际应用中应从请求中获取
-      ipAddress: '0.0.0.0',  // 实际应用中应从请求中获取
-      location: '未知位置'    // 实际应用中应从IP获取
+      ipAddress: '0.0.0.0', // 实际应用中应从请求中获取
+      location: '未知位置', // 实际应用中应从IP获取
     });
   }
 
@@ -78,7 +78,7 @@ export class SecurityService {
   async sendEmailVerificationCode(userId: string, data: SendVerificationCodeDto): Promise<void> {
     // 检查邮箱是否已被其他用户使用
     const existingUser = await this.prisma.user.findUnique({
-      where: { email: data.email }
+      where: { email: data.email },
     });
 
     if (existingUser && existingUser.id !== userId) {
@@ -94,8 +94,8 @@ export class SecurityService {
         userId,
         code: verificationCode,
         email: data.email,
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15分钟后过期
-      }
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15分钟后过期
+      },
     });
 
     // TODO: 发送验证码到邮箱
@@ -112,7 +112,7 @@ export class SecurityService {
   async changeEmail(userId: string, data: ChangeEmailDto): Promise<void> {
     // 检查邮箱是否已被其他用户使用
     const existingUser = await this.prisma.user.findUnique({
-      where: { email: data.newEmail }
+      where: { email: data.newEmail },
     });
 
     if (existingUser && existingUser.id !== userId) {
@@ -125,8 +125,8 @@ export class SecurityService {
         userId,
         email: data.newEmail,
         code: data.verificationCode,
-        expiresAt: { gt: new Date() } // 验证码未过期
-      }
+        expiresAt: { gt: new Date() }, // 验证码未过期
+      },
     });
 
     if (!verificationCode) {
@@ -136,12 +136,12 @@ export class SecurityService {
     // 更新用户邮箱
     await this.prisma.user.update({
       where: { id: userId },
-      data: { email: data.newEmail }
+      data: { email: data.newEmail },
     });
 
     // 删除已使用的验证码
     await this.prisma.verificationCode.delete({
-      where: { id: verificationCode.id }
+      where: { id: verificationCode.id },
     });
 
     // 记录安全日志
@@ -149,8 +149,8 @@ export class SecurityService {
       type: SecurityLogType.EMAIL_CHANGE,
       description: '邮箱已修改',
       deviceInfo: '未知设备', // 实际应用中应从请求中获取
-      ipAddress: '0.0.0.0',  // 实际应用中应从请求中获取
-      location: '未知位置'    // 实际应用中应从IP获取
+      ipAddress: '0.0.0.0', // 实际应用中应从请求中获取
+      location: '未知位置', // 实际应用中应从IP获取
     });
   }
 
@@ -161,7 +161,7 @@ export class SecurityService {
   async getUserSecurity(userId: string): Promise<UserSecurity> {
     // 获取用户 - 直接从数据库获取以访问 passwordChangedAt
     const user = await this.prisma.user.findUnique({
-      where: { id: userId }
+      where: { id: userId },
     });
 
     if (!user) {
@@ -170,15 +170,15 @@ export class SecurityService {
 
     // 获取用户设置
     const securityQuestionSetting = await this.prisma.userSetting.findFirst({
-      where: { userId, key: 'securityQuestionSet' }
+      where: { userId, key: 'securityQuestionSet' },
     });
 
     const loginNotificationSetting = await this.prisma.userSetting.findFirst({
-      where: { userId, key: 'loginNotification' }
+      where: { userId, key: 'loginNotification' },
     });
 
     const recoveryEmailSetting = await this.prisma.userSetting.findFirst({
-      where: { userId, key: 'recoveryEmail' }
+      where: { userId, key: 'recoveryEmail' },
     });
 
     // 构建安全设置对象
@@ -188,7 +188,9 @@ export class SecurityService {
       securityQuestionSet: securityQuestionSetting?.value === 'true',
       loginNotification: loginNotificationSetting?.value === 'true',
       recoveryEmailSet: !!recoveryEmailSetting?.value,
-      recoveryEmail: recoveryEmailSetting?.value ? this.maskEmail(recoveryEmailSetting.value) : null
+      recoveryEmail: recoveryEmailSetting?.value
+        ? this.maskEmail(recoveryEmailSetting.value)
+        : null,
     };
   }
 
@@ -199,11 +201,11 @@ export class SecurityService {
   async getUserSessions(userId: string): Promise<Session[]> {
     // 从数据库获取会话
     const sessions = await this.prisma.session.findMany({
-      where: { userId }
+      where: { userId },
     });
 
     // 转换为前端需要的格式
-    return sessions.map(session => ({
+    return sessions.map((session) => ({
       id: session.id,
       userId: session.userId,
       deviceName: session.deviceName || '未知设备',
@@ -213,7 +215,7 @@ export class SecurityService {
       ip: session.ip || '0.0.0.0',
       location: session.location || '未知位置',
       lastActive: session.lastActive || new Date(),
-      isCurrent: session.isCurrent || false
+      isCurrent: session.isCurrent || false,
     }));
   }
 
@@ -225,7 +227,7 @@ export class SecurityService {
   async logoutSession(userId: string, sessionId: string): Promise<void> {
     // 检查会话是否存在且属于该用户
     const session = await this.prisma.session.findFirst({
-      where: { id: sessionId, userId }
+      where: { id: sessionId, userId },
     });
 
     if (!session) {
@@ -234,7 +236,7 @@ export class SecurityService {
 
     // 删除会话
     await this.prisma.session.delete({
-      where: { id: sessionId }
+      where: { id: sessionId },
     });
 
     // 记录安全日志
@@ -243,7 +245,7 @@ export class SecurityService {
       description: `设备已登出: ${session.deviceName || '未知设备'}`,
       deviceInfo: session.deviceName || '未知设备',
       ipAddress: session.ip || '0.0.0.0',
-      location: session.location || '未知位置'
+      location: session.location || '未知位置',
     });
   }
 
@@ -252,7 +254,10 @@ export class SecurityService {
    * @param userId 用户ID
    * @param params 查询参数
    */
-  async getSecurityLogs(userId: string, params: SecurityLogQueryParams): Promise<{ logs: SecurityLog[], total: number }> {
+  async getSecurityLogs(
+    userId: string,
+    params: SecurityLogQueryParams,
+  ): Promise<{ logs: SecurityLog[]; total: number }> {
     const { page = 1, limit = 10, type, startDate, endDate } = params;
 
     // 构建查询条件
@@ -278,11 +283,11 @@ export class SecurityService {
       where,
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
-      take: limit
+      take: limit,
     });
 
     return {
-      logs: logs.map(log => ({
+      logs: logs.map((log) => ({
         id: log.id,
         userId: log.userId,
         type: log.type as SecurityLogType,
@@ -290,9 +295,9 @@ export class SecurityService {
         deviceInfo: log.deviceInfo,
         ipAddress: log.ipAddress,
         location: log.location,
-        createdAt: log.createdAt
+        createdAt: log.createdAt,
       })),
-      total
+      total,
     };
   }
 
@@ -301,13 +306,16 @@ export class SecurityService {
    * @param userId 用户ID
    * @param logData 日志数据
    */
-  private async createSecurityLog(userId: string, logData: {
-    type: SecurityLogType;
-    description: string;
-    deviceInfo: string;
-    ipAddress: string;
-    location: string;
-  }): Promise<void> {
+  private async createSecurityLog(
+    userId: string,
+    logData: {
+      type: SecurityLogType;
+      description: string;
+      deviceInfo: string;
+      ipAddress: string;
+      location: string;
+    },
+  ): Promise<void> {
     await this.prisma.securityLog.create({
       data: {
         id: uuidv4(),
@@ -317,8 +325,8 @@ export class SecurityService {
         deviceInfo: logData.deviceInfo,
         ipAddress: logData.ipAddress,
         location: logData.location,
-        createdAt: new Date()
-      }
+        createdAt: new Date(),
+      },
     });
   }
 

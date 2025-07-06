@@ -1,7 +1,7 @@
 /**
  * 生产环境数据分析脚本
  * 分析需要修复的交易记录数量和类型，评估修复风险
- * 
+ *
  * 使用方法：
  * npx ts-node src/scripts/production-data-analysis.ts
  */
@@ -19,9 +19,9 @@ async function analyzeProductionData() {
     const familyAccountBookTransactions = await prisma.transaction.count({
       where: {
         accountBook: {
-          type: 'FAMILY'
-        }
-      }
+          type: 'FAMILY',
+        },
+      },
     });
 
     console.log(`\n📈 总体统计:`);
@@ -32,43 +32,40 @@ async function analyzeProductionData() {
     const needsFixing = await prisma.transaction.count({
       where: {
         accountBook: {
-          type: 'FAMILY'
+          type: 'FAMILY',
         },
-        OR: [
-          { familyId: null },
-          { familyMemberId: null }
-        ]
-      }
+        OR: [{ familyId: null }, { familyMemberId: null }],
+      },
     });
 
     const onlyMissingFamilyId = await prisma.transaction.count({
       where: {
         accountBook: {
-          type: 'FAMILY'
+          type: 'FAMILY',
         },
         familyId: null,
-        familyMemberId: { not: null }
-      }
+        familyMemberId: { not: null },
+      },
     });
 
     const onlyMissingFamilyMemberId = await prisma.transaction.count({
       where: {
         accountBook: {
-          type: 'FAMILY'
+          type: 'FAMILY',
         },
         familyId: { not: null },
-        familyMemberId: null
-      }
+        familyMemberId: null,
+      },
     });
 
     const missingBoth = await prisma.transaction.count({
       where: {
         accountBook: {
-          type: 'FAMILY'
+          type: 'FAMILY',
         },
         familyId: null,
-        familyMemberId: null
-      }
+        familyMemberId: null,
+      },
     });
 
     console.log(`\n🔧 需要修复的数据:`);
@@ -87,26 +84,24 @@ async function analyzeProductionData() {
               select: {
                 transactions: {
                   where: {
-                    OR: [
-                      { familyId: null },
-                      { familyMemberId: null }
-                    ]
-                  }
-                }
-              }
-            }
-          }
+                    OR: [{ familyId: null }, { familyMemberId: null }],
+                  },
+                },
+              },
+            },
+          },
         },
-        members: true
-      }
+        members: true,
+      },
     });
 
     console.log(`\n👨‍👩‍👧‍👦 按家庭分析:`);
     for (const family of familyStats) {
       const needsFixingCount = family.accountBooks.reduce(
-        (sum, book) => sum + book._count.transactions, 0
+        (sum, book) => sum + book._count.transactions,
+        0,
       );
-      
+
       if (needsFixingCount > 0) {
         console.log(`  ${family.name}:`);
         console.log(`    需要修复: ${needsFixingCount} 条`);
@@ -119,42 +114,40 @@ async function analyzeProductionData() {
     const withBudget = await prisma.transaction.count({
       where: {
         accountBook: {
-          type: 'FAMILY'
+          type: 'FAMILY',
         },
-        OR: [
-          { familyId: null },
-          { familyMemberId: null }
-        ],
-        budgetId: { not: null }
-      }
+        OR: [{ familyId: null }, { familyMemberId: null }],
+        budgetId: { not: null },
+      },
     });
 
     const withoutBudget = needsFixing - withBudget;
 
     console.log(`\n💰 预算关联情况:`);
-    console.log(`  有预算ID的记录: ${withBudget} (${((withBudget / needsFixing) * 100).toFixed(2)}%)`);
-    console.log(`  无预算ID的记录: ${withoutBudget} (${((withoutBudget / needsFixing) * 100).toFixed(2)}%)`);
+    console.log(
+      `  有预算ID的记录: ${withBudget} (${((withBudget / needsFixing) * 100).toFixed(2)}%)`,
+    );
+    console.log(
+      `  无预算ID的记录: ${withoutBudget} (${((withoutBudget / needsFixing) * 100).toFixed(2)}%)`,
+    );
 
     // 5. 用户分布分析
     const userDistribution = await prisma.transaction.groupBy({
       by: ['userId'],
       where: {
         accountBook: {
-          type: 'FAMILY'
+          type: 'FAMILY',
         },
-        OR: [
-          { familyId: null },
-          { familyMemberId: null }
-        ]
+        OR: [{ familyId: null }, { familyMemberId: null }],
       },
       _count: {
-        id: true
+        id: true,
       },
       orderBy: {
         _count: {
-          id: 'desc'
-        }
-      }
+          id: 'desc',
+        },
+      },
     });
 
     console.log(`\n👤 用户分布 (前10名):`);
@@ -162,14 +155,14 @@ async function analyzeProductionData() {
       const item = userDistribution[i];
       const user = await prisma.user.findUnique({
         where: { id: item.userId },
-        select: { name: true }
+        select: { name: true },
       });
       console.log(`  ${user?.name || '未知用户'}: ${item._count.id} 条`);
     }
 
     // 6. 风险评估
     console.log(`\n⚠️  风险评估:`);
-    
+
     if (needsFixing > 10000) {
       console.log(`  🔴 高风险: 需要修复的记录超过1万条，建议分批处理`);
     } else if (needsFixing > 1000) {
@@ -178,7 +171,7 @@ async function analyzeProductionData() {
       console.log(`  🟢 低风险: 需要修复的记录较少，可以一次性处理`);
     }
 
-    if ((needsFixing / familyAccountBookTransactions) > 0.5) {
+    if (needsFixing / familyAccountBookTransactions > 0.5) {
       console.log(`  🔴 数据完整性风险: 超过50%的家庭交易记录需要修复`);
     }
 
@@ -188,7 +181,7 @@ async function analyzeProductionData() {
 
     // 7. 修复建议
     console.log(`\n💡 修复建议:`);
-    
+
     if (needsFixing > 5000) {
       console.log(`  1. 建议分批处理，每批处理500-1000条记录`);
       console.log(`  2. 在业务低峰期执行修复脚本`);
@@ -197,11 +190,10 @@ async function analyzeProductionData() {
       console.log(`  1. 可以一次性处理所有记录`);
       console.log(`  2. 建议在业务低峰期执行`);
     }
-    
+
     console.log(`  3. 执行前务必备份数据库`);
     console.log(`  4. 准备回滚方案`);
     console.log(`  5. 修复后验证家庭统计功能`);
-
   } catch (error) {
     console.error('❌ 分析过程中发生错误:', error);
   } finally {
@@ -218,4 +210,4 @@ analyzeProductionData()
   .catch((error) => {
     console.error('💥 数据分析失败:', error);
     process.exit(1);
-  }); 
+  });

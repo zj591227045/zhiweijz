@@ -1,5 +1,9 @@
 import { Request, Response } from 'express';
-import { AnnouncementAdminService, CreateAnnouncementData, UpdateAnnouncementData } from '../services/announcement.admin.service';
+import {
+  AnnouncementAdminService,
+  CreateAnnouncementData,
+  UpdateAnnouncementData,
+} from '../services/announcement.admin.service';
 import { announcement_status, announcement_priority } from '@prisma/client';
 
 export class AnnouncementAdminController {
@@ -14,33 +18,27 @@ export class AnnouncementAdminController {
    */
   async getAnnouncements(req: Request, res: Response): Promise<void> {
     try {
-      const {
-        page = '1',
-        limit = '20',
-        status,
-        priority,
-        search
-      } = req.query;
+      const { page = '1', limit = '20', status, priority, search } = req.query;
 
       const query = {
         page: parseInt(page as string),
         limit: parseInt(limit as string),
         status: status as announcement_status,
         priority: priority as announcement_priority,
-        search: search as string
+        search: search as string,
       };
 
       const result = await this.announcementAdminService.getAnnouncements(query);
 
       res.json({
         success: true,
-        data: result
+        data: result,
       });
     } catch (error) {
       console.error('获取公告列表错误:', error);
       res.status(500).json({
         success: false,
-        message: '获取公告列表失败'
+        message: '获取公告列表失败',
       });
     }
   }
@@ -57,20 +55,20 @@ export class AnnouncementAdminController {
       if (!announcement) {
         res.status(404).json({
           success: false,
-          message: '公告不存在'
+          message: '公告不存在',
         });
         return;
       }
 
       res.json({
         success: true,
-        data: { announcement }
+        data: { announcement },
       });
     } catch (error) {
       console.error('获取公告详情错误:', error);
       res.status(500).json({
         success: false,
-        message: '获取公告详情失败'
+        message: '获取公告详情失败',
       });
     }
   }
@@ -86,7 +84,7 @@ export class AnnouncementAdminController {
       if (!title || !content) {
         res.status(400).json({
           success: false,
-          message: '标题和内容不能为空'
+          message: '标题和内容不能为空',
         });
         return;
       }
@@ -97,7 +95,7 @@ export class AnnouncementAdminController {
         priority: priority as announcement_priority,
         publishedAt: publishedAt ? new Date(publishedAt) : undefined,
         expiresAt: expiresAt ? new Date(expiresAt) : undefined,
-        targetUserType
+        targetUserType,
       };
 
       const announcement = await this.announcementAdminService.createAnnouncement(data, adminId);
@@ -105,13 +103,13 @@ export class AnnouncementAdminController {
       res.status(201).json({
         success: true,
         message: '公告创建成功',
-        data: { announcement }
+        data: { announcement },
       });
     } catch (error) {
       console.error('创建公告错误:', error);
       res.status(500).json({
         success: false,
-        message: '创建公告失败'
+        message: '创建公告失败',
       });
     }
   }
@@ -131,15 +129,19 @@ export class AnnouncementAdminController {
         priority: priority as announcement_priority,
         publishedAt: publishedAt ? new Date(publishedAt) : undefined,
         expiresAt: expiresAt ? new Date(expiresAt) : undefined,
-        targetUserType
+        targetUserType,
       };
 
-      const announcement = await this.announcementAdminService.updateAnnouncement(id, data, adminId);
+      const announcement = await this.announcementAdminService.updateAnnouncement(
+        id,
+        data,
+        adminId,
+      );
 
       if (!announcement) {
         res.status(404).json({
           success: false,
-          message: '公告不存在'
+          message: '公告不存在',
         });
         return;
       }
@@ -147,13 +149,13 @@ export class AnnouncementAdminController {
       res.json({
         success: true,
         message: '公告更新成功',
-        data: { announcement }
+        data: { announcement },
       });
     } catch (error) {
       console.error('更新公告错误:', error);
       res.status(500).json({
         success: false,
-        message: '更新公告失败'
+        message: '更新公告失败',
       });
     }
   }
@@ -168,12 +170,16 @@ export class AnnouncementAdminController {
       const adminId = (req as any).admin.id;
 
       const publishTime = publishedAt ? new Date(publishedAt) : undefined;
-      const announcement = await this.announcementAdminService.publishAnnouncement(id, adminId, publishTime);
+      const announcement = await this.announcementAdminService.publishAnnouncement(
+        id,
+        adminId,
+        publishTime,
+      );
 
       if (!announcement) {
         res.status(404).json({
           success: false,
-          message: '公告不存在'
+          message: '公告不存在',
         });
         return;
       }
@@ -181,16 +187,16 @@ export class AnnouncementAdminController {
       res.json({
         success: true,
         message: '公告发布成功',
-        data: { 
+        data: {
           announcement,
-          publishedAt: announcement.publishedAt
-        }
+          publishedAt: announcement.publishedAt,
+        },
       });
     } catch (error) {
       console.error('发布公告错误:', error);
       res.status(500).json({
         success: false,
-        message: '发布公告失败'
+        message: '发布公告失败',
       });
     }
   }
@@ -208,7 +214,7 @@ export class AnnouncementAdminController {
       if (!announcement) {
         res.status(404).json({
           success: false,
-          message: '公告不存在'
+          message: '公告不存在',
         });
         return;
       }
@@ -216,13 +222,13 @@ export class AnnouncementAdminController {
       res.json({
         success: true,
         message: '公告撤回成功',
-        data: { announcement }
+        data: { announcement },
       });
     } catch (error) {
       console.error('撤回公告错误:', error);
       res.status(500).json({
         success: false,
-        message: '撤回公告失败'
+        message: '撤回公告失败',
       });
     }
   }
@@ -240,7 +246,7 @@ export class AnnouncementAdminController {
       if (!announcement) {
         res.status(404).json({
           success: false,
-          message: '公告不存在'
+          message: '公告不存在',
         });
         return;
       }
@@ -248,13 +254,13 @@ export class AnnouncementAdminController {
       res.json({
         success: true,
         message: '公告归档成功',
-        data: { announcement }
+        data: { announcement },
       });
     } catch (error) {
       console.error('归档公告错误:', error);
       res.status(500).json({
         success: false,
-        message: '归档公告失败'
+        message: '归档公告失败',
       });
     }
   }
@@ -271,20 +277,20 @@ export class AnnouncementAdminController {
       if (!success) {
         res.status(404).json({
           success: false,
-          message: '公告不存在或删除失败'
+          message: '公告不存在或删除失败',
         });
         return;
       }
 
       res.json({
         success: true,
-        message: '公告删除成功'
+        message: '公告删除成功',
       });
     } catch (error) {
       console.error('删除公告错误:', error);
       res.status(500).json({
         success: false,
-        message: '删除公告失败'
+        message: '删除公告失败',
       });
     }
   }
@@ -298,13 +304,13 @@ export class AnnouncementAdminController {
 
       res.json({
         success: true,
-        data: stats
+        data: stats,
       });
     } catch (error) {
       console.error('获取公告统计错误:', error);
       res.status(500).json({
         success: false,
-        message: '获取公告统计失败'
+        message: '获取公告统计失败',
       });
     }
   }
@@ -320,13 +326,13 @@ export class AnnouncementAdminController {
 
       res.json({
         success: true,
-        data: stats
+        data: stats,
       });
     } catch (error) {
       console.error('获取公告阅读统计错误:', error);
       res.status(500).json({
         success: false,
-        message: '获取公告阅读统计失败'
+        message: '获取公告阅读统计失败',
       });
     }
   }
@@ -342,7 +348,7 @@ export class AnnouncementAdminController {
       if (!ids || !Array.isArray(ids) || ids.length === 0) {
         res.status(400).json({
           success: false,
-          message: '请选择要操作的公告'
+          message: '请选择要操作的公告',
         });
         return;
       }
@@ -350,7 +356,7 @@ export class AnnouncementAdminController {
       if (!['publish', 'unpublish', 'archive', 'delete'].includes(operation)) {
         res.status(400).json({
           success: false,
-          message: '无效的操作类型'
+          message: '无效的操作类型',
         });
         return;
       }
@@ -360,14 +366,14 @@ export class AnnouncementAdminController {
       res.json({
         success: true,
         message: `批量操作完成：成功 ${results.success} 个，失败 ${results.failed} 个`,
-        data: results
+        data: results,
       });
     } catch (error) {
       console.error('批量操作公告错误:', error);
       res.status(500).json({
         success: false,
-        message: '批量操作失败'
+        message: '批量操作失败',
       });
     }
   }
-} 
+}

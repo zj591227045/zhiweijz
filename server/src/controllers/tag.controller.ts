@@ -222,7 +222,11 @@ export class TagController {
         return;
       }
 
-      const result = await this.transactionTagService.addTransactionTags(userId, transactionId, data);
+      const result = await this.transactionTagService.addTransactionTags(
+        userId,
+        transactionId,
+        data,
+      );
       res.status(200).json({
         success: true,
         data: result,

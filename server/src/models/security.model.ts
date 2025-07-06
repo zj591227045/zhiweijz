@@ -40,7 +40,7 @@ export enum SecurityLogType {
   PASSWORD_CHANGE = 'password_change',
   EMAIL_CHANGE = 'email_change',
   DEVICE_LOGOUT = 'device_logout',
-  SECURITY_SETTING_CHANGE = 'security_setting_change'
+  SECURITY_SETTING_CHANGE = 'security_setting_change',
 }
 
 // 安全日志

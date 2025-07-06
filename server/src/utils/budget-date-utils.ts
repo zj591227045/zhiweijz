@@ -27,7 +27,7 @@ export class BudgetDateUtils {
 
     // 计算预算开始日期
     const startDate = new Date(year, month - 1, refreshDay);
-    
+
     // 计算预算结束日期（下个月的refreshDay前一天）
     let endYear = year;
     let endMonth = month + 1;
@@ -46,7 +46,7 @@ export class BudgetDateUtils {
       endDate,
       year,
       month,
-      refreshDay
+      refreshDay,
     };
   }
 
@@ -65,12 +65,12 @@ export class BudgetDateUtils {
     if (day < refreshDay) {
       let prevYear = year;
       let prevMonth = month - 1;
-      
+
       if (prevMonth < 1) {
         prevYear--;
         prevMonth = 12;
       }
-      
+
       return this.calculateBudgetPeriod(prevYear, prevMonth, refreshDay);
     } else {
       // 当前日期在refreshDay之后，在当前月的预算周期内
@@ -86,12 +86,12 @@ export class BudgetDateUtils {
   static getNextBudgetPeriod(currentPeriod: BudgetPeriod): BudgetPeriod {
     let nextYear = currentPeriod.year;
     let nextMonth = currentPeriod.month + 1;
-    
+
     if (nextMonth > 12) {
       nextYear++;
       nextMonth = 1;
     }
-    
+
     return this.calculateBudgetPeriod(nextYear, nextMonth, currentPeriod.refreshDay);
   }
 
@@ -103,12 +103,12 @@ export class BudgetDateUtils {
   static getPreviousBudgetPeriod(currentPeriod: BudgetPeriod): BudgetPeriod {
     let prevYear = currentPeriod.year;
     let prevMonth = currentPeriod.month - 1;
-    
+
     if (prevMonth < 1) {
       prevYear--;
       prevMonth = 12;
     }
-    
+
     return this.calculateBudgetPeriod(prevYear, prevMonth, currentPeriod.refreshDay);
   }
 
@@ -119,31 +119,34 @@ export class BudgetDateUtils {
    * @param refreshDay 刷新日期
    * @returns 缺失的预算周期数组
    */
-  static calculateMissingPeriods(lastEndDate: Date, currentDate: Date, refreshDay: number): BudgetPeriod[] {
+  static calculateMissingPeriods(
+    lastEndDate: Date,
+    currentDate: Date,
+    refreshDay: number,
+  ): BudgetPeriod[] {
     const periods: BudgetPeriod[] = [];
-    
+
     // 从最后一个预算结束后的下一个周期开始
     let checkDate = new Date(lastEndDate.getTime() + 24 * 60 * 60 * 1000); // 下一天
-    
+
     while (checkDate <= currentDate) {
       const period = this.getCurrentBudgetPeriod(checkDate, refreshDay);
-      
+
       // 检查是否已经添加过这个周期
-      const exists = periods.some(p => 
-        p.year === period.year && 
-        p.month === period.month && 
-        p.refreshDay === period.refreshDay
+      const exists = periods.some(
+        (p) =>
+          p.year === period.year && p.month === period.month && p.refreshDay === period.refreshDay,
       );
-      
+
       if (!exists) {
         periods.push(period);
       }
-      
+
       // 移动到下一个周期的开始
       const nextPeriod = this.getNextBudgetPeriod(period);
       checkDate = new Date(nextPeriod.startDate);
     }
-    
+
     return periods;
   }
 
@@ -202,7 +205,7 @@ export class BudgetDateUtils {
     if (currentDate < period.startDate) {
       return this.calculatePeriodDays(period);
     }
-    
+
     const timeDiff = period.endDate.getTime() - currentDate.getTime();
     return Math.max(0, Math.ceil(timeDiff / (1000 * 60 * 60 * 24)));
   }

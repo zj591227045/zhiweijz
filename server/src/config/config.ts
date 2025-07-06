@@ -37,7 +37,9 @@ const config: Config = {
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '3000', 10),
   database: {
-    url: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/zhiweijz?schema=public',
+    url:
+      process.env.DATABASE_URL ||
+      'postgresql://postgres:postgres@localhost:5432/zhiweijz?schema=public',
   },
   jwt: {
     secret: process.env.JWT_SECRET || 'your_jwt_secret',
@@ -48,7 +50,12 @@ const config: Config = {
 };
 
 // 可选配置
-if (process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS) {
+if (
+  process.env.SMTP_HOST &&
+  process.env.SMTP_PORT &&
+  process.env.SMTP_USER &&
+  process.env.SMTP_PASS
+) {
   config.email = {
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT, 10),

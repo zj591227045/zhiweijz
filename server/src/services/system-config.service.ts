@@ -27,8 +27,6 @@ export class SystemConfigService {
     this.llmProviderService = new LLMProviderService();
   }
 
-
-
   /**
    * 更新全局AI配置
    */
@@ -49,8 +47,6 @@ export class SystemConfigService {
     }
   }
 
-
-
   /**
    * 获取TOKEN使用量统计
    */
@@ -69,8 +65,8 @@ export class SystemConfigService {
         dailyUsage: [
           { date: '2024-01-01', tokens: 1000, calls: 10 },
           { date: '2024-01-02', tokens: 1500, calls: 15 },
-          { date: '2024-01-03', tokens: 2000, calls: 20 }
-        ]
+          { date: '2024-01-03', tokens: 2000, calls: 20 },
+        ],
       };
     } catch (error) {
       console.error('获取TOKEN使用量统计失败:', error);
@@ -97,7 +93,7 @@ export class SystemConfigService {
         failedCalls: 1,
         dailyLimit,
         remainingTokens,
-        usagePercentage
+        usagePercentage,
       };
     } catch (error) {
       console.error('获取今日TOKEN使用量失败:', error);
@@ -112,10 +108,13 @@ export class SystemConfigService {
     userId: string,
     serviceType: 'official' | 'custom',
     serviceId?: string,
-    accountId?: string
+    accountId?: string,
   ): Promise<{ success: boolean; message: string }> {
     try {
-      console.log(`用户 ${userId} 切换AI服务类型到 ${serviceType}`, serviceId ? `服务ID: ${serviceId}` : '');
+      console.log(
+        `用户 ${userId} 切换AI服务类型到 ${serviceType}`,
+        serviceId ? `服务ID: ${serviceId}` : '',
+      );
 
       if (serviceType === 'official') {
         // 切换到官方服务
@@ -131,7 +130,7 @@ export class SystemConfigService {
 
         return {
           success: true,
-          message: '已成功切换到官方AI服务'
+          message: '已成功切换到官方AI服务',
         };
       } else {
         // 切换到自定义服务
@@ -157,14 +156,14 @@ export class SystemConfigService {
 
         return {
           success: true,
-          message: '已成功切换到自定义AI服务'
+          message: '已成功切换到自定义AI服务',
         };
       }
     } catch (error) {
       console.error('切换AI服务类型失败:', error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : '切换AI服务类型失败'
+        message: error instanceof Error ? error.message : '切换AI服务类型失败',
       };
     }
   }
@@ -175,7 +174,7 @@ export class SystemConfigService {
   async testAIServiceConnection(
     userId: string,
     serviceType: 'official' | 'custom',
-    serviceId?: string
+    serviceId?: string,
   ): Promise<{ success: boolean; message: string }> {
     try {
       console.log(`测试AI服务连接: ${serviceType}`, serviceId ? `服务ID: ${serviceId}` : '');
@@ -186,11 +185,11 @@ export class SystemConfigService {
         console.log('测试官方AI服务连接');
 
         // 模拟连接测试
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         return {
           success: true,
-          message: '官方AI服务连接正常'
+          message: '官方AI服务连接正常',
         };
       } else {
         // 测试自定义服务连接
@@ -204,18 +203,18 @@ export class SystemConfigService {
         // 使用LLMProviderService来测试连接
 
         // 模拟连接测试
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise((resolve) => setTimeout(resolve, 1500));
 
         return {
           success: true,
-          message: '自定义AI服务连接正常'
+          message: '自定义AI服务连接正常',
         };
       }
     } catch (error) {
       console.error('测试AI服务连接失败:', error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : '测试AI服务连接失败'
+        message: error instanceof Error ? error.message : '测试AI服务连接失败',
       };
     }
   }
@@ -228,8 +227,8 @@ export class SystemConfigService {
       // 获取所有LLM相关的系统配置
       const configs = await prisma.systemConfig.findMany({
         where: {
-          category: 'llm'
-        }
+          category: 'llm',
+        },
       });
 
       // 转换为配置对象
@@ -244,12 +243,12 @@ export class SystemConfigService {
       return {
         enabled,
         // 只有当服务启用时才返回具体的配置，否则返回空值
-        provider: enabled ? (configMap['llm_global_provider'] || 'openai') : '',
-        model: enabled ? (configMap['llm_global_model'] || 'gpt-3.5-turbo') : '',
-        baseUrl: enabled ? (configMap['llm_global_base_url'] || '') : '',
+        provider: enabled ? configMap['llm_global_provider'] || 'openai' : '',
+        model: enabled ? configMap['llm_global_model'] || 'gpt-3.5-turbo' : '',
+        baseUrl: enabled ? configMap['llm_global_base_url'] || '' : '',
         temperature: enabled ? parseFloat(configMap['llm_global_temperature'] || '0.7') : 0.7,
         maxTokens: enabled ? parseInt(configMap['llm_global_max_tokens'] || '1000') : 1000,
-        dailyTokenLimit: parseInt(configMap['llm_daily_token_limit'] || '50000')
+        dailyTokenLimit: parseInt(configMap['llm_daily_token_limit'] || '50000'),
       };
     } catch (error) {
       console.error('获取全局AI配置错误:', error);
@@ -263,11 +262,11 @@ export class SystemConfigService {
   async getAIServiceStatus(): Promise<AIServiceStatus> {
     try {
       const config = await this.getGlobalAIConfig();
-      
+
       if (!config.enabled) {
         return {
           isOnline: false,
-          lastChecked: new Date().toISOString()
+          lastChecked: new Date().toISOString(),
         };
       }
 
@@ -275,40 +274,40 @@ export class SystemConfigService {
       const startTime = Date.now();
       try {
         const testUrl = this.getTestUrl(config.provider || 'openai', config.baseUrl);
-        
+
         if (!testUrl) {
           return {
             isOnline: false,
-            lastChecked: new Date().toISOString()
+            lastChecked: new Date().toISOString(),
           };
         }
 
         // 使用简单的HTTP请求测试连通性（使用AbortController实现超时）
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
-        
+
         try {
           const response = await fetch(testUrl, {
             method: 'GET',
             headers: {
               'User-Agent': 'ZhiWeiJZ/1.0.0',
-              'Accept': 'application/json'
+              Accept: 'application/json',
             },
-            signal: controller.signal
+            signal: controller.signal,
           });
 
           clearTimeout(timeoutId);
 
           const responseTime = Date.now() - startTime;
-          
+
           // 只要能连通就认为服务正常（不需要验证API Key）
           const isOnline = response.status < 500; // 4xx也算正常，5xx才算服务异常
-          
+
           return {
             isOnline,
             responseTime,
             lastChecked: new Date().toISOString(),
-            version: '1.0.0'
+            version: '1.0.0',
           };
         } catch (fetchError) {
           clearTimeout(timeoutId);
@@ -319,14 +318,14 @@ export class SystemConfigService {
         return {
           isOnline: false,
           responseTime,
-          lastChecked: new Date().toISOString()
+          lastChecked: new Date().toISOString(),
         };
       }
     } catch (error) {
       console.error('获取AI服务状态错误:', error);
       return {
         isOnline: false,
-        lastChecked: new Date().toISOString()
+        lastChecked: new Date().toISOString(),
       };
     }
   }
@@ -359,7 +358,7 @@ export class SystemConfigService {
   private async getSystemConfigValue(key: string): Promise<string> {
     try {
       const config = await prisma.systemConfig.findUnique({
-        where: { key }
+        where: { key },
       });
       return config?.value || '';
     } catch (error) {
@@ -410,7 +409,7 @@ export class SystemConfigService {
         apiKey,
         baseUrl: config.baseUrl || undefined,
         temperature: config.temperature || 0.7,
-        maxTokens: config.maxTokens || 1000
+        maxTokens: config.maxTokens || 1000,
       };
     } catch (error) {
       console.error('获取全局AI服务配置错误:', error);
@@ -438,13 +437,17 @@ export class SystemConfigService {
         updates.push(this.upsertSystemConfig('llm_global_base_url', config.baseUrl));
       }
       if (config.temperature !== undefined) {
-        updates.push(this.upsertSystemConfig('llm_global_temperature', config.temperature.toString()));
+        updates.push(
+          this.upsertSystemConfig('llm_global_temperature', config.temperature.toString()),
+        );
       }
       if (config.maxTokens !== undefined) {
         updates.push(this.upsertSystemConfig('llm_global_max_tokens', config.maxTokens.toString()));
       }
       if (config.dailyTokenLimit !== undefined) {
-        updates.push(this.upsertSystemConfig('llm_daily_token_limit', config.dailyTokenLimit.toString()));
+        updates.push(
+          this.upsertSystemConfig('llm_daily_token_limit', config.dailyTokenLimit.toString()),
+        );
       }
 
       await Promise.all(updates);
@@ -466,8 +469,8 @@ export class SystemConfigService {
         key,
         value,
         category: 'llm',
-        description: `LLM配置: ${key}`
-      }
+        description: `LLM配置: ${key}`,
+      },
     });
   }
 
@@ -480,14 +483,14 @@ export class SystemConfigService {
         where: {
           userId_key: {
             userId,
-            key: 'ai_service_type'
-          }
-        }
+            key: 'ai_service_type',
+          },
+        },
       });
 
       const serviceType = userServiceTypeSetting?.value || 'official';
       console.log(`获取用户 ${userId} 的AI服务类型: ${serviceType}`);
-      
+
       return serviceType as 'official' | 'custom';
     } catch (error) {
       console.error('获取用户AI服务类型失败:', error);
@@ -504,14 +507,14 @@ export class SystemConfigService {
         where: {
           userId_key: {
             userId,
-            key: 'ai_service_enabled'
-          }
-        }
+            key: 'ai_service_enabled',
+          },
+        },
       });
 
       const enabled = userAIEnabledSetting?.value === 'true';
       console.log(`获取用户 ${userId} 的AI服务启用状态: ${enabled}`);
-      
+
       return enabled;
     } catch (error) {
       console.error('获取用户AI服务启用状态失败:', error);
@@ -525,21 +528,21 @@ export class SystemConfigService {
   async setUserAIServiceEnabled(userId: string, enabled: boolean): Promise<void> {
     try {
       await prisma.userSetting.upsert({
-        where: { 
+        where: {
           userId_key: {
             userId,
-            key: 'ai_service_enabled'
-          }
+            key: 'ai_service_enabled',
+          },
         },
-        update: { 
+        update: {
           value: enabled.toString(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         create: {
           userId,
           key: 'ai_service_enabled',
-          value: enabled.toString()
-        }
+          value: enabled.toString(),
+        },
       });
       console.log(`已设置用户 ${userId} 的AI服务启用状态为 ${enabled}`);
     } catch (error) {
@@ -551,24 +554,27 @@ export class SystemConfigService {
   /**
    * 存储用户级别的AI服务类型
    */
-  private async setUserAIServiceType(userId: string, serviceType: 'official' | 'custom'): Promise<void> {
+  private async setUserAIServiceType(
+    userId: string,
+    serviceType: 'official' | 'custom',
+  ): Promise<void> {
     try {
       await prisma.userSetting.upsert({
-        where: { 
+        where: {
           userId_key: {
             userId,
-            key: 'ai_service_type'
-          }
+            key: 'ai_service_type',
+          },
         },
-        update: { 
+        update: {
           value: serviceType,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         create: {
           userId,
           key: 'ai_service_type',
-          value: serviceType
-        }
+          value: serviceType,
+        },
       });
       console.log(`已存储用户 ${userId} 的AI服务类型为 ${serviceType}`);
     } catch (error) {
@@ -580,11 +586,14 @@ export class SystemConfigService {
   /**
    * 验证用户LLM设置所有权
    */
-  private async validateUserLLMSettingOwnership(userId: string, serviceId: string): Promise<boolean> {
+  private async validateUserLLMSettingOwnership(
+    userId: string,
+    serviceId: string,
+  ): Promise<boolean> {
     try {
       // 查询LLM设置
       const llmSetting = await prisma.userLLMSetting.findUnique({
-        where: { id: serviceId }
+        where: { id: serviceId },
       });
 
       if (!llmSetting) {
@@ -606,7 +615,7 @@ export class SystemConfigService {
     try {
       await prisma.accountBook.update({
         where: { id: accountId },
-        data: { userLLMSettingId: null }
+        data: { userLLMSettingId: null },
       });
       console.log(`已清除账本 ${accountId} 的LLM设置绑定`);
     } catch (error) {
@@ -622,7 +631,7 @@ export class SystemConfigService {
     try {
       await prisma.accountBook.update({
         where: { id: accountId },
-        data: { userLLMSettingId: serviceId }
+        data: { userLLMSettingId: serviceId },
       });
       console.log(`已绑定账本 ${accountId} 到LLM设置 ${serviceId}`);
     } catch (error) {

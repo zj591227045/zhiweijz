@@ -12,9 +12,13 @@ router.use(authenticate);
 router.get('/', (req, res) => userCategoryConfigController.getUserCategoryConfigs(req, res));
 
 // 更新用户分类配置
-router.put('/:categoryId', (req, res) => userCategoryConfigController.updateUserCategoryConfig(req, res));
+router.put('/:categoryId', (req, res) =>
+  userCategoryConfigController.updateUserCategoryConfig(req, res),
+);
 
 // 批量更新用户分类配置
-router.put('/', (req, res) => userCategoryConfigController.batchUpdateUserCategoryConfigs(req, res));
+router.put('/', (req, res) =>
+  userCategoryConfigController.batchUpdateUserCategoryConfigs(req, res),
+);
 
 export default router;

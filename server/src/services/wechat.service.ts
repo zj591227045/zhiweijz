@@ -82,8 +82,8 @@ export class WechatService {
         params: {
           grant_type: 'client_credential',
           appid: this.appId,
-          secret: this.appSecret
-        }
+          secret: this.appSecret,
+        },
       });
 
       if (response.data.errcode) {
@@ -104,7 +104,7 @@ export class WechatService {
     if (!this.isEnabled) {
       return {
         success: false,
-        error: '微信服务未启用'
+        error: '微信服务未启用',
       };
     }
 
@@ -118,46 +118,46 @@ export class WechatService {
       const menuConfig = {
         button: [
           {
-            type: "view",
-            name: "访问官网",
-            url: "https://www.zhiweijz.cn"
+            type: 'view',
+            name: '访问官网',
+            url: 'https://www.zhiweijz.cn',
           },
           {
-            type: "view",
-            name: "账号绑定",
-            url: authUrl
+            type: 'view',
+            name: '账号绑定',
+            url: authUrl,
           },
           {
-            type: "view",
-            name: "下载App",
-            url: "https://www.zhiweijz.cn/downloads"
-          }
-        ]
+            type: 'view',
+            name: '下载App',
+            url: 'https://www.zhiweijz.cn/downloads',
+          },
+        ],
       };
 
       const response = await axios.post(
         `https://api.weixin.qq.com/cgi-bin/menu/create?access_token=${accessToken}`,
-        menuConfig
+        menuConfig,
       );
 
       if (response.data.errcode === 0) {
         console.log('微信菜单创建成功');
         return {
           success: true,
-          data: response.data
+          data: response.data,
         };
       } else {
         console.error('微信菜单创建失败:', response.data);
         return {
           success: false,
-          error: `创建失败: ${response.data.errmsg}`
+          error: `创建失败: ${response.data.errmsg}`,
         };
       }
     } catch (error) {
       console.error('创建微信菜单异常:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : '未知错误'
+        error: error instanceof Error ? error.message : '未知错误',
       };
     }
   }
@@ -197,7 +197,12 @@ export class WechatService {
 
     try {
       // 记录消息日志
-      await this.logMessage(openid, message.MsgType, message.Content || message.Event || '', 'pending');
+      await this.logMessage(
+        openid,
+        message.MsgType,
+        message.Content || message.Event || '',
+        'pending',
+      );
 
       let responseContent = '';
 
@@ -222,13 +227,20 @@ export class WechatService {
           responseContent = '暂不支持位置消息，请发送文字进行记账。\n\n发送"帮助"查看使用说明。';
           break;
         default:
-          responseContent = '抱歉，暂不支持此类型消息。\n\n请发送文字消息进行记账，或发送"帮助"查看使用说明。';
+          responseContent =
+            '抱歉，暂不支持此类型消息。\n\n请发送文字消息进行记账，或发送"帮助"查看使用说明。';
       }
 
       const processingTime = Date.now() - startTime;
 
       // 更新消息日志
-      await this.updateMessageLog(openid, message.Content || message.Event || '', responseContent, 'success', processingTime);
+      await this.updateMessageLog(
+        openid,
+        message.Content || message.Event || '',
+        responseContent,
+        'success',
+        processingTime,
+      );
 
       return this.createResponse(message, responseContent);
     } catch (error) {
@@ -236,14 +248,21 @@ export class WechatService {
       const errorMessage = error instanceof Error ? error.message : '未知错误';
 
       // 记录错误日志
-      await this.updateMessageLog(openid, message.Content || message.Event || '', '', 'failed', processingTime, errorMessage);
+      await this.updateMessageLog(
+        openid,
+        message.Content || message.Event || '',
+        '',
+        'failed',
+        processingTime,
+        errorMessage,
+      );
 
       console.error('处理微信消息失败:', {
         error: errorMessage,
         openid,
         messageType: message.MsgType,
         content: message.Content || message.Event,
-        processingTime
+        processingTime,
       });
 
       // 根据错误类型返回不同的错误消息
@@ -293,7 +312,7 @@ export class WechatService {
       }
       return '请先设置默认账本。\n\n发送"设置账本"来选择默认账本。';
     }
-    
+
     // 处理特殊命令 - 使用清理后的内容
     const lowerContent = cleanContent.toLowerCase();
 
@@ -321,7 +340,11 @@ export class WechatService {
     }
 
     // 统计查询命令
-    if (lowerContent.includes('查看余额') || lowerContent.includes('余额查询') || lowerContent.includes('账本统计')) {
+    if (
+      lowerContent.includes('查看余额') ||
+      lowerContent.includes('余额查询') ||
+      lowerContent.includes('账本统计')
+    ) {
       return await this.handleBalanceQuery(binding.user_id, binding.default_account_book_id);
     }
 
@@ -354,7 +377,11 @@ export class WechatService {
         return await this.handleBudgetQuery(binding.user_id, binding.default_account_book_id);
 
       case 'recent':
-        return await this.handleRecentQuery(binding.user_id, binding.default_account_book_id, intent.limit || 5);
+        return await this.handleRecentQuery(
+          binding.user_id,
+          binding.default_account_book_id,
+          intent.limit || 5,
+        );
 
       case 'timeRange':
         if (intent.timeRange) {
@@ -363,7 +390,7 @@ export class WechatService {
             binding.default_account_book_id,
             intent.timeRange.start,
             intent.timeRange.end,
-            intent.timeRange.period
+            intent.timeRange.period,
           );
         }
         return await this.handleBalanceQuery(binding.user_id, binding.default_account_book_id);
@@ -376,7 +403,13 @@ export class WechatService {
         }
 
         // 智能记账处理 - 异步处理，返回空字符串避免超时
-        this.handleSmartAccountingAsync(openid, binding.user_id, binding.default_account_book_id, cleanContent, true);
+        this.handleSmartAccountingAsync(
+          openid,
+          binding.user_id,
+          binding.default_account_book_id,
+          cleanContent,
+          true,
+        );
         return ''; // 返回空字符串，通过客服消息API异步发送结果
     }
   }
@@ -391,7 +424,7 @@ export class WechatService {
       openid,
       event,
       eventKey: message.EventKey,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     switch (event) {
@@ -430,19 +463,24 @@ export class WechatService {
   /**
    * 异步处理智能记账
    */
-  private async handleSmartAccountingAsync(openid: string, userId: string, accountBookId: string, description: string, createTransaction: boolean = false): Promise<void> {
+  private async handleSmartAccountingAsync(
+    openid: string,
+    userId: string,
+    accountBookId: string,
+    description: string,
+    createTransaction: boolean = false,
+  ): Promise<void> {
     try {
       const result = await this.smartAccountingService.processWechatAccounting(
         userId,
         accountBookId,
         description,
-        createTransaction
+        createTransaction,
       );
 
       // 通过客服消息API发送结果
       const message = result.success ? result.message : result.message;
       await this.sendCustomMessage(openid, message);
-
     } catch (error) {
       console.error('异步智能记账处理失败:', error);
       // 发送错误消息给用户
@@ -453,17 +491,21 @@ export class WechatService {
   /**
    * 处理智能记账（同步版本，用于其他场景）
    */
-  private async handleSmartAccounting(userId: string, accountBookId: string, description: string, createTransaction: boolean = false): Promise<string> {
+  private async handleSmartAccounting(
+    userId: string,
+    accountBookId: string,
+    description: string,
+    createTransaction: boolean = false,
+  ): Promise<string> {
     try {
       const result = await this.smartAccountingService.processWechatAccounting(
         userId,
         accountBookId,
         description,
-        createTransaction
+        createTransaction,
       );
 
       return result.success ? result.message : result.message;
-
     } catch (error) {
       console.error('智能记账处理失败:', error);
       return '记账处理失败，请稍后重试。';
@@ -499,7 +541,10 @@ export class WechatService {
         if (accountBooks.length > 0) {
           message += '请选择默认账本：\n\n';
           accountBooks.forEach((book: any, index: number) => {
-            const bookType = book.type === 'FAMILY' ? `[家庭账本${book.familyName ? '-' + book.familyName : ''}]` : '[个人账本]';
+            const bookType =
+              book.type === 'FAMILY'
+                ? `[家庭账本${book.familyName ? '-' + book.familyName : ''}]`
+                : '[个人账本]';
             message += `${index + 1}. ${book.name} ${bookType}\n`;
           });
           message += '\n回复"选择1"、"选择2"等来设置默认账本';
@@ -511,7 +556,6 @@ export class WechatService {
       } else {
         return `❌ ${result.message}`;
       }
-
     } catch (error) {
       console.error('处理账号绑定失败:', error);
       return '绑定失败，请稍后重试。';
@@ -545,7 +589,6 @@ export class WechatService {
       const result = await this.bindingService.setDefaultAccountBook(openid, selectedBook.id);
 
       return result.success ? `✅ ${result.message}` : `❌ ${result.message}`;
-
     } catch (error) {
       console.error('处理账本选择失败:', error);
       return '设置失败，请稍后重试。';
@@ -584,7 +627,6 @@ export class WechatService {
       message += '发送"解除绑定"可以取消绑定';
 
       return message;
-
     } catch (error) {
       console.error('获取绑定信息失败:', error);
       return '获取绑定信息失败，请稍后重试。';
@@ -604,29 +646,29 @@ export class WechatService {
               type: 'FAMILY',
               family: {
                 members: {
-                  some: { userId }
-                }
-              }
-            }
-          ]
+                  some: { userId },
+                },
+              },
+            },
+          ],
         },
         include: {
-          family: true
-        }
+          family: true,
+        },
       });
-      
+
       if (accountBooks.length === 0) {
         return '您还没有任何账本，请先在应用中创建账本。';
       }
-      
+
       let message = '请选择要设置为默认的账本：\n\n';
       accountBooks.forEach((book, index) => {
         const bookType = book.type === 'FAMILY' ? `[家庭账本-${book.family?.name}]` : '[个人账本]';
         message += `${index + 1}. ${book.name} ${bookType}\n`;
       });
-      
+
       message += '\n回复数字选择账本，例如：选择1';
-      
+
       return message;
     } catch (error) {
       console.error('获取账本列表失败:', error);
@@ -673,7 +715,11 @@ export class WechatService {
   /**
    * 处理最近交易查询
    */
-  private async handleRecentQuery(userId: string, accountBookId: string, limit: number = 5): Promise<string> {
+  private async handleRecentQuery(
+    userId: string,
+    accountBookId: string,
+    limit: number = 5,
+  ): Promise<string> {
     try {
       return await this.smartAccountingService.getRecentTransactions(userId, accountBookId, limit);
     } catch (error) {
@@ -685,9 +731,21 @@ export class WechatService {
   /**
    * 处理时间范围查询
    */
-  private async handleTimeRangeQuery(userId: string, accountBookId: string, startDate: Date, endDate: Date, period: string): Promise<string> {
+  private async handleTimeRangeQuery(
+    userId: string,
+    accountBookId: string,
+    startDate: Date,
+    endDate: Date,
+    period: string,
+  ): Promise<string> {
     try {
-      return await this.smartAccountingService.getTimeRangeStats(userId, accountBookId, startDate, endDate, period);
+      return await this.smartAccountingService.getTimeRangeStats(
+        userId,
+        accountBookId,
+        startDate,
+        endDate,
+        period,
+      );
     } catch (error) {
       console.error('获取时间范围统计失败:', error);
       return '获取时间范围统计失败，请稍后重试。';
@@ -719,7 +777,7 @@ export class WechatService {
    */
   private async getUserBinding(openid: string) {
     return await prisma.wechat_user_bindings.findUnique({
-      where: { openid }
+      where: { openid },
     });
   }
 
@@ -734,8 +792,8 @@ export class WechatService {
           openid,
           message_type: 'event',
           content: eventType,
-          status: 'success'
-        }
+          status: 'success',
+        },
       });
     } catch (error) {
       console.error('记录用户事件失败:', error);
@@ -753,8 +811,8 @@ export class WechatService {
           openid,
           message_type: messageType,
           content,
-          status
-        }
+          status,
+        },
       });
     } catch (error) {
       console.error('记录消息日志失败:', error);
@@ -770,12 +828,12 @@ export class WechatService {
     response: string,
     status: string,
     processingTime: number,
-    errorMessage?: string
+    errorMessage?: string,
   ) {
     try {
       const latestLog = await prisma.wechat_message_logs.findFirst({
         where: { openid, content },
-        orderBy: { created_at: 'desc' }
+        orderBy: { created_at: 'desc' },
       });
 
       if (latestLog) {
@@ -785,8 +843,8 @@ export class WechatService {
             response,
             status,
             processing_time: processingTime,
-            error_message: errorMessage
-          }
+            error_message: errorMessage,
+          },
         });
       }
     } catch (error) {
@@ -803,7 +861,7 @@ export class WechatService {
       FromUserName: message.ToUserName,
       CreateTime: Math.floor(Date.now() / 1000),
       MsgType: 'text',
-      Content: content
+      Content: content,
     };
   }
 
@@ -811,28 +869,32 @@ export class WechatService {
    * 获取绑定说明
    */
   private getBindingInstructions(): string {
-    return '🔗 账号绑定说明\n\n' +
-           '请按以下格式发送绑定信息：\n' +
-           '绑定 邮箱 密码\n\n' +
-           '例如：\n' +
-           '绑定 user@example.com 123456\n\n' +
-           '⚠️ 注意：\n' +
-           '• 请使用您在只为记账应用中注册的邮箱\n' +
-           '• 密码为您的登录密码\n' +
-           '• 绑定成功后可选择默认账本\n\n' +
-           '如需帮助，请发送"帮助"';
+    return (
+      '🔗 账号绑定说明\n\n' +
+      '请按以下格式发送绑定信息：\n' +
+      '绑定 邮箱 密码\n\n' +
+      '例如：\n' +
+      '绑定 user@example.com 123456\n\n' +
+      '⚠️ 注意：\n' +
+      '• 请使用您在只为记账应用中注册的邮箱\n' +
+      '• 密码为您的登录密码\n' +
+      '• 绑定成功后可选择默认账本\n\n' +
+      '如需帮助，请发送"帮助"'
+    );
   }
 
   /**
    * 获取欢迎消息
    */
   private getWelcomeMessage(): string {
-    return '🎉 欢迎关注只为记账！\n\n' +
-           '我是您的智能记账助手，可以帮您：\n' +
-           '📝 智能记账 - 发送消费信息即可自动记账\n' +
-           '💰 查看余额 - 随时了解财务状况\n' +
-           '📊 账本管理 - 切换不同账本\n\n' +
-           '请先点击菜单"绑定账号"开始使用！';
+    return (
+      '🎉 欢迎关注只为记账！\n\n' +
+      '我是您的智能记账助手，可以帮您：\n' +
+      '📝 智能记账 - 发送消费信息即可自动记账\n' +
+      '💰 查看余额 - 随时了解财务状况\n' +
+      '📊 账本管理 - 切换不同账本\n\n' +
+      '请先点击菜单"绑定账号"开始使用！'
+    );
   }
 
   /**
@@ -843,18 +905,37 @@ export class WechatService {
 
     // 常见的非记账关键词
     const nonAccountingKeywords = [
-      '你好', 'hello', 'hi', '在吗', '在不在',
-      '怎么样', '如何', '什么时候', '为什么',
-      '天气', '新闻', '股票', '彩票',
-      '聊天', '无聊', '哈哈', '呵呵',
-      '测试', 'test', '试试',
-      '谢谢', '感谢', 'thanks',
-      '再见', 'bye', '拜拜'
+      '你好',
+      'hello',
+      'hi',
+      '在吗',
+      '在不在',
+      '怎么样',
+      '如何',
+      '什么时候',
+      '为什么',
+      '天气',
+      '新闻',
+      '股票',
+      '彩票',
+      '聊天',
+      '无聊',
+      '哈哈',
+      '呵呵',
+      '测试',
+      'test',
+      '试试',
+      '谢谢',
+      '感谢',
+      'thanks',
+      '再见',
+      'bye',
+      '拜拜',
     ];
 
     // 检查是否包含非记账关键词
-    const hasNonAccountingKeywords = nonAccountingKeywords.some(keyword =>
-      lowerContent.includes(keyword)
+    const hasNonAccountingKeywords = nonAccountingKeywords.some((keyword) =>
+      lowerContent.includes(keyword),
     );
 
     // 检查是否是纯文字且没有数字（记账通常包含金额）
@@ -862,43 +943,50 @@ export class WechatService {
     const isVeryShort = content.length < 3;
     const isOnlyLetters = /^[a-zA-Z\s]+$/.test(content);
 
-    return hasNonAccountingKeywords ||
-           (isVeryShort && !hasNumbers) ||
-           (isOnlyLetters && content.length < 10);
+    return (
+      hasNonAccountingKeywords ||
+      (isVeryShort && !hasNumbers) ||
+      (isOnlyLetters && content.length < 10)
+    );
   }
 
   /**
    * 获取帮助信息
    */
   private getHelpMessage(): string {
-    return '📖 使用帮助\n\n' +
-           '🔗 账号管理：\n' +
-           '• "绑定账号" - 获取绑定说明\n' +
-           '• "绑定 邮箱 密码" - 绑定只为记账账号\n' +
-           '• "绑定信息" - 查看当前绑定信息\n' +
-           '• "解除绑定" - 取消账号绑定\n\n' +
-           '📚 账本管理：\n' +
-           '• "设置账本" - 查看并选择默认账本\n' +
-           '• "选择1" - 选择第1个账本为默认\n\n' +
-           '📊 统计查询：\n' +
-           '• "查看余额" / "账本统计" - 查询账本统计\n' +
-           '• "分类统计" / "消费统计" - 查看分类统计\n\n' +
-           '💡 智能记账示例：\n' +
-           '• "50 餐饮 午餐" - 支出记账\n' +
-           '• "地铁 5元" - 交通费用\n' +
-           '• "工资 8000" - 收入记账\n' +
-           '• "买菜花了30块钱" - 自然语言记账\n\n' +
-           '💡 记账小贴士：\n' +
-           '• 支持自然语言描述\n' +
-           '• 自动识别金额、分类和类型\n' +
-           '• 智能匹配预算和账本\n\n' +
-           '如有问题，请联系客服。';
+    return (
+      '📖 使用帮助\n\n' +
+      '🔗 账号管理：\n' +
+      '• "绑定账号" - 获取绑定说明\n' +
+      '• "绑定 邮箱 密码" - 绑定只为记账账号\n' +
+      '• "绑定信息" - 查看当前绑定信息\n' +
+      '• "解除绑定" - 取消账号绑定\n\n' +
+      '📚 账本管理：\n' +
+      '• "设置账本" - 查看并选择默认账本\n' +
+      '• "选择1" - 选择第1个账本为默认\n\n' +
+      '📊 统计查询：\n' +
+      '• "查看余额" / "账本统计" - 查询账本统计\n' +
+      '• "分类统计" / "消费统计" - 查看分类统计\n\n' +
+      '💡 智能记账示例：\n' +
+      '• "50 餐饮 午餐" - 支出记账\n' +
+      '• "地铁 5元" - 交通费用\n' +
+      '• "工资 8000" - 收入记账\n' +
+      '• "买菜花了30块钱" - 自然语言记账\n\n' +
+      '💡 记账小贴士：\n' +
+      '• 支持自然语言描述\n' +
+      '• 自动识别金额、分类和类型\n' +
+      '• 智能匹配预算和账本\n\n' +
+      '如有问题，请联系客服。'
+    );
   }
 
   /**
    * 用户登录并获取账本列表
    */
-  public async loginAndGetAccountBooks(email: string, password: string): Promise<{
+  public async loginAndGetAccountBooks(
+    email: string,
+    password: string,
+  ): Promise<{
     success: boolean;
     message: string;
     data?: {
@@ -914,14 +1002,14 @@ export class WechatService {
           id: true,
           name: true,
           email: true,
-          passwordHash: true
-        }
+          passwordHash: true,
+        },
       });
 
       if (!user) {
         return {
           success: false,
-          message: '用户不存在，请检查邮箱地址'
+          message: '用户不存在，请检查邮箱地址',
         };
       }
 
@@ -930,7 +1018,7 @@ export class WechatService {
       if (!isPasswordValid) {
         return {
           success: false,
-          message: '密码错误，请重新输入'
+          message: '密码错误，请重新输入',
         };
       }
 
@@ -943,30 +1031,30 @@ export class WechatService {
               type: 'FAMILY',
               family: {
                 members: {
-                  some: { userId: user.id }
-                }
-              }
-            }
-          ]
+                  some: { userId: user.id },
+                },
+              },
+            },
+          ],
         },
         include: {
           family: {
             select: {
-              name: true
-            }
-          }
+              name: true,
+            },
+          },
         },
         orderBy: {
-          createdAt: 'desc'
-        }
+          createdAt: 'desc',
+        },
       });
 
       // 格式化账本数据
-      const formattedBooks = accountBooks.map(book => ({
+      const formattedBooks = accountBooks.map((book) => ({
         id: book.id,
         name: book.name,
         type: book.type,
-        familyName: book.family?.name
+        familyName: book.family?.name,
       }));
 
       return {
@@ -976,17 +1064,16 @@ export class WechatService {
           user: {
             id: user.id,
             name: user.name,
-            email: user.email
+            email: user.email,
           },
-          accountBooks: formattedBooks
-        }
+          accountBooks: formattedBooks,
+        },
       };
-
     } catch (error) {
       console.error('登录获取账本失败:', error);
       return {
         success: false,
-        message: '登录失败，请稍后重试'
+        message: '登录失败，请稍后重试',
       };
     }
   }
@@ -1006,8 +1093,8 @@ export class WechatService {
           appid: this.appId,
           secret: this.appSecret,
           code: code,
-          grant_type: 'authorization_code'
-        }
+          grant_type: 'authorization_code',
+        },
       });
 
       if (response.data.errcode) {
@@ -1024,7 +1111,11 @@ export class WechatService {
   /**
    * 绑定微信账号
    */
-  public async bindWechatAccount(openid: string, userId: string, accountBookId: string): Promise<{
+  public async bindWechatAccount(
+    openid: string,
+    userId: string,
+    accountBookId: string,
+  ): Promise<{
     success: boolean;
     message: string;
     data?: any;
@@ -1033,13 +1124,13 @@ export class WechatService {
       // 检查用户是否存在
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { id: true, name: true, email: true }
+        select: { id: true, name: true, email: true },
       });
 
       if (!user) {
         return {
           success: false,
-          message: '用户不存在'
+          message: '用户不存在',
         };
       }
 
@@ -1053,25 +1144,25 @@ export class WechatService {
               type: 'FAMILY',
               family: {
                 members: {
-                  some: { userId }
-                }
-              }
-            }
-          ]
+                  some: { userId },
+                },
+              },
+            },
+          ],
         },
-        select: { id: true, name: true, type: true }
+        select: { id: true, name: true, type: true },
       });
 
       if (!accountBook) {
         return {
           success: false,
-          message: '账本不存在或您没有权限访问'
+          message: '账本不存在或您没有权限访问',
         };
       }
 
       // 检查是否已经绑定
       const existingBinding = await prisma.wechat_user_bindings.findUnique({
-        where: { openid }
+        where: { openid },
       });
 
       if (existingBinding) {
@@ -1082,8 +1173,8 @@ export class WechatService {
             user_id: userId,
             default_account_book_id: accountBookId,
             is_active: true,
-            updated_at: new Date()
-          }
+            updated_at: new Date(),
+          },
         });
       } else {
         // 创建新绑定
@@ -1095,8 +1186,8 @@ export class WechatService {
             default_account_book_id: accountBookId,
             is_active: true,
             created_at: new Date(),
-            updated_at: new Date()
-          }
+            updated_at: new Date(),
+          },
         });
       }
 
@@ -1124,7 +1215,7 @@ export class WechatService {
 现在就试试发送一条消费记录吧！`;
 
       // 异步发送消息，不影响绑定流程
-      this.sendCustomMessage(openid, welcomeMessage).catch(error => {
+      this.sendCustomMessage(openid, welcomeMessage).catch((error) => {
         console.error('发送绑定成功消息失败:', error);
       });
 
@@ -1133,15 +1224,14 @@ export class WechatService {
         message: `绑定成功！已设置"${accountBook.name}"为默认账本`,
         data: {
           user: user,
-          accountBook: accountBook
-        }
+          accountBook: accountBook,
+        },
       };
-
     } catch (error) {
       console.error('绑定微信账号失败:', error);
       return {
         success: false,
-        message: '绑定失败，请稍后重试'
+        message: '绑定失败，请稍后重试',
       };
     }
   }
@@ -1156,31 +1246,30 @@ export class WechatService {
     try {
       // 检查绑定是否存在
       const existingBinding = await prisma.wechat_user_bindings.findUnique({
-        where: { openid }
+        where: { openid },
       });
 
       if (!existingBinding) {
         return {
           success: false,
-          message: '未找到绑定记录'
+          message: '未找到绑定记录',
         };
       }
 
       // 删除绑定记录
       await prisma.wechat_user_bindings.delete({
-        where: { openid }
+        where: { openid },
       });
 
       return {
         success: true,
-        message: '解绑成功'
+        message: '解绑成功',
       };
-
     } catch (error) {
       console.error('解绑微信账号失败:', error);
       return {
         success: false,
-        message: '解绑失败，请稍后重试'
+        message: '解绑失败，请稍后重试',
       };
     }
   }
@@ -1188,7 +1277,10 @@ export class WechatService {
   /**
    * 发送客服消息
    */
-  public async sendCustomMessage(openid: string, content: string): Promise<{
+  public async sendCustomMessage(
+    openid: string,
+    content: string,
+  ): Promise<{
     success: boolean;
     message?: string;
   }> {
@@ -1197,7 +1289,7 @@ export class WechatService {
         console.log('微信服务未启用，跳过发送消息');
         return {
           success: false,
-          message: '微信服务未启用'
+          message: '微信服务未启用',
         };
       }
 
@@ -1207,34 +1299,33 @@ export class WechatService {
         touser: openid,
         msgtype: 'text',
         text: {
-          content: content
-        }
+          content: content,
+        },
       };
 
       const response = await axios.post(
         `https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=${accessToken}`,
-        messageData
+        messageData,
       );
 
       if (response.data.errcode === 0) {
         console.log('✅ 客服消息发送成功:', { openid, content: content.substring(0, 50) + '...' });
         return {
           success: true,
-          message: '消息发送成功'
+          message: '消息发送成功',
         };
       } else {
         console.error('❌ 客服消息发送失败:', response.data);
         return {
           success: false,
-          message: `发送失败: ${response.data.errmsg}`
+          message: `发送失败: ${response.data.errmsg}`,
         };
       }
-
     } catch (error) {
       console.error('发送客服消息失败:', error);
       return {
         success: false,
-        message: '发送消息失败，请稍后重试'
+        message: '发送消息失败，请稍后重试',
       };
     }
   }
@@ -1252,14 +1343,14 @@ export class WechatService {
       const personalBooks = await prisma.accountBook.findMany({
         where: {
           userId: userId,
-          type: 'PERSONAL'
+          type: 'PERSONAL',
         },
         select: {
           id: true,
           name: true,
           type: true,
-          isDefault: true
-        }
+          isDefault: true,
+        },
       });
 
       // 获取用户参与的家庭账本
@@ -1268,9 +1359,9 @@ export class WechatService {
           type: 'FAMILY',
           family: {
             members: {
-              some: { userId }
-            }
-          }
+              some: { userId },
+            },
+          },
         },
         select: {
           id: true,
@@ -1279,30 +1370,29 @@ export class WechatService {
           isDefault: true,
           family: {
             select: {
-              name: true
-            }
-          }
-        }
+              name: true,
+            },
+          },
+        },
       });
 
       const allBooks = [
         ...personalBooks,
-        ...familyBooks.map(book => ({
+        ...familyBooks.map((book) => ({
           ...book,
-          familyName: book.family?.name
-        }))
+          familyName: book.family?.name,
+        })),
       ];
 
       return {
         success: true,
-        data: allBooks
+        data: allBooks,
       };
-
     } catch (error) {
       console.error('获取用户账本失败:', error);
       return {
         success: false,
-        message: '获取账本失败，请稍后重试'
+        message: '获取账本失败，请稍后重试',
       };
     }
   }

@@ -15,7 +15,9 @@ router.get('/me/security', (req, res) => securityController.getUserSecurity(req,
 router.put('/me/password', (req, res) => securityController.changePassword(req, res));
 
 // 发送邮箱验证码
-router.post('/me/email/verification-code', (req, res) => securityController.sendEmailVerificationCode(req, res));
+router.post('/me/email/verification-code', (req, res) =>
+  securityController.sendEmailVerificationCode(req, res),
+);
 
 // 修改邮箱
 router.put('/me/email', (req, res) => securityController.changeEmail(req, res));

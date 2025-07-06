@@ -9,12 +9,12 @@ export interface CreateBudgetHistoryDto {
   amount: number;
   type: RolloverType;
   description?: string;
-  budgetAmount?: number;     // 预算金额
-  spentAmount?: number;      // 已使用金额
+  budgetAmount?: number; // 预算金额
+  spentAmount?: number; // 已使用金额
   previousRollover?: number; // 上一期结转金额
-  userId?: string;           // 用户ID
-  accountBookId?: string;    // 账本ID
-  budgetType?: string;       // 预算类型
+  userId?: string; // 用户ID
+  accountBookId?: string; // 账本ID
+  budgetType?: string; // 预算类型
 }
 
 /**
@@ -22,9 +22,9 @@ export interface CreateBudgetHistoryDto {
  */
 export interface BudgetHistoryQueryParams {
   budgetId?: string;
-  userId?: string;           // 用户ID
-  accountBookId?: string;    // 账本ID
-  budgetType?: string;       // 预算类型
+  userId?: string; // 用户ID
+  accountBookId?: string; // 账本ID
+  budgetType?: string; // 预算类型
   page?: number;
   limit?: number;
   sortBy?: string;
@@ -56,8 +56,8 @@ export interface BudgetHistoryResponseDto {
   description?: string;
   createdAt: Date;
   updatedAt: Date;
-  budgetAmount?: number;     // 预算金额
-  spentAmount?: number;      // 已使用金额
+  budgetAmount?: number; // 预算金额
+  spentAmount?: number; // 已使用金额
   previousRollover?: number; // 上一期结转金额
 }
 
@@ -74,7 +74,9 @@ export interface BudgetHistoryPaginatedResponseDto {
 /**
  * 将预算历史实体转换为响应DTO
  */
-export function toBudgetHistoryResponseDto(budgetHistory: PrismaBudgetHistory): BudgetHistoryResponseDto {
+export function toBudgetHistoryResponseDto(
+  budgetHistory: PrismaBudgetHistory,
+): BudgetHistoryResponseDto {
   const {
     id,
     budgetId,
@@ -86,7 +88,7 @@ export function toBudgetHistoryResponseDto(budgetHistory: PrismaBudgetHistory): 
     updatedAt,
     budgetAmount,
     spentAmount,
-    previousRollover
+    previousRollover,
   } = budgetHistory as any; // 使用any类型避免TypeScript错误
 
   return {
@@ -100,6 +102,6 @@ export function toBudgetHistoryResponseDto(budgetHistory: PrismaBudgetHistory): 
     updatedAt: updatedAt || createdAt, // 如果updatedAt不存在，使用createdAt
     budgetAmount: budgetAmount ? Number(budgetAmount) : undefined,
     spentAmount: spentAmount ? Number(spentAmount) : undefined,
-    previousRollover: previousRollover ? Number(previousRollover) : undefined
+    previousRollover: previousRollover ? Number(previousRollover) : undefined,
   };
 }

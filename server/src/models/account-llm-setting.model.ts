@@ -40,8 +40,20 @@ export interface AccountLLMSettingResponseDto {
 /**
  * 将账本LLM设置实体转换为响应DTO
  */
-export function toAccountLLMSettingResponseDto(setting: AccountLLMSetting): AccountLLMSettingResponseDto {
-  const { id, accountBookId, provider, model, apiKey, temperature, maxTokens, createdAt, updatedAt } = setting;
+export function toAccountLLMSettingResponseDto(
+  setting: AccountLLMSetting,
+): AccountLLMSettingResponseDto {
+  const {
+    id,
+    accountBookId,
+    provider,
+    model,
+    apiKey,
+    temperature,
+    maxTokens,
+    createdAt,
+    updatedAt,
+  } = setting;
 
   return {
     id,

@@ -21,13 +21,12 @@ export interface TimeRange {
 }
 
 export class WechatQueryIntentService {
-  
   /**
    * 识别用户查询意图
    */
   public recognizeIntent(content: string): QueryIntent {
     const cleanContent = content.trim().toLowerCase();
-    
+
     // 1. 账本统计查询
     if (this.isBalanceQuery(cleanContent)) {
       const timeRange = this.parseTimeRange(cleanContent);
@@ -35,12 +34,12 @@ export class WechatQueryIntentService {
         return {
           type: 'timeRange',
           timeRange,
-          confidence: 0.9
+          confidence: 0.9,
         };
       }
       return {
         type: 'balance',
-        confidence: 0.9
+        confidence: 0.9,
       };
     }
 
@@ -48,7 +47,7 @@ export class WechatQueryIntentService {
     if (this.isCategoryQuery(cleanContent)) {
       return {
         type: 'category',
-        confidence: 0.9
+        confidence: 0.9,
       };
     }
 
@@ -56,7 +55,7 @@ export class WechatQueryIntentService {
     if (this.isBudgetQuery(cleanContent)) {
       return {
         type: 'budget',
-        confidence: 0.9
+        confidence: 0.9,
       };
     }
 
@@ -66,7 +65,7 @@ export class WechatQueryIntentService {
       return {
         type: 'recent',
         limit,
-        confidence: 0.9
+        confidence: 0.9,
       };
     }
 
@@ -76,14 +75,14 @@ export class WechatQueryIntentService {
       return {
         type: 'timeRange',
         timeRange,
-        confidence: 0.8
+        confidence: 0.8,
       };
     }
 
     // 6. 默认为记账
     return {
       type: 'accounting',
-      confidence: 0.7
+      confidence: 0.7,
     };
   }
 
@@ -92,11 +91,20 @@ export class WechatQueryIntentService {
    */
   private isBalanceQuery(content: string): boolean {
     const balanceKeywords = [
-      '查看余额', '余额查询', '账本统计', '收支情况', '本月支出', '本月收入',
-      '支出统计', '收入统计', '财务状况', '账户余额', '月度统计'
+      '查看余额',
+      '余额查询',
+      '账本统计',
+      '收支情况',
+      '本月支出',
+      '本月收入',
+      '支出统计',
+      '收入统计',
+      '财务状况',
+      '账户余额',
+      '月度统计',
     ];
-    
-    return balanceKeywords.some(keyword => content.includes(keyword));
+
+    return balanceKeywords.some((keyword) => content.includes(keyword));
   }
 
   /**
@@ -104,11 +112,17 @@ export class WechatQueryIntentService {
    */
   private isCategoryQuery(content: string): boolean {
     const categoryKeywords = [
-      '分类统计', '消费统计', '支出分类', '收入分类', '分类查询',
-      '消费分析', '支出分析', '分类明细'
+      '分类统计',
+      '消费统计',
+      '支出分类',
+      '收入分类',
+      '分类查询',
+      '消费分析',
+      '支出分析',
+      '分类明细',
     ];
-    
-    return categoryKeywords.some(keyword => content.includes(keyword));
+
+    return categoryKeywords.some((keyword) => content.includes(keyword));
   }
 
   /**
@@ -116,11 +130,17 @@ export class WechatQueryIntentService {
    */
   private isBudgetQuery(content: string): boolean {
     const budgetKeywords = [
-      '预算情况', '预算统计', '查看预算', '预算状态', '预算执行',
-      '预算余额', '预算使用', '预算分析'
+      '预算情况',
+      '预算统计',
+      '查看预算',
+      '预算状态',
+      '预算执行',
+      '预算余额',
+      '预算使用',
+      '预算分析',
     ];
-    
-    return budgetKeywords.some(keyword => content.includes(keyword));
+
+    return budgetKeywords.some((keyword) => content.includes(keyword));
   }
 
   /**
@@ -128,22 +148,26 @@ export class WechatQueryIntentService {
    */
   private isRecentQuery(content: string): boolean {
     const recentKeywords = [
-      '最近交易', '最近记录', '最新交易', '近期交易', '交易记录',
-      '最近消费', '最近支出', '最近收入'
+      '最近交易',
+      '最近记录',
+      '最新交易',
+      '近期交易',
+      '交易记录',
+      '最近消费',
+      '最近支出',
+      '最近收入',
     ];
-    
-    return recentKeywords.some(keyword => content.includes(keyword));
+
+    return recentKeywords.some((keyword) => content.includes(keyword));
   }
 
   /**
    * 判断是否包含查询关键词
    */
   private hasQueryKeywords(content: string): boolean {
-    const queryKeywords = [
-      '查看', '统计', '查询', '分析', '情况', '状态', '记录', '明细'
-    ];
-    
-    return queryKeywords.some(keyword => content.includes(keyword));
+    const queryKeywords = ['查看', '统计', '查询', '分析', '情况', '状态', '记录', '明细'];
+
+    return queryKeywords.some((keyword) => content.includes(keyword));
   }
 
   /**
@@ -151,7 +175,7 @@ export class WechatQueryIntentService {
    */
   private parseTimeRange(content: string): TimeRange | null {
     const now = new Date();
-    
+
     // 今天
     if (content.includes('今天') || content.includes('今日')) {
       const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -170,7 +194,9 @@ export class WechatQueryIntentService {
     // 本周
     if (content.includes('本周') || content.includes('这周')) {
       const dayOfWeek = now.getDay();
-      const start = new Date(now.getTime() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1) * 24 * 60 * 60 * 1000);
+      const start = new Date(
+        now.getTime() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1) * 24 * 60 * 60 * 1000,
+      );
       start.setHours(0, 0, 0, 0);
       const end = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
       return { start, end, period: '本周' };
@@ -179,7 +205,9 @@ export class WechatQueryIntentService {
     // 上周
     if (content.includes('上周') || content.includes('上星期')) {
       const dayOfWeek = now.getDay();
-      const thisWeekStart = new Date(now.getTime() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1) * 24 * 60 * 60 * 1000);
+      const thisWeekStart = new Date(
+        now.getTime() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1) * 24 * 60 * 60 * 1000,
+      );
       const start = new Date(thisWeekStart.getTime() - 7 * 24 * 60 * 60 * 1000);
       start.setHours(0, 0, 0, 0);
       const end = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
@@ -220,7 +248,7 @@ export class WechatQueryIntentService {
       const num = parseInt(numberMatch[1]);
       return Math.min(Math.max(num, 1), 20); // 限制在1-20之间
     }
-    
+
     return 5; // 默认5条
   }
 }

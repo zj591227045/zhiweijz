@@ -20,4 +20,4 @@ router.use('/announcements', announcementAdminRoutes);
 router.use('/token-limit', tokenLimitAdminRoutes);
 router.use('/multi-provider-llm', multiProviderLLMAdminRoutes);
 
-export default router; 
+export default router;

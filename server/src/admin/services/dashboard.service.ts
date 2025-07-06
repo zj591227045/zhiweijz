@@ -41,7 +41,7 @@ export class DashboardService {
   async getOverviewStats() {
     try {
       const todayStart = this.getBeijingTodayStart();
-      
+
       // 并行查询各种统计数据
       const [
         totalUsers,
@@ -49,43 +49,43 @@ export class DashboardService {
         todayUsers,
         todayTransactions,
         totalAccountBooks,
-        activeFamilies
+        activeFamilies,
       ] = await Promise.all([
         // 总用户数
         prisma.user.count(),
-        
+
         // 总交易记录数
         prisma.transaction.count(),
-        
+
         // 今日新注册用户数（按北京时间计算）
         prisma.user.count({
           where: {
             createdAt: {
-              gte: todayStart
-            }
-          }
+              gte: todayStart,
+            },
+          },
         }),
-        
+
         // 今日交易记录数（按北京时间计算）
         prisma.transaction.count({
           where: {
             createdAt: {
-              gte: todayStart
-            }
-          }
+              gte: todayStart,
+            },
+          },
         }),
-        
+
         // 总账本数
         prisma.accountBook.count(),
-        
+
         // 活跃家庭数（有成员的家庭）
         prisma.family.count({
           where: {
             members: {
-              some: {}
-            }
-          }
-        })
+              some: {},
+            },
+          },
+        }),
       ]);
 
       return {
@@ -94,7 +94,7 @@ export class DashboardService {
         todayUsers,
         todayTransactions,
         totalAccountBooks,
-        activeFamilies
+        activeFamilies,
       };
     } catch (error) {
       console.error('获取概览统计数据错误:', error);
@@ -124,7 +124,7 @@ export class DashboardService {
       const startDate = this.getBeijingDateStart(days);
 
       // 获取时间段内每日新注册用户数（按北京时间分组）
-      const dailyRegistrations = await prisma.$queryRaw`
+      const dailyRegistrations = (await prisma.$queryRaw`
         SELECT 
           DATE((created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Shanghai') as date,
           COUNT(*) as count
@@ -132,7 +132,7 @@ export class DashboardService {
         WHERE created_at >= ${startDate}
         GROUP BY DATE((created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Shanghai')
         ORDER BY date ASC
-      ` as Array<{ date: Date; count: bigint }>;
+      `) as Array<{ date: Date; count: bigint }>;
 
       // 获取活跃用户数（有交易记录的用户）
       const activeUsers = await prisma.user.count({
@@ -140,21 +140,21 @@ export class DashboardService {
           transactions: {
             some: {
               createdAt: {
-                gte: startDate
-              }
-            }
-          }
-        }
+                gte: startDate,
+              },
+            },
+          },
+        },
       });
 
       return {
         period,
         days,
-        dailyRegistrations: dailyRegistrations.map(item => ({
+        dailyRegistrations: dailyRegistrations.map((item) => ({
           date: item.date,
-          count: Number(item.count)
+          count: Number(item.count),
         })),
-        activeUsers
+        activeUsers,
       };
     } catch (error) {
       console.error('获取用户统计数据错误:', error);
@@ -184,7 +184,7 @@ export class DashboardService {
       const startDate = this.getBeijingDateStart(days);
 
       // 获取时间段内每日交易数量（按北京时间分组）
-      const dailyTransactions = await prisma.$queryRaw`
+      const dailyTransactions = (await prisma.$queryRaw`
         SELECT 
           DATE((created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Shanghai') as date,
           COUNT(*) as count,
@@ -194,15 +194,15 @@ export class DashboardService {
         WHERE created_at >= ${startDate}
         GROUP BY DATE((created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Shanghai')
         ORDER BY date ASC
-      ` as Array<{ 
-        date: Date; 
-        count: bigint; 
-        expense_amount: any; 
-        income_amount: any; 
+      `) as Array<{
+        date: Date;
+        count: bigint;
+        expense_amount: any;
+        income_amount: any;
       }>;
 
       // 获取分类统计（按交易数量排序的前10个分类）
-      const categoryStats = await prisma.$queryRaw`
+      const categoryStats = (await prisma.$queryRaw`
         SELECT 
           c.name,
           COUNT(t.id) as transaction_count,
@@ -213,26 +213,26 @@ export class DashboardService {
         GROUP BY c.id, c.name
         ORDER BY transaction_count DESC
         LIMIT 10
-      ` as Array<{ 
-        name: string; 
-        transaction_count: bigint; 
-        total_amount: any; 
+      `) as Array<{
+        name: string;
+        transaction_count: bigint;
+        total_amount: any;
       }>;
 
       return {
         period,
         days,
-        dailyTransactions: dailyTransactions.map(item => ({
+        dailyTransactions: dailyTransactions.map((item) => ({
           date: item.date,
           count: Number(item.count),
           expenseAmount: parseFloat(item.expense_amount || '0'),
-          incomeAmount: parseFloat(item.income_amount || '0')
+          incomeAmount: parseFloat(item.income_amount || '0'),
         })),
-        categoryStats: categoryStats.map(item => ({
+        categoryStats: categoryStats.map((item) => ({
           name: item.name,
           transactionCount: Number(item.transaction_count),
-          totalAmount: parseFloat(item.total_amount || '0')
-        }))
+          totalAmount: parseFloat(item.total_amount || '0'),
+        })),
       };
     } catch (error) {
       console.error('获取交易统计数据错误:', error);
@@ -272,8 +272,8 @@ export class DashboardService {
             rss: memoryUsage.rss,
             heapTotal: memoryUsage.heapTotal,
             heapUsed: memoryUsage.heapUsed,
-            external: memoryUsage.external
-          }
+            external: memoryUsage.external,
+          },
         },
         cpu: {
           count: cpus.length,
@@ -281,16 +281,16 @@ export class DashboardService {
           loadAverage: {
             '1min': loadAverage[0],
             '5min': loadAverage[1],
-            '15min': loadAverage[2]
-          }
+            '15min': loadAverage[2],
+          },
         },
         disk: diskInfo,
         uptime: {
           system: uptime,
-          process: processUptime
+          process: processUptime,
         },
         platform: os.platform(),
-        nodeVersion: process.version
+        nodeVersion: process.version,
       };
     } catch (error) {
       console.error('获取系统资源数据错误:', error);
@@ -309,7 +309,7 @@ export class DashboardService {
         total: 0,
         used: 0,
         free: 0,
-        usagePercent: 0
+        usagePercent: 0,
       };
 
       if (platform === 'win32') {
@@ -335,7 +335,7 @@ export class DashboardService {
         used: 0,
         free: 0,
         usagePercent: 0,
-        error: '无法获取磁盘信息'
+        error: '无法获取磁盘信息',
       };
     }
   }
@@ -354,7 +354,9 @@ export class DashboardService {
 
       try {
         const { stdout } = await execAsync('wmic logicaldisk get size,freespace,caption');
-        const lines = stdout.split('\n').filter((line: string) => line.trim() && !line.includes('Caption'));
+        const lines = stdout
+          .split('\n')
+          .filter((line: string) => line.trim() && !line.includes('Caption'));
 
         for (const line of lines) {
           const parts = line.trim().split(/\s+/);
@@ -371,7 +373,7 @@ export class DashboardService {
                 used: usedSpace,
                 free: freeSpace,
                 usagePercent: (usedSpace / totalSpace) * 100,
-                filesystem: 'NTFS'
+                filesystem: 'NTFS',
               });
             }
           }
@@ -391,7 +393,7 @@ export class DashboardService {
               free: 0,
               usagePercent: 0,
               filesystem: 'NTFS',
-              note: '无法获取详细空间信息'
+              note: '无法获取详细空间信息',
             });
           } catch (error) {
             // 驱动器不存在，跳过
@@ -413,7 +415,7 @@ export class DashboardService {
         free: 0,
         usagePercent: 0,
         filesystem: 'Unknown',
-        note: '无法获取磁盘信息'
+        note: '无法获取磁盘信息',
       });
     }
 
@@ -448,15 +450,19 @@ export class DashboardService {
               const mountPoint = parts[5];
 
               // 只包含主要的挂载点
-              if (mountPoint === '/' || mountPoint.startsWith('/home') ||
-                  mountPoint.startsWith('/var') || mountPoint.startsWith('/usr')) {
+              if (
+                mountPoint === '/' ||
+                mountPoint.startsWith('/home') ||
+                mountPoint.startsWith('/var') ||
+                mountPoint.startsWith('/usr')
+              ) {
                 drives.push({
                   drive: mountPoint,
                   total,
                   used,
                   free,
                   usagePercent,
-                  filesystem: filesystem.includes('/') ? filesystem.split('/').pop() : filesystem
+                  filesystem: filesystem.includes('/') ? filesystem.split('/').pop() : filesystem,
                 });
               }
             }
@@ -473,7 +479,7 @@ export class DashboardService {
           free: 0,
           usagePercent: 0,
           filesystem: 'Unknown',
-          note: '无法获取详细磁盘信息'
+          note: '无法获取详细磁盘信息',
         });
       }
     } catch (error) {
@@ -485,7 +491,7 @@ export class DashboardService {
         free: 0,
         usagePercent: 0,
         filesystem: 'Unknown',
-        error: '无法获取磁盘信息'
+        error: '无法获取磁盘信息',
       });
     }
 
@@ -499,10 +505,10 @@ export class DashboardService {
     if (!sizeStr || sizeStr === '-') return 0;
 
     const units: { [key: string]: number } = {
-      'K': 1024,
-      'M': 1024 * 1024,
-      'G': 1024 * 1024 * 1024,
-      'T': 1024 * 1024 * 1024 * 1024
+      K: 1024,
+      M: 1024 * 1024,
+      G: 1024 * 1024 * 1024,
+      T: 1024 * 1024 * 1024 * 1024,
     };
 
     const match = sizeStr.match(/^([\d.]+)([KMGT]?)$/i);
@@ -520,14 +526,14 @@ export class DashboardService {
    */
   async getPerformanceHistory(
     metricType: 'disk' | 'cpu' | 'memory',
-    timeRange: 'hour' | 'day' | 'week' | '30days'
+    timeRange: 'hour' | 'day' | 'week' | '30days',
   ) {
     try {
-      const data = await performanceMonitoringService.getPerformanceHistory(
+      const data = (await performanceMonitoringService.getPerformanceHistory(
         metricType,
         timeRange,
-        1000
-      ) as Array<{
+        1000,
+      )) as Array<{
         time_period: string;
         avg_value: number;
         min_value: number;
@@ -543,8 +549,8 @@ export class DashboardService {
           avgValue: parseFloat(item.avg_value?.toString() || '0'),
           minValue: parseFloat(item.min_value?.toString() || '0'),
           maxValue: parseFloat(item.max_value?.toString() || '0'),
-          sampleCount: Number(item.sample_count || 0)
-        }))
+          sampleCount: Number(item.sample_count || 0),
+        })),
       };
     } catch (error) {
       console.error('获取性能历史数据错误:', error);
@@ -555,15 +561,9 @@ export class DashboardService {
   /**
    * 获取性能统计信息
    */
-  async getPerformanceStats(
-    metricType: 'disk' | 'cpu' | 'memory',
-    hours: number = 24
-  ) {
+  async getPerformanceStats(metricType: 'disk' | 'cpu' | 'memory', hours: number = 24) {
     try {
-      const stats = await performanceMonitoringService.getPerformanceStats(
-        metricType,
-        hours
-      );
+      const stats = await performanceMonitoringService.getPerformanceStats(metricType, hours);
 
       return {
         metricType,
@@ -571,7 +571,7 @@ export class DashboardService {
         avgValue: parseFloat(stats.avg_value?.toString() || '0'),
         minValue: parseFloat(stats.min_value?.toString() || '0'),
         maxValue: parseFloat(stats.max_value?.toString() || '0'),
-        sampleCount: Number(stats.sample_count || 0)
+        sampleCount: Number(stats.sample_count || 0),
       };
     } catch (error) {
       console.error('获取性能统计信息错误:', error);
@@ -587,14 +587,14 @@ export class DashboardService {
       const [diskHistory, cpuHistory, memoryHistory] = await Promise.all([
         this.getPerformanceHistory('disk', timeRange),
         this.getPerformanceHistory('cpu', timeRange),
-        this.getPerformanceHistory('memory', timeRange)
+        this.getPerformanceHistory('memory', timeRange),
       ]);
 
       return {
         timeRange,
         disk: diskHistory,
         cpu: cpuHistory,
-        memory: memoryHistory
+        memory: memoryHistory,
       };
     } catch (error) {
       console.error('获取所有性能历史数据错误:', error);

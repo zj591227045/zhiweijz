@@ -5,7 +5,7 @@ import { UserRepository } from '../repositories/user.repository';
 // 手动定义Role枚举，因为在测试环境中可能无法正确导入
 enum Role {
   ADMIN = 'ADMIN',
-  MEMBER = 'MEMBER'
+  MEMBER = 'MEMBER',
 }
 
 // 模拟依赖
@@ -51,11 +51,11 @@ describe('FamilyService', () => {
 
     // 模拟FamilyService中的依赖注入
     jest.mock('../repositories/family.repository', () => ({
-      FamilyRepository: jest.fn().mockImplementation(() => mockFamilyRepository)
+      FamilyRepository: jest.fn().mockImplementation(() => mockFamilyRepository),
     }));
 
     jest.mock('../repositories/user.repository', () => ({
-      UserRepository: jest.fn().mockImplementation(() => mockUserRepository)
+      UserRepository: jest.fn().mockImplementation(() => mockUserRepository),
     }));
 
     // 创建服务实例
@@ -115,20 +115,22 @@ describe('FamilyService', () => {
         role: Role.ADMIN,
         isRegistered: true,
       });
-      expect(result).toEqual(expect.objectContaining({
-        id: mockFamily.id,
-        name: mockFamily.name,
-        createdBy: mockFamily.createdBy,
-        members: expect.arrayContaining([
-          expect.objectContaining({
-            id: mockMember.id,
-            familyId: mockMember.familyId,
-            userId: mockMember.userId,
-            name: mockMember.name,
-            role: mockMember.role,
-          }),
-        ]),
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: mockFamily.id,
+          name: mockFamily.name,
+          createdBy: mockFamily.createdBy,
+          members: expect.arrayContaining([
+            expect.objectContaining({
+              id: mockMember.id,
+              familyId: mockMember.familyId,
+              userId: mockMember.userId,
+              name: mockMember.name,
+              role: mockMember.role,
+            }),
+          ]),
+        }),
+      );
     });
 
     it('should throw an error if user does not exist', async () => {
@@ -208,7 +210,7 @@ describe('FamilyService', () => {
       // 设置模拟行为
       mockFamilyRepository.findAllFamiliesByUserId = jest.fn().mockResolvedValue(mockFamilies);
       mockFamilyRepository.findFamilyMembers = jest.fn().mockImplementation((familyId) => {
-        return Promise.resolve(mockMembers.filter(m => m.familyId === familyId));
+        return Promise.resolve(mockMembers.filter((m) => m.familyId === familyId));
       });
       mockUserRepository.findById = jest.fn().mockResolvedValue(mockUser);
 
@@ -220,18 +222,22 @@ describe('FamilyService', () => {
       expect(mockFamilyRepository.findFamilyMembers).toHaveBeenCalledTimes(2);
       expect(mockUserRepository.findById).toHaveBeenCalledTimes(2);
       expect(result).toHaveLength(2);
-      expect(result[0]).toEqual(expect.objectContaining({
-        id: mockFamilies[0].id,
-        name: mockFamilies[0].name,
-        createdBy: mockFamilies[0].createdBy,
-        memberCount: 1,
-      }));
-      expect(result[1]).toEqual(expect.objectContaining({
-        id: mockFamilies[1].id,
-        name: mockFamilies[1].name,
-        createdBy: mockFamilies[1].createdBy,
-        memberCount: 1,
-      }));
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          id: mockFamilies[0].id,
+          name: mockFamilies[0].name,
+          createdBy: mockFamilies[0].createdBy,
+          memberCount: 1,
+        }),
+      );
+      expect(result[1]).toEqual(
+        expect.objectContaining({
+          id: mockFamilies[1].id,
+          name: mockFamilies[1].name,
+          createdBy: mockFamilies[1].createdBy,
+          memberCount: 1,
+        }),
+      );
     });
   });
 
@@ -281,25 +287,27 @@ describe('FamilyService', () => {
       expect(mockFamilyRepository.findFamilyById).toHaveBeenCalledWith(familyId);
       expect((familyService as any).isUserFamilyMember).toHaveBeenCalledWith(userId, familyId);
       expect(mockUserRepository.findById).toHaveBeenCalledWith(mockFamily.createdBy);
-      expect(result).toEqual(expect.objectContaining({
-        id: mockFamily.id,
-        name: mockFamily.name,
-        createdBy: mockFamily.createdBy,
-        creator: expect.objectContaining({
-          id: mockCreator.id,
-          name: mockCreator.name,
-          email: mockCreator.email,
-        }),
-        members: expect.arrayContaining([
-          expect.objectContaining({
-            id: mockFamily.members[0].id,
-            familyId: mockFamily.members[0].familyId,
-            userId: mockFamily.members[0].userId,
-            name: mockFamily.members[0].name,
-            role: mockFamily.members[0].role,
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: mockFamily.id,
+          name: mockFamily.name,
+          createdBy: mockFamily.createdBy,
+          creator: expect.objectContaining({
+            id: mockCreator.id,
+            name: mockCreator.name,
+            email: mockCreator.email,
           }),
-        ]),
-      }));
+          members: expect.arrayContaining([
+            expect.objectContaining({
+              id: mockFamily.members[0].id,
+              familyId: mockFamily.members[0].familyId,
+              userId: mockFamily.members[0].userId,
+              name: mockFamily.members[0].name,
+              role: mockFamily.members[0].role,
+            }),
+          ]),
+        }),
+      );
     });
 
     it('should throw an error if family does not exist', async () => {
@@ -370,7 +378,12 @@ describe('FamilyService', () => {
       mockFamilyRepository.createInvitation = jest.fn().mockResolvedValue(mockInvitation);
 
       // 调用被测试的方法
-      const result = await familyService.createInvitation(familyId, userId, invitationData, baseUrl);
+      const result = await familyService.createInvitation(
+        familyId,
+        userId,
+        invitationData,
+        baseUrl,
+      );
 
       // 验证结果
       expect(mockFamilyRepository.findFamilyById).toHaveBeenCalledWith(familyId);
@@ -378,15 +391,17 @@ describe('FamilyService', () => {
       expect(mockFamilyRepository.createInvitation).toHaveBeenCalledWith(
         familyId,
         expect.any(String),
-        expect.any(Date)
+        expect.any(Date),
       );
-      expect(result).toEqual(expect.objectContaining({
-        id: mockInvitation.id,
-        familyId: mockInvitation.familyId,
-        invitationCode: mockInvitation.invitationCode,
-        expiresAt: mockInvitation.expiresAt,
-        url: `${baseUrl}/join?code=${mockInvitation.invitationCode}`,
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: mockInvitation.id,
+          familyId: mockInvitation.familyId,
+          invitationCode: mockInvitation.invitationCode,
+          expiresAt: mockInvitation.expiresAt,
+          url: `${baseUrl}/join?code=${mockInvitation.invitationCode}`,
+        }),
+      );
     });
 
     it('should throw an error if user is not a family admin', async () => {
@@ -410,8 +425,9 @@ describe('FamilyService', () => {
       jest.spyOn(familyService, 'isUserFamilyAdmin' as any).mockResolvedValue(false);
 
       // 调用被测试的方法并验证异常
-      await expect(familyService.createInvitation(familyId, userId, invitationData, baseUrl))
-        .rejects.toThrow('无权创建邀请链接');
+      await expect(
+        familyService.createInvitation(familyId, userId, invitationData, baseUrl),
+      ).rejects.toThrow('无权创建邀请链接');
       expect(mockFamilyRepository.findFamilyById).toHaveBeenCalledWith(familyId);
       expect((familyService as any).isUserFamilyAdmin).toHaveBeenCalledWith(userId, familyId);
     });
@@ -466,9 +482,14 @@ describe('FamilyService', () => {
       const result = await familyService.acceptInvitation(userId, invitationData);
 
       // 验证结果
-      expect(mockFamilyRepository.findInvitationByCode).toHaveBeenCalledWith(invitationData.invitationCode);
+      expect(mockFamilyRepository.findInvitationByCode).toHaveBeenCalledWith(
+        invitationData.invitationCode,
+      );
       expect(mockUserRepository.findById).toHaveBeenCalledWith(userId);
-      expect(mockFamilyRepository.findFamilyMemberByUserAndFamily).toHaveBeenCalledWith(userId, mockInvitation.familyId);
+      expect(mockFamilyRepository.findFamilyMemberByUserAndFamily).toHaveBeenCalledWith(
+        userId,
+        mockInvitation.familyId,
+      );
       expect(mockFamilyRepository.createFamilyMember).toHaveBeenCalledWith({
         familyId: mockInvitation.familyId,
         userId,
@@ -477,13 +498,15 @@ describe('FamilyService', () => {
         isRegistered: true,
       });
       expect(mockFamilyRepository.deleteInvitation).toHaveBeenCalledWith(mockInvitation.id);
-      expect(result).toEqual(expect.objectContaining({
-        id: mockMember.id,
-        familyId: mockMember.familyId,
-        userId: mockMember.userId,
-        name: mockMember.name,
-        role: mockMember.role,
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: mockMember.id,
+          familyId: mockMember.familyId,
+          userId: mockMember.userId,
+          name: mockMember.name,
+          role: mockMember.role,
+        }),
+      );
     });
 
     it('should throw an error if invitation does not exist', async () => {
@@ -495,9 +518,12 @@ describe('FamilyService', () => {
       mockFamilyRepository.findInvitationByCode = jest.fn().mockResolvedValue(null);
 
       // 调用被测试的方法并验证异常
-      await expect(familyService.acceptInvitation(userId, invitationData))
-        .rejects.toThrow('邀请不存在或已过期');
-      expect(mockFamilyRepository.findInvitationByCode).toHaveBeenCalledWith(invitationData.invitationCode);
+      await expect(familyService.acceptInvitation(userId, invitationData)).rejects.toThrow(
+        '邀请不存在或已过期',
+      );
+      expect(mockFamilyRepository.findInvitationByCode).toHaveBeenCalledWith(
+        invitationData.invitationCode,
+      );
     });
 
     it('should throw an error if invitation has expired', async () => {
@@ -523,9 +549,12 @@ describe('FamilyService', () => {
       mockFamilyRepository.findInvitationByCode = jest.fn().mockResolvedValue(mockInvitation);
 
       // 调用被测试的方法并验证异常
-      await expect(familyService.acceptInvitation(userId, invitationData))
-        .rejects.toThrow('邀请已过期');
-      expect(mockFamilyRepository.findInvitationByCode).toHaveBeenCalledWith(invitationData.invitationCode);
+      await expect(familyService.acceptInvitation(userId, invitationData)).rejects.toThrow(
+        '邀请已过期',
+      );
+      expect(mockFamilyRepository.findInvitationByCode).toHaveBeenCalledWith(
+        invitationData.invitationCode,
+      );
     });
   });
 });

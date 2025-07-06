@@ -31,7 +31,7 @@ export class TransactionExportService {
   async exportTransactions(
     userId: string,
     params: TransactionQueryParams,
-    format: ExportFormat
+    format: ExportFormat,
   ): Promise<{ data: string; filename: string }> {
     // 获取交易记录（已包含分类信息）
     const { transactions } = await this.transactionRepository.findAll(userId, {
@@ -41,7 +41,7 @@ export class TransactionExportService {
     });
 
     // 准备导出数据
-    const exportData = transactions.map(transaction => {
+    const exportData = transactions.map((transaction) => {
       return {
         id: transaction.id,
         amount: Number(transaction.amount),

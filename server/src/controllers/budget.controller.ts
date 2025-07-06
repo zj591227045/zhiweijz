@@ -4,11 +4,7 @@ import { BudgetService } from '../services/budget.service';
 import { CategoryBudgetService } from '../services/category-budget.service';
 import { TransactionService } from '../services/transaction.service';
 import { FamilyBudgetService } from '../services/family-budget.service';
-import {
-  CreateBudgetDto,
-  UpdateBudgetDto,
-  BudgetQueryParams
-} from '../models/budget.model';
+import { CreateBudgetDto, UpdateBudgetDto, BudgetQueryParams } from '../models/budget.model';
 
 export class BudgetController {
   private budgetService: BudgetService;
@@ -75,7 +71,7 @@ export class BudgetController {
       console.log('BudgetController.getBudgets 请求参数:', {
         userId,
         accountBookId: params.accountBookId,
-        budgetType: params.budgetType
+        budgetType: params.budgetType,
       });
 
       const budgets = await this.budgetService.getBudgets(userId, params);
@@ -111,13 +107,13 @@ export class BudgetController {
       console.log('BudgetController.getBudgetsByDate 请求参数:', {
         userId,
         date,
-        accountBookId
+        accountBookId,
       });
 
       const budgets = await this.budgetService.getBudgetsByDate(
         userId,
         date as string,
-        accountBookId as string
+        accountBookId as string,
       );
 
       res.status(200).json(budgets);
@@ -235,7 +231,9 @@ export class BudgetController {
       }
 
       const budgetId = req.params.id;
-      const categoryBudgets = await this.categoryBudgetService.getCategoryBudgetsByBudgetId(budgetId);
+      const categoryBudgets = await this.categoryBudgetService.getCategoryBudgetsByBudgetId(
+        budgetId,
+      );
       res.status(200).json(categoryBudgets);
     } catch (error) {
       if (error instanceof Error) {
@@ -258,10 +256,14 @@ export class BudgetController {
       }
 
       const budgetId = req.params.id;
-      const viewMode = req.query.viewMode as 'daily' | 'weekly' | 'monthly' || 'monthly';
-      const familyMemberId = req.query.familyMemberId as string || undefined;
+      const viewMode = (req.query.viewMode as 'daily' | 'weekly' | 'monthly') || 'monthly';
+      const familyMemberId = (req.query.familyMemberId as string) || undefined;
 
-      console.log(`获取预算趋势，预算ID: ${budgetId}, 视图模式: ${viewMode}, 家庭成员ID: ${familyMemberId || '无'}`);
+      console.log(
+        `获取预算趋势，预算ID: ${budgetId}, 视图模式: ${viewMode}, 家庭成员ID: ${
+          familyMemberId || '无'
+        }`,
+      );
 
       // 验证预算是否存在并且用户有权限访问
       const budget = await this.budgetService.getBudgetById(budgetId, userId);
@@ -271,7 +273,11 @@ export class BudgetController {
       }
 
       // 调用预算服务获取真实趋势数据
-      const trendData = await this.budgetService.getBudgetTrends(budgetId, viewMode, familyMemberId);
+      const trendData = await this.budgetService.getBudgetTrends(
+        budgetId,
+        viewMode,
+        familyMemberId,
+      );
       console.log(`获取到预算趋势数据: ${trendData.length} 条记录`);
       res.status(200).json(trendData);
     } catch (error) {
@@ -299,7 +305,10 @@ export class BudgetController {
       console.log(`获取预算结转历史，预算ID: ${budgetId}`);
 
       // 获取真实的预算结转历史
-      const rolloverHistory = await this.budgetService.getBudgetRolloverHistory(budgetId, userId);
+      const rolloverHistory = await this.budgetService.getBudgetRolloverHistoryByBudgetId(
+        budgetId,
+        userId,
+      );
       console.log(`获取到预算结转历史: ${rolloverHistory.length} 条记录`);
 
       // 如果没有真实的结转历史，返回空数组而不是模拟数据
@@ -313,8 +322,6 @@ export class BudgetController {
       }
     }
   }
-
-
 
   /**
    * 获取预算相关交易
@@ -330,7 +337,7 @@ export class BudgetController {
       const budgetId = req.params.id;
       const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
-      const familyMemberId = req.query.familyMemberId as string || null;
+      const familyMemberId = (req.query.familyMemberId as string) || null;
 
       // 验证预算是否存在并且用户有权限访问
       const budget = await this.budgetService.getBudgetById(budgetId, userId);
@@ -344,9 +351,13 @@ export class BudgetController {
         budgetId,
         page,
         limit,
-        familyMemberId
+        familyMemberId,
       );
-      console.log(`获取预算相关交易，预算ID: ${budgetId}, 家庭成员ID: ${familyMemberId || '无'}, 找到 ${transactions.data?.length || 0} 条记录`);
+      console.log(
+        `获取预算相关交易，预算ID: ${budgetId}, 家庭成员ID: ${familyMemberId || '无'}, 找到 ${
+          transactions.data?.length || 0
+        } 条记录`,
+      );
       res.status(200).json(transactions);
     } catch (error) {
       if (error instanceof Error) {
@@ -385,7 +396,7 @@ export class BudgetController {
 
       res.status(200).json({
         message: '预算结转处理成功',
-        nextBudget
+        nextBudget,
       });
     } catch (error) {
       if (error instanceof Error) {
@@ -426,12 +437,15 @@ export class BudgetController {
       const updatedBudget = await this.budgetService.getBudgetById(budgetId, userId);
 
       // 获取更新后的结转历史
-      const rolloverHistory = await this.budgetService.getBudgetRolloverHistory(budgetId, userId);
+      const rolloverHistory = await this.budgetService.getBudgetRolloverHistoryByBudgetId(
+        budgetId,
+        userId,
+      );
 
       res.status(200).json({
         message: '预算结转重新计算成功',
         budget: updatedBudget,
-        rolloverHistory
+        rolloverHistory,
       });
     } catch (error) {
       console.error('重新计算预算结转失败:', error);
@@ -469,12 +483,15 @@ export class BudgetController {
       await this.budgetService.recalculateBudgetRollover(budgetId, true);
 
       // 获取更新后的结转历史
-      const rolloverHistory = await this.budgetService.getBudgetRolloverHistory(budgetId, userId);
+      const rolloverHistory = await this.budgetService.getBudgetRolloverHistoryByBudgetId(
+        budgetId,
+        userId,
+      );
 
       res.status(200).json({
         message: '预算结转链条重新计算成功',
         rolloverHistory,
-        recalculatedFrom: budgetId
+        recalculatedFrom: budgetId,
       });
     } catch (error) {
       console.error('重新计算预算结转链条失败:', error);
@@ -530,10 +547,6 @@ export class BudgetController {
     }
   }
 
-
-
-
-
   /**
    * 生成模拟交易数据
    */
@@ -547,12 +560,10 @@ export class BudgetController {
       { id: 'cat1', name: '餐饮', icon: 'utensils' },
       { id: 'cat2', name: '购物', icon: 'shopping-bag' },
       { id: 'cat3', name: '交通', icon: 'car' },
-      { id: 'cat4', name: '娱乐', icon: 'film' }
+      { id: 'cat4', name: '娱乐', icon: 'film' },
     ];
 
-    const titles = [
-      '午餐', '晚餐', '超市购物', '打车', '电影票', '咖啡', '水果', '零食'
-    ];
+    const titles = ['午餐', '晚餐', '超市购物', '打车', '电影票', '咖啡', '水果', '零食'];
 
     for (let i = 0; i < limit; i++) {
       const index = (page - 1) * limit + i;
@@ -568,11 +579,13 @@ export class BudgetController {
         title,
         amount,
         date: `${date.getMonth() + 1}月${date.getDate()}日`,
-        time: `${Math.floor(Math.random() * 24)}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`,
+        time: `${Math.floor(Math.random() * 24)}:${Math.floor(Math.random() * 60)
+          .toString()
+          .padStart(2, '0')}`,
         categoryId: category.id,
         categoryName: category.name,
         categoryIcon: category.icon,
-        budgetId: 'budget-id'
+        budgetId: 'budget-id',
       });
     }
 
@@ -582,7 +595,7 @@ export class BudgetController {
       page,
       limit,
       hasMore: page * limit < 100,
-      nextPage: page * limit < 100 ? page + 1 : null
+      nextPage: page * limit < 100 ? page + 1 : null,
     };
   }
 }

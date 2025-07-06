@@ -17,23 +17,30 @@ app.set('trust proxy', true);
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // 配置CORS，允许所有来源的请求
-app.use(cors({
-  origin: true, // 允许所有来源的请求，使用true而不是'*'以支持credentials
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  credentials: true,
-  optionsSuccessStatus: 200 // 支持旧版浏览器
-}));
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' } // 允许跨域访问资源
-}));
+app.use(
+  cors({
+    origin: true, // 允许所有来源的请求，使用true而不是'*'以支持credentials
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    credentials: true,
+    optionsSuccessStatus: 200, // 支持旧版浏览器
+  }),
+);
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' }, // 允许跨域访问资源
+  }),
+);
 
 // 处理预检请求
 app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
     res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+    res.header(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization, X-Requested-With, Accept, Origin',
+    );
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Max-Age', '86400'); // 24小时
     return res.status(200).end();
@@ -42,14 +49,17 @@ app.use((req, res, next) => {
 });
 
 // 精简的日志格式，只记录重要信息
-const logFormat = config.env === 'development'
-  ? ':method :url :status :res[content-length] - :response-time ms'
-  : ':remote-addr - :method :url :status :res[content-length] - :response-time ms';
+const logFormat =
+  config.env === 'development'
+    ? ':method :url :status :res[content-length] - :response-time ms'
+    : ':remote-addr - :method :url :status :res[content-length] - :response-time ms';
 
-app.use(morgan(logFormat, {
-  // 过滤掉健康检查请求的日志
-  skip: (req, res) => req.url === '/api/health'
-}));
+app.use(
+  morgan(logFormat, {
+    // 过滤掉健康检查请求的日志
+    skip: (req, res) => req.url === '/api/health',
+  }),
+);
 
 // API调用统计中间件
 app.use(trackApiCall);
@@ -74,7 +84,7 @@ app.get('/api/health', (req: Request, res: Response) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: config.env
+    environment: config.env,
   });
 });
 

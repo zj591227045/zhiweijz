@@ -9,7 +9,7 @@ const createAnnouncementSchema = z.object({
   priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'URGENT']).default('NORMAL'),
   publishedAt: z.string().datetime().optional(),
   expiresAt: z.string().datetime().optional(),
-  targetUserType: z.string().default('all')
+  targetUserType: z.string().default('all'),
 });
 
 // 更新公告的验证schema
@@ -20,25 +20,25 @@ export const announcementController = {
   async getAnnouncements(req: Request, res: Response) {
     try {
       const { page = 1, limit = 10, status, priority, search } = req.query;
-      
+
       const result = await announcementService.getAnnouncements({
         page: Number(page),
         limit: Number(limit),
         status: status as string,
         priority: priority as string,
-        search: search as string
+        search: search as string,
       });
 
       res.json({
         success: true,
-        data: result
+        data: result,
       });
     } catch (error) {
       console.error('获取公告列表失败:', error);
       res.status(500).json({
         success: false,
         message: '获取公告列表失败',
-        error: error instanceof Error ? error.message : '未知错误'
+        error: error instanceof Error ? error.message : '未知错误',
       });
     }
   },
@@ -52,20 +52,20 @@ export const announcementController = {
       if (!announcement) {
         return res.status(404).json({
           success: false,
-          message: '公告不存在'
+          message: '公告不存在',
         });
       }
 
       res.json({
         success: true,
-        data: announcement
+        data: announcement,
       });
     } catch (error) {
       console.error('获取公告详情失败:', error);
       res.status(500).json({
         success: false,
         message: '获取公告详情失败',
-        error: error instanceof Error ? error.message : '未知错误'
+        error: error instanceof Error ? error.message : '未知错误',
       });
     }
   },
@@ -80,13 +80,13 @@ export const announcementController = {
         ...validatedData,
         publishedAt: validatedData.publishedAt ? new Date(validatedData.publishedAt) : undefined,
         expiresAt: validatedData.expiresAt ? new Date(validatedData.expiresAt) : undefined,
-        createdBy: adminId
+        createdBy: adminId,
       });
 
       res.status(201).json({
         success: true,
         data: announcement,
-        message: '公告创建成功'
+        message: '公告创建成功',
       });
     } catch (error) {
       console.error('创建公告失败:', error);
@@ -94,13 +94,13 @@ export const announcementController = {
         return res.status(400).json({
           success: false,
           message: '数据验证失败',
-          errors: error.errors
+          errors: error.errors,
         });
       }
       res.status(500).json({
         success: false,
         message: '创建公告失败',
-        error: error instanceof Error ? error.message : '未知错误'
+        error: error instanceof Error ? error.message : '未知错误',
       });
     }
   },
@@ -116,13 +116,13 @@ export const announcementController = {
         ...validatedData,
         publishedAt: validatedData.publishedAt ? new Date(validatedData.publishedAt) : undefined,
         expiresAt: validatedData.expiresAt ? new Date(validatedData.expiresAt) : undefined,
-        updatedBy: adminId
+        updatedBy: adminId,
       });
 
       res.json({
         success: true,
         data: announcement,
-        message: '公告更新成功'
+        message: '公告更新成功',
       });
     } catch (error) {
       console.error('更新公告失败:', error);
@@ -130,13 +130,13 @@ export const announcementController = {
         return res.status(400).json({
           success: false,
           message: '数据验证失败',
-          errors: error.errors
+          errors: error.errors,
         });
       }
       res.status(500).json({
         success: false,
         message: '更新公告失败',
-        error: error instanceof Error ? error.message : '未知错误'
+        error: error instanceof Error ? error.message : '未知错误',
       });
     }
   },
@@ -149,14 +149,14 @@ export const announcementController = {
 
       res.json({
         success: true,
-        message: '公告删除成功'
+        message: '公告删除成功',
       });
     } catch (error) {
       console.error('删除公告失败:', error);
       res.status(500).json({
         success: false,
         message: '删除公告失败',
-        error: error instanceof Error ? error.message : '未知错误'
+        error: error instanceof Error ? error.message : '未知错误',
       });
     }
   },
@@ -170,20 +170,20 @@ export const announcementController = {
 
       const announcement = await announcementService.publishAnnouncement(id, {
         publishedAt: publishedAt ? new Date(publishedAt) : new Date(),
-        updatedBy: adminId
+        updatedBy: adminId,
       });
 
       res.json({
         success: true,
         data: announcement,
-        message: '公告发布成功'
+        message: '公告发布成功',
       });
     } catch (error) {
       console.error('发布公告失败:', error);
       res.status(500).json({
         success: false,
         message: '发布公告失败',
-        error: error instanceof Error ? error.message : '未知错误'
+        error: error instanceof Error ? error.message : '未知错误',
       });
     }
   },
@@ -199,14 +199,14 @@ export const announcementController = {
       res.json({
         success: true,
         data: announcement,
-        message: '公告撤回成功'
+        message: '公告撤回成功',
       });
     } catch (error) {
       console.error('撤回公告失败:', error);
       res.status(500).json({
         success: false,
         message: '撤回公告失败',
-        error: error instanceof Error ? error.message : '未知错误'
+        error: error instanceof Error ? error.message : '未知错误',
       });
     }
   },
@@ -218,15 +218,15 @@ export const announcementController = {
 
       res.json({
         success: true,
-        data: stats
+        data: stats,
       });
     } catch (error) {
       console.error('获取公告统计失败:', error);
       res.status(500).json({
         success: false,
         message: '获取公告统计失败',
-        error: error instanceof Error ? error.message : '未知错误'
+        error: error instanceof Error ? error.message : '未知错误',
       });
     }
-  }
-}; 
+  },
+};

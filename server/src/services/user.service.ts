@@ -1,6 +1,11 @@
 import { User } from '@prisma/client';
 import { UserRepository } from '../repositories/user.repository';
-import { CreateUserDto, UpdateUserDto, UserResponseDto, toUserResponseDto } from '../models/user.model';
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  UserResponseDto,
+  toUserResponseDto,
+} from '../models/user.model';
 import { hashPassword, comparePasswords } from '../utils/password';
 
 export class UserService {
@@ -173,7 +178,7 @@ export class UserService {
 
     await this.userRepository.update(userId, {
       deletionRequestedAt: now,
-      deletionScheduledAt: deletionScheduledAt
+      deletionScheduledAt: deletionScheduledAt,
     });
 
     return { deletionScheduledAt };
@@ -194,7 +199,7 @@ export class UserService {
 
     await this.userRepository.update(userId, {
       deletionRequestedAt: null,
-      deletionScheduledAt: null
+      deletionScheduledAt: null,
     });
   }
 
@@ -224,7 +229,7 @@ export class UserService {
       isDeletionRequested: true,
       deletionRequestedAt: user.deletionRequestedAt,
       deletionScheduledAt: user.deletionScheduledAt,
-      remainingHours
+      remainingHours,
     };
   }
 

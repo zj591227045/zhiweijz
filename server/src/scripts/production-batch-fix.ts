@@ -1,7 +1,7 @@
 /**
  * 生产环境分批修复脚本
  * 安全地分批修复家庭交易记录的family_id和family_member_id字段
- * 
+ *
  * 使用方法：
  * npx ts-node src/scripts/production-batch-fix.ts --batch-size=500 --dry-run
  * npx ts-node src/scripts/production-batch-fix.ts --batch-size=500 --execute
@@ -38,7 +38,7 @@ async function batchFixTransactions(options: FixOptions) {
   try {
     while (true) {
       batchCount++;
-      
+
       if (options.maxBatches && batchCount > options.maxBatches) {
         console.log(`⏹️  达到最大批次限制 (${options.maxBatches})，停止处理`);
         break;
@@ -50,35 +50,32 @@ async function batchFixTransactions(options: FixOptions) {
       const transactionsToFix = await prisma.transaction.findMany({
         where: {
           accountBook: {
-            type: 'FAMILY'
+            type: 'FAMILY',
           },
-          OR: [
-            { familyId: null },
-            { familyMemberId: null }
-          ]
+          OR: [{ familyId: null }, { familyMemberId: null }],
         },
         include: {
           accountBook: {
             include: {
               family: {
                 include: {
-                  members: true
-                }
-              }
-            }
+                  members: true,
+                },
+              },
+            },
           },
           budget: {
             include: {
               user: true,
-              familyMember: true
-            }
+              familyMember: true,
+            },
           },
-          user: true
+          user: true,
         },
         take: options.batchSize,
         orderBy: {
-          createdAt: 'asc' // 按创建时间排序，确保处理顺序一致
-        }
+          createdAt: 'asc', // 按创建时间排序，确保处理顺序一致
+        },
       });
 
       if (transactionsToFix.length === 0) {
@@ -96,7 +93,7 @@ async function batchFixTransactions(options: FixOptions) {
         await prisma.$transaction(async (tx) => {
           for (const transaction of transactionsToFix) {
             const result = await processTransaction(transaction, tx, options.dryRun);
-            
+
             if (result) {
               fixLog.push(result);
               if (result.method !== 'skip') {
@@ -111,7 +108,7 @@ async function batchFixTransactions(options: FixOptions) {
         // 试运行模式
         for (const transaction of transactionsToFix) {
           const result = await processTransaction(transaction, prisma, options.dryRun);
-          
+
           if (result) {
             fixLog.push(result);
             if (result.method !== 'skip') {
@@ -131,7 +128,7 @@ async function batchFixTransactions(options: FixOptions) {
       // 批次间暂停，避免对数据库造成过大压力
       if (!options.dryRun && transactionsToFix.length === options.batchSize) {
         console.log('⏸️  暂停 2 秒...');
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       }
     }
 
@@ -142,14 +139,13 @@ async function batchFixTransactions(options: FixOptions) {
     if (!options.dryRun) {
       await validateFixResults();
     }
-
   } catch (error) {
     console.error('❌ 修复过程中发生错误:', error);
-    
+
     if (!options.dryRun) {
       console.log('🔄 建议检查数据一致性并考虑回滚');
     }
-    
+
     throw error;
   } finally {
     await prisma.$disconnect();
@@ -157,11 +153,10 @@ async function batchFixTransactions(options: FixOptions) {
 }
 
 async function processTransaction(
-  transaction: any, 
-  db: any, 
-  dryRun: boolean
+  transaction: any,
+  db: any,
+  dryRun: boolean,
 ): Promise<FixResult | null> {
-  
   if (!transaction.accountBook?.family) {
     return {
       transactionId: transaction.id,
@@ -169,14 +164,14 @@ async function processTransaction(
       oldFamilyMemberId: transaction.familyMemberId,
       newFamilyId: '',
       newFamilyMemberId: '',
-      method: 'skip'
+      method: 'skip',
     };
   }
 
   const family = transaction.accountBook.family;
   const familyMembers = family.members;
 
-  let finalFamilyId = transaction.familyId || family.id;
+  const finalFamilyId = transaction.familyId || family.id;
   let finalFamilyMemberId = transaction.familyMemberId;
   let method: 'budget' | 'user' | 'skip' = 'skip';
 
@@ -214,7 +209,7 @@ async function processTransaction(
       oldFamilyMemberId: transaction.familyMemberId,
       newFamilyId: finalFamilyId,
       newFamilyMemberId: '',
-      method: 'skip'
+      method: 'skip',
     };
   }
 
@@ -224,8 +219,8 @@ async function processTransaction(
       where: { id: transaction.id },
       data: {
         familyId: finalFamilyId,
-        familyMemberId: finalFamilyMemberId
-      }
+        familyMemberId: finalFamilyMemberId,
+      },
     });
   }
 
@@ -235,15 +230,15 @@ async function processTransaction(
     oldFamilyMemberId: transaction.familyMemberId,
     newFamilyId: finalFamilyId,
     newFamilyMemberId: finalFamilyMemberId,
-    method
+    method,
   };
 }
 
 async function generateFixReport(
-  fixLog: FixResult[], 
-  totalFixed: number, 
-  totalSkipped: number, 
-  dryRun: boolean
+  fixLog: FixResult[],
+  totalFixed: number,
+  totalSkipped: number,
+  dryRun: boolean,
 ) {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const reportFile = `fix-report-${timestamp}.json`;
@@ -252,30 +247,37 @@ async function generateFixReport(
   console.log(`  总处理记录: ${fixLog.length}`);
   console.log(`  成功修复: ${totalFixed}`);
   console.log(`  跳过记录: ${totalSkipped}`);
-  console.log(`  通过预算修复: ${fixLog.filter(r => r.method === 'budget').length}`);
-  console.log(`  通过用户修复: ${fixLog.filter(r => r.method === 'user').length}`);
+  console.log(`  通过预算修复: ${fixLog.filter((r) => r.method === 'budget').length}`);
+  console.log(`  通过用户修复: ${fixLog.filter((r) => r.method === 'user').length}`);
 
   if (dryRun) {
     console.log(`\n🔍 这是试运行结果，实际数据未被修改`);
   } else {
     console.log(`\n💾 详细报告已保存到: ${reportFile}`);
-    
+
     // 保存详细报告到文件
     const fs = require('fs');
-    fs.writeFileSync(reportFile, JSON.stringify({
-      timestamp: new Date().toISOString(),
-      summary: {
-        totalProcessed: fixLog.length,
-        totalFixed,
-        totalSkipped,
-        byMethod: {
-          budget: fixLog.filter(r => r.method === 'budget').length,
-          user: fixLog.filter(r => r.method === 'user').length,
-          skip: fixLog.filter(r => r.method === 'skip').length
-        }
-      },
-      details: fixLog
-    }, null, 2));
+    fs.writeFileSync(
+      reportFile,
+      JSON.stringify(
+        {
+          timestamp: new Date().toISOString(),
+          summary: {
+            totalProcessed: fixLog.length,
+            totalFixed,
+            totalSkipped,
+            byMethod: {
+              budget: fixLog.filter((r) => r.method === 'budget').length,
+              user: fixLog.filter((r) => r.method === 'user').length,
+              skip: fixLog.filter((r) => r.method === 'skip').length,
+            },
+          },
+          details: fixLog,
+        },
+        null,
+        2,
+      ),
+    );
   }
 }
 
@@ -285,13 +287,10 @@ async function validateFixResults() {
   const remainingIssues = await prisma.transaction.count({
     where: {
       accountBook: {
-        type: 'FAMILY'
+        type: 'FAMILY',
       },
-      OR: [
-        { familyId: null },
-        { familyMemberId: null }
-      ]
-    }
+      OR: [{ familyId: null }, { familyMemberId: null }],
+    },
   });
 
   if (remainingIssues === 0) {
@@ -306,7 +305,7 @@ function parseArgs(): FixOptions {
   const args = process.argv.slice(2);
   const options: FixOptions = {
     batchSize: 500,
-    dryRun: true
+    dryRun: true,
   };
 
   for (const arg of args) {
@@ -343,4 +342,4 @@ batchFixTransactions(options)
   .catch((error) => {
     console.error('💥 修复脚本执行失败:', error);
     process.exit(1);
-  }); 
+  });

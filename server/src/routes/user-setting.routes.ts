@@ -18,7 +18,9 @@ router.get('/:key', (req, res) => userSettingController.getUserSetting(req, res)
 router.post('/', (req, res) => userSettingController.createOrUpdateUserSetting(req, res));
 
 // 批量创建或更新用户设置
-router.post('/batch', (req, res) => userSettingController.batchCreateOrUpdateUserSettings(req, res));
+router.post('/batch', (req, res) =>
+  userSettingController.batchCreateOrUpdateUserSettings(req, res),
+);
 
 // 更新用户设置
 router.put('/:key', (req, res) => userSettingController.updateUserSetting(req, res));

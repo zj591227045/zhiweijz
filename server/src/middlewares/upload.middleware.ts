@@ -28,10 +28,14 @@ const avatarStorage = multer.diskStorage({
 });
 
 // 文件过滤器 - 只允许图片文件
-const imageFileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const imageFileFilter = (
+  req: Request,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback,
+) => {
   // 允许的图片类型
   const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  
+
   if (allowedMimeTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {

@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import { MultiProviderLLMService } from '../../ai/llm/multi-provider-service';
-import { 
-  LLMProviderInstance, 
+import {
+  LLMProviderInstance,
   MultiProviderLLMConfig,
-  ProviderHealthStatus 
+  ProviderHealthStatus,
 } from '../../ai/types/llm-types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -23,7 +23,7 @@ export class MultiProviderLLMAdminController {
   public async getMultiProviderConfig(req: Request, res: Response): Promise<void> {
     try {
       const config = await this.multiProviderService.loadMultiProviderConfig();
-      
+
       res.json({
         success: true,
         data: config || {
@@ -34,21 +34,21 @@ export class MultiProviderLLMAdminController {
           failover: {
             enabled: true,
             maxRetries: 3,
-            retryInterval: 1000
+            retryInterval: 1000,
           },
           loadBalancing: {
             strategy: 'round-robin',
-            healthCheckInterval: 300000
+            healthCheckInterval: 300000,
           },
           createdAt: new Date(),
-          updatedAt: new Date()
-        }
+          updatedAt: new Date(),
+        },
       });
     } catch (error) {
       console.error('获取多提供商配置失败:', error);
       res.status(500).json({
         success: false,
-        message: '获取多提供商配置失败'
+        message: '获取多提供商配置失败',
       });
     }
   }
@@ -59,12 +59,12 @@ export class MultiProviderLLMAdminController {
   public async updateMultiProviderConfig(req: Request, res: Response): Promise<void> {
     try {
       const config: MultiProviderLLMConfig = req.body;
-      
+
       // 验证配置
       if (!config.id || !config.name) {
         res.status(400).json({
           success: false,
-          message: '配置ID和名称不能为空'
+          message: '配置ID和名称不能为空',
         });
         return;
       }
@@ -74,7 +74,7 @@ export class MultiProviderLLMAdminController {
         if (!provider.id || !provider.provider || !provider.name) {
           res.status(400).json({
             success: false,
-            message: '提供商实例的ID、类型和名称不能为空'
+            message: '提供商实例的ID、类型和名称不能为空',
           });
           return;
         }
@@ -82,7 +82,7 @@ export class MultiProviderLLMAdminController {
         if (!provider.apiKey) {
           res.status(400).json({
             success: false,
-            message: `提供商 ${provider.name} 的API密钥不能为空`
+            message: `提供商 ${provider.name} 的API密钥不能为空`,
           });
           return;
         }
@@ -93,23 +93,23 @@ export class MultiProviderLLMAdminController {
 
       // 保存配置
       const success = await this.multiProviderService.saveMultiProviderConfig(config);
-      
+
       if (success) {
         res.json({
           success: true,
-          message: '多提供商配置已成功保存'
+          message: '多提供商配置已成功保存',
         });
       } else {
         res.status(500).json({
           success: false,
-          message: '保存多提供商配置失败'
+          message: '保存多提供商配置失败',
         });
       }
     } catch (error) {
       console.error('更新多提供商配置失败:', error);
       res.status(500).json({
         success: false,
-        message: '更新多提供商配置失败'
+        message: '更新多提供商配置失败',
       });
     }
   }
@@ -119,20 +119,23 @@ export class MultiProviderLLMAdminController {
    */
   public async addProviderInstance(req: Request, res: Response): Promise<void> {
     try {
-      const providerData: Omit<LLMProviderInstance, 'id' | 'createdAt' | 'updatedAt' | 'healthy' | 'lastHealthCheck'> = req.body;
-      
+      const providerData: Omit<
+        LLMProviderInstance,
+        'id' | 'createdAt' | 'updatedAt' | 'healthy' | 'lastHealthCheck'
+      > = req.body;
+
       // 验证必填字段
       if (!providerData.provider || !providerData.name || !providerData.apiKey) {
         res.status(400).json({
           success: false,
-          message: '提供商类型、名称和API密钥不能为空'
+          message: '提供商类型、名称和API密钥不能为空',
         });
         return;
       }
 
       // 获取当前配置
       let config = await this.multiProviderService.loadMultiProviderConfig();
-      
+
       if (!config) {
         // 创建新配置
         config = {
@@ -143,14 +146,14 @@ export class MultiProviderLLMAdminController {
           failover: {
             enabled: true,
             maxRetries: 3,
-            retryInterval: 1000
+            retryInterval: 1000,
           },
           loadBalancing: {
             strategy: 'round-robin',
-            healthCheckInterval: 300000
+            healthCheckInterval: 300000,
           },
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
       }
 
@@ -160,7 +163,7 @@ export class MultiProviderLLMAdminController {
         ...providerData,
         healthy: true,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // 添加到配置中
@@ -169,24 +172,24 @@ export class MultiProviderLLMAdminController {
 
       // 保存配置
       const success = await this.multiProviderService.saveMultiProviderConfig(config);
-      
+
       if (success) {
         res.json({
           success: true,
           message: '提供商实例已成功添加',
-          data: newProvider
+          data: newProvider,
         });
       } else {
         res.status(500).json({
           success: false,
-          message: '添加提供商实例失败'
+          message: '添加提供商实例失败',
         });
       }
     } catch (error) {
       console.error('添加提供商实例失败:', error);
       res.status(500).json({
         success: false,
-        message: '添加提供商实例失败'
+        message: '添加提供商实例失败',
       });
     }
   }
@@ -198,25 +201,25 @@ export class MultiProviderLLMAdminController {
     try {
       const { id } = req.params;
       const providerData: Partial<LLMProviderInstance> = req.body;
-      
+
       // 获取当前配置
       const config = await this.multiProviderService.loadMultiProviderConfig();
-      
+
       if (!config) {
         res.status(404).json({
           success: false,
-          message: '多提供商配置不存在'
+          message: '多提供商配置不存在',
         });
         return;
       }
 
       // 查找提供商实例
-      const providerIndex = config.providers.findIndex(p => p.id === id);
-      
+      const providerIndex = config.providers.findIndex((p) => p.id === id);
+
       if (providerIndex === -1) {
         res.status(404).json({
           success: false,
-          message: '提供商实例不存在'
+          message: '提供商实例不存在',
         });
         return;
       }
@@ -226,31 +229,31 @@ export class MultiProviderLLMAdminController {
         ...config.providers[providerIndex],
         ...providerData,
         id, // 确保ID不被修改
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       config.updatedAt = new Date();
 
       // 保存配置
       const success = await this.multiProviderService.saveMultiProviderConfig(config);
-      
+
       if (success) {
         res.json({
           success: true,
           message: '提供商实例已成功更新',
-          data: config.providers[providerIndex]
+          data: config.providers[providerIndex],
         });
       } else {
         res.status(500).json({
           success: false,
-          message: '更新提供商实例失败'
+          message: '更新提供商实例失败',
         });
       }
     } catch (error) {
       console.error('更新提供商实例失败:', error);
       res.status(500).json({
         success: false,
-        message: '更新提供商实例失败'
+        message: '更新提供商实例失败',
       });
     }
   }
@@ -261,25 +264,25 @@ export class MultiProviderLLMAdminController {
   public async deleteProviderInstance(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       // 获取当前配置
       const config = await this.multiProviderService.loadMultiProviderConfig();
-      
+
       if (!config) {
         res.status(404).json({
           success: false,
-          message: '多提供商配置不存在'
+          message: '多提供商配置不存在',
         });
         return;
       }
 
       // 查找提供商实例
-      const providerIndex = config.providers.findIndex(p => p.id === id);
-      
+      const providerIndex = config.providers.findIndex((p) => p.id === id);
+
       if (providerIndex === -1) {
         res.status(404).json({
           success: false,
-          message: '提供商实例不存在'
+          message: '提供商实例不存在',
         });
         return;
       }
@@ -290,23 +293,23 @@ export class MultiProviderLLMAdminController {
 
       // 保存配置
       const success = await this.multiProviderService.saveMultiProviderConfig(config);
-      
+
       if (success) {
         res.json({
           success: true,
-          message: '提供商实例已成功删除'
+          message: '提供商实例已成功删除',
         });
       } else {
         res.status(500).json({
           success: false,
-          message: '删除提供商实例失败'
+          message: '删除提供商实例失败',
         });
       }
     } catch (error) {
       console.error('删除提供商实例失败:', error);
       res.status(500).json({
         success: false,
-        message: '删除提供商实例失败'
+        message: '删除提供商实例失败',
       });
     }
   }
@@ -317,41 +320,41 @@ export class MultiProviderLLMAdminController {
   public async testProviderInstance(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       // 获取当前配置
       const config = await this.multiProviderService.loadMultiProviderConfig();
-      
+
       if (!config) {
         res.status(404).json({
           success: false,
-          message: '多提供商配置不存在'
+          message: '多提供商配置不存在',
         });
         return;
       }
 
       // 查找提供商实例
-      const provider = config.providers.find(p => p.id === id);
-      
+      const provider = config.providers.find((p) => p.id === id);
+
       if (!provider) {
         res.status(404).json({
           success: false,
-          message: '提供商实例不存在'
+          message: '提供商实例不存在',
         });
         return;
       }
 
       // 执行健康检查
       const healthStatus = await this.multiProviderService.checkProviderHealth(provider);
-      
+
       res.json({
         success: true,
-        data: healthStatus
+        data: healthStatus,
       });
     } catch (error) {
       console.error('测试提供商实例连接失败:', error);
       res.status(500).json({
         success: false,
-        message: '测试提供商实例连接失败'
+        message: '测试提供商实例连接失败',
       });
     }
   }
@@ -362,16 +365,16 @@ export class MultiProviderLLMAdminController {
   public async getProvidersHealthStatus(req: Request, res: Response): Promise<void> {
     try {
       const healthStatuses = await this.multiProviderService.getProvidersHealthStatus();
-      
+
       res.json({
         success: true,
-        data: healthStatuses
+        data: healthStatuses,
       });
     } catch (error) {
       console.error('获取提供商健康状态失败:', error);
       res.status(500).json({
         success: false,
-        message: '获取提供商健康状态失败'
+        message: '获取提供商健康状态失败',
       });
     }
   }
@@ -382,16 +385,16 @@ export class MultiProviderLLMAdminController {
   public async triggerHealthCheck(req: Request, res: Response): Promise<void> {
     try {
       await this.multiProviderService.triggerHealthCheck();
-      
+
       res.json({
         success: true,
-        message: '健康检查已触发'
+        message: '健康检查已触发',
       });
     } catch (error) {
       console.error('触发健康检查失败:', error);
       res.status(500).json({
         success: false,
-        message: '触发健康检查失败'
+        message: '触发健康检查失败',
       });
     }
   }
@@ -408,7 +411,7 @@ export class MultiProviderLLMAdminController {
           defaultModels: ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo'],
           defaultBaseUrl: 'https://api.openai.com/v1',
           defaultTemperature: 0.7,
-          defaultMaxTokens: 1000
+          defaultMaxTokens: 1000,
         },
         {
           provider: 'siliconflow',
@@ -416,7 +419,7 @@ export class MultiProviderLLMAdminController {
           defaultModels: ['Qwen/Qwen3-32B', 'Qwen/Qwen2.5-32B-Instruct', 'Qwen/Qwen3-14B'],
           defaultBaseUrl: 'https://api.siliconflow.cn/v1',
           defaultTemperature: 0.7,
-          defaultMaxTokens: 1000
+          defaultMaxTokens: 1000,
         },
         {
           provider: 'deepseek',
@@ -424,7 +427,7 @@ export class MultiProviderLLMAdminController {
           defaultModels: ['deepseek-chat', 'deepseek-coder'],
           defaultBaseUrl: 'https://api.deepseek.com/v1',
           defaultTemperature: 0.7,
-          defaultMaxTokens: 1000
+          defaultMaxTokens: 1000,
         },
         {
           provider: 'custom',
@@ -432,19 +435,19 @@ export class MultiProviderLLMAdminController {
           defaultModels: [],
           defaultBaseUrl: '',
           defaultTemperature: 0.7,
-          defaultMaxTokens: 1000
-        }
+          defaultMaxTokens: 1000,
+        },
       ];
 
       res.json({
         success: true,
-        data: templates
+        data: templates,
       });
     } catch (error) {
       console.error('获取提供商模板失败:', error);
       res.status(500).json({
         success: false,
-        message: '获取提供商模板失败'
+        message: '获取提供商模板失败',
       });
     }
   }
@@ -458,14 +461,14 @@ export class MultiProviderLLMAdminController {
 
       res.json({
         success: true,
-        data: priorityInfo
+        data: priorityInfo,
       });
     } catch (error) {
       console.error('获取配置优先级信息失败:', error);
       res.status(500).json({
         success: false,
-        message: '获取配置优先级信息失败'
+        message: '获取配置优先级信息失败',
       });
     }
   }
-} 
+}

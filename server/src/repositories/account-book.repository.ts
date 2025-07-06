@@ -1,6 +1,10 @@
 import { AccountBook, Prisma } from '@prisma/client';
 import prisma from '../config/database';
-import { AccountBookQueryParams, CreateAccountBookDto, UpdateAccountBookDto } from '../models/account-book.model';
+import {
+  AccountBookQueryParams,
+  CreateAccountBookDto,
+  UpdateAccountBookDto,
+} from '../models/account-book.model';
 
 export class AccountBookRepository {
   /**
@@ -38,9 +42,16 @@ export class AccountBookRepository {
    */
   async findAllByUserId(
     userId: string,
-    params: AccountBookQueryParams
+    params: AccountBookQueryParams,
   ): Promise<{ accountBooks: AccountBook[]; total: number }> {
-    const { page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc', type, familyId } = params;
+    const {
+      page = 1,
+      limit = 20,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      type,
+      familyId,
+    } = params;
     const skip = (page - 1) * limit;
 
     // 构建查询条件
@@ -139,7 +150,7 @@ export class AccountBookRepository {
    */
   async findAllByFamilyId(
     familyId: string,
-    params: AccountBookQueryParams
+    params: AccountBookQueryParams,
   ): Promise<{ accountBooks: AccountBook[]; total: number }> {
     const { page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = params;
     const skip = (page - 1) * limit;
@@ -148,7 +159,7 @@ export class AccountBookRepository {
       prisma.accountBook.findMany({
         where: {
           familyId,
-          type: 'FAMILY'
+          type: 'FAMILY',
         },
         skip,
         take: limit,
@@ -157,7 +168,7 @@ export class AccountBookRepository {
       prisma.accountBook.count({
         where: {
           familyId,
-          type: 'FAMILY'
+          type: 'FAMILY',
         },
       }),
     ]);
@@ -170,7 +181,7 @@ export class AccountBookRepository {
    */
   async findAllByUserFamilies(
     familyIds: string[],
-    params: AccountBookQueryParams
+    params: AccountBookQueryParams,
   ): Promise<{ accountBooks: AccountBook[]; total: number }> {
     if (!familyIds.length) {
       return { accountBooks: [], total: 0 };
@@ -183,7 +194,7 @@ export class AccountBookRepository {
       prisma.accountBook.findMany({
         where: {
           familyId: { in: familyIds },
-          type: 'FAMILY'
+          type: 'FAMILY',
         },
         skip,
         take: limit,
@@ -192,7 +203,7 @@ export class AccountBookRepository {
       prisma.accountBook.count({
         where: {
           familyId: { in: familyIds },
-          type: 'FAMILY'
+          type: 'FAMILY',
         },
       }),
     ]);
@@ -218,7 +229,7 @@ export class AccountBookRepository {
         select: { id: true },
       });
 
-      const budgetIds = budgets.map(budget => budget.id);
+      const budgetIds = budgets.map((budget) => budget.id);
 
       if (budgetIds.length > 0) {
         await tx.categoryBudget.deleteMany({

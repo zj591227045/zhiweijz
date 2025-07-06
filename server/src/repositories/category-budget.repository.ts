@@ -1,5 +1,9 @@
 import { PrismaClient, CategoryBudget, Prisma, Category } from '@prisma/client';
-import { CreateCategoryBudgetDto, UpdateCategoryBudgetDto, CategoryBudgetQueryParams } from '../models/category-budget.model';
+import {
+  CreateCategoryBudgetDto,
+  UpdateCategoryBudgetDto,
+  CategoryBudgetQueryParams,
+} from '../models/category-budget.model';
 
 // 扩展CategoryBudget类型，包含category关联
 export type CategoryBudgetWithCategory = CategoryBudget & {
@@ -40,7 +44,10 @@ export class CategoryBudgetRepository {
   /**
    * 根据预算ID和分类ID查找分类预算
    */
-  async findByBudgetAndCategory(budgetId: string, categoryId: string): Promise<CategoryBudgetWithCategory | null> {
+  async findByBudgetAndCategory(
+    budgetId: string,
+    categoryId: string,
+  ): Promise<CategoryBudgetWithCategory | null> {
     return prisma.categoryBudget.findUnique({
       where: {
         budgetId_categoryId: {
@@ -57,14 +64,16 @@ export class CategoryBudgetRepository {
   /**
    * 查询分类预算列表
    */
-  async findAll(params: CategoryBudgetQueryParams): Promise<{ categoryBudgets: CategoryBudgetWithCategory[]; total: number }> {
+  async findAll(
+    params: CategoryBudgetQueryParams,
+  ): Promise<{ categoryBudgets: CategoryBudgetWithCategory[]; total: number }> {
     const {
       budgetId,
       categoryId,
       page = 1,
       limit = 20,
       sortBy = 'createdAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
     } = params;
 
     // 构建查询条件

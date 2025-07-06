@@ -10,7 +10,8 @@ export const ACCOUNTING_PROMPTS: Record<string, PromptTemplate> = {
   transactionClassification: {
     name: 'transactionClassification',
     description: '交易分类',
-    systemMessage: '你是一个专业的财务分析助手，能够根据交易描述、金额和日期将交易分类到最合适的类别。请根据提供的类别列表选择最匹配的类别，并简要解释你的选择理由。',
+    systemMessage:
+      '你是一个专业的财务分析助手，能够根据交易描述、金额和日期将交易分类到最合适的类别。请根据提供的类别列表选择最匹配的类别，并简要解释你的选择理由。',
     userMessageTemplate: `请将以下交易分类到最合适的类别：
 
 交易描述: {description}
@@ -43,7 +44,8 @@ export const ACCOUNTING_PROMPTS: Record<string, PromptTemplate> = {
   budgetSuggestion: {
     name: 'budgetSuggestion',
     description: '预算建议',
-    systemMessage: '你是一个专业的财务顾问，能够根据用户的历史消费数据提供个性化的预算建议。请分析用户的消费模式，并为每个类别提供合理的预算分配建议。',
+    systemMessage:
+      '你是一个专业的财务顾问，能够根据用户的历史消费数据提供个性化的预算建议。请分析用户的消费模式，并为每个类别提供合理的预算分配建议。',
     userMessageTemplate: `请根据以下历史消费数据，为用户提供预算建议：
 
 历史消费数据(过去3个月):
@@ -54,7 +56,8 @@ export const ACCOUNTING_PROMPTS: Record<string, PromptTemplate> = {
 
 请为每个消费类别提供预算建议，并简要解释你的建议理由。`,
     exampleInput: {
-      spendingData: '餐饮: 平均每月2000元\n购物: 平均每月1500元\n交通: 平均每月800元\n娱乐: 平均每月1200元',
+      spendingData:
+        '餐饮: 平均每月2000元\n购物: 平均每月1500元\n交通: 平均每月800元\n娱乐: 平均每月1200元',
       income: 10000,
       savingsGoal: '每月储蓄2000元',
     },
@@ -82,7 +85,8 @@ export const ACCOUNTING_PROMPTS: Record<string, PromptTemplate> = {
   smartAccounting: {
     name: 'smartAccounting',
     description: '智能记账',
-    systemMessage: '你是一个专业的财务助手，能够从用户的自然语言描述中提取交易信息，包括金额、类别、日期、备注等。请尽可能准确地提取这些信息，并在信息不完整时做出合理的推断。',
+    systemMessage:
+      '你是一个专业的财务助手，能够从用户的自然语言描述中提取交易信息，包括金额、类别、日期、备注等。请尽可能准确地提取这些信息，并在信息不完整时做出合理的推断。',
     userMessageTemplate: `请从以下描述中提取交易信息：
 
 用户描述: {input}

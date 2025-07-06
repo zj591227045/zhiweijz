@@ -1,7 +1,7 @@
 /**
  * 生产环境回滚脚本
  * 根据修复报告回滚已修改的数据
- * 
+ *
  * 使用方法：
  * npx ts-node src/scripts/production-rollback.ts --report-file=fix-report-2024-01-01T10-00-00-000Z.json --dry-run
  * npx ts-node src/scripts/production-rollback.ts --report-file=fix-report-2024-01-01T10-00-00-000Z.json --execute
@@ -62,8 +62,8 @@ async function rollbackChanges(options: RollbackOptions) {
     console.log(`  跳过记录: ${report.summary.totalSkipped}`);
 
     // 过滤出需要回滚的记录（跳过 method === 'skip' 的记录）
-    const recordsToRollback = report.details.filter(r => r.method !== 'skip');
-    
+    const recordsToRollback = report.details.filter((r) => r.method !== 'skip');
+
     console.log(`\n🔄 需要回滚的记录: ${recordsToRollback.length} 条`);
 
     if (recordsToRollback.length === 0) {
@@ -78,7 +78,11 @@ async function rollbackChanges(options: RollbackOptions) {
     const batchSize = 100;
     for (let i = 0; i < recordsToRollback.length; i += batchSize) {
       const batch = recordsToRollback.slice(i, i + batchSize);
-      console.log(`\n📦 处理回滚批次 ${Math.floor(i / batchSize) + 1}/${Math.ceil(recordsToRollback.length / batchSize)}`);
+      console.log(
+        `\n📦 处理回滚批次 ${Math.floor(i / batchSize) + 1}/${Math.ceil(
+          recordsToRollback.length / batchSize,
+        )}`,
+      );
 
       if (!options.dryRun) {
         await prisma.$transaction(async (tx) => {
@@ -87,7 +91,7 @@ async function rollbackChanges(options: RollbackOptions) {
               // 验证当前数据是否与报告中的新值匹配
               const currentTransaction = await tx.transaction.findUnique({
                 where: { id: record.transactionId },
-                select: { familyId: true, familyMemberId: true }
+                select: { familyId: true, familyMemberId: true },
               });
 
               if (!currentTransaction) {
@@ -97,8 +101,10 @@ async function rollbackChanges(options: RollbackOptions) {
               }
 
               // 检查数据是否已被其他操作修改
-              if (currentTransaction.familyId !== record.newFamilyId || 
-                  currentTransaction.familyMemberId !== record.newFamilyMemberId) {
+              if (
+                currentTransaction.familyId !== record.newFamilyId ||
+                currentTransaction.familyMemberId !== record.newFamilyMemberId
+              ) {
                 console.log(`⚠️  数据已被修改，跳过回滚: ${record.transactionId}`);
                 failed++;
                 continue;
@@ -109,8 +115,8 @@ async function rollbackChanges(options: RollbackOptions) {
                 where: { id: record.transactionId },
                 data: {
                   familyId: record.oldFamilyId,
-                  familyMemberId: record.oldFamilyMemberId
-                }
+                  familyMemberId: record.oldFamilyMemberId,
+                },
               });
 
               rolledBack++;
@@ -125,7 +131,7 @@ async function rollbackChanges(options: RollbackOptions) {
         for (const record of batch) {
           const currentTransaction = await prisma.transaction.findUnique({
             where: { id: record.transactionId },
-            select: { familyId: true, familyMemberId: true }
+            select: { familyId: true, familyMemberId: true },
           });
 
           if (!currentTransaction) {
@@ -134,8 +140,10 @@ async function rollbackChanges(options: RollbackOptions) {
             continue;
           }
 
-          if (currentTransaction.familyId !== record.newFamilyId || 
-              currentTransaction.familyMemberId !== record.newFamilyMemberId) {
+          if (
+            currentTransaction.familyId !== record.newFamilyId ||
+            currentTransaction.familyMemberId !== record.newFamilyMemberId
+          ) {
             console.log(`⚠️  数据已被修改，跳过回滚: ${record.transactionId}`);
             failed++;
             continue;
@@ -146,7 +154,12 @@ async function rollbackChanges(options: RollbackOptions) {
         }
       }
 
-      console.log(`✅ 批次完成: 回滚 ${Math.min(batch.length, rolledBack - (i === 0 ? 0 : Math.floor(i / batchSize) * batchSize))} 条`);
+      console.log(
+        `✅ 批次完成: 回滚 ${Math.min(
+          batch.length,
+          rolledBack - (i === 0 ? 0 : Math.floor(i / batchSize) * batchSize),
+        )} 条`,
+      );
     }
 
     console.log(`\n📊 回滚结果:`);
@@ -157,11 +170,10 @@ async function rollbackChanges(options: RollbackOptions) {
       console.log(`\n🔍 这是试运行结果，实际数据未被修改`);
     } else {
       console.log(`\n✅ 回滚操作完成`);
-      
+
       // 验证回滚结果
       await validateRollback(recordsToRollback);
     }
-
   } catch (error) {
     console.error('❌ 回滚过程中发生错误:', error);
     throw error;
@@ -179,7 +191,7 @@ async function validateRollback(recordsToRollback: FixResult[]) {
   for (const record of recordsToRollback) {
     const currentTransaction = await prisma.transaction.findUnique({
       where: { id: record.transactionId },
-      select: { familyId: true, familyMemberId: true }
+      select: { familyId: true, familyMemberId: true },
     });
 
     if (!currentTransaction) {
@@ -187,8 +199,10 @@ async function validateRollback(recordsToRollback: FixResult[]) {
       continue;
     }
 
-    if (currentTransaction.familyId === record.oldFamilyId && 
-        currentTransaction.familyMemberId === record.oldFamilyMemberId) {
+    if (
+      currentTransaction.familyId === record.oldFamilyId &&
+      currentTransaction.familyMemberId === record.oldFamilyMemberId
+    ) {
       validationPassed++;
     } else {
       validationFailed++;
@@ -210,7 +224,7 @@ function parseArgs(): RollbackOptions {
   const args = process.argv.slice(2);
   const options: RollbackOptions = {
     reportFile: '',
-    dryRun: true
+    dryRun: true,
   };
 
   for (const arg of args) {
@@ -250,4 +264,4 @@ rollbackChanges(options)
   .catch((error) => {
     console.error('💥 回滚脚本执行失败:', error);
     process.exit(1);
-  }); 
+  });

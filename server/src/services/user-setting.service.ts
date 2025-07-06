@@ -1,11 +1,11 @@
 import { UserSettingRepository } from '../repositories/user-setting.repository';
-import { 
-  CreateUserSettingDto, 
-  UpdateUserSettingDto, 
+import {
+  CreateUserSettingDto,
+  UpdateUserSettingDto,
   BatchUpdateUserSettingsDto,
-  UserSettingResponseDto, 
+  UserSettingResponseDto,
   toUserSettingResponseDto,
-  UserSettingKey
+  UserSettingKey,
 } from '../models/user-setting.model';
 
 export class UserSettingService {
@@ -37,10 +37,13 @@ export class UserSettingService {
   /**
    * 创建或更新用户设置
    */
-  async createOrUpdateUserSetting(userId: string, settingData: CreateUserSettingDto): Promise<UserSettingResponseDto> {
+  async createOrUpdateUserSetting(
+    userId: string,
+    settingData: CreateUserSettingDto,
+  ): Promise<UserSettingResponseDto> {
     // 验证设置键是否有效
     this.validateSettingKey(settingData.key);
-    
+
     const setting = await this.userSettingRepository.create(userId, settingData);
     return toUserSettingResponseDto(setting);
   }
@@ -48,26 +51,33 @@ export class UserSettingService {
   /**
    * 批量创建或更新用户设置
    */
-  async batchCreateOrUpdateUserSettings(userId: string, data: BatchUpdateUserSettingsDto): Promise<number> {
+  async batchCreateOrUpdateUserSettings(
+    userId: string,
+    data: BatchUpdateUserSettingsDto,
+  ): Promise<number> {
     // 验证所有设置键是否有效
-    data.settings.forEach(setting => this.validateSettingKey(setting.key));
-    
+    data.settings.forEach((setting) => this.validateSettingKey(setting.key));
+
     return this.userSettingRepository.batchUpsert(userId, data.settings);
   }
 
   /**
    * 更新用户设置
    */
-  async updateUserSetting(userId: string, key: string, settingData: UpdateUserSettingDto): Promise<UserSettingResponseDto> {
+  async updateUserSetting(
+    userId: string,
+    key: string,
+    settingData: UpdateUserSettingDto,
+  ): Promise<UserSettingResponseDto> {
     // 验证设置键是否有效
     this.validateSettingKey(key);
-    
+
     // 检查设置是否存在
     const existingSetting = await this.userSettingRepository.findByUserIdAndKey(userId, key);
     if (!existingSetting) {
       throw new Error(`设置 ${key} 不存在`);
     }
-    
+
     const updatedSetting = await this.userSettingRepository.update(userId, key, settingData);
     return toUserSettingResponseDto(updatedSetting);
   }
@@ -78,13 +88,13 @@ export class UserSettingService {
   async deleteUserSetting(userId: string, key: string): Promise<void> {
     // 验证设置键是否有效
     this.validateSettingKey(key);
-    
+
     // 检查设置是否存在
     const existingSetting = await this.userSettingRepository.findByUserIdAndKey(userId, key);
     if (!existingSetting) {
       throw new Error(`设置 ${key} 不存在`);
     }
-    
+
     await this.userSettingRepository.delete(userId, key);
   }
 
@@ -104,7 +114,7 @@ export class UserSettingService {
       { key: UserSettingKey.TIME_FORMAT, value: 'HH:mm' },
       { key: UserSettingKey.HOME_PAGE, value: 'dashboard' },
     ];
-    
+
     return this.userSettingRepository.batchUpsert(userId, defaultSettings);
   }
 

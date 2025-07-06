@@ -1,5 +1,9 @@
 import { PrismaClient, BudgetHistory, Prisma, RolloverType } from '@prisma/client';
-import { CreateBudgetHistoryDto, BudgetHistoryQueryParams, UserBudgetHistoryQueryParams } from '../models/budget-history.model';
+import {
+  CreateBudgetHistoryDto,
+  BudgetHistoryQueryParams,
+  UserBudgetHistoryQueryParams,
+} from '../models/budget-history.model';
 
 const prisma = new PrismaClient();
 
@@ -16,13 +20,13 @@ export class BudgetHistoryRepository {
         type: data.type,
         description: data.description,
         ...(data.budgetAmount !== undefined && {
-          budgetAmount: new Prisma.Decimal(data.budgetAmount)
+          budgetAmount: new Prisma.Decimal(data.budgetAmount),
         }),
         ...(data.spentAmount !== undefined && {
-          spentAmount: new Prisma.Decimal(data.spentAmount)
+          spentAmount: new Prisma.Decimal(data.spentAmount),
         }),
         ...(data.previousRollover !== undefined && {
-          previousRollover: new Prisma.Decimal(data.previousRollover)
+          previousRollover: new Prisma.Decimal(data.previousRollover),
         }),
         ...(data.userId && { userId: data.userId }),
         ...(data.accountBookId && { accountBookId: data.accountBookId }),
@@ -61,7 +65,7 @@ export class BudgetHistoryRepository {
       page = 1,
       limit = 50,
       sortBy = 'createdAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
     } = params;
 
     // 构建查询条件
@@ -87,7 +91,9 @@ export class BudgetHistoryRepository {
   /**
    * 查询预算历史记录列表
    */
-  async findAll(params: BudgetHistoryQueryParams): Promise<{ histories: BudgetHistory[]; total: number }> {
+  async findAll(
+    params: BudgetHistoryQueryParams,
+  ): Promise<{ histories: BudgetHistory[]; total: number }> {
     const {
       budgetId,
       userId,
@@ -96,7 +102,7 @@ export class BudgetHistoryRepository {
       page = 1,
       limit = 20,
       sortBy = 'createdAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
     } = params;
 
     // 构建查询条件

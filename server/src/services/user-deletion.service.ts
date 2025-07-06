@@ -16,10 +16,10 @@ export class UserDeletionService {
   async processExpiredDeletions(): Promise<void> {
     try {
       console.log('[UserDeletion] 开始检查过期的注销请求...');
-      
+
       // 获取需要删除的用户列表
       const usersToDelete = await this.userRepository.getUsersToDelete();
-      
+
       if (usersToDelete.length === 0) {
         console.log('[UserDeletion] 没有需要删除的用户');
         return;
@@ -31,10 +31,10 @@ export class UserDeletionService {
       for (const user of usersToDelete) {
         try {
           console.log(`[UserDeletion] 开始删除用户: ${user.email} (${user.id})`);
-          
+
           // 执行用户数据删除
           await this.userService.executeUserDeletion(user.id);
-          
+
           console.log(`[UserDeletion] 用户删除成功: ${user.email}`);
         } catch (error) {
           console.error(`[UserDeletion] 删除用户失败: ${user.email}`, error);
@@ -75,16 +75,16 @@ export class UserDeletionService {
   }> {
     try {
       const usersToDelete = await this.userRepository.getUsersToDelete();
-      
+
       return {
         pendingDeletions: usersToDelete.length,
-        totalProcessed: 0 // 这里可以从日志或统计表中获取
+        totalProcessed: 0, // 这里可以从日志或统计表中获取
       };
     } catch (error) {
       console.error('[UserDeletion] 获取注销统计信息失败:', error);
       return {
         pendingDeletions: 0,
-        totalProcessed: 0
+        totalProcessed: 0,
       };
     }
   }

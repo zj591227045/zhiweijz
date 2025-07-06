@@ -9,7 +9,7 @@ export class AdminService {
   async findByUsername(username: string): Promise<Admin | null> {
     try {
       return await prisma.admin.findUnique({
-        where: { username }
+        where: { username },
       });
     } catch (error) {
       console.error('查找管理员错误:', error);
@@ -23,7 +23,7 @@ export class AdminService {
   async findById(id: string): Promise<Admin | null> {
     try {
       return await prisma.admin.findUnique({
-        where: { id }
+        where: { id },
       });
     } catch (error) {
       console.error('查找管理员错误:', error);
@@ -37,7 +37,7 @@ export class AdminService {
   async findByEmail(email: string): Promise<Admin | null> {
     try {
       return await prisma.admin.findUnique({
-        where: { email }
+        where: { email },
       });
     } catch (error) {
       console.error('查找管理员错误:', error);
@@ -60,8 +60,8 @@ export class AdminService {
           username: data.username,
           passwordHash: data.passwordHash,
           email: data.email,
-          role: data.role || admin_role.ADMIN
-        }
+          role: data.role || admin_role.ADMIN,
+        },
       });
     } catch (error) {
       console.error('创建管理员错误:', error);
@@ -77,8 +77,8 @@ export class AdminService {
       await prisma.admin.update({
         where: { id },
         data: {
-          lastLoginAt: new Date()
-        }
+          lastLoginAt: new Date(),
+        },
       });
     } catch (error) {
       console.error('更新最后登录时间错误:', error);
@@ -93,7 +93,7 @@ export class AdminService {
     try {
       await prisma.admin.update({
         where: { id },
-        data: { passwordHash }
+        data: { passwordHash },
       });
     } catch (error) {
       console.error('更新管理员密码错误:', error);
@@ -107,7 +107,7 @@ export class AdminService {
   async findAll(): Promise<Admin[]> {
     try {
       return await prisma.admin.findMany({
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       });
     } catch (error) {
       console.error('获取管理员列表错误:', error);
@@ -121,11 +121,11 @@ export class AdminService {
   async delete(id: string): Promise<void> {
     try {
       await prisma.admin.delete({
-        where: { id }
+        where: { id },
       });
     } catch (error) {
       console.error('删除管理员错误:', error);
       throw new Error('删除管理员失败');
     }
   }
-} 
+}

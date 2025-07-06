@@ -143,7 +143,7 @@ export class TaskSchedulerService {
     return {
       isRunning: this.isRunning,
       hasCleanupTask: !!this.cleanupIntervalId,
-      performanceMonitoringEnabled: true // 可以从配置中获取
+      performanceMonitoringEnabled: true, // 可以从配置中获取
     };
   }
 
@@ -161,24 +161,23 @@ export class TaskSchedulerService {
   async getCleanupStats() {
     try {
       // 获取最后清理时间
-      const lastCleanupResult = await prisma.$queryRaw<Array<{value: string}>>`
+      const lastCleanupResult = await prisma.$queryRaw<Array<{ value: string }>>`
         SELECT value FROM system_configs WHERE key = 'last_data_cleanup'
       `;
 
-      const lastCleanupTime = lastCleanupResult.length > 0 
-        ? new Date(lastCleanupResult[0].value) 
-        : null;
+      const lastCleanupTime =
+        lastCleanupResult.length > 0 ? new Date(lastCleanupResult[0].value) : null;
 
       // 获取当前数据量统计
-      const performanceDataCount = await prisma.$queryRaw<Array<{count: bigint}>>`
+      const performanceDataCount = await prisma.$queryRaw<Array<{ count: bigint }>>`
         SELECT COUNT(*) as count FROM system_performance_history
       `;
 
-      const llmLogsCount = await prisma.$queryRaw<Array<{count: bigint}>>`
+      const llmLogsCount = await prisma.$queryRaw<Array<{ count: bigint }>>`
         SELECT COUNT(*) as count FROM llm_call_logs
       `;
 
-      const securityLogsCount = await prisma.$queryRaw<Array<{count: bigint}>>`
+      const securityLogsCount = await prisma.$queryRaw<Array<{ count: bigint }>>`
         SELECT COUNT(*) as count FROM security_logs
       `;
 
@@ -187,8 +186,8 @@ export class TaskSchedulerService {
         dataCount: {
           performanceHistory: Number(performanceDataCount[0]?.count || 0),
           llmLogs: Number(llmLogsCount[0]?.count || 0),
-          securityLogs: Number(securityLogsCount[0]?.count || 0)
-        }
+          securityLogs: Number(securityLogsCount[0]?.count || 0),
+        },
       };
     } catch (error) {
       console.error('获取清理统计信息失败:', error);
@@ -197,8 +196,8 @@ export class TaskSchedulerService {
         dataCount: {
           performanceHistory: 0,
           llmLogs: 0,
-          securityLogs: 0
-        }
+          securityLogs: 0,
+        },
       };
     }
   }
@@ -208,12 +207,12 @@ export class TaskSchedulerService {
    */
   async gracefulShutdown() {
     console.log('开始优雅关闭任务调度器...');
-    
+
     this.stopScheduler();
-    
+
     // 等待当前任务完成
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     console.log('任务调度器优雅关闭完成');
   }
 }

@@ -23,7 +23,8 @@ export class DataAggregationService {
     // 每日执行一次日统计
     setInterval(async () => {
       const now = new Date();
-      if (now.getHours() === 16) { // UTC晚上16点执行，对应北京时间凌晨0点
+      if (now.getHours() === 16) {
+        // UTC晚上16点执行，对应北京时间凌晨0点
         await this.aggregateDailyData();
       }
     }, 60 * 60 * 1000); // 每小时检查一次
@@ -40,16 +41,16 @@ export class DataAggregationService {
 
     try {
       console.log('开始执行每小时数据聚合...');
-      
+
       const now = new Date();
       const lastHour = new Date(now.getTime() - 60 * 60 * 1000);
       lastHour.setMinutes(0, 0, 0);
-      
+
       const currentHour = new Date(lastHour.getTime() + 60 * 60 * 1000);
 
       // 聚合API调用数据
       await this.aggregateApiCalls(lastHour, currentHour);
-      
+
       console.log(`完成 ${lastHour.toISOString()} 的小时数据聚合`);
     } catch (error) {
       console.error('每小时数据聚合失败:', error);
@@ -64,23 +65,25 @@ export class DataAggregationService {
   private async aggregateDailyData() {
     try {
       console.log('开始执行每日数据聚合...');
-      
+
       // 获取北京时间的昨日边界
       const now = new Date();
       const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-      
+
       // 设置为北京时间昨日的0点0分0秒
       beijingTime.setUTCDate(beijingTime.getUTCDate() - 1);
       beijingTime.setUTCHours(0, 0, 0, 0);
       const yesterday = new Date(beijingTime.getTime() - 8 * 60 * 60 * 1000); // 转换回UTC
-      
+
       // 设置为北京时间今日的0点0分0秒
       const todayBeijing = new Date(yesterday.getTime() + 24 * 60 * 60 * 1000);
 
       // 聚合昨日数据（按北京时间边界）
       await this.generateDailyStats(yesterday, todayBeijing);
 
-      const yesterdayDateStr = new Date(yesterday.getTime() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const yesterdayDateStr = new Date(yesterday.getTime() + 8 * 60 * 60 * 1000)
+        .toISOString()
+        .split('T')[0];
       console.log(`完成 ${yesterdayDateStr} 的每日数据聚合（北京时间）`);
     } catch (error) {
       console.error('每日数据聚合失败:', error);
@@ -95,7 +98,7 @@ export class DataAggregationService {
       // 停止API调用日志聚合 - 因为已经停止记录api_call_logs
       // // 按端点统计API调用次数
       // const apiStats = await prisma.$queryRaw`
-      //   SELECT 
+      //   SELECT
       //     endpoint,
       //     method,
       //     COUNT(*) as total_calls,
@@ -104,7 +107,7 @@ export class DataAggregationService {
       //     MAX(duration) as max_duration,
       //     COUNT(CASE WHEN status_code >= 200 AND status_code < 300 THEN 1 END) as success_calls,
       //     COUNT(CASE WHEN status_code >= 400 THEN 1 END) as error_calls
-      //   FROM api_call_logs 
+      //   FROM api_call_logs
       //   WHERE created_at >= ${startTime} AND created_at < ${endTime}
       //   GROUP BY endpoint, method
       // ` as Array<{
@@ -137,11 +140,11 @@ export class DataAggregationService {
           where: {
             createdAt: {
               gte: startDate,
-              lt: endDate
-            }
-          }
+              lt: endDate,
+            },
+          },
         }),
-        
+
         // 活跃用户数（有交易记录的用户）
         prisma.user.count({
           where: {
@@ -149,25 +152,27 @@ export class DataAggregationService {
               some: {
                 createdAt: {
                   gte: startDate,
-                  lt: endDate
-                }
-              }
-            }
-          }
+                  lt: endDate,
+                },
+              },
+            },
+          },
         }),
-        
+
         // 交易记录数
         prisma.transaction.count({
           where: {
             createdAt: {
               gte: startDate,
-              lt: endDate
-            }
-          }
-        })
+              lt: endDate,
+            },
+          },
+        }),
       ]);
 
-      console.log(`每日统计 - 新用户: ${newUsers}, 活跃用户: ${activeUsers}, 交易: ${totalTransactions}`);
+      console.log(
+        `每日统计 - 新用户: ${newUsers}, 活跃用户: ${activeUsers}, 交易: ${totalTransactions}`,
+      );
     } catch (error) {
       console.error('生成每日统计失败:', error);
     }
@@ -179,7 +184,7 @@ export class DataAggregationService {
   async cleanupOldData() {
     try {
       console.log('开始清理旧数据...');
-      
+
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -187,9 +192,9 @@ export class DataAggregationService {
       const deletedAccessLogs = await prisma.accessLog.deleteMany({
         where: {
           createdAt: {
-            lt: thirtyDaysAgo
-          }
-        }
+            lt: thirtyDaysAgo,
+          },
+        },
       });
 
       // API调用日志清理已禁用
@@ -219,4 +224,4 @@ export class DataAggregationService {
 }
 
 // 创建全局实例
-export const dataAggregationService = new DataAggregationService(); 
+export const dataAggregationService = new DataAggregationService();

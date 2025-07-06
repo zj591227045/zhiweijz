@@ -37,9 +37,9 @@ export interface UpdateBudgetDto {
   isAutoCalculated?: boolean;
   budgetType?: BudgetType;
   rolloverAmount?: number;
-  amountModified?: boolean;         // 预算金额是否已被修改
-  lastAmountModifiedAt?: Date;      // 最后一次修改预算金额的时间
-  refreshDay?: number;              // 预算刷新日期（1, 5, 10, 15, 20, 25）
+  amountModified?: boolean; // 预算金额是否已被修改
+  lastAmountModifiedAt?: Date; // 最后一次修改预算金额的时间
+  refreshDay?: number; // 预算刷新日期（1, 5, 10, 15, 20, 25）
 }
 
 /**
@@ -116,7 +116,11 @@ export interface BudgetPaginatedResponseDto {
 /**
  * 将预算实体转换为响应DTO
  */
-export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryResponseDto, spent?: number): BudgetResponseDto {
+export function toBudgetResponseDto(
+  budget: PrismaBudget,
+  category?: CategoryResponseDto,
+  spent?: number,
+): BudgetResponseDto {
   const {
     id,
     name,
@@ -130,7 +134,7 @@ export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryRes
     familyId,
     accountBookId,
     createdAt,
-    updatedAt
+    updatedAt,
   } = budget;
 
   // 使用类型断言获取新字段
@@ -160,16 +164,23 @@ export function toBudgetResponseDto(budget: PrismaBudget, category?: CategoryRes
   const adjustedRemaining = numericSpent !== undefined ? totalAvailable - numericSpent : undefined;
 
   // 计算基于总可用金额的进度百分比
-  const progress = numericSpent !== undefined && totalAvailable > 0 ? (numericSpent / totalAvailable) * 100 : undefined;
+  const progress =
+    numericSpent !== undefined && totalAvailable > 0
+      ? (numericSpent / totalAvailable) * 100
+      : undefined;
 
   // 计算日均统计
   const now = new Date();
-  const daysRemaining = Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+  const daysRemaining = Math.max(
+    0,
+    Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
+  );
   const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
   const elapsedDays = Math.max(0, totalDays - daysRemaining);
 
   const dailySpent = elapsedDays > 0 && numericSpent !== undefined ? numericSpent / elapsedDays : 0;
-  const dailyAvailable = daysRemaining > 0 && adjustedRemaining !== undefined ? adjustedRemaining / daysRemaining : 0;
+  const dailyAvailable =
+    daysRemaining > 0 && adjustedRemaining !== undefined ? adjustedRemaining / daysRemaining : 0;
 
   return {
     id,

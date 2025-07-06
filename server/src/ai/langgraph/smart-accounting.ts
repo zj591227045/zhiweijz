@@ -1,5 +1,8 @@
 import { LLMProviderService } from '../llm/llm-provider-service';
-import { SMART_ACCOUNTING_SYSTEM_PROMPT, SMART_ACCOUNTING_USER_PROMPT } from '../prompts/accounting-prompts';
+import {
+  SMART_ACCOUNTING_SYSTEM_PROMPT,
+  SMART_ACCOUNTING_USER_PROMPT,
+} from '../prompts/accounting-prompts';
 import { SmartAccountingState } from '../types/accounting-types';
 import { SmartAccountingResponse } from '../../types/smart-accounting';
 import NodeCache from 'node-cache';
@@ -42,7 +45,7 @@ export class SmartAccounting {
     userId: string,
     accountId: string,
     accountType: string,
-    includeDebugInfo: boolean = false
+    includeDebugInfo: boolean = false,
   ): Promise<SmartAccountingResponse> {
     if (!accountId) {
       console.error('处理智能记账时缺少账本ID');
@@ -69,7 +72,7 @@ export class SmartAccounting {
       userId,
       accountId,
       accountType: accountType.toLowerCase() as 'personal' | 'family',
-      includeDebugInfo
+      includeDebugInfo,
     };
 
     // 由于LangGraph的API变化，我们使用简单的顺序执行
@@ -126,14 +129,14 @@ export class SmartAccounting {
                   user: {
                     select: {
                       id: true,
-                      name: true
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       });
 
       if (!accountBook) {
@@ -151,21 +154,25 @@ export class SmartAccounting {
             {
               accountBookId: accountId,
               startDate: { lte: currentDate },
-              endDate: { gte: currentDate }
+              endDate: { gte: currentDate },
             },
             // 用户个人预算
             {
               userId: userId,
               startDate: { lte: currentDate },
-              endDate: { gte: currentDate }
+              endDate: { gte: currentDate },
             },
             // 家庭预算（如果是家庭账本）
-            ...(accountBook.familyId ? [{
-              familyId: accountBook.familyId,
-              startDate: { lte: currentDate },
-              endDate: { gte: currentDate }
-            }] : [])
-          ]
+            ...(accountBook.familyId
+              ? [
+                  {
+                    familyId: accountBook.familyId,
+                    startDate: { lte: currentDate },
+                    endDate: { gte: currentDate },
+                  },
+                ]
+              : []),
+          ],
         },
         include: {
           familyMember: {
@@ -173,12 +180,12 @@ export class SmartAccounting {
               user: {
                 select: {
                   id: true,
-                  name: true
-                }
-              }
-            }
-          }
-        }
+                  name: true,
+                },
+              },
+            },
+          },
+        },
       });
 
       // 处理预算信息
@@ -198,7 +205,7 @@ export class SmartAccounting {
             // 家庭成员预算或个人预算
             const user = await prisma.user.findUnique({
               where: { id: budget.userId },
-              select: { name: true }
+              select: { name: true },
             });
             if (user) {
               budgetDisplayName = user.name;
@@ -223,7 +230,6 @@ export class SmartAccounting {
    */
   private async analyzeTransactionHandler(state: SmartAccountingState) {
     try {
-
       // 第一步：判断请求内容是否与记账相关
       const relevanceCheckPrompt = `
 你是一个专业的财务助手。请判断以下用户描述是否与记账相关。
@@ -242,10 +248,15 @@ export class SmartAccounting {
 用户描述: ${state.description}
 `;
 
-      const relevanceResponse = await this.llmProviderService.generateChat([
-        { role: 'system', content: '你是一个专业的财务助手，负责判断用户描述是否与记账相关。' },
-        { role: 'user', content: relevanceCheckPrompt }
-      ], state.userId, state.accountId, state.accountType);
+      const relevanceResponse = await this.llmProviderService.generateChat(
+        [
+          { role: 'system', content: '你是一个专业的财务助手，负责判断用户描述是否与记账相关。' },
+          { role: 'user', content: relevanceCheckPrompt },
+        ],
+        state.userId,
+        state.accountId,
+        state.accountType,
+      );
 
       const relevanceResult = relevanceResponse.trim();
 
@@ -253,44 +264,50 @@ export class SmartAccounting {
       if (relevanceResult.includes('无关')) {
         return {
           ...state,
-          error: '消息与记账无关'
+          error: '消息与记账无关',
         };
       }
 
       // 获取所有分类
       const categories = await prisma.category.findMany({
         where: {
-          OR: [
-            { userId: state.userId },
-            { isDefault: true },
-            { accountBookId: state.accountId }
-          ]
-        }
+          OR: [{ userId: state.userId }, { isDefault: true }, { accountBookId: state.accountId }],
+        },
       });
 
       // 使用简化的分类列表
-      const categoryList = await this.getSimplifiedCategoryListForPrompt(state.userId, state.accountId || '');
+      const categoryList = await this.getSimplifiedCategoryListForPrompt(
+        state.userId,
+        state.accountId || '',
+      );
 
       // 按需获取预算列表
       const needBudgetInfo = this.hasBudgetKeywords(state.description);
-      const budgetList = needBudgetInfo 
+      const budgetList = needBudgetInfo
         ? `预算列表：${await this.getBudgetListForPrompt(state.userId, state.accountId || '')}`
         : '';
 
       // 准备提示
       const currentDate = new Date().toISOString().split('T')[0];
-      const systemPrompt = SMART_ACCOUNTING_SYSTEM_PROMPT
-        .replace('{{categories}}', categoryList)
-        .replace('{{budgets}}', budgetList);
-      const userPrompt = SMART_ACCOUNTING_USER_PROMPT
-        .replace('{{description}}', state.description)
-        .replace('{{currentDate}}', currentDate);
+      const systemPrompt = SMART_ACCOUNTING_SYSTEM_PROMPT.replace(
+        '{{categories}}',
+        categoryList,
+      ).replace('{{budgets}}', budgetList);
+      const userPrompt = SMART_ACCOUNTING_USER_PROMPT.replace(
+        '{{description}}',
+        state.description,
+      ).replace('{{currentDate}}', currentDate);
 
       // 调用LLM
-      const response = await this.llmProviderService.generateChat([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ], state.userId, state.accountId, state.accountType);
+      const response = await this.llmProviderService.generateChat(
+        [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        state.userId,
+        state.accountId,
+        state.accountType,
+      );
 
       // 解析响应
       const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -315,34 +332,35 @@ export class SmartAccounting {
           systemPrompt,
           userPrompt,
           llmResponse: response,
-          parsedResult: analyzedTransaction
+          parsedResult: analyzedTransaction,
         };
 
         return {
           ...state,
           analyzedTransaction,
-          debugInfo
+          debugInfo,
         };
       }
 
       throw new Error('无法解析智能分析结果');
     } catch (error) {
       console.error('智能分析错误:', error);
-      
+
       // 检查是否是Token限额错误
       const errorMessage = error instanceof Error ? error.message : String(error);
       if (errorMessage.includes('Token使用受限')) {
         console.log('Token限额错误，返回错误状态');
         return {
           ...state,
-          error: errorMessage
+          error: errorMessage,
         };
       }
 
       // 对于其他错误，回退到默认分类
-      const defaultCategory = await prisma.category.findFirst({
-        where: { name: '其他' }
-      }) || await prisma.category.findFirst();
+      const defaultCategory =
+        (await prisma.category.findFirst({
+          where: { name: '其他' },
+        })) || (await prisma.category.findFirst());
 
       if (defaultCategory) {
         return {
@@ -354,8 +372,8 @@ export class SmartAccounting {
             categoryName: defaultCategory.name,
             type: defaultCategory.type as 'EXPENSE' | 'INCOME',
             note: state.description,
-            confidence: 0.5
-          }
+            confidence: 0.5,
+          },
         };
       }
 
@@ -380,15 +398,19 @@ export class SmartAccounting {
       // 如果LLM识别出了预算名称，优先根据预算名称匹配
       if (state.analyzedTransaction.budgetName) {
         console.log(`🔍 [预算匹配] 尝试根据预算名称匹配: ${state.analyzedTransaction.budgetName}`);
-        budget = await this.findBudgetByName(state.analyzedTransaction.budgetName, state.userId, state.accountId);
+        budget = await this.findBudgetByName(
+          state.analyzedTransaction.budgetName,
+          state.userId,
+          state.accountId,
+        );
         if (budget) {
           console.log(`✅ [预算匹配] 根据预算名称找到匹配的预算: ${budget.id} - ${budget.name}`);
           return {
             ...state,
             matchedBudget: {
               id: budget.id,
-              name: budget.name
-            }
+              name: budget.name,
+            },
           };
         } else {
           console.log(`❌ [预算匹配] 未找到名称匹配的预算，使用默认逻辑`);
@@ -400,25 +422,29 @@ export class SmartAccounting {
       // 1. 请求发起人在当前账本的个人预算（优先级最高）
       // 2. 请求发起人的个人预算（按分类匹配）
       // 3. 当前账本+分类+日期范围匹配的预算
-      
+
       console.log(`🔍 [预算匹配] 查找用户 ${state.userId} 在账本 ${state.accountId} 的个人预算`);
-      
+
       // 首先尝试找到请求发起人的个人预算
       budget = await prisma.budget.findFirst({
         where: {
           userId: state.userId,
           accountBookId: state.accountId,
           startDate: { lte: state.analyzedTransaction.date },
-          endDate: { gte: state.analyzedTransaction.date }
+          endDate: { gte: state.analyzedTransaction.date },
         },
         orderBy: [
           // 优先匹配分类
-          { categoryId: state.analyzedTransaction.categoryId ? 'desc' : 'asc' }
-        ]
+          { categoryId: state.analyzedTransaction.categoryId ? 'desc' : 'asc' },
+        ],
       });
 
       if (budget) {
-        console.log(`✅ [预算匹配] 找到用户个人预算: ${budget.id} - ${budget.name} (分类匹配: ${budget.categoryId === state.analyzedTransaction.categoryId ? '是' : '否'})`);
+        console.log(
+          `✅ [预算匹配] 找到用户个人预算: ${budget.id} - ${budget.name} (分类匹配: ${
+            budget.categoryId === state.analyzedTransaction.categoryId ? '是' : '否'
+          })`,
+        );
       }
 
       // 如果没有找到发起人的个人预算，再尝试其他预算
@@ -432,25 +458,29 @@ export class SmartAccounting {
                 accountBookId: state.accountId,
                 categoryId: state.analyzedTransaction.categoryId,
                 startDate: { lte: state.analyzedTransaction.date },
-                endDate: { gte: state.analyzedTransaction.date }
+                endDate: { gte: state.analyzedTransaction.date },
               },
               // 通用账本预算
               {
                 accountBookId: state.accountId,
                 categoryId: null,
                 startDate: { lte: state.analyzedTransaction.date },
-                endDate: { gte: state.analyzedTransaction.date }
-              }
-            ]
+                endDate: { gte: state.analyzedTransaction.date },
+              },
+            ],
           },
           orderBy: [
             // 优先匹配分类的预算
-            { categoryId: 'desc' }
-          ]
+            { categoryId: 'desc' },
+          ],
         });
 
         if (budget) {
-          console.log(`✅ [预算匹配] 找到账本预算: ${budget.id} - ${budget.name} (类型: ${budget.categoryId ? '分类预算' : '通用预算'})`);
+          console.log(
+            `✅ [预算匹配] 找到账本预算: ${budget.id} - ${budget.name} (类型: ${
+              budget.categoryId ? '分类预算' : '通用预算'
+            })`,
+          );
         }
       }
 
@@ -459,12 +489,14 @@ export class SmartAccounting {
           ...state,
           matchedBudget: {
             id: budget.id,
-            name: budget.name
-          }
+            name: budget.name,
+          },
         };
       }
 
-      console.log(`❌ [预算匹配] 未找到任何匹配的预算，分类ID: ${state.analyzedTransaction.categoryId}`);
+      console.log(
+        `❌ [预算匹配] 未找到任何匹配的预算，分类ID: ${state.analyzedTransaction.categoryId}`,
+      );
       return state;
     } catch (error) {
       console.error('预算匹配错误:', error);
@@ -494,14 +526,14 @@ export class SmartAccounting {
                   user: {
                     select: {
                       id: true,
-                      name: true
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       });
 
       if (!accountBook) {
@@ -516,21 +548,25 @@ export class SmartAccounting {
             {
               accountBookId: accountId,
               startDate: { lte: currentDate },
-              endDate: { gte: currentDate }
+              endDate: { gte: currentDate },
             },
             // 用户个人预算
             {
               userId: userId,
               startDate: { lte: currentDate },
-              endDate: { gte: currentDate }
+              endDate: { gte: currentDate },
             },
             // 家庭预算（如果是家庭账本）
-            ...(accountBook.familyId ? [{
-              familyId: accountBook.familyId,
-              startDate: { lte: currentDate },
-              endDate: { gte: currentDate }
-            }] : [])
-          ]
+            ...(accountBook.familyId
+              ? [
+                  {
+                    familyId: accountBook.familyId,
+                    startDate: { lte: currentDate },
+                    endDate: { gte: currentDate },
+                  },
+                ]
+              : []),
+          ],
         },
         include: {
           familyMember: {
@@ -538,12 +574,12 @@ export class SmartAccounting {
               user: {
                 select: {
                   id: true,
-                  name: true
-                }
-              }
-            }
-          }
-        }
+                  name: true,
+                },
+              },
+            },
+          },
+        },
       });
 
       // 匹配预算名称
@@ -564,7 +600,7 @@ export class SmartAccounting {
             // 家庭成员预算或个人预算
             const user = await prisma.user.findUnique({
               where: { id: budget.userId },
-              select: { name: true }
+              select: { name: true },
             });
             if (user) {
               budgetDisplayName = user.name;
@@ -587,7 +623,7 @@ export class SmartAccounting {
           } else if (budget.userId) {
             const user = await prisma.user.findUnique({
               where: { id: budget.userId },
-              select: { name: true }
+              select: { name: true },
             });
             if (user && budgetName.includes(user.name)) {
               return budget;
@@ -625,18 +661,18 @@ export class SmartAccounting {
             {
               type: 'FAMILY',
               familyId: {
-                not: null
+                not: null,
               },
               family: {
                 members: {
                   some: {
-                    userId: state.userId
-                  }
-                }
-              }
-            }
-          ]
-        }
+                    userId: state.userId,
+                  },
+                },
+              },
+            },
+          ],
+        },
       });
 
       if (accountBook) {
@@ -644,7 +680,7 @@ export class SmartAccounting {
         return {
           ...state,
           accountId: accountBook.id,
-          accountType: accountBook.type.toLowerCase() as 'personal' | 'family'
+          accountType: accountBook.type.toLowerCase() as 'personal' | 'family',
         };
       } else {
         console.error(`账本不存在或用户无权访问: ${state.accountId}`);
@@ -678,7 +714,7 @@ export class SmartAccounting {
         userId: state.userId || '',
         confidence: 0,
         createdAt: new Date(),
-        originalDescription: state.description
+        originalDescription: state.description,
       };
       return { ...state, result: errorResult };
     }
@@ -686,12 +722,12 @@ export class SmartAccounting {
     try {
       // 获取账本信息
       const accountBook = await prisma.accountBook.findUnique({
-        where: { id: state.accountId }
+        where: { id: state.accountId },
       });
 
       // 获取分类信息
       const category = await prisma.category.findUnique({
-        where: { id: state.analyzedTransaction.categoryId }
+        where: { id: state.analyzedTransaction.categoryId },
       });
 
       // 获取预算信息
@@ -704,20 +740,20 @@ export class SmartAccounting {
             user: {
               select: {
                 id: true,
-                name: true
-              }
+                name: true,
+              },
             },
             familyMember: {
               include: {
                 user: {
                   select: {
                     id: true,
-                    name: true
-                  }
-                }
-              }
-            }
-          }
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
         });
 
         // 获取预算所属人员名称
@@ -769,9 +805,11 @@ export class SmartAccounting {
         originalDescription: state.description,
 
         // 调试信息（仅在开发环境或调试模式下包含）
-        ...(process.env.NODE_ENV === 'development' || state.includeDebugInfo ? {
-          debugInfo: state.debugInfo
-        } : {})
+        ...(process.env.NODE_ENV === 'development' || state.includeDebugInfo
+          ? {
+              debugInfo: state.debugInfo,
+            }
+          : {}),
       };
 
       console.log('生成智能记账结果:', JSON.stringify(result, null, 2));
@@ -796,7 +834,7 @@ export class SmartAccounting {
         userId: state.userId,
         confidence: state.analyzedTransaction.confidence,
         createdAt: new Date(),
-        originalDescription: state.description
+        originalDescription: state.description,
       };
 
       return { ...state, result };
@@ -810,11 +848,20 @@ export class SmartAccounting {
    */
   private hasBudgetKeywords(description: string): boolean {
     const budgetKeywords = [
-      '预算', '记账', '账上', '记在', '分配', '预算给', 
-      '从预算', '预算中', '预算里', '记到', '记入'
+      '预算',
+      '记账',
+      '账上',
+      '记在',
+      '分配',
+      '预算给',
+      '从预算',
+      '预算中',
+      '预算里',
+      '记到',
+      '记入',
     ];
-    
-    return budgetKeywords.some(keyword => description.includes(keyword));
+
+    return budgetKeywords.some((keyword) => description.includes(keyword));
   }
 
   /**
@@ -823,23 +870,22 @@ export class SmartAccounting {
    * @param accountId 账本ID
    * @returns 简化的分类列表字符串
    */
-  private async getSimplifiedCategoryListForPrompt(userId: string, accountId: string): Promise<string> {
+  private async getSimplifiedCategoryListForPrompt(
+    userId: string,
+    accountId: string,
+  ): Promise<string> {
     try {
       // 获取所有分类
       const categories = await prisma.category.findMany({
         where: {
-          OR: [
-            { userId: userId },
-            { isDefault: true },
-            { accountBookId: accountId }
-          ]
-        }
+          OR: [{ userId: userId }, { isDefault: true }, { accountBookId: accountId }],
+        },
       });
 
       // 只返回ID、名称和类型
-      return categories.map((c: any) =>
-        `${c.id}:${c.name}(${c.type === 'EXPENSE' ? '支出' : '收入'})`
-      ).join(',');
+      return categories
+        .map((c: any) => `${c.id}:${c.name}(${c.type === 'EXPENSE' ? '支出' : '收入'})`)
+        .join(',');
     } catch (error) {
       console.error('获取分类列表失败:', error);
       return '';

@@ -41,7 +41,7 @@ export class WechatController {
         wechatParams.signature,
         wechatParams.timestamp,
         wechatParams.nonce,
-        wechatParams.echostr
+        wechatParams.echostr,
       );
 
       if (isValid && wechatParams.echostr) {
@@ -75,11 +75,13 @@ export class WechatController {
       }
 
       // 验证签名
-      if (!this.wechatService.verifySignature(
-        wechatParams.signature,
-        wechatParams.timestamp,
-        wechatParams.nonce
-      )) {
+      if (
+        !this.wechatService.verifySignature(
+          wechatParams.signature,
+          wechatParams.timestamp,
+          wechatParams.nonce,
+        )
+      ) {
         console.log('微信消息签名验证失败');
         return res.send('success'); // 返回success避免微信重试
       }
@@ -89,14 +91,20 @@ export class WechatController {
 
       // 转换微信XML解析后的数组格式为字符串
       const message: WechatMessage = {
-        ToUserName: Array.isArray(rawMessage.ToUserName) ? rawMessage.ToUserName[0] : rawMessage.ToUserName,
-        FromUserName: Array.isArray(rawMessage.FromUserName) ? rawMessage.FromUserName[0] : rawMessage.FromUserName,
-        CreateTime: Array.isArray(rawMessage.CreateTime) ? rawMessage.CreateTime[0] : rawMessage.CreateTime,
+        ToUserName: Array.isArray(rawMessage.ToUserName)
+          ? rawMessage.ToUserName[0]
+          : rawMessage.ToUserName,
+        FromUserName: Array.isArray(rawMessage.FromUserName)
+          ? rawMessage.FromUserName[0]
+          : rawMessage.FromUserName,
+        CreateTime: Array.isArray(rawMessage.CreateTime)
+          ? rawMessage.CreateTime[0]
+          : rawMessage.CreateTime,
         MsgType: Array.isArray(rawMessage.MsgType) ? rawMessage.MsgType[0] : rawMessage.MsgType,
         Content: Array.isArray(rawMessage.Content) ? rawMessage.Content[0] : rawMessage.Content,
         MsgId: Array.isArray(rawMessage.MsgId) ? rawMessage.MsgId[0] : rawMessage.MsgId,
         Event: Array.isArray(rawMessage.Event) ? rawMessage.Event[0] : rawMessage.Event,
-        EventKey: Array.isArray(rawMessage.EventKey) ? rawMessage.EventKey[0] : rawMessage.EventKey
+        EventKey: Array.isArray(rawMessage.EventKey) ? rawMessage.EventKey[0] : rawMessage.EventKey,
       };
 
       if (!message || !message.FromUserName) {
@@ -105,9 +113,9 @@ export class WechatController {
       }
 
       // 消息排重（根据官方文档建议）
-      const messageId = message.MsgId ?
-        message.MsgId.toString() :
-        `${message.FromUserName}_${message.CreateTime}`;
+      const messageId = message.MsgId
+        ? message.MsgId.toString()
+        : `${message.FromUserName}_${message.CreateTime}`;
 
       if (this.processedMessages.has(messageId)) {
         console.log('重复消息，忽略处理:', messageId);
@@ -120,7 +128,7 @@ export class WechatController {
         fromUser: message.FromUserName,
         msgType: message.MsgType,
         content: message.Content || message.Event,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       // 设置4秒超时，确保在微信5秒限制内响应
@@ -132,7 +140,7 @@ export class WechatController {
         // 处理消息，带超时控制
         const response = await Promise.race([
           this.wechatService.handleMessage(message),
-          timeoutPromise
+          timeoutPromise,
         ]);
 
         // 返回XML响应
@@ -208,7 +216,7 @@ export class WechatController {
         return res.status(400).json({
           success: false,
           error: '微信服务未启用',
-          message: '请检查微信配置'
+          message: '请检查微信配置',
         });
       }
 
@@ -218,13 +226,13 @@ export class WechatController {
         res.json({
           success: true,
           message: '微信菜单创建成功',
-          data: result.data
+          data: result.data,
         });
       } else {
         res.status(400).json({
           success: false,
           error: result.error,
-          message: '微信菜单创建失败'
+          message: '微信菜单创建失败',
         });
       }
     } catch (error) {
@@ -232,7 +240,7 @@ export class WechatController {
       res.status(500).json({
         success: false,
         error: '设置菜单失败',
-        message: '服务器内部错误'
+        message: '服务器内部错误',
       });
     }
   }
@@ -245,13 +253,13 @@ export class WechatController {
       const status = await this.configService.getServiceStatus();
       res.json({
         success: true,
-        data: status
+        data: status,
       });
     } catch (error) {
       console.error('获取服务状态错误:', error);
       res.status(500).json({
         success: false,
-        error: '获取服务状态失败'
+        error: '获取服务状态失败',
       });
     }
   }
@@ -266,13 +274,13 @@ export class WechatController {
 
       res.json({
         success: true,
-        data: errorStats
+        data: errorStats,
       });
     } catch (error) {
       console.error('获取错误统计错误:', error);
       res.status(500).json({
         success: false,
-        error: '获取错误统计失败'
+        error: '获取错误统计失败',
       });
     }
   }
@@ -288,13 +296,13 @@ export class WechatController {
       res.json({
         success: true,
         message: `成功清理 ${deletedCount} 条过期日志`,
-        deletedCount
+        deletedCount,
       });
     } catch (error) {
       console.error('清理日志错误:', error);
       res.status(500).json({
         success: false,
-        error: '清理日志失败'
+        error: '清理日志失败',
       });
     }
   }
@@ -310,7 +318,7 @@ export class WechatController {
       service: 'wechat-integration',
       enabled: isEnabled,
       message: isEnabled ? '微信服务已启用' : '微信服务未配置',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -337,7 +345,12 @@ export class WechatController {
 
       if (result.success && result.data) {
         // 渲染账本选择页面
-        return this.renderAccountBooksPage(res, result.data!.user, result.data!.accountBooks, openid);
+        return this.renderAccountBooksPage(
+          res,
+          result.data!.user,
+          result.data!.accountBooks,
+          openid,
+        );
       } else {
         return this.renderErrorPage(res, result.message || '登录失败');
       }
@@ -389,12 +402,14 @@ export class WechatController {
     let accountBooksHtml = '';
 
     if (accountBooks.length === 0) {
-      accountBooksHtml = '<p style="text-align: center; color: #666;">您还没有任何账本，请先在应用中创建账本。</p>';
+      accountBooksHtml =
+        '<p style="text-align: center; color: #666;">您还没有任何账本，请先在应用中创建账本。</p>';
     } else {
       accountBooks.forEach((book, index) => {
-        const bookType = book.type === 'FAMILY' ?
-          `家庭账本${book.familyName ? ' - ' + book.familyName : ''}` :
-          '个人账本';
+        const bookType =
+          book.type === 'FAMILY'
+            ? `家庭账本${book.familyName ? ' - ' + book.familyName : ''}`
+            : '个人账本';
 
         accountBooksHtml += `
           <label class="account-book-item" for="book_${book.id}">
@@ -516,22 +531,33 @@ export class WechatController {
   /**
    * 渲染重新绑定页面（已绑定用户）
    */
-  private renderRebindingPage(res: Response, bindingInfo: any, accountBooks: any[], openid: string) {
+  private renderRebindingPage(
+    res: Response,
+    bindingInfo: any,
+    accountBooks: any[],
+    openid: string,
+  ) {
     let accountBooksHtml = '';
 
     if (accountBooks.length === 0) {
-      accountBooksHtml = '<p style="text-align: center; color: #666;">您还没有任何账本，请先在应用中创建账本。</p>';
+      accountBooksHtml =
+        '<p style="text-align: center; color: #666;">您还没有任何账本，请先在应用中创建账本。</p>';
     } else {
       accountBooks.forEach((book, index) => {
-        const bookType = book.type === 'FAMILY' ?
-          `家庭账本${book.familyName ? ' - ' + book.familyName : ''}` :
-          '个人账本';
+        const bookType =
+          book.type === 'FAMILY'
+            ? `家庭账本${book.familyName ? ' - ' + book.familyName : ''}`
+            : '个人账本';
 
         const isSelected = book.id === bindingInfo.defaultAccountBookId;
 
         accountBooksHtml += `
-          <label class="account-book-item ${isSelected ? 'current-binding' : ''}" for="book_${book.id}">
-              <input type="radio" name="accountBookId" value="${book.id}" id="book_${book.id}" ${isSelected ? 'checked' : ''} required>
+          <label class="account-book-item ${isSelected ? 'current-binding' : ''}" for="book_${
+          book.id
+        }">
+              <input type="radio" name="accountBookId" value="${book.id}" id="book_${book.id}" ${
+          isSelected ? 'checked' : ''
+        } required>
               <div class="book-content">
                   <h4>${book.name} ${isSelected ? '(当前绑定)' : ''}</h4>
                   <p>${bookType}</p>
@@ -774,7 +800,9 @@ export class WechatController {
       if (existingBinding && existingBinding.isActive) {
         console.log('🔄 用户已绑定，显示账本重选页面');
         // 获取用户的所有账本
-        const accountBooksResult = await this.wechatService.getUserAccountBooks(existingBinding.userId);
+        const accountBooksResult = await this.wechatService.getUserAccountBooks(
+          existingBinding.userId,
+        );
 
         if (accountBooksResult.success && accountBooksResult.data) {
           return this.renderRebindingPage(res, existingBinding, accountBooksResult.data, openid);
@@ -790,7 +818,7 @@ export class WechatController {
       if (!fs.existsSync(htmlPath)) {
         return res.status(404).json({
           success: false,
-          message: '绑定页面不存在'
+          message: '绑定页面不存在',
         });
       }
 
@@ -798,15 +826,9 @@ export class WechatController {
 
       // 将openid注入到页面中
       if (openid) {
-        htmlContent = htmlContent.replace(
-          '{{OPENID_PLACEHOLDER}}',
-          openid
-        );
+        htmlContent = htmlContent.replace('{{OPENID_PLACEHOLDER}}', openid);
       } else {
-        htmlContent = htmlContent.replace(
-          '{{OPENID_PLACEHOLDER}}',
-          'test_openid_' + Date.now()
-        );
+        htmlContent = htmlContent.replace('{{OPENID_PLACEHOLDER}}', 'test_openid_' + Date.now());
       }
 
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -817,7 +839,7 @@ export class WechatController {
       console.error('获取绑定页面错误:', error);
       res.status(500).json({
         success: false,
-        message: '服务器内部错误'
+        message: '服务器内部错误',
       });
     }
   }

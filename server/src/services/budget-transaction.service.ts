@@ -31,7 +31,7 @@ export class BudgetTransactionService {
     categoryId: string,
     amount: number,
     type: TransactionType,
-    date: Date
+    date: Date,
   ): Promise<void> {
     // 只处理支出类型的交易
     if (type !== 'EXPENSE') {
@@ -50,7 +50,7 @@ export class BudgetTransactionService {
         // 查找对应的分类预算
         const categoryBudget = await this.categoryBudgetRepository.findByBudgetAndCategory(
           budget.id,
-          categoryId
+          categoryId,
         );
 
         if (categoryBudget) {
@@ -72,7 +72,10 @@ export class BudgetTransactionService {
    * @param budgetId 预算ID
    * @param additionalSpent 额外支出金额
    */
-  private async getOrCreateOtherCategoryBudget(budgetId: string, additionalSpent: number = 0): Promise<void> {
+  private async getOrCreateOtherCategoryBudget(
+    budgetId: string,
+    additionalSpent: number = 0,
+  ): Promise<void> {
     try {
       // 查找"其他"分类
       const otherCategory = await this.categoryRepository.findByName('其他');
@@ -84,7 +87,7 @@ export class BudgetTransactionService {
       // 查找"其他"分类预算
       let otherBudget = await this.categoryBudgetRepository.findByBudgetAndCategory(
         budgetId,
-        otherCategory.id
+        otherCategory.id,
       );
 
       // 获取预算信息
@@ -98,7 +101,7 @@ export class BudgetTransactionService {
       if (!otherBudget) {
         // 获取所有分类预算
         const categoryBudgets = await this.categoryBudgetRepository.findByBudgetId(budgetId);
-        
+
         // 计算"其他"预算金额
         let otherAmount = 0;
         if (!budget.isAutoCalculated && Number(budget.amount) > 0) {
@@ -106,18 +109,18 @@ export class BudgetTransactionService {
           const allocatedAmount = categoryBudgets.reduce((sum, cb) => sum + Number(cb.amount), 0);
           otherAmount = Math.max(0, Number(budget.amount) - allocatedAmount);
         }
-        
+
         // 创建"其他"分类预算
         await this.categoryBudgetRepository.create({
           budgetId,
           categoryId: otherCategory.id,
-          amount: otherAmount
+          amount: otherAmount,
         });
-        
+
         // 重新查询创建的预算
         otherBudget = await this.categoryBudgetRepository.findByBudgetAndCategory(
           budgetId,
-          otherCategory.id
+          otherCategory.id,
         );
       }
 

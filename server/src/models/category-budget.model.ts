@@ -62,17 +62,9 @@ export interface CategoryBudgetPaginatedResponseDto {
  */
 export function toCategoryBudgetResponseDto(
   categoryBudget: PrismaCategoryBudget,
-  category?: CategoryResponseDto
+  category?: CategoryResponseDto,
 ): CategoryBudgetResponseDto {
-  const {
-    id,
-    budgetId,
-    categoryId,
-    amount,
-    spent,
-    createdAt,
-    updatedAt
-  } = categoryBudget;
+  const { id, budgetId, categoryId, amount, spent, createdAt, updatedAt } = categoryBudget;
 
   // 计算预算执行情况
   const numericAmount = Number(amount);
@@ -92,6 +84,6 @@ export function toCategoryBudgetResponseDto(
     percentage,
     isOverspent,
     createdAt,
-    updatedAt
+    updatedAt,
   };
 }

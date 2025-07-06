@@ -1,8 +1,8 @@
 /**
  * 预算API测试脚本
- * 
+ *
  * 这个脚本用于测试预算API的工作情况，特别是根据账本ID和预算类型过滤预算的功能。
- * 
+ *
  * 使用方法：
  * 1. 确保服务器正在运行
  * 2. 在终端中执行: node src/test/budget-api-test.js
@@ -22,8 +22,8 @@ const apiClient = axios.create({
   baseURL: config.baseUrl,
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${config.token}`
-  }
+    Authorization: `Bearer ${config.token}`,
+  },
 });
 
 // 测试获取个人预算
@@ -33,14 +33,14 @@ async function testGetPersonalBudgets() {
     const response = await apiClient.get('/budgets', {
       params: {
         accountBookId: config.accountBookId,
-        budgetType: 'PERSONAL'
-      }
+        budgetType: 'PERSONAL',
+      },
     });
-    
+
     console.log('响应状态码:', response.status);
     console.log('个人预算数量:', response.data.total);
     console.log('个人预算数据:', JSON.stringify(response.data.data, null, 2));
-    
+
     return response.data;
   } catch (error) {
     console.error('获取个人预算失败:', error.response ? error.response.data : error.message);
@@ -55,14 +55,14 @@ async function testGetGeneralBudgets() {
     const response = await apiClient.get('/budgets', {
       params: {
         accountBookId: config.accountBookId,
-        budgetType: 'GENERAL'
-      }
+        budgetType: 'GENERAL',
+      },
     });
-    
+
     console.log('响应状态码:', response.status);
     console.log('通用预算数量:', response.data.total);
     console.log('通用预算数据:', JSON.stringify(response.data.data, null, 2));
-    
+
     return response.data;
   } catch (error) {
     console.error('获取通用预算失败:', error.response ? error.response.data : error.message);
@@ -74,19 +74,19 @@ async function testGetGeneralBudgets() {
 async function runTests() {
   console.log('开始测试预算API...');
   console.log('使用账本ID:', config.accountBookId);
-  
+
   // 测试获取个人预算
   await testGetPersonalBudgets();
-  
+
   console.log('\n-----------------------------------\n');
-  
+
   // 测试获取通用预算
   await testGetGeneralBudgets();
-  
+
   console.log('\n预算API测试完成');
 }
 
 // 执行测试
-runTests().catch(error => {
+runTests().catch((error) => {
   console.error('测试过程中发生错误:', error);
 });

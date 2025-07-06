@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import { UserSettingService } from '../services/user-setting.service';
-import { CreateUserSettingDto, UpdateUserSettingDto, BatchUpdateUserSettingsDto } from '../models/user-setting.model';
+import {
+  CreateUserSettingDto,
+  UpdateUserSettingDto,
+  BatchUpdateUserSettingsDto,
+} from '../models/user-setting.model';
 
 export class UserSettingController {
   private userSettingService: UserSettingService;
@@ -40,12 +44,12 @@ export class UserSettingController {
 
       const key = req.params.key;
       const setting = await this.userSettingService.getUserSetting(userId, key);
-      
+
       if (!setting) {
         res.status(404).json({ message: `设置 ${key} 不存在` });
         return;
       }
-      
+
       res.status(200).json(setting);
     } catch (error) {
       if (error instanceof Error) {

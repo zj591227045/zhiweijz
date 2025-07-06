@@ -3,7 +3,7 @@ import { AccountBookService } from '../services/account-book.service';
 import {
   AccountBookQueryParams,
   CreateAccountBookDto,
-  UpdateAccountBookDto
+  UpdateAccountBookDto,
 } from '../models/account-book.model';
 import { CreateAccountLLMSettingDto } from '../models/account-llm-setting.model';
 
@@ -123,7 +123,11 @@ export class AccountBookController {
       const accountBookId = req.params.id;
       const accountBookData: UpdateAccountBookDto = req.body;
 
-      const accountBook = await this.accountBookService.updateAccountBook(accountBookId, userId, accountBookData);
+      const accountBook = await this.accountBookService.updateAccountBook(
+        accountBookId,
+        userId,
+        accountBookData,
+      );
       res.status(200).json(accountBook);
     } catch (error) {
       if (error instanceof Error) {
@@ -169,7 +173,10 @@ export class AccountBookController {
       }
 
       const accountBookId = req.params.id;
-      const accountBook = await this.accountBookService.setDefaultAccountBook(accountBookId, userId);
+      const accountBook = await this.accountBookService.setDefaultAccountBook(
+        accountBookId,
+        userId,
+      );
       res.status(200).json(accountBook);
     } catch (error) {
       if (error instanceof Error) {
@@ -223,7 +230,11 @@ export class AccountBookController {
       const accountBookId = req.params.id;
       const settingData: CreateAccountLLMSettingDto = req.body;
 
-      const setting = await this.accountBookService.updateAccountBookLLMSetting(accountBookId, userId, settingData);
+      const setting = await this.accountBookService.updateAccountBookLLMSetting(
+        accountBookId,
+        userId,
+        settingData,
+      );
       res.status(200).json(setting);
     } catch (error) {
       if (error instanceof Error) {
@@ -248,7 +259,11 @@ export class AccountBookController {
       const familyId = req.params.familyId;
       const accountBookData: CreateAccountBookDto = req.body;
 
-      const accountBook = await this.accountBookService.createFamilyAccountBook(userId, familyId, accountBookData);
+      const accountBook = await this.accountBookService.createFamilyAccountBook(
+        userId,
+        familyId,
+        accountBookData,
+      );
       res.status(201).json(accountBook);
     } catch (error) {
       if (error instanceof Error) {
@@ -280,7 +295,11 @@ export class AccountBookController {
         sortOrder: req.query.sortOrder as 'asc' | 'desc' | undefined,
       };
 
-      const accountBooks = await this.accountBookService.getFamilyAccountBooks(userId, familyId, params);
+      const accountBooks = await this.accountBookService.getFamilyAccountBooks(
+        userId,
+        familyId,
+        params,
+      );
       res.status(200).json(accountBooks);
     } catch (error) {
       if (error instanceof Error) {
@@ -311,7 +330,10 @@ export class AccountBookController {
         return;
       }
 
-      const accountBook = await this.accountBookService.resetFamilyAccountBook(accountBookId, userId);
+      const accountBook = await this.accountBookService.resetFamilyAccountBook(
+        accountBookId,
+        userId,
+      );
       res.status(200).json(accountBook);
     } catch (error) {
       if (error instanceof Error) {

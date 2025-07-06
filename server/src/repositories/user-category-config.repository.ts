@@ -1,5 +1,8 @@
 import { PrismaClient, UserCategoryConfig } from '@prisma/client';
-import { CreateUserCategoryConfigDto, UpdateUserCategoryConfigDto } from '../models/user-category-config.model';
+import {
+  CreateUserCategoryConfigDto,
+  UpdateUserCategoryConfigDto,
+} from '../models/user-category-config.model';
 
 const prisma = new PrismaClient();
 
@@ -23,7 +26,7 @@ export class UserCategoryConfigRepository {
    */
   async createMany(configsData: CreateUserCategoryConfigDto[]): Promise<number> {
     const result = await prisma.userCategoryConfig.createMany({
-      data: configsData.map(config => ({
+      data: configsData.map((config) => ({
         userId: config.userId,
         categoryId: config.categoryId,
         isHidden: config.isHidden || false,
@@ -47,7 +50,10 @@ export class UserCategoryConfigRepository {
   /**
    * 根据用户ID和分类ID查找用户分类配置
    */
-  async findByUserIdAndCategoryId(userId: string, categoryId: string): Promise<UserCategoryConfig | null> {
+  async findByUserIdAndCategoryId(
+    userId: string,
+    categoryId: string,
+  ): Promise<UserCategoryConfig | null> {
     return prisma.userCategoryConfig.findUnique({
       where: {
         userId_categoryId: {
@@ -84,7 +90,7 @@ export class UserCategoryConfigRepository {
   async updateByUserIdAndCategoryId(
     userId: string,
     categoryId: string,
-    configData: UpdateUserCategoryConfigDto
+    configData: UpdateUserCategoryConfigDto,
   ): Promise<UserCategoryConfig> {
     return prisma.userCategoryConfig.update({
       where: {
@@ -123,7 +129,11 @@ export class UserCategoryConfigRepository {
    * @param categoryIds 需要更新的分类ID列表
    * @param orderedIds 排序后的完整分类ID列表
    */
-  async updateDisplayOrder(userId: string, categoryIds: string[], orderedIds: string[]): Promise<void> {
+  async updateDisplayOrder(
+    userId: string,
+    categoryIds: string[],
+    orderedIds: string[],
+  ): Promise<void> {
     console.log(`存储库层: 开始更新用户分类配置的显示顺序，用户ID: ${userId}`);
     console.log(`存储库层: 需要更新的分类IDs: ${categoryIds.join(', ')}`);
     console.log(`存储库层: 排序后的分类IDs: ${orderedIds.join(', ')}`);
@@ -132,11 +142,11 @@ export class UserCategoryConfigRepository {
     const existingConfigs = await prisma.userCategoryConfig.findMany({
       where: {
         userId,
-        categoryId: { in: categoryIds }
-      }
+        categoryId: { in: categoryIds },
+      },
     });
 
-    const existingConfigMap = new Map(existingConfigs.map(config => [config.categoryId, config]));
+    const existingConfigMap = new Map(existingConfigs.map((config) => [config.categoryId, config]));
     console.log(`存储库层: 已有配置的分类数量: ${existingConfigs.length}`);
 
     // 分析需要的操作
@@ -153,14 +163,14 @@ export class UserCategoryConfigRepository {
           toUpdate.push({
             categoryId,
             newOrder,
-            oldOrder: existingConfig.displayOrder
+            oldOrder: existingConfig.displayOrder,
           });
         }
       } else {
         // 需要创建新配置
         toCreate.push({
           categoryId,
-          displayOrder: newOrder
+          displayOrder: newOrder,
         });
       }
     }
@@ -199,7 +209,7 @@ export class UserCategoryConfigRepository {
               userId,
               categoryId,
               displayOrder,
-              isHidden: false
+              isHidden: false,
             })),
             skipDuplicates: true,
           });
@@ -224,7 +234,7 @@ export class UserCategoryConfigRepository {
   async upsertCategoryConfig(
     userId: string,
     categoryId: string,
-    config: { displayOrder?: number; isHidden?: boolean } = {}
+    config: { displayOrder?: number; isHidden?: boolean } = {},
   ): Promise<void> {
     console.log(`存储库层: 为用户 ${userId} 的分类 ${categoryId} 创建或更新配置`);
 
@@ -261,7 +271,7 @@ export class UserCategoryConfigRepository {
    */
   async updateChangedDisplayOrder(
     userId: string,
-    changedCategories: Array<{ categoryId: string; newOrder: number }>
+    changedCategories: Array<{ categoryId: string; newOrder: number }>,
   ): Promise<void> {
     console.log(`存储库层: 开始更新发生变化的分类配置，用户ID: ${userId}`);
     console.log(`存储库层: 需要更新的分类数量: ${changedCategories.length}`);

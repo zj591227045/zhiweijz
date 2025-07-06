@@ -7,7 +7,7 @@ import {
   CategoryResponseDto,
   toCategoryResponseDto,
   defaultCategories,
-  defaultCategoryOrder
+  defaultCategoryOrder,
 } from '../models/category.model';
 import { UserCategoryConfigRepository } from '../repositories/user-category-config.repository';
 
@@ -68,12 +68,12 @@ export class CategoryService {
 
       // 2. 检查用户是否已有这些分类的配置
       const existingConfigs = await this.userCategoryConfigRepository.findByUserId(userId);
-      const existingCategoryIds = new Set(existingConfigs.map(config => config.categoryId));
+      const existingCategoryIds = new Set(existingConfigs.map((config) => config.categoryId));
       console.log(`CategoryService: 用户已有 ${existingConfigs.length} 个分类配置`);
 
       // 3. 筛选出需要创建配置的默认分类
-      const categoriesToConfig = defaultCategories.filter(category =>
-        !existingCategoryIds.has(category.id)
+      const categoriesToConfig = defaultCategories.filter(
+        (category) => !existingCategoryIds.has(category.id),
       );
       console.log(`CategoryService: 需要创建配置的分类数量: ${categoriesToConfig.length}`);
 
@@ -83,13 +83,13 @@ export class CategoryService {
       }
 
       // 4. 为这些分类创建用户配置，使用默认排序
-      const configsToCreate = categoriesToConfig.map(category => {
+      const configsToCreate = categoriesToConfig.map((category) => {
         const defaultOrder = defaultCategoryOrder[category.type]?.[category.name] || 9999;
         return {
           userId,
           categoryId: category.id,
           displayOrder: defaultOrder,
-          isHidden: false
+          isHidden: false,
         };
       });
 
@@ -104,12 +104,13 @@ export class CategoryService {
     }
   }
 
-
-
   /**
    * 创建分类
    */
-  async createCategory(userId: string, categoryData: CreateCategoryDto): Promise<CategoryResponseDto> {
+  async createCategory(
+    userId: string,
+    categoryData: CreateCategoryDto,
+  ): Promise<CategoryResponseDto> {
     console.log(`服务层: 开始创建分类，用户ID: ${userId}, 分类名称: ${categoryData.name}`);
 
     // 创建分类
@@ -121,7 +122,7 @@ export class CategoryService {
       await this.userCategoryConfigRepository.upsertCategoryConfig(
         userId,
         category.id,
-        { displayOrder: 10000, isHidden: false } // 新分类默认放在最后
+        { displayOrder: 10000, isHidden: false }, // 新分类默认放在最后
       );
       console.log(`服务层: 为新分类 ${category.id} 创建用户配置成功`);
     } catch (error) {
@@ -160,8 +161,15 @@ export class CategoryService {
   /**
    * 获取分类列表（优化版本）
    */
-  async getCategories(userId: string, type?: TransactionType, familyId?: string, includeHidden: boolean = false): Promise<CategoryResponseDto[]> {
-    console.log(`CategoryService.getCategories: userId=${userId}, type=${type}, familyId=${familyId}, includeHidden=${includeHidden}`);
+  async getCategories(
+    userId: string,
+    type?: TransactionType,
+    familyId?: string,
+    includeHidden: boolean = false,
+  ): Promise<CategoryResponseDto[]> {
+    console.log(
+      `CategoryService.getCategories: userId=${userId}, type=${type}, familyId=${familyId}, includeHidden=${includeHidden}`,
+    );
 
     // 1. 获取默认分类（使用缓存）
     const defaultCategories = await this.getDefaultCategories();
@@ -169,14 +177,14 @@ export class CategoryService {
 
     // 2. 按类型过滤默认分类
     const filteredDefaultCategories = defaultCategories
-      .filter(cat => !type || cat.type === type)
-      .map(cat => {
+      .filter((cat) => !type || cat.type === type)
+      .map((cat) => {
         const dto = toCategoryResponseDto(cat);
         // 添加默认排序
         const defaultOrder = defaultCategoryOrder[cat.type]?.[cat.name] || 9999;
         return {
           ...dto,
-          displayOrder: defaultOrder
+          displayOrder: defaultOrder,
         };
       });
 
@@ -197,25 +205,25 @@ export class CategoryService {
     }
     console.log(`用户自定义分类数量: ${userCustomCategories.length}`);
 
-    const userCustomCategoryDtos = userCustomCategories.map(cat => {
+    const userCustomCategoryDtos = userCustomCategories.map((cat) => {
       const dto = toCategoryResponseDto(cat);
       // 自定义分类的排序从用户配置中获取，如果没有配置则使用默认值
-      const userConfig = userConfigs.find(config => config.categoryId === cat.id);
+      const userConfig = userConfigs.find((config) => config.categoryId === cat.id);
       return {
         ...dto,
         displayOrder: userConfig?.displayOrder || 10000, // 自定义分类默认排在最后
-        isHidden: userConfig?.isHidden || false
+        isHidden: userConfig?.isHidden || false,
       };
     });
 
     // 5. 应用用户配置到默认分类
-    const configuredDefaultCategories = filteredDefaultCategories.map(category => {
-      const userConfig = userConfigs.find(config => config.categoryId === category.id);
+    const configuredDefaultCategories = filteredDefaultCategories.map((category) => {
+      const userConfig = userConfigs.find((config) => config.categoryId === category.id);
       if (userConfig) {
         return {
           ...category,
           isHidden: userConfig.isHidden,
-          displayOrder: userConfig.displayOrder
+          displayOrder: userConfig.displayOrder,
         };
       }
       return category;
@@ -227,7 +235,7 @@ export class CategoryService {
     // 7. 根据includeHidden参数过滤分类
     const filteredCategories = includeHidden
       ? allCategories // 如果包含隐藏分类，返回所有分类
-      : allCategories.filter(category => !category.isHidden); // 否则只返回可见分类
+      : allCategories.filter((category) => !category.isHidden); // 否则只返回可见分类
 
     console.log(`${includeHidden ? '所有' : '可见'}分类数量: ${filteredCategories.length}`);
 
@@ -255,7 +263,11 @@ export class CategoryService {
   /**
    * 更新分类
    */
-  async updateCategory(id: string, userId: string, categoryData: UpdateCategoryDto): Promise<CategoryResponseDto> {
+  async updateCategory(
+    id: string,
+    userId: string,
+    categoryData: UpdateCategoryDto,
+  ): Promise<CategoryResponseDto> {
     // 检查分类是否存在
     const category = await this.categoryRepository.findById(id);
     if (!category) {
@@ -308,7 +320,11 @@ export class CategoryService {
   /**
    * 更新分类排序（优化版本：只保存修改过的分类配置）
    */
-  async updateCategoryOrder(userId: string, categoryIds: string[], type: TransactionType): Promise<void> {
+  async updateCategoryOrder(
+    userId: string,
+    categoryIds: string[],
+    type: TransactionType,
+  ): Promise<void> {
     console.log(`服务层: 开始更新分类排序，用户ID: ${userId}, 分类类型: ${type}`);
     console.log(`服务层: 新的分类排序: ${categoryIds.join(', ')}`);
 
@@ -318,14 +334,16 @@ export class CategoryService {
 
     if (categories.length !== categoryIds.length) {
       console.log(`服务层: 部分分类ID无效，找到 ${categories.length}，期望 ${categoryIds.length}`);
-      console.log(`服务层: 找到的分类IDs: ${categories.map(c => c.id).join(', ')}`);
+      console.log(`服务层: 找到的分类IDs: ${categories.map((c) => c.id).join(', ')}`);
       throw new Error('部分分类ID无效');
     }
 
     // 验证所有分类类型是否匹配
-    const invalidTypeCategory = categories.find(cat => cat.type !== type);
+    const invalidTypeCategory = categories.find((cat) => cat.type !== type);
     if (invalidTypeCategory) {
-      console.log(`服务层: 分类类型不匹配，期望类型 ${type}，但分类 ${invalidTypeCategory.id} 的类型是 ${invalidTypeCategory.type}`);
+      console.log(
+        `服务层: 分类类型不匹配，期望类型 ${type}，但分类 ${invalidTypeCategory.id} 的类型是 ${invalidTypeCategory.type}`,
+      );
       throw new Error('分类类型不匹配');
     }
 
@@ -334,17 +352,26 @@ export class CategoryService {
     console.log(`服务层: 当前该类型分类数量: ${currentCategories.length}`);
 
     // 创建当前排序的映射（按照当前的displayOrder排序）
-    const currentOrderedCategories = currentCategories
-      .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+    const currentOrderedCategories = currentCategories.sort(
+      (a, b) => (a.displayOrder || 0) - (b.displayOrder || 0),
+    );
 
-    console.log(`服务层: 当前排序:`, currentOrderedCategories.map(cat => `${cat.name}(${cat.displayOrder})`).join(', '));
-    console.log(`服务层: 新的排序:`, categoryIds.map(id => {
-      const cat = categories.find(c => c.id === id);
-      return cat ? cat.name : id;
-    }).join(', '));
+    console.log(
+      `服务层: 当前排序:`,
+      currentOrderedCategories.map((cat) => `${cat.name}(${cat.displayOrder})`).join(', '),
+    );
+    console.log(
+      `服务层: 新的排序:`,
+      categoryIds
+        .map((id) => {
+          const cat = categories.find((c) => c.id === id);
+          return cat ? cat.name : id;
+        })
+        .join(', '),
+    );
 
     // 检查排序是否真的发生了变化
-    const currentOrder = currentOrderedCategories.map(cat => cat.id);
+    const currentOrder = currentOrderedCategories.map((cat) => cat.id);
     const hasOrderChanged = !categoryIds.every((id, index) => id === currentOrder[index]);
 
     if (!hasOrderChanged) {
@@ -361,7 +388,7 @@ export class CategoryService {
 
       // 如果位置发生了变化，计算新的排序ID
       if (oldIndex !== newIndex) {
-        const category = categories.find(cat => cat.id === categoryId);
+        const category = categories.find((cat) => cat.id === categoryId);
         if (!category) continue;
 
         let newDisplayOrder: number;
@@ -369,10 +396,11 @@ export class CategoryService {
         if (newIndex === 0) {
           // 移动到第一位：使用比第二个分类更小的排序ID
           const secondCategoryId = categoryIds[1];
-          const secondCategory = categories.find(cat => cat.id === secondCategoryId);
+          const secondCategory = categories.find((cat) => cat.id === secondCategoryId);
 
           if (secondCategory && secondCategory.isDefault) {
-            const secondDefaultOrder = defaultCategoryOrder[secondCategory.type]?.[secondCategory.name] || 200;
+            const secondDefaultOrder =
+              defaultCategoryOrder[secondCategory.type]?.[secondCategory.name] || 200;
             newDisplayOrder = secondDefaultOrder - 50;
           } else {
             newDisplayOrder = 50;
@@ -380,10 +408,11 @@ export class CategoryService {
         } else if (newIndex === categoryIds.length - 1) {
           // 移动到最后一位：使用比前一个分类更大的排序ID
           const prevCategoryId = categoryIds[newIndex - 1];
-          const prevCategory = categories.find(cat => cat.id === prevCategoryId);
+          const prevCategory = categories.find((cat) => cat.id === prevCategoryId);
 
           if (prevCategory && prevCategory.isDefault) {
-            const prevDefaultOrder = defaultCategoryOrder[prevCategory.type]?.[prevCategory.name] || 2200;
+            const prevDefaultOrder =
+              defaultCategoryOrder[prevCategory.type]?.[prevCategory.name] || 2200;
             newDisplayOrder = prevDefaultOrder + 100;
           } else {
             newDisplayOrder = 2400;
@@ -393,8 +422,8 @@ export class CategoryService {
           const prevCategoryId = categoryIds[newIndex - 1];
           const nextCategoryId = categoryIds[newIndex + 1];
 
-          const prevCategory = categories.find(cat => cat.id === prevCategoryId);
-          const nextCategory = categories.find(cat => cat.id === nextCategoryId);
+          const prevCategory = categories.find((cat) => cat.id === prevCategoryId);
+          const nextCategory = categories.find((cat) => cat.id === nextCategoryId);
 
           let prevOrder = 0;
           let nextOrder = 10000;
@@ -417,7 +446,9 @@ export class CategoryService {
         }
 
         changedCategories.push({ categoryId, newOrder: newDisplayOrder });
-        console.log(`服务层: 分类 ${category.name}(${categoryId}) 从位置 ${oldIndex} 移动到位置 ${newIndex}，新排序ID: ${newDisplayOrder}`);
+        console.log(
+          `服务层: 分类 ${category.name}(${categoryId}) 从位置 ${oldIndex} 移动到位置 ${newIndex}，新排序ID: ${newDisplayOrder}`,
+        );
       }
     }
 
@@ -426,10 +457,7 @@ export class CategoryService {
     // 只更新发生变化的分类配置
     if (changedCategories.length > 0) {
       console.log(`服务层: 开始更新变化的分类配置`);
-      await this.userCategoryConfigRepository.updateChangedDisplayOrder(
-        userId,
-        changedCategories
-      );
+      await this.userCategoryConfigRepository.updateChangedDisplayOrder(userId, changedCategories);
       console.log(`服务层: 分类排序更新完成`);
     } else {
       console.log(`服务层: 没有分类排序发生变化，无需更新`);

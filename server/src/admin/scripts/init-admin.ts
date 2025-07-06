@@ -16,7 +16,7 @@ async function initDefaultAdmin() {
 
     // 检查是否已存在管理员账号
     const existingAdmin = await prisma.admin.findUnique({
-      where: { username: defaultUsername }
+      where: { username: defaultUsername },
     });
 
     if (existingAdmin) {
@@ -34,8 +34,8 @@ async function initDefaultAdmin() {
         username: defaultUsername,
         passwordHash,
         email: defaultEmail,
-        role: admin_role.SUPER_ADMIN
-      }
+        role: admin_role.SUPER_ADMIN,
+      },
     });
 
     console.log('默认管理员账号创建成功：');
@@ -45,7 +45,6 @@ async function initDefaultAdmin() {
     console.log(`- 角色：${admin.role}`);
     console.log('');
     console.log('⚠️  请在生产环境中及时修改默认密码！');
-
   } catch (error) {
     console.error('初始化默认管理员账号失败：', error);
     throw error;
@@ -67,4 +66,4 @@ if (require.main === module) {
     });
 }
 
-export { initDefaultAdmin }; 
+export { initDefaultAdmin };

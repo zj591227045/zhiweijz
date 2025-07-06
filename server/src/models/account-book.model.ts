@@ -70,9 +70,10 @@ export function toAccountBookResponseDto(
   accountBook: AccountBook,
   transactionCount?: number,
   categoryCount?: number,
-  budgetCount?: number
+  budgetCount?: number,
 ): AccountBookResponseDto {
-  const { id, name, description, userId, type, familyId, isDefault, createdAt, updatedAt } = accountBook;
+  const { id, name, description, userId, type, familyId, isDefault, createdAt, updatedAt } =
+    accountBook;
 
   return {
     id,

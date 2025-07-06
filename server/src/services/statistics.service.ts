@@ -1,14 +1,14 @@
 // 定义枚举
 enum TransactionType {
   INCOME = 'INCOME',
-  EXPENSE = 'EXPENSE'
+  EXPENSE = 'EXPENSE',
 }
 
 enum BudgetPeriod {
   DAILY = 'DAILY',
   WEEKLY = 'WEEKLY',
   MONTHLY = 'MONTHLY',
-  YEARLY = 'YEARLY'
+  YEARLY = 'YEARLY',
 }
 import { TransactionRepository } from '../repositories/transaction.repository';
 import { CategoryRepository } from '../repositories/category.repository';
@@ -145,7 +145,7 @@ export class StatisticsService {
     endDate: Date,
     groupBy: 'day' | 'week' | 'month' | 'category' = 'day',
     familyId?: string,
-    accountBookId?: string
+    accountBookId?: string,
   ): Promise<ExpenseStatisticsResponseDto> {
     // 验证用户是否为家庭成员
     if (familyId) {
@@ -163,7 +163,7 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      false // 设置excludeFamilyMember为false，统计该账本的所有交易记录
+      false, // 设置excludeFamilyMember为false，统计该账本的所有交易记录
     );
 
     // 获取分类信息
@@ -194,7 +194,7 @@ export class StatisticsService {
     endDate: Date,
     groupBy: 'day' | 'week' | 'month' | 'category' = 'day',
     familyId?: string,
-    accountBookId?: string
+    accountBookId?: string,
   ): Promise<IncomeStatisticsResponseDto> {
     // 验证用户是否为家庭成员
     if (familyId) {
@@ -212,7 +212,7 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      false // 设置excludeFamilyMember为false，统计该账本的所有交易记录
+      false, // 设置excludeFamilyMember为false，统计该账本的所有交易记录
     );
 
     // 获取分类信息
@@ -241,13 +241,14 @@ export class StatisticsService {
     userId: string,
     month: string,
     familyId?: string,
-    accountBookId?: string
-  ): Promise<any> { // 修改返回类型为any，以便返回扩展的数据
+    accountBookId?: string,
+  ): Promise<any> {
+    // 修改返回类型为any，以便返回扩展的数据
     console.log('StatisticsService.getBudgetStatistics 参数:', {
       userId,
       month,
       familyId,
-      accountBookId
+      accountBookId,
     });
 
     // 验证用户是否为家庭成员
@@ -280,7 +281,7 @@ export class StatisticsService {
           if (accountBook.userId !== userId) {
             console.error('个人账本权限验证失败:', {
               accountBookUserId: accountBook.userId,
-              requestUserId: userId
+              requestUserId: userId,
             });
             throw new Error('无权访问此账本');
           }
@@ -294,7 +295,7 @@ export class StatisticsService {
           if (!isMember) {
             console.error('家庭账本权限验证失败:', {
               familyId: accountBook.familyId,
-              requestUserId: userId
+              requestUserId: userId,
             });
             throw new Error('无权访问此家庭账本');
           }
@@ -317,7 +318,7 @@ export class StatisticsService {
 
     console.log('查询预算的日期范围:', {
       startDate: startDate.toISOString(),
-      endDate: endDate.toISOString()
+      endDate: endDate.toISOString(),
     });
 
     // 获取月度预算 - 查询当前用户的个人预算（包括用户自己创建的预算）
@@ -328,7 +329,7 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      false // 设置excludeFamilyMember为false，查询用户的个人预算
+      false, // 设置excludeFamilyMember为false，查询用户的个人预算
     );
 
     console.log(`找到 ${budgets.length} 个当前用户的预算`);
@@ -353,7 +354,7 @@ export class StatisticsService {
     console.log('预算金额计算:', {
       totalBudget,
       totalRolloverAmount,
-      totalAvailableBudget
+      totalAvailableBudget,
     });
 
     // 获取支出交易记录 - 查询当前用户的交易记录（包括用户自己的交易）
@@ -364,7 +365,7 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      false // 设置excludeFamilyMember为false，查询用户的交易记录
+      false, // 设置excludeFamilyMember为false，查询用户的交易记录
     );
 
     console.log(`找到 ${transactions.length} 条当前用户的交易记录`);
@@ -380,7 +381,7 @@ export class StatisticsService {
     }
 
     console.log('支出金额计算:', {
-      totalSpent
+      totalSpent,
     });
 
     // 计算剩余金额和百分比（基于总可用预算）
@@ -394,7 +395,7 @@ export class StatisticsService {
     const recentTransactions = transactions
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5)
-      .map(t => {
+      .map((t) => {
         const category = categories.get(t.categoryId);
         return {
           id: t.id,
@@ -404,7 +405,7 @@ export class StatisticsService {
           categoryId: t.categoryId,
           categoryName: category?.name || '未知分类',
           categoryIcon: category?.icon,
-          type: t.type
+          type: t.type,
         };
       });
 
@@ -420,7 +421,9 @@ export class StatisticsService {
       type: budget.budgetType,
       userId: budget.userId,
       userName: budget.userName,
-      period: `${new Date(budget.startDate).getFullYear()}年${new Date(budget.startDate).getMonth() + 1}月`
+      period: `${new Date(budget.startDate).getFullYear()}年${
+        new Date(budget.startDate).getMonth() + 1
+      }月`,
     }));
 
     // 获取家庭成员信息（如果是家庭账本）
@@ -437,19 +440,21 @@ export class StatisticsService {
 
         if (member.isCustodial) {
           // 如果是托管成员，通过familyMemberId查找预算
-          memberBudget = activeBudgets.find((b: any) =>
-            b.familyMemberId === member.id && b.budgetType === 'PERSONAL');
+          memberBudget = activeBudgets.find(
+            (b: any) => b.familyMemberId === member.id && b.budgetType === 'PERSONAL',
+          );
         } else {
           // 如果是普通成员，通过userId查找预算
-          memberBudget = activeBudgets.find((b: any) =>
-            b.userId === member.userId && b.budgetType === 'PERSONAL');
+          memberBudget = activeBudgets.find(
+            (b: any) => b.userId === member.userId && b.budgetType === 'PERSONAL',
+          );
         }
 
         return {
           id: member.id, // 使用成员ID而不是用户ID
-          name: member.isCustodial ? member.name : (member.user?.name || '未知用户'),
+          name: member.isCustodial ? member.name : member.user?.name || '未知用户',
           budgetId: memberBudget?.id || '',
-          isCustodial: member.isCustodial || false
+          isCustodial: member.isCustodial || false,
         };
       });
     }
@@ -461,7 +466,9 @@ export class StatisticsService {
       overview = {
         id: firstBudget.id,
         name: firstBudget.name,
-        period: `${new Date(firstBudget.startDate).toLocaleDateString()} - ${new Date(firstBudget.endDate).toLocaleDateString()}`,
+        period: `${new Date(firstBudget.startDate).toLocaleDateString()} - ${new Date(
+          firstBudget.endDate,
+        ).toLocaleDateString()}`,
         amount: Number(firstBudget.amount),
         spent: Number(firstBudget.spent || 0),
         remaining: Number(firstBudget.remaining || 0),
@@ -469,7 +476,10 @@ export class StatisticsService {
         rollover: Number(firstBudget.rolloverAmount || 0),
         daysRemaining: this.calculateDaysRemaining(firstBudget.endDate),
         dailySpent: this.calculateDailySpent(firstBudget.spent || 0, firstBudget.startDate),
-        dailyAvailable: this.calculateDailyAvailable(firstBudget.remaining || 0, firstBudget.endDate)
+        dailyAvailable: this.calculateDailyAvailable(
+          firstBudget.remaining || 0,
+          firstBudget.endDate,
+        ),
       };
     }
 
@@ -487,14 +497,15 @@ export class StatisticsService {
       budgetCards,
       familyMembers,
       overview,
-      enableCategoryBudget: activeBudgets.length > 0 ? activeBudgets[0].enableCategoryBudget : false,
+      enableCategoryBudget:
+        activeBudgets.length > 0 ? activeBudgets[0].enableCategoryBudget : false,
 
       // 添加详细的预算信息
       budgetBreakdown: {
-        baseBudget: totalBudget,        // 本月设定的预算金额
+        baseBudget: totalBudget, // 本月设定的预算金额
         rolloverAmount: totalRolloverAmount, // 上月结转金额
-        totalAvailable: totalAvailableBudget // 总可用预算
-      }
+        totalAvailable: totalAvailableBudget, // 总可用预算
+      },
     };
   }
 
@@ -544,7 +555,7 @@ export class StatisticsService {
     budgetId?: string,
     type?: string,
     categoryIds?: string[],
-    tagIds?: string[]
+    tagIds?: string[],
   ): Promise<FinancialOverviewResponseDto> {
     // 验证用户是否为家庭成员
     if (familyId) {
@@ -565,7 +576,7 @@ export class StatisticsService {
       false, // 设置excludeFamilyMember为false，统计该账本的所有交易记录
       budgetId,
       categoryIds,
-      tagIds
+      tagIds,
     );
 
     // 获取支出交易记录 - 不排除家庭成员的交易记录，统计该账本的所有交易
@@ -579,7 +590,7 @@ export class StatisticsService {
       false, // 设置excludeFamilyMember为false，统计该账本的所有交易记录
       budgetId,
       categoryIds,
-      tagIds
+      tagIds,
     );
 
     // 获取分类信息
@@ -680,7 +691,7 @@ export class StatisticsService {
       .map(([date, data]) => ({
         date,
         income: data.income,
-        expense: data.expense
+        expense: data.expense,
       }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
@@ -690,7 +701,7 @@ export class StatisticsService {
       netIncome,
       topIncomeCategories,
       topExpenseCategories,
-      dailyStatistics
+      dailyStatistics,
     };
   }
 
@@ -700,7 +711,7 @@ export class StatisticsService {
   private generatePeriodRange(
     startDate: Date,
     endDate: Date,
-    groupBy: 'day' | 'week' | 'month' | 'category'
+    groupBy: 'day' | 'week' | 'month' | 'category',
   ): string[] {
     const periods: string[] = [];
     const current = new Date(startDate);
@@ -742,7 +753,7 @@ export class StatisticsService {
    */
   private groupTransactionsByDate(
     transactions: any[],
-    groupBy: 'day' | 'week' | 'month' | 'category'
+    groupBy: 'day' | 'week' | 'month' | 'category',
   ): Array<{ date: string; amount: number }> {
     const groupedData = new Map<string, number>();
 
@@ -785,8 +796,12 @@ export class StatisticsService {
   private groupTransactionsByCategory(
     transactions: any[],
     categories: Map<string, any>,
-    total: number
-  ): Array<{ category: { id: string; name: string; icon?: string }; amount: number; percentage: number }> {
+    total: number,
+  ): Array<{
+    category: { id: string; name: string; icon?: string };
+    amount: number;
+    percentage: number;
+  }> {
     const groupedData = new Map<string, number>();
 
     for (const transaction of transactions) {
@@ -818,18 +833,20 @@ export class StatisticsService {
   private async calculateBudgetByCategory(
     budgets: any[],
     transactions: any[],
-    categories: Map<string, any>
-  ): Promise<Array<{
-    category: { id: string; name: string; icon?: string };
-    budget: number;
-    spent: number;
-    remaining: number;
-    percentage: number;
-  }>> {
+    categories: Map<string, any>,
+  ): Promise<
+    Array<{
+      category: { id: string; name: string; icon?: string };
+      budget: number;
+      spent: number;
+      remaining: number;
+      percentage: number;
+    }>
+  > {
     // 按分类ID分组预算
     const budgetByCategory = new Map<string, number>();
     const budgetIdByCategory = new Map<string, string>(); // 存储分类对应的预算ID
-    
+
     for (const budget of budgets) {
       if (budget.categoryId) {
         budgetByCategory.set(budget.categoryId, Number(budget.amount));
@@ -854,12 +871,12 @@ export class StatisticsService {
     for (const [categoryId, budget] of budgetByCategory.entries()) {
       const budgetId = budgetIdByCategory.get(categoryId);
       let spent = 0;
-      
+
       if (budgetId) {
         // 使用预算ID来计算准确的已使用金额
         spent = await budgetRepository.calculateSpentAmount(budgetId);
       }
-      
+
       const category = categories.get(categoryId);
 
       result.push({
@@ -897,7 +914,9 @@ export class StatisticsService {
     // 合并所有分类
     const allCategories = [...defaultCategories, ...userCategories];
 
-    console.log(`获取到 ${defaultCategories.length} 个默认分类和 ${userCategories.length} 个用户/家庭分类`);
+    console.log(
+      `获取到 ${defaultCategories.length} 个默认分类和 ${userCategories.length} 个用户/家庭分类`,
+    );
 
     const categoriesMap = new Map<string, any>();
     for (const category of allCategories) {
@@ -934,7 +953,7 @@ export class StatisticsService {
     endDate: Date,
     tagIds?: string[],
     transactionType?: 'income' | 'expense',
-    categoryIds?: string[]
+    categoryIds?: string[],
   ): Promise<any> {
     // 验证用户是否有权访问账本
     const { AccountBookRepository } = require('../repositories/account-book.repository');
@@ -970,7 +989,7 @@ export class StatisticsService {
       endDate: endDate.toISOString(),
       tagIds,
       transactionType,
-      categoryIds
+      categoryIds,
     });
 
     return statistics;

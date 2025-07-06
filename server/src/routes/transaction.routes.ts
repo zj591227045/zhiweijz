@@ -14,7 +14,9 @@ router.use(authenticate);
 router.get('/statistics', (req, res) => transactionController.getTransactionStatistics(req, res));
 
 // 获取交易列表和统计信息
-router.get('/with-statistics', (req, res) => transactionController.getTransactionsWithStatistics(req, res));
+router.get('/with-statistics', (req, res) =>
+  transactionController.getTransactionsWithStatistics(req, res),
+);
 
 // 导出交易记录
 router.post('/export', (req, res) => transactionController.exportTransactions(req, res));
@@ -45,7 +47,9 @@ router.get('/:transactionId/tags', (req, res) => tagController.getTransactionTag
 router.post('/:transactionId/tags', (req, res) => tagController.addTransactionTags(req, res));
 
 // 移除交易记录的标签
-router.delete('/:transactionId/tags/:tagId', (req, res) => tagController.removeTransactionTag(req, res));
+router.delete('/:transactionId/tags/:tagId', (req, res) =>
+  tagController.removeTransactionTag(req, res),
+);
 
 // 批量操作交易标签
 router.post('/batch/tags', (req, res) => tagController.batchOperateTransactionTags(req, res));

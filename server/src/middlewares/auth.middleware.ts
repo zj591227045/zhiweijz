@@ -68,7 +68,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
         path: req.path,
         isAllowed: allowedPaths.includes(req.path),
         allowedPaths,
-        remainingHours
+        remainingHours,
       });
 
       if (!allowedPaths.includes(req.path)) {
@@ -77,7 +77,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
           isDeletionRequested: true,
           remainingHours,
           deletionRequestedAt: user.deletionRequestedAt,
-          deletionScheduledAt: user.deletionScheduledAt
+          deletionScheduledAt: user.deletionScheduledAt,
         });
         return;
       }

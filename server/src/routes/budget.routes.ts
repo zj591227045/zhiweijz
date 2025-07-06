@@ -42,10 +42,14 @@ router.get('/:id/rollover-history', (req, res) => budgetController.getRolloverHi
 router.post('/:id/rollover', (req, res) => budgetController.processBudgetRollover(req, res));
 
 // 重新计算预算结转
-router.post('/:id/recalculate-rollover', (req, res) => budgetController.recalculateBudgetRollover(req, res));
+router.post('/:id/recalculate-rollover', (req, res) =>
+  budgetController.recalculateBudgetRollover(req, res),
+);
 
 // 重新计算预算结转链条（修复历史交易影响）
-router.post('/:id/recalculate-rollover-chain', (req, res) => budgetController.recalculateBudgetRolloverChain(req, res));
+router.post('/:id/recalculate-rollover-chain', (req, res) =>
+  budgetController.recalculateBudgetRolloverChain(req, res),
+);
 
 // 获取预算相关交易
 router.get('/:id/transactions', (req, res) => budgetController.getBudgetTransactions(req, res));

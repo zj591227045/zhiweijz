@@ -47,16 +47,15 @@ export class TransactionImportService {
   async importTransactions(
     userId: string,
     fileContent: string,
-    format: ImportFormat
+    format: ImportFormat,
   ): Promise<ImportResult> {
     // 解析文件内容
-    const records = format === ImportFormat.CSV
-      ? this.parseCsv(fileContent)
-      : this.parseJson(fileContent);
+    const records =
+      format === ImportFormat.CSV ? this.parseCsv(fileContent) : this.parseJson(fileContent);
 
     // 获取所有分类
     const categories = await this.categoryRepository.findByUserId(userId);
-    const categoryMap = new Map(categories.map(c => [c.name.toLowerCase(), c]));
+    const categoryMap = new Map(categories.map((c) => [c.name.toLowerCase(), c]));
 
     // 导入结果
     const result: ImportResult = {

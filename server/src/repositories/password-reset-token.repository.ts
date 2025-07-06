@@ -10,7 +10,7 @@ export class PasswordResetTokenRepository {
   async create(userId: string, expiresAt: Date): Promise<PasswordResetToken> {
     // 生成随机令牌
     const token = randomBytes(32).toString('hex');
-    
+
     return prisma.passwordResetToken.create({
       data: {
         token,
@@ -46,13 +46,10 @@ export class PasswordResetTokenRepository {
   async deleteExpired(): Promise<number> {
     const result = await prisma.passwordResetToken.deleteMany({
       where: {
-        OR: [
-          { expiresAt: { lt: new Date() } },
-          { isUsed: true },
-        ],
+        OR: [{ expiresAt: { lt: new Date() } }, { isUsed: true }],
       },
     });
-    
+
     return result.count;
   }
 }

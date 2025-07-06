@@ -25,7 +25,7 @@ export class CategoryRepository {
    */
   async createMany(userId: string, categoriesData: CreateCategoryDto[]): Promise<number> {
     const result = await prisma.category.createMany({
-      data: categoriesData.map(category => ({
+      data: categoriesData.map((category) => ({
         name: category.name,
         type: category.type,
         icon: category.icon,
@@ -43,7 +43,7 @@ export class CategoryRepository {
    */
   async createDefaultCategories(categoriesData: CreateCategoryDto[]): Promise<number> {
     const result = await prisma.category.createMany({
-      data: categoriesData.map(category => ({
+      data: categoriesData.map((category) => ({
         name: category.name,
         type: category.type,
         icon: category.icon,
@@ -54,8 +54,6 @@ export class CategoryRepository {
 
     return result.count;
   }
-
-
 
   /**
    * 根据ID查找分类
@@ -192,16 +190,16 @@ export class CategoryRepository {
           { isDefault: true }, // 默认分类
           {
             familyId: {
-              not: null
+              not: null,
             },
             family: {
               members: {
                 some: {
-                  userId
-                }
-              }
-            }
-          } // 用户所属家庭的分类
+                  userId,
+                },
+              },
+            },
+          }, // 用户所属家庭的分类
         ],
         ...(type && { type }), // 如果指定了类型，则按类型筛选
       },
@@ -212,10 +210,10 @@ export class CategoryRepository {
       include: {
         family: {
           select: {
-            name: true
-          }
-        }
-      }
+            name: true,
+          },
+        },
+      },
     });
   }
 }

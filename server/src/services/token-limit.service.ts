@@ -5,7 +5,6 @@ import prisma from '../config/database';
  * 实现LLM Token使用限制功能
  */
 export class TokenLimitService {
-  
   /**
    * 获取用户的每日Token限额
    * 优先级：用户个人限额 -> 全局限额
@@ -21,7 +20,7 @@ export class TokenLimitService {
       // 1. 首先查看用户是否有个人限额设置
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { dailyLlmTokenLimit: true }
+        select: { dailyLlmTokenLimit: true },
       });
 
       if (user?.dailyLlmTokenLimit) {
@@ -31,7 +30,6 @@ export class TokenLimitService {
       // 2. 如果用户没有个人限额，使用全局限额
       const globalLimit = await this.getGlobalDailyTokenLimit();
       return globalLimit;
-
     } catch (error) {
       console.error('获取用户每日Token限额失败:', error);
       // 出错时返回默认限额
@@ -45,9 +43,9 @@ export class TokenLimitService {
   async getGlobalDailyTokenLimit(): Promise<number> {
     try {
       const config = await prisma.systemConfig.findUnique({
-        where: { key: 'llm_global_daily_token_limit' }
+        where: { key: 'llm_global_daily_token_limit' },
       });
-      
+
       return config ? parseInt(config.value || '50000') : 50000;
     } catch (error) {
       console.error('获取全局Token限额失败:', error);
@@ -61,9 +59,9 @@ export class TokenLimitService {
   async isTokenLimitEnabled(): Promise<boolean> {
     try {
       const config = await prisma.systemConfig.findUnique({
-        where: { key: 'llm_token_limit_enabled' }
+        where: { key: 'llm_token_limit_enabled' },
       });
-      
+
       return config ? config.value === 'true' : true;
     } catch (error) {
       console.error('检查Token限制功能状态失败:', error);
@@ -77,9 +75,9 @@ export class TokenLimitService {
   async isTokenLimitEnforced(): Promise<boolean> {
     try {
       const config = await prisma.systemConfig.findUnique({
-        where: { key: 'llm_token_limit_enforcement' }
+        where: { key: 'llm_token_limit_enforcement' },
       });
-      
+
       return config ? config.value === 'true' : true;
     } catch (error) {
       console.error('检查Token限制强制执行状态失败:', error);
@@ -101,13 +99,13 @@ export class TokenLimitService {
           userId,
           createdAt: {
             gte: startOfDay,
-            lt: endOfDay
+            lt: endOfDay,
           },
-          isSuccess: true
+          isSuccess: true,
         },
         _sum: {
-          totalTokens: true
-        }
+          totalTokens: true,
+        },
       });
 
       return Number(result._sum.totalTokens) || 0;
@@ -123,7 +121,10 @@ export class TokenLimitService {
    * @param estimatedTokens 预估要使用的Token数量
    * @returns 是否可以使用
    */
-  async canUseTokens(userId: string, estimatedTokens: number = 0): Promise<{
+  async canUseTokens(
+    userId: string,
+    estimatedTokens: number = 0,
+  ): Promise<{
     canUse: boolean;
     reason?: string;
     usedTokens: number;
@@ -134,7 +135,7 @@ export class TokenLimitService {
       // 检查功能是否启用并强制执行
       const isEnabled = await this.isTokenLimitEnabled();
       const isEnforced = await this.isTokenLimitEnforced();
-      
+
       if (!isEnabled || !isEnforced) {
         const dailyLimit = await this.getUserDailyTokenLimit(userId);
         const usedTokens = await this.getTodayUsedTokens(userId);
@@ -142,7 +143,7 @@ export class TokenLimitService {
           canUse: true,
           usedTokens,
           dailyLimit,
-          remainingTokens: Math.max(0, dailyLimit - usedTokens)
+          remainingTokens: Math.max(0, dailyLimit - usedTokens),
         };
       }
 
@@ -156,7 +157,7 @@ export class TokenLimitService {
           reason: `今日Token使用量已达限额。已使用: ${usedTokens}, 限额: ${dailyLimit}`,
           usedTokens,
           dailyLimit,
-          remainingTokens
+          remainingTokens,
         };
       }
 
@@ -164,9 +165,8 @@ export class TokenLimitService {
         canUse: true,
         usedTokens,
         dailyLimit,
-        remainingTokens
+        remainingTokens,
       };
-
     } catch (error) {
       console.error('检查Token使用权限失败:', error);
       // 出错时允许使用，但记录错误
@@ -175,7 +175,7 @@ export class TokenLimitService {
         reason: '检查失败，允许使用',
         usedTokens: 0,
         dailyLimit: 50000,
-        remainingTokens: 50000
+        remainingTokens: 50000,
       };
     }
   }
@@ -187,7 +187,7 @@ export class TokenLimitService {
     try {
       await prisma.user.update({
         where: { id: userId },
-        data: { dailyLlmTokenLimit: dailyLimit }
+        data: { dailyLlmTokenLimit: dailyLimit },
       });
     } catch (error) {
       console.error('设置用户Token限额失败:', error);
@@ -202,16 +202,16 @@ export class TokenLimitService {
     try {
       await prisma.systemConfig.upsert({
         where: { key: 'llm_global_daily_token_limit' },
-        update: { 
+        update: {
           value: dailyLimit.toString(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         create: {
           key: 'llm_global_daily_token_limit',
           value: dailyLimit.toString(),
           description: '全局每日LLM Token限额',
-          category: 'llm_management'
-        }
+          category: 'llm_management',
+        },
       });
     } catch (error) {
       console.error('设置全局Token限额失败:', error);
@@ -238,7 +238,7 @@ export class TokenLimitService {
       // 检查是否使用个人限额
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { dailyLlmTokenLimit: true }
+        select: { dailyLlmTokenLimit: true },
       });
       const isPersonalLimit = user?.dailyLlmTokenLimit !== null;
 
@@ -247,7 +247,7 @@ export class TokenLimitService {
         dailyLimit,
         remainingTokens,
         usagePercentage,
-        isPersonalLimit
+        isPersonalLimit,
       };
     } catch (error) {
       console.error('获取用户Token统计失败:', error);
@@ -271,16 +271,16 @@ export class TokenLimitService {
     try {
       await prisma.systemConfig.upsert({
         where: { key: 'llm_token_limit_enabled' },
-        update: { 
+        update: {
           value: enabled ? 'true' : 'false',
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         create: {
           key: 'llm_token_limit_enabled',
           value: enabled ? 'true' : 'false',
           description: 'LLM Token限额功能开关',
-          category: 'llm_management'
-        }
+          category: 'llm_management',
+        },
       });
     } catch (error) {
       console.error('设置Token限制功能开关失败:', error);
@@ -320,7 +320,7 @@ export class TokenLimitService {
       if (search) {
         whereCondition.OR = [
           { name: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } }
+          { email: { contains: search, mode: 'insensitive' } },
         ];
       }
 
@@ -332,31 +332,31 @@ export class TokenLimitService {
             name: true,
             email: true,
             dailyLlmTokenLimit: true,
-            createdAt: true
+            createdAt: true,
           },
           orderBy: { createdAt: 'desc' },
           take: limit,
-          skip: offset
+          skip: offset,
         }),
-        prisma.user.count({ where: whereCondition })
+        prisma.user.count({ where: whereCondition }),
       ]);
 
       // 获取每个用户的Token使用统计
       const usersWithStats = await Promise.all(
         users.map(async (user) => {
           const todayUsed = await this.getTodayUsedTokens(user.id);
-          const dailyLimit = user.dailyLlmTokenLimit || await this.getGlobalDailyTokenLimit();
+          const dailyLimit = user.dailyLlmTokenLimit || (await this.getGlobalDailyTokenLimit());
           const remainingTokens = Math.max(0, dailyLimit - todayUsed);
-          
+
           return {
             id: user.id,
             name: user.name,
             email: user.email,
             dailyLlmTokenLimit: user.dailyLlmTokenLimit,
             todayUsed,
-            remainingTokens
+            remainingTokens,
           };
-        })
+        }),
       );
 
       return {
@@ -365,8 +365,8 @@ export class TokenLimitService {
           page,
           limit,
           total,
-          totalPages: Math.ceil(total / limit)
-        }
+          totalPages: Math.ceil(total / limit),
+        },
       };
     } catch (error) {
       console.error('获取用户Token限额列表失败:', error);
@@ -381,7 +381,7 @@ export class TokenLimitService {
     try {
       const result = await prisma.user.updateMany({
         where: { id: { in: userIds } },
-        data: { dailyLlmTokenLimit: dailyLimit }
+        data: { dailyLlmTokenLimit: dailyLimit },
       });
 
       return { count: result.count };
@@ -414,12 +414,14 @@ export class TokenLimitService {
       startDate.setDate(endDate.getDate() - days);
 
       // 获取每日Token使用统计
-      const dailyStats = await prisma.$queryRaw<Array<{
-        date: string;
-        total_tokens: bigint;
-        call_count: bigint;
-        unique_users: bigint;
-      }>>`
+      const dailyStats = await prisma.$queryRaw<
+        Array<{
+          date: string;
+          total_tokens: bigint;
+          call_count: bigint;
+          unique_users: bigint;
+        }>
+      >`
         SELECT 
           DATE(created_at) as date,
           SUM(total_tokens) as total_tokens,
@@ -434,20 +436,20 @@ export class TokenLimitService {
       `;
 
       // 格式化数据
-      const trends = dailyStats.map(stat => ({
+      const trends = dailyStats.map((stat) => ({
         date: stat.date,
         totalTokens: Number(stat.total_tokens),
         callCount: Number(stat.call_count),
-        uniqueUsers: Number(stat.unique_users)
+        uniqueUsers: Number(stat.unique_users),
       }));
 
       // 计算汇总信息
       const totalTokens = trends.reduce((sum, day) => sum + day.totalTokens, 0);
       const totalCalls = trends.reduce((sum, day) => sum + day.callCount, 0);
       const avgTokensPerCall = totalCalls > 0 ? Math.round(totalTokens / totalCalls) : 0;
-      const peakDay = trends.reduce((peak, day) => 
-        day.totalTokens > peak.totalTokens ? day : peak, 
-        trends[0] || { date: '', totalTokens: 0 }
+      const peakDay = trends.reduce(
+        (peak, day) => (day.totalTokens > peak.totalTokens ? day : peak),
+        trends[0] || { date: '', totalTokens: 0 },
       );
 
       return {
@@ -456,12 +458,12 @@ export class TokenLimitService {
           totalTokens,
           totalCalls,
           avgTokensPerCall,
-          peakDay: peakDay.date
-        }
+          peakDay: peakDay.date,
+        },
       };
     } catch (error) {
       console.error('获取Token使用量趋势失败:', error);
       throw new Error('获取Token使用量趋势失败');
     }
   }
-} 
+}

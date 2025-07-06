@@ -296,8 +296,10 @@ export class TagService {
    */
   private validateTagData(data: Partial<CreateTagDto>): void {
     if (data.name) {
-      if (data.name.length < TagValidation.name.minLength || 
-          data.name.length > TagValidation.name.maxLength) {
+      if (
+        data.name.length < TagValidation.name.minLength ||
+        data.name.length > TagValidation.name.maxLength
+      ) {
         throw new Error(TagErrorMessages[TagErrorCode.INVALID_TAG_NAME]);
       }
 
@@ -366,7 +368,7 @@ export class TagService {
     // 检查是否为创建者或账本所有者
     const isCreator = tag.createdBy === userId;
     const isAccountBookOwner = tag.accountBook.userId === userId;
-    const isFamilyMember = tag.accountBook.family?.members.some(m => m.userId === userId);
+    const isFamilyMember = tag.accountBook.family?.members.some((m) => m.userId === userId);
 
     if (!isCreator && !isAccountBookOwner && !isFamilyMember) {
       throw new Error(TagErrorMessages[TagErrorCode.INSUFFICIENT_PERMISSION]);
@@ -422,7 +424,10 @@ export class TagService {
   /**
    * 获取标签建议
    */
-  async getTagSuggestions(userId: string, params: TagSuggestionsQuery): Promise<TagSuggestionsResponse> {
+  async getTagSuggestions(
+    userId: string,
+    params: TagSuggestionsQuery,
+  ): Promise<TagSuggestionsResponse> {
     const { accountBookId, transactionId, categoryId, description, limit = 5 } = params;
 
     // 检查账本权限
@@ -455,54 +460,61 @@ export class TagService {
       });
 
       // 计算每个标签的推荐分数
-      const suggestions = allTags.map(tag => {
-        let confidence = 0;
-        let reason = '基于历史使用频率';
+      const suggestions = allTags
+        .map((tag) => {
+          let confidence = 0;
+          let reason = '基于历史使用频率';
 
-        // 基于使用频率的基础分数
-        const usageScore = Math.min(tag.usageCount / 10, 0.3); // 最高0.3分
-        confidence += usageScore;
+          // 基于使用频率的基础分数
+          const usageScore = Math.min(tag.usageCount / 10, 0.3); // 最高0.3分
+          confidence += usageScore;
 
-        // 基于分类的推荐
-        if (categoryId) {
-          const categoryUsage = tag.transactionTags.filter(
-            tt => tt.transaction.categoryId === categoryId
-          ).length;
+          // 基于分类的推荐
+          if (categoryId) {
+            const categoryUsage = tag.transactionTags.filter(
+              (tt) => tt.transaction.categoryId === categoryId,
+            ).length;
 
-          if (categoryUsage > 0) {
-            const categoryScore = Math.min(categoryUsage / 5, 0.4); // 最高0.4分
-            confidence += categoryScore;
-            reason = `在"${tag.transactionTags.find(tt => tt.transaction.categoryId === categoryId)?.transaction.category.name}"分类中常用`;
+            if (categoryUsage > 0) {
+              const categoryScore = Math.min(categoryUsage / 5, 0.4); // 最高0.4分
+              confidence += categoryScore;
+              reason = `在"${
+                tag.transactionTags.find((tt) => tt.transaction.categoryId === categoryId)
+                  ?.transaction.category.name
+              }"分类中常用`;
+            }
           }
-        }
 
-        // 基于描述的推荐
-        if (description && description.trim()) {
-          const descriptionLower = description.toLowerCase();
-          const tagNameLower = tag.name.toLowerCase();
+          // 基于描述的推荐
+          if (description && description.trim()) {
+            const descriptionLower = description.toLowerCase();
+            const tagNameLower = tag.name.toLowerCase();
 
-          // 简单的文本匹配
-          if (tagNameLower.includes(descriptionLower) || descriptionLower.includes(tagNameLower)) {
-            confidence += 0.3;
-            reason = '与交易描述相关';
+            // 简单的文本匹配
+            if (
+              tagNameLower.includes(descriptionLower) ||
+              descriptionLower.includes(tagNameLower)
+            ) {
+              confidence += 0.3;
+              reason = '与交易描述相关';
+            }
           }
-        }
 
-        // 基于特定交易的推荐
-        if (transactionId) {
-          // 这里可以添加基于特定交易的推荐逻辑
-          // 例如查找相似的交易记录使用的标签
-        }
+          // 基于特定交易的推荐
+          if (transactionId) {
+            // 这里可以添加基于特定交易的推荐逻辑
+            // 例如查找相似的交易记录使用的标签
+          }
 
-        return {
-          tag: this.formatTagResponse(tag),
-          confidence: Math.min(confidence, 1), // 确保不超过1
-          reason,
-        };
-      })
-      .filter(suggestion => suggestion.confidence > 0.1) // 过滤掉置信度太低的
-      .sort((a, b) => b.confidence - a.confidence) // 按置信度降序排列
-      .slice(0, limit); // 限制返回数量
+          return {
+            tag: this.formatTagResponse(tag),
+            confidence: Math.min(confidence, 1), // 确保不超过1
+            reason,
+          };
+        })
+        .filter((suggestion) => suggestion.confidence > 0.1) // 过滤掉置信度太低的
+        .sort((a, b) => b.confidence - a.confidence) // 按置信度降序排列
+        .slice(0, limit); // 限制返回数量
 
       return {
         success: true,
@@ -623,7 +635,10 @@ export class TagService {
       // 计算概览数据
       const overview = {
         totalAmount: tagStatistics.reduce((sum, item) => sum + item.statistics.totalAmount, 0),
-        transactionCount: tagStatistics.reduce((sum, item) => sum + item.statistics.transactionCount, 0),
+        transactionCount: tagStatistics.reduce(
+          (sum, item) => sum + item.statistics.transactionCount,
+          0,
+        ),
         tagCount: tagStatistics.length,
       };
 
@@ -631,7 +646,9 @@ export class TagService {
         success: true,
         data: {
           overview,
-          tagStatistics: tagStatistics.sort((a, b) => Math.abs(b.statistics.totalAmount) - Math.abs(a.statistics.totalAmount)),
+          tagStatistics: tagStatistics.sort(
+            (a, b) => Math.abs(b.statistics.totalAmount) - Math.abs(a.statistics.totalAmount),
+          ),
         },
       };
     } catch (error) {

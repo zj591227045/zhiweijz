@@ -28,4 +28,4 @@ router.post('/:id/unpublish', authenticate, announcementController.unpublishAnno
 // 获取公告统计信息
 router.get('/stats/overview', authenticate, announcementController.getAnnouncementStats);
 
-export default router; 
+export default router;

@@ -7,7 +7,7 @@ import {
   CategoryBudgetQueryParams,
   CategoryBudgetResponseDto,
   CategoryBudgetPaginatedResponseDto,
-  toCategoryBudgetResponseDto
+  toCategoryBudgetResponseDto,
 } from '../models/category-budget.model';
 import { toCategoryResponseDto } from '../models/category.model';
 
@@ -46,7 +46,7 @@ export class CategoryBudgetService {
     // 检查是否已存在该分类的预算
     const existingBudget = await this.categoryBudgetRepository.findByBudgetAndCategory(
       data.budgetId,
-      data.categoryId
+      data.categoryId,
     );
     if (existingBudget) {
       throw new Error('该分类已存在预算');
@@ -56,7 +56,7 @@ export class CategoryBudgetService {
     if (!budget.isAutoCalculated && Number(budget.amount) > 0) {
       const categoryBudgets = await this.categoryBudgetRepository.findByBudgetId(data.budgetId);
       const currentTotal = categoryBudgets.reduce((sum, cb) => sum + Number(cb.amount), 0);
-      
+
       if (currentTotal + data.amount > Number(budget.amount)) {
         throw new Error('分类预算总和超过总预算金额');
       }
@@ -69,34 +69,36 @@ export class CategoryBudgetService {
     if (budget.isAutoCalculated) {
       const totalAmount = await this.categoryBudgetRepository.calculateTotalAmount(data.budgetId);
       await this.budgetRepository.update(data.budgetId, {
-        amount: totalAmount
+        amount: totalAmount,
       });
     }
 
     return toCategoryBudgetResponseDto(
       categoryBudget,
-      categoryBudget.category ? toCategoryResponseDto(categoryBudget.category) : undefined
+      categoryBudget.category ? toCategoryResponseDto(categoryBudget.category) : undefined,
     );
   }
 
   /**
    * 获取分类预算列表
    */
-  async getCategoryBudgets(params: CategoryBudgetQueryParams): Promise<CategoryBudgetPaginatedResponseDto> {
+  async getCategoryBudgets(
+    params: CategoryBudgetQueryParams,
+  ): Promise<CategoryBudgetPaginatedResponseDto> {
     const { categoryBudgets, total } = await this.categoryBudgetRepository.findAll(params);
 
-    const data = categoryBudgets.map(categoryBudget => 
+    const data = categoryBudgets.map((categoryBudget) =>
       toCategoryBudgetResponseDto(
         categoryBudget,
-        categoryBudget.category ? toCategoryResponseDto(categoryBudget.category) : undefined
-      )
+        categoryBudget.category ? toCategoryResponseDto(categoryBudget.category) : undefined,
+      ),
     );
 
     return {
       total,
       page: params.page || 1,
       limit: params.limit || 20,
-      data
+      data,
     };
   }
 
@@ -106,11 +108,11 @@ export class CategoryBudgetService {
   async getCategoryBudgetsByBudgetId(budgetId: string): Promise<CategoryBudgetResponseDto[]> {
     const categoryBudgets = await this.categoryBudgetRepository.findByBudgetId(budgetId);
 
-    return categoryBudgets.map(categoryBudget => 
+    return categoryBudgets.map((categoryBudget) =>
       toCategoryBudgetResponseDto(
         categoryBudget,
-        categoryBudget.category ? toCategoryResponseDto(categoryBudget.category) : undefined
-      )
+        categoryBudget.category ? toCategoryResponseDto(categoryBudget.category) : undefined,
+      ),
     );
   }
 
@@ -125,14 +127,17 @@ export class CategoryBudgetService {
 
     return toCategoryBudgetResponseDto(
       categoryBudget,
-      categoryBudget.category ? toCategoryResponseDto(categoryBudget.category) : undefined
+      categoryBudget.category ? toCategoryResponseDto(categoryBudget.category) : undefined,
     );
   }
 
   /**
    * 更新分类预算
    */
-  async updateCategoryBudget(id: string, data: UpdateCategoryBudgetDto): Promise<CategoryBudgetResponseDto> {
+  async updateCategoryBudget(
+    id: string,
+    data: UpdateCategoryBudgetDto,
+  ): Promise<CategoryBudgetResponseDto> {
     const categoryBudget = await this.categoryBudgetRepository.findById(id);
     if (!categoryBudget) {
       throw new Error('分类预算不存在');
@@ -147,10 +152,14 @@ export class CategoryBudgetService {
 
       // 如果总预算不是自动计算的，检查分类预算总和是否超过总预算
       if (!budget.isAutoCalculated && Number(budget.amount) > 0) {
-        const categoryBudgets = await this.categoryBudgetRepository.findByBudgetId(categoryBudget.budgetId);
-        const currentTotal = categoryBudgets.reduce((sum, cb) => 
-          sum + (cb.id === id ? 0 : Number(cb.amount)), 0);
-        
+        const categoryBudgets = await this.categoryBudgetRepository.findByBudgetId(
+          categoryBudget.budgetId,
+        );
+        const currentTotal = categoryBudgets.reduce(
+          (sum, cb) => sum + (cb.id === id ? 0 : Number(cb.amount)),
+          0,
+        );
+
         if (currentTotal + data.amount > Number(budget.amount)) {
           throw new Error('分类预算总和超过总预算金额');
         }
@@ -162,15 +171,19 @@ export class CategoryBudgetService {
     // 如果总预算是自动计算的，更新总预算金额
     const budget = await this.budgetRepository.findById(categoryBudget.budgetId);
     if (budget && budget.isAutoCalculated && data.amount !== undefined) {
-      const totalAmount = await this.categoryBudgetRepository.calculateTotalAmount(categoryBudget.budgetId);
+      const totalAmount = await this.categoryBudgetRepository.calculateTotalAmount(
+        categoryBudget.budgetId,
+      );
       await this.budgetRepository.update(categoryBudget.budgetId, {
-        amount: totalAmount
+        amount: totalAmount,
       });
     }
 
     return toCategoryBudgetResponseDto(
       updatedCategoryBudget,
-      updatedCategoryBudget.category ? toCategoryResponseDto(updatedCategoryBudget.category) : undefined
+      updatedCategoryBudget.category
+        ? toCategoryResponseDto(updatedCategoryBudget.category)
+        : undefined,
     );
   }
 
@@ -188,9 +201,11 @@ export class CategoryBudgetService {
     // 如果总预算是自动计算的，更新总预算金额
     const budget = await this.budgetRepository.findById(categoryBudget.budgetId);
     if (budget && budget.isAutoCalculated) {
-      const totalAmount = await this.categoryBudgetRepository.calculateTotalAmount(categoryBudget.budgetId);
+      const totalAmount = await this.categoryBudgetRepository.calculateTotalAmount(
+        categoryBudget.budgetId,
+      );
       await this.budgetRepository.update(categoryBudget.budgetId, {
-        amount: totalAmount
+        amount: totalAmount,
       });
     }
   }

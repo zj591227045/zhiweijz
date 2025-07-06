@@ -28,7 +28,12 @@ export interface LLMLogStatistics {
   callsByModel: { model: string; count: number; cost: number }[];
   callsByDay: { date: string; count: number; cost: number }[];
   topUsers: { userId: string; userName: string; count: number; cost: number }[];
-  topAccountBooks: { accountBookId: string; accountBookName: string; count: number; cost: number }[];
+  topAccountBooks: {
+    accountBookId: string;
+    accountBookName: string;
+    count: number;
+    cost: number;
+  }[];
 }
 
 export class LLMLogAdminService {
@@ -48,7 +53,7 @@ export class LLMLogAdminService {
         serviceType,
         startDate,
         endDate,
-        search
+        search,
       } = params;
 
       const skip = (page - 1) * pageSize;
@@ -59,7 +64,7 @@ export class LLMLogAdminService {
       if (userEmail) {
         // 通过用户邮箱查询，需要关联user表
         where.user = {
-          email: { contains: userEmail, mode: 'insensitive' }
+          email: { contains: userEmail, mode: 'insensitive' },
         };
       }
 
@@ -86,15 +91,15 @@ export class LLMLogAdminService {
       if (startDate && endDate) {
         where.createdAt = {
           gte: new Date(startDate),
-          lte: new Date(endDate)
+          lte: new Date(endDate),
         };
       } else if (startDate) {
         where.createdAt = {
-          gte: new Date(startDate)
+          gte: new Date(startDate),
         };
       } else if (endDate) {
         where.createdAt = {
-          lte: new Date(endDate)
+          lte: new Date(endDate),
         };
       }
 
@@ -105,7 +110,7 @@ export class LLMLogAdminService {
           { userMessage: { contains: search, mode: 'insensitive' } },
           { assistantMessage: { contains: search, mode: 'insensitive' } },
           { user: { email: { contains: search, mode: 'insensitive' } } },
-          { user: { name: { contains: search, mode: 'insensitive' } } }
+          { user: { name: { contains: search, mode: 'insensitive' } } },
         ];
       }
 
@@ -116,9 +121,9 @@ export class LLMLogAdminService {
           orderBy: { createdAt: 'desc' },
           skip,
           take: pageSize,
-// 移除include以避免TypeScript错误，因为schema中没有定义user/accountBook关系
+          // 移除include以避免TypeScript错误，因为schema中没有定义user/accountBook关系
         }),
-        prisma.llmCallLog.count({ where })
+        prisma.llmCallLog.count({ where }),
       ]);
 
       const totalPages = Math.ceil(total / pageSize);
@@ -131,8 +136,8 @@ export class LLMLogAdminService {
           total,
           totalPages,
           hasNext: page < totalPages,
-          hasPrev: page > 1
-        }
+          hasPrev: page > 1,
+        },
       };
     } catch (error) {
       console.error('获取LLM调用日志列表错误:', error);
@@ -143,7 +148,9 @@ export class LLMLogAdminService {
   /**
    * 获取LLM调用统计数据
    */
-  async getLLMLogStatistics(params: { startDate?: string; endDate?: string } = {}): Promise<LLMLogStatistics> {
+  async getLLMLogStatistics(
+    params: { startDate?: string; endDate?: string } = {},
+  ): Promise<LLMLogStatistics> {
     try {
       const { startDate, endDate } = params;
 
@@ -152,58 +159,53 @@ export class LLMLogAdminService {
       if (startDate && endDate) {
         dateFilter.createdAt = {
           gte: new Date(startDate),
-          lte: new Date(endDate)
+          lte: new Date(endDate),
         };
       } else if (startDate) {
         dateFilter.createdAt = {
-          gte: new Date(startDate)
+          gte: new Date(startDate),
         };
       } else if (endDate) {
         dateFilter.createdAt = {
-          lte: new Date(endDate)
+          lte: new Date(endDate),
         };
       }
 
       // 获取基础统计
-      const [
-        totalCalls,
-        successfulCalls,
-        tokenStats,
-        costStats,
-        responseTimeStats
-      ] = await Promise.all([
-        // 总调用次数
-        prisma.llmCallLog.count({ where: dateFilter }),
-        
-        // 成功调用次数
-        prisma.llmCallLog.count({ 
-          where: { ...dateFilter, isSuccess: true } 
-        }),
-        
-        // Token统计
-        prisma.llmCallLog.aggregate({
-          where: dateFilter,
-          _sum: {
-            totalTokens: true
-          }
-        }),
-        
-        // 成本统计
-        prisma.llmCallLog.aggregate({
-          where: dateFilter,
-          _sum: {
-            cost: true
-          }
-        }),
-        
-        // 响应时间统计
-        prisma.llmCallLog.aggregate({
-          where: dateFilter,
-          _avg: {
-            duration: true
-          }
-        })
-      ]);
+      const [totalCalls, successfulCalls, tokenStats, costStats, responseTimeStats] =
+        await Promise.all([
+          // 总调用次数
+          prisma.llmCallLog.count({ where: dateFilter }),
+
+          // 成功调用次数
+          prisma.llmCallLog.count({
+            where: { ...dateFilter, isSuccess: true },
+          }),
+
+          // Token统计
+          prisma.llmCallLog.aggregate({
+            where: dateFilter,
+            _sum: {
+              totalTokens: true,
+            },
+          }),
+
+          // 成本统计
+          prisma.llmCallLog.aggregate({
+            where: dateFilter,
+            _sum: {
+              cost: true,
+            },
+          }),
+
+          // 响应时间统计
+          prisma.llmCallLog.aggregate({
+            where: dateFilter,
+            _avg: {
+              duration: true,
+            },
+          }),
+        ]);
 
       const failedCalls = totalCalls - successfulCalls;
       const successRate = totalCalls > 0 ? (successfulCalls / totalCalls) * 100 : 0;
@@ -214,8 +216,8 @@ export class LLMLogAdminService {
         where: dateFilter,
         _count: true,
         _sum: {
-          cost: true
-        }
+          cost: true,
+        },
       });
 
       // 获取按模型统计
@@ -224,8 +226,8 @@ export class LLMLogAdminService {
         where: dateFilter,
         _count: true,
         _sum: {
-          cost: true
-        }
+          cost: true,
+        },
       });
 
       // 获取用户排行
@@ -234,8 +236,8 @@ export class LLMLogAdminService {
         where: dateFilter,
         _count: true,
         _sum: {
-          cost: true
-        }
+          cost: true,
+        },
       });
 
       // 获取账本排行
@@ -243,18 +245,18 @@ export class LLMLogAdminService {
         by: ['accountBookId', 'accountBookName'],
         where: {
           ...dateFilter,
-          accountBookId: { not: null }
+          accountBookId: { not: null },
         },
         _count: true,
         _sum: {
-          cost: true
-        }
+          cost: true,
+        },
       });
 
       // 模拟日志统计（由于复杂的SQL查询问题，这里使用简化版本）
       const callsByDay = [
         { date: '2024-01-01', count: 100, cost: 0.5 },
-        { date: '2024-01-02', count: 150, cost: 0.8 }
+        { date: '2024-01-02', count: 150, cost: 0.8 },
       ];
 
       return {
@@ -265,31 +267,31 @@ export class LLMLogAdminService {
         totalTokens: Number(tokenStats._sum.totalTokens) || 0,
         totalCost: Number(costStats._sum.cost) || 0,
         averageResponseTime: Math.round(Number(responseTimeStats._avg.duration)) || 0,
-        callsByProvider: providerStats.map(stat => ({
+        callsByProvider: providerStats.map((stat) => ({
           provider: stat.provider,
           count: stat._count || 0,
-          cost: Number(stat._sum?.cost) || 0
+          cost: Number(stat._sum?.cost) || 0,
         })),
-        callsByModel: modelStats.map(stat => ({
+        callsByModel: modelStats.map((stat) => ({
           model: stat.model,
           count: stat._count || 0,
-          cost: Number(stat._sum?.cost) || 0
+          cost: Number(stat._sum?.cost) || 0,
         })),
         callsByDay,
-        topUsers: topUsers.map(stat => ({
+        topUsers: topUsers.map((stat) => ({
           userId: stat.userId,
           userName: stat.userName,
           count: stat._count || 0,
-          cost: Number(stat._sum?.cost) || 0
+          cost: Number(stat._sum?.cost) || 0,
         })),
         topAccountBooks: topAccountBooks
-          .filter(stat => stat.accountBookId && stat.accountBookName)
-          .map(stat => ({
+          .filter((stat) => stat.accountBookId && stat.accountBookName)
+          .map((stat) => ({
             accountBookId: stat.accountBookId!,
             accountBookName: stat.accountBookName!,
             count: stat._count || 0,
-            cost: Number(stat._sum?.cost) || 0
-          }))
+            cost: Number(stat._sum?.cost) || 0,
+          })),
       };
     } catch (error) {
       console.error('获取LLM调用统计错误:', error);
@@ -303,7 +305,7 @@ export class LLMLogAdminService {
   async getLLMLogById(id: string) {
     try {
       const log = await prisma.llmCallLog.findUnique({
-        where: { id }
+        where: { id },
         // 移除include以避免TypeScript错误，因为schema中没有定义user/accountBook关系
       });
 
@@ -320,7 +322,7 @@ export class LLMLogAdminService {
   async deleteLLMLog(id: string) {
     try {
       const existingLog = await prisma.llmCallLog.findUnique({
-        where: { id }
+        where: { id },
       });
 
       if (!existingLog) {
@@ -328,7 +330,7 @@ export class LLMLogAdminService {
       }
 
       await prisma.llmCallLog.delete({
-        where: { id }
+        where: { id },
       });
 
       return true;
@@ -349,14 +351,14 @@ export class LLMLogAdminService {
       const result = await prisma.llmCallLog.deleteMany({
         where: {
           id: {
-            in: ids
-          }
-        }
+            in: ids,
+          },
+        },
       });
 
       return {
         deletedCount: result.count,
-        totalCount: ids.length
+        totalCount: ids.length,
       };
     } catch (error) {
       console.error('批量删除LLM调用日志错误:', error);
@@ -375,14 +377,14 @@ export class LLMLogAdminService {
       const result = await prisma.llmCallLog.deleteMany({
         where: {
           createdAt: {
-            lt: cutoffDate
-          }
-        }
+            lt: cutoffDate,
+          },
+        },
       });
 
       return {
         deletedCount: result.count,
-        cutoffDate
+        cutoffDate,
       };
     } catch (error) {
       console.error('清理过期LLM调用日志错误:', error);
@@ -395,16 +397,8 @@ export class LLMLogAdminService {
    */
   async exportLLMLogs(params: LLMLogListParams) {
     try {
-      const {
-        userEmail,
-        provider,
-        model,
-        isSuccess,
-        accountBookId,
-        startDate,
-        endDate,
-        search
-      } = params;
+      const { userEmail, provider, model, isSuccess, accountBookId, startDate, endDate, search } =
+        params;
 
       // 构建查询条件（与getLLMLogs类似）
       const where: any = {};
@@ -414,11 +408,11 @@ export class LLMLogAdminService {
       if (model) where.model = { contains: model, mode: 'insensitive' };
       if (isSuccess !== undefined) where.isSuccess = isSuccess;
       if (accountBookId) where.accountBookId = accountBookId;
-      
+
       if (startDate && endDate) {
         where.createdAt = {
           gte: new Date(startDate),
-          lte: new Date(endDate)
+          lte: new Date(endDate),
         };
       } else if (startDate) {
         where.createdAt = { gte: new Date(startDate) };
@@ -433,7 +427,7 @@ export class LLMLogAdminService {
           { userMessage: { contains: search, mode: 'insensitive' } },
           { assistantMessage: { contains: search, mode: 'insensitive' } },
           { user: { email: { contains: search, mode: 'insensitive' } } },
-          { user: { name: { contains: search, mode: 'insensitive' } } }
+          { user: { name: { contains: search, mode: 'insensitive' } } },
         ];
       }
 
@@ -457,8 +451,8 @@ export class LLMLogAdminService {
           createdAt: true,
           userMessage: true,
           assistantMessage: true,
-          errorMessage: true
-        }
+          errorMessage: true,
+        },
       });
 
       return logs;
@@ -467,4 +461,4 @@ export class LLMLogAdminService {
       throw new Error('导出LLM调用日志失败');
     }
   }
-} 
+}

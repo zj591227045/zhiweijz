@@ -1,4 +1,9 @@
-import { PrismaClient, Announcement, announcement_status, announcement_priority } from '@prisma/client';
+import {
+  PrismaClient,
+  Announcement,
+  announcement_status,
+  announcement_priority,
+} from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -45,31 +50,25 @@ export class AnnouncementAdminService {
    * 获取公告列表
    */
   async getAnnouncements(query: AnnouncementListQuery = {}) {
-    const {
-      page = 1,
-      limit = 20,
-      status,
-      priority,
-      search
-    } = query;
+    const { page = 1, limit = 20, status, priority, search } = query;
 
     const skip = (page - 1) * limit;
-    
+
     // 构建查询条件
     const where: any = {};
-    
+
     if (status) {
       where.status = status;
     }
-    
+
     if (priority) {
       where.priority = priority;
     }
-    
+
     if (search) {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
-        { content: { contains: search, mode: 'insensitive' } }
+        { content: { contains: search, mode: 'insensitive' } },
       ];
     }
 
@@ -79,20 +78,17 @@ export class AnnouncementAdminService {
         where,
         skip,
         take: limit,
-        orderBy: [
-          { priority: 'desc' },
-          { createdAt: 'desc' }
-        ],
+        orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
         include: {
           creator: {
-            select: { username: true }
+            select: { username: true },
           },
           updater: {
-            select: { username: true }
-          }
-        }
+            select: { username: true },
+          },
+        },
       }),
-      prisma.announcement.count({ where })
+      prisma.announcement.count({ where }),
     ]);
 
     // 获取总用户数
@@ -102,7 +98,7 @@ export class AnnouncementAdminService {
     const announcementsWithStats = await Promise.all(
       announcements.map(async (announcement) => {
         const readCount = await prisma.announcementRead.count({
-          where: { announcementId: announcement.id }
+          where: { announcementId: announcement.id },
         });
 
         return {
@@ -111,9 +107,9 @@ export class AnnouncementAdminService {
           totalUsers,
           readRate: totalUsers > 0 ? (readCount / totalUsers) * 100 : 0,
           creator: announcement.creator,
-          updater: announcement.updater
+          updater: announcement.updater,
         };
-      })
+      }),
     );
 
     return {
@@ -122,8 +118,8 @@ export class AnnouncementAdminService {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit)
-      }
+        totalPages: Math.ceil(total / limit),
+      },
     };
   }
 
@@ -135,12 +131,12 @@ export class AnnouncementAdminService {
       where: { id },
       include: {
         creator: {
-          select: { username: true }
+          select: { username: true },
         },
         updater: {
-          select: { username: true }
-        }
-      }
+          select: { username: true },
+        },
+      },
     });
 
     if (!announcement) {
@@ -150,9 +146,9 @@ export class AnnouncementAdminService {
     // 获取统计数据
     const [readCount, totalUsers] = await Promise.all([
       prisma.announcementRead.count({
-        where: { announcementId: id }
+        where: { announcementId: id },
       }),
-      prisma.user.count()
+      prisma.user.count(),
     ]);
 
     return {
@@ -161,7 +157,7 @@ export class AnnouncementAdminService {
       totalUsers,
       readRate: totalUsers > 0 ? (readCount / totalUsers) * 100 : 0,
       creator: announcement.creator,
-      updater: announcement.updater
+      updater: announcement.updater,
     };
   }
 
@@ -171,7 +167,7 @@ export class AnnouncementAdminService {
   async createAnnouncement(data: CreateAnnouncementData, createdBy: string): Promise<Announcement> {
     // 如果设置了发布时间，自动设置状态为已发布
     const status = data.publishedAt ? announcement_status.PUBLISHED : announcement_status.DRAFT;
-    
+
     return await prisma.announcement.create({
       data: {
         title: data.title,
@@ -182,28 +178,32 @@ export class AnnouncementAdminService {
         targetUserType: data.targetUserType || 'all',
         status,
         createdBy,
-        updatedBy: createdBy
+        updatedBy: createdBy,
       },
       include: {
         creator: {
-          select: { username: true }
+          select: { username: true },
         },
         updater: {
-          select: { username: true }
-        }
-      }
+          select: { username: true },
+        },
+      },
     });
   }
 
   /**
    * 更新公告
    */
-  async updateAnnouncement(id: string, data: UpdateAnnouncementData, updatedBy: string): Promise<Announcement | null> {
+  async updateAnnouncement(
+    id: string,
+    data: UpdateAnnouncementData,
+    updatedBy: string,
+  ): Promise<Announcement | null> {
     try {
       // 获取当前公告状态
       const currentAnnouncement = await prisma.announcement.findUnique({
         where: { id },
-        select: { status: true }
+        select: { status: true },
       });
 
       if (!currentAnnouncement) {
@@ -218,7 +218,7 @@ export class AnnouncementAdminService {
 
       return await prisma.announcement.update({
         where: { id },
-        data: updateData
+        data: updateData,
       });
     } catch (error) {
       return null;
@@ -228,15 +228,19 @@ export class AnnouncementAdminService {
   /**
    * 发布公告
    */
-  async publishAnnouncement(id: string, updatedBy: string, publishedAt?: Date): Promise<Announcement | null> {
+  async publishAnnouncement(
+    id: string,
+    updatedBy: string,
+    publishedAt?: Date,
+  ): Promise<Announcement | null> {
     try {
       return await prisma.announcement.update({
         where: { id },
         data: {
           status: announcement_status.PUBLISHED,
           publishedAt: publishedAt || new Date(),
-          updatedBy
-        }
+          updatedBy,
+        },
       });
     } catch (error) {
       return null;
@@ -253,8 +257,8 @@ export class AnnouncementAdminService {
         data: {
           status: announcement_status.DRAFT,
           publishedAt: null,
-          updatedBy
-        }
+          updatedBy,
+        },
       });
     } catch (error) {
       return null;
@@ -270,8 +274,8 @@ export class AnnouncementAdminService {
         where: { id },
         data: {
           status: announcement_status.ARCHIVED,
-          updatedBy
-        }
+          updatedBy,
+        },
       });
     } catch (error) {
       return null;
@@ -284,7 +288,7 @@ export class AnnouncementAdminService {
   async deleteAnnouncement(id: string): Promise<boolean> {
     try {
       await prisma.announcement.delete({
-        where: { id }
+        where: { id },
       });
       return true;
     } catch (error) {
@@ -296,26 +300,21 @@ export class AnnouncementAdminService {
    * 获取公告统计数据
    */
   async getAnnouncementStats() {
-    const [
-      totalCount,
-      publishedCount,
-      draftCount,
-      archivedCount,
-      totalReadCount
-    ] = await Promise.all([
-      prisma.announcement.count(),
-      prisma.announcement.count({ where: { status: announcement_status.PUBLISHED } }),
-      prisma.announcement.count({ where: { status: announcement_status.DRAFT } }),
-      prisma.announcement.count({ where: { status: announcement_status.ARCHIVED } }),
-      prisma.announcementRead.count()
-    ]);
+    const [totalCount, publishedCount, draftCount, archivedCount, totalReadCount] =
+      await Promise.all([
+        prisma.announcement.count(),
+        prisma.announcement.count({ where: { status: announcement_status.PUBLISHED } }),
+        prisma.announcement.count({ where: { status: announcement_status.DRAFT } }),
+        prisma.announcement.count({ where: { status: announcement_status.ARCHIVED } }),
+        prisma.announcementRead.count(),
+      ]);
 
     return {
       totalCount,
       publishedCount,
       draftCount,
       archivedCount,
-      totalReadCount
+      totalReadCount,
     };
   }
 
@@ -324,7 +323,7 @@ export class AnnouncementAdminService {
    */
   async getAnnouncementReadStats(id: string) {
     const announcement = await prisma.announcement.findUnique({
-      where: { id }
+      where: { id },
     });
 
     if (!announcement) {
@@ -333,9 +332,9 @@ export class AnnouncementAdminService {
 
     const [readCount, totalUsers] = await Promise.all([
       prisma.announcementRead.count({
-        where: { announcementId: id }
+        where: { announcementId: id },
       }),
-      prisma.user.count()
+      prisma.user.count(),
     ]);
 
     // 获取按日期分组的阅读统计
@@ -343,28 +342,32 @@ export class AnnouncementAdminService {
       by: ['readAt'],
       where: { announcementId: id },
       _count: { id: true },
-      orderBy: { readAt: 'asc' }
+      orderBy: { readAt: 'asc' },
     });
 
     return {
       readCount,
       totalUsers,
       readRate: totalUsers > 0 ? (readCount / totalUsers) * 100 : 0,
-      dailyReads: dailyReads.map(item => ({
+      dailyReads: dailyReads.map((item) => ({
         date: item.readAt.toISOString().split('T')[0],
-        count: item._count.id
-      }))
+        count: item._count.id,
+      })),
     };
   }
 
   /**
    * 批量操作公告
    */
-  async batchOperation(ids: string[], operation: 'publish' | 'unpublish' | 'archive' | 'delete', operatorId: string) {
+  async batchOperation(
+    ids: string[],
+    operation: 'publish' | 'unpublish' | 'archive' | 'delete',
+    operatorId: string,
+  ) {
     const results = {
       success: 0,
       failed: 0,
-      errors: [] as string[]
+      errors: [] as string[],
     };
 
     for (const id of ids) {
@@ -386,10 +389,12 @@ export class AnnouncementAdminService {
         results.success++;
       } catch (error) {
         results.failed++;
-        results.errors.push(`公告 ${id} 操作失败: ${error instanceof Error ? error.message : '未知错误'}`);
+        results.errors.push(
+          `公告 ${id} 操作失败: ${error instanceof Error ? error.message : '未知错误'}`,
+        );
       }
     }
 
     return results;
   }
-} 
+}

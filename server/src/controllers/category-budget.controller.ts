@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import { CategoryBudgetService } from '../services/category-budget.service';
-import { CreateCategoryBudgetDto, UpdateCategoryBudgetDto, CategoryBudgetQueryParams } from '../models/category-budget.model';
+import {
+  CreateCategoryBudgetDto,
+  UpdateCategoryBudgetDto,
+  CategoryBudgetQueryParams,
+} from '../models/category-budget.model';
 
 export class CategoryBudgetController {
   private categoryBudgetService: CategoryBudgetService;
@@ -17,7 +21,7 @@ export class CategoryBudgetController {
       const data: CreateCategoryBudgetDto = {
         budgetId: req.body.budgetId,
         categoryId: req.body.categoryId,
-        amount: req.body.amount
+        amount: req.body.amount,
       };
 
       const categoryBudget = await this.categoryBudgetService.createCategoryBudget(data);
@@ -39,7 +43,7 @@ export class CategoryBudgetController {
         page: req.query.page ? parseInt(req.query.page as string) : 1,
         limit: req.query.limit ? parseInt(req.query.limit as string) : 20,
         sortBy: req.query.sortBy as string,
-        sortOrder: req.query.sortOrder as 'asc' | 'desc'
+        sortOrder: req.query.sortOrder as 'asc' | 'desc',
       };
 
       const categoryBudgets = await this.categoryBudgetService.getCategoryBudgets(params);
@@ -56,7 +60,9 @@ export class CategoryBudgetController {
   async getCategoryBudgetsByBudgetId(req: Request, res: Response): Promise<void> {
     try {
       const budgetId = req.params.budgetId;
-      const categoryBudgets = await this.categoryBudgetService.getCategoryBudgetsByBudgetId(budgetId);
+      const categoryBudgets = await this.categoryBudgetService.getCategoryBudgetsByBudgetId(
+        budgetId,
+      );
       res.status(200).json(categoryBudgets);
     } catch (error: any) {
       console.error('获取分类预算列表失败:', error);
@@ -86,7 +92,7 @@ export class CategoryBudgetController {
       const id = req.params.id;
       const data: UpdateCategoryBudgetDto = {
         amount: req.body.amount,
-        spent: req.body.spent
+        spent: req.body.spent,
       };
 
       const categoryBudget = await this.categoryBudgetService.updateCategoryBudget(id, data);

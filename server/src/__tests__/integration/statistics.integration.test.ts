@@ -7,19 +7,19 @@ import { hashPassword } from '../../utils/password';
 // 手动定义枚举，因为在测试环境中可能无法正确导入
 enum TransactionType {
   INCOME = 'INCOME',
-  EXPENSE = 'EXPENSE'
+  EXPENSE = 'EXPENSE',
 }
 
 enum BudgetPeriod {
   DAILY = 'DAILY',
   WEEKLY = 'WEEKLY',
   MONTHLY = 'MONTHLY',
-  YEARLY = 'YEARLY'
+  YEARLY = 'YEARLY',
 }
 
 enum Role {
   ADMIN = 'ADMIN',
-  MEMBER = 'MEMBER'
+  MEMBER = 'MEMBER',
 }
 
 // 创建一个新的Prisma客户端实例用于测试
@@ -35,27 +35,27 @@ describe('Statistics API Integration Tests', () => {
   };
 
   // 测试家庭数据
-  let testFamily = {
+  const testFamily = {
     id: '',
     name: 'Stats Test Family',
     createdBy: '',
   };
 
   // 测试分类数据
-  let testIncomeCategory = {
+  const testIncomeCategory = {
     id: '',
     name: 'Test Income Category',
     type: TransactionType.INCOME,
   };
 
-  let testExpenseCategory = {
+  const testExpenseCategory = {
     id: '',
     name: 'Test Expense Category',
     type: TransactionType.EXPENSE,
   };
 
   // 测试预算数据
-  let testBudget = {
+  const testBudget = {
     id: '',
     name: 'Test Budget',
     amount: 1000,
@@ -297,8 +297,12 @@ describe('Statistics API Integration Tests', () => {
 
     it('should filter by date range', async () => {
       const today = new Date();
-      const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString().split('T')[0];
-      const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString().split('T')[0];
+      const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+        .toISOString()
+        .split('T')[0];
+      const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+        .toISOString()
+        .split('T')[0];
 
       const response = await request(app)
         .get(`/api/statistics/expenses?startDate=${startDate}&endDate=${endDate}`)
@@ -309,8 +313,7 @@ describe('Statistics API Integration Tests', () => {
     });
 
     it('should return 401 if not authenticated', async () => {
-      const response = await request(app)
-        .get('/api/statistics/expenses');
+      const response = await request(app).get('/api/statistics/expenses');
 
       expect(response.status).toBe(401);
     });
@@ -338,7 +341,9 @@ describe('Statistics API Integration Tests', () => {
 
   describe('GET /api/statistics/budgets', () => {
     it('should return budget statistics', async () => {
-      const currentMonth = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+      const currentMonth = `${new Date().getFullYear()}-${String(
+        new Date().getMonth() + 1,
+      ).padStart(2, '0')}`;
 
       const response = await request(app)
         .get(`/api/statistics/budgets?month=${currentMonth}`)
@@ -375,14 +380,20 @@ describe('Statistics API Integration Tests', () => {
       expect(Array.isArray(response.body.topIncomeCategories)).toBe(true);
       expect(response.body.topIncomeCategories).toHaveLength(1);
       expect(response.body.topIncomeCategories[0]).toHaveProperty('category');
-      expect(response.body.topIncomeCategories[0].category).toHaveProperty('id', testIncomeCategory.id);
+      expect(response.body.topIncomeCategories[0].category).toHaveProperty(
+        'id',
+        testIncomeCategory.id,
+      );
       expect(response.body.topIncomeCategories[0]).toHaveProperty('amount', 3500);
       expect(response.body.topIncomeCategories[0]).toHaveProperty('percentage', 100);
       expect(response.body).toHaveProperty('topExpenseCategories');
       expect(Array.isArray(response.body.topExpenseCategories)).toBe(true);
       expect(response.body.topExpenseCategories).toHaveLength(1);
       expect(response.body.topExpenseCategories[0]).toHaveProperty('category');
-      expect(response.body.topExpenseCategories[0].category).toHaveProperty('id', testExpenseCategory.id);
+      expect(response.body.topExpenseCategories[0].category).toHaveProperty(
+        'id',
+        testExpenseCategory.id,
+      );
       expect(response.body.topExpenseCategories[0]).toHaveProperty('amount', 800);
       expect(response.body.topExpenseCategories[0]).toHaveProperty('percentage', 100);
     });

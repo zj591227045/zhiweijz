@@ -100,4 +100,4 @@ router.put('/:id', (req, res) => systemConfigController.updateSystemConfig(req, 
  */
 router.delete('/:id', (req, res) => systemConfigController.deleteSystemConfig(req, res));
 
-export default router; 
+export default router;

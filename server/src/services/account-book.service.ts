@@ -38,7 +38,10 @@ export class AccountBookService {
   /**
    * 创建账本
    */
-  async createAccountBook(userId: string, accountBookData: CreateAccountBookDto): Promise<AccountBookResponseDto> {
+  async createAccountBook(
+    userId: string,
+    accountBookData: CreateAccountBookDto,
+  ): Promise<AccountBookResponseDto> {
     // 创建账本
     const accountBook = await this.accountBookRepository.create(userId, accountBookData);
 
@@ -49,7 +52,7 @@ export class AccountBookService {
       accountBook,
       stats.transactionCount,
       stats.categoryCount,
-      stats.budgetCount
+      stats.budgetCount,
     );
   }
 
@@ -67,13 +70,17 @@ export class AccountBookService {
   /**
    * 获取账本列表
    */
-  async getAccountBooks(userId: string, params: AccountBookQueryParams): Promise<AccountBookPaginatedResponseDto> {
+  async getAccountBooks(
+    userId: string,
+    params: AccountBookQueryParams,
+  ): Promise<AccountBookPaginatedResponseDto> {
     // 1. 获取用户的个人账本
-    const { accountBooks: personalAccountBooks, total: personalTotal } = await this.accountBookRepository.findAllByUserId(userId, params);
+    const { accountBooks: personalAccountBooks, total: personalTotal } =
+      await this.accountBookRepository.findAllByUserId(userId, params);
 
     // 2. 获取用户所属的所有家庭ID
     const userFamilies = await this.familyRepository.findAllFamiliesByUserId(userId);
-    const familyIds = userFamilies.map(family => family.id);
+    const familyIds = userFamilies.map((family) => family.id);
 
     // 3. 获取用户所属家庭的所有家庭账本
     const { accountBooks: familyAccountBooks, total: familyTotal } =
@@ -83,8 +90,8 @@ export class AccountBookService {
     const allAccountBooks = [...personalAccountBooks, ...familyAccountBooks];
 
     // 5. 去重（以防有重复）
-    const uniqueAccountBooks = allAccountBooks.filter((book, index, self) =>
-      index === self.findIndex(b => b.id === book.id)
+    const uniqueAccountBooks = allAccountBooks.filter(
+      (book, index, self) => index === self.findIndex((b) => b.id === book.id),
     );
 
     // 6. 获取每个账本的统计信息
@@ -95,9 +102,9 @@ export class AccountBookService {
           accountBook,
           stats.transactionCount,
           stats.categoryCount,
-          stats.budgetCount
+          stats.budgetCount,
         );
-      })
+      }),
     );
 
     // 7. 应用排序（如果需要）
@@ -168,7 +175,7 @@ export class AccountBookService {
       accountBook,
       stats.transactionCount,
       stats.categoryCount,
-      stats.budgetCount
+      stats.budgetCount,
     );
   }
 
@@ -183,7 +190,7 @@ export class AccountBookService {
 
     const defaultAccountBookSetting = await userSettingService.getUserSetting(
       userId,
-      UserSettingKey.DEFAULT_ACCOUNT_BOOK_ID
+      UserSettingKey.DEFAULT_ACCOUNT_BOOK_ID,
     );
 
     let accountBook = null;
@@ -210,14 +217,18 @@ export class AccountBookService {
       accountBook,
       stats.transactionCount,
       stats.categoryCount,
-      stats.budgetCount
+      stats.budgetCount,
     );
   }
 
   /**
    * 更新账本
    */
-  async updateAccountBook(id: string, userId: string, accountBookData: UpdateAccountBookDto): Promise<AccountBookResponseDto> {
+  async updateAccountBook(
+    id: string,
+    userId: string,
+    accountBookData: UpdateAccountBookDto,
+  ): Promise<AccountBookResponseDto> {
     // 检查账本是否存在
     const accountBook = await this.accountBookRepository.findById(id);
     if (!accountBook) {
@@ -242,8 +253,9 @@ export class AccountBookService {
         throw new Error('关联的家庭不存在');
       }
 
-      const isAdmin = family.createdBy === userId ||
-                      family.members.some(m => m.userId === userId && m.role === 'ADMIN');
+      const isAdmin =
+        family.createdBy === userId ||
+        family.members.some((m) => m.userId === userId && m.role === 'ADMIN');
 
       if (!isAdmin) {
         throw new Error('只有家庭管理员可以更新家庭账本');
@@ -270,7 +282,7 @@ export class AccountBookService {
       updatedAccountBook,
       stats.transactionCount,
       stats.categoryCount,
-      stats.budgetCount
+      stats.budgetCount,
     );
   }
 
@@ -298,7 +310,10 @@ export class AccountBookService {
         const userSettingService = new UserSettingService();
 
         try {
-          await userSettingService.deleteUserSetting(userId, UserSettingKey.DEFAULT_ACCOUNT_BOOK_ID);
+          await userSettingService.deleteUserSetting(
+            userId,
+            UserSettingKey.DEFAULT_ACCOUNT_BOOK_ID,
+          );
         } catch (error) {
           console.error('删除默认账本设置失败:', error);
           // 继续删除账本，不影响主流程
@@ -316,8 +331,9 @@ export class AccountBookService {
         throw new Error('关联的家庭不存在');
       }
 
-      const isAdmin = family.createdBy === userId ||
-                      family.members.some(m => m.userId === userId && m.role === 'ADMIN');
+      const isAdmin =
+        family.createdBy === userId ||
+        family.members.some((m) => m.userId === userId && m.role === 'ADMIN');
 
       if (!isAdmin) {
         throw new Error('只有家庭管理员可以删除家庭账本');
@@ -364,7 +380,7 @@ export class AccountBookService {
     // 将账本ID保存到用户设置中
     await userSettingService.createOrUpdateUserSetting(userId, {
       key: UserSettingKey.DEFAULT_ACCOUNT_BOOK_ID,
-      value: id
+      value: id,
     });
 
     // 获取账本统计信息
@@ -374,14 +390,17 @@ export class AccountBookService {
       accountBook,
       stats.transactionCount,
       stats.categoryCount,
-      stats.budgetCount
+      stats.budgetCount,
     );
   }
 
   /**
    * 创建默认账本
    */
-  async createDefaultAccountBook(userId: string, name: string = '默认账本'): Promise<AccountBookResponseDto> {
+  async createDefaultAccountBook(
+    userId: string,
+    name: string = '默认账本',
+  ): Promise<AccountBookResponseDto> {
     const accountBookData: CreateAccountBookDto = {
       name,
       description: '系统自动创建的默认账本',
@@ -430,7 +449,7 @@ export class AccountBookService {
       accountBookId,
       enableCategoryBudget: false,
       isAutoCalculated: false,
-      budgetType: 'PERSONAL'
+      budgetType: 'PERSONAL',
     };
 
     // 如果是家庭账本，设置家庭相关字段
@@ -441,8 +460,8 @@ export class AccountBookService {
       const familyMember = await prisma.familyMember.findFirst({
         where: {
           familyId: accountBook.familyId,
-          userId: userId
-        }
+          userId: userId,
+        },
       });
 
       if (familyMember) {
@@ -457,7 +476,11 @@ export class AccountBookService {
   /**
    * 创建家庭账本
    */
-  async createFamilyAccountBook(userId: string, familyId: string, accountBookData: CreateAccountBookDto): Promise<AccountBookResponseDto> {
+  async createFamilyAccountBook(
+    userId: string,
+    familyId: string,
+    accountBookData: CreateAccountBookDto,
+  ): Promise<AccountBookResponseDto> {
     // 验证用户是否为家庭成员
     const isMember = await this.familyRepository.isFamilyMember(userId, familyId);
     if (!isMember) {
@@ -477,7 +500,11 @@ export class AccountBookService {
   /**
    * 获取家庭账本列表
    */
-  async getFamilyAccountBooks(userId: string, familyId: string, params: AccountBookQueryParams): Promise<AccountBookPaginatedResponseDto> {
+  async getFamilyAccountBooks(
+    userId: string,
+    familyId: string,
+    params: AccountBookQueryParams,
+  ): Promise<AccountBookPaginatedResponseDto> {
     // 验证用户是否为家庭成员
     const isMember = await this.familyRepository.isFamilyMember(userId, familyId);
     if (!isMember) {
@@ -491,7 +518,10 @@ export class AccountBookService {
       familyId,
     };
 
-    const { accountBooks, total } = await this.accountBookRepository.findAllByFamilyId(familyId, queryParams);
+    const { accountBooks, total } = await this.accountBookRepository.findAllByFamilyId(
+      familyId,
+      queryParams,
+    );
 
     // 获取每个账本的统计信息
     const accountBooksWithStats = await Promise.all(
@@ -501,9 +531,9 @@ export class AccountBookService {
           accountBook,
           stats.transactionCount,
           stats.categoryCount,
-          stats.budgetCount
+          stats.budgetCount,
         );
-      })
+      }),
     );
 
     return {
@@ -518,7 +548,10 @@ export class AccountBookService {
    * 重置家庭账本
    * 清除所有交易记录、预算信息和历史记录
    */
-  async resetFamilyAccountBook(accountBookId: string, userId: string): Promise<AccountBookResponseDto> {
+  async resetFamilyAccountBook(
+    accountBookId: string,
+    userId: string,
+  ): Promise<AccountBookResponseDto> {
     // 检查账本是否存在
     const accountBook = await this.accountBookRepository.findById(accountBookId);
     if (!accountBook) {
@@ -541,8 +574,9 @@ export class AccountBookService {
       throw new Error('关联的家庭不存在');
     }
 
-    const isAdmin = family.createdBy === userId ||
-                    family.members.some(m => m.userId === userId && m.role === 'ADMIN');
+    const isAdmin =
+      family.createdBy === userId ||
+      family.members.some((m) => m.userId === userId && m.role === 'ADMIN');
 
     if (!isAdmin) {
       throw new Error('只有家庭管理员可以重置家庭账本');
@@ -564,14 +598,17 @@ export class AccountBookService {
       updatedAccountBook,
       stats.transactionCount,
       stats.categoryCount,
-      stats.budgetCount
+      stats.budgetCount,
     );
   }
 
   /**
    * 获取账本LLM设置
    */
-  async getAccountBookLLMSetting(accountBookId: string, userId: string): Promise<AccountLLMSettingResponseDto | null> {
+  async getAccountBookLLMSetting(
+    accountBookId: string,
+    userId: string,
+  ): Promise<AccountLLMSettingResponseDto | null> {
     // 检查账本是否存在
     const accountBook = await this.accountBookRepository.findById(accountBookId);
     if (!accountBook) {
@@ -597,7 +634,7 @@ export class AccountBookService {
   async updateAccountBookLLMSetting(
     accountBookId: string,
     userId: string,
-    settingData: CreateAccountLLMSettingDto
+    settingData: CreateAccountLLMSettingDto,
   ): Promise<AccountLLMSettingResponseDto> {
     // 检查账本是否存在
     const accountBook = await this.accountBookRepository.findById(accountBookId);

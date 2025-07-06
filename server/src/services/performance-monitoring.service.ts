@@ -33,13 +33,13 @@ export class PerformanceMonitoringService {
   private async loadConfiguration() {
     try {
       // 从数据库加载配置
-      const configs = await prisma.$queryRaw<Array<{key: string, value: string}>>`
+      const configs = await prisma.$queryRaw<Array<{ key: string; value: string }>>`
         SELECT key, value FROM system_configs 
         WHERE key IN ('performance_monitoring_enabled', 'performance_data_retention_days', 
                      'disk_monitoring_interval_minutes', 'cpu_memory_monitoring_interval_seconds')
       `;
 
-      configs.forEach(config => {
+      configs.forEach((config) => {
         switch (config.key) {
           case 'performance_monitoring_enabled':
             this.isEnabled = config.value === 'true';
@@ -93,7 +93,11 @@ export class PerformanceMonitoringService {
     // 立即收集一次数据
     await this.collectAllMetrics();
 
-    console.log(`性能监控已启动 - 磁盘监控间隔: ${this.diskMonitoringInterval/1000}秒, CPU/内存监控间隔: ${this.cpuMemoryMonitoringInterval/1000}秒`);
+    console.log(
+      `性能监控已启动 - 磁盘监控间隔: ${this.diskMonitoringInterval / 1000}秒, CPU/内存监控间隔: ${
+        this.cpuMemoryMonitoringInterval / 1000
+      }秒`,
+    );
   }
 
   /**
@@ -120,7 +124,7 @@ export class PerformanceMonitoringService {
     await Promise.all([
       this.collectDiskMetrics(),
       this.collectCpuMetrics(),
-      this.collectMemoryMetrics()
+      this.collectMemoryMetrics(),
     ]);
   }
 
@@ -130,7 +134,7 @@ export class PerformanceMonitoringService {
   async collectDiskMetrics() {
     try {
       const diskInfo = await this.getDiskSpaceInfo();
-      
+
       if (diskInfo && diskInfo.total > 0) {
         const metric: PerformanceMetric = {
           metricType: 'disk',
@@ -139,8 +143,8 @@ export class PerformanceMonitoringService {
             total: diskInfo.total,
             used: diskInfo.used,
             free: diskInfo.free,
-            drives: diskInfo.drives
-          }
+            drives: diskInfo.drives,
+          },
         };
 
         await this.saveMetric(metric);
@@ -156,14 +160,14 @@ export class PerformanceMonitoringService {
   async collectCpuMetrics() {
     try {
       const cpuUsage = await this.getCpuUsage();
-      
+
       const metric: PerformanceMetric = {
         metricType: 'cpu',
         metricValue: cpuUsage.usage,
         additionalData: {
           loadAverage: cpuUsage.loadAverage,
-          coreCount: cpuUsage.coreCount
-        }
+          coreCount: cpuUsage.coreCount,
+        },
       };
 
       await this.saveMetric(metric);
@@ -178,7 +182,7 @@ export class PerformanceMonitoringService {
   async collectMemoryMetrics() {
     try {
       const memoryInfo = this.getMemoryInfo();
-      
+
       const metric: PerformanceMetric = {
         metricType: 'memory',
         metricValue: memoryInfo.usagePercent,
@@ -186,8 +190,8 @@ export class PerformanceMonitoringService {
           total: memoryInfo.total,
           used: memoryInfo.used,
           free: memoryInfo.free,
-          process: memoryInfo.process
-        }
+          process: memoryInfo.process,
+        },
       };
 
       await this.saveMetric(metric);
@@ -207,7 +211,7 @@ export class PerformanceMonitoringService {
         total: 0,
         used: 0,
         free: 0,
-        usagePercent: 0
+        usagePercent: 0,
       };
 
       if (platform === 'win32') {
@@ -237,7 +241,9 @@ export class PerformanceMonitoringService {
 
     try {
       const { stdout } = await execAsync('wmic logicaldisk get size,freespace,caption');
-      const lines = stdout.split('\n').filter((line: string) => line.trim() && !line.includes('Caption'));
+      const lines = stdout
+        .split('\n')
+        .filter((line: string) => line.trim() && !line.includes('Caption'));
 
       for (const line of lines) {
         const parts = line.trim().split(/\s+/);
@@ -254,7 +260,7 @@ export class PerformanceMonitoringService {
               used: usedSpace,
               free: freeSpace,
               usagePercent: (usedSpace / totalSpace) * 100,
-              filesystem: 'NTFS'
+              filesystem: 'NTFS',
             });
           }
         }
@@ -269,7 +275,7 @@ export class PerformanceMonitoringService {
         free: 0,
         usagePercent: 0,
         filesystem: 'NTFS',
-        note: '无法获取详细空间信息'
+        note: '无法获取详细空间信息',
       });
     }
 
@@ -297,14 +303,18 @@ export class PerformanceMonitoringService {
             const usagePercent = parseFloat(parts[4].replace('%', ''));
             const mountPoint = parts[5];
 
-            if (total > 0 && !filesystem.startsWith('tmpfs') && !filesystem.startsWith('devtmpfs')) {
+            if (
+              total > 0 &&
+              !filesystem.startsWith('tmpfs') &&
+              !filesystem.startsWith('devtmpfs')
+            ) {
               drives.push({
                 drive: mountPoint,
                 total,
                 used,
                 free,
                 usagePercent,
-                filesystem
+                filesystem,
               });
             }
           }
@@ -322,10 +332,10 @@ export class PerformanceMonitoringService {
    */
   private parseSize(sizeStr: string): number {
     const units: { [key: string]: number } = {
-      'K': 1024,
-      'M': 1024 * 1024,
-      'G': 1024 * 1024 * 1024,
-      'T': 1024 * 1024 * 1024 * 1024
+      K: 1024,
+      M: 1024 * 1024,
+      G: 1024 * 1024 * 1024,
+      T: 1024 * 1024 * 1024 * 1024,
     };
 
     const match = sizeStr.match(/^(\d+(?:\.\d+)?)([KMGT]?)$/);
@@ -341,7 +351,11 @@ export class PerformanceMonitoringService {
   /**
    * 获取CPU使用率
    */
-  private async getCpuUsage(): Promise<{ usage: number; loadAverage: number[]; coreCount: number }> {
+  private async getCpuUsage(): Promise<{
+    usage: number;
+    loadAverage: number[];
+    coreCount: number;
+  }> {
     return new Promise((resolve) => {
       const startMeasure = this.cpuAverage();
 
@@ -349,12 +363,12 @@ export class PerformanceMonitoringService {
         const endMeasure = this.cpuAverage();
         const idleDifference = endMeasure.idle - startMeasure.idle;
         const totalDifference = endMeasure.total - startMeasure.total;
-        const cpuPercentage = 100 - ~~(100 * idleDifference / totalDifference);
+        const cpuPercentage = 100 - ~~((100 * idleDifference) / totalDifference);
 
         resolve({
           usage: Math.max(0, Math.min(100, cpuPercentage)),
           loadAverage: os.loadavg(),
-          coreCount: os.cpus().length
+          coreCount: os.cpus().length,
         });
       }, 1000);
     });
@@ -377,7 +391,7 @@ export class PerformanceMonitoringService {
 
     return {
       idle: totalIdle / cpus.length,
-      total: totalTick / cpus.length
+      total: totalTick / cpus.length,
     };
   }
 
@@ -399,8 +413,8 @@ export class PerformanceMonitoringService {
         rss: memoryUsage.rss,
         heapTotal: memoryUsage.heapTotal,
         heapUsed: memoryUsage.heapUsed,
-        external: memoryUsage.external
-      }
+        external: memoryUsage.external,
+      },
     };
   }
 
@@ -409,7 +423,9 @@ export class PerformanceMonitoringService {
    */
   private async saveMetric(metric: PerformanceMetric) {
     try {
-      const additionalDataJson = metric.additionalData ? JSON.stringify(metric.additionalData) : null;
+      const additionalDataJson = metric.additionalData
+        ? JSON.stringify(metric.additionalData)
+        : null;
 
       await prisma.$executeRaw`
         INSERT INTO system_performance_history (
@@ -453,7 +469,7 @@ export class PerformanceMonitoringService {
   async getPerformanceHistory(
     metricType: 'disk' | 'cpu' | 'memory',
     timeRange: 'hour' | 'day' | 'week' | '30days',
-    limit: number = 1000
+    limit: number = 1000,
   ) {
     try {
       let timeCondition = '';
@@ -505,12 +521,14 @@ export class PerformanceMonitoringService {
    */
   async getPerformanceStats(metricType: 'disk' | 'cpu' | 'memory', hours: number = 24) {
     try {
-      const result = await prisma.$queryRaw<Array<{
-        avg_value: number;
-        min_value: number;
-        max_value: number;
-        sample_count: bigint;
-      }>>`
+      const result = await prisma.$queryRaw<
+        Array<{
+          avg_value: number;
+          min_value: number;
+          max_value: number;
+          sample_count: bigint;
+        }>
+      >`
         SELECT
           AVG(metric_value)::DECIMAL(5,2) as avg_value,
           MIN(metric_value)::DECIMAL(5,2) as min_value,
@@ -521,19 +539,21 @@ export class PerformanceMonitoringService {
           AND recorded_at >= NOW() - INTERVAL '${hours} hours'
       `;
 
-      return result[0] || {
-        avg_value: 0,
-        min_value: 0,
-        max_value: 0,
-        sample_count: BigInt(0)
-      };
+      return (
+        result[0] || {
+          avg_value: 0,
+          min_value: 0,
+          max_value: 0,
+          sample_count: BigInt(0),
+        }
+      );
     } catch (error) {
       console.error('获取性能统计信息失败:', error);
       return {
         avg_value: 0,
         min_value: 0,
         max_value: 0,
-        sample_count: BigInt(0)
+        sample_count: BigInt(0),
       };
     }
   }

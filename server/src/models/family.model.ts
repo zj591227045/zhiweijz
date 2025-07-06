@@ -139,14 +139,14 @@ export function toFamilyResponseDto(
   family: Family,
   members?: FamilyMember[],
   creator?: UserBriefDto,
-  currentUserId?: string
+  currentUserId?: string,
 ): FamilyResponseDto {
   return {
     id: family.id,
     name: family.name,
     createdBy: family.createdBy,
     creator,
-    members: members?.map(member => toFamilyMemberResponseDto(member, currentUserId)),
+    members: members?.map((member) => toFamilyMemberResponseDto(member, currentUserId)),
     memberCount: members?.length,
     createdAt: family.createdAt,
     updatedAt: family.updatedAt,
@@ -159,7 +159,7 @@ export function toFamilyResponseDto(
 export function toFamilyListResponseDto(
   family: Family,
   memberCount: number,
-  creator?: UserBriefDto
+  creator?: UserBriefDto,
 ): FamilyListResponseDto {
   return {
     id: family.id,
@@ -177,17 +177,19 @@ export function toFamilyListResponseDto(
  */
 export function toFamilyMemberResponseDto(
   member: FamilyMember & { user?: { id: string; name: string; email: string } | null },
-  currentUserId?: string
+  currentUserId?: string,
 ): FamilyMemberResponseDto {
   return {
     id: member.id,
     familyId: member.familyId,
     userId: member.userId || undefined,
-    user: member.user ? {
-      id: member.user.id,
-      name: member.user.name,
-      email: member.user.email,
-    } : undefined,
+    user: member.user
+      ? {
+          id: member.user.id,
+          name: member.user.name,
+          email: member.user.email,
+        }
+      : undefined,
     name: member.name || '未知用户',
     gender: member.gender || undefined,
     birthDate: member.birthDate || undefined,
@@ -205,7 +207,7 @@ export function toFamilyMemberResponseDto(
  */
 export function toInvitationResponseDto(
   invitation: Invitation,
-  baseUrl: string
+  baseUrl: string,
 ): InvitationResponseDto {
   return {
     id: invitation.id,

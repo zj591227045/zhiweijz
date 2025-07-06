@@ -21,10 +21,10 @@ export class WechatSmartAccountingService {
    * 处理微信智能记账请求
    */
   async processWechatAccounting(
-    userId: string, 
-    accountBookId: string, 
+    userId: string,
+    accountBookId: string,
     description: string,
-    createTransaction: boolean = false
+    createTransaction: boolean = false,
   ): Promise<WechatSmartAccountingResult> {
     try {
       // 1. 验证账本权限
@@ -32,7 +32,7 @@ export class WechatSmartAccountingService {
       if (!accountBook) {
         return {
           success: false,
-          message: '账本不存在或无权访问，请重新设置默认账本。'
+          message: '账本不存在或无权访问，请重新设置默认账本。',
         };
       }
 
@@ -41,7 +41,7 @@ export class WechatSmartAccountingService {
       if (!smartAccounting) {
         return {
           success: false,
-          message: '智能记账服务暂时不可用，请稍后重试。'
+          message: '智能记账服务暂时不可用，请稍后重试。',
         };
       }
 
@@ -49,13 +49,13 @@ export class WechatSmartAccountingService {
         description,
         userId,
         accountBookId,
-        accountBook.type
+        accountBook.type,
       );
 
       if (!analysisResult) {
         return {
           success: false,
-          message: '智能记账分析失败，请稍后重试。'
+          message: '智能记账分析失败，请稍后重试。',
         };
       }
 
@@ -65,12 +65,12 @@ export class WechatSmartAccountingService {
           return {
             success: false,
             message: 'AI服务使用受限，请稍后重试。',
-            error: 'TOKEN_LIMIT_EXCEEDED'
+            error: 'TOKEN_LIMIT_EXCEEDED',
           };
         }
         return {
           success: false,
-          message: `${analysisResult.error}\n\n请发送有效的记账信息，例如："50 餐饮 午餐"`
+          message: `${analysisResult.error}\n\n请发送有效的记账信息，例如："50 餐饮 午餐"`,
         };
       }
 
@@ -81,12 +81,12 @@ export class WechatSmartAccountingService {
           return {
             success: true,
             message: this.formatSuccessMessage(analysisResult, true),
-            transaction
+            transaction,
           };
         } else {
           return {
             success: false,
-            message: '记账分析成功，但创建交易记录失败。'
+            message: '记账分析成功，但创建交易记录失败。',
           };
         }
       }
@@ -94,14 +94,13 @@ export class WechatSmartAccountingService {
       // 5. 仅返回分析结果
       return {
         success: true,
-        message: this.formatSuccessMessage(analysisResult, false)
+        message: this.formatSuccessMessage(analysisResult, false),
       };
-
     } catch (error) {
       console.error('微信智能记账处理失败:', error);
       return {
         success: false,
-        message: '记账处理失败，请稍后重试。'
+        message: '记账处理失败，请稍后重试。',
       };
     }
   }
@@ -118,18 +117,18 @@ export class WechatSmartAccountingService {
           {
             type: 'FAMILY',
             familyId: {
-              not: null
+              not: null,
             },
             family: {
               members: {
                 some: {
-                  userId
-                }
-              }
-            }
-          }
-        ]
-      }
+                  userId,
+                },
+              },
+            },
+          },
+        ],
+      },
     });
   }
 
@@ -144,8 +143,8 @@ export class WechatSmartAccountingService {
       // 获取当前时间并转换为北京时区
       const now = new Date();
       const beijingOffset = 8 * 60; // 北京时区 UTC+8
-      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-      const beijingTime = new Date(utc + (beijingOffset * 60000));
+      const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+      const beijingTime = new Date(utc + beijingOffset * 60000);
 
       if (result.date) {
         // 如果智能分析返回了日期，使用该日期但设置为当前北京时间
@@ -157,7 +156,7 @@ export class WechatSmartAccountingService {
           beijingTime.getHours(),
           beijingTime.getMinutes(),
           beijingTime.getSeconds(),
-          beijingTime.getMilliseconds()
+          beijingTime.getMilliseconds(),
         );
       } else {
         // 如果没有日期，使用当前北京时间
@@ -167,7 +166,7 @@ export class WechatSmartAccountingService {
       // 获取账本信息以确定是否为家庭账本
       const accountBook = await prisma.accountBook.findUnique({
         where: { id: result.accountId },
-        select: { type: true, familyId: true }
+        select: { type: true, familyId: true },
       });
 
       // 确定家庭ID和家庭成员ID
@@ -181,7 +180,7 @@ export class WechatSmartAccountingService {
         if (result.budgetId) {
           const budget = await prisma.budget.findUnique({
             where: { id: result.budgetId },
-            include: { familyMember: true, user: true }
+            include: { familyMember: true, user: true },
           });
 
           if (budget) {
@@ -194,8 +193,8 @@ export class WechatSmartAccountingService {
               const familyMember = await prisma.familyMember.findFirst({
                 where: {
                   familyId: finalFamilyId,
-                  userId: budget.userId
-                }
+                  userId: budget.userId,
+                },
               });
 
               if (familyMember) {
@@ -210,8 +209,8 @@ export class WechatSmartAccountingService {
           const familyMember = await prisma.familyMember.findFirst({
             where: {
               familyId: finalFamilyId,
-              userId: userId
-            }
+              userId: userId,
+            },
           });
 
           if (familyMember) {
@@ -235,13 +234,13 @@ export class WechatSmartAccountingService {
           familyId: finalFamilyId,
           familyMemberId: finalFamilyMemberId,
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         include: {
           category: true,
           budget: true,
-          accountBook: true
-        }
+          accountBook: true,
+        },
       });
 
       return transaction;
@@ -267,7 +266,7 @@ export class WechatSmartAccountingService {
     const dateStr = transactionDate.toLocaleDateString('zh-CN', {
       year: 'numeric',
       month: '2-digit',
-      day: '2-digit'
+      day: '2-digit',
     });
 
     // 构建预算信息
@@ -283,12 +282,14 @@ export class WechatSmartAccountingService {
       }
     }
 
-    return `✅ ${status}！\n` +
-           `📝 明细：${desc}\n` +
-           `📅 日期：${dateStr}\n` +
-           `💸 方向：${type}；分类：${category}\n` +
-           `💰 金额：${amount}元` +
-           (budgetInfo ? `\n${budgetInfo}` : '');
+    return (
+      `✅ ${status}！\n` +
+      `📝 明细：${desc}\n` +
+      `📅 日期：${dateStr}\n` +
+      `💸 方向：${type}；分类：${category}\n` +
+      `💰 金额：${amount}元` +
+      (budgetInfo ? `\n${budgetInfo}` : '')
+    );
   }
 
   /**
@@ -298,23 +299,23 @@ export class WechatSmartAccountingService {
     if (!categoryName) return '📝';
 
     const iconMap: { [key: string]: string } = {
-      '餐饮': '🍽️',
-      '交通': '🚗',
-      '购物': '🛒',
-      '娱乐': '🎮',
-      '医疗': '🏥',
-      '教育': '📚',
-      '学习': '📝',
-      '住房': '🏠',
-      '通讯': '📱',
-      '服装': '👕',
-      '美容': '💄',
-      '运动': '⚽',
-      '旅游': '✈️',
-      '工资': '💼',
-      '奖金': '🎁',
-      '投资': '📈',
-      '其他': '📝'
+      餐饮: '🍽️',
+      交通: '🚗',
+      购物: '🛒',
+      娱乐: '🎮',
+      医疗: '🏥',
+      教育: '📚',
+      学习: '📝',
+      住房: '🏠',
+      通讯: '📱',
+      服装: '👕',
+      美容: '💄',
+      运动: '⚽',
+      旅游: '✈️',
+      工资: '💼',
+      奖金: '🎁',
+      投资: '📈',
+      其他: '📝',
     };
 
     // 查找匹配的图标
@@ -349,37 +350,37 @@ export class WechatSmartAccountingService {
           accountBookId,
           date: {
             gte: startOfMonth,
-            lte: endOfMonth
-          }
+            lte: endOfMonth,
+          },
         },
         _sum: {
-          amount: true
+          amount: true,
         },
         _count: {
-          id: true
-        }
+          id: true,
+        },
       });
 
       let message = `📊 ${accountBook.name} 本月统计\n\n`;
-      
-      const expenseStats = monthlyStats.find(s => s.type === 'EXPENSE');
-      const incomeStats = monthlyStats.find(s => s.type === 'INCOME');
-      
+
+      const expenseStats = monthlyStats.find((s) => s.type === 'EXPENSE');
+      const incomeStats = monthlyStats.find((s) => s.type === 'INCOME');
+
       const totalExpense = Number(expenseStats?._sum.amount || 0);
       const totalIncome = Number(incomeStats?._sum.amount || 0);
       const expenseCount = expenseStats?._count.id || 0;
       const incomeCount = incomeStats?._count.id || 0;
-      
+
       message += `💰 收入：¥${totalIncome.toFixed(2)} (${incomeCount}笔)\n`;
       message += `💸 支出：¥${totalExpense.toFixed(2)} (${expenseCount}笔)\n`;
       message += `📈 结余：¥${(totalIncome - totalExpense).toFixed(2)}\n\n`;
-      
+
       // 获取最近5笔交易
       const recentTransactions = await prisma.transaction.findMany({
         where: { accountBookId },
         include: { category: true },
         orderBy: { createdAt: 'desc' },
-        take: 5
+        take: 5,
       });
 
       if (recentTransactions.length > 0) {
@@ -387,12 +388,13 @@ export class WechatSmartAccountingService {
         recentTransactions.forEach((tx, index) => {
           const type = tx.type === 'EXPENSE' ? '支出' : '收入';
           const date = new Date(tx.date).toLocaleDateString('zh-CN');
-          message += `${index + 1}. ${date} ${type} ¥${tx.amount.toFixed(2)} ${tx.category?.name || '未分类'}\n`;
+          message += `${index + 1}. ${date} ${type} ¥${tx.amount.toFixed(2)} ${
+            tx.category?.name || '未分类'
+          }\n`;
         });
       }
 
       return message;
-
     } catch (error) {
       console.error('获取账本统计失败:', error);
       return '获取统计信息失败，请稍后重试。';
@@ -402,7 +404,11 @@ export class WechatSmartAccountingService {
   /**
    * 获取最近交易记录
    */
-  async getRecentTransactions(userId: string, accountBookId: string, limit: number = 5): Promise<string> {
+  async getRecentTransactions(
+    userId: string,
+    accountBookId: string,
+    limit: number = 5,
+  ): Promise<string> {
     try {
       // 验证权限
       const accountBook = await this.validateAccountBookAccess(userId, accountBookId);
@@ -418,12 +424,12 @@ export class WechatSmartAccountingService {
           budget: {
             include: {
               user: { select: { name: true } },
-              familyMember: { select: { name: true } }
-            }
-          }
+              familyMember: { select: { name: true } },
+            },
+          },
         },
         orderBy: { createdAt: 'desc' },
-        take: limit
+        take: limit,
       });
 
       if (recentTransactions.length === 0) {
@@ -434,7 +440,10 @@ export class WechatSmartAccountingService {
 
       recentTransactions.forEach((tx, index) => {
         const type = tx.type === 'EXPENSE' ? '支出' : '收入';
-        const date = new Date(tx.date).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
+        const date = new Date(tx.date).toLocaleDateString('zh-CN', {
+          month: 'numeric',
+          day: 'numeric',
+        });
         const category = tx.category?.name || '未分类';
 
         // 预算信息
@@ -446,11 +455,12 @@ export class WechatSmartAccountingService {
           }
         }
 
-        message += `${index + 1}. ${date} ${type} ¥${tx.amount.toFixed(2)} ${category}${budgetInfo}\n`;
+        message += `${index + 1}. ${date} ${type} ¥${tx.amount.toFixed(
+          2,
+        )} ${category}${budgetInfo}\n`;
       });
 
       return message;
-
     } catch (error) {
       console.error('获取最近交易失败:', error);
       return '获取交易记录失败，请稍后重试。';
@@ -460,7 +470,13 @@ export class WechatSmartAccountingService {
   /**
    * 获取指定时间范围的统计
    */
-  async getTimeRangeStats(userId: string, accountBookId: string, startDate: Date, endDate: Date, period: string): Promise<string> {
+  async getTimeRangeStats(
+    userId: string,
+    accountBookId: string,
+    startDate: Date,
+    endDate: Date,
+    period: string,
+  ): Promise<string> {
     try {
       // 验证权限
       const accountBook = await this.validateAccountBookAccess(userId, accountBookId);
@@ -475,19 +491,19 @@ export class WechatSmartAccountingService {
           accountBookId,
           date: {
             gte: startDate,
-            lte: endDate
-          }
+            lte: endDate,
+          },
         },
         _sum: {
-          amount: true
+          amount: true,
         },
         _count: {
-          id: true
-        }
+          id: true,
+        },
       });
 
-      const expenseStats = stats.find(s => s.type === 'EXPENSE');
-      const incomeStats = stats.find(s => s.type === 'INCOME');
+      const expenseStats = stats.find((s) => s.type === 'EXPENSE');
+      const incomeStats = stats.find((s) => s.type === 'INCOME');
 
       const totalExpense = Number(expenseStats?._sum.amount || 0);
       const totalIncome = Number(incomeStats?._sum.amount || 0);
@@ -506,26 +522,30 @@ export class WechatSmartAccountingService {
             accountBookId,
             date: {
               gte: startDate,
-              lte: endDate
-            }
+              lte: endDate,
+            },
           },
           include: { category: true },
           orderBy: { date: 'desc' },
-          take: 3
+          take: 3,
         });
 
         if (recentTransactions.length > 0) {
           message += '\n📝 最近交易：\n';
           recentTransactions.forEach((tx, index) => {
             const type = tx.type === 'EXPENSE' ? '支出' : '收入';
-            const date = new Date(tx.date).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
-            message += `${index + 1}. ${date} ${type} ¥${tx.amount.toFixed(2)} ${tx.category?.name || '未分类'}\n`;
+            const date = new Date(tx.date).toLocaleDateString('zh-CN', {
+              month: 'numeric',
+              day: 'numeric',
+            });
+            message += `${index + 1}. ${date} ${type} ¥${tx.amount.toFixed(2)} ${
+              tx.category?.name || '未分类'
+            }\n`;
           });
         }
       }
 
       return message;
-
     } catch (error) {
       console.error('获取时间范围统计失败:', error);
       return '获取统计信息失败，请稍后重试。';
@@ -549,14 +569,14 @@ export class WechatSmartAccountingService {
         where: {
           accountBookId,
           startDate: { lte: now },
-          endDate: { gte: now }
+          endDate: { gte: now },
         },
         include: {
           category: true,
           user: { select: { name: true } },
-          familyMember: { select: { name: true } }
+          familyMember: { select: { name: true } },
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       });
 
       if (budgets.length === 0) {
@@ -572,10 +592,10 @@ export class WechatSmartAccountingService {
             budgetId: budget.id,
             date: {
               gte: budget.startDate,
-              lte: budget.endDate
-            }
+              lte: budget.endDate,
+            },
           },
-          _sum: { amount: true }
+          _sum: { amount: true },
         });
 
         const spentAmount = Number(spent._sum.amount || 0);
@@ -609,7 +629,6 @@ export class WechatSmartAccountingService {
       }
 
       return message.trim();
-
     } catch (error) {
       console.error('获取预算状态失败:', error);
       return '获取预算状态失败，请稍后重试。';
@@ -638,34 +657,34 @@ export class WechatSmartAccountingService {
           accountBookId,
           date: {
             gte: startOfMonth,
-            lte: endOfMonth
-          }
+            lte: endOfMonth,
+          },
         },
         _sum: {
-          amount: true
+          amount: true,
         },
         _count: {
-          id: true
-        }
+          id: true,
+        },
       });
 
       // 获取分类信息
-      const categoryIds = [...new Set(categoryStats.map(s => s.categoryId))];
+      const categoryIds = [...new Set(categoryStats.map((s) => s.categoryId))];
       const categories = await prisma.category.findMany({
-        where: { id: { in: categoryIds } }
+        where: { id: { in: categoryIds } },
       });
 
       let message = `📊 ${accountBook.name} 本月分类统计\n\n`;
 
       // 支出分类统计
-      const expenseStats = categoryStats.filter(s => s.type === 'EXPENSE');
+      const expenseStats = categoryStats.filter((s) => s.type === 'EXPENSE');
       if (expenseStats.length > 0) {
         message += '💸 支出分类：\n';
         expenseStats
           .sort((a, b) => Number(b._sum.amount || 0) - Number(a._sum.amount || 0))
           .slice(0, 5)
-          .forEach(stat => {
-            const category = categories.find(c => c.id === stat.categoryId);
+          .forEach((stat) => {
+            const category = categories.find((c) => c.id === stat.categoryId);
             const amount = Number(stat._sum.amount || 0);
             const count = stat._count.id;
             message += `• ${category?.name || '未分类'}：¥${amount.toFixed(2)} (${count}笔)\n`;
@@ -674,14 +693,14 @@ export class WechatSmartAccountingService {
       }
 
       // 收入分类统计
-      const incomeStats = categoryStats.filter(s => s.type === 'INCOME');
+      const incomeStats = categoryStats.filter((s) => s.type === 'INCOME');
       if (incomeStats.length > 0) {
         message += '💰 收入分类：\n';
         incomeStats
           .sort((a, b) => Number(b._sum.amount || 0) - Number(a._sum.amount || 0))
           .slice(0, 5)
-          .forEach(stat => {
-            const category = categories.find(c => c.id === stat.categoryId);
+          .forEach((stat) => {
+            const category = categories.find((c) => c.id === stat.categoryId);
             const amount = Number(stat._sum.amount || 0);
             const count = stat._count.id;
             message += `• ${category?.name || '未分类'}：¥${amount.toFixed(2)} (${count}笔)\n`;
@@ -689,7 +708,6 @@ export class WechatSmartAccountingService {
       }
 
       return message;
-
     } catch (error) {
       console.error('获取分类统计失败:', error);
       return '获取分类统计失败，请稍后重试。';

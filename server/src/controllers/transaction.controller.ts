@@ -9,7 +9,7 @@ import {
   TransactionQueryParams,
   TransactionExportFormat,
   TransactionExportRequestDto,
-  TransactionImportRequestDto
+  TransactionImportRequestDto,
 } from '../models/transaction.model';
 
 export class TransactionController {
@@ -67,7 +67,9 @@ export class TransactionController {
         startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
         endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
         categoryId: req.query.categoryId as string | undefined,
-        categoryIds: req.query.categoryIds ? (req.query.categoryIds as string).split(',') : undefined,
+        categoryIds: req.query.categoryIds
+          ? (req.query.categoryIds as string).split(',')
+          : undefined,
         familyId: req.query.familyId as string | undefined,
         familyMemberId: req.query.familyMemberId as string | undefined,
         accountBookId: req.query.accountBookId as string | undefined,
@@ -125,7 +127,11 @@ export class TransactionController {
         date: req.body.date ? new Date(req.body.date) : undefined,
       };
 
-      const transaction = await this.transactionService.updateTransaction(transactionId, userId, transactionData);
+      const transaction = await this.transactionService.updateTransaction(
+        transactionId,
+        userId,
+        transactionData,
+      );
       res.status(200).json(transaction);
     } catch (error) {
       if (error instanceof Error) {
@@ -170,11 +176,18 @@ export class TransactionController {
         return;
       }
 
-      const type = req.query.type as TransactionType || TransactionType.EXPENSE;
-      const startDate = req.query.startDate ? new Date(req.query.startDate as string) : new Date(new Date().setMonth(new Date().getMonth() - 1));
+      const type = (req.query.type as TransactionType) || TransactionType.EXPENSE;
+      const startDate = req.query.startDate
+        ? new Date(req.query.startDate as string)
+        : new Date(new Date().setMonth(new Date().getMonth() - 1));
       const endDate = req.query.endDate ? new Date(req.query.endDate as string) : new Date();
 
-      const statistics = await this.transactionService.getTransactionStatistics(userId, type, startDate, endDate);
+      const statistics = await this.transactionService.getTransactionStatistics(
+        userId,
+        type,
+        startDate,
+        endDate,
+      );
       res.status(200).json(statistics);
     } catch (error) {
       res.status(500).json({ message: '获取交易统计时发生错误' });
@@ -199,7 +212,9 @@ export class TransactionController {
         startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
         endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
         categoryId: req.query.categoryId as string | undefined,
-        categoryIds: req.query.categoryIds ? (req.query.categoryIds as string).split(',') : undefined,
+        categoryIds: req.query.categoryIds
+          ? (req.query.categoryIds as string).split(',')
+          : undefined,
         familyId: req.query.familyId as string | undefined,
         familyMemberId: req.query.familyMemberId as string | undefined,
         accountBookId: req.query.accountBookId as string | undefined,
@@ -257,7 +272,8 @@ export class TransactionController {
       };
 
       // 导出交易记录
-      const format = exportData.format === TransactionExportFormat.CSV ? ExportFormat.CSV : ExportFormat.JSON;
+      const format =
+        exportData.format === TransactionExportFormat.CSV ? ExportFormat.CSV : ExportFormat.JSON;
       const result = await this.transactionExportService.exportTransactions(userId, params, format);
 
       // 设置响应头
@@ -301,8 +317,13 @@ export class TransactionController {
       }
 
       // 导入交易记录
-      const format = importData.format === TransactionExportFormat.CSV ? ImportFormat.CSV : ImportFormat.JSON;
-      const result = await this.transactionImportService.importTransactions(userId, importData.fileContent, format);
+      const format =
+        importData.format === TransactionExportFormat.CSV ? ImportFormat.CSV : ImportFormat.JSON;
+      const result = await this.transactionImportService.importTransactions(
+        userId,
+        importData.fileContent,
+        format,
+      );
 
       // 返回导入结果
       res.status(200).json(result);

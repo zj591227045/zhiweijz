@@ -6,7 +6,7 @@ import {
   validateCreateInvitationInput,
   validateAcceptInvitationInput,
   validateCreateCustodialMemberInput,
-  validateUpdateCustodialMemberInput
+  validateUpdateCustodialMemberInput,
 } from '../validators/family.validator';
 
 /**
@@ -256,7 +256,12 @@ export class FamilyController {
       try {
         // 获取基础URL
         const baseUrl = `${req.protocol}://${req.get('host')}`;
-        const invitation = await this.familyService.createInvitation(familyId, userId, value, baseUrl);
+        const invitation = await this.familyService.createInvitation(
+          familyId,
+          userId,
+          value,
+          baseUrl,
+        );
         res.status(201).json(invitation);
       } catch (error) {
         if (error instanceof Error && error.message === '无权创建邀请链接') {
@@ -335,7 +340,11 @@ export class FamilyController {
       try {
         // 获取基础URL
         const baseUrl = `${req.protocol}://${req.get('host')}`;
-        const invitations = await this.familyService.getFamilyInvitations(familyId, userId, baseUrl);
+        const invitations = await this.familyService.getFamilyInvitations(
+          familyId,
+          userId,
+          baseUrl,
+        );
         res.status(200).json(invitations);
       } catch (error) {
         if (error instanceof Error && error.message === '无权访问此家庭') {
@@ -406,7 +415,7 @@ export class FamilyController {
       }
 
       // 获取时间范围参数
-      const period = req.query.period as string || 'month';
+      const period = (req.query.period as string) || 'month';
       if (!['month', 'last_month', 'year', 'all'].includes(period)) {
         res.status(400).json({ message: '无效的时间范围参数' });
         return;
@@ -495,7 +504,9 @@ export class FamilyController {
 
       // 更新成员角色
       try {
-        const member = await this.familyService.updateFamilyMember(familyId, memberId, userId, { role: req.body.role });
+        const member = await this.familyService.updateFamilyMember(familyId, memberId, userId, {
+          role: req.body.role,
+        });
         res.status(200).json(member);
       } catch (error) {
         if (error instanceof Error && error.message === '无权更新家庭成员') {
@@ -569,7 +580,7 @@ export class FamilyController {
       }
 
       // 获取时间范围参数
-      const period = req.query.period as string || 'month';
+      const period = (req.query.period as string) || 'month';
       if (!['month', 'last_month', 'all'].includes(period)) {
         res.status(400).json({ message: '无效的时间范围参数' });
         return;
@@ -624,7 +635,7 @@ export class FamilyController {
           name: req.body.name,
           gender: req.body.gender,
           birthDate: req.body.birthDate ? new Date(req.body.birthDate) : undefined,
-          role: req.body.role
+          role: req.body.role,
         });
         res.status(201).json(member);
       } catch (error) {
@@ -673,7 +684,7 @@ export class FamilyController {
           name: req.body.name,
           gender: req.body.gender,
           birthDate: req.body.birthDate ? new Date(req.body.birthDate) : undefined,
-          role: req.body.role
+          role: req.body.role,
         });
         res.status(200).json(member);
       } catch (error) {

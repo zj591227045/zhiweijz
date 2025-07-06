@@ -7,7 +7,7 @@ import {
   BudgetHistoryPaginatedResponseDto,
   BudgetHistoryQueryParams,
   UserBudgetHistoryQueryParams,
-  toBudgetHistoryResponseDto
+  toBudgetHistoryResponseDto,
 } from '../models/budget-history.model';
 
 export class BudgetHistoryService {
@@ -37,10 +37,12 @@ export class BudgetHistoryService {
   /**
    * 获取预算历史记录列表
    */
-  async getBudgetHistories(params: BudgetHistoryQueryParams): Promise<BudgetHistoryPaginatedResponseDto> {
+  async getBudgetHistories(
+    params: BudgetHistoryQueryParams,
+  ): Promise<BudgetHistoryPaginatedResponseDto> {
     const { histories, total } = await this.budgetHistoryRepository.findAll(params);
 
-    const data = histories.map(history => toBudgetHistoryResponseDto(history));
+    const data = histories.map((history) => toBudgetHistoryResponseDto(history));
 
     return {
       total,
@@ -55,15 +57,17 @@ export class BudgetHistoryService {
    */
   async getBudgetHistoriesByBudgetId(budgetId: string): Promise<BudgetHistoryResponseDto[]> {
     const histories = await this.budgetHistoryRepository.findByBudgetId(budgetId);
-    return histories.map(history => toBudgetHistoryResponseDto(history));
+    return histories.map((history) => toBudgetHistoryResponseDto(history));
   }
 
   /**
    * 获取用户级别的预算历史记录
    */
-  async getUserBudgetHistories(params: UserBudgetHistoryQueryParams): Promise<BudgetHistoryResponseDto[]> {
+  async getUserBudgetHistories(
+    params: UserBudgetHistoryQueryParams,
+  ): Promise<BudgetHistoryResponseDto[]> {
     const histories = await this.budgetHistoryRepository.findByUserLevel(params);
-    return histories.map(history => toBudgetHistoryResponseDto(history));
+    return histories.map((history) => toBudgetHistoryResponseDto(history));
   }
 
   /**
@@ -83,7 +87,7 @@ export class BudgetHistoryService {
     description?: string,
     budgetAmount?: number,
     spentAmount?: number,
-    previousRollover?: number
+    previousRollover?: number,
   ): Promise<BudgetHistoryResponseDto> {
     // 确定结转类型
     const type = amount >= 0 ? RolloverType.SURPLUS : RolloverType.DEFICIT;
@@ -121,7 +125,7 @@ export class BudgetHistoryService {
       previousRollover,
       userId,
       accountBookId,
-      budgetType
+      budgetType,
     };
 
     return this.createBudgetHistory(data);

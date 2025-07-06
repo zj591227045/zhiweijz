@@ -42,7 +42,8 @@ describe('AccountBookService', () => {
 
     // 初始化模拟实例
     mockAccountBookRepository = new AccountBookRepository() as jest.Mocked<AccountBookRepository>;
-    mockAccountLLMSettingRepository = new AccountLLMSettingRepository() as jest.Mocked<AccountLLMSettingRepository>;
+    mockAccountLLMSettingRepository =
+      new AccountLLMSettingRepository() as jest.Mocked<AccountLLMSettingRepository>;
 
     // 设置模拟方法
     mockAccountBookRepository.create.mockResolvedValue(mockAccountBook);
@@ -146,7 +147,9 @@ describe('AccountBookService', () => {
     it('当账本不存在时应该抛出错误', async () => {
       mockAccountBookRepository.findById.mockResolvedValueOnce(null);
 
-      await expect(accountBookService.getAccountBookById(mockAccountBookId, mockUserId)).rejects.toThrow('账本不存在');
+      await expect(
+        accountBookService.getAccountBookById(mockAccountBookId, mockUserId),
+      ).rejects.toThrow('账本不存在');
     });
 
     it('当用户无权访问账本时应该抛出错误', async () => {
@@ -155,7 +158,9 @@ describe('AccountBookService', () => {
         userId: 'other-user-id',
       });
 
-      await expect(accountBookService.getAccountBookById(mockAccountBookId, mockUserId)).rejects.toThrow('无权访问此账本');
+      await expect(
+        accountBookService.getAccountBookById(mockAccountBookId, mockUserId),
+      ).rejects.toThrow('无权访问此账本');
     });
   });
 
@@ -193,7 +198,11 @@ describe('AccountBookService', () => {
         name: '更新的账本名称',
       };
 
-      const result = await accountBookService.updateAccountBook(mockAccountBookId, mockUserId, updateDto);
+      const result = await accountBookService.updateAccountBook(
+        mockAccountBookId,
+        mockUserId,
+        updateDto,
+      );
 
       expect(mockAccountBookRepository.findById).toHaveBeenCalledWith(mockAccountBookId);
       expect(mockAccountBookRepository.update).toHaveBeenCalledWith(mockAccountBookId, updateDto);
@@ -227,7 +236,9 @@ describe('AccountBookService', () => {
         isDefault: true,
       });
 
-      await expect(accountBookService.deleteAccountBook(mockAccountBookId, mockUserId)).rejects.toThrow('不能删除默认账本');
+      await expect(
+        accountBookService.deleteAccountBook(mockAccountBookId, mockUserId),
+      ).rejects.toThrow('不能删除默认账本');
     });
   });
 
@@ -238,10 +249,17 @@ describe('AccountBookService', () => {
         model: 'gpt-4',
       };
 
-      const result = await accountBookService.updateAccountBookLLMSetting(mockAccountBookId, mockUserId, settingDto);
+      const result = await accountBookService.updateAccountBookLLMSetting(
+        mockAccountBookId,
+        mockUserId,
+        settingDto,
+      );
 
       expect(mockAccountBookRepository.findById).toHaveBeenCalledWith(mockAccountBookId);
-      expect(mockAccountLLMSettingRepository.upsert).toHaveBeenCalledWith(mockAccountBookId, settingDto);
+      expect(mockAccountLLMSettingRepository.upsert).toHaveBeenCalledWith(
+        mockAccountBookId,
+        settingDto,
+      );
       expect(result).toEqual({
         id: 'setting-123',
         accountBookId: mockAccountBookId,

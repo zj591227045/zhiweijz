@@ -20,7 +20,7 @@ export class AdminAuthController {
       if (!username || !password) {
         res.status(400).json({
           success: false,
-          message: '用户名和密码不能为空'
+          message: '用户名和密码不能为空',
         });
         return;
       }
@@ -30,7 +30,7 @@ export class AdminAuthController {
       if (!admin) {
         res.status(401).json({
           success: false,
-          message: '用户名或密码错误'
+          message: '用户名或密码错误',
         });
         return;
       }
@@ -40,7 +40,7 @@ export class AdminAuthController {
       if (!passwordValid) {
         res.status(401).json({
           success: false,
-          message: '用户名或密码错误'
+          message: '用户名或密码错误',
         });
         return;
       }
@@ -52,7 +52,7 @@ export class AdminAuthController {
       const token = generateAdminToken({
         id: admin.id,
         username: admin.username,
-        role: admin.role
+        role: admin.role,
       });
 
       res.json({
@@ -65,15 +65,15 @@ export class AdminAuthController {
             username: admin.username,
             email: admin.email,
             role: admin.role,
-            lastLoginAt: admin.lastLoginAt
-          }
-        }
+            lastLoginAt: admin.lastLoginAt,
+          },
+        },
       });
     } catch (error) {
       console.error('管理员登录错误:', error);
       res.status(500).json({
         success: false,
-        message: '服务器内部错误'
+        message: '服务器内部错误',
       });
     }
   }
@@ -84,11 +84,11 @@ export class AdminAuthController {
   async checkAuth(req: Request, res: Response): Promise<void> {
     try {
       const adminId = req.admin?.id;
-      
+
       if (!adminId) {
         res.status(401).json({
           success: false,
-          message: '未认证'
+          message: '未认证',
         });
         return;
       }
@@ -97,7 +97,7 @@ export class AdminAuthController {
       if (!admin) {
         res.status(401).json({
           success: false,
-          message: '管理员不存在'
+          message: '管理员不存在',
         });
         return;
       }
@@ -110,15 +110,15 @@ export class AdminAuthController {
             username: admin.username,
             email: admin.email,
             role: admin.role,
-            lastLoginAt: admin.lastLoginAt
-          }
-        }
+            lastLoginAt: admin.lastLoginAt,
+          },
+        },
       });
     } catch (error) {
       console.error('检查管理员认证状态错误:', error);
       res.status(500).json({
         success: false,
-        message: '服务器内部错误'
+        message: '服务器内部错误',
       });
     }
   }
@@ -131,13 +131,13 @@ export class AdminAuthController {
       // 由于JWT是无状态的，登出只需要客户端删除token即可
       res.json({
         success: true,
-        message: '登出成功'
+        message: '登出成功',
       });
     } catch (error) {
       console.error('管理员登出错误:', error);
       res.status(500).json({
         success: false,
-        message: '服务器内部错误'
+        message: '服务器内部错误',
       });
     }
   }
@@ -153,7 +153,7 @@ export class AdminAuthController {
       if (!adminId) {
         res.status(401).json({
           success: false,
-          message: '未认证'
+          message: '未认证',
         });
         return;
       }
@@ -161,7 +161,7 @@ export class AdminAuthController {
       if (!oldPassword || !newPassword) {
         res.status(400).json({
           success: false,
-          message: '当前密码和新密码不能为空'
+          message: '当前密码和新密码不能为空',
         });
         return;
       }
@@ -169,7 +169,7 @@ export class AdminAuthController {
       if (newPassword.length < 6) {
         res.status(400).json({
           success: false,
-          message: '新密码长度至少需要6位字符'
+          message: '新密码长度至少需要6位字符',
         });
         return;
       }
@@ -179,7 +179,7 @@ export class AdminAuthController {
       if (!admin) {
         res.status(404).json({
           success: false,
-          message: '管理员不存在'
+          message: '管理员不存在',
         });
         return;
       }
@@ -189,7 +189,7 @@ export class AdminAuthController {
       if (!passwordValid) {
         res.status(400).json({
           success: false,
-          message: '当前密码不正确'
+          message: '当前密码不正确',
         });
         return;
       }
@@ -198,7 +198,7 @@ export class AdminAuthController {
       if (oldPassword === newPassword) {
         res.status(400).json({
           success: false,
-          message: '新密码不能与当前密码相同'
+          message: '新密码不能与当前密码相同',
         });
         return;
       }
@@ -211,14 +211,14 @@ export class AdminAuthController {
 
       res.json({
         success: true,
-        message: '密码修改成功'
+        message: '密码修改成功',
       });
     } catch (error) {
       console.error('管理员修改密码错误:', error);
       res.status(500).json({
         success: false,
-        message: '服务器内部错误'
+        message: '服务器内部错误',
       });
     }
   }
-} 
+}

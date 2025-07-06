@@ -1,6 +1,11 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
-import { LoginRequestDto, RegisterRequestDto, ResetPasswordRequestDto, UpdatePasswordRequestDto } from '../models/auth.model';
+import {
+  LoginRequestDto,
+  RegisterRequestDto,
+  ResetPasswordRequestDto,
+  UpdatePasswordRequestDto,
+} from '../models/auth.model';
 import { CaptchaService } from '../services/captcha.service';
 
 export class AuthController {

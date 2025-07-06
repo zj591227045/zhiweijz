@@ -40,7 +40,10 @@ export class WorkflowManager {
     };
 
     this.registerWorkflowConfig('simple', simpleWorkflowConfig);
-    this.registerWorkflow('simple', new SimpleWorkflow(this.llmProviderService, simpleWorkflowConfig));
+    this.registerWorkflow(
+      'simple',
+      new SimpleWorkflow(this.llmProviderService, simpleWorkflowConfig),
+    );
   }
 
   /**
@@ -102,7 +105,7 @@ export class WorkflowManager {
       systemMessage?: string;
       accountId?: string;
       accountType?: 'personal' | 'family';
-    } = {}
+    } = {},
   ): Promise<SimpleWorkflowState> {
     const workflow = this.getWorkflow<SimpleWorkflowState>('simple');
     return await workflow.run({

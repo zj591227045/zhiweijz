@@ -73,7 +73,7 @@ export class CategoryController {
         type,
         familyId,
         accountBookId,
-        includeHidden
+        includeHidden,
       });
 
       // 如果指定了账本ID，需要获取该账本对应的家庭ID
@@ -88,16 +88,16 @@ export class CategoryController {
               {
                 family: {
                   members: {
-                    some: { userId: userId } // 家庭账本成员
-                  }
-                }
-              }
-            ]
+                    some: { userId: userId }, // 家庭账本成员
+                  },
+                },
+              },
+            ],
           },
           select: {
             familyId: true,
-            type: true
-          }
+            type: true,
+          },
         });
 
         if (accountBook && accountBook.familyId) {
@@ -106,7 +106,12 @@ export class CategoryController {
         }
       }
 
-      const categories = await this.categoryService.getCategories(userId, type, effectiveFamilyId, includeHidden);
+      const categories = await this.categoryService.getCategories(
+        userId,
+        type,
+        effectiveFamilyId,
+        includeHidden,
+      );
       res.status(200).json(categories);
     } catch (error) {
       console.error('获取分类列表失败:', error);
@@ -206,7 +211,11 @@ export class CategoryController {
         return;
       }
 
-      console.log(`开始更新分类排序，用户ID: ${userId}, 分类类型: ${type}, 分类IDs: ${categoryIds.join(', ')}`);
+      console.log(
+        `开始更新分类排序，用户ID: ${userId}, 分类类型: ${type}, 分类IDs: ${categoryIds.join(
+          ', ',
+        )}`,
+      );
 
       await this.categoryService.updateCategoryOrder(userId, categoryIds, type);
       console.log('分类排序更新成功');

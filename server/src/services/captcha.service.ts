@@ -1,17 +1,24 @@
-import { CaptchaTokenData, CaptchaVerifyRequest, CaptchaVerifyResponse } from '../models/captcha.model';
+import {
+  CaptchaTokenData,
+  CaptchaVerifyRequest,
+  CaptchaVerifyResponse,
+} from '../models/captcha.model';
 
 export class CaptchaService {
   /**
    * 验证滑动拼图验证码
    */
-  async verifySlidingPuzzle(token: string, action: 'login' | 'register'): Promise<CaptchaVerifyResponse> {
+  async verifySlidingPuzzle(
+    token: string,
+    action: 'login' | 'register',
+  ): Promise<CaptchaVerifyResponse> {
     try {
       // 解码token
       const decodedData = this.decodeToken(token);
       if (!decodedData) {
         return {
           success: false,
-          message: '验证码格式无效'
+          message: '验证码格式无效',
         };
       }
 
@@ -21,7 +28,7 @@ export class CaptchaService {
       if (now - decodedData.timestamp > maxAge) {
         return {
           success: false,
-          message: '验证码已过期'
+          message: '验证码已过期',
         };
       }
 
@@ -31,7 +38,7 @@ export class CaptchaService {
       if (positionDiff > tolerance) {
         return {
           success: false,
-          message: '验证失败，请重试'
+          message: '验证失败，请重试',
         };
       }
 
@@ -39,20 +46,20 @@ export class CaptchaService {
       if (decodedData.duration < 300 || decodedData.duration > 15000) {
         return {
           success: false,
-          message: '操作时间异常'
+          message: '操作时间异常',
         };
       }
 
       // 验证成功
       return {
         success: true,
-        message: '验证成功'
+        message: '验证成功',
       };
     } catch (error) {
       console.error('验证码验证失败:', error);
       return {
         success: false,
-        message: '验证失败'
+        message: '验证失败',
       };
     }
   }
@@ -64,7 +71,7 @@ export class CaptchaService {
     try {
       const decoded = Buffer.from(token, 'base64').toString('utf-8');
       const data = JSON.parse(decoded);
-      
+
       // 验证数据结构
       if (
         typeof data.timestamp === 'number' &&
@@ -74,7 +81,7 @@ export class CaptchaService {
       ) {
         return data as CaptchaTokenData;
       }
-      
+
       return null;
     } catch (error) {
       console.error('解码验证码token失败:', error);
@@ -90,9 +97,9 @@ export class CaptchaService {
       timestamp: Date.now(),
       position,
       target,
-      duration
+      duration,
     };
-    
+
     return Buffer.from(JSON.stringify(data)).toString('base64');
   }
 }

@@ -12,9 +12,11 @@ router.post('/login', (req, res) => adminAuthController.login(req, res));
 router.get('/check', authenticateAdmin, (req, res) => adminAuthController.checkAuth(req, res));
 
 // 管理员修改密码
-router.post('/change-password', authenticateAdmin, (req, res) => adminAuthController.changePassword(req, res));
+router.post('/change-password', authenticateAdmin, (req, res) =>
+  adminAuthController.changePassword(req, res),
+);
 
 // 管理员登出
 router.post('/logout', authenticateAdmin, (req, res) => adminAuthController.logout(req, res));
 
-export default router; 
+export default router;

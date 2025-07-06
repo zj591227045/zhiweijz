@@ -5,7 +5,7 @@ import { UserRepository } from '../repositories/user.repository';
 // 定义角色枚举
 enum Role {
   ADMIN = 'ADMIN',
-  MEMBER = 'MEMBER'
+  MEMBER = 'MEMBER',
 }
 
 // 模拟依赖
@@ -44,7 +44,7 @@ describe('FamilyService', () => {
         email: 'test@example.com',
         passwordHash: 'hash',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // 模拟家庭
@@ -53,7 +53,7 @@ describe('FamilyService', () => {
         name: familyData.name,
         createdBy: userId,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // 模拟家庭成员
@@ -65,7 +65,7 @@ describe('FamilyService', () => {
         role: Role.ADMIN,
         isRegistered: true,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // 设置模拟返回值
@@ -95,7 +95,7 @@ describe('FamilyService', () => {
         userId,
         name: mockUser.name,
         role: Role.ADMIN,
-        isRegistered: true
+        isRegistered: true,
       });
     });
   });
@@ -115,7 +115,7 @@ describe('FamilyService', () => {
         role: Role.MEMBER,
         isRegistered: true,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       familyRepository.findFamilyMemberByUserAndFamily.mockResolvedValue(mockFamilyMember);
@@ -127,7 +127,10 @@ describe('FamilyService', () => {
       expect(result).toBe(true);
 
       // 验证仓库方法调用
-      expect(familyRepository.findFamilyMemberByUserAndFamily).toHaveBeenCalledWith(userId, familyId);
+      expect(familyRepository.findFamilyMemberByUserAndFamily).toHaveBeenCalledWith(
+        userId,
+        familyId,
+      );
     });
 
     it('should return false if user is not a family member', async () => {
@@ -145,7 +148,10 @@ describe('FamilyService', () => {
       expect(result).toBe(false);
 
       // 验证仓库方法调用
-      expect(familyRepository.findFamilyMemberByUserAndFamily).toHaveBeenCalledWith(userId, familyId);
+      expect(familyRepository.findFamilyMemberByUserAndFamily).toHaveBeenCalledWith(
+        userId,
+        familyId,
+      );
     });
   });
 });

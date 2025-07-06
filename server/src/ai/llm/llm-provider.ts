@@ -46,5 +46,8 @@ export interface LLMProvider {
    * @param options LLM提供商选项
    * @returns 生成的响应和token使用量信息
    */
-  generateChatWithUsage?(messages: Message[] | BaseMessage[], options: LLMProviderOptions): Promise<LLMResponse>;
+  generateChatWithUsage?(
+    messages: Message[] | BaseMessage[],
+    options: LLMProviderOptions,
+  ): Promise<LLMResponse>;
 }

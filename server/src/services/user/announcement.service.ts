@@ -9,7 +9,7 @@ export const announcementService = {
       // 获取用户注册时间
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { createdAt: true }
+        select: { createdAt: true },
       });
 
       if (!user) {
@@ -22,38 +22,38 @@ export const announcementService = {
           status: 'PUBLISHED',
           publishedAt: {
             gte: user.createdAt, // 只显示用户注册后发布的公告
-            lte: new Date() // 不显示未来发布的公告
+            lte: new Date(), // 不显示未来发布的公告
           },
           OR: [
             { expiresAt: null }, // 永不过期
-            { expiresAt: { gt: new Date() } } // 未过期
-          ]
+            { expiresAt: { gt: new Date() } }, // 未过期
+          ],
         },
         orderBy: [
           { priority: 'desc' }, // 优先级高的在前
-          { publishedAt: 'desc' } // 发布时间新的在前
-        ]
+          { publishedAt: 'desc' }, // 发布时间新的在前
+        ],
       });
 
       // 获取用户已读的公告ID列表
       const readAnnouncements = await prisma.announcementRead.findMany({
-        where: { 
+        where: {
           userId,
-          announcementId: { in: announcements.map(a => a.id) }
+          announcementId: { in: announcements.map((a) => a.id) },
         },
-        select: { announcementId: true }
+        select: { announcementId: true },
       });
-      const readIds = new Set(readAnnouncements.map(r => r.announcementId));
+      const readIds = new Set(readAnnouncements.map((r) => r.announcementId));
 
       // 转换数据格式，添加已读状态
-      const result = announcements.map(announcement => ({
+      const result = announcements.map((announcement) => ({
         id: announcement.id,
         title: announcement.title,
         content: announcement.content,
         priority: announcement.priority,
         publishedAt: announcement.publishedAt?.toISOString() || '',
         expiresAt: announcement.expiresAt?.toISOString() || null,
-        isRead: readIds.has(announcement.id)
+        isRead: readIds.has(announcement.id),
       }));
 
       return result;
@@ -70,8 +70,8 @@ export const announcementService = {
       const announcement = await prisma.announcement.findFirst({
         where: {
           id: announcementId,
-          status: 'PUBLISHED'
-        }
+          status: 'PUBLISHED',
+        },
       });
 
       if (!announcement) {
@@ -82,8 +82,8 @@ export const announcementService = {
       const existingRead = await prisma.announcementRead.findFirst({
         where: {
           announcementId,
-          userId
-        }
+          userId,
+        },
       });
 
       if (existingRead) {
@@ -96,8 +96,8 @@ export const announcementService = {
         data: {
           userId,
           announcementId,
-          readAt: new Date()
-        }
+          readAt: new Date(),
+        },
       });
 
       return true;
@@ -113,7 +113,7 @@ export const announcementService = {
       // 获取用户注册时间
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { createdAt: true }
+        select: { createdAt: true },
       });
 
       if (!user) {
@@ -126,43 +126,40 @@ export const announcementService = {
           status: 'PUBLISHED',
           publishedAt: {
             gte: user.createdAt,
-            lte: new Date()
+            lte: new Date(),
           },
-          OR: [
-            { expiresAt: null },
-            { expiresAt: { gt: new Date() } }
-          ]
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
-        select: { id: true }
+        select: { id: true },
       });
 
       // 获取已读的公告ID
       const readAnnouncements = await prisma.announcementRead.findMany({
-        where: { 
+        where: {
           userId,
-          announcementId: { in: allAnnouncements.map(a => a.id) }
+          announcementId: { in: allAnnouncements.map((a) => a.id) },
         },
-        select: { announcementId: true }
+        select: { announcementId: true },
       });
-      const readIds = new Set(readAnnouncements.map(r => r.announcementId));
+      const readIds = new Set(readAnnouncements.map((r) => r.announcementId));
 
       // 筛选出未读的公告
-      const unreadAnnouncements = allAnnouncements.filter(a => !readIds.has(a.id));
+      const unreadAnnouncements = allAnnouncements.filter((a) => !readIds.has(a.id));
 
       if (unreadAnnouncements.length === 0) {
         return 0;
       }
 
       // 批量创建已读记录
-      const readRecords = unreadAnnouncements.map(announcement => ({
+      const readRecords = unreadAnnouncements.map((announcement) => ({
         userId,
         announcementId: announcement.id,
-        readAt: new Date()
+        readAt: new Date(),
       }));
 
       await prisma.announcementRead.createMany({
         data: readRecords,
-        skipDuplicates: true
+        skipDuplicates: true,
       });
 
       return unreadAnnouncements.length;
@@ -170,5 +167,5 @@ export const announcementService = {
       console.error('标记全部已读失败:', error);
       throw error;
     }
-  }
-}; 
+  },
+};

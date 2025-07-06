@@ -20,9 +20,9 @@ export function authenticateAdmin(req: Request, res: Response, next: NextFunctio
     // 从请求头中获取令牌
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-      res.status(401).json({ 
+      res.status(401).json({
         success: false,
-        message: '未提供管理员认证令牌' 
+        message: '未提供管理员认证令牌',
       });
       return;
     }
@@ -30,9 +30,9 @@ export function authenticateAdmin(req: Request, res: Response, next: NextFunctio
     // 验证令牌格式
     const parts = authHeader.split(' ');
     if (parts.length !== 2 || parts[0] !== 'Bearer') {
-      res.status(401).json({ 
+      res.status(401).json({
         success: false,
-        message: '管理员认证令牌格式不正确' 
+        message: '管理员认证令牌格式不正确',
       });
       return;
     }
@@ -41,21 +41,21 @@ export function authenticateAdmin(req: Request, res: Response, next: NextFunctio
 
     // 验证令牌
     const decoded = verifyAdminToken(token);
-    
+
     // 将管理员信息添加到请求对象中
     req.admin = decoded;
 
     next();
   } catch (error) {
     if (error instanceof Error) {
-      res.status(401).json({ 
+      res.status(401).json({
         success: false,
-        message: error.message 
+        message: error.message,
       });
     } else {
-      res.status(401).json({ 
+      res.status(401).json({
         success: false,
-        message: '管理员认证失败' 
+        message: '管理员认证失败',
       });
     }
   }
@@ -70,7 +70,7 @@ export function requireSuperAdmin(req: Request, res: Response, next: NextFunctio
     if (!req.admin) {
       res.status(401).json({
         success: false,
-        message: '未认证'
+        message: '未认证',
       });
       return;
     }
@@ -78,7 +78,7 @@ export function requireSuperAdmin(req: Request, res: Response, next: NextFunctio
     if (req.admin.role !== admin_role.SUPER_ADMIN) {
       res.status(403).json({
         success: false,
-        message: '需要超级管理员权限'
+        message: '需要超级管理员权限',
       });
       return;
     }
@@ -87,7 +87,7 @@ export function requireSuperAdmin(req: Request, res: Response, next: NextFunctio
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: '权限验证失败'
+      message: '权限验证失败',
     });
   }
 }
@@ -101,7 +101,7 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction): v
     if (!req.admin) {
       res.status(401).json({
         success: false,
-        message: '未认证'
+        message: '未认证',
       });
       return;
     }
@@ -109,7 +109,7 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction): v
     if (req.admin.role !== admin_role.ADMIN && req.admin.role !== admin_role.SUPER_ADMIN) {
       res.status(403).json({
         success: false,
-        message: '需要管理员权限'
+        message: '需要管理员权限',
       });
       return;
     }
@@ -118,7 +118,7 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction): v
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: '权限验证失败'
+      message: '权限验证失败',
     });
   }
-} 
+}

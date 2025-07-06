@@ -31,7 +31,9 @@ export class StatisticsController {
       }
 
       // 解析查询参数
-      const startDate = value.startDate ? new Date(value.startDate) : new Date(new Date().setMonth(new Date().getMonth() - 1));
+      const startDate = value.startDate
+        ? new Date(value.startDate)
+        : new Date(new Date().setMonth(new Date().getMonth() - 1));
       const endDate = value.endDate ? new Date(value.endDate) : new Date();
       const groupBy = (value.groupBy || 'day') as 'day' | 'week' | 'month' | 'category';
       const familyId = value.familyId;
@@ -45,7 +47,7 @@ export class StatisticsController {
           endDate,
           groupBy,
           familyId,
-          accountBookId
+          accountBookId,
         );
         res.status(200).json(statistics);
       } catch (error) {
@@ -80,7 +82,9 @@ export class StatisticsController {
       }
 
       // 解析查询参数
-      const startDate = value.startDate ? new Date(value.startDate) : new Date(new Date().setMonth(new Date().getMonth() - 1));
+      const startDate = value.startDate
+        ? new Date(value.startDate)
+        : new Date(new Date().setMonth(new Date().getMonth() - 1));
       const endDate = value.endDate ? new Date(value.endDate) : new Date();
       const groupBy = (value.groupBy || 'day') as 'day' | 'week' | 'month' | 'category';
       const familyId = value.familyId;
@@ -94,7 +98,7 @@ export class StatisticsController {
           endDate,
           groupBy,
           familyId,
-          accountBookId
+          accountBookId,
         );
         res.status(200).json(statistics);
       } catch (error) {
@@ -124,7 +128,7 @@ export class StatisticsController {
       console.log('预算统计请求参数:', {
         userId,
         query: req.query,
-        headers: req.headers
+        headers: req.headers,
       });
 
       // 验证查询参数
@@ -136,7 +140,9 @@ export class StatisticsController {
       }
 
       // 解析查询参数
-      const month = value.month || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+      const month =
+        value.month ||
+        `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
       const familyId = value.familyId;
       const accountBookId = value.accountBookId;
 
@@ -144,7 +150,7 @@ export class StatisticsController {
         userId,
         month,
         familyId,
-        accountBookId
+        accountBookId,
       });
 
       // 获取预算执行情况
@@ -153,7 +159,7 @@ export class StatisticsController {
           userId,
           month,
           familyId,
-          accountBookId
+          accountBookId,
         );
         console.log('预算统计成功返回');
         res.status(200).json(statistics);
@@ -197,7 +203,9 @@ export class StatisticsController {
       }
 
       // 解析查询参数
-      const startDate = value.startDate ? new Date(value.startDate) : new Date(new Date().setMonth(new Date().getMonth() - 1));
+      const startDate = value.startDate
+        ? new Date(value.startDate)
+        : new Date(new Date().setMonth(new Date().getMonth() - 1));
       const endDate = value.endDate ? new Date(value.endDate) : new Date();
       const groupBy = (value.groupBy || 'day') as 'day' | 'week' | 'month' | 'category';
       const familyId = value.familyId;
@@ -205,7 +213,11 @@ export class StatisticsController {
       const budgetId = value.budgetId;
       const type = value.type;
       const categoryIds = value.categoryIds ? value.categoryIds.split(',') : undefined;
-      const tagIds = value.tagIds ? (Array.isArray(value.tagIds) ? value.tagIds : [value.tagIds]) : undefined;
+      const tagIds = value.tagIds
+        ? Array.isArray(value.tagIds)
+          ? value.tagIds
+          : [value.tagIds]
+        : undefined;
 
       // 获取财务概览
       try {
@@ -219,7 +231,7 @@ export class StatisticsController {
           budgetId,
           type,
           categoryIds,
-          tagIds
+          tagIds,
         );
         res.status(200).json(overview);
       } catch (error) {
@@ -254,10 +266,16 @@ export class StatisticsController {
       }
 
       // 解析查询参数
-      const startDate = value.startDate ? new Date(value.startDate) : new Date(new Date().setMonth(new Date().getMonth() - 1));
+      const startDate = value.startDate
+        ? new Date(value.startDate)
+        : new Date(new Date().setMonth(new Date().getMonth() - 1));
       const endDate = value.endDate ? new Date(value.endDate) : new Date();
       const accountBookId = value.accountBookId;
-      const tagIds = value.tagIds ? (Array.isArray(value.tagIds) ? value.tagIds : [value.tagIds]) : undefined;
+      const tagIds = value.tagIds
+        ? Array.isArray(value.tagIds)
+          ? value.tagIds
+          : [value.tagIds]
+        : undefined;
       const transactionType = value.type as 'income' | 'expense' | undefined;
       const categoryIds = value.categoryIds ? value.categoryIds.split(',') : undefined;
 
@@ -275,7 +293,7 @@ export class StatisticsController {
           endDate,
           tagIds,
           transactionType,
-          categoryIds
+          categoryIds,
         );
         res.status(200).json(statistics);
       } catch (error) {

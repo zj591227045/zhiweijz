@@ -70,18 +70,18 @@ export class AIController {
             {
               type: 'FAMILY',
               familyId: {
-                not: null
+                not: null,
               },
               family: {
                 members: {
                   some: {
-                    userId
-                  }
-                }
-              }
-            }
-          ]
-        }
+                    userId,
+                  },
+                },
+              },
+            },
+          ],
+        },
       });
 
       if (!accountBook) {
@@ -93,7 +93,7 @@ export class AIController {
         description,
         userId,
         accountId,
-        accountBook.type
+        accountBook.type,
       );
 
       if (!result) {
@@ -104,9 +104,9 @@ export class AIController {
       if ('error' in result) {
         // 检查是否是Token限额错误
         if (result.error.includes('Token使用受限')) {
-          return res.status(429).json({ 
+          return res.status(429).json({
             error: result.error,
-            type: 'TOKEN_LIMIT_EXCEEDED'
+            type: 'TOKEN_LIMIT_EXCEEDED',
           });
         }
         // 其他错误（如内容与记账无关）
@@ -133,15 +133,16 @@ export class AIController {
       // 如果有用户信息，使用多提供商优先级逻辑
       if (userId) {
         const settings = await this.llmProviderService.getLLMSettings(userId);
-        
+
         // 如果是多提供商模式，返回多提供商配置信息
         if (settings.isMultiProvider) {
           // 获取多提供商配置概览
-          const multiProviderConfig = await this.llmProviderService.multiProviderService.loadMultiProviderConfig();
-          
+          const multiProviderConfig =
+            await this.llmProviderService.multiProviderService.loadMultiProviderConfig();
+
           if (multiProviderConfig?.enabled) {
-            const activeProviders = multiProviderConfig.providers.filter(p => p.enabled);
-            
+            const activeProviders = multiProviderConfig.providers.filter((p) => p.enabled);
+
             res.json({
               success: true,
               data: {
@@ -153,13 +154,13 @@ export class AIController {
                 maxTokens: 1000,
                 isMultiProvider: true,
                 providersCount: activeProviders.length,
-                primaryProvider: activeProviders.length > 0 ? activeProviders[0].name : null
-              }
+                primaryProvider: activeProviders.length > 0 ? activeProviders[0].name : null,
+              },
             });
             return;
           }
         }
-        
+
         // 否则返回实际的LLM设置（移除敏感信息）
         res.json({
           success: true,
@@ -169,25 +170,25 @@ export class AIController {
             model: settings.model,
             baseUrl: settings.baseUrl,
             temperature: settings.temperature,
-            maxTokens: settings.maxTokens
-          }
+            maxTokens: settings.maxTokens,
+          },
         });
         return;
       }
 
       // 如果没有用户信息，回退到原有逻辑
       const globalConfig = await this.llmProviderService.getGlobalLLMConfig();
-      
+
       res.json({
         success: true,
-        data: globalConfig
+        data: globalConfig,
       });
     } catch (error) {
       console.error('获取全局LLM配置错误:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
         error: '获取全局LLM配置失败',
-        data: { enabled: false }
+        data: { enabled: false },
       });
     }
   }
@@ -211,7 +212,7 @@ export class AIController {
       // 移除敏感信息
       const safeSettings = {
         ...settings,
-        apiKey: settings.apiKey ? '******' : null
+        apiKey: settings.apiKey ? '******' : null,
       };
 
       res.json(safeSettings);
@@ -233,7 +234,8 @@ export class AIController {
       console.log('用户信息:', req.user);
 
       const userId = req.user?.id;
-      const { name, provider, model, apiKey, temperature, maxTokens, baseUrl, description } = req.body;
+      const { name, provider, model, apiKey, temperature, maxTokens, baseUrl, description } =
+        req.body;
 
       console.log('解析的参数:', {
         userId,
@@ -244,7 +246,7 @@ export class AIController {
         temperature,
         maxTokens,
         baseUrl,
-        description
+        description,
       });
 
       if (!userId) {
@@ -268,7 +270,7 @@ export class AIController {
         temperature,
         maxTokens,
         baseUrl,
-        description
+        description,
       });
 
       console.log('成功创建用户LLM设置，ID:', settingId);
@@ -304,14 +306,14 @@ export class AIController {
       try {
         // 查找账本
         const accountBook = await this.prisma.accountBook.findUnique({
-          where: { id: accountId }
+          where: { id: accountId },
         });
 
         // 如果账本不存在
         if (!accountBook) {
           return res.status(404).json({
             bound: false,
-            error: '账本不存在'
+            error: '账本不存在',
           });
         }
 
@@ -320,13 +322,13 @@ export class AIController {
           console.log(`账本 ${accountId} 未绑定LLM服务`);
           return res.status(200).json({
             bound: false,
-            message: '账本未绑定LLM服务'
+            message: '账本未绑定LLM服务',
           });
         }
 
         // 查找关联的UserLLMSetting
         const userLLMSetting = await this.prisma.userLLMSetting.findUnique({
-          where: { id: accountBook.userLLMSettingId }
+          where: { id: accountBook.userLLMSettingId },
         });
 
         // 如果找不到关联的UserLLMSetting
@@ -334,7 +336,7 @@ export class AIController {
           console.log(`账本 ${accountId} 绑定的LLM服务 ${accountBook.userLLMSettingId} 不存在`);
           return res.status(200).json({
             bound: false,
-            message: '账本绑定的LLM服务不存在'
+            message: '账本绑定的LLM服务不存在',
           });
         }
 
@@ -342,10 +344,7 @@ export class AIController {
         console.log(`账本 ${accountId} 已绑定LLM服务 ${userLLMSetting.id}`);
 
         // 获取账本LLM设置
-        const settings = await this.llmProviderService.getLLMSettings(
-          userId,
-          accountId
-        );
+        const settings = await this.llmProviderService.getLLMSettings(userId, accountId);
 
         // 移除敏感信息
         const safeSettings = {
@@ -358,7 +357,7 @@ export class AIController {
           temperature: settings.temperature,
           maxTokens: settings.maxTokens,
           baseUrl: settings.baseUrl,
-          description: userLLMSetting.description
+          description: userLLMSetting.description,
         };
 
         return res.json(safeSettings);
@@ -366,14 +365,14 @@ export class AIController {
         console.error('检查账本LLM服务绑定错误:', error);
         return res.status(500).json({
           bound: false,
-          error: '处理请求时出错'
+          error: '处理请求时出错',
         });
       }
     } catch (error) {
       console.error('获取账本LLM设置错误:', error);
       return res.status(500).json({
         bound: false,
-        error: '处理请求时出错'
+        error: '处理请求时出错',
       });
     }
   }
@@ -404,16 +403,17 @@ export class AIController {
       }
 
       // 验证LLM设置是否可访问（对于家庭账本，允许使用家庭成员的LLM设置）
-      const canAccessLLMSetting = await this.checkLLMSettingAccess(userId, accountId, userLLMSettingId);
+      const canAccessLLMSetting = await this.checkLLMSettingAccess(
+        userId,
+        accountId,
+        userLLMSettingId,
+      );
       if (!canAccessLLMSetting) {
         return res.status(403).json({ error: '无权使用该LLM设置' });
       }
 
       // 更新账本LLM设置
-      await this.llmProviderService.updateAccountLLMSettings(
-        accountId,
-        userLLMSettingId
-      );
+      await this.llmProviderService.updateAccountLLMSettings(accountId, userLLMSettingId);
 
       res.json({ success: true });
     } catch (error) {
@@ -466,13 +466,13 @@ export class AIController {
                     where: { userId: { not: null } },
                     include: {
                       user: {
-                        select: { id: true }
-                      }
-                    }
-                  }
-                }
-              }
-            }
+                        select: { id: true },
+                      },
+                    },
+                  },
+                },
+              },
+            },
           });
 
           if (accountBook) {
@@ -481,8 +481,8 @@ export class AIController {
             // 如果是家庭账本，包含所有家庭成员的LLM设置
             if (accountBook.type === 'FAMILY' && accountBook.family) {
               const familyUserIds = accountBook.family.members
-                .filter(member => member.user)
-                .map(member => member.user!.id);
+                .filter((member) => member.user)
+                .map((member) => member.user!.id);
               userIds = [...new Set([...userIds, ...familyUserIds])];
               console.log(`家庭账本，包含家庭成员用户IDs:`, familyUserIds);
             }
@@ -523,20 +523,22 @@ export class AIController {
         }
 
         // 转换字段名称为驼峰命名，并添加所有者信息
-        const formattedSettings = Array.isArray(settings) ? settings.map(setting => ({
-          id: setting.id,
-          name: setting.name,
-          provider: setting.provider,
-          model: setting.model,
-          temperature: setting.temperature,
-          maxTokens: setting.max_tokens,
-          createdAt: setting.created_at,
-          updatedAt: setting.updated_at,
-          description: setting.description,
-          baseUrl: setting.base_url,
-          userId: setting.user_id,
-          isOwner: setting.user_id === userId // 标记是否为当前用户创建的设置
-        })) : [];
+        const formattedSettings = Array.isArray(settings)
+          ? settings.map((setting) => ({
+              id: setting.id,
+              name: setting.name,
+              provider: setting.provider,
+              model: setting.model,
+              temperature: setting.temperature,
+              maxTokens: setting.max_tokens,
+              createdAt: setting.created_at,
+              updatedAt: setting.updated_at,
+              description: setting.description,
+              baseUrl: setting.base_url,
+              userId: setting.user_id,
+              isOwner: setting.user_id === userId, // 标记是否为当前用户创建的设置
+            }))
+          : [];
 
         console.log('返回格式化后的LLM设置列表');
         console.log('响应数据:', formattedSettings);
@@ -615,7 +617,7 @@ export class AIController {
           createdAt: setting.created_at,
           updatedAt: setting.updated_at,
           description: setting.description,
-          baseUrl: setting.base_url
+          baseUrl: setting.base_url,
         };
 
         console.log('返回LLM设置详情:', formattedSetting);
@@ -639,7 +641,8 @@ export class AIController {
     try {
       const userId = req.user?.id;
       const { id } = req.params;
-      const { name, provider, model, apiKey, temperature, maxTokens, baseUrl, description } = req.body;
+      const { name, provider, model, apiKey, temperature, maxTokens, baseUrl, description } =
+        req.body;
 
       if (!userId) {
         return res.status(401).json({ error: '未授权' });
@@ -649,8 +652,8 @@ export class AIController {
       const setting = await this.prisma.userLLMSetting.findFirst({
         where: {
           id,
-          userId
-        }
+          userId,
+        },
       });
 
       if (!setting) {
@@ -671,7 +674,7 @@ export class AIController {
       // 更新设置
       await this.prisma.userLLMSetting.update({
         where: { id },
-        data: updateData
+        data: updateData,
       });
 
       res.json({ success: true });
@@ -699,8 +702,8 @@ export class AIController {
       const setting = await this.prisma.userLLMSetting.findFirst({
         where: {
           id,
-          userId
-        }
+          userId,
+        },
       });
 
       if (!setting) {
@@ -709,7 +712,7 @@ export class AIController {
 
       // 删除设置
       await this.prisma.userLLMSetting.delete({
-        where: { id }
+        where: { id },
       });
 
       res.json({ success: true });
@@ -744,17 +747,17 @@ export class AIController {
         const userSettings = await this.prisma.userLLMSetting.findFirst({
           where: {
             userId,
-            provider
+            provider,
           },
           select: {
-            apiKey: true
-          }
+            apiKey: true,
+          },
         });
 
         if (!userSettings || !userSettings.apiKey) {
           return res.status(400).json({
             success: false,
-            message: '未找到现有API密钥，请提供新的API密钥'
+            message: '未找到现有API密钥，请提供新的API密钥',
           });
         }
 
@@ -762,7 +765,7 @@ export class AIController {
       } else if (!apiKey) {
         return res.status(400).json({
           success: false,
-          message: 'API密钥不能为空'
+          message: 'API密钥不能为空',
         });
       }
 
@@ -771,18 +774,18 @@ export class AIController {
         provider,
         model,
         apiKey: testApiKey,
-        baseUrl
+        baseUrl,
       });
 
       res.json({
         success: result.success,
-        message: result.message
+        message: result.message,
       });
     } catch (error) {
       console.error('测试LLM连接错误:', error);
       res.status(500).json({
         success: false,
-        message: '测试连接时出错'
+        message: '测试连接时出错',
       });
     }
   }
@@ -818,18 +821,18 @@ export class AIController {
             {
               type: 'FAMILY',
               familyId: {
-                not: null
+                not: null,
               },
               family: {
                 members: {
                   some: {
-                    userId: requestUserId
-                  }
-                }
-              }
-            }
-          ]
-        }
+                    userId: requestUserId,
+                  },
+                },
+              },
+            },
+          ],
+        },
       });
 
       if (!accountBook) {
@@ -843,7 +846,7 @@ export class AIController {
       // 如果提供了用户名称且是家庭账本，查找对应的家庭成员
       if (userName && accountBook.type === 'FAMILY' && accountBook.familyId) {
         console.log(`🔍 [用户识别] 查找家庭成员: ${userName}`);
-        
+
         // 查找家庭成员
         const familyMember = await this.prisma.familyMember.findFirst({
           where: {
@@ -852,14 +855,14 @@ export class AIController {
               { name: userName },
               {
                 user: {
-                  name: userName
-                }
-              }
-            ]
+                  name: userName,
+                },
+              },
+            ],
           },
           include: {
-            user: true
-          }
+            user: true,
+          },
         });
 
         if (familyMember && familyMember.userId) {
@@ -871,7 +874,7 @@ export class AIController {
           // 获取请求发起人的名称
           const requestUser = await this.prisma.user.findUnique({
             where: { id: requestUserId },
-            select: { name: true }
+            select: { name: true },
           });
           actualUserName = requestUser?.name || 'Unknown';
         }
@@ -879,7 +882,7 @@ export class AIController {
         // 个人账本或未提供用户名，使用请求发起人
         const requestUser = await this.prisma.user.findUnique({
           where: { id: requestUserId },
-          select: { name: true }
+          select: { name: true },
         });
         actualUserName = requestUser?.name || 'Unknown';
       }
@@ -892,7 +895,7 @@ export class AIController {
         actualUserId, // 使用实际的记账用户ID，这样预算匹配会优先使用该用户的预算
         accountBookId,
         accountBook.type,
-        includeDebugInfo || false
+        includeDebugInfo || false,
       );
 
       if (!smartResult) {
@@ -903,9 +906,9 @@ export class AIController {
       if ('error' in smartResult) {
         // 检查是否是Token限额错误
         if (smartResult.error.includes('Token使用受限')) {
-          return res.status(429).json({ 
+          return res.status(429).json({
             error: smartResult.error,
-            type: 'TOKEN_LIMIT_EXCEEDED'
+            type: 'TOKEN_LIMIT_EXCEEDED',
           });
         }
         // 其他错误（如内容与记账无关）
@@ -923,7 +926,7 @@ export class AIController {
           now.getHours(),
           now.getMinutes(),
           now.getSeconds(),
-          now.getMilliseconds()
+          now.getMilliseconds(),
         );
 
         // 如果是家庭账本，确定家庭成员ID
@@ -933,15 +936,17 @@ export class AIController {
           const familyMember = await this.prisma.familyMember.findFirst({
             where: {
               familyId: accountBook.familyId,
-              userId: actualUserId
-            }
+              userId: actualUserId,
+            },
           });
-          
+
           if (familyMember) {
             familyMemberId = familyMember.id;
             console.log(`👨‍👩‍👧‍👦 [家庭成员] 设置家庭成员ID: ${familyMemberId}`);
           } else {
-            console.log(`⚠️ [家庭成员] 用户 ${actualUserId} 不是家庭 ${accountBook.familyId} 的成员`);
+            console.log(
+              `⚠️ [家庭成员] 用户 ${actualUserId} 不是家庭 ${accountBook.familyId} 的成员`,
+            );
           }
         }
 
@@ -957,19 +962,19 @@ export class AIController {
           familyId: accountBook.type === 'FAMILY' ? accountBook.familyId : null,
           familyMemberId: familyMemberId,
           // 预算ID如果有的话
-          budgetId: (smartResult as any).budgetId || null
+          budgetId: (smartResult as any).budgetId || null,
         };
 
         console.log(`💾 [交易创建] 创建交易记录:`, {
           amount: transactionData.amount,
           userId: transactionData.userId,
           familyMemberId: transactionData.familyMemberId,
-          budgetId: transactionData.budgetId
+          budgetId: transactionData.budgetId,
         });
 
         // 创建交易记录
         const transaction = await this.prisma.transaction.create({
-          data: transactionData
+          data: transactionData,
         });
 
         console.log(`✅ [交易创建] 交易记录创建成功: ${transaction.id}`);
@@ -977,14 +982,14 @@ export class AIController {
         // 返回创建的交易记录
         res.status(201).json({
           ...transaction,
-          smartAccountingResult: smartResult
+          smartAccountingResult: smartResult,
         });
       } catch (createError) {
         console.error('创建交易记录错误:', createError);
         // 即使创建失败，也返回智能记账结果
         res.status(500).json({
           error: '创建交易记录失败',
-          smartAccountingResult: smartResult
+          smartAccountingResult: smartResult,
         });
       }
     } catch (error) {
@@ -1025,18 +1030,18 @@ export class AIController {
             {
               type: 'FAMILY',
               familyId: {
-                not: null
+                not: null,
               },
               family: {
                 members: {
                   some: {
-                    userId
-                  }
-                }
-              }
-            }
-          ]
-        }
+                    userId,
+                  },
+                },
+              },
+            },
+          ],
+        },
       });
 
       if (!accountBook) {
@@ -1048,7 +1053,7 @@ export class AIController {
         description,
         userId,
         accountId,
-        accountBook.type
+        accountBook.type,
       );
 
       if (!result) {
@@ -1059,9 +1064,9 @@ export class AIController {
       if ('error' in result) {
         // 检查是否是Token限额错误
         if (result.error.includes('Token使用受限')) {
-          return res.status(429).json({ 
+          return res.status(429).json({
             error: result.error,
-            type: 'TOKEN_LIMIT_EXCEEDED'
+            type: 'TOKEN_LIMIT_EXCEEDED',
           });
         }
         // 其他错误（如内容与记账无关）
@@ -1083,24 +1088,24 @@ export class AIController {
           now.getHours(),
           now.getMinutes(),
           now.getSeconds(),
-          now.getMilliseconds()
+          now.getMilliseconds(),
         );
 
         // 如果是家庭账本，需要通过预算ID确定家庭成员ID
         let familyMemberId = null;
         if (accountBook.type === 'FAMILY' && accountBook.familyId) {
           const budgetId = smartResult.budgetId;
-          
+
           if (budgetId) {
             // 通过预算ID查找预算记录
             const budget = await this.prisma.budget.findUnique({
               where: { id: budgetId },
               include: {
                 familyMember: true,
-                user: true
-              }
+                user: true,
+              },
             });
-            
+
             if (budget) {
               if (budget.familyMemberId) {
                 // 预算直接关联到家庭成员（旧架构的托管成员预算）
@@ -1111,8 +1116,8 @@ export class AIController {
                 const familyMember = await this.prisma.familyMember.findFirst({
                   where: {
                     familyId: accountBook.familyId,
-                    userId: budget.userId
-                  }
+                    userId: budget.userId,
+                  },
                 });
 
                 if (familyMember) {
@@ -1121,16 +1126,16 @@ export class AIController {
               }
             }
           }
-          
+
           // 如果通过预算无法确定家庭成员ID，则使用当前用户作为备选方案
           if (!familyMemberId) {
             const familyMember = await this.prisma.familyMember.findFirst({
               where: {
                 familyId: accountBook.familyId,
-                userId: userId
-              }
+                userId: userId,
+              },
             });
-            
+
             if (familyMember) {
               familyMemberId = familyMember.id;
             }
@@ -1149,25 +1154,25 @@ export class AIController {
           familyId: accountBook.type === 'FAMILY' ? accountBook.familyId : null,
           familyMemberId: familyMemberId,
           // 预算ID如果有的话
-          budgetId: smartResult.budgetId || null
+          budgetId: smartResult.budgetId || null,
         };
 
         // 创建交易记录
         const transaction = await this.prisma.transaction.create({
-          data: transactionData
+          data: transactionData,
         });
 
         // 返回创建的交易记录
         res.status(201).json({
           ...transaction,
-          smartAccountingResult: smartResult
+          smartAccountingResult: smartResult,
         });
       } catch (createError) {
         console.error('创建交易记录错误:', createError);
         // 即使创建失败，也返回智能记账结果
         res.status(500).json({
           error: '创建交易记录失败',
-          smartAccountingResult: smartResult
+          smartAccountingResult: smartResult,
         });
       }
     } catch (error) {
@@ -1185,9 +1190,9 @@ export class AIController {
   private async checkAccountAccess(userId: string, accountId: string): Promise<boolean> {
     try {
       console.log('🔑 [权限检查] 开始检查账本访问权限:', { userId, accountId });
-      
+
       const accountBook = await this.prisma.accountBook.findUnique({
-        where: { id: accountId }
+        where: { id: accountId },
       });
 
       if (!accountBook) {
@@ -1199,7 +1204,7 @@ export class AIController {
         accountBookId: accountBook.id,
         accountBookUserId: accountBook.userId,
         accountBookType: accountBook.type,
-        familyId: accountBook.familyId
+        familyId: accountBook.familyId,
       });
 
       // 检查是否是用户自己的账本
@@ -1211,16 +1216,19 @@ export class AIController {
       // 检查是否是家庭账本且用户是家庭成员
       if (accountBook.type === 'FAMILY' && accountBook.familyId) {
         console.log('👨‍👩‍👧‍👦 [权限检查] 检查家庭成员身份:', { familyId: accountBook.familyId });
-        
+
         const familyMember = await this.prisma.familyMember.findFirst({
           where: {
             familyId: accountBook.familyId,
-            userId
-          }
+            userId,
+          },
         });
 
         const isFamilyMember = !!familyMember;
-        console.log('👨‍👩‍👧‍👦 [权限检查] 家庭成员检查结果:', { isFamilyMember, familyMemberId: familyMember?.id });
+        console.log('👨‍👩‍👧‍👦 [权限检查] 家庭成员检查结果:', {
+          isFamilyMember,
+          familyMemberId: familyMember?.id,
+        });
 
         return isFamilyMember;
       }
@@ -1253,7 +1261,7 @@ export class AIController {
       // 检查用户是否有权限访问该账本
       const hasAccess = await this.checkAccountAccess(userId, accountId);
       console.log('🔑 [AI服务] 账本访问权限检查结果:', { hasAccess, userId, accountId });
-      
+
       if (!hasAccess) {
         console.log('❌ [AI服务] 用户无权访问该账本');
         return res.status(403).json({ error: '无权访问该账本' });
@@ -1286,7 +1294,7 @@ export class AIController {
             usedTokens: tokenUsage.usedTokens || 0,
             provider: globalConfig.provider,
             model: globalConfig.model,
-            baseUrl: globalConfig.baseUrl
+            baseUrl: globalConfig.baseUrl,
           };
 
           console.log('✅ [AI服务] 返回官方服务信息:', result);
@@ -1295,16 +1303,16 @@ export class AIController {
           // 如果是自定义服务类型，获取用户的默认自定义LLM设置
           try {
             const userLLMSetting = await this.getUserDefaultLLMSetting(userId);
-            
+
             if (!userLLMSetting) {
               console.log('❌ [AI服务] 用户没有默认的自定义LLM设置');
               const result = {
                 enabled: false,
                 type: null,
-                maxTokens: 1000
+                maxTokens: 1000,
               };
-          return res.json(result);
-        }
+              return res.json(result);
+            }
 
             // 返回用户的自定义服务信息
             const result = {
@@ -1315,7 +1323,7 @@ export class AIController {
               model: userLLMSetting.model,
               baseUrl: userLLMSetting.baseUrl,
               name: userLLMSetting.name,
-              description: userLLMSetting.description
+              description: userLLMSetting.description,
             };
 
             console.log('✅ [AI服务] 返回用户自定义服务信息:', result);
@@ -1325,7 +1333,7 @@ export class AIController {
             const result = {
               enabled: false,
               type: null,
-              maxTokens: 1000
+              maxTokens: 1000,
             };
             return res.json(result);
           }
@@ -1336,19 +1344,19 @@ export class AIController {
       // 如果没有启用全局服务，检查账本是否绑定了自定义服务
       try {
         const accountBook = await this.prisma.accountBook.findUnique({
-          where: { id: accountId }
+          where: { id: accountId },
         });
 
-        console.log('📖 [AI服务] 账本信息:', { 
-          found: !!accountBook, 
-          userLLMSettingId: accountBook?.userLLMSettingId 
+        console.log('📖 [AI服务] 账本信息:', {
+          found: !!accountBook,
+          userLLMSettingId: accountBook?.userLLMSettingId,
         });
 
         if (!accountBook || !accountBook.userLLMSettingId) {
           const result = {
             enabled: false,
             type: null,
-            maxTokens: 1000
+            maxTokens: 1000,
           };
           console.log('✅ [AI服务] 返回未启用状态:', result);
           return res.json(result);
@@ -1356,7 +1364,7 @@ export class AIController {
 
         // 获取绑定的用户LLM设置
         const userLLMSetting = await this.prisma.userLLMSetting.findUnique({
-          where: { id: accountBook.userLLMSettingId }
+          where: { id: accountBook.userLLMSettingId },
         });
 
         console.log('🤖 [AI服务] LLM设置信息:', { found: !!userLLMSetting });
@@ -1365,7 +1373,7 @@ export class AIController {
           const result = {
             enabled: false,
             type: null,
-            maxTokens: 1000
+            maxTokens: 1000,
           };
           console.log('✅ [AI服务] LLM设置不存在，返回未启用状态:', result);
           return res.json(result);
@@ -1380,7 +1388,7 @@ export class AIController {
           model: userLLMSetting.model,
           baseUrl: userLLMSetting.baseUrl,
           name: userLLMSetting.name,
-          description: userLLMSetting.description
+          description: userLLMSetting.description,
         };
 
         console.log('✅ [AI服务] 返回自定义服务信息:', result);
@@ -1390,7 +1398,7 @@ export class AIController {
         const result = {
           enabled: false,
           type: null,
-          maxTokens: 1000
+          maxTokens: 1000,
         };
         return res.json(result);
       }
@@ -1412,24 +1420,26 @@ export class AIController {
       const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
       beijingTime.setUTCHours(0, 0, 0, 0);
       const today = new Date(beijingTime.getTime() - 8 * 60 * 60 * 1000);
-      
+
       // 获取明天的开始时间（用于范围查询）
       const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
 
-      console.log(`查询用户 ${userId} 今日官方AI服务token使用量，时间范围: ${today.toISOString()} - ${tomorrow.toISOString()}`);
+      console.log(
+        `查询用户 ${userId} 今日官方AI服务token使用量，时间范围: ${today.toISOString()} - ${tomorrow.toISOString()}`,
+      );
 
       // 查询今日该用户的官方AI服务LLM调用记录（全局LLM + 多提供商）
       const todayLogs = await this.prisma.llmCallLog.findMany({
         where: {
           userId: userId,
           serviceType: {
-            in: ['official', 'multi-provider'] // 只统计官方AI服务（全局LLM + 多提供商）
+            in: ['official', 'multi-provider'], // 只统计官方AI服务（全局LLM + 多提供商）
           },
           createdAt: {
             gte: today,
-            lt: tomorrow
+            lt: tomorrow,
           },
-          isSuccess: true // 只统计成功的调用
+          isSuccess: true, // 只统计成功的调用
         },
         select: {
           totalTokens: true,
@@ -1438,8 +1448,8 @@ export class AIController {
           provider: true,
           model: true,
           serviceType: true,
-          createdAt: true
-        }
+          createdAt: true,
+        },
       });
 
       console.log(`找到 ${todayLogs.length} 条今日官方AI服务LLM调用记录`);
@@ -1455,7 +1465,11 @@ export class AIController {
       if (todayLogs.length > 0) {
         console.log('今日官方AI服务LLM调用详情:');
         todayLogs.forEach((log, index) => {
-          console.log(`  ${index + 1}. ${log.provider}/${log.model} (${log.serviceType}): ${log.totalTokens} tokens (${log.promptTokens} + ${log.completionTokens}) at ${log.createdAt}`);
+          console.log(
+            `  ${index + 1}. ${log.provider}/${log.model} (${log.serviceType}): ${
+              log.totalTokens
+            } tokens (${log.promptTokens} + ${log.completionTokens}) at ${log.createdAt}`,
+          );
         });
       }
 
@@ -1473,11 +1487,15 @@ export class AIController {
    * @param llmSettingId LLM设置ID
    * @returns 是否有权限
    */
-  private async checkLLMSettingAccess(userId: string, accountId: string, llmSettingId: string): Promise<boolean> {
+  private async checkLLMSettingAccess(
+    userId: string,
+    accountId: string,
+    llmSettingId: string,
+  ): Promise<boolean> {
     try {
       // 查询LLM设置
       const llmSetting = await this.prisma.userLLMSetting.findUnique({
-        where: { id: llmSettingId }
+        where: { id: llmSettingId },
       });
 
       if (!llmSetting) {
@@ -1497,11 +1515,11 @@ export class AIController {
             include: {
               members: {
                 where: { userId: { not: null } },
-                select: { userId: true }
-              }
-            }
-          }
-        }
+                select: { userId: true },
+              },
+            },
+          },
+        },
       });
 
       if (!accountBook) {
@@ -1511,8 +1529,8 @@ export class AIController {
       // 如果是家庭账本，检查LLM设置是否属于家庭成员
       if (accountBook.type === 'FAMILY' && accountBook.family) {
         const familyUserIds = accountBook.family.members
-          .map(member => member.userId)
-          .filter(id => id !== null);
+          .map((member) => member.userId)
+          .filter((id) => id !== null);
 
         // 检查当前用户是否是家庭成员
         const isCurrentUserFamilyMember = familyUserIds.includes(userId);
@@ -1537,7 +1555,7 @@ export class AIController {
   private async getSystemConfigValue(key: string): Promise<string | null> {
     try {
       const config = await this.prisma.systemConfig.findUnique({
-        where: { key }
+        where: { key },
       });
       return config?.value || null;
     } catch (error) {
@@ -1557,15 +1575,15 @@ export class AIController {
         where: {
           userId_key: {
             userId: userId,
-            key: 'ai_service_type'
-          }
-        }
+            key: 'ai_service_type',
+          },
+        },
       });
 
       if (userSetting && userSetting.value === 'custom') {
         return 'custom';
       }
-      
+
       // 默认返回 'official'
       return 'official';
     } catch (error) {
@@ -1583,10 +1601,10 @@ export class AIController {
     try {
       // 查找用户的第一个LLM设置作为默认设置
       const userLLMSetting = await this.prisma.userLLMSetting.findFirst({
-        where: { 
-          userId: userId
+        where: {
+          userId: userId,
         },
-        orderBy: { createdAt: 'asc' }
+        orderBy: { createdAt: 'asc' },
       });
 
       return userLLMSetting;

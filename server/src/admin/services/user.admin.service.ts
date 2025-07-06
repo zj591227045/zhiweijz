@@ -41,7 +41,7 @@ export class UserAdminService {
       if (search) {
         where.OR = [
           { name: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } }
+          { email: { contains: search, mode: 'insensitive' } },
         ];
       }
 
@@ -81,20 +81,20 @@ export class UserAdminService {
             _count: {
               select: {
                 transactions: true,
-                accountBooks: true
-              }
-            }
-          }
+                accountBooks: true,
+              },
+            },
+          },
         }),
-        prisma.user.count({ where })
+        prisma.user.count({ where }),
       ]);
 
       // 格式化用户数据
-      const formattedUsers = users.map(user => ({
+      const formattedUsers = users.map((user) => ({
         ...user,
         transactionCount: user._count.transactions,
         accountBookCount: user._count.accountBooks,
-        _count: undefined
+        _count: undefined,
       }));
 
       return {
@@ -103,8 +103,8 @@ export class UserAdminService {
           page,
           limit,
           total,
-          totalPages: Math.ceil(total / limit)
-        }
+          totalPages: Math.ceil(total / limit),
+        },
       };
     } catch (error) {
       console.error('获取用户列表错误:', error);
@@ -133,15 +133,15 @@ export class UserAdminService {
             select: {
               transactions: true,
               accountBooks: true,
-              familyMembers: true
-            }
+              familyMembers: true,
+            },
           },
           transactions: {
             select: {
-              amount: true
-            }
-          }
-        }
+              amount: true,
+            },
+          },
+        },
       });
 
       if (!user) {
@@ -159,10 +159,10 @@ export class UserAdminService {
           transactionCount: user._count.transactions,
           accountBookCount: user._count.accountBooks,
           familyMemberCount: user._count.familyMembers,
-          totalAmount
+          totalAmount,
         },
         _count: undefined,
-        transactions: undefined
+        transactions: undefined,
       };
     } catch (error) {
       console.error('获取用户详情错误:', error);
@@ -177,7 +177,7 @@ export class UserAdminService {
     try {
       // 检查邮箱是否已存在
       const existingUser = await prisma.user.findUnique({
-        where: { email: data.email }
+        where: { email: data.email },
       });
 
       if (existingUser) {
@@ -193,7 +193,7 @@ export class UserAdminService {
           email: data.email,
           passwordHash: hashedPassword,
           bio: data.bio,
-          isActive: true
+          isActive: true,
         },
         select: {
           id: true,
@@ -203,8 +203,8 @@ export class UserAdminService {
           avatar: true,
           isActive: true,
           createdAt: true,
-          updatedAt: true
-        }
+          updatedAt: true,
+        },
       });
 
       return user;
@@ -224,7 +224,7 @@ export class UserAdminService {
     try {
       // 检查用户是否存在
       const existingUser = await prisma.user.findUnique({
-        where: { id }
+        where: { id },
       });
 
       if (!existingUser) {
@@ -234,7 +234,7 @@ export class UserAdminService {
       // 如果更新邮箱，检查邮箱是否已被其他用户使用
       if (data.email) {
         const emailUser = await prisma.user.findUnique({
-          where: { email: data.email }
+          where: { email: data.email },
         });
 
         if (emailUser && emailUser.id !== id) {
@@ -248,8 +248,10 @@ export class UserAdminService {
           ...(data.name && { name: data.name }),
           ...(data.email && { email: data.email }),
           ...(data.bio && { bio: data.bio }),
-          ...(data.dailyLlmTokenLimit !== undefined && { dailyLlmTokenLimit: data.dailyLlmTokenLimit }),
-          updatedAt: new Date()
+          ...(data.dailyLlmTokenLimit !== undefined && {
+            dailyLlmTokenLimit: data.dailyLlmTokenLimit,
+          }),
+          updatedAt: new Date(),
         },
         select: {
           id: true,
@@ -260,14 +262,17 @@ export class UserAdminService {
           isActive: true,
           createdAt: true,
           updatedAt: true,
-          dailyLlmTokenLimit: true
-        }
+          dailyLlmTokenLimit: true,
+        },
       });
 
       return user;
     } catch (error) {
       console.error('更新用户错误:', error);
-      if (error instanceof Error && (error.message.includes('不存在') || error.message.includes('已被使用'))) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('不存在') || error.message.includes('已被使用'))
+      ) {
         throw error;
       }
       throw new Error('更新用户失败');
@@ -280,7 +285,7 @@ export class UserAdminService {
   async deleteUser(id: string) {
     try {
       const existingUser = await prisma.user.findUnique({
-        where: { id }
+        where: { id },
       });
 
       if (!existingUser) {
@@ -292,8 +297,8 @@ export class UserAdminService {
         where: { id },
         data: {
           isActive: false,
-          updatedAt: new Date()
-        }
+          updatedAt: new Date(),
+        },
       });
 
       return true;
@@ -312,7 +317,7 @@ export class UserAdminService {
   async resetPassword(id: string, newPassword: string) {
     try {
       const existingUser = await prisma.user.findUnique({
-        where: { id }
+        where: { id },
       });
 
       if (!existingUser) {
@@ -325,8 +330,8 @@ export class UserAdminService {
         where: { id },
         data: {
           passwordHash: hashedPassword,
-          updatedAt: new Date()
-        }
+          updatedAt: new Date(),
+        },
       });
 
       return true;
@@ -345,7 +350,7 @@ export class UserAdminService {
   async toggleUserStatus(id: string) {
     try {
       const existingUser = await prisma.user.findUnique({
-        where: { id }
+        where: { id },
       });
 
       if (!existingUser) {
@@ -356,15 +361,15 @@ export class UserAdminService {
         where: { id },
         data: {
           isActive: !existingUser.isActive,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         select: {
           id: true,
           name: true,
           email: true,
           isActive: true,
-          updatedAt: true
-        }
+          updatedAt: true,
+        },
       });
 
       return user;
@@ -382,7 +387,7 @@ export class UserAdminService {
    */
   async batchOperation(userIds: string[], operation: 'activate' | 'deactivate' | 'delete') {
     try {
-      let updateData: any = { updatedAt: new Date() };
+      const updateData: any = { updatedAt: new Date() };
 
       switch (operation) {
         case 'activate':
@@ -396,14 +401,14 @@ export class UserAdminService {
 
       const result = await prisma.user.updateMany({
         where: {
-          id: { in: userIds }
+          id: { in: userIds },
         },
-        data: updateData
+        data: updateData,
       });
 
       return {
         count: result.count,
-        operation
+        operation,
       };
     } catch (error) {
       console.error('批量操作错误:', error);
@@ -417,7 +422,7 @@ export class UserAdminService {
   async getRegistrationStatus(): Promise<boolean> {
     try {
       const config = await prisma.systemConfig.findUnique({
-        where: { key: 'REGISTRATION_ENABLED' }
+        where: { key: 'REGISTRATION_ENABLED' },
       });
 
       // 默认开启注册
@@ -427,8 +432,7 @@ export class UserAdminService {
             key: 'REGISTRATION_ENABLED',
             value: 'true',
             description: '用户注册开关',
-
-          }
+          },
         });
         return true;
       }
@@ -449,14 +453,13 @@ export class UserAdminService {
         where: { key: 'REGISTRATION_ENABLED' },
         update: {
           value: enabled.toString(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         create: {
           key: 'REGISTRATION_ENABLED',
           value: enabled.toString(),
           description: '用户注册开关',
-
-        }
+        },
       });
 
       return true;
@@ -465,4 +468,4 @@ export class UserAdminService {
       throw new Error('切换注册开关失败');
     }
   }
-} 
+}

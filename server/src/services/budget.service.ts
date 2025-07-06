@@ -1,4 +1,12 @@
-import { BudgetPeriod, BudgetType, Budget, Category, RolloverType, PrismaClient, Transaction } from '@prisma/client';
+import {
+  BudgetPeriod,
+  BudgetType,
+  Budget,
+  Category,
+  RolloverType,
+  PrismaClient,
+  Transaction,
+} from '@prisma/client';
 import { BudgetRepository, BudgetWithCategory } from '../repositories/budget.repository';
 import { CategoryRepository } from '../repositories/category.repository';
 import { CategoryBudgetRepository } from '../repositories/category-budget.repository';
@@ -12,10 +20,13 @@ import {
   BudgetResponseDto,
   BudgetPaginatedResponseDto,
   BudgetQueryParams,
-  toBudgetResponseDto
+  toBudgetResponseDto,
 } from '../models/budget.model';
 import { toCategoryResponseDto } from '../models/category.model';
-import { toCategoryBudgetResponseDto, CategoryBudgetResponseDto } from '../models/category-budget.model';
+import {
+  toCategoryBudgetResponseDto,
+  CategoryBudgetResponseDto,
+} from '../models/category-budget.model';
 
 export class BudgetService {
   private budgetRepository: BudgetRepository;
@@ -49,7 +60,7 @@ export class BudgetService {
     if (budgetData.accountBookId && !budgetData.familyId) {
       const accountBook = await prisma.accountBook.findUnique({
         where: { id: budgetData.accountBookId },
-        select: { type: true, familyId: true }
+        select: { type: true, familyId: true },
       });
 
       if (accountBook && accountBook.type === 'FAMILY' && accountBook.familyId) {
@@ -60,8 +71,8 @@ export class BudgetService {
           const familyMember = await prisma.familyMember.findFirst({
             where: {
               familyId: accountBook.familyId,
-              userId: userId
-            }
+              userId: userId,
+            },
           });
 
           if (familyMember) {
@@ -76,7 +87,7 @@ export class BudgetService {
 
     return toBudgetResponseDto(
       budget,
-      budget.category ? toCategoryResponseDto(budget.category) : undefined
+      budget.category ? toCategoryResponseDto(budget.category) : undefined,
     );
   }
 
@@ -86,7 +97,7 @@ export class BudgetService {
   async getBudgets(userId: string, params: BudgetQueryParams): Promise<BudgetPaginatedResponseDto> {
     console.log('BudgetService.getBudgets 参数:', {
       userId,
-      params
+      params,
     });
 
     // 如果查询个人预算且指定了账本ID，先尝试自动创建缺失的预算
@@ -99,11 +110,13 @@ export class BudgetService {
         new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0),
         undefined,
         params.accountBookId,
-        true // 排除托管成员预算
+        true, // 排除托管成员预算
       );
 
       if (currentMonthBudgets.length === 0) {
-        console.log(`用户 ${userId} 在账本 ${params.accountBookId} 中没有当前月份的个人预算，尝试自动创建`);
+        console.log(
+          `用户 ${userId} 在账本 ${params.accountBookId} 中没有当前月份的个人预算，尝试自动创建`,
+        );
         await this.autoCreateMissingBudgets(userId, params.accountBookId);
       }
     }
@@ -113,7 +126,7 @@ export class BudgetService {
 
     console.log('BudgetService.getBudgets 查询结果:', {
       total,
-      budgetsCount: budgets.length
+      budgetsCount: budgets.length,
     });
 
     // 获取每个预算的已使用金额
@@ -125,7 +138,7 @@ export class BudgetService {
         const budgetDto = toBudgetResponseDto(
           budget,
           budget.category ? toCategoryResponseDto(budget.category) : undefined,
-          spent
+          spent,
         );
 
         // 添加用户名称信息
@@ -150,7 +163,7 @@ export class BudgetService {
             } else {
               // 否则查询托管成员信息
               const familyMember = await prisma.familyMember.findUnique({
-                where: { id: budgetDto.familyMemberId }
+                where: { id: budgetDto.familyMemberId },
               });
 
               if (familyMember) {
@@ -168,7 +181,7 @@ export class BudgetService {
               // 否则查询用户信息
               const user = await prisma.user.findUnique({
                 where: { id: budgetDto.userId },
-                select: { name: true }
+                select: { name: true },
               });
 
               if (user) {
@@ -181,7 +194,7 @@ export class BudgetService {
         }
 
         return budgetDto;
-      })
+      }),
     );
 
     return {
@@ -214,18 +227,18 @@ export class BudgetService {
     // 获取分类预算
     let categoryBudgets: CategoryBudgetResponseDto[] = [];
     if (budget.enableCategoryBudget && budget.categoryBudgets) {
-      categoryBudgets = budget.categoryBudgets.map(cb =>
+      categoryBudgets = budget.categoryBudgets.map((cb) =>
         toCategoryBudgetResponseDto(
           cb,
-          cb.category ? toCategoryResponseDto(cb.category) : undefined
-        )
+          cb.category ? toCategoryResponseDto(cb.category) : undefined,
+        ),
       );
     }
 
     const result = toBudgetResponseDto(
       budget,
       budget.category ? toCategoryResponseDto(budget.category) : undefined,
-      spent
+      spent,
     );
 
     // 添加分类预算到响应
@@ -237,7 +250,11 @@ export class BudgetService {
   /**
    * 更新预算
    */
-  async updateBudget(id: string, userId: string, budgetData: UpdateBudgetDto): Promise<BudgetResponseDto> {
+  async updateBudget(
+    id: string,
+    userId: string,
+    budgetData: UpdateBudgetDto,
+  ): Promise<BudgetResponseDto> {
     // 检查预算是否存在
     const budget = await this.budgetRepository.findById(id);
     if (!budget) {
@@ -261,7 +278,10 @@ export class BudgetService {
     // 检查预算金额修改限制
     if (budgetData.amount !== undefined && Number(budget.amount) !== budgetData.amount) {
       // 只对个人月度预算应用修改限制
-      if (budget.period === BudgetPeriod.MONTHLY && (budget as any).budgetType === BudgetType.PERSONAL) {
+      if (
+        budget.period === BudgetPeriod.MONTHLY &&
+        (budget as any).budgetType === BudgetType.PERSONAL
+      ) {
         // 检查是否已经修改过预算金额
         if ((budget as any).amountModified) {
           throw new Error('每个预算周期内只能修改一次预算金额');
@@ -276,9 +296,10 @@ export class BudgetService {
     }
 
     // 处理分类预算启用状态变更
-    if (budgetData.enableCategoryBudget !== undefined &&
-        budgetData.enableCategoryBudget !== budget.enableCategoryBudget) {
-
+    if (
+      budgetData.enableCategoryBudget !== undefined &&
+      budgetData.enableCategoryBudget !== budget.enableCategoryBudget
+    ) {
       // 如果启用分类预算且总预算金额为0，标记为自动计算
       if (budgetData.enableCategoryBudget && Number(budget.amount) === 0) {
         budgetData.isAutoCalculated = true;
@@ -299,18 +320,18 @@ export class BudgetService {
     // 获取分类预算
     let categoryBudgets: CategoryBudgetResponseDto[] = [];
     if (updatedBudget.enableCategoryBudget && updatedBudget.categoryBudgets) {
-      categoryBudgets = updatedBudget.categoryBudgets.map(cb =>
+      categoryBudgets = updatedBudget.categoryBudgets.map((cb) =>
         toCategoryBudgetResponseDto(
           cb,
-          cb.category ? toCategoryResponseDto(cb.category) : undefined
-        )
+          cb.category ? toCategoryResponseDto(cb.category) : undefined,
+        ),
       );
     }
 
     const result = toBudgetResponseDto(
       updatedBudget,
       updatedBudget.category ? toCategoryResponseDto(updatedBudget.category) : undefined,
-      spent
+      spent,
     );
 
     // 添加分类预算到响应
@@ -346,12 +367,16 @@ export class BudgetService {
    * @param accountBookId 账本ID
    * @returns 该日期范围内的预算列表
    */
-  async getBudgetsByDate(userId: string, date: string, accountBookId: string): Promise<BudgetResponseDto[]> {
+  async getBudgetsByDate(
+    userId: string,
+    date: string,
+    accountBookId: string,
+  ): Promise<BudgetResponseDto[]> {
     try {
       console.log('BudgetService.getBudgetsByDate 参数:', {
         userId,
         date,
-        accountBookId
+        accountBookId,
       });
 
       // 首先验证用户是否有权限访问该账本
@@ -361,14 +386,14 @@ export class BudgetService {
       }
 
       const transactionDate = new Date(date);
-      
+
       // 查询该日期所在预算周期内该账本下的所有预算
       // 不再按用户过滤，而是按账本过滤，显示账本下所有成员的预算（包括个人、家庭成员、托管成员）
       const budgets = await prisma.budget.findMany({
         where: {
           accountBookId,
           startDate: { lte: transactionDate },
-          endDate: { gte: transactionDate }
+          endDate: { gte: transactionDate },
           // 移除 familyMemberId: null 的限制，显示所有成员的预算
         },
         include: {
@@ -378,8 +403,8 @@ export class BudgetService {
               id: true,
               name: true,
               type: true,
-              familyId: true
-            }
+              familyId: true,
+            },
           },
           familyMember: {
             select: {
@@ -387,31 +412,34 @@ export class BudgetService {
               name: true,
               gender: true,
               birthDate: true,
-              isCustodial: true
-            }
-          }
+              isCustodial: true,
+            },
+          },
         },
         orderBy: {
-          createdAt: 'desc'
-        }
+          createdAt: 'desc',
+        },
       });
 
       console.log(`找到 ${budgets.length} 个匹配的预算`);
 
       // 转换为响应DTO并计算spent
       const budgetDtos: BudgetResponseDto[] = [];
-      
+
       for (const budget of budgets) {
         const spent = await this.budgetRepository.calculateSpentAmount(budget.id);
         const category = budget.category ? toCategoryResponseDto(budget.category) : undefined;
         const budgetDto = toBudgetResponseDto(budget, category, spent);
-        
+
         // 添加额外的计算字段
         budgetDto.spent = spent;
         budgetDto.remaining = budgetDto.amount - spent;
-        budgetDto.adjustedRemaining = (budgetDto.amount + (budgetDto.rolloverAmount || 0)) - spent;
-        budgetDto.progress = budgetDto.amount > 0 ? (spent / (budgetDto.amount + (budgetDto.rolloverAmount || 0))) * 100 : 0;
-        
+        budgetDto.adjustedRemaining = budgetDto.amount + (budgetDto.rolloverAmount || 0) - spent;
+        budgetDto.progress =
+          budgetDto.amount > 0
+            ? (spent / (budgetDto.amount + (budgetDto.rolloverAmount || 0))) * 100
+            : 0;
+
         // 添加账本信息
         if (budget.accountBook) {
           budgetDto.accountBookType = budget.accountBook.type;
@@ -424,7 +452,7 @@ export class BudgetService {
           if (budgetDto.familyMemberId) {
             const familyMember = await prisma.familyMember.findUnique({
               where: { id: budgetDto.familyMemberId },
-              select: { name: true }
+              select: { name: true },
             });
             if (familyMember) {
               budgetDto.familyMemberName = familyMember.name;
@@ -432,7 +460,7 @@ export class BudgetService {
           } else if (budgetDto.userId) {
             const user = await prisma.user.findUnique({
               where: { id: budgetDto.userId },
-              select: { name: true }
+              select: { name: true },
             });
             if (user) {
               budgetDto.familyMemberName = user.name;
@@ -441,7 +469,7 @@ export class BudgetService {
         } catch (error) {
           console.error(`获取预算用户名称失败: ${error}`);
         }
-        
+
         budgetDtos.push(budgetDto);
       }
 
@@ -491,7 +519,7 @@ export class BudgetService {
         const budgetDto = toBudgetResponseDto(
           budget,
           budget.category ? toCategoryResponseDto(budget.category) : undefined,
-          spent
+          spent,
         );
 
         // 添加账本信息
@@ -505,7 +533,7 @@ export class BudgetService {
           if (budgetDto.familyMemberId) {
             // 如果有family_member_id，按照托管用户的方式处理
             const familyMember = await prisma.familyMember.findUnique({
-              where: { id: budgetDto.familyMemberId }
+              where: { id: budgetDto.familyMemberId },
             });
 
             if (familyMember) {
@@ -517,7 +545,7 @@ export class BudgetService {
             // 从users表中查询用户名称
             const user = await prisma.user.findUnique({
               where: { id: budgetDto.userId },
-              select: { name: true }
+              select: { name: true },
             });
 
             if (user) {
@@ -529,7 +557,7 @@ export class BudgetService {
         }
 
         return budgetDto;
-      })
+      }),
     );
 
     console.log(`处理完成，返回 ${budgetsWithSpent.length} 个预算`);
@@ -539,7 +567,7 @@ export class BudgetService {
   /**
    * 获取预算结转历史（基于预算记录）
    */
-  async getBudgetRolloverHistory(budgetId: string, userId: string): Promise<any[]> {
+  async getBudgetRolloverHistoryByBudgetId(budgetId: string, userId: string): Promise<any[]> {
     // 检查预算是否存在
     const budget = await this.budgetRepository.findById(budgetId);
     if (!budget) {
@@ -558,17 +586,17 @@ export class BudgetService {
     try {
       const histories = await prisma.budgetHistory.findMany({
         where: {
-          budgetId: budgetId
+          budgetId: budgetId,
         },
         orderBy: {
-          createdAt: 'desc'
-        }
+          createdAt: 'desc',
+        },
       });
 
       console.log(`从budget_histories表查询到 ${histories.length} 条记录`);
 
       // 转换为前端需要的格式
-      const rolloverHistory = histories.map(history => ({
+      const rolloverHistory = histories.map((history) => ({
         id: history.id,
         budgetId: history.budgetId,
         period: history.period,
@@ -578,7 +606,7 @@ export class BudgetService {
         createdAt: history.createdAt.toISOString(),
         budgetAmount: history.budgetAmount ? Number(history.budgetAmount) : undefined,
         spentAmount: history.spentAmount ? Number(history.spentAmount) : undefined,
-        previousRollover: history.previousRollover ? Number(history.previousRollover) : undefined
+        previousRollover: history.previousRollover ? Number(history.previousRollover) : undefined,
       }));
 
       return rolloverHistory;
@@ -588,14 +616,19 @@ export class BudgetService {
     }
   }
 
-
-
   /**
    * 处理预算结转（完整版本）
    * 在创建新月份预算时，将上月剩余金额设置为新预算的rolloverAmount
    * 支持正数结转（余额结转）和负数结转（债务结转）
    */
-  async processBudgetRollover(budgetId: string): Promise<number> {
+  async processBudgetRollover(
+    budgetId: string,
+    options: {
+      includePartialTransactions?: boolean;
+      adjustForTimezone?: boolean;
+      validateTransactionDates?: boolean;
+    } = {},
+  ): Promise<number> {
     // 获取预算信息
     const budget = await this.budgetRepository.findById(budgetId);
     if (!budget) {
@@ -604,11 +637,12 @@ export class BudgetService {
 
     // 只处理启用了结转的预算
     if (!budget.rollover) {
+      console.log(`预算 ${budgetId} 未启用结转功能`);
       return 0;
     }
 
-    // 计算已使用金额
-    const spent = await this.budgetRepository.calculateSpentAmount(budgetId);
+    // 计算已使用金额（使用增强的计算方法）
+    const spent = await this.calculateEnhancedSpentAmount(budgetId, options);
     const amount = Number(budget.amount);
     const currentRolloverAmount = Number(budget.rolloverAmount || 0);
 
@@ -622,7 +656,12 @@ export class BudgetService {
     const period = `${endDate.getFullYear()}年${endDate.getMonth() + 1}月`;
 
     console.log(`处理预算结转 - 预算ID: ${budgetId}, 期间: ${period}`);
-    console.log(`基础预算: ${amount}, 上月结转: ${currentRolloverAmount}, 已使用: ${spent}, 结转金额: ${remaining}`);
+    console.log(
+      `基础预算: ${amount}, 上月结转: ${currentRolloverAmount}, 已使用: ${spent}, 结转金额: ${remaining}`,
+    );
+
+    // 验证计算结果
+    await this.validateRolloverCalculation(budget, spent, remaining);
 
     // 记录结转历史和详细信息
     await this.recordBudgetRolloverHistory(budget, spent, currentRolloverAmount, remaining);
@@ -632,15 +671,163 @@ export class BudgetService {
   }
 
   /**
+   * 增强的支出金额计算
+   * 处理复杂的交易场景和边界情况
+   */
+  private async calculateEnhancedSpentAmount(budgetId: string, options: any = {}): Promise<number> {
+    const budget = await this.budgetRepository.findById(budgetId);
+    if (!budget) {
+      return 0;
+    }
+
+    // 构建查询条件
+    const whereConditions: any = {
+      accountBookId: budget.accountBookId,
+      type: 'EXPENSE',
+      date: {
+        gte: budget.startDate,
+        lte: budget.endDate,
+      },
+    };
+
+    // 添加分类过滤
+    if (budget.categoryId) {
+      whereConditions.categoryId = budget.categoryId;
+    }
+
+    // 添加用户/成员过滤
+    if (budget.familyMemberId) {
+      whereConditions.familyMemberId = budget.familyMemberId;
+    } else {
+      whereConditions.userId = budget.userId;
+    }
+
+    // 验证交易日期（可选）
+    if (options.validateTransactionDates) {
+      whereConditions.date.gte = new Date(
+        Math.max(whereConditions.date.gte.getTime(), budget.startDate.getTime()),
+      );
+      whereConditions.date.lte = new Date(
+        Math.min(whereConditions.date.lte.getTime(), budget.endDate.getTime()),
+      );
+    }
+
+    // 查询交易记录
+    const transactions = await prisma.transaction.findMany({
+      where: whereConditions,
+      select: {
+        id: true,
+        amount: true,
+        date: true,
+        description: true,
+      },
+    });
+
+    // 计算总支出
+    let totalSpent = 0;
+    let validTransactionCount = 0;
+    let invalidTransactionCount = 0;
+
+    for (const transaction of transactions) {
+      const amount = Number(transaction.amount);
+
+      // 验证交易金额
+      if (isNaN(amount) || amount < 0) {
+        console.warn(`发现异常交易: ${transaction.id}, 金额: ${transaction.amount}`);
+        invalidTransactionCount++;
+        continue;
+      }
+
+      // 验证交易日期
+      if (transaction.date < budget.startDate || transaction.date > budget.endDate) {
+        console.warn(`发现日期异常交易: ${transaction.id}, 日期: ${transaction.date}`);
+        invalidTransactionCount++;
+        continue;
+      }
+
+      totalSpent += amount;
+      validTransactionCount++;
+    }
+
+    console.log(
+      `支出计算完成: 有效交易 ${validTransactionCount} 笔, 异常交易 ${invalidTransactionCount} 笔, 总支出: ${totalSpent}`,
+    );
+
+    return totalSpent;
+  }
+
+  /**
+   * 验证结转计算结果
+   */
+  private async validateRolloverCalculation(
+    budget: any,
+    spent: number,
+    rolloverAmount: number,
+  ): Promise<void> {
+    try {
+      const amount = Number(budget.amount);
+      const currentRolloverAmount = Number(budget.rolloverAmount || 0);
+      const totalAvailable = amount + currentRolloverAmount;
+
+      // 验证计算逻辑
+      const expectedRollover = totalAvailable - spent;
+      if (Math.abs(rolloverAmount - expectedRollover) > 0.01) {
+        console.error(`结转计算错误: 期望 ${expectedRollover}, 实际 ${rolloverAmount}`);
+      }
+
+      // 检查异常情况
+      if (Math.abs(rolloverAmount) > amount * 5) {
+        console.warn(`结转金额异常大: ${rolloverAmount}, 预算金额: ${amount}`);
+      }
+
+      // 检查负数结转
+      if (rolloverAmount < 0) {
+        const debtRatio = Math.abs(rolloverAmount) / amount;
+        if (debtRatio > 2) {
+          console.warn(`债务比例过高: ${(debtRatio * 100).toFixed(1)}%`);
+        }
+      }
+    } catch (error) {
+      console.error('验证结转计算失败:', error);
+    }
+  }
+
+  /**
    * 记录预算结转历史
    * 详细记录结转过程，便于审计和问题排查
    */
-  private async recordBudgetRolloverHistory(budget: any, spent: number, currentRolloverAmount: number, rolloverAmount: number): Promise<void> {
+  private async recordBudgetRolloverHistory(
+    budget: any,
+    spent: number,
+    currentRolloverAmount: number,
+    rolloverAmount: number,
+  ): Promise<void> {
     try {
       const rolloverType = rolloverAmount >= 0 ? 'SURPLUS' : 'DEFICIT';
       const rolloverDescription = rolloverAmount >= 0 ? '余额结转' : '债务结转';
 
-      console.log(`记录预算结转历史:`);
+      // 生成详细的描述信息
+      const description = `${rolloverDescription}: 基础预算${budget.amount}, 上期结转${currentRolloverAmount}, 实际支出${spent}, 结转金额${rolloverAmount}`;
+
+      // 保存到数据库历史记录表
+      const historyRecord = await prisma.budgetHistory.create({
+        data: {
+          budgetId: budget.id,
+          period: `${budget.endDate.getFullYear()}-${budget.endDate.getMonth() + 1}`,
+          amount: rolloverAmount,
+          type: rolloverType,
+          description: description,
+          budgetAmount: budget.amount,
+          spentAmount: spent,
+          previousRollover: currentRolloverAmount,
+          userId: budget.userId,
+          accountBookId: budget.accountBookId,
+          budgetType: budget.budgetType || 'PERSONAL',
+        },
+      });
+
+      console.log(`✅ 记录预算结转历史成功:`);
+      console.log(`  历史记录ID: ${historyRecord.id}`);
       console.log(`  预算ID: ${budget.id}`);
       console.log(`  预算名称: ${budget.name}`);
       console.log(`  结转类型: ${rolloverDescription}`);
@@ -648,10 +835,6 @@ export class BudgetService {
       console.log(`  上期结转: ${currentRolloverAmount}`);
       console.log(`  实际支出: ${spent}`);
       console.log(`  结转金额: ${rolloverAmount}`);
-
-      // 这里可以添加到数据库的历史记录表
-      // 目前先记录到日志中
-
     } catch (error) {
       console.error('记录结转历史失败:', error);
       // 不抛出错误，避免影响主流程
@@ -659,10 +842,91 @@ export class BudgetService {
   }
 
   /**
+   * 查询预算结转历史
+   * 获取指定预算或用户的结转历史记录
+   */
+  async getBudgetRolloverHistory(options: {
+    budgetId?: string;
+    userId?: string;
+    accountBookId?: string;
+    startDate?: Date;
+    endDate?: Date;
+    limit?: number;
+  }): Promise<any[]> {
+    try {
+      const where: any = {};
+
+      if (options.budgetId) {
+        where.budgetId = options.budgetId;
+      }
+
+      if (options.userId) {
+        where.userId = options.userId;
+      }
+
+      if (options.accountBookId) {
+        where.accountBookId = options.accountBookId;
+      }
+
+      if (options.startDate || options.endDate) {
+        where.createdAt = {};
+        if (options.startDate) {
+          where.createdAt.gte = options.startDate;
+        }
+        if (options.endDate) {
+          where.createdAt.lte = options.endDate;
+        }
+      }
+
+      const histories = await prisma.budgetHistory.findMany({
+        where,
+        include: {
+          budget: {
+            select: {
+              id: true,
+              name: true,
+              startDate: true,
+              endDate: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          accountBook: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: options.limit || 100,
+      });
+
+      return histories;
+    } catch (error) {
+      console.error('查询预算结转历史失败:', error);
+      return [];
+    }
+  }
+
+  /**
    * 计算智能结转金额
    * 根据用户设置和历史数据，智能处理结转逻辑
    */
-  async calculateSmartRolloverAmount(budgetId: string, options: { allowNegativeRollover?: boolean } = {}): Promise<number> {
+  async calculateSmartRolloverAmount(
+    budgetId: string,
+    options: {
+      allowNegativeRollover?: boolean;
+      maxDebtRollover?: number;
+      autoDebtClearance?: boolean;
+    } = {},
+  ): Promise<number> {
     const budget = await this.budgetRepository.findById(budgetId);
     if (!budget || !budget.rollover) {
       return 0;
@@ -671,19 +935,174 @@ export class BudgetService {
     // 计算基础结转金额
     const basicRollover = await this.processBudgetRollover(budgetId);
 
-    // 如果不允许负数结转，将负数转为0
-    if (!options.allowNegativeRollover && basicRollover < 0) {
-      console.log(`预算 ${budgetId} 产生债务 ${Math.abs(basicRollover)}，根据设置不进行债务结转`);
+    // 处理负数结转（债务结转）
+    if (basicRollover < 0) {
+      return await this.handleDebtRollover(budget, basicRollover, options);
+    }
+
+    // 处理正数结转（余额结转）
+    return await this.handleSurplusRollover(budget, basicRollover, options);
+  }
+
+  /**
+   * 处理债务结转逻辑
+   */
+  private async handleDebtRollover(budget: any, debtAmount: number, options: any): Promise<number> {
+    const absDebt = Math.abs(debtAmount);
+
+    console.log(`处理债务结转: 预算 ${budget.id}, 债务金额: ${absDebt}`);
+
+    // 如果不允许负数结转，将债务清零
+    if (!options.allowNegativeRollover) {
+      console.log(`根据设置不进行债务结转，债务 ${absDebt} 将被清零`);
+      await this.recordDebtClearance(budget, absDebt);
       return 0;
     }
 
-    // 对于大额结转，可以添加额外的验证逻辑
-    const budgetAmount = Number(budget.amount);
-    if (Math.abs(basicRollover) > budgetAmount * 2) {
-      console.log(`预算 ${budgetId} 结转金额异常大 (${basicRollover})，请检查数据`);
+    // 检查债务上限
+    if (options.maxDebtRollover && absDebt > options.maxDebtRollover) {
+      console.log(`债务金额 ${absDebt} 超过上限 ${options.maxDebtRollover}，限制为上限值`);
+      return -options.maxDebtRollover;
     }
 
-    return basicRollover;
+    // 自动债务清零逻辑
+    if (options.autoDebtClearance) {
+      const shouldClear = await this.shouldClearDebt(budget, absDebt);
+      if (shouldClear) {
+        console.log(`自动清零债务: ${absDebt}`);
+        await this.recordDebtClearance(budget, absDebt);
+        return 0;
+      }
+    }
+
+    // 记录债务结转
+    await this.recordDebtRollover(budget, debtAmount);
+
+    return debtAmount;
+  }
+
+  /**
+   * 处理余额结转逻辑
+   */
+  private async handleSurplusRollover(
+    budget: any,
+    surplusAmount: number,
+    options: any,
+  ): Promise<number> {
+    console.log(`处理余额结转: 预算 ${budget.id}, 余额金额: ${surplusAmount}`);
+
+    // 对于大额结转，添加验证逻辑
+    const budgetAmount = Number(budget.amount);
+    if (surplusAmount > budgetAmount * 2) {
+      console.log(`余额金额 ${surplusAmount} 异常大（超过预算的2倍），请检查数据`);
+    }
+
+    // 记录余额结转
+    await this.recordSurplusRollover(budget, surplusAmount);
+
+    return surplusAmount;
+  }
+
+  /**
+   * 判断是否应该清零债务
+   */
+  private async shouldClearDebt(budget: any, debtAmount: number): Promise<boolean> {
+    // 小额债务自动清零（可配置阈值）
+    const smallDebtThreshold = 10; // 10元以下的债务自动清零
+    if (debtAmount <= smallDebtThreshold) {
+      return true;
+    }
+
+    // 长期债务自动清零（超过3个月的债务）
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+    if (budget.endDate < threeMonthsAgo) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * 记录债务清零
+   */
+  private async recordDebtClearance(budget: any, debtAmount: number): Promise<void> {
+    try {
+      await prisma.budgetHistory.create({
+        data: {
+          budgetId: budget.id,
+          period: `${budget.endDate.getFullYear()}-${budget.endDate.getMonth() + 1}`,
+          amount: 0,
+          type: 'DEFICIT',
+          description: `债务清零: 原债务金额 ${debtAmount} 已清零`,
+          budgetAmount: budget.amount,
+          spentAmount: null,
+          previousRollover: budget.rolloverAmount || 0,
+          userId: budget.userId,
+          accountBookId: budget.accountBookId,
+          budgetType: budget.budgetType || 'PERSONAL',
+        },
+      });
+
+      console.log(`✅ 记录债务清零: 预算 ${budget.id}, 清零金额: ${debtAmount}`);
+    } catch (error) {
+      console.error('记录债务清零失败:', error);
+    }
+  }
+
+  /**
+   * 记录债务结转
+   */
+  private async recordDebtRollover(budget: any, debtAmount: number): Promise<void> {
+    try {
+      await prisma.budgetHistory.create({
+        data: {
+          budgetId: budget.id,
+          period: `${budget.endDate.getFullYear()}-${budget.endDate.getMonth() + 1}`,
+          amount: debtAmount,
+          type: 'DEFICIT',
+          description: `债务结转: 债务金额 ${Math.abs(debtAmount)} 结转到下期`,
+          budgetAmount: budget.amount,
+          spentAmount: null,
+          previousRollover: budget.rolloverAmount || 0,
+          userId: budget.userId,
+          accountBookId: budget.accountBookId,
+          budgetType: budget.budgetType || 'PERSONAL',
+        },
+      });
+
+      console.log(`✅ 记录债务结转: 预算 ${budget.id}, 债务金额: ${Math.abs(debtAmount)}`);
+    } catch (error) {
+      console.error('记录债务结转失败:', error);
+    }
+  }
+
+  /**
+   * 记录余额结转
+   */
+  private async recordSurplusRollover(budget: any, surplusAmount: number): Promise<void> {
+    try {
+      await prisma.budgetHistory.create({
+        data: {
+          budgetId: budget.id,
+          period: `${budget.endDate.getFullYear()}-${budget.endDate.getMonth() + 1}`,
+          amount: surplusAmount,
+          type: 'SURPLUS',
+          description: `余额结转: 余额金额 ${surplusAmount} 结转到下期`,
+          budgetAmount: budget.amount,
+          spentAmount: null,
+          previousRollover: budget.rolloverAmount || 0,
+          userId: budget.userId,
+          accountBookId: budget.accountBookId,
+          budgetType: budget.budgetType || 'PERSONAL',
+        },
+      });
+
+      console.log(`✅ 记录余额结转: 预算 ${budget.id}, 余额金额: ${surplusAmount}`);
+    } catch (error) {
+      console.error('记录余额结转失败:', error);
+    }
   }
 
   /**
@@ -692,7 +1111,10 @@ export class BudgetService {
    * @param budgetId 预算ID
    * @param recalculateChain 是否重新计算后续链条（默认true）
    */
-  async recalculateBudgetRollover(budgetId: string, recalculateChain: boolean = true): Promise<void> {
+  async recalculateBudgetRollover(
+    budgetId: string,
+    recalculateChain: boolean = true,
+  ): Promise<void> {
     // 获取预算信息
     const budget = await this.budgetRepository.findById(budgetId);
     if (!budget) {
@@ -737,12 +1159,12 @@ export class BudgetService {
         familyMemberId: startBudget.familyMemberId,
         rollover: true,
         startDate: {
-          gte: startBudget.startDate
-        }
+          gte: startBudget.startDate,
+        },
       },
       orderBy: {
-        startDate: 'asc'
-      }
+        startDate: 'asc',
+      },
     });
 
     console.log(`找到 ${subsequentBudgets.length} 个需要重新计算的预算`);
@@ -752,11 +1174,15 @@ export class BudgetService {
       const currentBudget = subsequentBudgets[i];
       const previousBudget = i > 0 ? subsequentBudgets[i - 1] : null;
 
-      console.log(`重新计算预算 ${i + 1}/${subsequentBudgets.length}: ${currentBudget.name} (${currentBudget.id})`);
+      console.log(
+        `重新计算预算 ${i + 1}/${subsequentBudgets.length}: ${currentBudget.name} (${
+          currentBudget.id
+        })`,
+      );
 
       // 计算当前预算的实际支出
       const spent = await this.budgetRepository.calculateSpentAmount(currentBudget.id);
-      
+
       // 计算上个预算的结转金额
       let rolloverFromPrevious = 0;
       if (previousBudget) {
@@ -770,7 +1196,7 @@ export class BudgetService {
       // 更新当前预算的结转金额
       if (Number(currentBudget.rolloverAmount || 0) !== rolloverFromPrevious) {
         await this.budgetRepository.update(currentBudget.id, {
-          rolloverAmount: rolloverFromPrevious
+          rolloverAmount: rolloverFromPrevious,
         });
         console.log(`更新预算 ${currentBudget.id} 的结转金额: ${rolloverFromPrevious}`);
       }
@@ -795,7 +1221,9 @@ export class BudgetService {
     const totalAvailable = amount + rolloverAmount;
     const remaining = totalAvailable - spent;
 
-    console.log(`预算详情 - 基础: ${amount}, 结转: ${rolloverAmount}, 总可用: ${totalAvailable}, 已用: ${spent}, 剩余: ${remaining}`);
+    console.log(
+      `预算详情 - 基础: ${amount}, 结转: ${rolloverAmount}, 总可用: ${totalAvailable}, 已用: ${spent}, 剩余: ${remaining}`,
+    );
 
     // 更新结转历史记录
     await this.updateBudgetHistory(budget, spent, rolloverAmount);
@@ -804,11 +1232,15 @@ export class BudgetService {
   /**
    * 更新或创建预算历史记录
    */
-  private async updateBudgetHistory(budget: any, spent: number, previousRollover: number): Promise<void> {
+  private async updateBudgetHistory(
+    budget: any,
+    spent: number,
+    previousRollover: number,
+  ): Promise<void> {
     const amount = Number(budget.amount);
     const totalAvailable = amount + previousRollover;
     const remaining = totalAvailable - spent;
-    
+
     const endDate = new Date(budget.endDate);
     const period = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}`;
 
@@ -816,8 +1248,8 @@ export class BudgetService {
     const existingHistory = await prisma.budgetHistory.findFirst({
       where: {
         budgetId: budget.id,
-        period: period
-      }
+        period: period,
+      },
     });
 
     const rolloverType = remaining >= 0 ? 'SURPLUS' : 'DEFICIT';
@@ -830,14 +1262,14 @@ export class BudgetService {
       budgetAmount: amount,
       spentAmount: spent,
       previousRollover: previousRollover,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     if (existingHistory) {
       // 更新现有记录
       await prisma.budgetHistory.update({
         where: { id: existingHistory.id },
-        data: historyData
+        data: historyData,
       });
       console.log(`更新历史记录: ${period}, 结转金额: ${remaining}`);
     } else {
@@ -856,8 +1288,8 @@ export class BudgetService {
             spentAmount: spent,
             previousRollover: previousRollover,
             createdAt: new Date(),
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         });
         console.log(`创建历史记录: ${period}, 结转金额: ${remaining}`);
       }
@@ -885,11 +1317,11 @@ export class BudgetService {
             include: {
               members: {
                 where: { userId: { not: null } },
-                select: { userId: true }
-              }
-            }
-          }
-        }
+                select: { userId: true },
+              },
+            },
+          },
+        },
       });
 
       if (accountBook) {
@@ -901,8 +1333,8 @@ export class BudgetService {
         // 如果是家庭账本，检查用户是否是家庭成员
         if (accountBook.type === 'FAMILY' && accountBook.family) {
           const familyUserIds = accountBook.family.members
-            .map(member => member.userId)
-            .filter(id => id !== null);
+            .map((member) => member.userId)
+            .filter((id) => id !== null);
           return familyUserIds.includes(userId);
         }
       }
@@ -925,11 +1357,11 @@ export class BudgetService {
           include: {
             members: {
               where: { userId: { not: null } },
-              select: { userId: true }
-            }
-          }
-        }
-      }
+              select: { userId: true },
+            },
+          },
+        },
+      },
     });
 
     if (!accountBook) {
@@ -944,8 +1376,8 @@ export class BudgetService {
     // 如果是家庭账本，检查用户是否是家庭成员
     if (accountBook.type === 'FAMILY' && accountBook.family) {
       const familyUserIds = accountBook.family.members
-        .map(member => member.userId)
-        .filter(id => id !== null);
+        .map((member) => member.userId)
+        .filter((id) => id !== null);
       return familyUserIds.includes(userId);
     }
 
@@ -962,9 +1394,13 @@ export class BudgetService {
   async getBudgetTrends(
     budgetId: string,
     viewMode: 'daily' | 'weekly' | 'monthly' = 'monthly',
-    familyMemberId?: string
+    familyMemberId?: string,
   ): Promise<any[]> {
-    console.log(`获取预算趋势数据，预算ID: ${budgetId}, 视图模式: ${viewMode}, 家庭成员ID: ${familyMemberId || '无'}`);
+    console.log(
+      `获取预算趋势数据，预算ID: ${budgetId}, 视图模式: ${viewMode}, 家庭成员ID: ${
+        familyMemberId || '无'
+      }`,
+    );
 
     // 获取预算信息
     const budget = await this.budgetRepository.findById(budgetId);
@@ -990,7 +1426,7 @@ export class BudgetService {
       months.push({
         date: `${year}-${formattedMonth}`,
         startDate: new Date(year, month - 1, 1),
-        endDate: new Date(year, month, 0)
+        endDate: new Date(year, month, 0),
       });
     }
 
@@ -1005,10 +1441,10 @@ export class BudgetService {
           accountBookId,
           date: {
             gte: month.startDate,
-            lte: month.endDate
+            lte: month.endDate,
           },
           type: 'EXPENSE',
-          ...(budget.categoryId && { categoryId: budget.categoryId })
+          ...(budget.categoryId && { categoryId: budget.categoryId }),
         };
 
         // 处理家庭成员ID
@@ -1016,7 +1452,7 @@ export class BudgetService {
           // 检查是否为托管成员ID
           const familyMember = await prisma.familyMember.findUnique({
             where: { id: familyMemberId },
-            select: { id: true, userId: true, isCustodial: true }
+            select: { id: true, userId: true, isCustodial: true },
           });
 
           if (familyMember) {
@@ -1044,7 +1480,7 @@ export class BudgetService {
 
         // 查询该月的交易总额
         const transactions = await prisma.transaction.findMany({
-          where: whereCondition
+          where: whereCondition,
         });
 
         console.log(`${month.date}月份找到${transactions.length}条交易记录`);
@@ -1052,7 +1488,7 @@ export class BudgetService {
         // 计算总支出
         const amount = transactions.reduce(
           (sum: number, transaction: Transaction) => sum + Number(transaction.amount),
-          0
+          0,
         );
 
         // 计算结转影响（如果预算启用了结转）
@@ -1071,7 +1507,7 @@ export class BudgetService {
           date: month.date,
           amount,
           rolloverImpact,
-          total // 如果有结转影响，total会不等于amount
+          total, // 如果有结转影响，total会不等于amount
         });
       } catch (error) {
         console.error(`获取${month.date}月份交易数据失败:`, error);
@@ -1080,7 +1516,7 @@ export class BudgetService {
           date: month.date,
           amount: 0,
           rolloverImpact: 0,
-          total: 0
+          total: 0,
         });
       }
     }
@@ -1104,13 +1540,19 @@ export class BudgetService {
 
       if (latestPersonalBudget) {
         const refreshDay = (latestPersonalBudget as any).refreshDay || 1;
-        console.log(`找到最近的个人预算: ${latestPersonalBudget.name}, 结束日期: ${latestPersonalBudget.endDate}, 刷新日期: ${refreshDay}`);
+        console.log(
+          `找到最近的个人预算: ${latestPersonalBudget.name}, 结束日期: ${latestPersonalBudget.endDate}, 刷新日期: ${refreshDay}`,
+        );
 
         const currentDate = new Date();
         const latestEndDate = new Date(latestPersonalBudget.endDate);
 
         if (latestEndDate < currentDate) {
-          const periodsToCreate = BudgetDateUtils.calculateMissingPeriods(latestEndDate, currentDate, refreshDay);
+          const periodsToCreate = BudgetDateUtils.calculateMissingPeriods(
+            latestEndDate,
+            currentDate,
+            refreshDay,
+          );
           console.log(`需要创建 ${periodsToCreate.length} 个个人预算周期`);
 
           let previousBudgetId = latestPersonalBudget.id;
@@ -1124,7 +1566,11 @@ export class BudgetService {
             }
 
             // 创建新预算周期的预算（包含结转金额）
-            const newBudget = await this.createBudgetForPeriod(latestPersonalBudget, period, rolloverAmount);
+            const newBudget = await this.createBudgetForPeriod(
+              latestPersonalBudget,
+              period,
+              rolloverAmount,
+            );
             previousBudgetId = newBudget.id;
 
             console.log(`成功创建个人预算: ${newBudget.name} (${newBudget.id})`);
@@ -1140,7 +1586,7 @@ export class BudgetService {
       // 查找该账本对应的家庭ID
       const accountBook = await prisma.accountBook.findUnique({
         where: { id: accountBookId },
-        select: { familyId: true }
+        select: { familyId: true },
       });
 
       if (accountBook?.familyId) {
@@ -1148,8 +1594,8 @@ export class BudgetService {
         const custodialMembers = await prisma.familyMember.findMany({
           where: {
             familyId: accountBook.familyId,
-            isCustodial: true
-          }
+            isCustodial: true,
+          },
         });
 
         console.log(`找到 ${custodialMembers.length} 个托管成员`);
@@ -1159,22 +1605,35 @@ export class BudgetService {
           console.log(`开始为托管成员 ${member.name} (${member.id}) 创建缺失预算`);
 
           // 查找该托管成员最近的预算
-          const latestCustodialBudget = await this.findLatestCustodialMemberBudget(member.id, accountBookId);
+          const latestCustodialBudget = await this.findLatestCustodialMemberBudget(
+            member.id,
+            accountBookId,
+          );
 
           if (latestCustodialBudget) {
             const refreshDay = (latestCustodialBudget as any).refreshDay || 1;
-            console.log(`托管成员 ${member.name} 最新预算结束日期: ${latestCustodialBudget.endDate}, 结转日: ${refreshDay}`);
+            console.log(
+              `托管成员 ${member.name} 最新预算结束日期: ${latestCustodialBudget.endDate}, 结转日: ${refreshDay}`,
+            );
 
             const currentDate = new Date();
             const latestEndDate = new Date(latestCustodialBudget.endDate);
 
             if (latestEndDate < currentDate) {
-              const periodsToCreate = BudgetDateUtils.calculateMissingPeriods(latestEndDate, currentDate, refreshDay);
-              console.log(`需要为托管成员 ${member.name} 创建 ${periodsToCreate.length} 个预算周期`);
+              const periodsToCreate = BudgetDateUtils.calculateMissingPeriods(
+                latestEndDate,
+                currentDate,
+                refreshDay,
+              );
+              console.log(
+                `需要为托管成员 ${member.name} 创建 ${periodsToCreate.length} 个预算周期`,
+              );
 
               let previousBudgetId = latestCustodialBudget.id;
               for (const period of periodsToCreate) {
-                console.log(`为托管成员 ${member.name} 创建预算周期: ${BudgetDateUtils.formatPeriod(period)}`);
+                console.log(
+                  `为托管成员 ${member.name} 创建预算周期: ${BudgetDateUtils.formatPeriod(period)}`,
+                );
 
                 // 处理上个预算的结转（如果启用了结转）
                 let rolloverAmount = 0;
@@ -1183,10 +1642,16 @@ export class BudgetService {
                 }
 
                 // 创建新预算周期的预算（包含结转金额）
-                const newBudget = await this.createBudgetForPeriod(latestCustodialBudget, period, rolloverAmount);
+                const newBudget = await this.createBudgetForPeriod(
+                  latestCustodialBudget,
+                  period,
+                  rolloverAmount,
+                );
                 previousBudgetId = newBudget.id;
 
-                console.log(`成功为托管成员 ${member.name} 创建预算: ${newBudget.name} (${newBudget.id})`);
+                console.log(
+                  `成功为托管成员 ${member.name} 创建预算: ${newBudget.name} (${newBudget.id})`,
+                );
               }
             }
           } else {
@@ -1196,14 +1661,11 @@ export class BudgetService {
       } else {
         console.log('账本不属于家庭，跳过托管成员预算创建');
       }
-
     } catch (error) {
       console.error('自动创建缺失预算失败:', error);
       // 不抛出错误，避免影响正常的预算查询
     }
   }
-
-
 
   /**
    * 查找用户最近的个人预算
@@ -1215,12 +1677,12 @@ export class BudgetService {
         accountBookId,
         budgetType: BudgetType.PERSONAL,
         period: BudgetPeriod.MONTHLY,
-        familyMemberId: null // 排除托管成员的预算
+        familyMemberId: null, // 排除托管成员的预算
       },
       orderBy: {
-        endDate: 'desc'
+        endDate: 'desc',
       },
-      take: 1
+      take: 1,
     });
 
     return budgets.length > 0 ? budgets[0] : null;
@@ -1229,24 +1691,25 @@ export class BudgetService {
   /**
    * 查找托管成员最近的预算
    */
-  private async findLatestCustodialMemberBudget(memberId: string, accountBookId: string): Promise<any> {
+  private async findLatestCustodialMemberBudget(
+    memberId: string,
+    accountBookId: string,
+  ): Promise<any> {
     const budgets = await prisma.budget.findMany({
       where: {
         familyMemberId: memberId,
         accountBookId,
         budgetType: BudgetType.PERSONAL,
-        period: BudgetPeriod.MONTHLY
+        period: BudgetPeriod.MONTHLY,
       },
       orderBy: {
-        endDate: 'desc'
+        endDate: 'desc',
       },
-      take: 1
+      take: 1,
     });
 
     return budgets.length > 0 ? budgets[0] : null;
   }
-
-
 
   /**
    * 为特定预算周期创建预算
@@ -1255,7 +1718,11 @@ export class BudgetService {
    * @param rolloverAmount 结转金额（可选）
    * @returns 新创建的预算
    */
-  private async createBudgetForPeriod(templateBudget: any, period: any, rolloverAmount: number = 0): Promise<BudgetResponseDto> {
+  private async createBudgetForPeriod(
+    templateBudget: any,
+    period: any,
+    rolloverAmount: number = 0,
+  ): Promise<BudgetResponseDto> {
     const newBudgetData: CreateBudgetDto = {
       name: templateBudget.name,
       amount: Number(templateBudget.amount),
@@ -1270,7 +1737,7 @@ export class BudgetService {
       isAutoCalculated: templateBudget.isAutoCalculated || false,
       budgetType: templateBudget.budgetType || BudgetType.PERSONAL,
       familyMemberId: templateBudget.familyMemberId || undefined, // 添加托管成员ID
-      refreshDay: period.refreshDay
+      refreshDay: period.refreshDay,
     };
 
     // 创建新预算
@@ -1280,7 +1747,7 @@ export class BudgetService {
     // 如果启用了结转功能，更新新预算的结转金额（包括正数和负数）
     if (templateBudget.rollover) {
       await this.budgetRepository.update(newBudget.id, {
-        rolloverAmount: rolloverAmount
+        rolloverAmount: rolloverAmount,
       });
 
       const rolloverType = rolloverAmount >= 0 ? '余额结转' : '债务结转';
@@ -1320,7 +1787,7 @@ export class BudgetService {
       const nextPeriod = BudgetDateUtils.calculateMissingPeriods(
         currentEndDate,
         new Date(currentEndDate.getTime() + 24 * 60 * 60 * 1000), // 下一天
-        refreshDay
+        refreshDay,
       )[0];
 
       if (!nextPeriod) {

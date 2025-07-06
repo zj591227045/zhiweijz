@@ -50,7 +50,7 @@ router.get('/wechat-binding', (req, res) => {
     method: req.method,
     path: req.path,
     userAgent: req.get('User-Agent'),
-    query: req.query
+    query: req.query,
   });
 
   // 检查是否在微信环境中
@@ -100,19 +100,16 @@ router.get('/wechat-binding', (req, res) => {
   // 生成测试用的openid
   const testOpenId = 'wx_' + Date.now();
   htmlContent = htmlContent.replace(
-    'return \'test_openid_\' + Date.now();',
-    `return '${testOpenId}';`
+    "return 'test_openid_' + Date.now();",
+    `return '${testOpenId}';`,
   );
 
   // 修复API路径问题
   htmlContent = htmlContent.replace(
     "'/api/wechat/login-and-get-books'",
-    "'/api/wechat/login-and-get-books'"
+    "'/api/wechat/login-and-get-books'",
   );
-  htmlContent = htmlContent.replace(
-    "'/api/wechat/bind-account'",
-    "'/api/wechat/bind-account'"
-  );
+  htmlContent = htmlContent.replace("'/api/wechat/bind-account'", "'/api/wechat/bind-account'");
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
