@@ -83,9 +83,10 @@ class RolloverHistoryCreator {
             budgetAmount: amount,
             spentAmount: spent,
             previousRollover: currentRolloverAmount,
-            userId: budget.userId,
-            accountBookId: budget.accountBookId,
-            budgetType: budget.budgetType || 'PERSONAL',
+            // 注意：根据实际数据库结构，这些字段可能不存在
+            // userId: budget.userId,
+            // accountBookId: budget.accountBookId,
+            // budgetType: budget.budgetType || 'PERSONAL',
           }
         });
 
@@ -182,9 +183,10 @@ class RolloverHistoryCreator {
             budgetAmount: lastMonthAmount,
             spentAmount: lastMonthSpent,
             previousRollover: lastMonthPreviousRollover,
-            userId: lastMonthBudget.userId,
-            accountBookId: lastMonthBudget.accountBookId,
-            budgetType: lastMonthBudget.budgetType || 'PERSONAL',
+            // 注意：根据实际数据库结构，这些字段可能不存在
+            // userId: lastMonthBudget.userId,
+            // accountBookId: lastMonthBudget.accountBookId,
+            // budgetType: lastMonthBudget.budgetType || 'PERSONAL',
           }
         });
 
