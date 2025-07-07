@@ -73,6 +73,22 @@ export function AvatarUploader({
     platformFilePicker.checkCapabilities().then(setPlatformCapabilities);
   }, []);
 
+  // 监听 isUploading 状态变化，关闭所有弹窗
+  useEffect(() => {
+    if (isUploading) {
+      setShowAvatarSelector(false);
+      setShowUploadOptions(false);
+      setShowCropper(false);
+      uploadProgress.hide();
+
+      // 清理临时URL
+      if (cropImageUrl) {
+        revokeImagePreview(cropImageUrl);
+        setCropImageUrl(null);
+      }
+    }
+  }, [isUploading, cropImageUrl, uploadProgress]);
+
   // 防抖的拖拽处理
   const debouncedDragOver = useRef(
     debounce((event: React.DragEvent) => {
@@ -201,10 +217,25 @@ export function AvatarUploader({
       const totalTime = performanceTimer.current.end('image-processing');
       console.log('📊 图片处理总耗时:', totalTime, 'ms');
 
+      // 隐藏当前进度条，让父组件接管上传过程
+      uploadProgress.hide();
+      console.log('📤 图片处理完成，准备调用 onAvatarChange');
+
       // 触发上传
       onAvatarChange({ type: 'file', data: processedFile });
+      console.log('📤 onAvatarChange 已调用，等待父组件处理上传');
     } catch (error) {
       console.error('处理裁剪结果失败:', error);
+      
+      // 确保关闭裁剪器
+      setShowCropper(false);
+      
+      // 清理临时URL
+      if (cropImageUrl) {
+        revokeImagePreview(cropImageUrl);
+        setCropImageUrl(null);
+      }
+      
       uploadProgress.setError('处理图片失败，请重试');
     }
   };

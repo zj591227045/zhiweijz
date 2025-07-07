@@ -41,9 +41,31 @@ export function ImageCropper({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
+  const [scale, setScale] = useState(1);
+  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
+  const [isImageDragging, setIsImageDragging] = useState(false);
+  const [imageDragStart, setImageDragStart] = useState({ x: 0, y: 0, imageX: 0, imageY: 0 });
+  const [lastTouchDistance, setLastTouchDistance] = useState(0);
   
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // 计算两点间距离（用于缩放）
+  const getTouchDistance = useCallback((touch1: Touch, touch2: Touch) => {
+    const dx = touch1.clientX - touch2.clientX;
+    const dy = touch1.clientY - touch2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }, []);
+
+  // 获取触摸点相对于容器的坐标
+  const getRelativePosition = useCallback((clientX: number, clientY: number) => {
+    if (!containerRef.current) return { x: 0, y: 0 };
+    const rect = containerRef.current.getBoundingClientRect();
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top,
+    };
+  }, []);
 
   // 图片加载完成
   const handleImageLoad = useCallback(() => {
@@ -56,16 +78,23 @@ export function ImageCropper({
     const containerRect = container.getBoundingClientRect();
     const imgRect = img.getBoundingClientRect();
     
+    const displayWidth = imgRect.width;
+    const displayHeight = imgRect.height;
+
     setImageDimensions({
-      width: imgRect.width,
-      height: imgRect.height,
+      width: displayWidth,
+      height: displayHeight,
     });
 
+    // 重置图片位置和缩放
+    setScale(1);
+    setImagePosition({ x: 0, y: 0 });
+
     // 初始化裁剪区域（居中）
-    const size = Math.min(imgRect.width, imgRect.height) * 0.8;
+    const size = Math.min(displayWidth, displayHeight) * 0.8;
     setCropArea({
-      x: (imgRect.width - size) / 2,
-      y: (imgRect.height - size) / 2,
+      x: (displayWidth - size) / 2,
+      y: (displayHeight - size) / 2,
       width: size,
       height: size / aspectRatio,
     });
@@ -73,38 +102,197 @@ export function ImageCropper({
     setImageLoaded(true);
   }, [aspectRatio]);
 
-  // 开始拖拽
-  const handleMouseDown = useCallback((event: React.MouseEvent) => {
+  // 开始拖拽裁剪框
+  const handleCropMouseDown = useCallback((event: React.MouseEvent) => {
     event.preventDefault();
+    event.stopPropagation();
     setIsDragging(true);
+    const pos = getRelativePosition(event.clientX, event.clientY);
     setDragStart({
-      x: event.clientX - cropArea.x,
-      y: event.clientY - cropArea.y,
+      x: pos.x - cropArea.x,
+      y: pos.y - cropArea.y,
     });
-  }, [cropArea]);
+  }, [cropArea, getRelativePosition]);
+
+  // 开始拖拽图片
+  const handleImageMouseDown = useCallback((event: React.MouseEvent) => {
+    if (event.target === imageRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      setIsImageDragging(true);
+      const pos = getRelativePosition(event.clientX, event.clientY);
+      setImageDragStart({
+        x: pos.x,
+        y: pos.y,
+        imageX: imagePosition.x,
+        imageY: imagePosition.y,
+      });
+    }
+  }, [imagePosition, getRelativePosition]);
+
+  // 触摸开始
+  const handleTouchStart = useCallback((event: React.TouchEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const touches = event.touches;
+    
+    if (touches.length === 1) {
+      // 单指触摸 - 拖拽
+      const touch = touches[0];
+      const pos = getRelativePosition(touch.clientX, touch.clientY);
+      
+      // 检查是否点击在裁剪框上
+      const cropBox = event.target as HTMLElement;
+      if (cropBox.style.cursor === 'move') {
+        setIsDragging(true);
+        setDragStart({
+          x: pos.x - cropArea.x,
+          y: pos.y - cropArea.y,
+        });
+      } else {
+        // 拖拽图片
+        setIsImageDragging(true);
+        setImageDragStart({
+          x: pos.x,
+          y: pos.y,
+          imageX: imagePosition.x,
+          imageY: imagePosition.y,
+        });
+      }
+    } else if (touches.length === 2) {
+      // 双指触摸 - 缩放
+      const distance = getTouchDistance(touches[0], touches[1]);
+      setLastTouchDistance(distance);
+    }
+  }, [cropArea, imagePosition, getRelativePosition, getTouchDistance]);
 
   // 拖拽中
   const handleMouseMove = useCallback((event: React.MouseEvent) => {
-    if (!isDragging || !imageRef.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const pos = getRelativePosition(event.clientX, event.clientY);
 
-    const newX = event.clientX - dragStart.x;
-    const newY = event.clientY - dragStart.y;
+    if (isDragging) {
+      // 拖拽裁剪框
+      const newX = pos.x - dragStart.x;
+      const newY = pos.y - dragStart.y;
 
-    // 限制裁剪区域在图片范围内
-    const maxX = imageDimensions.width - cropArea.width;
-    const maxY = imageDimensions.height - cropArea.height;
+      // 计算有效的图片区域（考虑缩放和位移）
+      const scaledWidth = imageDimensions.width * scale;
+      const scaledHeight = imageDimensions.height * scale;
+      const imageLeft = imagePosition.x + (imageDimensions.width - scaledWidth) / 2;
+      const imageTop = imagePosition.y + (imageDimensions.height - scaledHeight) / 2;
+      const imageRight = imageLeft + scaledWidth;
+      const imageBottom = imageTop + scaledHeight;
 
-    setCropArea(prev => ({
-      ...prev,
-      x: Math.max(0, Math.min(newX, maxX)),
-      y: Math.max(0, Math.min(newY, maxY)),
-    }));
-  }, [isDragging, dragStart, imageDimensions, cropArea.width, cropArea.height]);
+      // 限制裁剪区域在有效图片范围内
+      const maxX = imageRight - cropArea.width;
+      const maxY = imageBottom - cropArea.height;
+      const minX = imageLeft;
+      const minY = imageTop;
+
+      setCropArea(prev => ({
+        ...prev,
+        x: Math.max(minX, Math.min(newX, maxX)),
+        y: Math.max(minY, Math.min(newY, maxY)),
+      }));
+    } else if (isImageDragging) {
+      // 拖拽图片
+      const deltaX = pos.x - imageDragStart.x;
+      const deltaY = pos.y - imageDragStart.y;
+      
+      setImagePosition({
+        x: imageDragStart.imageX + deltaX,
+        y: imageDragStart.imageY + deltaY,
+      });
+    }
+  }, [isDragging, isImageDragging, dragStart, imageDragStart, cropArea, imageDimensions, scale, imagePosition, getRelativePosition]);
+
+  // 触摸移动
+  const handleTouchMove = useCallback((event: React.TouchEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const touches = event.touches;
+    
+    if (touches.length === 1) {
+      // 单指拖拽
+      const touch = touches[0];
+      const pos = getRelativePosition(touch.clientX, touch.clientY);
+
+      if (isDragging) {
+        // 拖拽裁剪框
+        const newX = pos.x - dragStart.x;
+        const newY = pos.y - dragStart.y;
+
+        const scaledWidth = imageDimensions.width * scale;
+        const scaledHeight = imageDimensions.height * scale;
+        const imageLeft = imagePosition.x + (imageDimensions.width - scaledWidth) / 2;
+        const imageTop = imagePosition.y + (imageDimensions.height - scaledHeight) / 2;
+        const imageRight = imageLeft + scaledWidth;
+        const imageBottom = imageTop + scaledHeight;
+
+        const maxX = imageRight - cropArea.width;
+        const maxY = imageBottom - cropArea.height;
+        const minX = imageLeft;
+        const minY = imageTop;
+
+        setCropArea(prev => ({
+          ...prev,
+          x: Math.max(minX, Math.min(newX, maxX)),
+          y: Math.max(minY, Math.min(newY, maxY)),
+        }));
+      } else if (isImageDragging) {
+        // 拖拽图片
+        const deltaX = pos.x - imageDragStart.x;
+        const deltaY = pos.y - imageDragStart.y;
+        
+        setImagePosition({
+          x: imageDragStart.imageX + deltaX,
+          y: imageDragStart.imageY + deltaY,
+        });
+      }
+    } else if (touches.length === 2) {
+      // 双指缩放
+      const distance = getTouchDistance(touches[0], touches[1]);
+      
+      if (lastTouchDistance > 0) {
+        const scaleChange = distance / lastTouchDistance;
+        const newScale = Math.max(0.5, Math.min(3, scale * scaleChange));
+        setScale(newScale);
+      }
+      
+      setLastTouchDistance(distance);
+    }
+  }, [isDragging, isImageDragging, dragStart, imageDragStart, cropArea, imageDimensions, scale, imagePosition, lastTouchDistance, getRelativePosition, getTouchDistance]);
 
   // 结束拖拽
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
+    setIsImageDragging(false);
   }, []);
+
+  // 触摸结束
+  const handleTouchEnd = useCallback((event: React.TouchEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    setIsDragging(false);
+    setIsImageDragging(false);
+    setLastTouchDistance(0);
+  }, []);
+
+  // 滚轮缩放
+  const handleWheel = useCallback((event: React.WheelEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const delta = event.deltaY > 0 ? 0.9 : 1.1;
+    const newScale = Math.max(0.5, Math.min(3, scale * delta));
+    setScale(newScale);
+  }, [scale]);
 
   // 执行裁剪
   const handleCrop = useCallback(async () => {
@@ -119,18 +307,30 @@ export function ImageCropper({
       canvas.width = outputSize;
       canvas.height = outputSize;
 
-      // 计算缩放比例
+      // 计算实际的图片尺寸和位置
       const img = imageRef.current;
       const scaleX = img.naturalWidth / imageDimensions.width;
       const scaleY = img.naturalHeight / imageDimensions.height;
 
+      // 计算裁剪区域在原图中的位置（考虑缩放和位移）
+      const scaledWidth = imageDimensions.width * scale;
+      const scaledHeight = imageDimensions.height * scale;
+      const imageLeft = imagePosition.x + (imageDimensions.width - scaledWidth) / 2;
+      const imageTop = imagePosition.y + (imageDimensions.height - scaledHeight) / 2;
+
+      // 计算裁剪区域相对于图片的坐标
+      const relativeX = (cropArea.x - imageLeft) / scale;
+      const relativeY = (cropArea.y - imageTop) / scale;
+      const relativeWidth = cropArea.width / scale;
+      const relativeHeight = cropArea.height / scale;
+
       // 绘制裁剪后的图片
       ctx.drawImage(
         img,
-        cropArea.x * scaleX,
-        cropArea.y * scaleY,
-        cropArea.width * scaleX,
-        cropArea.height * scaleY,
+        relativeX * scaleX,
+        relativeY * scaleY,
+        relativeWidth * scaleX,
+        relativeHeight * scaleY,
         0,
         0,
         outputSize,
@@ -151,7 +351,7 @@ export function ImageCropper({
       console.error('裁剪失败:', error);
       alert('图片裁剪失败，请重试');
     }
-  }, [cropArea, imageDimensions, outputSize, onCrop]);
+  }, [cropArea, imageDimensions, outputSize, scale, imagePosition, onCrop]);
 
   if (!isOpen) return null;
 
@@ -170,6 +370,7 @@ export function ImageCropper({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          touchAction: 'none', // 防止默认触摸行为
         }}
         onClick={onCancel}
       >
@@ -184,6 +385,7 @@ export function ImageCropper({
             display: 'flex',
             flexDirection: 'column',
             gap: '20px',
+            touchAction: 'none', // 防止默认触摸行为
           }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -207,11 +409,16 @@ export function ImageCropper({
               maxHeight: '400px',
               overflow: 'hidden',
               borderRadius: '8px',
-              cursor: isDragging ? 'grabbing' : 'grab',
+              cursor: isDragging ? 'grabbing' : (isImageDragging ? 'grabbing' : 'grab'),
+              touchAction: 'none', // 防止默认触摸行为
             }}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onWheel={handleWheel}
           >
             <img
               ref={imageRef}
@@ -222,9 +429,14 @@ export function ImageCropper({
                 maxHeight: '100%',
                 display: 'block',
                 userSelect: 'none',
-                pointerEvents: 'none',
+                pointerEvents: 'auto',
+                transform: `translate(${imagePosition.x}px, ${imagePosition.y}px) scale(${scale})`,
+                transformOrigin: 'center',
+                transition: isDragging || isImageDragging ? 'none' : 'transform 0.1s ease',
               }}
               onLoad={handleImageLoad}
+              onMouseDown={handleImageMouseDown}
+              draggable={false}
             />
 
             {/* 裁剪框 */}
@@ -256,11 +468,17 @@ export function ImageCropper({
                     cursor: 'move',
                     backgroundColor: 'transparent',
                     boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
+                    touchAction: 'none', // 防止默认触摸行为
                   }}
-                  onMouseDown={handleMouseDown}
+                  onMouseDown={handleCropMouseDown}
                 />
               </>
             )}
+          </div>
+
+          {/* 操作提示 */}
+          <div style={{ fontSize: '12px', color: '#999', textAlign: 'center' }}>
+            💡 拖拽图片调整位置，使用双指缩放或滚轮调整大小
           </div>
 
           {/* 操作按钮 */}
