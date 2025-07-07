@@ -30,13 +30,47 @@ export interface PlatformFilePickerOptions {
  */
 async function isCapacitorPluginAvailable(pluginName: string): Promise<boolean> {
   if (typeof window === 'undefined' || !(window as any).Capacitor) {
+    console.log(`🔍 [PluginCheck] ${pluginName}: Capacitor不可用 - window未定义或Capacitor对象不存在`);
     return false;
   }
 
   try {
     const { Capacitor } = (window as any);
-    return Capacitor.isPluginAvailable(pluginName);
-  } catch {
+
+    // 输出调试信息
+    console.log(`🔍 [PluginCheck] ${pluginName}: 开始检查插件可用性`);
+    console.log(`🔍 [PluginCheck] Capacitor对象:`, Capacitor);
+    console.log(`🔍 [PluginCheck] 平台:`, Capacitor.getPlatform?.());
+    console.log(`🔍 [PluginCheck] 是否原生平台:`, Capacitor.isNativePlatform?.());
+
+    // 检查插件是否可用
+    const isAvailable = Capacitor.isPluginAvailable(pluginName);
+    console.log(`🔍 [PluginCheck] ${pluginName}: isPluginAvailable结果:`, isAvailable);
+
+    // 额外检查：尝试直接访问插件
+    if (!isAvailable) {
+      try {
+        // 尝试动态导入插件
+        const cameraModule = await import('@capacitor/camera');
+        console.log(`🔍 [PluginCheck] ${pluginName}: 模块导入成功`, !!cameraModule.Camera);
+
+        // 检查插件是否在Capacitor.Plugins中
+        const plugins = Capacitor.Plugins || {};
+        console.log(`🔍 [PluginCheck] 可用插件:`, Object.keys(plugins));
+
+        // 如果模块可以导入，认为插件可用
+        if (cameraModule.Camera) {
+          console.log(`🔍 [PluginCheck] ${pluginName}: 通过模块导入检测到插件可用`);
+          return true;
+        }
+      } catch (importError) {
+        console.error(`🔍 [PluginCheck] ${pluginName}: 模块导入失败:`, importError);
+      }
+    }
+
+    return isAvailable;
+  } catch (error) {
+    console.error(`🔍 [PluginCheck] ${pluginName}: 检查失败:`, error);
     return false;
   }
 }
@@ -86,21 +120,50 @@ async function webFilePicker(options: PlatformFilePickerOptions): Promise<FilePi
  */
 async function capacitorCamera(options: PlatformFilePickerOptions): Promise<FilePickerResult | null> {
   try {
-    // 在Web环境中，Capacitor不可用，直接抛出错误
-    if (typeof window !== 'undefined' && !(window as any).Capacitor) {
+    console.log('📷 [CapacitorCamera] 开始调用相机插件...');
+
+    // 检查Capacitor环境
+    if (typeof window === 'undefined' || !(window as any).Capacitor) {
+      console.error('📷 [CapacitorCamera] Capacitor环境不可用');
       throw new Error('Capacitor not available in web environment');
     }
 
-    // 动态导入Capacitor Camera，只在需要时加载
-    // 使用字符串拼接避免Webpack静态分析
-    const moduleName = '@capacitor' + '/camera';
-    const capacitorCamera = await import(moduleName).catch(() => null);
+    const { Capacitor } = (window as any);
+    console.log('📷 [CapacitorCamera] Capacitor环境信息:', {
+      platform: Capacitor.getPlatform?.(),
+      isNative: Capacitor.isNativePlatform?.(),
+      plugins: Object.keys(Capacitor.Plugins || {})
+    });
+
+    // 动态导入Capacitor Camera
+    console.log('📷 [CapacitorCamera] 正在导入Camera模块...');
+    const capacitorCamera = await import('@capacitor/camera').catch((importError) => {
+      console.error('📷 [CapacitorCamera] 模块导入失败:', importError);
+      return null;
+    });
 
     if (!capacitorCamera) {
+      console.error('📷 [CapacitorCamera] Camera模块导入失败');
       throw new Error('Capacitor Camera plugin not available');
     }
 
     const { Camera, CameraResultType, CameraSource } = capacitorCamera;
+    console.log('📷 [CapacitorCamera] Camera模块导入成功:', !!Camera);
+
+    // 检查Camera对象是否可用
+    if (!Camera || typeof Camera.getPhoto !== 'function') {
+      console.error('📷 [CapacitorCamera] Camera对象或getPhoto方法不可用');
+      throw new Error('Camera plugin methods not available');
+    }
+
+    console.log('📷 [CapacitorCamera] 准备调用Camera.getPhoto，参数:', {
+      quality: Math.round((options.quality || 0.8) * 100),
+      allowEditing: true,
+      resultType: CameraResultType.Blob,
+      source: CameraSource.Camera,
+      width: options.maxWidth,
+      height: options.maxHeight,
+    });
 
     const image = await Camera.getPhoto({
       quality: Math.round((options.quality || 0.8) * 100),
@@ -111,10 +174,22 @@ async function capacitorCamera(options: PlatformFilePickerOptions): Promise<File
       height: options.maxHeight,
     });
 
+    console.log('📷 [CapacitorCamera] Camera.getPhoto调用成功:', {
+      hasBlob: !!image.blob,
+      blobSize: image.blob?.size,
+      format: image.format
+    });
+
     if (image.blob) {
       const file = new File([image.blob], `camera_${Date.now()}.jpg`, {
         type: 'image/jpeg',
         lastModified: Date.now(),
+      });
+
+      console.log('📷 [CapacitorCamera] 文件创建成功:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
       });
 
       return {
@@ -123,10 +198,26 @@ async function capacitorCamera(options: PlatformFilePickerOptions): Promise<File
       };
     }
 
+    console.log('📷 [CapacitorCamera] 未获取到图片数据');
     return null;
   } catch (error) {
-    console.error('Capacitor相机调用失败:', error);
-    throw new Error('相机功能不可用，请尝试其他方式上传图片');
+    console.error('📷 [CapacitorCamera] 相机调用失败:', error);
+
+    // 提供更详细的错误信息
+    let errorMessage = '相机功能不可用';
+    if (error instanceof Error) {
+      if (error.message.includes('User cancelled')) {
+        errorMessage = '用户取消了拍照';
+      } else if (error.message.includes('permission')) {
+        errorMessage = '相机权限被拒绝，请在设置中允许访问相机';
+      } else if (error.message.includes('not available')) {
+        errorMessage = '相机插件不可用，请检查设备是否支持相机功能';
+      } else {
+        errorMessage = `相机调用失败: ${error.message}`;
+      }
+    }
+
+    throw new Error(errorMessage);
   }
 }
 
@@ -135,21 +226,50 @@ async function capacitorCamera(options: PlatformFilePickerOptions): Promise<File
  */
 async function capacitorGallery(options: PlatformFilePickerOptions): Promise<FilePickerResult | null> {
   try {
-    // 在Web环境中，Capacitor不可用，直接抛出错误
-    if (typeof window !== 'undefined' && !(window as any).Capacitor) {
+    console.log('🖼️ [CapacitorGallery] 开始调用相册选择器...');
+
+    // 检查Capacitor环境
+    if (typeof window === 'undefined' || !(window as any).Capacitor) {
+      console.error('🖼️ [CapacitorGallery] Capacitor环境不可用');
       throw new Error('Capacitor not available in web environment');
     }
 
-    // 动态导入Capacitor Camera，只在需要时加载
-    // 使用字符串拼接避免Webpack静态分析
-    const moduleName = '@capacitor' + '/camera';
-    const capacitorCamera = await import(moduleName).catch(() => null);
+    const { Capacitor } = (window as any);
+    console.log('🖼️ [CapacitorGallery] Capacitor环境信息:', {
+      platform: Capacitor.getPlatform?.(),
+      isNative: Capacitor.isNativePlatform?.(),
+      plugins: Object.keys(Capacitor.Plugins || {})
+    });
+
+    // 动态导入Capacitor Camera
+    console.log('🖼️ [CapacitorGallery] 正在导入Camera模块...');
+    const capacitorCamera = await import('@capacitor/camera').catch((importError) => {
+      console.error('🖼️ [CapacitorGallery] 模块导入失败:', importError);
+      return null;
+    });
 
     if (!capacitorCamera) {
+      console.error('🖼️ [CapacitorGallery] Camera模块导入失败');
       throw new Error('Capacitor Camera plugin not available');
     }
 
     const { Camera, CameraResultType, CameraSource } = capacitorCamera;
+    console.log('🖼️ [CapacitorGallery] Camera模块导入成功:', !!Camera);
+
+    // 检查Camera对象是否可用
+    if (!Camera || typeof Camera.getPhoto !== 'function') {
+      console.error('🖼️ [CapacitorGallery] Camera对象或getPhoto方法不可用');
+      throw new Error('Camera plugin methods not available');
+    }
+
+    console.log('🖼️ [CapacitorGallery] 准备调用Camera.getPhoto，参数:', {
+      quality: Math.round((options.quality || 0.8) * 100),
+      allowEditing: true,
+      resultType: CameraResultType.Blob,
+      source: CameraSource.Photos,
+      width: options.maxWidth,
+      height: options.maxHeight,
+    });
 
     const image = await Camera.getPhoto({
       quality: Math.round((options.quality || 0.8) * 100),
@@ -160,10 +280,22 @@ async function capacitorGallery(options: PlatformFilePickerOptions): Promise<Fil
       height: options.maxHeight,
     });
 
+    console.log('🖼️ [CapacitorGallery] Camera.getPhoto调用成功:', {
+      hasBlob: !!image.blob,
+      blobSize: image.blob?.size,
+      format: image.format
+    });
+
     if (image.blob) {
       const file = new File([image.blob], `gallery_${Date.now()}.jpg`, {
         type: 'image/jpeg',
         lastModified: Date.now(),
+      });
+
+      console.log('🖼️ [CapacitorGallery] 文件创建成功:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
       });
 
       return {
@@ -172,10 +304,26 @@ async function capacitorGallery(options: PlatformFilePickerOptions): Promise<Fil
       };
     }
 
+    console.log('🖼️ [CapacitorGallery] 未获取到图片数据');
     return null;
   } catch (error) {
-    console.error('Capacitor相册选择失败:', error);
-    throw new Error('相册功能不可用，请尝试其他方式上传图片');
+    console.error('🖼️ [CapacitorGallery] 相册选择失败:', error);
+
+    // 提供更详细的错误信息
+    let errorMessage = '相册功能不可用';
+    if (error instanceof Error) {
+      if (error.message.includes('User cancelled')) {
+        errorMessage = '用户取消了选择';
+      } else if (error.message.includes('permission')) {
+        errorMessage = '相册权限被拒绝，请在设置中允许访问相册';
+      } else if (error.message.includes('not available')) {
+        errorMessage = '相册插件不可用，请检查设备是否支持相册功能';
+      } else {
+        errorMessage = `相册选择失败: ${error.message}`;
+      }
+    }
+
+    throw new Error(errorMessage);
   }
 }
 
@@ -197,6 +345,8 @@ export class PlatformFilePicker {
    * 检查平台能力
    */
   async checkCapabilities() {
+    console.log('🔍 [PlatformCapabilities] 开始检查平台能力...');
+
     const result = {
       hasCamera: false,
       hasGallery: false,
@@ -204,9 +354,15 @@ export class PlatformFilePicker {
       platform: 'web' as 'web' | 'ios' | 'android'
     };
 
+    // 输出设备能力信息
+    console.log('🔍 [PlatformCapabilities] 设备能力:', this.capabilities);
+
     if (this.capabilities.isCapacitor) {
+      console.log('🔍 [PlatformCapabilities] 检测到Capacitor环境，检查Camera插件...');
+
       try {
         const hasCameraPlugin = await isCapacitorPluginAvailable('Camera');
+        console.log('🔍 [PlatformCapabilities] Camera插件可用性:', hasCameraPlugin);
 
         if (hasCameraPlugin) {
           result.hasCamera = true;
@@ -214,14 +370,22 @@ export class PlatformFilePicker {
 
           if (this.capabilities.isIOS) {
             result.platform = 'ios';
+            console.log('🔍 [PlatformCapabilities] 平台: iOS');
           } else if (this.capabilities.isAndroid) {
             result.platform = 'android';
+            console.log('🔍 [PlatformCapabilities] 平台: Android');
+          } else {
+            console.log('🔍 [PlatformCapabilities] 平台: Capacitor (未知移动平台)');
           }
+        } else {
+          console.warn('🔍 [PlatformCapabilities] Camera插件不可用，回退到Web模式');
         }
       } catch (error) {
-        console.warn('Capacitor能力检测失败，回退到Web模式:', error);
+        console.warn('🔍 [PlatformCapabilities] Capacitor能力检测失败，回退到Web模式:', error);
         // 回退到Web模式
       }
+    } else {
+      console.log('🔍 [PlatformCapabilities] 非Capacitor环境，使用Web模式');
     }
 
     // Web环境或Capacitor不可用时的处理
@@ -230,12 +394,15 @@ export class PlatformFilePicker {
         // Web移动端支持相机
         result.hasCamera = true;
         result.hasGallery = true;
+        console.log('🔍 [PlatformCapabilities] Web移动端: 支持相机和相册');
       } else {
         // 桌面端只支持文件选择
         result.hasGallery = true;
+        console.log('🔍 [PlatformCapabilities] Web桌面端: 仅支持文件选择');
       }
     }
 
+    console.log('🔍 [PlatformCapabilities] 最终能力检测结果:', result);
     return result;
   }
 

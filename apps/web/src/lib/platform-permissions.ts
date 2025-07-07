@@ -21,38 +21,63 @@ export interface PermissionResult {
  */
 async function checkCapacitorPermission(permission: string): Promise<PermissionResult> {
   try {
+    console.log(`🔐 [PermissionCheck] 开始检查${permission}权限...`);
+
     if (typeof window === 'undefined' || !(window as any).Capacitor) {
+      console.log('🔐 [PermissionCheck] Capacitor不可用');
       return { status: 'unavailable', message: 'Capacitor不可用' };
     }
 
+    const { Capacitor } = (window as any);
+    console.log('🔐 [PermissionCheck] Capacitor环境信息:', {
+      platform: Capacitor.getPlatform?.(),
+      isNative: Capacitor.isNativePlatform?.()
+    });
+
     // 动态导入Capacitor Camera
-    // 使用字符串拼接避免Webpack静态分析
-    const moduleName = '@capacitor' + '/camera';
-    const capacitorCamera = await import(moduleName).catch(() => null);
+    console.log('🔐 [PermissionCheck] 正在导入Camera模块...');
+    const capacitorCamera = await import('@capacitor/camera').catch((importError) => {
+      console.error('🔐 [PermissionCheck] Camera模块导入失败:', importError);
+      return null;
+    });
 
     if (!capacitorCamera) {
+      console.error('🔐 [PermissionCheck] Camera模块不可用');
       return { status: 'unavailable', message: 'Capacitor Camera插件不可用' };
     }
 
     const { Camera } = capacitorCamera;
+    console.log('🔐 [PermissionCheck] Camera模块导入成功，检查权限...');
+
+    if (!Camera || typeof Camera.checkPermissions !== 'function') {
+      console.error('🔐 [PermissionCheck] Camera.checkPermissions方法不可用');
+      return { status: 'unavailable', message: 'Camera权限检查方法不可用' };
+    }
+
     const result = await Camera.checkPermissions();
+    console.log('🔐 [PermissionCheck] 权限检查结果:', result);
 
     if (permission === 'camera') {
+      const status = result.camera as PermissionStatus;
+      console.log(`🔐 [PermissionCheck] 相机权限状态: ${status}`);
       return {
-        status: result.camera as PermissionStatus,
-        message: result.camera === 'denied' ? '相机权限被拒绝' : undefined
+        status,
+        message: status === 'denied' ? '相机权限被拒绝' : undefined
       };
     } else if (permission === 'photos') {
+      const status = result.photos as PermissionStatus;
+      console.log(`🔐 [PermissionCheck] 相册权限状态: ${status}`);
       return {
-        status: result.photos as PermissionStatus,
-        message: result.photos === 'denied' ? '相册权限被拒绝' : undefined
+        status,
+        message: status === 'denied' ? '相册权限被拒绝' : undefined
       };
     }
 
+    console.log(`🔐 [PermissionCheck] 未知权限类型: ${permission}`);
     return { status: 'unavailable' };
   } catch (error) {
-    console.error('检查Capacitor权限失败:', error);
-    return { status: 'unavailable', message: '权限检查失败' };
+    console.error('🔐 [PermissionCheck] 检查Capacitor权限失败:', error);
+    return { status: 'unavailable', message: `权限检查失败: ${error instanceof Error ? error.message : '未知错误'}` };
   }
 }
 
@@ -61,40 +86,65 @@ async function checkCapacitorPermission(permission: string): Promise<PermissionR
  */
 async function requestCapacitorPermission(permission: string): Promise<PermissionResult> {
   try {
+    console.log(`🔐 [PermissionRequest] 开始请求${permission}权限...`);
+
     if (typeof window === 'undefined' || !(window as any).Capacitor) {
+      console.log('🔐 [PermissionRequest] Capacitor不可用');
       return { status: 'unavailable', message: 'Capacitor不可用' };
     }
 
+    const { Capacitor } = (window as any);
+    console.log('🔐 [PermissionRequest] Capacitor环境信息:', {
+      platform: Capacitor.getPlatform?.(),
+      isNative: Capacitor.isNativePlatform?.()
+    });
+
     // 动态导入Capacitor Camera
-    // 使用字符串拼接避免Webpack静态分析
-    const moduleName = '@capacitor' + '/camera';
-    const capacitorCamera = await import(moduleName).catch(() => null);
+    console.log('🔐 [PermissionRequest] 正在导入Camera模块...');
+    const capacitorCamera = await import('@capacitor/camera').catch((importError) => {
+      console.error('🔐 [PermissionRequest] Camera模块导入失败:', importError);
+      return null;
+    });
 
     if (!capacitorCamera) {
+      console.error('🔐 [PermissionRequest] Camera模块不可用');
       return { status: 'unavailable', message: 'Capacitor Camera插件不可用' };
     }
 
     const { Camera } = capacitorCamera;
+    console.log('🔐 [PermissionRequest] Camera模块导入成功，请求权限...');
+
+    if (!Camera || typeof Camera.requestPermissions !== 'function') {
+      console.error('🔐 [PermissionRequest] Camera.requestPermissions方法不可用');
+      return { status: 'unavailable', message: 'Camera权限请求方法不可用' };
+    }
+
     const result = await Camera.requestPermissions({
       permissions: [permission as any]
     });
+    console.log('🔐 [PermissionRequest] 权限请求结果:', result);
 
     if (permission === 'camera') {
+      const status = result.camera as PermissionStatus;
+      console.log(`🔐 [PermissionRequest] 相机权限请求结果: ${status}`);
       return {
-        status: result.camera as PermissionStatus,
-        message: result.camera === 'denied' ? '用户拒绝了相机权限' : undefined
+        status,
+        message: status === 'denied' ? '用户拒绝了相机权限' : undefined
       };
     } else if (permission === 'photos') {
+      const status = result.photos as PermissionStatus;
+      console.log(`🔐 [PermissionRequest] 相册权限请求结果: ${status}`);
       return {
-        status: result.photos as PermissionStatus,
-        message: result.photos === 'denied' ? '用户拒绝了相册权限' : undefined
+        status,
+        message: status === 'denied' ? '用户拒绝了相册权限' : undefined
       };
     }
 
+    console.log(`🔐 [PermissionRequest] 未知权限类型: ${permission}`);
     return { status: 'unavailable' };
   } catch (error) {
-    console.error('请求Capacitor权限失败:', error);
-    return { status: 'denied', message: '权限请求失败' };
+    console.error('🔐 [PermissionRequest] 请求Capacitor权限失败:', error);
+    return { status: 'denied', message: `权限请求失败: ${error instanceof Error ? error.message : '未知错误'}` };
   }
 }
 
