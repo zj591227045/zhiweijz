@@ -31,6 +31,7 @@ export interface UserResponseDto {
   avatar?: string;
   bio?: string;
   birthDate?: Date;
+  isCustodial?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -52,6 +53,7 @@ export function toUserResponseDto(user: User): UserResponseDto {
     avatar: userWithExtras.avatar,
     bio: userWithExtras.bio,
     birthDate: userWithExtras.birthDate,
+    isCustodial: user.isCustodial,
     createdAt,
     updatedAt,
   };

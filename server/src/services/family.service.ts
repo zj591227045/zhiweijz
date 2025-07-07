@@ -868,21 +868,51 @@ export class FamilyService {
 
     if (!familyAccountBooks || !familyAccountBooks.data || familyAccountBooks.data.length === 0) {
       // 如果没有家庭账本，返回空统计数据
-      const emptyMemberStatistics = members.map((member) => ({
-        memberId: member.id,
-        userId: member.userId,
-        username: member.name || '未知用户',
-        avatar: null,
-        role: member.role,
-        joinedAt: member.createdAt,
-        isCurrentUser: member.userId === userId,
-        isCustodial: member.isCustodial || false,
-        statistics: {
-          totalExpense: 0,
-          percentage: 0,
-          transactionCount: 0,
-        },
-      }));
+      const emptyMemberStatistics = await Promise.all(
+        members.map(async (member) => {
+          // 手动查询用户信息
+          let userInfo = null;
+          if (member.userId) {
+            try {
+              userInfo = await prisma.user.findUnique({
+                where: { id: member.userId },
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  avatar: true,
+                  isCustodial: true,
+                },
+              });
+            } catch (error) {
+              console.error(`查询用户 ${member.userId} 信息失败:`, error);
+            }
+          }
+
+          return {
+            memberId: member.id,
+            userId: member.userId,
+            username: member.name || '未知用户',
+            avatar: userInfo?.avatar || null,
+            role: member.role,
+            joinedAt: member.createdAt,
+            isCurrentUser: member.userId === userId,
+            isCustodial: userInfo?.isCustodial || false,
+            user: userInfo ? {
+              id: userInfo.id,
+              name: userInfo.name,
+              email: userInfo.email,
+              avatar: userInfo.avatar || undefined,
+              isCustodial: userInfo.isCustodial,
+            } : undefined,
+            statistics: {
+              totalExpense: 0,
+              percentage: 0,
+              transactionCount: 0,
+            },
+          };
+        })
+      );
 
       const isAdmin = await this.isUserFamilyAdmin(userId, familyId);
 
@@ -933,17 +963,24 @@ export class FamilyService {
           transactionCount = 0;
         }
 
-        // 检查成员是否为托管成员（通过关联的用户判断）
+        // 查询用户完整信息
+        let userInfo = null;
         let isCustodial = false;
         if (member.userId) {
           try {
-            const user = await prisma.user.findUnique({
+            userInfo = await prisma.user.findUnique({
               where: { id: member.userId },
-              select: { isCustodial: true },
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                avatar: true,
+                isCustodial: true,
+              },
             });
-            isCustodial = user?.isCustodial || false;
+            isCustodial = userInfo?.isCustodial || false;
           } catch (error) {
-            console.error(`检查用户 ${member.userId} 是否为托管用户失败:`, error);
+            console.error(`查询用户 ${member.userId} 信息失败:`, error);
             isCustodial = false;
           }
         }
@@ -952,11 +989,18 @@ export class FamilyService {
           memberId: member.id,
           userId: member.userId,
           username: member.name || '未知用户',
-          avatar: null, // 实际应用中应该从用户表获取
+          avatar: userInfo?.avatar || null,
           role: member.role,
           joinedAt: member.createdAt,
           isCurrentUser: member.userId === userId,
-          isCustodial: isCustodial, // 使用从用户表查询的结果
+          isCustodial: isCustodial,
+          user: userInfo ? {
+            id: userInfo.id,
+            name: userInfo.name,
+            email: userInfo.email,
+            avatar: userInfo.avatar || undefined,
+            isCustodial: userInfo.isCustodial,
+          } : undefined,
           statistics: {
             totalExpense: memberExpense,
             percentage: 0, // 稍后计算
@@ -1243,6 +1287,13 @@ export class FamilyService {
         isCustodial: true,
         createdAt: familyMember?.createdAt || user.createdAt,
         updatedAt: familyMember?.updatedAt || user.updatedAt,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar || undefined,
+          isCustodial: user.isCustodial,
+        },
       };
     });
   }

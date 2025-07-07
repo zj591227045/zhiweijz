@@ -64,6 +64,7 @@ export function AdminHeader({ onMenuClick, isMobile }: AdminHeaderProps) {
                 <AvatarDisplay
                   avatar={admin?.avatar}
                   username={admin?.username}
+                  userId={admin?.id}
                   size="small"
                   className="h-8 w-8"
                   alt="管理员头像"

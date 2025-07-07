@@ -68,6 +68,8 @@ export interface UserBriefDto {
   id: string;
   name: string;
   email: string;
+  avatar?: string;
+  isCustodial?: boolean;
 }
 
 /**
@@ -176,7 +178,7 @@ export function toFamilyListResponseDto(
  * 将家庭成员实体转换为响应DTO
  */
 export function toFamilyMemberResponseDto(
-  member: FamilyMember & { user?: { id: string; name: string; email: string } | null },
+  member: FamilyMember & { user?: { id: string; name: string; email: string; avatar?: string; isCustodial?: boolean } | null },
   currentUserId?: string,
 ): FamilyMemberResponseDto {
   return {
@@ -188,6 +190,8 @@ export function toFamilyMemberResponseDto(
           id: member.user.id,
           name: member.user.name,
           email: member.user.email,
+          avatar: member.user.avatar || undefined,
+          isCustodial: member.user.isCustodial,
         }
       : undefined,
     name: member.name || '未知用户',

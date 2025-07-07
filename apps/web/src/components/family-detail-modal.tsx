@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { getApiBaseUrl } from '@/lib/server-config';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { AvatarDisplay } from '@/components/ui/avatar-display';
 import './family-detail-modal.css';
 
 interface FamilyMember {
@@ -1324,20 +1325,14 @@ export default function FamilyDetailModal({
                       gap: '8px'
                     }}>
                       {/* 成员头像 */}
-                      <div style={{
-                        width: '48px',
-                        height: '48px',
-                        backgroundColor: member.isCurrentUser ? '#3b82f6' : (member.role === 'ADMIN' ? '#3b82f6' : '#6b7280'),
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'white',
-                        fontSize: '18px',
-                        fontWeight: '600'
-                      }}>
-                        {getAvatarText(member.username || member.name || '?')}
-                      </div>
+                      <AvatarDisplay
+                        avatar={member.avatar}
+                        username={member.username || member.name}
+                        userId={member.userId}
+                        size="medium"
+                        alt={`${member.username || member.name || '用户'}的头像`}
+                        style={{ width: '48px', height: '48px' }}
+                      />
 
                       {/* 成员姓名 */}
                       <div style={{

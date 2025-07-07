@@ -108,7 +108,7 @@ export class S3StorageService {
       });
 
       const result = await this.s3Client.send(command);
-      
+
       if (!result.Body) {
         throw new Error('文件内容为空');
       }
@@ -117,6 +117,24 @@ export class S3StorageService {
     } catch (error) {
       console.error('S3 download error:', error);
       throw new Error(`文件下载失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  }
+
+  /**
+   * 获取文件元数据
+   */
+  async getFileMetadata(bucket: string, key: string): Promise<any> {
+    try {
+      const command = new HeadObjectCommand({
+        Bucket: bucket,
+        Key: key,
+      });
+
+      const result = await this.s3Client.send(command);
+      return result;
+    } catch (error) {
+      console.error('S3 get metadata error:', error);
+      throw new Error(`获取文件元数据失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
 

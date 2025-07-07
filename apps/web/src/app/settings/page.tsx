@@ -9,15 +9,48 @@ import { useAccountBookStore } from '@/store/account-book-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { useThemeStore } from '@/store/theme-store';
 import { AvatarDisplay } from '@/components/ui/avatar-display';
+import { userService } from '@/lib/api/user-service';
 import './settings.css';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated, logout, syncUserToLocalStorage } = useAuthStore();
   const { theme, setTheme } = useThemeStore();
   const { resetOnboarding, startOnboarding, setAccountType, setCurrentStep } = useOnboardingStore();
   const { currentAccountBook } = useAccountBookStore();
   const [currentLanguage, setCurrentLanguage] = useState('简体中文');
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+
+  // 获取最新的用户信息
+  useEffect(() => {
+    const fetchLatestUserInfo = async () => {
+      if (!isAuthenticated || !user) return;
+
+      try {
+        setIsLoadingProfile(true);
+        const latestProfile = await userService.getUserProfile();
+
+        // 更新auth store中的用户信息
+        const updatedUser = {
+          ...user,
+          avatar: latestProfile.avatar,
+          bio: latestProfile.bio,
+          birthDate: latestProfile.birthDate,
+          username: latestProfile.username,
+        };
+
+        syncUserToLocalStorage(updatedUser);
+
+
+      } catch (error) {
+        console.error('获取最新用户信息失败:', error);
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    fetchLatestUserInfo();
+  }, [isAuthenticated, user?.id, syncUserToLocalStorage]);
   const [currentCurrency, setCurrentCurrency] = useState('人民币 (¥)');
 
   // 如果未登录，重定向到登录页
@@ -101,6 +134,8 @@ export default function SettingsPage() {
     return null;
   }
 
+
+
   return (
     <PageContainer title="设置" activeNavItem="profile">
       <div className="user-card">
@@ -108,6 +143,7 @@ export default function SettingsPage() {
           <AvatarDisplay
             avatar={user.avatar}
             username={user.name}
+            userId={user.id}
             size="large"
             alt="用户头像"
           />

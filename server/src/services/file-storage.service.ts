@@ -78,6 +78,13 @@ export class FileStorageService {
   }
 
   /**
+   * 获取S3服务实例
+   */
+  getS3Service(): S3StorageService | null {
+    return this.s3Service;
+  }
+
+  /**
    * 重新加载存储配置
    */
   async reloadConfig(): Promise<void> {

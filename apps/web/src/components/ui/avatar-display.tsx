@@ -1,10 +1,13 @@
 'use client';
 
 import { getAvatarUrlById } from '@/data/preset-avatars';
+import { processAvatarUrl, handleImageError } from '@/lib/image-proxy';
+import { AuthenticatedImage } from './authenticated-image';
 
 interface AvatarDisplayProps {
   avatar?: string; // 头像ID或URL
   username?: string;
+  userId?: string; // 用户ID，用于头像代理
   size?: 'small' | 'medium' | 'large' | 'xlarge';
   className?: string;
   alt?: string;
@@ -13,6 +16,7 @@ interface AvatarDisplayProps {
 export function AvatarDisplay({
   avatar,
   username,
+  userId,
   size = 'medium',
   className = '',
   alt = '头像'
@@ -48,19 +52,26 @@ export function AvatarDisplay({
       const avatarUrl = getAvatarUrlById(avatar);
       if (avatarUrl) {
         return (
-          <img 
-            src={avatarUrl} 
+          <img
+            src={avatarUrl}
             alt={alt}
             className="w-full h-full object-cover rounded-full"
+            onError={(e) => handleImageError(e)}
           />
         );
       } else if (avatar.startsWith('http') || avatar.startsWith('/')) {
-        // 兼容旧的URL格式
+        // 处理URL格式的头像（包括S3 URL转代理URL）
+        const processedUrl = processAvatarUrl(avatar, userId);
         return (
-          <img 
-            src={avatar} 
+          <AuthenticatedImage
+            src={processedUrl}
             alt={alt}
             className="w-full h-full object-cover rounded-full"
+            fallback={
+              <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-full text-gray-600">
+                {username?.charAt(0) || '用'}
+              </div>
+            }
           />
         );
       } else {

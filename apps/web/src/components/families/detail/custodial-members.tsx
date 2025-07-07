@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/auth-store';
 import { fetchApi } from '@/lib/api-client';
+import { AvatarDisplay } from '@/components/ui/avatar-display';
+import { AvatarUploader } from '@/components/profile/avatar-uploader';
 
 interface CustodialMember {
   id: string;
@@ -17,6 +19,12 @@ interface CustodialMember {
   isCustodial: boolean;
   createdAt: string;
   updatedAt: string;
+  user?: {
+    id: string;
+    name: string;
+    avatar?: string;
+    isCustodial: boolean;
+  };
 }
 
 interface CustodialMembersProps {
@@ -31,6 +39,7 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<CustodialMember | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -78,6 +87,43 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
       gender: '男',
       birthDate: '',
     });
+  };
+
+  // 处理头像配置
+  const handleConfigureAvatar = (member: CustodialMember) => {
+    setSelectedMember(member);
+    setIsAvatarDialogOpen(true);
+  };
+
+  // 处理头像更新
+  const handleAvatarUpdate = async (newAvatar: string) => {
+    if (!selectedMember?.userId) {
+      toast.error('无法更新头像：缺少用户信息');
+      return;
+    }
+
+    try {
+      console.log('🖼️ 更新托管成员头像:', { userId: selectedMember.userId, avatar: newAvatar });
+
+      const response = await fetchApi(`/api/users/${selectedMember.userId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ avatar: newAvatar }),
+      });
+
+      if (response.ok) {
+        toast.success('头像更新成功');
+        setIsAvatarDialogOpen(false);
+        setSelectedMember(null);
+        fetchCustodialMembers(); // 重新获取数据
+      } else {
+        const error = await response.json();
+        console.error('头像更新失败:', error);
+        toast.error(error.message || '头像更新失败');
+      }
+    } catch (error) {
+      console.error('头像更新失败:', error);
+      toast.error('头像更新失败');
+    }
   };
 
   // 添加托管成员
@@ -302,10 +348,21 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
           {custodialMembers.map((member) => (
             <div key={member.id} className="custodial-item">
               <div className="custodial-avatar">
-                {avatarMode === 'icon' ? (
-                  <i className="fas fa-child"></i>
-                ) : (
-                  getAvatarText(member.name)
+                <AvatarDisplay
+                  avatar={member.user?.avatar}
+                  username={member.name}
+                  userId={member.userId}
+                  size="medium"
+                  alt={`${member.name}的头像`}
+                />
+                {isAdmin && (
+                  <button
+                    className="avatar-config-button"
+                    onClick={() => handleConfigureAvatar(member)}
+                    title="配置头像"
+                  >
+                    <i className="fas fa-camera"></i>
+                  </button>
                 )}
               </div>
               <div className="custodial-details">
@@ -534,6 +591,85 @@ export function CustodialMembers({ familyId, isAdmin }: CustodialMembersProps) {
           </div>
         </div>
       )}
+
+      {/* 头像配置对话框 */}
+      {isAvatarDialogOpen && selectedMember && (
+        <div
+          className="dialog-overlay"
+          onClick={() => {
+            setIsAvatarDialogOpen(false);
+            setSelectedMember(null);
+          }}
+        >
+          <div className="dialog-content" onClick={(e) => e.stopPropagation()}>
+            <div className="dialog-header">
+              <h3>配置 {selectedMember.name} 的头像</h3>
+              <button
+                className="dialog-close"
+                onClick={() => {
+                  setIsAvatarDialogOpen(false);
+                  setSelectedMember(null);
+                }}
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <div className="dialog-body">
+              <AvatarUploader
+                currentAvatar={selectedMember.user?.avatar}
+                onAvatarChange={handleAvatarUpdate}
+                showPresets={true}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+}
+
+// 添加CSS样式
+const styles = `
+.custodial-avatar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-config-button {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #007bff;
+  color: white;
+  border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.avatar-config-button:hover {
+  background: #0056b3;
+  transform: scale(1.1);
+}
+
+.avatar-config-button i {
+  font-size: 8px;
+}
+`;
+
+// 注入样式
+if (typeof document !== 'undefined' && !document.getElementById('custodial-avatar-styles')) {
+  const styleElement = document.createElement('style');
+  styleElement.id = 'custodial-avatar-styles';
+  styleElement.textContent = styles;
+  document.head.appendChild(styleElement);
 }

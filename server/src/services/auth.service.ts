@@ -38,6 +38,10 @@ export class AuthService {
           id: user.id,
           email: user.email,
           name: user.name,
+          avatar: user.avatar || undefined,
+          bio: user.bio || undefined,
+          birthDate: user.birthDate || undefined,
+          createdAt: user.createdAt,
         },
       };
     } catch (error) {
@@ -104,6 +108,10 @@ export class AuthService {
           id: newUser.id,
           email: newUser.email,
           name: newUser.name,
+          avatar: newUser.avatar || undefined,
+          bio: newUser.bio || undefined,
+          birthDate: newUser.birthDate || undefined,
+          createdAt: newUser.createdAt,
         },
       };
     } catch (error) {
@@ -208,6 +216,10 @@ export class AuthService {
           id: user.id,
           email: user.email,
           name: user.name,
+          avatar: user.avatar || undefined,
+          bio: user.bio || undefined,
+          birthDate: user.birthDate || undefined,
+          createdAt: user.createdAt,
         },
       };
     } catch (error) {

@@ -474,6 +474,7 @@ export function UserManagement({
                         <AvatarDisplay
                           avatar={user.avatar}
                           username={user.name}
+                          userId={user.id}
                           size="medium"
                           alt={user.name}
                         />

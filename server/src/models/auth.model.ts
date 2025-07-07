@@ -18,6 +18,10 @@ export interface LoginResponseDto {
     id: string;
     email: string;
     name: string;
+    avatar?: string;
+    bio?: string;
+    birthDate?: Date;
+    createdAt: Date;
   };
 }
 

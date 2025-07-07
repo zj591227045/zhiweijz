@@ -17,6 +17,8 @@ import { platformFilePicker } from '@/lib/platform-file-picker';
 import { ImageCropper } from './image-cropper';
 import { UploadProgress, useUploadProgress } from '@/components/ui/upload-progress';
 import { debounce, throttle, PerformanceTimer, getOptimalQuality, getOptimalDimensions } from '@/lib/performance-utils';
+import { processAvatarUrl, handleImageError } from '@/lib/image-proxy';
+import { AuthenticatedImage } from '@/components/ui/authenticated-image';
 
 interface AvatarUploaderProps {
   currentAvatar?: string; // 现在存储头像ID而不是URL
@@ -631,10 +633,25 @@ export function AvatarUploader({
       // 检查是否是头像ID
       const avatarUrl = getAvatarUrlById(currentAvatar);
       if (avatarUrl) {
-        return <img src={avatarUrl} alt="当前头像" className="avatar-image" />;
+        return (
+          <img
+            src={avatarUrl}
+            alt="当前头像"
+            className="avatar-image"
+            onError={(e) => handleImageError(e)}
+          />
+        );
       } else if (currentAvatar.startsWith('http') || currentAvatar.startsWith('/')) {
-        // 兼容旧的URL格式
-        return <img src={currentAvatar} alt="当前头像" className="avatar-image" />;
+        // 处理URL格式的头像（包括S3 URL转代理URL）
+        const processedUrl = processAvatarUrl(currentAvatar);
+        return (
+          <AuthenticatedImage
+            src={processedUrl}
+            alt="当前头像"
+            className="avatar-image"
+            fallback={<div className="avatar-placeholder">当前头像</div>}
+          />
+        );
       } else {
         // 可能是旧的emoji格式，显示为文字
         return <div className="avatar-placeholder">{currentAvatar}</div>;

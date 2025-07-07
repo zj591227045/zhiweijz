@@ -21,6 +21,7 @@ export function MemberItem({
   onToggleRoleSelector,
   onRemove,
 }: MemberItemProps) {
+
   return (
     <>
       {/* 成员信息和详情的横向容器 */}
@@ -29,8 +30,9 @@ export function MemberItem({
         <div className="member-avatar-container">
           <div className="member-avatar">
             <AvatarDisplay
-              avatar={member.avatar}
+              avatar={member.user?.avatar || member.avatar}
               username={member.username}
+              userId={member.userId}
               size="large"
               alt={member.username || '用户'}
             />

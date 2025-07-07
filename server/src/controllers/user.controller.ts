@@ -6,6 +6,9 @@ import { getFileUrl } from '../middlewares/upload.middleware';
 import { FileStorageService } from '../services/file-storage.service';
 import { BUCKET_CONFIG, FileUploadRequestDto } from '../models/file-storage.model';
 import { comparePasswords } from '../utils/password';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export class UserController {
   private userService: UserService;
@@ -249,16 +252,82 @@ export class UserController {
    */
   async updateUser(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.params.id;
+      const targetUserId = req.params.id;
+      const currentUserId = req.user?.id;
       const userData: UpdateUserDto = req.body;
-      const updatedUser = await this.userService.updateUser(userId, userData);
+
+      if (!currentUserId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      // 检查权限：只能更新自己的信息，或者管理员更新托管用户的信息
+      if (currentUserId !== targetUserId) {
+        // 检查目标用户是否是托管用户
+        const targetUser = await this.userService.getUserById(targetUserId);
+        if (!targetUser) {
+          res.status(404).json({ message: '用户不存在' });
+          return;
+        }
+
+        if (!targetUser.isCustodial) {
+          res.status(403).json({ message: '无权更新其他用户的信息' });
+          return;
+        }
+
+        // 检查当前用户是否是托管用户所在家庭的管理员
+        const hasPermission = await this.checkCustodialUserPermission(currentUserId, targetUserId);
+        if (!hasPermission) {
+          res.status(403).json({ message: '无权更新此托管用户的信息' });
+          return;
+        }
+      }
+
+      console.log('🔧 更新用户信息:', { targetUserId, currentUserId, userData });
+      const updatedUser = await this.userService.updateUser(targetUserId, userData);
       res.status(200).json(updatedUser);
     } catch (error) {
+      console.error('更新用户信息失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
         res.status(500).json({ message: '更新用户信息时发生错误' });
       }
+    }
+  }
+
+  /**
+   * 检查用户是否有权限管理托管用户
+   * @param currentUserId 当前用户ID
+   * @param custodialUserId 托管用户ID
+   * @returns 是否有权限
+   */
+  private async checkCustodialUserPermission(currentUserId: string, custodialUserId: string): Promise<boolean> {
+    try {
+      // 查找托管用户所在的家庭
+      const familyMembers = await prisma.familyMember.findMany({
+        where: { userId: custodialUserId },
+        include: {
+          family: {
+            include: {
+              members: {
+                where: {
+                  userId: currentUserId,
+                  role: 'ADMIN'
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // 检查当前用户是否是托管用户所在任何家庭的管理员
+      return familyMembers.some(member =>
+        member.family.members.length > 0
+      );
+    } catch (error) {
+      console.error('检查托管用户权限失败:', error);
+      return false;
     }
   }
 

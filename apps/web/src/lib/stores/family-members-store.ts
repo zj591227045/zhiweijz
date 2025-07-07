@@ -86,6 +86,8 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
         console.log('fetchMembers: 总支出:', data.totalExpense || 0);
         console.log('fetchMembers: 用户权限:', data.userPermissions);
 
+
+
         set({
           members: data.members || [],
           totalExpense: data.totalExpense || 0,
