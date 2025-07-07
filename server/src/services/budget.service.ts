@@ -582,28 +582,30 @@ export class BudgetService {
 
     console.log(`获取预算结转历史，预算ID: ${budgetId}`);
 
-    // 直接从budget_histories表查询真实的历史记录
+    // 使用原生SQL查询避免Prisma字段不匹配问题
     try {
-      const histories = await prisma.budgetHistory.findMany({
-        where: {
-          budgetId: budgetId,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-      });
+      const histories = await prisma.$queryRaw`
+        SELECT
+          id, budget_id as "budgetId", period, amount, type,
+          description, created_at as "createdAt", updated_at as "updatedAt",
+          budget_amount as "budgetAmount", spent_amount as "spentAmount",
+          previous_rollover as "previousRollover"
+        FROM budget_histories
+        WHERE budget_id = ${budgetId}
+        ORDER BY created_at DESC
+      `;
 
-      console.log(`从budget_histories表查询到 ${histories.length} 条记录`);
+      console.log(`从budget_histories表查询到 ${(histories as any[]).length} 条记录`);
 
       // 转换为前端需要的格式
-      const rolloverHistory = histories.map((history) => ({
+      const rolloverHistory = (histories as any[]).map((history: any) => ({
         id: history.id,
         budgetId: history.budgetId,
         period: history.period,
         amount: Number(history.amount),
         type: history.type,
         description: history.description,
-        createdAt: history.createdAt.toISOString(),
+        createdAt: new Date(history.createdAt).toISOString(),
         budgetAmount: history.budgetAmount ? Number(history.budgetAmount) : undefined,
         spentAmount: history.spentAmount ? Number(history.spentAmount) : undefined,
         previousRollover: history.previousRollover ? Number(history.previousRollover) : undefined,
