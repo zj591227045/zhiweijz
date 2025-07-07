@@ -7,6 +7,7 @@ import llmLogAdminRoutes from './llm-log.admin.routes';
 import announcementAdminRoutes from './announcement.admin.routes';
 import tokenLimitAdminRoutes from './token-limit.admin.routes';
 import multiProviderLLMAdminRoutes from './multi-provider-llm.admin.routes';
+import storageConfigAdminRoutes from './storage-config.admin.routes';
 
 const router = Router();
 
@@ -19,5 +20,6 @@ router.use('/llm-logs', llmLogAdminRoutes);
 router.use('/announcements', announcementAdminRoutes);
 router.use('/token-limit', tokenLimitAdminRoutes);
 router.use('/multi-provider-llm', multiProviderLLMAdminRoutes);
+router.use('/storage', storageConfigAdminRoutes);
 
 export default router;

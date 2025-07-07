@@ -20,6 +20,8 @@ import systemConfigRoutes from './system-config.routes';
 import userAnnouncementRoutes from './user/announcement.routes';
 import adminRoutes from '../admin/routes';
 import wechatRoutes from './wechat.routes';
+import fileStorageRoutes from './file-storage.routes';
+import imageRecognitionRoutes from './image-recognition.routes';
 
 const router = Router();
 
@@ -42,6 +44,8 @@ router.use('/feedback', feedbackRoutes);
 router.use('/system', systemRoutes);
 router.use('/system-config', systemConfigRoutes);
 router.use('/user/announcements', userAnnouncementRoutes);
+router.use('/files', fileStorageRoutes);
+router.use('/image-recognition', imageRecognitionRoutes);
 router.use('/admin', adminRoutes);
 
 // 创建一个独立的微信绑定页面路由，不经过任何微信中间件
