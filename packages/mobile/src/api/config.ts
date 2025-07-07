@@ -2,27 +2,55 @@
  * 移动端API配置
  */
 
-// 开发环境API地址
-const DEV_API_BASE_URL = 'http://localhost:3001/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// 生产环境API地址（需要根据实际部署地址修改）
-const PROD_API_BASE_URL = 'https://your-api-domain.com/api';
+// 是否为开发环境
+const isDev = __DEV__;
 
-// Docker环境API地址
-const DOCKER_API_BASE_URL = 'http://backend:3001/api';
+// 检查是否为Docker环境
+const isDockerEnvironment = (): boolean => {
+  // 移动端通常不在Docker环境中运行
+  return false;
+};
 
 /**
  * 获取API基础URL
- * 根据环境自动选择合适的API地址
+ * 支持动态配置，与Web端使用相同的逻辑
  */
-export const getApiBaseUrl = (): string => {
-  // 检查是否在Docker环境中
-  if (__DEV__) {
-    // 开发环境，可以通过环境变量或其他方式检测
-    return DEV_API_BASE_URL;
-  } else {
-    // 生产环境
-    return PROD_API_BASE_URL;
+export const getApiBaseUrl = async (): Promise<string> => {
+  try {
+    // 如果是Docker环境，直接使用相对路径（移动端通常不适用）
+    if (isDockerEnvironment()) {
+      if (isDev) console.log('🐳 Docker环境，使用相对路径: /api');
+      return '/api';
+    }
+
+    // 从AsyncStorage读取服务器配置
+    const storedConfig = await AsyncStorage.getItem('server-config-storage');
+    if (storedConfig) {
+      try {
+        const parsedConfig = JSON.parse(storedConfig);
+        const apiUrl = parsedConfig?.state?.config?.currentUrl || 'https://app.zhiweijz.cn:1443/api';
+
+        if (isDev) {
+          console.log('📡 从AsyncStorage获取API基础URL:', apiUrl);
+        }
+
+        return apiUrl;
+      } catch (parseError) {
+        console.warn('⚠️ 解析服务器配置失败:', parseError);
+      }
+    }
+
+    // 回退到默认官方服务器
+    const defaultUrl = 'https://app.zhiweijz.cn:1443/api';
+    if (isDev) {
+      console.log('📡 使用默认API基础URL:', defaultUrl);
+    }
+    return defaultUrl;
+  } catch (error) {
+    console.warn('⚠️ 获取服务器配置失败，使用默认值:', error);
+    return 'https://app.zhiweijz.cn:1443/api';
   }
 };
 
@@ -30,7 +58,7 @@ export const getApiBaseUrl = (): string => {
  * API配置常量
  */
 export const API_CONFIG = {
-  BASE_URL: getApiBaseUrl(),
+  // BASE_URL 现在通过 getApiBaseUrl() 动态获取
   TIMEOUT: 10000, // 10秒超时
   RETRY_ATTEMPTS: 3, // 重试次数
   RETRY_DELAY: 1000, // 重试延迟（毫秒）

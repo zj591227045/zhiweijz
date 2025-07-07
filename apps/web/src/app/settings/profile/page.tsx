@@ -56,18 +56,48 @@ export default function ProfilePage() {
 
         toast.success('头像更换成功');
       } else {
-        // 文件上传（暂时保留，但不会被调用）
+        // 文件上传到S3存储
+        console.log('📤 开始上传头像文件...');
+
+        // 显示文件大小信息
+        const fileSizeMB = (avatarData.data.size / 1024 / 1024).toFixed(2);
+        console.log('📤 上传文件大小:', fileSizeMB, 'MB');
+
         const data = await userService.uploadAvatar(avatarData.data);
         avatarUrl = data.avatar;
 
+        // 更新本地状态
         setProfile((prev) => (prev ? { ...prev, avatar: avatarUrl } : null));
+
+        // 同步更新 auth store 中的头像信息
         await updateAvatar(avatarUrl);
 
-        toast.success('头像上传成功');
+        toast.success(`头像上传成功！文件大小: ${fileSizeMB}MB`);
+        console.log('📤 头像上传完成:', avatarUrl);
       }
     } catch (error) {
       console.error('头像变更失败:', error);
-      toast.error('头像变更失败');
+
+      // 根据错误类型显示不同的提示信息
+      let errorMessage = '头像变更失败';
+
+      if (error instanceof Error) {
+        if (error.message.includes('文件存储服务未启用')) {
+          errorMessage = '文件存储服务未启用，请联系管理员配置';
+        } else if (error.message.includes('文件大小')) {
+          errorMessage = '文件大小超出限制，请选择较小的图片';
+        } else if (error.message.includes('文件格式')) {
+          errorMessage = '不支持的文件格式，请选择JPG、PNG等图片格式';
+        } else if (error.message.includes('网络')) {
+          errorMessage = '网络连接失败，请检查网络后重试';
+        } else if (error.message.includes('权限')) {
+          errorMessage = '权限不足，请联系管理员';
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+      }
+
+      toast.error(errorMessage);
     } finally {
       setIsUploadingAvatar(false);
     }

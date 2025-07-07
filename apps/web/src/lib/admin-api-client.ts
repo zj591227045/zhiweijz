@@ -3,39 +3,19 @@
  * 自动识别环境并使用正确的后端地址
  */
 
-// 检测是否为Docker环境
-const isDockerEnvironment = (): boolean => {
-  if (typeof window !== 'undefined') {
-    // 浏览器环境检测
-    const isDocker = (window as any).__DOCKER_ENV__ === true;
-    const hostname = window.location.hostname;
-    const isLocalDev = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('192.168');
-    
-    return isDocker && !isLocalDev;
-  }
-  
-  // 服务端环境检测
-  return process.env.DOCKER_ENV === 'true';
-};
+import { getApiBaseUrl } from './server-config';
 
 // 获取管理端API基础URL
 const getAdminApiBaseUrl = (): string => {
-  // Docker环境使用相对路径
-  if (isDockerEnvironment()) {
-    console.log('🐳 Docker环境，使用相对路径: /api');
+  try {
+    // 使用统一的API配置获取基础URL
+    const baseUrl = getApiBaseUrl();
+    console.log('🔧 管理端API使用配置的地址:', baseUrl);
+    return baseUrl.replace('/api', ''); // 移除/api后缀，因为端点中已经包含了
+  } catch (error) {
+    console.warn('⚠️ 获取管理端API配置失败，使用默认值:', error);
     return '/api';
   }
-  
-  // 开发环境使用后端服务器地址
-  if (process.env.NODE_ENV === 'development') {
-    const backendUrl = 'http://localhost:3000';
-    console.log('🔧 开发环境，使用后端地址:', backendUrl);
-    return backendUrl;
-  }
-  
-  // 生产环境使用相对路径
-  console.log('🚀 生产环境，使用相对路径: /api');
-  return '/api';
 };
 
 // 管理端API端点配置

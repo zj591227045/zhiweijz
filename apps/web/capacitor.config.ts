@@ -28,6 +28,9 @@ const config: CapacitorConfig = {
       style: 'dark',
       resizeOnFullScreen: true,
     },
+    Camera: {
+      permissions: ['camera', 'photos']
+    },
     App: {
       launchUrl: 'https://localhost'
     }

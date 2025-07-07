@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { statisticsService, budgetService, transactionService } from '@/lib/api-services';
 import { formatDate } from '@/lib/utils';
-import { apiClient } from '@/lib/api';
+import { apiClient } from '@/lib/api-client';
 import dayjs from 'dayjs';
 
 // 仪表盘状态类型

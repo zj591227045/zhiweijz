@@ -8,12 +8,16 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.getcapacitor.BridgeActivity;
+import com.capacitorjs.plugins.camera.CameraPlugin;
 
 public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // 注册Camera插件
+        registerPlugin(CameraPlugin.class);
 
         // 设置状态栏和导航栏透明
         setupSystemBars();

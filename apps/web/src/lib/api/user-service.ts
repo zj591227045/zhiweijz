@@ -91,4 +91,30 @@ export const userService = {
       throw error;
     }
   },
+
+  /**
+   * 获取文件存储状态
+   */
+  async getFileStorageStatus(): Promise<{
+    enabled: boolean;
+    configured: boolean;
+    healthy: boolean;
+    message: string;
+  }> {
+    try {
+      console.log('发送获取文件存储状态请求: /files/status');
+      const response = await apiClient.get('/files/status');
+      console.log('文件存储状态响应数据:', response);
+      return response.data || response;
+    } catch (error) {
+      console.error('获取文件存储状态失败:', error);
+      // 返回默认状态，表示存储不可用
+      return {
+        enabled: false,
+        configured: false,
+        healthy: false,
+        message: '无法获取存储状态',
+      };
+    }
+  },
 };

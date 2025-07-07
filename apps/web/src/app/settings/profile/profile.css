@@ -169,6 +169,39 @@
   border-bottom: 1px solid var(--border-color);
 }
 
+/* 文件上传区域 */
+.upload-section {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--background-secondary);
+}
+
+.upload-button {
+  width: 100%;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-color-dark));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.upload-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+}
+
+.upload-button:active {
+  transform: translateY(0);
+}
+
 .selector-title {
   font-size: 18px;
   font-weight: 600;
@@ -758,5 +791,72 @@
   
   .order-number {
     font-size: 15px;
+  }
+}
+
+/* 文件上传相关样式 */
+.upload-options-modal {
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.upload-option:hover {
+  background-color: var(--background-hover) !important;
+  transform: translateY(-1px);
+}
+
+.upload-option:active {
+  transform: translateY(0);
+}
+
+/* 拖拽状态样式 */
+.avatar-container.drag-over {
+  border-color: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-color-light), var(--primary-color));
+  transform: scale(1.02);
+}
+
+.avatar-container.drag-over .avatar-overlay {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.avatar-container.drag-over .avatar-overlay-text {
+  color: white;
+}
+
+/* 预览图片样式 */
+.avatar-image {
+  transition: all 0.3s ease;
+}
+
+.avatar-container:hover .avatar-image {
+  transform: scale(1.05);
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+  .upload-options-modal {
+    padding: 20px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .upload-option {
+    padding: 14px !important;
+    font-size: 15px !important;
+  }
+
+  .option-icon {
+    font-size: 18px !important;
+    margin-right: 14px !important;
   }
 }

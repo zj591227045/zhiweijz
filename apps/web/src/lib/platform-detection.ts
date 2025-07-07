@@ -43,7 +43,15 @@ export function isCapacitorApp(): boolean {
  */
 export function isAndroidDevice(): boolean {
   if (typeof window === 'undefined') return false;
-  return /Android/.test(navigator.userAgent);
+
+  const userAgent = navigator.userAgent;
+  const isAndroidUserAgent = /Android/.test(userAgent);
+
+  // 排除桌面浏览器（包括开发者工具的设备模拟）
+  const isDesktopBrowser = /Windows|Macintosh|Linux/.test(userAgent) && !/Mobile|Tablet/.test(userAgent);
+
+  // 只有在真正的Android设备上才返回true
+  return isAndroidUserAgent && !isDesktopBrowser;
 }
 
 /**
@@ -51,7 +59,15 @@ export function isAndroidDevice(): boolean {
  */
 export function isMobileDevice(): boolean {
   if (typeof window === 'undefined') return false;
-  return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  const userAgent = navigator.userAgent;
+  const isMobileUserAgent = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+
+  // 排除桌面浏览器（包括开发者工具的设备模拟）
+  const isDesktopBrowser = /Windows|Macintosh|Linux/.test(userAgent) && !/Mobile|Tablet/.test(userAgent);
+
+  // 只有在真正的移动设备上才返回true
+  return isMobileUserAgent && !isDesktopBrowser;
 }
 
 /**
