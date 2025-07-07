@@ -41,6 +41,7 @@ model User {
   verificationCodes    VerificationCode[]
   wechat_user_bindings wechat_user_bindings[]
   tags                 Tag[]
+  uploadedFiles        FileStorage[]
 
   @@index([isActive], map: "idx_users_is_active")
   @@map("users")
@@ -143,6 +144,7 @@ model Transaction {
   user           User            @relation(fields: [userId], references: [id])
   feedback       UserFeedback[]
   transactionTags TransactionTag[]
+  attachments    TransactionAttachment[]
 
   @@index([metadata], map: "idx_transactions_metadata_gin", type: Gin)
   @@map("transactions")
@@ -673,6 +675,29 @@ enum announcement_status {
   ARCHIVED
 }
 
+enum FileStorageType {
+  LOCAL
+  S3
+  OSS
+  COS
+}
+
+enum FileStatus {
+  ACTIVE
+  DELETED
+  EXPIRED
+  PROCESSING
+}
+
+enum AttachmentType {
+  RECEIPT
+  INVOICE
+  CONTRACT
+  PHOTO
+  DOCUMENT
+  OTHER
+}
+
 model Tag {
   id             String           @id @default(uuid())
   name           String           @db.VarChar(50)
@@ -712,4 +737,51 @@ model TransactionTag {
   @@index([createdAt(sort: Desc)], map: "idx_transaction_tags_created_at")
   @@index([tagId, transactionId], map: "idx_transaction_tags_tag_transaction")
   @@map("transaction_tags")
+}
+
+model FileStorage {
+  id            String            @id @default(uuid())
+  filename      String            @db.VarChar(255)
+  originalName  String            @map("original_name") @db.VarChar(255)
+  mimeType      String            @map("mime_type") @db.VarChar(100)
+  size          Int
+  bucket        String            @db.VarChar(100)
+  key           String            @db.VarChar(500)
+  url           String?           @db.VarChar(1000)
+  storageType   FileStorageType   @default(S3) @map("storage_type")
+  status        FileStatus        @default(ACTIVE)
+  uploadedBy    String            @map("uploaded_by")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  expiresAt     DateTime?         @map("expires_at")
+  metadata      Json?
+  uploader      User              @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+  attachments   TransactionAttachment[]
+
+  @@unique([bucket, key], map: "file_storage_bucket_key_unique")
+  @@index([uploadedBy], map: "idx_file_storage_uploaded_by")
+  @@index([bucket], map: "idx_file_storage_bucket")
+  @@index([storageType], map: "idx_file_storage_type")
+  @@index([status], map: "idx_file_storage_status")
+  @@index([createdAt(sort: Desc)], map: "idx_file_storage_created_at")
+  @@index([expiresAt], map: "idx_file_storage_expires_at")
+  @@map("file_storage")
+}
+
+model TransactionAttachment {
+  id            String      @id @default(uuid())
+  transactionId String      @map("transaction_id")
+  fileId        String      @map("file_id")
+  attachmentType AttachmentType @default(RECEIPT) @map("attachment_type")
+  description   String?
+  createdAt     DateTime    @default(now()) @map("created_at")
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  file          FileStorage @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@unique([transactionId, fileId], map: "transaction_attachments_unique")
+  @@index([transactionId], map: "idx_transaction_attachments_transaction_id")
+  @@index([fileId], map: "idx_transaction_attachments_file_id")
+  @@index([attachmentType], map: "idx_transaction_attachments_type")
+  @@index([createdAt(sort: Desc)], map: "idx_transaction_attachments_created_at")
+  @@map("transaction_attachments")
 }
