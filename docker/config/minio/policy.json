@@ -1,0 +1,34 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": ["*"]
+      },
+      "Action": ["s3:GetObject"],
+      "Resource": ["arn:aws:s3:::avatars/*"]
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": ["*"]
+      },
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::transaction-attachments/*",
+        "arn:aws:s3:::temp-files/*",
+        "arn:aws:s3:::system-files/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "s3:ExistingObjectTag/access": "private"
+        }
+      }
+    }
+  ]
+}

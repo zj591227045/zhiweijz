@@ -96,13 +96,15 @@ get_service_images() {
     BACKEND_IMAGE=$(parse_image_from_compose "backend")
     FRONTEND_IMAGE=$(parse_image_from_compose "frontend")
     NGINX_IMAGE=$(parse_image_from_compose "nginx")
+    MINIO_IMAGE=$(parse_image_from_compose "minio")
 
     # 验证解析结果
-    if [ -z "$BACKEND_IMAGE" ] || [ -z "$FRONTEND_IMAGE" ] || [ -z "$NGINX_IMAGE" ]; then
+    if [ -z "$BACKEND_IMAGE" ] || [ -z "$FRONTEND_IMAGE" ] || [ -z "$NGINX_IMAGE" ] || [ -z "$MINIO_IMAGE" ]; then
         log_error "无法从docker-compose.yml解析镜像信息"
         log_error "后端镜像: ${BACKEND_IMAGE:-未找到}"
         log_error "前端镜像: ${FRONTEND_IMAGE:-未找到}"
         log_error "Nginx镜像: ${NGINX_IMAGE:-未找到}"
+        log_error "MinIO镜像: ${MINIO_IMAGE:-未找到}"
         exit 1
     fi
 
@@ -110,11 +112,13 @@ get_service_images() {
     BACKEND_IMAGE=$(parse_image_info "$BACKEND_IMAGE")
     FRONTEND_IMAGE=$(parse_image_info "$FRONTEND_IMAGE")
     NGINX_IMAGE=$(parse_image_info "$NGINX_IMAGE")
+    MINIO_IMAGE=$(parse_image_info "$MINIO_IMAGE")
 
     log_success "镜像版本解析完成:"
     log_info "  后端镜像: ${BACKEND_IMAGE}"
     log_info "  前端镜像: ${FRONTEND_IMAGE}"
     log_info "  Nginx镜像: ${NGINX_IMAGE}"
+    log_info "  MinIO镜像: ${MINIO_IMAGE}"
 
     # 询问用户是否确认使用这些版本
     echo ""
@@ -358,6 +362,19 @@ pull_images() {
             log_error "无法拉取Nginx镜像，请检查镜像名称和网络连接"
             exit 1
         fi
+    fi
+
+    # 拉取MinIO镜像
+    log_info "拉取MinIO镜像: $MINIO_IMAGE"
+    if ! docker pull "$MINIO_IMAGE"; then
+        log_error "MinIO镜像拉取失败: $MINIO_IMAGE"
+        exit 1
+    fi
+
+    # 拉取MinIO客户端镜像（用于初始化）
+    log_info "拉取MinIO客户端镜像: minio/mc:latest"
+    if ! docker pull "minio/mc:latest"; then
+        log_warning "MinIO客户端镜像拉取失败，初始化可能失败"
     fi
 
     log_success "所有镜像拉取完成"
@@ -634,6 +651,20 @@ start_services() {
         exit 1
     fi
 
+    # 启动MinIO存储服务
+    if ! start_service_safely "minio" 10; then
+        log_error "MinIO存储服务启动失败"
+        exit 1
+    fi
+
+    # 初始化MinIO（创建buckets）
+    log_info "初始化MinIO存储..."
+    if docker-compose -f docker-compose.init.yml -p "$PROJECT_NAME" up minio-init 2>/dev/null; then
+        log_success "MinIO初始化完成"
+    else
+        log_warning "MinIO初始化失败，请手动检查"
+    fi
+
     # 启动后端服务
     if ! start_service_safely "backend" 15; then
         log_error "后端服务启动失败"
@@ -844,6 +875,8 @@ show_access_info() {
     local http_port=$(get_env_var "NGINX_HTTP_PORT" "80")
     local https_port=$(get_env_var "NGINX_HTTPS_PORT" "443")
     local db_port=$(get_env_var "POSTGRES_PORT" "5432")
+    local minio_api_port=$(get_env_var "MINIO_API_PORT" "9000")
+    local minio_console_port=$(get_env_var "MINIO_CONSOLE_PORT" "9001")
 
     # 获取系统IP地址
     local system_ips=($(get_system_ips))
@@ -908,11 +941,28 @@ show_access_info() {
         done
     fi
 
+    # MinIO存储访问
+    echo -e "${YELLOW}🗂️ MinIO存储访问:${NC}"
+    echo -e "  📍 API地址: ${YELLOW}http://localhost:${minio_api_port}${NC}"
+    echo -e "  📍 控制台: ${YELLOW}http://localhost:${minio_console_port}${NC}"
+    if [ ${#system_ips[@]} -gt 0 ]; then
+        for ip in "${system_ips[@]}"; do
+            echo -e "  📍 网络API: ${YELLOW}http://${ip}:${minio_api_port}${NC}"
+            echo -e "  📍 网络控制台: ${YELLOW}http://${ip}:${minio_console_port}${NC}"
+        done
+    fi
+
     echo ""
     echo -e "${BLUE}数据库信息:${NC}"
     echo -e "  📊 数据库名: ${YELLOW}zhiweijz${NC}"
     echo -e "  👤 用户名: ${YELLOW}zhiweijz${NC}"
     echo -e "  🔑 密码: ${YELLOW}zhiweijz123${NC}"
+
+    echo ""
+    echo -e "${BLUE}MinIO存储信息:${NC}"
+    echo -e "  👤 用户名: ${YELLOW}$(get_env_var "MINIO_ROOT_USER" "zhiweijz")${NC}"
+    echo -e "  🔑 密码: ${YELLOW}$(get_env_var "MINIO_ROOT_PASSWORD" "zhiweijz123456")${NC}"
+    echo -e "  🗂️ 默认Buckets: ${YELLOW}avatars, transaction-attachments, temp-files, system-files${NC}"
     echo ""
     echo -e "${BLUE}管理命令:${NC}"
     echo -e "  📋 查看日志: ${YELLOW}${COMPOSE_CMD} -p ${PROJECT_NAME} logs -f${NC}"

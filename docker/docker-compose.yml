@@ -41,12 +41,28 @@ services:
       WECHAT_APP_SECRET: ${WECHAT_APP_SECRET}
       WECHAT_TOKEN: ${WECHAT_TOKEN}
       WECHAT_ENCODING_AES_KEY: ${WECHAT_ENCODING_AES_KEY}
+      # S3存储配置
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-zhiweijz}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-zhiweijz123456}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_BUCKET_AVATARS: ${S3_BUCKET_AVATARS:-avatars}
+      S3_BUCKET_ATTACHMENTS: ${S3_BUCKET_ATTACHMENTS:-transaction-attachments}
+      S3_BUCKET_TEMP: ${S3_BUCKET_TEMP:-temp-files}
+      S3_BUCKET_SYSTEM: ${S3_BUCKET_SYSTEM:-system-files}
+      # 文件存储配置
+      FILE_STORAGE_TYPE: ${FILE_STORAGE_TYPE:-s3}
+      FILE_STORAGE_BASE_URL: ${FILE_STORAGE_BASE_URL:-http://localhost:9000}
+      FILE_MAX_SIZE: ${FILE_MAX_SIZE:-10485760}
+      FILE_ALLOWED_TYPES: ${FILE_ALLOWED_TYPES:-image/jpeg,image/png,image/gif,image/webp,application/pdf}
     ports:
       - "3000:3000"
     networks:
       - zhiweijz-network
     depends_on:
       postgres:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "sh", "-c", "curl -f http://localhost:3000/api/health || curl -f http://localhost:3000/"]
@@ -77,6 +93,31 @@ services:
       retries: 4
       start_period: 60s
 
+  # MinIO 对象存储服务
+  minio:
+    image: minio/minio:RELEASE.2025-04-08T15-41-24Z-cpuv1
+    container_name: zhiweijz-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-zhiweijz}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-zhiweijz123456}
+      MINIO_BROWSER_REDIRECT_URL: ${MINIO_BROWSER_REDIRECT_URL:-http://localhost:9001}
+    command: server /data --console-address ":9001"
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+      - ./config/minio:/root/.minio
+    networks:
+      - zhiweijz-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 30s
+
   # Nginx 反向代理
   nginx:
     image: zj591227045/zhiweijz-nginx:0.2.0
@@ -95,6 +136,7 @@ services:
     depends_on:
       - frontend
       - backend
+      - minio
     healthcheck:
       test: ["CMD", "sh", "-c", "curl -f http://localhost/health && curl -k -f https://localhost/health"]
       interval: 20s
@@ -104,6 +146,9 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  # MinIO数据存储卷
+  minio_data:
     driver: local
   # SSL证书存储卷
   nginx_ssl_certs:

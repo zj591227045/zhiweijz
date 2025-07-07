@@ -35,6 +35,8 @@
     "wechat:cleanup": "node -e \"require('./dist/services/wechat-config.service').WechatConfigService.prototype.cleanupOldLogs(30)\""
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.842.0",
+    "@aws-sdk/s3-request-presigner": "^3.842.0",
     "@langchain/core": "^0.3.56",
     "@langchain/openai": "^0.5.10",
     "@prisma/client": "5.20.0",
