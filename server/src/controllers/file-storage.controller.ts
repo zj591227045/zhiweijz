@@ -19,7 +19,7 @@ export class FileStorageController {
    */
   async getStorageStatus(req: Request, res: Response): Promise<void> {
     try {
-      const status = this.fileStorageService.getStorageStatus();
+      const status = await this.fileStorageService.getStorageStatus();
       res.json({
         success: true,
         data: status,
@@ -46,7 +46,7 @@ export class FileStorageController {
 
       // 检查存储服务是否可用
       if (!this.fileStorageService.isStorageAvailable()) {
-        const status = this.fileStorageService.getStorageStatus();
+        const status = await this.fileStorageService.getStorageStatus();
         res.status(503).json({
           success: false,
           message: `文件存储服务不可用: ${status.message}`,

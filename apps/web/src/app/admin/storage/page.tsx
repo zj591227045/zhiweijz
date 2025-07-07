@@ -2,13 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { adminApiClient, ADMIN_API_ENDPOINTS } from '@/lib/admin-api-client';
-import { 
-  CloudArrowUpIcon, 
-  CogIcon, 
-  CheckCircleIcon, 
+import {
+  CloudArrowUpIcon,
+  CogIcon,
+  CheckCircleIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  ServerIcon,
+  CubeIcon,
+  DocumentDuplicateIcon,
+  SwatchIcon,
+  WrenchScrewdriverIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline';
 
 interface StorageConfig {
@@ -33,6 +39,16 @@ interface StorageStats {
   totalSize: number;
   filesByBucket: Record<string, number>;
   filesByType: Record<string, number>;
+  bucketInfo?: {
+    configured: number;
+    existing: number;
+    buckets: Array<{
+      name: string;
+      configured: boolean;
+      exists: boolean;
+      fileCount: number;
+    }>;
+  };
 }
 
 interface StorageStatus {
@@ -42,13 +58,30 @@ interface StorageStatus {
   healthy?: boolean;
 }
 
+interface ConfigTemplate {
+  name: string;
+  description: string;
+  config: Partial<StorageConfig>;
+}
+
+interface ConfigTemplates {
+  minio: ConfigTemplate;
+  aws: ConfigTemplate;
+  aliyun: ConfigTemplate;
+  tencent: ConfigTemplate;
+}
+
+type ConfigMode = 'auto' | 'custom';
+
 export default function StoragePage() {
   const [config, setConfig] = useState<StorageConfig | null>(null);
   const [stats, setStats] = useState<StorageStats | null>(null);
   const [status, setStatus] = useState<StorageStatus | null>(null);
+  const [templates, setTemplates] = useState<ConfigTemplates | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'config' | 'stats' | 'files'>('config');
+  const [configMode, setConfigMode] = useState<ConfigMode>('auto');
 
   useEffect(() => {
     loadData();
@@ -58,16 +91,22 @@ export default function StoragePage() {
     try {
       setIsLoading(true);
 
-      // 并行加载配置、统计和状态
-      const [configRes, statsRes, statusRes] = await Promise.all([
+      // 并行加载配置、统计、状态和模板
+      const [configRes, statsRes, statusRes, templatesRes] = await Promise.all([
         adminApiClient.get(ADMIN_API_ENDPOINTS.STORAGE_CONFIG),
         adminApiClient.get(ADMIN_API_ENDPOINTS.STORAGE_STATS),
-        adminApiClient.get('/files/status') // 这个是普通用户API
+        adminApiClient.get(`${ADMIN_API_ENDPOINTS.STORAGE_CONFIG.replace('/config', '/status')}`), // 使用管理员API
+        adminApiClient.get(`${ADMIN_API_ENDPOINTS.STORAGE_CONFIG.replace('/config', '/templates')}`),
       ]);
 
       if (configRes.ok) {
         const configData = await configRes.json();
         setConfig(configData.data);
+
+        // 根据配置判断当前模式
+        const isAutoConfig = configData.data?.endpoint === 'http://minio:9000' &&
+                            configData.data?.accessKeyId === 'zhiweijz';
+        setConfigMode(isAutoConfig ? 'auto' : 'custom');
       }
 
       if (statsRes.ok) {
@@ -78,6 +117,11 @@ export default function StoragePage() {
       if (statusRes.ok) {
         const statusData = await statusRes.json();
         setStatus(statusData.data);
+      }
+
+      if (templatesRes.ok) {
+        const templatesData = await templatesRes.json();
+        setTemplates(templatesData.data);
       }
     } catch (error) {
       console.error('加载存储数据失败:', error);
@@ -106,20 +150,104 @@ export default function StoragePage() {
     }
   };
 
-  const testConnection = async () => {
+  const testConnection = async (testConfig?: Partial<StorageConfig>) => {
     try {
-      const response = await adminApiClient.post(ADMIN_API_ENDPOINTS.STORAGE_TEST);
+      // 使用传入的配置或当前配置进行测试
+      const configToTest = testConfig || config;
+
+      const response = await adminApiClient.post(ADMIN_API_ENDPOINTS.STORAGE_TEST, configToTest);
 
       const result = await response.json();
 
-      if (result.success) {
-        alert('连接测试成功！');
+      if (result.success && result.data.success) {
+        alert(`连接测试成功！${result.data.message}`);
       } else {
-        alert(`连接测试失败: ${result.message}`);
+        alert(`连接测试失败: ${result.data?.message || result.message || '未知错误'}`);
       }
     } catch (error) {
       console.error('连接测试失败:', error);
       alert('连接测试失败，请检查配置');
+    }
+  };
+
+  const diagnoseStorage = async () => {
+    try {
+      const response = await adminApiClient.get(`${ADMIN_API_ENDPOINTS.STORAGE_CONFIG.replace('/config', '/diagnose')}`);
+      const result = await response.json();
+
+      if (result.success) {
+        // 创建诊断报告窗口
+        const reportWindow = window.open('', '_blank', 'width=800,height=600');
+        if (reportWindow) {
+          reportWindow.document.write(`
+            <html>
+              <head>
+                <title>存储服务诊断报告</title>
+                <style>
+                  body { font-family: Arial, sans-serif; margin: 20px; }
+                  .step { margin: 10px 0; padding: 10px; border-radius: 5px; }
+                  .success { background-color: #d4edda; border: 1px solid #c3e6cb; }
+                  .error { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+                  .running { background-color: #fff3cd; border: 1px solid #ffeaa7; }
+                  .skipped { background-color: #e2e3e5; border: 1px solid #d6d8db; }
+                  pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+                </style>
+              </head>
+              <body>
+                <h1>存储服务诊断报告</h1>
+                <p>诊断时间: ${result.data.timestamp}</p>
+                ${result.data.steps.map((step: any) => `
+                  <div class="step ${step.status}">
+                    <h3>步骤 ${step.step}: ${step.name}</h3>
+                    <p>状态: ${step.status}</p>
+                    ${step.data ? `<pre>${JSON.stringify(step.data, null, 2)}</pre>` : ''}
+                    ${step.error ? `<p style="color: red;">错误: ${step.error}</p>` : ''}
+                    ${step.reason ? `<p>原因: ${step.reason}</p>` : ''}
+                  </div>
+                `).join('')}
+              </body>
+            </html>
+          `);
+        }
+      } else {
+        alert(`诊断失败: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('存储诊断失败:', error);
+      alert('存储诊断失败，请检查网络连接');
+    }
+  };
+
+  const handleModeChange = (mode: ConfigMode) => {
+    setConfigMode(mode);
+    if (mode === 'auto' && templates?.minio) {
+      // 自动应用MinIO模板
+      setConfig(prev => ({
+        ...prev,
+        ...templates.minio.config,
+      } as StorageConfig));
+    }
+  };
+
+  const applyTemplate = (templateKey: keyof ConfigTemplates) => {
+    if (templates && templates[templateKey]) {
+      setConfig(prev => ({
+        ...prev,
+        ...templates[templateKey].config,
+      } as StorageConfig));
+    }
+  };
+
+  const resetToDefault = async () => {
+    try {
+      const response = await adminApiClient.post(`${ADMIN_API_ENDPOINTS.STORAGE_CONFIG}/reset`);
+      if (response.ok) {
+        await loadData();
+        alert('配置已重置为默认值！');
+      }
+    } catch (error) {
+      console.error('重置配置失败:', error);
+      alert('重置配置失败，请重试');
     }
   };
 
@@ -174,13 +302,129 @@ export default function StoragePage() {
             配置和管理S3文件存储服务
           </p>
         </div>
-        
+
         {/* 状态指示器 */}
         <div className={`flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 ${getStatusColor()}`}>
           {getStatusIcon()}
           <span className="text-sm font-medium">
             {status?.message || '状态未知'}
           </span>
+        </div>
+      </div>
+
+      {/* 存储状态概览 */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* 配置状态 */}
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <CogIcon className="h-6 w-6 text-gray-400" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">配置状态</dt>
+                  <dd className="flex items-baseline">
+                    <div className={`text-lg font-semibold ${
+                      status?.configured ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {status?.configured ? '已配置' : '未配置'}
+                    </div>
+                    <div className={`ml-2 flex items-baseline text-sm font-semibold ${
+                      status?.configured ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {status?.configured ? (
+                        <CheckCircleIcon className="h-4 w-4" />
+                      ) : (
+                        <ExclamationTriangleIcon className="h-4 w-4" />
+                      )}
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 连接状态 */}
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <ServerIcon className="h-6 w-6 text-gray-400" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">连接状态</dt>
+                  <dd className="flex items-baseline">
+                    <div className={`text-lg font-semibold ${
+                      status?.healthy ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {status?.healthy ? '正常' : '异常'}
+                    </div>
+                    <div className={`ml-2 flex items-baseline text-sm font-semibold ${
+                      status?.healthy ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {status?.healthy ? (
+                        <CheckCircleIcon className="h-4 w-4" />
+                      ) : (
+                        <ExclamationTriangleIcon className="h-4 w-4" />
+                      )}
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 配置模式 */}
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <WrenchScrewdriverIcon className="h-6 w-6 text-gray-400" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">配置模式</dt>
+                  <dd className="flex items-baseline">
+                    <div className="text-lg font-semibold text-blue-600">
+                      {configMode === 'auto' ? '自动配置' : '自定义配置'}
+                    </div>
+                    <div className="ml-2 flex items-baseline text-sm font-semibold text-blue-600">
+                      {configMode === 'auto' ? (
+                        <CubeIcon className="h-4 w-4" />
+                      ) : (
+                        <CogIcon className="h-4 w-4" />
+                      )}
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 诊断工具 */}
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">诊断工具</h3>
+                <p className="text-sm text-gray-500">详细检查存储服务的配置和连接状态</p>
+              </div>
+              <button
+                onClick={diagnoseStorage}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                运行诊断
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -211,10 +455,15 @@ export default function StoragePage() {
       {/* 标签页内容 */}
       <div className="mt-6">
         {activeTab === 'config' && (
-          <StorageConfigTab 
-            config={config} 
-            onSave={handleConfigSave} 
+          <StorageConfigTab
+            config={config}
+            templates={templates}
+            configMode={configMode}
+            onSave={handleConfigSave}
             onTest={testConnection}
+            onModeChange={handleModeChange}
+            onApplyTemplate={applyTemplate}
+            onReset={resetToDefault}
             isSaving={isSaving}
           />
         )}
@@ -232,18 +481,29 @@ export default function StoragePage() {
 }
 
 // 存储配置标签页组件
-function StorageConfigTab({ 
-  config, 
-  onSave, 
-  onTest, 
-  isSaving 
-}: { 
+function StorageConfigTab({
+  config,
+  templates,
+  configMode,
+  onSave,
+  onTest,
+  onModeChange,
+  onApplyTemplate,
+  onReset,
+  isSaving
+}: {
   config: StorageConfig | null;
+  templates: ConfigTemplates | null;
+  configMode: ConfigMode;
   onSave: (config: Partial<StorageConfig>) => void;
-  onTest: () => void;
+  onTest: (config?: Partial<StorageConfig>) => void;
+  onModeChange: (mode: ConfigMode) => void;
+  onApplyTemplate: (templateKey: keyof ConfigTemplates) => void;
+  onReset: () => void;
   isSaving: boolean;
 }) {
   const [formData, setFormData] = useState<Partial<StorageConfig>>({});
+  const [showBucketConfig, setShowBucketConfig] = useState(false);
 
   useEffect(() => {
     if (config) {
@@ -257,43 +517,148 @@ function StorageConfigTab({
   };
 
   return (
-    <div className="bg-white shadow rounded-lg">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900">S3存储配置</h3>
-        <p className="mt-1 text-sm text-gray-500">
-          配置S3存储服务的连接参数和存储桶设置
-        </p>
-      </div>
-      
-      <form onSubmit={handleSubmit} className="p-6 space-y-6">
-        {/* 基础配置 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.enabled || false}
-                onChange={(e) => setFormData({ ...formData, enabled: e.target.checked })}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="ml-2 text-sm font-medium text-gray-700">启用S3存储</span>
-            </label>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700">存储提供商</label>
-            <select
-              value={formData.provider || 'minio'}
-              onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+    <div className="space-y-6">
+      {/* 配置模式选择 */}
+      <div className="bg-white shadow rounded-lg">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-medium text-gray-900">配置模式</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            选择存储配置模式：自动配置或自定义配置
+          </p>
+        </div>
+
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div
+              className={`relative rounded-lg border-2 cursor-pointer transition-colors ${
+                configMode === 'auto'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => onModeChange('auto')}
             >
-              <option value="minio">MinIO</option>
-              <option value="aws">AWS S3</option>
-              <option value="aliyun">阿里云OSS</option>
-              <option value="tencent">腾讯云COS</option>
-            </select>
+              <div className="p-4">
+                <div className="flex items-center">
+                  <CubeIcon className="h-6 w-6 text-blue-600" />
+                  <div className="ml-3">
+                    <h4 className="text-sm font-medium text-gray-900">自动配置</h4>
+                    <p className="text-sm text-gray-500">使用容器统一部署的MinIO</p>
+                  </div>
+                </div>
+                {configMode === 'auto' && (
+                  <div className="absolute top-2 right-2">
+                    <CheckCircleIcon className="h-5 w-5 text-blue-600" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div
+              className={`relative rounded-lg border-2 cursor-pointer transition-colors ${
+                configMode === 'custom'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => onModeChange('custom')}
+            >
+              <div className="p-4">
+                <div className="flex items-center">
+                  <CogIcon className="h-6 w-6 text-blue-600" />
+                  <div className="ml-3">
+                    <h4 className="text-sm font-medium text-gray-900">自定义配置</h4>
+                    <p className="text-sm text-gray-500">自定义MinIO或其他S3服务</p>
+                  </div>
+                </div>
+                {configMode === 'custom' && (
+                  <div className="absolute top-2 right-2">
+                    <CheckCircleIcon className="h-5 w-5 text-blue-600" />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* 配置模板选择（仅自定义模式显示） */}
+      {configMode === 'custom' && templates && (
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900">配置模板</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              选择预设模板快速配置存储服务
+            </p>
+          </div>
+
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {Object.entries(templates).map(([key, template]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => onApplyTemplate(key as keyof ConfigTemplates)}
+                  className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-left"
+                >
+                  <div className="flex items-center mb-2">
+                    <SwatchIcon className="h-5 w-5 text-blue-600" />
+                    <span className="ml-2 font-medium text-gray-900">{template.name}</span>
+                  </div>
+                  <p className="text-sm text-gray-500">{template.description}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 存储配置表单 */}
+      <div className="bg-white shadow rounded-lg">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-medium text-gray-900">存储配置</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            配置S3存储服务的连接参数和存储桶设置
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* 基础配置 */}
+          <div className="space-y-6">
+            {/* 启用存储服务 */}
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div>
+                <h4 className="text-sm font-medium text-gray-900">存储服务状态</h4>
+                <p className="text-sm text-gray-500">启用或禁用S3文件存储服务</p>
+              </div>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.enabled || false}
+                  onChange={(e) => setFormData({ ...formData, enabled: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
+                />
+                <span className="ml-3 text-sm font-medium text-gray-700 whitespace-nowrap">启用S3存储</span>
+              </label>
+            </div>
+
+            {/* 存储提供商选择 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">存储提供商</label>
+              <select
+                value={formData.provider || 'minio'}
+                onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                disabled={configMode === 'auto'}
+              >
+                <option value="minio">MinIO</option>
+                <option value="aws">AWS S3</option>
+                <option value="aliyun">阿里云OSS</option>
+                <option value="tencent">腾讯云COS</option>
+              </select>
+              {configMode === 'auto' && (
+                <p className="mt-1 text-xs text-gray-500">自动配置模式下提供商已锁定为MinIO</p>
+              )}
+            </div>
+          </div>
 
         {/* 连接配置 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -304,10 +669,11 @@ function StorageConfigTab({
               value={formData.endpoint || ''}
               onChange={(e) => setFormData({ ...formData, endpoint: e.target.value })}
               placeholder="http://localhost:9000"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              disabled={configMode === 'auto'}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700">区域</label>
             <input
@@ -315,7 +681,8 @@ function StorageConfigTab({
               value={formData.region || ''}
               onChange={(e) => setFormData({ ...formData, region: e.target.value })}
               placeholder="us-east-1"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              disabled={configMode === 'auto'}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
             />
           </div>
         </div>
@@ -327,40 +694,145 @@ function StorageConfigTab({
               type="text"
               value={formData.accessKeyId || ''}
               onChange={(e) => setFormData({ ...formData, accessKeyId: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              disabled={configMode === 'auto'}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700">访问密钥</label>
             <input
               type="password"
               value={formData.secretAccessKey || ''}
               onChange={(e) => setFormData({ ...formData, secretAccessKey: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              disabled={configMode === 'auto'}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
             />
           </div>
         </div>
 
+        {/* 存储桶配置 */}
+        <div className="border-t border-gray-200 pt-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h4 className="text-lg font-medium text-gray-900">存储桶配置</h4>
+              <p className="text-sm text-gray-500">配置不同用途的存储桶名称</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowBucketConfig(!showBucketConfig)}
+              className="flex items-center text-sm text-blue-600 hover:text-blue-500"
+            >
+              {showBucketConfig ? '收起' : '展开'}
+              <ChevronDownIcon className={`ml-1 h-4 w-4 transform transition-transform ${
+                showBucketConfig ? 'rotate-180' : ''
+              }`} />
+            </button>
+          </div>
+
+          {showBucketConfig && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  <DocumentDuplicateIcon className="inline h-4 w-4 mr-1" />
+                  头像存储桶
+                </label>
+                <input
+                  type="text"
+                  value={formData.buckets?.avatars || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    buckets: { ...formData.buckets, avatars: e.target.value } as any
+                  })}
+                  placeholder="avatars"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  <DocumentDuplicateIcon className="inline h-4 w-4 mr-1" />
+                  附件存储桶
+                </label>
+                <input
+                  type="text"
+                  value={formData.buckets?.attachments || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    buckets: { ...formData.buckets, attachments: e.target.value } as any
+                  })}
+                  placeholder="transaction-attachments"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  <DocumentDuplicateIcon className="inline h-4 w-4 mr-1" />
+                  临时文件存储桶
+                </label>
+                <input
+                  type="text"
+                  value={formData.buckets?.temp || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    buckets: { ...formData.buckets, temp: e.target.value } as any
+                  })}
+                  placeholder="temp-files"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  <DocumentDuplicateIcon className="inline h-4 w-4 mr-1" />
+                  系统文件存储桶
+                </label>
+                <input
+                  type="text"
+                  value={formData.buckets?.system || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    buckets: { ...formData.buckets, system: e.target.value } as any
+                  })}
+                  placeholder="system-files"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* 操作按钮 */}
-        <div className="flex justify-end space-x-3">
+        <div className="flex justify-between">
           <button
             type="button"
-            onClick={onTest}
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            onClick={onReset}
+            className="px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
           >
-            测试连接
+            重置为默认
           </button>
-          
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-          >
-            {isSaving ? '保存中...' : '保存配置'}
-          </button>
+
+          <div className="flex space-x-3">
+            <button
+              type="button"
+              onClick={() => onTest(formData)}
+              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              测试连接
+            </button>
+
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              {isSaving ? '保存中...' : '保存配置'}
+            </button>
+          </div>
         </div>
       </form>
+      </div>
     </div>
   );
 }
@@ -410,7 +882,12 @@ function StorageStatsTab({ stats }: { stats: StorageStats | null }) {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">存储桶数量</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.filesByBucket ? Object.keys(stats.filesByBucket).length : 0}</p>
+              <p className="text-2xl font-semibold text-gray-900">
+                {stats.bucketInfo ? `${stats.bucketInfo.existing}/${stats.bucketInfo.configured}` : '0'}
+              </p>
+              {stats.bucketInfo && (
+                <p className="text-xs text-gray-400">已存在/已配置</p>
+              )}
             </div>
           </div>
         </div>
@@ -423,15 +900,23 @@ function StorageStatsTab({ stats }: { stats: StorageStats | null }) {
         </div>
         <div className="p-6">
           <div className="space-y-4">
-            {stats.filesByBucket && Object.keys(stats.filesByBucket).length > 0 ? (
-              Object.entries(stats.filesByBucket).map(([bucket, fileCount]) => (
-                <div key={bucket} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900">{bucket}</p>
-                    <p className="text-sm text-gray-500">{fileCount} 个文件</p>
+            {stats.bucketInfo && stats.bucketInfo.buckets.length > 0 ? (
+              stats.bucketInfo.buckets.map((bucket) => (
+                <div key={bucket.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-3 h-3 rounded-full ${bucket.exists ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    <div>
+                      <p className="font-medium text-gray-900">{bucket.name}</p>
+                      <p className="text-sm text-gray-500">{bucket.fileCount} 个文件</p>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium text-gray-900">存储桶</p>
+                    <p className={`text-sm font-medium ${bucket.exists ? 'text-green-600' : 'text-red-600'}`}>
+                      {bucket.exists ? '已存在' : '不存在'}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {bucket.configured ? '已配置' : '未配置'}
+                    </p>
                   </div>
                 </div>
               ))

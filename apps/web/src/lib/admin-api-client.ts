@@ -103,7 +103,19 @@ class AdminApiClient {
    */
   private getAuthToken(): string | null {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem('auth-token');
+
+    // 从persist storage中读取
+    try {
+      const stored = localStorage.getItem('admin-auth-storage');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed.state?.token || null;
+      }
+    } catch (error) {
+      console.error('Failed to parse admin auth storage:', error);
+    }
+
+    return null;
   }
 
   /**
@@ -148,6 +160,7 @@ class AdminApiClient {
       method: options.method || 'GET',
       url,
       hasToken: !!token,
+      token: token ? `${token.substring(0, 20)}...` : 'null',
       baseUrl: this.baseUrl
     });
 

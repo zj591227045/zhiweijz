@@ -22,12 +22,17 @@ import path from 'path';
 
 const prisma = new PrismaClient();
 
+// 全局文件存储服务实例
+let globalFileStorageService: FileStorageService | null = null;
+
 export class FileStorageService {
   private s3Service: S3StorageService | null = null;
   private config: FileStorageConfigDto | null = null;
 
   constructor() {
     this.initializeStorage();
+    // 设置全局实例
+    globalFileStorageService = this;
   }
 
   /**
@@ -73,13 +78,22 @@ export class FileStorageService {
   }
 
   /**
+   * 重新加载存储配置
+   */
+  async reloadConfig(): Promise<void> {
+    console.log('重新加载存储配置...');
+    await this.initializeStorage();
+  }
+
+  /**
    * 获取存储服务状态
    */
-  getStorageStatus(): { enabled: boolean; configured: boolean; message: string } {
+  async getStorageStatus(): Promise<{ enabled: boolean; configured: boolean; healthy: boolean; message: string }> {
     if (!this.config) {
       return {
         enabled: false,
         configured: false,
+        healthy: false,
         message: '存储配置未加载',
       };
     }
@@ -88,6 +102,7 @@ export class FileStorageService {
       return {
         enabled: false,
         configured: false,
+        healthy: false,
         message: 'S3存储未启用',
       };
     }
@@ -96,15 +111,28 @@ export class FileStorageService {
       return {
         enabled: true,
         configured: false,
+        healthy: false,
         message: 'S3存储配置不完整',
       };
     }
 
-    return {
-      enabled: true,
-      configured: true,
-      message: 'S3存储服务正常',
-    };
+    // 测试连接健康状态
+    try {
+      const isHealthy = await this.s3Service.testConnection();
+      return {
+        enabled: true,
+        configured: true,
+        healthy: isHealthy,
+        message: isHealthy ? 'S3存储服务正常' : 'S3存储连接异常',
+      };
+    } catch (error) {
+      return {
+        enabled: true,
+        configured: true,
+        healthy: false,
+        message: `S3存储连接失败: ${error instanceof Error ? error.message : '未知错误'}`,
+      };
+    }
   }
 
   /**
@@ -408,5 +436,21 @@ export class FileStorageService {
     }
 
     return deletedCount;
+  }
+}
+
+/**
+ * 获取全局文件存储服务实例
+ */
+export function getGlobalFileStorageService(): FileStorageService | null {
+  return globalFileStorageService;
+}
+
+/**
+ * 重新加载全局文件存储服务配置
+ */
+export async function reloadGlobalFileStorageConfig(): Promise<void> {
+  if (globalFileStorageService) {
+    await globalFileStorageService.reloadConfig();
   }
 }

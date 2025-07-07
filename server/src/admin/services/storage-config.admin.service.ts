@@ -259,8 +259,23 @@ export class StorageConfigAdminService {
     totalSize: number;
     filesByBucket: Record<string, number>;
     filesByType: Record<string, number>;
+    bucketInfo: {
+      configured: number;
+      existing: number;
+      buckets: Array<{
+        name: string;
+        configured: boolean;
+        exists: boolean;
+        fileCount: number;
+      }>;
+    };
   }> {
     try {
+      // 获取配置的存储桶
+      const config = await this.getStorageConfig();
+      const configuredBuckets = Object.values(config.buckets);
+
+      // 获取文件统计
       const [totalFiles, sizeResult] = await Promise.all([
         prisma.fileStorage.count({
           where: { status: 'ACTIVE' },
@@ -283,17 +298,74 @@ export class StorageConfigAdminService {
         _count: { id: true },
       });
 
+      const filesByBucket = bucketStats.reduce((acc, stat) => {
+        acc[stat.bucket] = stat._count.id;
+        return acc;
+      }, {} as Record<string, number>);
+
+      // 检查存储桶是否存在（如果S3服务可用）
+      let bucketExistenceMap: Record<string, boolean> = {};
+      let existingBucketsCount = 0;
+
+      if (config.enabled && config.endpoint && config.accessKeyId && config.secretAccessKey) {
+        try {
+          const s3Config = {
+            endpoint: config.endpoint,
+            accessKeyId: config.accessKeyId,
+            secretAccessKey: config.secretAccessKey,
+            region: config.region || 'us-east-1',
+            forcePathStyle: true,
+          };
+
+          const s3Service = new (await import('../../services/s3-storage.service')).S3StorageService(s3Config);
+
+          // 检查每个配置的存储桶是否存在
+          for (const bucketName of configuredBuckets) {
+            try {
+              await s3Service.listFiles(bucketName, undefined, 1);
+              bucketExistenceMap[bucketName] = true;
+              existingBucketsCount++;
+            } catch (error: any) {
+              // 如果是NoSuchBucket错误，说明存储桶不存在
+              if (error.name === 'NoSuchBucket' || error.$metadata?.httpStatusCode === 404) {
+                bucketExistenceMap[bucketName] = false;
+              } else {
+                // 其他错误（如权限问题），假设存储桶存在但无法访问
+                bucketExistenceMap[bucketName] = true;
+                existingBucketsCount++;
+              }
+            }
+          }
+        } catch (error) {
+          console.warn('无法检查存储桶存在性:', error);
+          // 如果无法连接S3，将所有配置的存储桶标记为未知状态
+          configuredBuckets.forEach(bucket => {
+            bucketExistenceMap[bucket] = false;
+          });
+        }
+      }
+
+      // 构建存储桶信息
+      const bucketInfo = {
+        configured: configuredBuckets.length,
+        existing: existingBucketsCount,
+        buckets: configuredBuckets.map(bucketName => ({
+          name: bucketName,
+          configured: true,
+          exists: bucketExistenceMap[bucketName] || false,
+          fileCount: filesByBucket[bucketName] || 0,
+        })),
+      };
+
       return {
         totalFiles,
         totalSize: sizeResult._sum.size || 0,
-        filesByBucket: bucketStats.reduce((acc, stat) => {
-          acc[stat.bucket] = stat._count.id;
-          return acc;
-        }, {} as Record<string, number>),
+        filesByBucket,
         filesByType: typeStats.reduce((acc, stat) => {
           acc[stat.mimeType] = stat._count.id;
           return acc;
         }, {} as Record<string, number>),
+        bucketInfo,
       };
     } catch (error) {
       console.error('获取存储统计错误:', error);

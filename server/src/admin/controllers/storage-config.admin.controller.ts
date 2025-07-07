@@ -1,12 +1,15 @@
 import { Request, Response } from 'express';
 import { StorageConfigAdminService, StorageConfigData } from '../services/storage-config.admin.service';
 import { FileStorageType } from '../../models/file-storage.model';
+import { FileStorageService, reloadGlobalFileStorageConfig } from '../../services/file-storage.service';
 
 export class StorageConfigAdminController {
   private storageConfigService: StorageConfigAdminService;
+  private fileStorageService: FileStorageService;
 
   constructor() {
     this.storageConfigService = new StorageConfigAdminService();
+    this.fileStorageService = new FileStorageService();
   }
 
   /**
@@ -34,7 +37,7 @@ export class StorageConfigAdminController {
    */
   async updateStorageConfig(req: Request, res: Response): Promise<void> {
     try {
-      const adminId = req.user?.id;
+      const adminId = req.admin?.id;
       if (!adminId) {
         res.status(401).json({ message: '未授权' });
         return;
@@ -67,6 +70,9 @@ export class StorageConfigAdminController {
       }
 
       await this.storageConfigService.updateStorageConfig(configData, adminId);
+
+      // 重新加载文件存储服务配置
+      await reloadGlobalFileStorageConfig();
 
       res.json({
         success: true,
@@ -146,7 +152,7 @@ export class StorageConfigAdminController {
    */
   async resetStorageConfig(req: Request, res: Response): Promise<void> {
     try {
-      const adminId = req.user?.id;
+      const adminId = req.admin?.id;
       if (!adminId) {
         res.status(401).json({ message: '未授权' });
         return;
@@ -174,6 +180,9 @@ export class StorageConfigAdminController {
       };
 
       await this.storageConfigService.updateStorageConfig(defaultConfig, adminId);
+
+      // 重新加载文件存储服务配置
+      await reloadGlobalFileStorageConfig();
 
       res.json({
         success: true,
@@ -262,6 +271,138 @@ export class StorageConfigAdminController {
       res.status(500).json({
         success: false,
         message: '获取存储配置模板失败',
+      });
+    }
+  }
+
+  /**
+   * 获取存储服务状态
+   */
+  async getStorageStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const status = await this.fileStorageService.getStorageStatus();
+
+      res.json({
+        success: true,
+        data: status,
+      });
+    } catch (error) {
+      console.error('获取存储状态失败:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '获取存储状态失败',
+      });
+    }
+  }
+
+  /**
+   * 详细诊断存储服务
+   */
+  async diagnoseStorage(req: Request, res: Response): Promise<void> {
+    try {
+      const diagnosis = {
+        timestamp: new Date().toISOString(),
+        steps: [] as any[],
+      };
+
+      // 步骤1: 检查配置
+      diagnosis.steps.push({
+        step: 1,
+        name: '检查存储配置',
+        status: 'running',
+      });
+
+      let config;
+      try {
+        config = await this.storageConfigService.getStorageConfig();
+        diagnosis.steps[0].status = 'success';
+        diagnosis.steps[0].data = {
+          enabled: config.enabled,
+          storageType: config.storageType,
+          endpoint: config.endpoint,
+          hasAccessKey: !!config.accessKeyId,
+          hasSecretKey: !!config.secretAccessKey,
+          region: config.region,
+          buckets: config.buckets,
+        };
+      } catch (error) {
+        diagnosis.steps[0].status = 'error';
+        diagnosis.steps[0].error = error instanceof Error ? error.message : '获取配置失败';
+        res.json({ success: true, data: diagnosis });
+        return;
+      }
+
+      // 步骤2: 检查服务状态
+      diagnosis.steps.push({
+        step: 2,
+        name: '检查文件存储服务状态',
+        status: 'running',
+      });
+
+      const serviceStatus = await this.fileStorageService.getStorageStatus();
+      diagnosis.steps[1].status = 'success';
+      diagnosis.steps[1].data = serviceStatus;
+
+      // 步骤3: 测试基础连接
+      diagnosis.steps.push({
+        step: 3,
+        name: '测试S3基础连接',
+        status: 'running',
+      });
+
+      if (!config.enabled) {
+        diagnosis.steps[2].status = 'skipped';
+        diagnosis.steps[2].reason = '存储服务未启用';
+      } else if (!config.endpoint || !config.accessKeyId || !config.secretAccessKey) {
+        diagnosis.steps[2].status = 'error';
+        diagnosis.steps[2].error = '配置不完整';
+      } else {
+        try {
+          const testResult = await this.storageConfigService.testStorageConnection();
+          diagnosis.steps[2].status = testResult.success ? 'success' : 'error';
+          diagnosis.steps[2].data = testResult;
+        } catch (error) {
+          diagnosis.steps[2].status = 'error';
+          diagnosis.steps[2].error = error instanceof Error ? error.message : '连接测试失败';
+        }
+      }
+
+      // 步骤4: 检查存储桶
+      diagnosis.steps.push({
+        step: 4,
+        name: '检查存储桶状态',
+        status: 'running',
+      });
+
+      if (!config.enabled || diagnosis.steps[2].status !== 'success') {
+        diagnosis.steps[3].status = 'skipped';
+        diagnosis.steps[3].reason = '前置步骤失败';
+      } else {
+        try {
+          // 这里可以添加更详细的存储桶检查
+          diagnosis.steps[3].status = 'success';
+          diagnosis.steps[3].data = {
+            buckets: Object.entries(config.buckets).map(([type, name]) => ({
+              type,
+              name,
+              status: 'unknown', // 可以进一步实现具体检查
+            })),
+          };
+        } catch (error) {
+          diagnosis.steps[3].status = 'error';
+          diagnosis.steps[3].error = error instanceof Error ? error.message : '存储桶检查失败';
+        }
+      }
+
+      res.json({
+        success: true,
+        data: diagnosis,
+      });
+    } catch (error) {
+      console.error('存储诊断失败:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '存储诊断失败',
       });
     }
   }

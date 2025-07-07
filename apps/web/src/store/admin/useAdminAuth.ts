@@ -30,7 +30,7 @@ export const useAdminAuth = create<AdminAuthState>()(
     (set, get) => ({
       isAuthenticated: false,
       admin: null,
-      token: null,
+      token: typeof window !== 'undefined' ? localStorage.getItem('admin-auth-token') : null,
       isLoading: false,
       error: null,
 
@@ -50,10 +50,7 @@ export const useAdminAuth = create<AdminAuthState>()(
             throw new Error(data.message || '登录失败');
           }
 
-          // 将token存储到localStorage供API客户端使用
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('auth-token', data.data.token);
-          }
+          // token会通过persist自动存储
 
           set({
             isAuthenticated: true,
@@ -75,11 +72,6 @@ export const useAdminAuth = create<AdminAuthState>()(
       },
 
       logout: () => {
-        // 清除localStorage中的token
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('auth-token');
-        }
-        
         set({
           isAuthenticated: false,
           admin: null,
@@ -111,10 +103,7 @@ export const useAdminAuth = create<AdminAuthState>()(
             error: null,
           });
         } catch (error) {
-          // 清除localStorage中的token
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('auth-token');
-          }
+          // token会通过persist自动清除
           
           set({
             isAuthenticated: false,
@@ -159,6 +148,18 @@ export const useAdminAuth = create<AdminAuthState>()(
     }),
     {
       name: 'admin-auth-storage',
+      storage: {
+        getItem: (name) => {
+          const value = localStorage.getItem(name);
+          return value ? JSON.parse(value) : null;
+        },
+        setItem: (name, value) => {
+          localStorage.setItem(name, JSON.stringify(value));
+        },
+        removeItem: (name) => {
+          localStorage.removeItem(name);
+        },
+      },
       partialize: (state) => ({
         token: state.token,
         admin: state.admin,
