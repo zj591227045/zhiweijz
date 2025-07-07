@@ -3,15 +3,19 @@ import { UserService } from '../services/user.service';
 import { CreateUserDto, UpdateUserDto, UpdateProfileDto } from '../models/user.model';
 import { UserSettingService } from '../services/user-setting.service';
 import { getFileUrl } from '../middlewares/upload.middleware';
+import { FileStorageService } from '../services/file-storage.service';
+import { BUCKET_CONFIG, FileUploadRequestDto } from '../models/file-storage.model';
 import { comparePasswords } from '../utils/password';
 
 export class UserController {
   private userService: UserService;
   private userSettingService: UserSettingService;
+  private fileStorageService: FileStorageService;
 
   constructor() {
     this.userService = new UserService();
     this.userSettingService = new UserSettingService();
+    this.fileStorageService = new FileStorageService();
   }
 
   /**
@@ -121,19 +125,39 @@ export class UserController {
         return;
       }
 
-      // 获取文件信息
-      const avatarFile = req.file;
-      const avatarUrl = getFileUrl(avatarFile.filename, 'avatar');
+      // 删除用户之前的头像文件（如果存在）
+      await this.deleteUserPreviousAvatar(userId);
 
-      // 更新用户头像
+      // 上传新头像到S3
+      const uploadRequest: FileUploadRequestDto = {
+        bucket: BUCKET_CONFIG.AVATARS,
+        category: 'avatar',
+        description: '用户头像',
+        metadata: {
+          userId,
+          uploadType: 'avatar',
+        },
+      };
+
+      const uploadResult = await this.fileStorageService.uploadFile(
+        req.file,
+        uploadRequest,
+        userId,
+      );
+
+      // 更新用户头像URL
       const updateData: UpdateUserDto = {
-        avatar: avatarUrl,
+        avatar: uploadResult.url,
       };
 
       await this.userService.updateUser(userId, updateData);
 
-      // 返回头像URL
-      res.status(200).json({ avatar: avatarUrl });
+      // 返回头像信息
+      res.status(200).json({
+        avatar: uploadResult.url,
+        fileId: uploadResult.fileId,
+        message: '头像上传成功',
+      });
     } catch (error) {
       console.error('上传头像失败:', error);
       if (error instanceof Error) {
@@ -409,6 +433,34 @@ export class UserController {
       } else {
         res.status(500).json({ message: '密码验证失败' });
       }
+    }
+  }
+
+  /**
+   * 删除用户之前的头像文件
+   */
+  private async deleteUserPreviousAvatar(userId: string): Promise<void> {
+    try {
+      // 查找用户之前上传的头像文件
+      const previousAvatars = await this.fileStorageService.getFiles({
+        uploadedBy: userId,
+        bucket: BUCKET_CONFIG.AVATARS,
+        limit: 10, // 最多查找10个之前的头像
+      });
+
+      // 删除之前的头像文件
+      for (const avatar of previousAvatars.files) {
+        try {
+          await this.fileStorageService.deleteFile(avatar.id, userId);
+          console.log(`已删除用户 ${userId} 的旧头像文件: ${avatar.id}`);
+        } catch (error) {
+          console.error(`删除旧头像文件失败: ${avatar.id}`, error);
+          // 继续删除其他文件，不中断流程
+        }
+      }
+    } catch (error) {
+      console.error('删除用户旧头像失败:', error);
+      // 不抛出错误，允许继续上传新头像
     }
   }
 }

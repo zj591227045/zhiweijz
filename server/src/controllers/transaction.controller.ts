@@ -99,7 +99,17 @@ export class TransactionController {
       }
 
       const transactionId = req.params.id;
+      const includeAttachments = req.query.includeAttachments === 'true';
+
       const transaction = await this.transactionService.getTransactionById(transactionId, userId);
+
+      // 如果需要包含附件信息
+      if (includeAttachments) {
+        const attachments = await this.transactionService.getTransactionAttachments(transactionId, userId);
+        (transaction as any).attachments = attachments;
+        (transaction as any).attachmentCount = attachments.length;
+      }
+
       res.status(200).json(transaction);
     } catch (error) {
       if (error instanceof Error) {

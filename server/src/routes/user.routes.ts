@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/user.controller';
 import { authenticate } from '../middlewares/auth.middleware';
-import { avatarUpload } from '../middlewares/upload.middleware';
+import { avatarUpload, s3AvatarUpload } from '../middlewares/upload.middleware';
 
 const router = Router();
 const userController = new UserController();
@@ -39,8 +39,8 @@ router.post('/me/verify-password', authenticate, (req, res) =>
   userController.verifyPassword(req, res),
 );
 
-// 上传当前用户的头像 - 需要认证
-router.post('/me/avatar', authenticate, avatarUpload.single('avatar'), (req, res) =>
+// 上传当前用户的头像 - 需要认证（使用S3存储）
+router.post('/me/avatar', authenticate, s3AvatarUpload.single('avatar'), (req, res) =>
   userController.uploadAvatar(req, res),
 );
 

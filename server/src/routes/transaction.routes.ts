@@ -1,11 +1,14 @@
 import { Router } from 'express';
 import { TransactionController } from '../controllers/transaction.controller';
 import { TagController } from '../controllers/tag.controller';
+import { TransactionAttachmentController } from '../controllers/transaction-attachment.controller';
 import { authenticate } from '../middlewares/auth.middleware';
+import { s3AttachmentUpload } from '../middlewares/upload.middleware';
 
 const router = Router();
 const transactionController = new TransactionController();
 const tagController = new TagController();
+const attachmentController = new TransactionAttachmentController();
 
 // 所有路由都需要认证
 router.use(authenticate);
@@ -53,5 +56,31 @@ router.delete('/:transactionId/tags/:tagId', (req, res) =>
 
 // 批量操作交易标签
 router.post('/batch/tags', (req, res) => tagController.batchOperateTransactionTags(req, res));
+
+// 交易附件相关路由
+// 为交易添加附件
+router.post('/:transactionId/attachments', s3AttachmentUpload.single('attachment'), (req, res) =>
+  attachmentController.addAttachment(req, res),
+);
+
+// 批量上传交易附件
+router.post('/:transactionId/attachments/batch', s3AttachmentUpload.array('attachments', 10), (req, res) =>
+  attachmentController.batchUploadAttachments(req, res),
+);
+
+// 获取交易的所有附件
+router.get('/:transactionId/attachments', (req, res) =>
+  attachmentController.getTransactionAttachments(req, res),
+);
+
+// 删除交易附件
+router.delete('/attachments/:attachmentId', (req, res) =>
+  attachmentController.deleteAttachment(req, res),
+);
+
+// 获取用户的附件统计
+router.get('/attachments/stats', (req, res) =>
+  attachmentController.getAttachmentStats(req, res),
+);
 
 export default router;

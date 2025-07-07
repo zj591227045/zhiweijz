@@ -4,6 +4,7 @@ import { CategoryRepository } from '../repositories/category.repository';
 import { BudgetTransactionService } from './budget-transaction.service';
 import { BudgetService } from './budget.service';
 import { BudgetRepository } from '../repositories/budget.repository';
+import { TransactionAttachmentRepository } from '../repositories/file-storage.repository';
 
 const prisma = new PrismaClient();
 import {
@@ -22,6 +23,7 @@ export class TransactionService {
   private budgetTransactionService: BudgetTransactionService;
   private budgetService: BudgetService;
   private budgetRepository: BudgetRepository;
+  private attachmentRepository: TransactionAttachmentRepository;
 
   constructor() {
     this.transactionRepository = new TransactionRepository();
@@ -29,6 +31,7 @@ export class TransactionService {
     this.budgetTransactionService = new BudgetTransactionService();
     this.budgetService = new BudgetService();
     this.budgetRepository = new BudgetRepository();
+    this.attachmentRepository = new TransactionAttachmentRepository();
   }
 
   /**
@@ -828,6 +831,67 @@ export class TransactionService {
       };
     } catch (error) {
       console.error('获取预算相关交易失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 获取交易的附件列表
+   */
+  async getTransactionAttachments(transactionId: string, userId: string) {
+    try {
+      // 验证交易是否属于当前用户
+      const transaction = await this.transactionRepository.findById(transactionId);
+      if (!transaction || transaction.userId !== userId) {
+        throw new Error('交易不存在或无权限访问');
+      }
+
+      // 获取附件列表
+      const attachments = await this.attachmentRepository.findByTransactionId(transactionId);
+
+      return attachments;
+    } catch (error) {
+      console.error('获取交易附件失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 获取用户的附件统计信息
+   */
+  async getUserAttachmentStats(userId: string) {
+    try {
+      const stats = await this.attachmentRepository.getAttachmentStats(userId);
+      return stats;
+    } catch (error) {
+      console.error('获取用户附件统计失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 删除交易附件
+   */
+  async deleteTransactionAttachment(attachmentId: string, userId: string) {
+    try {
+      // 获取附件信息并验证权限
+      const attachments = await this.attachmentRepository.findByFileId(attachmentId);
+      if (attachments.length === 0) {
+        throw new Error('附件不存在');
+      }
+
+      const attachment = attachments[0];
+      // 验证权限
+      if (attachment.transaction.userId !== userId) {
+        throw new Error('无权限删除此附件');
+      }
+
+      // 删除附件关联
+      await this.attachmentRepository.delete(attachment.id);
+
+      return { success: true, message: '附件删除成功' };
+    } catch (error) {
+      console.error('删除交易附件失败:', error);
       throw error;
     }
   }

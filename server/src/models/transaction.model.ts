@@ -1,5 +1,6 @@
 import { Transaction as PrismaTransaction, TransactionType } from '@prisma/client';
 import { CategoryResponseDto } from './category.model';
+import { TransactionAttachmentResponseDto } from './file-storage.model';
 
 /**
  * 交易记录创建DTO
@@ -103,6 +104,8 @@ export interface TransactionResponseDto {
   createdAt: Date;
   updatedAt: Date;
   metadata?: any; // 交易元数据，如历史交易标记
+  attachments?: TransactionAttachmentResponseDto[]; // 交易附件
+  attachmentCount?: number; // 附件数量
 }
 
 /**
@@ -121,6 +124,7 @@ export interface TransactionPaginatedResponseDto {
 export function toTransactionResponseDto(
   transaction: PrismaTransaction,
   category?: CategoryResponseDto,
+  attachments?: TransactionAttachmentResponseDto[],
 ): TransactionResponseDto {
   return {
     id: transaction.id,
@@ -138,5 +142,7 @@ export function toTransactionResponseDto(
     createdAt: transaction.createdAt,
     updatedAt: transaction.updatedAt,
     metadata: (transaction as any).metadata || undefined, // 添加元数据字段
+    attachments,
+    attachmentCount: attachments?.length || 0,
   };
 }
