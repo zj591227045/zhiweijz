@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { TagDisplay } from './tag-display';
 import { TagResponseDto } from '@/lib/api/types/tag.types';
 import { tagApi } from '@/lib/api/tag-api';
-import { Template, Plus, Star, Bookmark } from 'lucide-react';
+import { FileText, Plus, Star, Bookmark } from 'lucide-react';
 
 interface TagTemplate {
   id: string;
@@ -108,7 +108,7 @@ export const TagTemplateSelector: React.FC<TagTemplateProps> = ({
       {/* 模板标题 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Template className="w-4 h-4 text-purple-500" />
+          <FileText className="w-4 h-4 text-purple-500" />
           <span className="text-sm font-medium text-gray-700">标签模板</span>
           {allTemplates.length > 0 && (
             <span className="text-xs text-gray-500">

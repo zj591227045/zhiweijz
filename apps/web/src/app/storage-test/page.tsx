@@ -175,7 +175,7 @@ export default function StorageTestPage() {
           <div style={{ fontSize: '14px', lineHeight: '1.6' }}>
             <p><strong>API端点:</strong> /api/files/status</p>
             <p><strong>当前时间:</strong> {new Date().toLocaleString()}</p>
-            <p><strong>用户代理:</strong> {navigator.userAgent}</p>
+            <p><strong>用户代理:</strong> {typeof window !== 'undefined' ? navigator.userAgent : '服务端渲染'}</p>
           </div>
           
           <div style={{ marginTop: '16px' }}>
