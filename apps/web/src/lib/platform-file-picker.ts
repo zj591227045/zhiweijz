@@ -156,32 +156,38 @@ async function capacitorCamera(options: PlatformFilePickerOptions): Promise<File
       throw new Error('Camera plugin methods not available');
     }
 
-    console.log('📷 [CapacitorCamera] 准备调用Camera.getPhoto，参数:', {
+    // 使用Base64格式，更兼容，然后转换为Blob
+    const cameraOptions = {
       quality: Math.round((options.quality || 0.8) * 100),
-      allowEditing: true,
-      resultType: CameraResultType.Blob,
+      allowEditing: false, // 禁用系统编辑器，使用我们自己的裁剪工具
+      resultType: CameraResultType.Base64,
       source: CameraSource.Camera,
       width: options.maxWidth,
       height: options.maxHeight,
-    });
+    };
 
-    const image = await Camera.getPhoto({
-      quality: Math.round((options.quality || 0.8) * 100),
-      allowEditing: true,
-      resultType: CameraResultType.Blob,
-      source: CameraSource.Camera,
-      width: options.maxWidth,
-      height: options.maxHeight,
-    });
+    console.log('📷 [CapacitorCamera] 准备调用Camera.getPhoto，参数:', cameraOptions);
+
+    const image = await Camera.getPhoto(cameraOptions);
 
     console.log('📷 [CapacitorCamera] Camera.getPhoto调用成功:', {
-      hasBlob: !!image.blob,
-      blobSize: image.blob?.size,
-      format: image.format
+      hasBase64: !!image.base64String,
+      format: image.format,
+      webPath: image.webPath
     });
 
-    if (image.blob) {
-      const file = new File([image.blob], `camera_${Date.now()}.jpg`, {
+    if (image.base64String) {
+      // 将Base64转换为Blob
+      const base64Data = image.base64String;
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'image/jpeg' });
+
+      const file = new File([blob], `camera_${Date.now()}.jpg`, {
         type: 'image/jpeg',
         lastModified: Date.now(),
       });
@@ -262,32 +268,38 @@ async function capacitorGallery(options: PlatformFilePickerOptions): Promise<Fil
       throw new Error('Camera plugin methods not available');
     }
 
-    console.log('🖼️ [CapacitorGallery] 准备调用Camera.getPhoto，参数:', {
+    // 使用Base64格式，更兼容，然后转换为Blob
+    const galleryOptions = {
       quality: Math.round((options.quality || 0.8) * 100),
-      allowEditing: true,
-      resultType: CameraResultType.Blob,
+      allowEditing: false, // 禁用系统编辑器，使用我们自己的裁剪工具
+      resultType: CameraResultType.Base64,
       source: CameraSource.Photos,
       width: options.maxWidth,
       height: options.maxHeight,
-    });
+    };
 
-    const image = await Camera.getPhoto({
-      quality: Math.round((options.quality || 0.8) * 100),
-      allowEditing: true,
-      resultType: CameraResultType.Blob,
-      source: CameraSource.Photos,
-      width: options.maxWidth,
-      height: options.maxHeight,
-    });
+    console.log('🖼️ [CapacitorGallery] 准备调用Camera.getPhoto，参数:', galleryOptions);
+
+    const image = await Camera.getPhoto(galleryOptions);
 
     console.log('🖼️ [CapacitorGallery] Camera.getPhoto调用成功:', {
-      hasBlob: !!image.blob,
-      blobSize: image.blob?.size,
-      format: image.format
+      hasBase64: !!image.base64String,
+      format: image.format,
+      webPath: image.webPath
     });
 
-    if (image.blob) {
-      const file = new File([image.blob], `gallery_${Date.now()}.jpg`, {
+    if (image.base64String) {
+      // 将Base64转换为Blob
+      const base64Data = image.base64String;
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'image/jpeg' });
+
+      const file = new File([blob], `gallery_${Date.now()}.jpg`, {
         type: 'image/jpeg',
         lastModified: Date.now(),
       });
