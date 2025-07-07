@@ -64,6 +64,12 @@ export const ADMIN_API_ENDPOINTS = {
   // 系统配置
   SYSTEM_CONFIG_REGISTRATION: '/api/admin/system-configs/registration',
   SYSTEM_CONFIG_LLM: '/api/admin/system-configs/llm/configs',
+
+  // 存储管理
+  STORAGE_CONFIG: '/api/admin/storage/config',
+  STORAGE_STATS: '/api/admin/storage/stats',
+  STORAGE_TEST: '/api/admin/storage/test',
+  STORAGE_FILES: '/api/admin/storage/files',
   
   // 公告管理
   ANNOUNCEMENTS: '/api/admin/announcements',

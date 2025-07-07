@@ -2,12 +2,13 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  HomeIcon, 
-  UsersIcon, 
-  CogIcon, 
+import {
+  HomeIcon,
+  UsersIcon,
+  CogIcon,
   SpeakerWaveIcon,
   ChartBarIcon,
+  CloudArrowUpIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
 
@@ -20,10 +21,10 @@ interface AdminSidebarProps {
 const navigation = [
   { name: '仪表盘', href: '/admin', icon: HomeIcon, current: false },
   { name: '用户管理', href: '/admin/users', icon: UsersIcon, current: false },
-  { 
-    name: 'LLM管理', 
-    href: '/admin/llm', 
-    icon: CogIcon, 
+  {
+    name: 'LLM管理',
+    href: '/admin/llm',
+    icon: CogIcon,
     current: false,
     children: [
       { name: '配置管理', href: '/admin/llm', current: false },
@@ -31,6 +32,7 @@ const navigation = [
       { name: '调用日志', href: '/admin/llm/logs', current: false }
     ]
   },
+  { name: '文件存储', href: '/admin/storage', icon: CloudArrowUpIcon, current: false },
   { name: '公告管理', href: '/admin/announcements', icon: SpeakerWaveIcon, current: false },
   { name: '统计分析', href: '/admin/analytics', icon: ChartBarIcon, current: false },
 ];

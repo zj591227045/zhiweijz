@@ -6,9 +6,7 @@ const prisma = new PrismaClient({
   log:
     process.env.PRISMA_LOG_LEVEL === 'debug'
       ? ['query', 'info', 'warn', 'error']
-      : config.env === 'development'
-      ? ['warn', 'error']
-      : ['error'],
+      : ['error'], // 只记录错误日志，减少输出
 });
 
 // 连接数据库
