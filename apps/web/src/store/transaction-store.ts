@@ -26,7 +26,7 @@ interface TransactionState {
 
   fetchTransaction: (id: string) => Promise<void>; // 修改返回类型
   getTransaction: (id: string) => Promise<Transaction | null>;
-  createTransaction: (data: CreateTransactionData) => Promise<boolean>;
+  createTransaction: (data: CreateTransactionData) => Promise<Transaction | null>;
   updateTransaction: (id: string, data: Partial<CreateTransactionData>) => Promise<boolean>;
   deleteTransaction: (id: string) => Promise<boolean>;
 }
@@ -154,12 +154,12 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      await apiClient.post('/transactions', data);
+      const response = await apiClient.post('/transactions', data);
 
       set({ isLoading: false });
 
       toast.success('交易创建成功');
-      return true;
+      return response.data || response;
     } catch (error) {
       console.error('创建交易失败:', error);
       set({
@@ -167,7 +167,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
         error: error instanceof Error ? error.message : '创建交易失败',
       });
       toast.error('创建交易失败');
-      return false;
+      return null;
     }
   },
 

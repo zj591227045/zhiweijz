@@ -10,7 +10,7 @@ const fileStorageController = new FileStorageController();
 router.use(authenticate);
 
 /**
- * @route GET /api/files/status
+ * @route GET /api/file-storage/status
  * @desc 获取存储服务状态
  * @access Private
  */
@@ -19,7 +19,7 @@ router.get('/status', (req, res) =>
 );
 
 /**
- * @route POST /api/files/upload
+ * @route POST /api/file-storage/upload
  * @desc 通用文件上传
  * @access Private
  */
@@ -28,7 +28,7 @@ router.post('/upload', s3FileUpload.single('file'), (req, res) =>
 );
 
 /**
- * @route POST /api/files/avatar
+ * @route POST /api/file-storage/avatar
  * @desc 上传用户头像
  * @access Private
  */
@@ -37,7 +37,7 @@ router.post('/avatar', s3AvatarUpload.single('avatar'), (req, res) =>
 );
 
 /**
- * @route POST /api/files/attachment
+ * @route POST /api/file-storage/attachment
  * @desc 上传交易附件
  * @access Private
  */
@@ -46,28 +46,28 @@ router.post('/attachment', s3AttachmentUpload.single('attachment'), (req, res) =
 );
 
 /**
- * @route GET /api/files
+ * @route GET /api/file-storage
  * @desc 获取文件列表
  * @access Private
  */
 router.get('/', (req, res) => fileStorageController.getFiles(req, res));
 
 /**
- * @route GET /api/files/:fileId
+ * @route GET /api/file-storage/:fileId
  * @desc 获取文件信息
  * @access Private
  */
 router.get('/:fileId', (req, res) => fileStorageController.getFile(req, res));
 
 /**
- * @route DELETE /api/files/:fileId
+ * @route DELETE /api/file-storage/:fileId
  * @desc 删除文件
  * @access Private
  */
 router.delete('/:fileId', (req, res) => fileStorageController.deleteFile(req, res));
 
 /**
- * @route POST /api/files/presigned-url
+ * @route POST /api/file-storage/presigned-url
  * @desc 生成预签名URL
  * @access Private
  */
@@ -76,7 +76,7 @@ router.post('/presigned-url', (req, res) =>
 );
 
 /**
- * @route GET /api/files/test/connection
+ * @route GET /api/file-storage/test/connection
  * @desc 测试存储连接
  * @access Private
  */
@@ -85,7 +85,7 @@ router.get('/test/connection', (req, res) =>
 );
 
 /**
- * @route POST /api/files/cleanup/expired
+ * @route POST /api/file-storage/cleanup/expired
  * @desc 清理过期文件
  * @access Private
  */

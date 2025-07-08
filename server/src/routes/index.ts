@@ -45,7 +45,7 @@ router.use('/feedback', feedbackRoutes);
 router.use('/system', systemRoutes);
 router.use('/system-config', systemConfigRoutes);
 router.use('/user/announcements', userAnnouncementRoutes);
-router.use('/files', fileStorageRoutes);
+router.use('/file-storage', fileStorageRoutes);
 router.use('/image-recognition', imageRecognitionRoutes);
 router.use('/image-proxy', imageProxyRoutes);
 router.use('/admin', adminRoutes);

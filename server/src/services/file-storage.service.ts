@@ -217,6 +217,21 @@ export class FileStorageService {
   }
 
   /**
+   * 获取文件信息（带权限验证）
+   */
+  async getFileInfo(fileId: string, userId: string): Promise<FileStorageResponseDto | null> {
+    const fileStorage = await prisma.fileStorage.findUnique({
+      where: {
+        id: fileId,
+        uploadedBy: userId,
+        status: FileStatus.ACTIVE,
+      },
+    });
+
+    return fileStorage ? toFileStorageResponseDto(fileStorage) : null;
+  }
+
+  /**
    * 删除文件
    */
   async deleteFile(fileId: string, userId: string): Promise<void> {

@@ -238,7 +238,14 @@ export function BudgetStatisticsPage() {
                 />
 
                 {/* 最近交易 */}
-                <RecentTransactions transactions={recentTransactions} budgetId={selectedBudgetId} />
+                <RecentTransactions
+                  transactions={recentTransactions}
+                  budgetId={selectedBudgetId}
+                  onTransactionDeleted={() => {
+                    // 删除成功后重新获取数据
+                    fetchBudgetData();
+                  }}
+                />
               </>
             ) : (
               <div className="no-budget-data">

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
+import { AttachmentThumbnail, AttachmentPreview } from '@/components/transactions/attachment-preview';
 // 简单的SVG图标组件
 const ArrowLeft = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,6 +34,17 @@ const Trash2 = ({ className }: { className?: string }) => (
     />
   </svg>
 );
+
+const Paperclip = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+    />
+  </svg>
+);
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -44,6 +56,22 @@ interface TransactionDetailClientProps {
   params: {
     id: string;
   };
+}
+
+interface AttachmentFile {
+  id: string;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  url?: string;
+}
+
+interface TransactionAttachment {
+  id: string;
+  attachmentType: string;
+  description?: string;
+  file?: AttachmentFile;
 }
 
 interface Transaction {
@@ -61,15 +89,26 @@ interface Transaction {
   updatedAt: string;
 }
 
+// 格式化文件大小
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
 export default function TransactionDetailClient({ params }: TransactionDetailClientProps) {
   const router = useRouter();
   const { id: transactionId } = params;
   const { token, isAuthenticated } = useAuthStore();
   const [transaction, setTransaction] = useState<Transaction | null>(null);
+  const [attachments, setAttachments] = useState<TransactionAttachment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [previewFile, setPreviewFile] = useState<AttachmentFile | null>(null);
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -102,6 +141,20 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
         if (response.ok) {
           const data = await response.json();
           setTransaction(data);
+
+          // 获取附件信息
+          try {
+            const attachmentResponse = await fetchApi(`/api/transactions/${transactionId}/attachments`);
+            if (attachmentResponse.ok) {
+              const attachmentData = await attachmentResponse.json();
+              if (attachmentData.success) {
+                setAttachments(attachmentData.data || []);
+              }
+            }
+          } catch (attachmentError) {
+            console.error('获取附件信息失败:', attachmentError);
+            // 附件获取失败不影响主要功能
+          }
         } else {
           const errorData = await response.json();
           setError(errorData.message || '获取交易详情失败');
@@ -264,7 +317,63 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
             </div>
           </CardContent>
         </Card>
+
+        {/* 附件预览区域 */}
+        {attachments.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Paperclip className="mr-2 h-5 w-5" />
+                附件 ({attachments.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {attachments.map((attachment) => (
+                  attachment.file && (
+                    <div key={attachment.id} className="space-y-2">
+                      <AttachmentThumbnail
+                        file={attachment.file}
+                        onClick={() => setPreviewFile(attachment.file!)}
+                        size="large"
+                        className="w-full aspect-square"
+                      />
+                      <div className="text-xs text-center">
+                        <p className="truncate font-medium" title={attachment.file.originalName}>
+                          {attachment.file.originalName}
+                        </p>
+                        <p className="text-muted-foreground">
+                          {formatFileSize(attachment.file.size)}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
+
+      {/* 附件预览模态框 */}
+      {previewFile && (
+        <AttachmentPreview
+          file={previewFile}
+          isOpen={!!previewFile}
+          onClose={() => setPreviewFile(null)}
+          onDownload={() => {
+            if (previewFile.url) {
+              const link = document.createElement('a');
+              link.href = previewFile.url;
+              link.download = previewFile.originalName;
+              link.target = '_blank';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }
+          }}
+        />
+      )}
 
       {/* 删除确认对话框 */}
       <ConfirmDialog

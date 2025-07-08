@@ -184,11 +184,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => {
         set({ error: null });
         console.log(`开始刷新仪表盘数据，账本ID: ${accountBookId}`);
 
-        // 强制清除相关缓存，确保获取最新数据
-        console.log('强制清除仪表盘相关缓存...');
-        apiClient.invalidateCache(new RegExp(`^/statistics`));
-        apiClient.invalidateCache(new RegExp(`^/transactions`));
-        console.log('缓存清除完成，开始获取最新数据...');
+        // 注意：当前使用的apiClient不支持缓存，所以总是获取最新数据
+        console.log('开始获取最新数据...');
 
         // 并行请求数据
         const [monthlyStats, budgetData, transactions] = await Promise.all([

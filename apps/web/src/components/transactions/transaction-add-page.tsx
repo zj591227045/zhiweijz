@@ -10,6 +10,7 @@ import { useAccountBookStore } from '@/store/account-book-store';
 import { useBudgetStore } from '@/store/budget-store';
 import { triggerTransactionChange } from '@/store/dashboard-store';
 import { tagApi } from '@/lib/api/tag-api';
+import { apiClient } from '@/lib/api-client';
 import { AmountInput } from './amount-input';
 import { TransactionTypeToggle } from './transaction-type-toggle';
 import { CategorySelector } from './category-selector';
@@ -34,6 +35,7 @@ export function TransactionAddPage() {
     time,
     budgetId,
     tagIds,
+    attachments,
     goToStep,
     resetForm,
     fillSmartAccountingResult,
@@ -152,20 +154,38 @@ export function TransactionAddPage() {
       };
 
       // 提交数据
-      const success = await createTransaction(transactionData);
+      const createdTransaction = await createTransaction(transactionData);
 
       // 提交成功
-      if (success) {
+      if (createdTransaction) {
         // 如果有选择标签，为新创建的交易添加标签
         if (tagIds.length > 0) {
           try {
-            // 获取刚创建的交易ID（这里需要修改createTransaction返回交易对象）
-            // 暂时使用延迟处理，实际应该修改API返回交易ID
-            console.log('准备为新交易添加标签:', tagIds);
-            // TODO: 需要修改createTransaction API返回交易ID，然后调用tagApi.addTransactionTags
+            await tagApi.addTransactionTags(createdTransaction.id, tagIds);
+            console.log('成功为交易添加标签:', tagIds);
           } catch (error) {
             console.error('添加交易标签失败:', error);
             // 标签添加失败不影响交易创建成功的提示
+          }
+        }
+
+        // 如果有附件，关联到新创建的交易
+        if (attachments.length > 0) {
+          try {
+            for (const attachment of attachments) {
+              // 如果是临时附件，需要关联到交易
+              if (attachment.id.startsWith('temp-')) {
+                await apiClient.post(`/transactions/${createdTransaction.id}/attachments/link`, {
+                  fileId: attachment.fileId,
+                  attachmentType: attachment.attachmentType,
+                  description: attachment.description
+                });
+              }
+            }
+            console.log('成功关联附件到交易:', attachments.length);
+          } catch (error) {
+            console.error('关联附件失败:', error);
+            // 附件关联失败不影响交易创建成功的提示
           }
         }
 

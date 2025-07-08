@@ -242,6 +242,19 @@
   border-bottom: none;
 }
 
+/* 滑动交易项特殊样式 */
+.transactions-page .unified-transaction-list .swipeable-transaction-item {
+  padding: 0;
+  border-bottom: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.transactions-page .unified-transaction-list .swipeable-transaction-item:last-child {
+  border-bottom: none;
+}
+
 /* 预算统计页面的交易列表 - 保持与仪表盘一致 */
 .budget-statistics-page .unified-transaction-list .transaction-list {
   margin-top: 15px;

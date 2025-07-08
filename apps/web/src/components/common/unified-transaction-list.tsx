@@ -3,7 +3,21 @@
 import { memo } from 'react';
 import { formatCurrency, getCategoryIconClass } from '../../lib/utils';
 import { TagDisplay } from '../tags/tag-display';
+import { SwipeableTransactionItem } from '../transactions/swipeable-transaction-item';
+import { AttachmentThumbnail } from '../transactions/attachment-preview';
 import { TagResponseDto } from '@/lib/api/types/tag.types';
+
+// Paperclip图标组件
+const Paperclip = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+    />
+  </svg>
+);
 
 // 交易类型枚举
 export enum TransactionType {
@@ -27,6 +41,19 @@ interface Transaction {
     icon: string;
   };
   tags?: TagResponseDto[];
+  attachments?: Array<{
+    id: string;
+    attachmentType: string;
+    description?: string;
+    file?: {
+      id: string;
+      filename: string;
+      originalName: string;
+      mimeType: string;
+      size: number;
+      url?: string;
+    };
+  }>;
 }
 
 interface GroupedTransactions {
@@ -50,6 +77,11 @@ interface UnifiedTransactionListProps {
   isLoadingMore?: boolean;
   hasMore?: boolean;
   totalCount?: number;
+  // 滑动操作相关
+  enableSwipeActions?: boolean;
+  onAttachmentClick?: (transactionId: string) => void;
+  onDeleteClick?: (transactionId: string) => void;
+  onDataRefresh?: () => void; // 数据刷新回调
 }
 
 // 使用React.memo优化渲染性能
@@ -67,7 +99,11 @@ export const UnifiedTransactionList = memo(
     onTransactionSelect,
     isLoadingMore = false,
     hasMore = false,
-    totalCount = 0
+    totalCount = 0,
+    enableSwipeActions = false,
+    onAttachmentClick,
+    onDeleteClick,
+    onDataRefresh
   }: UnifiedTransactionListProps) {
 
     // 获取图标类名
@@ -133,50 +169,91 @@ export const UnifiedTransactionList = memo(
             )}
             <div className="transaction-list">
               {group.transactions.map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className={`transaction-item ${isMultiSelectMode ? 'multi-select-mode' : ''} ${selectedTransactions.has(transaction.id) ? 'selected' : ''}`}
-                  onClick={() => handleTransactionClick(transaction.id)}
-                  style={{ cursor: (onTransactionClick || isMultiSelectMode) ? 'pointer' : 'default' }}
-                >
-                  {isMultiSelectMode && (
-                    <div className="transaction-checkbox">
-                      <input
-                        type="checkbox"
-                        checked={selectedTransactions.has(transaction.id)}
-                        onChange={() => {}}
-                        onClick={(e) => handleCheckboxClick(transaction.id, e)}
-                      />
-                    </div>
-                  )}
-                  <div className="transaction-icon">
-                    <i
-                      className={`fas ${getIconClass(transaction.categoryIcon || transaction.category?.icon || '', transaction.type)}`}
-                    ></i>
-                  </div>
-                  <div className="transaction-details">
-                    <div className="transaction-title">
-                      {transaction.description || transaction.title || transaction.categoryName}
-                    </div>
-                    <div className="transaction-category">{transaction.categoryName || transaction.category?.name}</div>
-                    {transaction.tags && transaction.tags.length > 0 && (
-                      <div className="transaction-tags">
-                        <TagDisplay
-                          tags={transaction.tags}
-                          size="small"
-                          maxDisplay={2}
-                          className="mt-1"
+                enableSwipeActions ? (
+                  <SwipeableTransactionItem
+                    key={transaction.id}
+                    transaction={transaction}
+                    onTransactionClick={onTransactionClick}
+                    onAttachmentClick={onAttachmentClick}
+                    onDeleteClick={onDeleteClick}
+                    onDataRefresh={onDataRefresh}
+                    isMultiSelectMode={isMultiSelectMode}
+                    isSelected={selectedTransactions.has(transaction.id)}
+                    onTransactionSelect={onTransactionSelect}
+                  />
+                ) : (
+                  <div
+                    key={transaction.id}
+                    className={`transaction-item ${isMultiSelectMode ? 'multi-select-mode' : ''} ${selectedTransactions.has(transaction.id) ? 'selected' : ''}`}
+                    onClick={() => handleTransactionClick(transaction.id)}
+                    style={{ cursor: (onTransactionClick || isMultiSelectMode) ? 'pointer' : 'default' }}
+                  >
+                    {isMultiSelectMode && (
+                      <div className="transaction-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={selectedTransactions.has(transaction.id)}
+                          onChange={() => {}}
+                          onClick={(e) => handleCheckboxClick(transaction.id, e)}
                         />
                       </div>
                     )}
+                    <div className="transaction-icon">
+                      {(() => {
+                        // 获取第一张图片附件作为缩略图
+                        const firstImageAttachment = transaction.attachments?.find(
+                          attachment => attachment.file?.mimeType.startsWith('image/')
+                        );
+
+                        if (firstImageAttachment?.file) {
+                          return (
+                            <AttachmentThumbnail
+                              file={firstImageAttachment.file}
+                              size="medium"
+                              className="w-full h-full"
+                            />
+                          );
+                        } else {
+                          return (
+                            <i
+                              className={`fas ${getIconClass(transaction.categoryIcon || transaction.category?.icon || '', transaction.type)}`}
+                            ></i>
+                          );
+                        }
+                      })()}
+                    </div>
+                    <div className="transaction-details">
+                      <div className="transaction-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>{transaction.description || transaction.title || transaction.categoryName}</span>
+                        {transaction.attachments && transaction.attachments.length > 0 && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                            <Paperclip className="w-3 h-3 text-gray-500" />
+                            <span style={{ fontSize: '11px', color: '#6b7280' }}>
+                              {transaction.attachments.length}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="transaction-category">{transaction.categoryName || transaction.category?.name}</div>
+                      {transaction.tags && transaction.tags.length > 0 && (
+                        <div className="transaction-tags">
+                          <TagDisplay
+                            tags={transaction.tags}
+                            size="small"
+                            maxDisplay={2}
+                            className="mt-1"
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div
+                      className={`transaction-amount ${transaction.type === TransactionType.EXPENSE ? 'expense' : 'income'}`}
+                    >
+                      {transaction.type === TransactionType.EXPENSE ? '-' : '+'}
+                      {formatCurrency(transaction.amount)}
+                    </div>
                   </div>
-                  <div
-                    className={`transaction-amount ${transaction.type === TransactionType.EXPENSE ? 'expense' : 'income'}`}
-                  >
-                    {transaction.type === TransactionType.EXPENSE ? '-' : '+'}
-                    {formatCurrency(transaction.amount)}
-                  </div>
-                </div>
+                )
               ))}
             </div>
           </div>

@@ -9,6 +9,7 @@ import { TagSelector } from '../tags/tag-selector';
 import { TagRecommendation } from '../tags/tag-recommendation';
 import { TagTemplateSelector } from '../tags/tag-template';
 import { MobileTagSection } from '../tags/mobile-tag-section';
+import { TransactionAttachmentUpload } from './transaction-attachment-upload';
 
 interface TransactionDetailsProps {
   onSubmit: () => void;
@@ -16,7 +17,7 @@ interface TransactionDetailsProps {
 }
 
 export function TransactionDetails({ onSubmit, isSubmitting }: TransactionDetailsProps) {
-  const { type, description, date, time, tagIds, categoryId, amount, setDescription, setDate, setTime, setTagIds } =
+  const { type, description, date, time, tagIds, categoryId, amount, attachments, setDescription, setDate, setTime, setTagIds, setAttachments } =
     useTransactionFormStore();
   const { currentAccountBook } = useAccountBookStore();
 
@@ -173,6 +174,29 @@ export function TransactionDetails({ onSubmit, isSubmitting }: TransactionDetail
             />
           </div>
         )}
+
+        {/* 附件上传 */}
+        <div style={{
+          backgroundColor: 'var(--background-color)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '12px',
+          padding: '16px',
+          marginBottom: '16px'
+        }}>
+          <label style={{
+            display: 'block',
+            fontSize: '14px',
+            fontWeight: '500',
+            color: 'var(--text-secondary)',
+            marginBottom: '12px'
+          }}>附件</label>
+
+          <TransactionAttachmentUpload
+            initialAttachments={attachments}
+            disabled={isSubmitting}
+            onChange={setAttachments}
+          />
+        </div>
       </div>
 
       {/* iOS 风格操作按钮 */}

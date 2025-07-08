@@ -85,6 +85,12 @@ export class TransactionAttachmentController {
    */
   async getTransactionAttachments(req: Request, res: Response): Promise<void> {
     try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
       const { transactionId } = req.params;
       const attachments = await this.attachmentRepository.findByTransactionId(transactionId);
 
@@ -97,6 +103,56 @@ export class TransactionAttachmentController {
       res.status(500).json({
         success: false,
         message: '获取交易附件失败',
+      });
+    }
+  }
+
+  /**
+   * 关联已上传的文件到交易
+   */
+  async linkFileToTransaction(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const { transactionId } = req.params;
+      const { fileId, attachmentType = AttachmentType.RECEIPT, description } = req.body;
+
+      if (!fileId) {
+        res.status(400).json({ message: '文件ID不能为空' });
+        return;
+      }
+
+      // 验证文件是否存在且属于当前用户
+      const file = await this.fileStorageService.getFileInfo(fileId, userId);
+      if (!file) {
+        res.status(404).json({ message: '文件不存在或无权限访问' });
+        return;
+      }
+
+      // 创建附件关联
+      const attachmentData: CreateTransactionAttachmentDto = {
+        transactionId,
+        fileId,
+        attachmentType,
+        description: description || file.originalName,
+      };
+
+      const attachment = await this.attachmentRepository.create(attachmentData);
+
+      res.status(201).json({
+        success: true,
+        data: attachment,
+        message: '文件关联成功',
+      });
+    } catch (error) {
+      console.error('关联文件到交易失败:', error);
+      res.status(400).json({
+        success: false,
+        message: error instanceof Error ? error.message : '关联文件失败',
       });
     }
   }

@@ -18,6 +18,8 @@ import './transactions/budget-selector.css';
 import { MobileTagSection } from './tags/mobile-tag-section';
 import { tagApi } from '@/lib/api/tag-api';
 import { TagResponseDto } from '@/lib/api/types/tag.types';
+import { TransactionAttachmentUpload, TransactionAttachment } from './transactions/transaction-attachment-upload';
+import { apiClient } from '@/lib/api-client';
 
 interface TransactionEditModalProps {
   transactionId: string | null;
@@ -449,7 +451,8 @@ export default function TransactionEditModal({
   onSave
 }: TransactionEditModalProps) {
   // 组件加载调试日志
-  console.log('🔍 [TransactionEditModal] 组件初始化', {
+     /* console.log('🔍 [TransactionEditModal] 组件初始化', {
+
     transactionId,
     transactionData,
     userAgent: navigator.userAgent,
@@ -458,7 +461,8 @@ export default function TransactionEditModal({
     viewportHeight: window.visualViewport?.height || window.innerHeight,
     documentHeight: document.documentElement.clientHeight,
     timestamp: new Date().toISOString()
-  });
+
+  });    */
 
   const { isAuthenticated } = useAuthStore();
   const { transaction, isLoading, error, fetchTransaction, updateTransaction, deleteTransaction } = useTransactionStore();
@@ -487,6 +491,9 @@ export default function TransactionEditModal({
   // 删除相关状态
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // 附件相关状态
+  const [attachments, setAttachments] = useState<TransactionAttachment[]>([]);
 
   // 虚拟键盘相关状态
   const [showNumericKeyboard, setShowNumericKeyboard] = useState(false);
@@ -545,8 +552,9 @@ export default function TransactionEditModal({
       setTime(`${hours}:${minutes}`);
       setCurrentStep(2); // 直接进入详情步骤
 
-      // 获取交易的标签
+      // 获取交易的标签和附件
       if (transactionId && transactionId !== 'placeholder') {
+        // 获取标签
         tagApi.getTransactionTags(transactionId)
           .then(response => {
             if (response.success) {
@@ -556,6 +564,22 @@ export default function TransactionEditModal({
           })
           .catch(error => {
             console.error('获取交易标签失败:', error);
+          });
+
+        // 获取附件
+        console.log('📎 开始获取交易附件:', transactionId);
+        apiClient.get(`/transactions/${transactionId}/attachments`)
+          .then(data => {
+            console.log('📎 获取附件响应:', data);
+            if (data.success) {
+              console.log('📎 设置附件数据:', data.data);
+              setAttachments(data.data || []);
+            } else {
+              console.warn('📎 获取附件失败，响应不成功:', data);
+            }
+          })
+          .catch(error => {
+            console.error('📎 获取交易附件失败:', error);
           });
       }
     }
@@ -1398,6 +1422,30 @@ export default function TransactionEditModal({
                       />
                     </div>
                   )}
+
+                  {/* 附件上传 */}
+                  <div style={{
+                    backgroundColor: 'var(--background-color)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    marginBottom: '16px'
+                  }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: 'var(--text-secondary)',
+                      marginBottom: '12px'
+                    }}>附件</label>
+
+                    <TransactionAttachmentUpload
+                      transactionId={transactionId || undefined}
+                      initialAttachments={attachments}
+                      disabled={isSubmitting}
+                      onChange={setAttachments}
+                    />
+                  </div>
                 </div>
 
                 {/* 错误信息 */}

@@ -349,7 +349,13 @@ export default function DashboardPage() {
           <BudgetProgress categories={budgetCategories} totalBudget={totalBudget} />
 
           {/* 最近交易 */}
-          <RecentTransactions groupedTransactions={groupedTransactions} />
+          <RecentTransactions
+            groupedTransactions={groupedTransactions}
+            onTransactionDeleted={() => {
+              // 删除成功后重新获取数据
+              fetchDashboardData();
+            }}
+          />
         </>
       )}
 

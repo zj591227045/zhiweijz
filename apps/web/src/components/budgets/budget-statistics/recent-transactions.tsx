@@ -1,9 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import dayjs from 'dayjs';
 import { smartNavigate } from '@/lib/navigation';
 import { UnifiedTransactionList, TransactionType } from '../../common/unified-transaction-list';
+import { DeleteConfirmationDialog } from '../../ui/delete-confirmation-dialog';
+import { apiClient } from '@/lib/api-client';
 import '../../common/unified-transaction-list.css';
 
 interface Transaction {
@@ -26,14 +29,64 @@ interface Transaction {
 interface RecentTransactionsProps {
   transactions: Transaction[];
   budgetId: string | null;
+  onTransactionDeleted?: () => void; // 删除成功后的回调
 }
 
-export function RecentTransactions({ transactions, budgetId }: RecentTransactionsProps) {
+export function RecentTransactions({ transactions, budgetId, onTransactionDeleted }: RecentTransactionsProps) {
   const router = useRouter();
+  const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
 
   // 处理交易项点击 - 直接进入编辑页面
   const handleTransactionClick = (transactionId: string) => {
     smartNavigate(router, `/transactions/edit/${transactionId}`);
+  };
+
+  // 处理附件点击 - 跳转到交易详情页
+  const handleAttachmentClick = (transactionId: string) => {
+    smartNavigate(router, `/transactions/${transactionId}`);
+  };
+
+  // 处理删除交易
+  const handleDeleteClick = (transactionId: string) => {
+    // 找到要删除的交易信息
+    const transaction = transactions.find(t => t.id === transactionId);
+
+    if (!transaction) return;
+
+    setTransactionToDelete(transaction);
+    setDeleteDialogOpen(true);
+  };
+
+  // 确认删除交易
+  const handleConfirmDelete = async () => {
+    if (!transactionToDelete) return;
+
+    try {
+      setDeletingTransactionId(transactionToDelete.id);
+      await apiClient.delete(`/transactions/${transactionToDelete.id}`);
+
+      // 删除成功，触发回调刷新数据
+      if (onTransactionDeleted) {
+        onTransactionDeleted();
+      }
+
+      setDeleteDialogOpen(false);
+      setTransactionToDelete(null);
+      console.log('交易删除成功');
+    } catch (error) {
+      console.error('删除交易失败:', error);
+      alert('删除交易失败，请重试');
+    } finally {
+      setDeletingTransactionId(null);
+    }
+  };
+
+  // 取消删除
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setTransactionToDelete(null);
   };
 
   // 处理查看全部按钮点击
@@ -79,6 +132,22 @@ export function RecentTransactions({ transactions, budgetId }: RecentTransaction
         showDateHeaders={false}
         emptyMessage="暂无交易记录"
         className="budget-statistics-page"
+        enableSwipeActions={true}
+        onAttachmentClick={handleAttachmentClick}
+        onDeleteClick={handleDeleteClick}
+        onDataRefresh={onTransactionDeleted}
+      />
+
+      {/* 删除确认对话框 */}
+      <DeleteConfirmationDialog
+        isOpen={deleteDialogOpen}
+        title="删除交易"
+        message="确定要删除这笔交易吗？"
+        itemName={transactionToDelete?.title || transactionToDelete?.description || transactionToDelete?.categoryName}
+        amount={transactionToDelete?.amount}
+        isLoading={deletingTransactionId === transactionToDelete?.id}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
       />
     </section>
   );

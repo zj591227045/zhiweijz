@@ -73,6 +73,11 @@ router.get('/:transactionId/attachments', (req, res) =>
   attachmentController.getTransactionAttachments(req, res),
 );
 
+// 关联已上传的文件到交易
+router.post('/:transactionId/attachments/link', (req, res) =>
+  attachmentController.linkFileToTransaction(req, res),
+);
+
 // 删除交易附件
 router.delete('/attachments/:attachmentId', (req, res) =>
   attachmentController.deleteAttachment(req, res),

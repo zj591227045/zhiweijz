@@ -36,7 +36,7 @@ export const MobileTagSection: React.FC<MobileTagSectionProps> = ({
   onTagSelectionComplete,
 }) => {
   const [showFullSelector, setShowFullSelector] = useState(false);
-  console.log('MobileTagSection 渲染，showFullSelector:', showFullSelector);
+  //console.log('MobileTagSection 渲染，showFullSelector:', showFullSelector);
   const [allTags, setAllTags] = useState<TagResponseDto[]>([]);
 
   // 获取标签数据

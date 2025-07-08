@@ -26,6 +26,8 @@ import { useAccountBookStore } from '../../store/account-book-store';
 import { useBudgetStore } from '../../store/budget-store';
 import { useAuthStore } from '../../store/auth-store';
 import { NavigationProps, TransactionsStackParamList } from '../../navigation/types';
+import { MobileAttachmentUpload, MobileAttachment } from '../../components/transactions/mobile-attachment-upload';
+import { apiClient } from '../../lib/api-client';
 import dayjs from 'dayjs';
 
 // 交易类型枚举
@@ -65,6 +67,7 @@ const TransactionAddScreen: React.FC<TransactionAddScreenProps> = ({ navigation 
 
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedBudgetId, setSelectedBudgetId] = useState<string>('');
+  const [attachments, setAttachments] = useState<MobileAttachment[]>([]);
 
   const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
@@ -156,9 +159,29 @@ const TransactionAddScreen: React.FC<TransactionAddScreenProps> = ({ navigation 
         budgetId: selectedBudgetId || undefined,
       };
 
-      const success = await createTransaction(transactionData);
+      const createdTransaction = await createTransaction(transactionData);
 
-      if (success) {
+      if (createdTransaction) {
+        // 如果有附件，关联到新创建的交易
+        if (attachments.length > 0) {
+          try {
+            for (const attachment of attachments) {
+              // 如果是临时附件，需要关联到交易
+              if (attachment.id.startsWith('temp-') && attachment.fileId) {
+                await apiClient.post(`/transactions/${createdTransaction.id}/attachments/link`, {
+                  fileId: attachment.fileId,
+                  attachmentType: attachment.attachmentType,
+                  description: attachment.description
+                });
+              }
+            }
+            console.log('成功关联附件到交易:', attachments.length);
+          } catch (error) {
+            console.error('关联附件失败:', error);
+            // 附件关联失败不影响交易创建成功的提示
+          }
+        }
+
         Alert.alert(
           '成功',
           '交易记录已添加',
@@ -430,6 +453,16 @@ const TransactionAddScreen: React.FC<TransactionAddScreenProps> = ({ navigation 
               />
             </View>
 
+            {/* 附件上传 */}
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>附件</Text>
+              <MobileAttachmentUpload
+                onChange={setAttachments}
+                disabled={isLoading}
+                maxFiles={10}
+              />
+            </View>
+
             {/* 提交按钮 */}
             <Button
               mode="contained"
@@ -594,6 +627,16 @@ const createStyles = (theme: any) =>
     },
     timeInput: {
       flex: 1,
+    },
+    sectionContainer: {
+      marginTop: 16,
+      marginBottom: 16,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      marginBottom: 12,
+      color: theme.colors.onSurface,
     },
     submitButton: {
       marginTop: 16,

@@ -1,6 +1,21 @@
 import { create } from 'zustand';
 import { TransactionType } from '@/types';
 
+export interface TransactionAttachment {
+  id: string;
+  fileId: string;
+  attachmentType: 'RECEIPT' | 'INVOICE' | 'CONTRACT' | 'PHOTO' | 'DOCUMENT' | 'OTHER';
+  description?: string;
+  file?: {
+    id: string;
+    filename: string;
+    originalName: string;
+    mimeType: string;
+    size: number;
+    url?: string;
+  };
+}
+
 interface TransactionFormState {
   // 当前步骤
   currentStep: number;
@@ -16,6 +31,7 @@ interface TransactionFormState {
   time: string;
   budgetId?: string;
   tagIds: string[];
+  attachments: TransactionAttachment[];
 
   // 虚拟键盘控制
   showKeyboardInitially: boolean;
@@ -29,6 +45,7 @@ interface TransactionFormState {
   setTime: (time: string) => void;
   setBudgetId: (id: string) => void;
   setTagIds: (tagIds: string[]) => void;
+  setAttachments: (attachments: TransactionAttachment[]) => void;
   setShowKeyboardInitially: (show: boolean) => void;
   goToStep: (step: number) => void;
   resetForm: () => void;
@@ -62,6 +79,7 @@ const initialState = {
   time: getCurrentTime(),
   budgetId: '',
   tagIds: [],
+  attachments: [],
   showKeyboardInitially: false,
 };
 
@@ -96,6 +114,8 @@ export const useTransactionFormStore = create<TransactionFormState>((set) => ({
   setBudgetId: (id) => set({ budgetId: id }),
 
   setTagIds: (tagIds) => set({ tagIds }),
+
+  setAttachments: (attachments) => set({ attachments }),
 
   setShowKeyboardInitially: (show) => set({ showKeyboardInitially: show }),
 

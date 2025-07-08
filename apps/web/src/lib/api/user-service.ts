@@ -102,8 +102,8 @@ export const userService = {
     message: string;
   }> {
     try {
-      console.log('发送获取文件存储状态请求: /files/status');
-      const response = await apiClient.get('/files/status');
+      console.log('发送获取文件存储状态请求: /file-storage/status');
+      const response = await apiClient.get('/file-storage/status');
       console.log('文件存储状态响应数据:', response);
       return response.data || response;
     } catch (error) {

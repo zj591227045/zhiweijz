@@ -80,8 +80,25 @@ export class TransactionController {
         sortOrder: req.query.sortOrder as 'asc' | 'desc' | undefined,
       };
 
-      const transactions = await this.transactionService.getTransactions(userId, params);
-      res.status(200).json(transactions);
+      const includeAttachments = req.query.includeAttachments === 'true';
+      const result = await this.transactionService.getTransactions(userId, params);
+
+      // 如果需要包含附件信息
+      if (includeAttachments && result.data) {
+        for (const transaction of result.data) {
+          try {
+            const attachments = await this.transactionService.getTransactionAttachments(transaction.id, userId);
+            (transaction as any).attachments = attachments;
+            (transaction as any).attachmentCount = attachments.length;
+          } catch (error) {
+            // 如果获取附件失败，不影响主要数据
+            (transaction as any).attachments = [];
+            (transaction as any).attachmentCount = 0;
+          }
+        }
+      }
+
+      res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ message: '获取交易记录列表时发生错误' });
     }
