@@ -62,10 +62,24 @@ export class TransactionController {
       }
 
       // 解析查询参数
+      let startDate: Date | undefined;
+      let endDate: Date | undefined;
+      
+      // 处理日期参数，确保查询整天的数据
+      if (req.query.startDate) {
+        startDate = new Date(req.query.startDate as string);
+        startDate.setHours(0, 0, 0, 0); // 设置为当天开始
+      }
+      
+      if (req.query.endDate) {
+        endDate = new Date(req.query.endDate as string);
+        endDate.setHours(23, 59, 59, 999); // 设置为当天结束
+      }
+
       const params: TransactionQueryParams = {
         type: req.query.type as TransactionType | undefined,
-        startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
-        endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
+        startDate,
+        endDate,
         categoryId: req.query.categoryId as string | undefined,
         categoryIds: req.query.categoryIds
           ? (req.query.categoryIds as string).split(',')
@@ -189,6 +203,78 @@ export class TransactionController {
       } else {
         res.status(500).json({ message: '删除交易记录时发生错误' });
       }
+    }
+  }
+
+  /**
+   * 获取按条件分组的交易记录
+   */
+  async getGroupedTransactions(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      // 解析查询参数
+      let startDate: Date | undefined;
+      let endDate: Date | undefined;
+      
+      // 处理日期参数，确保查询整天的数据
+      if (req.query.startDate) {
+        startDate = new Date(req.query.startDate as string);
+        startDate.setHours(0, 0, 0, 0); // 设置为当天开始
+      }
+      
+      if (req.query.endDate) {
+        endDate = new Date(req.query.endDate as string);
+        endDate.setHours(23, 59, 59, 999); // 设置为当天结束
+      }
+
+      const params: TransactionQueryParams = {
+        type: req.query.type as TransactionType | undefined,
+        startDate,
+        endDate,
+        categoryId: req.query.categoryId as string | undefined,
+        categoryIds: req.query.categoryIds
+          ? (req.query.categoryIds as string).split(',')
+          : undefined,
+        familyId: req.query.familyId as string | undefined,
+        familyMemberId: req.query.familyMemberId as string | undefined,
+        accountBookId: req.query.accountBookId as string | undefined,
+        budgetId: req.query.budgetId as string | undefined,
+        page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
+        limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 1000, // 分组查询使用较大的限制
+        sortBy: req.query.sortBy as string | undefined,
+        sortOrder: req.query.sortOrder as 'asc' | 'desc' | undefined,
+      };
+
+      // 获取分组方式 - 当前只支持按日期分组
+      const groupBy = req.query.groupBy as string || 'date';
+      
+      if (groupBy !== 'date') {
+        res.status(400).json({ message: '目前只支持按日期分组' });
+        return;
+      }
+
+      // 获取交易记录
+      const result = await this.transactionService.getTransactions(userId, params);
+      
+      // 按日期分组处理
+      const transactions = result.data || [];
+      
+      // 返回分组后的交易数据
+      res.status(200).json({
+        data: transactions,
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        groupBy: groupBy
+      });
+    } catch (error) {
+      console.error('获取分组交易记录失败:', error);
+      res.status(500).json({ message: '获取分组交易记录时发生错误' });
     }
   }
 

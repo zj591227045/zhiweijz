@@ -1,0 +1,298 @@
+/* 日期单元格样式 - 现代化设计 */
+.date-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 74px;
+  padding: 14px 6px;
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--card-background);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  font-size: 15px;
+  overflow: hidden;
+}
+
+.date-cell::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--primary-color);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.date-cell:hover::before {
+  opacity: 0.05;
+}
+
+.date-cell:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary-color);
+}
+
+/* 当月日期 */
+.date-cell.current-month {
+  color: var(--text-primary);
+  background-color: var(--card-background);
+}
+
+/* 其他月份日期 */
+.date-cell.other-month {
+  color: var(--text-secondary);
+  cursor: default;
+  opacity: 0.4;
+}
+
+.date-cell.other-month:hover {
+  background-color: var(--card-background);
+  transform: none;
+  box-shadow: none;
+  border-color: var(--border-color);
+}
+
+.date-cell.other-month::before {
+  display: none;
+}
+
+/* 今日日期 */
+.date-cell.today {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark, #2563eb) 100%);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(var(--primary-rgb, 59, 130, 246), 0.3);
+  border-color: var(--primary-color);
+  z-index: 2;
+}
+
+.date-cell.today::before {
+  display: none;
+}
+
+.date-cell.today:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(var(--primary-rgb, 59, 130, 246), 0.4);
+}
+
+/* 选中日期 */
+.date-cell.selected {
+  background: linear-gradient(135deg, var(--primary-color-light, rgba(59, 130, 246, 0.1)) 0%, rgba(59, 130, 246, 0.05) 100%);
+  border: 2px solid var(--primary-color);
+  color: var(--primary-color);
+  font-weight: 600;
+  z-index: 2;
+}
+
+.date-cell.selected::before {
+  display: none;
+}
+
+.date-cell.selected:hover {
+  background: linear-gradient(135deg, var(--primary-color-light, rgba(59, 130, 246, 0.15)) 0%, rgba(59, 130, 246, 0.08) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(var(--primary-rgb, 59, 130, 246), 0.2);
+}
+
+/* 有数据的日期 */
+.date-cell.has-data {
+  cursor: pointer;
+  position: relative;
+}
+
+.date-cell.has-data::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  background: var(--primary-color);
+  border-radius: 50%;
+  opacity: 0.6;
+  z-index: 3;
+}
+
+.date-cell.today.has-data::after {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.date-cell.selected.has-data::after {
+  background: var(--primary-color);
+  opacity: 0.8;
+}
+
+/* 日期数字 */
+.date-number {
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  z-index: 2;
+  position: relative;
+}
+
+.date-cell.today .date-number {
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.date-cell.selected .date-number {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* 金额显示 */
+.amount {
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 95%;
+  z-index: 2;
+  position: relative;
+  padding: 3px 6px;
+  border-radius: 6px;
+  backdrop-filter: blur(10px);
+}
+
+.amount.expense {
+  color: var(--error-color);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.amount.income {
+  color: var(--success-color);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.date-cell.today .amount {
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.15);
+  font-weight: 600;
+}
+
+.date-cell.selected .amount.expense {
+  color: var(--error-color);
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.date-cell.selected .amount.income {
+  color: var(--success-color);
+  background: rgba(34, 197, 94, 0.15);
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .date-cell {
+    min-height: 134px;
+    padding: 14px 6px;
+    font-size: 15px;
+  }
+  
+  .date-cell:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .date-cell.today:hover {
+    transform: none;
+    box-shadow: 0 4px 16px rgba(var(--primary-rgb, 59, 130, 246), 0.3);
+  }
+  
+  .date-number {
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+  
+  .date-cell.today .date-number {
+    font-size: 17px;
+  }
+  
+  .amount {
+    font-size: 12px;
+    padding: 3px 6px;
+    border-radius: 6px;
+  }
+  
+  .date-cell.has-data::after {
+    width: 4px;
+    height: 4px;
+    top: 2px;
+    right: 2px;
+  }
+}
+
+/* 小屏幕适配 */
+@media (max-width: 480px) {
+  .date-cell {
+    min-height: 74px;
+    padding: 14px 6px;
+  }
+  
+  .date-number {
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+  
+  .date-cell.today .date-number {
+    font-size: 17px;
+  }
+  
+  .amount {
+    font-size: 12px;
+    padding: 3px 6px;
+    max-width: 95%;
+  }
+  
+  .date-cell.has-data::after {
+    width: 3px;
+    height: 3px;
+    top: 1px;
+    right: 1px;
+  }
+}
+
+/* 暗色主题适配 */
+@media (prefers-color-scheme: dark) {
+  .date-cell:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+  
+  .date-cell.today {
+    box-shadow: 0 4px 16px rgba(var(--primary-rgb, 59, 130, 246), 0.4);
+  }
+  
+  .date-cell.today:hover {
+    box-shadow: 0 6px 20px rgba(var(--primary-rgb, 59, 130, 246), 0.5);
+  }
+  
+  .date-cell.selected:hover {
+    box-shadow: 0 4px 16px rgba(var(--primary-rgb, 59, 130, 246), 0.3);
+  }
+  
+  .amount.expense {
+    background: rgba(239, 68, 68, 0.15);
+  }
+  
+  .amount.income {
+    background: rgba(34, 197, 94, 0.15);
+  }
+  
+  .date-cell.selected .amount.expense {
+    background: rgba(239, 68, 68, 0.2);
+  }
+  
+  .date-cell.selected .amount.income {
+    background: rgba(34, 197, 94, 0.2);
+  }
+}

@@ -9,6 +9,7 @@ import { PageContainer } from '@/components/layout/page-container';
 import { MonthlyOverview } from '@/components/dashboard/monthly-overview';
 import { BudgetProgress } from '@/components/dashboard/budget-progress';
 import { RecentTransactions } from '@/components/dashboard/recent-transactions';
+import { CalendarView } from '@/components/dashboard/calendar/calendar-view';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import {
   accountBookService,
@@ -53,6 +54,9 @@ export default function DashboardPage() {
   const [showTransactionEditModal, setShowTransactionEditModal] = useState(false);
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
   const [transactionData, setTransactionData] = useState<any>(null);
+  
+  // 视图切换状态
+  const [currentView, setCurrentView] = useState<'dashboard' | 'calendar'>('dashboard');
 
   // 认证检查和初始数据加载
   useEffect(() => {
@@ -295,6 +299,14 @@ export default function DashboardPage() {
   const rightActions = (
     <>
       <button 
+        className={`icon-button ${currentView === 'calendar' ? 'active' : ''}`}
+        onClick={() => setCurrentView(currentView === 'calendar' ? 'dashboard' : 'calendar')}
+        aria-label={currentView === 'calendar' ? '切换到仪表盘' : '切换到日历'}
+        title={currentView === 'calendar' ? '切换到仪表盘' : '切换到日历'}
+      >
+        <i className={`fas ${currentView === 'calendar' ? 'fa-chart-line' : 'fa-calendar'}`}></i>
+      </button>
+      <button 
         className="icon-button relative" 
         onClick={openModal}
         aria-label="通知"
@@ -311,51 +323,57 @@ export default function DashboardPage() {
 
   return (
     <PageContainer 
-      title="仪表盘" 
+      title={currentView === 'calendar' ? '日历视图' : '仪表盘'} 
       rightActions={rightActions} 
       activeNavItem="home"
       className="dashboard-content"
     >
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div
-            className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2"
-            style={{ borderColor: 'var(--primary-color)' }}
-          ></div>
-        </div>
-      ) : error ? (
-        <div
-          className="px-4 py-3 rounded mb-4"
-          style={{
-            backgroundColor: 'rgba(var(--error-color), 0.1)',
-            borderColor: 'var(--error-color)',
-            color: 'var(--error-color)',
-            border: '1px solid',
-          }}
-        >
-          {error}
-        </div>
+      {currentView === 'calendar' ? (
+        <CalendarView />
       ) : (
         <>
-          {/* 月度概览 */}
-          <MonthlyOverview
-            income={monthlyStats.income}
-            expense={monthlyStats.expense}
-            balance={monthlyStats.balance}
-            month={monthlyStats.month}
-          />
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div
+                className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2"
+                style={{ borderColor: 'var(--primary-color)' }}
+              ></div>
+            </div>
+          ) : error ? (
+            <div
+              className="px-4 py-3 rounded mb-4"
+              style={{
+                backgroundColor: 'rgba(var(--error-color), 0.1)',
+                borderColor: 'var(--error-color)',
+                color: 'var(--error-color)',
+                border: '1px solid',
+              }}
+            >
+              {error}
+            </div>
+          ) : (
+            <>
+              {/* 月度概览 */}
+              <MonthlyOverview
+                income={monthlyStats.income}
+                expense={monthlyStats.expense}
+                balance={monthlyStats.balance}
+                month={monthlyStats.month}
+              />
 
-          {/* 预算执行情况 */}
-          <BudgetProgress categories={budgetCategories} totalBudget={totalBudget} />
+              {/* 预算执行情况 */}
+              <BudgetProgress categories={budgetCategories} totalBudget={totalBudget} />
 
-          {/* 最近交易 */}
-          <RecentTransactions
-            groupedTransactions={groupedTransactions}
-            onTransactionDeleted={() => {
-              // 删除成功后重新获取数据
-              fetchDashboardData();
-            }}
-          />
+              {/* 最近交易 */}
+              <RecentTransactions
+                groupedTransactions={groupedTransactions}
+                onTransactionDeleted={() => {
+                  // 删除成功后重新获取数据
+                  fetchDashboardData();
+                }}
+              />
+            </>
+          )}
         </>
       )}
 

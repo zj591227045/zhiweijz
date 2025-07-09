@@ -27,6 +27,9 @@ router.post('/export', (req, res) => transactionController.exportTransactions(re
 // 导入交易记录
 router.post('/import', (req, res) => transactionController.importTransactions(req, res));
 
+// 获取分组交易记录
+router.get('/grouped', (req, res) => transactionController.getGroupedTransactions(req, res));
+
 // 获取交易记录列表
 router.get('/', (req, res) => transactionController.getTransactions(req, res));
 

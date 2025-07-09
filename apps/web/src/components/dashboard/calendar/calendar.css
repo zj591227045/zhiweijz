@@ -1,0 +1,289 @@
+/* 日历组件样式 - 现代化设计，与仪表盘风格保持一致 */
+.calendar-container {
+  background-color: var(--card-background, #ffffff);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color, #e5e7eb);
+  margin-bottom: 8px; /* 与仪表盘卡片间距保持一致 */
+  width: 100%;
+  max-width: none;
+}
+
+/* 月份导航头部 */
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px; /* 减少内边距与仪表盘保持一致 */
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark, #2563eb) 100%);
+  color: white;
+  position: relative;
+}
+
+.calendar-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+}
+
+.month-nav-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 18px; /* 稍微减小字体 */
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 14px; /* 减小按钮大小 */
+  border-radius: 8px; /* 与仪表盘按钮圆角保持一致 */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px; /* 减小最小宽度 */
+  height: 40px; /* 减小高度 */
+  z-index: 1;
+}
+
+.month-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.month-nav-btn:active {
+  transform: translateY(0);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 月份标题容器 */
+.month-title-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 1;
+}
+
+.month-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: white;
+  letter-spacing: -0.01em;
+  text-align: center;
+}
+
+/* 显示模式切换按钮 */
+.display-mode-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: white;
+  cursor: pointer;
+  padding: 6px 10px; /* 减小按钮大小 */
+  border-radius: 6px; /* 减小圆角 */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  font-size: 14px; /* 减小字体 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px; /* 减小最小宽度 */
+  height: 32px; /* 减小高度 */
+  z-index: 1;
+}
+
+.display-mode-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.05);
+}
+
+.display-mode-btn:active {
+  transform: scale(0.95);
+}
+
+.display-mode-btn.expense {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.1) 100%);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.display-mode-btn.expense:hover {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(239, 68, 68, 0.2) 100%);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.display-mode-btn.income {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.display-mode-btn.income:hover {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(34, 197, 94, 0.2) 100%);
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+/* 星期标题 */
+.weekday-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: var(--background-color, #f9fafb);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.weekday-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 8px; /* 减少内边距 */
+  font-size: 14px; /* 减小字体 */
+  font-weight: 600;
+  color: var(--text-secondary, #6b7280);
+  text-align: center;
+  background: var(--card-background, #ffffff);
+  border-right: 1px solid var(--border-color, #e5e7eb);
+  position: relative;
+}
+
+.weekday-cell:last-child {
+  border-right: none;
+}
+
+.weekday-cell::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px; /* 减小指示器宽度 */
+  height: 2px;
+  background: var(--primary-color, #3b82f6);
+  opacity: 0.3;
+  border-radius: 1px;
+}
+
+/* 日期网格 */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+  background: var(--card-background, #ffffff);
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .calendar-container {
+    margin-bottom: 8px; /* 与仪表盘保持一致 */
+    border-radius: 12px;
+  }
+  
+  .calendar-header {
+    padding: 14px 16px; /* 减少移动端内边距 */
+  }
+  
+  .month-nav-btn {
+    font-size: 16px;
+    padding: 8px 10px;
+    min-width: 36px;
+    height: 36px;
+    border-radius: 6px;
+  }
+  
+  .month-title {
+    font-size: 18px;
+  }
+  
+  .month-title-container {
+    gap: 10px; /* 减少间距 */
+  }
+  
+  .display-mode-btn {
+    font-size: 12px;
+    padding: 5px 8px;
+    min-width: 28px;
+    height: 28px;
+    border-radius: 5px;
+  }
+  
+  .weekday-cell {
+    padding: 10px 4px; /* 减少移动端内边距 */
+    font-size: 12px;
+  }
+  
+  .weekday-cell::before {
+    width: 12px;
+    height: 1.5px;
+  }
+}
+
+/* 小屏幕适配 */
+@media (max-width: 480px) {
+  .calendar-container {
+    margin-bottom: 8px;
+  }
+  
+  .calendar-header {
+    padding: 12px 16px;
+  }
+  
+  .month-nav-btn {
+    font-size: 14px;
+    padding: 6px 8px;
+    min-width: 32px;
+    height: 32px;
+  }
+  
+  .month-title {
+    font-size: 16px;
+  }
+  
+  .month-title-container {
+    gap: 8px;
+  }
+  
+  .display-mode-btn {
+    font-size: 11px;
+    padding: 4px 6px;
+    min-width: 24px;
+    height: 24px;
+  }
+  
+  .weekday-cell {
+    padding: 8px 2px;
+    font-size: 11px;
+  }
+}
+
+/* 暗色主题适配 */
+@media (prefers-color-scheme: dark) {
+  .calendar-container {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  }
+  
+  .month-nav-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+  
+  .month-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+  
+  .display-mode-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .display-mode-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+}
