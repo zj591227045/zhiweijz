@@ -280,46 +280,67 @@ export function MobileAttachmentUpload({
       padding: 16,
     },
     uploadArea: {
-      borderWidth: 2,
+      borderWidth: 1,
       borderColor: theme.colors.outline,
       borderStyle: 'dashed',
       borderRadius: 12,
-      padding: 24,
+      padding: 16,
+      backgroundColor: theme.colors.surfaceVariant,
+      marginBottom: 20,
+    },
+    uploadHeader: {
+      flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: theme.colors.surface,
-      marginBottom: 16,
+      marginBottom: 12,
     },
     uploadText: {
-      marginTop: 8,
-      textAlign: 'center',
+      marginLeft: 8,
+      flex: 1,
       color: theme.colors.onSurfaceVariant,
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    infoButton: {
+      padding: 4,
+      borderRadius: 12,
+      backgroundColor: 'transparent',
+    },
+    uploadDescription: {
+      color: theme.colors.onSurfaceVariant,
+      fontSize: 12,
+      marginBottom: 16,
+      textAlign: 'center',
     },
     buttonRow: {
       flexDirection: 'row',
+      justifyContent: 'center',
       gap: 12,
-      marginTop: 16,
     },
     attachmentGrid: {
       flexDirection: 'row',
-      flexWrap: 'wrap',
       gap: 12,
+      paddingHorizontal: 4,
     },
     attachmentItem: {
-      width: (screenWidth - 64) / 3, // 3列布局，考虑padding和gap
-      aspectRatio: 1,
-      borderRadius: 8,
+      width: 160, // 固定宽度，更大的预览
+      height: 180,
+      borderRadius: 12,
       overflow: 'hidden',
       backgroundColor: theme.colors.surface,
-      elevation: 2,
+      elevation: 3,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
     },
     attachmentImage: {
       width: '100%',
-      height: '70%',
+      height: 120, // 固定高度，更大的图片预览
     },
     attachmentInfo: {
-      padding: 8,
-      height: '30%',
-      justifyContent: 'center',
+      padding: 12,
+      height: 60,
+      justifyContent: 'space-between',
     },
     attachmentName: {
       fontSize: 10,
@@ -327,12 +348,17 @@ export function MobileAttachmentUpload({
     },
     removeButton: {
       position: 'absolute',
-      top: 4,
-      right: 4,
+      bottom: 8,
+      right: 8,
       backgroundColor: theme.colors.error,
-      borderRadius: 12,
-      width: 24,
-      height: 24,
+      borderRadius: 16,
+      width: 32,
+      height: 32,
+      elevation: 2,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.2,
+      shadowRadius: 2,
     },
     loadingOverlay: {
       position: 'absolute',
@@ -348,27 +374,36 @@ export function MobileAttachmentUpload({
 
   return (
     <View style={styles.container}>
-      {/* 上传区域 */}
-      <TouchableOpacity
-        style={styles.uploadArea}
-        onPress={handleImagePicker}
-        disabled={disabled || attachments.length >= maxFiles}
-      >
-        <Icon name="cloud-upload" size={32} color={theme.colors.primary} />
-        <Text style={styles.uploadText}>
-          点击上传收据、发票或其他相关文件
+      {/* 优化后的上传区域 */}
+      <View style={styles.uploadArea}>
+        <View style={styles.uploadHeader}>
+          <Icon name="cloud-upload" size={24} color={theme.colors.primary} />
+          <Text style={styles.uploadText}>添加附件</Text>
+          <TouchableOpacity
+            onPress={() => {
+              Alert.alert(
+                '支持的文件格式',
+                '• 图片格式：JPEG, PNG, GIF, WEBP\n• 文档格式：PDF\n• 最大文件大小：10MB',
+                [{ text: '知道了', style: 'default' }]
+              );
+            }}
+            style={styles.infoButton}
+          >
+            <Icon name="information-outline" size={16} color={theme.colors.onSurfaceVariant} />
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.uploadDescription}>
+          支持图片和PDF格式，最多上传{maxFiles}个文件
         </Text>
-        <Text style={[styles.uploadText, { fontSize: 12 }]}>
-          支持图片和PDF格式，最多{maxFiles}个文件
-        </Text>
-        
+
         <View style={styles.buttonRow}>
           <Button
             mode="outlined"
             onPress={handleImagePicker}
             disabled={disabled || attachments.length >= maxFiles}
             icon="camera"
-            compact
+            style={{ minWidth: 100 }}
           >
             拍照/相册
           </Button>
@@ -377,54 +412,81 @@ export function MobileAttachmentUpload({
             onPress={handleDocumentPicker}
             disabled={disabled || attachments.length >= maxFiles}
             icon="file-document"
-            compact
+            style={{ minWidth: 100 }}
           >
             选择文件
           </Button>
         </View>
-      </TouchableOpacity>
+      </View>
 
-      {/* 附件列表 */}
+      {/* 增强版附件列表 */}
       {attachments.length > 0 && (
         <View>
-          <Text style={{ marginBottom: 12, fontWeight: '500' }}>
-            已选择的文件 ({attachments.length})
+          <Text style={{ marginBottom: 16, fontWeight: '600', fontSize: 16 }}>
+            已上传的附件 ({attachments.length})
           </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 4 }}
+          >
             <View style={styles.attachmentGrid}>
               {attachments.map((attachment) => (
                 <Surface key={attachment.id} style={styles.attachmentItem}>
-                  {attachment.localUri && attachment.file?.mimeType?.startsWith('image/') ? (
-                    <Image
-                      source={{ uri: attachment.localUri }}
-                      style={styles.attachmentImage}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View style={[styles.attachmentImage, { justifyContent: 'center', alignItems: 'center' }]}>
-                      <Icon
-                        name={attachment.file?.mimeType?.includes('pdf') ? 'file-pdf-box' : 'file-document'}
-                        size={32}
-                        color={theme.colors.primary}
+                  {/* 可点击的预览区域 */}
+                  <TouchableOpacity
+                    style={styles.attachmentImage}
+                    onPress={() => {
+                      // TODO: 实现全屏预览功能
+                      console.log('预览附件:', attachment.file?.originalName);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    {attachment.localUri && attachment.file?.mimeType?.startsWith('image/') ? (
+                      <Image
+                        source={{ uri: attachment.localUri }}
+                        style={{ width: '100%', height: '100%' }}
+                        resizeMode="cover"
                       />
-                    </View>
-                  )}
-                  
+                    ) : (
+                      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.surfaceVariant }}>
+                        <View style={{
+                          width: 48,
+                          height: 48,
+                          backgroundColor: theme.colors.errorContainer,
+                          borderRadius: 8,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          marginBottom: 8
+                        }}>
+                          <Icon
+                            name={attachment.file?.mimeType?.includes('pdf') ? 'file-pdf-box' : 'file-document'}
+                            size={24}
+                            color={theme.colors.error}
+                          />
+                        </View>
+                        <Text style={{ fontSize: 10, color: theme.colors.onSurfaceVariant }}>
+                          点击预览
+                        </Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+
                   <View style={styles.attachmentInfo}>
-                    <Text style={styles.attachmentName} numberOfLines={1}>
+                    <Text style={[styles.attachmentName, { fontWeight: '500' }]} numberOfLines={1}>
                       {attachment.description || attachment.file?.originalName}
                     </Text>
                     {attachment.file?.size && (
-                      <Text style={[styles.attachmentName, { color: theme.colors.onSurfaceVariant }]}>
+                      <Text style={[styles.attachmentName, { color: theme.colors.onSurfaceVariant, fontSize: 11 }]}>
                         {formatFileSize(attachment.file.size)}
                       </Text>
                     )}
                   </View>
 
-                  {/* 删除按钮 */}
+                  {/* 删除按钮 - 位于右下角内部 */}
                   <IconButton
-                    icon="close"
-                    size={12}
+                    icon="delete"
+                    size={16}
                     iconColor="white"
                     style={styles.removeButton}
                     onPress={() => handleRemoveAttachment(attachment.id)}
@@ -434,7 +496,10 @@ export function MobileAttachmentUpload({
                   {/* 上传中遮罩 */}
                   {attachment.uploading && (
                     <View style={styles.loadingOverlay}>
-                      <ActivityIndicator color="white" />
+                      <ActivityIndicator color="white" size="small" />
+                      <Text style={{ color: 'white', fontSize: 12, marginTop: 4 }}>
+                        上传中...
+                      </Text>
                     </View>
                   )}
                 </Surface>

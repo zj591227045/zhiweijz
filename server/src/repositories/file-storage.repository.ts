@@ -226,6 +226,22 @@ export class TransactionAttachmentRepository {
   }
 
   /**
+   * 根据附件ID查找附件
+   */
+  async findById(id: string): Promise<(TransactionAttachment & { transaction: { userId: string } }) | null> {
+    return prisma.transactionAttachment.findUnique({
+      where: { id },
+      include: {
+        transaction: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    }) as any;
+  }
+
+  /**
    * 根据文件ID查找附件
    */
   async findByFileId(fileId: string): Promise<(TransactionAttachment & { transaction: { userId: string } })[]> {

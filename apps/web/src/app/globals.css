@@ -187,6 +187,16 @@
   border-width: 3px;
 }
 
+/* 隐藏滚动条 */
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
 /* 标签贴纸样式增强 */
 .tag-sticker {
   position: relative;

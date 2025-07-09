@@ -169,10 +169,23 @@ export class TransactionAttachmentController {
       }
 
       const { attachmentId } = req.params;
+      console.log('📎 删除附件请求:', { attachmentId, userId });
 
-      // 获取附件信息
-      const attachments = await this.attachmentRepository.findByFileId(attachmentId);
+      // 首先尝试通过 fileId 查找附件
+      let attachments = await this.attachmentRepository.findByFileId(attachmentId);
+
+      // 如果通过 fileId 找不到，尝试直接通过附件ID查找
       if (attachments.length === 0) {
+        console.log('📎 通过 fileId 未找到附件，尝试通过附件ID查找');
+        // 这里需要添加一个通过附件ID查找的方法
+        const attachment = await this.attachmentRepository.findById(attachmentId);
+        if (attachment) {
+          attachments = [attachment as any];
+        }
+      }
+
+      if (attachments.length === 0) {
+        console.log('📎 附件不存在:', attachmentId);
         res.status(404).json({
           success: false,
           message: '附件不存在',
@@ -181,9 +194,14 @@ export class TransactionAttachmentController {
       }
 
       const attachment = attachments[0];
+      console.log('📎 找到附件:', {
+        attachmentId: attachment.id,
+        fileId: attachment.fileId,
+        transactionUserId: attachment.transaction?.userId
+      });
 
       // 检查权限（通过交易记录的用户ID）
-      if (attachment.transaction.userId !== userId) {
+      if (attachment.transaction?.userId !== userId) {
         res.status(403).json({
           success: false,
           message: '无权限删除此附件',
@@ -197,6 +215,7 @@ export class TransactionAttachmentController {
       // 删除文件
       await this.fileStorageService.deleteFile(attachment.fileId, userId);
 
+      console.log('📎 附件删除成功:', attachment.id);
       res.json({
         success: true,
         message: '附件删除成功',

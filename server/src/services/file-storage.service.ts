@@ -163,13 +163,16 @@ export class FileStorageService {
       file.originalname,
     );
 
+    // 确保文件名正确编码（处理中文字符）
+    const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+
     // 上传到S3
     const uploadResult = await this.s3Service.uploadFile(file.buffer, {
       bucket: uploadRequest.bucket,
       key,
       contentType: file.mimetype,
       metadata: {
-        originalName: file.originalname,
+        originalName: originalName,
         uploadedBy,
         category: uploadRequest.category || 'general',
         ...uploadRequest.metadata,
@@ -180,7 +183,7 @@ export class FileStorageService {
     const fileStorage = await prisma.fileStorage.create({
       data: {
         filename: path.basename(key),
-        originalName: file.originalname,
+        originalName: originalName,
         mimeType: file.mimetype,
         size: file.size,
         bucket: uploadRequest.bucket,
@@ -188,7 +191,7 @@ export class FileStorageService {
         url: uploadResult.url,
         storageType: FileStorageType.S3,
         uploadedBy,
-        expiresAt: uploadRequest.expiresIn 
+        expiresAt: uploadRequest.expiresIn
           ? new Date(Date.now() + uploadRequest.expiresIn * 1000)
           : undefined,
         metadata: uploadRequest.metadata,

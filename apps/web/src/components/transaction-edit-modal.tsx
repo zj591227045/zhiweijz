@@ -18,7 +18,7 @@ import './transactions/budget-selector.css';
 import { MobileTagSection } from './tags/mobile-tag-section';
 import { tagApi } from '@/lib/api/tag-api';
 import { TagResponseDto } from '@/lib/api/types/tag.types';
-import { TransactionAttachmentUpload, TransactionAttachment } from './transactions/transaction-attachment-upload';
+import { TransactionAttachmentUpload, TransactionAttachment, TransactionAttachmentUploadRef } from './transactions/transaction-attachment-upload';
 import { apiClient } from '@/lib/api-client';
 
 interface TransactionEditModalProps {
@@ -451,8 +451,7 @@ export default function TransactionEditModal({
   onSave
 }: TransactionEditModalProps) {
   // 组件加载调试日志
-     /* console.log('🔍 [TransactionEditModal] 组件初始化', {
-
+  /* console.log('🔍 [TransactionEditModal] 组件初始化', {
     transactionId,
     transactionData,
     userAgent: navigator.userAgent,
@@ -461,8 +460,7 @@ export default function TransactionEditModal({
     viewportHeight: window.visualViewport?.height || window.innerHeight,
     documentHeight: document.documentElement.clientHeight,
     timestamp: new Date().toISOString()
-
-  });    */
+  }); */
 
   const { isAuthenticated } = useAuthStore();
   const { transaction, isLoading, error, fetchTransaction, updateTransaction, deleteTransaction } = useTransactionStore();
@@ -487,6 +485,9 @@ export default function TransactionEditModal({
   const [currentStep, setCurrentStep] = useState(2); // 默认进入第二步，与原有逻辑一致
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
+
+  // 附件上传组件的ref
+  const attachmentUploadRef = useRef<TransactionAttachmentUploadRef>(null);
 
   // 删除相关状态
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -668,6 +669,14 @@ export default function TransactionEditModal({
             console.error('更新交易标签失败:', error);
             // 标签更新失败不影响交易更新成功的提示
           }
+        }
+
+        // 执行待删除的附件
+        try {
+          await attachmentUploadRef.current?.executePendingDeletes();
+        } catch (error) {
+          console.error('删除附件失败:', error);
+          // 不影响交易保存成功的流程
         }
 
         // 触发交易变化事件，让仪表盘自动刷新
@@ -1440,6 +1449,7 @@ export default function TransactionEditModal({
                     }}>附件</label>
 
                     <TransactionAttachmentUpload
+                      ref={attachmentUploadRef}
                       transactionId={transactionId || undefined}
                       initialAttachments={attachments}
                       disabled={isSubmitting}

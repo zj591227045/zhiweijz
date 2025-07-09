@@ -1,12 +1,16 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { FileUpload, FileUploadItem } from '@/components/ui/file-upload';
 import { AuthenticatedImage } from '@/components/ui/authenticated-image';
-import { AttachmentPreview, AttachmentThumbnail } from './attachment-preview';
+import { AttachmentPreview, AttachmentThumbnail, EnhancedAttachmentGrid, EnhancedAttachmentPreview } from './attachment-preview';
 import { processAvatarUrl } from '@/lib/image-proxy';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Upload, Camera, Plus, Info } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 export interface TransactionAttachment {
   id: string;
@@ -49,7 +53,137 @@ const ALLOWED_TYPES = [
   'application/pdf'
 ].join(',');
 
-export function TransactionAttachmentUpload({
+// 紧凑型文件上传组件
+interface CompactFileUploadProps {
+  accept: string;
+  multiple: boolean;
+  maxSize: number;
+  maxFiles: number;
+  onUpload: (files: File[]) => Promise<void>;
+  disabled: boolean;
+  uploading: boolean;
+}
+
+function CompactFileUpload({
+  accept,
+  multiple,
+  maxSize,
+  maxFiles,
+  onUpload,
+  disabled,
+  uploading
+}: CompactFileUploadProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length > 0) {
+      await onUpload(files);
+    }
+    // 清空input值，允许重复选择同一文件
+    event.target.value = '';
+  }, [onUpload]);
+
+  const openFileSelector = () => {
+    if (!disabled) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const openCamera = () => {
+    if (!disabled) {
+      cameraInputRef.current?.click();
+    }
+  };
+
+  return (
+    <div className="border border-dashed border-gray-300 rounded-lg bg-gray-50/50 p-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        {/* 左侧图标和文字 */}
+        <div className="flex items-center gap-2 text-sm text-gray-600 min-w-0">
+          <Upload className="w-4 h-4 flex-shrink-0" />
+          <span className="whitespace-nowrap">添加附件</span>
+          <Tooltip
+            content={
+              <div className="text-xs">
+                支持 JPEG, PNG, GIF, WEBP, PDF 格式<br />
+                最大 {Math.round(maxSize / 1024 / 1024)}MB
+              </div>
+            }
+            side="top"
+          >
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-5 w-5 p-0 hover:bg-gray-200"
+            >
+              <Info className="w-3 h-3 text-gray-400" />
+            </Button>
+          </Tooltip>
+        </div>
+
+        {/* 右侧按钮组 */}
+        <div className="flex gap-2 flex-shrink-0 sm:ml-auto">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={openFileSelector}
+            disabled={disabled || uploading}
+            className="h-9 px-3"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            选择文件
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={openCamera}
+            disabled={disabled || uploading}
+            className="h-9 px-3"
+          >
+            <Camera className="w-4 h-4 mr-1" />
+            拍照
+          </Button>
+        </div>
+      </div>
+
+      {/* 隐藏的文件输入 */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={accept}
+        multiple={multiple}
+        onChange={handleFileSelect}
+        className="hidden"
+        disabled={disabled}
+      />
+
+      {/* 隐藏的相机输入 */}
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleFileSelect}
+        className="hidden"
+        disabled={disabled}
+      />
+    </div>
+  );
+}
+
+export interface TransactionAttachmentUploadRef {
+  executePendingDeletes: () => Promise<void>;
+}
+
+export const TransactionAttachmentUpload = React.forwardRef<
+  TransactionAttachmentUploadRef,
+  TransactionAttachmentUploadProps
+>(({
   transactionId,
   initialAttachments = [],
   onChange,
@@ -57,10 +191,24 @@ export function TransactionAttachmentUpload({
   disabled = false,
   maxFiles = 10,
   className
-}: TransactionAttachmentUploadProps) {
+}, ref) => {
   const [attachments, setAttachments] = useState<TransactionAttachment[]>(initialAttachments);
   const [uploading, setUploading] = useState(false);
   const [previewFile, setPreviewFile] = useState<TransactionAttachment | null>(null);
+  const [enhancedPreview, setEnhancedPreview] = useState<{
+    isOpen: boolean;
+    currentIndex: number;
+  }>({ isOpen: false, currentIndex: 0 });
+
+  // 确认删除对话框状态
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    isOpen: boolean;
+    attachment: TransactionAttachment | null;
+    loading: boolean;
+  }>({ isOpen: false, attachment: null, loading: false });
+
+  // 待删除的附件列表（只有在保存交易后才真正删除）
+  const [pendingDeletes, setPendingDeletes] = useState<{id: string, fileId: string}[]>([]);
 
   // 当 initialAttachments 更新时，同步更新本地状态
   useEffect(() => {
@@ -157,30 +305,80 @@ export function TransactionAttachmentUpload({
     return 'DOCUMENT';
   }, []);
 
-  // 删除附件
-  const handleRemoveAttachment = useCallback(async (attachmentId: string) => {
-    try {
-      const attachment = attachments.find(a => a.id === attachmentId);
-      if (!attachment) return;
+  // 显示删除确认对话框
+  const showDeleteConfirm = useCallback((attachmentId: string) => {
+    const attachment = attachments.find(a => a.id === attachmentId);
+    if (!attachment) return;
 
-      // 如果是已保存的附件，调用删除API
+    setDeleteConfirm({
+      isOpen: true,
+      attachment,
+      loading: false,
+    });
+  }, [attachments]);
+
+  // 确认删除附件
+  const handleConfirmDelete = useCallback(async () => {
+    const { attachment } = deleteConfirm;
+    if (!attachment) return;
+
+    setDeleteConfirm(prev => ({ ...prev, loading: true }));
+
+    try {
+      // 如果是已保存的附件，标记为待删除，不立即删除
       if (transactionId && !attachment.id.startsWith('temp-')) {
-        // 使用 fileId 而不是 attachmentId 来删除
+        console.log('📎 标记附件为待删除:', attachment.id);
         const fileIdToDelete = attachment.fileId || attachment.id;
-        console.log('📎 删除附件:', { attachmentId, fileId: fileIdToDelete, attachment });
-        await apiClient.delete(`/transactions/attachments/${fileIdToDelete}`);
+        setPendingDeletes(prev => [...prev, { id: attachment.id, fileId: fileIdToDelete }]);
+        toast.success('附件已标记删除，保存交易后生效');
+      } else {
+        // 临时附件直接删除
+        console.log('📎 删除临时附件:', attachment.id);
+        toast.success('附件已删除');
       }
 
-      const updatedAttachments = attachments.filter(a => a.id !== attachmentId);
+      // 从UI中移除附件
+      const updatedAttachments = attachments.filter(a => a.id !== attachment.id);
       setAttachments(updatedAttachments);
       onChange?.(updatedAttachments);
 
-      toast.success('附件已删除');
+      setDeleteConfirm({ isOpen: false, attachment: null, loading: false });
     } catch (error) {
       console.error('删除附件失败:', error);
       toast.error('删除附件失败，请重试');
+      setDeleteConfirm(prev => ({ ...prev, loading: false }));
     }
-  }, [transactionId, attachments, onChange]);
+  }, [deleteConfirm, transactionId, attachments, onChange]);
+
+  // 取消删除
+  const handleCancelDelete = useCallback(() => {
+    setDeleteConfirm({ isOpen: false, attachment: null, loading: false });
+  }, []);
+
+  // 执行真正的删除操作（在交易保存后调用）
+  const executePendingDeletes = useCallback(async () => {
+    if (pendingDeletes.length === 0) return;
+
+    console.log('📎 执行待删除附件:', pendingDeletes);
+
+    for (const deleteItem of pendingDeletes) {
+      try {
+        await apiClient.delete(`/transactions/attachments/${deleteItem.fileId}`);
+        console.log('📎 附件删除成功:', deleteItem.fileId);
+      } catch (error) {
+        console.error('📎 删除附件失败:', deleteItem.id, error);
+        // 继续删除其他附件，不中断流程
+      }
+    }
+
+    // 清空待删除列表
+    setPendingDeletes([]);
+  }, [pendingDeletes]);
+
+  // 暴露执行删除的函数给父组件
+  React.useImperativeHandle(ref, () => ({
+    executePendingDeletes,
+  }), [executePendingDeletes]);
 
   // 处理文件上传组件的变化
   const handleFileUploadChange = useCallback((files: FileUploadItem[]) => {
@@ -192,68 +390,104 @@ export function TransactionAttachmentUpload({
     // 从文件ID找到对应的附件并删除
     const attachment = attachments.find(a => a.file?.id === fileId || a.id === fileId);
     if (attachment) {
-      handleRemoveAttachment(attachment.id);
+      showDeleteConfirm(attachment.id);
     }
-  }, [attachments, handleRemoveAttachment]);
+  }, [attachments, showDeleteConfirm]);
+
+  // 处理增强版预览
+  const handleEnhancedPreview = useCallback((file: any, index: number) => {
+    setEnhancedPreview({ isOpen: true, currentIndex: index });
+  }, []);
+
+  const handleEnhancedPreviewClose = useCallback(() => {
+    setEnhancedPreview({ isOpen: false, currentIndex: 0 });
+  }, []);
+
+  const handleEnhancedPreviewNavigate = useCallback((index: number) => {
+    setEnhancedPreview(prev => ({ ...prev, currentIndex: index }));
+  }, []);
+
+  const handleEnhancedPreviewDownload = useCallback((file: any) => {
+    if (file.url) {
+      const link = document.createElement('a');
+      link.href = file.url;
+      link.download = file.originalName;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  }, []);
+
+  // 获取有效的附件文件列表
+  const validAttachmentFiles = attachments
+    .filter(attachment => attachment.file)
+    .map(attachment => attachment.file!);
 
   return (
     <div className={className}>
       <div className="space-y-4">
-        {/* 文件上传组件 */}
-        <FileUpload
+        {/* 紧凑型文件上传区域 */}
+        <CompactFileUpload
           accept={ALLOWED_TYPES}
           multiple={true}
           maxSize={10 * 1024 * 1024} // 10MB
           maxFiles={maxFiles}
-          showCamera={true}
           onUpload={uploadFiles}
-          onChange={handleFileUploadChange}
-          onRemove={handleFileRemove}
           disabled={disabled || uploading}
-          placeholder="上传收据、发票或其他相关文件"
+          uploading={uploading}
         />
 
-        {/* 已上传的附件列表 */}
-        {attachments.length > 0 && (
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium">已上传的附件 ({attachments.length})</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {attachments.map((attachment) => (
-                <AttachmentCard
-                  key={attachment.id}
-                  attachment={attachment}
-                  onRemove={() => handleRemoveAttachment(attachment.id)}
-                  onPreview={() => setPreviewFile(attachment)}
-                  disabled={disabled}
-                />
-              ))}
-            </div>
+        {/* 已上传的附件列表 - 增强版 */}
+        {validAttachmentFiles.length > 0 && (
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium">已上传的附件 ({validAttachmentFiles.length})</h4>
+            <EnhancedAttachmentGrid
+              files={validAttachmentFiles}
+              onPreview={handleEnhancedPreview}
+              onRemove={(file) => {
+                const attachment = attachments.find(a => a.file?.id === file.id);
+                if (attachment) {
+                  showDeleteConfirm(attachment.id);
+                }
+              }}
+              disabled={disabled}
+            />
           </div>
         )}
 
-        {/* 附件预览模态框 */}
-        {previewFile && previewFile.file && (
-          <AttachmentPreview
-            file={previewFile.file}
-            isOpen={!!previewFile}
-            onClose={() => setPreviewFile(null)}
-            onDownload={() => {
-              if (previewFile.file?.url) {
-                const link = document.createElement('a');
-                link.href = previewFile.file.url;
-                link.download = previewFile.file.originalName;
-                link.target = '_blank';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-              }
-            }}
-          />
-        )}
+        {/* 增强版附件预览模态框 */}
+        <EnhancedAttachmentPreview
+          files={validAttachmentFiles}
+          currentIndex={enhancedPreview.currentIndex}
+          isOpen={enhancedPreview.isOpen}
+          onClose={handleEnhancedPreviewClose}
+          onNavigate={handleEnhancedPreviewNavigate}
+          onDownload={handleEnhancedPreviewDownload}
+        />
+
+        {/* 删除确认对话框 */}
+        <ConfirmDialog
+          isOpen={deleteConfirm.isOpen}
+          title="删除附件"
+          message={
+            transactionId && deleteConfirm.attachment && !deleteConfirm.attachment.id.startsWith('temp-')
+              ? '确定要删除此附件吗？此操作将在保存交易后生效。'
+              : '确定要删除此附件吗？'
+          }
+          confirmText="删除"
+          cancelText="取消"
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+          isDangerous={true}
+          loading={deleteConfirm.loading}
+        />
       </div>
     </div>
   );
-}
+});
+
+TransactionAttachmentUpload.displayName = 'TransactionAttachmentUpload';
 
 // 附件卡片组件
 interface AttachmentCardProps {

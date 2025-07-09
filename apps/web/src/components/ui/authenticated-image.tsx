@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface AuthenticatedImageProps {
   src: string;
   alt: string;
   className?: string;
   style?: React.CSSProperties;
-  onLoad?: () => void;
+  onLoad?: (img?: HTMLImageElement) => void;
   onError?: (error: Error) => void;
   fallback?: React.ReactNode;
 }
@@ -29,6 +29,24 @@ export function AuthenticatedImage({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // 稳定化回调函数 - 使用ref来避免依赖项变化
+  const onLoadRef = useRef(onLoad);
+  const onErrorRef = useRef(onError);
+
+  // 更新ref
+  useEffect(() => {
+    onLoadRef.current = onLoad;
+    onErrorRef.current = onError;
+  });
+
+  const stableOnLoad = useCallback((img?: HTMLImageElement) => {
+    onLoadRef.current?.(img);
+  }, []);
+
+  const stableOnError = useCallback((error: Error) => {
+    onErrorRef.current?.(error);
+  }, []);
 
   // 获取认证token
   const getAuthToken = (): string | null => {
@@ -103,12 +121,18 @@ export function AuthenticatedImage({
 
         const url = URL.createObjectURL(blob);
         setBlobUrl(url);
-        
+
         console.log('✅ 认证图片加载成功:', src);
-        
-        if (onLoad) {
-          onLoad();
-        }
+
+        // 创建临时img元素获取图片尺寸信息
+        const tempImg = new Image();
+        tempImg.onload = () => {
+          stableOnLoad(tempImg);
+        };
+        tempImg.onerror = () => {
+          stableOnLoad(); // 如果临时图片加载失败，仍然调用onLoad但不传递参数
+        };
+        tempImg.src = url;
       } catch (err) {
         if (signal.aborted) return; // 忽略取消的请求
         
@@ -116,9 +140,7 @@ export function AuthenticatedImage({
         console.error('❌ 认证图片加载失败:', src, error);
         
         setError(error);
-        if (onError) {
-          onError(error);
-        }
+        stableOnError(error);
       } finally {
         if (!signal.aborted) {
           setIsLoading(false);
@@ -138,7 +160,7 @@ export function AuthenticatedImage({
         URL.revokeObjectURL(blobUrl);
       }
     };
-  }, [src, onLoad, onError]);
+  }, [src, stableOnLoad, stableOnError]);
 
   // 清理blob URL
   useEffect(() => {
@@ -199,13 +221,13 @@ export function AuthenticatedImage({
       style={style}
       onLoad={() => {
         console.log('🖼️ 图片渲染完成:', src);
-        if (onLoad) onLoad();
+        onLoadRef.current?.();
       }}
       onError={(e) => {
         console.error('🖼️ 图片渲染失败:', src, e);
         const error = new Error('图片渲染失败');
         setError(error);
-        if (onError) onError(error);
+        onErrorRef.current?.(error);
       }}
     />
   );

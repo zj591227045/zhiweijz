@@ -96,6 +96,8 @@ export const s3AttachmentUpload = multer({
   limits: {
     fileSize: FILE_SIZE_LIMITS.ATTACHMENT,
   },
+  // 处理文件名编码
+  preservePath: false,
 });
 
 // 获取文件URL
