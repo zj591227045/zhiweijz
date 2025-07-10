@@ -26,6 +26,10 @@ export function TransactionDetails({ onSubmit, isSubmitting }: TransactionDetail
     onSubmit();
   };
 
+
+
+
+
   return (
     <form onSubmit={handleSubmit}>
       {/* iOS 风格表单 */}

@@ -9,7 +9,13 @@ import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Settings, Save, AlertCircle, CheckCircle } from 'lucide-react';
+import {
+  ArrowPathIcon as Loader2,
+  CogIcon as Settings,
+  DocumentArrowDownIcon as Save,
+  ExclamationCircleIcon as AlertCircle,
+  CheckCircleIcon as CheckCircle
+} from '@heroicons/react/24/outline';
 import { adminApi } from '@/lib/admin-api-client';
 import { toast } from 'sonner';
 

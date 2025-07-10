@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { useGlobalAIStore } from '@/store/global-ai-store';
-import { SmartAccountingDialog } from '../transactions/smart-accounting-dialog';
+import EnhancedSmartAccountingDialog from '../transactions/enhanced-smart-accounting-dialog';
 import { toast } from 'sonner';
 import '@/styles/smart-accounting-dialog.css';
 
@@ -113,12 +113,12 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
         </Link>
       </nav>
 
-      {/* 智能记账对话框 */}
-              <SmartAccountingDialog
-          isOpen={isSmartAccountingOpen}
-          onClose={handleDialogClose}
-          accountBookId={currentAccountBook?.id}
-        />
+      {/* 增强版智能记账对话框 */}
+      <EnhancedSmartAccountingDialog
+        isOpen={isSmartAccountingOpen}
+        onClose={handleDialogClose}
+        accountBookId={currentAccountBook?.id}
+      />
     </>
   );
 

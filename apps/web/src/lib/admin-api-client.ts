@@ -66,6 +66,15 @@ export const ADMIN_API_ENDPOINTS = {
   MULTI_PROVIDER_LLM_PROVIDERS: '/api/admin/multi-provider-llm/providers',
   MULTI_PROVIDER_LLM_HEALTH: '/api/admin/multi-provider-llm/health',
   MULTI_PROVIDER_LLM_TEMPLATES: '/api/admin/multi-provider-llm/templates',
+
+  // 多模态AI管理
+  MULTIMODAL_AI_CONFIG: '/api/admin/multimodal-ai/config',
+  MULTIMODAL_AI_SPEECH: '/api/admin/multimodal-ai/speech',
+  MULTIMODAL_AI_VISION: '/api/admin/multimodal-ai/vision',
+  MULTIMODAL_AI_SPEECH_TEST: '/api/admin/multimodal-ai/speech/test',
+  MULTIMODAL_AI_VISION_TEST: '/api/admin/multimodal-ai/vision/test',
+  MULTIMODAL_AI_MODELS: '/api/admin/multimodal-ai/models',
+  MULTIMODAL_AI_STATUS: '/api/admin/multimodal-ai/status',
 } as const;
 
 /**
