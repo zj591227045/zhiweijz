@@ -130,6 +130,21 @@ export class MultimodalAIAdminService {
         name: 'SenseVoice Large',
         provider: 'siliconflow',
       },
+      {
+        id: 'default',
+        name: '通用模型',
+        provider: 'baidu',
+      },
+      {
+        id: 'pro',
+        name: '专业模型',
+        provider: 'baidu',
+      },
+      {
+        id: 'longform',
+        name: '长语音模型',
+        provider: 'baidu',
+      },
     ];
   }
 
@@ -177,6 +192,11 @@ export class MultimodalAIAdminService {
         baseUrl: 'https://api.siliconflow.cn/v1',
       },
       {
+        id: 'baidu',
+        name: '百度智能云',
+        baseUrl: 'https://vop.baidu.com/server_api',
+      },
+      {
         id: 'openai',
         name: 'OpenAI',
         baseUrl: 'https://api.openai.com/v1',
@@ -211,7 +231,13 @@ export class MultimodalAIAdminService {
       const config = await this.configService.getFullConfig();
       
       // 检查语音识别状态
-      const speechConfigured = !!(config.speech.apiKey && config.speech.model && config.speech.baseUrl);
+      let speechConfigured = false;
+      if (config.speech.provider === 'baidu') {
+        speechConfigured = !!(config.speech.apiKey && config.speech.secretKey && config.speech.model);
+      } else {
+        speechConfigured = !!(config.speech.apiKey && config.speech.model && config.speech.baseUrl);
+      }
+      
       const speechConnected = speechConfigured ? await this.speechService.testConnection() : false;
       
       // 检查视觉识别状态

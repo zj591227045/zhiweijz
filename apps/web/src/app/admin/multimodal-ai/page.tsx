@@ -37,6 +37,8 @@ interface SpeechConfig {
   maxFileSize: number;
   allowedFormats: string[];
   timeout: number;
+  // 百度云特有配置 - 根据官方文档使用 API Key 和 Secret Key
+  secretKey?: string;
 }
 
 interface VisionConfig {
@@ -108,6 +110,7 @@ export default function MultimodalAIConfigPage() {
       maxFileSize: 10485760,
       allowedFormats: ['mp3', 'wav', 'm4a', 'flac', 'aac'],
       timeout: 60,
+      secretKey: '',
     },
     vision: {
       enabled: false,
@@ -311,10 +314,23 @@ export default function MultimodalAIConfigPage() {
                     <Select
                       value={config.speech.provider}
                       onValueChange={(value) =>
-                        setConfig(prev => ({
+                      setConfig(prev => {
+                        const newConfig = {
                           ...prev,
                           speech: { ...prev.speech, provider: value }
-                        }))
+                        };
+                        
+                        // 根据提供商设置默认值
+                        if (value === 'baidu') {
+                          newConfig.speech.model = 'default';
+                          newConfig.speech.baseUrl = 'https://vop.baidu.com/server_api';
+                        } else if (value === 'siliconflow') {
+                          newConfig.speech.model = 'FunAudioLLM/SenseVoiceSmall';
+                          newConfig.speech.baseUrl = 'https://api.siliconflow.cn/v1';
+                        }
+                        
+                        return newConfig;
+                      })
                       }
                     >
                       <SelectTrigger>
@@ -341,16 +357,24 @@ export default function MultimodalAIConfigPage() {
                           speech: { ...prev.speech, model: e.target.value }
                         }))
                       }
-                      placeholder="请输入模型名称，如：FunAudioLLM/SenseVoiceSmall"
+                      placeholder={config.speech.provider === 'baidu' ? 
+                        '请输入模型名称，如：default' :
+                        '请输入模型名称，如：FunAudioLLM/SenseVoiceSmall'
+                      }
                     />
                     <p className="text-sm text-gray-500">
-                      常用模型：FunAudioLLM/SenseVoiceSmall、whisper-1、speech-to-text-v1
+                      {config.speech.provider === 'baidu' ? 
+                        '百度云模型：default (通用普通话)、pro (极速版专业)、longform (长语音/远场)' :
+                        '常用模型：FunAudioLLM/SenseVoiceSmall、whisper-1、speech-to-text-v1'
+                      }
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="speech-api-key">API密钥</Label>
+                  <Label htmlFor="speech-api-key">
+                    {config.speech.provider === 'baidu' ? 'API Key *' : 'API密钥'}
+                  </Label>
                   <Input
                     id="speech-api-key"
                     type="password"
@@ -361,7 +385,10 @@ export default function MultimodalAIConfigPage() {
                         speech: { ...prev.speech, apiKey: e.target.value }
                       }))
                     }
-                    placeholder="输入API密钥"
+                    placeholder={config.speech.provider === 'baidu' ? 
+                      '请输入百度云应用的 API Key' :
+                      '输入API密钥'
+                    }
                   />
                 </div>
 
@@ -376,9 +403,85 @@ export default function MultimodalAIConfigPage() {
                         speech: { ...prev.speech, baseUrl: e.target.value }
                       }))
                     }
-                    placeholder="https://api.siliconflow.cn/v1"
+                    placeholder={config.speech.provider === 'baidu' ? 'https://vop.baidu.com/server_api' : 'https://api.siliconflow.cn/v1'}
+                    disabled={config.speech.provider === 'baidu'}
                   />
+                  {config.speech.provider === 'baidu' && (
+                    <p className="text-sm text-gray-500">
+                      百度云语音识别使用固定API地址：https://vop.baidu.com/server_api
+                    </p>
+                  )}
                 </div>
+
+                {/* 百度云特有配置 */}
+                {config.speech.provider === 'baidu' && (
+                  <>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                      <h5 className="font-medium text-blue-800 mb-2">📋 百度智能云语音识别配置指南</h5>
+                      <div className="text-sm text-blue-700 space-y-3">
+                        <div>
+                          <p className="font-medium">🔑 1. 获取API凭证</p>
+                          <ul className="ml-4 space-y-1">
+                            <li>• 访问 <a href="https://console.bce.baidu.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">百度智能云控制台</a></li>
+                            <li>• 选择"产品服务" → "人工智能" → "语音技术"</li>
+                            <li>• 创建"语音识别"应用</li>
+                            <li>• 在应用详情页获取 <strong>API Key</strong> 和 <strong>Secret Key</strong></li>
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="font-medium">⚙️ 2. 技术规格</p>
+                          <ul className="ml-4 space-y-1">
+                            <li>• <strong>音频格式：</strong>wav, mp3, pcm, flac, aac, m4a, amr</li>
+                            <li>• <strong>文件限制：</strong>最大 60MB，时长 ≤ 60秒</li>
+                            <li>• <strong>采样率：</strong>8000Hz 或 16000Hz (推荐16000Hz)</li>
+                            <li>• <strong>声道数：</strong>仅支持单声道 (mono)</li>
+                            <li>• <strong>语言支持：</strong>普通话、英语、粤语、四川话等</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="font-medium">🎯 3. 模型类型</p>
+                          <ul className="ml-4 space-y-1">
+                            <li>• <strong>default：</strong>通用普通话模型，识别准确率高</li>
+                            <li>• <strong>pro：</strong>极速版专业模型，响应速度快 (500ms内)</li>
+                            <li>• <strong>longform：</strong>长语音/远场模型，适合会议录音</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="font-medium">💰 4. 计费说明</p>
+                          <ul className="ml-4 space-y-1">
+                            <li>• 按实际调用次数计费，无最低消费</li>
+                            <li>• 新用户享有免费额度</li>
+                            <li>• 详细价格请查看 <a href="https://cloud.baidu.com/doc/SPEECH/s/price" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">官方价格文档</a></li>
+                          </ul>
+                        </div>
+                        <div className="bg-blue-100 rounded p-2 mt-2">
+                          <p className="font-medium text-blue-900">💡 温馨提示</p>
+                          <p className="text-blue-800">首次使用建议选择 <code className="bg-white px-1 rounded">default</code> 模型进行测试，确认效果后再根据业务需求选择合适的模型。</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="speech-secret-key">Secret Key *</Label>
+                      <Input
+                        id="speech-secret-key"
+                        type="password"
+                        value={config.speech.secretKey || ''}
+                        onChange={(e) =>
+                          setConfig(prev => ({
+                            ...prev,
+                            speech: { ...prev.speech, secretKey: e.target.value }
+                          }))
+                        }
+                        placeholder="请输入百度云应用的 Secret Key"
+                        required
+                      />
+                      <p className="text-sm text-gray-500">
+                        💡 在百度智能云控制台 → 产品服务 → 语音技术 → 应用管理中获取
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
 
               <Separator />
@@ -393,7 +496,12 @@ export default function MultimodalAIConfigPage() {
                   <Button
                     variant="outline"
                     onClick={() => testConnection('speech')}
-                    disabled={!config.speech.enabled || !config.speech.apiKey}
+                    disabled={!config.speech.enabled || 
+                      (config.speech.provider === 'baidu' ? 
+                        (!config.speech.apiKey || !config.speech.secretKey) :
+                        !config.speech.apiKey
+                      )
+                    }
                   >
                     <TestTube className="w-4 h-4 mr-2" />
                     测试连接

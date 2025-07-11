@@ -91,6 +91,11 @@ export class MultimodalAIConfigService {
     if (config.timeout !== undefined) {
       updates.push(this.upsertConfig('speech_timeout', config.timeout.toString()));
     }
+    
+    // 百度云特有配置
+    if (config.secretKey !== undefined) {
+      updates.push(this.upsertConfig('speech_secret_key', config.secretKey));
+    }
 
     await Promise.all(updates);
   }
@@ -185,6 +190,8 @@ export class MultimodalAIConfigService {
       maxFileSize: parseInt(configMap.speech_max_file_size || '10485760'),
       allowedFormats: configMap.speech_allowed_formats?.split(',') || [...SUPPORTED_AUDIO_FORMATS],
       timeout: parseInt(configMap.speech_timeout || '60'),
+      // 百度云特有配置
+      secretKey: configMap.speech_secret_key || '',
     };
   }
 

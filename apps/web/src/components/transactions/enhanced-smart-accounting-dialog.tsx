@@ -31,6 +31,13 @@ import {
 } from '@/utils/multimodal-error-handler';
 import { SmartAccountingProgressManager } from '@/components/transactions/smart-accounting-dialog';
 import { 
+  processAudioForSpeechRecognition,
+  getBestAudioFormat,
+  detectAudioFormat,
+  needsConversion,
+  convertAudioToWav
+} from '@/lib/audio-conversion';
+import { 
   MicrophoneIcon, 
   EyeIcon, 
   PhotoIcon,
@@ -228,7 +235,14 @@ export default function EnhancedSmartAccountingDialog({
       
       const chunks: Blob[] = [];
       audioChunksRef.current = chunks;
-      const recorder = new MediaRecorder(stream);
+      
+      // 获取最佳音频格式
+      const bestFormat = getBestAudioFormat();
+      console.log('🎤 [StartRecording] 使用音频格式:', bestFormat);
+      
+      const recorder = new MediaRecorder(stream, {
+        mimeType: bestFormat
+      });
 
       // 添加超时保护
       const recordingTimeout = setTimeout(() => {
@@ -274,7 +288,8 @@ export default function EnhancedSmartAccountingDialog({
         
         if (!recordingCancelledRef.current && currentChunks && currentChunks.length > 0) {
           console.log('🎤 [MediaRecorder] 开始语音识别，音频块数:', currentChunks.length, '手势类型:', currentGestureType);
-          const audioBlob = new Blob(currentChunks, { type: 'audio/webm' });
+          // 使用第一个音频块的类型作为blob类型，而不是硬编码webm
+          const audioBlob = new Blob(currentChunks, { type: currentChunks[0]?.type || 'audio/webm' });
           handleSpeechRecognition(audioBlob, currentGestureType);
         } else {
           console.log('🎤 [MediaRecorder] 跳过语音识别，取消状态:', recordingCancelledRef.current, '音频块数:', currentChunks?.length || 0);
@@ -545,8 +560,42 @@ export default function EnhancedSmartAccountingDialog({
     setIsProcessingMultimodal(true);
 
     try {
+      // 检测音频格式并自动转换
+      const audioFormat = detectAudioFormat(audioBlob);
+      console.log('🎤 [SpeechRecognition] 检测到音频格式:', audioFormat, '大小:', audioBlob.size);
+      
+      let processedAudio = audioBlob;
+      let fileName = `recording.${audioFormat}`;
+      
+      // 如果需要转换格式
+      if (needsConversion(audioFormat)) {
+        console.log('🎤 [SpeechRecognition] 需要转换音频格式');
+        //showInfo('正在处理音频格式...');
+        
+        try {
+          const conversionResult = await processAudioForSpeechRecognition(audioBlob);
+          processedAudio = conversionResult.blob;
+          fileName = `recording.${conversionResult.format}`;
+          
+          console.log('🎤 [SpeechRecognition] 音频转换完成:', {
+            原始大小: audioBlob.size,
+            转换后大小: conversionResult.size,
+            转换时间: `${conversionResult.duration}ms`,
+            格式: `${audioFormat} → ${conversionResult.format}`
+          });
+          
+          //showSuccess(`音频已转换为${conversionResult.format.toUpperCase()}格式`);
+        } catch (conversionError) {
+          console.error('🎤 [SpeechRecognition] 音频转换失败:', conversionError);
+          showError(`音频格式转换失败: ${conversionError instanceof Error ? conversionError.message : '未知错误'}`);
+          return;
+        }
+      } else {
+        console.log('🎤 [SpeechRecognition] 音频格式已支持，无需转换');
+      }
+
       const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.webm');
+      formData.append('audio', processedAudio, fileName);
       formData.append('accountBookId', accountBookId);
 
       const response = await apiClient.post('/ai/smart-accounting/speech', formData, {
@@ -568,7 +617,7 @@ export default function EnhancedSmartAccountingDialog({
           // 下滑手势：仅填入文本框，不自动调用记账
           console.log('🎤 [SpeechRecognition] 下滑手势：仅填入文本框');
           setDescription(recognizedText);
-          showSuccess('语音已转换为文字');
+          //showSuccess('语音已转换为文字');
           // 注意：这里不调用任何记账逻辑
         } else {
           // 正常松开手势：直接调用记账

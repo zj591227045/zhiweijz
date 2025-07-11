@@ -14,6 +14,8 @@ export interface SpeechRecognitionConfig {
   maxFileSize: number;
   allowedFormats: string[];
   timeout: number;
+  // 百度云特有配置 - 根据官方文档，使用 API Key 和 Secret Key
+  secretKey?: string;
 }
 
 /**
@@ -149,6 +151,26 @@ export const SUPPORTED_AUDIO_FORMATS = ['mp3', 'wav', 'm4a', 'flac', 'aac', 'web
  * 支持的图片文件格式
  */
 export const SUPPORTED_IMAGE_FORMATS = ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'] as const;
+
+/**
+ * 支持的语音识别提供商
+ */
+export const SUPPORTED_SPEECH_PROVIDERS = [
+  {
+    id: 'siliconflow',
+    name: '硅基流动',
+    baseUrl: 'https://api.siliconflow.cn/v1',
+    defaultModel: 'FunAudioLLM/SenseVoiceSmall',
+    supportedModels: ['FunAudioLLM/SenseVoiceSmall', 'whisper-1'],
+  },
+  {
+    id: 'baidu',
+    name: '百度智能云',
+    baseUrl: 'https://vop.baidu.com/server_api',
+    defaultModel: 'default',
+    supportedModels: ['default', 'pro', 'longform'],
+  },
+] as const;
 
 /**
  * 默认配置值

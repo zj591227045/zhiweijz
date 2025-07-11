@@ -10,16 +10,19 @@ import {
   SpeechRecognitionConfig,
 } from '../models/multimodal-ai.model';
 import { MultimodalAIConfigService } from './multimodal-ai-config.service';
+import { BaiduSpeechRecognitionService } from './speech-recognition-baidu.service';
 
 /**
  * 语音识别服务
- * 基于硅基流动API实现语音转文本功能
+ * 支持多种语音识别提供商
  */
 export class SpeechRecognitionService {
   private configService: MultimodalAIConfigService;
+  private baiduService: BaiduSpeechRecognitionService;
 
   constructor() {
     this.configService = new MultimodalAIConfigService();
+    this.baiduService = new BaiduSpeechRecognitionService();
   }
 
   /**
@@ -46,18 +49,20 @@ export class SpeechRecognitionService {
       // 验证文件
       this.validateAudioFile(request.audioFile, config);
 
-      // 调用硅基流动API
-      const result = await this.callSiliconFlowAPI(request, config);
+      // 根据提供商选择对应的服务
+      let result: MultimodalAIResponse;
+      
+      switch (config.provider) {
+        case 'baidu':
+          result = await this.baiduService.speechToText(request, config);
+          break;
+        case 'siliconflow':
+        default:
+          result = await this.callSiliconFlowAPI(request, config);
+          break;
+      }
 
-      const duration = Date.now() - startTime;
-
-      return {
-        success: true,
-        data: result,
-        usage: {
-          duration,
-        },
-      };
+      return result;
     } catch (error) {
       const duration = Date.now() - startTime;
 
@@ -87,14 +92,37 @@ export class SpeechRecognitionService {
         ? { ...await this.configService.getSpeechConfig(), ...config }
         : await this.configService.getSpeechConfig();
 
-      if (!speechConfig.enabled || !speechConfig.apiKey) {
+      if (!speechConfig.enabled) {
+        return false;
+      }
+
+      // 根据提供商选择对应的测试方法
+      switch (speechConfig.provider) {
+        case 'baidu':
+          return await this.baiduService.testConnection(speechConfig);
+        case 'siliconflow':
+        default:
+          return await this.testSiliconFlowConnection(speechConfig);
+      }
+    } catch (error) {
+      console.error('测试语音识别连接失败:', error);
+      return false;
+    }
+  }
+
+  /**
+   * 测试硅基流动连接
+   */
+  private async testSiliconFlowConnection(config: SpeechRecognitionConfig): Promise<boolean> {
+    try {
+      if (!config.apiKey) {
         return false;
       }
 
       // 测试API连接 - 调用模型列表接口
-      const response = await axios.get(`${speechConfig.baseUrl}/models`, {
+      const response = await axios.get(`${config.baseUrl}/models`, {
         headers: {
-          'Authorization': `Bearer ${speechConfig.apiKey}`,
+          'Authorization': `Bearer ${config.apiKey}`,
           'Content-Type': 'application/json',
         },
         timeout: 10000,
@@ -102,7 +130,7 @@ export class SpeechRecognitionService {
 
       return response.status === 200;
     } catch (error) {
-      console.error('测试语音识别连接失败:', error);
+      console.error('测试硅基流动连接失败:', error);
       return false;
     }
   }
@@ -113,7 +141,9 @@ export class SpeechRecognitionService {
   private async callSiliconFlowAPI(
     request: SpeechRecognitionRequest,
     config: SpeechRecognitionConfig
-  ): Promise<SpeechRecognitionResponse> {
+  ): Promise<MultimodalAIResponse> {
+    const startTime = Date.now();
+
     try {
       // 创建FormData
       const formData = new FormData();
@@ -159,13 +189,23 @@ export class SpeechRecognitionService {
         );
       }
 
+      const duration = Date.now() - startTime;
+
       return {
-        text: data.text,
-        confidence: data.confidence,
-        duration: data.duration,
-        language: data.language || request.language,
+        success: true,
+        data: {
+          text: data.text,
+          confidence: data.confidence,
+          duration: data.duration,
+          language: data.language || request.language,
+        },
+        usage: {
+          duration,
+        },
       };
     } catch (error) {
+      const duration = Date.now() - startTime;
+
       if (axios.isAxiosError(error)) {
         if (error.code === 'ECONNABORTED') {
           throw new MultimodalAIError(
@@ -202,6 +242,11 @@ export class SpeechRecognitionService {
    * 验证配置
    */
   private validateConfig(config: SpeechRecognitionConfig): void {
+    if (config.provider === 'baidu') {
+      // 百度云配置验证由 BaiduSpeechRecognitionService 处理
+      return;
+    }
+
     if (!config.apiKey) {
       throw new MultimodalAIError(
         MultimodalAIErrorType.INVALID_CONFIG,
@@ -243,7 +288,12 @@ export class SpeechRecognitionService {
       );
     }
 
-    // 检查文件格式
+    // 对于百度云服务，格式验证由 BaiduSpeechRecognitionService 自行处理
+    if (config.provider === 'baidu') {
+      return;
+    }
+
+    // 对于其他服务，使用通用格式验证
     const fileExtension = this.getFileExtension(file.originalname);
     if (!config.allowedFormats.includes(fileExtension)) {
       throw new MultimodalAIError(
