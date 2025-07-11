@@ -298,7 +298,7 @@
   }
 }
 
-/* 录音指示器增强 */
+/* 录音指示器增强 - 动态声波效果 */
 .recording-indicator {
   position: absolute;
   top: 50%;
@@ -315,20 +315,32 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.recording-indicator .icon-container {
-  width: 60px;
-  height: 60px;
+.sound-wave-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 0 auto 20px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.microphone-icon {
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   background: var(--error-color, #ef4444);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 16px;
   position: relative;
   overflow: hidden;
+  animation: microphonePulse 2s ease-in-out infinite;
 }
 
-.recording-indicator .icon-container::before {
+.microphone-icon::before {
   content: '';
   position: absolute;
   top: 0;
@@ -339,11 +351,40 @@
   animation: breathe 2s ease-in-out infinite;
 }
 
-.recording-indicator .icon-container i {
+.microphone-icon i {
   font-size: 20px;
   color: white;
   position: relative;
   z-index: 1;
+}
+
+.sound-waves {
+  display: flex;
+  align-items: end;
+  gap: 4px;
+  height: 60px;
+  padding: 0 8px;
+}
+
+.wave-bar {
+  width: 5px;
+  background-color: #6b7280;
+  border-radius: 3px;
+  min-height: 15px;
+  max-height: 60px;
+  will-change: height, background-color, opacity, transform;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes microphonePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
 }
 
 .recording-indicator .title {

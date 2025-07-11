@@ -112,23 +112,60 @@ export default function EnhancedSmartAccountingDialog({
   const animationFrameRef = useRef<number | null>(null);
   const recordingCancelledRef = useRef(false);
   const audioChunksRef = useRef<Blob[]>([]);
+  const [animationTime, setAnimationTime] = useState(0);
+  const [isAnalyzing, setIsAnalyzing] = useState(false); // 新增：独立的分析状态
+  const isAnalyzingRef = useRef(false); // 新增：用于立即检查的ref
+
+  // 更新动画时间用于声波效果
+  useEffect(() => {
+    let animationFrame: number;
+    
+    if (isAnalyzing) { // 改为使用isAnalyzing状态
+      const updateAnimation = () => {
+        setAnimationTime(Date.now());
+        animationFrame = requestAnimationFrame(updateAnimation);
+      };
+      animationFrame = requestAnimationFrame(updateAnimation);
+    }
+    
+    return () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, [isAnalyzing]); // 依赖改为isAnalyzing
 
   // 音频分析器设置
   const setupAudioAnalyser = (stream: MediaStream) => {
     try {
+      console.log('🎵 开始设置音频分析器...');
+      
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const analyser = audioContext.createAnalyser();
       const source = audioContext.createMediaStreamSource(stream);
       
+      // 简化设置，确保兼容性
       analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.8;
+      analyser.smoothingTimeConstant = 0.1;
+      analyser.minDecibels = -100;
+      analyser.maxDecibels = 0;
+      
       source.connect(analyser);
       
       audioAnalyserRef.current = analyser;
       audioDataRef.current = new Uint8Array(analyser.frequencyBinCount);
       
-      // 开始分析音频
+      console.log('🎵 分析器设置完成，频率段数:', analyser.frequencyBinCount);
+      
+      // 使用ref立即设置状态，然后更新React状态
+      isAnalyzingRef.current = true;
+      setIsAnalyzing(true);
+      console.log('🎵 设置分析状态为 true');
+      
+      // 立即开始分析音频
+      console.log('🎵 开始分析循环...');
       analyzeAudio();
+      
     } catch (error) {
       console.error('设置音频分析器失败:', error);
     }
@@ -136,23 +173,66 @@ export default function EnhancedSmartAccountingDialog({
 
   // 分析音频数据
   const analyzeAudio = () => {
-    if (!audioAnalyserRef.current || !audioDataRef.current) return;
+    if (!audioAnalyserRef.current || !audioDataRef.current || !isAnalyzingRef.current) {
+      console.log('🎵 分析器检查失败:', {
+        analyser: !!audioAnalyserRef.current,
+        data: !!audioDataRef.current, 
+        analyzingRef: isAnalyzingRef.current
+      });
+      return;
+    }
     
     audioAnalyserRef.current.getByteFrequencyData(audioDataRef.current);
     
-    // 计算音频强度
-    const average = audioDataRef.current.reduce((sum, value) => sum + value, 0) / audioDataRef.current.length;
-    const normalizedLevel = Math.min(100, (average / 128) * 100);
+    // 优化的音频强度计算 - 提高敏感度和动态范围
+    let sum = 0;
+    let max = 0;
+    let count = 0;
     
-    setAudioLevel(normalizedLevel);
+    // 计算所有频率段的平均值和最大值
+    for (let i = 0; i < audioDataRef.current.length; i++) {
+      const value = audioDataRef.current[i];
+      sum += value;
+      max = Math.max(max, value);
+      if (value > 0) count++;
+    }
     
-    if (isRecording) {
+    const average = sum / audioDataRef.current.length;
+    
+    // 提高敏感度：增加权重，提高增益
+    let level = Math.max(average, max * 0.7); // 从0.3提高到0.7
+    level = (level / 255) * 100 * 1.2; // 增益从0.6提高到1.2
+    
+    // 降低最小阈值，允许更小的声音被检测
+    if (level < 1) level = 0; // 从3降低回1
+    
+    // 减少平滑处理，让变化更敏感
+    const currentLevel = audioLevel;
+    const smoothedLevel = currentLevel * 0.7 + level * 0.3; // 从0.85:0.15 改为 0.7:0.3
+    
+    // 临时调试信息 - 每秒输出一次
+    if (Math.floor(Date.now() / 1000) !== Math.floor((Date.now() - 16) / 1000)) {
+      console.log('🎵 音频数据:', {
+        平均值: average.toFixed(1),
+        最大值: max,
+        计算级别: level.toFixed(1),
+        平滑级别: smoothedLevel.toFixed(1)
+      });
+    }
+    
+    setAudioLevel(smoothedLevel);
+    
+    if (isAnalyzingRef.current) {
       animationFrameRef.current = requestAnimationFrame(analyzeAudio);
     }
   };
 
   // 清理音频分析器
   const cleanupAudioAnalyser = () => {
+    // 停止分析（使用ref和state都更新）
+    isAnalyzingRef.current = false;
+    setIsAnalyzing(false);
+    
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
@@ -364,8 +444,7 @@ export default function EnhancedSmartAccountingDialog({
     setIsButtonTouched(false);
     setTouchStartPos(null);
     
-    // 清理音频分析器
-    cleanupAudioAnalyser();
+    // 注意：不在这里清理音频分析器，让它在MediaRecorder.onstop中清理
     
     console.log('🎤 [StopRecording] 录音状态已重置');
   };
@@ -390,8 +469,7 @@ export default function EnhancedSmartAccountingDialog({
     setIsButtonTouched(false);
     setTouchStartPos(null);
     
-    // 清理音频分析器
-    cleanupAudioAnalyser();
+    // 注意：不在这里清理音频分析器，让它在MediaRecorder.onstop中清理
     
     showInfo('录音已取消');
     
@@ -966,11 +1044,73 @@ export default function EnhancedSmartAccountingDialog({
                 />
               </div>
 
-              {/* 录音状态提示 */}
+              {/* 录音状态提示 - 动态声波效果 */}
               {isRecording && (
                 <div className="recording-indicator">
-                  <div className="icon-container">
-                    <i className="fas fa-microphone"></i>
+                  <div className="sound-wave-container">
+                    <div className="microphone-icon">
+                      <i className="fas fa-microphone"></i>
+                    </div>
+                    <div className="sound-waves">
+                      {[...Array(7)].map((_, i) => {
+                        // 基础高度
+                        const baseHeight = 15;
+                        const maxHeight = 60;
+                        
+                        // 检测阈值
+                        const hasAudio = audioLevel > 1;
+                        
+                        // 临时调试信息 - 显示当前级别
+                        if (i === 0) {
+                          console.log('🎵 声波状态:', { audioLevel: audioLevel.toFixed(2), hasAudio });
+                        }
+                        
+                        // 提高音量映射敏感度
+                        const volumeMultiplier = hasAudio ? 
+                          Math.pow(audioLevel / 100, 0.5) * (maxHeight - baseHeight) : 0; // 从0.7改为0.5，提高敏感度
+                        
+                        // 增加波形动画幅度
+                        let waveOffset = 0;
+                        if (hasAudio) {
+                          const frequency = 0.007 + i * 0.003; // 稍微增加频率变化
+                          const phase = i * Math.PI / 3; 
+                          const amplitude = Math.max(1, audioLevel * 0.12); // 从0.08提高到0.12
+                          waveOffset = Math.sin(animationTime * frequency + phase) * amplitude;
+                        }
+                        
+                        // 最终高度计算
+                        const finalHeight = baseHeight + volumeMultiplier + waveOffset;
+                        
+                        // 优化颜色阈值，让变化更明显
+                        let color = '#6b7280'; // 静默时的灰色
+                        if (audioLevel > 30) color = '#ef4444'; // 红色 - 高音量
+                        else if (audioLevel > 20) color = '#f59e0b'; // 橙色 - 中高音量  
+                        else if (audioLevel > 10) color = '#22c55e'; // 绿色 - 中音量
+                        else if (audioLevel > 5) color = '#3b82f6'; // 蓝色 - 低音量
+                        else if (audioLevel > 1) color = '#8b5cf6'; // 紫色 - 极低音量
+                        
+                        // 提高透明度变化敏感度
+                        const opacity = hasAudio ? 
+                          Math.max(0.7, Math.min(1, 0.7 + audioLevel / 100 * 0.3)) : 0.4; // 变化范围增加
+                        const scale = hasAudio ? 
+                          0.9 + (audioLevel / 100) * 0.1 : 0.8; // 缩放变化增加
+                        
+                        return (
+                          <div
+                            key={i}
+                            className="wave-bar"
+                            style={{
+                              height: `${finalHeight}px`,
+                              backgroundColor: color,
+                              opacity: opacity,
+                              transform: `scaleY(${scale})`,
+                              boxShadow: audioLevel > 15 ? `0 0 6px ${color}60` : 'none', // 降低发光阈值
+                              transition: hasAudio ? 'none' : 'all 0.3s ease'
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
                   <p className="title">
                     正在录音...
