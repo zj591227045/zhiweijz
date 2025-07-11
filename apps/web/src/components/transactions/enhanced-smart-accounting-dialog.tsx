@@ -138,8 +138,6 @@ export default function EnhancedSmartAccountingDialog({
   // 音频分析器设置
   const setupAudioAnalyser = (stream: MediaStream) => {
     try {
-      console.log('🎵 开始设置音频分析器...');
-      
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const analyser = audioContext.createAnalyser();
       const source = audioContext.createMediaStreamSource(stream);
@@ -155,15 +153,11 @@ export default function EnhancedSmartAccountingDialog({
       audioAnalyserRef.current = analyser;
       audioDataRef.current = new Uint8Array(analyser.frequencyBinCount);
       
-      console.log('🎵 分析器设置完成，频率段数:', analyser.frequencyBinCount);
-      
       // 使用ref立即设置状态，然后更新React状态
       isAnalyzingRef.current = true;
       setIsAnalyzing(true);
-      console.log('🎵 设置分析状态为 true');
       
       // 立即开始分析音频
-      console.log('🎵 开始分析循环...');
       analyzeAudio();
       
     } catch (error) {
@@ -174,11 +168,6 @@ export default function EnhancedSmartAccountingDialog({
   // 分析音频数据
   const analyzeAudio = () => {
     if (!audioAnalyserRef.current || !audioDataRef.current || !isAnalyzingRef.current) {
-      console.log('🎵 分析器检查失败:', {
-        analyser: !!audioAnalyserRef.current,
-        data: !!audioDataRef.current, 
-        analyzingRef: isAnalyzingRef.current
-      });
       return;
     }
     
@@ -200,25 +189,15 @@ export default function EnhancedSmartAccountingDialog({
     const average = sum / audioDataRef.current.length;
     
     // 提高敏感度：增加权重，提高增益
-    let level = Math.max(average, max * 0.7); // 从0.3提高到0.7
-    level = (level / 255) * 100 * 1.2; // 增益从0.6提高到1.2
+    let level = Math.max(average, max * 0.7);
+    level = (level / 255) * 100 * 1.2;
     
     // 降低最小阈值，允许更小的声音被检测
-    if (level < 1) level = 0; // 从3降低回1
+    if (level < 1) level = 0;
     
     // 减少平滑处理，让变化更敏感
     const currentLevel = audioLevel;
-    const smoothedLevel = currentLevel * 0.7 + level * 0.3; // 从0.85:0.15 改为 0.7:0.3
-    
-    // 临时调试信息 - 每秒输出一次
-    if (Math.floor(Date.now() / 1000) !== Math.floor((Date.now() - 16) / 1000)) {
-      console.log('🎵 音频数据:', {
-        平均值: average.toFixed(1),
-        最大值: max,
-        计算级别: level.toFixed(1),
-        平滑级别: smoothedLevel.toFixed(1)
-      });
-    }
+    const smoothedLevel = currentLevel * 0.7 + level * 0.3;
     
     setAudioLevel(smoothedLevel);
     
@@ -494,7 +473,7 @@ export default function EnhancedSmartAccountingDialog({
     const deltaY = touchStartPos.y - touch.clientY;
     const deltaX = Math.abs(touch.clientX - touchStartPos.x);
 
-    console.log('🎤 [TouchMove] 触摸移动:', { deltaY, deltaX });
+    //console.log('🎤 [TouchMove] 触摸移动:', { deltaY, deltaX });
 
     // 检测手势类型
     if (Math.abs(deltaY) > 30 && deltaX < 50) { // 垂直滑动，水平偏移不超过50px
@@ -991,6 +970,95 @@ export default function EnhancedSmartAccountingDialog({
     if (isOpen) {
       // 初始化多模态状态
       loadMultimodalStatus();
+      
+      // 保存当前滚动位置
+      const scrollY = window.scrollY;
+      const scrollX = window.scrollX;
+      
+      // 禁用背景页面滚动 - 更强的方式
+      const originalStyle = window.getComputedStyle(document.body);
+      const originalOverflow = originalStyle.overflow;
+      const originalPosition = originalStyle.position;
+      const originalTop = originalStyle.top;
+      const originalLeft = originalStyle.left;
+      const originalWidth = originalStyle.width;
+      const originalHeight = originalStyle.height;
+      
+      // 应用更强的滚动禁用样式
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = `-${scrollX}px`;
+      document.body.style.width = '100vw';
+      document.body.style.height = '100vh';
+      
+      // 添加 CSS 类以确保样式优先级
+      document.body.classList.add('modal-open');
+      document.documentElement.classList.add('modal-open');
+      
+      // 同时禁用 html 元素的滚动
+      const htmlElement = document.documentElement;
+      const htmlOriginalOverflow = htmlElement.style.overflow;
+      htmlElement.style.overflow = 'hidden';
+      
+      // 阻止所有滚动事件
+      const preventScroll = (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      };
+      
+      const preventTouchMove = (e: TouchEvent) => {
+        // 只阻止非模态框内的触摸移动
+        const modalElement = document.querySelector('.smart-accounting-dialog');
+        if (modalElement && !modalElement.contains(e.target as Node)) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      };
+      
+      const preventWheel = (e: WheelEvent) => {
+        // 只阻止非模态框内的滚轮事件
+        const modalElement = document.querySelector('.smart-accounting-dialog');
+        if (modalElement && !modalElement.contains(e.target as Node)) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      };
+      
+      // 添加事件监听器
+      document.addEventListener('scroll', preventScroll, { passive: false });
+      document.addEventListener('touchmove', preventTouchMove, { passive: false });
+      document.addEventListener('wheel', preventWheel, { passive: false });
+      window.addEventListener('scroll', preventScroll, { passive: false });
+      
+      return () => {
+        // 移除事件监听器
+        document.removeEventListener('scroll', preventScroll);
+        document.removeEventListener('touchmove', preventTouchMove);
+        document.removeEventListener('wheel', preventWheel);
+        window.removeEventListener('scroll', preventScroll);
+        
+        // 移除 CSS 类
+        document.body.classList.remove('modal-open');
+        document.documentElement.classList.remove('modal-open');
+        
+        // 恢复背景页面滚动
+        document.body.style.overflow = originalOverflow;
+        document.body.style.position = originalPosition;
+        document.body.style.top = originalTop;
+        document.body.style.left = originalLeft;
+        document.body.style.width = originalWidth;
+        document.body.style.height = originalHeight;
+        
+        // 恢复 html 元素
+        htmlElement.style.overflow = htmlOriginalOverflow;
+        
+        // 恢复滚动位置
+        window.scrollTo(scrollX, scrollY);
+      };
     }
     
     // 组件卸载时清理资源
@@ -1011,7 +1079,10 @@ export default function EnhancedSmartAccountingDialog({
   };
 
   return (
-    <div className="smart-accounting-dialog-overlay" onClick={handleOverlayClick}>
+    <div 
+      className="smart-accounting-dialog-overlay" 
+      onClick={handleOverlayClick}
+    >
       <div className="smart-accounting-dialog" style={{ position: 'relative' }}>
         <div className="smart-accounting-dialog-header">
           <h3 className="smart-accounting-dialog-title">智能记账</h3>
@@ -1060,21 +1131,16 @@ export default function EnhancedSmartAccountingDialog({
                         // 检测阈值
                         const hasAudio = audioLevel > 1;
                         
-                        // 临时调试信息 - 显示当前级别
-                        if (i === 0) {
-                          console.log('🎵 声波状态:', { audioLevel: audioLevel.toFixed(2), hasAudio });
-                        }
-                        
                         // 提高音量映射敏感度
                         const volumeMultiplier = hasAudio ? 
-                          Math.pow(audioLevel / 100, 0.5) * (maxHeight - baseHeight) : 0; // 从0.7改为0.5，提高敏感度
+                          Math.pow(audioLevel / 100, 0.5) * (maxHeight - baseHeight) : 0;
                         
                         // 增加波形动画幅度
                         let waveOffset = 0;
                         if (hasAudio) {
-                          const frequency = 0.007 + i * 0.003; // 稍微增加频率变化
+                          const frequency = 0.007 + i * 0.003;
                           const phase = i * Math.PI / 3; 
-                          const amplitude = Math.max(1, audioLevel * 0.12); // 从0.08提高到0.12
+                          const amplitude = Math.max(1, audioLevel * 0.12);
                           waveOffset = Math.sin(animationTime * frequency + phase) * amplitude;
                         }
                         
@@ -1091,9 +1157,9 @@ export default function EnhancedSmartAccountingDialog({
                         
                         // 提高透明度变化敏感度
                         const opacity = hasAudio ? 
-                          Math.max(0.7, Math.min(1, 0.7 + audioLevel / 100 * 0.3)) : 0.4; // 变化范围增加
+                          Math.max(0.7, Math.min(1, 0.7 + audioLevel / 100 * 0.3)) : 0.4;
                         const scale = hasAudio ? 
-                          0.9 + (audioLevel / 100) * 0.1 : 0.8; // 缩放变化增加
+                          0.9 + (audioLevel / 100) * 0.1 : 0.8;
                         
                         return (
                           <div
@@ -1104,7 +1170,7 @@ export default function EnhancedSmartAccountingDialog({
                               backgroundColor: color,
                               opacity: opacity,
                               transform: `scaleY(${scale})`,
-                              boxShadow: audioLevel > 15 ? `0 0 6px ${color}60` : 'none', // 降低发光阈值
+                              boxShadow: audioLevel > 15 ? `0 0 6px ${color}60` : 'none',
                               transition: hasAudio ? 'none' : 'all 0.3s ease'
                             }}
                           />

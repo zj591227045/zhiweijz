@@ -356,12 +356,101 @@ export function SmartAccountingDialog({
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState<string | null>(null);
 
-  // 重置表单
+  // 重置表单和禁用背景滚动
   useEffect(() => {
     if (isOpen) {
       setDescription('');
       setIsProcessing(false);
       setProcessingStep(null);
+      
+      // 保存当前滚动位置
+      const scrollY = window.scrollY;
+      const scrollX = window.scrollX;
+      
+      // 禁用背景页面滚动 - 更强的方式
+      const originalStyle = window.getComputedStyle(document.body);
+      const originalOverflow = originalStyle.overflow;
+      const originalPosition = originalStyle.position;
+      const originalTop = originalStyle.top;
+      const originalLeft = originalStyle.left;
+      const originalWidth = originalStyle.width;
+      const originalHeight = originalStyle.height;
+      
+      // 应用更强的滚动禁用样式
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = `-${scrollX}px`;
+      document.body.style.width = '100vw';
+      document.body.style.height = '100vh';
+      
+      // 添加 CSS 类以确保样式优先级
+      document.body.classList.add('modal-open');
+      document.documentElement.classList.add('modal-open');
+      
+      // 同时禁用 html 元素的滚动
+      const htmlElement = document.documentElement;
+      const htmlOriginalOverflow = htmlElement.style.overflow;
+      htmlElement.style.overflow = 'hidden';
+      
+      // 阻止所有滚动事件
+      const preventScroll = (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      };
+      
+      const preventTouchMove = (e: TouchEvent) => {
+        // 只阻止非模态框内的触摸移动
+        const modalElement = document.querySelector('.smart-accounting-dialog');
+        if (modalElement && !modalElement.contains(e.target as Node)) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      };
+      
+      const preventWheel = (e: WheelEvent) => {
+        // 只阻止非模态框内的滚轮事件
+        const modalElement = document.querySelector('.smart-accounting-dialog');
+        if (modalElement && !modalElement.contains(e.target as Node)) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      };
+      
+      // 添加事件监听器
+      document.addEventListener('scroll', preventScroll, { passive: false });
+      document.addEventListener('touchmove', preventTouchMove, { passive: false });
+      document.addEventListener('wheel', preventWheel, { passive: false });
+      window.addEventListener('scroll', preventScroll, { passive: false });
+      
+      return () => {
+        // 移除事件监听器
+        document.removeEventListener('scroll', preventScroll);
+        document.removeEventListener('touchmove', preventTouchMove);
+        document.removeEventListener('wheel', preventWheel);
+        window.removeEventListener('scroll', preventScroll);
+        
+        // 移除 CSS 类
+        document.body.classList.remove('modal-open');
+        document.documentElement.classList.remove('modal-open');
+        
+        // 恢复背景页面滚动
+        document.body.style.overflow = originalOverflow;
+        document.body.style.position = originalPosition;
+        document.body.style.top = originalTop;
+        document.body.style.left = originalLeft;
+        document.body.style.width = originalWidth;
+        document.body.style.height = originalHeight;
+        
+        // 恢复 html 元素
+        htmlElement.style.overflow = htmlOriginalOverflow;
+        
+        // 恢复滚动位置
+        window.scrollTo(scrollX, scrollY);
+      };
     }
   }, [isOpen]);
 
@@ -578,7 +667,10 @@ export function SmartAccountingDialog({
   };
 
   return (
-    <div className="smart-accounting-dialog-overlay" onClick={handleOverlayClick}>
+    <div 
+      className="smart-accounting-dialog-overlay" 
+      onClick={handleOverlayClick}
+    >
       <div className="smart-accounting-dialog">
         <div className="smart-accounting-dialog-header">
           <h3 className="smart-accounting-dialog-title">智能记账</h3>
