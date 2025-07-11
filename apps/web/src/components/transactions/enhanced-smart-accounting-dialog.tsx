@@ -19,7 +19,7 @@ import {
   showPermissionGuide,
   checkMicrophonePermissionStatus
 } from '@/utils/microphone-permissions';
-import {
+import { 
   parseError,
   showError,
   showSuccess,
@@ -29,6 +29,7 @@ import {
   MultimodalErrorType,
   isRetryableError,
 } from '@/utils/multimodal-error-handler';
+import { SmartAccountingProgressManager } from '@/components/transactions/smart-accounting-dialog';
 import { 
   MicrophoneIcon, 
   EyeIcon, 
@@ -97,17 +98,67 @@ export default function EnhancedSmartAccountingDialog({
   const [touchStartPos, setTouchStartPos] = useState<{ x: number; y: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const micButtonRef = useRef<HTMLButtonElement>(null);
+  const [isButtonTouched, setIsButtonTouched] = useState(false);
+  const [audioLevel, setAudioLevel] = useState(0);
+  const audioAnalyserRef = useRef<AnalyserNode | null>(null);
+  const audioDataRef = useRef<Uint8Array | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const recordingCancelledRef = useRef(false);
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  // 音频分析器设置
+  const setupAudioAnalyser = (stream: MediaStream) => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const analyser = audioContext.createAnalyser();
+      const source = audioContext.createMediaStreamSource(stream);
+      
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.8;
+      source.connect(analyser);
+      
+      audioAnalyserRef.current = analyser;
+      audioDataRef.current = new Uint8Array(analyser.frequencyBinCount);
+      
+      // 开始分析音频
+      analyzeAudio();
+    } catch (error) {
+      console.error('设置音频分析器失败:', error);
+    }
+  };
+
+  // 分析音频数据
+  const analyzeAudio = () => {
+    if (!audioAnalyserRef.current || !audioDataRef.current) return;
+    
+    audioAnalyserRef.current.getByteFrequencyData(audioDataRef.current);
+    
+    // 计算音频强度
+    const average = audioDataRef.current.reduce((sum, value) => sum + value, 0) / audioDataRef.current.length;
+    const normalizedLevel = Math.min(100, (average / 128) * 100);
+    
+    setAudioLevel(normalizedLevel);
+    
+    if (isRecording) {
+      animationFrameRef.current = requestAnimationFrame(analyzeAudio);
+    }
+  };
+
+  // 清理音频分析器
+  const cleanupAudioAnalyser = () => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    audioAnalyserRef.current = null;
+    audioDataRef.current = null;
+    setAudioLevel(0);
+  };
 
   // 新增状态：滑动手势检测
   const [gestureType, setGestureType] = useState<'none' | 'cancel' | 'fill-text'>('none');
   const [showGestureHint, setShowGestureHint] = useState(false);
   const gestureTypeRef = useRef<'none' | 'cancel' | 'fill-text'>('none');
-
-
-
-
-
-
 
   // 初始化多模态状态
   const loadMultimodalStatus = async () => {
@@ -171,7 +222,12 @@ export default function EnhancedSmartAccountingDialog({
 
       console.log('🎤 麦克风权限获取成功，开始录音...');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // 设置音频分析器
+      setupAudioAnalyser(stream);
+      
       const chunks: Blob[] = [];
+      audioChunksRef.current = chunks;
       const recorder = new MediaRecorder(stream);
 
       // 添加超时保护
@@ -193,6 +249,9 @@ export default function EnhancedSmartAccountingDialog({
         console.log('🎤 [MediaRecorder] 录音停止事件触发');
         clearTimeout(recordingTimeout);
         
+        // 清理音频分析器
+        cleanupAudioAnalyser();
+        
         // 停止所有音频轨道
         stream.getTracks().forEach(track => {
           console.log('🎤 [MediaRecorder] 停止音频轨道:', track.label);
@@ -202,15 +261,29 @@ export default function EnhancedSmartAccountingDialog({
         // 确保UI状态更新
         setIsRecording(false);
         setMediaRecorder(null);
+        setIsButtonTouched(false);
 
-        // 只有在没有取消的情况下才进行语音识别
-        if (!recordingCancelled && chunks.length > 0) {
-          console.log('🎤 [MediaRecorder] 开始语音识别，音频块数:', chunks.length);
-          const audioBlob = new Blob(chunks, { type: 'audio/webm' });
-          handleSpeechRecognition(audioBlob, gestureTypeRef.current);
+        // 使用 ref 来检查取消状态，避免闭包问题
+        const currentChunks = audioChunksRef.current;
+        const currentGestureType = gestureTypeRef.current;
+        console.log('🎤 [MediaRecorder] 检查状态:', {
+          recordingCancelled: recordingCancelledRef.current,
+          chunksLength: currentChunks?.length || 0,
+          gestureType: currentGestureType
+        });
+        
+        if (!recordingCancelledRef.current && currentChunks && currentChunks.length > 0) {
+          console.log('🎤 [MediaRecorder] 开始语音识别，音频块数:', currentChunks.length, '手势类型:', currentGestureType);
+          const audioBlob = new Blob(currentChunks, { type: 'audio/webm' });
+          handleSpeechRecognition(audioBlob, currentGestureType);
         } else {
-          console.log('🎤 [MediaRecorder] 跳过语音识别，取消状态:', recordingCancelled, '音频块数:', chunks.length);
+          console.log('🎤 [MediaRecorder] 跳过语音识别，取消状态:', recordingCancelledRef.current, '音频块数:', currentChunks?.length || 0);
         }
+        
+        // 在处理完成后重置手势状态
+        setTimeout(() => {
+          gestureTypeRef.current = 'none';
+        }, 100);
       };
 
       recorder.onerror = (event) => {
@@ -233,6 +306,7 @@ export default function EnhancedSmartAccountingDialog({
       setAudioChunks(chunks);
       setIsRecording(true);
       setRecordingCancelled(false);
+      recordingCancelledRef.current = false;
       
       // 重置手势状态
       setGestureType('none');
@@ -261,6 +335,9 @@ export default function EnhancedSmartAccountingDialog({
       gestureType
     });
     
+    // 确保手势类型同步到 ref
+    gestureTypeRef.current = gestureType;
+    
     if (mediaRecorder && mediaRecorder.state === 'recording') {
       console.log('🎤 [StopRecording] 正在停止MediaRecorder...');
       mediaRecorder.stop();
@@ -269,7 +346,11 @@ export default function EnhancedSmartAccountingDialog({
     // 立即更新UI状态
     setIsRecording(false);
     setMediaRecorder(null);
+    setIsButtonTouched(false);
     setTouchStartPos(null);
+    
+    // 清理音频分析器
+    cleanupAudioAnalyser();
     
     console.log('🎤 [StopRecording] 录音状态已重置');
   };
@@ -278,6 +359,10 @@ export default function EnhancedSmartAccountingDialog({
   const cancelRecording = () => {
     console.log('🎤 [CancelRecording] 取消录音');
     setRecordingCancelled(true);
+    recordingCancelledRef.current = true;
+    
+    // 清空音频块数据，确保不会被处理
+    audioChunksRef.current = [];
     
     if (mediaRecorder && mediaRecorder.state === 'recording') {
       console.log('🎤 [CancelRecording] 停止MediaRecorder...');
@@ -287,7 +372,12 @@ export default function EnhancedSmartAccountingDialog({
     // 立即更新UI状态
     setIsRecording(false);
     setMediaRecorder(null);
+    setIsButtonTouched(false);
     setTouchStartPos(null);
+    
+    // 清理音频分析器
+    cleanupAudioAnalyser();
+    
     showInfo('录音已取消');
     
     console.log('🎤 [CancelRecording] 录音已取消，状态已重置');
@@ -299,6 +389,7 @@ export default function EnhancedSmartAccountingDialog({
     console.log('🎤 [TouchStart] 触摸开始');
     const touch = e.touches[0];
     setTouchStartPos({ x: touch.clientX, y: touch.clientY });
+    setIsButtonTouched(true);
     startRecording();
   };
 
@@ -346,6 +437,8 @@ export default function EnhancedSmartAccountingDialog({
     e.preventDefault();
     console.log('🎤 [TouchEnd] 触摸结束，当前状态:', { isRecording, recordingCancelled, gestureType });
     
+    setIsButtonTouched(false);
+    
     if (isRecording && !recordingCancelled) {
       if (gestureType === 'cancel') {
         // 上滑取消录音
@@ -362,7 +455,8 @@ export default function EnhancedSmartAccountingDialog({
 
     // 重置手势状态
     setGestureType('none');
-    gestureTypeRef.current = 'none';
+    // 注意：不要立即重置 gestureTypeRef.current，因为 MediaRecorder.onstop 可能还没有执行
+    // gestureTypeRef.current 将在 MediaRecorder.onstop 事件处理完成后重置
     setShowGestureHint(false);
   };
 
@@ -371,6 +465,7 @@ export default function EnhancedSmartAccountingDialog({
     e.preventDefault();
     console.log('🎤 [MouseDown] 鼠标按下');
     setTouchStartPos({ x: e.clientX, y: e.clientY });
+    setIsButtonTouched(true);
     startRecording();
   };
 
@@ -415,6 +510,8 @@ export default function EnhancedSmartAccountingDialog({
     e.preventDefault();
     console.log('🎤 [MouseUp] 鼠标释放，当前状态:', { isRecording, recordingCancelled, gestureType });
     
+    setIsButtonTouched(false);
+    
     if (isRecording && !recordingCancelled) {
       if (gestureType === 'cancel') {
         // 上移取消录音
@@ -431,12 +528,15 @@ export default function EnhancedSmartAccountingDialog({
 
     // 重置手势状态
     setGestureType('none');
-    gestureTypeRef.current = 'none';
+    // 注意：不要立即重置 gestureTypeRef.current，因为 MediaRecorder.onstop 可能还没有执行
+    // gestureTypeRef.current 将在 MediaRecorder.onstop 事件处理完成后重置
     setShowGestureHint(false);
   };
 
   // 处理语音识别
   const handleSpeechRecognition = async (audioBlob: Blob, gestureType: 'none' | 'cancel' | 'fill-text') => {
+    console.log('🎤 [SpeechRecognition] 开始处理语音识别，手势类型:', gestureType);
+    
     if (!accountBookId) {
       toast.error('请先选择账本');
       return;
@@ -458,22 +558,80 @@ export default function EnhancedSmartAccountingDialog({
 
       if (response && response.data && response.data.text) {
         const recognizedText = response.data.text;
-        setDescription(recognizedText);
-        showSuccess('语音识别成功');
-
+        
         // 根据手势类型执行不同操作
         if (gestureType === 'cancel') {
           // 取消录音的情况下，不应该到这里，这里只是保护性代码
           console.log('🎤 [SpeechRecognition] 录音已取消，跳过处理');
           return;
         } else if (gestureType === 'fill-text') {
-          // 填入文本框，不自动调用记账
+          // 下滑手势：仅填入文本框，不自动调用记账
+          console.log('🎤 [SpeechRecognition] 下滑手势：仅填入文本框');
           setDescription(recognizedText);
           showSuccess('语音已转换为文字');
+          // 注意：这里不调用任何记账逻辑
         } else {
-          // 正常结束录音，直接调用记账
+          // 正常松开手势：直接调用记账
+          console.log('🎤 [SpeechRecognition] 正常松开手势：直接记账');
+          
+          // 生成唯一进度ID
+          const progressId = `voice-direct-add-${Date.now()}`;
+          
+          // 获取智能记账进度管理器实例
+          const progressManager = SmartAccountingProgressManager.getInstance();
+          
+          // 显示进度通知并立即关闭模态框
+          progressManager.showProgress(progressId, '正在启动智能记账...');
+          onClose(); // 立即关闭模态框
+          
+          // 设置识别的文本到描述框（为了保持一致性）
           setDescription(recognizedText);
-          await handleSmartAccountingWithText(recognizedText);
+          
+          // 调用直接添加记账API
+          try {
+            const response = await apiClient.post(
+              `/ai/account/${accountBookId}/smart-accounting/direct`,
+              { description: recognizedText },
+              { timeout: 60000 }
+            );
+
+            if (response && response.id) {
+              progressManager.showProgress(progressId, '记账成功', 'success');
+
+              // 刷新仪表盘数据
+              if (accountBookId) {
+                try {
+                  await refreshDashboardData(accountBookId);
+                } catch (refreshError) {
+                  console.error('刷新仪表盘数据失败:', refreshError);
+                }
+              }
+
+              // 清空描述
+              setDescription('');
+            } else {
+              progressManager.showProgress(progressId, '记账失败，请手动填写', 'error');
+            }
+          } catch (error: any) {
+            console.error('语音直接记账失败:', error);
+            
+            let errorMessage = '记账失败，请重试';
+            
+            if (error.response) {
+              const errorData = error.response.data;
+              if (error.response.status === 429 && errorData?.type === 'TOKEN_LIMIT_EXCEEDED') {
+                errorMessage = `${errorData.error || 'Token使用量已达限额，请稍后再试'}`;
+              } else if (errorData?.info && errorData.info.includes('记账无关')) {
+                errorMessage = '您的描述似乎与记账无关，请尝试描述具体的消费或收入情况';
+              } else {
+                errorMessage = `记账失败: ${errorData?.error || errorData?.message || '服务器错误'}`;
+              }
+            } else if (error.request) {
+              errorMessage = '网络连接异常，请检查网络后重试';
+            }
+            
+            progressManager.showProgress(progressId, errorMessage, 'error');
+          }
         }
       } else {
         showError(createError(
@@ -630,10 +788,17 @@ export default function EnhancedSmartAccountingDialog({
       return;
     }
 
-    try {
-      setIsProcessing(true);
-      setProcessingStep('正在创建交易记录...');
+    // 生成唯一进度ID
+    const progressId = `direct-add-${Date.now()}`;
+    
+    // 获取智能记账进度管理器实例
+    const progressManager = SmartAccountingProgressManager.getInstance();
+    
+    // 显示进度通知并立即关闭模态框
+    progressManager.showProgress(progressId, '正在启动智能记账...');
+    onClose(); // 立即关闭模态框
 
+    try {
       // 调用直接添加记账API
       const response = await apiClient.post(
         `/ai/account/${accountBookId}/smart-accounting/direct`,
@@ -642,7 +807,7 @@ export default function EnhancedSmartAccountingDialog({
       );
 
       if (response && response.id) {
-        toast.success('记账成功');
+        progressManager.showProgress(progressId, '记账成功', 'success');
 
         // 刷新仪表盘数据
         if (accountBookId) {
@@ -653,10 +818,9 @@ export default function EnhancedSmartAccountingDialog({
           }
         }
 
-        onClose();
         setDescription('');
       } else {
-        toast.error('记账失败，请手动填写');
+        progressManager.showProgress(progressId, '记账失败，请手动填写', 'error');
       }
     } catch (error: any) {
       console.error('直接添加记账失败:', error);
@@ -677,10 +841,7 @@ export default function EnhancedSmartAccountingDialog({
         errorMessage = '网络连接异常，请检查网络后重试';
       }
 
-      toast.error(errorMessage);
-    } finally {
-      setIsProcessing(false);
-      setProcessingStep('');
+      progressManager.showProgress(progressId, errorMessage, 'error');
     }
   };
 
@@ -704,7 +865,14 @@ export default function EnhancedSmartAccountingDialog({
       // 初始化多模态状态
       loadMultimodalStatus();
     }
-  }, [isOpen]);
+    
+    // 组件卸载时清理资源
+    return () => {
+      if (isRecording) {
+        cleanupAudioAnalyser();
+      }
+    };
+  }, [isOpen, isRecording]);
 
   if (!isOpen) return null;
 
@@ -751,44 +919,22 @@ export default function EnhancedSmartAccountingDialog({
 
               {/* 录音状态提示 */}
               {isRecording && (
-                <div style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                  color: 'white',
-                  padding: '20px',
-                  borderRadius: '12px',
-                  textAlign: 'center',
-                  zIndex: 1000,
-                  minWidth: '200px'
-                }}>
-                  <div style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    backgroundColor: 'var(--error-color, #ef4444)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 12px',
-                    animation: 'recordingPulse 1.5s ease-in-out infinite'
-                  }}>
-                    <i className="fas fa-microphone" style={{ fontSize: '16px', color: 'white' }}></i>
+                <div className="recording-indicator">
+                  <div className="icon-container">
+                    <i className="fas fa-microphone"></i>
                   </div>
-                  <p style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: 'bold' }}>
+                  <p className="title">
                     正在录音...
                   </p>
                   {showGestureHint && (
-                    <p style={{ margin: 0, fontSize: '12px', opacity: 0.9 }}>
+                    <p className="hint gesture-hint">
                       {gestureType === 'cancel' ? '松开取消录音' : 
                        gestureType === 'fill-text' ? '松开填入文本框' : 
                        '松开转换文字并记账'}
                     </p>
                   )}
                   {!showGestureHint && (
-                    <p style={{ margin: 0, fontSize: '12px', opacity: 0.7 }}>
+                    <p className="default-hint">
                       上滑取消 • 下滑填入文本框 • 松开直接记账
                     </p>
                   )}
@@ -880,6 +1026,7 @@ export default function EnhancedSmartAccountingDialog({
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseUp} // 鼠标离开按钮区域时也停止录音
+                    className={`mic-button ${isRecording ? 'recording' : ''} ${isButtonTouched ? 'touched' : ''}`}
                     style={{
                       width: '48px',
                       height: '48px',
@@ -895,20 +1042,71 @@ export default function EnhancedSmartAccountingDialog({
                       alignItems: 'center',
                       justifyContent: 'center',
                       boxShadow: isRecording ? '0 4px 16px rgba(239, 68, 68, 0.4)' : '0 2px 8px rgba(0, 0, 0, 0.1)',
-                      transform: isRecording ? 'scale(1.1)' : 'scale(1)',
+                      transform: isRecording ? 'scale(1.1)' : (isButtonTouched ? 'scale(1.05)' : 'scale(1)'),
                       userSelect: 'none',
                       WebkitUserSelect: 'none',
-                      WebkitTouchCallout: 'none'
+                      WebkitTouchCallout: 'none',
+                      position: 'relative',
+                      overflow: 'hidden'
                     }}
                     title={isRecording ? '松开停止录音，向上滑动取消' : '长按开始语音记账'}
                   >
-                    {isProcessingMultimodal ? (
-                      <i className="fas fa-spinner fa-spin"></i>
-                    ) : isRecording ? (
-                      <i className="fas fa-stop"></i>
-                    ) : (
-                      <i className="fas fa-microphone"></i>
+                    {/* 背景呼吸效果 */}
+                    {isRecording && (
+                      <div
+                        className="breathing-effect"
+                        style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          width: '100%',
+                          height: '100%',
+                          borderRadius: '12px',
+                          background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 50%, transparent 70%)',
+                          animation: 'breathe 2s ease-in-out infinite'
+                        }}
+                      />
                     )}
+                    
+                    {/* 音频可视化 */}
+                    {isRecording && (
+                      <div
+                        className="audio-visualizer"
+                        style={{
+                          position: 'absolute',
+                          bottom: '2px',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          width: '80%',
+                          height: '4px',
+                          backgroundColor: 'rgba(255,255,255,0.3)',
+                          borderRadius: '2px',
+                          overflow: 'hidden'
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${Math.max(5, audioLevel)}%`,
+                            height: '100%',
+                            backgroundColor: 'white',
+                            borderRadius: '2px',
+                            transition: 'width 0.1s ease'
+                          }}
+                        />
+                      </div>
+                    )}
+                    
+                    {/* 图标 */}
+                    <div style={{ position: 'relative', zIndex: 1 }}>
+                      {isProcessingMultimodal ? (
+                        <i className="fas fa-spinner fa-spin"></i>
+                      ) : isRecording ? (
+                        <i className="fas fa-stop"></i>
+                      ) : (
+                        <i className="fas fa-microphone"></i>
+                      )}
+                    </div>
                   </button>
                 </div>
               </div>

@@ -271,6 +271,136 @@
   }
 }
 
+/* 麦克风按钮增强样式 */
+.mic-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.mic-button.touched {
+  transform: scale(1.05) !important;
+}
+
+.mic-button.recording {
+  transform: scale(1.1) !important;
+  animation: recordingPulse 2s ease-in-out infinite;
+}
+
+/* 呼吸效果 */
+@keyframes breathe {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.1;
+  }
+}
+
+/* 录音指示器增强 */
+.recording-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  z-index: 1000;
+  min-width: 200px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.recording-indicator .icon-container {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--error-color, #ef4444);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.recording-indicator .icon-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+  animation: breathe 2s ease-in-out infinite;
+}
+
+.recording-indicator .icon-container i {
+  font-size: 20px;
+  color: white;
+  position: relative;
+  z-index: 1;
+}
+
+.recording-indicator .title {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.recording-indicator .hint {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.recording-indicator .default-hint {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* 音频可视化条 */
+.audio-visualizer {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.audio-level-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #f59e0b, #ef4444);
+  border-radius: 2px;
+  transition: width 0.1s ease;
+  min-width: 8px;
+}
+
+/* 手势提示增强 */
+.gesture-hint {
+  animation: fadeInScale 0.3s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* 多模态输入选项样式 */
 .multimodal-input-options {
   display: flex;

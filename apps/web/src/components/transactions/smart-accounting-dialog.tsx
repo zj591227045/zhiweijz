@@ -639,3 +639,6 @@ export function SmartAccountingDialog({
     </div>
   );
 }
+
+// 导出进度管理器供其他组件使用
+export { SmartAccountingProgressManager };
