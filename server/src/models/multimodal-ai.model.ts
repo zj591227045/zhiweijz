@@ -141,8 +141,9 @@ export interface MultimodalAICallLog {
 
 /**
  * 支持的语音文件格式
+ * Updated to include webm support
  */
-export const SUPPORTED_AUDIO_FORMATS = ['mp3', 'wav', 'm4a', 'flac', 'aac'] as const;
+export const SUPPORTED_AUDIO_FORMATS = ['mp3', 'wav', 'm4a', 'flac', 'aac', 'webm'] as const;
 
 /**
  * 支持的图片文件格式

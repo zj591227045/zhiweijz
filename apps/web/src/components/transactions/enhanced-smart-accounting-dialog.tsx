@@ -11,11 +11,14 @@ import {
   getOptimalRecordingConfig,
   isMediaRecordingSupported,
   isFileSelectionSupported,
-  requestMediaPermissions,
-  validateFileFormat,
   PlatformType,
   MediaCapabilities,
 } from '@/utils/multimodal-platform-utils';
+import {
+  ensureMicrophonePermission,
+  showPermissionGuide,
+  checkMicrophonePermissionStatus
+} from '@/utils/microphone-permissions';
 import {
   parseError,
   showError,
@@ -95,6 +98,11 @@ export default function EnhancedSmartAccountingDialog({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const micButtonRef = useRef<HTMLButtonElement>(null);
 
+  // 新增状态：滑动手势检测
+  const [gestureType, setGestureType] = useState<'none' | 'cancel' | 'fill-text'>('none');
+  const [showGestureHint, setShowGestureHint] = useState(false);
+  const gestureTypeRef = useRef<'none' | 'cancel' | 'fill-text'>('none');
+
 
 
 
@@ -129,24 +137,95 @@ export default function EnhancedSmartAccountingDialog({
         return;
       }
 
+      // 首先请求麦克风权限
+      console.log('🎤 开始请求麦克风权限...');
+      const permissionResult = await ensureMicrophonePermission();
+      
+      if (!permissionResult.granted) {
+        console.error('🎤 麦克风权限被拒绝:', permissionResult.error);
+        
+        // 检查当前环境
+        const isAndroid = typeof window !== 'undefined' && 
+                         (window as any).Capacitor?.getPlatform?.() === 'android';
+        
+        if (permissionResult.canRetry) {
+          showError(createError(
+            MultimodalErrorType.PERMISSION_DENIED,
+            permissionResult.error || '麦克风权限被拒绝'
+          ));
+          
+          // 如果是Android环境，显示详细的权限指导
+          if (isAndroid) {
+            setTimeout(() => {
+              showPermissionGuide(true);
+            }, 2000);
+          }
+        } else {
+          showError(createError(
+            MultimodalErrorType.PLATFORM_NOT_SUPPORTED,
+            permissionResult.error || '麦克风功能不可用'
+          ));
+        }
+        return;
+      }
+
+      console.log('🎤 麦克风权限获取成功，开始录音...');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const chunks: Blob[] = [];
       const recorder = new MediaRecorder(stream);
 
+      // 添加超时保护
+      const recordingTimeout = setTimeout(() => {
+        console.log('🎤 [StartRecording] 录音超时，自动停止');
+        if (recorder.state === 'recording') {
+          recorder.stop();
+        }
+      }, 60000); // 60秒超时
+
       recorder.ondataavailable = (event) => {
+        console.log('🎤 [MediaRecorder] 数据可用:', event.data.size);
         if (event.data.size > 0) {
           chunks.push(event.data);
         }
       };
 
       recorder.onstop = () => {
-        stream.getTracks().forEach(track => track.stop());
+        console.log('🎤 [MediaRecorder] 录音停止事件触发');
+        clearTimeout(recordingTimeout);
+        
+        // 停止所有音频轨道
+        stream.getTracks().forEach(track => {
+          console.log('🎤 [MediaRecorder] 停止音频轨道:', track.label);
+          track.stop();
+        });
+
+        // 确保UI状态更新
+        setIsRecording(false);
+        setMediaRecorder(null);
 
         // 只有在没有取消的情况下才进行语音识别
         if (!recordingCancelled && chunks.length > 0) {
+          console.log('🎤 [MediaRecorder] 开始语音识别，音频块数:', chunks.length);
           const audioBlob = new Blob(chunks, { type: 'audio/webm' });
-          handleSpeechRecognition(audioBlob);
+          handleSpeechRecognition(audioBlob, gestureTypeRef.current);
+        } else {
+          console.log('🎤 [MediaRecorder] 跳过语音识别，取消状态:', recordingCancelled, '音频块数:', chunks.length);
         }
+      };
+
+      recorder.onerror = (event) => {
+        console.error('🎤 [MediaRecorder] 录音错误:', event);
+        clearTimeout(recordingTimeout);
+        
+        // 清理资源
+        stream.getTracks().forEach(track => track.stop());
+        setIsRecording(false);
+        setMediaRecorder(null);
+        
+        showError(createError(
+          MultimodalErrorType.RECORDING_FAILED,
+          '录音过程中发生错误'
+        ));
       };
 
       recorder.start();
@@ -154,39 +233,70 @@ export default function EnhancedSmartAccountingDialog({
       setAudioChunks(chunks);
       setIsRecording(true);
       setRecordingCancelled(false);
+      
+      // 重置手势状态
+      setGestureType('none');
+      gestureTypeRef.current = 'none';
+      setShowGestureHint(false);
 
+      console.log('🎤 [StartRecording] 录音已启动，状态:', recorder.state);
       showInfo('正在录音，松开停止，向上滑动取消');
     } catch (error) {
       console.error('启动录音失败:', error);
+      
+      // 确保状态重置
+      setIsRecording(false);
+      setMediaRecorder(null);
+      
       showError(error);
     }
   };
 
   // 停止录音（松开手指）
-  const stopRecording = () => {
+  const stopRecording = (gestureType: 'none' | 'cancel' | 'fill-text' = 'none') => {
+    console.log('🎤 [StopRecording] 调用停止录音，当前状态:', {
+      mediaRecorder: mediaRecorder?.state,
+      isRecording,
+      recordingCancelled,
+      gestureType
+    });
+    
     if (mediaRecorder && mediaRecorder.state === 'recording') {
+      console.log('🎤 [StopRecording] 正在停止MediaRecorder...');
       mediaRecorder.stop();
-      setIsRecording(false);
-      setMediaRecorder(null);
-      setTouchStartPos(null);
     }
+    
+    // 立即更新UI状态
+    setIsRecording(false);
+    setMediaRecorder(null);
+    setTouchStartPos(null);
+    
+    console.log('🎤 [StopRecording] 录音状态已重置');
   };
 
   // 取消录音
   const cancelRecording = () => {
+    console.log('🎤 [CancelRecording] 取消录音');
     setRecordingCancelled(true);
+    
     if (mediaRecorder && mediaRecorder.state === 'recording') {
+      console.log('🎤 [CancelRecording] 停止MediaRecorder...');
       mediaRecorder.stop();
-      setIsRecording(false);
-      setMediaRecorder(null);
-      setTouchStartPos(null);
-      showInfo('录音已取消');
     }
+    
+    // 立即更新UI状态
+    setIsRecording(false);
+    setMediaRecorder(null);
+    setTouchStartPos(null);
+    showInfo('录音已取消');
+    
+    console.log('🎤 [CancelRecording] 录音已取消，状态已重置');
   };
 
   // 处理触摸开始
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
+    console.log('🎤 [TouchStart] 触摸开始');
     const touch = e.touches[0];
     setTouchStartPos({ x: touch.clientX, y: touch.clientY });
     startRecording();
@@ -200,23 +310,66 @@ export default function EnhancedSmartAccountingDialog({
     const deltaY = touchStartPos.y - touch.clientY;
     const deltaX = Math.abs(touch.clientX - touchStartPos.x);
 
-    // 向上滑动超过50px且水平移动不超过30px时取消录音
-    if (deltaY > 50 && deltaX < 30) {
-      cancelRecording();
+    console.log('🎤 [TouchMove] 触摸移动:', { deltaY, deltaX });
+
+    // 检测手势类型
+    if (Math.abs(deltaY) > 30 && deltaX < 50) { // 垂直滑动，水平偏移不超过50px
+      if (deltaY > 50) {
+        // 向上滑动 - 取消录音
+        if (gestureTypeRef.current !== 'cancel') {
+          setGestureType('cancel');
+          gestureTypeRef.current = 'cancel';
+          setShowGestureHint(true);
+          console.log('🎤 [TouchMove] 检测到取消手势');
+        }
+      } else if (deltaY < -50) {
+        // 向下滑动 - 填入文本框
+        if (gestureTypeRef.current !== 'fill-text') {
+          setGestureType('fill-text');
+          gestureTypeRef.current = 'fill-text';
+          setShowGestureHint(true);
+          console.log('🎤 [TouchMove] 检测到填入文本手势');
+        }
+      }
+    } else if (Math.abs(deltaY) < 30) {
+      // 没有明显的垂直滑动
+      if (gestureTypeRef.current !== 'none') {
+        setGestureType('none');
+        gestureTypeRef.current = 'none';
+        setShowGestureHint(false);
+      }
     }
   };
 
   // 处理触摸结束
   const handleTouchEnd = (e: React.TouchEvent) => {
     e.preventDefault();
+    console.log('🎤 [TouchEnd] 触摸结束，当前状态:', { isRecording, recordingCancelled, gestureType });
+    
     if (isRecording && !recordingCancelled) {
-      stopRecording();
+      if (gestureType === 'cancel') {
+        // 上滑取消录音
+        console.log('🎤 [TouchEnd] 执行取消录音');
+        cancelRecording();
+      } else {
+        // 松开停止录音，根据手势类型决定后续操作
+        console.log('🎤 [TouchEnd] 正常结束录音，手势类型:', gestureType);
+        stopRecording(gestureType);
+      }
+    } else {
+      console.log('🎤 [TouchEnd] 录音已取消或未在录音状态');
     }
+
+    // 重置手势状态
+    setGestureType('none');
+    gestureTypeRef.current = 'none';
+    setShowGestureHint(false);
   };
 
   // 处理鼠标事件（桌面端）
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
+    console.log('🎤 [MouseDown] 鼠标按下');
     setTouchStartPos({ x: e.clientX, y: e.clientY });
     startRecording();
   };
@@ -227,21 +380,63 @@ export default function EnhancedSmartAccountingDialog({
     const deltaY = touchStartPos.y - e.clientY;
     const deltaX = Math.abs(e.clientX - touchStartPos.x);
 
-    // 向上移动超过50px且水平移动不超过30px时取消录音
-    if (deltaY > 50 && deltaX < 30) {
-      cancelRecording();
+    console.log('🎤 [MouseMove] 鼠标移动:', { deltaY, deltaX });
+
+    // 检测手势类型（与触摸相同）
+    if (Math.abs(deltaY) > 30 && deltaX < 50) { // 垂直移动，水平偏移不超过50px
+      if (deltaY > 50) {
+        // 向上移动 - 取消录音
+        if (gestureTypeRef.current !== 'cancel') {
+          setGestureType('cancel');
+          gestureTypeRef.current = 'cancel';
+          setShowGestureHint(true);
+          console.log('🎤 [MouseMove] 检测到取消手势');
+        }
+      } else if (deltaY < -50) {
+        // 向下移动 - 填入文本框
+        if (gestureTypeRef.current !== 'fill-text') {
+          setGestureType('fill-text');
+          gestureTypeRef.current = 'fill-text';
+          setShowGestureHint(true);
+          console.log('🎤 [MouseMove] 检测到填入文本手势');
+        }
+      }
+    } else if (Math.abs(deltaY) < 30) {
+      // 没有明显的垂直移动
+      if (gestureTypeRef.current !== 'none') {
+        setGestureType('none');
+        gestureTypeRef.current = 'none';
+        setShowGestureHint(false);
+      }
     }
   };
 
   const handleMouseUp = (e: React.MouseEvent) => {
     e.preventDefault();
+    console.log('🎤 [MouseUp] 鼠标释放，当前状态:', { isRecording, recordingCancelled, gestureType });
+    
     if (isRecording && !recordingCancelled) {
-      stopRecording();
+      if (gestureType === 'cancel') {
+        // 上移取消录音
+        console.log('🎤 [MouseUp] 执行取消录音');
+        cancelRecording();
+      } else {
+        // 松开停止录音，根据手势类型决定后续操作
+        console.log('🎤 [MouseUp] 正常结束录音，手势类型:', gestureType);
+        stopRecording(gestureType);
+      }
+    } else {
+      console.log('🎤 [MouseUp] 录音已取消或未在录音状态');
     }
+
+    // 重置手势状态
+    setGestureType('none');
+    gestureTypeRef.current = 'none';
+    setShowGestureHint(false);
   };
 
   // 处理语音识别
-  const handleSpeechRecognition = async (audioBlob: Blob) => {
+  const handleSpeechRecognition = async (audioBlob: Blob, gestureType: 'none' | 'cancel' | 'fill-text') => {
     if (!accountBookId) {
       toast.error('请先选择账本');
       return;
@@ -261,13 +456,25 @@ export default function EnhancedSmartAccountingDialog({
         timeout: 60000,
       });
 
-      if (response && response.data) {
+      if (response && response.data && response.data.text) {
         const recognizedText = response.data.text;
         setDescription(recognizedText);
         showSuccess('语音识别成功');
 
-        // 自动调用智能记账
-        await handleSmartAccountingWithText(recognizedText);
+        // 根据手势类型执行不同操作
+        if (gestureType === 'cancel') {
+          // 取消录音的情况下，不应该到这里，这里只是保护性代码
+          console.log('🎤 [SpeechRecognition] 录音已取消，跳过处理');
+          return;
+        } else if (gestureType === 'fill-text') {
+          // 填入文本框，不自动调用记账
+          setDescription(recognizedText);
+          showSuccess('语音已转换为文字');
+        } else {
+          // 正常结束录音，直接调用记账
+          setDescription(recognizedText);
+          await handleSmartAccountingWithText(recognizedText);
+        }
       } else {
         showError(createError(
           MultimodalErrorType.RECOGNITION_FAILED,
@@ -338,7 +545,7 @@ export default function EnhancedSmartAccountingDialog({
         timeout: 60000,
       });
 
-      if (response && response.data) {
+      if (response && response.data && response.data.text) {
         const recognizedText = response.data.text;
         setDescription(recognizedText);
         showSuccess('图片识别成功');
@@ -510,7 +717,7 @@ export default function EnhancedSmartAccountingDialog({
 
   return (
     <div className="smart-accounting-dialog-overlay" onClick={handleOverlayClick}>
-      <div className="smart-accounting-dialog">
+      <div className="smart-accounting-dialog" style={{ position: 'relative' }}>
         <div className="smart-accounting-dialog-header">
           <h3 className="smart-accounting-dialog-title">智能记账</h3>
           <button className="smart-accounting-dialog-close" onClick={onClose}>
@@ -524,45 +731,6 @@ export default function EnhancedSmartAccountingDialog({
               <div className="spinner"></div>
             </div>
             <p className="smart-accounting-processing-text">{processingStep || '正在处理...'}</p>
-          </div>
-        ) : isRecording ? (
-          <div className="smart-accounting-processing">
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '16px',
-              padding: '40px 20px'
-            }}>
-              <div style={{
-                width: '60px',
-                height: '60px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--error-color, #ef4444)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                animation: 'recordingPulse 1.5s ease-in-out infinite'
-              }}>
-                <i className="fas fa-microphone" style={{ fontSize: '24px', color: 'white' }}></i>
-              </div>
-              <p style={{
-                fontSize: '16px',
-                color: 'var(--text-primary)',
-                textAlign: 'center',
-                margin: 0
-              }}>
-                正在录音...
-              </p>
-              <p style={{
-                fontSize: '14px',
-                color: 'var(--text-secondary)',
-                textAlign: 'center',
-                margin: 0
-              }}>
-                松开停止，向上滑动取消
-              </p>
-            </div>
           </div>
         ) : (
           <>
@@ -580,6 +748,52 @@ export default function EnhancedSmartAccountingDialog({
                   autoFocus
                 />
               </div>
+
+              {/* 录音状态提示 */}
+              {isRecording && (
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                  color: 'white',
+                  padding: '20px',
+                  borderRadius: '12px',
+                  textAlign: 'center',
+                  zIndex: 1000,
+                  minWidth: '200px'
+                }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--error-color, #ef4444)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 12px',
+                    animation: 'recordingPulse 1.5s ease-in-out infinite'
+                  }}>
+                    <i className="fas fa-microphone" style={{ fontSize: '16px', color: 'white' }}></i>
+                  </div>
+                  <p style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: 'bold' }}>
+                    正在录音...
+                  </p>
+                  {showGestureHint && (
+                    <p style={{ margin: 0, fontSize: '12px', opacity: 0.9 }}>
+                      {gestureType === 'cancel' ? '松开取消录音' : 
+                       gestureType === 'fill-text' ? '松开填入文本框' : 
+                       '松开转换文字并记账'}
+                    </p>
+                  )}
+                  {!showGestureHint && (
+                    <p style={{ margin: 0, fontSize: '12px', opacity: 0.7 }}>
+                      上滑取消 • 下滑填入文本框 • 松开直接记账
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div className="smart-accounting-buttons">
                 <button

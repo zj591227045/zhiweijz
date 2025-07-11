@@ -211,26 +211,57 @@ export async function requestMediaPermissions(audio: boolean = true, video: bool
       constraints.video = true;
     }
     
+    console.log('🎤 [MediaPermissions] 请求媒体流权限:', constraints);
+    
+    // 在Capacitor环境中，特别是Android，直接尝试getUserMedia
+    // 系统会自动处理权限请求
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
     
     // 立即停止流，我们只是为了获取权限
     stream.getTracks().forEach(track => track.stop());
     
-    return {
+    const result = {
       audio: audio && stream.getAudioTracks().length > 0,
       video: video && stream.getVideoTracks().length > 0,
     };
+    
+    console.log('🎤 [MediaPermissions] 权限请求成功:', result);
+    return result;
   } catch (error) {
-    console.error('请求媒体权限失败:', error);
+    console.error('🎤 [MediaPermissions] 请求媒体权限失败:', error);
     
     let errorMessage = '无法获取媒体权限';
+    
+    // 检查是否在Capacitor环境中
+    const isCapacitor = typeof window !== 'undefined' && (window as any).Capacitor;
+    const isAndroid = isCapacitor && (window as any).Capacitor.getPlatform?.() === 'android';
+    
     if (error instanceof Error) {
+      console.log('🎤 [MediaPermissions] 错误详情:', {
+        name: error.name,
+        message: error.message,
+        isCapacitor,
+        isAndroid
+      });
+      
       if (error.name === 'NotAllowedError') {
-        errorMessage = '用户拒绝了媒体访问权限';
+        if (isAndroid) {
+          // 在Android上，如果权限已经在系统级别被授予，但仍然出现NotAllowedError
+          // 可能是WebView的权限设置问题
+          errorMessage = 'Android系统麦克风权限可能未正确授予，请检查系统设置中的应用权限';
+        } else {
+          errorMessage = '用户拒绝了媒体访问权限，请在系统设置中允许应用访问麦克风';
+        }
       } else if (error.name === 'NotFoundError') {
-        errorMessage = '未找到可用的媒体设备';
+        errorMessage = '未找到可用的麦克风设备';
       } else if (error.name === 'NotSupportedError') {
-        errorMessage = '浏览器不支持媒体访问';
+        errorMessage = '设备不支持媒体访问';
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = '麦克风设备被其他应用占用或硬件错误';
+      } else if (error.name === 'OverconstrainedError') {
+        errorMessage = '麦克风设备不满足指定的约束条件';
+      } else {
+        errorMessage = `媒体权限错误: ${error.message}`;
       }
     }
     

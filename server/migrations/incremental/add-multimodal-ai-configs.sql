@@ -11,7 +11,7 @@ INSERT INTO system_configs (key, value, description, category) VALUES
 ('speech_api_key', '', '语音识别API密钥', 'ai_multimodal'),
 ('speech_base_url', 'https://api.siliconflow.cn/v1', '语音识别API基础URL', 'ai_multimodal'),
 ('speech_max_file_size', '10485760', '语音文件最大大小(字节)', 'ai_multimodal'),
-('speech_allowed_formats', 'mp3,wav,m4a,flac,aac', '支持的语音文件格式', 'ai_multimodal'),
+('speech_allowed_formats', 'mp3,wav,m4a,flac,aac,webm', '支持的语音文件格式', 'ai_multimodal'),
 ('speech_timeout', '60', '语音识别超时时间(秒)', 'ai_multimodal')
 ON CONFLICT (key) 
 DO UPDATE SET 

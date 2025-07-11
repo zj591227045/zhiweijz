@@ -31,6 +31,9 @@ const config: CapacitorConfig = {
     Camera: {
       permissions: ['camera', 'photos']
     },
+    Device: {
+      permissions: ['microphone']
+    },
     App: {
       launchUrl: 'https://localhost'
     }

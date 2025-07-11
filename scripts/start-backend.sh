@@ -9,8 +9,8 @@ NC='\033[0m' # No Color
 echo -e "${GREEN}启动后端服务...${NC}"
 echo -e "${YELLOW}实时日志将被显示${NC}"
 
-# 设置环境变量以启用详细日志
-export DEBUG=express:*,prisma:*,app:*
+# 设置环境变量以启用详细日志（排除prisma相关日志）
+export DEBUG=express:*,app:*
 export NODE_ENV=development
 #export LOG_LEVEL=debug
 

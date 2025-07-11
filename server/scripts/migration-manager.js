@@ -26,7 +26,7 @@ const logger = {
  */
 const MIGRATIONS_CONFIG = {
   // 当前最新版本
-  LATEST_VERSION: '1.7.1',
+  LATEST_VERSION: '1.7.2',
 
   // 迁移文件目录
   MIGRATIONS_DIR: path.join(__dirname, '../migrations/incremental'),
@@ -46,8 +46,9 @@ const MIGRATIONS_CONFIG = {
     '1.5.0': ['1.5.0-to-1.6.0', 'add-file-storage'], // 升级到1.7.0
     '1.6.0': ['add-file-storage'], // 升级到1.7.0
     '1.7.0': ['add-multimodal-ai-configs'], // 升级到1.7.1
-    '1.7.1': [], // 当前最新版本
-    'fresh_install': ['base-schema', 'admin-features', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs']
+    '1.7.1': ['fix-webm-audio-format'], // 升级到1.7.2
+    '1.7.2': [], // 当前最新版本
+    'fresh_install': ['base-schema', 'admin-features', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format']
   }
 };
 
