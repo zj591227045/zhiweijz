@@ -94,6 +94,58 @@
   margin-top: 8px;
 }
 
+/* 用户快捷操作按钮 */
+.user-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  flex: 1;
+  justify-content: center;
+}
+
+.action-button:hover {
+  background-color: var(--card-background);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.action-button i {
+  font-size: 16px;
+}
+
+.checkin-button {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.checkin-button:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.membership-button {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.membership-button:hover {
+  background-color: rgba(245, 158, 11, 0.05);
+}
+
 /* 设置组 */
 .settings-group {
   margin-bottom: 24px;

@@ -1,4 +1,4 @@
-import { apiClient } from './base';
+import { apiClient } from '../api-client';
 
 export interface MembershipInfo {
   id: string;

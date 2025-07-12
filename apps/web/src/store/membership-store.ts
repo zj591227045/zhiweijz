@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import membershipApi, { MembershipInfo, Badge, MembershipNotification } from '../api/membership-service';
+import membershipApi, { MembershipInfo, Badge, MembershipNotification } from '../lib/api/membership-service';
 
 interface MembershipState {
   // 状态
@@ -65,7 +65,7 @@ export const useMembershipStore = create<MembershipState>()(
         }
       },
 
-      // 重置会员积分
+      // 重置会员记账点
       resetMemberPoints: async () => {
         try {
           set({ loading: true, error: null });
@@ -78,14 +78,14 @@ export const useMembershipStore = create<MembershipState>()(
             });
           } else {
             set({ 
-              error: response.message || '重置积分失败',
+              error: response.message || '重置记账点失败',
               loading: false 
             });
           }
         } catch (error) {
-          console.error('重置积分失败:', error);
+          console.error('重置记账点失败:', error);
           set({ 
-            error: '重置积分失败',
+            error: '重置记账点失败',
             loading: false 
           });
         }
@@ -203,28 +203,37 @@ export const useMembershipStore = create<MembershipState>()(
         }
       },
 
-      // 使用会员积分
+      // 使用会员记账点
       useMemberPoints: async (points: number, description: string) => {
         try {
           set({ loading: true, error: null });
           const response = await membershipApi.useMemberPoints(points, description);
           
           if (response.success) {
-            // 重新获取会员信息以更新积分
+            // 重新获取会员信息以更新记账点
             await get().fetchMembershipInfo();
+            
+            // 同步记账点余额 - 动态导入避免循环依赖
+            try {
+              const { useAccountingPointsStore } = await import('./accounting-points-store');
+              await useAccountingPointsStore.getState().fetchBalance();
+            } catch (syncError) {
+              console.warn('同步记账点余额失败:', syncError);
+            }
+            
             set({ loading: false });
             return true;
           } else {
             set({ 
-              error: response.message || '使用积分失败',
+              error: response.message || '使用记账点失败',
               loading: false 
             });
             return false;
           }
         } catch (error) {
-          console.error('使用积分失败:', error);
+          console.error('使用记账点失败:', error);
           set({ 
-            error: '使用积分失败',
+            error: '使用记账点失败',
             loading: false 
           });
           return false;

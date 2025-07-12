@@ -9,9 +9,7 @@ import { useAccountBookStore } from '@/store/account-book-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { useThemeStore } from '@/store/theme-store';
 import { AvatarDisplay } from '@/components/ui/avatar-display';
-import { CheckinButton } from '@/components/checkin/checkin-button';
 import { userService } from '@/lib/api/user-service';
-import '@/components/checkin/checkin-button.css';
 import './settings.css';
 
 export default function SettingsPage() {
@@ -153,7 +151,18 @@ export default function SettingsPage() {
         <div className="user-info">
           <div className="user-name">{user.name}</div>
           <div className="user-email">{user.email}</div>
-          <CheckinButton className="user-checkin" showBalance={true} />
+          
+          {/* 快捷操作按钮 */}
+          <div className="user-actions">
+            <Link href="/settings/checkin" className="action-button checkin-button">
+              <i className="fas fa-calendar-check"></i>
+              <span>每日签到</span>
+            </Link>
+            <Link href="/settings/membership" className="action-button membership-button">
+              <i className="fas fa-crown"></i>
+              <span>会员中心</span>
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -166,30 +175,6 @@ export default function SettingsPage() {
           <div className="item-content">
             <div className="item-title">个人资料</div>
             <div className="item-description">修改个人信息</div>
-          </div>
-          <div className="item-action">
-            <i className="fas fa-chevron-right"></i>
-          </div>
-        </Link>
-        <Link href="/checkin" className="settings-item">
-          <div className="item-icon">
-            <i className="fas fa-calendar-check"></i>
-          </div>
-          <div className="item-content">
-            <div className="item-title">每日签到</div>
-            <div className="item-description">签到赚取记账点奖励</div>
-          </div>
-          <div className="item-action">
-            <i className="fas fa-chevron-right"></i>
-          </div>
-        </Link>
-        <Link href="/membership" className="settings-item">
-          <div className="item-icon">
-            <i className="fas fa-crown"></i>
-          </div>
-          <div className="item-content">
-            <div className="item-title">会员中心</div>
-            <div className="item-description">查看会员权益和徽章</div>
           </div>
           <div className="item-action">
             <i className="fas fa-chevron-right"></i>

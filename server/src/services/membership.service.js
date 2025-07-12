@@ -184,6 +184,12 @@ class MembershipService {
         }
       });
 
+      // 如果升级为捐赠会员，自动添加会员记账点
+      if (memberType === 'DONOR') {
+        await this.addMemberPoints(userId, this.membershipMonthlyPoints, '升级为捐赠会员赠送');
+        await this.awardDonorBadge(userId);
+      }
+
       return updatedMembership;
     } else {
       // 创建新的增值会员记录
@@ -221,8 +227,9 @@ class MembershipService {
         }
       });
 
-      // 如果升级为捐赠会员，自动颁发捐赠徽章
+      // 如果升级为捐赠会员，自动添加会员记账点和颁发徽章
       if (memberType === 'DONOR') {
+        await this.addMemberPoints(userId, this.membershipMonthlyPoints, '成为捐赠会员赠送');
         await this.awardDonorBadge(userId);
       }
 

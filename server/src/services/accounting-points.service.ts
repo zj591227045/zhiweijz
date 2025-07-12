@@ -22,7 +22,7 @@ class AccountingPointsService {
   static CHECKIN_REWARD = 5;
 
   // 每日赠送点数
-  static DAILY_GIFT = 10;
+  static DAILY_GIFT = 5;
 
   // 赠送余额上限
   static GIFT_BALANCE_LIMIT = 30;
@@ -250,6 +250,92 @@ class AccountingPointsService {
       checkin,
       newBalance
     };
+  }
+
+  /**
+   * 获取用户签到历史
+   */
+  static async getUserCheckinHistory(userId: string, days: number = 30): Promise<Array<{
+    date: string;
+    isCheckedIn: boolean;
+    pointsAwarded: number;
+  }>> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days + 1);
+    startDate.setHours(0, 0, 0, 0);
+    
+    const endDate = new Date();
+    endDate.setHours(23, 59, 59, 999);
+    
+    // 获取用户在指定时间范围内的签到记录
+    const checkins = await prisma.userCheckins.findMany({
+      where: {
+        userId,
+        checkinDate: {
+          gte: startDate,
+          lte: endDate
+        }
+      },
+      orderBy: {
+        checkinDate: 'asc'
+      }
+    });
+    
+    // 生成完整的日期范围历史
+    const history = [];
+    for (let i = 0; i < days; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - days + 1 + i);
+      const dateString = date.toISOString().split('T')[0];
+      
+      const checkinRecord = checkins.find(c => 
+        c.checkinDate.toISOString().split('T')[0] === dateString
+      );
+      
+      history.push({
+        date: dateString,
+        isCheckedIn: !!checkinRecord,
+        pointsAwarded: checkinRecord?.pointsAwarded || 0
+      });
+    }
+    
+    return history;
+  }
+
+  /**
+   * 获取用户连续签到天数
+   */
+  static async getUserConsecutiveCheckinDays(userId: string): Promise<number> {
+    const today = new Date();
+    let consecutiveDays = 0;
+    
+    for (let i = 0; i < 365; i++) { // 最多检查一年
+      const checkDate = new Date(today);
+      checkDate.setDate(checkDate.getDate() - i);
+      const dateString = checkDate.toISOString().split('T')[0];
+      
+      const checkin = await prisma.userCheckins.findUnique({
+        where: {
+          userId_checkinDate: {
+            userId,
+            checkinDate: new Date(dateString)
+          }
+        }
+      });
+      
+      if (checkin) {
+        consecutiveDays++;
+      } else {
+        // 如果是今天且未签到，继续检查昨天
+        if (i === 0) {
+          continue;
+        } else {
+          break;
+        }
+      }
+    }
+    
+    return consecutiveDays;
   }
 
   /**

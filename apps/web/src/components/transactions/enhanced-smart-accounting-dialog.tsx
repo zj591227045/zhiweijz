@@ -249,7 +249,7 @@ export default function EnhancedSmartAccountingDialog({
 
     const pointCosts = { text: 1, voice: 2, image: 3 };
     const required = pointCosts[type];
-    const totalBalance = balance.giftBalance + balance.memberBalance;
+    const totalBalance = balance.totalBalance;
 
     if (totalBalance < required) {
       const typeNames = { text: '文字记账', voice: '语音记账', image: '图片记账' };
@@ -278,7 +278,7 @@ export default function EnhancedSmartAccountingDialog({
     
     const pointCosts = { text: 1, voice: 2, image: 3 };
     const required = pointCosts[type];
-    const hasInsufficientBalance = !balance || (balance.giftBalance + balance.memberBalance) < required;
+    const hasInsufficientBalance = !balance || balance.totalBalance < required;
     
     return additionalConditions || hasInsufficientBalance;
   };
@@ -301,7 +301,7 @@ export default function EnhancedSmartAccountingDialog({
     
     const pointCosts = { text: 1, voice: 2, image: 3 };
     const required = pointCosts[type];
-    const hasInsufficientBalance = !balance || (balance.giftBalance + balance.memberBalance) < required;
+    const hasInsufficientBalance = !balance || balance.totalBalance < required;
     
     if (hasInsufficientBalance) {
       const typeNames = { text: '文字记账', voice: '语音记账', image: '图片记账' };
@@ -878,6 +878,8 @@ export default function EnhancedSmartAccountingDialog({
               if (accountBookId) {
                 try {
                   await refreshDashboardData(accountBookId);
+                  // 刷新记账点余额
+                  await fetchBalance();
                 } catch (refreshError) {
                   console.error('刷新仪表盘数据失败:', refreshError);
                 }
@@ -1161,6 +1163,14 @@ export default function EnhancedSmartAccountingDialog({
         // 将结果存储到sessionStorage，供添加交易页面使用
         sessionStorage.setItem('smartAccountingResult', JSON.stringify(response));
         showSuccess('智能识别成功');
+        
+        // 刷新记账点余额
+        try {
+          await fetchBalance();
+        } catch (balanceError) {
+          console.error('刷新记账点余额失败:', balanceError);
+        }
+        
         onClose();
         router.push('/transactions/new');
       } else {
@@ -1240,6 +1250,8 @@ export default function EnhancedSmartAccountingDialog({
         if (accountBookId) {
           try {
             await refreshDashboardData(accountBookId);
+            // 刷新记账点余额
+            await fetchBalance();
           } catch (refreshError) {
             console.error('刷新仪表盘数据失败:', refreshError);
           }

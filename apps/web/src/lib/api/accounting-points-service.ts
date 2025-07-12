@@ -26,6 +26,17 @@ export interface CheckinResult {
   message: string;
 }
 
+export interface CheckinRecord {
+  date: string;
+  isCheckedIn: boolean;
+  pointsAwarded: number;
+}
+
+export interface CheckinHistory {
+  history: CheckinRecord[];
+  consecutiveDays: number;
+}
+
 /**
  * 记账点服务
  */
@@ -78,5 +89,33 @@ export class AccountingPointsService {
   static async getCheckinStatus(): Promise<CheckinStatus> {
     const response = await apiClient.get('/accounting-points/checkin-status');
     return response.data;
+  }
+
+  /**
+   * 获取用户签到历史
+   */
+  static async getCheckinHistory(days: number = 30): Promise<CheckinHistory> {
+    const response = await apiClient.get('/accounting-points/checkin-history', {
+      params: { days }
+    });
+    return response.data;
+  }
+
+  /**
+   * 消费记账点
+   */
+  static async consumePoints(points: number, description: string): Promise<void> {
+    console.log('💰 [AccountingPointsService] 开始消费记账点:', { points, description });
+    try {
+      const response = await apiClient.post('/accounting-points/consume', {
+        points,
+        description
+      });
+      console.log('✅ [AccountingPointsService] 记账点消费成功:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ [AccountingPointsService] 消费记账点失败:', error);
+      throw error;
+    }
   }
 }

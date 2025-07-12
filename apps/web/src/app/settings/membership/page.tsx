@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   TrophyIcon,
   StarIcon,
@@ -17,11 +18,14 @@ import {
   TrophyIcon as TrophySolidIcon,
   StarIcon as StarSolidIcon
 } from '@heroicons/react/24/solid';
-import useMembershipStore from '../../store/membership-store';
-import membershipApi from '../../lib/api/membership-service';
-import { BadgeDisplay } from '../../components/ui/badge-display';
+import useMembershipStore from '../../../store/membership-store';
+import membershipApi from '../../../lib/api/membership-service';
+import { BadgeDisplay } from '../../../components/ui/badge-display';
+import { PageContainer } from '../../../components/layout/page-container';
+import { useAccountingPointsStore } from '../../../store/accounting-points-store';
 
 export default function MembershipCenter() {
+  const router = useRouter();
   const {
     membership,
     badges,
@@ -38,6 +42,12 @@ export default function MembershipCenter() {
     clearError
   } = useMembershipStore();
 
+  const { 
+    balance: accountingBalance, 
+    fetchBalance: fetchAccountingBalance,
+    loading: accountingLoading 
+  } = useAccountingPointsStore();
+
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedBadgeId, setSelectedBadgeId] = useState<string | null>(null);
 
@@ -45,7 +55,11 @@ export default function MembershipCenter() {
     fetchMembershipInfo();
     fetchBadges();
     fetchNotifications();
-  }, []);
+    // 获取准确的记账点余额
+    if (pointsEnabled) {
+      fetchAccountingBalance();
+    }
+  }, [pointsEnabled]);
 
   useEffect(() => {
     if (error) {
@@ -53,17 +67,30 @@ export default function MembershipCenter() {
     }
   }, [error]);
 
+  // 返回到设置页面
+  const handleBackToSettings = () => {
+    router.push('/settings');
+  };
+
   if (!systemEnabled) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <TrophyIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">会员系统未启用</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            当前版本未启用会员系统功能
-          </p>
+      <PageContainer 
+        title="会员中心" 
+        showBackButton={true} 
+        onBackClick={handleBackToSettings}
+        activeNavItem="profile"
+        showBottomNav={false}
+      >
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <TrophyIcon className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">会员系统未启用</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              当前版本未启用会员系统功能
+            </p>
+          </div>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -111,8 +138,14 @@ export default function MembershipCenter() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <PageContainer 
+      title="会员中心" 
+      showBackButton={true} 
+      onBackClick={handleBackToSettings}
+      activeNavItem="profile"
+      showBottomNav={false}
+    >
+      <div className="px-4 py-4">
         {/* 错误提示 */}
         {error && (
           <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
@@ -126,9 +159,8 @@ export default function MembershipCenter() {
         )}
 
         {/* 页面标题 */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">会员中心</h1>
-          <p className="mt-2 text-sm text-gray-600">
+        <div className="mb-6">
+          <p className="text-sm text-gray-600">
             管理您的会员权益、徽章收藏和通知设置
           </p>
         </div>
@@ -141,7 +173,7 @@ export default function MembershipCenter() {
           <>
             {/* 会员状态卡片 */}
             {membership && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0">
@@ -181,15 +213,31 @@ export default function MembershipCenter() {
                   </div>
                 </div>
 
-                {/* 会员积分信息 */}
+                {/* 会员记账点信息 */}
                 {pointsEnabled && membership.memberType === 'DONOR' && (
                   <div className="mt-6 pt-6 border-t border-gray-200">
+                    {/* 总记账点概览 */}
+                    {accountingBalance && (
+                      <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+                        <div className="text-center">
+                          <div className="text-3xl font-bold text-blue-900 mb-1">
+                            {accountingBalance.totalBalance}
+                          </div>
+                          <div className="text-sm text-blue-700">总可用记账点</div>
+                          <div className="flex justify-center gap-4 mt-2 text-xs text-blue-600">
+                            <span>会员记账点：{accountingBalance.memberBalance}</span>
+                            <span>赠送记账点：{accountingBalance.giftBalance}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="bg-blue-50 rounded-lg p-4">
                         <div className="flex items-center">
                           <GiftIcon className="h-8 w-8 text-blue-600" />
                           <div className="ml-3">
-                            <p className="text-sm font-medium text-blue-900">月度积分</p>
+                            <p className="text-sm font-medium text-blue-900">月度记账点</p>
                             <p className="text-2xl font-bold text-blue-900">{membership.monthlyPoints}</p>
                           </div>
                         </div>
@@ -199,10 +247,13 @@ export default function MembershipCenter() {
                         <div className="flex items-center">
                           <SparklesIcon className="h-8 w-8 text-green-600" />
                           <div className="ml-3">
-                            <p className="text-sm font-medium text-green-900">剩余积分</p>
+                            <p className="text-sm font-medium text-green-900">可用记账点</p>
                             <p className="text-2xl font-bold text-green-900">
-                              {membership.monthlyPoints - membership.usedPoints}
+                              {accountingBalance ? accountingBalance.memberBalance : (membership.monthlyPoints - membership.usedPoints)}
                             </p>
+                            {accountingLoading && (
+                              <p className="text-xs text-green-700">更新中...</p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -255,7 +306,7 @@ export default function MembershipCenter() {
                 </nav>
               </div>
 
-              <div className="p-6">
+              <div className="p-4">
                 {/* 概览选项卡 */}
                 {activeTab === 'overview' && (
                   <div className="space-y-6">
@@ -263,9 +314,9 @@ export default function MembershipCenter() {
                       <h3 className="text-lg font-medium text-gray-900 mb-4">会员权益</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="bg-gray-50 rounded-lg p-4">
-                          <h4 className="font-medium text-gray-900">每月会员积分</h4>
+                          <h4 className="font-medium text-gray-900">每月会员记账点</h4>
                           <p className="text-sm text-gray-600 mt-1">
-                            {membership?.memberType === 'DONOR' ? '1000点积分，用于AI功能' : '暂无积分权益'}
+                            {membership?.memberType === 'DONOR' ? '1000点记账点，用于AI功能' : '暂无记账点权益'}
                           </p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-4">
@@ -438,6 +489,6 @@ export default function MembershipCenter() {
           </>
         )}
       </div>
-    </div>
+    </PageContainer>
   );
 }

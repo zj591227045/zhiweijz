@@ -190,7 +190,7 @@ export default function AccountingPointsPage() {
 
       {/* 总体统计卡片 */}
       {overallStats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -209,7 +209,7 @@ export default function AccountingPointsPage() {
                 <GiftIcon className="h-8 w-8 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">赠送点余额</p>
+                <p className="text-sm font-medium text-gray-500">赠送记账点</p>
                 <p className="text-2xl font-semibold text-gray-900">{overallStats.totalGiftBalance.toLocaleString()}</p>
               </div>
             </div>
@@ -218,7 +218,19 @@ export default function AccountingPointsPage() {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <ArrowTrendingUpIcon className="h-8 w-8 text-purple-600" />
+                <StarIcon className="h-8 w-8 text-purple-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">会员记账点</p>
+                <p className="text-2xl font-semibold text-gray-900">{overallStats.totalMemberBalance.toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <ArrowTrendingUpIcon className="h-8 w-8 text-emerald-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">今日新增</p>
@@ -294,11 +306,11 @@ export default function AccountingPointsPage() {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSortChange('giftBalance', sortOrder === 'desc' ? 'asc' : 'desc')}>
-                  赠送点余额
+                  赠送记账点
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSortChange('memberBalance', sortOrder === 'desc' ? 'asc' : 'desc')}>
-                  会员点余额
+                  会员记账点
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   最后更新

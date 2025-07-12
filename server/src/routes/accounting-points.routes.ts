@@ -126,4 +126,34 @@ router.get('/checkin-status', authenticate, async (req: Request, res: Response) 
   }
 });
 
+/**
+ * 获取用户签到历史
+ * GET /api/accounting-points/checkin-history
+ */
+router.get('/checkin-history', authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { days = '30' } = req.query;
+    
+    const [history, consecutiveDays] = await Promise.all([
+      AccountingPointsService.getUserCheckinHistory(userId, parseInt(days as string)),
+      AccountingPointsService.getUserConsecutiveCheckinDays(userId)
+    ]);
+    
+    res.json({
+      success: true,
+      data: {
+        history,
+        consecutiveDays
+      }
+    });
+  } catch (error) {
+    console.error('获取签到历史失败:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: '获取签到历史失败' 
+    });
+  }
+});
+
 export default router; 

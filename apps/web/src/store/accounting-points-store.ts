@@ -5,7 +5,8 @@ import {
   AccountingPointsBalance,
   AccountingPointsTransaction,
   CheckinStatus,
-  CheckinResult
+  CheckinResult,
+  CheckinHistory
 } from '../lib/api/accounting-points-service';
 
 interface AccountingPointsState {
@@ -13,6 +14,7 @@ interface AccountingPointsState {
   balance: AccountingPointsBalance | null;
   transactions: AccountingPointsTransaction[];
   checkinStatus: CheckinStatus | null;
+  checkinHistory: CheckinHistory | null;
   loading: boolean;
   error: string | null;
 
@@ -20,7 +22,9 @@ interface AccountingPointsState {
   fetchBalance: () => Promise<void>;
   fetchTransactions: (limit?: number, offset?: number) => Promise<void>;
   fetchCheckinStatus: () => Promise<void>;
+  fetchCheckinHistory: (days?: number) => Promise<void>;
   checkin: () => Promise<CheckinResult>;
+  consumePoints: (points: number, description: string) => Promise<void>;
   reset: () => void;
 }
 
@@ -31,6 +35,7 @@ export const useAccountingPointsStore = create<AccountingPointsState>()(
       balance: null,
       transactions: [],
       checkinStatus: null,
+      checkinHistory: null,
       loading: false,
       error: null,
 
@@ -79,6 +84,21 @@ export const useAccountingPointsStore = create<AccountingPointsState>()(
         }
       },
 
+      // 获取签到历史
+      fetchCheckinHistory: async (days = 30) => {
+        try {
+          set({ loading: true, error: null });
+          const checkinHistory = await AccountingPointsService.getCheckinHistory(days);
+          set({ checkinHistory, loading: false });
+        } catch (error) {
+          console.error('获取签到历史失败:', error);
+          set({ 
+            error: error instanceof Error ? error.message : '获取签到历史失败',
+            loading: false 
+          });
+        }
+      },
+
       // 签到
       checkin: async () => {
         try {
@@ -88,6 +108,7 @@ export const useAccountingPointsStore = create<AccountingPointsState>()(
           // 签到成功后刷新余额和签到状态
           await get().fetchBalance();
           await get().fetchCheckinStatus();
+          await get().fetchCheckinHistory();
           
           set({ loading: false });
           return result;
@@ -102,12 +123,44 @@ export const useAccountingPointsStore = create<AccountingPointsState>()(
         }
       },
 
+      // 消费记账点（同步会员和记账点系统）
+      consumePoints: async (points: number, description: string) => {
+        try {
+          set({ loading: true, error: null });
+          
+          // 调用记账点消费API
+          await AccountingPointsService.consumePoints(points, description);
+          
+          // 刷新本地余额
+          await get().fetchBalance();
+          
+          // 同步会员系统数据 - 动态导入避免循环依赖
+          try {
+            const { useMembershipStore } = await import('./membership-store');
+            await useMembershipStore.getState().fetchMembershipInfo();
+          } catch (syncError) {
+            console.warn('同步会员信息失败:', syncError);
+          }
+          
+          set({ loading: false });
+        } catch (error) {
+          console.error('消费记账点失败:', error);
+          const errorMessage = error instanceof Error ? error.message : '消费记账点失败';
+          set({ 
+            error: errorMessage,
+            loading: false 
+          });
+          throw new Error(errorMessage);
+        }
+      },
+
       // 重置状态
       reset: () => {
         set({
           balance: null,
           transactions: [],
           checkinStatus: null,
+          checkinHistory: null,
           loading: false,
           error: null
         });
@@ -117,7 +170,8 @@ export const useAccountingPointsStore = create<AccountingPointsState>()(
       name: 'accounting-points-store',
       partialize: (state) => ({
         balance: state.balance,
-        checkinStatus: state.checkinStatus
+        checkinStatus: state.checkinStatus,
+        checkinHistory: state.checkinHistory
       })
     }
   )
