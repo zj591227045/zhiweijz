@@ -212,10 +212,16 @@ export class MultimodalAIController {
         return;
       }
 
-      // 1. 图片识别
+      // 1. 获取配置的提示词
+      const config = await this.configService.getFullConfig();
+      const imageAnalysisPrompt = config.smartAccounting.imageAnalysisPrompt || 
+        config.smartAccounting.multimodalPrompt || 
+        '分析图片中的记账信息，提取：1.微信/支付宝付款记录：金额、收款人、备注，并从收款人分析交易类别；2.订单截图（美团/淘宝/京东/外卖/抖音）：内容、金额、时间、收件人；3.发票/票据：内容、分类、金额、时间。返回JSON格式。';
+      
+      // 2. 图片识别
       const visionRequest: VisionRecognitionRequest = {
         imageFile: req.file,
-        prompt: '请分析这张图片中的记账信息，包括金额、商品名称、商家名称、时间等。如果是收据或发票，请提取其中的关键信息。',
+        prompt: imageAnalysisPrompt,
         detailLevel: 'high',
       };
 
@@ -229,7 +235,7 @@ export class MultimodalAIController {
         return;
       }
 
-      // 2. 返回识别结果，前端将调用智能记账API
+      // 3. 返回识别结果，前端将调用智能记账API
       res.json({
         success: true,
         data: {

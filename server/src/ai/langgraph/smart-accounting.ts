@@ -5,6 +5,12 @@ import {
 } from '../prompts/accounting-prompts';
 import { SmartAccountingState } from '../types/accounting-types';
 import { SmartAccountingResponse } from '../../types/smart-accounting';
+import { MultimodalAIConfigService } from '../../services/multimodal-ai-config.service';
+import { 
+  SmartAccountingPromptProcessor,
+  SmartAccountingPromptVariables,
+  RelevanceCheckPromptVariables 
+} from '../../utils/prompt-utils';
 import NodeCache from 'node-cache';
 import prisma from '../../config/database';
 import dotenv from 'dotenv';
@@ -15,6 +21,7 @@ import dotenv from 'dotenv';
  */
 export class SmartAccounting {
   private llmProviderService: LLMProviderService;
+  private configService: MultimodalAIConfigService;
   private cache: NodeCache;
 
   /**
@@ -26,6 +33,7 @@ export class SmartAccounting {
     dotenv.config();
 
     this.llmProviderService = llmProviderService;
+    this.configService = new MultimodalAIConfigService();
     this.cache = new NodeCache({ stdTTL: 3600 }); // 1小时过期
 
     // 移除硬编码的API密钥 - 应该通过环境变量或配置文件设置
@@ -230,8 +238,11 @@ export class SmartAccounting {
    */
   private async analyzeTransactionHandler(state: SmartAccountingState) {
     try {
+      // 获取配置的提示词
+      const config = await this.configService.getFullConfig();
+      
       // 第一步：判断请求内容是否与记账相关
-      const relevanceCheckPrompt = `
+      const relevanceCheckTemplate = config.smartAccounting.relevanceCheckPrompt || `
 你是一个专业的财务助手。请判断以下用户描述是否与记账相关。
 
 判断标准：
@@ -245,8 +256,16 @@ export class SmartAccounting {
 
 请只回答 "相关" 或 "无关"，不要有其他文字。
 
-用户描述: ${state.description}
-`;
+用户描述: {{description}}`;
+
+      // 使用工具函数替换占位符
+      const relevanceVariables: RelevanceCheckPromptVariables = {
+        description: state.description
+      };
+      const relevanceCheckPrompt = SmartAccountingPromptProcessor.processRelevanceCheckPrompt(
+        relevanceCheckTemplate,
+        relevanceVariables
+      );
 
       const relevanceResponse = await this.llmProviderService.generateChat(
         [
@@ -287,16 +306,24 @@ export class SmartAccounting {
         ? `预算列表：${await this.getBudgetListForPrompt(state.userId, state.accountId || '')}`
         : '';
 
-      // 准备提示
+      // 准备提示词 - 使用配置的提示词
       const currentDate = new Date().toISOString().split('T')[0];
-      const systemPrompt = SMART_ACCOUNTING_SYSTEM_PROMPT.replace(
-        '{{categories}}',
-        categoryList,
-      ).replace('{{budgets}}', budgetList);
-      const userPrompt = SMART_ACCOUNTING_USER_PROMPT.replace(
-        '{{description}}',
-        state.description,
-      ).replace('{{currentDate}}', currentDate);
+      const smartAccountingTemplate = config.smartAccounting.smartAccountingPrompt || SMART_ACCOUNTING_SYSTEM_PROMPT;
+      
+      // 使用工具函数替换占位符
+      const smartAccountingVariables: SmartAccountingPromptVariables = {
+        description: state.description,
+        categories: categoryList,
+        budgets: budgetList,
+        currentDate: currentDate
+      };
+      const systemPrompt = SmartAccountingPromptProcessor.processSmartAccountingPrompt(
+        smartAccountingTemplate,
+        smartAccountingVariables
+      );
+
+      // 使用配置的提示词或默认提示词
+      const userPrompt = `用户描述: ${state.description}\n当前日期: ${currentDate}`;
 
       // 调用LLM
       const response = await this.llmProviderService.generateChat(

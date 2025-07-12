@@ -178,6 +178,62 @@ export class MultimodalAIConfigService {
   }
 
   /**
+   * 更新智能记账配置
+   */
+  async updateSmartAccountingConfig(config: Partial<SmartAccountingMultimodalConfig>): Promise<void> {
+    const updates: Promise<any>[] = [];
+
+    if (config.visionEnabled !== undefined) {
+      updates.push(this.upsertConfig('smart_accounting_vision_enabled', config.visionEnabled.toString()));
+    }
+    if (config.speechEnabled !== undefined) {
+      updates.push(this.upsertConfig('smart_accounting_speech_enabled', config.speechEnabled.toString()));
+    }
+    if (config.multimodalPrompt !== undefined) {
+      updates.push(this.upsertConfig('smart_accounting_multimodal_prompt', config.multimodalPrompt));
+    }
+    if (config.relevanceCheckPrompt !== undefined) {
+      updates.push(this.upsertConfig('smart_accounting_relevance_check_prompt', config.relevanceCheckPrompt));
+    }
+    if (config.smartAccountingPrompt !== undefined) {
+      updates.push(this.upsertConfig('smart_accounting_prompt', config.smartAccountingPrompt));
+    }
+    if (config.imageAnalysisPrompt !== undefined) {
+      updates.push(this.upsertConfig('smart_accounting_image_analysis_prompt', config.imageAnalysisPrompt));
+    }
+
+    await Promise.all(updates);
+  }
+
+  /**
+   * 更新通用配置
+   */
+  async updateGeneralConfig(config: Partial<MultimodalAIConfig>): Promise<void> {
+    const updates: Promise<any>[] = [];
+
+    if (config.enabled !== undefined) {
+      updates.push(this.upsertConfig('multimodal_ai_enabled', config.enabled.toString()));
+    }
+    if (config.dailyLimit !== undefined) {
+      updates.push(this.upsertConfig('multimodal_ai_daily_limit', config.dailyLimit.toString()));
+    }
+    if (config.userLimit !== undefined) {
+      updates.push(this.upsertConfig('multimodal_ai_user_limit', config.userLimit.toString()));
+    }
+    if (config.retryCount !== undefined) {
+      updates.push(this.upsertConfig('multimodal_ai_retry_count', config.retryCount.toString()));
+    }
+    if (config.cacheEnabled !== undefined) {
+      updates.push(this.upsertConfig('multimodal_ai_cache_enabled', config.cacheEnabled.toString()));
+    }
+    if (config.cacheTtl !== undefined) {
+      updates.push(this.upsertConfig('multimodal_ai_cache_ttl', config.cacheTtl.toString()));
+    }
+
+    await Promise.all(updates);
+  }
+
+  /**
    * 解析语音识别配置
    */
   private parseSpeechConfig(configMap: Record<string, string>): SpeechRecognitionConfig {
@@ -234,6 +290,9 @@ export class MultimodalAIConfigService {
       visionEnabled: configMap.smart_accounting_vision_enabled === 'true',
       speechEnabled: configMap.smart_accounting_speech_enabled === 'true',
       multimodalPrompt: configMap.smart_accounting_multimodal_prompt || DEFAULT_MULTIMODAL_CONFIG.smartAccounting.multimodalPrompt,
+      relevanceCheckPrompt: configMap.smart_accounting_relevance_check_prompt || DEFAULT_MULTIMODAL_CONFIG.smartAccounting.relevanceCheckPrompt,
+      smartAccountingPrompt: configMap.smart_accounting_prompt || DEFAULT_MULTIMODAL_CONFIG.smartAccounting.smartAccountingPrompt,
+      imageAnalysisPrompt: configMap.smart_accounting_image_analysis_prompt || DEFAULT_MULTIMODAL_CONFIG.smartAccounting.imageAnalysisPrompt,
     };
   }
 

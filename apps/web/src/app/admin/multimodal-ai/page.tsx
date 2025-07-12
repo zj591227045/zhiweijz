@@ -25,6 +25,7 @@ import {
   ArrowPathIcon as RefreshCcw 
 } from '@heroicons/react/24/outline';
 import MobileNotSupported from '@/components/admin/MobileNotSupported';
+import PlaceholderHelp from '@/components/admin/PlaceholderHelp';
 import { useAdminAuth } from '@/store/admin/useAdminAuth';
 import { adminApi } from '@/lib/admin-api-client';
 
@@ -66,6 +67,10 @@ interface SmartAccountingConfig {
   visionEnabled: boolean;
   speechEnabled: boolean;
   multimodalPrompt: string;
+  // 新增的三个提示词字段
+  relevanceCheckPrompt: string;    // 记账相关性判断提示词
+  smartAccountingPrompt: string;   // 智能记账主要提示词
+  imageAnalysisPrompt: string;     // 图片分析提示词
 }
 
 interface MultimodalAIConfig {
@@ -134,7 +139,78 @@ export default function MultimodalAIConfigPage() {
     smartAccounting: {
       visionEnabled: false,
       speechEnabled: false,
-      multimodalPrompt: '请分析这个图片/语音内容，提取其中的记账信息，包括金额、类别、时间、备注等。',
+      multimodalPrompt: '分析图片中的记账信息，提取：1.微信/支付宝付款记录：金额、收款人、备注，并从收款人分析交易类别；2.订单截图（美团/淘宝/京东/外卖/抖音）：内容、金额、时间、收件人；3.发票/票据：内容、分类、金额、时间。返回JSON格式。',
+      relevanceCheckPrompt: `你是一个专业的财务助手。请判断以下用户描述是否与记账相关。
+
+判断标准：
+1. 包含金额信息（必须）
+2. 包含交易流水明细（必须）
+3. 可能包含日期信息（可选）
+4. 可能包含预算信息（可选）
+
+如果描述中包含明确的金额和交易内容（如购买、支付、收入、转账等），则判定为与记账相关。
+如果描述中只是询问、闲聊或其他非交易相关内容，则判定为与记账无关。
+
+请只回答 "相关" 或 "无关"，不要有其他文字。
+
+用户描述: {{description}}`,
+      smartAccountingPrompt: `你是专业财务助手，从用户描述中提取记账信息。
+
+分类列表：
+{{categories}}
+
+{{budgets}}
+
+从描述中提取：
+1. 金额（仅数字）
+2. 日期（未提及用今日）
+3. 分类（匹配上述分类）
+4. 预算（若提及预算/人名则匹配）
+5. 备注（简短描述）
+
+返回JSON格式：
+{
+  "amount": 数字,
+  "date": "YYYY-MM-DD",
+  "categoryId": "分类ID",
+  "categoryName": "分类名",
+  "type": "EXPENSE/INCOME",
+  "budgetName": "预算名(可选)",
+  "confidence": 0-1小数,
+  "note": "备注"
+}
+
+用户描述: {{description}}
+当前日期: {{currentDate}}
+
+仅返回JSON，无其他文字。`,
+      imageAnalysisPrompt: `请分析这张图片中的记账信息。
+
+请从图片中识别以下信息：
+1. 交易金额：准确的数字金额
+2. 交易时间：日期和时间信息
+3. 交易对象：商家名称、收款人或付款人
+4. 交易类型：收入、支出、转账等
+5. 交易内容：商品名称、服务描述或交易备注
+6. 其他信息：订单号、交易单号等
+
+请以JSON格式返回结果：
+{
+  "amount": "金额数字",
+  "date": "YYYY-MM-DD",
+  "time": "HH:MM",
+  "merchant": "商家/收款人名称",
+  "type": "EXPENSE/INCOME/TRANSFER",
+  "description": "交易描述",
+  "category": "推测的交易分类",
+  "confidence": 0.0-1.0,
+  "additional_info": {
+    "order_id": "订单号",
+    "transaction_id": "交易号"
+  }
+}
+
+如果图片中没有明确的记账信息，请返回 {"error": "未识别到记账信息"}。`,
     },
   });
 
@@ -601,7 +677,7 @@ export default function MultimodalAIConfigPage() {
                       placeholder="请输入模型名称，如：Qwen/Qwen2.5-VL-72B-Instruct"
                     />
                     <p className="text-sm text-gray-500">
-                      常用模型：Qwen/Qwen2.5-VL-72B-Instruct、gpt-4-vision-preview、claude-3-vision
+                      常用模型：Qwen/Qwen2.5-VL-72B-Instruct、Pro/Qwen/Qwen2.5-VL-7B-Instruct、claude-3-vision
                     </p>
                   </div>
                 </div>
@@ -827,10 +903,11 @@ export default function MultimodalAIConfigPage() {
                 智能记账设置
               </CardTitle>
               <CardDescription>
-                配置智能记账中的多模态AI功能
+                配置智能记账中的多模态AI功能和提示词
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* 基础功能开关 */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="smart-speech-enabled">启用语音记账</Label>
@@ -859,12 +936,115 @@ export default function MultimodalAIConfigPage() {
                     }
                   />
                 </div>
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="multimodal-prompt">多模态提示词</Label>
+              <Separator />
+
+              {/* 提示词配置 */}
+              <div className="space-y-6">
+                <div>
+                  <h4 className="font-medium mb-4">AI提示词配置</h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    配置不同场景下的AI提示词，使用变量占位符实现动态内容替换
+                  </p>
+                </div>
+
+                {/* 1. 记账相关性判断提示词 */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="relevance-check-prompt">记账相关性判断提示词</Label>
+                      <Badge variant="outline">用于过滤无关内容</Badge>
+                    </div>
+                    <PlaceholderHelp type="relevanceCheck" />
+                  </div>
+                  <textarea
+                    id="relevance-check-prompt"
+                    className="w-full p-3 border rounded-md resize-none font-mono text-sm"
+                    rows={8}
+                    value={config.smartAccounting.relevanceCheckPrompt}
+                    onChange={(e) =>
+                      setConfig(prev => ({
+                        ...prev,
+                        smartAccounting: { ...prev.smartAccounting, relevanceCheckPrompt: e.target.value }
+                      }))
+                    }
+                  />
+                  <div className="text-xs text-muted-foreground">
+                    <p><strong>变量占位符：</strong></p>
+                    <ul className="list-disc ml-4 mt-1">
+                      <li><code>{'{{description}}'}</code> - 用户输入的描述内容</li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* 2. 智能记账主要提示词 */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="smart-accounting-prompt">智能记账分析提示词</Label>
+                      <Badge variant="outline">用于提取记账信息</Badge>
+                    </div>
+                    <PlaceholderHelp type="smartAccounting" />
+                  </div>
+                  <textarea
+                    id="smart-accounting-prompt"
+                    className="w-full p-3 border rounded-md resize-none font-mono text-sm"
+                    rows={12}
+                    value={config.smartAccounting.smartAccountingPrompt}
+                    onChange={(e) =>
+                      setConfig(prev => ({
+                        ...prev,
+                        smartAccounting: { ...prev.smartAccounting, smartAccountingPrompt: e.target.value }
+                      }))
+                    }
+                  />
+                  <div className="text-xs text-muted-foreground">
+                    <p><strong>变量占位符：</strong></p>
+                    <ul className="list-disc ml-4 mt-1">
+                      <li><code>{'{{categories}}'}</code> - 动态插入的分类列表</li>
+                      <li><code>{'{{budgets}}'}</code> - 动态插入的预算列表</li>
+                      <li><code>{'{{description}}'}</code> - 用户输入的记账描述</li>
+                      <li><code>{'{{currentDate}}'}</code> - 当前日期</li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* 3. 图片分析提示词 */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="image-analysis-prompt">图片分析提示词</Label>
+                      <Badge variant="outline">用于图片信息提取</Badge>
+                    </div>
+                    <PlaceholderHelp type="imageAnalysis" />
+                  </div>
+                  <textarea
+                    id="image-analysis-prompt"
+                    className="w-full p-3 border rounded-md resize-none font-mono text-sm"
+                    rows={10}
+                    value={config.smartAccounting.imageAnalysisPrompt}
+                    onChange={(e) =>
+                      setConfig(prev => ({
+                        ...prev,
+                        smartAccounting: { ...prev.smartAccounting, imageAnalysisPrompt: e.target.value }
+                      }))
+                    }
+                  />
+                  <div className="text-xs text-muted-foreground">
+                    <p><strong>说明：</strong>此提示词用于从图片中提取记账信息，支持微信/支付宝付款记录、电商订单截图、发票票据等场景。</p>
+                  </div>
+                </div>
+
+                {/* 4. 多模态兼容提示词 */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="multimodal-prompt">多模态兼容提示词</Label>
+                    <Badge variant="outline">向后兼容</Badge>
+                  </div>
                   <textarea
                     id="multimodal-prompt"
-                    className="w-full p-3 border rounded-md resize-none"
+                    className="w-full p-3 border rounded-md resize-none font-mono text-sm"
                     rows={4}
                     value={config.smartAccounting.multimodalPrompt}
                     onChange={(e) =>
@@ -873,11 +1053,46 @@ export default function MultimodalAIConfigPage() {
                         smartAccounting: { ...prev.smartAccounting, multimodalPrompt: e.target.value }
                       }))
                     }
-                    placeholder="请分析这个图片/语音内容，提取其中的记账信息..."
                   />
-                  <p className="text-sm text-muted-foreground">
-                    这个提示词将用于指导AI分析图片和语音内容，提取记账相关信息
-                  </p>
+                  <div className="text-xs text-muted-foreground">
+                    <p><strong>说明：</strong>这个提示词主要用于向后兼容，当专门的图片分析提示词为空时使用此提示词。</p>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* 占位符说明 */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h5 className="font-medium text-blue-800 mb-2">📝 变量占位符说明</h5>
+                <div className="text-sm text-blue-700 space-y-2">
+                  <p><strong>占位符格式：</strong>使用双花括号包围变量名，如 <code className="bg-blue-100 px-1 rounded">{'{{variableName}}'}</code></p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                    <div>
+                      <p className="font-medium">记账相关性判断：</p>
+                      <ul className="ml-4 space-y-1 text-xs">
+                        <li>• <code>{'{{description}}'}</code> - 用户描述内容</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="font-medium">智能记账分析：</p>
+                      <ul className="ml-4 space-y-1 text-xs">
+                        <li>• <code>{'{{categories}}'}</code> - 账本分类列表</li>
+                        <li>• <code>{'{{budgets}}'}</code> - 预算列表</li>
+                        <li>• <code>{'{{description}}'}</code> - 记账描述</li>
+                        <li>• <code>{'{{currentDate}}'}</code> - 当前日期</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="bg-blue-100 rounded p-2 mt-2">
+                    <p className="font-medium text-blue-900">💡 使用建议</p>
+                    <ul className="text-blue-800 text-xs mt-1 space-y-1">
+                      <li>• 提示词应简洁明了，避免过多无关信息以减少token消耗</li>
+                      <li>• 使用明确的输出格式要求（如JSON），便于系统解析</li>
+                      <li>• 针对不同场景优化提示词内容，提高识别准确率</li>
+                      <li>• 定期测试和优化提示词效果</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </CardContent>

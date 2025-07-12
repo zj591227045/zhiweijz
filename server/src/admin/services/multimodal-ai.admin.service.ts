@@ -285,7 +285,13 @@ export class MultimodalAIAdminService {
         updates.push(this.configService.updateVisionConfig(config.vision));
       }
 
-      // TODO: 添加通用配置和智能记账配置的更新方法
+      if (config.general) {
+        updates.push(this.configService.updateGeneralConfig(config.general));
+      }
+
+      if (config.smartAccounting) {
+        updates.push(this.configService.updateSmartAccountingConfig(config.smartAccounting));
+      }
 
       await Promise.all(updates);
     } catch (error) {
