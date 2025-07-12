@@ -106,6 +106,9 @@ export default function EnhancedSmartAccountingDialog({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const micButtonRef = useRef<HTMLButtonElement>(null);
   const [isButtonTouched, setIsButtonTouched] = useState(false);
+  const [cameraGestureType, setCameraGestureType] = useState<'none' | 'capture' | 'upload'>('none');
+  const [isCameraButtonTouched, setIsCameraButtonTouched] = useState(false);
+  const [cameraTouchStartPos, setCameraTouchStartPos] = useState<{ x: number; y: number } | null>(null);
   const [audioLevel, setAudioLevel] = useState(0);
   const audioAnalyserRef = useRef<AnalyserNode | null>(null);
   const audioDataRef = useRef<Uint8Array | null>(null);
@@ -115,6 +118,7 @@ export default function EnhancedSmartAccountingDialog({
   const [animationTime, setAnimationTime] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false); // 新增：独立的分析状态
   const isAnalyzingRef = useRef(false); // 新增：用于立即检查的ref
+  const isRecordingRef = useRef(false); // 添加录音状态的ref
 
   // 更新动画时间用于声波效果
   useEffect(() => {
@@ -379,13 +383,14 @@ export default function EnhancedSmartAccountingDialog({
       setMediaRecorder(recorder);
       setAudioChunks(chunks);
       setIsRecording(true);
+      isRecordingRef.current = true; // 同步更新ref
       setRecordingCancelled(false);
       recordingCancelledRef.current = false;
       
       // 重置手势状态
       setGestureType('none');
       gestureTypeRef.current = 'none';
-      setShowGestureHint(false);
+      setShowGestureHint(true); // 显示提示，让用户知道当前状态
 
       console.log('🎤 [StartRecording] 录音已启动，状态:', recorder.state);
       showInfo('正在录音，松开停止，向上滑动取消');
@@ -419,6 +424,7 @@ export default function EnhancedSmartAccountingDialog({
     
     // 立即更新UI状态
     setIsRecording(false);
+    isRecordingRef.current = false; // 同步更新ref
     setMediaRecorder(null);
     setIsButtonTouched(false);
     setTouchStartPos(null);
@@ -444,6 +450,7 @@ export default function EnhancedSmartAccountingDialog({
     
     // 立即更新UI状态
     setIsRecording(false);
+    isRecordingRef.current = false; // 同步更新ref
     setMediaRecorder(null);
     setIsButtonTouched(false);
     setTouchStartPos(null);
@@ -457,27 +464,96 @@ export default function EnhancedSmartAccountingDialog({
 
   // 处理触摸开始
   const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault();
+    // 不调用 preventDefault() 来避免 passive event listener 错误
     console.log('🎤 [TouchStart] 触摸开始');
     const touch = e.touches[0];
-    setTouchStartPos({ x: touch.clientX, y: touch.clientY });
+    const startPos = { x: touch.clientX, y: touch.clientY };
+    setTouchStartPos(startPos);
     setIsButtonTouched(true);
+    setGestureType('none');
+    setShowGestureHint(true); // 立即显示提示，让用户知道当前状态
+    
+    // 添加原生事件监听器来监听触摸移动
+    const handleNativeTouchMove = (nativeEvent: TouchEvent) => {
+      console.log('🎤 [NativeTouchMove] 原生触摸移动事件触发');
+      
+      if (!startPos || !isRecordingRef.current) {
+        console.log('🎤 [NativeTouchMove] 早期返回:', { 
+          startPos: startPos ? 'exists' : 'null', 
+          isRecording: isRecordingRef.current
+        });
+        return;
+      }
+      
+      const nativeTouch = nativeEvent.touches[0];
+      const deltaY = startPos.y - nativeTouch.clientY;
+      const deltaX = Math.abs(nativeTouch.clientX - startPos.x);
+
+      console.log('🎤 [NativeTouchMove] 原生触摸移动:', { deltaY, deltaX, gestureType: gestureTypeRef.current });
+
+      // 检测手势类型 - 优化阈值，使检测更敏感且准确
+      if (deltaX < 60) { // 水平偏移不超过60px
+        if (deltaY > 15) {
+          // 向上滑动 - 取消录音
+          if (gestureTypeRef.current !== 'cancel') {
+            setGestureType('cancel');
+            gestureTypeRef.current = 'cancel';
+            setShowGestureHint(true);
+            console.log('🎤 [NativeTouchMove] 检测到取消手势');
+          }
+        } else if (deltaY < -15) {
+          // 向下滑动 - 填入文本框
+          if (gestureTypeRef.current !== 'fill-text') {
+            setGestureType('fill-text');
+            gestureTypeRef.current = 'fill-text';
+            setShowGestureHint(true);
+            console.log('🎤 [NativeTouchMove] 检测到填入文本手势');
+          }
+        } else if (Math.abs(deltaY) < 10) {
+          // 没有明显的垂直滑动 - 直接记账
+          if (gestureTypeRef.current !== 'none') {
+            setGestureType('none');
+            gestureTypeRef.current = 'none';
+            setShowGestureHint(true);
+            console.log('🎤 [NativeTouchMove] 重置为直接记账手势');
+          }
+        }
+      }
+    };
+
+    const handleNativeTouchEnd = () => {
+      console.log('🎤 [NativeTouchEnd] 原生触摸结束');
+      // 移除事件监听器
+      document.removeEventListener('touchmove', handleNativeTouchMove);
+      document.removeEventListener('touchend', handleNativeTouchEnd);
+    };
+
+    // 添加原生事件监听器
+    document.addEventListener('touchmove', handleNativeTouchMove, { passive: false });
+    document.addEventListener('touchend', handleNativeTouchEnd, { passive: false });
+    
     startRecording();
   };
 
   // 处理触摸移动（检测是否要取消）
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchStartPos || !isRecording) return;
-
+    console.log('🎤 [TouchMove] 触摸移动事件触发');
+    
+    if (!touchStartPos || !isRecording) {
+      console.log('🎤 [TouchMove] 早期返回:', { touchStartPos, isRecording });
+      return;
+    }
+    
+    // 不调用 preventDefault() 来避免 passive event listener 错误
     const touch = e.touches[0];
     const deltaY = touchStartPos.y - touch.clientY;
     const deltaX = Math.abs(touch.clientX - touchStartPos.x);
 
-    //console.log('🎤 [TouchMove] 触摸移动:', { deltaY, deltaX });
+    console.log('🎤 [TouchMove] 触摸移动:', { deltaY, deltaX, gestureType: gestureTypeRef.current });
 
-    // 检测手势类型
-    if (Math.abs(deltaY) > 30 && deltaX < 50) { // 垂直滑动，水平偏移不超过50px
-      if (deltaY > 50) {
+    // 检测手势类型 - 优化阈值，使检测更敏感且准确
+    if (deltaX < 60) { // 水平偏移不超过60px
+      if (deltaY > 15) {
         // 向上滑动 - 取消录音
         if (gestureTypeRef.current !== 'cancel') {
           setGestureType('cancel');
@@ -485,7 +561,7 @@ export default function EnhancedSmartAccountingDialog({
           setShowGestureHint(true);
           console.log('🎤 [TouchMove] 检测到取消手势');
         }
-      } else if (deltaY < -50) {
+      } else if (deltaY < -15) {
         // 向下滑动 - 填入文本框
         if (gestureTypeRef.current !== 'fill-text') {
           setGestureType('fill-text');
@@ -493,13 +569,14 @@ export default function EnhancedSmartAccountingDialog({
           setShowGestureHint(true);
           console.log('🎤 [TouchMove] 检测到填入文本手势');
         }
-      }
-    } else if (Math.abs(deltaY) < 30) {
-      // 没有明显的垂直滑动
-      if (gestureTypeRef.current !== 'none') {
-        setGestureType('none');
-        gestureTypeRef.current = 'none';
-        setShowGestureHint(false);
+      } else if (Math.abs(deltaY) < 10) {
+        // 没有明显的垂直滑动 - 直接记账
+        if (gestureTypeRef.current !== 'none') {
+          setGestureType('none');
+          gestureTypeRef.current = 'none';
+          setShowGestureHint(true); // 显示提示以便用户知道当前状态
+          console.log('🎤 [TouchMove] 重置为直接记账手势');
+        }
       }
     }
   };
@@ -538,6 +615,8 @@ export default function EnhancedSmartAccountingDialog({
     console.log('🎤 [MouseDown] 鼠标按下');
     setTouchStartPos({ x: e.clientX, y: e.clientY });
     setIsButtonTouched(true);
+    setGestureType('none');
+    setShowGestureHint(true); // 立即显示提示
     startRecording();
   };
 
@@ -549,9 +628,9 @@ export default function EnhancedSmartAccountingDialog({
 
     console.log('🎤 [MouseMove] 鼠标移动:', { deltaY, deltaX });
 
-    // 检测手势类型（与触摸相同）
-    if (Math.abs(deltaY) > 30 && deltaX < 50) { // 垂直移动，水平偏移不超过50px
-      if (deltaY > 50) {
+    // 检测手势类型（与触摸相同）- 优化阈值，使检测更敏感且准确
+    if (deltaX < 60) { // 水平偏移不超过60px
+      if (deltaY > 15) {
         // 向上移动 - 取消录音
         if (gestureTypeRef.current !== 'cancel') {
           setGestureType('cancel');
@@ -559,7 +638,7 @@ export default function EnhancedSmartAccountingDialog({
           setShowGestureHint(true);
           console.log('🎤 [MouseMove] 检测到取消手势');
         }
-      } else if (deltaY < -50) {
+      } else if (deltaY < -15) {
         // 向下移动 - 填入文本框
         if (gestureTypeRef.current !== 'fill-text') {
           setGestureType('fill-text');
@@ -567,13 +646,13 @@ export default function EnhancedSmartAccountingDialog({
           setShowGestureHint(true);
           console.log('🎤 [MouseMove] 检测到填入文本手势');
         }
-      }
-    } else if (Math.abs(deltaY) < 30) {
-      // 没有明显的垂直移动
-      if (gestureTypeRef.current !== 'none') {
-        setGestureType('none');
-        gestureTypeRef.current = 'none';
-        setShowGestureHint(false);
+      } else if (Math.abs(deltaY) < 10) {
+        // 没有明显的垂直移动
+        if (gestureTypeRef.current !== 'none') {
+          setGestureType('none');
+          gestureTypeRef.current = 'none';
+          setShowGestureHint(true);
+        }
       }
     }
   };
@@ -769,6 +848,137 @@ export default function EnhancedSmartAccountingDialog({
     }
 
     fileInputRef.current?.click();
+  };
+
+  // 相机拍照
+  const handleCameraCapture = () => {
+    if (!accountBookId) {
+      toast.error('请先选择账本');
+      return;
+    }
+    
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment'; // 使用后置摄像头
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        handleImageSelect({ target: { files: [file] } } as any);
+      }
+    };
+    input.click();
+  };
+
+  // 相机按钮手势处理
+  const handleCameraTouchStart = (e: React.TouchEvent) => {
+    // 不调用 preventDefault() 来避免 passive event listener 错误
+    e.stopPropagation();
+    console.log('📷 [TouchStart] 相机按钮触摸开始');
+    
+    const touch = e.touches[0];
+    setCameraTouchStartPos({ x: touch.clientX, y: touch.clientY });
+    setIsCameraButtonTouched(true);
+    setCameraGestureType('none');
+  };
+
+  const handleCameraTouchMove = (e: React.TouchEvent) => {
+    if (!cameraTouchStartPos || !isCameraButtonTouched) return;
+    
+    // 不调用 preventDefault() 来避免 passive event listener 错误
+    const touch = e.touches[0];
+    const deltaY = cameraTouchStartPos.y - touch.clientY;
+    const deltaX = Math.abs(touch.clientX - cameraTouchStartPos.x);
+    
+    // 检测手势类型
+    if (Math.abs(deltaY) > 30 && deltaX < 50) { // 垂直滑动，水平偏移不超过50px
+      if (deltaY > 50) {
+        // 向上滑动 - 拍照
+        setCameraGestureType('capture');
+      } else if (deltaY < -50) {
+        // 向下滑动 - 上传
+        setCameraGestureType('upload');
+      }
+    } else {
+      setCameraGestureType('none');
+    }
+  };
+
+  const handleCameraTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('📷 [TouchEnd] 相机按钮触摸结束，手势类型:', cameraGestureType);
+    
+    setIsCameraButtonTouched(false);
+    
+    // 根据手势类型执行对应操作
+    if (cameraGestureType === 'capture') {
+      handleCameraCapture();
+    } else if (cameraGestureType === 'upload') {
+      handleImageRecording();
+    }
+    // 如果是 'none'，则不执行任何操作（原地松开）
+    
+    // 重置状态
+    setCameraTouchStartPos(null);
+    setCameraGestureType('none');
+  };
+
+  // 鼠标事件处理（用于桌面端测试）
+  const handleCameraMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('📷 [MouseDown] 相机按钮鼠标按下');
+    
+    setCameraTouchStartPos({ x: e.clientX, y: e.clientY });
+    setIsCameraButtonTouched(true);
+    setCameraGestureType('none');
+  };
+
+  const handleCameraMouseMove = (e: React.MouseEvent) => {
+    if (!cameraTouchStartPos || !isCameraButtonTouched) return;
+    e.preventDefault();
+    
+    const deltaY = cameraTouchStartPos.y - e.clientY;
+    const deltaX = Math.abs(e.clientX - cameraTouchStartPos.x);
+    
+    // 检测手势类型
+    if (Math.abs(deltaY) > 30 && deltaX < 50) {
+      if (deltaY > 50) {
+        setCameraGestureType('capture');
+      } else if (deltaY < -50) {
+        setCameraGestureType('upload');
+      }
+    } else {
+      setCameraGestureType('none');
+    }
+  };
+
+  const handleCameraMouseUp = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('📷 [MouseUp] 相机按钮鼠标抬起，手势类型:', cameraGestureType);
+    
+    setIsCameraButtonTouched(false);
+    
+    // 根据手势类型执行对应操作
+    if (cameraGestureType === 'capture') {
+      handleCameraCapture();
+    } else if (cameraGestureType === 'upload') {
+      handleImageRecording();
+    }
+    
+    // 重置状态
+    setCameraTouchStartPos(null);
+    setCameraGestureType('none');
+  };
+
+  const handleCameraMouseLeave = () => {
+    console.log('📷 [MouseLeave] 鼠标离开相机按钮');
+    // 鼠标离开时重置所有状态
+    setIsCameraButtonTouched(false);
+    setCameraTouchStartPos(null);
+    setCameraGestureType('none');
   };
 
   // 处理图片选择
@@ -970,6 +1180,22 @@ export default function EnhancedSmartAccountingDialog({
     if (isOpen) {
       // 初始化多模态状态
       loadMultimodalStatus();
+      
+      // 重置所有状态
+      setDescription('');
+      setIsProcessing(false);
+      setProcessingStep('');
+      setIsProcessingMultimodal(false);
+      setRecordingCancelled(false);
+      setIsButtonTouched(false);
+      setTouchStartPos(null);
+      setGestureType('none');
+      setShowGestureHint(false);
+      
+      // 重置相机按钮状态
+      setIsCameraButtonTouched(false);
+      setCameraTouchStartPos(null);
+      setCameraGestureType('none');
       
       // 保存当前滚动位置
       const scrollY = window.scrollY;
@@ -1177,9 +1403,22 @@ export default function EnhancedSmartAccountingDialog({
                         );
                       })}
                     </div>
+                    <div className="recording-gesture-arrows">
+                      <div className={`arrow arrow-up ${gestureType === 'cancel' ? 'active cancel' : ''}`}>
+                        <i className="fas fa-times"></i>
+                      </div>
+                      <div className={`arrow arrow-center ${gestureType === 'none' ? 'active direct-save' : ''}`}>
+                        <i className="fas fa-check"></i>
+                      </div>
+                      <div className={`arrow arrow-down ${gestureType === 'fill-text' ? 'active fill-text' : ''}`}>
+                        <i className="fas fa-edit"></i>
+                      </div>
+                    </div>
                   </div>
                   <p className="title">
-                    正在录音...
+                    {gestureType === 'cancel' ? '取消录音' :
+                     gestureType === 'fill-text' ? '填入文本框' :
+                     '松开直接记账'}
                   </p>
                   {showGestureHint && (
                     <p className="hint gesture-hint">
@@ -1193,6 +1432,39 @@ export default function EnhancedSmartAccountingDialog({
                       上滑取消 • 下滑填入文本框 • 松开直接记账
                     </p>
                   )}
+                </div>
+              )}
+
+              {/* 相机手势状态提示 */}
+              {isCameraButtonTouched && (
+                <div className="camera-gesture-indicator">
+                  <div className="camera-gesture-container">
+                    <div className="camera-icon">
+                      <i className={
+                        cameraGestureType === 'capture' ? 'fas fa-camera' :
+                        cameraGestureType === 'upload' ? 'fas fa-upload' :
+                        'fas fa-hand-pointer'
+                      }></i>
+                    </div>
+                    <div className="gesture-arrows">
+                      <div className={`arrow arrow-up ${cameraGestureType === 'capture' ? 'active' : ''}`}>
+                        <i className="fas fa-chevron-up"></i>
+                      </div>
+                      <div className={`arrow arrow-down ${cameraGestureType === 'upload' ? 'active' : ''}`}>
+                        <i className="fas fa-chevron-down"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="title">
+                    {cameraGestureType === 'capture' ? '拍照模式' :
+                     cameraGestureType === 'upload' ? '上传模式' :
+                     '相机手势'}
+                  </p>
+                  <p className="hint">
+                    {cameraGestureType === 'capture' ? '松开拍照' :
+                     cameraGestureType === 'upload' ? '松开上传图片' :
+                     '上滑拍照 • 下滑上传'}
+                  </p>
                 </div>
               )}
 
@@ -1233,30 +1505,59 @@ export default function EnhancedSmartAccountingDialog({
                   {/* 相机按钮 */}
                   <button
                     type="button"
-                    onClick={handleImageRecording}
+                    onTouchStart={handleCameraTouchStart}
+                    onTouchMove={handleCameraTouchMove}
+                    onTouchEnd={handleCameraTouchEnd}
+                    onMouseDown={handleCameraMouseDown}
+                    onMouseMove={handleCameraMouseMove}
+                    onMouseUp={handleCameraMouseUp}
+                    onMouseLeave={handleCameraMouseLeave}
                     disabled={isProcessing || isProcessingMultimodal}
                     style={{
                       width: '48px',
                       height: '48px',
                       borderRadius: '12px',
                       border: 'none',
-                      backgroundColor: 'var(--success-color, #22c55e)',
+                      backgroundColor: isCameraButtonTouched 
+                        ? (cameraGestureType === 'capture' ? 'var(--primary-color, #3b82f6)' :
+                           cameraGestureType === 'upload' ? 'var(--warning-color, #f59e0b)' :
+                           'var(--secondary-color-light, #8b5cf6)')
+                        : 'var(--success-color, #22c55e)',
                       color: 'white',
                       fontSize: '18px',
                       cursor: (isProcessing || isProcessingMultimodal) ? 'not-allowed' : 'pointer',
                       opacity: (isProcessing || isProcessingMultimodal) ? 0.6 : 1,
-                      transition: 'all 0.2s ease',
+                      transition: isCameraButtonTouched ? 'all 0.1s ease' : 'all 0.2s ease',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                      boxShadow: isCameraButtonTouched 
+                        ? (cameraGestureType === 'capture' ? '0 0 0 4px rgba(59, 130, 246, 0.4), 0 4px 12px rgba(0, 0, 0, 0.15)' :
+                           cameraGestureType === 'upload' ? '0 0 0 4px rgba(245, 158, 11, 0.4), 0 4px 12px rgba(0, 0, 0, 0.15)' :
+                           '0 0 0 4px rgba(139, 92, 246, 0.3), 0 2px 8px rgba(0, 0, 0, 0.1)')
+                        : '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      transform: isCameraButtonTouched 
+                        ? (cameraGestureType === 'capture' ? 'scale(1.1) translateY(-2px)' :
+                           cameraGestureType === 'upload' ? 'scale(1.1) translateY(2px)' :
+                           'scale(1.05)')
+                        : 'scale(1)',
                     }}
-                    title="图片记账"
+                    title={isCameraButtonTouched 
+                      ? (cameraGestureType === 'capture' ? '松开拍照' : 
+                         cameraGestureType === 'upload' ? '松开上传' : '上滑拍照 下滑上传')
+                      : '按住滑动：上滑拍照，下滑上传'
+                    }
                   >
                     {isProcessingMultimodal ? (
                       <i className="fas fa-spinner fa-spin"></i>
                     ) : (
-                      <i className="fas fa-camera"></i>
+                      <i className={
+                        isCameraButtonTouched
+                          ? (cameraGestureType === 'capture' ? 'fas fa-camera' :
+                             cameraGestureType === 'upload' ? 'fas fa-upload' :
+                             'fas fa-hand-pointer')
+                          : 'fas fa-camera'
+                      }></i>
                     )}
                   </button>
 
@@ -1302,7 +1603,8 @@ export default function EnhancedSmartAccountingDialog({
                       WebkitUserSelect: 'none',
                       WebkitTouchCallout: 'none',
                       position: 'relative',
-                      overflow: 'hidden'
+                      overflow: 'hidden',
+                      touchAction: 'manipulation' // 确保触摸移动事件能正常工作
                     }}
                     title={isRecording ? '松开停止录音，向上滑动取消' : '长按开始语音记账'}
                   >

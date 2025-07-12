@@ -199,6 +199,65 @@ html.modal-open {
   background-color: var(--success-color-dark, #16a34a);
 }
 
+.camera-button {
+  background-color: var(--secondary-color, #6366f1);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  position: relative;
+  overflow: hidden;
+}
+
+.camera-button:hover:not(:disabled) {
+  background-color: var(--secondary-color-dark, #4f46e5);
+}
+
+.camera-button i {
+  font-size: 18px;
+}
+
+.camera-hint {
+  font-size: 12px;
+  font-weight: normal;
+  opacity: 0.9;
+}
+
+.camera-button:active {
+  transform: scale(0.95);
+  background-color: var(--secondary-color-darker, #4338ca);
+}
+
+.camera-button.touched {
+  transform: scale(1.05) !important;
+  background-color: var(--secondary-color-light, #8b5cf6) !important;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.3) !important;
+}
+
+.camera-button.gesture-active {
+  animation: cameraButtonPulse 1s ease-in-out infinite;
+}
+
+.camera-button.dragging {
+  transform: scale(1.05) !important;
+  background-color: var(--secondary-color-light, #8b5cf6) !important;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.3) !important;
+}
+
+@keyframes cameraButtonPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+  }
+}
+
 .smart-accounting-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
@@ -299,13 +358,17 @@ html.modal-open {
   /* 保持按钮在同一排显示，即使在小屏幕上 */
   .smart-accounting-buttons {
     flex-direction: row;
-    gap: 8px;
+    gap: 6px;
   }
 
   .smart-accounting-button {
     flex: 1;
-    font-size: 14px;
-    padding: 10px 8px;
+    font-size: 13px;
+    padding: 10px 6px;
+  }
+
+  .camera-hint {
+    font-size: 10px;
   }
 }
 
@@ -313,6 +376,8 @@ html.modal-open {
 .mic-button {
   position: relative;
   overflow: hidden;
+  /* 确保触摸移动事件能正常触发 */
+  touch-action: manipulation;
 }
 
 .mic-button.touched {
@@ -380,6 +445,54 @@ html.modal-open {
 [data-theme="dark"] .sound-wave-container {
   background: var(--wave-container-bg-dark, rgba(148, 163, 184, 0.1));
   border-color: var(--wave-container-border-dark, rgba(148, 163, 184, 0.15));
+}
+
+/* 录音手势箭头 */
+.recording-gesture-arrows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recording-gesture-arrows .arrow {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--recording-arrow-bg, rgba(255, 255, 255, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--recording-arrow-color, rgba(255, 255, 255, 0.6));
+  transition: all 0.3s ease;
+  border: 1px solid var(--recording-arrow-border, rgba(255, 255, 255, 0.2));
+}
+
+.recording-gesture-arrows .arrow.active {
+  transform: scale(1.1);
+}
+
+.recording-gesture-arrows .arrow-up.active.cancel {
+  background: var(--cancel-arrow-bg, rgba(239, 68, 68, 0.2));
+  color: var(--cancel-arrow-color, #ef4444);
+  border-color: var(--cancel-arrow-border, #ef4444);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+  animation: pulseCancelUp 0.6s ease-in-out infinite alternate;
+}
+
+.recording-gesture-arrows .arrow-down.active.fill-text {
+  background: var(--fill-text-arrow-bg, rgba(245, 158, 11, 0.2));
+  color: var(--fill-text-arrow-color, #f59e0b);
+  border-color: var(--fill-text-arrow-border, #f59e0b);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+  animation: pulseFillTextDown 0.6s ease-in-out infinite alternate;
+}
+
+/* 暗色主题录音箭头适配 */
+[data-theme="dark"] .recording-gesture-arrows .arrow {
+  background: var(--recording-arrow-bg-dark, rgba(148, 163, 184, 0.1));
+  color: var(--recording-arrow-color-dark, rgba(255, 255, 255, 0.7));
+  border-color: var(--recording-arrow-border-dark, rgba(148, 163, 184, 0.2));
 }
 
 .microphone-icon {
@@ -507,6 +620,201 @@ html.modal-open {
 /* 暗色主题默认提示 */
 [data-theme="dark"] .recording-indicator .default-hint {
   color: var(--recording-indicator-default-hint-dark, var(--text-muted, rgba(255, 255, 255, 0.5)));
+}
+
+/* 相机手势指示器 */
+.camera-gesture-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--camera-indicator-bg, rgba(0, 0, 0, 0.85));
+  color: var(--camera-indicator-text, var(--text-on-dark, white));
+  padding: 24px;
+  border-radius: var(--border-radius-lg, 16px);
+  text-align: center;
+  z-index: 1000;
+  min-width: 240px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--camera-indicator-border, rgba(255, 255, 255, 0.1));
+  box-shadow: var(--shadow-xl, 0 8px 32px rgba(0, 0, 0, 0.3));
+  animation: slideInUp 0.2s ease-out;
+}
+
+/* 暗色主题适配 */
+[data-theme="dark"] .camera-gesture-indicator {
+  background: var(--camera-indicator-bg-dark, rgba(15, 23, 42, 0.9));
+  color: var(--camera-indicator-text-dark, var(--text-primary, white));
+  border-color: var(--camera-indicator-border-dark, rgba(148, 163, 184, 0.2));
+}
+
+.camera-gesture-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin: 0 auto 20px;
+  padding: 16px;
+  background: var(--gesture-container-bg, rgba(255, 255, 255, 0.08));
+  border-radius: var(--border-radius-xl, 20px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--gesture-container-border, rgba(255, 255, 255, 0.1));
+}
+
+/* 暗色主题适配 */
+[data-theme="dark"] .camera-gesture-container {
+  background: var(--gesture-container-bg-dark, rgba(148, 163, 184, 0.1));
+  border-color: var(--gesture-container-border-dark, rgba(148, 163, 184, 0.15));
+}
+
+.camera-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--camera-icon-bg, linear-gradient(135deg, #3b82f6, #1d4ed8));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease;
+}
+
+/* 暗色主题适配 */
+[data-theme="dark"] .camera-icon {
+  background: var(--camera-icon-bg-dark, linear-gradient(135deg, #4f46e5, #3730a3));
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.gesture-arrows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.arrow {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--arrow-bg, rgba(255, 255, 255, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--arrow-color, rgba(255, 255, 255, 0.6));
+  transition: all 0.3s ease;
+  border: 1px solid var(--arrow-border, rgba(255, 255, 255, 0.2));
+}
+
+.arrow.active {
+  background: var(--arrow-active-bg, rgba(34, 197, 94, 0.2));
+  color: var(--arrow-active-color, #22c55e);
+  border-color: var(--arrow-active-border, #22c55e);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+  transform: scale(1.1);
+}
+
+.arrow-up.active {
+  background: var(--arrow-up-active-bg, rgba(59, 130, 246, 0.2));
+  color: var(--arrow-up-active-color, #3b82f6);
+  border-color: var(--arrow-up-active-border, #3b82f6);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+  animation: pulseUp 0.6s ease-in-out infinite alternate;
+}
+
+.arrow-down.active {
+  background: var(--arrow-down-active-bg, rgba(245, 158, 11, 0.2));
+  color: var(--arrow-down-active-color, #f59e0b);
+  border-color: var(--arrow-down-active-border, #f59e0b);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+  animation: pulseDown 0.6s ease-in-out infinite alternate;
+}
+
+/* 暗色主题箭头适配 */
+[data-theme="dark"] .arrow {
+  background: var(--arrow-bg-dark, rgba(148, 163, 184, 0.1));
+  color: var(--arrow-color-dark, rgba(255, 255, 255, 0.7));
+  border-color: var(--arrow-border-dark, rgba(148, 163, 184, 0.2));
+}
+
+.camera-gesture-indicator .title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--camera-indicator-title, var(--text-on-dark, white));
+}
+
+/* 暗色主题标题适配 */
+[data-theme="dark"] .camera-gesture-indicator .title {
+  color: var(--camera-indicator-title-dark, var(--text-primary, white));
+}
+
+.camera-gesture-indicator .hint {
+  font-size: 14px;
+  margin: 0;
+  color: var(--camera-indicator-hint, var(--text-on-dark-secondary, rgba(255, 255, 255, 0.8)));
+  line-height: 1.4;
+}
+
+/* 暗色主题提示适配 */
+[data-theme="dark"] .camera-gesture-indicator .hint {
+  color: var(--camera-indicator-hint-dark, var(--text-secondary, rgba(255, 255, 255, 0.7)));
+}
+
+/* 动画效果 */
+@keyframes slideInUp {
+  from {
+    transform: translate(-50%, -40%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
+}
+
+@keyframes pulseUp {
+  from {
+    transform: scale(1.1) translateY(0);
+  }
+  to {
+    transform: scale(1.2) translateY(-2px);
+  }
+}
+
+@keyframes pulseDown {
+  from {
+    transform: scale(1.1) translateY(0);
+  }
+  to {
+    transform: scale(1.2) translateY(2px);
+  }
+}
+
+/* 录音手势动画效果 */
+@keyframes pulseCancelUp {
+  from {
+    transform: scale(1.1) translateY(0);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+  }
+  to {
+    transform: scale(1.3) translateY(-3px);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+  }
+}
+
+@keyframes pulseFillTextDown {
+  from {
+    transform: scale(1.1) translateY(0);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+  }
+  to {
+    transform: scale(1.3) translateY(3px);
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+  }
 }
 
 /* 音频可视化条 */

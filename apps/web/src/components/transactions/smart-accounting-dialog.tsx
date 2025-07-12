@@ -355,6 +355,11 @@ export function SmartAccountingDialog({
   const [description, setDescription] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState<string | null>(null);
+  const [isImageProcessing, setIsImageProcessing] = useState(false);
+  const [dragPosition, setDragPosition] = useState<{ startY: number; currentY: number; active: boolean }>({ startY: 0, currentY: 0, active: false });
+  const [touchStartPos, setTouchStartPos] = useState<{ x: number; y: number } | null>(null);
+  const [gestureType, setGestureType] = useState<'none' | 'capture' | 'upload'>('none');
+  const [isButtonTouched, setIsButtonTouched] = useState(false);
 
   // 重置表单和禁用背景滚动
   useEffect(() => {
@@ -362,6 +367,11 @@ export function SmartAccountingDialog({
       setDescription('');
       setIsProcessing(false);
       setProcessingStep(null);
+      setIsImageProcessing(false);
+      setDragPosition({ startY: 0, currentY: 0, active: false });
+      setTouchStartPos(null);
+      setGestureType('none');
+      setIsButtonTouched(false);
       
       // 保存当前滚动位置
       const scrollY = window.scrollY;
@@ -651,6 +661,237 @@ export function SmartAccountingDialog({
     }
   };
 
+  // 处理图片记账
+  const handleImageAccounting = async (file: File) => {
+    if (!accountBookId) {
+      toast.error('请先选择账本');
+      return;
+    }
+
+    // 生成唯一的进度ID
+    const progressId = `image-accounting-${Date.now()}`;
+    
+    try {
+      // 关闭模态框，让用户可以进行其他操作
+      onClose();
+      
+      // 启动请求并保存到待处理列表
+      smartAccountingProgressManager.startRequest(progressId, accountBookId, '正在分析图片...');
+
+      // 创建FormData来上传文件
+      const formData = new FormData();
+      formData.append('image', file);
+
+      // 调用图片识别API
+      const response = await apiClient.post(
+        `/ai/account/${accountBookId}/smart-accounting/image`,
+        formData,
+        { 
+          timeout: 60000,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      console.log('图片记账结果:', response);
+
+      if (response && response.id) {
+        console.log('图片记账成功，交易ID:', response.id);
+        
+        // 在后台刷新数据
+        if (accountBookId) {
+          try {
+            console.log('开始刷新仪表盘数据...');
+            await refreshDashboardData(accountBookId);
+            console.log('仪表盘数据刷新完成');
+          } catch (refreshError) {
+            console.error('刷新仪表盘数据失败:', refreshError);
+          }
+        }
+
+        // 完成请求，显示成功消息
+        smartAccountingProgressManager.completeRequest(progressId, true, '图片识别完成，记账成功');
+
+      } else {
+        smartAccountingProgressManager.completeRequest(progressId, false, '图片识别失败，请手动填写');
+      }
+    } catch (error: any) {
+      console.error('图片记账失败:', error);
+
+      // 显示错误通知
+      let errorMessage = '图片识别失败，请重试';
+      
+      if (error.code === 'ECONNABORTED') {
+        errorMessage = '请求超时，服务器可能仍在处理，请稍后检查记录';
+      } else if (error.response) {
+        const errorData = error.response.data;
+        
+        // 特殊处理Token限额错误（HTTP 429）
+        if (error.response.status === 429 && errorData?.type === 'TOKEN_LIMIT_EXCEEDED') {
+          errorMessage = `${errorData.error || 'Token使用量已达限额，请稍后再试'}`;
+          smartAccountingProgressManager.completeRequest(progressId, false, errorMessage);
+          return;
+        } else {
+          errorMessage = `图片识别失败: ${errorData?.error || errorData?.message || '服务器错误'}`;
+        }
+      } else if (error.request) {
+        errorMessage = '网络连接异常，请检查网络后重试';
+      }
+      
+      smartAccountingProgressManager.completeRequest(progressId, false, errorMessage);
+    }
+  };
+
+  // 处理相机拍照
+  const handleCameraCapture = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment'; // 使用后置摄像头
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        handleImageAccounting(file);
+      }
+    };
+    input.click();
+  };
+
+  // 处理图片上传
+  const handleImageUpload = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        handleImageAccounting(file);
+      }
+    };
+    input.click();
+  };
+
+  // 手势处理 - 参考语音按钮实现
+  const handleCameraTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('📷 [TouchStart] 相机按钮触摸开始');
+    
+    const touch = e.touches[0];
+    setTouchStartPos({ x: touch.clientX, y: touch.clientY });
+    setIsButtonTouched(true);
+    setGestureType('none');
+    setDragPosition({ startY: touch.clientY, currentY: touch.clientY, active: true });
+  };
+
+  const handleCameraTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartPos || !isButtonTouched) return;
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    const deltaY = touchStartPos.y - touch.clientY;
+    const deltaX = Math.abs(touch.clientX - touchStartPos.x);
+    
+    setDragPosition(prev => ({ ...prev, currentY: touch.clientY }));
+    
+    // 检测手势类型
+    if (Math.abs(deltaY) > 30 && deltaX < 50) { // 垂直滑动，水平偏移不超过50px
+      if (deltaY > 50) {
+        // 向上滑动 - 拍照
+        setGestureType('capture');
+      } else if (deltaY < -50) {
+        // 向下滑动 - 上传
+        setGestureType('upload');
+      }
+    } else {
+      setGestureType('none');
+    }
+  };
+
+  const handleCameraTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('📷 [TouchEnd] 相机按钮触摸结束，手势类型:', gestureType);
+    
+    setIsButtonTouched(false);
+    setDragPosition({ startY: 0, currentY: 0, active: false });
+    
+    // 根据手势类型执行对应操作
+    if (gestureType === 'capture') {
+      handleCameraCapture();
+    } else if (gestureType === 'upload') {
+      handleImageUpload();
+    }
+    // 如果是 'none'，则不执行任何操作（原地松开）
+    
+    // 重置状态
+    setTouchStartPos(null);
+    setGestureType('none');
+  };
+
+  // 鼠标事件处理（用于桌面端测试）
+  const handleCameraMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('📷 [MouseDown] 相机按钮鼠标按下');
+    
+    setTouchStartPos({ x: e.clientX, y: e.clientY });
+    setIsButtonTouched(true);
+    setGestureType('none');
+    setDragPosition({ startY: e.clientY, currentY: e.clientY, active: true });
+  };
+
+  const handleCameraMouseMove = (e: React.MouseEvent) => {
+    if (!touchStartPos || !isButtonTouched) return;
+    e.preventDefault();
+    
+    const deltaY = touchStartPos.y - e.clientY;
+    const deltaX = Math.abs(e.clientX - touchStartPos.x);
+    
+    setDragPosition(prev => ({ ...prev, currentY: e.clientY }));
+    
+    // 检测手势类型
+    if (Math.abs(deltaY) > 30 && deltaX < 50) {
+      if (deltaY > 50) {
+        setGestureType('capture');
+      } else if (deltaY < -50) {
+        setGestureType('upload');
+      }
+    } else {
+      setGestureType('none');
+    }
+  };
+
+  const handleCameraMouseUp = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('📷 [MouseUp] 相机按钮鼠标抬起，手势类型:', gestureType);
+    
+    setIsButtonTouched(false);
+    setDragPosition({ startY: 0, currentY: 0, active: false });
+    
+    // 根据手势类型执行对应操作
+    if (gestureType === 'capture') {
+      handleCameraCapture();
+    } else if (gestureType === 'upload') {
+      handleImageUpload();
+    }
+    
+    // 重置状态
+    setTouchStartPos(null);
+    setGestureType('none');
+  };
+
+  const handleCameraMouseLeave = () => {
+    console.log('📷 [MouseLeave] 鼠标离开相机按钮');
+    // 鼠标离开时重置所有状态
+    setIsButtonTouched(false);
+    setDragPosition({ startY: 0, currentY: 0, active: false });
+    setTouchStartPos(null);
+    setGestureType('none');
+  };
+
   // 处理手动记账
   const handleManualAccounting = () => {
     onClose();
@@ -716,6 +957,32 @@ export function SmartAccountingDialog({
                   disabled={!description.trim()}
                 >
                   直接添加
+                </button>
+
+                <button
+                  className={`smart-accounting-button camera-button ${isButtonTouched ? 'touched' : ''} ${gestureType !== 'none' ? 'gesture-active' : ''}`}
+                  onTouchStart={handleCameraTouchStart}
+                  onTouchMove={handleCameraTouchMove}
+                  onTouchEnd={handleCameraTouchEnd}
+                  onMouseDown={handleCameraMouseDown}
+                  onMouseMove={handleCameraMouseMove}
+                  onMouseUp={handleCameraMouseUp}
+                  onMouseLeave={handleCameraMouseLeave}
+                  disabled={isProcessing}
+                  style={{
+                    transform: isButtonTouched ? 'scale(1.05)' : 'scale(1)',
+                    transition: isButtonTouched ? 'none' : 'all 0.2s ease',
+                    backgroundColor: isButtonTouched ? 'var(--secondary-color-light, #8b5cf6)' : '',
+                    boxShadow: isButtonTouched ? '0 0 0 4px rgba(139, 92, 246, 0.3)' : '',
+                  }}
+                >
+                  <i className="fas fa-camera"></i>
+                  <span className="camera-hint">
+                    {isButtonTouched 
+                      ? (gestureType === 'capture' ? '松开拍照' : gestureType === 'upload' ? '松开上传' : '上滑拍照 下滑上传')
+                      : '按住滑动'
+                    }
+                  </span>
                 </button>
               </div>
 
