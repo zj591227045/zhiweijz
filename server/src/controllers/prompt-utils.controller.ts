@@ -53,7 +53,7 @@ export class PromptUtilsController {
       
       // 检查无效占位符
       const invalidPlaceholders = foundPlaceholders.filter(
-        placeholder => !Object.keys(supportedPlaceholders).includes(placeholder)
+        (placeholder: string) => !Object.keys(supportedPlaceholders).includes(placeholder)
       );
 
       // 检查模板长度

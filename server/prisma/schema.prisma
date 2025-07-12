@@ -42,6 +42,9 @@ model User {
   wechat_user_bindings wechat_user_bindings[]
   tags                 Tag[]
   uploadedFiles        FileStorage[]
+  accountingPoints     UserAccountingPoints?
+  pointsTransactions   AccountingPointsTransactions[]
+  checkins             UserCheckins[]
 
   @@index([isActive], map: "idx_users_is_active")
   @@map("users")
@@ -784,4 +787,53 @@ model TransactionAttachment {
   @@index([attachmentType], map: "idx_transaction_attachments_type")
   @@index([createdAt(sort: Desc)], map: "idx_transaction_attachments_created_at")
   @@map("transaction_attachments")
+}
+
+// 记账点系统相关模型
+model UserAccountingPoints {
+  id               String    @id @default(uuid())
+  userId           String    @unique @map("user_id")
+  giftBalance      Int       @default(0) @map("gift_balance")
+  memberBalance    Int       @default(0) @map("member_balance")
+  lastDailyGiftDate DateTime? @map("last_daily_gift_date") @db.Date
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_user_accounting_points_user_id")
+  @@index([lastDailyGiftDate], map: "idx_user_accounting_points_last_daily_gift_date")
+  @@index([userId, lastDailyGiftDate], map: "idx_user_accounting_points_user_gift_date")
+  @@map("user_accounting_points")
+}
+
+model AccountingPointsTransactions {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  type         String   @db.VarChar(20) // 'text', 'voice', 'image', 'gift', 'member', 'daily', 'checkin', 'admin'
+  operation    String   @db.VarChar(10) // 'add', 'deduct'
+  points       Int
+  balanceType  String   @db.VarChar(10) @map("balance_type") // 'gift', 'member'
+  balanceAfter Int      @map("balance_after")
+  description  String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_accounting_points_transactions_user_id")
+  @@index([createdAt(sort: Desc)], map: "idx_accounting_points_transactions_created_at")
+  @@index([type], map: "idx_accounting_points_transactions_type")
+  @@map("accounting_points_transactions")
+}
+
+model UserCheckins {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  checkinDate   DateTime @map("checkin_date") @db.Date
+  pointsAwarded Int      @default(5) @map("points_awarded")
+  createdAt     DateTime @default(now()) @map("created_at")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, checkinDate], map: "user_checkins_user_date_unique")
+  @@index([userId], map: "idx_user_checkins_user_id")
+  @@index([checkinDate], map: "idx_user_checkins_date")
+  @@map("user_checkins")
 }

@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAdminDashboard } from '@/store/admin/useAdminDashboard';
 import { StatsCard } from './StatsCard';
 import { ChartCard } from './ChartCard';
 import { SystemResourcesCard } from './SystemResourcesCard';
 import { PerformanceHistoryCard } from './PerformanceHistoryCard';
+import { DailyActiveStatsCard } from './DailyActiveStatsCard';
 import { 
   UsersIcon, 
   CreditCardIcon, 
@@ -26,13 +27,21 @@ export function AdminDashboard() {
     overview, 
     userStats, 
     transactionStats, 
-    systemResources, 
+    systemResources,
+    dailyActiveStats,
     isLoading,
     fetchUserStats,
-    fetchTransactionStats
+    fetchTransactionStats,
+    fetchDailyActiveStats
   } = useAdminDashboard();
   
   const [selectedPeriod, setSelectedPeriod] = useState('7d');
+  const [selectedDays, setSelectedDays] = useState(7);
+
+  // 初始化时获取日活跃统计
+  useEffect(() => {
+    fetchDailyActiveStats(selectedDays);
+  }, [fetchDailyActiveStats]);
 
   const handlePeriodChange = async (period: string) => {
     setSelectedPeriod(period);
@@ -40,6 +49,11 @@ export function AdminDashboard() {
       fetchUserStats(period),
       fetchTransactionStats(period)
     ]);
+  };
+
+  const handleDaysChange = async (days: number) => {
+    setSelectedDays(days);
+    await fetchDailyActiveStats(days);
   };
 
   // 格式化数字
@@ -150,6 +164,14 @@ export function AdminDashboard() {
           color="#10B981"
         />
       </div>
+
+      {/* 日活跃用户统计 */}
+      <DailyActiveStatsCard
+        data={dailyActiveStats}
+        isLoading={isLoading.dailyActiveStats}
+        onPeriodChange={handleDaysChange}
+        selectedDays={selectedDays}
+      />
 
       {/* 分类统计和系统资源 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

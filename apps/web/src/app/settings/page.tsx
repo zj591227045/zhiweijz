@@ -9,7 +9,9 @@ import { useAccountBookStore } from '@/store/account-book-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { useThemeStore } from '@/store/theme-store';
 import { AvatarDisplay } from '@/components/ui/avatar-display';
+import { CheckinButton } from '@/components/checkin/checkin-button';
 import { userService } from '@/lib/api/user-service';
+import '@/components/checkin/checkin-button.css';
 import './settings.css';
 
 export default function SettingsPage() {
@@ -151,6 +153,7 @@ export default function SettingsPage() {
         <div className="user-info">
           <div className="user-name">{user.name}</div>
           <div className="user-email">{user.email}</div>
+          <CheckinButton className="user-checkin" showBalance={true} />
         </div>
       </div>
 

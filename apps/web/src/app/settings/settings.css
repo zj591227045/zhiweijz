@@ -72,6 +72,11 @@
   flex-shrink: 0;
 }
 
+.user-info {
+  flex: 1;
+  min-width: 0; /* 防止内容溢出 */
+}
+
 .user-name {
   font-size: 18px;
   font-weight: 600;
@@ -82,6 +87,11 @@
 .user-email {
   font-size: 14px;
   color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.user-checkin {
+  margin-top: 8px;
 }
 
 /* 设置组 */

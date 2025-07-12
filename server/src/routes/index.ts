@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { WechatController } from '../controllers/wechat.controller';
+import { authenticate } from '../middlewares/auth.middleware';
+import { dailyFirstVisitGift } from '../middlewares/daily-gift.middleware';
 import authRoutes from './auth.routes';
 import userRoutes from './user.routes';
 import userSettingRoutes from './user-setting.routes';
@@ -24,32 +26,38 @@ import fileStorageRoutes from './file-storage.routes';
 import imageRecognitionRoutes from './image-recognition.routes';
 import imageProxyRoutes from './image-proxy.routes';
 import multimodalAIRoutes from './multimodal-ai.routes';
+import accountingPointsRoutes from './accounting-points.routes';
 
 const router = Router();
 
 // 注册路由
 router.use('/auth', authRoutes);
-router.use('/users', userRoutes);
-router.use('/user-settings', userSettingRoutes);
-router.use('/categories', categoryRoutes);
-router.use('/user-category-configs', userCategoryConfigRoutes);
-router.use('/transactions', transactionRoutes);
-router.use('/tags', tagRoutes);
-router.use('/budgets', budgetRoutes);
-router.use('/category-budgets', categoryBudgetRoutes);
-router.use('/account-books', accountBookRoutes);
-router.use('/families', familyRoutes);
-router.use('/statistics', statisticsRoutes);
-router.use('/security', securityRoutes);
-router.use('/ai', aiRoutes);
-router.use('/feedback', feedbackRoutes);
-router.use('/system', systemRoutes);
-router.use('/system-config', systemConfigRoutes);
-router.use('/user/announcements', userAnnouncementRoutes);
-router.use('/file-storage', fileStorageRoutes);
-router.use('/image-recognition', imageRecognitionRoutes);
-router.use('/image-proxy', imageProxyRoutes);
-router.use('/ai', multimodalAIRoutes);
+
+// 需要认证和每日赠送检测的路由
+router.use('/users', authenticate, dailyFirstVisitGift, userRoutes);
+router.use('/user-settings', authenticate, dailyFirstVisitGift, userSettingRoutes);
+router.use('/categories', authenticate, dailyFirstVisitGift, categoryRoutes);
+router.use('/user-category-configs', authenticate, dailyFirstVisitGift, userCategoryConfigRoutes);
+router.use('/transactions', authenticate, dailyFirstVisitGift, transactionRoutes);
+router.use('/tags', authenticate, dailyFirstVisitGift, tagRoutes);
+router.use('/budgets', authenticate, dailyFirstVisitGift, budgetRoutes);
+router.use('/category-budgets', authenticate, dailyFirstVisitGift, categoryBudgetRoutes);
+router.use('/account-books', authenticate, dailyFirstVisitGift, accountBookRoutes);
+router.use('/families', authenticate, dailyFirstVisitGift, familyRoutes);
+router.use('/statistics', authenticate, dailyFirstVisitGift, statisticsRoutes);
+router.use('/security', authenticate, dailyFirstVisitGift, securityRoutes);
+router.use('/ai', authenticate, dailyFirstVisitGift, aiRoutes);
+router.use('/feedback', authenticate, dailyFirstVisitGift, feedbackRoutes);
+router.use('/system', authenticate, dailyFirstVisitGift, systemRoutes);
+router.use('/system-config', authenticate, dailyFirstVisitGift, systemConfigRoutes);
+router.use('/user/announcements', authenticate, dailyFirstVisitGift, userAnnouncementRoutes);
+router.use('/file-storage', authenticate, dailyFirstVisitGift, fileStorageRoutes);
+router.use('/image-recognition', authenticate, dailyFirstVisitGift, imageRecognitionRoutes);
+router.use('/image-proxy', authenticate, dailyFirstVisitGift, imageProxyRoutes);
+router.use('/ai', authenticate, dailyFirstVisitGift, multimodalAIRoutes);
+router.use('/accounting-points', authenticate, dailyFirstVisitGift, accountingPointsRoutes);
+
+// 管理后台路由
 router.use('/admin', adminRoutes);
 
 // 创建一个独立的微信绑定页面路由，不经过任何微信中间件

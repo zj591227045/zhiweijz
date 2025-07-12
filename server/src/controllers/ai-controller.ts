@@ -3,6 +3,7 @@ import { LLMProviderService } from '../ai/llm/llm-provider-service';
 import { SmartAccounting } from '../ai/langgraph/smart-accounting';
 import { PrismaClient, TransactionType } from '@prisma/client';
 import { SmartAccountingResult, SmartAccountingError } from '../types/smart-accounting';
+import AccountingPointsService from '../services/accounting-points.service';
 
 /**
  * AI功能控制器
@@ -88,6 +89,16 @@ export class AIController {
         return res.status(404).json({ error: '账本不存在或无权访问' });
       }
 
+      // 检查记账点余额（文字记账消费1点）
+      const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.text);
+      if (!canUsePoints) {
+        return res.status(402).json({ 
+          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+          type: 'INSUFFICIENT_POINTS',
+          required: AccountingPointsService.POINT_COSTS.text
+        });
+      }
+
       // 处理描述
       const result = await this.smartAccounting.processDescription(
         description,
@@ -111,6 +122,14 @@ export class AIController {
         }
         // 其他错误（如内容与记账无关）
         return res.status(400).json({ info: result.error });
+      }
+
+      // 智能记账成功，扣除记账点
+      try {
+        await AccountingPointsService.deductPoints(userId, 'text', AccountingPointsService.POINT_COSTS.text);
+      } catch (pointsError) {
+        console.error('扣除记账点失败:', pointsError);
+        // 记账点扣除失败不影响返回结果，但需要记录日志
       }
 
       res.json(result);
@@ -889,6 +908,16 @@ export class AIController {
 
       console.log(`📝 [记账处理] 实际记账用户: ${actualUserName} (ID: ${actualUserId})`);
 
+      // 检查记账点余额（文字记账消费1点）- 使用请求发起者的记账点
+      const canUsePoints = await AccountingPointsService.canUsePoints(requestUserId, AccountingPointsService.POINT_COSTS.text);
+      if (!canUsePoints) {
+        return res.status(402).json({ 
+          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+          type: 'INSUFFICIENT_POINTS',
+          required: AccountingPointsService.POINT_COSTS.text
+        });
+      }
+
       // 使用实际用户ID进行智能记账分析
       const smartResult = await this.smartAccounting.processDescription(
         description,
@@ -979,6 +1008,14 @@ export class AIController {
 
         console.log(`✅ [交易创建] 交易记录创建成功: ${transaction.id}`);
 
+        // 交易创建成功，扣除记账点（使用请求发起者的记账点）
+        try {
+          await AccountingPointsService.deductPoints(requestUserId, 'text', AccountingPointsService.POINT_COSTS.text);
+        } catch (pointsError) {
+          console.error('扣除记账点失败:', pointsError);
+          // 记账点扣除失败不影响返回结果，但需要记录日志
+        }
+
         // 返回创建的交易记录
         res.status(201).json({
           ...transaction,
@@ -1046,6 +1083,16 @@ export class AIController {
 
       if (!accountBook) {
         return res.status(404).json({ error: '账本不存在或无权访问' });
+      }
+
+      // 检查记账点余额（文字记账消费1点）
+      const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.text);
+      if (!canUsePoints) {
+        return res.status(402).json({ 
+          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+          type: 'INSUFFICIENT_POINTS',
+          required: AccountingPointsService.POINT_COSTS.text
+        });
       }
 
       // 处理描述，获取智能记账结果
@@ -1161,6 +1208,14 @@ export class AIController {
         const transaction = await this.prisma.transaction.create({
           data: transactionData,
         });
+
+        // 交易创建成功，扣除记账点
+        try {
+          await AccountingPointsService.deductPoints(userId, 'text', AccountingPointsService.POINT_COSTS.text);
+        } catch (pointsError) {
+          console.error('扣除记账点失败:', pointsError);
+          // 记账点扣除失败不影响返回结果，但需要记录日志
+        }
 
         // 返回创建的交易记录
         res.status(201).json({

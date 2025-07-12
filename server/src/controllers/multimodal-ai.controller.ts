@@ -3,6 +3,7 @@ import { SpeechRecognitionService } from '../services/speech-recognition.service
 import { VisionRecognitionService } from '../services/vision-recognition.service';
 import { MultimodalAIConfigService } from '../services/multimodal-ai-config.service';
 import { FileStorageService } from '../services/file-storage.service';
+import AccountingPointsService from '../services/accounting-points.service';
 import {
   SpeechRecognitionRequest,
   VisionRecognitionRequest,
@@ -153,6 +154,18 @@ export class MultimodalAIController {
         return;
       }
 
+      // 检查记账点余额（语音记账消费2点）
+      const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.voice);
+      if (!canUsePoints) {
+        res.status(402).json({ 
+          success: false,
+          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+          type: 'INSUFFICIENT_POINTS',
+          required: AccountingPointsService.POINT_COSTS.voice
+        });
+        return;
+      }
+
       // 1. 语音转文本
       const speechRequest: SpeechRecognitionRequest = {
         audioFile: req.file,
@@ -169,7 +182,15 @@ export class MultimodalAIController {
         return;
       }
 
-      // 2. 返回识别结果，前端将调用智能记账API
+      // 2. 语音识别成功，扣除记账点
+      try {
+        await AccountingPointsService.deductPoints(userId, 'voice', AccountingPointsService.POINT_COSTS.voice);
+      } catch (pointsError) {
+        console.error('扣除记账点失败:', pointsError);
+        // 记账点扣除失败不影响返回结果，但需要记录日志
+      }
+
+      // 3. 返回识别结果，前端将调用智能记账API
       res.json({
         success: true,
         data: {
@@ -212,6 +233,18 @@ export class MultimodalAIController {
         return;
       }
 
+      // 检查记账点余额（图片记账消费3点）
+      const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.image);
+      if (!canUsePoints) {
+        res.status(402).json({ 
+          success: false,
+          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+          type: 'INSUFFICIENT_POINTS',
+          required: AccountingPointsService.POINT_COSTS.image
+        });
+        return;
+      }
+
       // 1. 获取配置的提示词
       const config = await this.configService.getFullConfig();
       const imageAnalysisPrompt = config.smartAccounting.imageAnalysisPrompt || 
@@ -235,7 +268,15 @@ export class MultimodalAIController {
         return;
       }
 
-      // 3. 返回识别结果，前端将调用智能记账API
+      // 3. 图片识别成功，扣除记账点
+      try {
+        await AccountingPointsService.deductPoints(userId, 'image', AccountingPointsService.POINT_COSTS.image);
+      } catch (pointsError) {
+        console.error('扣除记账点失败:', pointsError);
+        // 记账点扣除失败不影响返回结果，但需要记录日志
+      }
+
+      // 4. 返回识别结果，前端将调用智能记账API
       res.json({
         success: true,
         data: {

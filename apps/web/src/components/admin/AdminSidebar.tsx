@@ -11,7 +11,8 @@ import {
   CloudArrowUpIcon,
   XMarkIcon,
   MicrophoneIcon,
-  EyeIcon
+  EyeIcon,
+  StarIcon
 } from '@heroicons/react/24/outline';
 
 interface AdminSidebarProps {
@@ -22,7 +23,16 @@ interface AdminSidebarProps {
 
 const navigation = [
   { name: '仪表盘', href: '/admin', icon: HomeIcon, current: false },
-  { name: '用户管理', href: '/admin/users', icon: UsersIcon, current: false },
+  { 
+    name: '用户管理', 
+    href: '/admin/users', 
+    icon: UsersIcon, 
+    current: false,
+    children: [
+      { name: '用户列表', href: '/admin/users', current: false },
+      { name: '记账点管理', href: '/admin/accounting-points', current: false }
+    ]
+  },
   {
     name: 'LLM管理',
     href: '/admin/llm',

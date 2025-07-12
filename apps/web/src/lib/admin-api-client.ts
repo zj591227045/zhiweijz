@@ -75,6 +75,16 @@ export const ADMIN_API_ENDPOINTS = {
   MULTIMODAL_AI_VISION_TEST: '/api/admin/multimodal-ai/vision/test',
   MULTIMODAL_AI_MODELS: '/api/admin/multimodal-ai/models',
   MULTIMODAL_AI_STATUS: '/api/admin/multimodal-ai/status',
+  
+  // 记账点管理
+  ACCOUNTING_POINTS_STATS: '/api/admin/accounting-points/stats',
+  ACCOUNTING_POINTS_USERS: '/api/admin/accounting-points/users',
+  ACCOUNTING_POINTS_OVERALL: '/api/admin/accounting-points/overall-stats',
+  ACCOUNTING_POINTS_USER_TRANSACTIONS: (userId: string) => `/api/admin/accounting-points/users/${userId}/transactions`,
+  ACCOUNTING_POINTS_ADD: (userId: string) => `/api/admin/accounting-points/users/${userId}/add`,
+  ACCOUNTING_POINTS_BATCH_ADD: '/api/admin/accounting-points/batch-add',
+  ACCOUNTING_POINTS_CONFIG: '/api/admin/accounting-points/config',
+  ACCOUNTING_POINTS_DAILY_ACTIVE: '/api/admin/accounting-points/daily-active-stats',
 } as const;
 
 /**

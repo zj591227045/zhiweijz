@@ -9,6 +9,7 @@ import tokenLimitAdminRoutes from './token-limit.admin.routes';
 import multiProviderLLMAdminRoutes from './multi-provider-llm.admin.routes';
 import storageConfigAdminRoutes from './storage-config.admin.routes';
 import multimodalAIAdminRoutes from './multimodal-ai.admin.routes';
+import accountingPointsAdminRoutes from './accounting-points.admin.routes';
 
 const router = Router();
 
@@ -23,5 +24,6 @@ router.use('/token-limit', tokenLimitAdminRoutes);
 router.use('/multi-provider-llm', multiProviderLLMAdminRoutes);
 router.use('/storage', storageConfigAdminRoutes);
 router.use('/multimodal-ai', multimodalAIAdminRoutes);
+router.use('/accounting-points', accountingPointsAdminRoutes);
 
 export default router;
