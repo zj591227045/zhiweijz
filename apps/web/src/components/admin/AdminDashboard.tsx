@@ -13,7 +13,9 @@ import {
   UserPlusIcon, 
   PlusIcon,
   BookOpenIcon,
-  UserGroupIcon
+  UserGroupIcon,
+  TrophyIcon,
+  StarIcon
 } from '@heroicons/react/24/outline';
 
 const PERIOD_OPTIONS = [
@@ -37,10 +39,29 @@ export function AdminDashboard() {
   
   const [selectedPeriod, setSelectedPeriod] = useState('7d');
   const [selectedDays, setSelectedDays] = useState(7);
+  const [membershipStats, setMembershipStats] = useState<any>(null);
+  const [membershipLoading, setMembershipLoading] = useState(false);
 
-  // 初始化时获取日活跃统计
+  // 获取会员统计数据
+  const fetchMembershipStats = async () => {
+    try {
+      setMembershipLoading(true);
+      const response = await fetch('/api/admin/membership/stats');
+      const data = await response.json();
+      if (data.success) {
+        setMembershipStats(data.data);
+      }
+    } catch (error) {
+      console.error('获取会员统计失败:', error);
+    } finally {
+      setMembershipLoading(false);
+    }
+  };
+
+  // 初始化时获取日活跃统计和会员统计
   useEffect(() => {
     fetchDailyActiveStats(selectedDays);
+    fetchMembershipStats();
   }, [fetchDailyActiveStats]);
 
   const handlePeriodChange = async (period: string) => {
@@ -102,6 +123,26 @@ export function AdminDashboard() {
     }
   ] : [];
 
+  // 会员统计卡片数据
+  const membershipStatsCards = membershipStats ? [
+    {
+      title: '捐赠会员',
+      value: formatNumber(membershipStats.donorMembers),
+      icon: TrophyIcon,
+      color: 'yellow',
+      change: '活跃付费用户',
+      changeType: 'positive' as const
+    },
+    {
+      title: '即将到期',
+      value: formatNumber(membershipStats.expiringInWeek),
+      icon: StarIcon,
+      color: 'red',
+      change: '7天内到期',
+      changeType: 'warning' as const
+    }
+  ] : [];
+
   return (
     <div className="space-y-6">
       {/* 时间周期选择器 */}
@@ -139,6 +180,51 @@ export function AdminDashboard() {
           />
         ))}
       </div>
+
+      {/* 会员统计卡片 */}
+      {membershipStats && (
+        <>
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold text-gray-900">会员统计</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {membershipStatsCards.map((stat, index) => (
+              <StatsCard
+                key={`membership-${index}`}
+                title={stat.title}
+                value={stat.value}
+                icon={stat.icon}
+                color={stat.color}
+                change={stat.change}
+                changeType={stat.changeType}
+                isLoading={membershipLoading}
+              />
+            ))}
+            
+            {/* 总会员数 */}
+            <StatsCard
+              title="总会员数"
+              value={formatNumber(membershipStats.totalMembers)}
+              icon={UsersIcon}
+              color="blue"
+              change="所有注册用户"
+              changeType="neutral"
+              isLoading={membershipLoading}
+            />
+            
+            {/* 普通会员 */}
+            <StatsCard
+              title="普通会员"
+              value={formatNumber(membershipStats.regularMembers)}
+              icon={UserPlusIcon}
+              color="gray"
+              change="默认状态用户"
+              changeType="neutral"
+              isLoading={membershipLoading}
+            />
+          </div>
+        </>
+      )}
 
       {/* 图表区域 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

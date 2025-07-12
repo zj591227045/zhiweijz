@@ -4,6 +4,13 @@ import { getAvatarUrlById } from '@/data/preset-avatars';
 import { processAvatarUrl, handleImageError } from '@/lib/image-proxy';
 import { AuthenticatedImage } from './authenticated-image';
 
+interface Badge {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+}
+
 interface AvatarDisplayProps {
   avatar?: string; // 头像ID或URL
   username?: string;
@@ -11,6 +18,8 @@ interface AvatarDisplayProps {
   size?: 'small' | 'medium' | 'large' | 'xlarge';
   className?: string;
   alt?: string;
+  badge?: Badge; // 徽章装饰
+  showBadge?: boolean; // 是否显示徽章
 }
 
 export function AvatarDisplay({
@@ -19,7 +28,9 @@ export function AvatarDisplay({
   userId,
   size = 'medium',
   className = '',
-  alt = '头像'
+  alt = '头像',
+  badge,
+  showBadge = true
 }: AvatarDisplayProps) {
   // 获取尺寸样式
   const getSizeClass = () => {
@@ -34,6 +45,22 @@ export function AvatarDisplay({
         return 'w-24 h-24 text-xl';
       default:
         return 'w-12 h-12 text-base';
+    }
+  };
+
+  // 获取徽章尺寸
+  const getBadgeSize = () => {
+    switch (size) {
+      case 'small':
+        return 'w-3 h-3 text-xs';
+      case 'medium':
+        return 'w-4 h-4 text-xs';
+      case 'large':
+        return 'w-5 h-5 text-sm';
+      case 'xlarge':
+        return 'w-6 h-6 text-sm';
+      default:
+        return 'w-4 h-4 text-xs';
     }
   };
 
@@ -94,10 +121,28 @@ export function AvatarDisplay({
 
   return (
     <div
-      className={`${getSizeClass()} ${className} flex-shrink-0`}
+      className={`${getSizeClass()} ${className} flex-shrink-0 relative`}
       style={getInlineStyle()}
     >
       {getAvatarContent()}
+      
+      {/* 徽章装饰 */}
+      {badge && showBadge && (
+        <div 
+          className={`
+            absolute top-0 right-0 ${getBadgeSize()}
+            rounded-full border-2 border-white shadow-sm
+            flex items-center justify-center font-bold z-10
+          `}
+          style={{ 
+            backgroundColor: badge.color, 
+            color: '#ffffff' 
+          }}
+          title={badge.name}
+        >
+          {badge.icon}
+        </div>
+      )}
     </div>
   );
 }

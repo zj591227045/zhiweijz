@@ -12,18 +12,25 @@ const router = express.Router();
 router.get('/balance', authenticate, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
+    console.log('🔍 [BalanceAPI] 开始获取记账点余额，用户ID:', userId);
+    
     const userPoints = await AccountingPointsService.getUserPoints(userId);
+    console.log('📊 [BalanceAPI] 获取到用户记账点:', userPoints);
+    
+    const responseData = {
+      giftBalance: userPoints.giftBalance,
+      memberBalance: userPoints.memberBalance,
+      totalBalance: userPoints.giftBalance + userPoints.memberBalance
+    };
+    
+    console.log('✅ [BalanceAPI] 返回响应数据:', responseData);
     
     res.json({
       success: true,
-      data: {
-        giftBalance: userPoints.giftBalance,
-        memberBalance: userPoints.memberBalance,
-        totalBalance: userPoints.giftBalance + userPoints.memberBalance
-      }
+      data: responseData
     });
   } catch (error) {
-    console.error('获取记账点余额失败:', error);
+    console.error('❌ [BalanceAPI] 获取记账点余额失败:', error);
     res.status(500).json({ 
       success: false, 
       error: '获取记账点余额失败' 

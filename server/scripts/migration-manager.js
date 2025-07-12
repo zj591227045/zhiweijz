@@ -26,32 +26,33 @@ const logger = {
  */
 const MIGRATIONS_CONFIG = {
   // 当前最新版本
-  LATEST_VERSION: '1.7.5',
+  LATEST_VERSION: '1.7.6',
 
   // 迁移文件目录
   MIGRATIONS_DIR: path.join(__dirname, '../migrations/incremental'),
 
   // 版本升级路径
   UPGRADE_PATHS: {
-    '1.0.0': ['1.0.0-to-1.1.0', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date'],
-    '1.1.0': ['1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date'],
-    '1.2.0': ['1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date'],
-    '1.2.1': ['1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date'],
-    '1.2.2': ['1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date'],
-    '1.2.3': ['1.2.2-to-1.3.0', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date'],
-    '1.3.0': ['add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date'],
-    '1.3.1': ['add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date'],
-    '1.3.2': ['add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date'],
-    '1.4.0': ['1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date'], // 升级到1.7.5
-    '1.5.0': ['1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date'], // 升级到1.7.5
-    '1.6.0': ['add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date'], // 升级到1.7.5
-    '1.7.0': ['add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date'], // 升级到1.7.5
-    '1.7.1': ['fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date'], // 升级到1.7.5
-    '1.7.2': ['add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date'], // 升级到1.7.5
-    '1.7.3': ['add-accounting-points-system', 'add-last-daily-gift-date'], // 升级到1.7.5
-    '1.7.4': ['add-last-daily-gift-date'], // 升级到1.7.5
-    '1.7.5': [], // 当前最新版本
-    'fresh_install': ['base-schema', 'admin-features', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date']
+    '1.0.0': ['1.0.0-to-1.1.0', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system'],
+    '1.1.0': ['1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system'],
+    '1.2.0': ['1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system'],
+    '1.2.1': ['1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system'],
+    '1.2.2': ['1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system'],
+    '1.2.3': ['1.2.2-to-1.3.0', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system'],
+    '1.3.0': ['add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system'],
+    '1.3.1': ['add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system'],
+    '1.3.2': ['add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system'],
+    '1.4.0': ['1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system'], // 升级到1.7.6
+    '1.5.0': ['1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system'], // 升级到1.7.6
+    '1.6.0': ['add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system'], // 升级到1.7.6
+    '1.7.0': ['add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system'], // 升级到1.7.6
+    '1.7.1': ['fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system'], // 升级到1.7.6
+    '1.7.2': ['add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system'], // 升级到1.7.6
+    '1.7.3': ['add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system'], // 升级到1.7.6
+    '1.7.4': ['add-last-daily-gift-date', 'add-membership-system'], // 升级到1.7.6
+    '1.7.5': ['add-membership-system'], // 升级到1.7.6
+    '1.7.6': [], // 当前最新版本
+    'fresh_install': ['base-schema', 'admin-features', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system']
   }
 };
 

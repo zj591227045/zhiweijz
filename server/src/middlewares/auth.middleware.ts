@@ -92,6 +92,12 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
       email: decoded.email,
     };
 
+    console.log('✅ [Auth Middleware] 用户认证成功:', {
+      userId: decoded.id,
+      email: decoded.email,
+      path: req.path
+    });
+
     next();
   } catch (error) {
     if (error instanceof Error) {

@@ -14,6 +14,7 @@ import {
   EyeIcon,
   StarIcon
 } from '@heroicons/react/24/outline';
+import { useSystemConfig } from '@/hooks/useSystemConfig';
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -30,7 +31,8 @@ const navigation = [
     current: false,
     children: [
       { name: '用户列表', href: '/admin/users', current: false },
-      { name: '记账点管理', href: '/admin/accounting-points', current: false }
+      { name: '记账点管理', href: '/admin/accounting-points', current: false },
+      { name: '会员管理', href: '/admin/membership', current: false }
     ]
   },
   {
@@ -52,8 +54,33 @@ const navigation = [
 
 export function AdminSidebar({ isOpen, onClose, isMobile }: AdminSidebarProps) {
   const pathname = usePathname();
+  const { config } = useSystemConfig();
 
-  const navItems = navigation.map(item => ({
+  // 根据系统配置过滤导航项
+  const getFilteredNavigation = () => {
+    return navigation.map(item => {
+      if (item.name === '用户管理' && item.children) {
+        // 过滤用户管理子菜单
+        const filteredChildren = item.children.filter(child => {
+          if (child.name === '记账点管理' && !config.accountingPointsEnabled) {
+            return false;
+          }
+          if (child.name === '会员管理' && !config.membershipEnabled) {
+            return false;
+          }
+          return true;
+        });
+        
+        return {
+          ...item,
+          children: filteredChildren
+        };
+      }
+      return item;
+    });
+  };
+
+  const navItems = getFilteredNavigation().map(item => ({
     ...item,
     current: pathname === item.href,
   }));

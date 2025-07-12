@@ -37,11 +37,13 @@ export const useAccountingPointsStore = create<AccountingPointsState>()(
       // 获取记账点余额
       fetchBalance: async () => {
         try {
+          console.log('🔍 [AccountingPointsStore] 开始获取余额');
           set({ loading: true, error: null });
           const balance = await AccountingPointsService.getBalance();
+          console.log('✅ [AccountingPointsStore] 余额获取成功:', balance);
           set({ balance, loading: false });
         } catch (error) {
-          console.error('获取记账点余额失败:', error);
+          console.error('❌ [AccountingPointsStore] 获取记账点余额失败:', error);
           set({ 
             error: error instanceof Error ? error.message : '获取记账点余额失败',
             loading: false 

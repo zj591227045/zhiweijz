@@ -6,9 +6,9 @@ interface StatsCardProps {
   title: string;
   value: string;
   icon: ComponentType<{ className?: string }>;
-  color: 'blue' | 'green' | 'purple' | 'orange' | 'red';
+  color: 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'gray' | 'yellow';
   change?: string;
-  changeType: 'positive' | 'negative' | 'neutral';
+  changeType: 'positive' | 'negative' | 'neutral' | 'warning';
   isLoading?: boolean;
 }
 
@@ -37,13 +37,24 @@ const colorClasses = {
     bg: 'bg-red-50',
     icon: 'bg-red-500 text-white',
     text: 'text-red-600'
+  },
+  gray: {
+    bg: 'bg-gray-50',
+    icon: 'bg-gray-500 text-white',
+    text: 'text-gray-600'
+  },
+  yellow: {
+    bg: 'bg-yellow-50',
+    icon: 'bg-yellow-500 text-white',
+    text: 'text-yellow-600'
   }
 };
 
 const changeTypeClasses = {
   positive: 'text-green-600 bg-green-100',
   negative: 'text-red-600 bg-red-100',
-  neutral: 'text-gray-600 bg-gray-100'
+  neutral: 'text-gray-600 bg-gray-100',
+  warning: 'text-yellow-600 bg-yellow-100'
 };
 
 export function StatsCard({ 
@@ -55,8 +66,8 @@ export function StatsCard({
   changeType, 
   isLoading = false 
 }: StatsCardProps) {
-  const colors = colorClasses[color];
-  const changeColors = changeTypeClasses[changeType];
+  const colors = colorClasses[color] || colorClasses.blue; // 默认使用蓝色
+  const changeColors = changeTypeClasses[changeType] || changeTypeClasses.neutral; // 默认使用中性色
 
   if (isLoading) {
     return (

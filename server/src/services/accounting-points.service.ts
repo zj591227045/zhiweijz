@@ -31,13 +31,19 @@ class AccountingPointsService {
    * 获取用户记账点余额
    */
   static async getUserPoints(userId: string): Promise<UserAccountingPoints> {
+    console.log('🔍 [AccountingPointsService] 开始获取用户记账点，用户ID:', userId);
+    
     let userPoints = await prisma.userAccountingPoints.findUnique({
       where: { userId }
     });
 
+    console.log('📊 [AccountingPointsService] 数据库查询结果:', userPoints);
+
     // 如果用户没有记账点账户，创建一个
     if (!userPoints) {
+      console.log('🆕 [AccountingPointsService] 用户没有记账点账户，正在创建...');
       userPoints = await this.createUserPointsAccount(userId);
+      console.log('✅ [AccountingPointsService] 记账点账户创建完成:', userPoints);
     }
 
     return userPoints;

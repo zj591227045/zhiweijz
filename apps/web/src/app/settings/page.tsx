@@ -171,6 +171,30 @@ export default function SettingsPage() {
             <i className="fas fa-chevron-right"></i>
           </div>
         </Link>
+        <Link href="/checkin" className="settings-item">
+          <div className="item-icon">
+            <i className="fas fa-calendar-check"></i>
+          </div>
+          <div className="item-content">
+            <div className="item-title">每日签到</div>
+            <div className="item-description">签到赚取记账点奖励</div>
+          </div>
+          <div className="item-action">
+            <i className="fas fa-chevron-right"></i>
+          </div>
+        </Link>
+        <Link href="/membership" className="settings-item">
+          <div className="item-icon">
+            <i className="fas fa-crown"></i>
+          </div>
+          <div className="item-content">
+            <div className="item-title">会员中心</div>
+            <div className="item-description">查看会员权益和徽章</div>
+          </div>
+          <div className="item-action">
+            <i className="fas fa-chevron-right"></i>
+          </div>
+        </Link>
         <Link href="/settings/security" className="settings-item">
           <div className="item-icon">
             <i className="fas fa-shield-alt"></i>

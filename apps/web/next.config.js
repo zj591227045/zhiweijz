@@ -101,6 +101,16 @@ const webConfig = {
     NEXT_PUBLIC_IS_MOBILE: 'false',
   },
 
+  // 添加API代理配置
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:3000/api/:path*',
+      },
+    ];
+  },
+
   // Webpack配置 - 处理内部包路径和依赖
   webpack: (config) => {
     config.resolve.alias = {

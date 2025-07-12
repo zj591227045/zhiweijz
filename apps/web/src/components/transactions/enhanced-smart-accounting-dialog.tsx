@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
 import { useDashboardStore } from '@/store/dashboard-store';
 import { useAccountingPointsStore } from '@/store/accounting-points-store';
+import { useSystemConfig } from '@/hooks/useSystemConfig';
 import {
   detectPlatform,
   detectMediaCapabilities,
@@ -88,6 +89,7 @@ export default function EnhancedSmartAccountingDialog({
   const router = useRouter();
   const { refreshDashboardData } = useDashboardStore();
   const { balance, fetchBalance } = useAccountingPointsStore();
+  const { config, loading: configLoading } = useSystemConfig();
   
   const [description, setDescription] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -229,6 +231,17 @@ export default function EnhancedSmartAccountingDialog({
 
   // 记账点检查工具函数
   const checkAccountingPoints = (type: 'text' | 'voice' | 'image'): boolean => {
+    // 如果配置正在加载，不允许操作
+    if (configLoading) {
+      showError('系统配置加载中，请稍候重试');
+      return false;
+    }
+
+    // 如果记账点系统未启用，直接允许使用
+    if (!config.accountingPointsEnabled) {
+      return true;
+    }
+
     if (!balance) {
       showError('记账点余额获取失败，请刷新页面重试');
       return false;
@@ -245,6 +258,57 @@ export default function EnhancedSmartAccountingDialog({
     }
 
     return true;
+  };
+
+  // 检查按钮是否应该被禁用（基于记账点系统状态）
+  const isButtonDisabled = (type: 'text' | 'voice' | 'image', additionalConditions = false): boolean => {
+    // 如果配置正在加载，禁用按钮
+    if (configLoading) {
+      return true;
+    }
+
+    // 如果没有账本ID，禁用按钮
+    if (!accountBookId) {
+      return true;
+    }
+
+    if (!config.accountingPointsEnabled) {
+      return additionalConditions; // 如果记账点系统未启用，只检查其他条件
+    }
+    
+    const pointCosts = { text: 1, voice: 2, image: 3 };
+    const required = pointCosts[type];
+    const hasInsufficientBalance = !balance || (balance.giftBalance + balance.memberBalance) < required;
+    
+    return additionalConditions || hasInsufficientBalance;
+  };
+
+  // 获取按钮的提示文本
+  const getButtonTitle = (type: 'text' | 'voice' | 'image'): string => {
+    // 如果配置正在加载
+    if (configLoading) {
+      return '系统配置加载中...';
+    }
+
+    // 如果没有账本ID
+    if (!accountBookId) {
+      return '请先选择账本';
+    }
+
+    if (!config.accountingPointsEnabled) {
+      return ''; // 如果记账点系统未启用，不显示余额相关提示
+    }
+    
+    const pointCosts = { text: 1, voice: 2, image: 3 };
+    const required = pointCosts[type];
+    const hasInsufficientBalance = !balance || (balance.giftBalance + balance.memberBalance) < required;
+    
+    if (hasInsufficientBalance) {
+      const typeNames = { text: '文字记账', voice: '语音记账', image: '图片记账' };
+      return `记账点余额不足，${typeNames[type]}需要${required}点`;
+    }
+    
+    return '';
   };
 
   // 新增状态：滑动手势检测
@@ -1225,11 +1289,26 @@ export default function EnhancedSmartAccountingDialog({
 
   useEffect(() => {
     if (isOpen) {
+      console.log('🚀 智能记账对话框打开，开始初始化:', {
+        accountBookId,
+        configLoading,
+        config,
+        balance
+      });
+      
       // 初始化多模态状态
       loadMultimodalStatus();
       
-      // 获取记账点余额
-      fetchBalance();
+      // 如果记账点系统启用，获取记账点余额
+      if (config.accountingPointsEnabled) {
+        fetchBalance().then(() => {
+          console.log('✅ 记账点余额获取完成');
+        }).catch(error => {
+          console.error('❌ 记账点余额获取失败:', error);
+        });
+      } else {
+        console.log('💰 记账点系统未启用，跳过余额获取');
+      }
       
       // 重置所有状态
       setDescription('');
@@ -1343,7 +1422,21 @@ export default function EnhancedSmartAccountingDialog({
         cleanupAudioAnalyser();
       }
     };
-  }, [isOpen, isRecording]);
+  }, [isOpen, isRecording, configLoading, config.accountingPointsEnabled]);
+
+  // 专门处理记账点余额获取
+  useEffect(() => {
+    console.log('🔍 余额获取useEffect触发:', { isOpen, configLoading, accountingPointsEnabled: config.accountingPointsEnabled });
+    
+    if (isOpen && !configLoading && config.accountingPointsEnabled) {
+      console.log('🔄 配置加载完成，开始获取记账点余额');
+      fetchBalance().then(() => {
+        console.log('✅ 记账点余额获取成功');
+      }).catch(error => {
+        console.error('❌ 记账点余额获取失败:', error);
+      });
+    }
+  }, [isOpen, configLoading, config.accountingPointsEnabled, fetchBalance]);
 
   if (!isOpen) return null;
 
@@ -1522,8 +1615,8 @@ export default function EnhancedSmartAccountingDialog({
                 <button
                   className="smart-accounting-button identify-button"
                   onClick={handleSmartAccounting}
-                  disabled={isProcessing || !description.trim() || !balance || (balance.giftBalance + balance.memberBalance) < 1}
-                  title={!balance || (balance.giftBalance + balance.memberBalance) < 1 ? '记账点余额不足，文字记账需要1点' : ''}
+                  disabled={isButtonDisabled('text', isProcessing || !description.trim())}
+                  title={getButtonTitle('text')}
                 >
                   智能识别
                 </button>
@@ -1531,8 +1624,8 @@ export default function EnhancedSmartAccountingDialog({
                 <button
                   className="smart-accounting-button direct-button"
                   onClick={handleDirectAdd}
-                  disabled={!description.trim() || !balance || (balance.giftBalance + balance.memberBalance) < 1}
-                  title={!balance || (balance.giftBalance + balance.memberBalance) < 1 ? '记账点余额不足，文字记账需要1点' : ''}
+                  disabled={isButtonDisabled('text', !description.trim())}
+                  title={getButtonTitle('text')}
                 >
                   直接添加
                 </button>
@@ -1564,7 +1657,7 @@ export default function EnhancedSmartAccountingDialog({
                     onMouseMove={handleCameraMouseMove}
                     onMouseUp={handleCameraMouseUp}
                     onMouseLeave={handleCameraMouseLeave}
-                    disabled={isProcessing || isProcessingMultimodal || !balance || (balance.giftBalance + balance.memberBalance) < 3}
+                    disabled={isButtonDisabled('image', isProcessing || isProcessingMultimodal)}
                     style={{
                       width: '48px',
                       height: '48px',
@@ -1577,8 +1670,8 @@ export default function EnhancedSmartAccountingDialog({
                         : 'var(--success-color, #22c55e)',
                       color: 'white',
                       fontSize: '18px',
-                      cursor: (isProcessing || isProcessingMultimodal || !balance || (balance.giftBalance + balance.memberBalance) < 3) ? 'not-allowed' : 'pointer',
-                      opacity: (isProcessing || isProcessingMultimodal || !balance || (balance.giftBalance + balance.memberBalance) < 3) ? 0.6 : 1,
+                      cursor: isButtonDisabled('image', isProcessing || isProcessingMultimodal) ? 'not-allowed' : 'pointer',
+                      opacity: isButtonDisabled('image', isProcessing || isProcessingMultimodal) ? 0.6 : 1,
                       transition: isCameraButtonTouched ? 'all 0.1s ease' : 'all 0.2s ease',
                       display: 'flex',
                       alignItems: 'center',
@@ -1594,12 +1687,11 @@ export default function EnhancedSmartAccountingDialog({
                            'scale(1.05)')
                         : 'scale(1)',
                     }}
-                    title={!balance || (balance.giftBalance + balance.memberBalance) < 3 
-                      ? '记账点余额不足，图片记账需要3点'
-                      : isCameraButtonTouched 
+                    title={getButtonTitle('image') || 
+                      (isCameraButtonTouched 
                         ? (cameraGestureType === 'capture' ? '松开拍照' : 
                            cameraGestureType === 'upload' ? '松开上传' : '上滑拍照 下滑上传')
-                        : '按住滑动：上滑拍照，下滑上传'
+                        : '按住滑动：上滑拍照，下滑上传')
                     }
                   >
                     {isProcessingMultimodal ? (
@@ -1628,7 +1720,7 @@ export default function EnhancedSmartAccountingDialog({
                   <button
                     ref={micButtonRef}
                     type="button"
-                    disabled={isProcessing || isProcessingMultimodal || !balance || (balance.giftBalance + balance.memberBalance) < 2}
+                    disabled={isButtonDisabled('voice', isProcessing || isProcessingMultimodal)}
                     onTouchStart={handleTouchStart}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
@@ -1645,8 +1737,8 @@ export default function EnhancedSmartAccountingDialog({
                       backgroundColor: isRecording ? 'var(--error-color, #ef4444)' : 'var(--warning-color, #f59e0b)',
                       color: 'white',
                       fontSize: '18px',
-                      cursor: (isProcessing || isProcessingMultimodal || !balance || (balance.giftBalance + balance.memberBalance) < 2) ? 'not-allowed' : 'pointer',
-                      opacity: (isProcessing || isProcessingMultimodal || !balance || (balance.giftBalance + balance.memberBalance) < 2) ? 0.6 : 1,
+                      cursor: isButtonDisabled('voice', isProcessing || isProcessingMultimodal) ? 'not-allowed' : 'pointer',
+                      opacity: isButtonDisabled('voice', isProcessing || isProcessingMultimodal) ? 0.6 : 1,
                       transition: 'all 0.2s ease',
                       display: 'flex',
                       alignItems: 'center',
@@ -1660,9 +1752,8 @@ export default function EnhancedSmartAccountingDialog({
                       overflow: 'hidden',
                       touchAction: 'manipulation' // 确保触摸移动事件能正常工作
                     }}
-                    title={!balance || (balance.giftBalance + balance.memberBalance) < 2
-                      ? '记账点余额不足，语音记账需要2点'
-                      : isRecording ? '松开停止录音，向上滑动取消' : '长按开始语音记账'
+                    title={getButtonTitle('voice') || 
+                      (isRecording ? '松开停止录音，向上滑动取消' : '长按开始语音记账')
                     }
                   >
                     {/* 背景呼吸效果 */}

@@ -3,8 +3,10 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAccountingPointsManagement } from '@/store/admin/useAccountingPointsManagement';
 import { useAdminAuth } from '@/store/admin/useAdminAuth';
+import { useSystemConfig } from '@/hooks/useSystemConfig';
 import MobileNotSupported from '@/components/admin/MobileNotSupported';
 import { 
   PlusIcon, 
@@ -19,10 +21,20 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function AccountingPointsPage() {
+  const router = useRouter();
+  const { config, loading: configLoading } = useSystemConfig();
+  
   // 如果是移动端构建，直接返回404
   if (process.env.IS_MOBILE_BUILD === 'true') {
     return <MobileNotSupported />;
   }
+
+  // 如果记账点系统未启用，重定向到仪表盘
+  useEffect(() => {
+    if (!configLoading && !config.accountingPointsEnabled) {
+      router.replace('/admin');
+    }
+  }, [config.accountingPointsEnabled, configLoading, router]);
 
   const { isAuthenticated, token } = useAdminAuth();
   const {
@@ -56,21 +68,35 @@ export default function AccountingPointsPage() {
     description: '管理员手动添加'
   });
 
-  // 只在认证完成且有token时才执行API请求
+  // 只在认证完成且有token时且功能启用时才执行API请求
   useEffect(() => {
-    if (isAuthenticated && token) {
+    if (isAuthenticated && token && config.accountingPointsEnabled && !configLoading) {
       console.log('🔍 [AccountingPointsPage] 加载记账点管理数据');
       
       fetchUsersStats({
         page: 1,
-        limit: 20,
+        limit: 10,
+        searchTerm,
         sortBy,
         sortOrder
       });
+      
       fetchOverallStats();
       fetchPointsConfig();
     }
-  }, [isAuthenticated, token, sortBy, sortOrder]);
+  }, [isAuthenticated, token, config.accountingPointsEnabled, configLoading, searchTerm, sortBy, sortOrder]);
+
+  // 如果记账点系统未启用，显示加载状态
+  if (configLoading || !config.accountingPointsEnabled) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">检查系统配置中...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);

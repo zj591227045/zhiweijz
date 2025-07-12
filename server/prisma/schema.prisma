@@ -45,6 +45,7 @@ model User {
   accountingPoints     UserAccountingPoints?
   pointsTransactions   AccountingPointsTransactions[]
   checkins             UserCheckins[]
+  membership           UserMembership?
 
   @@index([isActive], map: "idx_users_is_active")
   @@map("users")
@@ -836,4 +837,157 @@ model UserCheckins {
   @@index([userId], map: "idx_user_checkins_user_id")
   @@index([checkinDate], map: "idx_user_checkins_date")
   @@map("user_checkins")
+}
+
+// 会员系统相关模型
+model UserMembership {
+  id                String            @id @default(uuid())
+  userId            String            @unique @map("user_id")
+  memberType        MemberType        @default(REGULAR) @map("member_type")
+  startDate         DateTime          @map("start_date")
+  endDate           DateTime?         @map("end_date")
+  isActive          Boolean           @default(true) @map("is_active")
+  autoRenewal       Boolean           @default(false) @map("auto_renewal")
+  activationMethod  String            @default("registration") @map("activation_method") // 'registration', 'payment', 'admin', 'upgrade'
+  monthlyPoints     Int               @default(0) @map("monthly_points") // 每月会员点数
+  usedPoints        Int               @default(0) @map("used_points") // 当月已使用点数
+  lastPointsReset   DateTime?         @map("last_points_reset") @db.Date // 上次重置点数日期
+  selectedBadge     String?           @map("selected_badge") // 当前选择的徽章ID
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  renewalHistory    MembershipRenewal[]
+  badges            UserBadge[]
+
+  @@index([userId], map: "idx_user_membership_user_id")
+  @@index([memberType], map: "idx_user_membership_type")
+  @@index([endDate], map: "idx_user_membership_end_date")
+  @@index([isActive], map: "idx_user_membership_active")
+  @@index([autoRenewal, endDate], map: "idx_user_membership_auto_renewal")
+  @@map("user_memberships")
+}
+
+model MembershipRenewal {
+  id           String         @id @default(uuid())
+  membershipId String         @map("membership_id")
+  renewalType  RenewalType    @map("renewal_type")
+  startDate    DateTime       @map("start_date")
+  endDate      DateTime       @map("end_date")
+  amount       Decimal?       @db.Decimal(10, 2)
+  paymentMethod String?       @map("payment_method")
+  status       RenewalStatus  @default(COMPLETED)
+  failureReason String?       @map("failure_reason")
+  retryCount   Int            @default(0) @map("retry_count")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  membership   UserMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  @@index([membershipId], map: "idx_membership_renewal_membership_id")
+  @@index([status], map: "idx_membership_renewal_status")
+  @@index([renewalType], map: "idx_membership_renewal_type")
+  @@index([createdAt(sort: Desc)], map: "idx_membership_renewal_created_at")
+  @@map("membership_renewals")
+}
+
+model Badge {
+  id          String      @id @default(uuid())
+  name        String      @db.VarChar(100)
+  description String?
+  icon        String      @db.VarChar(255) // 徽章图标URL或路径
+  color       String      @default("#FFD700") @db.VarChar(7) // 徽章颜色
+  rarity      BadgeRarity @default(COMMON) // 徽章稀有度
+  isActive    Boolean     @default(true) @map("is_active")
+  category    String      @default("general") @db.VarChar(50) // 徽章分类
+  sortOrder   Int         @default(0) @map("sort_order")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  userBadges  UserBadge[]
+
+  @@unique([name], map: "badges_name_unique")
+  @@index([category], map: "idx_badges_category")
+  @@index([rarity], map: "idx_badges_rarity")
+  @@index([isActive], map: "idx_badges_active")
+  @@index([sortOrder], map: "idx_badges_sort_order")
+  @@map("badges")
+}
+
+model UserBadge {
+  id           String         @id @default(uuid())
+  userId       String         @map("user_id")
+  badgeId      String         @map("badge_id")
+  awardedAt    DateTime       @default(now()) @map("awarded_at")
+  awardReason  String?        @map("award_reason")
+  isDisplayed  Boolean        @default(false) @map("is_displayed") // 是否在头像上显示
+  createdAt    DateTime       @default(now()) @map("created_at")
+  membership   UserMembership @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  badge        Badge          @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId], map: "user_badges_user_badge_unique")
+  @@index([userId], map: "idx_user_badges_user_id")
+  @@index([badgeId], map: "idx_user_badges_badge_id")
+  @@index([awardedAt(sort: Desc)], map: "idx_user_badges_awarded_at")
+  @@index([isDisplayed], map: "idx_user_badges_displayed")
+  @@map("user_badges")
+}
+
+model MembershipNotification {
+  id             String             @id @default(uuid())
+  userId         String             @map("user_id")
+  notificationType NotificationType @map("notification_type")
+  title          String             @db.VarChar(200)
+  content        String
+  isRead         Boolean            @default(false) @map("is_read")
+  scheduledAt    DateTime?          @map("scheduled_at")
+  sentAt         DateTime?          @map("sent_at")
+  emailSent      Boolean            @default(false) @map("email_sent")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  @@index([userId], map: "idx_membership_notifications_user_id")
+  @@index([notificationType], map: "idx_membership_notifications_type")
+  @@index([isRead], map: "idx_membership_notifications_read")
+  @@index([scheduledAt], map: "idx_membership_notifications_scheduled")
+  @@index([createdAt(sort: Desc)], map: "idx_membership_notifications_created_at")
+  @@map("membership_notifications")
+}
+
+// 会员相关枚举
+enum MemberType {
+  REGULAR     // 普通会员
+  DONOR       // 捐赠会员
+  LIFETIME    // 自部署版本的永久会员
+}
+
+enum RenewalType {
+  MANUAL      // 手动续费
+  AUTO        // 自动续费
+  ADMIN       // 管理员操作
+  UPGRADE     // 升级续费
+}
+
+enum RenewalStatus {
+  PENDING     // 待处理
+  PROCESSING  // 处理中
+  COMPLETED   // 已完成
+  FAILED      // 失败
+  REFUNDED    // 已退款
+}
+
+enum BadgeRarity {
+  COMMON      // 普通
+  UNCOMMON    // 不常见
+  RARE        // 稀有
+  EPIC        // 史诗
+  LEGENDARY   // 传说
+}
+
+enum NotificationType {
+  EXPIRY_REMINDER_7D    // 7天到期提醒
+  EXPIRY_REMINDER_3D    // 3天到期提醒  
+  EXPIRY_REMINDER_1D    // 1天到期提醒
+  RENEWAL_FAILED        // 续费失败
+  MEMBERSHIP_EXPIRED    // 会员已到期
+  MEMBERSHIP_RENEWED    // 会员续费成功
+  BADGE_AWARDED         // 获得新徽章
+  POINTS_RESET          // 点数重置通知
 }

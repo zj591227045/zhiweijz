@@ -34,8 +34,24 @@ export class AccountingPointsService {
    * 获取用户记账点余额
    */
   static async getBalance(): Promise<AccountingPointsBalance> {
-    const response = await apiClient.get('/accounting-points/balance');
-    return response.data.data;
+    console.log('🔍 [AccountingPointsService] 开始获取余额');
+    try {
+      const response = await apiClient.get('/accounting-points/balance');
+      console.log('📊 [AccountingPointsService] API响应:', response);
+      console.log('📊 [AccountingPointsService] 响应数据:', response.data);
+      
+      // 由于API客户端响应拦截器已经返回了response.data，所以这里直接访问response.data
+      const balanceData = response.data;
+      if (!balanceData) {
+        throw new Error('余额数据为空');
+      }
+      
+      console.log('✅ [AccountingPointsService] 最终余额数据:', balanceData);
+      return balanceData;
+    } catch (error) {
+      console.error('❌ [AccountingPointsService] 获取余额失败:', error);
+      throw error;
+    }
   }
 
   /**
@@ -45,7 +61,7 @@ export class AccountingPointsService {
     const response = await apiClient.get('/accounting-points/transactions', {
       params: { limit, offset }
     });
-    return response.data.data;
+    return response.data;
   }
 
   /**
@@ -53,7 +69,7 @@ export class AccountingPointsService {
    */
   static async checkin(): Promise<CheckinResult> {
     const response = await apiClient.post('/accounting-points/checkin');
-    return response.data.data;
+    return response.data;
   }
 
   /**
@@ -61,6 +77,6 @@ export class AccountingPointsService {
    */
   static async getCheckinStatus(): Promise<CheckinStatus> {
     const response = await apiClient.get('/accounting-points/checkin-status');
-    return response.data.data;
+    return response.data;
   }
 }
