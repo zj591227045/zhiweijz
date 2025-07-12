@@ -33,11 +33,6 @@ const nextConfig = {
     IS_MOBILE_BUILD: 'true',
   },
 
-  // 排除管理页面和其他不需要的页面
-  async generateStaticParams() {
-    return [];
-  },
-
   // 自定义webpack配置，排除管理页面
   webpack: (config, { isServer }) => {
     if (!isServer) {
