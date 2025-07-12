@@ -113,6 +113,9 @@ export class UserSettingService {
       { key: UserSettingKey.DATE_FORMAT, value: 'YYYY-MM-DD' },
       { key: UserSettingKey.TIME_FORMAT, value: 'HH:mm' },
       { key: UserSettingKey.HOME_PAGE, value: 'dashboard' },
+      // 默认开启AI服务并使用官方服务
+      { key: UserSettingKey.AI_SERVICE_ENABLED, value: 'true' },
+      { key: UserSettingKey.AI_SERVICE_TYPE, value: 'official' },
     ];
 
     return this.userSettingRepository.batchUpsert(userId, defaultSettings);

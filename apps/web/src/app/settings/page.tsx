@@ -290,7 +290,7 @@ export default function SettingsPage() {
           </div>
           <div className="item-content">
             <div className="item-title">AI服务管理</div>
-            <div className="item-description">管理AI服务提供商</div>
+            <div className="item-description">开启或关闭AI功能，查看记账点余额</div>
           </div>
           <div className="item-action">
             <i className="fas fa-chevron-right"></i>

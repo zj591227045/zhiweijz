@@ -70,4 +70,8 @@ export enum UserSettingKey {
   HOME_PAGE = 'home_page',
   // 默认账本ID
   DEFAULT_ACCOUNT_BOOK_ID = 'default_account_book_id',
+  // AI服务启用状态
+  AI_SERVICE_ENABLED = 'ai_service_enabled',
+  // AI服务类型
+  AI_SERVICE_TYPE = 'ai_service_type',
 }

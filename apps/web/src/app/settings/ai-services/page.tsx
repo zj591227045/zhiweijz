@@ -6,14 +6,10 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { PageContainer } from '@/components/layout/page-container';
 
-import { useAIServicesStore } from '@/store/ai-services-store';
 import { useGlobalAIStore } from '@/store/global-ai-store';
-import { systemConfigApi } from '@/lib/api/system-config';
 import { useAuthStore } from '@/store/auth-store';
-import { useAccountBookStore } from '@/store/account-book-store';
-import AiServiceEditModal from '@/components/ai-service-edit-modal';
-import { CurrentAIService } from '@/components/ai-services/current-ai-service';
-import { AIServiceWizard } from '@/components/ai-services/ai-service-wizard';
+import { useAccountingPointsStore } from '@/store/accounting-points-store';
+import { useMembershipStore } from '@/store/membership-store';
 import styles from './ai-services.module.css';
 
 interface AIService {
@@ -27,42 +23,48 @@ interface AIService {
 
 export default function AIServicesPage() {
   const router = useRouter();
-  const { services, isLoading, error, fetchServices, deleteService } = useAIServicesStore();
 
-  // 获取认证状态和账本状态
+  // 获取认证状态
   const { isAuthenticated } = useAuthStore();
-  const { currentAccountBook } = useAccountBookStore();
-
-  // 模态框状态
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingServiceId, setEditingServiceId] = useState<string>('');
-
-  // 向导状态
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
 
   // 从全局AI store获取当前配置和用户AI服务状态
   const { 
-    globalConfig, 
     userAIEnabled, // 用户级别AI服务状态
-    activeServiceError, 
-    isLoadingConfig,
     isLoadingUserAI, // 用户AI状态加载中
     userAIError, // 用户AI状态错误
-    updateGlobalConfig,
-    fetchGlobalConfig,
     fetchUserAIEnabled, // 获取用户AI服务状态
     toggleUserAIService // 切换用户AI服务状态
   } = useGlobalAIStore();
 
-  // 加载AI服务列表和当前账本激活服务
+  // 获取记账点相关状态
+  const { 
+    balance, 
+    transactions,
+    loading: pointsLoading,
+    error: pointsError,
+    fetchBalance,
+    fetchTransactions
+  } = useAccountingPointsStore();
+
+  // 获取会员相关状态
+  const { 
+    membership,
+    loading: membershipLoading,
+    error: membershipError,
+    fetchMembershipInfo
+  } = useMembershipStore();
+
+  const [showTransactionHistory, setShowTransactionHistory] = useState(false);
+
+  // 加载AI服务状态和记账点信息
   useEffect(() => {
     if (isAuthenticated) {
-      console.log('🔄 页面加载，开始获取AI服务列表和用户AI服务状态');
-      fetchServices();
-      fetchGlobalConfig();
+      console.log('🔄 页面加载，开始获取用户AI服务状态和记账点信息');
       fetchUserAIEnabled(); // 获取用户级别AI服务状态
+      fetchBalance(); // 获取记账点余额
+      fetchMembershipInfo(); // 获取会员信息
     }
-  }, [isAuthenticated, fetchServices, fetchGlobalConfig, fetchUserAIEnabled]);
+  }, [isAuthenticated, fetchUserAIEnabled, fetchBalance, fetchMembershipInfo]);
 
   // 处理全局AI服务总开关
   const handleGlobalAIToggle = async (enabled: boolean) => {
@@ -75,52 +77,18 @@ export default function AIServicesPage() {
     }
   };
 
-  // 删除AI服务
-  const handleDelete = async (id: string) => {
-    if (confirm('确定要删除此AI服务吗？')) {
-      await deleteService(id);
+  // 查看记账点使用记录
+  const handleViewTransactionHistory = async () => {
+    if (!showTransactionHistory) {
+      await fetchTransactions(50); // 获取最近50条记录
     }
+    setShowTransactionHistory(!showTransactionHistory);
   };
 
-  // 打开编辑模态框
-  const handleEdit = (serviceId: string) => {
-    setEditingServiceId(serviceId);
-    setIsEditModalOpen(true);
-  };
-
-  // 打开新建模态框
-  const handleAdd = () => {
-    setEditingServiceId('new');
-    setIsEditModalOpen(true);
-  };
-
-  // 关闭模态框
-  const handleCloseModal = () => {
-    setIsEditModalOpen(false);
-    setEditingServiceId('');
-  };
-
-  // 保存成功回调
-  const handleSaveSuccess = () => {
-    console.log('🔄 AI服务保存成功，开始刷新列表');
-    fetchServices(); // 刷新列表
-  };
-
-  // 打开向导
-  const handleOpenWizard = () => {
-    setIsWizardOpen(true);
-  };
-
-  // 关闭向导
-  const handleCloseWizard = () => {
-    setIsWizardOpen(false);
-  };
-
-  // 向导完成回调
-  const handleWizardComplete = () => {
-    console.log('🔄 AI服务配置完成，刷新页面');
-    // 可以在这里刷新相关数据
-    fetchServices();
+  // 刷新记账点余额
+  const handleRefreshBalance = async () => {
+    await fetchBalance();
+    await fetchMembershipInfo();
   };
 
   // 右侧操作按钮
@@ -128,17 +96,10 @@ export default function AIServicesPage() {
     <div className={styles.actionButtons}>
       <button
         className={`${styles.iconButton} ${styles.refreshButton}`}
-        onClick={() => fetchServices()}
-        title="刷新列表"
+        onClick={handleRefreshBalance}
+        title="刷新记账点余额"
       >
         <i className="fas fa-sync-alt"></i>
-      </button>
-      <button
-        className={styles.iconButton}
-        onClick={handleAdd}
-        title="添加新服务"
-      >
-        <i className="fas fa-plus"></i>
       </button>
     </div>
   );
@@ -202,23 +163,7 @@ export default function AIServicesPage() {
       showBackButton={true}
       activeNavItem="profile"
     >
-      {/* 权限错误提示 */}
-      {activeServiceError?.includes('权限') && (
-        <div style={{
-          padding: '12px',
-          backgroundColor: 'rgba(255, 152, 0, 0.1)',
-          borderLeft: '4px solid rgba(255, 152, 0, 0.6)',
-          borderRadius: '4px',
-          marginBottom: '16px',
-          fontSize: '14px',
-          color: 'var(--text-primary)'
-        }}>
-          <strong>权限提示: </strong>
-          {activeServiceError}，部分功能可能受限。
-        </div>
-      )}
-
-      {/* 全局AI服务总开关 */}
+      {/* AI服务开关 */}
       <div style={{
         backgroundColor: 'var(--card-background, white)',
         borderRadius: '12px',
@@ -246,6 +191,7 @@ export default function AIServicesPage() {
               color: 'var(--text-secondary, rgb(107, 114, 128))',
               margin: 0
             }}>
+              开启后可以使用智能记账等AI功能
             </p>
           </div>
           
@@ -320,297 +266,521 @@ export default function AIServicesPage() {
         </div>
       </div>
 
-      {/* 当前AI服务状态 */}
-      <CurrentAIService onOpenWizard={handleOpenWizard} />
-
-      {/* 自定义服务管理 */}
-      <div style={{
-        backgroundColor: 'var(--card-background, white)',
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-        marginBottom: '16px',
-        overflow: 'hidden'
-      }}>
-        {/* 头部 */}
+      {/* AI记账点状态显示 */}
+      {userAIEnabled && (
         <div style={{
-          padding: '20px 24px 16px 24px',
-          borderBottom: '1px solid var(--border-color, #e5e7eb)'
+          backgroundColor: 'var(--card-background, white)',
+          borderRadius: '12px',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+          marginBottom: '16px',
+          overflow: 'hidden',
+          border: '1px solid var(--border-color, #e5e7eb)'
         }}>
           <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
+            padding: '20px 24px 16px 24px',
+            borderBottom: '1px solid var(--border-color, #e5e7eb)'
           }}>
-            <div>
-              <h3 style={{
-                fontSize: '18px',
-                fontWeight: '600',
-                color: 'var(--text-primary, rgb(31, 41, 55))',
-                margin: '0 0 4px 0'
-              }}>
-                自定义AI服务
-              </h3>
-              <p style={{
-                fontSize: '14px',
-                color: 'var(--text-secondary, rgb(107, 114, 128))',
-                margin: 0
-              }}>
-                管理您的自定义AI服务配置
-              </p>
-            </div>
-            <button
-              onClick={handleAdd}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: 'var(--primary-color, rgb(59, 130, 246))',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <i className="fas fa-plus"></i>
-              添加服务
-            </button>
-          </div>
-        </div>
-
-        {/* 服务列表 */}
-        <div style={{ padding: '16px 24px 24px 24px' }}>
-          {isLoading ? (
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              padding: '40px 20px'
+              justifyContent: 'space-between',
+              marginBottom: '16px'
             }}>
-              <div style={{
-                width: '20px',
-                height: '20px',
-                border: '2px solid rgba(0, 0, 0, 0.1)',
-                borderRadius: '50%',
-                borderTopColor: 'var(--primary-color)',
-                animation: 'spin 1s linear infinite',
-                marginRight: '12px'
-              }}></div>
-              <span style={{
-                fontSize: '14px',
-                color: 'var(--text-secondary)'
-              }}>
-                加载中...
-              </span>
-            </div>
-          ) : error ? (
-            <div style={{
-              padding: '40px 20px',
-              textAlign: 'center'
-            }}>
-              <i className="fas fa-exclamation-triangle" style={{
-                fontSize: '32px',
-                color: 'rgb(239, 68, 68)',
-                marginBottom: '12px'
-              }}></i>
-              <p style={{
-                fontSize: '16px',
-                fontWeight: '500',
-                color: 'rgb(239, 68, 68)',
-                margin: '0 0 8px 0'
-              }}>
-                加载失败
-              </p>
-              <p style={{
-                fontSize: '14px',
-                color: 'var(--text-secondary)',
-                margin: '0 0 20px 0'
-              }}>
-                {error}
-              </p>
+              <div>
+                <h3 style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: 'var(--text-primary, rgb(31, 41, 55))',
+                  margin: '0 0 4px 0'
+                }}>
+                  AI记账点余额
+                </h3>
+                <p style={{
+                  fontSize: '14px',
+                  color: 'var(--text-secondary, rgb(107, 114, 128))',
+                  margin: 0
+                }}>
+                  使用AI功能会消耗记账点
+                </p>
+              </div>
               <button
-                onClick={() => fetchServices()}
+                onClick={handleViewTransactionHistory}
                 style={{
                   padding: '8px 16px',
-                  backgroundColor: 'var(--primary-color)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  cursor: 'pointer'
-                }}
-              >
-                重试
-              </button>
-            </div>
-          ) : services.length === 0 ? (
-            <div style={{
-              padding: '40px 20px',
-              textAlign: 'center'
-            }}>
-              <i className="fas fa-robot" style={{
-                fontSize: '32px',
-                color: 'var(--text-secondary)',
-                marginBottom: '12px'
-              }}></i>
-              <p style={{
-                fontSize: '16px',
-                fontWeight: '500',
-                color: 'var(--text-primary)',
-                margin: '0 0 8px 0'
-              }}>
-                暂无自定义服务
-              </p>
-              <p style={{
-                fontSize: '14px',
-                color: 'var(--text-secondary)',
-                margin: '0 0 20px 0'
-              }}>
-                您可以添加自己的AI服务配置，如OpenAI、Claude等
-              </p>
-              <button
-                onClick={handleAdd}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: 'var(--primary-color)',
-                  color: 'white',
-                  border: 'none',
+                  backgroundColor: 'transparent',
+                  color: 'var(--primary-color, rgb(59, 130, 246))',
+                  border: '1px solid var(--primary-color, rgb(59, 130, 246))',
                   borderRadius: '8px',
                   fontSize: '14px',
                   fontWeight: '500',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  margin: '0 auto'
+                  gap: '6px'
                 }}
               >
-                <i className="fas fa-plus"></i>
-                添加第一个服务
+                <i className="fas fa-history"></i>
+                {showTransactionHistory ? '隐藏记录' : '查看记录'}
               </button>
             </div>
-          ) : (
-            <div style={{
-              display: 'grid',
-              gap: '12px'
-            }}>
-              {services.map((service) => (
-                <div
-                  key={service.id}
-                  style={{
-                    padding: '16px',
-                    border: '1px solid var(--border-color, #e5e7eb)',
-                    borderRadius: '8px',
-                    backgroundColor: 'var(--card-background, white)',
-                    transition: 'all 0.2s'
-                  }}
-                >
+
+            {/* 记账点余额卡片 */}
+            {pointsLoading || membershipLoading ? (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '40px 20px'
+              }}>
+                <div style={{
+                  width: '20px',
+                  height: '20px',
+                  border: '2px solid rgba(0, 0, 0, 0.1)',
+                  borderRadius: '50%',
+                  borderTopColor: 'var(--primary-color)',
+                  animation: 'spin 1s linear infinite',
+                  marginRight: '12px'
+                }}></div>
+                <span style={{
+                  fontSize: '14px',
+                  color: 'var(--text-secondary)'
+                }}>
+                  加载中...
+                </span>
+              </div>
+            ) : pointsError || membershipError ? (
+              <div style={{
+                padding: '20px',
+                textAlign: 'center',
+                color: 'rgb(239, 68, 68)'
+              }}>
+                <i className="fas fa-exclamation-triangle" style={{
+                  fontSize: '24px',
+                  marginBottom: '8px'
+                }}></i>
+                <p style={{ fontSize: '14px', margin: 0 }}>
+                  {pointsError || membershipError}
+                </p>
+              </div>
+            ) : (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '16px'
+              }}>
+                {/* 总记账点 */}
+                <div style={{
+                  padding: '16px',
+                  backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(59, 130, 246, 0.2)'
+                }}>
                   <div style={{
                     display: 'flex',
-                    alignItems: 'flex-start',
-                    justifyContent: 'space-between',
-                    gap: '16px'
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '8px'
                   }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        marginBottom: '4px'
-                      }}>
-                        <h4 style={{
-                          fontSize: '16px',
-                          fontWeight: '600',
-                          color: 'var(--text-primary)',
-                          margin: 0
-                        }}>
-                          {service.name}
-                        </h4>
-                      </div>
-                      <p style={{
-                        fontSize: '14px',
-                        color: 'var(--text-secondary)',
-                        margin: '0 0 8px 0'
-                      }}>
-                        {service.provider} · {service.model}
-                      </p>
-                      {service.description && (
-                        <p style={{
-                          fontSize: '13px',
-                          color: 'var(--text-secondary)',
-                          margin: 0
-                        }}>
-                          {service.description}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
+                    <i className="fas fa-coins" style={{
+                      fontSize: '16px',
+                      color: 'var(--primary-color, rgb(59, 130, 246))'
+                    }}></i>
+                    <span style={{
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: 'var(--text-primary)'
                     }}>
-                      <button
-                        onClick={() => handleEdit(service.id)}
-                        style={{
-                          padding: '6px 12px',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: '6px',
-                          backgroundColor: 'transparent',
-                          color: 'var(--text-secondary)',
-                          fontSize: '12px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}
-                        title="编辑"
-                      >
-                        <i className="fas fa-edit"></i>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(service.id)}
-                        style={{
-                          padding: '6px 12px',
-                          border: '1px solid rgba(239, 68, 68, 0.3)',
-                          borderRadius: '6px',
-                          backgroundColor: 'transparent',
-                          color: 'rgb(239, 68, 68)',
-                          fontSize: '12px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}
-                        title="删除"
-                      >
-                        <i className="fas fa-trash"></i>
-                      </button>
-                    </div>
+                      总记账点
+                    </span>
+                  </div>
+                  <div style={{
+                    fontSize: '24px',
+                    fontWeight: '600',
+                    color: 'var(--primary-color, rgb(59, 130, 246))'
+                  }}>
+                    {balance?.totalBalance || 0}
                   </div>
                 </div>
-              ))}
+
+                {/* 会员记账点 */}
+                <div style={{
+                  padding: '16px',
+                  backgroundColor: 'rgba(34, 197, 94, 0.05)',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(34, 197, 94, 0.2)'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '8px'
+                  }}>
+                    <i className="fas fa-crown" style={{
+                      fontSize: '16px',
+                      color: 'rgb(34, 197, 94)'
+                    }}></i>
+                    <span style={{
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: 'var(--text-primary)'
+                    }}>
+                      会员记账点
+                    </span>
+                  </div>
+                  <div style={{
+                    fontSize: '24px',
+                    fontWeight: '600',
+                    color: 'rgb(34, 197, 94)'
+                  }}>
+                    {balance?.memberBalance || 0}
+                  </div>
+                  {membership?.memberType === 'donor' && (
+                    <div style={{
+                      fontSize: '12px',
+                      color: 'var(--text-secondary)',
+                      marginTop: '4px'
+                    }}>
+                      捐赠会员每月可获得记账点
+                    </div>
+                  )}
+                </div>
+
+                {/* 赠送记账点 */}
+                <div style={{
+                  padding: '16px',
+                  backgroundColor: 'rgba(168, 85, 247, 0.05)',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(168, 85, 247, 0.2)'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '8px'
+                  }}>
+                    <i className="fas fa-gift" style={{
+                      fontSize: '16px',
+                      color: 'rgb(168, 85, 247)'
+                    }}></i>
+                    <span style={{
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: 'var(--text-primary)'
+                    }}>
+                      赠送记账点
+                    </span>
+                  </div>
+                  <div style={{
+                    fontSize: '24px',
+                    fontWeight: '600',
+                    color: 'rgb(168, 85, 247)'
+                  }}>
+                    {balance?.giftBalance || 0}
+                  </div>
+                  <div style={{
+                    fontSize: '12px',
+                    color: 'var(--text-secondary)',
+                    marginTop: '4px'
+                  }}>
+                    签到和活动获得的记账点
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 记账点使用记录 */}
+          {showTransactionHistory && (
+            <div style={{ padding: '16px 24px 24px 24px' }}>
+              <h4 style={{
+                fontSize: '16px',
+                fontWeight: '600',
+                color: 'var(--text-primary)',
+                margin: '0 0 16px 0'
+              }}>
+                记账点使用记录
+              </h4>
+              
+              {pointsLoading ? (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '20px'
+                }}>
+                  <div style={{
+                    width: '16px',
+                    height: '16px',
+                    border: '2px solid rgba(0, 0, 0, 0.1)',
+                    borderRadius: '50%',
+                    borderTopColor: 'var(--primary-color)',
+                    animation: 'spin 1s linear infinite',
+                    marginRight: '8px'
+                  }}></div>
+                  <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                    加载记录中...
+                  </span>
+                </div>
+              ) : transactions.length === 0 ? (
+                <div style={{
+                  padding: '20px',
+                  textAlign: 'center',
+                  color: 'var(--text-secondary)'
+                }}>
+                  <i className="fas fa-history" style={{
+                    fontSize: '24px',
+                    marginBottom: '8px'
+                  }}></i>
+                  <p style={{ fontSize: '14px', margin: 0 }}>
+                    暂无使用记录
+                  </p>
+                </div>
+              ) : (
+                <div style={{
+                  maxHeight: '300px',
+                  overflowY: 'auto',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '8px'
+                }}>
+                  {transactions.map((transaction, index) => (
+                    <div
+                      key={transaction.id}
+                      style={{
+                        padding: '12px 16px',
+                        borderBottom: index < transactions.length - 1 ? '1px solid var(--border-color)' : 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: 'var(--text-primary)',
+                          marginBottom: '2px'
+                        }}>
+                          {transaction.description}
+                        </div>
+                        <div style={{
+                          fontSize: '12px',
+                          color: 'var(--text-secondary)'
+                        }}>
+                          {new Date(transaction.createdAt).toLocaleString('zh-CN')}
+                        </div>
+                      </div>
+                      <div style={{
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: transaction.type === 'consume' ? 'rgb(239, 68, 68)' : 'rgb(34, 197, 94)'
+                      }}>
+                        {transaction.type === 'consume' ? '-' : '+'}{transaction.points}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
-      </div>
+      )}
 
-      {/* 编辑模态框 */}
-      <AiServiceEditModal
-        isOpen={isEditModalOpen}
-        onClose={handleCloseModal}
-        serviceId={editingServiceId}
-        onSave={handleSaveSuccess}
-      />
+      {/* 记账点规则说明 */}
+      {userAIEnabled && (
+        <div style={{
+          backgroundColor: 'var(--card-background, white)',
+          borderRadius: '12px',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+          marginBottom: '16px',
+          padding: '20px 24px',
+          border: '1px solid var(--border-color, #e5e7eb)'
+        }}>
+          <h3 style={{
+            fontSize: '18px',
+            fontWeight: '600',
+            color: 'var(--text-primary)',
+            margin: '0 0 16px 0'
+          }}>
+            记账点规则说明
+          </h3>
 
-      {/* AI服务设置向导 */}
-      <AIServiceWizard
-        isOpen={isWizardOpen}
-        onClose={handleCloseWizard}
-        onComplete={handleWizardComplete}
-      />
+          {/* 获取规则 */}
+          <div style={{ marginBottom: '20px' }}>
+            <h4 style={{
+              fontSize: '16px',
+              fontWeight: '600',
+              color: 'var(--text-primary)',
+              margin: '0 0 12px 0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <i className="fas fa-coins" style={{ color: 'rgb(34, 197, 94)' }}></i>
+              记账点获取方式
+            </h4>
+            <div style={{
+              display: 'grid',
+              gap: '8px',
+              fontSize: '14px',
+              color: 'var(--text-secondary)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <i className="fas fa-gift" style={{ color: 'rgb(168, 85, 247)', width: '16px' }}></i>
+                <span><strong>每日签到：</strong>每天首次访问可获得 1-5 个赠送记账点</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <i className="fas fa-crown" style={{ color: 'rgb(34, 197, 94)', width: '16px' }}></i>
+                <span><strong>捐赠会员：</strong>每月自动获得 1000 个会员记账点</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <i className="fas fa-star" style={{ color: 'rgb(255, 193, 7)', width: '16px' }}></i>
+                <span><strong>活动奖励：</strong>参与官方活动可获得额外赠送记账点</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 消耗规则 */}
+          <div>
+            <h4 style={{
+              fontSize: '16px',
+              fontWeight: '600',
+              color: 'var(--text-primary)',
+              margin: '0 0 12px 0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <i className="fas fa-robot" style={{ color: 'rgb(59, 130, 246)' }}></i>
+              AI功能消耗规则
+            </h4>
+            <div style={{
+              display: 'grid',
+              gap: '8px',
+              fontSize: '14px',
+              color: 'var(--text-secondary)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '4px',
+                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                  color: 'rgb(59, 130, 246)',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  1
+                </div>
+                <span><strong>文字记账：</strong>消耗1个记账点，智能分类和预算匹配</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '4px',
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  color: 'rgb(239, 68, 68)',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  2
+                </div>
+                <span><strong>语音记账：</strong>消耗2个记账点，语音识别 + 智能分类</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '4px',
+                  backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                  color: 'rgb(34, 197, 94)',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  3
+                </div>
+                <span><strong>图片记账：</strong>消耗3个记账点，图像识别 + 智能分类</span>
+              </div>
+            </div>
+            
+            <div style={{
+              marginTop: '12px',
+              padding: '12px',
+              backgroundColor: 'rgba(59, 130, 246, 0.05)',
+              borderRadius: '8px',
+              border: '1px solid rgba(59, 130, 246, 0.2)'
+            }}>
+              <div style={{
+                fontSize: '13px',
+                color: 'var(--text-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                <i className="fas fa-info-circle" style={{ color: 'rgb(59, 130, 246)' }}></i>
+                <span><strong>使用优先级：</strong>赠送记账点 → 会员记账点，优先消耗即将过期的记账点</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI服务不可用提示 */}
+      {!userAIEnabled && (
+        <div style={{
+          backgroundColor: 'var(--card-background, white)',
+          borderRadius: '12px',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+          padding: '40px 24px',
+          textAlign: 'center',
+          border: '1px solid var(--border-color, #e5e7eb)'
+        }}>
+          <i className="fas fa-robot" style={{
+            fontSize: '48px',
+            color: 'var(--text-secondary)',
+            marginBottom: '16px'
+          }}></i>
+          <h3 style={{
+            fontSize: '18px',
+            fontWeight: '600',
+            color: 'var(--text-primary)',
+            margin: '0 0 8px 0'
+          }}>
+            AI服务未启用
+          </h3>
+          <p style={{
+            fontSize: '14px',
+            color: 'var(--text-secondary)',
+            margin: '0 0 20px 0'
+          }}>
+            开启AI服务后，您可以使用智能记账、语音记账、图片记账等AI功能
+          </p>
+          <button
+            onClick={() => handleGlobalAIToggle(true)}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: 'var(--primary-color)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer'
+            }}
+          >
+            立即开启AI服务
+          </button>
+        </div>
+      )}
     </PageContainer>
   );
 }
