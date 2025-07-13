@@ -22,6 +22,9 @@ router.post('/reset-password', (req, res) => authController.resetPassword(req, r
 // 检查认证状态
 router.get('/check', authenticate, (req, res) => authController.checkAuth(req, res));
 
+// 检查token状态（是否需要刷新）
+router.get('/token-status', authenticate, (req, res) => authController.checkTokenStatus(req, res));
+
 // 刷新token
 router.post('/refresh', authenticate, (req, res) => authController.refreshToken(req, res));
 

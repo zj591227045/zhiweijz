@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useBudgetFormStore } from '@/store/budget-form-store';
 import { useAccountBookStore } from '@/store/account-book-store';
+import { useTokenMonitor } from '@/hooks/use-token-monitor';
 import { apiClient } from '@/lib/api-client';
 import { BasicInfoSection } from './basic-info-section';
 import { TimeSettingsSection } from './time-settings-section';
@@ -21,6 +22,18 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
   const router = useRouter();
   const [isDataLoading, setIsDataLoading] = useState(true);
   const { currentAccountBook } = useAccountBookStore();
+
+  // 使用token监控Hook
+  const { isTokenValid, isRefreshing, refreshToken } = useTokenMonitor({
+    autoRedirect: true, // 在独立页面中自动跳转
+    onTokenRefreshed: () => {
+      console.log('✅ 预算表单：Token刷新成功');
+      // Token刷新成功后，如果是编辑模式且有budgetId，重新加载数据
+      if (mode === 'edit' && budgetId && budgetId !== 'placeholder') {
+        loadBudgetData(budgetId);
+      }
+    }
+  });
   const {
     mode: formMode,
     budgetType,
@@ -47,10 +60,9 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
         return;
       }
       
-      // 简单检查：localStorage有token就继续
-      const hasToken = typeof window !== 'undefined' && localStorage.getItem('auth-token');
-      if (!hasToken) {
-        console.warn('⚠️ 没有认证令牌');
+      // 检查token有效性
+      if (!isTokenValid) {
+        console.warn('⚠️ Token无效');
         return;
       }
       
@@ -58,7 +70,7 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
     } else {
       resetForm();
     }
-  }, [mode, budgetId, setMode, setBudgetId, loadBudgetData, resetForm]);
+  }, [mode, budgetId, isTokenValid, setMode, setBudgetId, loadBudgetData, resetForm]);
 
   // 加载初始数据
   useEffect(() => {
@@ -103,23 +115,39 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
     router.push('/budgets');
   };
 
-  // 检查认证状态
-  const hasToken = typeof window !== 'undefined' && localStorage.getItem('auth-token');
-  if (!hasToken) {
+  // 检查token有效性
+  if (!isTokenValid) {
     return (
       <div className="budget-form">
         <div className="form-section">
           <div className="error-message">
             <i className="fas fa-lock"></i>
-            <span>请先登录账户</span>
-            <button 
-              type="button" 
-              onClick={() => window.location.href = '/auth/login'}
-              className="retry-button"
-            >
-              <i className="fas fa-sign-in-alt"></i>
-              登录
-            </button>
+            <span>Token已失效，请重新登录</span>
+            {isRefreshing ? (
+              <button type="button" className="retry-button" disabled>
+                <span className="loading-spinner"></span>
+                刷新中...
+              </button>
+            ) : (
+              <div className="button-group">
+                <button
+                  type="button"
+                  onClick={refreshToken}
+                  className="retry-button"
+                >
+                  <i className="fas fa-redo"></i>
+                  重试
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.location.href = '/auth/login'}
+                  className="retry-button"
+                >
+                  <i className="fas fa-sign-in-alt"></i>
+                  登录
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

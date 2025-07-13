@@ -16,9 +16,14 @@ interface RouteGuardProps {
 export function RouteGuard({ children }: RouteGuardProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isAuthenticated, user, token } = useAuthStore();
+  const { isAuthenticated, user, token, isLoading } = useAuthStore();
 
   useEffect(() => {
+    // 如果正在加载认证状态，等待完成
+    if (isLoading) {
+      return;
+    }
+
     // 管理员页面有自己的认证系统，不处理
     const isAdminPage = pathname.startsWith('/admin');
     if (isAdminPage) {
@@ -29,13 +34,15 @@ export function RouteGuard({ children }: RouteGuardProps) {
     const isAuthPage = pathname.startsWith('/auth/');
 
     // 如果在认证页面且已登录，重定向到仪表盘
-    if (isAuthPage && isAuthenticated) {
+    if (isAuthPage && isAuthenticated && user && token) {
+      console.log('✅ 已登录，从认证页面重定向到仪表盘');
       router.push('/dashboard');
       return;
     }
 
     // 如果不在认证页面且未登录，重定向到登录页
     if (!isAuthPage && !isAuthenticated) {
+      console.log('🚨 未登录，重定向到登录页');
       // 清理可能残留的无效缓存
       clearAuthCache();
       router.push('/auth/login');
@@ -44,12 +51,12 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
     // 如果已登录但用户信息不完整，可能是缓存问题
     if (isAuthenticated && (!user || !token)) {
-      console.warn('认证状态异常，清理缓存并重新登录');
+      console.warn('⚠️ 认证状态异常，清理缓存并重新登录');
       clearAuthCache();
       router.push('/auth/login');
       return;
     }
-  }, [pathname, isAuthenticated, user, token, router]);
+  }, [pathname, isAuthenticated, user, token, isLoading, router]);
 
   return <>{children}</>;
 }

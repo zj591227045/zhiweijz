@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { useBudgetFormStore } from '@/store/budget-form-store';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { useCategoryStore } from '@/store/category-store';
+import { useTokenMonitor } from '@/hooks/use-token-monitor';
 import { BasicInfoSection } from './budgets/budget-form/basic-info-section';
 import { TimeSettingsSection } from './budgets/budget-form/time-settings-section';
 import { CategoryBudgetSection } from './budgets/budget-form/category-budget-section';
@@ -28,6 +29,21 @@ export default function BudgetEditModal({
   const { currentAccountBook } = useAccountBookStore();
   const { categories, fetchCategories } = useCategoryStore();
   const [isDataLoading, setIsDataLoading] = useState(true);
+
+  // 使用token监控Hook
+  const { isTokenValid, isRefreshing, refreshToken } = useTokenMonitor({
+    autoRedirect: false, // 不自动跳转，由组件自己处理
+    onTokenInvalid: () => {
+      console.log('🚨 预算编辑模态框：Token失效');
+    },
+    onTokenRefreshed: () => {
+      console.log('✅ 预算编辑模态框：Token刷新成功');
+      // Token刷新成功后，如果有budgetId且不是占位符，重新加载数据
+      if (budgetId && budgetId !== 'placeholder') {
+        loadBudgetData(budgetId);
+      }
+    }
+  });
 
   const {
     mode: formMode,
@@ -55,10 +71,9 @@ export default function BudgetEditModal({
         return;
       }
 
-      // 简单检查：localStorage有token就继续
-      const hasToken = typeof window !== 'undefined' && localStorage.getItem('auth-token');
-      if (!hasToken) {
-        console.warn('⚠️ 没有认证令牌');
+      // 检查认证状态和token有效性
+      if (!isAuthenticated || !isTokenValid) {
+        console.warn('⚠️ 用户未认证或token无效');
         return;
       }
 
@@ -66,7 +81,7 @@ export default function BudgetEditModal({
     } else {
       resetForm();
     }
-  }, [budgetId, setMode, setBudgetId, loadBudgetData, resetForm]);
+  }, [budgetId, isAuthenticated, isTokenValid, setMode, setBudgetId, loadBudgetData, resetForm]);
 
   // 加载初始数据
   useEffect(() => {
@@ -115,9 +130,8 @@ export default function BudgetEditModal({
     }
   };
 
-  // 检查认证状态
-  const hasToken = typeof window !== 'undefined' && localStorage.getItem('auth-token');
-  if (!hasToken) {
+  // 检查认证状态和token有效性
+  if (!isAuthenticated || !isTokenValid) {
     return (
       <div style={{
         position: 'fixed',
@@ -152,15 +166,34 @@ export default function BudgetEditModal({
               <div className="form-section">
                 <div className="error-message">
                   <i className="fas fa-lock"></i>
-                  <span>请先登录账户</span>
-                  <button
-                    type="button"
-                    onClick={() => window.location.href = '/auth/login'}
-                    className="retry-button"
-                  >
-                    <i className="fas fa-sign-in-alt"></i>
-                    登录
-                  </button>
+                  <span>
+                    {!isAuthenticated ? '请先登录账户' : 'Token已失效，请重新登录'}
+                  </span>
+                  {isRefreshing ? (
+                    <button type="button" className="retry-button" disabled>
+                      <span className="loading-spinner"></span>
+                      刷新中...
+                    </button>
+                  ) : (
+                    <div className="button-group">
+                      <button
+                        type="button"
+                        onClick={refreshToken}
+                        className="retry-button"
+                      >
+                        <i className="fas fa-redo"></i>
+                        重试
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => window.location.href = '/auth/login'}
+                        className="retry-button"
+                      >
+                        <i className="fas fa-sign-in-alt"></i>
+                        登录
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

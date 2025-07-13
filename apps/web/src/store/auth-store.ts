@@ -125,6 +125,13 @@ export const useAuthStore = create<AuthState>()(
             error: null,
           });
 
+          console.log('✅ 认证状态已更新:', {
+            isAuthenticated: true,
+            hasUser: !!user,
+            hasToken: !!token,
+            userId: user?.id
+          });
+
           // 登录成功，重置登录尝试次数
           get().resetLoginAttempts(credentials.email);
 

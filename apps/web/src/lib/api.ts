@@ -177,9 +177,23 @@ api.interceptors.response.use(
           return api(originalRequest);
         }
       } catch (refreshError) {
-        console.log('Token刷新失败，清除认证状态');
-        // 使用统一的缓存清理函数
-        clearAuthCache();
+        console.error('❌ Token刷新失败:', refreshError);
+
+        // 检查是否是网络错误
+        const isNetworkError = !refreshError.response;
+        const isServerError = refreshError.response?.status >= 500;
+
+        if (isNetworkError) {
+          console.log('🌐 网络错误，保留token等待重试');
+          // 网络错误时不清除token，让用户可以重试
+        } else if (isServerError) {
+          console.log('🔧 服务器错误，保留token等待重试');
+          // 服务器错误时不清除token，让用户可以重试
+        } else {
+          console.log('🚨 Token无效，清除认证状态');
+          // 只有在token确实无效时才清除
+          clearAuthCache();
+        }
       } finally {
         isRefreshing = false;
       }

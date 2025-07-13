@@ -7,12 +7,15 @@ import { Toaster } from 'sonner';
 import { useThemeStore, applyThemeConfig } from '@/store/theme-store';
 import { AuthInitializer } from '@/components/auth/auth-initializer';
 import { RouteGuard } from '@/components/auth/route-guard';
+import { TokenMonitorProvider } from '@/components/auth/token-monitor-provider';
 import { OnboardingProvider } from '@/components/onboarding/onboarding-provider';
 import { initializeAndroidPlatform } from '@/lib/android-platform';
 
 // 在开发环境下加载调试工具
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   import('@/utils/debug-auth');
+  import('@/utils/token-test-helper');
+  import('@/utils/auth-debug');
 }
 
 // 创建QueryClient实例
@@ -77,8 +80,10 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <AuthInitializer>
-          <RouteGuard>{children}</RouteGuard>
-          <OnboardingProvider />
+          <TokenMonitorProvider>
+            <RouteGuard>{children}</RouteGuard>
+            <OnboardingProvider />
+          </TokenMonitorProvider>
         </AuthInitializer>
         <Toaster position="top-center" />
       </ThemeProvider>

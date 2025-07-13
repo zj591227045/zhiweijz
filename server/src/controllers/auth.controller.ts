@@ -7,6 +7,7 @@ import {
   UpdatePasswordRequestDto,
 } from '../models/auth.model';
 import { CaptchaService } from '../services/captcha.service';
+import { shouldRefreshToken, getTokenRemainingTime } from '../utils/jwt';
 
 export class AuthController {
   private authService: AuthService;
@@ -118,6 +119,38 @@ export class AuthController {
       res.status(200).json({ message: '认证有效' });
     } catch (error) {
       res.status(401).json({ message: '认证无效' });
+    }
+  }
+
+  /**
+   * 检查token状态
+   */
+  async checkTokenStatus(req: Request, res: Response): Promise<void> {
+    try {
+      // 从请求头获取token
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        res.status(401).json({ message: '未提供认证令牌' });
+        return;
+      }
+
+      const token = authHeader.split(' ')[1];
+      if (!token) {
+        res.status(401).json({ message: '认证令牌格式不正确' });
+        return;
+      }
+
+      // 检查是否需要刷新
+      const needsRefresh = shouldRefreshToken(token);
+      const remainingTime = getTokenRemainingTime(token);
+
+      res.status(200).json({
+        needsRefresh,
+        remainingTime,
+        user: req.user
+      });
+    } catch (error) {
+      res.status(500).json({ message: '检查token状态时发生错误' });
     }
   }
 
