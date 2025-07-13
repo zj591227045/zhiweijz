@@ -5,6 +5,25 @@
   /* Android专用标识类 */
 }
 
+/* Android防缩放设置 */
+.android-app body,
+.android-app html {
+  touch-action: manipulation !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+}
+
+/* 允许输入框和文本区域的文本选择 */
+.android-app input,
+.android-app textarea,
+.android-app [contenteditable] {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  touch-action: manipulation !important;
+}
+
 /* Android状态栏适配 */
 .android-app body {
   /* Android状态栏高度适配 */

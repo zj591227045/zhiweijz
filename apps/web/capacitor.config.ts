@@ -38,6 +38,18 @@ const config: CapacitorConfig = {
       launchUrl: 'https://localhost'
     }
   },
+  webView: {
+    allowsInlineMediaPlayback: true,
+    allowsAirPlayForMediaPlayback: true,
+    allowsPictureInPictureMediaPlayback: true,
+    allowsBackForwardNavigationGestures: false,
+    allowsLinkPreview: false,
+    enableViewportScale: false,
+    allowsUserScaling: false,
+    minimumFontSize: 0,
+    suppressesIncrementalRendering: false,
+    disallowOverscroll: true
+  },
   android: {
     path: '../android',
     buildOptions: {
@@ -46,7 +58,13 @@ const config: CapacitorConfig = {
       keystoreAlias: undefined,
       keystoreAliasPassword: undefined,
       releaseType: 'APK'
-    }
+    },
+    webContentsDebuggingEnabled: false,
+    allowMixedContent: false,
+    captureInput: true,
+    webViewAssetLoader: true,
+    loggingBehavior: 'none',
+    useLegacyBridge: false
   },
   ios: {
     path: '../ios',
@@ -54,7 +72,14 @@ const config: CapacitorConfig = {
     limitsNavigationsToAppBoundDomains: true,
     allowsLinkPreview: false,
     handleApplicationNotifications: false,
-    contentInset: 'always'
+    contentInset: 'always',
+    webContentsDebuggingEnabled: false,
+    allowsInlineMediaPlayback: true,
+    suppressesIncrementalRendering: false,
+    allowsAirPlayForMediaPlayback: true,
+    allowsPictureInPictureMediaPlayback: true,
+    ignoresViewportScaleLimits: false,
+    allowsBackForwardNavigationGestures: false
   }
 };
 

@@ -169,6 +169,30 @@
   }
 }
 
+/* 移动端防缩放样式 */
+@media (hover: none) and (pointer: coarse) {
+  /* 禁用双指缩放和双击缩放 */
+  html, body {
+    touch-action: manipulation !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    user-select: none !important;
+  }
+
+  /* 允许输入框和文本区域的文本选择 */
+  input, textarea, [contenteditable] {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    touch-action: manipulation !important;
+  }
+
+  /* 允许滚动容器的滚动操作 */
+  .scroll-container, .overflow-auto, .overflow-y-auto, .overflow-x-auto {
+    touch-action: pan-x pan-y !important;
+  }
+}
+
 /* 自定义缩放效果 */
 .active\:scale-98:active {
   transform: scale(0.98);

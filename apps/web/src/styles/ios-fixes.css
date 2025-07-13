@@ -82,13 +82,13 @@
   spellcheck: false !important;
 }
 
-/* 非登录页面能够正常滚动 */
+/* 非登录页面能够正常滚动但禁用缩放 */
 .ios-app:not(.login-page) body {
   overflow: auto !important;
   position: static !important;
   width: auto !important;
   height: auto !important;
-  touch-action: auto !important;
+  touch-action: manipulation !important;
   -webkit-overflow-scrolling: touch !important;
 }
 
@@ -97,7 +97,7 @@
   position: static !important;
   width: auto !important;
   height: auto !important;
-  touch-action: auto !important;
+  touch-action: manipulation !important;
   -webkit-overflow-scrolling: touch !important;
 }
 
