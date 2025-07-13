@@ -7,6 +7,8 @@ import { AIController } from '../controllers/ai-controller';
 import { WechatBindingService } from './wechat-binding.service';
 import { WechatSmartAccountingService } from './wechat-smart-accounting.service';
 import { WechatQueryIntentService } from './wechat-query-intent.service';
+import { WechatMediaService } from './wechat-media.service';
+import { MultimodalAIController } from '../controllers/multimodal-ai.controller';
 
 export interface WechatMessage {
   ToUserName: string;
@@ -17,6 +19,12 @@ export interface WechatMessage {
   MsgId?: string;
   Event?: string;
   EventKey?: string;
+  // 语音消息字段
+  MediaId?: string;
+  Format?: string;
+  Recognition?: string;
+  // 图片消息字段
+  PicUrl?: string;
 }
 
 export interface WechatResponse {
@@ -36,6 +44,8 @@ export class WechatService {
   private bindingService: WechatBindingService;
   private smartAccountingService: WechatSmartAccountingService;
   private queryIntentService: WechatQueryIntentService;
+  private mediaService: WechatMediaService;
+  private multimodalController: MultimodalAIController;
   private isEnabled: boolean;
 
   constructor() {
@@ -60,6 +70,8 @@ export class WechatService {
     this.bindingService = new WechatBindingService();
     this.smartAccountingService = new WechatSmartAccountingService();
     this.queryIntentService = new WechatQueryIntentService();
+    this.mediaService = new WechatMediaService();
+    this.multimodalController = new MultimodalAIController();
   }
 
   /**
@@ -215,10 +227,10 @@ export class WechatService {
           responseContent = await this.handleEventMessage(openid, message);
           break;
         case 'image':
-          responseContent = '暂不支持图片消息，请发送文字进行记账。\n\n发送"帮助"查看使用说明。';
+          responseContent = await this.handleImageMessage(openid, message);
           break;
         case 'voice':
-          responseContent = '暂不支持语音消息，请发送文字进行记账。\n\n发送"帮助"查看使用说明。';
+          responseContent = await this.handleVoiceMessage(openid, message);
           break;
         case 'video':
           responseContent = '暂不支持视频消息，请发送文字进行记账。\n\n发送"帮助"查看使用说明。';
@@ -293,10 +305,20 @@ export class WechatService {
       return '请发送有效的消息内容。\n\n发送"帮助"查看使用说明。';
     }
 
+    // 检查是否有临时绑定数据（账本选择流程）
+    const tempData = this.getTempUserData(openid);
+    if (tempData) {
+      return await this.handleAccountBookSelection(openid, cleanContent, tempData);
+    }
+
     // 检查用户是否已绑定
     const binding = await this.getUserBinding(openid);
 
     if (!binding) {
+      // 检查是否是绑定命令格式: "绑定 邮箱 密码"
+      if (cleanContent.startsWith('绑定 ')) {
+        return await this.handleDirectBinding(openid, cleanContent);
+      }
       return this.getBindingInstructions();
     }
 
@@ -308,7 +330,7 @@ export class WechatService {
     if (!binding.default_account_book_id) {
       // 如果是设置账本的命令，允许执行
       if (cleanContent.includes('设置账本') || cleanContent.includes('选择账本')) {
-        return await this.handleAccountBookSelection(binding.user_id);
+        return await this.handleDefaultAccountBookSelection(binding.user_id);
       }
       return '请先设置默认账本。\n\n发送"设置账本"来选择默认账本。';
     }
@@ -336,7 +358,7 @@ export class WechatService {
 
     // 账本管理命令
     if (lowerContent.includes('设置账本') || lowerContent.includes('选择账本')) {
-      return await this.handleAccountBookSelection(binding.user_id);
+      return await this.handleDefaultAccountBookSelection(binding.user_id);
     }
 
     // 统计查询命令
@@ -411,6 +433,164 @@ export class WechatService {
           true,
         );
         return ''; // 返回空字符串，通过客服消息API异步发送结果
+    }
+  }
+
+  /**
+   * 处理直接绑定命令 (文字格式: "绑定 邮箱 密码")
+   */
+  private async handleDirectBinding(openid: string, content: string): Promise<string> {
+    try {
+      // 解析绑定命令: "绑定 邮箱 密码"
+      const parts = content.split(' ');
+      if (parts.length < 3) {
+        return '绑定格式错误。\n\n正确格式：绑定 邮箱 密码\n例如：绑定 user@example.com 123456';
+      }
+
+      const email = parts[1];
+      const password = parts.slice(2).join(' '); // 支持密码中包含空格
+
+      console.log(`🔗 处理文字绑定: openid=${openid}, email=${email}`);
+
+      // 验证邮箱格式
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return '邮箱格式不正确，请检查后重试。\n\n格式：绑定 邮箱 密码';
+      }
+
+      // 调用登录验证
+      const loginResult = await this.loginAndGetAccountBooks(email, password);
+      
+      if (!loginResult.success || !loginResult.data) {
+        return `登录失败：${loginResult.message}\n\n请检查邮箱和密码是否正确。`;
+      }
+
+      const { user, accountBooks } = loginResult.data;
+
+      // 如果只有一个账本，自动绑定
+      if (accountBooks.length === 1) {
+        const bindResult = await this.bindWechatAccount(openid, user.id, accountBooks[0].id);
+        if (bindResult.success) {
+          return `🎉 绑定成功！\n\n账号：${user.name} (${user.email})\n账本：${accountBooks[0].name}\n\n您现在可以发送语音、图片或文字进行记账了！`;
+        } else {
+          return `绑定失败：${bindResult.message}`;
+        }
+      }
+
+      // 多个账本，需要用户选择
+      let message = `✅ 登录成功！账号：${user.name}\n\n📚 请选择要绑定的账本：\n`;
+      accountBooks.forEach((book, index) => {
+        const bookType = book.type === 'FAMILY' 
+          ? `家庭账本${book.familyName ? ' - ' + book.familyName : ''}` 
+          : '个人账本';
+        message += `${index + 1}. ${book.name} (${bookType})\n`;
+      });
+      message += `\n请回复数字 1-${accountBooks.length} 选择账本`;
+
+      // 临时存储用户信息和账本列表
+      await this.storeTempUserData(openid, user, accountBooks);
+
+      return message;
+    } catch (error) {
+      console.error('处理文字绑定失败:', error);
+      return '绑定过程中出现错误，请稍后重试。\n\n如需帮助，请发送"帮助"。';
+    }
+  }
+
+  /**
+   * 临时存储用户数据（用于账本选择）
+   */
+  private async storeTempUserData(openid: string, user: any, accountBooks: any[]): Promise<void> {
+    try {
+      // 这里可以使用Redis或数据库临时存储，简单起见使用内存存储
+      // 生产环境建议使用Redis
+      const tempData = {
+        user,
+        accountBooks,
+        timestamp: Date.now(),
+      };
+      
+      // 临时存储到一个Map中（注意：重启会丢失，生产环境应使用Redis）
+      if (!(global as any).tempBindingData) {
+        (global as any).tempBindingData = new Map();
+      }
+      (global as any).tempBindingData.set(openid, tempData);
+
+      // 5分钟后自动清理
+      setTimeout(() => {
+        if ((global as any).tempBindingData) {
+          (global as any).tempBindingData.delete(openid);
+        }
+      }, 5 * 60 * 1000);
+    } catch (error) {
+      console.error('存储临时用户数据失败:', error);
+    }
+  }
+
+  /**
+   * 获取临时用户数据
+   */
+  private getTempUserData(openid: string): any {
+    if (!(global as any).tempBindingData) {
+      return null;
+    }
+    
+    const data = (global as any).tempBindingData.get(openid);
+    if (!data) {
+      return null;
+    }
+
+    // 检查是否过期（5分钟）
+    if (Date.now() - data.timestamp > 5 * 60 * 1000) {
+      (global as any).tempBindingData.delete(openid);
+      return null;
+    }
+
+    return data;
+  }
+
+  /**
+   * 处理账本选择（用于绑定流程）
+   */
+  private async handleAccountBookSelection(openid: string, input: string, tempData: any): Promise<string> {
+    try {
+      const { user, accountBooks } = tempData;
+      
+      // 解析用户输入的数字
+      const selection = parseInt(input.trim());
+      
+      if (isNaN(selection) || selection < 1 || selection > accountBooks.length) {
+        return `请输入有效的数字 1-${accountBooks.length} 来选择账本。\n\n或发送"取消"退出绑定流程。`;
+      }
+
+      const selectedBook = accountBooks[selection - 1];
+      
+      // 执行绑定
+      const bindResult = await this.bindWechatAccount(openid, user.id, selectedBook.id);
+      
+      // 清理临时数据
+      if ((global as any).tempBindingData) {
+        (global as any).tempBindingData.delete(openid);
+      }
+      
+      if (bindResult.success) {
+        const bookType = selectedBook.type === 'FAMILY' 
+          ? `家庭账本${selectedBook.familyName ? ' - ' + selectedBook.familyName : ''}` 
+          : '个人账本';
+        
+        return `🎉 绑定成功！\n\n账号：${user.name} (${user.email})\n账本：${selectedBook.name} (${bookType})\n\n您现在可以发送语音、图片或文字进行记账了！`;
+      } else {
+        return `绑定失败：${bindResult.message}\n\n请重新发送"绑定 邮箱 密码"进行绑定。`;
+      }
+    } catch (error) {
+      console.error('处理账本选择失败:', error);
+      
+      // 清理临时数据
+      if ((global as any).tempBindingData) {
+        (global as any).tempBindingData.delete(openid);
+      }
+      
+      return '选择账本时出现错误，请重新开始绑定流程。\n\n发送"绑定 邮箱 密码"进行绑定。';
     }
   }
 
@@ -634,9 +814,9 @@ export class WechatService {
   }
 
   /**
-   * 处理账本选择
+   * 处理默认账本选择
    */
-  private async handleAccountBookSelection(userId: string): Promise<string> {
+  private async handleDefaultAccountBookSelection(userId: string): Promise<string> {
     try {
       const accountBooks = await prisma.accountBook.findMany({
         where: {
@@ -767,9 +947,51 @@ export class WechatService {
           return '请先绑定账号并设置默认账本。';
         }
         return await this.handleBalanceQuery(binding.user_id, binding.default_account_book_id);
+      // 开发环境专用菜单项
+      case 'TEST_FEATURES':
+        return this.getTestFeaturesMessage();
+      case 'HELP_GUIDE':
+        return this.getDevelopmentHelpMessage();
       default:
         return '感谢您的操作！';
     }
+  }
+
+  /**
+   * 获取测试功能说明
+   */
+  private getTestFeaturesMessage(): string {
+    return (
+      '🧪 测试功能说明\n\n' +
+      '📝 文字记账测试：\n' +
+      '发送："50 餐饮 午餐"\n\n' +
+      '🎤 语音记账测试：\n' +
+      '发送语音消息："花了五十块钱买午餐"\n\n' +
+      '📷 图片记账测试：\n' +
+      '发送包含价格信息的图片（如收据）\n\n' +
+      '🔗 账号绑定测试：\n' +
+      '发送："绑定 邮箱 密码"\n\n' +
+      '💡 注意：这是测试环境，不会影响正式数据'
+    );
+  }
+
+  /**
+   * 获取开发环境帮助信息
+   */
+  private getDevelopmentHelpMessage(): string {
+    return (
+      '🛠️ 开发环境使用指南\n\n' +
+      '📋 支持的功能：\n' +
+      '• 文字记账 - 发送"金额 分类 备注"\n' +
+      '• 语音记账 - 发送语音消息\n' +
+      '• 图片记账 - 发送图片\n' +
+      '• 账号绑定 - "绑定 邮箱 密码"\n\n' +
+      '🔧 调试命令：\n' +
+      '• "帮助" - 查看完整帮助\n' +
+      '• "绑定信息" - 查看当前绑定状态\n' +
+      '• "余额" - 查看账本余额\n\n' +
+      '⚠️ 这是测试环境，仅用于功能验证'
+    );
   }
 
   /**
@@ -1394,6 +1616,502 @@ export class WechatService {
         success: false,
         message: '获取账本失败，请稍后重试',
       };
+    }
+  }
+
+  /**
+   * 处理语音消息
+   */
+  private async handleVoiceMessage(openid: string, message: WechatMessage): Promise<string> {
+    try {
+      console.log(`🎤 处理语音消息: openid=${openid}, mediaId=${message.MediaId}`);
+
+      // 检查用户绑定状态
+      const binding = await this.bindingService.getBindingInfo(openid);
+      if (!binding || !binding.isActive) {
+        return '您还未绑定只为记账账号，请点击菜单"账号绑定"进行绑定后再使用语音记账功能。';
+      }
+
+      if (!message.MediaId) {
+        return '语音消息格式错误，请重新发送语音消息。';
+      }
+
+      // 下载语音文件
+      console.log(`📥 开始下载语音文件: ${message.MediaId}`);
+      const downloadResult = await this.mediaService.downloadMedia(message.MediaId, 'voice');
+      console.log(`📥 语音下载结果:`, downloadResult);
+      
+      if (!downloadResult.success || !downloadResult.filePath) {
+        console.error('下载语音文件失败:', downloadResult.error);
+        return '语音文件下载失败，请稍后重试。\n\n您也可以发送文字进行记账。';
+      }
+
+      try {
+        console.log(`🎵 开始处理语音文件: ${downloadResult.filePath}`);
+        
+        // 创建模拟的multipart文件对象
+        const fs = require('fs');
+        
+        if (!fs.existsSync(downloadResult.filePath)) {
+          console.log(`❌ 语音文件不存在: ${downloadResult.filePath}`);
+          return '语音文件不存在，请重新发送语音。';
+        }
+        
+        const stats = fs.statSync(downloadResult.filePath);
+        console.log(`📊 语音文件信息: 大小=${stats.size}字节, 格式=${downloadResult.fileName}`);
+        
+        const mockFile = {
+          buffer: fs.readFileSync(downloadResult.filePath),
+          originalname: downloadResult.fileName || 'voice.amr',
+          mimetype: 'audio/amr',
+          size: stats.size,
+          path: downloadResult.filePath,
+        };
+
+        // 创建模拟的请求对象
+        const mockReq = {
+          user: { id: binding.userId },
+          file: mockFile,
+          body: {
+            accountBookId: binding.defaultAccountBookId,
+            language: 'zh-CN',
+            format: 'amr',
+          },
+        };
+
+        console.log(`📋 语音请求对象:`, {
+          userId: mockReq.user.id,
+          accountBookId: mockReq.body.accountBookId,
+          fileName: mockFile.originalname,
+          fileSize: mockFile.size
+        });
+
+        // 创建模拟的响应对象
+        let responseData: any = null;
+        let statusCode = 200;
+        const mockRes = {
+          status: (code: number) => {
+            statusCode = code;
+            console.log(`📊 语音API响应状态码: ${code}`);
+            return mockRes;
+          },
+          json: (data: any) => {
+            responseData = data;
+            console.log(`📊 语音API响应数据:`, data);
+          },
+        };
+
+        console.log(`🚀 开始调用语音识别API（第一步：识别）...`);
+
+        // 第一步：调用语音识别API
+        await this.multimodalController.speechToText(mockReq as any, mockRes as any);
+        
+        console.log(`✅ 语音识别API调用完成，状态码: ${statusCode}, 响应数据:`, responseData);
+
+        // 清理临时文件
+        console.log(`🗑️ 清理语音临时文件: ${downloadResult.filePath}`);
+        await this.mediaService.cleanupTempFile(downloadResult.filePath);
+
+        // 处理语音识别响应
+        if (statusCode === 200 && responseData?.success) {
+          const recognizedText = responseData.data?.text;
+          console.log(`🔍 语音识别结果: ${recognizedText}`);
+          
+          if (!recognizedText) {
+            return '语音识别成功，但未能提取到有效的记账信息。\n\n请重新录制语音，说明清楚金额和用途。';
+          }
+
+          // 第二步：将识别结果传递给智能记账API
+          console.log(`🚀 开始调用智能记账API（第二步：记账）...`);
+          
+          try {
+            // 确保有默认账本ID
+            if (!binding.defaultAccountBookId) {
+              return `语音识别成功：${recognizedText}\n\n但您还没有设置默认账本，请先通过菜单设置默认账本。`;
+            }
+
+            const accountingResult = await this.smartAccountingService.processWechatAccounting(
+              binding.userId,
+              binding.defaultAccountBookId,
+              recognizedText,
+              true // 创建交易记录
+            );
+
+            console.log(`✅ 智能记账API调用完成:`, accountingResult);
+
+            if (accountingResult.success) {
+              if (accountingResult.transaction) {
+                // 有交易记录，使用格式化消息
+                return this.formatAccountingSuccessMessage(accountingResult.transaction, recognizedText);
+              } else {
+                // 没有交易记录但成功，直接返回消息
+                return accountingResult.message;
+              }
+            } else {
+              return `语音识别成功：${recognizedText}\n\n但智能记账失败：${accountingResult.message || '未知错误'}\n\n您可以手动输入记账信息。`;
+            }
+          } catch (accountingError) {
+            console.error('智能记账API调用失败:', accountingError);
+            return `语音识别成功：${recognizedText}\n\n但智能记账服务暂时不可用，请稍后重试或手动输入记账信息。`;
+          }
+        } else {
+          const errorMsg = responseData?.error || '语音识别失败';
+          console.error('语音识别API调用失败:', responseData);
+          return `语音识别失败：${errorMsg}\n\n请重新录制语音或发送文字进行记账。`;
+        }
+      } catch (apiError) {
+        console.error('语音记账API调用异常:', apiError);
+        // 确保清理临时文件
+        await this.mediaService.cleanupTempFile(downloadResult.filePath);
+        return '语音记账服务暂时不可用，请稍后重试。\n\n您也可以发送文字进行记账。';
+      }
+    } catch (error) {
+      console.error('处理语音消息失败:', error);
+      return '处理语音消息时出现错误，请稍后重试。\n\n您也可以发送文字进行记账。';
+    }
+  }
+
+  /**
+   * 处理图片消息
+   */
+  private async handleImageMessage(openid: string, message: WechatMessage): Promise<string> {
+    try {
+      console.log(`📷 处理图片消息: openid=${openid}, mediaId=${message.MediaId}, picUrl=${message.PicUrl}`);
+
+      // 检查用户绑定状态
+      const binding = await this.bindingService.getBindingInfo(openid);
+      if (!binding || !binding.isActive) {
+        return '您还未绑定只为记账账号，请点击菜单"账号绑定"进行绑定后再使用图片记账功能。';
+      }
+
+      if (!binding.defaultAccountBookId) {
+        return '您还没有设置默认账本，请先通过菜单设置默认账本。';
+      }
+
+      // 异步处理图片记账，避免超时
+      this.handleImageAccountingAsync(openid, message, binding);
+      
+      return ''; // 返回空字符串，通过客服消息API异步发送结果
+    } catch (error) {
+      console.error('处理图片消息失败:', error);
+      return '处理图片消息时出现错误，请稍后重试。\n\n您也可以发送文字进行记账。';
+    }
+  }
+
+  /**
+   * 异步处理图片记账
+   */
+  private async handleImageAccountingAsync(
+    openid: string, 
+    message: WechatMessage, 
+    binding: any
+  ): Promise<void> {
+    let imagePath: string | undefined;
+    let shouldCleanup = false;
+
+    try {
+      console.log(`🔍 开始处理图片识别...`);
+      
+      // 优先使用MediaId下载图片（高清），fallback到PicUrl
+      if (message.MediaId) {
+        console.log(`📥 尝试使用MediaId下载图片: ${message.MediaId}`);
+        const downloadResult = await this.mediaService.downloadMedia(message.MediaId, 'image');
+        console.log(`📥 下载结果:`, downloadResult);
+        
+        if (downloadResult.success && downloadResult.filePath) {
+          imagePath = downloadResult.filePath;
+          shouldCleanup = true;
+          console.log(`✅ 图片下载成功，路径: ${imagePath}`);
+        } else {
+          console.log(`❌ MediaId下载失败: ${downloadResult.error}`);
+        }
+      }
+
+      // 如果MediaId下载失败，使用PicUrl
+      if (!imagePath && message.PicUrl) {
+        console.log(`🌐 使用PicUrl作为图片源: ${message.PicUrl}`);
+        imagePath = message.PicUrl;
+        shouldCleanup = false;
+      }
+
+      if (!imagePath) {
+        console.log(`❌ 图片路径为空，无法继续处理`);
+        await this.sendCustomMessage(openid, '图片获取失败，请重新发送图片。');
+        return;
+      }
+
+      console.log(`🎯 准备调用图片识别API，图片路径: ${imagePath}, shouldCleanup: ${shouldCleanup}`);
+
+      // 创建模拟的请求对象
+      const mockReq = {
+        user: { id: binding.userId },
+        body: {
+          accountBookId: binding.defaultAccountBookId,
+          imageUrl: shouldCleanup ? undefined : imagePath,
+          prompt: '请识别这张图片中的记账信息，包括金额、类别、商品名称等。',
+          detailLevel: 'high',
+        },
+      };
+
+      console.log(`📋 请求对象:`, {
+        userId: mockReq.user.id,
+        accountBookId: mockReq.body.accountBookId,
+        imageUrl: mockReq.body.imageUrl,
+        hasLocalFile: shouldCleanup
+      });
+
+      // 如果是本地文件，添加文件对象
+      if (shouldCleanup && imagePath) {
+        console.log(`📁 添加本地文件对象...`);
+        const fs = require('fs');
+        
+        if (!fs.existsSync(imagePath)) {
+          console.log(`❌ 本地文件不存在: ${imagePath}`);
+          await this.sendCustomMessage(openid, '图片文件不存在，请重新发送图片。');
+          return;
+        }
+        
+        const stats = fs.statSync(imagePath);
+        console.log(`📊 文件信息: 大小=${stats.size}字节`);
+        
+        const mockFile = {
+          buffer: fs.readFileSync(imagePath),
+          originalname: 'wechat-image.jpg',
+          mimetype: 'image/jpeg',
+          size: stats.size,
+          path: imagePath,
+        };
+        (mockReq as any).file = mockFile;
+        console.log(`✅ 文件对象添加完成`);
+      }
+
+      // 创建模拟的响应对象
+      let responseData: any = null;
+      let statusCode = 200;
+      const mockRes = {
+        status: (code: number) => {
+          statusCode = code;
+          console.log(`📊 API响应状态码: ${code}`);
+          return mockRes;
+        },
+        json: (data: any) => {
+          responseData = data;
+          console.log(`📊 API响应数据:`, data);
+        },
+      };
+
+      console.log(`🚀 开始调用图片识别API（第一步：识别）...`);
+      
+      // 第一步：调用图片识别API
+      await this.multimodalController.imageRecognition(mockReq as any, mockRes as any);
+      
+      console.log(`✅ 图片识别API调用完成，状态码: ${statusCode}, 响应数据:`, responseData);
+
+      // 处理图片识别响应
+      if (statusCode === 200 && responseData?.success) {
+        let recognizedText = responseData.data?.text;
+        console.log(`🔍 图片识别原始结果: ${recognizedText}`);
+        
+        // 如果返回的是JSON格式的文本，尝试解析
+        if (recognizedText && recognizedText.includes('```json')) {
+          try {
+            // 提取JSON部分
+            const jsonMatch = recognizedText.match(/```json\n([\s\S]*?)\n```/);
+            if (jsonMatch && jsonMatch[1]) {
+              const parsedData = JSON.parse(jsonMatch[1]);
+              // 构造记账描述文本
+              recognizedText = `${parsedData.amount || '未知金额'} ${parsedData.category || '购物'} ${parsedData.description || ''}`.trim();
+              console.log(`🔍 解析后的记账文本: ${recognizedText}`);
+            }
+          } catch (parseError) {
+            console.log(`⚠️ JSON解析失败，使用原始文本: ${parseError}`);
+            // 如果解析失败，提取关键信息
+            const amountMatch = recognizedText.match(/"amount"\s*:\s*"([^"]+)"/);
+            const categoryMatch = recognizedText.match(/"category"\s*:\s*"([^"]+)"/);
+            const descMatch = recognizedText.match(/"description"\s*:\s*"([^"]+)"/);
+            
+            if (amountMatch) {
+              recognizedText = `${amountMatch[1]} ${categoryMatch?.[1] || '购物'} ${descMatch?.[1] || ''}`.trim();
+              console.log(`🔍 正则提取的记账文本: ${recognizedText}`);
+            }
+          }
+        }
+        
+        if (!recognizedText) {
+          await this.sendCustomMessage(openid, '图片识别成功，但未能提取到有效的记账信息。\n\n请确保图片包含清晰的金额和商品信息。');
+          return;
+        }
+
+        // 第二步：将识别结果传递给智能记账API
+        console.log(`🚀 开始调用智能记账API（第二步：记账）...`);
+        
+        try {
+          const accountingResult = await this.smartAccountingService.processWechatAccounting(
+            binding.userId,
+            binding.defaultAccountBookId,
+            recognizedText,
+            true // 创建交易记录
+          );
+
+          console.log(`✅ 智能记账API调用完成:`, accountingResult);
+
+          if (accountingResult.success && accountingResult.transaction) {
+            // 第三步：保存图片作为交易附件
+            if (shouldCleanup && imagePath) {
+              try {
+                console.log(`💾 开始保存图片附件到交易记录: ${accountingResult.transaction.id}`);
+                await this.saveImageAttachment(accountingResult.transaction.id, imagePath, binding.userId);
+                console.log(`✅ 图片附件保存成功`);
+              } catch (attachmentError) {
+                console.error('保存图片附件失败:', attachmentError);
+                // 附件保存失败不影响记账结果
+              }
+            }
+
+            // 发送成功消息 - 使用智能记账的格式化消息，而不是图片识别的原始内容
+            await this.sendCustomMessage(openid, accountingResult.message);
+          } else if (accountingResult.success) {
+            // 没有交易记录但成功，直接返回消息
+            await this.sendCustomMessage(openid, accountingResult.message);
+          } else {
+            await this.sendCustomMessage(openid, `图片识别成功，但智能记账失败：${accountingResult.message || '未知错误'}\n\n您可以手动输入记账信息。`);
+          }
+        } catch (accountingError) {
+          console.error('智能记账API调用失败:', accountingError);
+          await this.sendCustomMessage(openid, `图片识别成功：${recognizedText}\n\n但智能记账服务暂时不可用，请稍后重试或手动输入记账信息。`);
+        }
+      } else {
+        const errorMsg = responseData?.error || '图片识别失败';
+        console.error('图片识别API调用失败:', responseData);
+        await this.sendCustomMessage(openid, `图片识别失败：${errorMsg}\n\n请确保图片清晰且包含价格信息，或发送文字进行记账。`);
+      }
+    } catch (apiError) {
+      console.error('图片记账API调用异常:', apiError);
+      await this.sendCustomMessage(openid, '图片记账服务暂时不可用，请稍后重试。\n\n您也可以发送文字进行记账。');
+    } finally {
+      // 清理临时文件
+      if (shouldCleanup && imagePath) {
+        console.log(`🗑️ 清理临时文件: ${imagePath}`);
+        await this.mediaService.cleanupTempFile(imagePath);
+      }
+    }
+  }
+
+  /**
+   * 保存图片作为交易附件
+   */
+  private async saveImageAttachment(transactionId: string, imagePath: string, userId: string): Promise<void> {
+    try {
+      const fs = require('fs');
+      
+      if (!fs.existsSync(imagePath)) {
+        console.error('图片文件不存在:', imagePath);
+        return;
+      }
+
+      // 读取文件
+      const fileBuffer = fs.readFileSync(imagePath);
+      const stats = fs.statSync(imagePath);
+      const fileName = `wechat-image-${Date.now()}.jpg`;
+
+      // 创建模拟的multer文件对象
+      const mockFile: Express.Multer.File = {
+        buffer: fileBuffer,
+        originalname: fileName,
+        mimetype: 'image/jpeg',
+        size: stats.size,
+        fieldname: 'attachment',
+        encoding: '7bit',
+        filename: fileName,
+        path: imagePath,
+        destination: '',
+        stream: undefined as any,
+      };
+
+      // 使用全局FileStorageService实例
+      const { getGlobalFileStorageService } = require('../services/file-storage.service');
+      const fileStorageService = getGlobalFileStorageService();
+      
+      if (!fileStorageService || !fileStorageService.isStorageAvailable()) {
+        console.warn('⚠️ 文件存储服务不可用，跳过附件保存');
+        return;
+      }
+      
+      const uploadRequest = {
+        bucket: 'transaction-attachments',
+        category: 'wechat-attachment',
+        description: '微信图片记账附件',
+        metadata: {
+          transactionId,
+          attachmentType: 'RECEIPT',
+          source: 'wechat',
+        },
+      };
+
+      const uploadResult = await fileStorageService.uploadFile(
+        mockFile,
+        uploadRequest,
+        userId,
+      );
+
+      // 创建交易附件记录
+      await prisma.transactionAttachment.create({
+        data: {
+          id: crypto.randomUUID(),
+          transactionId: transactionId,
+          fileId: uploadResult.fileId,
+          attachmentType: 'RECEIPT',
+          description: '微信图片记账附件',
+          createdAt: new Date(),
+        },
+      });
+
+      console.log(`✅ 图片附件已保存到S3: ${uploadResult.filename}, URL: ${uploadResult.url}`);
+    } catch (error) {
+      console.error('保存图片附件失败:', error);
+      // 附件保存失败不影响记账流程，只记录错误
+    }
+  }
+
+  /**
+   * 格式化记账成功消息
+   */
+  private formatAccountingSuccessMessage(transaction: any, recognizedText?: string): string {
+    let message = '🎉 记账成功！\n\n';
+
+    if (recognizedText) {
+      message += `识别内容：${recognizedText}\n`;
+    }
+
+    message += `交易类型：${this.getTransactionTypeText(transaction.type)}\n`;
+    message += `金额：¥${transaction.amount}\n`;
+    message += `分类：${transaction.category?.name || '未分类'}\n`;
+
+    if (transaction.description) {
+      message += `备注：${transaction.description}\n`;
+    }
+
+    message += `账本：${transaction.accountBook?.name || '默认账本'}\n`;
+    message += `时间：${new Date(transaction.date).toLocaleString('zh-CN')}\n\n`;
+
+    message += '您可以继续发送语音、图片或文字进行记账。';
+
+    return message;
+  }
+
+  /**
+   * 获取交易类型文本
+   */
+  private getTransactionTypeText(type: string): string {
+    switch (type) {
+      case 'EXPENSE':
+        return '支出';
+      case 'INCOME':
+        return '收入';
+      case 'TRANSFER':
+        return '转账';
+      default:
+        return type;
     }
   }
 }

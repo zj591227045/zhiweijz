@@ -68,6 +68,10 @@ app.use(trackApiCall);
 const dataDir = path.join(process.cwd(), '..', 'data');
 app.use('/data', express.static(dataDir));
 
+// 配置uploads目录的静态文件访问（用于本地存储的附件）
+const uploadsDir = path.join(process.cwd(), 'uploads');
+app.use('/uploads', express.static(uploadsDir));
+
 // 临时启用public目录访问（仅用于微信域名验证）
 // ⚠️ 验证完成后需要立即移除此配置
 const publicDir = path.join(process.cwd(), 'public');

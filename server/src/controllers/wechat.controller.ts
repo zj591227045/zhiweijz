@@ -105,6 +105,12 @@ export class WechatController {
         MsgId: Array.isArray(rawMessage.MsgId) ? rawMessage.MsgId[0] : rawMessage.MsgId,
         Event: Array.isArray(rawMessage.Event) ? rawMessage.Event[0] : rawMessage.Event,
         EventKey: Array.isArray(rawMessage.EventKey) ? rawMessage.EventKey[0] : rawMessage.EventKey,
+        // 语音消息字段
+        MediaId: Array.isArray(rawMessage.MediaId) ? rawMessage.MediaId[0] : rawMessage.MediaId,
+        Format: Array.isArray(rawMessage.Format) ? rawMessage.Format[0] : rawMessage.Format,
+        Recognition: Array.isArray(rawMessage.Recognition) ? rawMessage.Recognition[0] : rawMessage.Recognition,
+        // 图片消息字段
+        PicUrl: Array.isArray(rawMessage.PicUrl) ? rawMessage.PicUrl[0] : rawMessage.PicUrl,
       };
 
       if (!message || !message.FromUserName) {
@@ -131,9 +137,15 @@ export class WechatController {
         timestamp: new Date().toISOString(),
       });
 
-      // 设置4秒超时，确保在微信5秒限制内响应
+      // 根据消息类型设置不同的超时时间
+      let timeoutMs = 4000; // 默认4秒
+      if (message.MsgType === 'voice' || message.MsgType === 'image') {
+        timeoutMs = 8000; // 语音和图片处理延长到8秒
+      }
+      
+      // 设置超时，确保在微信限制内响应
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Processing timeout')), 4000);
+        setTimeout(() => reject(new Error('Processing timeout')), timeoutMs);
       });
 
       try {

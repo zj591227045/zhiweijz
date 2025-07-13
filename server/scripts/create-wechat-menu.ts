@@ -47,31 +47,69 @@ async function createWechatMenu() {
   console.log('🚀 开始创建微信自定义菜单...\n');
 
   try {
+    // 检查环境配置
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const wechatEnv = process.env.WECHAT_ENV || (isDevelopment ? 'development' : 'production');
+    
     // 从环境变量获取配置
-    const appId = process.env.WECHAT_APP_ID;
-    const appSecret = process.env.WECHAT_APP_SECRET;
-    const token = process.env.WECHAT_TOKEN;
+    let appId: string | undefined;
+    let appSecret: string | undefined;
+    let token: string | undefined;
+    let baseUrl: string;
+
+    if (wechatEnv === 'development') {
+      // 开发环境配置
+      appId = process.env.WECHAT_DEV_APP_ID;
+      appSecret = process.env.WECHAT_DEV_APP_SECRET;
+      token = process.env.WECHAT_DEV_TOKEN;
+      baseUrl = 'https://你的ngrok域名.ngrok.io'; // 需要手动更新
+      console.log('🧪 使用开发环境配置 (测试公众号)');
+    } else {
+      // 生产环境配置
+      appId = process.env.WECHAT_APP_ID;
+      appSecret = process.env.WECHAT_APP_SECRET;
+      token = process.env.WECHAT_TOKEN;
+      baseUrl = 'https://wxapp.zhiweijz.cn';
+      console.log('🏭 使用生产环境配置 (正式公众号)');
+    }
 
     // 检查配置
     if (!appId || !appSecret || !token) {
       console.error('❌ 微信配置不完整');
-      console.log('请检查 .env 文件中的微信配置：');
-      console.log('- WECHAT_APP_ID:', appId ? '✅' : '❌');
-      console.log('- WECHAT_APP_SECRET:', appSecret ? '✅' : '❌');
-      console.log('- WECHAT_TOKEN:', token ? '✅' : '❌');
+      console.log(`请检查 .env 文件中的微信${wechatEnv === 'development' ? '开发' : '生产'}环境配置：`);
+      
+      if (wechatEnv === 'development') {
+        console.log('- WECHAT_DEV_APP_ID:', appId ? '✅' : '❌');
+        console.log('- WECHAT_DEV_APP_SECRET:', appSecret ? '✅' : '❌');
+        console.log('- WECHAT_DEV_TOKEN:', token ? '✅' : '❌');
+      } else {
+        console.log('- WECHAT_APP_ID:', appId ? '✅' : '❌');
+        console.log('- WECHAT_APP_SECRET:', appSecret ? '✅' : '❌');
+        console.log('- WECHAT_TOKEN:', token ? '✅' : '❌');
+      }
+      
+      console.log('\n💡 提示：');
+      console.log('- 开发环境请设置 WECHAT_ENV=development');
+      console.log('- 生产环境请设置 WECHAT_ENV=production');
       process.exit(1);
     }
 
-    console.log('✅ 微信配置检查通过');
+    console.log(`✅ 微信${wechatEnv === 'development' ? '开发' : '生产'}环境配置检查通过`);
 
     // 构建微信授权URL
-    const redirectUri = encodeURIComponent('https://wxapp.zhiweijz.cn/api/wechat/binding-page');
+    const redirectUri = encodeURIComponent(`${baseUrl}/api/wechat/binding-page`);
     const authUrl = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${appId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base&state=binding#wechat_redirect`;
 
     console.log('📋 菜单配置：');
-    console.log('1. 访问官网 -> https://www.zhiweijz.cn');
-    console.log('2. 账号绑定 -> 微信授权页面 (snsapi_base)');
-    console.log('3. 下载App -> https://www.zhiweijz.cn/downloads');
+    if (wechatEnv === 'development') {
+      console.log('1. 测试功能 -> 文字消息测试');
+      console.log('2. 账号绑定 -> 微信授权页面 (测试环境)');
+      console.log('3. 帮助说明 -> 使用指南');
+    } else {
+      console.log('1. 访问官网 -> https://www.zhiweijz.cn');
+      console.log('2. 账号绑定 -> 微信授权页面 (snsapi_base)');
+      console.log('3. 下载App -> https://www.zhiweijz.cn/downloads');
+    }
     console.log('');
 
     // 获取访问令牌
@@ -80,7 +118,27 @@ async function createWechatMenu() {
     console.log('✅ 访问令牌获取成功');
 
     // 菜单配置
-    const menuConfig = {
+    const menuConfig = wechatEnv === 'development' ? {
+      // 开发环境菜单
+      button: [
+        {
+          type: "click",
+          name: "测试功能",
+          key: "TEST_FEATURES"
+        },
+        {
+          type: "view",
+          name: "账号绑定",
+          url: authUrl
+        },
+        {
+          type: "click",
+          name: "帮助说明",
+          key: "HELP_GUIDE"
+        }
+      ]
+    } : {
+      // 生产环境菜单
       button: [
         {
           type: "view",

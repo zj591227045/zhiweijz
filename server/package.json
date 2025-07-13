@@ -28,6 +28,7 @@
     "admin:init": "ts-node -r tsconfig-paths/register src/admin/scripts/init-admin.ts",
     "admin:aggregate": "ts-node -r tsconfig-paths/register src/admin/scripts/start-aggregation.ts --run-now",
     "create-wechat-menu": "ts-node -r tsconfig-paths/register scripts/create-wechat-menu.ts",
+    "verify-wechat-env": "ts-node -r tsconfig-paths/register scripts/verify-wechat-env.ts",
     "cleanup-wechat-verification": "node scripts/cleanup-wechat-verification.js",
     "db:enable-user-ai": "node ../scripts/database/enable-user-ai-services.js",
     "wechat:dev": "node scripts/start-wechat-dev.js",

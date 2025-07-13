@@ -72,14 +72,38 @@ if (process.env.OPENAI_API_KEY) {
   };
 }
 
-// 微信配置
-if (process.env.WECHAT_APP_ID && process.env.WECHAT_APP_SECRET && process.env.WECHAT_TOKEN) {
-  config.wechat = {
-    appId: process.env.WECHAT_APP_ID,
-    appSecret: process.env.WECHAT_APP_SECRET,
-    token: process.env.WECHAT_TOKEN,
-    encodingAESKey: process.env.WECHAT_ENCODING_AES_KEY,
-  };
+// 微信配置 - 支持开发和生产环境
+const isDevelopment = process.env.NODE_ENV === 'development';
+const wechatEnv = process.env.WECHAT_ENV || (isDevelopment ? 'development' : 'production');
+
+let wechatConfig: { appId: string; appSecret: string; token: string; encodingAESKey?: string } | undefined;
+
+if (wechatEnv === 'development') {
+  // 开发环境使用测试公众号配置
+  if (process.env.WECHAT_DEV_APP_ID && process.env.WECHAT_DEV_APP_SECRET && process.env.WECHAT_DEV_TOKEN) {
+    wechatConfig = {
+      appId: process.env.WECHAT_DEV_APP_ID,
+      appSecret: process.env.WECHAT_DEV_APP_SECRET,
+      token: process.env.WECHAT_DEV_TOKEN,
+      encodingAESKey: process.env.WECHAT_DEV_ENCODING_AES_KEY,
+    };
+    console.log('🧪 使用微信开发环境配置 (测试公众号)');
+  }
+} else {
+  // 生产环境使用正式公众号配置
+  if (process.env.WECHAT_APP_ID && process.env.WECHAT_APP_SECRET && process.env.WECHAT_TOKEN) {
+    wechatConfig = {
+      appId: process.env.WECHAT_APP_ID,
+      appSecret: process.env.WECHAT_APP_SECRET,
+      token: process.env.WECHAT_TOKEN,
+      encodingAESKey: process.env.WECHAT_ENCODING_AES_KEY,
+    };
+    console.log('🏭 使用微信生产环境配置 (正式公众号)');
+  }
+}
+
+if (wechatConfig) {
+  config.wechat = wechatConfig;
 }
 
 export default config;
