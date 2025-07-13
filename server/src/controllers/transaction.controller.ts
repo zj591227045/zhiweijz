@@ -88,6 +88,7 @@ export class TransactionController {
         familyMemberId: req.query.familyMemberId as string | undefined,
         accountBookId: req.query.accountBookId as string | undefined,
         budgetId: req.query.budgetId as string | undefined,
+        search: req.query.search as string | undefined, // 添加搜索参数解析
         page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
         limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 20,
         sortBy: req.query.sortBy as string | undefined,

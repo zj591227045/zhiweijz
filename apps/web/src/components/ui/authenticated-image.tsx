@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuthStore } from '@/store/auth-store';
 
 interface AuthenticatedImageProps {
   src: string;
@@ -29,6 +30,9 @@ export function AuthenticatedImage({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  
+  // 获取认证token
+  const { token } = useAuthStore();
 
   // 稳定化回调函数 - 使用ref来避免依赖项变化
   const onLoadRef = useRef(onLoad);
@@ -47,16 +51,6 @@ export function AuthenticatedImage({
   const stableOnError = useCallback((error: Error) => {
     onErrorRef.current?.(error);
   }, []);
-
-  // 获取认证token
-  const getAuthToken = (): string | null => {
-    if (typeof window === 'undefined') return null;
-    try {
-      return localStorage.getItem('auth-token');
-    } catch {
-      return null;
-    }
-  };
 
   // 检查是否需要认证
   const needsAuthentication = (url: string): boolean => {
@@ -96,12 +90,13 @@ export function AuthenticatedImage({
       setError(null);
 
       try {
-        const token = getAuthToken();
+        // 直接使用auth store中的token
         if (!token) {
+          console.warn('🖼️ 未找到认证token，auth store token:', token);
           throw new Error('未找到认证token');
         }
 
-        console.log('🖼️ 开始加载认证图片:', src);
+        console.log('🖼️ 开始加载认证图片:', src, '有token:', !!token);
 
         const response = await fetch(src, {
           headers: {

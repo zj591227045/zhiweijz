@@ -42,6 +42,7 @@ export interface TransactionQueryParams {
   familyMemberId?: string;
   accountBookId?: string;
   budgetId?: string;
+  search?: string; // 添加搜索参数，用于搜索交易描述
   page?: number;
   limit?: number;
   sortBy?: string;

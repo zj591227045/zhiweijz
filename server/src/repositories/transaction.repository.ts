@@ -87,6 +87,7 @@ export class TransactionRepository {
       categoryIds,
       familyId,
       familyMemberId,
+      search, // 添加搜索参数
       page = 1,
       limit = 20,
       sortBy = 'date',
@@ -110,6 +111,14 @@ export class TransactionRepository {
       if (endDate) {
         where.date.lte = endDate;
       }
+    }
+
+    // 添加搜索条件
+    if (search && search.trim()) {
+      where.description = {
+        contains: search.trim(),
+        mode: 'insensitive', // 不区分大小写搜索
+      };
     }
 
     // 如果指定了账本ID，则查询该账本的所有交易记录（家庭成员可以查看家庭账本的所有记录）

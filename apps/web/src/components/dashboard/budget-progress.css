@@ -154,18 +154,33 @@
 /* 进度条样式 - 独立命名避免冲突 */
 .dashboard-progress-bar-custom {
   height: 8px;
-  background-color: #e5e7eb;
+  background-color: var(--progress-bg, #e5e7eb);
   border-radius: 4px;
   overflow: hidden;
   width: 100%;
   position: relative;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--progress-border, #d1d5db);
 }
 
 .dashboard-progress-custom {
   height: 100%;
   border-radius: 3px;
   transition: width 0.3s ease;
+}
+
+/* 夜间模式适配 */
+@media (prefers-color-scheme: dark) {
+  .dashboard-progress-bar-custom {
+    background-color: #374151; /* 夜间模式下的深灰色背景 */
+    border-color: #4b5563; /* 夜间模式下的边框颜色 */
+  }
+}
+
+/* 强制夜间模式类适配 */
+.dark .dashboard-progress-bar-custom,
+[data-theme="dark"] .dashboard-progress-bar-custom {
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
 }
 
 /* 响应式调整 */
