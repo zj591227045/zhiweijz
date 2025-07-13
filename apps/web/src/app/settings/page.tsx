@@ -196,7 +196,7 @@ export default function SettingsPage() {
 
       <div className="settings-group">
         <div className="group-title">数据管理</div>
-        <Link href="/books" className="settings-item">
+        <Link href="/settings/books" className="settings-item">
           <div className="item-icon">
             <i className="fas fa-book"></i>
           </div>
@@ -208,7 +208,7 @@ export default function SettingsPage() {
             <i className="fas fa-chevron-right"></i>
           </div>
         </Link>
-        <Link href="/budgets" className="settings-item">
+        <Link href="/settings/budgets" className="settings-item">
           <div className="item-icon">
             <i className="fas fa-wallet"></i>
           </div>
@@ -232,7 +232,7 @@ export default function SettingsPage() {
             <i className="fas fa-chevron-right"></i>
           </div>
         </Link>
-        <Link href="/families" className="settings-item">
+        <Link href="/settings/families" className="settings-item">
           <div className="item-icon">
             <i className="fas fa-home"></i>
           </div>

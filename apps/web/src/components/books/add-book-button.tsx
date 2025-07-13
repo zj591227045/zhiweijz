@@ -7,7 +7,7 @@ interface AddBookButtonProps {
   href?: string;
 }
 
-export function AddBookButton({ onClick, href = '/books/new' }: AddBookButtonProps) {
+export function AddBookButton({ onClick, href = '/settings/books/new' }: AddBookButtonProps) {
   // 如果提供了onClick，使用div和onClick
   // 否则使用Link组件
   if (onClick) {

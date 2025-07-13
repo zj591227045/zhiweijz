@@ -72,7 +72,7 @@ class AuthDebugger {
       }
     };
 
-    this.log('info', '认证状态检查', report);
+    //this.log('info', '认证状态检查', report);
     return report;
   }
 

@@ -48,12 +48,15 @@ export function getSmartRoute(route: string): string {
 
     // 家庭相关
     '/families/': '/families/', // 家庭详情页面
+    '/settings/families/': '/settings/families/', // 设置中的家庭详情页面
 
     // 账本相关
     '/books/edit/': '/books/edit/',
+    '/settings/books/edit/': '/settings/books/edit/', // 设置中的账本编辑页面
 
     // 预算相关
     '/budgets/': '/budgets/', // 预算编辑页面需要特殊处理
+    '/settings/budgets/': '/settings/budgets/', // 设置中的预算编辑页面
 
     // 设置相关
     '/settings/categories/': '/settings/categories/',
@@ -67,7 +70,7 @@ export function getSmartRoute(route: string): string {
       const id = route.replace(appRoute, '').split('/')[0];
 
       // 特殊处理预算编辑路由
-      if (appRoute === '/budgets/' && route.includes('/edit')) {
+      if ((appRoute === '/budgets/' || appRoute === '/settings/budgets/') && route.includes('/edit')) {
         return `${pagesRoute}${id}/edit`;
       }
 
@@ -76,8 +79,13 @@ export function getSmartRoute(route: string): string {
         return `${pagesRoute}${id}/edit`;
       }
 
+      // 特殊处理账本编辑路由
+      if ((appRoute === '/books/edit/' || appRoute === '/settings/books/edit/')) {
+        return `${pagesRoute}${id}`;
+      }
+
       // 特殊处理家庭成员路由
-      if (appRoute === '/families/' && route.includes('/members')) {
+      if ((appRoute === '/families/' || appRoute === '/settings/families/') && route.includes('/members')) {
         return `${pagesRoute}${id}/members`;
       }
 

@@ -1,0 +1,631 @@
+/* 预算管理页面样式 - 使用页面级作用域避免与预算统计页面冲突 */
+
+/* 页面级作用域容器 */
+.budget-list-page {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* 应用容器 */
+.app-container {
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  min-height: 100vh;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+/* 顶部导航栏 */
+.header {
+  height: 56px;
+  background-color: var(--card-background);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 18px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.icon-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* 主要内容区域 */
+.main-content {
+  flex: 1;
+  overflow-y: visible;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 72px;
+  height: auto;
+  min-height: 100%;
+  max-height: none;
+}
+
+/* 预算类型选择器 */
+.budget-type-selector {
+  display: flex;
+  margin-bottom: 20px;
+  background-color: var(--background-color);
+  border-radius: var(--border-radius);
+  padding: 4px;
+}
+
+.type-button {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  background: none;
+  border: none;
+  border-radius: var(--border-radius);
+  color: var(--text-secondary);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.type-button.active {
+  background-color: var(--card-background);
+  color: var(--primary-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 预算部分 */
+.budget-section {
+  display: none;
+}
+
+.budget-section.active {
+  display: block;
+}
+
+.section-header {
+  margin-bottom: 16px;
+}
+
+.section-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.section-description {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* 预算过滤控制 */
+.budget-filter-controls {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.filter-toggle-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.filter-toggle-button:hover {
+  background-color: var(--card-background);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filter-toggle-button.active {
+  background-color: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.filter-toggle-button i {
+  font-size: 12px;
+}
+
+/* 预算卡片 - 限制在预算列表页面作用域内 */
+.budget-list-page .budget-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.budget-list-page .budget-card {
+  background-color: var(--card-background) !important;
+  border-radius: var(--border-radius) !important;
+  padding: 16px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+  cursor: pointer !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.budget-list-page .budget-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.budget-list-page .budget-card.warning .progress {
+  background-color: var(--warning-color) !important;
+}
+
+.budget-list-page .budget-card.danger .progress {
+  background-color: var(--error-color) !important;
+}
+
+.budget-list-page .budget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.budget-list-page .budget-title {
+  flex: 1;
+}
+
+.budget-list-page .budget-title h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.budget-list-page .budget-subtitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.budget-list-page .budget-subtitle-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0; /* 允许缩小 */
+}
+
+.budget-list-page .budget-period {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap; /* 防止换行 */
+}
+
+.budget-list-page .budget-days-remaining {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap; /* 防止换行 */
+  flex-shrink: 0; /* 防止缩小 */
+}
+
+.budget-list-page .budget-username {
+  font-size: 12px;
+  color: var(--primary-color);
+  background-color: rgba(var(--primary-rgb), 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap; /* 防止换行 */
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.budget-list-page .budget-actions {
+  margin-left: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+.budget-list-page .budget-actions .action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.budget-list-page .edit-button,
+.budget-list-page .delete-button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.budget-list-page .edit-button {
+  background-color: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary-color);
+}
+
+.budget-list-page .edit-button:hover {
+  background-color: rgba(var(--primary-rgb), 0.2);
+}
+
+.budget-list-page .delete-button {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--error-color);
+}
+
+.budget-list-page .delete-button:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+}
+
+/* 预算金额区域 - 包含金额和结转信息 */
+.budget-list-page .budget-amount-section {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 12px !important;
+  min-height: 28px !important; /* 确保统一高度 */
+}
+
+.budget-list-page .budget-amount {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  margin: 0 !important; /* 移除margin，由父容器控制 */
+}
+
+/* 紧凑的结转信息样式 */
+.budget-list-page .rollover-info-compact {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  font-size: 12px !important;
+  color: var(--success-color) !important;
+  background-color: rgba(34, 197, 94, 0.1) !important;
+  padding: 4px 8px !important;
+  border-radius: 12px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important; /* 防止压缩 */
+}
+
+.budget-list-page .rollover-info-compact.negative {
+  color: var(--error-color) !important;
+  background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+.budget-list-page .rollover-info-compact i {
+  font-size: 10px !important;
+}
+
+/* 新的进度条样式 - 避免与全局样式冲突 */
+.budget-list-page .budget-progress-section {
+  margin-bottom: 12px !important;
+}
+
+.budget-list-page .budget-progress-container {
+  margin-bottom: 8px !important;
+}
+
+.budget-list-page .budget-progress-track {
+  height: 8px !important;
+  background-color: #e5e7eb !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  position: relative !important;
+  border: 1px solid #d1d5db !important;
+}
+
+.budget-list-page .budget-progress-fill {
+  height: 100% !important;
+  border-radius: 3px !important;
+  transition: width 0.3s ease !important;
+  position: relative !important;
+  min-width: 0 !important;
+}
+
+/* 暗色主题下的进度条样式 */
+.dark .budget-progress-track,
+html.dark .budget-progress-track,
+[data-theme="dark"] .budget-progress-track {
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+}
+
+/* 确保进度条填充部分在所有主题下都能正确显示 */
+.budget-progress-fill {
+  z-index: 1;
+}
+
+/* 进度条动画效果 */
+@keyframes progressFill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: var(--progress-width);
+  }
+}
+
+.budget-progress-fill {
+  animation: progressFill 0.5s ease-out;
+}
+
+.budget-list-page .progress-info {
+  display: flex !important;
+  justify-content: space-between !important;
+  font-size: 12px !important;
+  color: var(--text-secondary) !important;
+}
+
+.budget-list-page .remaining {
+  color: var(--success-color) !important;
+}
+
+.budget-list-page .remaining.negative {
+  color: var(--error-color) !important;
+}
+
+.budget-list-page .budget-footer {
+  display: flex !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  font-size: 12px !important;
+  margin-top: 8px !important;
+}
+
+/* 分类图标样式 */
+.budget-list-page .category-icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50% !important;
+  background-color: rgba(var(--primary-rgb), 0.1) !important;
+  color: var(--primary-color) !important;
+  font-size: 12px !important;
+}
+
+.budget-list-page .rollover-info {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  color: var(--success-color) !important;
+}
+
+.budget-list-page .rollover-info.negative {
+  color: var(--error-color) !important;
+}
+
+/* 移除原来的days-remaining样式，现在使用budget-days-remaining */
+
+/* 添加预算按钮 */
+.add-budget-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--background-color);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 16px;
+  width: 100%;
+  color: var(--primary-color);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.add-budget-button:hover {
+  background-color: rgba(var(--primary-rgb), 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.add-budget-button i {
+  font-size: 16px;
+}
+
+/* 预算统计链接 */
+.statistics-link-container {
+  margin-bottom: 20px;
+}
+
+.statistics-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 12px;
+  width: 100%;
+  color: var(--primary-color);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.statistics-link:hover {
+  background-color: rgba(var(--primary-rgb), 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.statistics-link i {
+  font-size: 16px;
+}
+
+/* 响应式调整 */
+@media (min-width: 640px) {
+  .budget-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+/* 模态对话框 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: var(--card-background);
+  border-radius: var(--border-radius);
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* iOS安全区域适配 - 背景延伸到安全区域，内容保持在安全区域内 */
+@supports (padding: max(0px)) {
+  .ios-app .modal-header,
+  .capacitor-ios .modal-header {
+    /* 背景延伸到安全区域顶部 */
+    margin-top: calc(-1 * env(safe-area-inset-top, 0px)) !important;
+    /* 内容区域的padding保持在安全区域内 */
+    padding-top: calc(env(safe-area-inset-top, 0px) + 16px) !important;
+    /* 确保背景延伸效果 */
+    position: relative !important;
+  }
+}
+
+.modal-body {
+  padding: 16px;
+}
+
+.modal-footer {
+  padding: 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.modal-footer .cancel-button {
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.modal-footer .delete-button {
+  background-color: var(--error-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.modal-footer button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 加载和错误状态 */
+.loading-state,
+.error-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.loading-state i,
+.error-state i,
+.empty-state i {
+  font-size: 32px;
+  margin-bottom: 16px;
+}
+
+.error-state {
+  color: var(--error-color);
+}
+
+.retry-button {
+  margin-top: 16px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
