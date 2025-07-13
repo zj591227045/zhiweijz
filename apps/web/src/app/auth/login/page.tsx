@@ -48,7 +48,9 @@ export default function LoginPage() {
       }
 
       try {
-        const data = await adminApiClient.get('/api/system/registration-status');
+        // 使用普通的fetch请求公共API，不需要认证
+        const response = await fetch('/api/system/registration-status');
+        const data = await response.json();
         
         if (data.success) {
           setSystemInfo({
@@ -219,10 +221,10 @@ export default function LoginPage() {
     setCaptchaToken(null);
   };
 
-  // 清除错误
+  // 清除错误 - 移除重复的错误提示，因为auth-store已经处理了toast显示
   useEffect(() => {
     if (error) {
-      toast.error(error);
+      // 只清除错误状态，不再重复显示toast，因为store中已经显示了
       clearError();
     }
   }, [error, clearError]);

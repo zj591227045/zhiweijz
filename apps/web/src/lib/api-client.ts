@@ -74,7 +74,10 @@ class ApiClient {
           const isDeletionRelated = error.config?.url?.includes('/users/me/') &&
             (error.config.url.includes('deletion') || error.config.url.includes('cancel-deletion'));
 
-          if (!isDeletionRelated) {
+          // 检查是否是登录请求，登录失败不应该触发自动跳转
+          const isLoginRequest = error.config?.url?.includes('/auth/login');
+
+          if (!isDeletionRelated && !isLoginRequest) {
             // Token过期，清除本地存储
             if (typeof window !== 'undefined') {
               localStorage.removeItem('auth-token');

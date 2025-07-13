@@ -43,6 +43,9 @@ router.get('/system/features', (req, res) => {
   });
 });
 
+// 添加公共系统接口（不需要认证）
+router.use('/system', systemRoutes);
+
 // 注册路由
 router.use('/auth', authRoutes);
 
@@ -61,7 +64,6 @@ router.use('/statistics', authenticate, dailyFirstVisitGift, statisticsRoutes);
 router.use('/security', authenticate, dailyFirstVisitGift, securityRoutes);
 router.use('/ai', authenticate, dailyFirstVisitGift, aiRoutes);
 router.use('/feedback', authenticate, dailyFirstVisitGift, feedbackRoutes);
-router.use('/system', authenticate, dailyFirstVisitGift, systemRoutes);
 router.use('/system-config', authenticate, dailyFirstVisitGift, systemConfigRoutes);
 router.use('/user/announcements', authenticate, dailyFirstVisitGift, userAnnouncementRoutes);
 router.use('/file-storage', authenticate, dailyFirstVisitGift, fileStorageRoutes);
