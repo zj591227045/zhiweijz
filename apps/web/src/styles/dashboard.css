@@ -215,14 +215,19 @@
 }
 
 .transaction-item:hover {
-  background-color: var(--background-hover, rgba(0, 0, 0, 0.02));
+  background-color: var(--hover-background, rgba(0, 0, 0, 0.05));
+}
+
+/* 暗色主题下的悬停效果 */
+.dark .transaction-item:hover {
+  background-color: var(--hover-background, rgba(255, 255, 255, 0.1));
 }
 
 .transaction-icon {
   width: 34px; /* 进一步减小图标大小从36px到34px */
   height: 34px;
   border-radius: 50%;
-  background-color: var(--primary-light, #e0f2fe);
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
   display: flex;
   align-items: center;
   justify-content: center;

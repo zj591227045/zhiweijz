@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useState, memo, useMemo } from 'react';
 import { getCategoryIconClass } from '../../lib/utils';
+import { useAuthStore } from '@/store/auth-store';
+import { AvatarDisplay } from '../ui/avatar-display';
 import './budget-progress.css';
 
 interface BudgetCategory {
@@ -47,6 +49,9 @@ export const BudgetProgress = memo(
   function BudgetProgress({ categories, totalBudget }: BudgetProgressProps) {
     // 状态控制折叠/展开
     const [isCollapsed, setIsCollapsed] = useState(false);
+    
+    // 获取当前用户信息
+    const { user } = useAuthStore();
 
     // 按优先级排序并限制显示数量
     const prioritizeCategories = (cats: BudgetCategory[]) => {
@@ -175,7 +180,18 @@ export const BudgetProgress = memo(
                   <div className="budget-info">
                     <div className="budget-category dashboard-budget-category">
                       <div className="category-icon dashboard-category-icon">
-                        <i className={`fas ${getCategoryIconClass(category.icon || 'other')}`}></i>
+                        {/* 为个人预算显示用户头像，其他预算显示图标 */}
+                        {category.id === 'total' || category.name === '个人预算' ? (
+                          <AvatarDisplay
+                            avatar={user?.avatar}
+                            username={user?.name}
+                            userId={user?.id}
+                            size="small"
+                            className="rounded-full"
+                          />
+                        ) : (
+                          <i className={`fas ${getCategoryIconClass(category.icon || 'other')}`}></i>
+                        )}
                       </div>
                       <span className="dashboard-category-name">{category.name}</span>
                     </div>

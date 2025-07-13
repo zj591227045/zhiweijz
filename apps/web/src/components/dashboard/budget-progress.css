@@ -69,12 +69,25 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: var(--primary-light, #e0f2fe);
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--primary-color, #3b82f6);
   flex-shrink: 0; /* 不允许收缩 */
+  overflow: hidden; /* 确保头像不会溢出 */
+}
+
+/* 当显示头像时，移除背景色 */
+.dashboard-category-icon:has(> div) {
+  background-color: transparent;
+}
+
+/* 确保头像组件正确适配图标容器 */
+.dashboard-category-icon > div {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50%;
 }
 
 .dashboard-category-name {

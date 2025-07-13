@@ -262,7 +262,7 @@ export function SwipeableTransactionItem({
           width: `${MAX_SWIPE}px`,
           display: 'flex',
           alignItems: 'center',
-          backgroundColor: '#f3f4f6',
+          backgroundColor: 'var(--background-secondary, #f3f4f6)',
           zIndex: 1
         }}
       >
@@ -319,14 +319,14 @@ export function SwipeableTransactionItem({
           zIndex: 2,
           transform: `translateX(-${swipeOffset}px)`,
           transition: isDragging ? 'none' : 'transform 0.3s ease',
-          backgroundColor: 'white',
+          backgroundColor: 'var(--card-background, #ffffff)',
           padding: '12px 16px',
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
           cursor: 'pointer',
           borderRadius: '8px',
-          border: '1px solid #e5e7eb'
+          border: '1px solid var(--border-color, #e5e7eb)'
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -361,11 +361,11 @@ export function SwipeableTransactionItem({
                 width: '100%',
                 height: '100%',
                 borderRadius: '50%',
-                backgroundColor: '#e0f2fe',
+                backgroundColor: 'var(--primary-color-light, rgba(59, 130, 246, 0.1))',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#3b82f6'
+                color: 'var(--primary-color, #3b82f6)'
               }}
             >
               <i className={`fas ${getIconClass(transaction.categoryIcon || transaction.category?.icon || '', transaction.type)}`} />
@@ -376,14 +376,14 @@ export function SwipeableTransactionItem({
         {/* 交易详情 */}
         <div className="transaction-details" style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <span style={{ fontWeight: '500', fontSize: '14px' }}>
+            <span style={{ fontWeight: '500', fontSize: '14px', color: 'var(--text-primary, #1f2937)' }}>
               {transaction.description || transaction.title || transaction.categoryName}
             </span>
             {transaction.attachments && transaction.attachments.length > 0 && (
-              <Paperclip size={14} style={{ color: '#6b7280' }} />
+              <Paperclip size={14} style={{ color: 'var(--text-secondary, #6b7280)' }} />
             )}
           </div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-secondary, #6b7280)' }}>
             {transaction.categoryName}
           </div>
           {transaction.tags && transaction.tags.length > 0 && (
@@ -399,7 +399,7 @@ export function SwipeableTransactionItem({
           style={{
             fontWeight: '600',
             fontSize: '16px',
-            color: transaction.type === TransactionType.EXPENSE ? '#ef4444' : '#10b981'
+            color: transaction.type === TransactionType.EXPENSE ? 'var(--error-color, #ef4444)' : 'var(--success-color, #10b981)'
           }}
         >
           {transaction.type === TransactionType.EXPENSE ? '-' : '+'}

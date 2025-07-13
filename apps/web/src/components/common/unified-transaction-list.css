@@ -2,6 +2,7 @@
 
 .unified-transaction-list {
   /* 基础容器样式 */
+  background-color: transparent;
 }
 
 /* 交易组 */
@@ -34,10 +35,16 @@
   cursor: pointer;
   transition: background-color 0.2s ease;
   border-radius: 8px;
+  background-color: transparent;
 }
 
 .unified-transaction-list .transaction-item:hover {
-  background-color: var(--background-hover, rgba(0, 0, 0, 0.02));
+  background-color: var(--hover-background, rgba(0, 0, 0, 0.05));
+}
+
+/* 暗色主题下的悬停效果 */
+.dark .unified-transaction-list .transaction-item:hover {
+  background-color: var(--hover-background, rgba(255, 255, 255, 0.1));
 }
 
 /* 交易图标 */
@@ -45,7 +52,7 @@
   width: 34px; /* 与仪表盘保持一致 */
   height: 34px;
   border-radius: 50%;
-  background-color: var(--primary-light, #e0f2fe);
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -98,6 +105,7 @@
   text-align: center;
   color: var(--text-secondary, #6b7280);
   font-size: 14px;
+  background-color: transparent;
 }
 
 .unified-transaction-list .error-state {
@@ -116,6 +124,7 @@
   height: 18px;
   margin: 0;
   cursor: pointer;
+  accent-color: var(--primary-color, #3b82f6);
 }
 
 .unified-transaction-list .transaction-item.multi-select-mode {
@@ -134,6 +143,7 @@
   text-align: center;
   color: var(--text-secondary, #6b7280);
   font-size: 14px;
+  background-color: transparent;
 }
 
 .unified-transaction-list .loading-spinner {
@@ -203,6 +213,7 @@
   border-bottom: 1px solid var(--border-color, #e5e7eb);
   border-radius: 0;
   gap: 12px;
+  background-color: transparent;
 }
 
 .modal-content .unified-transaction-list .transaction-item:last-child {
@@ -236,6 +247,7 @@
   border-bottom: 1px solid var(--border-color);
   border-radius: 0;
   gap: 12px;
+  background-color: transparent;
 }
 
 .transactions-page .unified-transaction-list .transaction-item:last-child {
@@ -249,6 +261,7 @@
   border-radius: 8px;
   margin-bottom: 8px;
   overflow: hidden;
+  background-color: var(--card-background);
 }
 
 .transactions-page .unified-transaction-list .swipeable-transaction-item:last-child {
@@ -261,5 +274,10 @@
 }
 
 .budget-statistics-page .unified-transaction-list .transaction-item:hover {
-  background-color: var(--background-hover, rgba(0, 0, 0, 0.02));
+  background-color: var(--hover-background, rgba(0, 0, 0, 0.05));
+}
+
+/* 暗色主题下的预算统计页面悬停效果 */
+.dark .budget-statistics-page .unified-transaction-list .transaction-item:hover {
+  background-color: var(--hover-background, rgba(255, 255, 255, 0.1));
 }
