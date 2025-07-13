@@ -28,6 +28,26 @@ class AccountingPointsService {
   static GIFT_BALANCE_LIMIT = 30;
 
   /**
+   * 获取北京时间的今日日期字符串
+   */
+  static getBeijingToday(): string {
+    const now = new Date();
+    // 转换为北京时间 (UTC+8)
+    const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    return beijingTime.toISOString().split('T')[0];
+  }
+
+  /**
+   * 获取北京时间的今日开始时间
+   */
+  static getBeijingTodayStart(): Date {
+    const today = this.getBeijingToday();
+    // 创建表示北京时间0点的UTC时间
+    const beijingMidnight = new Date(today + 'T00:00:00+08:00');
+    return beijingMidnight;
+  }
+
+  /**
    * 获取用户记账点余额
    */
   static async getUserPoints(userId: string): Promise<UserAccountingPoints> {
@@ -78,77 +98,93 @@ class AccountingPointsService {
 
   /**
    * 消费记账点（优先使用赠送余额）
+   * 使用数据库事务确保并发安全
    */
   static async deductPoints(userId: string, type: string, pointsNeeded: number): Promise<{
     giftBalance: number;
     memberBalance: number;
     totalDeducted: number;
   }> {
-    const userPoints = await this.getUserPoints(userId);
-    const totalBalance = userPoints.giftBalance + userPoints.memberBalance;
+    return await prisma.$transaction(async (tx) => {
+      // 在事务中重新获取最新的用户记账点信息
+      const userPoints = await tx.userAccountingPoints.findUnique({
+        where: { userId }
+      });
 
-    if (totalBalance < pointsNeeded) {
-      throw new Error('记账点余额不足');
-    }
-
-    let remainingPoints = pointsNeeded;
-    let newGiftBalance = userPoints.giftBalance;
-    let newMemberBalance = userPoints.memberBalance;
-
-    // 优先扣除赠送余额
-    if (remainingPoints > 0 && newGiftBalance > 0) {
-      const deductFromGift = Math.min(remainingPoints, newGiftBalance);
-      newGiftBalance -= deductFromGift;
-      remainingPoints -= deductFromGift;
-
-      // 记录赠送余额扣除
-      await this.recordTransaction(
-        userId, 
-        type, 
-        'deduct', 
-        deductFromGift, 
-        'gift', 
-        newGiftBalance, 
-        `${this.getTypeDescription(type)}消费记账点`
-      );
-    }
-
-    // 如果还有剩余，扣除会员余额
-    if (remainingPoints > 0 && newMemberBalance > 0) {
-      const deductFromMember = Math.min(remainingPoints, newMemberBalance);
-      newMemberBalance -= deductFromMember;
-      remainingPoints -= deductFromMember;
-
-      // 记录会员余额扣除
-      await this.recordTransaction(
-        userId, 
-        type, 
-        'deduct', 
-        deductFromMember, 
-        'member', 
-        newMemberBalance, 
-        `${this.getTypeDescription(type)}消费记账点`
-      );
-    }
-
-    // 更新用户记账点余额
-    await prisma.userAccountingPoints.update({
-      where: { userId },
-      data: {
-        giftBalance: newGiftBalance,
-        memberBalance: newMemberBalance
+      if (!userPoints) {
+        throw new Error('用户记账点账户不存在');
       }
-    });
 
-    return {
-      giftBalance: newGiftBalance,
-      memberBalance: newMemberBalance,
-      totalDeducted: pointsNeeded
-    };
+      const totalBalance = userPoints.giftBalance + userPoints.memberBalance;
+
+      if (totalBalance < pointsNeeded) {
+        throw new Error('记账点余额不足');
+      }
+
+      let remainingPoints = pointsNeeded;
+      let newGiftBalance = userPoints.giftBalance;
+      let newMemberBalance = userPoints.memberBalance;
+
+      // 优先扣除赠送余额
+      if (remainingPoints > 0 && newGiftBalance > 0) {
+        const deductFromGift = Math.min(remainingPoints, newGiftBalance);
+        newGiftBalance -= deductFromGift;
+        remainingPoints -= deductFromGift;
+
+        // 记录赠送余额扣除
+        await tx.accountingPointsTransactions.create({
+          data: {
+            userId,
+            type,
+            operation: 'deduct',
+            points: deductFromGift,
+            balanceType: 'gift',
+            balanceAfter: newGiftBalance,
+            description: `${this.getTypeDescription(type)}消费记账点`
+          }
+        });
+      }
+
+      // 如果还有剩余，扣除会员余额
+      if (remainingPoints > 0 && newMemberBalance > 0) {
+        const deductFromMember = Math.min(remainingPoints, newMemberBalance);
+        newMemberBalance -= deductFromMember;
+        remainingPoints -= deductFromMember;
+
+        // 记录会员余额扣除
+        await tx.accountingPointsTransactions.create({
+          data: {
+            userId,
+            type,
+            operation: 'deduct',
+            points: deductFromMember,
+            balanceType: 'member',
+            balanceAfter: newMemberBalance,
+            description: `${this.getTypeDescription(type)}消费记账点`
+          }
+        });
+      }
+
+      // 更新用户记账点余额
+      await tx.userAccountingPoints.update({
+        where: { userId },
+        data: {
+          giftBalance: newGiftBalance,
+          memberBalance: newMemberBalance
+        }
+      });
+
+      return {
+        giftBalance: newGiftBalance,
+        memberBalance: newMemberBalance,
+        totalDeducted: pointsNeeded
+      };
+    });
   }
 
   /**
    * 增加记账点
+   * 使用数据库原子操作确保并发安全
    */
   static async addPoints(
     userId: string, 
@@ -157,27 +193,53 @@ class AccountingPointsService {
     balanceType: 'gift' | 'member' = 'gift', 
     description: string = ''
   ): Promise<number> {
-    const userPoints = await this.getUserPoints(userId);
-    
-    let newBalance: number;
-    if (balanceType === 'gift') {
-      newBalance = userPoints.giftBalance + points;
-      await prisma.userAccountingPoints.update({
+    return await prisma.$transaction(async (tx) => {
+      // 确保用户记账点账户存在
+      await tx.userAccountingPoints.upsert({
         where: { userId },
-        data: { giftBalance: newBalance }
+        create: {
+          userId,
+          giftBalance: 0,
+          memberBalance: 0
+        },
+        update: {}
       });
-    } else {
-      newBalance = userPoints.memberBalance + points;
-      await prisma.userAccountingPoints.update({
-        where: { userId },
-        data: { memberBalance: newBalance }
+
+      // 使用数据库级别的原子操作更新余额
+      let updatedPoints;
+      if (balanceType === 'gift') {
+        updatedPoints = await tx.userAccountingPoints.update({
+          where: { userId },
+          data: { 
+            giftBalance: { increment: points }
+          }
+        });
+      } else {
+        updatedPoints = await tx.userAccountingPoints.update({
+          where: { userId },
+          data: { 
+            memberBalance: { increment: points }
+          }
+        });
+      }
+
+      const newBalance = balanceType === 'gift' ? updatedPoints.giftBalance : updatedPoints.memberBalance;
+
+      // 记录交易
+      await tx.accountingPointsTransactions.create({
+        data: {
+          userId,
+          type,
+          operation: 'add',
+          points,
+          balanceType,
+          balanceAfter: newBalance,
+          description
+        }
       });
-    }
 
-    // 记录交易
-    await this.recordTransaction(userId, type, 'add', points, balanceType, newBalance, description);
-
-    return newBalance;
+      return newBalance;
+    });
   }
 
   /**
@@ -212,7 +274,8 @@ class AccountingPointsService {
     checkin: UserCheckins;
     newBalance: number;
   }> {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD格式
+    // 使用北京时间获取今天的日期
+    const today = this.getBeijingToday(); // YYYY-MM-DD格式
     
     // 检查今天是否已经签到
     const existingCheckin = await prisma.userCheckins.findUnique({
@@ -342,7 +405,7 @@ class AccountingPointsService {
    * 检查用户今天是否已经签到
    */
   static async hasCheckedInToday(userId: string): Promise<boolean> {
-    const today = new Date().toISOString().split('T')[0];
+    const today = this.getBeijingToday();
     
     const checkin = await prisma.userCheckins.findUnique({
       where: {
@@ -359,64 +422,98 @@ class AccountingPointsService {
   /**
    * 检查并执行每日首次访问赠送记账点
    * 当用户每日首次调用API时调用此方法
+   * 使用数据库事务确保并发安全，使用北京时间作为基准
    */
   static async checkAndGiveDailyPoints(userId: string): Promise<{
     isFirstVisitToday: boolean;
     newBalance?: number;
     pointsGiven?: number;
   }> {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD格式
-    const todayDate = new Date(today);
-    
-    // 获取用户记账点信息
-    const userPoints = await this.getUserPoints(userId);
-    
-    // 检查今天是否已经赠送过
-    const hasGivenToday = userPoints.lastDailyGiftDate && 
-      userPoints.lastDailyGiftDate.toISOString().split('T')[0] === today;
-    
-    if (hasGivenToday) {
-      return {
-        isFirstVisitToday: false
-      };
-    }
-    
-    // 检查赠送余额是否已达上限
-    let pointsToGive = 0;
-    if (userPoints.giftBalance < this.GIFT_BALANCE_LIMIT) {
-      pointsToGive = Math.min(
-        this.DAILY_GIFT, 
-        this.GIFT_BALANCE_LIMIT - userPoints.giftBalance
-      );
-    }
-    
-    // 更新最后赠送日期（即使没有实际赠送点数也要更新，避免重复检查）
-    await prisma.userAccountingPoints.update({
-      where: { userId },
-      data: { lastDailyGiftDate: todayDate }
-    });
-    
-    if (pointsToGive > 0) {
-      // 赠送记账点
-      const newBalance = await this.addPoints(
-        userId, 
-        'daily_first_visit', 
-        pointsToGive, 
-        'gift', 
-        `每日首次访问赠送记账点`
-      );
+    return await prisma.$transaction(async (tx) => {
+      // 使用北京时间获取今日日期
+      const today = this.getBeijingToday(); // YYYY-MM-DD格式
+      const todayDate = this.getBeijingTodayStart();
       
-      return {
-        isFirstVisitToday: true,
-        newBalance,
-        pointsGiven: pointsToGive
-      };
-    } else {
-      return {
-        isFirstVisitToday: true,
-        pointsGiven: 0
-      };
-    }
+      // 在事务中获取用户记账点信息
+      let userPoints = await tx.userAccountingPoints.findUnique({
+        where: { userId }
+      });
+
+      // 如果用户没有记账点账户，创建一个
+      if (!userPoints) {
+        userPoints = await tx.userAccountingPoints.create({
+          data: {
+            userId,
+            giftBalance: 0,
+            memberBalance: 0
+          }
+        });
+      }
+      
+      // 检查今天（北京时间）是否已经赠送过
+      const lastGiftDate = userPoints.lastDailyGiftDate;
+      const hasGivenToday = lastGiftDate && 
+        this.getBeijingToday() === new Date(lastGiftDate.getTime() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
+      
+      if (hasGivenToday) {
+        return {
+          isFirstVisitToday: false
+        };
+      }
+      
+      // 检查赠送余额是否已达上限
+      let pointsToGive = 0;
+      if (userPoints.giftBalance < this.GIFT_BALANCE_LIMIT) {
+        pointsToGive = Math.min(
+          this.DAILY_GIFT, 
+          this.GIFT_BALANCE_LIMIT - userPoints.giftBalance
+        );
+      }
+      
+      // 更新最后赠送日期（即使没有实际赠送点数也要更新，避免重复检查）
+      if (pointsToGive > 0) {
+        // 使用原子操作更新余额和日期
+        const updatedPoints = await tx.userAccountingPoints.update({
+          where: { userId },
+          data: { 
+            giftBalance: { increment: pointsToGive },
+            lastDailyGiftDate: todayDate
+          }
+        });
+        
+        const newGiftBalance = updatedPoints.giftBalance;
+        
+        // 记录交易
+        await tx.accountingPointsTransactions.create({
+          data: {
+            userId,
+            type: 'daily_first_visit',
+            operation: 'add',
+            points: pointsToGive,
+            balanceType: 'gift',
+            balanceAfter: newGiftBalance,
+            description: '每日首次访问赠送记账点'
+          }
+        });
+        
+        return {
+          isFirstVisitToday: true,
+          newBalance: newGiftBalance,
+          pointsGiven: pointsToGive
+        };
+      } else {
+        // 即使没有赠送点数，也要更新日期
+        await tx.userAccountingPoints.update({
+          where: { userId },
+          data: { lastDailyGiftDate: todayDate }
+        });
+        
+        return {
+          isFirstVisitToday: true,
+          pointsGiven: 0
+        };
+      }
+    });
   }
   static async dailyGiftPoints(): Promise<void> {
     // 获取所有用户
