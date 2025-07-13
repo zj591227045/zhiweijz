@@ -14,9 +14,10 @@ import { TransactionAttachmentUpload } from './transaction-attachment-upload';
 interface TransactionDetailsProps {
   onSubmit: () => void;
   isSubmitting: boolean;
+  isEditMode?: boolean;
 }
 
-export function TransactionDetails({ onSubmit, isSubmitting }: TransactionDetailsProps) {
+export function TransactionDetails({ onSubmit, isSubmitting, isEditMode = false }: TransactionDetailsProps) {
   const { type, description, date, time, tagIds, categoryId, amount, attachments, setDescription, setDate, setTime, setTagIds, setAttachments } =
     useTransactionFormStore();
   const { currentAccountBook } = useAccountBookStore();
@@ -141,7 +142,7 @@ export function TransactionDetails({ onSubmit, isSubmitting }: TransactionDetail
             borderRadius: '12px',
             padding: '16px'
           }}>
-            <BudgetSelector />
+            <BudgetSelector isEditMode={isEditMode} />
           </div>
         )}
 

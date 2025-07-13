@@ -33,6 +33,9 @@ interface TransactionFormState {
   tagIds: string[];
   attachments: TransactionAttachment[];
 
+  // 编辑模式标识
+  isEditMode: boolean;
+
   // 虚拟键盘控制
   showKeyboardInitially: boolean;
 
@@ -46,6 +49,7 @@ interface TransactionFormState {
   setBudgetId: (id: string) => void;
   setTagIds: (tagIds: string[]) => void;
   setAttachments: (attachments: TransactionAttachment[]) => void;
+  setIsEditMode: (isEditMode: boolean) => void;
   setShowKeyboardInitially: (show: boolean) => void;
   goToStep: (step: number) => void;
   resetForm: () => void;
@@ -80,6 +84,7 @@ const initialState = {
   budgetId: '',
   tagIds: [],
   attachments: [],
+  isEditMode: false,
   showKeyboardInitially: false,
 };
 
@@ -117,6 +122,8 @@ export const useTransactionFormStore = create<TransactionFormState>((set) => ({
 
   setAttachments: (attachments) => set({ attachments }),
 
+  setIsEditMode: (isEditMode) => set({ isEditMode }),
+
   setShowKeyboardInitially: (show) => set({ showKeyboardInitially: show }),
 
   goToStep: (step) => set({ currentStep: step }),
@@ -127,6 +134,7 @@ export const useTransactionFormStore = create<TransactionFormState>((set) => ({
       date: getCurrentDate(),
       time: getCurrentTime(),
       showKeyboardInitially: false, // 重置时不自动显示键盘
+      isEditMode: false, // 重置时不是编辑模式
     }),
 
   fillSmartAccountingResult: (result) => {

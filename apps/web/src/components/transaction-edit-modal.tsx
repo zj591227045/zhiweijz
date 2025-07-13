@@ -131,41 +131,12 @@ function BudgetSelector({
   // 使用日期获取的预算数据
   const formattedBudgets: BudgetDisplay[] = dateBudgets;
 
-  // 智能推荐预算的逻辑
+  // 智能推荐预算的逻辑 - 在编辑模式下禁用
   const selectRecommendedBudget = useCallback(() => {
-    if (formattedBudgets.length > 0 && !selectedBudget && currentUser && !hasInitialized) {
-      // 优先级1: 查找与当前登录用户名称匹配的个人预算
-      const userBudget = formattedBudgets.find(
-        (b) => b.familyMemberName === currentUser.name && b.budgetType === 'PERSONAL',
-      );
-
-      if (userBudget) {
-        setSelectedBudget(userBudget);
-        setBudgetId(userBudget.id);
-        setHasInitialized(true);
-        return;
-      }
-
-      // 优先级2: 查找没有familyMemberId的个人预算
-      const personalBudget = formattedBudgets.find(
-        (b) => !b.familyMemberId && b.budgetType === 'PERSONAL',
-      );
-
-      if (personalBudget) {
-        setSelectedBudget(personalBudget);
-        setBudgetId(personalBudget.id);
-        setHasInitialized(true);
-        return;
-      }
-
-      // 优先级3: 使用第一个预算（通用预算）
-      if (formattedBudgets.length > 0) {
-        setSelectedBudget(formattedBudgets[0]);
-        setBudgetId(formattedBudgets[0].id);
-        setHasInitialized(true);
-      }
-    }
-  }, [formattedBudgets, selectedBudget, currentUser, hasInitialized, setBudgetId]);
+    // 编辑模式不执行智能推荐逻辑
+    console.log('编辑模式：跳过智能推荐预算逻辑');
+    return;
+  }, []);
 
   // 当日期预算数据加载完成后，智能推荐预算
   useEffect(() => {
@@ -502,6 +473,20 @@ export default function TransactionEditModal({
 
   // 金额输入框引用
   const amountInputRef = useRef<HTMLInputElement>(null);
+
+  // 当组件打开时，设置为编辑模式
+  useEffect(() => {
+    if (transactionId) {
+      // 导入并使用 transaction form store 设置编辑模式
+      const { setIsEditMode } = require('@/store/transaction-form-store').useTransactionFormStore.getState();
+      setIsEditMode(true);
+      
+      return () => {
+        // 组件卸载时重置编辑模式
+        setIsEditMode(false);
+      };
+    }
+  }, [transactionId]);
 
   // 初始化数据
   useEffect(() => {

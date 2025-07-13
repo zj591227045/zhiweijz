@@ -336,8 +336,20 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
       setAmountString(Math.abs(transaction.amount)?.toString() || '0');
       setBudgetId(transaction.budgetId || '');
       setTime(`${hours}:${minutes}`);
+      
+      // 设置为编辑模式（如果使用了 transaction form store）
+      const { setIsEditMode } = require('@/store/transaction-form-store').useTransactionFormStore.getState();
+      setIsEditMode(true);
     }
   }, [transaction]);
+
+  // 组件卸载时重置编辑模式
+  useEffect(() => {
+    return () => {
+      const { setIsEditMode } = require('@/store/transaction-form-store').useTransactionFormStore.getState();
+      setIsEditMode(false);
+    };
+  }, []);
 
   // 根据交易类型筛选分类
   const filteredCategories = categories.filter(
@@ -618,6 +630,8 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
                 {formData.type === TransactionType.EXPENSE && (
                   <BudgetSelector budgetId={budgetId} setBudgetId={setBudgetId} />
                 )}
+
+                {/* 在编辑模式下，需要使用内联预算选择器而不是推荐逻辑 */}
               </div>
 
               {/* 错误信息 */}

@@ -34,8 +34,8 @@ interface Budget {
   percentage?: number;
 }
 
-export function BudgetSelector() {
-  const { budgetId, setBudgetId, date } = useTransactionFormStore();
+export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean }) {
+  const { budgetId, setBudgetId, date, isEditMode: storeIsEditMode } = useTransactionFormStore();
 
   const { currentAccountBook } = useAccountBookStore();
   const { user: currentUser } = useAuthStore();
@@ -154,14 +154,22 @@ export function BudgetSelector() {
     return formattedBudget;
   });
 
-  // 智能推荐预算的逻辑
+  // 智能推荐预算的逻辑 - 在编辑模式下禁用
   const selectRecommendedBudget = useCallback(() => {
+    // 如果是编辑模式，不执行推荐逻辑
+    const isInEditMode = isEditMode || storeIsEditMode;
+    if (isInEditMode) {
+      console.log('编辑模式：跳过智能推荐预算逻辑');
+      return;
+    }
+
     console.log('selectRecommendedBudget 调用:', {
       formattedBudgetsLength: formattedBudgets.length,
       selectedBudget,
       currentUser: currentUser?.name,
       hasInitialized,
-      date
+      date,
+      isEditMode: isInEditMode
     });
 
     if (formattedBudgets.length > 0 && !selectedBudget && currentUser && !hasInitialized) {
@@ -202,7 +210,7 @@ export function BudgetSelector() {
         setHasInitialized(true);
       }
     }
-  }, [formattedBudgets, selectedBudget, currentUser, hasInitialized, date, setBudgetId]);
+  }, [formattedBudgets, selectedBudget, currentUser, hasInitialized, date, setBudgetId, isEditMode, storeIsEditMode]);
 
   // 当日期预算数据加载完成后，智能推荐预算
   useEffect(() => {
