@@ -260,13 +260,13 @@ export default function LoginPage() {
       <AnimatedBackground />
       
       <div className="auth-container px-3 sm:px-6 md:px-8 flex flex-col h-full max-w-screen-xl mx-auto w-full box-border relative z-10">
-        {/* 主题切换器 */}
+        {/* 主题切换器 - 响应式显示 */}
         <div className="flex-shrink-0">
           <ThemeSwitcher />
         </div>
 
         {/* Logo */}
-        <div className="logo-container flex-shrink-0 mt-10 sm:mt-8 mb-2 sm:mb-8">
+        <div className="logo-container flex-shrink-0 mt-4 sm:mt-8 mb-2 sm:mb-4">
           <div className="hexagon-logo">
             <span>
               只为
@@ -277,20 +277,21 @@ export default function LoginPage() {
         </div>
 
         {/* 头部 */}
-        <div className="auth-header text-center flex-shrink-0 mb-4 sm:mb-6">
-          <div className="app-logo font-bold text-blue-600 dark:text-blue-400 mb-2" style={{fontSize: '2.2rem'}}>
+        <div className="auth-header text-center flex-shrink-0 mb-3 sm:mb-6">
+          <div className="app-logo font-bold text-blue-600 dark:text-blue-400 mb-1 sm:mb-2 text-2xl sm:text-4xl">
             只为记账
           </div>
-          <div className="app-slogan text-gray-500 dark:text-gray-400 text-base sm:text-lg">
+          {/* 标语 - 响应式显示 */}
+          <div className="app-slogan text-gray-500 dark:text-gray-400 text-sm sm:text-base md:text-lg">
             简单、高效，AI驱动的记账工具
           </div>
         </div>
 
         {/* 表单 - 使用 flex-1 占据剩余空间，并允许内容滚动 */}
-        <div className="flex-1 flex flex-col justify-center min-h-0">
+        <div className="flex-1 flex flex-col justify-center min-h-0 py-2">
           <form
             onSubmit={handleSubmit}
-            className="auth-form flex flex-col gap-3 sm:gap-4 w-full max-w-[95%] sm:max-w-sm md:max-w-md mx-auto bg-white/30 dark:bg-gray-800/30 backdrop-blur-md p-4 sm:p-6 md:p-8 rounded-lg shadow-lg box-border border border-white/30 dark:border-gray-700/40"
+            className="auth-form flex flex-col gap-3 sm:gap-4 w-full max-w-[95%] sm:max-w-sm md:max-w-md mx-auto bg-white/30 dark:bg-gray-800/30 backdrop-blur-md p-3 sm:p-6 md:p-8 rounded-lg shadow-lg box-border border border-white/30 dark:border-gray-700/40"
           >
           <div className="form-group">
             <label
@@ -394,14 +395,14 @@ export default function LoginPage() {
         </div>
 
         {/* 底部区域 - 固定在底部 */}
-        <div className="flex-shrink-0 pt-4 sm:pt-6">
+        <div className="flex-shrink-0 pt-2 sm:pt-6">
           {/* 服务器设置按钮 - 放在表单外，仅在非Docker环境显示 */}
           {!isDocker && (
-            <div className="w-full max-w-[95%] sm:max-w-sm md:max-w-md mx-auto mb-0 sm:mb-4">
+            <div className="w-full max-w-[95%] sm:max-w-sm md:max-w-md mx-auto mb-2 sm:mb-4">
               <button
                 type="button"
                 onClick={() => setShowServerSettings(true)}
-                className="relative flex items-center justify-center w-full px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 border border-gray-300/50 dark:border-gray-600/50 rounded-md text-xs sm:text-sm hover:border-blue-500 dark:hover:border-blue-400 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-800/90"
+                className="relative flex items-center justify-center w-full px-2 py-2 sm:px-3 sm:py-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 border border-gray-300/50 dark:border-gray-600/50 rounded-md text-xs sm:text-sm hover:border-blue-500 dark:hover:border-blue-400 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-800/90"
               >
                 <div className="flex items-center space-x-2">
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -432,7 +433,7 @@ export default function LoginPage() {
           )}
 
           {/* 页脚 */}
-          <div className="auth-footer text-center pb-4 sm:pb-6 text-gray-500 dark:text-gray-400 text-xs">
+          <div className="auth-footer text-center pb-2 sm:pb-6 text-gray-500 dark:text-gray-400 text-xs">
             <div>&copy; {new Date().getFullYear()} 只为记账 - 版权所有</div>
           </div>
         </div>
