@@ -451,6 +451,7 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
           const params: any = {
             page: 1,
             limit: 5,
+            includeAttachments: true, // 包含附件信息
           };
           if (familyMemberId) {
             params.familyMemberId = familyMemberId;

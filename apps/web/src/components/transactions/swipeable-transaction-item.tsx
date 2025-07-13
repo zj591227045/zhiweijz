@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Trash2, Paperclip } from 'lucide-react';
 import { formatCurrency, getCategoryIconClass } from '@/lib/utils';
 import { TagDisplay } from '../tags/tag-display';
-import { AttachmentThumbnail } from './attachment-preview';
+import { AttachmentThumbnail, EnhancedAttachmentPreview } from './attachment-preview';
 import { QuickUploadModal } from './quick-upload-modal';
 import { TagResponseDto } from '@/lib/api/types/tag.types';
 
@@ -75,6 +76,11 @@ export function SwipeableTransactionItem({
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  
+  // 图片预览状态
+  const [previewFiles, setPreviewFiles] = useState<AttachmentFile[]>([]);
+  const [previewIndex, setPreviewIndex] = useState(0);
+  const [showPreview, setShowPreview] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
 
@@ -227,7 +233,47 @@ export function SwipeableTransactionItem({
     }
   };
 
-  // 处理附件上传成功
+  // 处理缩略图点击
+  const handleThumbnailClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    // 获取所有图片附件
+    const imageAttachments = transaction.attachments?.filter(
+      attachment => attachment.file?.mimeType?.startsWith('image/')
+    ) || [];
+
+    if (imageAttachments.length > 0) {
+      const files = imageAttachments.map(att => att.file).filter(Boolean) as AttachmentFile[];
+      setPreviewFiles(files);
+      setPreviewIndex(0);
+      setShowPreview(true);
+    }
+  };
+
+  // 处理图片预览导航
+  const handlePreviewNavigate = (index: number) => {
+    setPreviewIndex(index);
+  };
+
+  // 处理图片预览下载
+  const handlePreviewDownload = (file: any) => {
+    if (file.url) {
+      const link = document.createElement('a');
+      link.href = file.url;
+      link.download = file.originalName;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  // 关闭图片预览
+  const handlePreviewClose = () => {
+    setShowPreview(false);
+    setPreviewFiles([]);
+    setPreviewIndex(0);
+  };
   const handleAttachmentUploaded = () => {
     setShowUploadModal(false);
     // 触发父组件刷新数据
@@ -247,7 +293,9 @@ export function SwipeableTransactionItem({
         position: 'relative',
         overflow: 'hidden',
         borderRadius: '8px',
-        marginBottom: '8px'
+        marginBottom: '4px',
+        width: '100%',
+        boxSizing: 'border-box'
       }}
     >
       {/* 背景操作按钮 */}
@@ -326,7 +374,9 @@ export function SwipeableTransactionItem({
           gap: '12px',
           cursor: 'pointer',
           borderRadius: '8px',
-          border: '1px solid var(--border-color, #e5e7eb)'
+          border: '1px solid var(--border-color, #e5e7eb)',
+          width: '100%',
+          boxSizing: 'border-box'
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -350,11 +400,16 @@ export function SwipeableTransactionItem({
         {/* 交易图标或附件缩略图 */}
         <div className="transaction-icon" style={{ width: '40px', height: '40px', flexShrink: 0 }}>
           {firstImageAttachment?.file ? (
-            <AttachmentThumbnail
-              file={firstImageAttachment.file}
-              size="medium"
-              className="w-full h-full"
-            />
+            <div 
+              onClick={handleThumbnailClick}
+              style={{ cursor: 'pointer', width: '100%', height: '100%' }}
+            >
+              <AttachmentThumbnail
+                file={firstImageAttachment.file}
+                size="medium"
+                className="w-full h-full"
+              />
+            </div>
           ) : (
             <div
               style={{
@@ -415,6 +470,21 @@ export function SwipeableTransactionItem({
         onClose={() => setShowUploadModal(false)}
         onUploadSuccess={handleAttachmentUploaded}
       />
+
+      {/* 图片预览模态框 - 使用 Portal 渲染到 body */}
+      {showPreview && previewFiles.length > 0 && typeof window !== 'undefined' && 
+        createPortal(
+          <EnhancedAttachmentPreview
+            files={previewFiles}
+            currentIndex={previewIndex}
+            isOpen={showPreview}
+            onClose={handlePreviewClose}
+            onNavigate={handlePreviewNavigate}
+            onDownload={handlePreviewDownload}
+          />,
+          document.body
+        )
+      }
     </div>
   );
 }

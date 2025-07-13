@@ -83,6 +83,70 @@ export function convertS3UrlToProxy(s3Url: string): string {
 }
 
 /**
+ * 获取图片缩略图的代理URL
+ * @param s3Url S3存储的直接URL
+ * @param options 缩略图选项
+ * @returns 缩略图代理API URL
+ */
+export function getThumbnailProxyUrl(
+  s3Url: string, 
+  options: {
+    width?: number;
+    height?: number;
+    quality?: number;
+    format?: 'jpeg' | 'webp' | 'png';
+  } = {}
+): string {
+  if (!s3Url || !s3Url.startsWith('http')) {
+    return s3Url; // 如果不是HTTP URL，直接返回
+  }
+
+  try {
+    // 解析S3 URL，提取bucket和key
+    const url = new URL(s3Url);
+    const pathParts = url.pathname.split('/').filter(part => part.length > 0);
+
+    if (pathParts.length < 2) {
+      console.warn('无效的S3 URL格式:', s3Url);
+      return s3Url;
+    }
+
+    const bucket = pathParts[0];
+    const key = pathParts.slice(1).join('/');
+
+    // 设置默认参数
+    const {
+      width = 200,
+      height = 200,
+      quality = 80,
+      format = 'jpeg'
+    } = options;
+
+    // 获取动态API基础URL并构建缩略图API URL
+    const apiBaseUrl = getApiBaseUrl();
+    const queryParams = new URLSearchParams({
+      width: width.toString(),
+      height: height.toString(),
+      quality: quality.toString(),
+      format
+    });
+    
+    const thumbnailUrl = `${apiBaseUrl}/image-proxy/thumbnail/s3/${bucket}/${key}?${queryParams}`;
+
+    console.log('🖼️ S3 URL转换为缩略图URL:', { 
+      original: s3Url, 
+      thumbnail: thumbnailUrl, 
+      options, 
+      apiBaseUrl 
+    });
+
+    return thumbnailUrl;
+  } catch (error) {
+    console.error('S3缩略图URL转换失败:', error, s3Url);
+    return s3Url; // 转换失败时返回原URL
+  }
+}
+/**
  * 获取用户头像的代理URL
  * @param userId 用户ID
  * @returns 用户头像代理API URL

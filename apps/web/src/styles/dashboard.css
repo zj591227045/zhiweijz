@@ -182,7 +182,7 @@
   background-color: var(--card-background, #ffffff);
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  padding: 16px;
+  padding: 12px;
   margin-bottom: 8px; /* 减少间距 */
 }
 

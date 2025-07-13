@@ -76,6 +76,7 @@ export function CategoryTransactionsModal({
         type: filters.transactionType,
         limit: 100, // 限制数量，避免数据过多
         sort: 'date:desc',
+        includeAttachments: true, // 包含附件信息
       };
 
       if (filters.accountBookId) {
@@ -142,7 +143,10 @@ export function CategoryTransactionsModal({
           categoryName: transaction.category?.name || '未分类',
           categoryIcon: transaction.category?.icon || transaction.categoryIcon,
           description: transaction.description,
-          date: dayjs(transaction.date).format('HH:mm')
+          date: dayjs(transaction.date).format('HH:mm'),
+          category: transaction.category,
+          tags: transaction.tags,
+          attachments: transaction.attachments
         }))
       }))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

@@ -120,6 +120,8 @@ const fetchRecentTransactions = async (accountBookId: string) => {
             categoryIcon: tx.category?.icon || 'other',
             description: tx.description || '',
             date: tx.date,
+            attachments: tx.attachments || [], // 保留附件信息
+            attachmentCount: tx.attachmentCount || 0, // 保留附件数量
           })),
         };
       });

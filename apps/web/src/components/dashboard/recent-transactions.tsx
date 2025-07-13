@@ -16,6 +16,20 @@ interface Transaction {
   categoryIcon?: string;
   description?: string;
   date: string;
+  attachments?: Array<{
+    id: string;
+    attachmentType: string;
+    description?: string;
+    file?: {
+      id: string;
+      filename: string;
+      originalName: string;
+      mimeType: string;
+      size: number;
+      url?: string;
+    };
+  }>;
+  attachmentCount?: number;
 }
 
 interface GroupedTransactions {

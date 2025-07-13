@@ -43,12 +43,17 @@ export const accountBookService = {
 export const transactionService = {
   // 获取所有交易
   getTransactions: (params?: any) => {
-    return apiClient.get('/transactions', { params });
+    // 默认包含附件信息
+    const enhancedParams = {
+      ...params,
+      includeAttachments: true
+    };
+    return apiClient.get('/transactions', { params: enhancedParams });
   },
 
   // 获取单个交易
   getTransaction: (id: string) => {
-    return apiClient.get(`/transactions/${id}`);
+    return apiClient.get(`/transactions/${id}?includeAttachments=true`);
   },
 
   // 创建交易
@@ -73,6 +78,7 @@ export const transactionService = {
         accountBookId,
         limit,
         sort: 'date:desc',
+        includeAttachments: true, // 添加附件信息
       },
     });
   },
@@ -83,6 +89,7 @@ export const transactionService = {
       accountBookId,
       groupBy: 'date',
       sort: 'date:desc',
+      includeAttachments: true, // 添加附件信息
     };
     return apiClient.get('/transactions/grouped', {
       params: { ...defaultParams, ...params },

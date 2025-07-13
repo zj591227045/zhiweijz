@@ -259,11 +259,29 @@ export class TransactionController {
         return;
       }
 
+      // 检查是否需要包含附件信息
+      const includeAttachments = req.query.includeAttachments === 'true';
+
       // 获取交易记录
       const result = await this.transactionService.getTransactions(userId, params);
       
       // 按日期分组处理
       const transactions = result.data || [];
+
+      // 如果需要包含附件信息
+      if (includeAttachments && transactions.length > 0) {
+        for (const transaction of transactions) {
+          try {
+            const attachments = await this.transactionService.getTransactionAttachments(transaction.id, userId);
+            (transaction as any).attachments = attachments;
+            (transaction as any).attachmentCount = attachments.length;
+          } catch (error) {
+            // 如果获取附件失败，不影响主要数据
+            (transaction as any).attachments = [];
+            (transaction as any).attachmentCount = 0;
+          }
+        }
+      }
       
       // 返回分组后的交易数据
       res.status(200).json({
@@ -348,8 +366,27 @@ export class TransactionController {
         }
       }
 
+      // 检查是否需要包含附件信息
+      const includeAttachments = req.query.includeAttachments === 'true';
+
       // 获取交易列表和统计信息
       const result = await this.transactionService.getTransactionsWithStatistics(userId, params);
+
+      // 如果需要包含附件信息且有交易数据
+      if (includeAttachments && result.transactions && result.transactions.data && result.transactions.data.length > 0) {
+        for (const transaction of result.transactions.data) {
+          try {
+            const attachments = await this.transactionService.getTransactionAttachments(transaction.id, userId);
+            (transaction as any).attachments = attachments;
+            (transaction as any).attachmentCount = attachments.length;
+          } catch (error) {
+            // 如果获取附件失败，不影响主要数据
+            (transaction as any).attachments = [];
+            (transaction as any).attachmentCount = 0;
+          }
+        }
+      }
+
       res.status(200).json(result);
     } catch (error) {
       console.error('获取交易列表和统计信息时发生错误:', error);

@@ -342,7 +342,10 @@ export function TransactionListPage() {
           categoryName: transaction.categoryName || transaction.category?.name,
           categoryIcon: transaction.categoryIcon || transaction.category?.icon,
           description: transaction.description || transaction.title,
-          date: dayjs(transaction.date).format('HH:mm')
+          date: dayjs(transaction.date).format('HH:mm'),
+          category: transaction.category,
+          tags: transaction.tags,
+          attachments: transaction.attachments
         }))
       }))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

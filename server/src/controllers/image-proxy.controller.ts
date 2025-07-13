@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { FileStorageService } from '../services/file-storage.service';
 import { S3StorageService } from '../services/s3-storage.service';
 import { PrismaClient } from '@prisma/client';
+import sharp from 'sharp';
+import { PassThrough } from 'stream';
 
 const prisma = new PrismaClient();
 
@@ -211,8 +213,145 @@ export class ImageProxyController {
   }
 
   /**
-   * 获取图片信息（不下载文件内容）
+   * 获取图片缩略图
+   * 支持的查询参数：
+   * - width: 宽度 (默认: 200)
+   * - height: 高度 (默认: 200)
+   * - quality: 质量 1-100 (默认: 80)
+   * - format: 输出格式 jpeg/webp (默认: jpeg)
+   * 路径格式: /api/image-proxy/thumbnail/s3/:bucket/*?width=200&height=200
    */
+  async getThumbnail(req: Request, res: Response): Promise<void> {
+    try {
+      const { bucket } = req.params;
+      const keyPath = req.params[0]; // 获取完整的key路径
+      
+      // 解析查询参数
+      const width = parseInt(req.query.width as string) || 200;
+      const height = parseInt(req.query.height as string) || 200;
+      const quality = Math.min(Math.max(parseInt(req.query.quality as string) || 80, 1), 100);
+      const format = (req.query.format as string) || 'jpeg';
+
+      console.log('🖼️ 缩略图请求:', {
+        bucket,
+        keyPath,
+        width,
+        height,
+        quality,
+        format,
+        originalUrl: req.originalUrl
+      });
+
+      // 验证参数
+      if (width > 1000 || height > 1000) {
+        res.status(400).json({
+          success: false,
+          message: '缩略图尺寸不能超过1000x1000像素',
+        });
+        return;
+      }
+
+      if (!['jpeg', 'webp', 'png'].includes(format)) {
+        res.status(400).json({
+          success: false,
+          message: '不支持的图片格式，支持格式：jpeg, webp, png',
+        });
+        return;
+      }
+
+      // 检查存储服务是否可用
+      if (!this.fileStorageService.isStorageAvailable()) {
+        res.status(503).json({
+          success: false,
+          message: '文件存储服务不可用',
+          code: 'STORAGE_UNAVAILABLE',
+        });
+        return;
+      }
+
+      // 获取S3服务实例
+      const s3Service = this.fileStorageService.getS3Service();
+      if (!s3Service) {
+        res.status(503).json({
+          success: false,
+          message: 'S3存储服务未初始化',
+          code: 'S3_UNAVAILABLE',
+        });
+        return;
+      }
+
+      // 检查原始文件是否为图片
+      const contentType = this.getContentType(keyPath);
+      if (!contentType.startsWith('image/')) {
+        res.status(400).json({
+          success: false,
+          message: '只能为图片文件生成缩略图',
+        });
+        return;
+      }
+
+      // 从S3下载原始文件
+      const fileStream = await s3Service.downloadFile(bucket, keyPath);
+
+      // 创建Sharp处理器
+      const transformer = sharp()
+        .resize(width, height, {
+          fit: 'cover',
+          position: 'center'
+        })
+        .jpeg({ quality });
+
+      // 根据输出格式设置处理器
+      switch (format) {
+        case 'webp':
+          transformer.webp({ quality });
+          break;
+        case 'png':
+          transformer.png({ quality: Math.round(quality / 10) }); // PNG质量范围0-9
+          break;
+        default:
+          transformer.jpeg({ quality });
+      }
+
+      // 设置响应头
+      res.setHeader('Content-Type', `image/${format}`);
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // 缓存24小时
+      res.setHeader('Access-Control-Allow-Origin', '*');
+
+      // 处理图片并输出
+      fileStream.pipe(transformer).pipe(res);
+
+      fileStream.on('error', (error) => {
+        console.error('文件流错误:', error);
+        if (!res.headersSent) {
+          res.status(500).json({
+            success: false,
+            message: '文件读取失败',
+          });
+        }
+      });
+
+      transformer.on('error', (error) => {
+        console.error('图片处理错误:', error);
+        if (!res.headersSent) {
+          res.status(500).json({
+            success: false,
+            message: '图片处理失败',
+          });
+        }
+      });
+
+    } catch (error) {
+      console.error('缩略图生成失败:', error);
+      
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          message: error instanceof Error ? error.message : '缩略图生成失败',
+        });
+      }
+    }
+  }
   async getImageInfo(req: Request, res: Response): Promise<void> {
     try {
       const { bucket } = req.params;

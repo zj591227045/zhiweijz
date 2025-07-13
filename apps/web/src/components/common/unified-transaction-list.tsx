@@ -1,10 +1,12 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { formatCurrency, getCategoryIconClass } from '../../lib/utils';
 import { TagDisplay } from '../tags/tag-display';
 import { SwipeableTransactionItem } from '../transactions/swipeable-transaction-item';
 import { AttachmentThumbnail } from '../transactions/attachment-preview';
+import { EnhancedAttachmentPreview } from '../transactions/attachment-preview';
 import { TagResponseDto } from '@/lib/api/types/tag.types';
 
 // Paperclip图标组件
@@ -105,6 +107,11 @@ export const UnifiedTransactionList = memo(
     onDeleteClick,
     onDataRefresh
   }: UnifiedTransactionListProps) {
+    // 图片预览状态
+    const [previewFile, setPreviewFile] = useState<any>(null);
+    const [previewFiles, setPreviewFiles] = useState<any[]>([]);
+    const [previewIndex, setPreviewIndex] = useState(0);
+    const [showPreview, setShowPreview] = useState(false);
 
     // 获取图标类名
     const getIconClass = (iconName: string, type: TransactionType) => {
@@ -131,6 +138,51 @@ export const UnifiedTransactionList = memo(
       if (onTransactionSelect) {
         onTransactionSelect(transactionId);
       }
+    };
+
+    // 处理缩略图点击，显示图片预览
+    const handleThumbnailClick = (transaction: Transaction, e: React.MouseEvent) => {
+      e.stopPropagation();
+      
+      // 获取所有图片附件
+      const imageAttachments = transaction.attachments?.filter(
+        attachment => attachment.file?.mimeType?.startsWith('image/')
+      ) || [];
+
+      if (imageAttachments.length > 0) {
+        const files = imageAttachments.map(att => att.file).filter(Boolean);
+        setPreviewFiles(files);
+        setPreviewIndex(0);
+        setPreviewFile(files[0]);
+        setShowPreview(true);
+      }
+    };
+
+    // 处理图片预览导航
+    const handlePreviewNavigate = (index: number) => {
+      setPreviewIndex(index);
+      setPreviewFile(previewFiles[index]);
+    };
+
+    // 处理图片预览下载
+    const handlePreviewDownload = (file: any) => {
+      if (file.url) {
+        const link = document.createElement('a');
+        link.href = file.url;
+        link.download = file.originalName;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    };
+
+    // 关闭图片预览
+    const handlePreviewClose = () => {
+      setShowPreview(false);
+      setPreviewFile(null);
+      setPreviewFiles([]);
+      setPreviewIndex(0);
     };
 
     // 加载状态
@@ -161,119 +213,147 @@ export const UnifiedTransactionList = memo(
     }
 
     return (
-      <div className={`unified-transaction-list ${className}`}>
-        {groupedTransactions.map((group) => (
-          <div key={group.date} className="transaction-group">
-            {showDateHeaders && (
-              <div className="transaction-date">{group.date}</div>
-            )}
-            <div className="transaction-list">
-              {group.transactions.map((transaction) => (
-                enableSwipeActions ? (
-                  <SwipeableTransactionItem
-                    key={transaction.id}
-                    transaction={transaction}
-                    onTransactionClick={onTransactionClick}
-                    onAttachmentClick={onAttachmentClick}
-                    onDeleteClick={onDeleteClick}
-                    onDataRefresh={onDataRefresh}
-                    isMultiSelectMode={isMultiSelectMode}
-                    isSelected={selectedTransactions.has(transaction.id)}
-                    onTransactionSelect={onTransactionSelect}
-                  />
-                ) : (
-                  <div
-                    key={transaction.id}
-                    className={`transaction-item ${isMultiSelectMode ? 'multi-select-mode' : ''} ${selectedTransactions.has(transaction.id) ? 'selected' : ''}`}
-                    onClick={() => handleTransactionClick(transaction.id)}
-                    style={{ cursor: (onTransactionClick || isMultiSelectMode) ? 'pointer' : 'default' }}
-                  >
-                    {isMultiSelectMode && (
-                      <div className="transaction-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={selectedTransactions.has(transaction.id)}
-                          onChange={() => {}}
-                          onClick={(e) => handleCheckboxClick(transaction.id, e)}
-                        />
-                      </div>
-                    )}
-                    <div className="transaction-icon">
-                      {(() => {
-                        // 获取第一张图片附件作为缩略图
-                        const firstImageAttachment = transaction.attachments?.find(
-                          attachment => attachment.file?.mimeType.startsWith('image/')
-                        );
-
-                        if (firstImageAttachment?.file) {
-                          return (
-                            <AttachmentThumbnail
-                              file={firstImageAttachment.file}
-                              size="medium"
-                              className="w-full h-full"
-                            />
-                          );
-                        } else {
-                          return (
-                            <i
-                              className={`fas ${getIconClass(transaction.categoryIcon || transaction.category?.icon || '', transaction.type)}`}
-                            ></i>
-                          );
-                        }
-                      })()}
-                    </div>
-                    <div className="transaction-details">
-                      <div className="transaction-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>{transaction.description || transaction.title || transaction.categoryName}</span>
-                        {transaction.attachments && transaction.attachments.length > 0 && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                            <Paperclip className="w-3 h-3 text-gray-500" />
-                            <span style={{ fontSize: '11px', color: '#6b7280' }}>
-                              {transaction.attachments.length}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="transaction-category">{transaction.categoryName || transaction.category?.name}</div>
-                      {transaction.tags && transaction.tags.length > 0 && (
-                        <div className="transaction-tags">
-                          <TagDisplay
-                            tags={transaction.tags}
-                            size="small"
-                            maxDisplay={2}
-                            className="mt-1"
+      <>
+        <div className={`unified-transaction-list ${className}`}>
+          {groupedTransactions.map((group) => (
+            <div key={group.date} className="transaction-group">
+              {showDateHeaders && (
+                <div className="transaction-date">{group.date}</div>
+              )}
+              <div className="transaction-list">
+                {group.transactions.map((transaction) => (
+                  enableSwipeActions ? (
+                    <SwipeableTransactionItem
+                      key={transaction.id}
+                      transaction={transaction}
+                      onTransactionClick={onTransactionClick}
+                      onAttachmentClick={onAttachmentClick}
+                      onDeleteClick={onDeleteClick}
+                      onDataRefresh={onDataRefresh}
+                      isMultiSelectMode={isMultiSelectMode}
+                      isSelected={selectedTransactions.has(transaction.id)}
+                      onTransactionSelect={onTransactionSelect}
+                    />
+                  ) : (
+                    <div
+                      key={transaction.id}
+                      className={`transaction-item ${isMultiSelectMode ? 'multi-select-mode' : ''} ${selectedTransactions.has(transaction.id) ? 'selected' : ''}`}
+                      onClick={() => handleTransactionClick(transaction.id)}
+                      style={{ cursor: (onTransactionClick || isMultiSelectMode) ? 'pointer' : 'default' }}
+                    >
+                      {isMultiSelectMode && (
+                        <div className="transaction-checkbox">
+                          <input
+                            type="checkbox"
+                            checked={selectedTransactions.has(transaction.id)}
+                            onChange={() => {}}
+                            onClick={(e) => handleCheckboxClick(transaction.id, e)}
                           />
                         </div>
                       )}
+                      <div className="transaction-icon">
+                        {(() => {
+                          // 获取第一张图片附件作为缩略图
+                          const firstImageAttachment = transaction.attachments?.find(
+                            attachment => attachment.file?.mimeType.startsWith('image/')
+                          );
+
+                          if (firstImageAttachment?.file) {
+                            return (
+                              <div 
+                                onClick={(e) => handleThumbnailClick(transaction, e)}
+                                style={{ 
+                                  cursor: 'pointer', 
+                                  width: '100%', 
+                                  height: '100%',
+                                  borderRadius: '50%',
+                                  overflow: 'hidden'
+                                }}
+                              >
+                                <AttachmentThumbnail
+                                  file={firstImageAttachment.file}
+                                  size="medium"
+                                  className="w-full h-full"
+                                />
+                              </div>
+                            );
+                          } else {
+                            return (
+                              <i
+                                className={`fas ${getIconClass(transaction.categoryIcon || transaction.category?.icon || '', transaction.type)}`}
+                              ></i>
+                            );
+                          }
+                        })()}
+                      </div>
+                      <div className="transaction-details">
+                        <div className="transaction-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>{transaction.description || transaction.title || transaction.categoryName}</span>
+                          {transaction.attachments && transaction.attachments.length > 0 && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                              <Paperclip className="w-3 h-3 text-gray-500" />
+                              <span style={{ fontSize: '11px', color: '#6b7280' }}>
+                                {transaction.attachments.length}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="transaction-category">{transaction.categoryName || transaction.category?.name}</div>
+                        {transaction.tags && transaction.tags.length > 0 && (
+                          <div className="transaction-tags">
+                            <TagDisplay
+                              tags={transaction.tags}
+                              size="small"
+                              maxDisplay={2}
+                              className="mt-1"
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <div
+                        className={`transaction-amount ${transaction.type === TransactionType.EXPENSE ? 'expense' : 'income'}`}
+                      >
+                        {transaction.type === TransactionType.EXPENSE ? '-' : '+'}
+                        {formatCurrency(transaction.amount)}
+                      </div>
                     </div>
-                    <div
-                      className={`transaction-amount ${transaction.type === TransactionType.EXPENSE ? 'expense' : 'income'}`}
-                    >
-                      {transaction.type === TransactionType.EXPENSE ? '-' : '+'}
-                      {formatCurrency(transaction.amount)}
-                    </div>
-                  </div>
-                )
-              ))}
+                  )
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
 
-        {/* 加载更多指示器 */}
-        {isLoadingMore && (
-          <div className="loading-more">
-            <div className="loading-spinner"></div>
-            <span>加载更多...</span>
-          </div>
-        )}
+          {/* 加载更多指示器 */}
+          {isLoadingMore && (
+            <div className="loading-more">
+              <div className="loading-spinner"></div>
+              <span>加载更多...</span>
+            </div>
+          )}
 
-        {/* 没有更多数据提示 */}
-        {!hasMore && totalCount > 0 && (
-          <div className="no-more-data">
-            <span>已加载全部 {totalCount} 条记录</span>
-          </div>
-        )}
-      </div>
+          {/* 没有更多数据提示 */}
+          {!hasMore && totalCount > 0 && (
+            <div className="no-more-data">
+              <span>已加载全部 {totalCount} 条记录</span>
+            </div>
+          )}
+        </div>
+
+        {/* 图片预览模态框 - 使用 Portal 渲染到 body */}
+        {showPreview && previewFile && typeof window !== 'undefined' && 
+          createPortal(
+            <EnhancedAttachmentPreview
+              files={previewFiles}
+              currentIndex={previewIndex}
+              isOpen={showPreview}
+              onClose={handlePreviewClose}
+              onNavigate={handlePreviewNavigate}
+              onDownload={handlePreviewDownload}
+            />,
+            document.body
+          )
+        }
+      </>
     );
   }
 );

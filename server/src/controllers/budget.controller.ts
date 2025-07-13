@@ -338,6 +338,7 @@ export class BudgetController {
       const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
       const familyMemberId = (req.query.familyMemberId as string) || null;
+      const includeAttachments = req.query.includeAttachments === 'true';
 
       // 验证预算是否存在并且用户有权限访问
       const budget = await this.budgetService.getBudgetById(budgetId, userId);
@@ -353,8 +354,24 @@ export class BudgetController {
         limit,
         familyMemberId,
       );
+
+      // 如果需要包含附件信息，为每个交易获取附件
+      if (includeAttachments && transactions.data) {
+        for (const transaction of transactions.data) {
+          try {
+            const attachments = await this.transactionService.getTransactionAttachments(transaction.id, userId);
+            (transaction as any).attachments = attachments;
+            (transaction as any).attachmentCount = attachments.length;
+          } catch (error) {
+            // 如果附件获取失败，不影响主要数据，设置为空数组
+            (transaction as any).attachments = [];
+            (transaction as any).attachmentCount = 0;
+          }
+        }
+      }
+
       console.log(
-        `获取预算相关交易，预算ID: ${budgetId}, 家庭成员ID: ${familyMemberId || '无'}, 找到 ${
+        `获取预算相关交易，预算ID: ${budgetId}, 家庭成员ID: ${familyMemberId || '无'}, 包含附件: ${includeAttachments}, 找到 ${
           transactions.data?.length || 0
         } 条记录`,
       );

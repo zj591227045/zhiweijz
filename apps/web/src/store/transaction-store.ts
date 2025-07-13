@@ -44,7 +44,13 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const response = await apiClient.get('/transactions', { params });
+      // 添加附件信息参数
+      const enhancedParams = {
+        ...params,
+        includeAttachments: true
+      };
+
+      const response = await apiClient.get('/transactions', { params: enhancedParams });
 
       // 处理不同的响应格式
       if (response && typeof response === 'object') {
@@ -87,7 +93,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null, transaction: null });
 
-      const response = await apiClient.get(`/transactions/${id}`);
+      const response = await apiClient.get(`/transactions/${id}?includeAttachments=true`);
 
       // 处理不同的响应格式
       let transactionData: Transaction | null = null;

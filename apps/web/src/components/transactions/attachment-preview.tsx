@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { X, Download, ZoomIn, ZoomOut, RotateCw, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { AuthenticatedImage } from '@/components/ui/authenticated-image';
-import { processAvatarUrl } from '@/lib/image-proxy';
+import { processAvatarUrl, getThumbnailProxyUrl } from '@/lib/image-proxy';
 import { Button } from '@/components/ui/button';
 
 export interface AttachmentFile {
@@ -103,7 +103,7 @@ export function AttachmentPreview({
 
   return (
     <div 
-      className={`fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4 ${className || ''}`}
+      className={`fixed inset-0 z-[99999] bg-black bg-opacity-75 flex items-center justify-center p-4 ${className || ''}`}
       onClick={onClose}
       onKeyDown={handleKeyDown}
       tabIndex={-1}
@@ -450,7 +450,7 @@ export function EnhancedAttachmentPreview({
 
   return (
     <div
-      className={`fixed inset-0 z-50 bg-black bg-opacity-95 flex flex-col ${className || ''}`}
+      className={`fixed inset-0 z-[99999] bg-black bg-opacity-95 flex flex-col ${className || ''}`}
     >
       {/* 顶部区域 - 文件名和导航指示器 */}
       <div className="flex-shrink-0 bg-white px-6 py-4 border-b">
@@ -776,8 +776,21 @@ export function AttachmentThumbnail({
 
   // 使用useMemo缓存处理后的URL
   const processedUrl = useMemo(() => {
-    return processAvatarUrl(file.url || '');
-  }, [file.url]);
+    if (!file.url) return '';
+    
+    // 如果是图片文件，使用缩略图URL
+    if (isImage) {
+      return getThumbnailProxyUrl(file.url, {
+        width: size === 'small' ? 64 : size === 'medium' ? 96 : 128,
+        height: size === 'small' ? 64 : size === 'medium' ? 96 : 128,
+        quality: 80,
+        format: 'jpeg'
+      });
+    }
+    
+    // 非图片文件使用原始URL处理
+    return processAvatarUrl(file.url);
+  }, [file.url, isImage, size]);
 
   const getSizeClass = () => {
     switch (size) {
@@ -794,7 +807,7 @@ export function AttachmentThumbnail({
 
   return (
     <div 
-      className={`${getSizeClass()} bg-gray-100 rounded overflow-hidden cursor-pointer hover:opacity-80 transition-opacity ${className || ''}`}
+      className={`${getSizeClass()} bg-gray-100 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity ${className || ''}`}
       onClick={onClick}
       title={file.originalName}
     >

@@ -24,6 +24,20 @@ interface Transaction {
     name: string;
     icon: string;
   };
+  tags?: any[];
+  attachments?: Array<{
+    id: string;
+    attachmentType: string;
+    description?: string;
+    file?: {
+      id: string;
+      filename: string;
+      originalName: string;
+      mimeType: string;
+      size: number;
+      url?: string;
+    };
+  }>;
 }
 
 interface RecentTransactionsProps {
@@ -113,7 +127,10 @@ export function RecentTransactions({ transactions, budgetId, onTransactionDelete
       categoryName: transaction.categoryName,
       categoryIcon: transaction.categoryIcon || transaction.category?.icon,
       description: transaction.title || transaction.description,
-      date: dayjs(transaction.date).format('M月D日 HH:mm')
+      date: dayjs(transaction.date).format('M月D日 HH:mm'),
+      category: transaction.category,
+      tags: transaction.tags,
+      attachments: transaction.attachments
     }))
   }] : [];
 

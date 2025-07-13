@@ -3,11 +3,13 @@
 .unified-transaction-list {
   /* 基础容器样式 */
   background-color: transparent;
+  width: 100%; /* 确保容器充分利用可用宽度 */
 }
 
 /* 交易组 */
 .unified-transaction-list .transaction-group {
-  margin-bottom: 10px; /* 与仪表盘保持一致 */
+  margin-bottom: 8px; /* 从10px减少到8px */
+  width: 100%; /* 确保充分利用可用宽度 */
 }
 
 /* 交易日期 */
@@ -23,7 +25,8 @@
 .unified-transaction-list .transaction-list {
   display: flex;
   flex-direction: column;
-  gap: 8px; /* 与仪表盘保持一致 */
+  gap: 4px; /* 从8px减少到4px，缩短间距 */
+  width: 100%; /* 确保充分利用可用宽度 */
 }
 
 /* 交易项 */
