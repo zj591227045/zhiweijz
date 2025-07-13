@@ -284,6 +284,11 @@ export const useAuthStore = create<AuthState>()(
           if (typeof window !== 'undefined') {
             localStorage.setItem('user', JSON.stringify(updatedUser));
             console.log('🔍 用户信息已同步更新到localStorage:', updatedUser);
+            
+            // 触发全局用户信息更新事件，通知所有订阅的组件
+            window.dispatchEvent(new CustomEvent('userProfileUpdated', {
+              detail: { user: updatedUser }
+            }));
           }
 
           return true;
@@ -293,7 +298,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // 更新用户头像
+      // 更新头像
       updateAvatar: async (avatarUrl: string) => {
         try {
           const currentUser = get().user;
@@ -312,6 +317,11 @@ export const useAuthStore = create<AuthState>()(
           if (typeof window !== 'undefined') {
             localStorage.setItem('user', JSON.stringify(updatedUser));
             console.log('🔍 头像信息已同步更新到localStorage:', updatedUser);
+            
+            // 触发全局头像更新事件，通知所有订阅的组件
+            window.dispatchEvent(new CustomEvent('avatarUpdated', {
+              detail: { user: updatedUser, avatarUrl }
+            }));
           }
 
           return true;

@@ -14,6 +14,7 @@ import {
   requiresAuthentication,
   getPresignedUrlTTL
 } from '@/lib/s3-access-config';
+import { useAuthStore } from '@/store/auth-store';
 
 interface SmartAvatarDisplayProps {
   avatar?: string; // 头像ID或URL
@@ -36,9 +37,11 @@ export function SmartAvatarDisplay({
   requireAuth = false,
   presignedUrlTTL = 3600
 }: SmartAvatarDisplayProps) {
+  const { user } = useAuthStore();
   const [processedUrl, setProcessedUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const [currentAvatar, setCurrentAvatar] = useState(avatar);
 
   // 获取尺寸样式
   const getSizeClass = () => {
@@ -64,53 +67,108 @@ export function SmartAvatarDisplay({
     return {};
   };
 
+  // 当用户是当前登录用户时，优先使用 auth-store 中的最新头像
+  useEffect(() => {
+    if (user && userId === user.id && user.avatar !== currentAvatar) {
+      console.log('🔄 SmartAvatarDisplay: 检测到当前用户头像更新:', {
+        userId,
+        currentUserId: user.id,
+        oldAvatar: currentAvatar,
+        newAvatar: user.avatar
+      });
+      setCurrentAvatar(user.avatar);
+    } else if (!userId || userId !== user?.id) {
+      // 如果不是当前用户或没有用户ID，使用传入的avatar
+      setCurrentAvatar(avatar);
+    }
+  }, [user?.avatar, userId, user?.id, avatar, currentAvatar]);
+
+  // 监听全局头像更新事件
+  useEffect(() => {
+    const handleAvatarUpdate = (event: CustomEvent) => {
+      const { user: updatedUser } = event.detail;
+      if (updatedUser && userId === updatedUser.id) {
+        console.log('🔔 SmartAvatarDisplay: 收到全局头像更新事件:', {
+          userId,
+          updatedUserId: updatedUser.id,
+          newAvatar: updatedUser.avatar
+        });
+        setCurrentAvatar(updatedUser.avatar);
+      }
+    };
+
+    const handleUserProfileUpdate = (event: CustomEvent) => {
+      const { user: updatedUser } = event.detail;
+      if (updatedUser && userId === updatedUser.id) {
+        console.log('🔔 SmartAvatarDisplay: 收到全局用户信息更新事件:', {
+          userId,
+          updatedUserId: updatedUser.id,
+          newAvatar: updatedUser.avatar
+        });
+        setCurrentAvatar(updatedUser.avatar);
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('avatarUpdated', handleAvatarUpdate as EventListener);
+      window.addEventListener('userProfileUpdated', handleUserProfileUpdate as EventListener);
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('avatarUpdated', handleAvatarUpdate as EventListener);
+        window.removeEventListener('userProfileUpdated', handleUserProfileUpdate as EventListener);
+      }
+    };
+  }, [userId]);
+
   // 处理头像URL
   useEffect(() => {
     const processUrl = async () => {
-      if (!avatar) {
+      if (!currentAvatar) {
         setProcessedUrl('');
         return;
       }
 
       // 检查是否是头像ID
-      const avatarUrl = getAvatarUrlById(avatar);
+      const avatarUrl = getAvatarUrlById(currentAvatar);
       if (avatarUrl) {
         setProcessedUrl(avatarUrl);
         return;
       }
 
       // 如果不是HTTP URL，直接使用
-      if (!avatar.startsWith('http')) {
-        setProcessedUrl(avatar);
+      if (!currentAvatar.startsWith('http')) {
+        setProcessedUrl(currentAvatar);
         return;
       }
 
       // 如果是S3 URL，使用智能访问策略
-      if (isS3DirectUrl(avatar)) {
-        const accessMethod = getAccessMethod(avatar);
+      if (isS3DirectUrl(currentAvatar)) {
+        const accessMethod = getAccessMethod(currentAvatar);
 
         switch (accessMethod.method) {
           case 'direct':
             // 直接访问
-            console.log('✅ 直接访问头像:', avatar);
-            setProcessedUrl(avatar);
+            console.log('✅ 直接访问头像:', currentAvatar);
+            setProcessedUrl(currentAvatar);
             break;
 
           case 'presigned':
             // 生成预签名URL
-            console.log('🔑 生成预签名URL访问头像:', avatar);
+            console.log('🔑 生成预签名URL访问头像:', currentAvatar);
             setIsLoading(true);
             setError('');
 
             try {
-              const ttl = requireAuth ? presignedUrlTTL : getPresignedUrlTTL(avatar);
-              const presignedUrl = await generatePresignedUrl(avatar, ttl);
+              const ttl = requireAuth ? presignedUrlTTL : getPresignedUrlTTL(currentAvatar);
+              const presignedUrl = await generatePresignedUrl(currentAvatar, ttl);
               setProcessedUrl(presignedUrl);
             } catch (err) {
               console.error('生成预签名URL失败:', err);
               setError('头像加载失败');
               // 回退到代理访问
-              setProcessedUrl(processAvatarUrl(avatar, userId, true));
+              setProcessedUrl(processAvatarUrl(currentAvatar, userId, true));
             } finally {
               setIsLoading(false);
             }
@@ -118,22 +176,22 @@ export function SmartAvatarDisplay({
 
           case 'proxy':
             // 代理访问
-            console.log('🔄 代理访问头像:', avatar);
-            setProcessedUrl(processAvatarUrl(avatar, userId, true));
+            console.log('🔄 代理访问头像:', currentAvatar);
+            setProcessedUrl(processAvatarUrl(currentAvatar, userId, true));
             break;
 
           default:
             // 默认使用智能处理逻辑
-            setProcessedUrl(processAvatarUrl(avatar, userId, true));
+            setProcessedUrl(processAvatarUrl(currentAvatar, userId, true));
         }
       } else {
         // 非S3 URL，使用智能处理逻辑
-        setProcessedUrl(processAvatarUrl(avatar, userId, true));
+        setProcessedUrl(processAvatarUrl(currentAvatar, userId, true));
       }
     };
 
     processUrl();
-  }, [avatar, userId, requireAuth, presignedUrlTTL]);
+  }, [currentAvatar, userId, requireAuth, presignedUrlTTL]);
 
   // 获取头像内容
   const getAvatarContent = () => {
@@ -162,7 +220,8 @@ export function SmartAvatarDisplay({
           onError={(e) => {
             console.error('图片加载失败:', processedUrl);
             setError('加载失败');
-            handleImageError(e);
+            const event = e.nativeEvent;
+            handleImageError(event);
           }}
           onLoad={() => {
             console.log('✅ 头像加载成功:', processedUrl);

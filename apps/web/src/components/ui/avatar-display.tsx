@@ -3,6 +3,8 @@
 import { getAvatarUrlById } from '@/data/preset-avatars';
 import { processAvatarUrl, handleImageError } from '@/lib/image-proxy';
 import { AuthenticatedImage } from './authenticated-image';
+import { useAuthStore } from '@/store/auth-store';
+import { useEffect, useState } from 'react';
 
 interface Badge {
   id: string;
@@ -32,6 +34,66 @@ export function AvatarDisplay({
   badge,
   showBadge = true
 }: AvatarDisplayProps) {
+  const { user } = useAuthStore();
+  const [currentAvatar, setCurrentAvatar] = useState(avatar);
+
+  // 当用户是当前登录用户时，优先使用 auth-store 中的最新头像
+  useEffect(() => {
+    if (user && userId === user.id && user.avatar !== currentAvatar) {
+      console.log('🔄 检测到当前用户头像更新:', {
+        userId,
+        currentUserId: user.id,
+        oldAvatar: currentAvatar,
+        newAvatar: user.avatar
+      });
+      setCurrentAvatar(user.avatar);
+    } else if (!userId || userId !== user?.id) {
+      // 如果不是当前用户或没有用户ID，使用传入的avatar
+      setCurrentAvatar(avatar);
+    }
+  }, [user?.avatar, userId, user?.id, avatar, currentAvatar]);
+
+  // 监听全局头像更新事件
+  useEffect(() => {
+    const handleAvatarUpdate = (event: CustomEvent) => {
+      const { user: updatedUser } = event.detail;
+      if (updatedUser && userId === updatedUser.id) {
+        console.log('🔔 收到全局头像更新事件:', {
+          userId,
+          updatedUserId: updatedUser.id,
+          newAvatar: updatedUser.avatar
+        });
+        setCurrentAvatar(updatedUser.avatar);
+      }
+    };
+
+    const handleUserProfileUpdate = (event: CustomEvent) => {
+      const { user: updatedUser } = event.detail;
+      if (updatedUser && userId === updatedUser.id) {
+        console.log('🔔 收到全局用户信息更新事件:', {
+          userId,
+          updatedUserId: updatedUser.id,
+          newAvatar: updatedUser.avatar
+        });
+        setCurrentAvatar(updatedUser.avatar);
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('avatarUpdated', handleAvatarUpdate as EventListener);
+      window.addEventListener('userProfileUpdated', handleUserProfileUpdate as EventListener);
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('avatarUpdated', handleAvatarUpdate as EventListener);
+        window.removeEventListener('userProfileUpdated', handleUserProfileUpdate as EventListener);
+      }
+    };
+  }, [userId]);
+
+  // 使用当前头像状态而不是直接使用props中的avatar
+  const displayAvatar = currentAvatar;
   // 获取尺寸样式
   const getSizeClass = () => {
     switch (size) {
@@ -74,21 +136,24 @@ export function AvatarDisplay({
 
   // 获取头像内容
   const getAvatarContent = () => {
-    if (avatar) {
+    if (displayAvatar) {
       // 检查是否是头像ID
-      const avatarUrl = getAvatarUrlById(avatar);
+      const avatarUrl = getAvatarUrlById(displayAvatar);
       if (avatarUrl) {
         return (
           <img
             src={avatarUrl}
             alt={alt}
             className="w-full h-full object-cover rounded-full"
-            onError={(e) => handleImageError(e)}
+            onError={(e) => {
+              const event = e.nativeEvent;
+              handleImageError(event);
+            }}
           />
         );
-      } else if (avatar.startsWith('http') || avatar.startsWith('/')) {
+      } else if (displayAvatar.startsWith('http') || displayAvatar.startsWith('/')) {
         // 处理URL格式的头像（包括S3 URL转代理URL）
-        const processedUrl = processAvatarUrl(avatar, userId);
+        const processedUrl = processAvatarUrl(displayAvatar, userId);
         return (
           <AuthenticatedImage
             src={processedUrl}
@@ -105,7 +170,7 @@ export function AvatarDisplay({
         // 可能是旧的emoji格式，显示为文字
         return (
           <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-full text-gray-600">
-            {avatar}
+            {displayAvatar}
           </div>
         );
       }
