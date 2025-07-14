@@ -17,7 +17,7 @@ export const config = {
   database: {
     url:
       process.env.DATABASE_URL ||
-      'postgresql://postgres:Zj233401!@10.255.0.75:5432/zhiweijz?schema=public',
+      'postgresql://postgres:postgres@localhost:5432/zhiweijz?schema=public',
   },
 
   // JWT配置

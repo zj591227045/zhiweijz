@@ -4,6 +4,26 @@
 
 echo "正在启动服务器..."
 
+# 验证关键环境变量
+echo "🔍 验证环境变量配置..."
+if [ -n "$DATABASE_URL" ]; then
+    # 隐藏密码部分显示DATABASE_URL
+    MASKED_URL=$(echo "$DATABASE_URL" | sed 's/:\/\/[^:]*:[^@]*@/:\/\/***:***@/')
+    echo "✅ DATABASE_URL: $MASKED_URL"
+else
+    echo "⚠️ DATABASE_URL 环境变量未设置"
+fi
+
+echo "✅ NODE_ENV: ${NODE_ENV:-未设置}"
+echo "✅ DOCKER_ENV: ${DOCKER_ENV:-未设置}"
+echo "✅ PORT: ${PORT:-未设置}"
+
+# 检查是否存在可能覆盖环境变量的.env文件
+if [ -f ".env" ]; then
+    echo "⚠️ 警告: 检测到.env文件，可能覆盖Docker环境变量"
+    echo "   建议删除容器内的.env文件以确保使用Docker环境变量"
+fi
+
 # 检查环境
 if [ "$DOCKER_ENV" = "true" ]; then
     echo "Docker环境：执行安全数据库迁移"

@@ -22,8 +22,10 @@ COPY server/package*.json ./
 # 安装所有依赖（包括devDependencies用于构建）
 RUN npm install --legacy-peer-deps
 
-# 复制源代码
+# 复制源代码（排除.env文件以避免覆盖Docker环境变量）
 COPY server/ .
+# 删除可能存在的.env文件，确保使用Docker环境变量
+RUN rm -f .env .env.local .env.production .env.development 2>/dev/null || true
 
 # 生成Prisma客户端
 RUN npx prisma generate

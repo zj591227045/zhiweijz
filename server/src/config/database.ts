@@ -1,8 +1,26 @@
 import { PrismaClient } from '@prisma/client';
 import config from './config';
 
+// 确保在Docker环境中使用正确的数据库连接
+const getDatabaseUrl = (): string => {
+  // 优先使用环境变量中的DATABASE_URL
+  if (process.env.DATABASE_URL) {
+    console.log('使用环境变量DATABASE_URL:', process.env.DATABASE_URL.replace(/:[^:@]*@/, ':***@'));
+    return process.env.DATABASE_URL;
+  }
+
+  // 回退到配置文件
+  console.log('使用配置文件database.url:', config.database.url.replace(/:[^:@]*@/, ':***@'));
+  return config.database.url;
+};
+
 // 创建Prisma客户端实例
 const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: getDatabaseUrl(),
+    },
+  },
   log:
     process.env.PRISMA_LOG_LEVEL === 'debug'
       ? ['query', 'info', 'warn', 'error']
