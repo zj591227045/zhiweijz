@@ -97,7 +97,7 @@ class AccountingPointsService {
   }
 
   /**
-   * 消费记账点（优先使用赠送余额）
+   * 消费记账点（优先使用会员余额）
    * 使用数据库事务确保并发安全
    */
   static async deductPoints(userId: string, type: string, pointsNeeded: number): Promise<{
@@ -125,27 +125,7 @@ class AccountingPointsService {
       let newGiftBalance = userPoints.giftBalance;
       let newMemberBalance = userPoints.memberBalance;
 
-      // 优先扣除赠送余额
-      if (remainingPoints > 0 && newGiftBalance > 0) {
-        const deductFromGift = Math.min(remainingPoints, newGiftBalance);
-        newGiftBalance -= deductFromGift;
-        remainingPoints -= deductFromGift;
-
-        // 记录赠送余额扣除
-        await tx.accountingPointsTransactions.create({
-          data: {
-            userId,
-            type,
-            operation: 'deduct',
-            points: deductFromGift,
-            balanceType: 'gift',
-            balanceAfter: newGiftBalance,
-            description: `${this.getTypeDescription(type)}消费记账点`
-          }
-        });
-      }
-
-      // 如果还有剩余，扣除会员余额
+      // 优先扣除会员余额
       if (remainingPoints > 0 && newMemberBalance > 0) {
         const deductFromMember = Math.min(remainingPoints, newMemberBalance);
         newMemberBalance -= deductFromMember;
@@ -160,6 +140,26 @@ class AccountingPointsService {
             points: deductFromMember,
             balanceType: 'member',
             balanceAfter: newMemberBalance,
+            description: `${this.getTypeDescription(type)}消费记账点`
+          }
+        });
+      }
+
+      // 如果还有剩余，扣除赠送余额
+      if (remainingPoints > 0 && newGiftBalance > 0) {
+        const deductFromGift = Math.min(remainingPoints, newGiftBalance);
+        newGiftBalance -= deductFromGift;
+        remainingPoints -= deductFromGift;
+
+        // 记录赠送余额扣除
+        await tx.accountingPointsTransactions.create({
+          data: {
+            userId,
+            type,
+            operation: 'deduct',
+            points: deductFromGift,
+            balanceType: 'gift',
+            balanceAfter: newGiftBalance,
             description: `${this.getTypeDescription(type)}消费记账点`
           }
         });
@@ -548,16 +548,25 @@ class AccountingPointsService {
    * 获取用户交易记录
    */
   static async getUserTransactions(
-    userId: string, 
-    limit: number = 50, 
+    userId: string,
+    limit: number = 50,
     offset: number = 0
   ): Promise<AccountingPointsTransactions[]> {
-    return await prisma.accountingPointsTransactions.findMany({
+    const transactions = await prisma.accountingPointsTransactions.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: limit,
       skip: offset
     });
+
+    // 添加调试日志
+    console.log(`🔍 [AccountingPointsService] 获取用户 ${userId} 的交易记录，数量: ${transactions.length}`);
+    if (transactions.length > 0) {
+      console.log(`🔍 [AccountingPointsService] 第一条记录时间: ${transactions[0].createdAt}`);
+      console.log(`🔍 [AccountingPointsService] 最后一条记录时间: ${transactions[transactions.length - 1].createdAt}`);
+    }
+
+    return transactions;
   }
 
   /**

@@ -572,9 +572,9 @@ export default function AIServicesPage() {
                       <div style={{
                         fontSize: '14px',
                         fontWeight: '600',
-                        color: transaction.type === 'consume' ? 'rgb(239, 68, 68)' : 'rgb(34, 197, 94)'
+                        color: transaction.operation === 'deduct' ? 'rgb(239, 68, 68)' : 'rgb(34, 197, 94)'
                       }}>
-                        {transaction.type === 'consume' ? '-' : '+'}{transaction.points}
+                        {transaction.operation === 'deduct' ? '-' : '+'}{transaction.points}
                       </div>
                     </div>
                   ))}
