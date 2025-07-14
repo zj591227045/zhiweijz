@@ -49,8 +49,6 @@ export interface MultimodalAIConfig {
  * 智能记账多模态配置
  */
 export interface SmartAccountingMultimodalConfig {
-  visionEnabled: boolean;
-  speechEnabled: boolean;
   multimodalPrompt: string;
   // 新增的三个提示词字段
   relevanceCheckPrompt: string;    // 记账相关性判断提示词
@@ -64,7 +62,6 @@ export interface SmartAccountingMultimodalConfig {
 export interface FullMultimodalAIConfig {
   speech: SpeechRecognitionConfig;
   vision: VisionRecognitionConfig;
-  general: MultimodalAIConfig;
   smartAccounting: SmartAccountingMultimodalConfig;
 }
 
@@ -201,17 +198,7 @@ export const DEFAULT_MULTIMODAL_CONFIG: FullMultimodalAIConfig = {
     detailLevel: 'high',
     timeout: 60,
   },
-  general: {
-    enabled: false,
-    dailyLimit: 100,
-    userLimit: 10,
-    retryCount: 3,
-    cacheEnabled: true,
-    cacheTtl: 3600,
-  },
   smartAccounting: {
-    visionEnabled: false,
-    speechEnabled: false,
     multimodalPrompt: '分析图片中的记账信息，提取：1.微信/支付宝付款记录：金额、收款人、备注，并从收款人分析交易类别；2.订单截图（美团/淘宝/京东/外卖/抖音）：内容、金额、时间、收件人；3.发票/票据：内容、分类、金额、时间。返回JSON格式。',
     relevanceCheckPrompt: `你是一个专业的财务助手。请判断以下用户描述是否与记账相关。
 

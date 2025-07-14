@@ -10,7 +10,6 @@ import {
   ChartBarIcon,
   CloudArrowUpIcon,
   XMarkIcon,
-  MicrophoneIcon,
   EyeIcon,
   StarIcon
 } from '@heroicons/react/24/outline';
@@ -47,7 +46,6 @@ const navigation = [
       { name: '调用日志', href: '/admin/llm/logs', current: false }
     ]
   },
-  { name: '多模态AI', href: '/admin/multimodal-ai', icon: MicrophoneIcon, current: false },
   { name: '文件存储', href: '/admin/storage', icon: CloudArrowUpIcon, current: false },
   { name: '公告管理', href: '/admin/announcements', icon: SpeakerWaveIcon, current: false },
   { name: '统计分析', href: '/admin/analytics', icon: ChartBarIcon, current: false },

@@ -613,15 +613,6 @@ export class MultimodalAIController {
             supportedFormats: config.vision.allowedFormats,
             maxFileSize: config.vision.maxFileSize,
           },
-          general: {
-            enabled: config.general.enabled,
-            dailyLimit: config.general.dailyLimit,
-            userLimit: config.general.userLimit,
-          },
-          smartAccounting: {
-            speechEnabled: config.smartAccounting.speechEnabled,
-            visionEnabled: config.smartAccounting.visionEnabled,
-          },
         },
       });
     } catch (error) {

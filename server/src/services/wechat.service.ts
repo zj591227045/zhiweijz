@@ -2117,26 +2117,38 @@ export class WechatService {
    * 格式化记账成功消息
    */
   private formatAccountingSuccessMessage(transaction: any, recognizedText?: string): string {
-    let message = '🎉 记账成功！\n\n';
+    const type = transaction.type === 'EXPENSE' ? '支出' : '收入';
+    const categoryIcon = this.getCategoryIcon(transaction.category?.name);
+    const category = `${categoryIcon}${transaction.category?.name || '未分类'}`;
+    const desc = transaction.description || recognizedText || '';
 
-    if (recognizedText) {
-      message += `识别内容：${recognizedText}\n`;
+    // 格式化日期 - 只显示日期部分
+    const transactionDate = new Date(transaction.date);
+    const dateStr = transactionDate.toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+
+    // 构建预算信息
+    let budgetInfo = '';
+    if (transaction.budget) {
+      // 检查是否是个人预算
+      if (transaction.budget.type === 'PERSONAL' && transaction.budget.user?.name) {
+        budgetInfo = `\n📊 预算：个人预算（${transaction.budget.user.name}）`;
+      } else {
+        budgetInfo = `\n📊 预算：${transaction.budget.name}`;
+      }
     }
 
-    message += `交易类型：${this.getTransactionTypeText(transaction.type)}\n`;
-    message += `金额：¥${transaction.amount}\n`;
-    message += `分类：${transaction.category?.name || '未分类'}\n`;
-
-    if (transaction.description) {
-      message += `备注：${transaction.description}\n`;
-    }
-
-    message += `账本：${transaction.accountBook?.name || '默认账本'}\n`;
-    message += `时间：${new Date(transaction.date).toLocaleString('zh-CN')}\n\n`;
-
-    message += '您可以继续发送语音、图片或文字进行记账。';
-
-    return message;
+    return (
+      `✅ 语音记账成功！\n` +
+      `📝 明细：${desc}\n` +
+      `📅 日期：${dateStr}\n` +
+      `💸 方向：${type}；分类：${category}\n` +
+      `💰 金额：${transaction.amount}元` +
+      budgetInfo
+    );
   }
 
   /**
@@ -2153,5 +2165,43 @@ export class WechatService {
       default:
         return type;
     }
+  }
+
+  /**
+   * 获取分类图标
+   */
+  private getCategoryIcon(categoryName?: string): string {
+    if (!categoryName) return '';
+
+    const iconMap: { [key: string]: string } = {
+      '餐饮': '🍽️',
+      '交通': '🚗',
+      '购物': '🛒',
+      '娱乐': '🎮',
+      '医疗': '🏥',
+      '教育': '📚',
+      '住房': '🏠',
+      '通讯': '📱',
+      '服装': '👕',
+      '美容': '💄',
+      '运动': '⚽',
+      '旅游': '✈️',
+      '礼品': '🎁',
+      '宠物': '🐕',
+      '数码': '💻',
+      '家居': '🏡',
+      '投资': '💰',
+      '保险': '🛡️',
+      '税费': '📋',
+      '其他': '📦',
+      '日用': '🧴',
+      '工资': '💼',
+      '奖金': '🏆',
+      '理财': '📈',
+      '红包': '🧧',
+      '转账': '💸',
+    };
+
+    return iconMap[categoryName] || '';
   }
 }

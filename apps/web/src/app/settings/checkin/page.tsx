@@ -380,7 +380,7 @@ export default function CheckinPage() {
             </div>
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-              <span>记账点可用于AI智能记账和其他AI功能</span>
+              <span>记账点可用于AI智能记账和其他AI功能，未来支持兑换勋章、主题以及社交论坛使用</span>
             </div>
           </div>
         </div>

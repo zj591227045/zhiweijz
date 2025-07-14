@@ -54,18 +54,7 @@ interface VisionConfig {
   timeout: number;
 }
 
-interface GeneralConfig {
-  enabled: boolean;
-  dailyLimit: number;
-  userLimit: number;
-  retryCount: number;
-  cacheEnabled: boolean;
-  cacheTtl: number;
-}
-
 interface SmartAccountingConfig {
-  visionEnabled: boolean;
-  speechEnabled: boolean;
   multimodalPrompt: string;
   // 新增的三个提示词字段
   relevanceCheckPrompt: string;    // 记账相关性判断提示词
@@ -76,7 +65,6 @@ interface SmartAccountingConfig {
 interface MultimodalAIConfig {
   speech: SpeechConfig;
   vision: VisionConfig;
-  general: GeneralConfig;
   smartAccounting: SmartAccountingConfig;
 }
 
@@ -128,17 +116,7 @@ export default function MultimodalAIConfigPage() {
       detailLevel: 'high',
       timeout: 60,
     },
-    general: {
-      enabled: false,
-      dailyLimit: 100,
-      userLimit: 10,
-      retryCount: 3,
-      cacheEnabled: true,
-      cacheTtl: 3600,
-    },
     smartAccounting: {
-      visionEnabled: false,
-      speechEnabled: false,
       multimodalPrompt: '分析图片中的记账信息，提取：1.微信/支付宝付款记录：金额、收款人、备注，并从收款人分析交易类别；2.订单截图（美团/淘宝/京东/外卖/抖音）：内容、金额、时间、收件人；3.发票/票据：内容、分类、金额、时间。返回JSON格式。',
       relevanceCheckPrompt: `你是一个专业的财务助手。请判断以下用户描述是否与记账相关。
 
@@ -336,7 +314,7 @@ export default function MultimodalAIConfigPage() {
       </div>
 
       <Tabs defaultValue="speech" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="speech" className="flex items-center gap-2">
             <MicrophoneIcon className="w-4 h-4" />
             语音识别
@@ -344,10 +322,6 @@ export default function MultimodalAIConfigPage() {
           <TabsTrigger value="vision" className="flex items-center gap-2">
             <EyeIcon className="w-4 h-4" />
             视觉识别
-          </TabsTrigger>
-          <TabsTrigger value="general" className="flex items-center gap-2">
-            <Settings className="w-4 h-4" />
-            通用设置
           </TabsTrigger>
           <TabsTrigger value="smart-accounting" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
@@ -780,119 +754,7 @@ export default function MultimodalAIConfigPage() {
           </Card>
         </TabsContent>
 
-        {/* 通用设置 */}
-        <TabsContent value="general">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="w-5 h-5" />
-                通用设置
-              </CardTitle>
-              <CardDescription>
-                配置多模态AI的通用参数和限制
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="general-enabled">启用多模态AI</Label>
-                  <Switch
-                    id="general-enabled"
-                    checked={config.general.enabled}
-                    onCheckedChange={(checked) =>
-                      setConfig(prev => ({
-                        ...prev,
-                        general: { ...prev.general, enabled: checked }
-                      }))
-                    }
-                  />
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="daily-limit">每日调用限制</Label>
-                    <Input
-                      id="daily-limit"
-                      type="number"
-                      value={config.general.dailyLimit}
-                      onChange={(e) =>
-                        setConfig(prev => ({
-                          ...prev,
-                          general: { ...prev.general, dailyLimit: parseInt(e.target.value) || 0 }
-                        }))
-                      }
-                      placeholder="100"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="user-limit">每用户每日限制</Label>
-                    <Input
-                      id="user-limit"
-                      type="number"
-                      value={config.general.userLimit}
-                      onChange={(e) =>
-                        setConfig(prev => ({
-                          ...prev,
-                          general: { ...prev.general, userLimit: parseInt(e.target.value) || 0 }
-                        }))
-                      }
-                      placeholder="10"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="retry-count">失败重试次数</Label>
-                    <Input
-                      id="retry-count"
-                      type="number"
-                      value={config.general.retryCount}
-                      onChange={(e) =>
-                        setConfig(prev => ({
-                          ...prev,
-                          general: { ...prev.general, retryCount: parseInt(e.target.value) || 0 }
-                        }))
-                      }
-                      placeholder="3"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="cache-ttl">缓存时间(秒)</Label>
-                    <Input
-                      id="cache-ttl"
-                      type="number"
-                      value={config.general.cacheTtl}
-                      onChange={(e) =>
-                        setConfig(prev => ({
-                          ...prev,
-                          general: { ...prev.general, cacheTtl: parseInt(e.target.value) || 0 }
-                        }))
-                      }
-                      placeholder="3600"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="cache-enabled">启用结果缓存</Label>
-                  <Switch
-                    id="cache-enabled"
-                    checked={config.general.cacheEnabled}
-                    onCheckedChange={(checked) =>
-                      setConfig(prev => ({
-                        ...prev,
-                        general: { ...prev.general, cacheEnabled: checked }
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         {/* 智能记账设置 */}
         <TabsContent value="smart-accounting">
@@ -907,39 +769,6 @@ export default function MultimodalAIConfigPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* 基础功能开关 */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="smart-speech-enabled">启用语音记账</Label>
-                  <Switch
-                    id="smart-speech-enabled"
-                    checked={config.smartAccounting.speechEnabled}
-                    onCheckedChange={(checked) =>
-                      setConfig(prev => ({
-                        ...prev,
-                        smartAccounting: { ...prev.smartAccounting, speechEnabled: checked }
-                      }))
-                    }
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="smart-vision-enabled">启用图片记账</Label>
-                  <Switch
-                    id="smart-vision-enabled"
-                    checked={config.smartAccounting.visionEnabled}
-                    onCheckedChange={(checked) =>
-                      setConfig(prev => ({
-                        ...prev,
-                        smartAccounting: { ...prev.smartAccounting, visionEnabled: checked }
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-
-              <Separator />
-
               {/* 提示词配置 */}
               <div className="space-y-6">
                 <div>

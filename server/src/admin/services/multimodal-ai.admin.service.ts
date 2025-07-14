@@ -223,9 +223,6 @@ export class MultimodalAIAdminService {
       configured: boolean;
       connected: boolean;
     };
-    general: {
-      enabled: boolean;
-    };
   }> {
     try {
       const config = await this.configService.getFullConfig();
@@ -255,9 +252,6 @@ export class MultimodalAIAdminService {
           configured: visionConfigured,
           connected: visionConnected,
         },
-        general: {
-          enabled: config.general.enabled,
-        },
       };
     } catch (error) {
       console.error('获取配置状态失败:', error);
@@ -271,7 +265,6 @@ export class MultimodalAIAdminService {
   async updateFullConfig(config: {
     speech?: Partial<SpeechRecognitionConfig>;
     vision?: Partial<VisionRecognitionConfig>;
-    general?: Partial<MultimodalAIConfig>;
     smartAccounting?: Partial<SmartAccountingMultimodalConfig>;
   }): Promise<void> {
     try {
@@ -283,10 +276,6 @@ export class MultimodalAIAdminService {
 
       if (config.vision) {
         updates.push(this.configService.updateVisionConfig(config.vision));
-      }
-
-      if (config.general) {
-        updates.push(this.configService.updateGeneralConfig(config.general));
       }
 
       if (config.smartAccounting) {
