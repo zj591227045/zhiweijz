@@ -4,6 +4,14 @@ import { FileStorageConfigDto, FileStorageType } from '../../models/file-storage
 
 const prisma = new PrismaClient();
 
+export interface ImageCompressionConfig {
+  enabled: boolean;
+  quality: number;
+  maxWidth?: number;
+  maxHeight?: number;
+  format: 'jpeg' | 'png' | 'webp' | 'auto';
+}
+
 export interface StorageConfigData {
   enabled: boolean;
   storageType: FileStorageType;
@@ -17,6 +25,18 @@ export interface StorageConfigData {
   bucketSystem?: string;
   maxFileSize?: number;
   allowedTypes?: string[];
+  // 图片压缩配置
+  imageCompression?: {
+    globalEnabled: boolean;
+    globalQuality: number;
+    avatar: ImageCompressionConfig;
+    attachment: ImageCompressionConfig;
+    multimodal: ImageCompressionConfig;
+    general: ImageCompressionConfig;
+    mobileOptimization: boolean;
+    progressiveJpeg: boolean;
+    preserveMetadata: boolean;
+  };
 }
 
 export interface StorageTestResult {
@@ -66,6 +86,41 @@ export class StorageConfigAdminService {
         },
         maxFileSize: parseInt(configMap.file_max_size || '10485760'),
         allowedTypes: configMap.file_allowed_types?.split(',') || [],
+        imageCompression: {
+          globalEnabled: configMap.image_compression_enabled === 'true',
+          globalQuality: parseInt(configMap.image_compression_global_quality || '80'),
+          avatar: {
+            enabled: configMap.image_compression_avatar_enabled === 'true',
+            quality: parseInt(configMap.image_compression_avatar_quality || '85'),
+            maxWidth: parseInt(configMap.image_compression_avatar_max_width || '512'),
+            maxHeight: parseInt(configMap.image_compression_avatar_max_height || '512'),
+            format: (configMap.image_compression_avatar_format as any) || 'webp',
+          },
+          attachment: {
+            enabled: configMap.image_compression_attachment_enabled === 'true',
+            quality: parseInt(configMap.image_compression_attachment_quality || '80'),
+            maxWidth: parseInt(configMap.image_compression_attachment_max_width || '1920'),
+            maxHeight: parseInt(configMap.image_compression_attachment_max_height || '1920'),
+            format: (configMap.image_compression_attachment_format as any) || 'auto',
+          },
+          multimodal: {
+            enabled: configMap.image_compression_multimodal_enabled === 'true',
+            quality: parseInt(configMap.image_compression_multimodal_quality || '90'),
+            maxWidth: parseInt(configMap.image_compression_multimodal_max_width || '2048'),
+            maxHeight: parseInt(configMap.image_compression_multimodal_max_height || '2048'),
+            format: (configMap.image_compression_multimodal_format as any) || 'auto',
+          },
+          general: {
+            enabled: configMap.image_compression_general_enabled === 'true',
+            quality: parseInt(configMap.image_compression_general_quality || '80'),
+            maxWidth: parseInt(configMap.image_compression_general_max_width || '1920'),
+            maxHeight: parseInt(configMap.image_compression_general_max_height || '1920'),
+            format: (configMap.image_compression_general_format as any) || 'auto',
+          },
+          mobileOptimization: configMap.image_compression_mobile_optimization === 'true',
+          progressiveJpeg: configMap.image_compression_progressive_jpeg === 'true',
+          preserveMetadata: configMap.image_compression_preserve_metadata === 'true',
+        },
       };
     } catch (error) {
       console.error('获取存储配置错误:', error);
@@ -114,6 +169,60 @@ export class StorageConfigAdminService {
         updates.push({ key: 'file_allowed_types', value: data.allowedTypes.join(',') });
       }
 
+      // 图片压缩配置
+      if (data.imageCompression !== undefined) {
+        const compression = data.imageCompression;
+
+        // 全局配置
+        updates.push(
+          { key: 'image_compression_enabled', value: compression.globalEnabled.toString() },
+          { key: 'image_compression_global_quality', value: compression.globalQuality.toString() }
+        );
+
+        // 头像压缩配置
+        updates.push(
+          { key: 'image_compression_avatar_enabled', value: compression.avatar.enabled.toString() },
+          { key: 'image_compression_avatar_quality', value: compression.avatar.quality.toString() },
+          { key: 'image_compression_avatar_max_width', value: compression.avatar.maxWidth?.toString() || '512' },
+          { key: 'image_compression_avatar_max_height', value: compression.avatar.maxHeight?.toString() || '512' },
+          { key: 'image_compression_avatar_format', value: compression.avatar.format }
+        );
+
+        // 交易附件压缩配置
+        updates.push(
+          { key: 'image_compression_attachment_enabled', value: compression.attachment.enabled.toString() },
+          { key: 'image_compression_attachment_quality', value: compression.attachment.quality.toString() },
+          { key: 'image_compression_attachment_max_width', value: compression.attachment.maxWidth?.toString() || '1920' },
+          { key: 'image_compression_attachment_max_height', value: compression.attachment.maxHeight?.toString() || '1920' },
+          { key: 'image_compression_attachment_format', value: compression.attachment.format }
+        );
+
+        // 多模态AI压缩配置
+        updates.push(
+          { key: 'image_compression_multimodal_enabled', value: compression.multimodal.enabled.toString() },
+          { key: 'image_compression_multimodal_quality', value: compression.multimodal.quality.toString() },
+          { key: 'image_compression_multimodal_max_width', value: compression.multimodal.maxWidth?.toString() || '2048' },
+          { key: 'image_compression_multimodal_max_height', value: compression.multimodal.maxHeight?.toString() || '2048' },
+          { key: 'image_compression_multimodal_format', value: compression.multimodal.format }
+        );
+
+        // 通用压缩配置
+        updates.push(
+          { key: 'image_compression_general_enabled', value: compression.general.enabled.toString() },
+          { key: 'image_compression_general_quality', value: compression.general.quality.toString() },
+          { key: 'image_compression_general_max_width', value: compression.general.maxWidth?.toString() || '1920' },
+          { key: 'image_compression_general_max_height', value: compression.general.maxHeight?.toString() || '1920' },
+          { key: 'image_compression_general_format', value: compression.general.format }
+        );
+
+        // 其他配置
+        updates.push(
+          { key: 'image_compression_mobile_optimization', value: compression.mobileOptimization.toString() },
+          { key: 'image_compression_progressive_jpeg', value: compression.progressiveJpeg.toString() },
+          { key: 'image_compression_preserve_metadata', value: compression.preserveMetadata.toString() }
+        );
+      }
+
       // 批量更新配置
       for (const update of updates) {
         await prisma.systemConfig.upsert({
@@ -132,6 +241,16 @@ export class StorageConfigAdminService {
             updatedBy: updatedBy,
           },
         });
+      }
+
+      // 刷新图片压缩服务配置
+      try {
+        const { ImageCompressionService } = await import('../../services/image-compression.service');
+        const compressionService = ImageCompressionService.getInstance();
+        await compressionService.refreshConfig();
+        console.log('图片压缩服务配置已刷新');
+      } catch (error) {
+        console.warn('刷新图片压缩服务配置失败:', error);
       }
 
       console.log('存储配置更新成功');

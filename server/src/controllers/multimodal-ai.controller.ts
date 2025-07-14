@@ -10,6 +10,7 @@ import {
   MultimodalAIError,
   MultimodalAIErrorType,
 } from '../models/multimodal-ai.model';
+import { BUCKET_CONFIG } from '../models/file-storage.model';
 
 /**
  * 多模态AI控制器
@@ -90,9 +91,30 @@ export class MultimodalAIController {
         return;
       }
 
+      // 如果有文件上传，先保存到S3（带压缩）
+      let processedImageFile: Express.Multer.File | undefined = req.file;
+      if (req.file) {
+        try {
+          const uploadResult = await this.fileStorageService.uploadFile(
+            req.file,
+            {
+              bucket: BUCKET_CONFIG.TEMP, // 使用临时存储桶
+              category: 'multimodal',
+              description: '图片识别',
+              expiresIn: 3600, // 1小时后过期
+            },
+            userId
+          );
+          console.log(`图片已保存到S3: ${uploadResult.url}, 文件大小: ${uploadResult.size} bytes`);
+        } catch (uploadError) {
+          console.warn('保存图片到S3失败，使用原始文件进行识别:', uploadError);
+          // 上传失败不影响识别流程，继续使用原始文件
+        }
+      }
+
       // 构建请求
       const visionRequest: VisionRecognitionRequest = {
-        imageFile: req.file,
+        imageFile: processedImageFile,
         imageUrl: req.body.imageUrl,
         imageBase64: req.body.imageBase64,
         prompt: req.body.prompt,
@@ -245,15 +267,34 @@ export class MultimodalAIController {
         return;
       }
 
-      // 1. 获取配置的提示词
+      // 1. 先保存图片到S3（带压缩）
+      let savedImageFile: Express.Multer.File = req.file;
+      try {
+        const uploadResult = await this.fileStorageService.uploadFile(
+          req.file,
+          {
+            bucket: BUCKET_CONFIG.TEMP, // 使用临时存储桶
+            category: 'multimodal',
+            description: '智能记账图片识别',
+            expiresIn: 3600, // 1小时后过期
+          },
+          userId
+        );
+        console.log(`图片已保存到S3: ${uploadResult.url}, 文件大小: ${uploadResult.size} bytes`);
+      } catch (uploadError) {
+        console.warn('保存图片到S3失败，使用原始文件进行识别:', uploadError);
+        // 上传失败不影响识别流程，继续使用原始文件
+      }
+
+      // 2. 获取配置的提示词
       const config = await this.configService.getFullConfig();
-      const imageAnalysisPrompt = config.smartAccounting.imageAnalysisPrompt || 
-        config.smartAccounting.multimodalPrompt || 
+      const imageAnalysisPrompt = config.smartAccounting.imageAnalysisPrompt ||
+        config.smartAccounting.multimodalPrompt ||
         '分析图片中的记账信息，提取：1.微信/支付宝付款记录：金额、收款人、备注，并从收款人分析交易类别；2.订单截图（美团/淘宝/京东/外卖/抖音）：内容、金额、时间、收件人；3.发票/票据：内容、分类、金额、时间。返回JSON格式。';
-      
-      // 2. 图片识别
+
+      // 3. 图片识别
       const visionRequest: VisionRecognitionRequest = {
-        imageFile: req.file,
+        imageFile: savedImageFile,
         prompt: imageAnalysisPrompt,
         detailLevel: 'high',
       };

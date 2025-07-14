@@ -13,6 +13,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Readable } from 'stream';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
+import { ImageCompressionService, CompressionOptions } from './image-compression.service';
 
 export interface S3Config {
   endpoint: string;
@@ -28,6 +29,9 @@ export interface UploadOptions {
   contentType?: string;
   metadata?: Record<string, string>;
   acl?: ObjectCannedACL;
+  compressionStrategy?: 'avatar' | 'attachment' | 'multimodal' | 'general';
+  enableCompression?: boolean;
+  userId?: string;
 }
 
 export interface UploadResult {
@@ -35,6 +39,12 @@ export interface UploadResult {
   key: string;
   url: string;
   etag?: string;
+  compressionInfo?: {
+    originalSize: number;
+    compressedSize: number;
+    compressionRatio: number;
+    format: string;
+  };
 }
 
 export interface PresignedUrlOptions {
@@ -48,6 +58,7 @@ export interface PresignedUrlOptions {
 export class S3StorageService {
   private s3Client: S3Client;
   private config: S3Config;
+  private compressionService: ImageCompressionService;
 
   constructor(config: S3Config) {
     this.config = config;
@@ -60,6 +71,7 @@ export class S3StorageService {
       },
       forcePathStyle: config.forcePathStyle ?? true, // MinIO需要path style
     });
+    this.compressionService = ImageCompressionService.getInstance();
   }
 
   /**
@@ -71,18 +83,85 @@ export class S3StorageService {
   ): Promise<UploadResult> {
     try {
       const key = options.key || this.generateKey();
-      
+      let fileBuffer: Buffer;
+      let compressionInfo: UploadResult['compressionInfo'];
+      let finalContentType = options.contentType;
+
+      // 转换为Buffer
+      if (file instanceof Buffer) {
+        fileBuffer = file;
+      } else if (file instanceof Uint8Array) {
+        fileBuffer = Buffer.from(file);
+      } else if (typeof file === 'string') {
+        fileBuffer = Buffer.from(file);
+      } else {
+        // 如果是Readable流，先转换为Buffer
+        const chunks: Buffer[] = [];
+        for await (const chunk of file) {
+          chunks.push(chunk);
+        }
+        fileBuffer = Buffer.concat(chunks);
+      }
+
+      // 检查是否需要压缩图片
+      const shouldCompress = options.enableCompression !== false &&
+                            options.compressionStrategy &&
+                            options.contentType &&
+                            this.compressionService.isImageFile(options.contentType);
+
+      if (shouldCompress) {
+        try {
+          console.log(`开始压缩图片，策略: ${options.compressionStrategy}, 原始大小: ${fileBuffer.length} bytes`);
+
+          const compressionResult = await this.compressionService.compressImage(fileBuffer, {
+            strategy: options.compressionStrategy!,
+            originalFilename: key,
+            mimeType: options.contentType,
+          }, options.userId);
+
+          fileBuffer = compressionResult.buffer;
+          compressionInfo = {
+            originalSize: compressionResult.originalSize,
+            compressedSize: compressionResult.compressedSize,
+            compressionRatio: compressionResult.compressionRatio,
+            format: compressionResult.format,
+          };
+
+          // 更新Content-Type为压缩后的格式
+          if (compressionResult.format === 'webp') {
+            finalContentType = 'image/webp';
+          } else if (compressionResult.format === 'jpeg') {
+            finalContentType = 'image/jpeg';
+          } else if (compressionResult.format === 'png') {
+            finalContentType = 'image/png';
+          }
+
+          console.log(`图片压缩完成，压缩后大小: ${compressionResult.compressedSize} bytes, 压缩比: ${compressionResult.compressionRatio.toFixed(2)}`);
+        } catch (compressionError) {
+          console.warn('图片压缩失败，使用原始文件:', compressionError);
+          // 压缩失败时使用原始文件
+        }
+      }
+
       const command = new PutObjectCommand({
         Bucket: options.bucket,
         Key: key,
-        Body: file,
-        ContentType: options.contentType,
-        Metadata: options.metadata,
+        Body: fileBuffer,
+        ContentType: finalContentType,
+        Metadata: {
+          ...options.metadata,
+          ...(compressionInfo && {
+            'original-size': compressionInfo.originalSize.toString(),
+            'compressed-size': compressionInfo.compressedSize.toString(),
+            'compression-ratio': compressionInfo.compressionRatio.toString(),
+            'compression-format': compressionInfo.format,
+          }),
+        },
         ...(options.acl && { ACL: options.acl }),
       });
 
       const result = await this.s3Client.send(command);
-      
+
       const url = this.getPublicUrl(options.bucket, key);
 
       return {
@@ -90,6 +169,7 @@ export class S3StorageService {
         key,
         url,
         etag: result.ETag,
+        compressionInfo,
       };
     } catch (error) {
       console.error('S3 upload error:', error);

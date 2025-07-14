@@ -17,6 +17,14 @@ import {
   ChevronDownIcon
 } from '@heroicons/react/24/outline';
 
+interface ImageCompressionConfig {
+  enabled: boolean;
+  quality: number;
+  maxWidth?: number;
+  maxHeight?: number;
+  format: 'jpeg' | 'png' | 'webp' | 'auto';
+}
+
 interface StorageConfig {
   enabled: boolean;
   provider: string;
@@ -32,6 +40,17 @@ interface StorageConfig {
   };
   maxFileSize: number;
   allowedTypes: string[];
+  imageCompression?: {
+    globalEnabled: boolean;
+    globalQuality: number;
+    avatar: ImageCompressionConfig;
+    attachment: ImageCompressionConfig;
+    multimodal: ImageCompressionConfig;
+    general: ImageCompressionConfig;
+    mobileOptimization: boolean;
+    progressiveJpeg: boolean;
+    preserveMetadata: boolean;
+  };
 }
 
 interface StorageStats {
@@ -798,6 +817,348 @@ function StorageConfigTab({
                   placeholder="system-files"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 图片压缩配置 */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+            <div>
+              <h4 className="text-sm font-medium text-gray-900 flex items-center">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                图片压缩设置
+              </h4>
+              <p className="text-sm text-gray-500">配置图片上传时的自动压缩功能，优化移动设备访问体验</p>
+            </div>
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={formData.imageCompression?.globalEnabled || false}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  imageCompression: {
+                    ...formData.imageCompression,
+                    globalEnabled: e.target.checked,
+                    globalQuality: formData.imageCompression?.globalQuality || 80,
+                    avatar: formData.imageCompression?.avatar || { enabled: true, quality: 85, maxWidth: 512, maxHeight: 512, format: 'webp' },
+                    attachment: formData.imageCompression?.attachment || { enabled: true, quality: 80, maxWidth: 1920, maxHeight: 1920, format: 'auto' },
+                    multimodal: formData.imageCompression?.multimodal || { enabled: true, quality: 90, maxWidth: 2048, maxHeight: 2048, format: 'auto' },
+                    general: formData.imageCompression?.general || { enabled: true, quality: 80, maxWidth: 1920, maxHeight: 1920, format: 'auto' },
+                    mobileOptimization: formData.imageCompression?.mobileOptimization || true,
+                    progressiveJpeg: formData.imageCompression?.progressiveJpeg || true,
+                    preserveMetadata: formData.imageCompression?.preserveMetadata || false,
+                  } as any
+                })}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
+              />
+              <span className="ml-3 text-sm font-medium text-gray-700">启用图片压缩</span>
+            </label>
+          </div>
+
+          {formData.imageCompression?.globalEnabled && (
+            <div className="space-y-6">
+              {/* 全局压缩质量 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  全局默认压缩质量: {formData.imageCompression?.globalQuality || 80}%
+                </label>
+                <input
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={formData.imageCompression?.globalQuality || 80}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    imageCompression: {
+                      ...formData.imageCompression,
+                      globalQuality: parseInt(e.target.value)
+                    } as any
+                  })}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>低质量 (小文件)</span>
+                  <span>高质量 (大文件)</span>
+                </div>
+              </div>
+
+              {/* 分类压缩配置 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 头像压缩 */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h5 className="text-sm font-medium text-gray-900">头像压缩</h5>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.imageCompression?.avatar?.enabled || false}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          imageCompression: {
+                            ...formData.imageCompression,
+                            avatar: {
+                              ...formData.imageCompression?.avatar,
+                              enabled: e.target.checked
+                            }
+                          } as any
+                        })}
+                        className="h-3 w-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                    </label>
+                  </div>
+                  {formData.imageCompression?.avatar?.enabled && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">
+                          质量: {formData.imageCompression?.avatar?.quality || 85}%
+                        </label>
+                        <input
+                          type="range"
+                          min="1"
+                          max="100"
+                          value={formData.imageCompression?.avatar?.quality || 85}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            imageCompression: {
+                              ...formData.imageCompression,
+                              avatar: {
+                                ...formData.imageCompression?.avatar,
+                                quality: parseInt(e.target.value)
+                              }
+                            } as any
+                          })}
+                          className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">最大宽度</label>
+                          <input
+                            type="number"
+                            value={formData.imageCompression?.avatar?.maxWidth || 512}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              imageCompression: {
+                                ...formData.imageCompression,
+                                avatar: {
+                                  ...formData.imageCompression?.avatar,
+                                  maxWidth: parseInt(e.target.value)
+                                }
+                              } as any
+                            })}
+                            className="w-full text-xs rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">最大高度</label>
+                          <input
+                            type="number"
+                            value={formData.imageCompression?.avatar?.maxHeight || 512}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              imageCompression: {
+                                ...formData.imageCompression,
+                                avatar: {
+                                  ...formData.imageCompression?.avatar,
+                                  maxHeight: parseInt(e.target.value)
+                                }
+                              } as any
+                            })}
+                            className="w-full text-xs rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">输出格式</label>
+                        <select
+                          value={formData.imageCompression?.avatar?.format || 'webp'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            imageCompression: {
+                              ...formData.imageCompression,
+                              avatar: {
+                                ...formData.imageCompression?.avatar,
+                                format: e.target.value as any
+                              }
+                            } as any
+                          })}
+                          className="w-full text-xs rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        >
+                          <option value="webp">WebP (推荐)</option>
+                          <option value="jpeg">JPEG</option>
+                          <option value="png">PNG</option>
+                          <option value="auto">自动选择</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 交易附件压缩 */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h5 className="text-sm font-medium text-gray-900">交易附件压缩</h5>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.imageCompression?.attachment?.enabled || false}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          imageCompression: {
+                            ...formData.imageCompression,
+                            attachment: {
+                              ...formData.imageCompression?.attachment,
+                              enabled: e.target.checked
+                            }
+                          } as any
+                        })}
+                        className="h-3 w-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                    </label>
+                  </div>
+                  {formData.imageCompression?.attachment?.enabled && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">
+                          质量: {formData.imageCompression?.attachment?.quality || 80}%
+                        </label>
+                        <input
+                          type="range"
+                          min="1"
+                          max="100"
+                          value={formData.imageCompression?.attachment?.quality || 80}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            imageCompression: {
+                              ...formData.imageCompression,
+                              attachment: {
+                                ...formData.imageCompression?.attachment,
+                                quality: parseInt(e.target.value)
+                              }
+                            } as any
+                          })}
+                          className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">最大宽度</label>
+                          <input
+                            type="number"
+                            value={formData.imageCompression?.attachment?.maxWidth || 1920}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              imageCompression: {
+                                ...formData.imageCompression,
+                                attachment: {
+                                  ...formData.imageCompression?.attachment,
+                                  maxWidth: parseInt(e.target.value)
+                                }
+                              } as any
+                            })}
+                            className="w-full text-xs rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">最大高度</label>
+                          <input
+                            type="number"
+                            value={formData.imageCompression?.attachment?.maxHeight || 1920}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              imageCompression: {
+                                ...formData.imageCompression,
+                                attachment: {
+                                  ...formData.imageCompression?.attachment,
+                                  maxHeight: parseInt(e.target.value)
+                                }
+                              } as any
+                            })}
+                            className="w-full text-xs rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">输出格式</label>
+                        <select
+                          value={formData.imageCompression?.attachment?.format || 'auto'}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            imageCompression: {
+                              ...formData.imageCompression,
+                              attachment: {
+                                ...formData.imageCompression?.attachment,
+                                format: e.target.value as any
+                              }
+                            } as any
+                          })}
+                          className="w-full text-xs rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        >
+                          <option value="auto">自动选择 (推荐)</option>
+                          <option value="webp">WebP</option>
+                          <option value="jpeg">JPEG</option>
+                          <option value="png">PNG</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 高级选项 */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <h5 className="text-sm font-medium text-gray-900 mb-3">高级选项</h5>
+                <div className="space-y-3">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.imageCompression?.mobileOptimization || false}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        imageCompression: {
+                          ...formData.imageCompression,
+                          mobileOptimization: e.target.checked
+                        } as any
+                      })}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="ml-3 text-sm text-gray-700">移动设备优化</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.imageCompression?.progressiveJpeg || false}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        imageCompression: {
+                          ...formData.imageCompression,
+                          progressiveJpeg: e.target.checked
+                        } as any
+                      })}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="ml-3 text-sm text-gray-700">渐进式JPEG</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.imageCompression?.preserveMetadata || false}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        imageCompression: {
+                          ...formData.imageCompression,
+                          preserveMetadata: e.target.checked
+                        } as any
+                      })}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="ml-3 text-sm text-gray-700">保留图片元数据</span>
+                  </label>
+                </div>
               </div>
             </div>
           )}

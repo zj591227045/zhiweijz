@@ -130,6 +130,17 @@ export interface PresignedUrlResponseDto {
 }
 
 /**
+ * 图片压缩配置
+ */
+export interface ImageCompressionConfig {
+  enabled: boolean;
+  quality: number;
+  maxWidth?: number;
+  maxHeight?: number;
+  format: 'jpeg' | 'png' | 'webp' | 'auto';
+}
+
+/**
  * 文件存储配置DTO
  */
 export interface FileStorageConfigDto {
@@ -147,6 +158,17 @@ export interface FileStorageConfigDto {
   };
   maxFileSize: number;
   allowedTypes: string[];
+  imageCompression?: {
+    globalEnabled: boolean;
+    globalQuality: number;
+    avatar: ImageCompressionConfig;
+    attachment: ImageCompressionConfig;
+    multimodal: ImageCompressionConfig;
+    general: ImageCompressionConfig;
+    mobileOptimization: boolean;
+    progressiveJpeg: boolean;
+    preserveMetadata: boolean;
+  };
 }
 
 /**

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import { MultimodalAIController } from '../controllers/multimodal-ai.controller';
 import { authenticate } from '../middlewares/auth.middleware';
+import { s3FileUpload } from '../middlewares/upload.middleware';
 
 const router = Router();
 const multimodalAIController = new MultimodalAIController();
@@ -43,7 +44,7 @@ router.post(
  */
 router.post(
   '/image-recognition',
-  upload.single('image'),
+  s3FileUpload.single('image'),
   multimodalAIController.imageRecognition.bind(multimodalAIController)
 );
 
@@ -65,7 +66,7 @@ router.post(
  */
 router.post(
   '/smart-accounting/vision',
-  upload.single('image'),
+  s3FileUpload.single('image'),
   multimodalAIController.smartAccountingVision.bind(multimodalAIController)
 );
 

@@ -46,6 +46,7 @@ model User {
   pointsTransactions   AccountingPointsTransactions[]
   checkins             UserCheckins[]
   membership           UserMembership?
+  compressionStats     CompressionStats[]
 
   @@index([isActive], map: "idx_users_is_active")
   @@map("users")
@@ -788,6 +789,30 @@ model TransactionAttachment {
   @@index([attachmentType], map: "idx_transaction_attachments_type")
   @@index([createdAt(sort: Desc)], map: "idx_transaction_attachments_created_at")
   @@map("transaction_attachments")
+}
+
+// 图片压缩统计模型
+model CompressionStats {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String   @map("user_id")
+  strategy          String   // 压缩策略: avatar, attachment, multimodal, general
+  originalSize      BigInt   @map("original_size")
+  compressedSize    BigInt   @map("compressed_size")
+  compressionRatio  Decimal  @map("compression_ratio") @db.Decimal(5, 2)
+  originalFormat    String   @map("original_format")
+  compressedFormat  String   @map("compressed_format")
+  processingTime    Int      @default(0) @map("processing_time")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // 关联用户
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_compression_stats_user_id")
+  @@index([strategy], map: "idx_compression_stats_strategy")
+  @@index([createdAt], map: "idx_compression_stats_created_at")
+  @@index([userId, createdAt], map: "idx_compression_stats_user_created")
+  @@map("compression_stats")
 }
 
 // 记账点系统相关模型

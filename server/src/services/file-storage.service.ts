@@ -166,11 +166,24 @@ export class FileStorageService {
     // 确保文件名正确编码（处理中文字符）
     const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
 
-    // 上传到S3
+    // 确定压缩策略
+    let compressionStrategy: 'avatar' | 'attachment' | 'multimodal' | 'general' = 'general';
+    if (uploadRequest.bucket === BUCKET_CONFIG.AVATARS) {
+      compressionStrategy = 'avatar';
+    } else if (uploadRequest.bucket === BUCKET_CONFIG.ATTACHMENTS) {
+      compressionStrategy = 'attachment';
+    } else if (uploadRequest.category === 'multimodal' || uploadRequest.category === 'ai-recognition') {
+      compressionStrategy = 'multimodal';
+    }
+
+    // 上传到S3（带压缩）
     const uploadResult = await this.s3Service.uploadFile(file.buffer, {
       bucket: uploadRequest.bucket,
       key,
       contentType: file.mimetype,
+      compressionStrategy,
+      enableCompression: true,
+      userId: uploadedBy,
       metadata: {
         originalName: originalName,
         uploadedBy,
