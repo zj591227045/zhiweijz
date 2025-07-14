@@ -24,16 +24,31 @@ export const parseWechatXML = async (req: Request, res: Response, next: NextFunc
     req.on('end', async () => {
       try {
         if (xmlData) {
+          // 记录原始XML数据用于调试
+          console.log('🔍 [微信XML调试] 收到原始XML数据:');
+          console.log('='.repeat(50));
+          console.log(xmlData);
+          console.log('='.repeat(50));
+
           // 解析XML
           const result = (await parseXML(xmlData)) as any;
+
+          // 记录解析后的结果
+          console.log('🔍 [微信XML调试] 解析后的结果:');
+          console.log(JSON.stringify(result, null, 2));
 
           // 将解析后的数据添加到请求对象
           req.body = result.xml || {};
           req.rawBody = xmlData;
+
+          // 记录最终的req.body
+          console.log('🔍 [微信XML调试] 最终的req.body:');
+          console.log(JSON.stringify(req.body, null, 2));
         }
         next();
       } catch (error) {
         console.error('XML解析失败:', error);
+        console.error('失败的XML数据:', xmlData);
         res.status(400).send('Invalid XML format');
       }
     });

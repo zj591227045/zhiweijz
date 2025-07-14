@@ -89,6 +89,10 @@ export class WechatController {
       // 获取解析后的消息数据并转换数组为字符串
       const rawMessage = req.body as any;
 
+      // 记录原始消息数据用于调试
+      console.log('🔍 [微信消息调试] 原始消息数据 (rawMessage):');
+      console.log(JSON.stringify(rawMessage, null, 2));
+
       // 转换微信XML解析后的数组格式为字符串
       const message: WechatMessage = {
         ToUserName: Array.isArray(rawMessage.ToUserName)
@@ -113,6 +117,10 @@ export class WechatController {
         PicUrl: Array.isArray(rawMessage.PicUrl) ? rawMessage.PicUrl[0] : rawMessage.PicUrl,
       };
 
+      // 记录转换后的消息数据用于调试
+      console.log('🔍 [微信消息调试] 转换后的消息数据 (message):');
+      console.log(JSON.stringify(message, null, 2));
+
       if (!message || !message.FromUserName) {
         console.log('微信消息数据无效');
         return res.send('success');
@@ -134,6 +142,14 @@ export class WechatController {
         fromUser: message.FromUserName,
         msgType: message.MsgType,
         content: message.Content || message.Event,
+        // 语音消息相关字段
+        mediaId: message.MediaId,
+        format: message.Format,
+        recognition: message.Recognition, // 这是微信语音转文字的结果
+        // 图片消息相关字段
+        picUrl: message.PicUrl,
+        // 其他字段
+        msgId: message.MsgId,
         timestamp: new Date().toISOString(),
       });
 
