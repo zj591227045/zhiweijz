@@ -232,7 +232,7 @@ export default function MembershipCenter() {
                       </div>
                     )}
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="bg-blue-50 rounded-lg p-4">
                         <div className="flex items-center">
                           <GiftIcon className="h-8 w-8 text-blue-600" />
@@ -254,16 +254,6 @@ export default function MembershipCenter() {
                             {accountingLoading && (
                               <p className="text-xs text-green-700">更新中...</p>
                             )}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="flex items-center">
-                          <CurrencyDollarIcon className="h-8 w-8 text-gray-600" />
-                          <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-900">已使用</p>
-                            <p className="text-2xl font-bold text-gray-900">{membership.usedPoints}</p>
                           </div>
                         </div>
                       </div>
