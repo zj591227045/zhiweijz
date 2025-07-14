@@ -36,13 +36,14 @@ const navigation = [
     ]
   },
   {
-    name: 'LLM管理',
-    href: '/admin/llm',
+    name: 'AI服务管理',
+    href: '/admin/ai-services',
     icon: CogIcon,
     current: false,
     children: [
-      { name: '配置管理', href: '/admin/llm', current: false },
-      { name: '多提供商管理', href: '/admin/multi-provider-llm', current: false },
+      { name: 'LLM基本配置', href: '/admin/llm', current: false },
+      { name: 'LLM负载均衡配置', href: '/admin/multi-provider-llm', current: false },
+      { name: '多模态AI配置', href: '/admin/multimodal-ai', current: false },
       { name: '调用日志', href: '/admin/llm/logs', current: false }
     ]
   },

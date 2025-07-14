@@ -9,6 +9,8 @@ export interface LLMCallData {
   accountBookName?: string;
   provider: string;
   model: string;
+  source?: 'App' | 'WeChat' | 'API';
+  aiServiceType?: 'llm' | 'speech' | 'vision';
   promptTokens?: number;
   completionTokens?: number;
   totalTokens?: number;
@@ -35,6 +37,8 @@ export class LLMLoggingService {
           accountBookName: data.accountBookName,
           provider: data.provider,
           model: data.model,
+          source: data.source || 'App',
+          aiServiceType: data.aiServiceType || 'llm',
           promptTokens: data.promptTokens || 0,
           completionTokens: data.completionTokens || 0,
           totalTokens: data.totalTokens || 0,

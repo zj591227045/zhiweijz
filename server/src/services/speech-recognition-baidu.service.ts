@@ -188,24 +188,72 @@ export class BaiduSpeechRecognitionService {
       if (audioFormat === 'webm') {
         throw new MultimodalAIError(
           MultimodalAIErrorType.UNSUPPORTED_FORMAT,
-          '百度云语音识别不支持webm格式。请使用wav、mp3、flac、aac、m4a格式的音频文件。如果您使用的是浏览器录音，建议在前端转换为wav格式后再上传。'
+          '百度云语音识别不支持webm格式。支持的格式：pcm、wav、amr、m4a。如果您使用的是浏览器录音，建议在前端转换为wav格式后再上传。'
         );
       }
       
+      // 检测音频文件的实际参数
+      let actualSampleRate = 16000; // 默认采样率
+      let actualChannels = 1; // 默认单声道
+
       // 将音频文件转换为base64
       const audioBase64 = audioBuffer.toString('base64');
-      
-      // 构建请求数据 - 按照百度云API规范
+
+      // 如果是AMR格式，添加详细的音频参数检测
+      if (audioFormat === 'amr') {
+        const amrInfo = this.analyzeAmrFile(audioBuffer);
+        actualSampleRate = amrInfo.sampleRate; // 使用检测到的实际采样率
+        actualChannels = amrInfo.channels;
+
+        console.log(`🔍 [AMR详细分析] AMR文件参数:`, {
+          文件头: audioBuffer.slice(0, 10).toString('hex'),
+          文件大小: audioBuffer.length,
+          Base64长度: audioBase64.length,
+          MIME类型: request.audioFile.mimetype,
+          AMR格式: amrInfo.format,
+          采样率: amrInfo.sampleRate,
+          声道数: amrInfo.channels,
+          比特率: amrInfo.bitRate,
+          编码模式: amrInfo.mode,
+          帧数: amrInfo.frameCount,
+          估计时长: amrInfo.estimatedDuration,
+          是否符合百度要求: amrInfo.baiduCompatible,
+          兼容性问题: amrInfo.compatibilityIssues
+        });
+
+        // 检查兼容性问题
+        if (!amrInfo.baiduCompatible) {
+          throw new MultimodalAIError(
+            MultimodalAIErrorType.UNSUPPORTED_FORMAT,
+            `AMR文件不符合百度API要求: ${amrInfo.compatibilityIssues.join(', ')}`
+          );
+        }
+      }
+
+      // 构建请求数据 - 按照百度云官方文档JSON格式规范
       const requestData = {
         format: audioFormat,
-        rate: 16000, // 采样率，支持 8000 或 16000
-        channel: 1,  // 声道数，仅支持单声道
+        rate: actualSampleRate, // 使用检测到的实际采样率
+        channel: actualChannels, // 使用检测到的实际声道数
         cuid: crypto.randomUUID(), // 用户唯一标识
         token: accessToken,
         speech: audioBase64,
         len: audioBuffer.length,
         dev_pid: this.getDeviceId(config.model, request.language),
       };
+
+      // 添加调试日志
+      console.log(`🔍 [百度语音API] 请求参数详情:`, {
+        format: requestData.format,
+        rate: requestData.rate,
+        channel: requestData.channel,
+        len: requestData.len,
+        dev_pid: requestData.dev_pid,
+        speechLength: audioBase64.length,
+        originalFileName: request.audioFile.originalname,
+        detectedFormat: audioFormat,
+        fileSize: audioBuffer.length
+      });
 
       // 调用百度云语音识别API - 使用标准版API
       const response = await axios.post(
@@ -315,13 +363,13 @@ export class BaiduSpeechRecognitionService {
 
     // 检查文件格式 - 百度云不支持webm，需要明确排除
     const fileExtension = this.getFileExtension(file.originalname);
-    const baiduSupportedFormats = ['mp3', 'wav', 'pcm', 'flac', 'aac', 'm4a']; // 百度云真正支持的格式
+    const baiduSupportedFormats = ['pcm', 'wav', 'amr', 'm4a']; // 百度云官方支持的格式：pcm、wav、amr、m4a
     
     if (!baiduSupportedFormats.includes(fileExtension)) {
       if (fileExtension === 'webm') {
         throw new MultimodalAIError(
           MultimodalAIErrorType.UNSUPPORTED_FORMAT,
-          '百度云语音识别不支持webm格式。建议使用wav、mp3、flac、aac、m4a格式。如果您使用的是浏览器录音，请在前端将webm转换为wav格式后再上传。'
+          '百度云语音识别不支持webm格式。支持的格式：pcm、wav、amr、m4a。如果您使用的是浏览器录音，请在前端将webm转换为wav格式后再上传。'
         );
       } else {
         throw new MultimodalAIError(
@@ -337,55 +385,54 @@ export class BaiduSpeechRecognitionService {
    */
   private getAudioFormat(filename: string): string {
     const extension = this.getFileExtension(filename);
-    
-    // 百度云支持的格式映射
+
+    // 百度云支持的格式映射（根据官方文档：pcm、wav、amr、m4a）
     const formatMap: Record<string, string> = {
-      'mp3': 'mp3',
       'wav': 'wav',
       'pcm': 'pcm',
-      'flac': 'flac',
-      'aac': 'aac',
-      'm4a': 'aac',
+      'amr': 'amr', // 微信语音消息格式
+      'm4a': 'm4a', // 微信小程序录音格式
       'webm': 'webm', // 虽然不支持，但需要识别以便给出友好错误信息
     };
 
-    return formatMap[extension] || 'wav';
+    const detectedFormat = formatMap[extension] || 'wav';
+    console.log(`🔍 [格式检测] 文件名: ${filename}, 扩展名: ${extension}, 映射格式: ${detectedFormat}`);
+
+    return detectedFormat;
   }
 
   /**
    * 获取设备ID (用于选择语言和模型)
    * 百度云语音识别支持的dev_pid参数说明：
+   * 根据官方文档：https://ai.baidu.com/ai-doc/SPEECH/Jlbxdezuf
    */
   private getDeviceId(model: string, language?: string): number {
     // 根据百度云官方文档的dev_pid定义：
-    
-    // 普通话模型
+    // 1537: 普通话(纯中文识别) - 语音近场识别模型 - 有标点 - 支持自定义词库
+    // 1737: 英语 - 英语模型 - 无标点 - 不支持自定义词库
+    // 1637: 粤语 - 粤语模型 - 有标点 - 不支持自定义词库
+    // 1837: 四川话 - 四川话模型 - 有标点 - 不支持自定义词库
+
+    // 普通话模型 - 使用标准版API，不使用极速版
     if (!language || language.includes('zh') || language.includes('cn')) {
-      switch (model) {
-        case 'pro':
-          return 80001; // 极速版ASR_PRO（普通话专业版）
-        case 'longform':
-          return 1936; // 普通话远场/长语音识别
-        default:
-          return 1537; // 普通话(支持简单的英文识别)
-      }
+      return 1537; // 普通话(纯中文识别)
     }
-    
+
     // 英语模型
     if (language === 'en' || language === 'en-US') {
       return 1737; // 英语
     }
-    
+
     // 粤语模型
     if (language === 'yue' || language === 'zh-HK' || language === 'zh-TW') {
       return 1637; // 粤语
     }
-    
+
     // 四川话
     if (language === 'zh-SC') {
       return 1837; // 四川话
     }
-    
+
     // 默认返回普通话
     return 1537;
   }
@@ -394,6 +441,126 @@ export class BaiduSpeechRecognitionService {
    * 获取文件扩展名
    */
   private getFileExtension(filename: string): string {
-    return filename.split('.').pop()?.toLowerCase() || '';
+    const extension = filename.split('.').pop()?.toLowerCase() || '';
+    console.log(`🔍 [扩展名提取] 文件名: ${filename}, 提取的扩展名: ${extension}`);
+    return extension;
+  }
+
+  /**
+   * 分析AMR文件的详细参数
+   */
+  private analyzeAmrFile(buffer: Buffer): {
+    format: string;
+    sampleRate: number;
+    channels: number;
+    bitRate: number;
+    mode: string;
+    frameCount: number;
+    estimatedDuration: number;
+    baiduCompatible: boolean;
+    compatibilityIssues: string[];
+  } {
+    const issues: string[] = [];
+
+    // AMR文件头分析
+    const header = buffer.slice(0, 6).toString('ascii');
+    let format = 'unknown';
+    let sampleRate = 8000; // AMR默认采样率
+    let channels = 1; // AMR固定单声道
+
+    // 检查AMR文件头
+    if (header === '#!AMR\n') {
+      format = 'AMR-NB'; // Narrowband (8kHz)
+      sampleRate = 8000;
+    } else if (header === '#!AMR-WB\n') {
+      format = 'AMR-WB'; // Wideband (16kHz)
+      sampleRate = 16000;
+    } else {
+      format = 'Invalid AMR';
+      issues.push('无效的AMR文件头');
+    }
+
+    // 分析AMR帧
+    let frameCount = 0;
+    let totalBits = 0;
+    let offset = 6; // 跳过文件头
+
+    // AMR-NB模式对应的比特率 (bits per frame)
+    const amrNbModes = [95, 103, 118, 134, 148, 159, 204, 244]; // bits per 20ms frame
+    // AMR-WB模式对应的比特率
+    const amrWbModes = [132, 177, 253, 285, 317, 365, 397, 461, 477]; // bits per 20ms frame
+
+    while (offset < buffer.length) {
+      if (offset >= buffer.length) break;
+
+      const frameHeader = buffer[offset];
+      const mode = (frameHeader >> 3) & 0x0F; // 提取模式位
+
+      let frameBits = 0;
+      if (format === 'AMR-NB' && mode < amrNbModes.length) {
+        frameBits = amrNbModes[mode];
+      } else if (format === 'AMR-WB' && mode < amrWbModes.length) {
+        frameBits = amrWbModes[mode];
+      }
+
+      if (frameBits > 0) {
+        totalBits += frameBits;
+        frameCount++;
+        // 每帧的字节数 = (比特数 + 7) / 8，再加上1字节的帧头
+        const frameBytes = Math.ceil(frameBits / 8) + 1;
+        offset += frameBytes;
+      } else {
+        // 无法解析的帧，跳出循环
+        break;
+      }
+
+      // 防止无限循环
+      if (frameCount > 3000) break; // 最多60秒 * 50帧/秒
+    }
+
+    // 计算平均比特率和时长
+    const estimatedDuration = frameCount * 0.02; // 每帧20ms
+    const avgBitRate = frameCount > 0 ? Math.round(totalBits / frameCount) : 0;
+
+    // 检查百度API兼容性
+    let baiduCompatible = true;
+
+    // 百度API要求检查
+    if (format === 'Invalid AMR') {
+      baiduCompatible = false;
+      issues.push('文件格式不是有效的AMR');
+    }
+
+    if (sampleRate !== 8000 && sampleRate !== 16000) {
+      baiduCompatible = false;
+      issues.push(`采样率${sampleRate}Hz不被支持，百度API仅支持8000Hz或16000Hz`);
+    }
+
+    if (channels !== 1) {
+      baiduCompatible = false;
+      issues.push(`声道数${channels}不被支持，百度API仅支持单声道`);
+    }
+
+    if (estimatedDuration > 60) {
+      baiduCompatible = false;
+      issues.push(`音频时长${estimatedDuration.toFixed(1)}秒超过60秒限制`);
+    }
+
+    if (buffer.length > 10 * 1024 * 1024) { // 10MB
+      baiduCompatible = false;
+      issues.push(`文件大小${(buffer.length / 1024 / 1024).toFixed(1)}MB过大`);
+    }
+
+    return {
+      format,
+      sampleRate,
+      channels,
+      bitRate: avgBitRate,
+      mode: format,
+      frameCount,
+      estimatedDuration,
+      baiduCompatible,
+      compatibilityIssues: issues
+    };
   }
 }

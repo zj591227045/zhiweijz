@@ -10,67 +10,83 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { 
-  DocumentTextIcon as FileText, 
-  FunnelIcon as Filter, 
+  DocumentTextIcon as FileText,
+  FunnelIcon as Filter,
+  ArrowDownTrayIcon as Download,
   ArrowPathIcon as RefreshCcw,
-  EyeIcon as Eye,
-  ClockIcon as Clock,
+  MagnifyingGlassIcon as Search,
+  CalendarIcon as Calendar,
   UserIcon as User,
-  ExclamationTriangleIcon as AlertTriangle,
-  CheckCircleIcon as CheckCircle,
-  XCircleIcon as XCircle,
-  CpuChipIcon as Cpu
+  CpuChipIcon as Cpu,
+  CheckCircleIcon,
+  XCircleIcon,
+  ClockIcon
 } from '@heroicons/react/24/outline';
 import MobileNotSupported from '@/components/admin/MobileNotSupported';
 import { useAdminAuth } from '@/store/admin/useAdminAuth';
 import { adminApi, ADMIN_API_ENDPOINTS } from '@/lib/admin-api-client';
 
-// 调试信息：检查环境变量
-console.log('LLM Logs Page - Environment Variables:', {
-  IS_MOBILE_BUILD: process.env.IS_MOBILE_BUILD,
-  NODE_ENV: process.env.NODE_ENV,
-  DOCKER_ENV: process.env.DOCKER_ENV
-});
-
 interface LLMLog {
   id: string;
-  userId: string;
-  userName?: string;
-  accountBookId?: string;
-  accountBookName?: string;
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  account_book_id?: string;
+  account_book_name?: string;
   provider: string;
   model: string;
-  userMessage: string;
-  assistantMessage?: string;
-  isSuccess: boolean;
-  promptTokens?: number;
-  completionTokens?: number;
-  totalTokens?: number;
-  duration?: number;
+  source: string;
+  ai_service_type: string;
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  total_tokens: number;
+  user_message?: string;
+  assistant_message?: string;
+  system_prompt?: string;
+  is_success: boolean;
+  error_message?: string;
+  duration: number;
   cost?: number;
-  serviceType?: string;
-  createdAt: string;
-  user?: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  accountBook?: {
-    id: string;
-    name: string;
-    type: string;
+  created_at: string;
+  // 多模态AI字段
+  input_size?: number;
+  input_format?: string;
+  output_text?: string;
+  confidence_score?: number;
+  log_type: string;
+}
+
+interface LogsResponse {
+  logs: LLMLog[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
   };
 }
 
-interface LogFilters {
-  status: string;
-  provider: string;
-  userEmail: string;
-  serviceType: string;
-  dateFrom: string;
-  dateTo: string;
-  timeRange: string;
+interface LogStatistics {
+  overview: {
+    totalCalls: number;
+    successCalls: number;
+    failedCalls: number;
+    totalTokens: number;
+    totalCost: number;
+    avgDuration: number;
+  };
+  byServiceType: {
+    llm: number;
+    speech: number;
+    vision: number;
+  };
+  bySource: {
+    App: number;
+    WeChat: number;
+    API: number;
+  };
 }
 
 export default function LLMLogsPage() {
@@ -79,115 +95,53 @@ export default function LLMLogsPage() {
     return <MobileNotSupported />;
   }
 
+  // Web端完整功能
   const { isAuthenticated, token } = useAdminAuth();
   const [logs, setLogs] = useState<LLMLog[]>([]);
+  const [statistics, setStatistics] = useState<LogStatistics | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedLog, setSelectedLog] = useState<LLMLog | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [globalStats, setGlobalStats] = useState({
-    totalCalls: 0,
-    successCalls: 0,
-    failedCalls: 0,
-    totalTokens: 0,
-    promptTokens: 0,
-    completionTokens: 0,
-    avgResponseTime: 0
+  const [exporting, setExporting] = useState(false);
+  
+  // 分页状态
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 20,
+    total: 0,
+    totalPages: 0
   });
-  const [filters, setFilters] = useState<LogFilters>({
-    status: '',
-    provider: '',
+
+  // 筛选状态
+  const [filters, setFilters] = useState({
     userEmail: '',
+    provider: '',
+    model: '',
+    isSuccess: '',
+    aiServiceType: '',
     serviceType: '',
-    dateFrom: '',
-    dateTo: '',
-    timeRange: ''
+    startDate: '',
+    endDate: '',
+    search: ''
   });
 
-  // 处理时间范围筛选
-  const handleTimeRangeChange = (range: string) => {
-    const now = new Date();
-    let dateFrom = '';
-    let dateTo = now.toISOString().split('T')[0]; // 今天
-
-    switch (range) {
-      case '1':
-        dateFrom = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // 1天前
-        break;
-      case '7':
-        dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // 7天前
-        break;
-      case '30':
-        dateFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // 30天前
-        break;
-      default:
-        dateFrom = '';
-        dateTo = '';
-    }
-
-    setFilters(prev => ({
-      ...prev,
-      timeRange: range,
-      dateFrom,
-      dateTo
-    }));
-  };
-
-  // 计算token统计
-  const getTokenStats = () => {
-    const totalTokens = logs.reduce((sum, log) => {
-      return sum + (log.totalTokens || 0);
-    }, 0);
-
-    const promptTokens = logs.reduce((sum, log) => {
-      return sum + (log.promptTokens || 0);
-    }, 0);
-
-    const completionTokens = logs.reduce((sum, log) => {
-      return sum + (log.completionTokens || 0);
-    }, 0);
-
-    return { totalTokens, promptTokens, completionTokens };
-  };
-
-  // 格式化token数量
-  const formatTokenCount = (count: number) => {
-    if (count >= 1000000) {
-      return `${(count / 1000000).toFixed(1)}M`;
-    } else if (count >= 1000) {
-      return `${(count / 1000).toFixed(1)}K`;
-    }
-    return count.toString();
-  };
-
-  // 加载日志数据
+  // 加载日志列表
   const loadLogs = async (page = 1) => {
     setLoading(true);
     try {
-      const params: Record<string, any> = {
+      const params = new URLSearchParams({
         page: page.toString(),
-        pageSize: '20'
-      };
+        pageSize: pagination.pageSize.toString(),
+        ...Object.fromEntries(
+          Object.entries(filters).filter(([_, value]) => value !== '')
+        )
+      });
+
+      const response = await adminApi.get(`${ADMIN_API_ENDPOINTS.AI_CALL_LOGS}?${params}`);
       
-      // 添加过滤条件
-      if (filters.status) params.isSuccess = filters.status === 'success' ? 'true' : 'false';
-      if (filters.provider) params.provider = filters.provider;
-      if (filters.userEmail) params.userEmail = filters.userEmail;
-      if (filters.serviceType) params.serviceType = filters.serviceType;
-      if (filters.dateFrom) params.startDate = filters.dateFrom;
-      if (filters.dateTo) params.endDate = filters.dateTo;
-
-      const response = await adminApi.getWithParams(ADMIN_API_ENDPOINTS.LLM_LOGS, params);
-
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          setLogs(data.data.logs);
-          setCurrentPage(data.data.pagination.page);
-          setTotalPages(data.data.pagination.totalPages);
-          setTotalCount(data.data.pagination.total);
+          setLogs(data.data.logs || []);
+          setPagination(data.data.pagination || pagination);
         } else {
           toast.error(data.message || '获取日志失败');
         }
@@ -195,157 +149,118 @@ export default function LLMLogsPage() {
         toast.error('获取日志失败');
       }
     } catch (error) {
-      console.error('获取日志错误:', error);
+      console.error('获取LLM日志错误:', error);
       toast.error('获取日志失败');
     } finally {
       setLoading(false);
     }
   };
 
-  // 清空日志
-  const clearLogs = async () => {
-    if (!confirm('确定要清空所有LLM调用日志吗？此操作不可恢复。')) {
-      return;
-    }
-
+  // 加载统计数据
+  const loadStatistics = async () => {
     try {
-      const response = await adminApi.post(ADMIN_API_ENDPOINTS.LLM_LOGS_CLEANUP);
+      const params = new URLSearchParams();
+      if (filters.startDate) params.append('startDate', filters.startDate);
+      if (filters.endDate) params.append('endDate', filters.endDate);
 
+      const response = await adminApi.get(`${ADMIN_API_ENDPOINTS.AI_CALL_LOGS}/statistics?${params}`);
+      
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          toast.success('日志清空成功');
-          loadLogs(1);
-        } else {
-          toast.error(data.message || '清空日志失败');
+          setStatistics(data.data.statistics);
         }
-      } else {
-        toast.error('清空日志失败');
       }
     } catch (error) {
-      console.error('清空日志错误:', error);
-      toast.error('清空日志失败');
+      console.error('获取统计数据错误:', error);
     }
   };
 
+  // 导出日志
+  const exportLogs = async () => {
+    setExporting(true);
+    try {
+      const params = new URLSearchParams(
+        Object.fromEntries(
+          Object.entries(filters).filter(([_, value]) => value !== '')
+        )
+      );
+
+      const response = await adminApi.get(`${ADMIN_API_ENDPOINTS.AI_CALL_LOGS}/export?${params}`);
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `llm-logs-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast.success('日志导出成功');
+      } else {
+        toast.error('导出失败');
+      }
+    } catch (error) {
+      console.error('导出日志错误:', error);
+      toast.error('导出失败');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // 处理筛选变更
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  // 应用筛选
+  const applyFilters = () => {
+    loadLogs(1);
+    loadStatistics();
+  };
+
+  // 重置筛选
+  const resetFilters = () => {
+    setFilters({
+      userEmail: '',
+      provider: '',
+      model: '',
+      isSuccess: '',
+      aiServiceType: '',
+      serviceType: '',
+      startDate: '',
+      endDate: '',
+      search: ''
+    });
+  };
+
   // 格式化时间
-  const formatTime = (dateString: string) => {
+  const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('zh-CN');
   };
 
-  // 格式化响应时间
-  const formatResponseTime = (ms?: number) => {
-    if (!ms) return '-';
+  // 格式化持续时间
+  const formatDuration = (ms: number) => {
     if (ms < 1000) return `${ms}ms`;
     return `${(ms / 1000).toFixed(2)}s`;
   };
 
-  // 获取状态样式
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'success':
-        return <Badge className="bg-green-100 text-green-800 border-green-200">成功</Badge>;
-      case 'error':
-        return <Badge className="bg-red-100 text-red-800 border-red-200">失败</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">处理中</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
-
-  // 查看详情
-  const viewDetails = (log: LLMLog) => {
-    setSelectedLog(log);
-    setShowDetails(true);
-  };
-
-  // 重置过滤器函数
-  const resetFilters = () => {
-    setFilters({
-      status: '',
-      provider: '',
-      userEmail: '',
-      serviceType: '',
-      dateFrom: '',
-      dateTo: '',
-      timeRange: ''
-    });
-    setCurrentPage(1);
-  };
-
-  // 获取全局统计数据
-  const loadGlobalStats = async () => {
-    try {
-      const params: Record<string, any> = {};
-      
-      // 使用相同的过滤条件
-      if (filters.status) params.isSuccess = filters.status === 'success' ? 'true' : 'false';
-      if (filters.provider) params.provider = filters.provider;
-      if (filters.userEmail) params.userEmail = filters.userEmail;
-      if (filters.serviceType) params.serviceType = filters.serviceType;
-      if (filters.dateFrom) params.startDate = filters.dateFrom;
-      if (filters.dateTo) params.endDate = filters.dateTo;
-
-      // 获取所有记录进行统计
-      params.page = '1';
-      params.pageSize = '10000'; // 获取大量记录用于统计
-
-      const response = await adminApi.getWithParams(ADMIN_API_ENDPOINTS.LLM_LOGS, params);
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          const allLogs = data.data.logs;
-          const successLogs = allLogs.filter((log: LLMLog) => log.isSuccess);
-          const failedLogs = allLogs.filter((log: LLMLog) => !log.isSuccess);
-          
-                    const totalTokens = allLogs.reduce((sum: number, log: LLMLog) => sum + (log.totalTokens || 0), 0);
-          const promptTokens = allLogs.reduce((sum: number, log: LLMLog) => sum + (log.promptTokens || 0), 0);
-          const completionTokens = allLogs.reduce((sum: number, log: LLMLog) => sum + (log.completionTokens || 0), 0);
-          
-          // 计算平均响应时间
-          const logsWithDuration = allLogs.filter((log: LLMLog) => log.duration && log.duration > 0);
-          const avgResponseTime = logsWithDuration.length > 0 
-            ? logsWithDuration.reduce((sum: number, log: LLMLog) => sum + (log.duration || 0), 0) / logsWithDuration.length 
-            : 0;
-
-          setGlobalStats({
-            totalCalls: allLogs.length,
-            successCalls: successLogs.length,
-            failedCalls: failedLogs.length,
-            totalTokens,
-            promptTokens,
-            completionTokens,
-            avgResponseTime
-          });
-        }
-      }
-    } catch (error) {
-      console.error('获取全局统计数据错误:', error);
-    }
+  // 格式化成本
+  const formatCost = (cost?: number) => {
+    if (!cost || typeof cost !== 'number') return '-';
+    return `¥${Number(cost).toFixed(4)}`;
   };
 
   useEffect(() => {
+    // 只在认证完成且有token时才执行API请求
     if (isAuthenticated && token) {
+      console.log('🔍 [LLMLogsPage] Loading logs, authenticated:', isAuthenticated, 'hasToken:', !!token);
       loadLogs();
-      loadGlobalStats();
+      loadStatistics();
     }
-  }, [isAuthenticated, token, filters]);
-
-  // 页面初始化时清除过滤器状态
-  useEffect(() => {
-    // 重置过滤器为初始状态
-    setFilters({
-      status: '',
-      provider: '',
-      userEmail: '',
-      serviceType: '',
-      dateFrom: '',
-      dateTo: '',
-      timeRange: ''
-    });
-  }, []); // 空依赖数组确保只在组件挂载时执行一次
+  }, [isAuthenticated, token]);
 
   // 如果未认证，显示加载状态
   if (!isAuthenticated || !token) {
@@ -353,124 +268,103 @@ export default function LLMLogsPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
-          <p className="text-gray-600">加载日志数据...</p>
+          <p className="text-gray-600">加载LLM日志...</p>
         </div>
       </div>
     );
   }
 
-  const tokenStats = getTokenStats();
+  if (loading && logs.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2">加载日志中...</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* 页面头部 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">LLM调用日志</h1>
+          <h1 className="text-3xl font-bold">AI 调用日志</h1>
           <p className="text-gray-600">
-            查看和管理所有LLM服务调用记录
+            查看和管理系统中所有的AI服务调用记录（包括LLM、语音识别、图片识别）
           </p>
-          <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-800">
-              <strong>服务类型说明：</strong>
-              <span className="ml-2">
-                <Badge variant="outline" className="mr-2 text-green-700 border-green-300">官方AI服务</Badge>
-                使用全局配置的AI服务（如OpenAI、硅基流动等），计入每日token使用量统计
-              </span>
-              <span className="ml-4">
-                <Badge variant="outline" className="mr-2 text-orange-700 border-orange-300">自定义AI服务</Badge>
-                使用用户自定义的AI服务配置，不计入每日token使用量统计
-              </span>
-            </p>
-          </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => { loadLogs(currentPage); loadGlobalStats(); }} disabled={loading}>
+          <Button variant="outline" onClick={() => { loadLogs(); loadStatistics(); }} disabled={loading}>
             <RefreshCcw className="h-4 w-4 mr-2" />
             刷新
           </Button>
-          <Button variant="destructive" onClick={clearLogs}>
-            清空日志
+          <Button variant="outline" onClick={exportLogs} disabled={exporting}>
+            {exporting ? (
+              <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            导出
           </Button>
         </div>
       </div>
 
-      {/* 统计信息 */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center">
-              <FileText className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">总调用次数</p>
-                <p className="text-2xl font-bold">{globalStats.totalCalls}</p>
+      {/* 统计卡片 */}
+      {statistics && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">总调用次数</p>
+                  <p className="text-2xl font-bold">{statistics?.overview?.totalCalls?.toLocaleString() || '0'}</p>
+                </div>
+                <FileText className="h-8 w-8 text-blue-500" />
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center">
-              <CheckCircle className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">成功调用</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {globalStats.successCalls}
-                </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">成功率</p>
+                  <p className="text-2xl font-bold">
+                    {(statistics?.overview?.totalCalls || 0) > 0
+                      ? (((statistics?.overview?.successCalls || 0) / (statistics?.overview?.totalCalls || 1)) * 100).toFixed(1)
+                      : 0}%
+                  </p>
+                </div>
+                <CheckCircleIcon className="h-8 w-8 text-green-500" />
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center">
-              <XCircle className="h-8 w-8 text-red-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">失败调用</p>
-                <p className="text-2xl font-bold text-red-600">
-                  {globalStats.failedCalls}
-                </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">总Token数</p>
+                  <p className="text-2xl font-bold">{statistics?.overview?.totalTokens?.toLocaleString() || '0'}</p>
+                </div>
+                <Cpu className="h-8 w-8 text-purple-500" />
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center">
-              <Clock className="h-8 w-8 text-orange-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">平均响应时间</p>
-                <p className="text-2xl font-bold">
-                  {globalStats.avgResponseTime > 0 
-                    ? formatResponseTime(globalStats.avgResponseTime)
-                    : '-'
-                  }
-                </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">平均响应时间</p>
+                  <p className="text-2xl font-bold">{formatDuration(statistics?.overview?.avgDuration || 0)}</p>
+                </div>
+                <ClockIcon className="h-8 w-8 text-orange-500" />
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center">
-              <Cpu className="h-8 w-8 text-purple-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Token消耗</p>
-                <p className="text-2xl font-bold text-purple-600">
-                  {formatTokenCount(globalStats.totalTokens)}
-                </p>
-                <p className="text-xs text-gray-500">
-                  输入: {formatTokenCount(globalStats.promptTokens)} | 输出: {formatTokenCount(globalStats.completionTokens)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* 筛选器 */}
       <Card>
@@ -480,132 +374,128 @@ export default function LLMLogsPage() {
             筛选条件
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          {/* 时间范围快捷筛选 */}
-          <div className="mb-4">
-            <Label className="mb-2 block">时间范围</Label>
-            <div className="flex gap-2 flex-wrap">
-              <Button
-                variant={filters.timeRange === '' ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleTimeRangeChange('')}
-              >
-                全部
-              </Button>
-              <Button
-                variant={filters.timeRange === '1' ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleTimeRangeChange('1')}
-              >
-                最近1天
-              </Button>
-              <Button
-                variant={filters.timeRange === '7' ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleTimeRangeChange('7')}
-              >
-                最近7天
-              </Button>
-              <Button
-                variant={filters.timeRange === '30' ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleTimeRangeChange('30')}
-              >
-                最近30天
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div>
-              <Label htmlFor="status">状态</Label>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="aiServiceType">AI服务类型</Label>
               <select
-                id="status"
+                id="aiServiceType"
                 className="w-full p-2 border rounded-md"
-                value={filters.status}
-                onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+                value={filters.aiServiceType}
+                onChange={(e) => handleFilterChange('aiServiceType', e.target.value)}
               >
                 <option value="">全部</option>
-                <option value="success">成功</option>
-                <option value="error">失败</option>
-                <option value="pending">处理中</option>
+                <option value="llm">LLM对话</option>
+                <option value="speech">语音识别</option>
+                <option value="vision">图片识别</option>
               </select>
             </div>
-            
-            <div>
-              <Label htmlFor="provider">提供商</Label>
+
+            <div className="space-y-2">
+              <Label htmlFor="userEmail">用户邮箱</Label>
+              <Input
+                id="userEmail"
+                placeholder="输入用户邮箱"
+                value={filters.userEmail}
+                onChange={(e) => handleFilterChange('userEmail', e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="provider">服务提供商</Label>
               <select
                 id="provider"
                 className="w-full p-2 border rounded-md"
                 value={filters.provider}
-                onChange={(e) => setFilters(prev => ({ ...prev, provider: e.target.value }))}
+                onChange={(e) => handleFilterChange('provider', e.target.value)}
               >
                 <option value="">全部</option>
                 <option value="openai">OpenAI</option>
                 <option value="siliconflow">硅基流动</option>
+                <option value="baidu">百度云</option>
                 <option value="custom">自定义</option>
               </select>
             </div>
-            
-            <div>
-              <Label htmlFor="userEmail">用户邮箱</Label>
+
+            <div className="space-y-2">
+              <Label htmlFor="model">模型</Label>
               <Input
-                id="userEmail"
-                placeholder="输入用户邮箱地址"
-                value={filters.userEmail}
-                onChange={(e) => setFilters(prev => ({ ...prev, userEmail: e.target.value }))}
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck={false}
+                id="model"
+                placeholder="输入模型名称"
+                value={filters.model}
+                onChange={(e) => handleFilterChange('model', e.target.value)}
               />
             </div>
-            
-            <div>
+
+            <div className="space-y-2">
+              <Label htmlFor="isSuccess">调用状态</Label>
+              <select
+                id="isSuccess"
+                className="w-full p-2 border rounded-md"
+                value={filters.isSuccess}
+                onChange={(e) => handleFilterChange('isSuccess', e.target.value)}
+              >
+                <option value="">全部</option>
+                <option value="true">成功</option>
+                <option value="false">失败</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-2">
               <Label htmlFor="serviceType">服务类型</Label>
               <select
                 id="serviceType"
                 className="w-full p-2 border rounded-md"
                 value={filters.serviceType}
-                onChange={(e) => setFilters(prev => ({ ...prev, serviceType: e.target.value }))}
+                onChange={(e) => handleFilterChange('serviceType', e.target.value)}
               >
                 <option value="">全部</option>
-                <option value="official">官方AI服务</option>
-                <option value="multi-provider">多供应商AI服务</option>
-                <option value="custom">自定义AI服务</option>
+                <option value="llm">文本生成</option>
+                <option value="speech">语音识别</option>
+                <option value="vision">图像识别</option>
               </select>
             </div>
-            
-            <div>
-              <Label htmlFor="dateFrom">开始日期</Label>
+
+            <div className="space-y-2">
+              <Label htmlFor="startDate">开始日期</Label>
               <Input
-                id="dateFrom"
+                id="startDate"
                 type="date"
-                value={filters.dateFrom}
-                onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value, timeRange: '' }))}
+                value={filters.startDate}
+                onChange={(e) => handleFilterChange('startDate', e.target.value)}
               />
             </div>
-            
-            <div>
-              <Label htmlFor="dateTo">结束日期</Label>
+
+            <div className="space-y-2">
+              <Label htmlFor="endDate">结束日期</Label>
               <Input
-                id="dateTo"
+                id="endDate"
                 type="date"
-                value={filters.dateTo}
-                onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value, timeRange: '' }))}
+                value={filters.endDate}
+                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="search">关键词搜索</Label>
+              <Input
+                id="search"
+                placeholder="搜索用户消息或错误信息"
+                value={filters.search}
+                onChange={(e) => handleFilterChange('search', e.target.value)}
               />
             </div>
           </div>
-          
-          {/* 重置按钮 */}
-          <div className="mt-4 flex justify-end">
-            <Button 
-              variant="outline" 
-              onClick={resetFilters}
-              className="flex items-center gap-2"
-            >
-              <RefreshCcw className="h-4 w-4" />
-              重置筛选条件
+
+          <div className="flex gap-2">
+            <Button onClick={applyFilters} disabled={loading}>
+              <Search className="h-4 w-4 mr-2" />
+              应用筛选
+            </Button>
+            <Button variant="outline" onClick={resetFilters}>
+              重置
             </Button>
           </div>
         </CardContent>
@@ -614,238 +504,190 @@ export default function LLMLogsPage() {
       {/* 日志列表 */}
       <Card>
         <CardHeader>
-          <CardTitle>调用记录</CardTitle>
-          <CardDescription>
-            共 {totalCount} 条记录，当前第 {currentPage} / {totalPages} 页
-          </CardDescription>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              调用日志
+            </span>
+            <span className="text-sm font-normal text-gray-600">
+              共 {pagination.total} 条记录
+            </span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center h-32">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-2">加载中...</span>
-            </div>
-          ) : logs.length === 0 ? (
+          {logs.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               暂无日志记录
             </div>
           ) : (
             <div className="space-y-4">
+              {/* 表格头部 */}
+              <div className="hidden lg:grid lg:grid-cols-12 gap-4 p-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-700">
+                <div className="col-span-2">用户信息</div>
+                <div className="col-span-2">服务信息</div>
+                <div className="col-span-2">使用量/输入</div>
+                <div className="col-span-2">性能指标</div>
+                <div className="col-span-2">调用时间</div>
+                <div className="col-span-2">状态</div>
+              </div>
+
+              {/* 日志条目 */}
               {logs.map((log) => (
                 <div key={log.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-2">
-                        {log.isSuccess && <CheckCircle className="h-5 w-5 text-green-600" />}
-                        {!log.isSuccess && <XCircle className="h-5 w-5 text-red-600" />}
-                        {getStatusBadge(log.isSuccess ? 'success' : 'error')}
+                  <div className="lg:grid lg:grid-cols-12 gap-4 space-y-2 lg:space-y-0">
+                    {/* 用户信息 */}
+                    <div className="col-span-2">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-gray-400" />
+                        <div>
+                          <p className="font-medium text-sm">{log.user_name || 'Unknown User'}</p>
+                          <p className="text-xs text-gray-500">{log.user_email || 'N/A'}</p>
+                          {log.account_book_name && (
+                            <p className="text-xs text-blue-600">{log.account_book_name}</p>
+                          )}
+                        </div>
                       </div>
-                      
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">{log.provider} / {log.model}</p>
-                          <Badge 
-                            variant="outline" 
-                            className={
-                              log.serviceType === 'official' 
-                              ? "text-green-700 border-green-300 bg-green-50" 
-                                : log.serviceType === 'multi-provider'
-                                ? "text-blue-700 border-blue-300 bg-blue-50"
-                              : "text-orange-700 border-orange-300 bg-orange-50"
-                            }
-                          >
-                            {log.serviceType === 'official' 
-                              ? '官方' 
-                              : log.serviceType === 'multi-provider' 
-                              ? '多供应商' 
-                              : '自定义'}
+                    </div>
+
+                    {/* 服务信息 */}
+                    <div className="col-span-2">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1">
+                          <Badge variant="outline" className="text-xs">
+                            {log.provider || 'unknown'}
+                          </Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            {log.ai_service_type || 'unknown'}
                           </Badge>
                         </div>
-                        <p className="text-sm text-gray-600">
-                          <User className="h-4 w-4 inline mr-1" />
-                          {log.user?.email || log.user?.name || log.userName || log.userId}
-                        </p>
+                        <p className="text-sm font-mono">{log.model || 'unknown'}</p>
+                        <p className="text-xs text-gray-500">来源: {log.source || 'unknown'}</p>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center space-x-4">
-                      <div className="text-right">
-                        <p className="text-sm text-gray-600">{formatTime(log.createdAt)}</p>
-                        <p className="text-sm text-gray-500">
-                          响应时间: {formatResponseTime(log.duration)}
-                        </p>
+
+                    {/* Token使用/输入信息 */}
+                    <div className="col-span-2">
+                      <div className="space-y-1">
+                        {log.ai_service_type === 'llm' ? (
+                          <>
+                            <p className="text-sm">
+                              <span className="text-gray-600">总计:</span> {log.total_tokens?.toLocaleString() || 'N/A'}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              输入: {log.prompt_tokens?.toLocaleString() || 'N/A'} |
+                              输出: {log.completion_tokens?.toLocaleString() || 'N/A'}
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm">
+                              <span className="text-gray-600">输入大小:</span> {log.input_size ? `${(log.input_size / 1024).toFixed(1)}KB` : 'N/A'}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              格式: {log.input_format || 'N/A'}
+                            </p>
+                          </>
+                        )}
+                        {log.cost && (
+                          <p className="text-xs text-green-600">
+                            成本: {formatCost(log.cost)}
+                          </p>
+                        )}
                       </div>
-                      
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => viewDetails(log)}
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        详情
-                      </Button>
+                    </div>
+
+                    {/* 性能指标 */}
+                    <div className="col-span-2">
+                      <div className="space-y-1">
+                        <p className="text-sm">
+                          <span className="text-gray-600">响应时间:</span> {formatDuration(log.duration)}
+                        </p>
+                        {log.user_message && (
+                          <p className="text-xs text-gray-500 truncate" title={log.user_message}>
+                            消息: {log.user_message.substring(0, 30)}...
+                          </p>
+                        )}
+                        {log.assistant_message && (
+                          <p className="text-xs text-blue-500 truncate" title={log.assistant_message}>
+                            回复: {log.assistant_message.substring(0, 30)}...
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 调用时间 */}
+                    <div className="col-span-2">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-gray-400" />
+                        <div>
+                          <p className="text-sm">{formatDate(log.created_at)}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 状态 */}
+                    <div className="col-span-2">
+                      <div className="flex items-center gap-2">
+                        {log.is_success ? (
+                          <>
+                            <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                            <Badge variant="default" className="bg-green-100 text-green-800">
+                              成功
+                            </Badge>
+                          </>
+                        ) : (
+                          <>
+                            <XCircleIcon className="h-5 w-5 text-red-500" />
+                            <Badge variant="destructive">
+                              失败
+                            </Badge>
+                          </>
+                        )}
+                      </div>
+                      {log.error_message && (
+                        <p className="text-xs text-red-600 mt-1 truncate" title={log.error_message}>
+                          {log.error_message.substring(0, 50)}...
+                        </p>
+                      )}
                     </div>
                   </div>
-                  
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-700 truncate">
-                      <strong>提示:</strong> {log.userMessage}
-                    </p>
-                    {!log.isSuccess && (
-                      <p className="text-sm text-red-600 mt-1">
-                        <AlertTriangle className="h-4 w-4 inline mr-1" />
-                        调用失败
-                      </p>
-                    )}
-                  </div>
-                  
-                  {(log.promptTokens || log.completionTokens || log.totalTokens) && (
-                    <div className="mt-2 flex space-x-4 text-xs text-gray-500">
-                      <span>输入: {log.promptTokens || 0} tokens</span>
-                      <span>输出: {log.completionTokens || 0} tokens</span>
-                      <span>总计: {log.totalTokens || 0} tokens</span>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
           )}
-          
+
           {/* 分页 */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center space-x-2 mt-6">
-              <Button
-                variant="outline"
-                disabled={currentPage === 1}
-                onClick={() => loadLogs(currentPage - 1)}
-              >
-                上一页
-              </Button>
-              
-              <span className="text-sm text-gray-600">
-                第 {currentPage} / {totalPages} 页
-              </span>
-              
-              <Button
-                variant="outline"
-                disabled={currentPage === totalPages}
-                onClick={() => loadLogs(currentPage + 1)}
-              >
-                下一页
-              </Button>
+          {pagination.totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6">
+              <div className="text-sm text-gray-600">
+                显示第 {((pagination.page - 1) * pagination.pageSize) + 1} - {Math.min(pagination.page * pagination.pageSize, pagination.total)} 条，
+                共 {pagination.total} 条记录
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={pagination.page <= 1}
+                  onClick={() => loadLogs(pagination.page - 1)}
+                >
+                  上一页
+                </Button>
+                <span className="flex items-center px-3 text-sm">
+                  第 {pagination.page} / {pagination.totalPages} 页
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={pagination.page >= pagination.totalPages}
+                  onClick={() => loadLogs(pagination.page + 1)}
+                >
+                  下一页
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
-
-      {/* 详情弹窗 */}
-      {showDetails && selectedLog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">调用详情</h3>
-              <Button variant="outline" onClick={() => setShowDetails(false)}>
-                关闭
-              </Button>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>状态</Label>
-                  <div className="mt-1">{getStatusBadge(selectedLog.isSuccess ? 'success' : 'error')}</div>
-                </div>
-                <div>
-                  <Label>调用时间</Label>
-                  <p className="mt-1">{formatTime(selectedLog.createdAt)}</p>
-                </div>
-                <div>
-                  <Label>提供商</Label>
-                  <p className="mt-1">{selectedLog.provider}</p>
-                </div>
-                <div>
-                  <Label>模型</Label>
-                  <p className="mt-1">{selectedLog.model}</p>
-                </div>
-                <div>
-                  <Label>服务类型</Label>
-                  <div className="mt-1">
-                    <Badge 
-                      variant="outline" 
-                      className={
-                        selectedLog.serviceType === 'official' 
-                        ? "text-green-700 border-green-300 bg-green-50" 
-                          : selectedLog.serviceType === 'multi-provider'
-                          ? "text-blue-700 border-blue-300 bg-blue-50"
-                        : "text-orange-700 border-orange-300 bg-orange-50"
-                      }
-                    >
-                      {selectedLog.serviceType === 'official' 
-                        ? '官方AI服务' 
-                        : selectedLog.serviceType === 'multi-provider' 
-                        ? '多供应商AI服务' 
-                        : '自定义AI服务'}
-                    </Badge>
-                  </div>
-                </div>
-                <div>
-                  <Label>用户</Label>
-                  <p className="mt-1">{selectedLog.user?.name || selectedLog.userName || selectedLog.userId}</p>
-                </div>
-                <div>
-                  <Label>响应时间</Label>
-                  <p className="mt-1">{formatResponseTime(selectedLog.duration)}</p>
-                </div>
-              </div>
-              
-              <div>
-                <Label>输入提示</Label>
-                <div className="mt-1 p-3 bg-gray-50 rounded border">
-                  <pre className="whitespace-pre-wrap text-sm">{selectedLog.userMessage}</pre>
-                </div>
-              </div>
-              
-              {selectedLog.assistantMessage && (
-                <div>
-                  <Label>AI回复</Label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded border">
-                    <pre className="whitespace-pre-wrap text-sm">{selectedLog.assistantMessage}</pre>
-                  </div>
-                </div>
-              )}
-              
-              {!selectedLog.isSuccess && (
-                <div>
-                  <Label>错误信息</Label>
-                  <div className="mt-1 p-3 bg-red-50 rounded border border-red-200">
-                    <p className="text-red-700 text-sm">调用失败</p>
-                  </div>
-                </div>
-              )}
-              
-              {(selectedLog.promptTokens || selectedLog.completionTokens || selectedLog.totalTokens) && (
-                <div>
-                  <Label>Token使用情况</Label>
-                  <div className="mt-1 grid grid-cols-3 gap-4">
-                    <div className="p-3 bg-blue-50 rounded">
-                      <p className="text-sm text-blue-600">输入Tokens</p>
-                      <p className="text-lg font-semibold">{selectedLog.promptTokens || 0}</p>
-                    </div>
-                    <div className="p-3 bg-green-50 rounded">
-                      <p className="text-sm text-green-600">输出Tokens</p>
-                      <p className="text-lg font-semibold">{selectedLog.completionTokens || 0}</p>
-                    </div>
-                    <div className="p-3 bg-purple-50 rounded">
-                      <p className="text-sm text-purple-600">总计Tokens</p>
-                      <p className="text-lg font-semibold">{selectedLog.totalTokens || 0}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
-} 
+}

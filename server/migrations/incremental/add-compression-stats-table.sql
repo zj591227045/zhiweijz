@@ -1,5 +1,5 @@
 -- 创建图片压缩统计表
--- 执行时间: 2024-12-XX
+-- 执行时间: 2025-7-14
 
 -- 创建压缩统计表
 CREATE TABLE IF NOT EXISTS compression_stats (

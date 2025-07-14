@@ -10,17 +10,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
-  SignalIcon as Activity, 
-  CogIcon as Settings, 
-  BeakerIcon as TestTube, 
-  DocumentArrowDownIcon as Save, 
-  ExclamationCircleIcon as AlertCircle, 
+import {
+  SignalIcon as Activity,
+  CogIcon as Settings,
+  BeakerIcon as TestTube,
+  DocumentArrowDownIcon as Save,
+  ExclamationCircleIcon as AlertCircle,
   CheckCircleIcon,
-  ArrowPathIcon as RefreshCcw 
+  ArrowPathIcon as RefreshCcw
 } from '@heroicons/react/24/outline';
 import MobileNotSupported from '@/components/admin/MobileNotSupported';
 import { useAdminAuth } from '@/store/admin/useAdminAuth';
@@ -34,11 +33,6 @@ interface LLMConfig {
   baseUrl: string;
   temperature: number;
   maxTokens: number;
-}
-
-interface TokenLimitConfig {
-  tokenLimitEnabled: boolean;
-  globalLlmTokenLimit: number;
 }
 
 interface TestResult {
@@ -64,11 +58,6 @@ export default function LLMConfigPage() {
     baseUrl: '',
     temperature: 0.7,
     maxTokens: 1000
-  });
-
-  const [tokenConfig, setTokenConfig] = useState<TokenLimitConfig>({
-    tokenLimitEnabled: true,
-    globalLlmTokenLimit: 50000
   });
 
   const [loading, setLoading] = useState(false);
@@ -104,25 +93,25 @@ export default function LLMConfigPage() {
   const loadConfig = async () => {
     setLoading(true);
     try {
-      const [llmResponse, tokenResponse] = await Promise.all([
-        adminApi.get(ADMIN_API_ENDPOINTS.SYSTEM_CONFIG_LLM),
-        adminApi.get('/api/admin/token-limit/global/settings')
-      ]);
+      const llmResponse = await adminApi.get(ADMIN_API_ENDPOINTS.SYSTEM_CONFIG_LLM);
 
       if (llmResponse.ok) {
         const data = await llmResponse.json();
         if (data.success) {
-          setConfig(data.data.configs);
+          // 确保所有字段都有默认值，避免 undefined 导致的受控/非受控组件问题
+          const configs = data.data.configs || {};
+          setConfig({
+            enabled: configs.enabled ?? false,
+            provider: configs.provider || 'openai',
+            model: configs.model || 'gpt-3.5-turbo',
+            apiKey: configs.apiKey || '',
+            baseUrl: configs.baseUrl || '',
+            temperature: configs.temperature ?? 0.7,
+            maxTokens: configs.maxTokens ?? 1000
+          });
         }
       } else {
         toast.error('获取LLM配置失败');
-      }
-
-      if (tokenResponse.ok) {
-        const tokenData = await tokenResponse.json();
-        if (tokenData.success) {
-          setTokenConfig(tokenData.data);
-        }
       }
     } catch (error) {
       console.error('获取配置错误:', error);
@@ -136,41 +125,18 @@ export default function LLMConfigPage() {
   const saveConfig = async () => {
     setSaving(true);
     try {
-      const [llmResponse, tokenResponse] = await Promise.all([
-        adminApi.put(ADMIN_API_ENDPOINTS.SYSTEM_CONFIG_LLM, config),
-        adminApi.put('/api/admin/token-limit/global/settings', tokenConfig)
-      ]);
-
-      let allSuccess = true;
-      let errorMessages: string[] = [];
+      const llmResponse = await adminApi.put(ADMIN_API_ENDPOINTS.SYSTEM_CONFIG_LLM, config);
 
       if (llmResponse.ok) {
         const data = await llmResponse.json();
-        if (!data.success) {
-          allSuccess = false;
-          errorMessages.push(data.message || 'LLM配置保存失败');
+        if (data.success) {
+          toast.success('配置保存成功');
+          setTestResult(null); // 清空测试结果
+        } else {
+          toast.error(data.message || 'LLM配置保存失败');
         }
       } else {
-        allSuccess = false;
-        errorMessages.push('LLM配置保存失败');
-      }
-
-      if (tokenResponse.ok) {
-        const tokenData = await tokenResponse.json();
-        if (!tokenData.success) {
-          allSuccess = false;
-          errorMessages.push(tokenData.message || 'Token限额配置保存失败');
-        }
-      } else {
-        allSuccess = false;
-        errorMessages.push('Token限额配置保存失败');
-      }
-
-      if (allSuccess) {
-        toast.success('配置保存成功');
-        setTestResult(null); // 清空测试结果
-      } else {
-        toast.error(errorMessages.join(', '));
+        toast.error('LLM配置保存失败');
       }
     } catch (error) {
       console.error('保存配置错误:', error);
@@ -196,7 +162,7 @@ export default function LLMConfigPage() {
     setTestResult(null);
 
     try {
-      const response = await adminApi.post(`${ADMIN_API_ENDPOINTS.SYSTEM_CONFIG_LLM}/test`, {
+      const response = await adminApi.post('/api/admin/system-configs/llm/test', {
         provider: config.provider,
         model: config.model,
         apiKey: config.apiKey,
@@ -421,7 +387,7 @@ export default function LLMConfigPage() {
                 <select
                   id="model"
                   className="w-full p-2 border rounded-md"
-                  value={config.model}
+                  value={config.model || ''}
                   onChange={(e) => setConfig(prev => ({ ...prev, model: e.target.value }))}
                 >
                   {currentProvider.models.map((model) => (
@@ -434,7 +400,7 @@ export default function LLMConfigPage() {
                 <Input
                   id="model"
                   placeholder="输入模型名称"
-                  value={config.model}
+                  value={config.model || ''}
                   onChange={(e) => setConfig(prev => ({ ...prev, model: e.target.value }))}
                 />
               )}
@@ -445,7 +411,7 @@ export default function LLMConfigPage() {
               <Input
                 id="base-url"
                 placeholder="https://api.example.com/v1"
-                value={config.baseUrl}
+                value={config.baseUrl || ''}
                 onChange={(e) => setConfig(prev => ({ ...prev, baseUrl: e.target.value }))}
               />
             </div>
@@ -458,7 +424,7 @@ export default function LLMConfigPage() {
               id="api-key"
               type="password"
               placeholder="输入API密钥"
-              value={config.apiKey}
+              value={config.apiKey || ''}
               onChange={(e) => setConfig(prev => ({ ...prev, apiKey: e.target.value }))}
             />
             <p className="text-sm text-gray-600">
@@ -480,7 +446,7 @@ export default function LLMConfigPage() {
                 min="0"
                 max="2"
                 step="0.1"
-                value={config.temperature}
+                value={config.temperature ?? 0.7}
                 onChange={(e) => setConfig(prev => ({ ...prev, temperature: parseFloat(e.target.value) }))}
                 className="w-full"
               />
@@ -496,7 +462,7 @@ export default function LLMConfigPage() {
                 type="number"
                 min="1"
                 max="100000"
-                value={config.maxTokens}
+                value={config.maxTokens || 1000}
                 onChange={(e) => setConfig(prev => ({ ...prev, maxTokens: parseInt(e.target.value) || 1000 }))}
               />
               <p className="text-xs text-gray-600">
@@ -507,66 +473,7 @@ export default function LLMConfigPage() {
         </CardContent>
       </Card>
 
-      {/* Token限额管理 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Token限额管理
-          </CardTitle>
-          <CardDescription>
-            控制全局LLM Token使用限额，防止过度消费
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Token限额开关 */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label htmlFor="token-limit-enabled">启用Token限额</Label>
-              <p className="text-sm text-gray-600">
-                启用后，系统将强制执行每日Token使用限额
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={tokenConfig.tokenLimitEnabled}
-                onCheckedChange={(checked) =>
-                  setTokenConfig(prev => ({ ...prev, tokenLimitEnabled: checked }))
-                }
-              />
-              <Badge variant={tokenConfig.tokenLimitEnabled ? "default" : "secondary"}>
-                {tokenConfig.tokenLimitEnabled ? "已启用" : "已禁用"}
-              </Badge>
-            </div>
-          </div>
 
-          <Separator />
-
-          {/* 全局Token限额设置 */}
-          <div className="space-y-2">
-            <Label htmlFor="global-token-limit">全局每日Token限额</Label>
-            <Input
-              id="global-token-limit"
-              type="number"
-              min="1000"
-              max="1000000"
-              value={tokenConfig.globalLlmTokenLimit}
-              onChange={(e) => setTokenConfig(prev => ({ 
-                ...prev, 
-                globalLlmTokenLimit: parseInt(e.target.value) || 50000 
-              }))}
-              disabled={!tokenConfig.tokenLimitEnabled}
-            />
-            <p className="text-sm text-gray-600">
-              设置所有用户的默认每日Token使用限额。用户个人限额（如果设置）将优先于此全局限额。
-            </p>
-            <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-              <strong>限额层级：</strong> 用户个人限额 → 全局限额<br/>
-              <strong>推荐设置：</strong> 一般用户 10,000-50,000 tokens/天
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* 连接测试 */}
       <Card>

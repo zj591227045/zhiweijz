@@ -121,15 +121,51 @@ export class LLMLogAdminService {
           orderBy: { createdAt: 'desc' },
           skip,
           take: pageSize,
-          // 移除include以避免TypeScript错误，因为schema中没有定义user/accountBook关系
+          include: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+            accountBook: {
+              select: {
+                name: true,
+              },
+            },
+          },
         }),
         prisma.llmCallLog.count({ where }),
       ]);
 
       const totalPages = Math.ceil(total / pageSize);
 
+      // 格式化日志数据，添加用户邮箱信息
+      const formattedLogs = logs.map((log) => ({
+        id: log.id,
+        userId: log.userId,
+        userName: log.userName,
+        userEmail: log.user?.email || 'N/A',
+        accountBookId: log.accountBookId,
+        accountBookName: log.accountBookName || log.accountBook?.name,
+        provider: log.provider,
+        model: log.model,
+        source: log.source,
+        aiServiceType: log.aiServiceType,
+        promptTokens: log.promptTokens,
+        completionTokens: log.completionTokens,
+        totalTokens: log.totalTokens,
+        userMessage: log.userMessage,
+        assistantMessage: log.assistantMessage,
+        systemPrompt: log.systemPrompt,
+        isSuccess: log.isSuccess,
+        errorMessage: log.errorMessage,
+        duration: log.duration,
+        cost: log.cost ? Number(log.cost) : null,
+        createdAt: log.createdAt.toISOString(),
+      }));
+
       return {
-        logs,
+        logs: formattedLogs,
         pagination: {
           page,
           pageSize,

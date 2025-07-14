@@ -7,6 +7,7 @@ import {
   wechatErrorHandler,
   wechatLogger,
 } from '../middlewares/wechat.middleware';
+import { sourceDetectionMiddleware } from '../middlewares/source-detection.middleware';
 
 const router = Router();
 
@@ -50,6 +51,7 @@ router.all(
   wechatLogger,
   verifyWechatSignature,
   parseWechatXML,
+  sourceDetectionMiddleware,
   wechatController.callback.bind(wechatController),
 );
 
@@ -75,6 +77,7 @@ router.post(
   wechatLogger,
   verifyWechatSignature,
   parseWechatXML,
+  sourceDetectionMiddleware,
   wechatController.handleMessage.bind(wechatController),
 );
 

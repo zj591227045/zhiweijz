@@ -27,6 +27,11 @@ export class LLMProviderService {
     temperature: 0.7,
     maxTokens: 1000,
   };
+
+  /** 请求上下文，用于传递来源信息 */
+  private requestContext: {
+    source?: 'App' | 'WeChat' | 'API';
+  } = {};
   /**
    * 简单的token估算方法（作为回退）
    * @param text 文本内容
@@ -184,6 +189,7 @@ export class LLMProviderService {
           promptTokens,
           completionTokens,
           serviceType: 'multi-provider',
+          source: this.requestContext.source,
         });
       }
     }
@@ -207,6 +213,21 @@ export class LLMProviderService {
 
     // 注册自定义提供商
     this.registerProvider(new CustomProvider());
+  }
+
+  /**
+   * 设置请求上下文
+   * @param context 请求上下文
+   */
+  public setRequestContext(context: { source?: 'App' | 'WeChat' | 'API' }): void {
+    this.requestContext = context;
+  }
+
+  /**
+   * 清除请求上下文
+   */
+  public clearRequestContext(): void {
+    this.requestContext = {};
   }
 
   /**
@@ -658,6 +679,7 @@ export class LLMProviderService {
         promptTokens,
         completionTokens,
         serviceType,
+        source: this.requestContext.source,
       });
     }
   }
@@ -765,6 +787,7 @@ export class LLMProviderService {
         promptTokens,
         completionTokens,
         serviceType,
+        source: this.requestContext.source,
       });
     }
   }
@@ -951,6 +974,7 @@ export class LLMProviderService {
     promptTokens: number;
     completionTokens: number;
     serviceType?: string;
+    source?: 'App' | 'WeChat' | 'API';
   }): Promise<void> {
     try {
       // 获取用户信息
@@ -1033,6 +1057,8 @@ export class LLMProviderService {
           accountBookName: accountBook?.name || null,
           provider: logData.provider,
           model: logData.model,
+          source: logData.source || 'App',
+          aiServiceType: 'llm',
           serviceType: serviceType,
           promptTokens: logData.promptTokens,
           completionTokens: logData.completionTokens,

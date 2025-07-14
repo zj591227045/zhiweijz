@@ -11,6 +11,8 @@ import {
   MultimodalAIErrorType,
 } from '../models/multimodal-ai.model';
 import { BUCKET_CONFIG } from '../models/file-storage.model';
+import { SourceDetectionUtil } from '../utils/source-detection.util';
+import { MultimodalAILoggingService } from '../admin/middleware/multimodal-ai-logging.middleware';
 
 /**
  * 多模态AI控制器
@@ -34,6 +36,11 @@ export class MultimodalAIController {
    * POST /api/ai/speech-to-text
    */
   async speechToText(req: Request, res: Response): Promise<void> {
+    const startTime = Date.now();
+    let isSuccess = false;
+    let errorMessage: string | undefined;
+    let speechConfig: any = null;
+
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -47,6 +54,16 @@ export class MultimodalAIController {
         return;
       }
 
+      // 获取语音识别配置（用于日志记录）
+      try {
+        speechConfig = await this.configService.getSpeechConfig();
+      } catch (configError) {
+        console.warn('获取语音识别配置失败:', configError);
+      }
+
+      // 检测请求来源
+      const source = SourceDetectionUtil.detectSource(req);
+
       // 构建请求
       const speechRequest: SpeechRecognitionRequest = {
         audioFile: req.file,
@@ -56,6 +73,11 @@ export class MultimodalAIController {
 
       // 调用语音识别服务
       const result = await this.speechService.speechToText(speechRequest);
+
+      isSuccess = result.success;
+      if (!isSuccess) {
+        errorMessage = result.error;
+      }
 
       if (result.success) {
         res.json({
@@ -71,11 +93,34 @@ export class MultimodalAIController {
         });
       }
     } catch (error) {
+      isSuccess = false;
+      errorMessage = error instanceof Error ? error.message : '语音识别服务暂时不可用';
       console.error('语音转文本API错误:', error);
       res.status(500).json({
         success: false,
         error: '语音识别服务暂时不可用',
       });
+    } finally {
+      // 记录多模态AI调用日志
+      if (req.user?.id && req.file) {
+        const duration = Date.now() - startTime;
+        const user = req.user as any;
+
+        await MultimodalAILoggingService.logMultimodalAICall({
+          userId: req.user.id,
+          userName: user.name || 'Unknown User',
+          aiServiceType: 'speech',
+          provider: speechConfig?.provider || 'unknown',
+          model: speechConfig?.model || 'unknown',
+          source: SourceDetectionUtil.detectSource(req),
+          inputSize: req.file.size,
+          inputFormat: req.file.mimetype,
+          outputText: isSuccess ? 'Speech recognition completed' : undefined,
+          isSuccess,
+          errorMessage,
+          duration,
+        });
+      }
     }
   }
 
@@ -84,11 +129,23 @@ export class MultimodalAIController {
    * POST /api/ai/image-recognition
    */
   async imageRecognition(req: Request, res: Response): Promise<void> {
+    const startTime = Date.now();
+    let isSuccess = false;
+    let errorMessage: string | undefined;
+    let visionConfig: any = null;
+
     try {
       const userId = req.user?.id;
       if (!userId) {
         res.status(401).json({ success: false, error: '用户未认证' });
         return;
+      }
+
+      // 获取视觉识别配置（用于日志记录）
+      try {
+        visionConfig = await this.configService.getVisionConfig();
+      } catch (configError) {
+        console.warn('获取视觉识别配置失败:', configError);
       }
 
       // 如果有文件上传，先保存到S3（带压缩）
@@ -130,6 +187,11 @@ export class MultimodalAIController {
       // 调用图片识别服务
       const result = await this.visionService.recognizeImage(visionRequest);
 
+      isSuccess = result.success;
+      if (!isSuccess) {
+        errorMessage = result.error;
+      }
+
       if (result.success) {
         res.json({
           success: true,
@@ -144,11 +206,34 @@ export class MultimodalAIController {
         });
       }
     } catch (error) {
+      isSuccess = false;
+      errorMessage = error instanceof Error ? error.message : '图片识别服务暂时不可用';
       console.error('图片识别API错误:', error);
       res.status(500).json({
         success: false,
         error: '图片识别服务暂时不可用',
       });
+    } finally {
+      // 记录多模态AI调用日志
+      if (req.user?.id) {
+        const duration = Date.now() - startTime;
+        const user = req.user as any;
+
+        await MultimodalAILoggingService.logMultimodalAICall({
+          userId: req.user.id,
+          userName: user.name || 'Unknown User',
+          aiServiceType: 'vision',
+          provider: visionConfig?.provider || 'unknown',
+          model: visionConfig?.model || 'unknown',
+          source: SourceDetectionUtil.detectSource(req),
+          inputSize: req.file?.size || 0,
+          inputFormat: req.file?.mimetype || 'unknown',
+          outputText: isSuccess ? 'Image recognition completed' : undefined,
+          isSuccess,
+          errorMessage,
+          duration,
+        });
+      }
     }
   }
 
@@ -157,6 +242,11 @@ export class MultimodalAIController {
    * POST /api/ai/smart-accounting/speech
    */
   async smartAccountingSpeech(req: Request, res: Response): Promise<void> {
+    const startTime = Date.now();
+    let isSuccess = false;
+    let errorMessage: string | undefined;
+    let speechConfig: any = null;
+
     try {
       const userId = req.user?.id;
       const { accountBookId } = req.body;
@@ -179,13 +269,20 @@ export class MultimodalAIController {
       // 检查记账点余额（语音记账消费2点）
       const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.voice);
       if (!canUsePoints) {
-        res.status(402).json({ 
+        res.status(402).json({
           success: false,
           error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
           type: 'INSUFFICIENT_POINTS',
           required: AccountingPointsService.POINT_COSTS.voice
         });
         return;
+      }
+
+      // 获取语音识别配置（用于日志记录）
+      try {
+        speechConfig = await this.configService.getSpeechConfig();
+      } catch (configError) {
+        console.warn('获取语音识别配置失败:', configError);
       }
 
       // 1. 语音转文本
@@ -196,7 +293,9 @@ export class MultimodalAIController {
 
       const speechResult = await this.speechService.speechToText(speechRequest);
 
-      if (!speechResult.success || !speechResult.data) {
+      isSuccess = speechResult.success;
+      if (!isSuccess) {
+        errorMessage = speechResult.error;
         res.status(400).json({
           success: false,
           error: speechResult.error || '语音识别失败',
@@ -216,18 +315,60 @@ export class MultimodalAIController {
       res.json({
         success: true,
         data: {
-          text: speechResult.data.text,
-          confidence: speechResult.data.confidence,
+          text: speechResult.data?.text || '',
+          confidence: speechResult.data?.confidence || 0,
           type: 'speech',
         },
         usage: speechResult.usage,
       });
     } catch (error) {
+      isSuccess = false;
+      errorMessage = error instanceof Error ? error.message : '智能记账语音识别服务暂时不可用';
       console.error('智能记账语音识别API错误:', error);
       res.status(500).json({
         success: false,
         error: '智能记账语音识别服务暂时不可用',
       });
+    } finally {
+      // 记录多模态AI调用日志
+      if (req.user?.id && req.file) {
+        const duration = Date.now() - startTime;
+        const user = req.user as any;
+
+        // 获取账本信息
+        let accountBookName: string | undefined;
+        try {
+          if (req.body.accountBookId) {
+            const { PrismaClient } = require('@prisma/client');
+            const prisma = new PrismaClient();
+            const accountBook = await prisma.accountBook.findUnique({
+              where: { id: req.body.accountBookId },
+              select: { name: true },
+            });
+            accountBookName = accountBook?.name;
+            await prisma.$disconnect();
+          }
+        } catch (error) {
+          console.warn('获取账本信息失败:', error);
+        }
+
+        await MultimodalAILoggingService.logMultimodalAICall({
+          userId: req.user.id,
+          userName: user.name || 'Unknown User',
+          accountBookId: req.body.accountBookId,
+          accountBookName,
+          aiServiceType: 'speech',
+          provider: speechConfig?.provider || 'unknown',
+          model: speechConfig?.model || 'unknown',
+          source: SourceDetectionUtil.detectSource(req),
+          inputSize: req.file.size,
+          inputFormat: req.file.mimetype,
+          outputText: isSuccess ? '智能记账语音识别完成' : undefined,
+          isSuccess,
+          errorMessage,
+          duration,
+        });
+      }
     }
   }
 
@@ -236,6 +377,11 @@ export class MultimodalAIController {
    * POST /api/ai/smart-accounting/vision
    */
   async smartAccountingVision(req: Request, res: Response): Promise<void> {
+    const startTime = Date.now();
+    let isSuccess = false;
+    let errorMessage: string | undefined;
+    let visionConfig: any = null;
+
     try {
       const userId = req.user?.id;
       const { accountBookId } = req.body;
@@ -258,13 +404,20 @@ export class MultimodalAIController {
       // 检查记账点余额（图片记账消费3点）
       const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.image);
       if (!canUsePoints) {
-        res.status(402).json({ 
+        res.status(402).json({
           success: false,
           error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
           type: 'INSUFFICIENT_POINTS',
           required: AccountingPointsService.POINT_COSTS.image
         });
         return;
+      }
+
+      // 获取视觉识别配置（用于日志记录）
+      try {
+        visionConfig = await this.configService.getVisionConfig();
+      } catch (configError) {
+        console.warn('获取视觉识别配置失败:', configError);
       }
 
       // 1. 先保存图片到S3（带压缩）
@@ -301,7 +454,9 @@ export class MultimodalAIController {
 
       const visionResult = await this.visionService.recognizeImage(visionRequest);
 
-      if (!visionResult.success || !visionResult.data) {
+      isSuccess = visionResult.success;
+      if (!isSuccess) {
+        errorMessage = visionResult.error;
         res.status(400).json({
           success: false,
           error: visionResult.error || '图片识别失败',
@@ -321,18 +476,60 @@ export class MultimodalAIController {
       res.json({
         success: true,
         data: {
-          text: visionResult.data.text,
-          confidence: visionResult.data.confidence,
+          text: visionResult.data?.text || '',
+          confidence: visionResult.data?.confidence || 0,
           type: 'vision',
         },
         usage: visionResult.usage,
       });
     } catch (error) {
+      isSuccess = false;
+      errorMessage = error instanceof Error ? error.message : '智能记账图片识别服务暂时不可用';
       console.error('智能记账图片识别API错误:', error);
       res.status(500).json({
         success: false,
         error: '智能记账图片识别服务暂时不可用',
       });
+    } finally {
+      // 记录多模态AI调用日志
+      if (req.user?.id && req.file) {
+        const duration = Date.now() - startTime;
+        const user = req.user as any;
+
+        // 获取账本信息
+        let accountBookName: string | undefined;
+        try {
+          if (req.body.accountBookId) {
+            const { PrismaClient } = require('@prisma/client');
+            const prisma = new PrismaClient();
+            const accountBook = await prisma.accountBook.findUnique({
+              where: { id: req.body.accountBookId },
+              select: { name: true },
+            });
+            accountBookName = accountBook?.name;
+            await prisma.$disconnect();
+          }
+        } catch (error) {
+          console.warn('获取账本信息失败:', error);
+        }
+
+        await MultimodalAILoggingService.logMultimodalAICall({
+          userId: req.user.id,
+          userName: user.name || 'Unknown User',
+          accountBookId: req.body.accountBookId,
+          accountBookName,
+          aiServiceType: 'vision',
+          provider: visionConfig?.provider || 'unknown',
+          model: visionConfig?.model || 'unknown',
+          source: SourceDetectionUtil.detectSource(req),
+          inputSize: req.file.size,
+          inputFormat: req.file.mimetype,
+          outputText: isSuccess ? '智能记账图片识别完成' : undefined,
+          isSuccess,
+          errorMessage,
+          duration,
+        });
+      }
     }
   }
 

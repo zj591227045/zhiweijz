@@ -43,6 +43,7 @@ model User {
   tags                 Tag[]
   uploadedFiles        FileStorage[]
   accountingPoints     UserAccountingPoints?
+  llmCallLogs          LlmCallLog[]
   pointsTransactions   AccountingPointsTransactions[]
   checkins             UserCheckins[]
   membership           UserMembership?
@@ -276,6 +277,7 @@ model AccountBook {
   categories           Category[]
   transactions         Transaction[]
   tags                 Tag[]
+  llmCallLogs          LlmCallLog[]
 
   @@map("account_books")
 }
@@ -529,6 +531,8 @@ model LlmCallLog {
   accountBookName  String?  @map("account_book_name") @db.VarChar(200)
   provider         String   @db.VarChar(50)
   model            String   @db.VarChar(100)
+  source           String   @default("App") @db.VarChar(50)
+  aiServiceType    String   @default("llm") @map("ai_service_type") @db.VarChar(50)
   promptTokens     Int      @default(0) @map("prompt_tokens")
   completionTokens Int      @default(0) @map("completion_tokens")
   totalTokens      Int      @default(0) @map("total_tokens")
@@ -542,13 +546,48 @@ model LlmCallLog {
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   serviceType      String   @default("official") @map("service_type") @db.VarChar(20)
 
+  // 关联关系
+  user             User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  accountBook      AccountBook?  @relation(fields: [accountBookId], references: [id], onDelete: SetNull)
+
   @@index([accountBookId, createdAt(sort: Desc)], map: "idx_llm_call_logs_account_book_time")
   @@index([provider, model, createdAt(sort: Desc)], map: "idx_llm_call_logs_provider_model")
   @@index([isSuccess, createdAt(sort: Desc)], map: "idx_llm_call_logs_success")
   @@index([userId, createdAt(sort: Desc)], map: "idx_llm_call_logs_user_time")
   @@index([serviceType, createdAt(sort: Desc)], map: "idx_llm_call_logs_service_type")
   @@index([userId, serviceType, createdAt(sort: Desc)], map: "idx_llm_call_logs_user_service_type")
+  @@index([source, createdAt(sort: Desc)], map: "idx_llm_call_logs_source")
+  @@index([aiServiceType, createdAt(sort: Desc)], map: "idx_llm_call_logs_ai_service_type")
   @@map("llm_call_logs")
+}
+
+model MultimodalAiCallLog {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String    @map("user_id")
+  userName        String    @map("user_name") @db.VarChar(100)
+  accountBookId   String?   @map("account_book_id")
+  accountBookName String?   @map("account_book_name") @db.VarChar(200)
+  aiServiceType   String    @map("ai_service_type") @db.VarChar(50)
+  provider        String    @db.VarChar(50)
+  model           String    @db.VarChar(100)
+  source          String    @default("App") @db.VarChar(50)
+  inputSize       Int       @default(0) @map("input_size")
+  inputFormat     String?   @map("input_format") @db.VarChar(20)
+  outputText      String?   @map("output_text")
+  confidenceScore Decimal?  @map("confidence_score") @db.Decimal(5, 4)
+  isSuccess       Boolean   @map("is_success")
+  errorMessage    String?   @map("error_message")
+  duration        Int
+  tokens          Int       @default(0)
+  cost            Decimal?  @db.Decimal(10, 6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([userId, createdAt(sort: Desc)], map: "idx_multimodal_ai_logs_user_time")
+  @@index([aiServiceType, createdAt(sort: Desc)], map: "idx_multimodal_ai_logs_service_type")
+  @@index([source, createdAt(sort: Desc)], map: "idx_multimodal_ai_logs_source")
+  @@index([provider, createdAt(sort: Desc)], map: "idx_multimodal_ai_logs_provider")
+  @@index([isSuccess, createdAt(sort: Desc)], map: "idx_multimodal_ai_logs_success")
+  @@map("multimodal_ai_call_logs")
 }
 
 model StatisticsAggregation {

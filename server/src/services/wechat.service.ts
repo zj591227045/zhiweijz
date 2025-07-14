@@ -1627,7 +1627,7 @@ export class WechatService {
    */
   private async handleVoiceMessage(openid: string, message: WechatMessage): Promise<string> {
     try {
-      console.log(`🎤 处理语音消息: openid=${openid}, mediaId=${message.MediaId}, recognition=${message.Recognition}`);
+      console.log(`🎤 处理语音消息: openid=${openid}, mediaId=${message.MediaId}`);
 
       // 检查用户绑定状态
       const binding = await this.bindingService.getBindingInfo(openid);
@@ -1639,44 +1639,8 @@ export class WechatService {
         return '语音消息格式错误，请重新发送语音消息。';
       }
 
-      // 优先使用微信自带的语音转文字结果
-      if (message.Recognition && message.Recognition.trim()) {
-        console.log(`🔍 使用微信语音转文字结果: ${message.Recognition}`);
-
-        try {
-          // 确保有默认账本ID
-          if (!binding.defaultAccountBookId) {
-            return `语音识别成功：${message.Recognition}\n\n但您还没有设置默认账本，请先通过菜单设置默认账本。`;
-          }
-
-          // 直接使用微信的语音转文字结果进行智能记账
-          const accountingResult = await this.smartAccountingService.processWechatAccounting(
-            binding.userId,
-            binding.defaultAccountBookId,
-            message.Recognition,
-            true // 创建交易记录
-          );
-
-          console.log(`✅ 智能记账API调用完成:`, accountingResult);
-
-          if (accountingResult.success) {
-            if (accountingResult.transaction) {
-              // 有交易记录，使用格式化消息
-              return this.formatAccountingSuccessMessage(accountingResult.transaction, message.Recognition);
-            } else {
-              // 没有交易记录但成功，直接返回消息
-              return accountingResult.message;
-            }
-          } else {
-            return `语音识别成功：${message.Recognition}\n\n但智能记账失败：${accountingResult.message || '未知错误'}\n\n您可以手动输入记账信息。`;
-          }
-        } catch (accountingError) {
-          console.error('智能记账API调用失败:', accountingError);
-          return `语音识别成功：${message.Recognition}\n\n但智能记账服务暂时不可用，请稍后重试或手动输入记账信息。`;
-        }
-      }
-
-      console.log(`⚠️ 微信语音转文字结果为空，尝试使用自定义语音识别服务...`);
+      // 微信官方已停止语音转文字API服务，直接使用自定义语音识别服务
+      console.log(`🎵 使用自定义语音识别服务处理语音消息...`);
 
       // 下载语音文件
       console.log(`📥 开始下载语音文件: ${message.MediaId}`);
@@ -1690,7 +1654,6 @@ export class WechatService {
 
       // 声明变量在更外层作用域，以便在catch块中使用
       let processedFilePath = downloadResult.filePath;
-      let shouldCleanupConverted = false;
 
       try {
         console.log(`🎵 开始处理语音文件: ${downloadResult.filePath}`);
@@ -1706,31 +1669,12 @@ export class WechatService {
         const stats = fs.statSync(downloadResult.filePath);
         console.log(`📊 语音文件信息: 大小=${stats.size}字节, 格式=${downloadResult.fileName}`);
 
-        // 检查是否需要格式转换
+        // 直接使用AMR格式文件，百度语音识别API支持AMR格式
         processedFilePath = downloadResult.filePath;
         let processedFileName = downloadResult.fileName || 'voice.amr';
         let processedMimeType = 'audio/amr';
-        shouldCleanupConverted = false;
 
-        // 如果是AMR格式，转换为WAV格式
-        if (processedFileName.toLowerCase().endsWith('.amr')) {
-          console.log(`🔄 检测到AMR格式，开始转换为WAV格式...`);
-
-          const conversionResult = await this.audioConversionService.convertAmrToWav(downloadResult.filePath);
-
-          if (conversionResult.success && conversionResult.outputPath) {
-            processedFilePath = conversionResult.outputPath;
-            processedFileName = processedFileName.replace(/\.amr$/i, '.wav');
-            processedMimeType = 'audio/wav';
-            shouldCleanupConverted = true;
-
-            console.log(`✅ 音频格式转换成功: ${downloadResult.filePath} → ${processedFilePath}`);
-            console.log(`📊 转换结果: ${conversionResult.originalSize}字节 → ${conversionResult.convertedSize}字节`);
-          } else {
-            console.error(`❌ 音频格式转换失败: ${conversionResult.error}`);
-            return `语音格式转换失败：${conversionResult.error}\n\n请重新发送语音或发送文字进行记账。`;
-          }
-        }
+        console.log(`📁 直接使用AMR格式文件: ${processedFileName}`);
 
         // 读取处理后的文件
         const processedStats = fs.statSync(processedFilePath);
@@ -1786,11 +1730,7 @@ export class WechatService {
         console.log(`🗑️ 清理语音临时文件: ${downloadResult.filePath}`);
         await this.mediaService.cleanupTempFile(downloadResult.filePath);
 
-        // 清理转换后的文件（如果有）
-        if (shouldCleanupConverted && processedFilePath !== downloadResult.filePath) {
-          console.log(`🗑️ 清理转换后的临时文件: ${processedFilePath}`);
-          await this.audioConversionService.cleanupFile(processedFilePath);
-        }
+
 
         // 处理语音识别响应
         if (statusCode === 200 && responseData?.success) {
@@ -1843,10 +1783,6 @@ export class WechatService {
         console.error('语音记账API调用异常:', apiError);
         // 确保清理临时文件
         await this.mediaService.cleanupTempFile(downloadResult.filePath);
-        // 清理转换后的文件（如果有）
-        if (shouldCleanupConverted && processedFilePath !== downloadResult.filePath) {
-          await this.audioConversionService.cleanupFile(processedFilePath);
-        }
         return '语音记账服务暂时不可用，请稍后重试。\n\n您也可以发送文字进行记账。';
       }
     } catch (error) {

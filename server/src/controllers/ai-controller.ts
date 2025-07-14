@@ -4,6 +4,7 @@ import { SmartAccounting } from '../ai/langgraph/smart-accounting';
 import { PrismaClient, TransactionType } from '@prisma/client';
 import { SmartAccountingResult, SmartAccountingError } from '../types/smart-accounting';
 import AccountingPointsService from '../services/accounting-points.service';
+import { SourceDetectionUtil } from '../utils/source-detection.util';
 
 /**
  * AI功能控制器
@@ -53,6 +54,10 @@ export class AIController {
       if (!userId) {
         return res.status(401).json({ error: '未授权' });
       }
+
+      // 检测请求来源并设置到LLM服务中
+      const source = SourceDetectionUtil.detectSource(req);
+      this.llmProviderService.setRequestContext({ source });
 
       if (!description) {
         return res.status(400).json({ error: '描述不能为空' });
@@ -823,6 +828,10 @@ export class AIController {
         return res.status(401).json({ error: '未授权' });
       }
 
+      // 检测请求来源并设置到LLM服务中
+      const source = SourceDetectionUtil.detectSource(req);
+      this.llmProviderService.setRequestContext({ source });
+
       if (!description) {
         return res.status(400).json({ error: '描述不能为空' });
       }
@@ -1049,6 +1058,10 @@ export class AIController {
       if (!userId) {
         return res.status(401).json({ error: '未授权' });
       }
+
+      // 检测请求来源并设置到LLM服务中
+      const source = SourceDetectionUtil.detectSource(req);
+      this.llmProviderService.setRequestContext({ source });
 
       if (!description) {
         return res.status(400).json({ error: '描述不能为空' });

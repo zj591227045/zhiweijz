@@ -27,6 +27,8 @@ export class WechatSmartAccountingService {
     createTransaction: boolean = false,
   ): Promise<WechatSmartAccountingResult> {
     try {
+      // 设置LLM请求上下文为微信来源
+      this.aiController['llmProviderService'].setRequestContext({ source: 'WeChat' });
       // 1. 验证账本权限
       const accountBook = await this.validateAccountBookAccess(userId, accountBookId);
       if (!accountBook) {
@@ -102,6 +104,9 @@ export class WechatSmartAccountingService {
         success: false,
         message: '记账处理失败，请稍后重试。',
       };
+    } finally {
+      // 清除LLM请求上下文
+      this.aiController['llmProviderService'].clearRequestContext();
     }
   }
 

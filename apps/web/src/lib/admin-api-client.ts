@@ -58,6 +58,9 @@ export const ADMIN_API_ENDPOINTS = {
   // LLM日志
   LLM_LOGS: '/api/admin/llm-logs',
   LLM_LOGS_CLEANUP: '/api/admin/llm-logs/cleanup',
+
+  // 统一AI调用日志
+  AI_CALL_LOGS: '/api/admin/ai-call-logs',
   
   // 多提供商LLM管理
   MULTI_PROVIDER_LLM: '/api/admin/multi-provider-llm',
