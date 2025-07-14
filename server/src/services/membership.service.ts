@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, MemberType, NotificationType } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -143,8 +143,8 @@ export class MembershipService {
     });
 
     let startDate = now;
-    let endDate = new Date(now);
-    
+    let endDate: Date | null = new Date(now);
+
     if (memberType === 'DONOR') {
       // 捐赠会员有到期时间
       if (membership && membership.endDate && membership.endDate > now) {
@@ -162,7 +162,7 @@ export class MembershipService {
       const updatedMembership = await this.prisma.userMembership.update({
         where: { userId },
         data: {
-          memberType,
+          memberType: memberType as MemberType,
           endDate,
           isActive: true,
           monthlyPoints: memberType === 'DONOR' ? this.membershipMonthlyPoints : 0,
@@ -203,7 +203,7 @@ export class MembershipService {
       const newMembership = await this.prisma.userMembership.create({
         data: {
           userId,
-          memberType,
+          memberType: memberType as MemberType,
           startDate,
           endDate,
           isActive: true,
@@ -300,7 +300,7 @@ export class MembershipService {
       });
 
       // 发送到期通知
-      await this.createNotification(userId, 'MEMBERSHIP_EXPIRED', '会员已到期', '您的捐赠会员已到期，已自动降级为普通会员。');
+      await this.createNotification(userId, NotificationType.MEMBERSHIP_EXPIRED, '会员已到期', '您的捐赠会员已到期，已自动降级为普通会员。');
     }
   }
 
@@ -471,7 +471,7 @@ export class MembershipService {
   }
 
   // 创建通知
-  async createNotification(userId: string, type: string, title: string, content: string) {
+  async createNotification(userId: string, type: NotificationType, title: string, content: string) {
     if (!this.enableMembershipSystem) {
       return;
     }
@@ -563,7 +563,7 @@ export class MembershipService {
     // 发送徽章获得通知
     await this.createNotification(
       userId,
-      'BADGE_AWARDED',
+      NotificationType.BADGE_AWARDED,
       '获得新徽章',
       `恭喜您获得新徽章：${userBadge.badge.name}`
     );
