@@ -422,7 +422,7 @@ class AccountingPointsService {
   /**
    * 检查并执行每日首次访问赠送记账点
    * 当用户每日首次调用API时调用此方法
-   * 使用数据库事务确保并发安全，使用北京时间作为基准
+   * 使用数据库事务和唯一约束确保并发安全，使用北京时间作为基准
    */
   static async checkAndGiveDailyPoints(userId: string): Promise<{
     isFirstVisitToday: boolean;
@@ -433,85 +433,120 @@ class AccountingPointsService {
       // 使用北京时间获取今日日期
       const today = this.getBeijingToday(); // YYYY-MM-DD格式
       const todayDate = this.getBeijingTodayStart();
-      
-      // 在事务中获取用户记账点信息
-      let userPoints = await tx.userAccountingPoints.findUnique({
-        where: { userId }
-      });
 
-      // 如果用户没有记账点账户，创建一个
-      if (!userPoints) {
-        userPoints = await tx.userAccountingPoints.create({
+      try {
+        // 尝试创建今日赠送记录，如果已存在则会因唯一约束失败
+        // 这是防止并发重复赠送的关键步骤
+        const giftRecord = await tx.dailyGiftRecords.create({
           data: {
             userId,
-            giftBalance: 0,
-            memberBalance: 0
+            giftDate: todayDate,
+            pointsGiven: 0 // 先创建记录，稍后更新实际赠送点数
           }
         });
-      }
-      
-      // 检查今天（北京时间）是否已经赠送过
-      const lastGiftDate = userPoints.lastDailyGiftDate;
-      const hasGivenToday = lastGiftDate && 
-        this.getBeijingToday() === new Date(lastGiftDate.getTime() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
-      
-      if (hasGivenToday) {
-        return {
-          isFirstVisitToday: false
-        };
-      }
-      
-      // 检查赠送余额是否已达上限
-      let pointsToGive = 0;
-      if (userPoints.giftBalance < this.GIFT_BALANCE_LIMIT) {
-        pointsToGive = Math.min(
-          this.DAILY_GIFT, 
-          this.GIFT_BALANCE_LIMIT - userPoints.giftBalance
-        );
-      }
-      
-      // 更新最后赠送日期（即使没有实际赠送点数也要更新，避免重复检查）
-      if (pointsToGive > 0) {
-        // 使用原子操作更新余额和日期
-        const updatedPoints = await tx.userAccountingPoints.update({
-          where: { userId },
-          data: { 
-            giftBalance: { increment: pointsToGive },
-            lastDailyGiftDate: todayDate
-          }
+
+        // 如果能成功创建记录，说明今天确实是首次访问
+        console.log('🎁 [AccountingPointsService] 今日首次访问，用户ID:', userId, '日期:', today);
+
+        // 确保用户记账点账户存在
+        let userPoints = await tx.userAccountingPoints.findUnique({
+          where: { userId }
         });
-        
-        const newGiftBalance = updatedPoints.giftBalance;
-        
-        // 记录交易
-        await tx.accountingPointsTransactions.create({
-          data: {
-            userId,
-            type: 'daily_first_visit',
-            operation: 'add',
-            points: pointsToGive,
-            balanceType: 'gift',
-            balanceAfter: newGiftBalance,
-            description: '每日首次访问赠送记账点'
-          }
+
+        if (!userPoints) {
+          userPoints = await tx.userAccountingPoints.create({
+            data: {
+              userId,
+              giftBalance: 0,
+              memberBalance: 0
+            }
+          });
+        }
+
+        // 检查赠送余额是否已达上限
+        let pointsToGive = 0;
+        if (userPoints.giftBalance < this.GIFT_BALANCE_LIMIT) {
+          pointsToGive = Math.min(
+            this.DAILY_GIFT,
+            this.GIFT_BALANCE_LIMIT - userPoints.giftBalance
+          );
+        }
+
+        console.log('💰 [AccountingPointsService] 计算赠送点数:', {
+          currentBalance: userPoints.giftBalance,
+          limit: this.GIFT_BALANCE_LIMIT,
+          dailyGift: this.DAILY_GIFT,
+          pointsToGive
         });
-        
-        return {
-          isFirstVisitToday: true,
-          newBalance: newGiftBalance,
-          pointsGiven: pointsToGive
-        };
-      } else {
-        // 即使没有赠送点数，也要更新日期
-        await tx.userAccountingPoints.update({
-          where: { userId },
-          data: { lastDailyGiftDate: todayDate }
-        });
-        
-        return {
-          isFirstVisitToday: true,
-          pointsGiven: 0
-        };
+
+        if (pointsToGive > 0) {
+          // 使用原子操作更新余额
+          const updatedPoints = await tx.userAccountingPoints.update({
+            where: { userId },
+            data: {
+              giftBalance: { increment: pointsToGive },
+              lastDailyGiftDate: todayDate // 保持向后兼容
+            }
+          });
+
+          const newGiftBalance = updatedPoints.giftBalance;
+
+          // 更新赠送记录中的实际赠送点数
+          await tx.dailyGiftRecords.update({
+            where: { id: giftRecord.id },
+            data: { pointsGiven: pointsToGive }
+          });
+
+          // 记录交易
+          await tx.accountingPointsTransactions.create({
+            data: {
+              userId,
+              type: 'daily_first_visit',
+              operation: 'add',
+              points: pointsToGive,
+              balanceType: 'gift',
+              balanceAfter: newGiftBalance,
+              description: '每日首次访问赠送记账点'
+            }
+          });
+
+          console.log('✅ [AccountingPointsService] 赠送成功:', {
+            pointsGiven: pointsToGive,
+            newBalance: newGiftBalance
+          });
+
+          return {
+            isFirstVisitToday: true,
+            newBalance: newGiftBalance,
+            pointsGiven: pointsToGive
+          };
+        } else {
+          // 即使没有赠送点数，也要更新lastDailyGiftDate保持向后兼容
+          await tx.userAccountingPoints.update({
+            where: { userId },
+            data: { lastDailyGiftDate: todayDate }
+          });
+
+          console.log('ℹ️ [AccountingPointsService] 首次访问但未赠送点数（已达上限）');
+
+          return {
+            isFirstVisitToday: true,
+            pointsGiven: 0
+          };
+        }
+
+      } catch (error: any) {
+        // 如果是唯一约束冲突，说明今天已经赠送过了
+        if (error.code === 'P2002' && error.meta?.target?.includes('user_id') && error.meta?.target?.includes('gift_date')) {
+          console.log('ℹ️ [AccountingPointsService] 今日已赠送过记账点，用户ID:', userId, '日期:', today);
+          return {
+            isFirstVisitToday: false
+          };
+        }
+
+        // 其他错误重新抛出
+        console.error('❌ [AccountingPointsService] 每日赠送检查失败:', error);
+        throw error;
       }
     });
   }

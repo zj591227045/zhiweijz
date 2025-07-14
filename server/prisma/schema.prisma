@@ -46,6 +46,7 @@ model User {
   llmCallLogs          LlmCallLog[]
   pointsTransactions   AccountingPointsTransactions[]
   checkins             UserCheckins[]
+  dailyGiftRecords     DailyGiftRecords[]
   membership           UserMembership?
   compressionStats     CompressionStats[]
 
@@ -869,6 +870,21 @@ model UserAccountingPoints {
   @@index([lastDailyGiftDate], map: "idx_user_accounting_points_last_daily_gift_date")
   @@index([userId, lastDailyGiftDate], map: "idx_user_accounting_points_user_gift_date")
   @@map("user_accounting_points")
+}
+
+model DailyGiftRecords {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  giftDate    DateTime @map("gift_date") @db.Date
+  pointsGiven Int      @default(0) @map("points_given")
+  createdAt   DateTime @default(now()) @map("created_at")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, giftDate], map: "daily_gift_records_user_id_gift_date_key")
+  @@index([userId], map: "idx_daily_gift_records_user_id")
+  @@index([giftDate], map: "idx_daily_gift_records_date")
+  @@index([userId, giftDate], map: "idx_daily_gift_records_user_date")
+  @@map("daily_gift_records")
 }
 
 model AccountingPointsTransactions {
