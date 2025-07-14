@@ -27,16 +27,15 @@ import imageRecognitionRoutes from './image-recognition.routes';
 import imageProxyRoutes from './image-proxy.routes';
 import multimodalAIRoutes from './multimodal-ai.routes';
 import accountingPointsRoutes from './accounting-points.routes';
-
-const membershipRoutes = require('./membership.routes');
+import membershipRoutes from './membership.routes';
+import { MembershipService } from '../services/membership.service';
 
 const router = Router();
 
 // 添加获取系统功能配置的公共接口（不需要认证）
 router.get('/system/features', (req, res) => {
-  const membershipService = require('../services/membership.service');
-  const service = new membershipService();
-  
+  const service = new MembershipService();
+
   res.json({
     membershipEnabled: service.isEnabled(),
     accountingPointsEnabled: service.isAccountingPointsEnabled()

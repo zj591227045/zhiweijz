@@ -1,8 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const MembershipService = require('../services/membership.service');
-const { authenticate } = require('../middlewares/auth.middleware');
+import { Router } from 'express';
+import { MembershipService } from '../services/membership.service';
+import { authenticate } from '../middlewares/auth.middleware';
 
+const router = Router();
 const membershipService = new MembershipService();
 
 // 获取当前用户会员信息
@@ -182,4 +182,4 @@ router.post('/upgrade', authenticate, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

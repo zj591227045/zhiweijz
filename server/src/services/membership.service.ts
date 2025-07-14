@@ -1,27 +1,34 @@
-const { PrismaClient } = require('@prisma/client');
+import { PrismaClient } from '@prisma/client';
+
 const prisma = new PrismaClient();
 
-class MembershipService {
+export class MembershipService {
+  private prisma: PrismaClient;
+  private enableMembershipSystem: boolean;
+  private enableAccountingPointsSystem: boolean;
+  private membershipMonthlyPoints: number;
+  private defaultMemberType: string;
+
   constructor() {
     this.prisma = prisma;
     this.enableMembershipSystem = process.env.ENABLE_MEMBERSHIP_SYSTEM === 'true';
     this.enableAccountingPointsSystem = process.env.ENABLE_ACCOUNTING_POINTS_SYSTEM === 'true';
-    this.membershipMonthlyPoints = parseInt(process.env.MEMBERSHIP_MONTHLY_POINTS) || 1000;
+    this.membershipMonthlyPoints = parseInt(process.env.MEMBERSHIP_MONTHLY_POINTS || '1000');
     this.defaultMemberType = process.env.DEFAULT_MEMBER_TYPE || 'REGULAR';
   }
 
   // 检查是否启用会员系统
-  isEnabled() {
+  isEnabled(): boolean {
     return this.enableMembershipSystem;
   }
 
   // 检查是否启用积分系统
-  isAccountingPointsEnabled() {
+  isAccountingPointsEnabled(): boolean {
     return this.enableAccountingPointsSystem;
   }
 
   // 获取用户会员信息
-  async getUserMembership(userId) {
+  async getUserMembership(userId: string) {
     if (!this.enableMembershipSystem) {
       // 自部署版本返回永久会员
       return {
@@ -69,7 +76,7 @@ class MembershipService {
   }
 
   // 创建虚拟的普通会员信息（不存储到数据库）
-  createVirtualRegularMembership(userId) {
+  createVirtualRegularMembership(userId: string) {
     return {
       id: `virtual-${userId}`,
       userId,
@@ -91,7 +98,7 @@ class MembershipService {
   }
 
   // 创建基础会员信息
-  async createBasicMembership(userId) {
+  async createBasicMembership(userId: string) {
     const startDate = new Date();
     
     return await this.prisma.userMembership.create({
@@ -120,7 +127,7 @@ class MembershipService {
   }
 
   // 升级会员
-  async upgradeMembership(userId, memberType, duration = 12, paymentMethod = 'manual') {
+  async upgradeMembership(userId: string, memberType: string, duration: number = 12, paymentMethod: string = 'manual') {
     if (!this.enableMembershipSystem) {
       throw new Error('会员系统未启用');
     }
@@ -238,7 +245,7 @@ class MembershipService {
   }
 
   // 颁发捐赠会员徽章
-  async awardDonorBadge(userId) {
+  async awardDonorBadge(userId: string) {
     const donorBadge = await this.prisma.badge.findFirst({
       where: { name: '捐赠会员徽章' }
     });
@@ -266,7 +273,7 @@ class MembershipService {
   }
 
   // 检查会员状态并处理到期
-  async checkAndUpdateMembershipStatus(userId) {
+  async checkAndUpdateMembershipStatus(userId: string) {
     if (!this.enableMembershipSystem) {
       return;
     }
@@ -298,7 +305,7 @@ class MembershipService {
   }
 
   // 重置会员积分
-  async resetMemberPoints(userId) {
+  async resetMemberPoints(userId: string) {
     if (!this.enableMembershipSystem || !this.enableAccountingPointsSystem) {
       return;
     }
@@ -310,7 +317,7 @@ class MembershipService {
     // 检查是否需要重置（每月重置一次）
     if (!lastReset || now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
       const pointsToAdd = membership.memberType === 'DONOR' ? this.membershipMonthlyPoints : 0;
-      
+
       if (pointsToAdd > 0) {
         await this.prisma.userMembership.update({
           where: { userId },
@@ -327,7 +334,7 @@ class MembershipService {
   }
 
   // 添加会员积分
-  async addMemberPoints(userId, points, description) {
+  async addMemberPoints(userId: string, points: number, description: string) {
     if (!this.enableAccountingPointsSystem) {
       return;
     }
@@ -372,7 +379,7 @@ class MembershipService {
   }
 
   // 使用会员积分
-  async useMemberPoints(userId, points, description) {
+  async useMemberPoints(userId: string, points: number, description: string): Promise<boolean> {
     if (!this.enableAccountingPointsSystem) {
       return false;
     }
@@ -420,7 +427,7 @@ class MembershipService {
   }
 
   // 设置用户选择的徽章
-  async setSelectedBadge(userId, badgeId) {
+  async setSelectedBadge(userId: string, badgeId: string) {
     if (!this.enableMembershipSystem) {
       return;
     }
@@ -464,7 +471,7 @@ class MembershipService {
   }
 
   // 创建通知
-  async createNotification(userId, type, title, content) {
+  async createNotification(userId: string, type: string, title: string, content: string) {
     if (!this.enableMembershipSystem) {
       return;
     }
@@ -480,7 +487,7 @@ class MembershipService {
   }
 
   // 获取用户通知
-  async getUserNotifications(userId, limit = 20) {
+  async getUserNotifications(userId: string, limit: number = 20) {
     if (!this.enableMembershipSystem) {
       return [];
     }
@@ -493,14 +500,14 @@ class MembershipService {
   }
 
   // 标记通知为已读
-  async markNotificationAsRead(notificationId) {
+  async markNotificationAsRead(notificationId: string) {
     if (!this.enableMembershipSystem) {
       return;
     }
 
     return await this.prisma.membershipNotification.update({
       where: { id: notificationId },
-      data: { 
+      data: {
         isRead: true,
         sentAt: new Date()
       }
@@ -524,7 +531,7 @@ class MembershipService {
   }
 
   // 颁发徽章
-  async awardBadge(userId, badgeId, reason) {
+  async awardBadge(userId: string, badgeId: string, reason: string) {
     if (!this.enableMembershipSystem) {
       return;
     }
@@ -597,13 +604,13 @@ class MembershipService {
       }),
       this.prisma.userMembership.count({ where: { memberType: 'DONOR' } }),
       this.prisma.userMembership.count({ where: { memberType: 'LIFETIME' } }),
-      this.prisma.userMembership.count({ 
-        where: { 
+      this.prisma.userMembership.count({
+        where: {
           isActive: true,
           memberType: {
             not: 'REGULAR'
           }
-        } 
+        }
       }),
       this.prisma.userMembership.count({
         where: {
@@ -633,5 +640,3 @@ class MembershipService {
     };
   }
 }
-
-module.exports = MembershipService;
