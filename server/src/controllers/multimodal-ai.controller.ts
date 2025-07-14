@@ -32,6 +32,35 @@ export class MultimodalAIController {
   }
 
   /**
+   * 获取用户的默认账本信息
+   */
+  private async getDefaultAccountBookInfo(userId: string): Promise<{ id?: string; name?: string }> {
+    try {
+      const { PrismaClient } = require('@prisma/client');
+      const prisma = new PrismaClient();
+      const defaultAccountBook = await prisma.accountBook.findFirst({
+        where: {
+          OR: [
+            { userId: userId, isDefault: true },
+            { userId: userId }
+          ]
+        },
+        select: { id: true, name: true },
+        orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }]
+      });
+      await prisma.$disconnect();
+
+      return {
+        id: defaultAccountBook?.id,
+        name: defaultAccountBook?.name
+      };
+    } catch (error) {
+      console.warn('获取默认账本信息失败:', error);
+      return {};
+    }
+  }
+
+  /**
    * 语音转文本
    * POST /api/ai/speech-to-text
    */
@@ -40,6 +69,7 @@ export class MultimodalAIController {
     let isSuccess = false;
     let errorMessage: string | undefined;
     let speechConfig: any = null;
+    let recognizedText: string | undefined;
 
     try {
       const userId = req.user?.id;
@@ -77,6 +107,9 @@ export class MultimodalAIController {
       isSuccess = result.success;
       if (!isSuccess) {
         errorMessage = result.error;
+      } else {
+        // 记录识别的文本内容
+        recognizedText = result.data?.text;
       }
 
       if (result.success) {
@@ -106,16 +139,21 @@ export class MultimodalAIController {
         const duration = Date.now() - startTime;
         const user = req.user as any;
 
+        // 获取默认账本信息
+        const accountBookInfo = await this.getDefaultAccountBookInfo(req.user.id);
+
         await MultimodalAILoggingService.logMultimodalAICall({
           userId: req.user.id,
           userName: user.name || 'Unknown User',
+          accountBookId: accountBookInfo.id,
+          accountBookName: accountBookInfo.name,
           aiServiceType: 'speech',
           provider: speechConfig?.provider || 'unknown',
           model: speechConfig?.model || 'unknown',
           source: SourceDetectionUtil.detectSource(req),
           inputSize: req.file.size,
           inputFormat: req.file.mimetype,
-          outputText: isSuccess ? 'Speech recognition completed' : undefined,
+          outputText: isSuccess ? (recognizedText || 'Speech recognition completed') : undefined,
           isSuccess,
           errorMessage,
           duration,
@@ -133,6 +171,7 @@ export class MultimodalAIController {
     let isSuccess = false;
     let errorMessage: string | undefined;
     let visionConfig: any = null;
+    let recognizedText: string | undefined;
 
     try {
       const userId = req.user?.id;
@@ -190,6 +229,9 @@ export class MultimodalAIController {
       isSuccess = result.success;
       if (!isSuccess) {
         errorMessage = result.error;
+      } else {
+        // 记录识别的文本内容
+        recognizedText = result.data?.text;
       }
 
       if (result.success) {
@@ -219,16 +261,21 @@ export class MultimodalAIController {
         const duration = Date.now() - startTime;
         const user = req.user as any;
 
+        // 获取默认账本信息
+        const accountBookInfo = await this.getDefaultAccountBookInfo(req.user.id);
+
         await MultimodalAILoggingService.logMultimodalAICall({
           userId: req.user.id,
           userName: user.name || 'Unknown User',
+          accountBookId: accountBookInfo.id,
+          accountBookName: accountBookInfo.name,
           aiServiceType: 'vision',
           provider: visionConfig?.provider || 'unknown',
           model: visionConfig?.model || 'unknown',
           source: SourceDetectionUtil.detectSource(req),
           inputSize: req.file?.size || 0,
           inputFormat: req.file?.mimetype || 'unknown',
-          outputText: isSuccess ? 'Image recognition completed' : undefined,
+          outputText: isSuccess ? (recognizedText || 'Image recognition completed') : undefined,
           isSuccess,
           errorMessage,
           duration,
@@ -246,6 +293,7 @@ export class MultimodalAIController {
     let isSuccess = false;
     let errorMessage: string | undefined;
     let speechConfig: any = null;
+    let recognizedText: string | undefined;
 
     try {
       const userId = req.user?.id;
@@ -301,6 +349,9 @@ export class MultimodalAIController {
           error: speechResult.error || '语音识别失败',
         });
         return;
+      } else {
+        // 记录识别的文本内容
+        recognizedText = speechResult.data?.text;
       }
 
       // 2. 语音识别成功，扣除记账点
@@ -363,7 +414,7 @@ export class MultimodalAIController {
           source: SourceDetectionUtil.detectSource(req),
           inputSize: req.file.size,
           inputFormat: req.file.mimetype,
-          outputText: isSuccess ? '智能记账语音识别完成' : undefined,
+          outputText: isSuccess ? (recognizedText || '智能记账语音识别完成') : undefined,
           isSuccess,
           errorMessage,
           duration,
@@ -381,6 +432,7 @@ export class MultimodalAIController {
     let isSuccess = false;
     let errorMessage: string | undefined;
     let visionConfig: any = null;
+    let recognizedText: string | undefined;
 
     try {
       const userId = req.user?.id;
@@ -462,6 +514,9 @@ export class MultimodalAIController {
           error: visionResult.error || '图片识别失败',
         });
         return;
+      } else {
+        // 记录识别的文本内容
+        recognizedText = visionResult.data?.text;
       }
 
       // 3. 图片识别成功，扣除记账点
@@ -524,7 +579,7 @@ export class MultimodalAIController {
           source: SourceDetectionUtil.detectSource(req),
           inputSize: req.file.size,
           inputFormat: req.file.mimetype,
-          outputText: isSuccess ? '智能记账图片识别完成' : undefined,
+          outputText: isSuccess ? (recognizedText || '智能记账图片识别完成') : undefined,
           isSuccess,
           errorMessage,
           duration,

@@ -1686,9 +1686,19 @@ export class WechatService {
           path: processedFilePath,
         };
 
+        // 获取完整的用户信息
+        const userInfo = await prisma.user.findUnique({
+          where: { id: binding.userId },
+          select: { id: true, name: true, email: true }
+        });
+
         // 创建模拟的请求对象
         const mockReq = {
-          user: { id: binding.userId },
+          user: {
+            id: binding.userId,
+            name: userInfo?.name || 'Unknown User',
+            email: userInfo?.email || 'unknown@example.com'
+          },
           file: mockFile,
           body: {
             accountBookId: binding.defaultAccountBookId,
@@ -1862,9 +1872,19 @@ export class WechatService {
 
       console.log(`🎯 准备调用图片识别API，图片路径: ${imagePath}, shouldCleanup: ${shouldCleanup}`);
 
+      // 获取完整的用户信息
+      const userInfo = await prisma.user.findUnique({
+        where: { id: binding.userId },
+        select: { id: true, name: true, email: true }
+      });
+
       // 创建模拟的请求对象
       const mockReq = {
-        user: { id: binding.userId },
+        user: {
+          id: binding.userId,
+          name: userInfo?.name || 'Unknown User',
+          email: userInfo?.email || 'unknown@example.com'
+        },
         body: {
           accountBookId: binding.defaultAccountBookId,
           imageUrl: shouldCleanup ? undefined : imagePath,

@@ -9,6 +9,7 @@ declare global {
       user?: {
         id: string;
         email: string;
+        name: string;
       };
     }
   }
@@ -45,6 +46,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
       select: {
         id: true,
         email: true,
+        name: true,
         deletionRequestedAt: true,
         deletionScheduledAt: true,
       },
@@ -90,6 +92,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     req.user = {
       id: decoded.id,
       email: decoded.email,
+      name: user.name,
     };
 
     console.log('✅ [Auth Middleware] 用户认证成功:', {
