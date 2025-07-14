@@ -378,7 +378,7 @@ export default function SettingsPage() {
         退出登录
       </button>
 
-      <div className="version-info">只为记账 v0.2.5</div>
+      <div className="version-info">只为记账 v0.5.0</div>
     </PageContainer>
   );
 }

@@ -1,6 +1,6 @@
 {
   "name": "zhiweijz",
-  "version": "0.2.5",
+  "version": "0.5.0",
   "description": "一个简单、纯粹、AI驱动的移动端记账工具。",
   "private": true,
   "workspaces": [

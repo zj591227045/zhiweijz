@@ -51,7 +51,7 @@ export default function AboutPage() {
           </div>
           <div className="about-app-info">
             <h3>只为记账</h3>
-            <p className="version">版本 0.2.5</p>
+            <p className="version">版本 0.5.0</p>
           </div>
         </div>
 
@@ -110,7 +110,7 @@ export default function AboutPage() {
             </div>
             <div className="info-item">
               <span className="info-label">版本</span>
-              <span className="info-value">0.2.5</span>
+              <span className="info-value">0.5.0</span>
             </div>
             <div className="info-item">
               <span className="info-label">发布日期</span>
