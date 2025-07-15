@@ -34,7 +34,7 @@ EXCEPTION
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE "BudgetType" AS ENUM ('MONTHLY', 'YEARLY');
+    CREATE TYPE "BudgetType" AS ENUM ('PERSONAL', 'GENERAL');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
