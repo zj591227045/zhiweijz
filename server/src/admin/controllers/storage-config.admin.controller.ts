@@ -235,10 +235,10 @@ export class StorageConfigAdminController {
         },
         aliyun: {
           name: '阿里云OSS',
-          description: '阿里云对象存储服务',
+          description: '阿里云对象存储服务（S3兼容）',
           config: {
             enabled: true,
-            storageType: FileStorageType.OSS,
+            storageType: FileStorageType.S3,
             endpoint: 'https://oss-cn-hangzhou.aliyuncs.com',
             region: 'cn-hangzhou',
             bucketAvatars: 'your-app-avatars',
@@ -249,12 +249,26 @@ export class StorageConfigAdminController {
         },
         tencent: {
           name: '腾讯云COS',
-          description: '腾讯云对象存储服务',
+          description: '腾讯云对象存储服务（S3兼容）',
           config: {
             enabled: true,
-            storageType: FileStorageType.COS,
+            storageType: FileStorageType.S3,
             endpoint: 'https://cos.ap-beijing.myqcloud.com',
             region: 'ap-beijing',
+            bucketAvatars: 'your-app-avatars-1234567890',
+            bucketAttachments: 'your-app-attachments-1234567890',
+            bucketTemp: 'your-app-temp-1234567890',
+            bucketSystem: 'your-app-system-1234567890',
+          },
+        },
+        huawei: {
+          name: '华为云OBS',
+          description: '华为云对象存储服务（S3兼容）',
+          config: {
+            enabled: true,
+            storageType: FileStorageType.S3,
+            endpoint: 'https://obs.cn-north-4.myhuaweicloud.com',
+            region: 'cn-north-4',
             bucketAvatars: 'your-app-avatars',
             bucketAttachments: 'your-app-attachments',
             bucketTemp: 'your-app-temp',

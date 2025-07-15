@@ -46,20 +46,12 @@ export const useFileStorageStore = create<FileStorageState>()(
       lastChecked: null,
       cacheTimeout: 5 * 60 * 1000, // 5分钟缓存
 
-      // 获取存储状态
+      // 获取存储状态（实时获取，不使用缓存）
       fetchStorageStatus: async () => {
-        const state = get();
-        
-        // 检查是否需要刷新
-        if (!state.shouldRefreshStatus() && state.status) {
-          console.log('🗄️ 使用缓存的文件存储状态');
-          return;
-        }
-
         set({ isLoading: true, error: null });
 
         try {
-          console.log('🗄️ 获取文件存储状态...');
+          console.log('🗄️ 实时获取文件存储状态...');
 
           // 使用用户服务获取存储状态
           const status = await userService.getFileStorageStatus();
@@ -74,7 +66,7 @@ export const useFileStorageStore = create<FileStorageState>()(
         } catch (error) {
           console.error('🗄️ 获取文件存储状态失败:', error);
           const errorMessage = error instanceof Error ? error.message : '获取存储状态失败';
-          
+
           set({
             status: {
               enabled: false,

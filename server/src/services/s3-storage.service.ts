@@ -375,19 +375,48 @@ export class S3StorageService {
    */
   async testConnection(): Promise<boolean> {
     try {
-      const command = new ListObjectsV2Command({
-        Bucket: 'test-connection', // 使用一个测试桶名
-        MaxKeys: 1,
-      });
+      console.log('🔗 测试S3连接，端点:', this.config.endpoint);
 
-      await this.s3Client.send(command);
-      return true;
-    } catch (error: any) {
-      // 如果是因为桶不存在而失败，说明连接是正常的
-      if (error.name === 'NoSuchBucket' || error.$metadata?.httpStatusCode === 404) {
+      // 方法1: 尝试列出存储桶（最通用的方法）
+      try {
+        const { ListBucketsCommand } = await import('@aws-sdk/client-s3');
+        const command = new ListBucketsCommand({});
+        await this.s3Client.send(command);
+        console.log('✅ S3连接测试成功（通过列出存储桶）');
         return true;
+      } catch (listError: any) {
+        console.log('⚠️ 列出存储桶失败，尝试其他方法:', listError.message);
+
+        // 方法2: 如果没有列出存储桶的权限，尝试访问一个测试桶
+        try {
+          const command = new ListObjectsV2Command({
+            Bucket: 'test-connection-bucket', // 使用一个测试桶名
+            MaxKeys: 1,
+          });
+
+          await this.s3Client.send(command);
+          console.log('✅ S3连接测试成功（通过访问测试桶）');
+          return true;
+        } catch (bucketError: any) {
+          // 如果是因为桶不存在、权限不足等预期错误，说明连接是正常的
+          if (
+            bucketError.name === 'NoSuchBucket' ||
+            bucketError.name === 'AccessDenied' ||
+            bucketError.name === 'Forbidden' ||
+            bucketError.$metadata?.httpStatusCode === 404 ||
+            bucketError.$metadata?.httpStatusCode === 403
+          ) {
+            console.log('✅ S3连接测试成功（通过预期错误确认）');
+            return true;
+          }
+
+          // 其他错误说明连接有问题
+          console.error('❌ S3连接测试失败:', bucketError);
+          return false;
+        }
       }
-      console.error('S3 connection test failed:', error);
+    } catch (error: any) {
+      console.error('❌ S3连接测试异常:', error);
       return false;
     }
   }

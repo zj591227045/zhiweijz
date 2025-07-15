@@ -111,21 +111,23 @@ export default function StoragePage() {
     try {
       setIsLoading(true);
 
+      // 添加时间戳参数以破坏缓存，确保获取最新状态
+      const timestamp = Date.now();
+
       // 并行加载配置、统计、状态和模板
       const [configRes, statsRes, statusRes, templatesRes] = await Promise.all([
-        adminApiClient.get(ADMIN_API_ENDPOINTS.STORAGE_CONFIG),
-        adminApiClient.get(ADMIN_API_ENDPOINTS.STORAGE_STATS),
-        adminApiClient.get(`${ADMIN_API_ENDPOINTS.STORAGE_CONFIG.replace('/config', '/status')}`), // 使用管理员API
-        adminApiClient.get(`${ADMIN_API_ENDPOINTS.STORAGE_CONFIG.replace('/config', '/templates')}`),
+        adminApiClient.get(`${ADMIN_API_ENDPOINTS.STORAGE_CONFIG}?t=${timestamp}`),
+        adminApiClient.get(`${ADMIN_API_ENDPOINTS.STORAGE_STATS}?t=${timestamp}`),
+        adminApiClient.get(`${ADMIN_API_ENDPOINTS.STORAGE_CONFIG.replace('/config', '/status')}?t=${timestamp}`), // 使用管理员API
+        adminApiClient.get(`${ADMIN_API_ENDPOINTS.STORAGE_CONFIG.replace('/config', '/templates')}?t=${timestamp}`),
       ]);
 
       if (configRes.ok) {
         const configData = await configRes.json();
         setConfig(configData.data);
 
-        // 根据配置判断当前模式
-        const isAutoConfig = configData.data?.endpoint === 'http://minio:9000' &&
-                            configData.data?.accessKeyId === 'zhiweijz';
+        // 根据配置判断当前模式 - 更灵活的判断逻辑
+        const isAutoConfig = configData.data?.endpoint === 'http://minio:9000';
         setConfigMode(isAutoConfig ? 'auto' : 'custom');
       }
 
@@ -137,6 +139,7 @@ export default function StoragePage() {
       if (statusRes.ok) {
         const statusData = await statusRes.json();
         setStatus(statusData.data);
+        console.log('📊 最新存储状态:', statusData.data);
       }
 
       if (templatesRes.ok) {
@@ -280,7 +283,13 @@ export default function StoragePage() {
 
       if (result.success) {
         alert(`MinIO初始化成功！\n访问密钥ID: ${result.data.accessKeyId}\n已创建存储桶: ${result.data.bucketsCreated?.join(', ') || '无'}`);
-        await loadData(); // 重新加载数据以显示新配置
+
+        // 等待后端服务完全重新加载配置，然后强制刷新状态
+        console.log('MinIO初始化成功，等待后端配置重新加载...');
+        setTimeout(async () => {
+          console.log('开始强制刷新存储状态...');
+          await loadData(); // 重新加载数据以显示新配置
+        }, 2000); // 增加等待时间确保后端配置完全重新加载
       } else {
         alert(`MinIO初始化失败: ${result.message}`);
       }

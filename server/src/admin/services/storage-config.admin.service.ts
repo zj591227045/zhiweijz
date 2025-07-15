@@ -261,6 +261,60 @@ export class StorageConfigAdminService {
   }
 
   /**
+   * 根据端点判断是否需要使用路径样式
+   */
+  private shouldUsePathStyle(endpoint: string): boolean {
+    if (!endpoint) return true;
+
+    const lowerEndpoint = endpoint.toLowerCase();
+
+    // MinIO和本地服务需要路径样式
+    if (lowerEndpoint.includes('minio') ||
+        lowerEndpoint.includes('localhost') ||
+        lowerEndpoint.includes('127.0.0.1') ||
+        lowerEndpoint.includes('192.168.') ||
+        lowerEndpoint.includes('10.0.') ||
+        lowerEndpoint.includes('172.16.') ||
+        lowerEndpoint.includes('172.17.') ||
+        lowerEndpoint.includes('172.18.') ||
+        lowerEndpoint.includes('172.19.') ||
+        lowerEndpoint.includes('172.2') ||
+        lowerEndpoint.includes('172.30.') ||
+        lowerEndpoint.includes('172.31.')) {
+      console.log('🔧 检测到MinIO或本地服务，使用路径样式');
+      return true;
+    }
+
+    // AWS S3官方服务不需要路径样式
+    if (lowerEndpoint.includes('amazonaws.com')) {
+      console.log('🔧 检测到AWS S3，使用虚拟主机样式');
+      return false;
+    }
+
+    // 腾讯云COS不需要路径样式
+    if (lowerEndpoint.includes('myqcloud.com')) {
+      console.log('🔧 检测到腾讯云COS，使用虚拟主机样式');
+      return false;
+    }
+
+    // 阿里云OSS不需要路径样式
+    if (lowerEndpoint.includes('aliyuncs.com')) {
+      console.log('🔧 检测到阿里云OSS，使用虚拟主机样式');
+      return false;
+    }
+
+    // 华为云OBS不需要路径样式
+    if (lowerEndpoint.includes('myhuaweicloud.com')) {
+      console.log('🔧 检测到华为云OBS，使用虚拟主机样式');
+      return false;
+    }
+
+    // 默认情况下，对于未知的服务，使用路径样式（更兼容）
+    console.log('🔧 未知S3服务，默认使用路径样式');
+    return true;
+  }
+
+  /**
    * 测试存储连接
    */
   async testStorageConnection(config?: StorageConfigData): Promise<StorageTestResult> {
@@ -305,13 +359,20 @@ export class StorageConfigAdminService {
       }
 
       // 创建S3服务实例
+      const needsPathStyle = this.shouldUsePathStyle(testConfig.endpoint);
       const s3Config: S3Config = {
         endpoint: testConfig.endpoint,
         accessKeyId: testConfig.accessKeyId,
         secretAccessKey: testConfig.secretAccessKey,
         region: testConfig.region || 'us-east-1',
-        forcePathStyle: true,
+        forcePathStyle: needsPathStyle,
       };
+
+      console.log('🔧 测试S3配置:', {
+        endpoint: s3Config.endpoint,
+        region: s3Config.region,
+        forcePathStyle: s3Config.forcePathStyle,
+      });
 
       const s3Service = new S3StorageService(s3Config);
 
@@ -428,12 +489,13 @@ export class StorageConfigAdminService {
 
       if (config.enabled && config.endpoint && config.accessKeyId && config.secretAccessKey) {
         try {
+          const needsPathStyle = this.shouldUsePathStyle(config.endpoint);
           const s3Config = {
             endpoint: config.endpoint,
             accessKeyId: config.accessKeyId,
             secretAccessKey: config.secretAccessKey,
             region: config.region || 'us-east-1',
-            forcePathStyle: true,
+            forcePathStyle: needsPathStyle,
           };
 
           const s3Service = new (await import('../../services/s3-storage.service')).S3StorageService(s3Config);
