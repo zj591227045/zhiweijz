@@ -9,11 +9,35 @@ AUTHOR: zhiweijz-team
 -- =======================================
 
 -- 创建枚举类型
-CREATE TYPE IF NOT EXISTS "TransactionType" AS ENUM ('INCOME', 'EXPENSE');
-CREATE TYPE IF NOT EXISTS "BudgetPeriod" AS ENUM ('MONTHLY', 'YEARLY');
-CREATE TYPE IF NOT EXISTS "Role" AS ENUM ('ADMIN', 'MEMBER');
-CREATE TYPE IF NOT EXISTS "AccountBookType" AS ENUM ('PERSONAL', 'FAMILY');
-CREATE TYPE IF NOT EXISTS "BudgetType" AS ENUM ('MONTHLY', 'YEARLY');
+DO $$ BEGIN
+    CREATE TYPE "TransactionType" AS ENUM ('INCOME', 'EXPENSE');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE "BudgetPeriod" AS ENUM ('MONTHLY', 'YEARLY');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE "Role" AS ENUM ('ADMIN', 'MEMBER');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE "AccountBookType" AS ENUM ('PERSONAL', 'FAMILY');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE "BudgetType" AS ENUM ('MONTHLY', 'YEARLY');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- 用户表
 CREATE TABLE IF NOT EXISTS "users" (
