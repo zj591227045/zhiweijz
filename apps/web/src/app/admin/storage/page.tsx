@@ -99,6 +99,7 @@ export default function StoragePage() {
   const [templates, setTemplates] = useState<ConfigTemplates | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
   const [activeTab, setActiveTab] = useState<'config' | 'stats' | 'files'>('config');
   const [configMode, setConfigMode] = useState<ConfigMode>('auto');
 
@@ -267,6 +268,27 @@ export default function StoragePage() {
     } catch (error) {
       console.error('重置配置失败:', error);
       alert('重置配置失败，请重试');
+    }
+  };
+
+  const initializeMinIO = async () => {
+    try {
+      setIsInitializing(true);
+
+      const response = await adminApiClient.post(ADMIN_API_ENDPOINTS.STORAGE_MINIO_INITIALIZE);
+      const result = await response.json();
+
+      if (result.success) {
+        alert(`MinIO初始化成功！\n访问密钥ID: ${result.data.accessKeyId}\n已创建存储桶: ${result.data.bucketsCreated?.join(', ') || '无'}`);
+        await loadData(); // 重新加载数据以显示新配置
+      } else {
+        alert(`MinIO初始化失败: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('MinIO初始化失败:', error);
+      alert('MinIO初始化失败，请检查MinIO容器是否正在运行');
+    } finally {
+      setIsInitializing(false);
     }
   };
 
@@ -483,7 +505,9 @@ export default function StoragePage() {
             onModeChange={handleModeChange}
             onApplyTemplate={applyTemplate}
             onReset={resetToDefault}
+            onInitializeMinIO={initializeMinIO}
             isSaving={isSaving}
+            isInitializing={isInitializing}
           />
         )}
         
@@ -509,7 +533,9 @@ function StorageConfigTab({
   onModeChange,
   onApplyTemplate,
   onReset,
-  isSaving
+  onInitializeMinIO,
+  isSaving,
+  isInitializing
 }: {
   config: StorageConfig | null;
   templates: ConfigTemplates | null;
@@ -519,7 +545,9 @@ function StorageConfigTab({
   onModeChange: (mode: ConfigMode) => void;
   onApplyTemplate: (templateKey: keyof ConfigTemplates) => void;
   onReset: () => void;
+  onInitializeMinIO: () => void;
   isSaving: boolean;
+  isInitializing: boolean;
 }) {
   const [formData, setFormData] = useState<Partial<StorageConfig>>({});
   const [showBucketConfig, setShowBucketConfig] = useState(false);
@@ -598,6 +626,56 @@ function StorageConfigTab({
           </div>
         </div>
       </div>
+
+      {/* MinIO自动初始化（仅自动配置模式显示） */}
+      {configMode === 'auto' && (
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900">MinIO初始化</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              自动连接到MinIO容器，生成访问密钥并创建必要的存储桶
+            </p>
+          </div>
+
+          <div className="p-6">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+              <div className="flex">
+                <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400" />
+                <div className="ml-3">
+                  <h4 className="text-sm font-medium text-yellow-800">注意事项</h4>
+                  <div className="mt-2 text-sm text-yellow-700">
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>请确保MinIO容器正在运行</li>
+                      <li>初始化将自动生成新的访问密钥</li>
+                      <li>将创建必要的存储桶（avatars、transaction-attachments、temp-files、system-files）</li>
+                      <li>配置将自动保存到数据库</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={onInitializeMinIO}
+              disabled={isInitializing}
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isInitializing ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  初始化中...
+                </>
+              ) : (
+                <>
+                  <CubeIcon className="h-4 w-4 mr-2" />
+                  初始化MinIO
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 配置模板选择（仅自定义模式显示） */}
       {configMode === 'custom' && templates && (

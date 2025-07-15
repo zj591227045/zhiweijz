@@ -67,4 +67,11 @@ router.get('/status', (req, res) => storageConfigController.getStorageStatus(req
  */
 router.get('/diagnose', (req, res) => storageConfigController.diagnoseStorage(req, res));
 
+/**
+ * @route POST /api/admin/storage/minio/initialize
+ * @desc 初始化MinIO服务并生成访问密钥
+ * @access Admin
+ */
+router.post('/minio/initialize', (req, res) => storageConfigController.initializeMinIO(req, res));
+
 export default router;

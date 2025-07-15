@@ -50,6 +50,7 @@ export const ADMIN_API_ENDPOINTS = {
   STORAGE_STATS: '/api/admin/storage/stats',
   STORAGE_TEST: '/api/admin/storage/test',
   STORAGE_FILES: '/api/admin/storage/files',
+  STORAGE_MINIO_INITIALIZE: '/api/admin/storage/minio/initialize',
   
   // 公告管理
   ANNOUNCEMENTS: '/api/admin/announcements',

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { StorageConfigAdminService, StorageConfigData } from '../services/storage-config.admin.service';
 import { FileStorageType } from '../../models/file-storage.model';
 import { FileStorageService, reloadGlobalFileStorageConfig } from '../../services/file-storage.service';
+import { MinIOInitializationService } from '../services/minio-initialization.service';
 
 export class StorageConfigAdminController {
   private storageConfigService: StorageConfigAdminService;
@@ -403,6 +404,73 @@ export class StorageConfigAdminController {
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '存储诊断失败',
+      });
+    }
+  }
+
+  /**
+   * 初始化MinIO服务并生成访问密钥
+   */
+  async initializeMinIO(req: Request, res: Response): Promise<void> {
+    try {
+      const adminId = req.admin?.id;
+      if (!adminId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const minioInitService = new MinIOInitializationService();
+      const result = await minioInitService.initializeMinIO();
+
+      if (result.success) {
+        // 更新存储配置
+        const configData: StorageConfigData = {
+          enabled: true,
+          storageType: FileStorageType.S3,
+          endpoint: 'http://minio:9000',
+          accessKeyId: result.accessKeyId!,
+          secretAccessKey: result.secretAccessKey!,
+          region: 'us-east-1',
+          bucketAvatars: 'avatars',
+          bucketAttachments: 'transaction-attachments',
+          bucketTemp: 'temp-files',
+          bucketSystem: 'system-files',
+          maxFileSize: 10485760, // 10MB
+          allowedTypes: [
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+            'application/pdf',
+          ],
+        };
+
+        await this.storageConfigService.updateStorageConfig(configData, adminId);
+
+        // 重新加载文件存储服务配置
+        await reloadGlobalFileStorageConfig();
+
+        res.json({
+          success: true,
+          message: 'MinIO初始化成功',
+          data: {
+            accessKeyId: result.accessKeyId,
+            endpoint: 'http://minio:9000',
+            region: 'us-east-1',
+            bucketsCreated: result.bucketsCreated,
+          },
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: result.message || 'MinIO初始化失败',
+        });
+      }
+    } catch (error) {
+      console.error('MinIO初始化失败:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'MinIO初始化失败',
       });
     }
   }
