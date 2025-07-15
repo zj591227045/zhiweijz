@@ -103,13 +103,126 @@ zhiweijz/
 
 ## 🚀 快速部署 (Docker)
 
-### 一键部署
+### 简化部署（仅依赖 docker-compose.yml 和 .env.example）
 
-使用Docker可以快速部署完整的应用栈，包括前端、后端、数据库和Nginx反向代理：
+如果您希望使用最简单的方式进行部署，仅需要使用 `docker-compose.yml` 和 `.env.example` 文件：
+
+#### 前置要求
+
+- Docker 20.10.0+
+- Docker Compose 2.0.0+
+- 至少 2GB 可用内存
+- 至少 5GB 可用磁盘空间
+
+#### 部署步骤
 
 ```bash
 # 1. 克隆项目
-git clone <repository-url>
+git clone https://github.com/zj591227045/zhiweijz.git
+cd zhiweijz/docker
+
+# 2. 复制并配置环境变量
+cp .env.example .env
+
+# 3. 启动所有服务
+docker-compose up -d
+
+# 4. 等待服务启动完成（约2-3分钟）
+docker-compose logs -f
+```
+
+#### 环境变量配置说明
+
+在 `.env` 文件中，您可以根据需要修改以下关键配置：
+
+```bash
+# 项目名称
+PROJECT_NAME=zhiweijz
+
+# 数据库配置
+DB_NAME=zhiweijz
+DB_USER=zhiweijz
+DB_PASSWORD=zhiweijz123  # 建议修改为更安全的密码
+
+# JWT密钥
+JWT_SECRET=your-super-secret-jwt-key-change-in-production-please  # 必须修改
+
+# 端口配置（如果有端口冲突，可以修改这些端口）
+POSTGRES_EXTERNAL_PORT=5433  # PostgreSQL外部端口
+NGINX_HTTP_PORT=80           # Web应用HTTP端口
+NGINX_HTTPS_PORT=443         # Web应用HTTPS端口
+MINIO_API_PORT=9000          # MinIO API端口
+MINIO_CONSOLE_PORT=9001      # MinIO管理界面端口
+
+# MinIO对象存储配置
+MINIO_ROOT_USER=zhiweijz
+MINIO_ROOT_PASSWORD=zhiweijz123456  # 建议修改为更安全的密码
+
+# 镜像版本（可根据需要切换版本）
+BACKEND_IMAGE_VERSION=0.5.0
+FRONTEND_IMAGE_VERSION=0.5.0
+NGINX_IMAGE_VERSION=0.5.0
+```
+
+#### 访问应用
+
+部署成功后，您可以通过以下地址访问：
+
+- **主应用**: http://localhost
+- **MinIO管理界面**: http://localhost:9001
+- **API文档**: http://localhost/api
+- **健康检查**: http://localhost/health
+
+#### 服务管理命令
+
+```bash
+# 查看所有服务状态
+docker-compose ps
+
+# 查看服务日志
+docker-compose logs -f [service_name]
+
+# 重启特定服务
+docker-compose restart [service_name]
+
+# 停止所有服务
+docker-compose down
+
+# 停止并删除所有数据（谨慎使用）
+docker-compose down -v
+
+# 更新到最新版本
+docker-compose pull
+docker-compose up -d
+```
+
+#### 故障排除
+
+**常见问题及解决方案：**
+
+1. **端口冲突**：修改 `.env` 文件中的端口配置
+2. **服务启动失败**：检查 Docker 日志 `docker-compose logs [service_name]`
+3. **数据库连接问题**：确保 PostgreSQL 服务健康 `docker-compose ps postgres`
+4. **内存不足**：确保系统有足够的可用内存
+
+**健康检查：**
+
+```bash
+# 检查所有服务是否健康
+docker-compose ps
+
+# 检查特定服务健康状态
+docker-compose exec backend curl -f http://localhost:3000/api/health
+docker-compose exec frontend curl -f http://localhost:3001/
+```
+
+### 一键部署（使用脚本）
+
+如果您需要更完整的部署体验，包括自动配置和优化，可以使用我们提供的部署脚本：
+
+```bash
+# 1. 克隆项目
+git clone https://github.com/zj591227045/zhiweijz.git
 cd zhiweijz
 
 # 2. 进入docker目录

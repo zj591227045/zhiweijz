@@ -1,0 +1,171 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: zhiweijz-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: zhiweijz
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: zhiweijz123
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - zhiweijz-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d zhiweijz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # 后端服务
+  backend:
+    image: zj591227045/zhiweijz-backend:0.5.0
+    container_name: zhiweijz-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DOCKER_ENV: true
+      DATABASE_URL: postgresql://postgres:zhiweijz123@postgres:5432/zhiweijz
+      JWT_SECRET: zhiweijz_super_secret_jwt_key_change_in_production_2024
+      PORT: 
+      - "3000:3000"
+      # 微信公众号配置
+      WECHAT_APP_ID: ""
+      WECHAT_APP_SECRET: ""
+      WECHAT_TOKEN: ""
+      WECHAT_ENCODING_AES_KEY: ""
+      WECHAT_ENV: development
+      WECHAT_DEV_APP_ID: ""
+      WECHAT_DEV_APP_SECRET: ""
+      WECHAT_DEV_TOKEN: ""
+      # S3存储配置
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY_ID: zhiweijz
+      S3_SECRET_ACCESS_KEY: zhiweijz123456
+      S3_REGION: us-east-1
+      S3_BUCKET_AVATARS: avatars
+      S3_BUCKET_ATTACHMENTS: attachments
+      S3_BUCKET_TEMP: temp
+      S3_BUCKET_SYSTEM: system
+      # 文件存储配置
+      FILE_STORAGE_TYPE: s3
+      FILE_STORAGE_BASE_URL: http://localhost:9000
+      FILE_MAX_SIZE: 10485760
+      FILE_ALLOWED_TYPES: "image/jpeg,image/png,image/webp,application/pdf"
+      # 会员系统配置
+      ENABLE_MEMBERSHIP_SYSTEM: true
+      ENABLE_ACCOUNTING_POINTS_SYSTEM: true
+      MEMBERSHIP_MONTHLY_POINTS: 1000
+      DEFAULT_MEMBER_TYPE: LIFETIME
+      # 邮件服务配置
+      SMTP_HOST: ""
+      SMTP_PORT: 587
+      SMTP_USER: ""
+      SMTP_PASS: ""
+      # AI服务配置
+      OPENAI_API_KEY: ""
+    ports:
+      - "3000:3000"
+    networks:
+      - zhiweijz-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -f http://localhost:3000/api/health || curl -f http://localhost:3000/"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # 前端服务
+  frontend:
+    image: zj591227045/zhiweijz-frontend:0.5.0
+    container_name: zhiweijz-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DOCKER_ENV: true
+      IS_MOBILE_BUILD: "false"
+      PORT: 
+      - "3001:3001"
+    networks:
+      - zhiweijz-network
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -s -o /dev/null -w '%{http_code}' http://localhost:3001/ | grep -E '^[23]'"]
+      interval: 25s
+      timeout: 10s
+      retries: 4
+      start_period: 60s
+
+  # MinIO 对象存储服务
+  minio:
+    image: minio/minio:RELEASE.2025-04-08T15-41-24Z-cpuv1
+    container_name: zhiweijz-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: zhiweijz
+      MINIO_ROOT_PASSWORD: zhiweijz123456
+      MINIO_BROWSER_REDIRECT_URL: http://localhost:9001
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - zhiweijz-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 30s
+
+  # Nginx 反向代理
+  nginx:
+    image: zj591227045/zhiweijz-nginx:0.5.0
+    container_name: zhiweijz-nginx
+    restart: unless-stopped
+    environment:
+      PROJECT_NAME: zhiweijz
+      BACKEND_PORT: 3000
+      FRONTEND_PORT: 3001
+    ports:
+      - "18080:80"
+      - "18443:443"
+    networks:
+      - zhiweijz-network
+    depends_on:
+      - frontend
+      - backend
+      - minio
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -f http://localhost/health && curl -k -f https://localhost/health"]
+      interval: 20s
+      timeout: 15s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  postgres_data:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  zhiweijz-network:
+    driver: bridge
+    name: zhiweijz-network 
