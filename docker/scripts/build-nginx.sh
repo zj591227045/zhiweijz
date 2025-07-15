@@ -7,8 +7,8 @@ set -e
 
 # 配置
 IMAGE_NAME="zj591227045/zhiweijz-nginx"
-TAG="ssl-latest"
-DOCKERFILE="docker/config/nginx.Dockerfile"
+TAG="0.5.0"
+DOCKERFILE="docker/Dockerfile.nginx"
 
 echo "🐳 构建只为记账 Nginx 镜像（包含SSL支持）..."
 
@@ -16,8 +16,6 @@ echo "🐳 构建只为记账 Nginx 镜像（包含SSL支持）..."
 echo "📋 检查必要文件..."
 required_files=(
     "docker/config/nginx.conf"
-    "docker/config/generate-ssl-cert.sh"
-    "docker/config/start-nginx.sh"
     "$DOCKERFILE"
 )
 
@@ -29,17 +27,13 @@ for file in "${required_files[@]}"; do
     echo "✅ $file"
 done
 
-# 设置脚本权限
-chmod +x docker/config/generate-ssl-cert.sh
-chmod +x docker/config/start-nginx.sh
-
 # 构建镜像
 echo "🔨 构建Docker镜像..."
 docker build \
     -f "$DOCKERFILE" \
     -t "$IMAGE_NAME:$TAG" \
     -t "$IMAGE_NAME:latest" \
-    docker/
+    .
 
 echo "✅ 镜像构建完成: $IMAGE_NAME:$TAG"
 

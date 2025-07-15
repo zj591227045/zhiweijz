@@ -137,6 +137,10 @@ services:
     image: zj591227045/zhiweijz-nginx:${NGINX_IMAGE_VERSION}
     container_name: ${PROJECT_NAME}-nginx
     restart: unless-stopped
+    environment:
+      PROJECT_NAME: ${PROJECT_NAME}
+      BACKEND_PORT: ${BACKEND_PORT}
+      FRONTEND_PORT: ${FRONTEND_PORT}
     ports:
       - "${NGINX_HTTP_PORT}:80"
       - "${NGINX_HTTPS_PORT}:443"
