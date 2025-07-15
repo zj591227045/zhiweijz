@@ -283,6 +283,16 @@ export class TransactionService {
       familyMemberId: finalFamilyMemberId,
     };
 
+    // 在创建交易前，确保用户有当前月份的预算（如果是支出交易）
+    if (transactionData.accountBookId && transactionData.type === 'EXPENSE') {
+      try {
+        await this.budgetService.ensureCurrentMonthBudget(userId, transactionData.accountBookId);
+      } catch (error) {
+        console.error('确保当前月份预算失败:', error);
+        // 不影响交易创建流程，继续执行
+      }
+    }
+
     // 创建交易记录
     const transaction = await this.transactionRepository.create(
       userId,

@@ -5,6 +5,7 @@ import { PrismaClient, TransactionType } from '@prisma/client';
 import { SmartAccountingResult, SmartAccountingError } from '../types/smart-accounting';
 import AccountingPointsService from '../services/accounting-points.service';
 import { SourceDetectionUtil } from '../utils/source-detection.util';
+import { TransactionService } from '../services/transaction.service';
 
 /**
  * AI功能控制器
@@ -14,6 +15,7 @@ export class AIController {
   private llmProviderService: LLMProviderService;
   private smartAccounting: SmartAccounting;
   private prisma: PrismaClient;
+  private transactionService: TransactionService;
 
   /**
    * 构造函数
@@ -22,6 +24,7 @@ export class AIController {
     this.llmProviderService = new LLMProviderService();
     this.smartAccounting = new SmartAccounting(this.llmProviderService);
     this.prisma = new PrismaClient();
+    this.transactionService = new TransactionService();
   }
 
   /**
@@ -995,25 +998,18 @@ export class AIController {
           description: (smartResult as any).note || description,
           date: dateObj,
           accountBookId: accountBookId,
-          userId: actualUserId, // 使用实际的记账用户ID
-          // 如果是家庭账本，添加家庭ID和家庭成员ID
-          familyId: accountBook.type === 'FAMILY' ? accountBook.familyId : null,
-          familyMemberId: familyMemberId,
-          // 预算ID如果有的话
-          budgetId: (smartResult as any).budgetId || null,
+          budgetId: (smartResult as any).budgetId || undefined,
         };
 
         console.log(`💾 [交易创建] 创建交易记录:`, {
           amount: transactionData.amount,
-          userId: transactionData.userId,
-          familyMemberId: transactionData.familyMemberId,
+          userId: actualUserId,
+          accountBookId: transactionData.accountBookId,
           budgetId: transactionData.budgetId,
         });
 
-        // 创建交易记录
-        const transaction = await this.prisma.transaction.create({
-          data: transactionData,
-        });
+        // 使用交易服务创建交易记录（包含预算检查逻辑）
+        const transaction = await this.transactionService.createTransaction(actualUserId, transactionData);
 
         console.log(`✅ [交易创建] 交易记录创建成功: ${transaction.id}`);
 

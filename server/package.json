@@ -13,6 +13,7 @@
     "budget-scheduler": "ts-node -r tsconfig-paths/register scripts/budget-scheduler.ts",
     "test-budget-auto-continuation": "ts-node -r tsconfig-paths/register scripts/test-budget-auto-continuation.ts",
     "test-budget-date-utils": "ts-node -r tsconfig-paths/register scripts/test-budget-date-utils.ts",
+    "test-budget-creation": "ts-node -r tsconfig-paths/register scripts/utilities/test-budget-creation.ts",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "prisma:generate": "npx prisma generate",

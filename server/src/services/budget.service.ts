@@ -1579,7 +1579,8 @@ export class BudgetService {
           }
         }
       } else {
-        console.log('未找到历史个人预算，无法自动创建');
+        console.log('未找到历史个人预算，创建当月默认预算');
+        await this.createDefaultPersonalBudget(userId, accountBookId);
       }
 
       // 2. 处理托管成员预算
@@ -1688,6 +1689,75 @@ export class BudgetService {
     });
 
     return budgets.length > 0 ? budgets[0] : null;
+  }
+
+  /**
+   * 确保用户有当前月份的预算
+   * 用于记账时检查，如果没有预算则自动创建
+   */
+  async ensureCurrentMonthBudget(userId: string, accountBookId: string): Promise<void> {
+    const currentDate = new Date();
+    const currentMonthBudgets = await this.budgetRepository.findByPeriodAndDate(
+      userId,
+      BudgetPeriod.MONTHLY,
+      new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0),
+      undefined,
+      accountBookId,
+      true, // 排除托管成员预算
+    );
+
+    if (currentMonthBudgets.length === 0) {
+      console.log(
+        `用户 ${userId} 在账本 ${accountBookId} 中没有当前月份的个人预算，记账时自动创建`,
+      );
+      await this.autoCreateMissingBudgets(userId, accountBookId);
+    }
+  }
+
+  /**
+   * 为用户创建当月默认个人预算
+   */
+  private async createDefaultPersonalBudget(userId: string, accountBookId: string): Promise<void> {
+    try {
+      // 获取账本信息以确定是否为家庭账本
+      const accountBook = await prisma.accountBook.findUnique({
+        where: { id: accountBookId },
+        select: { familyId: true },
+      });
+
+      if (!accountBook) {
+        throw new Error('账本不存在');
+      }
+
+      // 获取当前月份的起止日期
+      const today = new Date();
+      const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+      // 创建预算数据
+      const budgetData: CreateBudgetDto = {
+        name: '个人预算',
+        amount: 0, // 默认为0，表示不限制
+        period: BudgetPeriod.MONTHLY,
+        startDate,
+        endDate,
+        rollover: false,
+        familyId: accountBook.familyId || undefined,
+        accountBookId,
+        enableCategoryBudget: false,
+        isAutoCalculated: false,
+        budgetType: BudgetType.PERSONAL,
+        refreshDay: 1, // 默认每月1号刷新
+      };
+
+      // 创建预算
+      const newBudget = await this.budgetRepository.create(userId, budgetData);
+      console.log(`成功为用户 ${userId} 创建默认个人预算: ${newBudget.name} (${newBudget.id})`);
+    } catch (error) {
+      console.error('创建默认个人预算失败:', error);
+      throw error;
+    }
   }
 
   /**

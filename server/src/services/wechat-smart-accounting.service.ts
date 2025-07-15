@@ -224,6 +224,17 @@ export class WechatSmartAccountingService {
         }
       }
 
+      // 在创建交易前，确保用户有当前月份的预算（如果是支出交易）
+      if (result.accountId && result.type === 'EXPENSE') {
+        try {
+          const budgetService = new (await import('./budget.service')).BudgetService();
+          await budgetService.ensureCurrentMonthBudget(userId, result.accountId);
+        } catch (error) {
+          console.error('智能记账时确保当前月份预算失败:', error);
+          // 不影响交易创建流程，继续执行
+        }
+      }
+
       const transaction = await prisma.transaction.create({
         data: {
           id: crypto.randomUUID(),

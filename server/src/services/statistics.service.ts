@@ -321,6 +321,18 @@ export class StatisticsService {
       endDate: endDate.toISOString(),
     });
 
+    // 在查询预算前，确保用户有当前月份的预算（如果指定了账本ID）
+    if (accountBookId) {
+      try {
+        const { BudgetService } = require('./budget.service');
+        const budgetService = new BudgetService();
+        await budgetService.ensureCurrentMonthBudget(userId, accountBookId);
+      } catch (error) {
+        console.error('预算统计时确保当前月份预算失败:', error);
+        // 不影响统计查询流程，继续执行
+      }
+    }
+
     // 获取月度预算 - 查询当前用户的个人预算（包括用户自己创建的预算）
     const budgets = await this.budgetRepository.findByPeriodAndDate(
       userId,
