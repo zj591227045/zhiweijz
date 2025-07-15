@@ -9,9 +9,23 @@ AUTHOR: zhiweijz-team
 -- =======================================
 
 -- 创建管理员相关枚举
-CREATE TYPE IF NOT EXISTS admin_role AS ENUM ('SUPER_ADMIN', 'ADMIN');
-CREATE TYPE IF NOT EXISTS announcement_priority AS ENUM ('LOW', 'NORMAL', 'HIGH', 'URGENT');
-CREATE TYPE IF NOT EXISTS announcement_status AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
+DO $$ BEGIN
+    CREATE TYPE admin_role AS ENUM ('SUPER_ADMIN', 'ADMIN');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE announcement_priority AS ENUM ('LOW', 'NORMAL', 'HIGH', 'URGENT');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE announcement_status AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- 管理员表
 CREATE TABLE IF NOT EXISTS admins (
