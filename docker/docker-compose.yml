@@ -134,9 +134,7 @@ services:
 
   # Nginx 反向代理
   nginx:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.nginx
+    image: zj591227045/zhiweijz-nginx:${NGINX_IMAGE_VERSION}
     container_name: ${PROJECT_NAME}-nginx
     restart: unless-stopped
     ports:
