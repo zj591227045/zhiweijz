@@ -3,23 +3,22 @@ version: '3.8'
 services:
   # PostgreSQL 数据库
   postgres:
-    image: postgres:15-alpine
-    container_name: zhiweijz-postgres
+    image: postgres:${POSTGRES_IMAGE_VERSION}
+    container_name: ${PROJECT_NAME}-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_NAME:-zhiweijz}
-      POSTGRES_USER: ${DB_USER:-zhiweijz}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-zhiweijz123}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./config/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
     networks:
       - zhiweijz-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-zhiweijz} -d ${DB_NAME:-zhiweijz}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,53 +26,52 @@ services:
 
   # 后端服务
   backend:
-    image: zj591227045/zhiweijz-backend:0.2.5
-    container_name: zhiweijz-backend
+    image: zj591227045/zhiweijz-backend:${BACKEND_IMAGE_VERSION}
+    container_name: ${PROJECT_NAME}-backend
     restart: unless-stopped
     environment:
-      NODE_ENV: production
-      DOCKER_ENV: "true"
-      DATABASE_URL: postgresql://${DB_USER:-zhiweijz}:${DB_PASSWORD:-zhiweijz123}@postgres:5432/${DB_NAME:-zhiweijz}
-      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
-      PORT: 3000
+      NODE_ENV: ${NODE_ENV}
+      DOCKER_ENV: ${DOCKER_ENV}
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: ${BACKEND_PORT}
       # 微信公众号配置
       WECHAT_APP_ID: ${WECHAT_APP_ID}
       WECHAT_APP_SECRET: ${WECHAT_APP_SECRET}
       WECHAT_TOKEN: ${WECHAT_TOKEN}
       WECHAT_ENCODING_AES_KEY: ${WECHAT_ENCODING_AES_KEY}
-      # S3存储配置
-      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
-      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-zhiweijz}
-      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-zhiweijz123456}
-      S3_REGION: ${S3_REGION:-us-east-1}
-      S3_BUCKET_AVATARS: ${S3_BUCKET_AVATARS:-avatars}
-      S3_BUCKET_ATTACHMENTS: ${S3_BUCKET_ATTACHMENTS:-transaction-attachments}
-      S3_BUCKET_TEMP: ${S3_BUCKET_TEMP:-temp-files}
-      S3_BUCKET_SYSTEM: ${S3_BUCKET_SYSTEM:-system-files}
-      # 文件存储配置
-      FILE_STORAGE_TYPE: ${FILE_STORAGE_TYPE:-s3}
-      FILE_STORAGE_BASE_URL: ${FILE_STORAGE_BASE_URL:-http://localhost:9000}
-      FILE_MAX_SIZE: ${FILE_MAX_SIZE:-10485760}
-      FILE_ALLOWED_TYPES: ${FILE_ALLOWED_TYPES:-image/jpeg,image/png,image/gif,image/webp,application/pdf}
-      # 会员系统配置
-      ENABLE_MEMBERSHIP_SYSTEM: ${ENABLE_MEMBERSHIP_SYSTEM:-false}
-      ENABLE_ACCOUNTING_POINTS_SYSTEM: ${ENABLE_ACCOUNTING_POINTS_SYSTEM:-false}
-      MEMBERSHIP_MONTHLY_POINTS: ${MEMBERSHIP_MONTHLY_POINTS:-1000}
-      DEFAULT_MEMBER_TYPE: ${DEFAULT_MEMBER_TYPE:-LIFETIME}
-      # 邮件服务配置（可选）
-      SMTP_HOST: ${SMTP_HOST}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASS: ${SMTP_PASS}
-      # AI服务配置（可选）
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      # 开发环境微信配置（可选）
-      WECHAT_ENV: ${WECHAT_ENV:-production}
+      WECHAT_ENV: ${WECHAT_ENV}
       WECHAT_DEV_APP_ID: ${WECHAT_DEV_APP_ID}
       WECHAT_DEV_APP_SECRET: ${WECHAT_DEV_APP_SECRET}
       WECHAT_DEV_TOKEN: ${WECHAT_DEV_TOKEN}
+      # S3存储配置
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+      S3_REGION: ${S3_REGION}
+      S3_BUCKET_AVATARS: ${S3_BUCKET_AVATARS}
+      S3_BUCKET_ATTACHMENTS: ${S3_BUCKET_ATTACHMENTS}
+      S3_BUCKET_TEMP: ${S3_BUCKET_TEMP}
+      S3_BUCKET_SYSTEM: ${S3_BUCKET_SYSTEM}
+      # 文件存储配置
+      FILE_STORAGE_TYPE: ${FILE_STORAGE_TYPE}
+      FILE_STORAGE_BASE_URL: ${FILE_STORAGE_BASE_URL}
+      FILE_MAX_SIZE: ${FILE_MAX_SIZE}
+      FILE_ALLOWED_TYPES: ${FILE_ALLOWED_TYPES}
+      # 会员系统配置
+      ENABLE_MEMBERSHIP_SYSTEM: ${ENABLE_MEMBERSHIP_SYSTEM}
+      ENABLE_ACCOUNTING_POINTS_SYSTEM: ${ENABLE_ACCOUNTING_POINTS_SYSTEM}
+      MEMBERSHIP_MONTHLY_POINTS: ${MEMBERSHIP_MONTHLY_POINTS}
+      DEFAULT_MEMBER_TYPE: ${DEFAULT_MEMBER_TYPE}
+      # 邮件服务配置
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      # AI服务配置
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     ports:
-      - "3000:3000"
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
     networks:
       - zhiweijz-network
     depends_on:
@@ -82,7 +80,7 @@ services:
       minio:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "sh", "-c", "curl -f http://localhost:3000/api/health || curl -f http://localhost:3000/"]
+      test: ["CMD", "sh", "-c", "curl -f http://localhost:${BACKEND_PORT}/api/health || curl -f http://localhost:${BACKEND_PORT}/"]
       interval: 20s
       timeout: 10s
       retries: 5
@@ -90,21 +88,21 @@ services:
 
   # 前端服务
   frontend:
-    image: zj591227045/zhiweijz-frontend:0.2.5
-    container_name: zhiweijz-frontend
+    image: zj591227045/zhiweijz-frontend:${FRONTEND_IMAGE_VERSION}
+    container_name: ${PROJECT_NAME}-frontend
     restart: unless-stopped
     environment:
-      NODE_ENV: production
-      DOCKER_ENV: "true"
+      NODE_ENV: ${NODE_ENV}
+      DOCKER_ENV: ${DOCKER_ENV}
       IS_MOBILE_BUILD: "false"
-      PORT: 3001
+      PORT: ${FRONTEND_PORT}
     networks:
       - zhiweijz-network
     depends_on:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "sh", "-c", "curl -s -o /dev/null -w '%{http_code}' http://localhost:3001/ | grep -E '^[23]'"]
+      test: ["CMD", "sh", "-c", "curl -s -o /dev/null -w '%{http_code}' http://localhost:${FRONTEND_PORT}/ | grep -E '^[23]'"]
       interval: 25s
       timeout: 10s
       retries: 4
@@ -112,20 +110,19 @@ services:
 
   # MinIO 对象存储服务
   minio:
-    image: minio/minio:RELEASE.2025-04-08T15-41-24Z-cpuv1
-    container_name: zhiweijz-minio
+    image: minio/minio:${MINIO_IMAGE_VERSION}
+    container_name: ${PROJECT_NAME}-minio
     restart: unless-stopped
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-zhiweijz}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-zhiweijz123456}
-      MINIO_BROWSER_REDIRECT_URL: ${MINIO_BROWSER_REDIRECT_URL:-http://localhost:9001}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_BROWSER_REDIRECT_URL: ${MINIO_BROWSER_REDIRECT_URL}
     command: server /data --console-address ":9001"
     ports:
-      - "${MINIO_API_PORT:-9000}:9000"
-      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+      - "${MINIO_API_PORT}:9000"
+      - "${MINIO_CONSOLE_PORT}:9001"
     volumes:
       - minio_data:/data
-      - ./config/minio:/root/.minio
     networks:
       - zhiweijz-network
     healthcheck:
@@ -137,17 +134,14 @@ services:
 
   # Nginx 反向代理
   nginx:
-    image: zj591227045/zhiweijz-nginx:0.2.0
-    container_name: zhiweijz-nginx
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.nginx
+    container_name: ${PROJECT_NAME}-nginx
     restart: unless-stopped
     ports:
-      - "${NGINX_HTTP_PORT:-80}:80"
-      - "${NGINX_HTTPS_PORT:-443}:443"
-    volumes:
-      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
-      # SSL证书持久化存储
-      - nginx_ssl_certs:/etc/ssl/certs
-      - nginx_ssl_private:/etc/ssl/private
+      - "${NGINX_HTTP_PORT}:80"
+      - "${NGINX_HTTPS_PORT}:443"
     networks:
       - zhiweijz-network
     depends_on:
@@ -164,15 +158,10 @@ services:
 volumes:
   postgres_data:
     driver: local
-  # MinIO数据存储卷
   minio_data:
-    driver: local
-  # SSL证书存储卷
-  nginx_ssl_certs:
-    driver: local
-  nginx_ssl_private:
     driver: local
 
 networks:
   zhiweijz-network:
     driver: bridge
+    name: ${PROJECT_NAME}-network

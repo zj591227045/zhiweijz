@@ -1,0 +1,48 @@
+# Nginx Docker镜像 - 只为记账
+# 将nginx.conf配置文件打包到镜像中
+
+FROM nginx:1.25-alpine
+
+# 安装必要的工具
+RUN apk add --no-cache \
+    curl \
+    openssl \
+    && rm -rf /var/cache/apk/*
+
+# 复制nginx配置文件
+COPY docker/config/nginx.conf /etc/nginx/nginx.conf
+
+# 创建SSL证书目录
+RUN mkdir -p /etc/ssl/certs /etc/ssl/private
+
+# 生成自签名SSL证书
+RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout /etc/ssl/private/nginx-selfsigned.key \
+    -out /etc/ssl/certs/nginx-selfsigned.crt \
+    -subj "/C=CN/ST=Beijing/L=Beijing/O=ZhiWeiJZ/OU=IT/CN=localhost"
+
+# 设置正确的权限
+RUN chmod 600 /etc/ssl/private/nginx-selfsigned.key \
+    && chmod 644 /etc/ssl/certs/nginx-selfsigned.crt
+
+# 创建nginx用户和组（如果不存在）
+RUN addgroup -g 101 -S nginx 2>/dev/null || true
+RUN adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx 2>/dev/null || true
+
+# 创建必要的目录并设置权限
+RUN mkdir -p /var/cache/nginx /var/log/nginx /var/run \
+    && chown -R nginx:nginx /var/cache/nginx /var/log/nginx /var/run \
+    && chmod 755 /var/cache/nginx /var/log/nginx /var/run
+
+# 测试nginx配置
+RUN nginx -t
+
+# 暴露端口
+EXPOSE 80 443
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost/health || exit 1
+
+# 启动nginx
+CMD ["nginx", "-g", "daemon off;"]

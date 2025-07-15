@@ -56,7 +56,20 @@ if [ "$DOCKER_ENV" = "true" ]; then
 
         if [ "$USER_TABLE_EXISTS" = "0" ]; then
             echo "📦 检测到全新数据库，执行初始化..."
-            npx prisma migrate deploy
+
+            # 检查是否存在打包的init.sql文件
+            if [ -f "docker/init.sql" ]; then
+                echo "🗃️ 使用打包的init.sql文件初始化数据库..."
+                if psql "$DATABASE_URL" -f docker/init.sql; then
+                    echo "✅ 使用init.sql初始化完成"
+                else
+                    echo "⚠️ init.sql初始化失败，回退到Prisma迁移..."
+                    npx prisma migrate deploy
+                fi
+            else
+                echo "🔄 使用Prisma迁移初始化..."
+                npx prisma migrate deploy
+            fi
             echo "✅ 数据库初始化完成"
         else
             echo "🔄 检测到现有数据库，执行安全迁移..."

@@ -24,6 +24,8 @@ RUN npm install --legacy-peer-deps
 
 # 复制源代码（排除.env文件以避免覆盖Docker环境变量）
 COPY server/ .
+# 复制docker配置文件（用于数据库初始化）
+COPY docker/config/ ../docker/config/
 # 删除可能存在的.env文件，确保使用Docker环境变量
 RUN rm -f .env .env.local .env.production .env.development 2>/dev/null || true
 
@@ -76,6 +78,9 @@ COPY --from=builder /app/scripts/deployment/ ./scripts/deployment/
 COPY --from=builder /app/scripts/migration-manager.js ./scripts/
 COPY --from=builder /app/prisma/schema.prisma ./prisma/
 COPY --from=builder /app/migrations/ ./migrations/
+
+# 复制数据库初始化脚本到容器中
+COPY --from=builder /app/../docker/config/init.sql ./docker/init.sql
 
 # 创建必要目录并设置权限
 RUN mkdir -p uploads && \
