@@ -727,7 +727,7 @@ export default function AIServicesPage() {
                 gap: '6px'
               }}>
                 <i className="fas fa-info-circle" style={{ color: 'rgb(59, 130, 246)' }}></i>
-                <span><strong>使用优先级：</strong>赠送记账点 → 会员记账点，优先消耗即将过期的记账点</span>
+                <span><strong>使用优先级：</strong>会员记账点 → 赠送记账点，优先消耗即将过期的记账点</span>
               </div>
             </div>
           </div>

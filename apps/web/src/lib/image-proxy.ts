@@ -133,12 +133,12 @@ export function getThumbnailProxyUrl(
     
     const thumbnailUrl = `${apiBaseUrl}/image-proxy/thumbnail/s3/${bucket}/${key}?${queryParams}`;
 
-    console.log('🖼️ S3 URL转换为缩略图URL:', { 
+/*     console.log('🖼️ S3 URL转换为缩略图URL:', { 
       original: s3Url, 
       thumbnail: thumbnailUrl, 
       options, 
       apiBaseUrl 
-    });
+    }); */
 
     return thumbnailUrl;
   } catch (error) {

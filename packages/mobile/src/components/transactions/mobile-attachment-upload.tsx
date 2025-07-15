@@ -67,16 +67,17 @@ export function MobileAttachmentUpload({
   // 上传文件到服务器
   const uploadFile = useCallback(async (fileUri: string, fileName: string, mimeType: string) => {
     const formData = new FormData();
-    formData.append('attachment', {
-      uri: fileUri,
-      type: mimeType,
-      name: fileName,
-    } as any);
 
     try {
       let response;
       if (transactionId) {
         // 编辑模式：直接上传到指定交易
+        formData.append('attachment', {
+          uri: fileUri,
+          type: mimeType,
+          name: fileName,
+        } as any);
+
         response = await apiClient.post(
           `/transactions/${transactionId}/attachments`,
           formData,
@@ -88,6 +89,15 @@ export function MobileAttachmentUpload({
         );
       } else {
         // 新建模式：先上传到临时存储
+        formData.append('file', {
+          uri: fileUri,
+          type: mimeType,
+          name: fileName,
+        } as any);
+        formData.append('bucket', 'temp-files');
+        formData.append('category', 'transaction-attachment');
+        formData.append('description', fileName);
+
         response = await apiClient.post('/file-storage/upload', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',

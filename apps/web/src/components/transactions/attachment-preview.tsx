@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Download, ZoomIn, ZoomOut, RotateCw, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { AuthenticatedImage } from '@/components/ui/authenticated-image';
 import { processAvatarUrl, getThumbnailProxyUrl } from '@/lib/image-proxy';
@@ -446,9 +447,11 @@ export function EnhancedAttachmentPreview({
     return processAvatarUrl(currentFile.url);
   }, [currentFile?.url]);
 
-  if (!isOpen || !currentFile) return null;
+  if (!isOpen || !currentFile) {
+    return null;
+  }
 
-  return (
+  const modalContent = (
     <div
       className={`fixed inset-0 z-[99999] bg-black bg-opacity-95 flex flex-col ${className || ''}`}
     >
@@ -568,6 +571,9 @@ export function EnhancedAttachmentPreview({
       </div>
     </div>
   );
+
+  // 使用Portal将模态框渲染到document.body中，确保全屏显示
+  return typeof window !== 'undefined' ? createPortal(modalContent, document.body) : null;
 }
 
 // 增强版附件网格组件

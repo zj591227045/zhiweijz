@@ -221,22 +221,21 @@ export const TransactionAttachmentUpload = React.forwardRef<
     if (!files.length) return;
 
     setUploading(true);
-    const newAttachments: TransactionAttachment[] = [];
 
     try {
-      for (const file of files) {
-        console.log('📎 开始上传附件:', file.name, file.size, 'bytes');
+      // 编辑模式：批量上传后刷新附件列表
+      if (transactionId) {
+        console.log('📎 编辑模式：批量上传附件到交易', transactionId);
 
-        const formData = new FormData();
-        formData.append('attachment', file);
-        formData.append('attachmentType', getAttachmentType(file));
-        formData.append('description', `${file.name}`);
+        for (const file of files) {
+          console.log('📎 开始上传附件:', file.name, file.size, 'bytes');
 
-        let response;
-        if (transactionId) {
-          // 编辑模式：直接上传到指定交易
-          console.log('📎 编辑模式：上传到交易', transactionId);
-          response = await apiClient.post(
+          const formData = new FormData();
+          formData.append('attachment', file);
+          formData.append('attachmentType', getAttachmentType(file));
+          formData.append('description', `${file.name}`);
+
+          const response = await apiClient.post(
             `/transactions/${transactionId}/attachments`,
             formData,
             {
@@ -245,28 +244,57 @@ export const TransactionAttachmentUpload = React.forwardRef<
               },
             }
           );
-        } else {
-          // 新建模式：先上传到临时存储
-          console.log('📎 新建模式：上传到临时存储');
-          response = await apiClient.post('/file-storage/upload', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
+
+          if (!response.success) {
+            console.warn('📎 上传失败，响应不成功:', response);
+            throw new Error(`上传文件 ${file.name} 失败`);
+          }
         }
+
+        // 所有文件上传完成后，重新获取附件列表
+        console.log('📎 编辑模式：所有文件上传完成，获取最新附件列表');
+        const attachmentsResponse = await apiClient.get(`/transactions/${transactionId}/attachments`);
+        if (attachmentsResponse.success) {
+          console.log('📎 获取到最新附件列表:', attachmentsResponse.data);
+          setAttachments(attachmentsResponse.data || []);
+          onChange?.(attachmentsResponse.data || []);
+          toast.success(`成功上传 ${files.length} 个附件`);
+          onUploadSuccess?.();
+          return;
+        } else {
+          throw new Error('获取最新附件列表失败');
+        }
+      }
+
+      // 新建模式：上传到临时存储
+      console.log('📎 新建模式：上传到临时存储');
+      const newAttachments: TransactionAttachment[] = [];
+
+      for (const file of files) {
+        console.log('📎 开始上传附件:', file.name, file.size, 'bytes');
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('bucket', 'temp-files');
+        formData.append('category', 'transaction-attachment');
+        formData.append('description', `${file.name}`);
+
+        const response = await apiClient.post('/file-storage/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
 
         console.log('📎 上传响应:', response);
 
         if (response.success) {
-          const attachment: TransactionAttachment = transactionId
-            ? response.data.attachment
-            : {
-                id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                fileId: response.data.fileId,
-                attachmentType: getAttachmentType(file) as any,
-                description: file.name,
-                file: response.data
-              };
+          const attachment: TransactionAttachment = {
+            id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            fileId: response.data.fileId,
+            attachmentType: getAttachmentType(file) as any,
+            description: file.name,
+            file: response.data
+          };
 
           console.log('📎 创建附件对象:', attachment);
           newAttachments.push(attachment);
@@ -275,7 +303,7 @@ export const TransactionAttachmentUpload = React.forwardRef<
         }
       }
 
-      console.log('📎 上传完成，新附件数量:', newAttachments.length);
+      console.log('📎 新建模式上传完成，新附件数量:', newAttachments.length);
 
       const updatedAttachments = [...attachments, ...newAttachments];
       setAttachments(updatedAttachments);
@@ -422,7 +450,14 @@ export const TransactionAttachmentUpload = React.forwardRef<
   // 获取有效的附件文件列表
   const validAttachmentFiles = attachments
     .filter(attachment => attachment.file)
-    .map(attachment => attachment.file!);
+    .map(attachment => {
+      // 确保每个文件都有唯一的id
+      return {
+        ...attachment.file!,
+        // 如果文件没有id，使用附件id作为备用
+        id: attachment.file!.id || attachment.id
+      };
+    });
 
   return (
     <div className={className}>

@@ -538,7 +538,7 @@ class AccountingPointsService {
       } catch (error: any) {
         // 如果是唯一约束冲突，说明今天已经赠送过了
         if (error.code === 'P2002' && error.meta?.target?.includes('user_id') && error.meta?.target?.includes('gift_date')) {
-          console.log('ℹ️ [AccountingPointsService] 今日已赠送过记账点，用户ID:', userId, '日期:', today);
+          //console.log('ℹ️ [AccountingPointsService] 今日已赠送过记账点，用户ID:', userId, '日期:', today);
           return {
             isFirstVisitToday: false
           };
