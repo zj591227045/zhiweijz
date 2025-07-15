@@ -16,6 +16,7 @@ echo "🐳 构建只为记账 Nginx 镜像（包含SSL支持）..."
 echo "📋 检查必要文件..."
 required_files=(
     "docker/config/nginx.conf"
+    "docker/config/docker-entrypoint.sh"
     "$DOCKERFILE"
 )
 
@@ -26,6 +27,9 @@ for file in "${required_files[@]}"; do
     fi
     echo "✅ $file"
 done
+
+# 设置启动脚本权限
+chmod +x docker/config/docker-entrypoint.sh
 
 # 构建镜像
 echo "🔨 构建Docker镜像..."

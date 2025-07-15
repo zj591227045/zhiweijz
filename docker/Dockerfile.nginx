@@ -45,25 +45,8 @@ EXPOSE 80 443
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost/health || exit 1
 
-# 创建启动脚本
-RUN cat > /docker-entrypoint.sh << 'EOF'
-#!/bin/sh
-set -e
-
-# 设置默认环境变量
-export PROJECT_NAME=${PROJECT_NAME:-zhiweijz}
-export BACKEND_PORT=${BACKEND_PORT:-3000}
-export FRONTEND_PORT=${FRONTEND_PORT:-3001}
-
-# 使用envsubst替换nginx配置文件中的环境变量
-envsubst '${PROJECT_NAME} ${BACKEND_PORT} ${FRONTEND_PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
-
-# 测试nginx配置
-nginx -t
-
-# 启动nginx
-exec nginx -g "daemon off;"
-EOF
+# 复制启动脚本
+COPY docker/config/docker-entrypoint.sh /docker-entrypoint.sh
 
 # 设置启动脚本权限
 RUN chmod +x /docker-entrypoint.sh
