@@ -18,13 +18,18 @@ interface NotificationState {
   isLoading: boolean;
   isModalOpen: boolean;
   hasCheckedOnLogin: boolean;
-  
+  selectedAnnouncement: UserAnnouncement | null;
+  isDetailModalOpen: boolean;
+
   // Actions
   fetchAnnouncements: () => Promise<void>;
+  fetchAnnouncementById: (announcementId: string) => Promise<UserAnnouncement | null>;
   markAsRead: (announcementId: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   openModal: () => void;
   closeModal: () => void;
+  openDetailModal: (announcementId: string) => Promise<void>;
+  closeDetailModal: () => void;
   setHasCheckedOnLogin: (checked: boolean) => void;
   checkUnreadOnLogin: () => Promise<void>;
 }
@@ -35,6 +40,8 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   isLoading: false,
   isModalOpen: false,
   hasCheckedOnLogin: false,
+  selectedAnnouncement: null,
+  isDetailModalOpen: false,
 
   fetchAnnouncements: async () => {
     set({ isLoading: true });
@@ -52,6 +59,35 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       console.error('获取通知失败:', error);
       set({ isLoading: false });
       toast.error('获取通知失败');
+    }
+  },
+
+  fetchAnnouncementById: async (announcementId: string) => {
+    try {
+      const response = await apiClient.get(`/user/announcements/${announcementId}`);
+      const announcement = response.data;
+
+      if (announcement) {
+        // 更新本地状态中的公告为已读状态
+        const { announcements } = get();
+        const updatedAnnouncements = announcements.map(a =>
+          a.id === announcementId ? { ...a, isRead: true } : a
+        );
+        const unreadCount = updatedAnnouncements.filter(a => !a.isRead).length;
+
+        set({
+          announcements: updatedAnnouncements,
+          unreadCount,
+          selectedAnnouncement: announcement
+        });
+
+        return announcement;
+      }
+      return null;
+    } catch (error) {
+      console.error('获取公告详情失败:', error);
+      toast.error('获取公告详情失败');
+      return null;
     }
   },
 
@@ -104,6 +140,20 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   closeModal: () => {
     set({ isModalOpen: false });
+  },
+
+  openDetailModal: async (announcementId: string) => {
+    const announcement = await get().fetchAnnouncementById(announcementId);
+    if (announcement) {
+      set({ isDetailModalOpen: true });
+    }
+  },
+
+  closeDetailModal: () => {
+    set({
+      isDetailModalOpen: false,
+      selectedAnnouncement: null
+    });
   },
 
   setHasCheckedOnLogin: (checked: boolean) => {

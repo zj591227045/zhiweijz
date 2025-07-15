@@ -5,6 +5,7 @@ import { useNotificationStore, UserAnnouncement } from '@/store/notification-sto
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
+import { AnnouncementDetailModal } from './AnnouncementDetailModal';
 import { 
   XMarkIcon,
   CheckIcon,
@@ -27,7 +28,10 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
     isLoading,
     markAsRead,
     markAllAsRead,
-    fetchAnnouncements
+    fetchAnnouncements,
+    openDetailModal,
+    isDetailModalOpen,
+    closeDetailModal
   } = useNotificationStore();
 
   const [activeTab, setActiveTab] = useState<'unread' | 'all'>('unread');
@@ -365,12 +369,16 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
                         
                         {/* 通知内容 */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h4 
+                          <div
+                            className="flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-md p-2 -m-2 transition-colors"
+                            onClick={() => openDetailModal(announcement.id)}
+                            title="点击查看详情"
+                          >
+                            <h4
                               className={`text-sm font-medium ${
                                 !announcement.isRead ? 'font-semibold' : ''
                               }`}
-                              style={{ 
+                              style={{
                                 color: !announcement.isRead ? 'var(--text-primary)' : 'var(--text-secondary)'
                               }}
                             >
@@ -379,7 +387,7 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
                             <div className="flex items-center space-x-2">
                               {!announcement.isRead && (
                                 <div className="flex-shrink-0">
-                                  <div 
+                                  <div
                                     className="h-2 w-2 rounded-full"
                                     style={{ backgroundColor: 'var(--primary-color)' }}
                                   ></div>
@@ -388,7 +396,10 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
                               {/* 独立的已读标记按钮 */}
                               {!announcement.isRead && (
                                 <button
-                                  onClick={(e) => handleMarkAsRead(e, announcement.id)}
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // 阻止事件冒泡，避免触发详情模态框
+                                    handleMarkAsRead(e, announcement.id);
+                                  }}
                                   className="p-1 rounded-full transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
                                   title="标记为已读"
                                 >
@@ -398,18 +409,7 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
                             </div>
                           </div>
                           
-                          <div 
-                            className={`mt-1 text-sm ${
-                              !announcement.isRead ? 'font-medium' : ''
-                            }`}
-                            style={{ 
-                              color: !announcement.isRead ? 'var(--text-primary)' : 'var(--text-secondary)'
-                            }}
-                            onClick={handleLinkClick}
-                            dangerouslySetInnerHTML={{
-                              __html: parseLinksToHtml(announcement.content)
-                            }}
-                          />
+                          {/* 移除内容显示，只保留标题和元信息 */}
                           
                           <div className="mt-2 flex items-center justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
                             <span>
@@ -464,6 +464,12 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
           </div>
         </div>
       </div>
+
+      {/* 公告详情模态框 */}
+      <AnnouncementDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={closeDetailModal}
+      />
     </div>
   );
-} 
+}

@@ -63,6 +63,79 @@ export const announcementService = {
     }
   },
 
+  // 获取单个公告详情
+  async getAnnouncementById(userId: string, announcementId: string) {
+    try {
+      // 获取用户注册时间
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { createdAt: true },
+      });
+
+      if (!user) {
+        throw new Error('用户不存在');
+      }
+
+      // 获取公告详情，确保用户有权限查看
+      const announcement = await prisma.announcement.findFirst({
+        where: {
+          id: announcementId,
+          status: 'PUBLISHED',
+          publishedAt: {
+            gte: user.createdAt, // 只显示用户注册后发布的公告
+            lte: new Date(), // 不显示未来发布的公告
+          },
+          OR: [
+            { expiresAt: null }, // 永不过期
+            { expiresAt: { gt: new Date() } }, // 未过期
+          ],
+        },
+      });
+
+      if (!announcement) {
+        return null;
+      }
+
+      // 检查用户是否已读
+      let readRecord = await prisma.announcementRead.findUnique({
+        where: {
+          announcementId_userId: {
+            announcementId,
+            userId,
+          },
+        },
+      });
+
+      // 如果用户未读，自动标记为已读（查看即已读）
+      if (!readRecord) {
+        try {
+          readRecord = await prisma.announcementRead.create({
+            data: {
+              announcementId,
+              userId,
+            },
+          });
+        } catch (error) {
+          // 如果创建失败（可能是并发问题），忽略错误，不影响主要功能
+          console.warn('自动标记已读失败:', error);
+        }
+      }
+
+      return {
+        id: announcement.id,
+        title: announcement.title,
+        content: announcement.content,
+        priority: announcement.priority,
+        publishedAt: announcement.publishedAt?.toISOString() || '',
+        expiresAt: announcement.expiresAt?.toISOString() || null,
+        isRead: true, // 查看详情后即为已读
+      };
+    } catch (error) {
+      console.error('获取公告详情失败:', error);
+      throw error;
+    }
+  },
+
   // 标记公告为已读
   async markAsRead(userId: string, announcementId: string) {
     try {
