@@ -117,6 +117,7 @@ CREATE TABLE IF NOT EXISTS "categories" (
     "is_default" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "account_book_id" TEXT,
     CONSTRAINT "categories_pkey" PRIMARY KEY ("id")
 );
 
@@ -157,6 +158,7 @@ CREATE TABLE IF NOT EXISTS "budgets" (
     "refresh_day" INTEGER NOT NULL DEFAULT 1,
     "family_member_id" TEXT,
     "is_deleted" BOOLEAN NOT NULL DEFAULT false,
+    "account_book_id" TEXT,
     CONSTRAINT "budgets_pkey" PRIMARY KEY ("id")
 );
 
@@ -250,10 +252,13 @@ ALTER TABLE "account_books" ADD CONSTRAINT "account_books_family_id_fkey"
 ALTER TABLE "categories" ADD CONSTRAINT "categories_user_id_fkey" 
     FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
-ALTER TABLE "categories" ADD CONSTRAINT "categories_family_id_fkey" 
+ALTER TABLE "categories" ADD CONSTRAINT "categories_family_id_fkey"
     FOREIGN KEY ("family_id") REFERENCES "families"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
-ALTER TABLE "transactions" ADD CONSTRAINT "transactions_user_id_fkey" 
+ALTER TABLE "categories" ADD CONSTRAINT "categories_account_book_id_fkey"
+    FOREIGN KEY ("account_book_id") REFERENCES "account_books"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE "transactions" ADD CONSTRAINT "transactions_user_id_fkey"
     FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 ALTER TABLE "transactions" ADD CONSTRAINT "transactions_category_id_fkey" 
@@ -280,10 +285,13 @@ ALTER TABLE "budgets" ADD CONSTRAINT "budgets_family_id_fkey"
 ALTER TABLE "budgets" ADD CONSTRAINT "budgets_category_id_fkey" 
     FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
-ALTER TABLE "budgets" ADD CONSTRAINT "budgets_family_member_id_fkey" 
+ALTER TABLE "budgets" ADD CONSTRAINT "budgets_family_member_id_fkey"
     FOREIGN KEY ("family_member_id") REFERENCES "family_members"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
-ALTER TABLE "budget_histories" ADD CONSTRAINT "budget_histories_budget_id_fkey" 
+ALTER TABLE "budgets" ADD CONSTRAINT "budgets_account_book_id_fkey"
+    FOREIGN KEY ("account_book_id") REFERENCES "account_books"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE "budget_histories" ADD CONSTRAINT "budget_histories_budget_id_fkey"
     FOREIGN KEY ("budget_id") REFERENCES "budgets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 ALTER TABLE "user_settings" ADD CONSTRAINT "user_settings_user_id_fkey" 
