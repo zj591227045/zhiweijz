@@ -1,9 +1,10 @@
 import { PrismaClient } from '@prisma/client';
-import type { 
-  UserAccountingPoints, 
-  AccountingPointsTransactions, 
-  UserCheckins 
+import type {
+  UserAccountingPoints,
+  AccountingPointsTransactions,
+  UserCheckins
 } from '@prisma/client';
+import { MembershipService } from './membership.service';
 
 const prisma = new PrismaClient();
 
@@ -26,6 +27,14 @@ class AccountingPointsService {
 
   // 赠送余额上限
   static GIFT_BALANCE_LIMIT = 30;
+
+  /**
+   * 检查记账点系统是否启用
+   */
+  static isSystemEnabled(): boolean {
+    const membershipService = new MembershipService();
+    return membershipService.isAccountingPointsEnabled();
+  }
 
   /**
    * 获取北京时间的今日日期字符串
@@ -91,6 +100,11 @@ class AccountingPointsService {
    * 检查用户是否有足够的记账点
    */
   static async canUsePoints(userId: string, pointsNeeded: number): Promise<boolean> {
+    // 如果记账点系统未启用，直接返回 true（允许使用）
+    if (!this.isSystemEnabled()) {
+      return true;
+    }
+
     const userPoints = await this.getUserPoints(userId);
     const totalBalance = userPoints.giftBalance + userPoints.memberBalance;
     return totalBalance >= pointsNeeded;
@@ -105,6 +119,16 @@ class AccountingPointsService {
     memberBalance: number;
     totalDeducted: number;
   }> {
+    // 如果记账点系统未启用，返回模拟的结果而不执行实际扣除
+    if (!this.isSystemEnabled()) {
+      const userPoints = await this.getUserPoints(userId);
+      return {
+        giftBalance: userPoints.giftBalance,
+        memberBalance: userPoints.memberBalance,
+        totalDeducted: 0
+      };
+    }
+
     return await prisma.$transaction(async (tx) => {
       // 在事务中重新获取最新的用户记账点信息
       const userPoints = await tx.userAccountingPoints.findUnique({

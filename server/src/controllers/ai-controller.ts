@@ -6,6 +6,7 @@ import { SmartAccountingResult, SmartAccountingError } from '../types/smart-acco
 import AccountingPointsService from '../services/accounting-points.service';
 import { SourceDetectionUtil } from '../utils/source-detection.util';
 import { TransactionService } from '../services/transaction.service';
+import { MembershipService } from '../services/membership.service';
 
 /**
  * AI功能控制器
@@ -16,6 +17,7 @@ export class AIController {
   private smartAccounting: SmartAccounting;
   private prisma: PrismaClient;
   private transactionService: TransactionService;
+  private membershipService: MembershipService;
 
   /**
    * 构造函数
@@ -25,6 +27,7 @@ export class AIController {
     this.smartAccounting = new SmartAccounting(this.llmProviderService);
     this.prisma = new PrismaClient();
     this.transactionService = new TransactionService();
+    this.membershipService = new MembershipService();
   }
 
   /**
@@ -97,14 +100,16 @@ export class AIController {
         return res.status(404).json({ error: '账本不存在或无权访问' });
       }
 
-      // 检查记账点余额（文字记账消费1点）
-      const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.text);
-      if (!canUsePoints) {
-        return res.status(402).json({ 
-          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
-          type: 'INSUFFICIENT_POINTS',
-          required: AccountingPointsService.POINT_COSTS.text
-        });
+      // 检查记账点余额（文字记账消费1点）- 仅在记账点系统启用时检查
+      if (this.membershipService.isAccountingPointsEnabled()) {
+        const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.text);
+        if (!canUsePoints) {
+          return res.status(402).json({
+            error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+            type: 'INSUFFICIENT_POINTS',
+            required: AccountingPointsService.POINT_COSTS.text
+          });
+        }
       }
 
       // 处理描述
@@ -132,12 +137,14 @@ export class AIController {
         return res.status(400).json({ info: result.error });
       }
 
-      // 智能记账成功，扣除记账点
-      try {
-        await AccountingPointsService.deductPoints(userId, 'text', AccountingPointsService.POINT_COSTS.text);
-      } catch (pointsError) {
-        console.error('扣除记账点失败:', pointsError);
-        // 记账点扣除失败不影响返回结果，但需要记录日志
+      // 智能记账成功，扣除记账点（仅在记账点系统启用时）
+      if (this.membershipService.isAccountingPointsEnabled()) {
+        try {
+          await AccountingPointsService.deductPoints(userId, 'text', AccountingPointsService.POINT_COSTS.text);
+        } catch (pointsError) {
+          console.error('扣除记账点失败:', pointsError);
+          // 记账点扣除失败不影响返回结果，但需要记录日志
+        }
       }
 
       res.json(result);
@@ -920,14 +927,16 @@ export class AIController {
 
       console.log(`📝 [记账处理] 实际记账用户: ${actualUserName} (ID: ${actualUserId})`);
 
-      // 检查记账点余额（文字记账消费1点）- 使用请求发起者的记账点
-      const canUsePoints = await AccountingPointsService.canUsePoints(requestUserId, AccountingPointsService.POINT_COSTS.text);
-      if (!canUsePoints) {
-        return res.status(402).json({ 
-          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
-          type: 'INSUFFICIENT_POINTS',
-          required: AccountingPointsService.POINT_COSTS.text
-        });
+      // 检查记账点余额（文字记账消费1点）- 使用请求发起者的记账点，仅在记账点系统启用时检查
+      if (this.membershipService.isAccountingPointsEnabled()) {
+        const canUsePoints = await AccountingPointsService.canUsePoints(requestUserId, AccountingPointsService.POINT_COSTS.text);
+        if (!canUsePoints) {
+          return res.status(402).json({
+            error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+            type: 'INSUFFICIENT_POINTS',
+            required: AccountingPointsService.POINT_COSTS.text
+          });
+        }
       }
 
       // 使用实际用户ID进行智能记账分析
@@ -1013,12 +1022,14 @@ export class AIController {
 
         console.log(`✅ [交易创建] 交易记录创建成功: ${transaction.id}`);
 
-        // 交易创建成功，扣除记账点（使用请求发起者的记账点）
-        try {
-          await AccountingPointsService.deductPoints(requestUserId, 'text', AccountingPointsService.POINT_COSTS.text);
-        } catch (pointsError) {
-          console.error('扣除记账点失败:', pointsError);
-          // 记账点扣除失败不影响返回结果，但需要记录日志
+        // 交易创建成功，扣除记账点（使用请求发起者的记账点）- 仅在记账点系统启用时
+        if (this.membershipService.isAccountingPointsEnabled()) {
+          try {
+            await AccountingPointsService.deductPoints(requestUserId, 'text', AccountingPointsService.POINT_COSTS.text);
+          } catch (pointsError) {
+            console.error('扣除记账点失败:', pointsError);
+            // 记账点扣除失败不影响返回结果，但需要记录日志
+          }
         }
 
         // 返回创建的交易记录
@@ -1094,14 +1105,16 @@ export class AIController {
         return res.status(404).json({ error: '账本不存在或无权访问' });
       }
 
-      // 检查记账点余额（文字记账消费1点）
-      const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.text);
-      if (!canUsePoints) {
-        return res.status(402).json({ 
-          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
-          type: 'INSUFFICIENT_POINTS',
-          required: AccountingPointsService.POINT_COSTS.text
-        });
+      // 检查记账点余额（文字记账消费1点）- 仅在记账点系统启用时检查
+      if (this.membershipService.isAccountingPointsEnabled()) {
+        const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.text);
+        if (!canUsePoints) {
+          return res.status(402).json({
+            error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+            type: 'INSUFFICIENT_POINTS',
+            required: AccountingPointsService.POINT_COSTS.text
+          });
+        }
       }
 
       // 处理描述，获取智能记账结果
@@ -1218,12 +1231,14 @@ export class AIController {
           data: transactionData,
         });
 
-        // 交易创建成功，扣除记账点
-        try {
-          await AccountingPointsService.deductPoints(userId, 'text', AccountingPointsService.POINT_COSTS.text);
-        } catch (pointsError) {
-          console.error('扣除记账点失败:', pointsError);
-          // 记账点扣除失败不影响返回结果，但需要记录日志
+        // 交易创建成功，扣除记账点（仅在记账点系统启用时）
+        if (this.membershipService.isAccountingPointsEnabled()) {
+          try {
+            await AccountingPointsService.deductPoints(userId, 'text', AccountingPointsService.POINT_COSTS.text);
+          } catch (pointsError) {
+            console.error('扣除记账点失败:', pointsError);
+            // 记账点扣除失败不影响返回结果，但需要记录日志
+          }
         }
 
         // 返回创建的交易记录

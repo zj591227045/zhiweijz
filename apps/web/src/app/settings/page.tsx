@@ -10,6 +10,7 @@ import { PageContainer } from '@/components/layout/page-container';
 import { useThemeStore } from '@/store/theme-store';
 import { AvatarDisplay } from '@/components/ui/avatar-display';
 import { userService } from '@/lib/api/user-service';
+import { useSystemConfig } from '@/hooks/useSystemConfig';
 import './settings.css';
 
 export default function SettingsPage() {
@@ -18,6 +19,7 @@ export default function SettingsPage() {
   const { theme, setTheme } = useThemeStore();
   const { resetOnboarding, startOnboarding, setAccountType, setCurrentStep } = useOnboardingStore();
   const { currentAccountBook } = useAccountBookStore();
+  const { config } = useSystemConfig();
   const [currentLanguage, setCurrentLanguage] = useState('简体中文');
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
@@ -154,14 +156,18 @@ export default function SettingsPage() {
           
           {/* 快捷操作按钮 */}
           <div className="user-actions">
-            <Link href="/settings/checkin" className="action-button checkin-button">
-              <i className="fas fa-calendar-check"></i>
-              <span>每日签到</span>
-            </Link>
-            <Link href="/settings/membership" className="action-button membership-button">
-              <i className="fas fa-crown"></i>
-              <span>会员中心</span>
-            </Link>
+            {config.accountingPointsEnabled && (
+              <Link href="/settings/checkin" className="action-button checkin-button">
+                <i className="fas fa-calendar-check"></i>
+                <span>每日签到</span>
+              </Link>
+            )}
+            {config.membershipEnabled && (
+              <Link href="/settings/membership" className="action-button membership-button">
+                <i className="fas fa-crown"></i>
+                <span>会员中心</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>
