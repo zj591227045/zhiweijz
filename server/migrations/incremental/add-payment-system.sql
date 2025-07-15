@@ -203,13 +203,14 @@ ALTER TABLE "refunds" ADD CONSTRAINT "refunds_order_id_fkey"
     FOREIGN KEY ("order_id") REFERENCES "payment_orders"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- 初始化支付配置数据
-INSERT INTO "payment_configs" ("provider", "platform", "is_enabled", "is_sandbox", "config_data", "created_at", "updated_at") VALUES 
+INSERT INTO "payment_configs" ("provider", "platform", "is_enabled", "is_sandbox", "config_data", "created_at", "updated_at") VALUES
 ('mock', 'all', true, true, '{"name": "Mock Payment Provider", "description": "Development and testing payment provider"}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('alipay', 'web', false, true, '{"name": "Alipay", "description": "Alipay payment integration"}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('alipay', 'mobile', false, true, '{"name": "Alipay Mobile", "description": "Alipay mobile payment integration"}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('wechat', 'web', false, true, '{"name": "WeChat Pay", "description": "WeChat Pay web integration"}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('wechat', 'mobile', false, true, '{"name": "WeChat Pay Mobile", "description": "WeChat Pay mobile integration"}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('revenuecat', 'ios', false, true, '{"name": "RevenueCat iOS", "description": "Apple In-App Purchase via RevenueCat"}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+('revenuecat', 'ios', false, true, '{"name": "RevenueCat iOS", "description": "Apple In-App Purchase via RevenueCat"}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (provider) DO NOTHING;
 
 -- 创建触发器函数，用于自动更新 updated_at 字段
 CREATE OR REPLACE FUNCTION update_updated_at_column()

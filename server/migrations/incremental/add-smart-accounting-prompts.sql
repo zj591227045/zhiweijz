@@ -8,7 +8,7 @@ AUTHOR: Claude Code Assistant
 -- 这些配置将用于智能记账功能的各种AI提示词
 
 -- 1. 记账相关性判断提示词
-INSERT INTO system_config (key, value, description, created_at, updated_at)
+INSERT INTO system_configs (key, value, description, created_at, updated_at)
 VALUES (
   'smart_accounting_relevance_check_prompt',
   '你是一个专业的财务助手。请判断以下用户描述是否与记账相关。
@@ -33,7 +33,7 @@ VALUES (
   updated_at = NOW();
 
 -- 2. 智能记账分析提示词
-INSERT INTO system_config (key, value, description, created_at, updated_at)
+INSERT INTO system_configs (key, value, description, created_at, updated_at)
 VALUES (
   'smart_accounting_prompt',
   '你是专业财务助手，从用户描述中提取记账信息。
@@ -74,7 +74,7 @@ VALUES (
   updated_at = NOW();
 
 -- 3. 图片分析提示词
-INSERT INTO system_config (key, value, description, created_at, updated_at)
+INSERT INTO system_configs (key, value, description, created_at, updated_at)
 VALUES (
   'smart_accounting_image_analysis_prompt',
   '请分析这张图片中的记账信息。
@@ -112,7 +112,7 @@ VALUES (
   updated_at = NOW();
 
 -- 4. 多模态兼容提示词（向后兼容）
-INSERT INTO system_config (key, value, description, created_at, updated_at)
+INSERT INTO system_configs (key, value, description, created_at, updated_at)
 VALUES (
   'smart_accounting_multimodal_prompt',
   '分析图片中的记账信息，提取：1.微信/支付宝付款记录：金额、收款人、备注，并从收款人分析交易类别；2.订单截图（美团/淘宝/京东/外卖/抖音）：内容、金额、时间、收件人；3.发票/票据：内容、分类、金额、时间。返回JSON格式。',
@@ -124,7 +124,7 @@ VALUES (
   updated_at = NOW();
 
 -- 5. 确保智能记账功能开关配置存在
-INSERT INTO system_config (key, value, description, created_at, updated_at)
+INSERT INTO system_configs (key, value, description, created_at, updated_at)
 VALUES (
   'smart_accounting_vision_enabled',
   'false',
@@ -135,7 +135,7 @@ VALUES (
   description = EXCLUDED.description,
   updated_at = NOW();
 
-INSERT INTO system_config (key, value, description, created_at, updated_at)
+INSERT INTO system_configs (key, value, description, created_at, updated_at)
 VALUES (
   'smart_accounting_speech_enabled',
   'false',
@@ -149,7 +149,7 @@ VALUES (
 -- 验证配置是否正确插入
 DO $$
 BEGIN
-  RAISE NOTICE '智能记账提示词配置已完成，共添加 % 个配置项', 
-    (SELECT COUNT(*) FROM system_config WHERE key LIKE 'smart_accounting_%');
+  RAISE NOTICE '智能记账提示词配置已完成，共添加 % 个配置项',
+    (SELECT COUNT(*) FROM system_configs WHERE key LIKE 'smart_accounting_%');
 END
 $$;
