@@ -95,7 +95,7 @@ export function MobileAttachmentUpload({
           name: fileName,
         } as any);
         formData.append('bucket', 'temp-files');
-        formData.append('category', 'transaction-attachment');
+        formData.append('category', 'attachments');
         formData.append('description', fileName);
 
         response = await apiClient.post('/file-storage/upload', formData, {

@@ -276,7 +276,7 @@ export const TransactionAttachmentUpload = React.forwardRef<
         const formData = new FormData();
         formData.append('file', file);
         formData.append('bucket', 'temp-files');
-        formData.append('category', 'transaction-attachment');
+        formData.append('category', 'attachments');
         formData.append('description', `${file.name}`);
 
         const response = await apiClient.post('/file-storage/upload', formData, {
