@@ -121,7 +121,10 @@ SET ai_service_type = 'llm'
 WHERE ai_service_type IS NULL;
 
 -- 8. 创建统一的AI调用日志视图，方便查询所有AI服务的调用记录
-CREATE OR REPLACE VIEW ai_call_logs_unified AS
+-- 先删除可能存在的旧视图
+DROP VIEW IF EXISTS ai_call_logs_unified CASCADE;
+
+CREATE VIEW ai_call_logs_unified AS
 SELECT 
     id,
     user_id,
