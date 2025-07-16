@@ -1175,11 +1175,60 @@ export default function EnhancedSmartAccountingDialog({
 
       if (response && response.data && response.data.text) {
         const recognizedText = response.data.text;
-        setDescription(recognizedText);
-        showSuccess('图片识别成功');
+        console.log('🖼️ [ImageRecognition] 图片识别成功，开始直接记账');
 
-        // 自动调用智能记账
-        await handleSmartAccountingWithText(recognizedText);
+        // 生成唯一进度ID
+        const progressId = `image-direct-add-${Date.now()}`;
+
+        // 获取智能记账进度管理器实例
+        const progressManager = SmartAccountingProgressManager.getInstance();
+
+        // 显示进度通知并立即关闭模态框
+        progressManager.showProgress(progressId, '正在启动智能记账...');
+        onClose(); // 立即关闭模态框
+
+        // 设置识别的文本到描述框（为了保持一致性）
+        setDescription(recognizedText);
+
+        // 调用直接添加记账API（与语音记账相同的逻辑）
+        try {
+          const response = await apiClient.post(
+            `/ai/account/${accountBookId}/smart-accounting/direct`,
+            { description: recognizedText },
+            { timeout: 60000 }
+          );
+
+          if (response && response.id) {
+            progressManager.showProgress(progressId, '记账成功', 'success');
+
+            // 刷新仪表盘数据
+            if (accountBookId) {
+              try {
+                await refreshDashboardData(accountBookId);
+                // 刷新记账点余额
+                await fetchBalance();
+              } catch (refreshError) {
+                console.error('刷新仪表盘数据失败:', refreshError);
+              }
+            }
+
+            // 清空描述
+            setDescription('');
+          } else {
+            progressManager.showProgress(progressId, '记账失败，请手动填写', 'error');
+          }
+        } catch (directAddError: any) {
+          console.error('图片记账直接添加失败:', directAddError);
+
+          // 处理特定错误类型
+          if (directAddError.response?.status === 402) {
+            progressManager.showProgress(progressId, '记账点余额不足', 'error');
+          } else if (directAddError.response?.data?.info && directAddError.response.data.info.includes('记账无关')) {
+            progressManager.showProgress(progressId, '图片内容与记账无关，请重试', 'error');
+          } else {
+            progressManager.showProgress(progressId, '记账失败，请手动填写', 'error');
+          }
+        }
       } else {
         showError(createError(
           MultimodalErrorType.RECOGNITION_FAILED,
