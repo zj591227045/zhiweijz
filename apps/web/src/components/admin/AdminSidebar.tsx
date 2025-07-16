@@ -175,7 +175,7 @@ export function AdminSidebar({ isOpen, onClose, isMobile }: AdminSidebarProps) {
           <div className="p-4 border-t border-gray-200">
             <div className="text-xs text-gray-500">
               <p>管理后台</p>
-              <p className="mt-1">v0.5.0</p>
+              <p className="mt-1">v0.5.1</p>
             </div>
           </div>
         </div>
