@@ -302,7 +302,7 @@ export class FileStorageController {
 
       const uploadRequest: FileUploadRequestDto = {
         bucket: BUCKET_CONFIG.ATTACHMENTS,
-        category: 'transaction-attachment',
+        category: 'attachments',
         description: req.body.description || '交易附件',
         metadata: {
           transactionId: req.body.transactionId,

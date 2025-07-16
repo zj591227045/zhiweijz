@@ -2079,7 +2079,7 @@ export class WechatService {
       
       const uploadRequest = {
         bucket: 'transaction-attachments',
-        category: 'wechat-attachment',
+        category: 'wechat',
         description: '微信图片记账附件',
         metadata: {
           transactionId,

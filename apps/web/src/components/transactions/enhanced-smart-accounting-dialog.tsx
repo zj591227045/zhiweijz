@@ -39,6 +39,7 @@ import {
   needsConversion,
   convertAudioToWav
 } from '@/lib/audio-conversion';
+import { platformFilePicker } from '@/lib/platform-file-picker';
 import { 
   MicrophoneIcon, 
   EyeIcon, 
@@ -926,30 +927,7 @@ export default function EnhancedSmartAccountingDialog({
   };
 
   // 处理图片记账
-  const handleImageRecording = () => {
-    if (!accountBookId) {
-      toast.error('请先选择账本');
-      return;
-    }
-
-    // 检查记账点余额
-    if (!checkAccountingPoints('image')) {
-      return;
-    }
-
-    if (!isFileSelectionSupported()) {
-      showError(createError(
-        MultimodalErrorType.PLATFORM_NOT_SUPPORTED,
-        '当前设备不支持文件选择功能'
-      ));
-      return;
-    }
-
-    fileInputRef.current?.click();
-  };
-
-  // 相机拍照
-  const handleCameraCapture = () => {
+  const handleImageRecording = async () => {
     if (!accountBookId) {
       toast.error('请先选择账本');
       return;
@@ -960,17 +938,90 @@ export default function EnhancedSmartAccountingDialog({
       return;
     }
     
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.capture = 'environment'; // 使用后置摄像头
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        handleImageSelect({ target: { files: [file] } } as any);
+    try {
+      console.log('🖼️ [ImageRecording] 开始调用Capacitor相册...');
+      
+      // 使用 platformFilePicker 来选择相册图片
+      const result = await platformFilePicker.selectFromGallery({
+        quality: 0.8,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      });
+      
+      if (result && result.file) {
+        console.log('🖼️ [ImageRecording] 相册选择成功:', result.source);
+        handleImageRecognition(result.file);
+      } else {
+        console.log('🖼️ [ImageRecording] 用户取消选择');
       }
-    };
-    input.click();
+    } catch (error) {
+      console.error('🖼️ [ImageRecording] 相册选择失败:', error);
+      
+      let errorMessage = '相册功能不可用';
+      if (error instanceof Error) {
+        if (error.message.includes('权限')) {
+          errorMessage = '需要相册权限才能选择图片，请在设置中允许访问相册';
+        } else if (error.message.includes('不支持')) {
+          errorMessage = '当前设备不支持相册功能';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      showError(createError(
+        MultimodalErrorType.PLATFORM_NOT_SUPPORTED,
+        errorMessage
+      ));
+    }
+  };
+
+  // 相机拍照
+  const handleCameraCapture = async () => {
+    if (!accountBookId) {
+      toast.error('请先选择账本');
+      return;
+    }
+
+    // 检查记账点余额
+    if (!checkAccountingPoints('image')) {
+      return;
+    }
+    
+    try {
+      console.log('📷 [CameraCapture] 开始调用Capacitor相机...');
+      
+      // 使用 platformFilePicker 来调用相机
+      const result = await platformFilePicker.takePhoto({
+        quality: 0.8,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      });
+      
+      if (result && result.file) {
+        console.log('📷 [CameraCapture] 拍照成功:', result.source);
+        handleImageRecognition(result.file);
+      } else {
+        console.log('📷 [CameraCapture] 用户取消拍照');
+      }
+    } catch (error) {
+      console.error('📷 [CameraCapture] 拍照失败:', error);
+      
+      let errorMessage = '相机功能不可用';
+      if (error instanceof Error) {
+        if (error.message.includes('权限')) {
+          errorMessage = '需要相机权限才能拍照，请在设置中允许访问相机';
+        } else if (error.message.includes('不支持')) {
+          errorMessage = '当前设备不支持相机功能';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      showError(createError(
+        MultimodalErrorType.PLATFORM_NOT_SUPPORTED,
+        errorMessage
+      ));
+    }
   };
 
   // 相机按钮手势处理

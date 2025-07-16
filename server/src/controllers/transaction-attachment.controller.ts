@@ -39,7 +39,7 @@ export class TransactionAttachmentController {
       // 上传文件到S3
       const uploadRequest: FileUploadRequestDto = {
         bucket: BUCKET_CONFIG.ATTACHMENTS,
-        category: 'transaction-attachment',
+        category: 'attachments',
         description: description || '交易附件',
         metadata: {
           transactionId,
@@ -255,7 +255,7 @@ export class TransactionAttachmentController {
           // 上传文件
           const uploadRequest: FileUploadRequestDto = {
             bucket: BUCKET_CONFIG.ATTACHMENTS,
-            category: 'transaction-attachment',
+            category: 'attachments',
             description: `交易附件 - ${file.originalname}`,
             metadata: {
               transactionId,

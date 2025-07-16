@@ -110,6 +110,8 @@ export const getFileUrl = (filename: string, type: 'avatar'): string => {
 
 // 获取S3文件URL
 export const getS3FileUrl = (bucket: string, key: string): string => {
+  // 注意：此函数已废弃，S3 URL应该通过FileStorageService获取
+  // 保留此函数仅为向后兼容，建议使用数据库中的URL字段
   const endpoint = process.env.S3_ENDPOINT || 'http://localhost:9000';
   return `${endpoint}/${bucket}/${key}`;
 };

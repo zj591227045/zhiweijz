@@ -73,7 +73,7 @@ const config: CapacitorConfig = {
     allowsLinkPreview: false,
     handleApplicationNotifications: false,
     contentInset: 'always',
-    webContentsDebuggingEnabled: false,
+    webContentsDebuggingEnabled: true,
     allowsInlineMediaPlayback: true,
     suppressesIncrementalRendering: false,
     allowsAirPlayForMediaPlayback: true,
