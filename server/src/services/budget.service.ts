@@ -839,9 +839,7 @@ export class BudgetService {
           budgetAmount: budget.amount,
           spentAmount: spent,
           previousRollover: currentRolloverAmount,
-          userId: budget.userId,
-          accountBookId: budget.accountBookId,
-          budgetType: budget.budgetType || 'PERSONAL',
+
         },
       });
 
@@ -908,18 +906,8 @@ export class BudgetService {
               endDate: true,
             },
           },
-          user: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          accountBook: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
+
+
         },
         orderBy: {
           createdAt: 'desc',
@@ -1058,9 +1046,7 @@ export class BudgetService {
           budgetAmount: budget.amount,
           spentAmount: null,
           previousRollover: budget.rolloverAmount || 0,
-          userId: budget.userId,
-          accountBookId: budget.accountBookId,
-          budgetType: budget.budgetType || 'PERSONAL',
+
         },
       });
 
@@ -1085,9 +1071,7 @@ export class BudgetService {
           budgetAmount: budget.amount,
           spentAmount: null,
           previousRollover: budget.rolloverAmount || 0,
-          userId: budget.userId,
-          accountBookId: budget.accountBookId,
-          budgetType: budget.budgetType || 'PERSONAL',
+
         },
       });
 
@@ -1112,9 +1096,7 @@ export class BudgetService {
           budgetAmount: budget.amount,
           spentAmount: null,
           previousRollover: budget.rolloverAmount || 0,
-          userId: budget.userId,
-          accountBookId: budget.accountBookId,
-          budgetType: budget.budgetType || 'PERSONAL',
+
         },
       });
 

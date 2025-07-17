@@ -53,7 +53,7 @@ export function toUserResponseDto(user: User): UserResponseDto {
     avatar: userWithExtras.avatar,
     bio: userWithExtras.bio,
     birthDate: userWithExtras.birthDate,
-    isCustodial: user.isCustodial,
+    isCustodial: user.isCustodial ?? false,
     createdAt,
     updatedAt,
   };

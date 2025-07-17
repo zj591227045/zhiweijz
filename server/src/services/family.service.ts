@@ -1292,7 +1292,7 @@ export class FamilyService {
           name: user.name,
           email: user.email,
           avatar: user.avatar || undefined,
-          isCustodial: user.isCustodial,
+          isCustodial: user.isCustodial ?? false,
         },
       };
     });

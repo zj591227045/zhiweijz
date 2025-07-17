@@ -58,11 +58,15 @@ export class MembershipService {
           orderBy: { createdAt: 'desc' },
           take: 10
         },
-        badges: {
+        user: {
           include: {
-            badge: true
-          },
-          orderBy: { awardedAt: 'desc' }
+            badges: {
+              include: {
+                badge: true
+              },
+              orderBy: { awardedAt: 'desc' }
+            }
+          }
         }
       }
     });
@@ -93,7 +97,9 @@ export class MembershipService {
       createdAt: new Date(),
       updatedAt: new Date(),
       renewalHistory: [],
-      badges: []
+      user: {
+        badges: []
+      }
     };
   }
 
@@ -117,9 +123,13 @@ export class MembershipService {
       },
       include: {
         renewalHistory: true,
-        badges: {
+        user: {
           include: {
-            badge: true
+            badges: {
+              include: {
+                badge: true
+              }
+            }
           }
         }
       }
@@ -171,9 +181,13 @@ export class MembershipService {
         },
         include: {
           renewalHistory: true,
-          badges: {
+          user: {
             include: {
-              badge: true
+              badges: {
+                include: {
+                  badge: true
+                }
+              }
             }
           }
         }
@@ -214,9 +228,13 @@ export class MembershipService {
         },
         include: {
           renewalHistory: true,
-          badges: {
+          user: {
             include: {
-              badge: true
+              badges: {
+                include: {
+                  badge: true
+                }
+              }
             }
           }
         }
