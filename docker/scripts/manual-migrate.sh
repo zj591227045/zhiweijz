@@ -15,7 +15,7 @@ fi
 
 # 优先使用增量迁移系统
 echo "1️⃣ 执行增量迁移..."
-docker exec zhiweijz-backend node scripts/migration-manager.js || {
+docker exec zhiweijz-backend node migrations/migration-manager.js || {
     echo "⚠️ 增量迁移失败，尝试标准Prisma迁移..."
     docker exec zhiweijz-backend npx prisma migrate deploy || {
         echo "⚠️ 标准迁移失败，执行安全的schema推送..."

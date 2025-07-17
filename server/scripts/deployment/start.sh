@@ -45,7 +45,7 @@ if [ "$DOCKER_ENV" = "true" ]; then
 
     # 运行安全的增量迁移系统
     echo "🔍 执行安全的增量迁移..."
-    if node scripts/migration-manager.js; then
+    if node migrations/migration-manager.js; then
         echo "✅ 增量迁移完成"
     else
         echo "⚠️ 增量迁移失败，尝试标准迁移..."

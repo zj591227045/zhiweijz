@@ -199,6 +199,7 @@ model Budget {
   transactions         Transaction[]
 
   @@index([accountBookId], map: "idx_budgets_account_book_id")
+  @@unique([userId, accountBookId, budgetType, period, startDate, familyMemberId], name: "unique_user_budget_period")
   @@map("budgets")
 }
 

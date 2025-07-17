@@ -29,7 +29,7 @@ server/scripts/
 |------|------|----------|
 | `docker-safe-migrate.sh` | Docker环境安全迁移 | `./migration/docker-safe-migrate.sh` |
 | `init-database.sh` | 数据库初始化 | `./migration/init-database.sh` |
-| `migration-manager.js` | 迁移管理器 | `node migration/migration-manager.js` |
+| `migration-manager.js` | 迁移管理器 | `node migrations/migration-manager.js` |
 | `version-conflict-resolver.js` | 版本冲突解决器 | `node migration/version-conflict-resolver.js` |
 | `validate-migration.js` | 验证迁移结果 | `node migration/validate-migration.js` |
 | `verify-database-sync.js` | 验证数据库同步 | `node migration/verify-database-sync.js` |
@@ -82,7 +82,7 @@ node database/generate-token.js
 
 ```bash
 # 运行迁移管理器
-node migration/migration-manager.js
+node migrations/migration-manager.js
 
 # 解决版本冲突
 node migration/version-conflict-resolver.js

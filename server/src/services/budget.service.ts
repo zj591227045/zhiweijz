@@ -51,6 +51,23 @@ export class BudgetService {
       }
     }
 
+    // 检查是否已存在相同条件的预算（防止重复创建）
+    if (budgetData.budgetType === BudgetType.PERSONAL && budgetData.accountBookId) {
+      const existingBudget = await this.checkExistingBudget(
+        userId,
+        budgetData.accountBookId,
+        budgetData.budgetType,
+        budgetData.period,
+        budgetData.startDate,
+        budgetData.familyMemberId
+      );
+
+      if (existingBudget) {
+        console.log(`用户 ${userId} 在账本 ${budgetData.accountBookId} 中已存在相同条件的预算: ${existingBudget.id}`);
+        throw new Error('该时间周期内已存在相同类型的预算，无法重复创建');
+      }
+    }
+
     // 如果启用分类预算且总预算金额为0，标记为自动计算
     if (budgetData.enableCategoryBudget && budgetData.amount === 0) {
       budgetData.isAutoCalculated = true;
@@ -1299,6 +1316,39 @@ export class BudgetService {
   }
 
   /**
+   * 检查是否已存在相同条件的预算
+   */
+  private async checkExistingBudget(
+    userId: string,
+    accountBookId: string,
+    budgetType: BudgetType,
+    period: BudgetPeriod,
+    startDate: Date,
+    familyMemberId?: string
+  ): Promise<any> {
+    try {
+      const existingBudget = await prisma.budget.findFirst({
+        where: {
+          userId,
+          accountBookId,
+          budgetType,
+          period,
+          startDate: {
+            gte: new Date(startDate.getFullYear(), startDate.getMonth(), 1),
+            lt: new Date(startDate.getFullYear(), startDate.getMonth() + 1, 1)
+          },
+          familyMemberId: familyMemberId || null
+        }
+      });
+
+      return existingBudget;
+    } catch (error) {
+      console.error('检查现有预算失败:', error);
+      return null;
+    }
+  }
+
+  /**
    * 检查用户是否有权限访问预算
    * @param userId 用户ID
    * @param budget 预算对象
@@ -1735,6 +1785,20 @@ export class BudgetService {
       const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
       const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
+      // 检查是否已存在当前月份的个人预算
+      const existingBudget = await this.checkExistingBudget(
+        userId,
+        accountBookId,
+        BudgetType.PERSONAL,
+        BudgetPeriod.MONTHLY,
+        startDate
+      );
+
+      if (existingBudget) {
+        console.log(`用户 ${userId} 在账本 ${accountBookId} 中已存在当前月份的个人预算: ${existingBudget.id}`);
+        return; // 已存在，不需要创建
+      }
+
       // 创建预算数据
       const budgetData: CreateBudgetDto = {
         name: '个人预算',
@@ -1756,6 +1820,11 @@ export class BudgetService {
       console.log(`成功为用户 ${userId} 创建默认个人预算: ${newBudget.name} (${newBudget.id})`);
     } catch (error) {
       console.error('创建默认个人预算失败:', error);
+      // 如果是重复创建错误，不抛出异常，避免影响正常流程
+      if (error instanceof Error && error.message.includes('已存在相同类型的预算')) {
+        console.log('预算已存在，跳过创建');
+        return;
+      }
       throw error;
     }
   }
@@ -1795,6 +1864,28 @@ export class BudgetService {
     period: any,
     rolloverAmount: number = 0,
   ): Promise<BudgetResponseDto> {
+    // 检查是否已存在相同条件的预算
+    const userId = templateBudget.userId || '';
+    const accountBookId = templateBudget.accountBookId || '';
+    const budgetType = templateBudget.budgetType || BudgetType.PERSONAL;
+    const familyMemberId = templateBudget.familyMemberId;
+
+    if (userId && accountBookId) {
+      const existingBudget = await this.checkExistingBudget(
+        userId,
+        accountBookId,
+        budgetType,
+        templateBudget.period,
+        period.startDate,
+        familyMemberId
+      );
+
+      if (existingBudget) {
+        console.log(`预算周期 ${period.startDate.toISOString()} 已存在预算: ${existingBudget.id}，跳过创建`);
+        return toBudgetResponseDto(existingBudget);
+      }
+    }
+
     const newBudgetData: CreateBudgetDto = {
       name: templateBudget.name,
       amount: Number(templateBudget.amount),
@@ -1813,7 +1904,6 @@ export class BudgetService {
     };
 
     // 创建新预算
-    const userId = templateBudget.userId || '';
     const newBudget = await this.createBudget(userId, newBudgetData);
 
     // 如果启用了结转功能，更新新预算的结转金额（包括正数和负数）

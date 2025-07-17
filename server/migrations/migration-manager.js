@@ -26,7 +26,7 @@ const logger = {
  */
 const MIGRATIONS_CONFIG = {
   // 当前最新版本
-  LATEST_VERSION: '1.7.13',
+  LATEST_VERSION: '1.7.14',
 
   // 迁移文件目录
   MIGRATIONS_DIR: path.join(__dirname, '../migrations/incremental'),
@@ -61,8 +61,9 @@ const MIGRATIONS_CONFIG = {
     '1.7.10': ['fix-budget-schema', 'add-family-member-custodial-fields'], // 升级到1.7.12
     '1.7.11': ['add-family-member-custodial-fields'], // 升级到1.7.12
     '1.7.12': ['fix-invitations-table'], // 升级到1.7.13
-    '1.7.13': [], // 当前最新版本
-    'fresh_install': ['base-schema', 'fix-missing-account-book-id-fields', 'admin-features', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table']
+    '1.7.13': ['add-budget-unique-constraint'], // 升级到1.7.14
+    '1.7.14': [], // 当前最新版本
+    'fresh_install': ['base-schema', 'fix-missing-account-book-id-fields', 'admin-features', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint']
   }
 };
 
