@@ -469,8 +469,10 @@ export class AccountBookService {
       }
     }
 
-    // 创建预算
-    await this.budgetRepository.create(userId, budgetData);
+    // 创建预算（使用 budgetService 以确保重复检查）
+    const { BudgetService } = require('./budget.service');
+    const budgetService = new BudgetService();
+    await budgetService.createBudget(userId, budgetData);
   }
 
   /**

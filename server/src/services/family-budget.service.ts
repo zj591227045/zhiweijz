@@ -1,5 +1,6 @@
 import { BudgetRepository } from '../repositories/budget.repository';
 import { FamilyRepository } from '../repositories/family.repository';
+import { BudgetService } from './budget.service';
 import { CreateBudgetDto } from '../models/budget.model';
 import { BudgetPeriod, FamilyMember } from '@prisma/client';
 import { PrismaClient } from '@prisma/client';
@@ -13,10 +14,12 @@ const prisma = new PrismaClient();
 export class FamilyBudgetService {
   private budgetRepository: BudgetRepository;
   private familyRepository: FamilyRepository;
+  private budgetService: BudgetService;
 
   constructor() {
     this.budgetRepository = new BudgetRepository();
     this.familyRepository = new FamilyRepository();
+    this.budgetService = new BudgetService();
   }
 
   /**
@@ -70,8 +73,8 @@ export class FamilyBudgetService {
         familyMemberId: familyMember.id, // 统一设置家庭成员ID
       };
 
-      // 创建预算
-      await this.budgetRepository.create(userId, budgetData);
+      // 创建预算（使用 budgetService 以确保重复检查）
+      await this.budgetService.createBudget(userId, budgetData);
       console.log(`成功为用户 ${userId} 创建默认预算，家庭成员ID: ${familyMember.id}`);
     } catch (error) {
       console.error('为新家庭成员创建默认预算失败:', error);

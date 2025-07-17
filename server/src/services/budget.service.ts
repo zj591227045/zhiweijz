@@ -1309,18 +1309,26 @@ export class BudgetService {
     familyMemberId?: string
   ): Promise<any> {
     try {
-      const existingBudget = await prisma.budget.findFirst({
-        where: {
-          userId,
-          accountBookId,
-          budgetType,
-          period,
-          startDate: {
-            gte: new Date(startDate.getFullYear(), startDate.getMonth(), 1),
-            lt: new Date(startDate.getFullYear(), startDate.getMonth() + 1, 1)
-          },
-          familyMemberId: familyMemberId || null
+      const whereCondition: any = {
+        userId,
+        accountBookId,
+        budgetType,
+        period,
+        startDate: {
+          gte: new Date(startDate.getFullYear(), startDate.getMonth(), 1),
+          lt: new Date(startDate.getFullYear(), startDate.getMonth() + 1, 1)
         }
+      };
+
+      // 正确处理 familyMemberId 的查询条件
+      if (familyMemberId) {
+        whereCondition.familyMemberId = familyMemberId;
+      } else {
+        whereCondition.familyMemberId = null;
+      }
+
+      const existingBudget = await prisma.budget.findFirst({
+        where: whereCondition
       });
 
       return existingBudget;
@@ -1797,8 +1805,8 @@ export class BudgetService {
         refreshDay: 1, // 默认每月1号刷新
       };
 
-      // 创建预算
-      const newBudget = await this.budgetRepository.create(userId, budgetData);
+      // 创建预算（使用 createBudget 以确保重复检查）
+      const newBudget = await this.createBudget(userId, budgetData);
       console.log(`成功为用户 ${userId} 创建默认个人预算: ${newBudget.name} (${newBudget.id})`);
     } catch (error) {
       console.error('创建默认个人预算失败:', error);
