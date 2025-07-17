@@ -9,48 +9,57 @@ datasource db {
 }
 
 model User {
-  id                   String                 @id @default(uuid())
-  email                String                 @unique
-  passwordHash         String                 @map("password")
-  name                 String
-  createdAt            DateTime               @default(now()) @map("created_at")
-  updatedAt            DateTime               @updatedAt @map("updated_at")
-  avatar               String?
-  bio                  String?
-  birthDate            DateTime?              @map("birth_date")
-  passwordChangedAt    DateTime?              @map("password_changed_at")
-  isCustodial          Boolean                @default(false) @map("is_custodial")
-  isActive             Boolean                @default(true) @map("is_active")
-  dailyLlmTokenLimit   Int?                   @map("daily_llm_token_limit")
-  deletionRequestedAt  DateTime?              @map("deletion_requested_at")
-  deletionScheduledAt  DateTime?              @map("deletion_scheduled_at")
-  accountBooks         AccountBook[]
-  budgetHistories      BudgetHistory[]
-  budgets              Budget[]
-  categories           Category[]
-  families             Family[]               @relation("FamilyCreator")
-  familyMembers        FamilyMember[]
-  passwordResetTokens  PasswordResetToken[]
-  securityLogs         SecurityLog[]
-  sessions             Session[]
-  transactions         Transaction[]
-  categoryConfigs      UserCategoryConfig[]
-  feedback             UserFeedback[]
-  llmSettings          UserLLMSetting[]
-  settings             UserSetting[]
-  verificationCodes    VerificationCode[]
-  wechat_user_bindings wechat_user_bindings[]
-  tags                 Tag[]
-  uploadedFiles        FileStorage[]
-  accountingPoints     UserAccountingPoints?
-  llmCallLogs          LlmCallLog[]
-  pointsTransactions   AccountingPointsTransactions[]
-  checkins             UserCheckins[]
-  dailyGiftRecords     DailyGiftRecords[]
-  membership           UserMembership?
-  compressionStats     CompressionStats[]
+  id                      String                         @id @default(uuid())
+  email                   String                         @unique
+  passwordHash            String                         @map("password")
+  name                    String
+  createdAt               DateTime                       @default(now()) @map("created_at")
+  updatedAt               DateTime                       @updatedAt @map("updated_at")
+  avatar                  String?
+  bio                     String?
+  birthDate               DateTime?                      @map("birth_date")
+  passwordChangedAt       DateTime?                      @map("password_changed_at")
+  isActive                Boolean                        @default(true) @map("is_active")
+  dailyLlmTokenLimit      Int?                           @map("daily_llm_token_limit")
+  deletionRequestedAt     DateTime?                      @map("deletion_requested_at") @db.Timestamptz(6)
+  deletionScheduledAt     DateTime?                      @map("deletion_scheduled_at") @db.Timestamptz(6)
+  isCustodial             Boolean?                       @default(false) @map("is_custodial")
+  access_logs             AccessLog[]
+  accountBooks            AccountBook[]
+  pointsTransactions      AccountingPointsTransactions[]
+  announcement_reads      AnnouncementRead[]
+  api_call_logs           ApiCallLog[]
+  budgets                 Budget[]
+  categories              Category[]
+  compressionStats        CompressionStats[]
+  dailyGiftRecords        DailyGiftRecords[]
+  families                Family[]                       @relation("FamilyCreator")
+  familyMembers           FamilyMember[]
+  uploadedFiles           FileStorage[]
+  llmCallLogs             LlmCallLog[]
+  multimodal_ai_call_logs MultimodalAiCallLog[]
+  passwordResetTokens     PasswordResetToken[]
+  payment_history         payment_history[]
+  payment_orders          payment_orders[]
+  securityLogs            SecurityLog[]
+  sessions                Session[]
+  subscriptions           subscriptions[]
+  tags                    Tag[]
+  transactions            Transaction[]
+  accountingPoints        UserAccountingPoints?
+  badges                  UserBadge[]
+  categoryConfigs         UserCategoryConfig[]
+  checkins                UserCheckins[]
+  feedback                UserFeedback[]
+  llmSettings             UserLLMSetting[]
+  membership              UserMembership?
+  settings                UserSetting[]
+  verificationCodes       VerificationCode[]
+  wechat_user_bindings    wechat_user_bindings[]
 
   @@index([isActive], map: "idx_users_is_active")
+  @@index([deletionRequestedAt], map: "idx_users_deletion_requested_at")
+  @@index([deletionScheduledAt], map: "idx_users_deletion_scheduled_at")
   @@map("users")
 }
 
@@ -125,33 +134,34 @@ model Category {
   transactions    Transaction[]
   userConfigs     UserCategoryConfig[]
 
+  @@index([accountBookId], map: "idx_categories_account_book_id")
   @@map("categories")
 }
 
 model Transaction {
-  id             String          @id @default(uuid())
-  amount         Decimal         @db.Decimal(10, 2)
-  type           TransactionType
-  categoryId     String          @map("category_id")
-  description    String?
-  date           DateTime
-  userId         String          @map("user_id")
-  familyId       String?         @map("family_id")
-  familyMemberId String?         @map("family_member_id")
-  createdAt      DateTime        @default(now()) @map("created_at")
-  updatedAt      DateTime        @updatedAt @map("updated_at")
-  accountBookId  String?         @map("account_book_id")
-  budgetId       String?         @map("budget_id")
-  metadata       Json?           @map("metadata")
-  accountBook    AccountBook?    @relation(fields: [accountBookId], references: [id])
-  budget         Budget?         @relation(fields: [budgetId], references: [id])
-  category       Category        @relation(fields: [categoryId], references: [id])
-  family         Family?         @relation(fields: [familyId], references: [id])
-  familyMember   FamilyMember?   @relation(fields: [familyMemberId], references: [id])
-  user           User            @relation(fields: [userId], references: [id])
-  feedback       UserFeedback[]
+  id              String                  @id @default(uuid())
+  amount          Decimal                 @db.Decimal(10, 2)
+  type            TransactionType
+  categoryId      String                  @map("category_id")
+  description     String?
+  date            DateTime
+  userId          String                  @map("user_id")
+  familyId        String?                 @map("family_id")
+  familyMemberId  String?                 @map("family_member_id")
+  createdAt       DateTime                @default(now()) @map("created_at")
+  updatedAt       DateTime                @updatedAt @map("updated_at")
+  accountBookId   String?                 @map("account_book_id")
+  budgetId        String?                 @map("budget_id")
+  metadata        Json?                   @map("metadata")
+  attachments     TransactionAttachment[]
   transactionTags TransactionTag[]
-  attachments    TransactionAttachment[]
+  accountBook     AccountBook?            @relation(fields: [accountBookId], references: [id])
+  budget          Budget?                 @relation(fields: [budgetId], references: [id])
+  category        Category                @relation(fields: [categoryId], references: [id])
+  family          Family?                 @relation(fields: [familyId], references: [id])
+  familyMember    FamilyMember?           @relation(fields: [familyMemberId], references: [id])
+  user            User                    @relation(fields: [userId], references: [id])
+  feedback        UserFeedback[]
 
   @@index([metadata], map: "idx_transactions_metadata_gin", type: Gin)
   @@map("transactions")
@@ -188,6 +198,7 @@ model Budget {
   categoryBudgets      CategoryBudget[]
   transactions         Transaction[]
 
+  @@index([accountBookId], map: "idx_budgets_account_book_id")
   @@map("budgets")
 }
 
@@ -258,27 +269,27 @@ model AccountLLMSetting {
 }
 
 model AccountBook {
-  id                   String                 @id @default(uuid())
-  name                 String
-  description          String?
-  userId               String                 @map("user_id")
-  isDefault            Boolean                @default(false) @map("is_default")
-  createdAt            DateTime               @default(now()) @map("created_at")
-  updatedAt            DateTime               @updatedAt @map("updated_at")
-  familyId             String?                @map("family_id")
-  type                 AccountBookType        @default(PERSONAL) @map("type")
-  createdBy            String?                @map("created_by")
-  userLLMSettingId     String?                @map("user_llm_setting_id")
-  family               Family?                @relation(fields: [familyId], references: [id])
-  user                 User                   @relation(fields: [userId], references: [id])
-  userLLMSetting       UserLLMSetting?        @relation(fields: [userLLMSettingId], references: [id])
-  accountLLMSetting    AccountLLMSetting?
-  budgetHistories      BudgetHistory[]
-  budgets              Budget[]
-  categories           Category[]
-  transactions         Transaction[]
-  tags                 Tag[]
-  llmCallLogs          LlmCallLog[]
+  id                      String                @id @default(uuid())
+  name                    String
+  description             String?
+  userId                  String                @map("user_id")
+  isDefault               Boolean               @default(false) @map("is_default")
+  createdAt               DateTime              @default(now()) @map("created_at")
+  updatedAt               DateTime              @updatedAt @map("updated_at")
+  familyId                String?               @map("family_id")
+  type                    AccountBookType       @default(PERSONAL) @map("type")
+  createdBy               String?               @map("created_by")
+  userLLMSettingId        String?               @map("user_llm_setting_id")
+  family                  Family?               @relation(fields: [familyId], references: [id])
+  user                    User                  @relation(fields: [userId], references: [id])
+  userLLMSetting          UserLLMSetting?       @relation(fields: [userLLMSettingId], references: [id])
+  accountLLMSetting       AccountLLMSetting?
+  budgets                 Budget[]
+  categories              Category[]
+  llmCallLogs             LlmCallLog[]
+  multimodal_ai_call_logs MultimodalAiCallLog[]
+  tags                    Tag[]
+  transactions            Transaction[]
 
   @@map("account_books")
 }
@@ -382,14 +393,8 @@ model BudgetHistory {
   budgetAmount     Decimal?     @map("budget_amount") @db.Decimal(10, 2)
   spentAmount      Decimal?     @map("spent_amount") @db.Decimal(10, 2)
   previousRollover Decimal?     @map("previous_rollover") @db.Decimal(10, 2)
-  userId           String?      @map("user_id")
-  accountBookId    String?      @map("account_book_id")
-  budgetType       String?      @default("PERSONAL") @map("budget_type")
-  accountBook      AccountBook? @relation(fields: [accountBookId], references: [id], onDelete: Cascade)
   budget           Budget       @relation(fields: [budgetId], references: [id], onDelete: Cascade)
-  user             User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId, accountBookId, budgetType, createdAt(sort: Desc)], map: "idx_budget_histories_user_account")
   @@map("budget_histories")
 }
 
@@ -413,17 +418,19 @@ model UserLLMSetting {
 }
 
 model Admin {
-  id                   String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username             String         @unique(map: "admins_username_unique") @db.VarChar(50)
-  passwordHash         String         @map("password_hash") @db.VarChar(255)
-  email                String?        @unique(map: "admins_email_unique") @db.VarChar(100)
-  role                 admin_role     @default(ADMIN)
-  createdAt            DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt            DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  lastLoginAt          DateTime?      @map("last_login_at") @db.Timestamptz(6)
-  isActive             Boolean        @default(true) @map("is_active")
-  createdAnnouncements Announcement[] @relation("AnnouncementCreator")
-  updatedAnnouncements Announcement[] @relation("AnnouncementUpdater")
+  id                                               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username                                         String         @unique @db.VarChar(50)
+  passwordHash                                     String         @map("password_hash") @db.VarChar(255)
+  email                                            String?        @unique @db.VarChar(100)
+  role                                             admin_role     @default(ADMIN)
+  createdAt                                        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                                        DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  lastLoginAt                                      DateTime?      @map("last_login_at") @db.Timestamptz(6)
+  isActive                                         Boolean        @default(true) @map("is_active")
+  createdAnnouncements                             Announcement[] @relation("AnnouncementCreator")
+  updatedAnnouncements                             Announcement[] @relation("AnnouncementUpdater")
+  system_configs_system_configs_created_byToadmins SystemConfig[] @relation("system_configs_created_byToadmins")
+  system_configs_system_configs_updated_byToadmins SystemConfig[] @relation("system_configs_updated_byToadmins")
 
   @@index([isActive], map: "idx_admins_active")
   @@index([email], map: "idx_admins_email")
@@ -433,15 +440,17 @@ model Admin {
 }
 
 model SystemConfig {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  key         String   @unique(map: "system_configs_key_unique") @db.VarChar(100)
-  value       String?
-  description String?
-  category    String   @default("general") @db.VarChar(50)
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  createdBy   String?  @map("created_by") @db.Uuid
-  updatedBy   String?  @map("updated_by") @db.Uuid
+  id                                       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key                                      String   @unique @db.VarChar(100)
+  value                                    String?
+  description                              String?
+  category                                 String   @default("general") @db.VarChar(50)
+  createdAt                                DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                                DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdBy                                String?  @map("created_by") @db.Uuid
+  updatedBy                                String?  @map("updated_by") @db.Uuid
+  admins_system_configs_created_byToadmins Admin?   @relation("system_configs_created_byToadmins", fields: [createdBy], references: [id], onUpdate: NoAction)
+  admins_system_configs_updated_byToadmins Admin?   @relation("system_configs_updated_byToadmins", fields: [updatedBy], references: [id], onUpdate: NoAction)
 
   @@index([category], map: "idx_system_configs_category")
   @@index([key], map: "idx_system_configs_key")
@@ -462,8 +471,8 @@ model Announcement {
   createdBy      String                @map("created_by") @db.Uuid
   updatedBy      String?               @map("updated_by") @db.Uuid
   readings       AnnouncementRead[]
-  creator        Admin                 @relation("AnnouncementCreator", fields: [createdBy], references: [id])
-  updater        Admin?                @relation("AnnouncementUpdater", fields: [updatedBy], references: [id])
+  creator        Admin                 @relation("AnnouncementCreator", fields: [createdBy], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  updater        Admin?                @relation("AnnouncementUpdater", fields: [updatedBy], references: [id], onUpdate: NoAction)
 
   @@index([priority], map: "idx_announcements_priority")
   @@index([publishedAt], map: "idx_announcements_published_at")
@@ -478,7 +487,8 @@ model AnnouncementRead {
   userId         String       @map("user_id")
   readAt         DateTime     @default(now()) @map("read_at") @db.Timestamptz(6)
   createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  announcement   Announcement @relation(fields: [announcementId], references: [id])
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users          User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([announcementId, userId], map: "idx_announcement_reads_unique")
   @@index([announcementId, readAt(sort: Desc)], map: "idx_announcement_reads_announcement")
@@ -498,6 +508,7 @@ model AccessLog {
   referer     String?
   duration    Int?
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  users       User?    @relation(fields: [userId], references: [id], onUpdate: NoAction)
 
   @@index([ipAddress, createdAt(sort: Desc)], map: "idx_access_logs_ip")
   @@index([path, createdAt(sort: Desc)], map: "idx_access_logs_path_time")
@@ -517,6 +528,7 @@ model ApiCallLog {
   responseSize Int?     @map("response_size")
   errorMessage String?  @map("error_message")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  users        User?    @relation(fields: [userId], references: [id], onUpdate: NoAction)
 
   @@index([endpoint, createdAt(sort: Desc)], map: "idx_api_call_logs_endpoint_time")
   @@index([statusCode, createdAt(sort: Desc)], map: "idx_api_call_logs_status")
@@ -525,31 +537,29 @@ model ApiCallLog {
 }
 
 model LlmCallLog {
-  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId           String   @map("user_id")
-  userName         String   @map("user_name") @db.VarChar(100)
-  accountBookId    String?  @map("account_book_id")
-  accountBookName  String?  @map("account_book_name") @db.VarChar(200)
-  provider         String   @db.VarChar(50)
-  model            String   @db.VarChar(100)
-  source           String   @default("App") @db.VarChar(50)
-  aiServiceType    String   @default("llm") @map("ai_service_type") @db.VarChar(50)
-  promptTokens     Int      @default(0) @map("prompt_tokens")
-  completionTokens Int      @default(0) @map("completion_tokens")
-  totalTokens      Int      @default(0) @map("total_tokens")
-  userMessage      String   @map("user_message")
-  assistantMessage String?  @map("assistant_message")
-  systemPrompt     String?  @map("system_prompt")
-  isSuccess        Boolean  @map("is_success")
-  errorMessage     String?  @map("error_message")
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String       @map("user_id")
+  userName         String       @map("user_name") @db.VarChar(100)
+  accountBookId    String?      @map("account_book_id")
+  accountBookName  String?      @map("account_book_name") @db.VarChar(200)
+  provider         String       @db.VarChar(50)
+  model            String       @db.VarChar(100)
+  promptTokens     Int          @default(0) @map("prompt_tokens")
+  completionTokens Int          @default(0) @map("completion_tokens")
+  totalTokens      Int          @default(0) @map("total_tokens")
+  userMessage      String       @map("user_message")
+  assistantMessage String?      @map("assistant_message")
+  systemPrompt     String?      @map("system_prompt")
+  isSuccess        Boolean      @map("is_success")
+  errorMessage     String?      @map("error_message")
   duration         Int
-  cost             Decimal? @db.Decimal(10, 6)
-  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  serviceType      String   @default("official") @map("service_type") @db.VarChar(20)
-
-  // 关联关系
-  user             User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
-  accountBook      AccountBook?  @relation(fields: [accountBookId], references: [id], onDelete: SetNull)
+  cost             Decimal?     @db.Decimal(10, 6)
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  serviceType      String       @default("official") @map("service_type") @db.VarChar(20)
+  source           String       @default("App") @db.VarChar(50)
+  aiServiceType    String       @default("llm") @map("ai_service_type") @db.VarChar(50)
+  accountBook      AccountBook? @relation(fields: [accountBookId], references: [id], onUpdate: NoAction)
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([accountBookId, createdAt(sort: Desc)], map: "idx_llm_call_logs_account_book_time")
   @@index([provider, model, createdAt(sort: Desc)], map: "idx_llm_call_logs_provider_model")
@@ -557,37 +567,40 @@ model LlmCallLog {
   @@index([userId, createdAt(sort: Desc)], map: "idx_llm_call_logs_user_time")
   @@index([serviceType, createdAt(sort: Desc)], map: "idx_llm_call_logs_service_type")
   @@index([userId, serviceType, createdAt(sort: Desc)], map: "idx_llm_call_logs_user_service_type")
-  @@index([source, createdAt(sort: Desc)], map: "idx_llm_call_logs_source")
-  @@index([aiServiceType, createdAt(sort: Desc)], map: "idx_llm_call_logs_ai_service_type")
+  @@index([source], map: "idx_llm_call_logs_source")
+  @@index([aiServiceType], map: "idx_llm_call_logs_ai_service_type")
   @@map("llm_call_logs")
 }
 
 model MultimodalAiCallLog {
-  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId          String    @map("user_id")
-  userName        String    @map("user_name") @db.VarChar(100)
-  accountBookId   String?   @map("account_book_id")
-  accountBookName String?   @map("account_book_name") @db.VarChar(200)
-  aiServiceType   String    @map("ai_service_type") @db.VarChar(50)
-  provider        String    @db.VarChar(50)
-  model           String    @db.VarChar(100)
-  source          String    @default("App") @db.VarChar(50)
-  inputSize       Int       @default(0) @map("input_size")
-  inputFormat     String?   @map("input_format") @db.VarChar(20)
-  outputText      String?   @map("output_text")
-  confidenceScore Decimal?  @map("confidence_score") @db.Decimal(5, 4)
-  isSuccess       Boolean   @map("is_success")
-  errorMessage    String?   @map("error_message")
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String       @map("user_id")
+  userName        String       @map("user_name") @db.VarChar(100)
+  accountBookId   String?      @map("account_book_id")
+  accountBookName String?      @map("account_book_name") @db.VarChar(200)
+  aiServiceType   String       @map("ai_service_type") @db.VarChar(50)
+  provider        String       @db.VarChar(50)
+  model           String       @db.VarChar(100)
+  source          String       @default("App") @db.VarChar(50)
+  inputSize       Int?         @default(0) @map("input_size")
+  inputFormat     String?      @map("input_format") @db.VarChar(20)
+  outputText      String?      @map("output_text")
+  confidenceScore Decimal?     @map("confidence_score") @db.Decimal(5, 4)
+  isSuccess       Boolean      @map("is_success")
+  errorMessage    String?      @map("error_message")
   duration        Int
-  tokens          Int       @default(0)
-  cost            Decimal?  @db.Decimal(10, 6)
-  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  tokens          Int?         @default(0)
+  cost            Decimal?     @db.Decimal(10, 6)
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  account_books   AccountBook? @relation(fields: [accountBookId], references: [id], onUpdate: NoAction, map: "fk_multimodal_ai_logs_account_book")
+  users           User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_multimodal_ai_logs_user")
 
-  @@index([userId, createdAt(sort: Desc)], map: "idx_multimodal_ai_logs_user_time")
-  @@index([aiServiceType, createdAt(sort: Desc)], map: "idx_multimodal_ai_logs_service_type")
-  @@index([source, createdAt(sort: Desc)], map: "idx_multimodal_ai_logs_source")
-  @@index([provider, createdAt(sort: Desc)], map: "idx_multimodal_ai_logs_provider")
-  @@index([isSuccess, createdAt(sort: Desc)], map: "idx_multimodal_ai_logs_success")
+  @@index([source], map: "idx_multimodal_ai_logs_source")
+  @@index([provider], map: "idx_multimodal_ai_logs_provider")
+  @@index([aiServiceType], map: "idx_multimodal_ai_logs_ai_service_type")
+  @@index([createdAt(sort: Desc)], map: "idx_multimodal_ai_logs_created_at")
+  @@index([isSuccess], map: "idx_multimodal_ai_logs_is_success")
+  @@index([userId], map: "idx_multimodal_ai_logs_user_id")
   @@map("multimodal_ai_call_logs")
 }
 
@@ -607,25 +620,24 @@ model StatisticsAggregation {
 
 model SchemaVersion {
   id            Int      @id @default(autoincrement())
-  version       String   @db.VarChar(20)
+  version       String   @db.VarChar(50)
   description   String?
-  appliedAt     DateTime @default(now()) @map("applied_at") @db.Timestamptz(6)
   migrationFile String?  @unique(map: "schema_versions_migration_file_unique") @map("migration_file") @db.VarChar(255)
+  appliedAt     DateTime @default(now()) @map("applied_at") @db.Timestamptz(6)
 
   @@map("schema_versions")
 }
 
 model wechat_message_logs {
-  id                   String               @id
-  openid               String
-  message_type         String
-  content              String?
-  response             String?
-  status               String               @default("pending")
-  error_message        String?
-  processing_time      Int?
-  created_at           DateTime             @default(now())
-  wechat_user_bindings wechat_user_bindings @relation(fields: [openid], references: [openid], onDelete: Cascade, onUpdate: NoAction, map: "fk_wechat_message_logs_binding")
+  id              String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  openid          String   @db.VarChar(50)
+  message_type    String   @db.VarChar(20)
+  content         String?
+  response        String?
+  status          String   @default("pending") @db.VarChar(20)
+  error_message   String?
+  processing_time Int?
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
 
   @@index([message_type], map: "idx_wechat_message_logs_message_type")
   @@index([openid, created_at(sort: Desc)], map: "idx_wechat_message_logs_openid_time")
@@ -633,18 +645,17 @@ model wechat_message_logs {
 }
 
 model wechat_user_bindings {
-  id                      String                @id
-  openid                  String                @unique
+  id                      String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  openid                  String    @unique(map: "wechat_user_bindings_openid_unique") @db.VarChar(50)
   user_id                 String
   default_account_book_id String?
   zhiwei_token            String?
   zhiwei_refresh_token    String?
-  token_expires_at        DateTime?
-  is_active               Boolean               @default(true)
-  created_at              DateTime              @default(now())
-  updated_at              DateTime
-  wechat_message_logs     wechat_message_logs[]
-  users                   User                  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_wechat_user_bindings_user")
+  token_expires_at        DateTime? @db.Timestamptz(6)
+  is_active               Boolean   @default(true)
+  created_at              DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime  @default(now()) @db.Timestamptz(6)
+  users                   User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_wechat_user_bindings_user")
 
   @@index([is_active], map: "idx_wechat_user_bindings_is_active")
   @@index([openid], map: "idx_wechat_user_bindings_openid")
@@ -652,24 +663,466 @@ model wechat_user_bindings {
 }
 
 model user_deletion_logs {
-  id               String    @id @default(uuid())
-  userId           String    @map("user_id")
-  email            String    @map("email")
-  name             String?   @map("name")
-  requestedAt      DateTime  @map("requested_at") @db.Timestamptz(6)
-  scheduledAt      DateTime  @map("scheduled_at") @db.Timestamptz(6)
-  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(6)
-  deletionReason   String?   @map("deletion_reason")
-  adminUserId      String?   @map("admin_user_id")
-  status           String    @default("pending") @map("status")
-  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id             String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  userId         String    @map("user_id")
+  email          String    @map("email")
+  name           String?   @map("name")
+  requestedAt    DateTime  @map("requested_at") @db.Timestamptz(6)
+  scheduledAt    DateTime  @map("scheduled_at") @db.Timestamptz(6)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletionReason String?   @map("deletion_reason")
+  adminUserId    String?   @map("admin_user_id")
+  status         String    @default("pending") @map("status") @db.VarChar(20)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@index([userId], map: "idx_user_deletion_logs_user_id")
   @@index([status], map: "idx_user_deletion_logs_status")
   @@index([scheduledAt], map: "idx_user_deletion_logs_scheduled_at")
-  @@index([createdAt], map: "idx_user_deletion_logs_created_at")
+  @@index([createdAt(sort: Desc)], map: "idx_user_deletion_logs_created_at")
   @@map("user_deletion_logs")
+}
+
+model Tag {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String           @db.VarChar(50)
+  color           String           @default("#3B82F6") @db.VarChar(7)
+  description     String?
+  accountBookId   String           @map("account_book_id")
+  createdBy       String           @map("created_by")
+  isActive        Boolean          @default(true) @map("is_active")
+  usageCount      Int              @default(0) @map("usage_count")
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  accountBook     AccountBook      @relation(fields: [accountBookId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_tags_account_book")
+  creator         User             @relation(fields: [createdBy], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_tags_created_by")
+  transactionTags TransactionTag[]
+
+  @@unique([name, accountBookId], map: "tags_name_account_book_unique")
+  @@index([accountBookId], map: "idx_tags_account_book_id")
+  @@index([name], map: "idx_tags_name")
+  @@index([createdBy], map: "idx_tags_created_by")
+  @@index([usageCount(sort: Desc)], map: "idx_tags_usage_count")
+  @@index([createdAt(sort: Desc)], map: "idx_tags_created_at")
+  @@index([accountBookId, isActive], map: "idx_tags_account_book_active")
+  @@map("tags")
+}
+
+model TransactionTag {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  transactionId String      @map("transaction_id")
+  tagId         String      @map("tag_id") @db.Uuid
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  tag           Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_transaction_tags_tag")
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_transaction_tags_transaction")
+
+  @@unique([transactionId, tagId], map: "transaction_tags_unique")
+  @@index([transactionId], map: "idx_transaction_tags_transaction_id")
+  @@index([tagId], map: "idx_transaction_tags_tag_id")
+  @@index([createdAt(sort: Desc)], map: "idx_transaction_tags_created_at")
+  @@index([tagId, transactionId], map: "idx_transaction_tags_tag_transaction")
+  @@map("transaction_tags")
+}
+
+model FileStorage {
+  id           String                  @id @default(uuid())
+  filename     String                  @db.VarChar(255)
+  originalName String                  @map("original_name") @db.VarChar(255)
+  mimeType     String                  @map("mime_type") @db.VarChar(100)
+  size         Int
+  bucket       String                  @db.VarChar(100)
+  key          String                  @db.VarChar(500)
+  url          String?                 @db.VarChar(1000)
+  storageType  FileStorageType         @default(S3) @map("storage_type")
+  status       FileStatus              @default(ACTIVE)
+  uploadedBy   String                  @map("uploaded_by")
+  createdAt    DateTime                @default(now()) @map("created_at")
+  updatedAt    DateTime                @default(now()) @updatedAt @map("updated_at")
+  expiresAt    DateTime?               @map("expires_at")
+  metadata     Json?
+  uploader     User                    @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+  attachments  TransactionAttachment[]
+
+  @@unique([bucket, key], map: "file_storage_bucket_key_unique")
+  @@index([uploadedBy], map: "idx_file_storage_uploaded_by")
+  @@index([bucket], map: "idx_file_storage_bucket")
+  @@index([storageType], map: "idx_file_storage_type")
+  @@index([status], map: "idx_file_storage_status")
+  @@index([createdAt(sort: Desc)], map: "idx_file_storage_created_at")
+  @@index([expiresAt], map: "idx_file_storage_expires_at")
+  @@map("file_storage")
+}
+
+model TransactionAttachment {
+  id             String         @id @default(uuid())
+  transactionId  String         @map("transaction_id")
+  fileId         String         @map("file_id")
+  attachmentType AttachmentType @default(RECEIPT) @map("attachment_type")
+  description    String?
+  createdAt      DateTime       @default(now()) @map("created_at")
+  file           FileStorage    @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  transaction    Transaction    @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@unique([transactionId, fileId], map: "transaction_attachments_unique")
+  @@index([transactionId], map: "idx_transaction_attachments_transaction_id")
+  @@index([fileId], map: "idx_transaction_attachments_file_id")
+  @@index([attachmentType], map: "idx_transaction_attachments_type")
+  @@index([createdAt(sort: Desc)], map: "idx_transaction_attachments_created_at")
+  @@map("transaction_attachments")
+}
+
+model CompressionStats {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String    @map("user_id") @db.VarChar(255)
+  strategy         String    @db.VarChar(50)
+  originalSize     BigInt    @map("original_size")
+  compressedSize   BigInt    @map("compressed_size")
+  compressionRatio Decimal   @map("compression_ratio") @db.Decimal(5, 2)
+  originalFormat   String    @map("original_format") @db.VarChar(20)
+  compressedFormat String    @map("compressed_format") @db.VarChar(20)
+  processingTime   Int       @default(0) @map("processing_time")
+  createdAt        DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([userId], map: "idx_compression_stats_user_id")
+  @@index([strategy], map: "idx_compression_stats_strategy")
+  @@index([createdAt], map: "idx_compression_stats_created_at")
+  @@index([userId, createdAt], map: "idx_compression_stats_user_created")
+  @@map("compression_stats")
+}
+
+model UserAccountingPoints {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String    @unique @map("user_id")
+  giftBalance       Int       @default(0) @map("gift_balance")
+  memberBalance     Int       @default(0) @map("member_balance")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  lastDailyGiftDate DateTime? @map("last_daily_gift_date") @db.Date
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([lastDailyGiftDate], map: "idx_user_accounting_points_last_daily_gift_date")
+  @@index([userId, lastDailyGiftDate], map: "idx_user_accounting_points_user_gift_date")
+  @@map("user_accounting_points")
+}
+
+model DailyGiftRecords {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id")
+  giftDate    DateTime @map("gift_date") @db.Date
+  pointsGiven Int      @default(0) @map("points_given")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([userId, giftDate])
+  @@index([userId], map: "idx_daily_gift_records_user_id")
+  @@index([giftDate], map: "idx_daily_gift_records_date")
+  @@index([userId, giftDate], map: "idx_daily_gift_records_user_date")
+  @@map("daily_gift_records")
+}
+
+model AccountingPointsTransactions {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id")
+  type         String   @db.VarChar(20)
+  operation    String   @db.VarChar(10)
+  points       Int
+  balanceType  String   @map("balance_type") @db.VarChar(10)
+  balanceAfter Int      @map("balance_after")
+  description  String?
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([userId], map: "idx_accounting_points_transactions_user_id")
+  @@index([createdAt], map: "idx_accounting_points_transactions_created_at")
+  @@map("accounting_points_transactions")
+}
+
+model UserCheckins {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String   @map("user_id")
+  checkinDate   DateTime @map("checkin_date") @db.Date
+  pointsAwarded Int      @default(5) @map("points_awarded")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([userId, checkinDate])
+  @@index([userId], map: "idx_user_checkins_user_id")
+  @@index([checkinDate], map: "idx_user_checkins_date")
+  @@map("user_checkins")
+}
+
+model UserMembership {
+  id               String              @id @default(uuid())
+  userId           String              @unique @map("user_id")
+  memberType       MemberType          @default(REGULAR) @map("member_type")
+  startDate        DateTime            @map("start_date")
+  endDate          DateTime?           @map("end_date")
+  isActive         Boolean             @default(true) @map("is_active")
+  autoRenewal      Boolean             @default(false) @map("auto_renewal")
+  activationMethod String              @default("registration") @map("activation_method")
+  monthlyPoints    Int                 @default(0) @map("monthly_points")
+  usedPoints       Int                 @default(0) @map("used_points")
+  lastPointsReset  DateTime?           @map("last_points_reset") @db.Date
+  selectedBadge    String?             @map("selected_badge")
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+  renewalHistory   MembershipRenewal[]
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_user_membership_user_id")
+  @@index([memberType], map: "idx_user_membership_type")
+  @@index([endDate], map: "idx_user_membership_end_date")
+  @@index([isActive], map: "idx_user_membership_active")
+  @@index([autoRenewal, endDate], map: "idx_user_membership_auto_renewal")
+  @@map("user_memberships")
+}
+
+model MembershipRenewal {
+  id            String         @id @default(uuid())
+  membershipId  String         @map("membership_id")
+  renewalType   RenewalType    @map("renewal_type")
+  startDate     DateTime       @map("start_date")
+  endDate       DateTime       @map("end_date")
+  amount        Decimal?       @db.Decimal(10, 2)
+  paymentMethod String?        @map("payment_method")
+  status        RenewalStatus  @default(COMPLETED)
+  failureReason String?        @map("failure_reason")
+  retryCount    Int            @default(0) @map("retry_count")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  membership    UserMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  @@index([membershipId], map: "idx_membership_renewal_membership_id")
+  @@index([status], map: "idx_membership_renewal_status")
+  @@index([renewalType], map: "idx_membership_renewal_type")
+  @@index([createdAt(sort: Desc)], map: "idx_membership_renewal_created_at")
+  @@map("membership_renewals")
+}
+
+model Badge {
+  id          String      @id @default(uuid())
+  name        String      @unique(map: "badges_name_unique") @db.VarChar(100)
+  description String?
+  icon        String      @db.VarChar(255)
+  color       String      @default("#FFD700") @db.VarChar(7)
+  rarity      BadgeRarity @default(COMMON)
+  isActive    Boolean     @default(true) @map("is_active")
+  category    String      @default("general") @db.VarChar(50)
+  sortOrder   Int         @default(0) @map("sort_order")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  userBadges  UserBadge[]
+
+  @@index([category], map: "idx_badges_category")
+  @@index([rarity], map: "idx_badges_rarity")
+  @@index([isActive], map: "idx_badges_active")
+  @@index([sortOrder], map: "idx_badges_sort_order")
+  @@map("badges")
+}
+
+model UserBadge {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  badgeId     String   @map("badge_id")
+  awardedAt   DateTime @default(now()) @map("awarded_at")
+  awardReason String?  @map("award_reason")
+  isDisplayed Boolean  @default(false) @map("is_displayed")
+  createdAt   DateTime @default(now()) @map("created_at")
+  badge       Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  membership  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId], map: "user_badges_user_badge_unique")
+  @@index([userId], map: "idx_user_badges_user_id")
+  @@index([badgeId], map: "idx_user_badges_badge_id")
+  @@index([awardedAt(sort: Desc)], map: "idx_user_badges_awarded_at")
+  @@index([isDisplayed], map: "idx_user_badges_displayed")
+  @@map("user_badges")
+}
+
+model MembershipNotification {
+  id               String           @id @default(uuid())
+  userId           String           @map("user_id")
+  notificationType NotificationType @map("notification_type")
+  title            String           @db.VarChar(200)
+  content          String
+  isRead           Boolean          @default(false) @map("is_read")
+  scheduledAt      DateTime?        @map("scheduled_at")
+  sentAt           DateTime?        @map("sent_at")
+  emailSent        Boolean          @default(false) @map("email_sent")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  @@index([userId], map: "idx_membership_notifications_user_id")
+  @@index([notificationType], map: "idx_membership_notifications_type")
+  @@index([isRead], map: "idx_membership_notifications_read")
+  @@index([scheduledAt], map: "idx_membership_notifications_scheduled")
+  @@index([createdAt(sort: Desc)], map: "idx_membership_notifications_created_at")
+  @@map("membership_notifications")
+}
+
+model payment_configs {
+  id          Int      @id @default(autoincrement())
+  provider    String   @unique @db.VarChar(50)
+  platform    String   @default("all") @db.VarChar(50)
+  is_enabled  Boolean  @default(false)
+  is_sandbox  Boolean  @default(true)
+  config_data Json     @default("{}")
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+
+  @@index([is_enabled], map: "idx_payment_configs_enabled")
+  @@index([provider], map: "idx_payment_configs_provider")
+}
+
+model payment_history {
+  id                      Int                    @id @default(autoincrement())
+  user_id                 String
+  order_id                Int?
+  subscription_id         Int?
+  amount                  Decimal                @db.Decimal(10, 2)
+  currency                String                 @default("CNY") @db.VarChar(3)
+  payment_method          PaymentMethod
+  payment_provider        String?                @db.VarChar(50)
+  transaction_type        PaymentTransactionType @default(payment)
+  status                  String                 @db.VarChar(50)
+  external_transaction_id String?                @db.VarChar(255)
+  processed_at            DateTime?
+  created_at              DateTime               @default(now())
+  description             String?
+  failure_reason          String?
+  metadata                Json?                  @default("{}")
+  payment_orders          payment_orders?        @relation(fields: [order_id], references: [id])
+  subscriptions           subscriptions?         @relation(fields: [subscription_id], references: [id])
+  users                   User                   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([created_at(sort: Desc)], map: "idx_payment_history_created_at")
+  @@index([order_id], map: "idx_payment_history_order_id")
+  @@index([status], map: "idx_payment_history_status")
+  @@index([subscription_id], map: "idx_payment_history_subscription_id")
+  @@index([transaction_type], map: "idx_payment_history_transaction_type")
+  @@index([user_id], map: "idx_payment_history_user_id")
+}
+
+model payment_orders {
+  id                      Int               @id @default(autoincrement())
+  order_no                String            @unique @db.VarChar(64)
+  user_id                 String
+  membership_level        String            @db.VarChar(50)
+  amount                  Decimal           @db.Decimal(10, 2)
+  currency                String            @default("CNY") @db.VarChar(3)
+  platform                String            @default("web") @db.VarChar(50)
+  payment_method          PaymentMethod
+  status                  PaymentStatus     @default(pending)
+  external_order_id       String?           @db.VarChar(255)
+  external_transaction_id String?           @db.VarChar(255)
+  paid_at                 DateTime?
+  expires_at              DateTime?
+  created_at              DateTime          @default(now())
+  updated_at              DateTime          @default(now())
+  metadata                Json?             @default("{}")
+  payment_params          Json?             @default("{}")
+  payment_history         payment_history[]
+  users                   User              @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  refunds                 refunds[]
+
+  @@index([created_at(sort: Desc)], map: "idx_payment_orders_created_at")
+  @@index([expires_at], map: "idx_payment_orders_expires_at")
+  @@index([external_order_id], map: "idx_payment_orders_external_order_id")
+  @@index([payment_method], map: "idx_payment_orders_payment_method")
+  @@index([status], map: "idx_payment_orders_status")
+  @@index([user_id], map: "idx_payment_orders_user_id")
+}
+
+model refunds {
+  id                 Int            @id @default(autoincrement())
+  order_id           Int
+  refund_no          String         @unique @db.VarChar(64)
+  amount             Decimal        @db.Decimal(10, 2)
+  currency           String         @default("CNY") @db.VarChar(3)
+  reason             String?
+  status             String         @default("pending") @db.VarChar(50)
+  external_refund_id String?        @db.VarChar(255)
+  processed_at       DateTime?
+  created_at         DateTime       @default(now())
+  updated_at         DateTime       @default(now())
+  metadata           Json?          @default("{}")
+  payment_orders     payment_orders @relation(fields: [order_id], references: [id], onDelete: Cascade)
+
+  @@index([created_at(sort: Desc)], map: "idx_refunds_created_at")
+  @@index([external_refund_id], map: "idx_refunds_external_refund_id")
+  @@index([order_id], map: "idx_refunds_order_id")
+  @@index([status], map: "idx_refunds_status")
+}
+
+model subscriptions {
+  id                       Int                @id @default(autoincrement())
+  user_id                  String
+  external_subscription_id String             @db.VarChar(255)
+  platform                 String             @db.VarChar(50)
+  payment_provider         String             @db.VarChar(50)
+  membership_level         String             @db.VarChar(50)
+  amount                   Decimal            @db.Decimal(10, 2)
+  currency                 String             @default("CNY") @db.VarChar(3)
+  status                   SubscriptionStatus @default(active)
+  billing_period           String             @db.VarChar(20)
+  current_period_start     DateTime
+  current_period_end       DateTime
+  next_billing_date        DateTime?
+  cancel_at                DateTime?
+  cancelled_at             DateTime?
+  cancellation_reason      String?
+  trial_start              DateTime?
+  trial_end                DateTime?
+  created_at               DateTime           @default(now())
+  updated_at               DateTime           @default(now())
+  metadata                 Json?              @default("{}")
+  payment_history          payment_history[]
+  users                    User               @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([current_period_start, current_period_end], map: "idx_subscriptions_current_period")
+  @@index([external_subscription_id], map: "idx_subscriptions_external_id")
+  @@index([next_billing_date], map: "idx_subscriptions_next_billing")
+  @@index([platform], map: "idx_subscriptions_platform")
+  @@index([status], map: "idx_subscriptions_status")
+  @@index([user_id], map: "idx_subscriptions_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model system_performance_history {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  metric_type     String   @db.VarChar(20)
+  metric_value    Decimal  @db.Decimal(5, 2)
+  additional_data Json?
+  recorded_at     DateTime @default(now()) @db.Timestamptz(6)
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([metric_type], map: "idx_system_performance_metric_type")
+  @@index([metric_type, recorded_at(sort: Desc)], map: "idx_system_performance_recent")
+  @@index([recorded_at(sort: Desc)], map: "idx_system_performance_recorded_at")
+  @@index([metric_type, recorded_at(sort: Desc)], map: "idx_system_performance_type_time")
+  @@index([metric_type, recorded_at(sort: Desc), metric_value], map: "idx_system_performance_type_time_value")
+}
+
+model webhook_logs {
+  id            Int       @id @default(autoincrement())
+  provider      String    @db.VarChar(50)
+  event_type    String    @db.VarChar(100)
+  event_id      String?   @db.VarChar(255)
+  payload       Json
+  signature     String?
+  processed     Boolean   @default(false)
+  processed_at  DateTime?
+  error_message String?
+  retry_count   Int       @default(0)
+  created_at    DateTime  @default(now())
+
+  @@index([created_at(sort: Desc)], map: "idx_webhook_logs_created_at")
+  @@index([event_id], map: "idx_webhook_logs_event_id")
+  @@index([event_type], map: "idx_webhook_logs_event_type")
+  @@index([processed], map: "idx_webhook_logs_processed")
+  @@index([provider], map: "idx_webhook_logs_provider")
 }
 
 enum TransactionType {
@@ -743,331 +1196,75 @@ enum AttachmentType {
   OTHER
 }
 
-model Tag {
-  id             String           @id @default(uuid())
-  name           String           @db.VarChar(50)
-  color          String           @default("#3B82F6") @db.VarChar(7)
-  description    String?
-  accountBookId  String           @map("account_book_id")
-  createdBy      String           @map("created_by")
-  isActive       Boolean          @default(true) @map("is_active")
-  usageCount     Int              @default(0) @map("usage_count")
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @updatedAt @map("updated_at")
-  accountBook    AccountBook      @relation(fields: [accountBookId], references: [id], onDelete: Cascade)
-  creator        User             @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-  transactionTags TransactionTag[]
-
-  @@unique([name, accountBookId], map: "tags_name_account_book_unique")
-  @@index([accountBookId], map: "idx_tags_account_book_id")
-  @@index([name], map: "idx_tags_name")
-  @@index([createdBy], map: "idx_tags_created_by")
-  @@index([usageCount(sort: Desc)], map: "idx_tags_usage_count")
-  @@index([createdAt(sort: Desc)], map: "idx_tags_created_at")
-  @@index([accountBookId, isActive], map: "idx_tags_account_book_active")
-  @@map("tags")
-}
-
-model TransactionTag {
-  id            String      @id @default(uuid())
-  transactionId String      @map("transaction_id")
-  tagId         String      @map("tag_id") @db.Uuid
-  createdAt     DateTime    @default(now()) @map("created_at")
-  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
-  tag           Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@unique([transactionId, tagId], map: "transaction_tags_unique")
-  @@index([transactionId], map: "idx_transaction_tags_transaction_id")
-  @@index([tagId], map: "idx_transaction_tags_tag_id")
-  @@index([createdAt(sort: Desc)], map: "idx_transaction_tags_created_at")
-  @@index([tagId, transactionId], map: "idx_transaction_tags_tag_transaction")
-  @@map("transaction_tags")
-}
-
-model FileStorage {
-  id            String            @id @default(uuid())
-  filename      String            @db.VarChar(255)
-  originalName  String            @map("original_name") @db.VarChar(255)
-  mimeType      String            @map("mime_type") @db.VarChar(100)
-  size          Int
-  bucket        String            @db.VarChar(100)
-  key           String            @db.VarChar(500)
-  url           String?           @db.VarChar(1000)
-  storageType   FileStorageType   @default(S3) @map("storage_type")
-  status        FileStatus        @default(ACTIVE)
-  uploadedBy    String            @map("uploaded_by")
-  createdAt     DateTime          @default(now()) @map("created_at")
-  updatedAt     DateTime          @updatedAt @map("updated_at")
-  expiresAt     DateTime?         @map("expires_at")
-  metadata      Json?
-  uploader      User              @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
-  attachments   TransactionAttachment[]
-
-  @@unique([bucket, key], map: "file_storage_bucket_key_unique")
-  @@index([uploadedBy], map: "idx_file_storage_uploaded_by")
-  @@index([bucket], map: "idx_file_storage_bucket")
-  @@index([storageType], map: "idx_file_storage_type")
-  @@index([status], map: "idx_file_storage_status")
-  @@index([createdAt(sort: Desc)], map: "idx_file_storage_created_at")
-  @@index([expiresAt], map: "idx_file_storage_expires_at")
-  @@map("file_storage")
-}
-
-model TransactionAttachment {
-  id            String      @id @default(uuid())
-  transactionId String      @map("transaction_id")
-  fileId        String      @map("file_id")
-  attachmentType AttachmentType @default(RECEIPT) @map("attachment_type")
-  description   String?
-  createdAt     DateTime    @default(now()) @map("created_at")
-  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
-  file          FileStorage @relation(fields: [fileId], references: [id], onDelete: Cascade)
-
-  @@unique([transactionId, fileId], map: "transaction_attachments_unique")
-  @@index([transactionId], map: "idx_transaction_attachments_transaction_id")
-  @@index([fileId], map: "idx_transaction_attachments_file_id")
-  @@index([attachmentType], map: "idx_transaction_attachments_type")
-  @@index([createdAt(sort: Desc)], map: "idx_transaction_attachments_created_at")
-  @@map("transaction_attachments")
-}
-
-// 图片压缩统计模型
-model CompressionStats {
-  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId            String   @map("user_id")
-  strategy          String   // 压缩策略: avatar, attachment, multimodal, general
-  originalSize      BigInt   @map("original_size")
-  compressedSize    BigInt   @map("compressed_size")
-  compressionRatio  Decimal  @map("compression_ratio") @db.Decimal(5, 2)
-  originalFormat    String   @map("original_format")
-  compressedFormat  String   @map("compressed_format")
-  processingTime    Int      @default(0) @map("processing_time")
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
-
-  // 关联用户
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId], map: "idx_compression_stats_user_id")
-  @@index([strategy], map: "idx_compression_stats_strategy")
-  @@index([createdAt], map: "idx_compression_stats_created_at")
-  @@index([userId, createdAt], map: "idx_compression_stats_user_created")
-  @@map("compression_stats")
-}
-
-// 记账点系统相关模型
-model UserAccountingPoints {
-  id               String    @id @default(uuid())
-  userId           String    @unique @map("user_id")
-  giftBalance      Int       @default(0) @map("gift_balance")
-  memberBalance    Int       @default(0) @map("member_balance")
-  lastDailyGiftDate DateTime? @map("last_daily_gift_date") @db.Date
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId], map: "idx_user_accounting_points_user_id")
-  @@index([lastDailyGiftDate], map: "idx_user_accounting_points_last_daily_gift_date")
-  @@index([userId, lastDailyGiftDate], map: "idx_user_accounting_points_user_gift_date")
-  @@map("user_accounting_points")
-}
-
-model DailyGiftRecords {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
-  giftDate    DateTime @map("gift_date") @db.Date
-  pointsGiven Int      @default(0) @map("points_given")
-  createdAt   DateTime @default(now()) @map("created_at")
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, giftDate], map: "daily_gift_records_user_id_gift_date_key")
-  @@index([userId], map: "idx_daily_gift_records_user_id")
-  @@index([giftDate], map: "idx_daily_gift_records_date")
-  @@index([userId, giftDate], map: "idx_daily_gift_records_user_date")
-  @@map("daily_gift_records")
-}
-
-model AccountingPointsTransactions {
-  id           String   @id @default(uuid())
-  userId       String   @map("user_id")
-  type         String   @db.VarChar(20) // 'text', 'voice', 'image', 'gift', 'member', 'daily', 'checkin', 'admin'
-  operation    String   @db.VarChar(10) // 'add', 'deduct'
-  points       Int
-  balanceType  String   @db.VarChar(10) @map("balance_type") // 'gift', 'member'
-  balanceAfter Int      @map("balance_after")
-  description  String?
-  createdAt    DateTime @default(now()) @map("created_at")
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId], map: "idx_accounting_points_transactions_user_id")
-  @@index([createdAt(sort: Desc)], map: "idx_accounting_points_transactions_created_at")
-  @@index([type], map: "idx_accounting_points_transactions_type")
-  @@map("accounting_points_transactions")
-}
-
-model UserCheckins {
-  id            String   @id @default(uuid())
-  userId        String   @map("user_id")
-  checkinDate   DateTime @map("checkin_date") @db.Date
-  pointsAwarded Int      @default(5) @map("points_awarded")
-  createdAt     DateTime @default(now()) @map("created_at")
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, checkinDate], map: "user_checkins_user_date_unique")
-  @@index([userId], map: "idx_user_checkins_user_id")
-  @@index([checkinDate], map: "idx_user_checkins_date")
-  @@map("user_checkins")
-}
-
-// 会员系统相关模型
-model UserMembership {
-  id                String            @id @default(uuid())
-  userId            String            @unique @map("user_id")
-  memberType        MemberType        @default(REGULAR) @map("member_type")
-  startDate         DateTime          @map("start_date")
-  endDate           DateTime?         @map("end_date")
-  isActive          Boolean           @default(true) @map("is_active")
-  autoRenewal       Boolean           @default(false) @map("auto_renewal")
-  activationMethod  String            @default("registration") @map("activation_method") // 'registration', 'payment', 'admin', 'upgrade'
-  monthlyPoints     Int               @default(0) @map("monthly_points") // 每月会员点数
-  usedPoints        Int               @default(0) @map("used_points") // 当月已使用点数
-  lastPointsReset   DateTime?         @map("last_points_reset") @db.Date // 上次重置点数日期
-  selectedBadge     String?           @map("selected_badge") // 当前选择的徽章ID
-  createdAt         DateTime          @default(now()) @map("created_at")
-  updatedAt         DateTime          @updatedAt @map("updated_at")
-  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  renewalHistory    MembershipRenewal[]
-  badges            UserBadge[]
-
-  @@index([userId], map: "idx_user_membership_user_id")
-  @@index([memberType], map: "idx_user_membership_type")
-  @@index([endDate], map: "idx_user_membership_end_date")
-  @@index([isActive], map: "idx_user_membership_active")
-  @@index([autoRenewal, endDate], map: "idx_user_membership_auto_renewal")
-  @@map("user_memberships")
-}
-
-model MembershipRenewal {
-  id           String         @id @default(uuid())
-  membershipId String         @map("membership_id")
-  renewalType  RenewalType    @map("renewal_type")
-  startDate    DateTime       @map("start_date")
-  endDate      DateTime       @map("end_date")
-  amount       Decimal?       @db.Decimal(10, 2)
-  paymentMethod String?       @map("payment_method")
-  status       RenewalStatus  @default(COMPLETED)
-  failureReason String?       @map("failure_reason")
-  retryCount   Int            @default(0) @map("retry_count")
-  createdAt    DateTime       @default(now()) @map("created_at")
-  updatedAt    DateTime       @updatedAt @map("updated_at")
-  membership   UserMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
-
-  @@index([membershipId], map: "idx_membership_renewal_membership_id")
-  @@index([status], map: "idx_membership_renewal_status")
-  @@index([renewalType], map: "idx_membership_renewal_type")
-  @@index([createdAt(sort: Desc)], map: "idx_membership_renewal_created_at")
-  @@map("membership_renewals")
-}
-
-model Badge {
-  id          String      @id @default(uuid())
-  name        String      @db.VarChar(100)
-  description String?
-  icon        String      @db.VarChar(255) // 徽章图标URL或路径
-  color       String      @default("#FFD700") @db.VarChar(7) // 徽章颜色
-  rarity      BadgeRarity @default(COMMON) // 徽章稀有度
-  isActive    Boolean     @default(true) @map("is_active")
-  category    String      @default("general") @db.VarChar(50) // 徽章分类
-  sortOrder   Int         @default(0) @map("sort_order")
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
-  userBadges  UserBadge[]
-
-  @@unique([name], map: "badges_name_unique")
-  @@index([category], map: "idx_badges_category")
-  @@index([rarity], map: "idx_badges_rarity")
-  @@index([isActive], map: "idx_badges_active")
-  @@index([sortOrder], map: "idx_badges_sort_order")
-  @@map("badges")
-}
-
-model UserBadge {
-  id           String         @id @default(uuid())
-  userId       String         @map("user_id")
-  badgeId      String         @map("badge_id")
-  awardedAt    DateTime       @default(now()) @map("awarded_at")
-  awardReason  String?        @map("award_reason")
-  isDisplayed  Boolean        @default(false) @map("is_displayed") // 是否在头像上显示
-  createdAt    DateTime       @default(now()) @map("created_at")
-  membership   UserMembership @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  badge        Badge          @relation(fields: [badgeId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, badgeId], map: "user_badges_user_badge_unique")
-  @@index([userId], map: "idx_user_badges_user_id")
-  @@index([badgeId], map: "idx_user_badges_badge_id")
-  @@index([awardedAt(sort: Desc)], map: "idx_user_badges_awarded_at")
-  @@index([isDisplayed], map: "idx_user_badges_displayed")
-  @@map("user_badges")
-}
-
-model MembershipNotification {
-  id             String             @id @default(uuid())
-  userId         String             @map("user_id")
-  notificationType NotificationType @map("notification_type")
-  title          String             @db.VarChar(200)
-  content        String
-  isRead         Boolean            @default(false) @map("is_read")
-  scheduledAt    DateTime?          @map("scheduled_at")
-  sentAt         DateTime?          @map("sent_at")
-  emailSent      Boolean            @default(false) @map("email_sent")
-  createdAt      DateTime           @default(now()) @map("created_at")
-  updatedAt      DateTime           @updatedAt @map("updated_at")
-
-  @@index([userId], map: "idx_membership_notifications_user_id")
-  @@index([notificationType], map: "idx_membership_notifications_type")
-  @@index([isRead], map: "idx_membership_notifications_read")
-  @@index([scheduledAt], map: "idx_membership_notifications_scheduled")
-  @@index([createdAt(sort: Desc)], map: "idx_membership_notifications_created_at")
-  @@map("membership_notifications")
-}
-
-// 会员相关枚举
 enum MemberType {
-  REGULAR     // 普通会员
-  DONOR       // 捐赠会员
-  LIFETIME    // 自部署版本的永久会员
+  REGULAR
+  DONOR
+  LIFETIME
 }
 
 enum RenewalType {
-  MANUAL      // 手动续费
-  AUTO        // 自动续费
-  ADMIN       // 管理员操作
-  UPGRADE     // 升级续费
+  MANUAL
+  AUTO
+  ADMIN
+  UPGRADE
 }
 
 enum RenewalStatus {
-  PENDING     // 待处理
-  PROCESSING  // 处理中
-  COMPLETED   // 已完成
-  FAILED      // 失败
-  REFUNDED    // 已退款
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
 }
 
 enum BadgeRarity {
-  COMMON      // 普通
-  UNCOMMON    // 不常见
-  RARE        // 稀有
-  EPIC        // 史诗
-  LEGENDARY   // 传说
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
 }
 
 enum NotificationType {
-  EXPIRY_REMINDER_7D    // 7天到期提醒
-  EXPIRY_REMINDER_3D    // 3天到期提醒  
-  EXPIRY_REMINDER_1D    // 1天到期提醒
-  RENEWAL_FAILED        // 续费失败
-  MEMBERSHIP_EXPIRED    // 会员已到期
-  MEMBERSHIP_RENEWED    // 会员续费成功
-  BADGE_AWARDED         // 获得新徽章
-  POINTS_RESET          // 点数重置通知
+  EXPIRY_REMINDER_7D
+  EXPIRY_REMINDER_3D
+  EXPIRY_REMINDER_1D
+  RENEWAL_FAILED
+  MEMBERSHIP_EXPIRED
+  MEMBERSHIP_RENEWED
+  BADGE_AWARDED
+  POINTS_RESET
+}
+
+enum PaymentMethod {
+  manual
+  admin
+  alipay
+  wechat
+  apple_iap
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  failed
+  cancelled
+  refunded
+  expired
+}
+
+enum PaymentTransactionType {
+  payment
+  refund
+  chargeback
+  subscription
+  upgrade
+}
+
+enum SubscriptionStatus {
+  active
+  cancelled
+  expired
+  paused
+  past_due
 }
