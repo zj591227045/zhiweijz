@@ -347,45 +347,54 @@ class AccountingPointsService {
     isCheckedIn: boolean;
     pointsAwarded: number;
   }>> {
-    const startDate = new Date();
+    // 使用北京时间计算日期范围
+    const beijingNow = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
+
+    // 计算开始日期（北京时间）
+    const startDate = new Date(beijingNow);
     startDate.setDate(startDate.getDate() - days + 1);
     startDate.setHours(0, 0, 0, 0);
-    
-    const endDate = new Date();
+    // 转换为UTC时间用于数据库查询
+    const startDateUTC = new Date(startDate.getTime() - 8 * 60 * 60 * 1000);
+
+    // 计算结束日期（北京时间）
+    const endDate = new Date(beijingNow);
     endDate.setHours(23, 59, 59, 999);
-    
+    // 转换为UTC时间用于数据库查询
+    const endDateUTC = new Date(endDate.getTime() - 8 * 60 * 60 * 1000);
+
     // 获取用户在指定时间范围内的签到记录
     const checkins = await prisma.userCheckins.findMany({
       where: {
         userId,
         checkinDate: {
-          gte: startDate,
-          lte: endDate
+          gte: startDateUTC,
+          lte: endDateUTC
         }
       },
       orderBy: {
         checkinDate: 'asc'
       }
     });
-    
-    // 生成完整的日期范围历史
+
+    // 生成完整的日期范围历史（使用北京时间）
     const history = [];
     for (let i = 0; i < days; i++) {
-      const date = new Date();
+      const date = new Date(beijingNow);
       date.setDate(date.getDate() - days + 1 + i);
       const dateString = date.toISOString().split('T')[0];
-      
-      const checkinRecord = checkins.find(c => 
+
+      const checkinRecord = checkins.find(c =>
         c.checkinDate.toISOString().split('T')[0] === dateString
       );
-      
+
       history.push({
         date: dateString,
         isCheckedIn: !!checkinRecord,
         pointsAwarded: checkinRecord?.pointsAwarded || 0
       });
     }
-    
+
     return history;
   }
 
@@ -393,14 +402,15 @@ class AccountingPointsService {
    * 获取用户连续签到天数
    */
   static async getUserConsecutiveCheckinDays(userId: string): Promise<number> {
-    const today = new Date();
+    // 使用北京时间
+    const beijingNow = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
     let consecutiveDays = 0;
-    
+
     for (let i = 0; i < 365; i++) { // 最多检查一年
-      const checkDate = new Date(today);
+      const checkDate = new Date(beijingNow);
       checkDate.setDate(checkDate.getDate() - i);
       const dateString = checkDate.toISOString().split('T')[0];
-      
+
       const checkin = await prisma.userCheckins.findUnique({
         where: {
           userId_checkinDate: {
@@ -409,7 +419,7 @@ class AccountingPointsService {
           }
         }
       });
-      
+
       if (checkin) {
         consecutiveDays++;
       } else {
@@ -421,7 +431,7 @@ class AccountingPointsService {
         }
       }
     }
-    
+
     return consecutiveDays;
   }
 
