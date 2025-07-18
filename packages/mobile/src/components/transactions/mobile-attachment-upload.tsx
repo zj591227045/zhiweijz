@@ -20,6 +20,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, MediaType, ImagePickerResponse } from 'react-native-image-picker';
 import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-picker';
 import { apiClient } from '../../lib/api-client';
+import { MobileAttachmentPreview, MobileAttachmentFile } from './mobile-attachment-preview';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -57,12 +58,32 @@ export function MobileAttachmentUpload({
 }: MobileAttachmentUploadProps) {
   const theme = useTheme();
   const [attachments, setAttachments] = useState<MobileAttachment[]>(initialAttachments);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(0);
 
   // 更新附件列表
   const updateAttachments = useCallback((newAttachments: MobileAttachment[]) => {
     setAttachments(newAttachments);
     onChange?.(newAttachments);
   }, [onChange]);
+
+  // 处理附件预览
+  const handlePreviewAttachment = useCallback((index: number) => {
+    setPreviewIndex(index);
+    setPreviewVisible(true);
+  }, []);
+
+  // 转换附件为预览格式
+  const previewFiles: MobileAttachmentFile[] = attachments
+    .filter(attachment => attachment.file)
+    .map(attachment => ({
+      id: attachment.file!.id,
+      filename: attachment.file!.filename,
+      originalName: attachment.file!.originalName,
+      mimeType: attachment.file!.mimeType,
+      size: attachment.file!.size,
+      url: attachment.file!.url,
+    }));
 
   // 上传文件到服务器
   const uploadFile = useCallback(async (fileUri: string, fileName: string, mimeType: string) => {
@@ -447,8 +468,10 @@ export function MobileAttachmentUpload({
                   <TouchableOpacity
                     style={styles.attachmentImage}
                     onPress={() => {
-                      // TODO: 实现全屏预览功能
-                      console.log('预览附件:', attachment.file?.originalName);
+                      const attachmentIndex = attachments.findIndex(a => a.id === attachment.id);
+                      if (attachmentIndex >= 0 && attachment.file) {
+                        handlePreviewAttachment(attachmentIndex);
+                      }
                     }}
                     activeOpacity={0.8}
                   >
@@ -517,6 +540,17 @@ export function MobileAttachmentUpload({
             </View>
           </ScrollView>
         </View>
+      )}
+
+      {/* 附件预览模态框 */}
+      {previewFiles.length > 0 && (
+        <MobileAttachmentPreview
+          files={previewFiles}
+          currentIndex={previewIndex}
+          isVisible={previewVisible}
+          onClose={() => setPreviewVisible(false)}
+          onNavigate={setPreviewIndex}
+        />
       )}
     </View>
   );

@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { FileUpload, FileUploadItem } from '@/components/ui/file-upload';
 import { AuthenticatedImage } from '@/components/ui/authenticated-image';
-import { AttachmentPreview, AttachmentThumbnail, EnhancedAttachmentGrid, EnhancedAttachmentPreview } from './attachment-preview';
+import { AttachmentThumbnail, EnhancedAttachmentGrid, EnhancedAttachmentPreview } from './attachment-preview';
 import { processAvatarUrl } from '@/lib/image-proxy';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';

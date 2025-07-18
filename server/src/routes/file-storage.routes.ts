@@ -60,6 +60,13 @@ router.get('/', (req, res) => fileStorageController.getFiles(req, res));
 router.get('/:fileId', (req, res) => fileStorageController.getFile(req, res));
 
 /**
+ * @route GET /api/file-storage/:fileId/download
+ * @desc 下载文件
+ * @access Private
+ */
+router.get('/:fileId/download', (req, res) => fileStorageController.downloadFile(req, res));
+
+/**
  * @route DELETE /api/file-storage/:fileId
  * @desc 删除文件
  * @access Private

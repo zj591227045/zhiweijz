@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
-import { AttachmentThumbnail, AttachmentPreview } from '@/components/transactions/attachment-preview';
+import { AttachmentThumbnail, EnhancedAttachmentPreview } from '@/components/transactions/attachment-preview';
 // 简单的SVG图标组件
 const ArrowLeft = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,7 +108,9 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
   const [error, setError] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [previewFile, setPreviewFile] = useState<AttachmentFile | null>(null);
+  const [previewFiles, setPreviewFiles] = useState<AttachmentFile[]>([]);
+  const [previewIndex, setPreviewIndex] = useState(0);
+  const [showPreview, setShowPreview] = useState(false);
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -334,7 +336,19 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
                     <div key={attachment.id} className="space-y-2">
                       <AttachmentThumbnail
                         file={attachment.file}
-                        onClick={() => setPreviewFile(attachment.file!)}
+                        onClick={() => {
+                          // 获取所有附件文件
+                          const allFiles = attachments
+                            .map(att => att.file)
+                            .filter(Boolean) as AttachmentFile[];
+
+                          // 找到当前文件的索引
+                          const currentIndex = allFiles.findIndex(file => file.id === attachment.file!.id);
+
+                          setPreviewFiles(allFiles);
+                          setPreviewIndex(Math.max(0, currentIndex));
+                          setShowPreview(true);
+                        }}
                         size="large"
                         className="w-full aspect-square"
                       />
@@ -355,21 +369,71 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
         )}
       </div>
 
-      {/* 附件预览模态框 */}
-      {previewFile && (
-        <AttachmentPreview
-          file={previewFile}
-          isOpen={!!previewFile}
-          onClose={() => setPreviewFile(null)}
-          onDownload={() => {
-            if (previewFile.url) {
+      {/* 简约版附件预览模态框 */}
+      {showPreview && previewFiles.length > 0 && (
+        <EnhancedAttachmentPreview
+          files={previewFiles}
+          currentIndex={previewIndex}
+          isOpen={showPreview}
+          onClose={() => {
+            setShowPreview(false);
+            setPreviewFiles([]);
+            setPreviewIndex(0);
+          }}
+          onNavigate={setPreviewIndex}
+          onDownload={async (file: AttachmentFile) => {
+            try {
+              // 使用fetch下载文件，携带认证信息
+              const token = localStorage.getItem('auth-storage')
+                ? JSON.parse(localStorage.getItem('auth-storage')!)?.state?.token
+                : null;
+
+              if (!token) {
+                throw new Error('未找到认证令牌');
+              }
+
+              const apiBaseUrl = typeof window !== 'undefined' && localStorage.getItem('server-config-storage')
+                ? JSON.parse(localStorage.getItem('server-config-storage')!)?.state?.config?.currentUrl || '/api'
+                : '/api';
+
+              const downloadUrl = `${apiBaseUrl}/file-storage/${file.id}/download`;
+
+              const response = await fetch(downloadUrl, {
+                headers: {
+                  'Authorization': `Bearer ${token}`
+                }
+              });
+
+              if (!response.ok) {
+                throw new Error(`下载失败: ${response.status}`);
+              }
+
+              // 创建blob URL
+              const blob = await response.blob();
+              const url = window.URL.createObjectURL(blob);
+
+              // 创建下载链接
               const link = document.createElement('a');
-              link.href = previewFile.url;
-              link.download = previewFile.originalName;
-              link.target = '_blank';
+              link.href = url;
+              link.download = file.originalName;
               document.body.appendChild(link);
               link.click();
               document.body.removeChild(link);
+
+              // 清理blob URL
+              window.URL.revokeObjectURL(url);
+            } catch (error) {
+              console.error('下载文件失败:', error);
+              // 回退到直接URL下载
+              if (file.url) {
+                const link = document.createElement('a');
+                link.href = file.url;
+                link.download = file.originalName;
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }
             }
           }}
         />

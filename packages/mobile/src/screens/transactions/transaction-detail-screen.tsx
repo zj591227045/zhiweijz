@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Image,
 } from 'react-native';
 import {
   Text,
@@ -21,6 +22,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTransactionStore } from '../../store/transaction-store';
 import { useAuthStore } from '../../store/auth-store';
 import { NavigationProps, TransactionsStackParamList } from '../../navigation/types';
+import { MobileAttachmentPreview, MobileAttachmentFile } from '../../components/transactions/mobile-attachment-preview';
 import dayjs from 'dayjs';
 
 // 交易类型枚举
@@ -56,6 +58,9 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({ navig
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [attachments, setAttachments] = useState<any[]>([]);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(0);
 
   // 检查认证状态
   useEffect(() => {
@@ -69,8 +74,24 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({ navig
   useEffect(() => {
     if (isAuthenticated && transactionId) {
       fetchTransaction(transactionId);
+      fetchAttachments(transactionId);
     }
   }, [isAuthenticated, transactionId]);
+
+  // 获取附件列表
+  const fetchAttachments = async (transactionId: string) => {
+    try {
+      // 这里需要调用API获取附件列表
+      // const response = await apiClient.get(`/transactions/${transactionId}/attachments`);
+      // setAttachments(response.data || []);
+
+      // 临时使用空数组，实际应该从API获取
+      setAttachments([]);
+    } catch (error) {
+      console.error('获取附件失败:', error);
+      setAttachments([]);
+    }
+  };
 
   // 处理编辑交易
   const handleEdit = () => {
@@ -342,6 +363,54 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({ navig
           )}
         </Surface>
 
+        {/* 附件区域 */}
+        {attachments.length > 0 && (
+          <Surface style={styles.attachmentContainer} elevation={1}>
+            <View style={styles.attachmentHeader}>
+              <Icon name="paperclip" size={20} color={theme.colors.primary} />
+              <Text style={[styles.attachmentTitle, { color: theme.colors.onSurface }]}>
+                附件 ({attachments.length})
+              </Text>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.attachmentList}
+            >
+              {attachments.map((attachment, index) => (
+                <TouchableOpacity
+                  key={attachment.id}
+                  style={styles.attachmentItem}
+                  onPress={() => {
+                    setPreviewIndex(index);
+                    setPreviewVisible(true);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  {attachment.file?.mimeType?.startsWith('image/') ? (
+                    <Image
+                      source={{ uri: attachment.file.url }}
+                      style={styles.attachmentImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={[styles.attachmentFileIcon, { backgroundColor: theme.colors.primaryContainer }]}>
+                      <Icon
+                        name={attachment.file?.mimeType?.includes('pdf') ? 'file-pdf-box' : 'file-document'}
+                        size={32}
+                        color={theme.colors.primary}
+                      />
+                    </View>
+                  )}
+                  <Text style={[styles.attachmentName, { color: theme.colors.onSurface }]} numberOfLines={1}>
+                    {attachment.file?.originalName || '未知文件'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </Surface>
+        )}
+
         {/* 操作按钮 */}
         <View style={styles.actionButtons}>
           <Button
@@ -386,6 +455,24 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({ navig
           </Dialog.Actions>
         </Dialog>
       </Portal>
+
+      {/* 附件预览模态框 */}
+      {attachments.length > 0 && (
+        <MobileAttachmentPreview
+          files={attachments.map(attachment => ({
+            id: attachment.file?.id || attachment.id,
+            filename: attachment.file?.filename || '',
+            originalName: attachment.file?.originalName || '未知文件',
+            mimeType: attachment.file?.mimeType || 'application/octet-stream',
+            size: attachment.file?.size || 0,
+            url: attachment.file?.url,
+          }))}
+          currentIndex={previewIndex}
+          isVisible={previewVisible}
+          onClose={() => setPreviewVisible(false)}
+          onNavigate={setPreviewIndex}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -481,6 +568,49 @@ const createStyles = (theme: any) =>
       justifyContent: 'center',
       alignItems: 'center',
       marginRight: 8,
+    },
+    attachmentContainer: {
+      margin: 16,
+      marginTop: 0,
+      padding: 16,
+      borderRadius: 12,
+      backgroundColor: theme.colors.surface,
+    },
+    attachmentHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    attachmentTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      marginLeft: 8,
+    },
+    attachmentList: {
+      paddingHorizontal: 4,
+    },
+    attachmentItem: {
+      width: 80,
+      marginRight: 12,
+      alignItems: 'center',
+    },
+    attachmentImage: {
+      width: 80,
+      height: 80,
+      borderRadius: 8,
+      marginBottom: 4,
+    },
+    attachmentFileIcon: {
+      width: 80,
+      height: 80,
+      borderRadius: 8,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 4,
+    },
+    attachmentName: {
+      fontSize: 12,
+      textAlign: 'center',
     },
     actionButtons: {
       flexDirection: 'row',

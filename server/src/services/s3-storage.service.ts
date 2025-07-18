@@ -242,6 +242,13 @@ export class S3StorageService {
   }
 
   /**
+   * 获取文件流（用于下载）
+   */
+  async getFileStream(bucket: string, key: string): Promise<Readable> {
+    return this.downloadFile(bucket, key);
+  }
+
+  /**
    * 获取文件元数据
    */
   async getFileMetadata(bucket: string, key: string): Promise<any> {

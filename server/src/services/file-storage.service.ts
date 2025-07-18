@@ -335,6 +335,33 @@ export class FileStorageService {
   }
 
   /**
+   * 获取文件信息（用于下载）
+   */
+  async getFile(fileId: string, userId: string): Promise<FileStorageResponseDto | null> {
+    return this.getFileInfo(fileId, userId);
+  }
+
+  /**
+   * 获取文件流（用于下载）
+   */
+  async getFileStream(fileId: string): Promise<NodeJS.ReadableStream> {
+    const fileStorage = await prisma.fileStorage.findUnique({
+      where: { id: fileId },
+    });
+
+    if (!fileStorage) {
+      throw new Error('文件不存在');
+    }
+
+    if (!this.s3Service) {
+      throw new Error('存储服务未初始化');
+    }
+
+    // 从S3获取文件流
+    return this.s3Service.getFileStream(fileStorage.bucket, fileStorage.key);
+  }
+
+  /**
    * 删除文件
    */
   async deleteFile(fileId: string, userId: string): Promise<void> {

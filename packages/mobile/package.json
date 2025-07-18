@@ -28,7 +28,11 @@
     "zod": "^3.22.0",
     "zustand": "^4.4.0",
     "@tanstack/react-query": "^5.0.0",
-    "dayjs": "^1.11.10"
+    "dayjs": "^1.11.10",
+    "react-native-image-picker": "^7.0.0",
+    "react-native-document-picker": "^9.0.0",
+    "react-native-fs": "^2.20.0",
+    "@react-native-camera-roll/camera-roll": "^7.4.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",

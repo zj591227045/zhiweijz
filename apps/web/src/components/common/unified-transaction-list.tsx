@@ -165,15 +165,59 @@ export const UnifiedTransactionList = memo(
     };
 
     // 处理图片预览下载
-    const handlePreviewDownload = (file: any) => {
-      if (file.url) {
+    const handlePreviewDownload = async (file: any) => {
+      try {
+        // 使用fetch下载文件，携带认证信息
+        const token = localStorage.getItem('auth-storage')
+          ? JSON.parse(localStorage.getItem('auth-storage')!)?.state?.token
+          : null;
+
+        if (!token) {
+          throw new Error('未找到认证令牌');
+        }
+
+        const apiBaseUrl = typeof window !== 'undefined' && localStorage.getItem('server-config-storage')
+          ? JSON.parse(localStorage.getItem('server-config-storage')!)?.state?.config?.currentUrl || '/api'
+          : '/api';
+
+        const downloadUrl = `${apiBaseUrl}/file-storage/${file.id}/download`;
+
+        const response = await fetch(downloadUrl, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`下载失败: ${response.status}`);
+        }
+
+        // 创建blob URL
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        // 创建下载链接
         const link = document.createElement('a');
-        link.href = file.url;
+        link.href = url;
         link.download = file.originalName;
-        link.target = '_blank';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+
+        // 清理blob URL
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('下载文件失败:', error);
+        // 回退到直接URL下载
+        if (file.url) {
+          const link = document.createElement('a');
+          link.href = file.url;
+          link.download = file.originalName;
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
       }
     };
 

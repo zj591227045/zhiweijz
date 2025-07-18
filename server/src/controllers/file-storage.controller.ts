@@ -118,6 +118,51 @@ export class FileStorageController {
   }
 
   /**
+   * 下载文件
+   */
+  async downloadFile(req: Request, res: Response): Promise<void> {
+    try {
+      const { fileId } = req.params;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      // 获取文件信息
+      const file = await this.fileStorageService.getFile(fileId, userId);
+      if (!file) {
+        res.status(404).json({ message: '文件不存在' });
+        return;
+      }
+
+      // 检查用户是否有权限访问此文件
+      if (file.uploadedBy !== userId) {
+        res.status(403).json({ message: '无权限访问此文件' });
+        return;
+      }
+
+      // 获取文件流
+      const fileStream = await this.fileStorageService.getFileStream(fileId);
+
+      // 设置响应头
+      res.setHeader('Content-Type', file.mimeType);
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(file.originalName)}"`);
+      res.setHeader('Content-Length', file.size.toString());
+
+      // 流式传输文件
+      fileStream.pipe(res);
+    } catch (error) {
+      console.error('下载文件失败:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '下载文件失败',
+      });
+    }
+  }
+
+  /**
    * 删除文件
    */
   async deleteFile(req: Request, res: Response): Promise<void> {
