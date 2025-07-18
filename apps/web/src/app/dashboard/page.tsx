@@ -23,6 +23,8 @@ import { useDashboardStore } from '@/store/dashboard-store';
 import TransactionEditModal from '@/components/transaction-edit-modal';
 import { useNotificationStore } from '@/store/notification-store';
 import { NotificationModal } from '@/components/notifications/NotificationModal';
+import { useMobileBackHandler } from '@/hooks/use-mobile-back-handler';
+import { PageLevel } from '@/lib/mobile-navigation';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -57,6 +59,28 @@ export default function DashboardPage() {
   
   // 视图切换状态
   const [currentView, setCurrentView] = useState<'dashboard' | 'calendar'>('dashboard');
+
+  // 移动端后退处理
+  const { canExitApp } = useMobileBackHandler({
+    pageId: 'dashboard',
+    pageLevel: PageLevel.DASHBOARD,
+    enableHardwareBack: true,
+    enableBrowserBack: false, // 仪表盘页面不处理浏览器后退
+    onBack: () => {
+      // 仪表盘页面的自定义后退逻辑
+      if (showTransactionEditModal) {
+        setShowTransactionEditModal(false);
+        return true; // 已处理
+      }
+
+      if (currentView === 'calendar') {
+        setCurrentView('dashboard');
+        return true; // 已处理
+      }
+
+      return false; // 未处理，允许退出应用
+    },
+  });
 
   // 认证检查和初始数据加载
   useEffect(() => {

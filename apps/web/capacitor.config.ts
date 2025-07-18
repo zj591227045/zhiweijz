@@ -42,13 +42,16 @@ const config: CapacitorConfig = {
     allowsInlineMediaPlayback: true,
     allowsAirPlayForMediaPlayback: true,
     allowsPictureInPictureMediaPlayback: true,
-    allowsBackForwardNavigationGestures: false,
+    allowsBackForwardNavigationGestures: false, // 禁用默认手势，使用自定义处理
     allowsLinkPreview: false,
     enableViewportScale: false,
     allowsUserScaling: false,
     minimumFontSize: 0,
     suppressesIncrementalRendering: false,
-    disallowOverscroll: true
+    disallowOverscroll: true,
+    // 添加自定义配置以支持后退按钮处理
+    overrideUserAgent: false,
+    appendUserAgent: 'ZhiWeiJZ-Mobile-App'
   },
   android: {
     path: '../android',
@@ -79,7 +82,10 @@ const config: CapacitorConfig = {
     allowsAirPlayForMediaPlayback: true,
     allowsPictureInPictureMediaPlayback: true,
     ignoresViewportScaleLimits: false,
-    allowsBackForwardNavigationGestures: false
+    allowsBackForwardNavigationGestures: false, // 禁用iOS默认手势
+    // 添加iOS特定配置
+    preferredContentMode: 'mobile',
+    scrollEnabled: true
   }
 };
 

@@ -21,6 +21,7 @@ import { tagApi } from '@/lib/api/tag-api';
 import { TagResponseDto } from '@/lib/api/types/tag.types';
 import { TransactionAttachmentUpload, TransactionAttachment, TransactionAttachmentUploadRef } from './transactions/transaction-attachment-upload';
 import { apiClient } from '@/lib/api-client';
+import { useModalBackHandler } from '@/hooks/use-mobile-back-handler';
 
 interface TransactionEditModalProps {
   transactionId: string | null;
@@ -467,6 +468,9 @@ export default function TransactionEditModal({
 
   // 附件相关状态
   const [attachments, setAttachments] = useState<TransactionAttachment[]>([]);
+
+  // 移动端后退处理
+  const { handleBack } = useModalBackHandler('transaction-edit-modal', onClose);
 
   // 虚拟键盘相关状态
   const [showNumericKeyboard, setShowNumericKeyboard] = useState(false);

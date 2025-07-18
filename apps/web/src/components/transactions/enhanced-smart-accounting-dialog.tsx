@@ -48,6 +48,7 @@ import {
   ArrowPathIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import { useModalBackHandler } from '@/hooks/use-mobile-back-handler';
 import '@/styles/smart-accounting-dialog.css';
 
 interface EnhancedSmartAccountingDialogProps {
@@ -124,6 +125,9 @@ export default function EnhancedSmartAccountingDialog({
   const [isAnalyzing, setIsAnalyzing] = useState(false); // 新增：独立的分析状态
   const isAnalyzingRef = useRef(false); // 新增：用于立即检查的ref
   const isRecordingRef = useRef(false); // 添加录音状态的ref
+
+  // 移动端后退处理
+  const { handleBack } = useModalBackHandler('smart-accounting-dialog', onClose);
 
   // 更新动画时间用于声波效果
   useEffect(() => {

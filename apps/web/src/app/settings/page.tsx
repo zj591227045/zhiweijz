@@ -12,6 +12,8 @@ import { AvatarDisplay } from '@/components/ui/avatar-display';
 import { userService } from '@/lib/api/user-service';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
 import { VersionUpdate } from '@/components/settings/VersionUpdate';
+import { useMobileBackHandler } from '@/hooks/use-mobile-back-handler';
+import { PageLevel } from '@/lib/mobile-navigation';
 import './settings.css';
 
 export default function SettingsPage() {
@@ -23,6 +25,19 @@ export default function SettingsPage() {
   const { config } = useSystemConfig();
   const [currentLanguage, setCurrentLanguage] = useState('简体中文');
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+
+  // 移动端后退处理
+  const { goBack } = useMobileBackHandler({
+    pageId: 'settings',
+    pageLevel: PageLevel.FEATURE,
+    enableHardwareBack: true,
+    enableBrowserBack: true,
+    onBack: () => {
+      // 设置页面后退到仪表盘
+      router.push('/dashboard');
+      return true; // 已处理
+    },
+  });
 
   // 获取最新的用户信息
   useEffect(() => {

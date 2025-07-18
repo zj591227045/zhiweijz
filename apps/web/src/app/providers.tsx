@@ -12,6 +12,8 @@ import { OnboardingProvider } from '@/components/onboarding/onboarding-provider'
 import { EnhancedVersionProvider } from '@/components/version/EnhancedVersionProvider';
 import { AutoVersionChecker } from '@/components/version/AutoVersionChecker';
 import { initializeAndroidPlatform } from '@/lib/android-platform';
+import { ModalNavigationProvider } from '@/components/navigation/modal-navigation-provider';
+import { MobileNavigationInitializer } from '@/components/navigation/mobile-navigation-initializer';
 
 // 在开发环境下加载调试工具
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
@@ -90,23 +92,27 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
           showIndicator={true}
           showNetworkStatus={true}
         >
-          <AuthInitializer>
-            <TokenMonitorProvider>
-              <RouteGuard>{children}</RouteGuard>
-              <OnboardingProvider />
-              {/* 自动版本检查器 */}
-              <AutoVersionChecker
-                checkOnMount={true}
-                checkOnLogin={true}
-                checkOnFocus={true}
-                checkOnVisibilityChange={true}
-                checkOnNetworkReconnect={true}
-                checkInterval={24 * 60 * 60 * 1000} // 24小时
-                minCheckInterval={5 * 60 * 1000} // 5分钟最小间隔
-                debug={process.env.NODE_ENV === 'development'}
-              />
-            </TokenMonitorProvider>
-          </AuthInitializer>
+          <MobileNavigationInitializer>
+            <ModalNavigationProvider>
+              <AuthInitializer>
+                <TokenMonitorProvider>
+                  <RouteGuard>{children}</RouteGuard>
+                  <OnboardingProvider />
+                  {/* 自动版本检查器 */}
+                  <AutoVersionChecker
+                    checkOnMount={true}
+                    checkOnLogin={true}
+                    checkOnFocus={true}
+                    checkOnVisibilityChange={true}
+                    checkOnNetworkReconnect={true}
+                    checkInterval={24 * 60 * 60 * 1000} // 24小时
+                    minCheckInterval={5 * 60 * 1000} // 5分钟最小间隔
+                    debug={process.env.NODE_ENV === 'development'}
+                  />
+                </TokenMonitorProvider>
+              </AuthInitializer>
+            </ModalNavigationProvider>
+          </MobileNavigationInitializer>
         </EnhancedVersionProvider>
         <Toaster position="top-center" />
       </ThemeProvider>
