@@ -942,7 +942,7 @@ export default function EnhancedSmartAccountingDialog({
       console.log('🖼️ [ImageRecording] 开始调用Capacitor相册...');
       
       // 使用 platformFilePicker 来选择相册图片
-      const result = await platformFilePicker.selectFromGallery({
+      const result = await platformFilePicker.pickFromGallery({
         quality: 0.8,
         maxWidth: 1024,
         maxHeight: 1024,

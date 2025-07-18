@@ -93,7 +93,7 @@ export default function TestIOSPage() {
     addTestResult('🖼️ 开始测试相册选择功能...');
     
     try {
-      const result = await platformFilePicker.selectFromGallery({
+      const result = await platformFilePicker.pickFromGallery({
         quality: 0.8,
         maxWidth: 1024,
         maxHeight: 1024,

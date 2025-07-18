@@ -469,6 +469,14 @@ export class PlatformFilePicker {
   }
 
   /**
+   * 从相册选择 (别名方法，保持API兼容性)
+   * @deprecated 请使用 pickFromGallery 方法
+   */
+  async selectFromGallery(options: PlatformFilePickerOptions = {}): Promise<FilePickerResult | null> {
+    return this.pickFromGallery(options);
+  }
+
+  /**
    * 通用文件选择（让用户选择来源）
    */
   async pickFile(options: PlatformFilePickerOptions = {}): Promise<FilePickerResult | null> {
