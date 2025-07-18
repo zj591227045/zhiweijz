@@ -92,6 +92,7 @@ export function BudgetFilter({
   // 获取当前选中预算的显示名称
   const getSelectedBudgetName = () => {
     if (!selectedBudgetId) return '全部预算';
+    if (selectedBudgetId === 'NO_BUDGET') return '无预算';
 
     const allBudgets = [...personalBudgets, ...generalBudgets];
     const selectedBudget = allBudgets.find(budget => budget.id === selectedBudgetId);
@@ -205,8 +206,12 @@ export function BudgetFilter({
   const handleBudgetChange = useCallback((budgetId: string | null) => {
     // 直接从personalBudgetsResult中获取映射，避免状态更新循环
     const idMapping = personalBudgetsResult.idMapping;
-    
-    if (budgetId && idMapping.has(budgetId)) {
+
+    if (budgetId === 'NO_BUDGET') {
+      // 无预算选项，传递特殊标识
+      console.log('选择无预算选项');
+      onBudgetChange(budgetId);
+    } else if (budgetId && idMapping.has(budgetId)) {
       // 如果是聚合预算，传递实际的预算ID数组
       const actualBudgetIds = idMapping.get(budgetId);
       console.log('选择聚合预算:', budgetId, '实际预算IDs:', actualBudgetIds);

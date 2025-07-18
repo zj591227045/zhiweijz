@@ -24,11 +24,13 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 interface CategoryDistributionProps {
   expenseCategories: CategoryStatistics[];
   incomeCategories: CategoryStatistics[];
+  onTransactionEdit?: (transactionId: string, transactionData?: any) => void;
 }
 
 export function CategoryDistribution({
   expenseCategories,
   incomeCategories,
+  onTransactionEdit,
 }: CategoryDistributionProps) {
   const { categoryChartType, setCategoryChartType, selectedCategoryType, setSelectedCategoryType, dateRange } =
     useStatisticsStore();
@@ -273,6 +275,7 @@ export function CategoryDistribution({
             accountBookId: currentAccountBook?.id,
             transactionType: selectedCategoryType === 'expense' ? 'EXPENSE' : 'INCOME',
           }}
+          onTransactionEdit={onTransactionEdit}
         />
       )}
     </div>

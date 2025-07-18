@@ -10,11 +10,15 @@ enum BudgetPeriod {
   MONTHLY = 'MONTHLY',
   YEARLY = 'YEARLY',
 }
+import { PrismaClient } from '@prisma/client';
 import { TransactionRepository } from '../repositories/transaction.repository';
 import { CategoryRepository } from '../repositories/category.repository';
 import { BudgetRepository } from '../repositories/budget.repository';
 import { FamilyRepository } from '../repositories/family.repository';
 import { toCategoryResponseDto } from '../models/category.model';
+
+// 创建Prisma客户端实例
+const prisma = new PrismaClient();
 
 /**
  * 支出统计响应DTO
@@ -581,11 +585,16 @@ export class StatisticsService {
     // 处理预算ID参数
     let actualBudgetId = budgetId;
     let actualBudgetIds = budgetIds;
-    
+
     // 如果有budgetIds参数，优先使用budgetIds
     if (budgetIds && budgetIds.length > 0) {
       console.log('使用多个预算ID进行查询:', budgetIds);
       actualBudgetId = undefined; // 使用budgetIds时，不使用单个budgetId
+    } else if (budgetId === 'NO_BUDGET') {
+      console.log('检测到无预算筛选，查询budgetId为null的交易');
+      // 无预算筛选，保持budgetId为'NO_BUDGET'传递给交易查询
+      actualBudgetId = 'NO_BUDGET';
+      actualBudgetIds = undefined;
     } else if (budgetId && budgetId.startsWith('aggregated_')) {
       console.log('检测到聚合预算ID，将忽略budgetId参数进行聚合查询');
       // 对于聚合预算，不传递budgetId给交易查询，让它查询所有相关交易
@@ -855,6 +864,69 @@ export class StatisticsService {
         };
       })
       .sort((a, b) => b.amount - a.amount);
+  }
+
+  /**
+   * 检查是否存在无预算交易
+   */
+  async hasUnbudgetedTransactions(
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+    familyId?: string,
+    accountBookId?: string,
+  ): Promise<boolean> {
+    // 验证用户是否为家庭成员
+    if (familyId) {
+      const isMember = await this.isUserFamilyMember(userId, familyId);
+      if (!isMember) {
+        throw new Error('无权访问此家庭数据');
+      }
+    }
+
+    const whereConditions: any = {
+      budgetId: null, // 查找无预算的交易
+      date: {
+        gte: startDate,
+        lte: endDate,
+      },
+      ...(familyId && { familyId }),
+    };
+
+    // 如果指定了账本ID，则查询该账本的交易记录
+    if (accountBookId) {
+      whereConditions.accountBookId = accountBookId;
+
+      // 验证用户是否有权限查看该账本
+      const accountBook = await prisma.accountBook.findFirst({
+        where: {
+          id: accountBookId,
+          OR: [
+            { userId: userId }, // 个人账本
+            {
+              family: {
+                members: {
+                  some: { userId: userId }, // 家庭账本成员
+                },
+              },
+            },
+          ],
+        },
+      });
+
+      if (!accountBook) {
+        throw new Error('无权限查看该账本的交易记录');
+      }
+    } else {
+      // 如果没有指定账本ID，则只查询用户自己的交易记录
+      whereConditions.userId = userId;
+    }
+
+    const count = await prisma.transaction.count({
+      where: whereConditions,
+    });
+
+    return count > 0;
   }
 
   /**

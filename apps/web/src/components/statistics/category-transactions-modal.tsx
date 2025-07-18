@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useRouter } from 'next/navigation';
 import { formatCurrency } from '@/lib/utils';
 import { apiClient } from '@/lib/api-client';
+import { smartNavigate } from '@/lib/navigation';
 import dayjs from 'dayjs';
 import { UnifiedTransactionList, TransactionType } from '../common/unified-transaction-list';
 import '../common/unified-transaction-list.css';
@@ -33,6 +35,7 @@ interface CategoryTransactionsModalProps {
     accountBookId?: string;
     transactionType: 'EXPENSE' | 'INCOME';
   };
+  onTransactionEdit?: (transactionId: string, transactionData?: any) => void;
 }
 
 export function CategoryTransactionsModal({
@@ -41,7 +44,9 @@ export function CategoryTransactionsModal({
   categoryName,
   categoryId,
   filters,
+  onTransactionEdit,
 }: CategoryTransactionsModalProps) {
+  const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [groupedTransactions, setGroupedTransactions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -152,6 +157,18 @@ export function CategoryTransactionsModal({
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   };
 
+  // 处理交易项点击 - 优先使用传入的编辑函数，否则直接导航
+  const handleTransactionClick = (transactionId: string) => {
+    if (onTransactionEdit) {
+      // 找到对应的交易数据
+      const transactionData = transactions.find(t => t.id === transactionId);
+      onTransactionEdit(transactionId, transactionData);
+    } else {
+      // 回退到直接导航
+      smartNavigate(router, `/transactions/edit/${transactionId}`);
+    }
+  };
+
   // 当模态框打开时获取数据
   useEffect(() => {
     if (isOpen) {
@@ -218,6 +235,7 @@ export function CategoryTransactionsModal({
         <div className="modal-content">
           <UnifiedTransactionList
             groupedTransactions={groupedTransactions}
+            onTransactionClick={handleTransactionClick}
             showDateHeaders={true}
             emptyMessage="该分类暂无交易记录"
             isLoading={isLoading}

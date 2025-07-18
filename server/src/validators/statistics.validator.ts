@@ -49,9 +49,16 @@ export function validateDateRangeQuery(query: any) {
     accountBookId: Joi.string().uuid().messages({
       'string.guid': '账本ID必须是有效的UUID',
     }),
-    budgetId: Joi.string().uuid().messages({
-      'string.guid': '预算ID必须是有效的UUID',
-    }),
+    budgetId: Joi.alternatives()
+      .try(
+        Joi.string().uuid(),
+        Joi.string().valid('NO_BUDGET'),
+        Joi.string().pattern(/^aggregated_/)
+      )
+      .messages({
+        'string.guid': '预算ID必须是有效的UUID',
+        'any.only': '预算ID必须是有效的UUID、NO_BUDGET或聚合预算ID',
+      }),
     budgetIds: Joi.alternatives()
       .try(Joi.string().uuid(), Joi.array().items(Joi.string().uuid()))
       .messages({

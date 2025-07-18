@@ -52,11 +52,13 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isClosing, setIsClosing] = useState(false);
+  const [hasUnbudgetedTransactions, setHasUnbudgetedTransactions] = useState(false);
 
   // 获取预算列表
   const fetchBudgets = async () => {
     if (!currentAccountBook?.id || !isAuthenticated) {
       setBudgets([]);
+      setHasUnbudgetedTransactions(false);
       return;
     }
 
@@ -75,19 +77,28 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
         params.endDate = endDate;
       }
 
-      const response = await apiClient.get('/budgets', { params });
+      // 并行获取预算列表和检查无预算交易
+      const [budgetResponse, unbudgetedResponse] = await Promise.all([
+        apiClient.get('/budgets', { params }),
+        apiClient.get('/statistics/check-unbudgeted', { params })
+      ]);
 
-      if (response && Array.isArray(response.data)) {
-        setBudgets(response.data);
-      } else if (Array.isArray(response)) {
-        setBudgets(response);
+      // 处理预算列表响应
+      if (budgetResponse && Array.isArray(budgetResponse.data)) {
+        setBudgets(budgetResponse.data);
+      } else if (Array.isArray(budgetResponse)) {
+        setBudgets(budgetResponse);
       } else {
         setBudgets([]);
       }
+
+      // 处理无预算交易检查响应
+      setHasUnbudgetedTransactions(unbudgetedResponse?.hasUnbudgetedTransactions || false);
     } catch (error: any) {
       console.error('获取预算列表失败:', error);
       setError('获取预算列表失败');
       setBudgets([]);
+      setHasUnbudgetedTransactions(false);
     } finally {
       setIsLoading(false);
     }
@@ -319,6 +330,33 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
                   <Check className="w-5 h-5 text-blue-600" />
                 )}
               </button>
+
+              {/* 无预算选项 - 只有当存在无预算交易时才显示 */}
+              {hasUnbudgetedTransactions && (
+                <button
+                  onClick={() => handleBudgetSelect('NO_BUDGET')}
+                  className={cn(
+                    'w-full p-4 rounded-xl border-2 transition-all',
+                    'flex items-center justify-between',
+                    selectedBudgetId === 'NO_BUDGET'
+                      ? 'border-orange-500 bg-orange-50'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                      <span className="text-white text-lg">📝</span>
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium text-gray-900">无预算</div>
+                      <div className="text-sm text-gray-500">显示未分配预算的交易</div>
+                    </div>
+                  </div>
+                  {selectedBudgetId === 'NO_BUDGET' && (
+                    <Check className="w-5 h-5 text-orange-600" />
+                  )}
+                </button>
+              )}
 
               {/* 个人预算 */}
               {personalBudgets.length > 0 && (

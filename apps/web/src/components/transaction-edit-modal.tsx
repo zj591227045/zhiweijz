@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuthStore } from '@/store/auth-store';
 import { useTransactionStore } from '@/store/transaction-store';
 import { useCategoryStore } from '@/store/category-store';
@@ -975,7 +976,7 @@ export default function TransactionEditModal({
     };
   }, []);
 
-  return (
+  return createPortal(
     <div style={{
       position: 'fixed',
       top: 0,
@@ -983,7 +984,7 @@ export default function TransactionEditModal({
       right: 0,
       bottom: 0,
       backgroundColor: 'var(--background-color)',
-      zIndex: 9999,
+      zIndex: 250, // 设置合理的层级，高于分类交易模态框的220
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
@@ -1659,6 +1660,7 @@ export default function TransactionEditModal({
           onComplete={handleKeyboardComplete}
         />
       )}
-    </div>
+    </div>,
+    document.body
   );
 }

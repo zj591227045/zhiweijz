@@ -14,6 +14,7 @@ import { AnalysisNavigation } from './analysis-navigation';
 import { TagFilterSelector } from './tag-filter-selector';
 import { BudgetFilter } from '../transactions/budget-filter';
 import { getCurrentMonthRange } from '@/lib/utils';
+import TransactionEditModal from '@/components/transaction-edit-modal';
 import '../transactions/budget-filter.css';
 
 // 添加CSS动画样式
@@ -68,6 +69,10 @@ export function StatisticsPage() {
 
   // 筛选器显示状态
   const [showFilters, setShowFilters] = useState(false);
+
+  // 交易编辑模态框状态
+  const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
+  const [editingTransactionData, setEditingTransactionData] = useState<any>(null);
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -139,6 +144,34 @@ export function StatisticsPage() {
         null
       );
     }
+  };
+
+  // 处理交易编辑
+  const handleTransactionEdit = (transactionId: string, transactionData?: any) => {
+    setEditingTransactionId(transactionId);
+    setEditingTransactionData(transactionData);
+  };
+
+  // 关闭编辑模态框
+  const handleCloseEditModal = () => {
+    setEditingTransactionId(null);
+    setEditingTransactionData(null);
+  };
+
+  // 交易保存后的处理
+  const handleTransactionSaved = () => {
+    // 刷新统计数据
+    if (currentAccountBook?.id && dateRange.startDate && dateRange.endDate) {
+      fetchStatisticsData(
+        dateRange.startDate,
+        dateRange.endDate,
+        currentAccountBook.id,
+        selectedTagIds,
+        timeRangeType,
+        selectedBudgetId
+      );
+    }
+    handleCloseEditModal();
   };
 
   // 检查是否有活跃的筛选条件
@@ -428,6 +461,7 @@ export function StatisticsPage() {
           <CategoryDistribution
             expenseCategories={statisticsData.expenseByCategory}
             incomeCategories={statisticsData.incomeByCategory}
+            onTransactionEdit={handleTransactionEdit}
           />
 
           {/* 收支趋势 */}
@@ -443,6 +477,16 @@ export function StatisticsPage() {
         </div>
       )}
       </div>
+
+      {/* 交易编辑模态框 */}
+      {editingTransactionId && (
+        <TransactionEditModal
+          transactionId={editingTransactionId}
+          transactionData={editingTransactionData}
+          onClose={handleCloseEditModal}
+          onSave={handleTransactionSaved}
+        />
+      )}
     </PageContainer>
   );
 }

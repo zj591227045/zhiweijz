@@ -28,4 +28,9 @@ router.get('/overview', authenticate, (req, res) =>
 // 获取按标签统计
 router.get('/by-tags', authenticate, (req, res) => statisticsController.getTagStatistics(req, res));
 
+// 检查是否存在无预算交易
+router.get('/check-unbudgeted', authenticate, (req, res) =>
+  statisticsController.checkUnbudgetedTransactions(req, res)
+);
+
 export default router;

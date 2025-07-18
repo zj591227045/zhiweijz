@@ -342,13 +342,23 @@ export class TransactionRepository {
         lte: endDate,
       },
       ...(familyId && { familyId }),
-      // 处理预算ID过滤
-      ...(budgetIds && budgetIds.length > 0 && { budgetId: { in: budgetIds } }),
-      ...(budgetId && !budgetIds && { budgetId }),
       // 如果excludeFamilyMember为true，则只查询familyMemberId为null的记录
       // 这样可以排除托管成员的交易记录
       ...(excludeFamilyMember && { familyMemberId: null }),
     };
+
+    // 处理预算ID过滤
+    if (budgetId === 'NO_BUDGET') {
+      // 无预算筛选：只查询budgetId为null的交易
+      whereConditions.budgetId = null;
+    } else if (budgetIds && budgetIds.length > 0) {
+      // 多个预算ID筛选
+      whereConditions.budgetId = { in: budgetIds };
+    } else if (budgetId && budgetId !== 'NO_BUDGET') {
+      // 单个预算ID筛选
+      whereConditions.budgetId = budgetId;
+    }
+    // 如果budgetId为null或undefined，则不添加预算筛选条件（查询所有交易）
 
     // 如果指定了账本ID，则查询该账本的所有交易记录（家庭成员可以查看家庭账本的所有记录）
     if (accountBookId) {

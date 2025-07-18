@@ -316,6 +316,19 @@ export const statisticsService = {
       },
     });
   },
+
+  // 检查是否存在无预算交易
+  checkUnbudgetedTransactions: (accountBookId: string, params?: any) => {
+    const { startDate, endDate } = getCurrentMonthRange();
+    const defaultParams = {
+      accountBookId,
+      startDate,
+      endDate,
+    };
+    return apiClient.get('/statistics/check-unbudgeted', {
+      params: { ...defaultParams, ...params },
+    });
+  },
 };
 
 // 仪表盘相关API
