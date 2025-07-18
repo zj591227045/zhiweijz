@@ -11,6 +11,7 @@ import { useThemeStore } from '@/store/theme-store';
 import { AvatarDisplay } from '@/components/ui/avatar-display';
 import { userService } from '@/lib/api/user-service';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
+import { VersionUpdate } from '@/components/settings/VersionUpdate';
 import './settings.css';
 
 export default function SettingsPage() {
@@ -378,6 +379,7 @@ export default function SettingsPage() {
             <i className="fas fa-chevron-right"></i>
           </div>
         </Link>
+        <VersionUpdate />
       </div>
 
       <button className="logout-button" onClick={handleLogout}>

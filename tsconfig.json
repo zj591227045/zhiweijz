@@ -20,6 +20,6 @@
       "@shared/*": ["shared/*"]
     }
   },
-  "include": ["server/src/**/*", "client/src/**/*", "shared/**/*", "docs/修复预算参考/fix-budget-assignment-cjs.js"],
+  "include": ["server/src/**/*", "client/src/**/*", "shared/**/*", "docs/fixes/修复预算参考/fix-budget-assignment-cjs.js"],
   "exclude": ["node_modules", "dist", "apps/**/*", "packages/mobile/**/*"]
 }

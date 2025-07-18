@@ -28,6 +28,7 @@ import imageProxyRoutes from './image-proxy.routes';
 import multimodalAIRoutes from './multimodal-ai.routes';
 import accountingPointsRoutes from './accounting-points.routes';
 import membershipRoutes from './membership.routes';
+import versionRoutes from './version.routes';
 import { MembershipService } from '../services/membership.service';
 
 const router = Router();
@@ -44,6 +45,9 @@ router.get('/system/features', (req, res) => {
 
 // 添加公共系统接口（不需要认证）
 router.use('/system', systemRoutes);
+
+// 版本管理路由（包含公开接口）
+router.use('/version', versionRoutes);
 
 // 注册路由
 router.use('/auth', authRoutes);

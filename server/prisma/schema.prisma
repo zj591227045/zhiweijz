@@ -56,6 +56,9 @@ model User {
   settings                UserSetting[]
   verificationCodes       VerificationCode[]
   wechat_user_bindings    wechat_user_bindings[]
+  createdVersions         AppVersion[]
+  versionCheckLogs        VersionCheckLog[]
+  versionStatus           UserVersionStatus[]
 
   @@index([isActive], map: "idx_users_is_active")
   @@index([deletionRequestedAt], map: "idx_users_deletion_requested_at")
@@ -1195,6 +1198,106 @@ enum AttachmentType {
   PHOTO
   DOCUMENT
   OTHER
+}
+
+enum Platform {
+  WEB
+  IOS
+  ANDROID
+}
+
+enum VersionAction {
+  CHECK
+  UPDATE
+  SKIP
+}
+
+enum VersionUpdateStatus {
+  PENDING
+  POSTPONED
+  IGNORED
+  UPDATED
+}
+
+model AppVersion {
+  id            String    @id @default(uuid())
+  platform      Platform
+  version       String    @db.VarChar(50)
+  buildNumber   Int       @map("build_number")
+  versionCode   Int       @map("version_code")
+  releaseNotes  String?   @map("release_notes") @db.Text
+  downloadUrl   String?   @map("download_url") @db.Text
+  appStoreUrl   String?   @map("app_store_url") @db.Text
+  isForceUpdate Boolean   @default(false) @map("is_force_update")
+  isEnabled     Boolean   @default(true) @map("is_enabled")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  publishedAt   DateTime? @map("published_at")
+  createdBy     String?   @map("created_by")
+  creator       User?     @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  userVersionStatus UserVersionStatus[]
+
+  @@unique([platform, version])
+  @@unique([platform, versionCode])
+  @@index([platform])
+  @@index([isEnabled])
+  @@index([publishedAt])
+  @@map("app_versions")
+}
+
+model VersionConfig {
+  id          String   @id @default(uuid())
+  key         String   @unique @db.VarChar(100)
+  value       String   @db.Text
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("version_configs")
+}
+
+model VersionCheckLog {
+  id                  String        @id @default(uuid())
+  userId              String?       @map("user_id")
+  platform            Platform
+  currentVersion      String?       @map("current_version") @db.VarChar(50)
+  currentBuildNumber  Int?          @map("current_build_number")
+  latestVersion       String?       @map("latest_version") @db.VarChar(50)
+  latestBuildNumber   Int?          @map("latest_build_number")
+  action              VersionAction
+  ipAddress           String?       @map("ip_address") @db.Inet
+  userAgent           String?       @map("user_agent") @db.Text
+  createdAt           DateTime      @default(now()) @map("created_at")
+  user                User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([platform])
+  @@index([createdAt])
+  @@map("version_check_logs")
+}
+
+model UserVersionStatus {
+  id              String      @id @default(uuid())
+  userId          String      @map("user_id")
+  platform        Platform
+  appVersionId    String      @map("app_version_id")
+  version         String      @db.VarChar(50)
+  versionCode     Int         @map("version_code")
+  status          VersionUpdateStatus @default(PENDING)
+  postponedUntil  DateTime?   @map("postponed_until")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appVersion      AppVersion  @relation(fields: [appVersionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform, appVersionId])
+  @@index([userId])
+  @@index([platform])
+  @@index([userId, platform])
+  @@index([appVersionId])
+  @@index([status])
+  @@index([postponedUntil])
+  @@map("user_version_status")
 }
 
 enum MemberType {

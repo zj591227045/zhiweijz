@@ -1,57 +1,156 @@
-# 版本管理指南
+# 版本管理系统
 
 ## 概述
 
-智慧记账项目使用统一的版本管理系统，确保所有组件的版本号保持同步。
+智慧记账项目采用统一的版本管理系统，支持Web、iOS、Android三平台的版本控制和更新管理。系统包含版本发布、更新检测、强制更新等功能。
 
-## 版本号位置
+## 环境变量配置
 
-项目中的版本号分布在以下文件中：
-
-1. **根项目版本** - `package.json`
-2. **Web应用版本** - `apps/web/package.json`
-3. **Android应用版本** - `apps/android/app/build.gradle`
-   - `versionCode`: 数字版本号，用于应用商店更新检测
-   - `versionName`: 显示给用户的版本号
-4. **前端页面显示版本** - 自动更新以下文件中的硬编码版本号：
-   - `apps/web/src/app/settings/page.tsx` - 设置页面底部版本显示
-   - `apps/web/src/app/settings/about/page.tsx` - 关于页面版本信息
-   - `apps/web/src/components/admin/AdminSidebar.tsx` - 管理员侧边栏版本显示
-
-## 版本管理工具
-
-### 查看当前版本
+### 后端环境变量 (server/.env)
 
 ```bash
-# 方法1: 使用npm脚本
-npm run version:show
+# 版本管理功能开关
+ENABLE_VERSION_MANAGEMENT=false
 
-# 方法2: 直接运行脚本
-node scripts/update-version.js
+# 版本检查间隔 (秒)
+VERSION_CHECK_INTERVAL=86400
+
+# 强制更新宽限期 (秒)
+FORCE_UPDATE_GRACE_PERIOD=604800
+
+# 版本检查API开关
+VERSION_CHECK_API_ENABLED=true
+
+# 更新通知开关
+UPDATE_NOTIFICATION_ENABLED=true
 ```
 
-输出示例：
-```
-📋 智慧记账版本管理工具
-
-📋 当前版本信息:
-📦 根项目版本: 0.2.0
-🌐 Web应用版本: 0.2.0
-📱 Android versionCode: 200
-📱 Android versionName: 0.2.0
-```
-
-### 更新版本号
+### 前端环境变量 (apps/web/.env.local)
 
 ```bash
-# 更新到指定版本
-node scripts/update-version.js 1.2.0
+# 应用版本信息
+NEXT_PUBLIC_APP_VERSION=1.0.0
+NEXT_PUBLIC_BUILD_NUMBER=1
 
-# 或使用npm脚本
-npm run version:update 1.2.0
+# 版本管理功能开关
+NEXT_PUBLIC_ENABLE_VERSION_CHECK=true
+
+# 版本检查间隔 (毫秒)
+NEXT_PUBLIC_VERSION_CHECK_INTERVAL=86400000
+
+# 自动检查开关
+NEXT_PUBLIC_AUTO_VERSION_CHECK=true
 ```
 
-## 版本号规则
+## 功能特性
+
+### 1. 统一版本管理
+- 支持Web、iOS、Android三平台统一管理
+- 版本号、构建号、版本码统一管理
+- 发布状态管理（草稿、已发布、已下线）
+
+### 2. 版本检查机制
+- 自动版本检查（可配置间隔）
+- 手动版本检查
+- 页面可见性检查（切换回应用时检查）
+- 强制更新支持
+
+### 3. 更新方式
+- **Web**: 自动刷新页面
+- **iOS**: 跳转App Store
+- **Android**: 下载APK文件
+
+### 4. 管理功能
+- 版本发布管理
+- 更新强制性控制
+- 版本使用统计
+- 更新日志分析
+
+## API接口
+
+### 公开接口
+- `POST /api/version/check` - 版本检查
+- `GET /api/version/latest/:platform` - 获取最新版本
+
+### 用户接口
+- `POST /api/version/log/update` - 记录更新操作
+- `POST /api/version/log/skip` - 记录跳过操作
+
+### 管理员接口
+- `GET /api/admin/version` - 获取版本列表
+- `POST /api/admin/version` - 创建版本
+- `PUT /api/admin/version/:id` - 更新版本
+- `DELETE /api/admin/version/:id` - 删除版本
+- `POST /api/admin/version/:id/publish` - 发布版本
+- `POST /api/admin/version/:id/unpublish` - 下线版本
+- `GET /api/admin/version/stats` - 版本统计
+- `GET /api/admin/version/config` - 配置管理
+- `GET /api/admin/version/logs` - 日志查看
+
+## 使用示例
+
+### 1. 在应用中启用版本管理
+
+```tsx
+// 在根组件中添加VersionProvider
+import { VersionProvider } from '@/components/version/VersionProvider';
+
+function App() {
+  return (
+    <VersionProvider
+      enabled={process.env.NEXT_PUBLIC_ENABLE_VERSION_CHECK === 'true'}
+      autoCheck={process.env.NEXT_PUBLIC_AUTO_VERSION_CHECK === 'true'}
+      checkInterval={Number(process.env.NEXT_PUBLIC_VERSION_CHECK_INTERVAL) || 86400000}
+    >
+      <YourAppContent />
+    </VersionProvider>
+  );
+}
+```
+
+### 2. 手动检查版本
+
+```tsx
+import { useManualVersionCheck } from '@/components/version/VersionProvider';
+
+function SettingsPage() {
+  const checkVersion = useManualVersionCheck();
+  
+  return (
+    <button onClick={checkVersion}>
+      检查更新
+    </button>
+  );
+}
+```
+
+### 3. 获取版本信息
+
+```tsx
+import { useVersionInfo } from '@/components/version/VersionProvider';
+
+function AboutPage() {
+  const { 
+    currentVersion, 
+    currentBuildNumber, 
+    platform, 
+    hasUpdate, 
+    isForceUpdate 
+  } = useVersionInfo();
+  
+  return (
+    <div>
+      <p>当前版本: {currentVersion} (Build {currentBuildNumber})</p>
+      <p>平台: {platform}</p>
+      {hasUpdate && (
+        <p>有新版本可用 {isForceUpdate && '(强制更新)'}</p>
+      )}
+    </div>
+  );
+}
+```
+
+## 版本号管理
 
 ### 语义化版本 (Semantic Versioning)
 
@@ -72,50 +171,81 @@ versionCode = MAJOR * 10000 + MINOR * 100 + PATCH
 - `1.2.3` → versionCode: `10203`
 - `2.0.0` → versionCode: `20000`
 
-## 发布流程
+## 数据库表结构
 
-### 1. 更新版本号
+### app_versions (应用版本表)
+- id: 主键
+- platform: 平台 (web/ios/android)
+- version: 版本号
+- build_number: 构建号
+- version_code: 版本码 (用于比较)
+- release_notes: 发布说明
+- download_url: 下载链接 (Android)
+- app_store_url: App Store链接 (iOS)
+- is_force_update: 是否强制更新
+- is_enabled: 是否启用
+- published_at: 发布时间
+- created_by: 创建者
+
+### version_configs (版本配置表)
+- id: 主键
+- key: 配置键
+- value: 配置值
+- description: 描述
+
+### version_check_logs (版本检查日志表)
+- id: 主键
+- user_id: 用户ID
+- platform: 平台
+- current_version: 当前版本
+- latest_version: 最新版本
+- action: 操作类型 (check/update/skip)
+- ip_address: IP地址
+- user_agent: 用户代理
+- created_at: 创建时间
+
+## 部署指南
+
+### 1. 数据库迁移
 
 ```bash
-# 例如发布 1.1.0 版本
-node scripts/update-version.js 1.1.0
+# 运行版本管理数据库迁移
+cd server
+npm run migrate:upgrade
 ```
 
-### 2. 构建Android APK
+### 2. 环境变量设置
+
+在对应的环境文件中设置版本管理相关的环境变量。
+
+### 3. 启用版本管理
 
 ```bash
-# 方法1: 使用npm脚本
-npm run android:build
+# 通过环境变量启用
+export ENABLE_VERSION_MANAGEMENT=true
 
-# 方法2: 直接运行构建脚本
-cd apps/android && ./build-release.sh
+# 或在.env文件中设置
+ENABLE_VERSION_MANAGEMENT=true
 ```
 
-### 3. 验证构建结果
+## 最佳实践
 
-构建脚本会自动显示版本信息和构建结果。
+1. **版本号管理**: 使用语义化版本号
+2. **渐进式更新**: 避免一次性强制所有用户更新
+3. **测试策略**: 新版本发布前充分测试
+4. **回滚机制**: 出现问题时快速回滚
+5. **用户通知**: 及时通知用户重要更新内容
+
+## 故障排除
+
+1. **版本检查失败**: 检查网络连接和API状态
+2. **更新提示不显示**: 检查环境变量配置
+3. **强制更新无效**: 检查版本码设置
+4. **下载失败**: 检查下载链接可用性
 
 ## 版本历史
 
 | 版本 | 发布日期 | 主要更新 |
 |------|----------|----------|
-| 0.2.0 | 2025-06-13 | 修复版本管理，统一前端显示版本号 |
-| 1.0.0 | 2025-06-13 | 初始版本 |
-
-## 注意事项
-
-1. **版本号格式**: 必须使用语义化版本格式 `x.y.z`
-2. **versionCode递增**: Android的versionCode必须递增，不能回退
-3. **同步更新**: 使用版本管理脚本确保所有文件同步更新
-4. **发布前检查**: 构建前会显示当前版本信息，请确认无误
-
-## 常见问题
-
-### Q: 如何回退版本号？
-A: 不建议回退Android的versionCode，如需回退，请手动编辑相关文件。
-
-### Q: 版本号不同步怎么办？
-A: 使用版本管理脚本重新设置统一版本号。
-
-### Q: 构建时版本号显示错误？
-A: 检查 `apps/android/app/build.gradle` 文件中的版本配置是否正确。 
+| 1.0.0 | 2025-07-18 | 版本管理系统实现 |
+| 0.2.0 | 2025-06-13 | 修复版本管理，统一前端显示版本号 | 

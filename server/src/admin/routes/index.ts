@@ -12,6 +12,7 @@ import storageConfigAdminRoutes from './storage-config.admin.routes';
 import multimodalAIAdminRoutes from './multimodal-ai.admin.routes';
 import accountingPointsAdminRoutes from './accounting-points.admin.routes';
 import membershipAdminRoutes from './membership.admin.routes';
+import versionAdminRoutes from './version.admin.routes';
 
 const router = Router();
 
@@ -29,5 +30,6 @@ router.use('/storage', storageConfigAdminRoutes);
 router.use('/multimodal-ai', multimodalAIAdminRoutes);
 router.use('/accounting-points', accountingPointsAdminRoutes);
 router.use('/membership', membershipAdminRoutes);
+router.use('/version', versionAdminRoutes);
 
 export default router;

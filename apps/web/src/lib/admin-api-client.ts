@@ -89,6 +89,15 @@ export const ADMIN_API_ENDPOINTS = {
   ACCOUNTING_POINTS_BATCH_ADD: '/api/admin/accounting-points/batch-add',
   ACCOUNTING_POINTS_CONFIG: '/api/admin/accounting-points/config',
   ACCOUNTING_POINTS_DAILY_ACTIVE: '/api/admin/accounting-points/daily-active-stats',
+  
+  // 版本管理
+  VERSION_MANAGEMENT: '/api/admin/version',
+  VERSION_MANAGEMENT_STATS: '/api/admin/version/stats',
+  VERSION_MANAGEMENT_DETAIL: (id: string) => `/api/admin/version/${id}`,
+  VERSION_MANAGEMENT_PUBLISH: (id: string) => `/api/admin/version/${id}/publish`,
+  VERSION_MANAGEMENT_UNPUBLISH: (id: string) => `/api/admin/version/${id}/unpublish`,
+  VERSION_MANAGEMENT_CONFIG: '/api/admin/version/config',
+  VERSION_MANAGEMENT_CONFIG_DETAIL: (key: string) => `/api/admin/version/config/${key}`,
 } as const;
 
 /**
