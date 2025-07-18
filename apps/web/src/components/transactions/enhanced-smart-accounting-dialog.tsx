@@ -40,14 +40,27 @@ import {
   convertAudioToWav
 } from '@/lib/audio-conversion';
 import { platformFilePicker } from '@/lib/platform-file-picker';
-import { 
-  MicrophoneIcon, 
-  EyeIcon, 
+import {
+  MicrophoneIcon,
+  EyeIcon,
   PhotoIcon,
   StopIcon,
   ArrowPathIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import {
+  RecordingState,
+  RecordingStateManager,
+  createRecordingStateManager,
+  canStartRecording,
+  isRecording as isRecordingState,
+  isProcessing,
+  RecordingErrorType,
+  RECORDING_STATE_LABELS,
+  RECORDING_STATE_ICONS,
+  RECORDING_STATE_COLORS
+} from '@/types/recording-state';
+import { recordingHaptics } from '@/utils/haptic-feedback';
 import { useModalBackHandler } from '@/hooks/use-mobile-back-handler';
 import '@/styles/smart-accounting-dialog.css';
 
@@ -101,13 +114,17 @@ export default function EnhancedSmartAccountingDialog({
   const [multimodalStatus, setMultimodalStatus] = useState<MultimodalAIStatus | null>(null);
   const [platform, setPlatform] = useState<PlatformType>(PlatformType.UNKNOWN);
   const [mediaCapabilities, setMediaCapabilities] = useState<MediaCapabilities | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
+  // 新的录音状态管理
+  const recordingStateManagerRef = useRef<RecordingStateManager>(createRecordingStateManager());
+  const [recordingState, setRecordingState] = useState<RecordingState>(RecordingState.IDLE);
+  const [recordingStateData, setRecordingStateData] = useState(recordingStateManagerRef.current.stateData);
+
+  // 保留的状态（用于兼容性）
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isProcessingMultimodal, setIsProcessingMultimodal] = useState(false);
-  const [recordingCancelled, setRecordingCancelled] = useState(false);
   const [touchStartPos, setTouchStartPos] = useState<{ x: number; y: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const micButtonRef = useRef<HTMLButtonElement>(null);
@@ -128,6 +145,24 @@ export default function EnhancedSmartAccountingDialog({
 
   // 移动端后退处理
   const { handleBack } = useModalBackHandler('smart-accounting-dialog', onClose);
+
+  // 录音状态管理器监听器
+  useEffect(() => {
+    const stateManager = recordingStateManagerRef.current;
+
+    const unsubscribe = stateManager.onStateChange((stateData) => {
+      console.log('🎤 [RecordingState] 状态变化:', stateData);
+      setRecordingState(stateData.state);
+      setRecordingStateData(stateData);
+
+      // 更新音频电平
+      if (stateData.audioLevel !== undefined) {
+        setAudioLevel(stateData.audioLevel);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
 
   // 更新动画时间用于声波效果
   useEffect(() => {
@@ -335,6 +370,14 @@ export default function EnhancedSmartAccountingDialog({
 
   // 开始录音（长按开始）
   const startRecording = async () => {
+    const stateManager = recordingStateManagerRef.current;
+
+    // 检查是否可以开始录音
+    if (!canStartRecording(stateManager.currentState)) {
+      console.warn('🎤 [StartRecording] 当前状态不允许开始录音:', stateManager.currentState);
+      return;
+    }
+
     if (!accountBookId) {
       toast.error('请先选择账本');
       return;
@@ -345,8 +388,13 @@ export default function EnhancedSmartAccountingDialog({
       return;
     }
 
+    // 立即触发震动反馈和UI状态更新
+    recordingHaptics.start();
+    stateManager.transition(RecordingState.PREPARING);
+
     try {
       if (!isMediaRecordingSupported()) {
+        stateManager.setError(RecordingErrorType.DEVICE_NOT_FOUND);
         showError(createError(
           MultimodalErrorType.PLATFORM_NOT_SUPPORTED,
           '当前设备不支持录音功能'
@@ -354,23 +402,27 @@ export default function EnhancedSmartAccountingDialog({
         return;
       }
 
-      // 首先请求麦克风权限
+      // 异步请求麦克风权限
       console.log('🎤 开始请求麦克风权限...');
       const permissionResult = await ensureMicrophonePermission();
-      
+
       if (!permissionResult.granted) {
         console.error('🎤 麦克风权限被拒绝:', permissionResult.error);
-        
+
+        // 设置错误状态
+        stateManager.setError(RecordingErrorType.PERMISSION_DENIED);
+        recordingHaptics.error();
+
         // 检查当前环境
-        const isAndroid = typeof window !== 'undefined' && 
+        const isAndroid = typeof window !== 'undefined' &&
                          (window as any).Capacitor?.getPlatform?.() === 'android';
-        
+
         if (permissionResult.canRetry) {
           showError(createError(
             MultimodalErrorType.PERMISSION_DENIED,
             permissionResult.error || '麦克风权限被拒绝'
           ));
-          
+
           // 如果是Android环境，显示详细的权限指导
           if (isAndroid) {
             setTimeout(() => {
@@ -383,25 +435,32 @@ export default function EnhancedSmartAccountingDialog({
             permissionResult.error || '麦克风功能不可用'
           ));
         }
+
+        // 延迟重置状态，让用户看到错误状态
+        setTimeout(() => stateManager.reset(), 2000);
         return;
       }
 
-      console.log('🎤 麦克风权限获取成功，开始录音...');
+      console.log('🎤 麦克风权限获取成功，开始初始化设备...');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
+
       // 设置音频分析器
       setupAudioAnalyser(stream);
-      
+
       const chunks: Blob[] = [];
       audioChunksRef.current = chunks;
-      
+
       // 获取最佳音频格式
       const bestFormat = getBestAudioFormat();
       console.log('🎤 [StartRecording] 使用音频格式:', bestFormat);
-      
+
       const recorder = new MediaRecorder(stream, {
         mimeType: bestFormat
       });
+
+      // 设备初始化完成，转换到录音状态
+      stateManager.transition(RecordingState.RECORDING);
+      recordingHaptics.medium(); // 录音开始的震动反馈
 
       // 添加超时保护
       const recordingTimeout = setTimeout(() => {
@@ -421,39 +480,50 @@ export default function EnhancedSmartAccountingDialog({
       recorder.onstop = () => {
         console.log('🎤 [MediaRecorder] 录音停止事件触发');
         clearTimeout(recordingTimeout);
-        
+
         // 清理音频分析器
         cleanupAudioAnalyser();
-        
+
         // 停止所有音频轨道
         stream.getTracks().forEach(track => {
           console.log('🎤 [MediaRecorder] 停止音频轨道:', track.label);
           track.stop();
         });
 
-        // 确保UI状态更新
-        setIsRecording(false);
-        setMediaRecorder(null);
-        setIsButtonTouched(false);
-
-        // 使用 ref 来检查取消状态，避免闭包问题
+        // 更新状态管理器
         const currentChunks = audioChunksRef.current;
         const currentGestureType = gestureTypeRef.current;
+
         console.log('🎤 [MediaRecorder] 检查状态:', {
           recordingCancelled: recordingCancelledRef.current,
           chunksLength: currentChunks?.length || 0,
           gestureType: currentGestureType
         });
-        
-        if (!recordingCancelledRef.current && currentChunks && currentChunks.length > 0) {
+
+        // 清理UI状态
+        setMediaRecorder(null);
+        setIsButtonTouched(false);
+
+        if (recordingCancelledRef.current) {
+          // 录音被取消
+          stateManager.transition(RecordingState.CANCELLED);
+          recordingHaptics.cancel();
+          setTimeout(() => stateManager.reset(), 1500);
+        } else if (currentChunks && currentChunks.length > 0) {
+          // 录音完成，开始处理
+          stateManager.transition(RecordingState.PROCESSING);
+          recordingHaptics.stop();
+
           console.log('🎤 [MediaRecorder] 开始语音识别，音频块数:', currentChunks.length, '手势类型:', currentGestureType);
-          // 使用第一个音频块的类型作为blob类型，而不是硬编码webm
           const audioBlob = new Blob(currentChunks, { type: currentChunks[0]?.type || 'audio/webm' });
           handleSpeechRecognition(audioBlob, currentGestureType);
         } else {
-          console.log('🎤 [MediaRecorder] 跳过语音识别，取消状态:', recordingCancelledRef.current, '音频块数:', currentChunks?.length || 0);
+          // 没有录音数据
+          stateManager.setError(RecordingErrorType.RECORDING_FAILED);
+          recordingHaptics.error();
+          setTimeout(() => stateManager.reset(), 2000);
         }
-        
+
         // 在处理完成后重置手势状态
         setTimeout(() => {
           gestureTypeRef.current = 'none';
@@ -463,26 +533,30 @@ export default function EnhancedSmartAccountingDialog({
       recorder.onerror = (event) => {
         console.error('🎤 [MediaRecorder] 录音错误:', event);
         clearTimeout(recordingTimeout);
-        
+
         // 清理资源
         stream.getTracks().forEach(track => track.stop());
-        setIsRecording(false);
         setMediaRecorder(null);
-        
+
+        // 设置错误状态
+        stateManager.setError(RecordingErrorType.RECORDING_FAILED);
+        recordingHaptics.error();
+
         showError(createError(
           MultimodalErrorType.RECORDING_FAILED,
           '录音过程中发生错误'
         ));
+
+        // 延迟重置状态
+        setTimeout(() => stateManager.reset(), 2000);
       };
 
       recorder.start();
       setMediaRecorder(recorder);
       setAudioChunks(chunks);
-      setIsRecording(true);
       isRecordingRef.current = true; // 同步更新ref
-      setRecordingCancelled(false);
       recordingCancelledRef.current = false;
-      
+
       // 重置手势状态
       setGestureType('none');
       gestureTypeRef.current = 'none';
@@ -492,12 +566,18 @@ export default function EnhancedSmartAccountingDialog({
       showInfo('正在录音，松开停止，向上滑动取消');
     } catch (error) {
       console.error('启动录音失败:', error);
-      
+
+      // 设置错误状态
+      stateManager.setError(RecordingErrorType.INITIALIZATION_FAILED);
+      recordingHaptics.error();
+
       // 确保状态重置
-      setIsRecording(false);
       setMediaRecorder(null);
-      
+
       showError(error);
+
+      // 延迟重置状态
+      setTimeout(() => stateManager.reset(), 2000);
     }
   };
 
@@ -505,56 +585,55 @@ export default function EnhancedSmartAccountingDialog({
   const stopRecording = (gestureType: 'none' | 'cancel' | 'fill-text' = 'none') => {
     console.log('🎤 [StopRecording] 调用停止录音，当前状态:', {
       mediaRecorder: mediaRecorder?.state,
-      isRecording,
-      recordingCancelled,
+      recordingState,
+      recordingCancelled: recordingCancelledRef.current,
       gestureType
     });
-    
+
     // 确保手势类型同步到 ref
     gestureTypeRef.current = gestureType;
-    
+
     if (mediaRecorder && mediaRecorder.state === 'recording') {
       console.log('🎤 [StopRecording] 正在停止MediaRecorder...');
       mediaRecorder.stop();
     }
-    
+
     // 立即更新UI状态
-    setIsRecording(false);
     isRecordingRef.current = false; // 同步更新ref
     setMediaRecorder(null);
     setIsButtonTouched(false);
     setTouchStartPos(null);
-    
+
     // 注意：不在这里清理音频分析器，让它在MediaRecorder.onstop中清理
-    
+    // 状态管理器会在MediaRecorder.onstop中处理状态转换
+
     console.log('🎤 [StopRecording] 录音状态已重置');
   };
 
   // 取消录音
   const cancelRecording = () => {
     console.log('🎤 [CancelRecording] 取消录音');
-    setRecordingCancelled(true);
     recordingCancelledRef.current = true;
-    
+
     // 清空音频块数据，确保不会被处理
     audioChunksRef.current = [];
-    
+
     if (mediaRecorder && mediaRecorder.state === 'recording') {
       console.log('🎤 [CancelRecording] 停止MediaRecorder...');
       mediaRecorder.stop();
     }
-    
+
     // 立即更新UI状态
-    setIsRecording(false);
     isRecordingRef.current = false; // 同步更新ref
     setMediaRecorder(null);
     setIsButtonTouched(false);
     setTouchStartPos(null);
-    
+
     // 注意：不在这里清理音频分析器，让它在MediaRecorder.onstop中清理
-    
+    // 状态管理器会在MediaRecorder.onstop中处理取消状态
+
     showInfo('录音已取消');
-    
+
     console.log('🎤 [CancelRecording] 录音已取消，状态已重置');
   };
 
@@ -562,6 +641,10 @@ export default function EnhancedSmartAccountingDialog({
   const handleTouchStart = (e: React.TouchEvent) => {
     // 不调用 preventDefault() 来避免 passive event listener 错误
     console.log('🎤 [TouchStart] 触摸开始');
+
+    // 立即触发触觉反馈
+    recordingHaptics.touch();
+
     const touch = e.touches[0];
     const startPos = { x: touch.clientX, y: touch.clientY };
     setTouchStartPos(startPos);
@@ -576,7 +659,7 @@ export default function EnhancedSmartAccountingDialog({
       if (!startPos || !isRecordingRef.current) {
         console.log('🎤 [NativeTouchMove] 早期返回:', { 
           startPos: startPos ? 'exists' : 'null', 
-          isRecording: isRecordingRef.current
+          isRecordingRef: isRecordingRef.current
         });
         return;
       }
@@ -635,8 +718,8 @@ export default function EnhancedSmartAccountingDialog({
   const handleTouchMove = (e: React.TouchEvent) => {
     console.log('🎤 [TouchMove] 触摸移动事件触发');
     
-    if (!touchStartPos || !isRecording) {
-      console.log('🎤 [TouchMove] 早期返回:', { touchStartPos, isRecording });
+    if (!touchStartPos || !isRecordingState(recordingState)) {
+      console.log('🎤 [TouchMove] 早期返回:', { touchStartPos, recordingState });
       return;
     }
     
@@ -680,11 +763,11 @@ export default function EnhancedSmartAccountingDialog({
   // 处理触摸结束
   const handleTouchEnd = (e: React.TouchEvent) => {
     e.preventDefault();
-    console.log('🎤 [TouchEnd] 触摸结束，当前状态:', { isRecording, recordingCancelled, gestureType });
+    console.log('🎤 [TouchEnd] 触摸结束，当前状态:', { recordingState, recordingCancelled: recordingCancelledRef.current, gestureType });
     
     setIsButtonTouched(false);
     
-    if (isRecording && !recordingCancelled) {
+    if (isRecordingState(recordingState) && !recordingCancelledRef.current) {
       if (gestureType === 'cancel') {
         // 上滑取消录音
         console.log('🎤 [TouchEnd] 执行取消录音');
@@ -709,6 +792,10 @@ export default function EnhancedSmartAccountingDialog({
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     console.log('🎤 [MouseDown] 鼠标按下');
+
+    // 立即触发触觉反馈
+    recordingHaptics.touch();
+
     setTouchStartPos({ x: e.clientX, y: e.clientY });
     setIsButtonTouched(true);
     setGestureType('none');
@@ -717,7 +804,7 @@ export default function EnhancedSmartAccountingDialog({
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!touchStartPos || !isRecording) return;
+    if (!touchStartPos || !isRecordingState(recordingState)) return;
 
     const deltaY = touchStartPos.y - e.clientY;
     const deltaX = Math.abs(e.clientX - touchStartPos.x);
@@ -755,11 +842,11 @@ export default function EnhancedSmartAccountingDialog({
 
   const handleMouseUp = (e: React.MouseEvent) => {
     e.preventDefault();
-    console.log('🎤 [MouseUp] 鼠标释放，当前状态:', { isRecording, recordingCancelled, gestureType });
+    console.log('🎤 [MouseUp] 鼠标释放，当前状态:', { recordingState, recordingCancelled: recordingCancelledRef.current, gestureType });
     
     setIsButtonTouched(false);
     
-    if (isRecording && !recordingCancelled) {
+    if (isRecordingState(recordingState) && !recordingCancelledRef.current) {
       if (gestureType === 'cancel') {
         // 上移取消录音
         console.log('🎤 [MouseUp] 执行取消录音');
@@ -879,6 +966,11 @@ export default function EnhancedSmartAccountingDialog({
             if (response && response.id) {
               progressManager.showProgress(progressId, '记账成功', 'success');
 
+              // 更新录音状态为完成
+              const stateManager = recordingStateManagerRef.current;
+              stateManager.transition(RecordingState.COMPLETED);
+              recordingHaptics.success();
+
               // 刷新仪表盘数据
               if (accountBookId) {
                 try {
@@ -892,8 +984,17 @@ export default function EnhancedSmartAccountingDialog({
 
               // 清空描述
               setDescription('');
+
+              // 延迟重置状态
+              setTimeout(() => stateManager.reset(), 2000);
             } else {
               progressManager.showProgress(progressId, '记账失败，请手动填写', 'error');
+
+              // 设置错误状态
+              const stateManager = recordingStateManagerRef.current;
+              stateManager.setError(RecordingErrorType.PROCESSING_FAILED);
+              recordingHaptics.error();
+              setTimeout(() => stateManager.reset(), 2000);
             }
           } catch (error: any) {
             console.error('语音直接记账失败:', error);
@@ -914,17 +1015,37 @@ export default function EnhancedSmartAccountingDialog({
             }
             
             progressManager.showProgress(progressId, errorMessage, 'error');
+
+            // 设置错误状态
+            const stateManager = recordingStateManagerRef.current;
+            stateManager.setError(RecordingErrorType.PROCESSING_FAILED);
+            recordingHaptics.error();
+            setTimeout(() => stateManager.reset(), 2000);
           }
         }
       } else {
+        // 语音识别失败
+        const stateManager = recordingStateManagerRef.current;
+        stateManager.setError(RecordingErrorType.PROCESSING_FAILED);
+        recordingHaptics.error();
+
         showError(createError(
           MultimodalErrorType.RECOGNITION_FAILED,
           '语音识别失败，请重试'
         ));
+
+        setTimeout(() => stateManager.reset(), 2000);
       }
     } catch (error: any) {
       console.error('语音识别失败:', error);
+
+      // 设置错误状态
+      const stateManager = recordingStateManagerRef.current;
+      stateManager.setError(RecordingErrorType.PROCESSING_FAILED);
+      recordingHaptics.error();
+
       showError(error);
+      setTimeout(() => stateManager.reset(), 2000);
     } finally {
       setIsProcessingMultimodal(false);
     }
@@ -1431,7 +1552,7 @@ export default function EnhancedSmartAccountingDialog({
       setIsProcessing(false);
       setProcessingStep('');
       setIsProcessingMultimodal(false);
-      setRecordingCancelled(false);
+      recordingCancelledRef.current = false;
       setIsButtonTouched(false);
       setTouchStartPos(null);
       setGestureType('none');
@@ -1534,11 +1655,11 @@ export default function EnhancedSmartAccountingDialog({
     
     // 组件卸载时清理资源
     return () => {
-      if (isRecording) {
+      if (isRecordingState(recordingState)) {
         cleanupAudioAnalyser();
       }
     };
-  }, [isOpen, isRecording, configLoading, config.accountingPointsEnabled]);
+  }, [isOpen, recordingState, configLoading, config.accountingPointsEnabled]);
 
   // 专门处理记账点余额获取
   useEffect(() => {
@@ -1601,50 +1722,70 @@ export default function EnhancedSmartAccountingDialog({
               </div>
 
               {/* 录音状态提示 - 动态声波效果 */}
-              {isRecording && (
+              {(isRecordingState(recordingState) || recordingState === RecordingState.PREPARING) && (
                 <div className="recording-indicator">
                   <div className="sound-wave-container">
                     <div className="microphone-icon">
-                      <i className="fas fa-microphone"></i>
+                      <i className={RECORDING_STATE_ICONS[recordingState]}></i>
                     </div>
                     <div className="sound-waves">
                       {[...Array(7)].map((_, i) => {
+                        // 只在真正录音时显示声波动画
+                        const isActuallyRecording = recordingState === RecordingState.RECORDING;
+
                         // 基础高度
                         const baseHeight = 15;
                         const maxHeight = 60;
-                        
+
                         // 检测阈值
-                        const hasAudio = audioLevel > 1;
-                        
+                        const hasAudio = isActuallyRecording && audioLevel > 1;
+
                         // 提高音量映射敏感度
-                        const volumeMultiplier = hasAudio ? 
+                        const volumeMultiplier = hasAudio ?
                           Math.pow(audioLevel / 100, 0.5) * (maxHeight - baseHeight) : 0;
-                        
+
                         // 增加波形动画幅度
                         let waveOffset = 0;
                         if (hasAudio) {
                           const frequency = 0.007 + i * 0.003;
-                          const phase = i * Math.PI / 3; 
+                          const phase = i * Math.PI / 3;
                           const amplitude = Math.max(1, audioLevel * 0.12);
                           waveOffset = Math.sin(animationTime * frequency + phase) * amplitude;
+                        } else if (recordingState === RecordingState.PREPARING) {
+                          // 准备状态显示脉冲动画
+                          const frequency = 0.01;
+                          const amplitude = 5;
+                          waveOffset = Math.sin(animationTime * frequency + i * 0.5) * amplitude;
                         }
                         
                         // 最终高度计算
                         const finalHeight = baseHeight + volumeMultiplier + waveOffset;
-                        
-                        // 优化颜色阈值，让变化更明显
-                        let color = '#6b7280'; // 静默时的灰色
-                        if (audioLevel > 30) color = '#ef4444'; // 红色 - 高音量
-                        else if (audioLevel > 20) color = '#f59e0b'; // 橙色 - 中高音量  
-                        else if (audioLevel > 10) color = '#22c55e'; // 绿色 - 中音量
-                        else if (audioLevel > 5) color = '#3b82f6'; // 蓝色 - 低音量
-                        else if (audioLevel > 1) color = '#8b5cf6'; // 紫色 - 极低音量
-                        
-                        // 提高透明度变化敏感度
-                        const opacity = hasAudio ? 
-                          Math.max(0.7, Math.min(1, 0.7 + audioLevel / 100 * 0.3)) : 0.4;
-                        const scale = hasAudio ? 
-                          0.9 + (audioLevel / 100) * 0.1 : 0.8;
+
+                        // 根据录音状态设置颜色
+                        let color = '#6b7280'; // 默认灰色
+                        let opacity = 0.4;
+                        let scale = 0.8;
+
+                        if (recordingState === RecordingState.PREPARING) {
+                          // 准备状态 - 蓝色脉冲
+                          color = '#3b82f6';
+                          opacity = 0.6 + Math.sin(animationTime * 0.01) * 0.2;
+                          scale = 0.8 + Math.sin(animationTime * 0.01) * 0.1;
+                        } else if (recordingState === RecordingState.RECORDING) {
+                          // 录音状态 - 根据音量变化颜色
+                          if (audioLevel > 30) color = '#ef4444'; // 红色 - 高音量
+                          else if (audioLevel > 20) color = '#f59e0b'; // 橙色 - 中高音量
+                          else if (audioLevel > 10) color = '#22c55e'; // 绿色 - 中音量
+                          else if (audioLevel > 5) color = '#3b82f6'; // 蓝色 - 低音量
+                          else if (audioLevel > 1) color = '#8b5cf6'; // 紫色 - 极低音量
+                          else color = '#6b7280'; // 静默时的灰色
+
+                          // 提高透明度变化敏感度
+                          opacity = hasAudio ?
+                            Math.max(0.7, Math.min(1, 0.7 + audioLevel / 100 * 0.3)) : 0.4;
+                          scale = hasAudio ?
+                            0.9 + (audioLevel / 100) * 0.1 : 0.8;
+                        }
                         
                         return (
                           <div
@@ -1844,13 +1985,13 @@ export default function EnhancedSmartAccountingDialog({
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseUp} // 鼠标离开按钮区域时也停止录音
-                    className={`mic-button ${isRecording ? 'recording' : ''} ${isButtonTouched ? 'touched' : ''}`}
+                    className={`mic-button ${recordingState.toLowerCase().replace('_', '-')} ${isButtonTouched ? 'touched' : ''}`}
                     style={{
                       width: '48px',
                       height: '48px',
                       borderRadius: '12px',
                       border: 'none',
-                      backgroundColor: isRecording ? 'var(--error-color, #ef4444)' : 'var(--warning-color, #f59e0b)',
+                      backgroundColor: RECORDING_STATE_COLORS[recordingState],
                       color: 'white',
                       fontSize: '18px',
                       cursor: isButtonDisabled('voice', isProcessing || isProcessingMultimodal) ? 'not-allowed' : 'pointer',
@@ -1859,8 +2000,10 @@ export default function EnhancedSmartAccountingDialog({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      boxShadow: isRecording ? '0 4px 16px rgba(239, 68, 68, 0.4)' : '0 2px 8px rgba(0, 0, 0, 0.1)',
-                      transform: isRecording ? 'scale(1.1)' : (isButtonTouched ? 'scale(1.05)' : 'scale(1)'),
+                      boxShadow: isRecordingState(recordingState) ?
+                        `0 4px 16px ${RECORDING_STATE_COLORS[recordingState]}40` :
+                        '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      transform: isRecordingState(recordingState) ? 'scale(1.1)' : (isButtonTouched ? 'scale(1.05)' : 'scale(1)'),
                       userSelect: 'none',
                       WebkitUserSelect: 'none',
                       WebkitTouchCallout: 'none',
@@ -1868,12 +2011,10 @@ export default function EnhancedSmartAccountingDialog({
                       overflow: 'hidden',
                       touchAction: 'manipulation' // 确保触摸移动事件能正常工作
                     }}
-                    title={getButtonTitle('voice') || 
-                      (isRecording ? '松开停止录音，向上滑动取消' : '长按开始语音记账')
-                    }
+                    title={getButtonTitle('voice') || RECORDING_STATE_LABELS[recordingState]}
                   >
                     {/* 背景呼吸效果 */}
-                    {isRecording && (
+                    {(isRecordingState(recordingState) || recordingState === RecordingState.PREPARING) && (
                       <div
                         className="breathing-effect"
                         style={{
@@ -1891,7 +2032,7 @@ export default function EnhancedSmartAccountingDialog({
                     )}
                     
                     {/* 音频可视化 */}
-                    {isRecording && (
+                    {recordingState === RecordingState.RECORDING && (
                       <div
                         className="audio-visualizer"
                         style={{
@@ -1922,10 +2063,8 @@ export default function EnhancedSmartAccountingDialog({
                     <div style={{ position: 'relative', zIndex: 1 }}>
                       {isProcessingMultimodal ? (
                         <i className="fas fa-spinner fa-spin"></i>
-                      ) : isRecording ? (
-                        <i className="fas fa-stop"></i>
                       ) : (
-                        <i className="fas fa-microphone"></i>
+                        <i className={RECORDING_STATE_ICONS[recordingState]}></i>
                       )}
                     </div>
                   </button>
