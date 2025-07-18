@@ -27,8 +27,36 @@ interface VersionCheckSettingsProps {
 
 export function VersionCheckSettings({ className = '' }: VersionCheckSettingsProps) {
   const [isManualChecking, setIsManualChecking] = useState(false);
-  
-  // 版本信息和控制
+
+  // 版本信息和控制 - 添加错误处理
+  let versionInfo, versionControl, manualCheck;
+
+  try {
+    versionInfo = useVersionInfo();
+    versionControl = useVersionCheckControl();
+    manualCheck = useManualVersionCheck();
+  } catch (error) {
+    // 在 SSG 期间或没有 Provider 时的默认值
+    versionInfo = {
+      currentVersion: '0.6.0',
+      currentBuildNumber: 1,
+      platform: 'web',
+      hasUpdate: false,
+      latestVersion: undefined,
+      isForceUpdate: false,
+      updateMessage: undefined,
+      skippedVersionsCount: 0,
+      hasPostponedVersion: false,
+      lastCheckTime: undefined
+    };
+    versionControl = {
+      isChecking: false,
+      error: null,
+      clearError: () => {}
+    };
+    manualCheck = async () => {};
+  }
+
   const {
     currentVersion,
     currentBuildNumber,
@@ -40,10 +68,9 @@ export function VersionCheckSettings({ className = '' }: VersionCheckSettingsPro
     skippedVersionsCount,
     hasPostponedVersion,
     lastCheckTime
-  } = useVersionInfo();
+  } = versionInfo;
 
-  const { isChecking, error, clearError } = useVersionCheckControl();
-  const manualCheck = useManualVersionCheck();
+  const { isChecking, error, clearError } = versionControl;
 
   /**
    * 手动检查版本

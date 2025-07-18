@@ -2,14 +2,14 @@
 
 import { useState } from 'react';
 import { TagSelector, MobileTagSelector } from '@/components/tags/tag-selector';
-import { useAccountBooks } from '@/hooks/use-account-books';
+import { useAccountBookStore } from '@/store/account-book-store';
 
 /**
  * 标签输入测试页面
  * 用于测试Android中文输入法兼容性
  */
 export default function TagInputTestPage() {
-  const { accountBooks } = useAccountBooks();
+  const { accountBooks } = useAccountBookStore();
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [showMobileSelector, setShowMobileSelector] = useState(false);
   
