@@ -238,6 +238,7 @@ input:focus + .toggle-slider {
   width: 100%;
   max-width: 480px;
   padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
   background-color: var(--background-color, white);
   border-top: 1px solid var(--border-color, #e5e7eb);
   z-index: 10;
@@ -356,6 +357,7 @@ input:focus + .toggle-slider {
   
   .bottom-button-container {
     padding: 12px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
   
   .save-button {
@@ -398,6 +400,7 @@ input:focus + .toggle-slider {
   
   .bottom-button-container {
     padding: 8px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
   }
 }
 
@@ -464,4 +467,31 @@ input:focus + .toggle-slider {
   .save-button:hover {
     transform: none;
   }
-} 
+}
+
+/* 移动端安全区域适配 */
+@supports (padding: max(0px)) {
+  /* iOS设备特殊适配 */
+  .ios-app .bottom-button-container,
+  .capacitor-ios .bottom-button-container {
+    padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
+  }
+
+  /* Android设备适配 */
+  .android-app .bottom-button-container {
+    padding-bottom: max(16px, 24px) !important; /* Android导航栏高度 */
+  }
+
+  /* 移动端媒体查询中的安全区域适配 */
+  @media (max-width: 768px) {
+    .bottom-button-container {
+      padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .bottom-button-container {
+      padding-bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    }
+  }
+}
