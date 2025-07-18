@@ -1,0 +1,264 @@
+/* 预算筛选器样式 */
+
+.budget-filter {
+  width: 100%;
+}
+
+.budget-filter-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.budget-filter-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.budget-filter-label i {
+  font-size: 12px;
+  color: var(--primary-color);
+}
+
+.budget-filter-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+.budget-filter-select:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.budget-filter-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.budget-filter-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--muted);
+}
+
+.budget-filter-select optgroup {
+  font-weight: 600;
+  color: var(--text-primary);
+  background-color: var(--background-primary);
+  padding: 4px 0;
+}
+
+.budget-filter-select option {
+  padding: 8px 12px;
+  color: var(--text-primary);
+  background-color: var(--background-primary);
+  font-weight: 400;
+}
+
+.budget-filter-select option:hover {
+  background-color: var(--hover-background);
+}
+
+/* 状态提示样式 */
+.budget-filter-loading,
+.budget-filter-error,
+.budget-filter-empty {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.budget-filter-loading {
+  background-color: var(--info-background);
+  color: var(--info-color);
+  border: 1px solid var(--info-border);
+}
+
+.budget-filter-loading i {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.budget-filter-error {
+  background-color: var(--error-background);
+  color: var(--error-color);
+  border: 1px solid var(--error-border);
+}
+
+.budget-filter-empty {
+  background-color: var(--muted);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .budget-filter-label {
+    font-size: 13px;
+  }
+
+  .budget-filter-select {
+    padding: 12px 14px;
+    font-size: 16px; /* 防止iOS缩放 */
+    padding-right: 42px;
+    background-size: 18px;
+    background-position: right 14px center;
+  }
+
+  .budget-filter-loading,
+  .budget-filter-error,
+  .budget-filter-empty {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+}
+
+/* 暗色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .budget-filter-select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  .budget-filter-select:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .budget-filter-select:active {
+    transform: scale(0.98);
+  }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .budget-filter-select {
+    border-width: 3px;
+  }
+
+  .budget-filter-select:focus {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);
+  }
+}
+
+/* 减少动画模式支持 */
+@media (prefers-reduced-motion: reduce) {
+  .budget-filter-select,
+  .budget-filter-loading i {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* 移动端特殊优化 */
+@media (max-width: 480px) {
+  .budget-filter-button {
+    min-height: 44px !important; /* 确保触摸目标足够大 */
+    font-size: 16px !important; /* 防止iOS自动缩放 */
+  }
+
+  .budget-filter-button-text {
+    font-size: 15px;
+  }
+
+  .budget-filter-button-icon {
+    width: 20px !important;
+    height: 20px !important;
+  }
+}
+
+/* 预算选择按钮样式 */
+.budget-filter-button {
+  background: none;
+  border: none;
+  font-family: inherit;
+}
+
+.budget-filter-button:hover {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.15) !important;
+}
+
+.budget-filter-button:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+.budget-filter-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.budget-filter-button:disabled:hover {
+  border-color: inherit !important;
+  box-shadow: inherit !important;
+  transform: none !important;
+}
+
+.budget-filter-button:active {
+  transform: scale(0.98);
+}
+
+.budget-filter-button-text {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.budget-filter-button-icon {
+  margin-left: 8px;
+  transition: transform 0.2s ease;
+}
+
+.budget-filter-button:hover .budget-filter-button-icon {
+  transform: translateY(1px);
+}
+
+/* 统计页面中的预算筛选器特殊样式 */
+.statistics-analysis-page .budget-filter-button {
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.statistics-analysis-page .budget-filter-button:hover {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.15) !important;
+}
+
+.statistics-analysis-page .budget-filter-button:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}

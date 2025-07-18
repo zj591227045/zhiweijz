@@ -577,6 +577,14 @@ export class StatisticsService {
       }
     }
 
+    // 处理聚合预算ID
+    let actualBudgetId = budgetId;
+    if (budgetId && budgetId.startsWith('aggregated_')) {
+      console.log('检测到聚合预算ID，将忽略budgetId参数进行聚合查询');
+      // 对于聚合预算，不传递budgetId给交易查询，让它查询所有相关交易
+      actualBudgetId = undefined;
+    }
+
     // 获取收入交易记录 - 不排除家庭成员的交易记录，统计该账本的所有交易
     const incomeTransactions = await this.transactionRepository.findByDateRange(
       userId,
@@ -586,7 +594,7 @@ export class StatisticsService {
       familyId,
       accountBookId,
       false, // 设置excludeFamilyMember为false，统计该账本的所有交易记录
-      budgetId,
+      actualBudgetId,
       categoryIds,
       tagIds,
     );
@@ -600,7 +608,7 @@ export class StatisticsService {
       familyId,
       accountBookId,
       false, // 设置excludeFamilyMember为false，统计该账本的所有交易记录
-      budgetId,
+      actualBudgetId,
       categoryIds,
       tagIds,
     );

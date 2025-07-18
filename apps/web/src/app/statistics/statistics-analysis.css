@@ -8,6 +8,271 @@
   overflow: visible !important; /* 确保下拉菜单可以显示 */
 }
 
+/* 筛选器容器样式 - 移动端优化 */
+.statistics-analysis-page .filters-container {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 筛选器头部 */
+.statistics-analysis-page .filters-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, #667eea 100%);
+  color: white;
+}
+
+.statistics-analysis-page .filters-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.statistics-analysis-page .active-filters-indicator {
+  margin-left: 4px;
+  color: #fbbf24;
+  animation: pulse 2s infinite;
+}
+
+.statistics-analysis-page .active-filters-indicator i {
+  font-size: 8px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.statistics-analysis-page .filters-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.statistics-analysis-page .reset-filters-btn,
+.statistics-analysis-page .close-filters-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: auto;
+  white-space: nowrap;
+}
+
+.statistics-analysis-page .reset-filters-btn:hover,
+.statistics-analysis-page .close-filters-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.statistics-analysis-page .reset-filters-btn:active,
+.statistics-analysis-page .close-filters-btn:active {
+  transform: translateY(0);
+}
+
+/* 筛选器项目 */
+.statistics-analysis-page .filter-item {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.statistics-analysis-page .filter-item:last-child {
+  border-bottom: none;
+}
+
+.statistics-analysis-page .filter-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.statistics-analysis-page .filter-item-header i {
+  font-size: 12px;
+  color: var(--primary-color);
+  width: 16px;
+  text-align: center;
+}
+
+/* 移动端预算筛选器样式优化 */
+.statistics-analysis-page .mobile-budget-filter .budget-filter-label {
+  display: none; /* 隐藏标签，因为已经在项目头部显示 */
+}
+
+.statistics-analysis-page .mobile-budget-filter .budget-filter-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+.statistics-analysis-page .mobile-budget-filter .budget-filter-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* 活跃筛选器按钮样式 */
+.statistics-analysis-page .icon-button.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* 标签筛选器样式优化 */
+.statistics-analysis-page .filter-item button {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px; /* 确保触摸目标足够大 */
+}
+
+.statistics-analysis-page .filter-item button:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.15);
+}
+
+.statistics-analysis-page .filter-item button:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* 已选择标签的显示样式 */
+.statistics-analysis-page .filter-item .space-y-2 {
+  margin-top: 8px;
+}
+
+.statistics-analysis-page .filter-item .flex.flex-wrap {
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .statistics-analysis-page .filters-header {
+    padding: 10px 14px;
+  }
+
+  .statistics-analysis-page .filters-header h3 {
+    font-size: 14px;
+  }
+
+  .statistics-analysis-page .filter-item {
+    padding: 14px;
+  }
+
+  .statistics-analysis-page .filter-item-header {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+
+  .statistics-analysis-page .mobile-budget-filter .budget-filter-select {
+    padding: 12px 14px;
+    font-size: 16px; /* 防止iOS缩放 */
+    padding-right: 42px;
+    background-size: 18px;
+    background-position: right 14px center;
+  }
+
+  .statistics-analysis-page .reset-filters-btn,
+  .statistics-analysis-page .close-filters-btn {
+    padding: 5px 8px;
+    font-size: 11px;
+    gap: 3px;
+  }
+
+  .statistics-analysis-page .filters-actions {
+    gap: 6px;
+  }
+}
+
+/* 暗色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .statistics-analysis-page .filters-header {
+    background: linear-gradient(135deg, #4c1d95 0%, #5b21b6 100%);
+  }
+
+  .statistics-analysis-page .mobile-budget-filter .budget-filter-select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  .statistics-analysis-page .reset-filters-btn:hover,
+  .statistics-analysis-page .close-filters-btn:hover {
+    transform: none;
+  }
+
+  .statistics-analysis-page .reset-filters-btn:active,
+  .statistics-analysis-page .close-filters-btn:active {
+    transform: scale(0.95);
+  }
+
+  .statistics-analysis-page .filter-item button:hover {
+    border-color: var(--border-color);
+    box-shadow: none;
+  }
+
+  .statistics-analysis-page .filter-item button:active {
+    transform: scale(0.98);
+  }
+}
+
 /* 重置可能的全局样式冲突 */
 .statistics-analysis-page * {
   box-sizing: border-box;

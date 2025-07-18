@@ -12,7 +12,10 @@ import { smartNavigate } from '@/lib/navigation';
 import TransactionEditModal from '@/components/transaction-edit-modal';
 import { UnifiedTransactionList } from '../common/unified-transaction-list';
 import { DeleteConfirmationDialog } from '../ui/delete-confirmation-dialog';
+import { FilterContainer } from './filter-container';
 import '../common/unified-transaction-list.css';
+import './budget-filter.css';
+import './filter-container.css';
 
 // 导入交易类型枚举
 import { TransactionType } from '../common/unified-transaction-list';
@@ -77,6 +80,7 @@ export function TransactionListPage() {
     transactionType: 'ALL',
     categoryIds: [] as string[],
     accountBookId: '',
+    budgetId: '',
     isFilterPanelOpen: false,
   });
 
@@ -164,9 +168,10 @@ export function TransactionListPage() {
         queryParams.accountBookId = filters.accountBookId;
       }
 
-      // 添加预算ID参数
-      if (budgetId) {
-        queryParams.budgetId = budgetId;
+      // 添加预算ID参数 - 优先使用筛选器中的预算ID
+      const selectedBudgetId = filters.budgetId || budgetId;
+      if (selectedBudgetId) {
+        queryParams.budgetId = selectedBudgetId;
       }
 
       // 获取交易数据
@@ -200,8 +205,10 @@ export function TransactionListPage() {
           if (filters.categoryIds.length > 0) {
             statsParams.categoryIds = filters.categoryIds.join(',');
           }
-          if (budgetId) {
-            statsParams.budgetId = budgetId;
+          // 添加预算ID参数 - 优先使用筛选器中的预算ID
+          const selectedBudgetId = filters.budgetId || budgetId;
+          if (selectedBudgetId) {
+            statsParams.budgetId = selectedBudgetId;
           }
           // 注意：统计API不支持搜索参数，所以不传递search参数
 
@@ -555,6 +562,7 @@ export function TransactionListPage() {
       transactionType: 'ALL',
       categoryIds: [],
       accountBookId: currentAccountBook?.id || '',
+      budgetId: '',
       isFilterPanelOpen: false,
     });
   };
@@ -612,94 +620,16 @@ export function TransactionListPage() {
             </div>
           </div>
         )}
-        {/* 筛选区域 - 简化版 */}
-        {filters.isFilterPanelOpen && (
-          <div className="filter-panel">
-            <div className="filter-header">
-              <h3><i className="fas fa-filter"></i> 筛选条件</h3>
-              <div className="filter-actions">
-                <button onClick={resetFilters} className="reset-button">
-                  <i className="fas fa-undo"></i> 重置
-                </button>
-                <button onClick={toggleFilterPanel} className="close-button">
-                  <i className="fas fa-times"></i> 关闭
-                </button>
-              </div>
-            </div>
-
-            <div className="filter-content">
-              {/* 时间范围筛选 */}
-              <div className="filter-section">
-                <h4><i className="fas fa-calendar-alt"></i> 时间范围</h4>
-                <div className="date-range">
-                  <input
-                    type="date"
-                    value={filters.startDate}
-                    onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                    className="date-input"
-                    placeholder="开始日期"
-                  />
-                  <span>至</span>
-                  <input
-                    type="date"
-                    value={filters.endDate}
-                    onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                    className="date-input"
-                    placeholder="结束日期"
-                  />
-                </div>
-              </div>
-
-              {/* 交易类型筛选 */}
-              <div className="filter-section">
-                <h4><i className="fas fa-exchange-alt"></i> 交易类型</h4>
-                <div className="transaction-type-filter">
-                  <label>
-                    <input
-                      type="radio"
-                      name="transactionType"
-                      value="ALL"
-                      checked={filters.transactionType === 'ALL'}
-                      onChange={(e) => handleFilterChange('transactionType', e.target.value)}
-                    />
-                    <span>全部</span>
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="transactionType"
-                      value="INCOME"
-                      checked={filters.transactionType === 'INCOME'}
-                      onChange={(e) => handleFilterChange('transactionType', e.target.value)}
-                    />
-                    <span>收入</span>
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="transactionType"
-                      value="EXPENSE"
-                      checked={filters.transactionType === 'EXPENSE'}
-                      onChange={(e) => handleFilterChange('transactionType', e.target.value)}
-                    />
-                    <span>支出</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* 预算筛选 */}
-              {budgetId && (
-                <div className="filter-section">
-                  <h4><i className="fas fa-wallet"></i> 当前预算</h4>
-                  <div className="budget-info">
-                    {filterOptions.budgets.find((budget: any) => budget.id === budgetId)?.name ||
-                      '未知预算'}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        {/* 筛选器容器 */}
+        <FilterContainer
+          filters={filters}
+          filterOptions={filterOptions}
+          onFilterChange={handleFilterChange}
+          onResetFilters={resetFilters}
+          isOpen={filters.isFilterPanelOpen}
+          onToggle={toggleFilterPanel}
+          budgetId={budgetId}
+        />
 
         {/* 交易统计摘要 */}
         <div className="transaction-summary">

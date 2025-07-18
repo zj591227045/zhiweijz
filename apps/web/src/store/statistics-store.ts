@@ -39,6 +39,7 @@ interface StatisticsState {
     accountBookId?: string,
     tagIds?: string[],
     timeRangeType?: TimeRangeType,
+    budgetId?: string,
   ) => Promise<void>;
   reset: () => void;
 }
@@ -69,8 +70,8 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
   setSelectedTagIds: (tagIds) => set({ selectedTagIds: tagIds }),
 
   // 获取统计数据
-  fetchStatisticsData: async (startDate, endDate, accountBookId, tagIds, timeRangeType) => {
-    console.log('开始获取统计数据:', { startDate, endDate, accountBookId, tagIds, timeRangeType });
+  fetchStatisticsData: async (startDate, endDate, accountBookId, tagIds, timeRangeType, budgetId) => {
+    console.log('开始获取统计数据:', { startDate, endDate, accountBookId, tagIds, timeRangeType, budgetId });
     try {
       set({ isLoading: true, error: null });
 
@@ -82,6 +83,9 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
         tagIds.forEach(tagId => {
           url += `&tagIds=${tagId}`;
         });
+      }
+      if (budgetId) {
+        url += `&budgetId=${budgetId}`;
       }
 
       // 根据时间范围类型设置groupBy参数

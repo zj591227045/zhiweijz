@@ -1460,7 +1460,7 @@ export class BudgetService {
 
   /**
    * 获取预算趋势数据
-   * @param budgetId 预算ID
+   * @param budgetId 预算ID（可能是聚合预算ID）
    * @param viewMode 视图模式：日/周/月
    * @param familyMemberId 家庭成员ID（可选）
    * @returns 趋势数据数组
@@ -1475,6 +1475,12 @@ export class BudgetService {
         familyMemberId || '无'
       }`,
     );
+
+    // 检查是否为聚合预算ID
+    if (budgetId.startsWith('aggregated_')) {
+      console.log('检测到聚合预算ID，使用聚合预算趋势逻辑');
+      return this.getAggregatedBudgetTrends(budgetId, viewMode, familyMemberId);
+    }
 
     // 获取预算信息
     const budget = await this.budgetRepository.findById(budgetId);
@@ -1596,6 +1602,116 @@ export class BudgetService {
     }
 
     console.log(`生成了${result.length}条趋势数据`);
+    return result;
+  }
+
+  /**
+   * 获取聚合预算趋势数据
+   * @param aggregatedBudgetId 聚合预算ID（格式：aggregated_userId）
+   * @param viewMode 视图模式：日/周/月
+   * @param familyMemberId 家庭成员ID（可选）
+   * @returns 趋势数据数组
+   */
+  private async getAggregatedBudgetTrends(
+    aggregatedBudgetId: string,
+    viewMode: 'daily' | 'weekly' | 'monthly' = 'monthly',
+    familyMemberId?: string,
+  ): Promise<any[]> {
+    // 从聚合预算ID中提取用户ID
+    const userId = aggregatedBudgetId.replace('aggregated_', '');
+    console.log(`处理聚合预算趋势，用户ID: ${userId}`);
+
+    // 获取最近12个月的日期范围
+    const now = new Date();
+    const months = [];
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const formattedMonth = month < 10 ? `0${month}` : `${month}`;
+      months.push({
+        date: `${year}-${formattedMonth}`,
+        startDate: new Date(year, month - 1, 1),
+        endDate: new Date(year, month, 0),
+      });
+    }
+
+    console.log(`生成了${months.length}个月份的日期范围用于聚合预算趋势`);
+
+    // 获取每个月的聚合交易数据
+    const result = [];
+    for (const month of months) {
+      try {
+        // 查询该用户在该月的所有个人预算
+        const userBudgets = await prisma.budget.findMany({
+          where: {
+            userId: userId,
+            budgetType: 'PERSONAL',
+            startDate: { lte: month.endDate },
+            endDate: { gte: month.startDate },
+          },
+        });
+
+        console.log(`${month.date}月份找到${userBudgets.length}个用户预算`);
+
+        // 聚合所有预算的交易数据
+        let totalAmount = 0;
+        for (const budget of userBudgets) {
+          // 构建查询条件
+          const whereCondition: any = {
+            accountBookId: budget.accountBookId,
+            date: {
+              gte: month.startDate,
+              lte: month.endDate,
+            },
+            type: 'EXPENSE',
+            ...(budget.categoryId && { categoryId: budget.categoryId }),
+          };
+
+          // 处理家庭成员ID或用户ID
+          if (familyMemberId) {
+            whereCondition.familyMemberId = familyMemberId;
+          } else if (budget.familyMemberId) {
+            whereCondition.familyMemberId = budget.familyMemberId;
+          } else {
+            whereCondition.userId = budget.userId;
+          }
+
+          // 查询该预算的交易记录
+          const transactions = await prisma.transaction.findMany({
+            where: whereCondition,
+          });
+
+          // 累加交易金额
+          const budgetAmount = transactions.reduce(
+            (sum: number, transaction: Transaction) => sum + Number(transaction.amount),
+            0,
+          );
+          totalAmount += budgetAmount;
+        }
+
+        console.log(`${month.date}月份聚合交易总额: ${totalAmount}`);
+
+        // 添加到结果中
+        result.push({
+          date: month.date,
+          amount: totalAmount,
+          rolloverImpact: 0, // 聚合预算不计算结转影响
+          total: totalAmount,
+        });
+      } catch (error) {
+        console.error(`获取${month.date}月份聚合交易数据失败:`, error);
+        // 如果查询失败，添加0值
+        result.push({
+          date: month.date,
+          amount: 0,
+          rolloverImpact: 0,
+          total: 0,
+        });
+      }
+    }
+
+    console.log(`生成了${result.length}条聚合趋势数据`);
     return result;
   }
 

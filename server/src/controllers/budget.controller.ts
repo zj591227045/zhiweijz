@@ -135,6 +135,23 @@ export class BudgetController {
       }
 
       const budgetId = req.params.id;
+
+      // 检查是否为聚合预算ID
+      if (budgetId.startsWith('aggregated_')) {
+        console.log('检测到聚合预算ID，返回聚合预算信息');
+        // 对于聚合预算，返回基本信息（实际上前端不应该调用这个API获取聚合预算详情）
+        res.status(200).json({
+          id: budgetId,
+          name: '聚合预算',
+          amount: 0,
+          spent: 0,
+          remaining: 0,
+          budgetType: 'PERSONAL',
+          isAggregated: true,
+        });
+        return;
+      }
+
       const budget = await this.budgetService.getBudgetById(budgetId, userId);
       res.status(200).json(budget);
     } catch (error) {
@@ -339,6 +356,20 @@ export class BudgetController {
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
       const familyMemberId = (req.query.familyMemberId as string) || null;
       const includeAttachments = req.query.includeAttachments === 'true';
+
+      // 检查是否为聚合预算ID
+      if (budgetId.startsWith('aggregated_')) {
+        console.log('检测到聚合预算ID，使用聚合预算交易逻辑');
+        // 对于聚合预算，返回空的交易记录（因为聚合预算是虚拟的）
+        res.status(200).json({
+          data: [],
+          total: 0,
+          page,
+          limit,
+          totalPages: 0,
+        });
+        return;
+      }
 
       // 验证预算是否存在并且用户有权限访问
       const budget = await this.budgetService.getBudgetById(budgetId, userId);

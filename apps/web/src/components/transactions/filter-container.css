@@ -1,0 +1,332 @@
+/* 筛选器容器样式 */
+
+.filter-container {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  margin: 0 0 16px 0;
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 筛选器头部 */
+.filter-container-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, #667eea 100%);
+  color: white;
+  margin-bottom: 0;
+  min-height: 48px;
+}
+
+.filter-container-title h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.active-filters-indicator {
+  margin-left: 4px;
+  color: #fbbf24;
+  animation: pulse 2s infinite;
+}
+
+.active-filters-indicator i {
+  font-size: 8px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.filter-container-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* 筛选器操作按钮 */
+.collapse-button,
+.reset-button,
+.close-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: auto;
+  white-space: nowrap;
+}
+
+.collapse-button:hover,
+.reset-button:hover,
+.close-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.collapse-button:active,
+.reset-button:active,
+.close-button:active {
+  transform: translateY(0);
+}
+
+/* 筛选器内容 */
+.filter-container-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 筛选器分组 */
+.filter-section {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.filter-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.filter-section h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-section h4 i {
+  font-size: 12px;
+  color: var(--primary-color);
+}
+
+/* 日期范围筛选 */
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.date-input {
+  flex: 1;
+  min-width: 120px;
+  padding: 10px 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.date-input:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.date-range span {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  margin: 0 4px;
+}
+
+/* 交易类型筛选 */
+.transaction-type-filter {
+  display: flex;
+  gap: 8px;
+}
+
+.transaction-type-filter label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 8px 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background-secondary);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+}
+
+.transaction-type-filter label:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.transaction-type-filter input[type="radio"] {
+  display: none;
+}
+
+.transaction-type-filter input[type="radio"]:checked + span {
+  color: white;
+}
+
+.transaction-type-filter label:has(input[type="radio"]:checked) {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #667eea 100%);
+  border-color: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* 当前预算信息 */
+.current-budget-info {
+  padding: 10px 12px;
+  background: linear-gradient(135deg, var(--info-background), var(--info-background-light));
+  border: 1px solid var(--info-border);
+  border-radius: 8px;
+  color: var(--info-color);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* 预算筛选器在容器中的样式调整 */
+.budget-filter-in-container .budget-filter-label {
+  display: none; /* 隐藏标签，因为已经在分组标题中显示 */
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .filter-container {
+    margin: 0 0 12px 0;
+    border-radius: 8px;
+  }
+  
+  .filter-container-header {
+    padding: 10px 14px;
+    min-height: 44px;
+  }
+  
+  .filter-container-title h3 {
+    font-size: 14px;
+  }
+  
+  .filter-container-content {
+    gap: 12px;
+    padding: 14px;
+  }
+  
+  .filter-section {
+    padding-bottom: 12px;
+  }
+  
+  .filter-section h4 {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  
+  .date-range {
+    gap: 6px;
+  }
+  
+  .date-input {
+    padding: 10px 12px;
+    font-size: 16px; /* 防止iOS缩放 */
+  }
+  
+  .date-range span {
+    font-size: 11px;
+    margin: 0 2px;
+  }
+  
+  .transaction-type-filter {
+    gap: 6px;
+  }
+  
+  .transaction-type-filter label {
+    padding: 10px 8px;
+    font-size: 12px;
+  }
+  
+  .collapse-button,
+  .reset-button,
+  .close-button {
+    padding: 5px 10px;
+    font-size: 11px;
+    gap: 3px;
+  }
+}
+
+/* 暗色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .filter-container-header {
+    background: linear-gradient(135deg, #4c1d95 0%, #5b21b6 100%);
+  }
+  
+  .current-budget-info {
+    background: linear-gradient(135deg, #1e293b, #334155);
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  .transaction-type-filter label:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .transaction-type-filter label:active {
+    transform: scale(0.98);
+  }
+  
+  .collapse-button:hover,
+  .reset-button:hover, 
+  .close-button:hover {
+    transform: none;
+  }
+  
+  .collapse-button:active,
+  .reset-button:active, 
+  .close-button:active {
+    transform: scale(0.95);
+  }
+}
