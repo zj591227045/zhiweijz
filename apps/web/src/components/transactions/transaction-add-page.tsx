@@ -161,7 +161,7 @@ export function TransactionAddPage() {
         // 如果有选择标签，为新创建的交易添加标签
         if (tagIds.length > 0) {
           try {
-            await tagApi.addTransactionTags(createdTransaction.id, tagIds);
+            await tagApi.addTransactionTags(createdTransaction.id, { tagIds });
             console.log('成功为交易添加标签:', tagIds);
           } catch (error) {
             console.error('添加交易标签失败:', error);
