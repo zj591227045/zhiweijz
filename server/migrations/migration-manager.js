@@ -65,10 +65,22 @@ const MIGRATIONS_CONFIG = {
     '1.7.14': ['add-version-management'], // 升级到1.7.15
     '1.7.15': ['add-detail-url-to-app-versions'], // 升级到1.7.16
     '1.7.16': [], // 当前最新版本
-    'add-version-management': ['add-detail-url-to-app-versions'], // 从版本管理迁移升级
     'fresh_install': ['base-schema', 'fix-missing-account-book-id-fields', 'admin-features', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions']
   }
 };
+
+/**
+ * 将迁移名称映射到版本号
+ */
+function mapMigrationToVersion(migrationName) {
+  const migrationToVersionMap = {
+    'add-version-management': '1.7.15',
+    'add-detail-url-to-app-versions': '1.7.16',
+    // 可以根据需要添加更多映射
+  };
+
+  return migrationToVersionMap[migrationName] || migrationName;
+}
 
 /**
  * 获取当前数据库版本
@@ -111,8 +123,9 @@ async function getCurrentVersion() {
     `;
     
     if (versionRecord.length > 0) {
-      const version = versionRecord[0].version;
-      logger.info(`当前数据库版本: ${version}`);
+      const rawVersion = versionRecord[0].version;
+      const version = mapMigrationToVersion(rawVersion);
+      logger.info(`当前数据库版本: ${rawVersion} -> ${version}`);
       return version;
     } else {
       logger.warn('版本表存在但无记录，假设为 1.0.0');
