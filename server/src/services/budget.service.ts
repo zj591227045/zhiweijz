@@ -1339,6 +1339,38 @@ export class BudgetService {
   }
 
   /**
+   * 检查用户在指定账本中是否已存在任何个人预算（不考虑familyMemberId）
+   * 用于防止在家庭账本中创建重复的个人预算
+   */
+  private async checkExistingPersonalBudgetInAccountBook(
+    userId: string,
+    accountBookId: string,
+    period: BudgetPeriod,
+    startDate: Date
+  ): Promise<any> {
+    try {
+      const existingBudget = await prisma.budget.findFirst({
+        where: {
+          userId,
+          accountBookId,
+          budgetType: BudgetType.PERSONAL,
+          period,
+          startDate: {
+            gte: new Date(startDate.getFullYear(), startDate.getMonth(), 1),
+            lt: new Date(startDate.getFullYear(), startDate.getMonth() + 1, 1)
+          }
+          // 注意：这里不检查 familyMemberId，因为我们要找任何个人预算
+        }
+      });
+
+      return existingBudget;
+    } catch (error) {
+      console.error('检查现有个人预算失败:', error);
+      return null;
+    }
+  }
+
+  /**
    * 检查用户是否有权限访问预算
    * @param userId 用户ID
    * @param budget 预算对象
@@ -1576,6 +1608,21 @@ export class BudgetService {
     try {
       console.log(`开始为用户 ${userId} 在账本 ${accountBookId} 中自动创建缺失预算`);
 
+      // 首先检查当前月份是否已有个人预算，避免重复创建
+      const currentDate = new Date();
+      const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const existingCurrentBudget = await this.checkExistingPersonalBudgetInAccountBook(
+        userId,
+        accountBookId,
+        BudgetPeriod.MONTHLY,
+        startDate
+      );
+
+      if (existingCurrentBudget) {
+        console.log(`用户 ${userId} 在账本 ${accountBookId} 中已存在当前月份的个人预算: ${existingCurrentBudget.id}，跳过自动创建`);
+        return;
+      }
+
       // 1. 处理用户个人预算
       console.log(`开始为用户 ${userId} 创建缺失的个人预算`);
       const latestPersonalBudget = await this.findLatestPersonalBudget(userId, accountBookId);
@@ -1737,17 +1784,17 @@ export class BudgetService {
    */
   async ensureCurrentMonthBudget(userId: string, accountBookId: string): Promise<void> {
     const currentDate = new Date();
-    const currentMonthBudgets = await this.budgetRepository.findByPeriodAndDate(
+    const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+    // 使用新的检查方法，不考虑familyMemberId
+    const existingBudget = await this.checkExistingPersonalBudgetInAccountBook(
       userId,
-      BudgetPeriod.MONTHLY,
-      new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
-      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0),
-      undefined,
       accountBookId,
-      true, // 排除托管成员预算
+      BudgetPeriod.MONTHLY,
+      startDate
     );
 
-    if (currentMonthBudgets.length === 0) {
+    if (!existingBudget) {
       console.log(
         `用户 ${userId} 在账本 ${accountBookId} 中没有当前月份的个人预算，记账时自动创建`,
       );
@@ -1775,17 +1822,16 @@ export class BudgetService {
       const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
       const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-      // 检查是否已存在当前月份的个人预算
-      const existingBudget = await this.checkExistingBudget(
+      // 检查是否已存在当前月份的个人预算（不考虑familyMemberId）
+      const existingBudget = await this.checkExistingPersonalBudgetInAccountBook(
         userId,
         accountBookId,
-        BudgetType.PERSONAL,
         BudgetPeriod.MONTHLY,
         startDate
       );
 
       if (existingBudget) {
-        console.log(`用户 ${userId} 在账本 ${accountBookId} 中已存在当前月份的个人预算: ${existingBudget.id}`);
+        console.log(`用户 ${userId} 在账本 ${accountBookId} 中已存在当前月份的个人预算: ${existingBudget.id}，跳过创建`);
         return; // 已存在，不需要创建
       }
 
