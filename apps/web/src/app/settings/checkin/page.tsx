@@ -103,14 +103,19 @@ export default function CheckinPage() {
     
     // 添加月份天数
     for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month, day);
-      const dateString = date.toISOString().split('T')[0];
+      // 直接构造日期字符串，避免时区转换问题
+      const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const checkinRecord = checkinHistory?.history.find(record => record.date === dateString);
-      
+
+      // 获取今天的日期字符串（北京时间）
+      const now = new Date();
+      const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+      const todayString = beijingTime.toISOString().split('T')[0];
+
       calendar.push({
         day,
         date: dateString,
-        isToday: dateString === new Date().toISOString().split('T')[0],
+        isToday: dateString === todayString,
         isCheckedIn: checkinRecord?.isCheckedIn || false,
         points: checkinRecord?.pointsAwarded || 0
       });

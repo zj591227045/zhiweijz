@@ -57,6 +57,14 @@ class AccountingPointsService {
   }
 
   /**
+   * 根据日期字符串创建用于数据库查询的Date对象
+   * 使用UTC时间来避免时区问题
+   */
+  static createDateForDB(dateString: string): Date {
+    return new Date(dateString + 'T00:00:00.000Z');
+  }
+
+  /**
    * 获取用户记账点余额
    */
   static async getUserPoints(userId: string): Promise<UserAccountingPoints> {
@@ -306,7 +314,7 @@ class AccountingPointsService {
       where: {
         userId_checkinDate: {
           userId,
-          checkinDate: new Date(today)
+          checkinDate: this.createDateForDB(today)
         }
       }
     });
@@ -319,7 +327,7 @@ class AccountingPointsService {
     const checkin = await prisma.userCheckins.create({
       data: {
         userId,
-        checkinDate: new Date(today),
+        checkinDate: this.createDateForDB(today),
         pointsAwarded: this.CHECKIN_REWARD
       }
     });
@@ -350,18 +358,15 @@ class AccountingPointsService {
     // 使用北京时间计算日期范围
     const beijingNow = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
 
-    // 计算开始日期（北京时间）
-    const startDate = new Date(beijingNow);
-    startDate.setDate(startDate.getDate() - days + 1);
-    startDate.setHours(0, 0, 0, 0);
-    // 转换为UTC时间用于数据库查询
-    const startDateUTC = new Date(startDate.getTime() - 8 * 60 * 60 * 1000);
+    // 计算开始日期和结束日期的字符串
+    const endDateStr = beijingNow.toISOString().split('T')[0];
+    const startDateObj = new Date(beijingNow);
+    startDateObj.setDate(startDateObj.getDate() - days + 1);
+    const startDateStr = startDateObj.toISOString().split('T')[0];
 
-    // 计算结束日期（北京时间）
-    const endDate = new Date(beijingNow);
-    endDate.setHours(23, 59, 59, 999);
-    // 转换为UTC时间用于数据库查询
-    const endDateUTC = new Date(endDate.getTime() - 8 * 60 * 60 * 1000);
+    // 使用UTC日期进行数据库查询
+    const startDateUTC = this.createDateForDB(startDateStr);
+    const endDateUTC = this.createDateForDB(endDateStr);
 
     // 获取用户在指定时间范围内的签到记录
     const checkins = await prisma.userCheckins.findMany({
@@ -380,9 +385,15 @@ class AccountingPointsService {
     // 生成完整的日期范围历史（使用北京时间）
     const history = [];
     for (let i = 0; i < days; i++) {
-      const date = new Date(beijingNow);
-      date.setDate(date.getDate() - days + 1 + i);
-      const dateString = date.toISOString().split('T')[0];
+      // 计算北京时间的日期
+      const beijingDate = new Date(beijingNow);
+      beijingDate.setDate(beijingDate.getDate() - days + 1 + i);
+
+      // 直接构造日期字符串，避免时区转换问题
+      const year = beijingDate.getUTCFullYear();
+      const month = String(beijingDate.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(beijingDate.getUTCDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
 
       const checkinRecord = checkins.find(c =>
         c.checkinDate.toISOString().split('T')[0] === dateString
@@ -415,7 +426,7 @@ class AccountingPointsService {
         where: {
           userId_checkinDate: {
             userId,
-            checkinDate: new Date(dateString)
+            checkinDate: this.createDateForDB(dateString)
           }
         }
       });
@@ -445,7 +456,7 @@ class AccountingPointsService {
       where: {
         userId_checkinDate: {
           userId,
-          checkinDate: new Date(today)
+          checkinDate: this.createDateForDB(today)
         }
       }
     });
