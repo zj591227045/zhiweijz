@@ -207,6 +207,9 @@ export class UserAdminService {
         },
       });
 
+      // 为新用户初始化默认数据（与普通注册流程保持一致）
+      await this.initializeUserDefaults(user.id);
+
       return user;
     } catch (error) {
       console.error('创建用户错误:', error);
@@ -214,6 +217,54 @@ export class UserAdminService {
         throw error;
       }
       throw new Error('创建用户失败');
+    }
+  }
+
+  /**
+   * 为新用户初始化默认数据
+   * 与普通注册流程保持一致
+   */
+  private async initializeUserDefaults(userId: string): Promise<void> {
+    // 为新用户创建默认账本
+    let defaultAccountBook = null;
+    try {
+      const { AccountBookService } = require('../../services/account-book.service');
+      const accountBookService = new AccountBookService();
+      defaultAccountBook = await accountBookService.createDefaultAccountBook(userId);
+    } catch (accountBookError) {
+      console.error('创建默认账本失败:', accountBookError);
+      // 不影响用户创建流程，继续执行
+    }
+
+    // 确保系统默认分类存在（不为用户创建配置记录）
+    try {
+      const { CategoryService } = require('../../services/category.service');
+      const categoryService = new CategoryService();
+      await categoryService.initializeDefaultCategories();
+    } catch (categoryError) {
+      console.error('初始化默认分类失败:', categoryError);
+      // 不影响用户创建流程，继续执行
+    }
+
+    // 初始化用户设置
+    try {
+      const { UserSettingService } = require('../../services/user-setting.service');
+      const { UserSettingKey } = require('../../models/user-setting.model');
+      const userSettingService = new UserSettingService();
+
+      // 初始化默认设置
+      await userSettingService.initializeDefaultSettings(userId);
+
+      // 如果成功创建了默认账本，将其ID保存到用户设置中
+      if (defaultAccountBook) {
+        await userSettingService.createOrUpdateUserSetting(userId, {
+          key: UserSettingKey.DEFAULT_ACCOUNT_BOOK_ID,
+          value: defaultAccountBook.id,
+        });
+      }
+    } catch (settingError) {
+      console.error('初始化用户设置失败:', settingError);
+      // 不影响用户创建流程，继续执行
     }
   }
 
