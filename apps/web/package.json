@@ -1,6 +1,6 @@
 {
   "name": "@zhiweijz/web-app",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "只为记账 Web应用",
   "private": true,
   "scripts": {
