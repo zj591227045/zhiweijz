@@ -25,7 +25,7 @@ import { useAccountBookStore } from '../../store/account-book-store';
 import { NavigationProps, TransactionsStackParamList } from '../../navigation/types';
 import dayjs from 'dayjs';
 
-// 交易类型枚举
+// 记账类型枚举
 export enum TransactionType {
   EXPENSE = "EXPENSE",
   INCOME = "INCOME",
@@ -34,8 +34,8 @@ export enum TransactionType {
 interface TransactionListScreenProps extends NavigationProps<'TransactionList'> {}
 
 /**
- * 交易列表屏幕
- * 复用web端的交易列表逻辑，适配移动端UI
+ * 记账列表屏幕
+ * 复用web端的记账列表逻辑，适配移动端UI
  */
 const TransactionListScreen: React.FC<TransactionListScreenProps> = ({ navigation }) => {
   const theme = useTheme();
@@ -92,7 +92,7 @@ const TransactionListScreen: React.FC<TransactionListScreenProps> = ({ navigatio
     }
   }, [isAuthenticated, filters]);
 
-  // 加载交易数据
+  // 加载记账数据
   const loadTransactions = useCallback(async () => {
     try {
       const queryParams = {
@@ -107,7 +107,7 @@ const TransactionListScreen: React.FC<TransactionListScreenProps> = ({ navigatio
 
       await fetchTransactions(queryParams);
     } catch (error) {
-      console.error('加载交易数据失败:', error);
+      console.error('加载记账数据失败:', error);
     }
   }, [filters, fetchTransactions]);
 
@@ -121,7 +121,7 @@ const TransactionListScreen: React.FC<TransactionListScreenProps> = ({ navigatio
     }
   }, [loadTransactions]);
 
-  // 按日期分组交易
+  // 按日期分组记账
   useEffect(() => {
     if (transactions && Array.isArray(transactions)) {
       const groups: Record<string, any[]> = {};
@@ -160,12 +160,12 @@ const TransactionListScreen: React.FC<TransactionListScreenProps> = ({ navigatio
     }
   }, [transactions]);
 
-  // 处理交易项点击 - 直接进入编辑页面
+  // 处理记账项点击 - 直接进入编辑页面
   const handleTransactionClick = (transactionId: string) => {
     navigation.navigate('TransactionEdit', { transactionId });
   };
 
-  // 处理添加交易
+  // 处理添加记账
   const handleAddTransaction = () => {
     navigation.navigate('TransactionAdd');
   };
@@ -211,7 +211,7 @@ const TransactionListScreen: React.FC<TransactionListScreenProps> = ({ navigatio
       {/* 自定义头部 */}
       <Appbar.Header style={styles.header}>
         <Appbar.Content 
-          title="交易记录" 
+          title="记账记录" 
           titleStyle={styles.headerTitle}
         />
         <Appbar.Action 
@@ -289,7 +289,7 @@ const TransactionListScreen: React.FC<TransactionListScreenProps> = ({ navigatio
         </View>
       </Surface>
 
-      {/* 交易列表 */}
+      {/* 记账列表 */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -376,14 +376,14 @@ const TransactionListScreen: React.FC<TransactionListScreenProps> = ({ navigatio
           <View style={styles.centerContent}>
             <Icon name="receipt" size={64} color={theme.colors.outline} />
             <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
-              暂无交易记录
+              暂无记账记录
             </Text>
             <TouchableOpacity
               style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
               onPress={handleAddTransaction}
             >
               <Text style={[styles.addButtonText, { color: theme.colors.onPrimary }]}>
-                添加第一笔交易
+                添加第一笔记账
               </Text>
             </TouchableOpacity>
           </View>

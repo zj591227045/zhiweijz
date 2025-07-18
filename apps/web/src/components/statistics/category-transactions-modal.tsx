@@ -56,11 +56,11 @@ export function CategoryTransactionsModal({
     transactionCount: 0,
   });
 
-  // 获取交易数据
+  // 获取记账数据
   const fetchTransactions = async () => {
     if (!isOpen) return;
 
-    console.log('开始获取分类交易数据:', {
+    console.log('开始获取分类记账数据:', {
       categoryName,
       categoryId,
       filters,
@@ -94,7 +94,7 @@ export function CategoryTransactionsModal({
 
       console.log('API请求参数:', queryParams);
 
-      // 获取交易数据
+      // 获取记账数据
       const response = await apiClient.get('/transactions', {
         params: queryParams,
       });
@@ -117,14 +117,14 @@ export function CategoryTransactionsModal({
         setGroupedTransactions(grouped);
       }
     } catch (error) {
-      console.error('获取交易数据失败:', error);
-      setError('获取交易数据失败，请重试');
+      console.error('获取记账数据失败:', error);
+      setError('获取记账数据失败，请重试');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 按日期分组交易 - 转换为统一组件格式
+  // 按日期分组记账 - 转换为统一组件格式
   const groupTransactionsByDate = (transactions: Transaction[]) => {
     if (!Array.isArray(transactions)) return [];
 
@@ -157,10 +157,10 @@ export function CategoryTransactionsModal({
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   };
 
-  // 处理交易项点击 - 优先使用传入的编辑函数，否则直接导航
+  // 处理记账项点击 - 优先使用传入的编辑函数，否则直接导航
   const handleTransactionClick = (transactionId: string) => {
     if (onTransactionEdit) {
-      // 找到对应的交易数据
+      // 找到对应的记账数据
       const transactionData = transactions.find(t => t.id === transactionId);
       onTransactionEdit(transactionId, transactionData);
     } else {
@@ -172,7 +172,7 @@ export function CategoryTransactionsModal({
   // 当模态框打开时获取数据
   useEffect(() => {
     if (isOpen) {
-      console.log('模态框打开，开始获取交易数据:', {
+      console.log('模态框打开，开始获取记账数据:', {
         isOpen,
         categoryId,
         filters,
@@ -207,7 +207,7 @@ export function CategoryTransactionsModal({
         {/* 模态框头部 */}
         <div className="modal-header">
           <div className="modal-title-section">
-            <h3 className="modal-title">{categoryName} - 交易记录</h3>
+            <h3 className="modal-title">{categoryName} - 记账记录</h3>
             <div className="modal-subtitle">
               {dayjs(filters.startDate).format('YYYY年MM月DD日')} 至{' '}
               {dayjs(filters.endDate).format('YYYY年MM月DD日')}
@@ -226,7 +226,7 @@ export function CategoryTransactionsModal({
           </div>
           <div className="summary-divider"></div>
           <div className="summary-item">
-            <span className="summary-label">交易笔数</span>
+            <span className="summary-label">记账笔数</span>
             <span className="summary-value">{statistics.transactionCount}笔</span>
           </div>
         </div>
@@ -237,7 +237,7 @@ export function CategoryTransactionsModal({
             groupedTransactions={groupedTransactions}
             onTransactionClick={handleTransactionClick}
             showDateHeaders={true}
-            emptyMessage="该分类暂无交易记录"
+            emptyMessage="该分类暂无记账记录"
             isLoading={isLoading}
             error={error}
           />

@@ -27,24 +27,24 @@ export function getSmartRoute(route: string): string {
   }
 
   // iOS Capacitor 环境需要转换动态路由为 Pages Router 格式
-  // 特殊处理交易编辑路由 - 使用主页面 + localStorage 传递交易ID
+  // 特殊处理记账编辑路由 - 使用主页面 + localStorage 传递记账ID
   if (route.startsWith('/transactions/edit/')) {
     const id = route.replace('/transactions/edit/', '').split('/')[0];
 
-    // 将交易ID存储到 localStorage
+    // 将记账ID存储到 localStorage
     if (typeof window !== 'undefined') {
       localStorage.setItem('pendingTransactionEdit', id);
       localStorage.setItem('showTransactionEditModal', 'true');
-      console.log('🧭 [SmartNavigate] 交易ID已存储到 localStorage:', id);
-      console.log('🧭 [SmartNavigate] 设置交易编辑模态框标记');
+      console.log('🧭 [SmartNavigate] 记账ID已存储到 localStorage:', id);
+      console.log('🧭 [SmartNavigate] 设置记账编辑模态框标记');
     }
 
     return `/dashboard`;
   }
 
   const routeMap: Record<string, string> = {
-    // 交易相关
-    '/transactions/': '/transactions/', // 交易详情页面
+    // 记账相关
+    '/transactions/': '/transactions/', // 记账详情页面
 
     // 家庭相关
     '/families/': '/families/', // 家庭详情页面

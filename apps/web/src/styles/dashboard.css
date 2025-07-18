@@ -87,7 +87,7 @@
   margin-bottom: 8px; /* 进一步减少间距从12px到8px */
 }
 
-/* 统一的区块标题样式 - 确保预算执行情况和最近交易对齐 */
+/* 统一的区块标题样式 - 确保预算执行情况和最近记账对齐 */
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -177,7 +177,7 @@
   transition: width 0.3s ease;
 }
 
-/* 最近交易部分 */
+/* 最近记账部分 */
 .recent-transactions {
   background-color: var(--card-background, #ffffff);
   border-radius: 12px;
@@ -187,7 +187,7 @@
 }
 
 .transaction-group {
-  margin-bottom: 10px; /* 减少交易组间距从12px到10px */
+  margin-bottom: 10px; /* 减少记账组间距从12px到10px */
 }
 
 .transaction-date {
@@ -201,7 +201,7 @@
 .transaction-list {
   display: flex;
   flex-direction: column;
-  gap: 8px; /* 减少交易项间距从10px到8px */
+  gap: 8px; /* 减少记账项间距从10px到8px */
 }
 
 .transaction-item {

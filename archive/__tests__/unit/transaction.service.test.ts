@@ -128,7 +128,7 @@ describe('TransactionService', () => {
       mockCategoryRepository.findById.mockResolvedValue(category);
 
       // 执行和验证
-      await expect(transactionService.createTransaction(userId, transactionData)).rejects.toThrow('交易类型与分类类型不匹配');
+      await expect(transactionService.createTransaction(userId, transactionData)).rejects.toThrow('记账类型与分类类型不匹配');
       expect(mockTransactionRepository.create).not.toHaveBeenCalled();
     });
   });

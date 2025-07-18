@@ -26,7 +26,7 @@ docs/S3/
 
 ### 2. 多存储桶支持
 - `avatars`：用户头像存储
-- `transaction-attachments`：交易记录附件
+- `transaction-attachments`：记账记录附件
 - `temp-files`：临时文件
 - `system-files`：系统文件
 

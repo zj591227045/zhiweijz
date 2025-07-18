@@ -48,7 +48,7 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
 
         <div className="policy-section">
           <h3>4. 信息共享</h3>
-          <p>我们不会向第三方出售、交易或转让您的个人信息，除非：</p>
+          <p>我们不会向第三方出售、记账或转让您的个人信息，除非：</p>
           <ul>
             <li>获得您的明确同意</li>
             <li>法律法规要求或政府部门要求</li>

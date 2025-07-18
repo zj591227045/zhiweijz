@@ -1,4 +1,4 @@
-/* 分类交易记录模态框样式 */
+/* 分类记账记录模态框样式 */
 .category-transactions-modal-overlay {
   position: fixed;
   top: 0;
@@ -183,7 +183,7 @@
   color: var(--error-color, #ef4444);
 }
 
-/* 交易分组 */
+/* 记账分组 */
 .transaction-groups {
   padding: 0;
 }
@@ -192,7 +192,7 @@
   margin-bottom: 0;
 }
 
-/* 模态框中的交易列表样式已由统一组件处理 */
+/* 模态框中的记账列表样式已由统一组件处理 */
 
 /* 桌面端优化 - 确保居中显示 */
 @media (min-width: 769px) {

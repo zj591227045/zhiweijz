@@ -19,7 +19,7 @@ jest.mock('../../lib/prisma', () => ({
 
 jest.mock('../../repositories/transaction.repository');
 
-describe('StatisticsService - 无预算交易检测', () => {
+describe('StatisticsService - 无预算记账检测', () => {
   let statisticsService: StatisticsService;
   let mockPrisma: jest.Mocked<typeof prisma>;
 
@@ -35,7 +35,7 @@ describe('StatisticsService - 无预算交易检测', () => {
     const startDate = new Date('2024-01-01');
     const endDate = new Date('2024-01-31');
 
-    it('当存在无预算交易时应返回true', async () => {
+    it('当存在无预算记账时应返回true', async () => {
       // Mock account book access check
       mockPrisma.accountBook.findFirst.mockResolvedValue({
         id: testAccountBookId,
@@ -43,7 +43,7 @@ describe('StatisticsService - 无预算交易检测', () => {
         type: 'PERSONAL',
       } as any);
 
-      // Mock transaction count - 存在无预算交易
+      // Mock transaction count - 存在无预算记账
       mockPrisma.transaction.count.mockResolvedValue(5);
 
       const result = await statisticsService.hasUnbudgetedTransactions(
@@ -67,7 +67,7 @@ describe('StatisticsService - 无预算交易检测', () => {
       });
     });
 
-    it('当不存在无预算交易时应返回false', async () => {
+    it('当不存在无预算记账时应返回false', async () => {
       // Mock account book access check
       mockPrisma.accountBook.findFirst.mockResolvedValue({
         id: testAccountBookId,
@@ -75,7 +75,7 @@ describe('StatisticsService - 无预算交易检测', () => {
         type: 'PERSONAL',
       } as any);
 
-      // Mock transaction count - 不存在无预算交易
+      // Mock transaction count - 不存在无预算记账
       mockPrisma.transaction.count.mockResolvedValue(0);
 
       const result = await statisticsService.hasUnbudgetedTransactions(
@@ -101,7 +101,7 @@ describe('StatisticsService - 无预算交易检测', () => {
           undefined,
           testAccountBookId
         )
-      ).rejects.toThrow('无权限查看该账本的交易记录');
+      ).rejects.toThrow('无权限查看该账本的记账记录');
     });
 
     it('对于家庭账本应正确验证家庭成员权限', async () => {
@@ -158,7 +158,7 @@ describe('StatisticsService - 无预算交易检测', () => {
       ).rejects.toThrow('无权访问此家庭数据');
     });
 
-    it('当没有指定账本ID时应查询用户自己的交易', async () => {
+    it('当没有指定账本ID时应查询用户自己的记账', async () => {
       // Mock transaction count
       mockPrisma.transaction.count.mockResolvedValue(2);
 
@@ -183,7 +183,7 @@ describe('StatisticsService - 无预算交易检测', () => {
   });
 });
 
-describe('TransactionRepository - 无预算交易筛选', () => {
+describe('TransactionRepository - 无预算记账筛选', () => {
   let transactionRepository: TransactionRepository;
 
   beforeEach(() => {
@@ -192,7 +192,7 @@ describe('TransactionRepository - 无预算交易筛选', () => {
   });
 
   describe('findByDateRange with NO_BUDGET filter', () => {
-    it('当budgetId为NO_BUDGET时应正确筛选无预算交易', () => {
+    it('当budgetId为NO_BUDGET时应正确筛选无预算记账', () => {
       // 这个测试需要mock prisma.transaction.findMany
       // 由于TransactionRepository的实现比较复杂，这里先保留测试结构
       expect(true).toBe(true);

@@ -1,4 +1,4 @@
-# 导入交易记录网页 - 架构规划
+# 导入记账记录网页 - 架构规划
 
 ## 项目概述
 开发一个纯静态网页应用，用于将第三方记账数据导入到记账系统中。应用使用LocalStorage进行数据持久化，支持多种数据格式导入和智能分类匹配。
@@ -52,9 +52,9 @@ src/
 - `POST /api/budgets` - 创建新预算
 - `GET /api/budgets/by-date` - 根据日期获取预算
 
-#### 交易记录
-- `POST /api/transactions` - 创建交易记录
-- `POST /api/transactions/import` - 批量导入交易记录
+#### 记账记录
+- `POST /api/transactions` - 创建记账记录
+- `POST /api/transactions/import` - 批量导入记账记录
 
 ### 3. 数据流架构
 

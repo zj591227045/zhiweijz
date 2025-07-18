@@ -111,7 +111,7 @@ src/admin/
 - POST /api/admin/auth/logout - 管理员登出
 - GET /api/admin/dashboard/overview - 概览统计
 - GET /api/admin/dashboard/users - 用户统计
-- GET /api/admin/dashboard/transactions - 交易统计
+- GET /api/admin/dashboard/transactions - 记账统计
 - GET /api/admin/dashboard/system - 系统资源
 
 #### 安全特性 ✅

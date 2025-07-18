@@ -54,7 +54,7 @@ export class DashboardService {
         // 总用户数
         prisma.user.count(),
 
-        // 总交易记录数
+        // 总记账记录数
         prisma.transaction.count(),
 
         // 今日新注册用户数（按北京时间计算）
@@ -66,7 +66,7 @@ export class DashboardService {
           },
         }),
 
-        // 今日交易记录数（按北京时间计算）
+        // 今日记账记录数（按北京时间计算）
         prisma.transaction.count({
           where: {
             createdAt: {
@@ -134,7 +134,7 @@ export class DashboardService {
         ORDER BY date ASC
       `) as Array<{ date: Date; count: bigint }>;
 
-      // 获取活跃用户数（有交易记录的用户）
+      // 获取活跃用户数（有记账记录的用户）
       const activeUsers = await prisma.user.count({
         where: {
           transactions: {
@@ -163,7 +163,7 @@ export class DashboardService {
   }
 
   /**
-   * 获取交易统计数据
+   * 获取记账统计数据
    * @param period 时间周期：7d, 30d, 90d
    */
   async getTransactionStats(period: string) {
@@ -183,7 +183,7 @@ export class DashboardService {
 
       const startDate = this.getBeijingDateStart(days);
 
-      // 获取时间段内每日交易数量（按北京时间分组）
+      // 获取时间段内每日记账数量（按北京时间分组）
       const dailyTransactions = (await prisma.$queryRaw`
         SELECT 
           DATE((created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Shanghai') as date,
@@ -201,7 +201,7 @@ export class DashboardService {
         income_amount: any;
       }>;
 
-      // 获取分类统计（按交易数量排序的前10个分类）
+      // 获取分类统计（按记账数量排序的前10个分类）
       const categoryStats = (await prisma.$queryRaw`
         SELECT 
           c.name,
@@ -235,8 +235,8 @@ export class DashboardService {
         })),
       };
     } catch (error) {
-      console.error('获取交易统计数据错误:', error);
-      throw new Error('获取交易统计数据失败');
+      console.error('获取记账统计数据错误:', error);
+      throw new Error('获取记账统计数据失败');
     }
   }
 

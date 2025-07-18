@@ -121,17 +121,17 @@ const handlePreviewDownload = async (file: AttachmentFile) => {
 - **使用方案**：apiClient (方案1)
 - **优势**：自动处理认证、错误处理、配置管理
 
-### 2. 交易详情页面 (`transaction-detail-client.tsx`)
+### 2. 记账详情页面 (`transaction-detail-client.tsx`)
 - **修复函数**：`onDownload` 回调
 - **使用方案**：fetch API (方案2)
 - **原因**：该组件没有直接访问 apiClient
 
-### 3. 交易列表组件 (`unified-transaction-list.tsx`)
+### 3. 记账列表组件 (`unified-transaction-list.tsx`)
 - **修复函数**：`handlePreviewDownload`
 - **使用方案**：fetch API (方案2)
 - **原因**：保持与现有代码结构一致
 
-### 4. 交易项组件 (`swipeable-transaction-item.tsx`)
+### 4. 记账项组件 (`swipeable-transaction-item.tsx`)
 - **修复函数**：`handlePreviewDownload`
 - **使用方案**：fetch API (方案2)
 - **原因**：保持与现有代码结构一致

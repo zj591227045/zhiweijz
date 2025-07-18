@@ -1,4 +1,4 @@
--- 为test13@test.com用户生成过去3个月的预算和交易数据
+-- 为test13@test.com用户生成过去3个月的预算和记账数据
 -- 用于测试跨月个人预算聚合功能
 
 -- 首先查找test13用户的信息
@@ -148,7 +148,7 @@ BEGIN
     
     RAISE NOTICE '已创建3个月的预算数据';
     
-    -- 生成当前月的交易数据（已花费 ¥176）
+    -- 生成当前月的记账数据（已花费 ¥176）
     INSERT INTO transactions (
         id, amount, type, category_id, description, date, 
         user_id, account_book_id, created_at, updated_at
@@ -159,7 +159,7 @@ BEGIN
     (gen_random_uuid(), 25.00, 'EXPENSE', entertainment_category_id, '电影票', current_month_start + INTERVAL '7 days', test_user_id, test_account_book_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     (gen_random_uuid(), 24.70, 'EXPENSE', transport_category_id, '打车', current_month_start + INTERVAL '8 days', test_user_id, test_account_book_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
     
-    -- 生成上月的交易数据（已花费 ¥2,450）
+    -- 生成上月的记账数据（已花费 ¥2,450）
     INSERT INTO transactions (
         id, amount, type, category_id, description, date, 
         user_id, account_book_id, created_at, updated_at
@@ -175,7 +175,7 @@ BEGIN
     (gen_random_uuid(), 68.50, 'EXPENSE', transport_category_id, '公交月票', last_month_start + INTERVAL '22 days', test_user_id, test_account_book_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     (gen_random_uuid(), 300.00, 'EXPENSE', entertainment_category_id, '旅游', last_month_start + INTERVAL '25 days', test_user_id, test_account_book_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
     
-    -- 生成前月的交易数据（已花费 ¥2,780）
+    -- 生成前月的记账数据（已花费 ¥2,780）
     INSERT INTO transactions (
         id, amount, type, category_id, description, date, 
         user_id, account_book_id, created_at, updated_at
@@ -192,7 +192,7 @@ BEGIN
     (gen_random_uuid(), 320.00, 'EXPENSE', shopping_category_id, '书籍', two_months_ago_start + INTERVAL '20 days', test_user_id, test_account_book_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     (gen_random_uuid(), 99.10, 'EXPENSE', transport_category_id, '停车费', two_months_ago_start + INTERVAL '22 days', test_user_id, test_account_book_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
     
-    RAISE NOTICE '已生成3个月的交易数据';
+    RAISE NOTICE '已生成3个月的记账数据';
     RAISE NOTICE '当前月支出: ¥176.00 (预算剩余: ¥2,824.00)';
     RAISE NOTICE '上月支出: ¥2,450.00 (预算剩余: ¥550.00)';
     RAISE NOTICE '前月支出: ¥2,780.00 (预算超支: ¥220.00)';

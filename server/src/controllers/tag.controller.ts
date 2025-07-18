@@ -178,7 +178,7 @@ export class TagController {
   }
 
   /**
-   * 获取交易记录的标签
+   * 获取记账记录的标签
    */
   async getTransactionTags(req: Request, res: Response): Promise<void> {
     try {
@@ -195,16 +195,16 @@ export class TagController {
         data: tags,
       });
     } catch (error) {
-      console.error('获取交易标签失败:', error);
+      console.error('获取记账标签失败:', error);
       res.status(500).json({
         success: false,
-        message: error instanceof Error ? error.message : '获取交易标签失败',
+        message: error instanceof Error ? error.message : '获取记账标签失败',
       });
     }
   }
 
   /**
-   * 为交易记录添加标签
+   * 为记账记录添加标签
    */
   async addTransactionTags(req: Request, res: Response): Promise<void> {
     try {
@@ -233,17 +233,17 @@ export class TagController {
         message: '标签添加成功',
       });
     } catch (error) {
-      console.error('添加交易标签失败:', error);
+      console.error('添加记账标签失败:', error);
       const statusCode = error instanceof Error && error.message.includes('不存在') ? 404 : 400;
       res.status(statusCode).json({
         success: false,
-        message: error instanceof Error ? error.message : '添加交易标签失败',
+        message: error instanceof Error ? error.message : '添加记账标签失败',
       });
     }
   }
 
   /**
-   * 移除交易记录的标签
+   * 移除记账记录的标签
    */
   async removeTransactionTag(req: Request, res: Response): Promise<void> {
     try {
@@ -260,17 +260,17 @@ export class TagController {
         message: '标签移除成功',
       });
     } catch (error) {
-      console.error('移除交易标签失败:', error);
+      console.error('移除记账标签失败:', error);
       const statusCode = error instanceof Error && error.message.includes('不存在') ? 404 : 400;
       res.status(statusCode).json({
         success: false,
-        message: error instanceof Error ? error.message : '移除交易标签失败',
+        message: error instanceof Error ? error.message : '移除记账标签失败',
       });
     }
   }
 
   /**
-   * 批量操作交易标签
+   * 批量操作记账标签
    */
   async batchOperateTransactionTags(req: Request, res: Response): Promise<void> {
     try {
@@ -283,7 +283,7 @@ export class TagController {
       const data: BatchTransactionTagsDto = req.body;
 
       if (!data.transactionIds || data.transactionIds.length === 0) {
-        res.status(400).json({ success: false, message: '交易记录ID不能为空' });
+        res.status(400).json({ success: false, message: '记账记录ID不能为空' });
         return;
       }
 
@@ -295,10 +295,10 @@ export class TagController {
       const result = await this.transactionTagService.batchOperateTransactionTags(userId, data);
       res.status(200).json(result);
     } catch (error) {
-      console.error('批量操作交易标签失败:', error);
+      console.error('批量操作记账标签失败:', error);
       res.status(422).json({
         success: false,
-        message: error instanceof Error ? error.message : '批量操作交易标签失败',
+        message: error instanceof Error ? error.message : '批量操作记账标签失败',
       });
     }
   }

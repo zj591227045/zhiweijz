@@ -49,7 +49,7 @@ export interface BudgetCard {
   userName?: string;
 }
 
-// 交易记录类型
+// 记账记录类型
 export interface Transaction {
   id: string;
   title: string;
@@ -98,7 +98,7 @@ interface BudgetStatisticsState {
   // 分类预算列表
   categoryBudgets: CategoryBudget[];
 
-  // 最近交易
+  // 最近记账
   recentTransactions: Transaction[];
 
   // 结转历史记录
@@ -446,7 +446,7 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
           console.error('获取预算详情失败:', error);
         }
 
-        // 获取预算相关的交易记录
+        // 获取预算相关的记账记录
         try {
           const params: any = {
             page: 1,
@@ -458,14 +458,14 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
           }
 
           const response = await budgetService.getBudgetTransactions(budgetId, params);
-          console.log('获取到的交易记录:', response, '家庭成员ID:', familyMemberId || '无');
+          console.log('获取到的记账记录:', response, '家庭成员ID:', familyMemberId || '无');
 
-          // 更新最近交易记录
+          // 更新最近记账记录
           if (response && response.data) {
             set({ recentTransactions: response.data });
           }
         } catch (error) {
-          console.error('获取预算交易记录失败:', error);
+          console.error('获取预算记账记录失败:', error);
         }
 
         // 更新状态

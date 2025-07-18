@@ -13,7 +13,7 @@
 
 ### 模块设计文档
 
-1. [模块详细设计 (第1部分)](module_design.md) - 用户认证、用户管理、交易记录模块
+1. [模块详细设计 (第1部分)](module_design.md) - 用户认证、用户管理、记账记录模块
 2. [模块详细设计 (第2部分)](module_design_part2.md) - 分类管理、预算管理模块
 3. [模块详细设计 (第3部分)](module_design_part3.md) - 家庭账本、统计分析、AI功能模块
 
@@ -27,7 +27,7 @@
 ### AI功能文档
 
 1. [AI功能实现概述 (修订版)](ai_implementation_overview_revised.md) - AI功能的总体架构和实现方案
-2. [智能交易分类实现 (修订版)](ai_implementation_revised.md) - 智能交易分类功能的实现
+2. [智能记账分类实现 (修订版)](ai_implementation_revised.md) - 智能记账分类功能的实现
 3. [消费模式分析实现 (修订版)](ai_implementation_patterns_revised.md) - 消费模式分析功能的实现
 4. [预算建议系统实现 (修订版)](ai_implementation_budget_revised.md) - 预算建议系统的实现
 5. [财务健康评估实现](ai_implementation_health.md) - 财务健康评估功能的实现
@@ -93,13 +93,13 @@
 - `GET /api/users/me`: 获取当前用户信息
 - `PATCH /api/users/me`: 更新用户信息
 
-### 交易API
+### 记账API
 
-- `POST /api/transactions`: 创建交易记录
-- `GET /api/transactions`: 获取交易记录列表
-- `GET /api/transactions/:id`: 获取单个交易记录
-- `PATCH /api/transactions/:id`: 更新交易记录
-- `DELETE /api/transactions/:id`: 删除交易记录
+- `POST /api/transactions`: 创建记账记录
+- `GET /api/transactions`: 获取记账记录列表
+- `GET /api/transactions/:id`: 获取单个记账记录
+- `PATCH /api/transactions/:id`: 更新记账记录
+- `DELETE /api/transactions/:id`: 删除记账记录
 
 ### 分类API
 
@@ -133,7 +133,7 @@
 
 ### AI功能API
 
-- `POST /api/ai/classify-transaction`: 智能分类交易
+- `POST /api/ai/classify-transaction`: 智能分类记账
 - `GET /api/ai/consumption-patterns`: 获取消费模式分析
 - `GET /api/ai/budget-suggestions`: 获取预算建议
 - `GET /api/ai/financial-health`: 获取财务健康评估

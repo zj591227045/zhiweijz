@@ -316,7 +316,7 @@ export class StatisticsController {
   }
 
   /**
-   * 检查是否存在无预算交易
+   * 检查是否存在无预算记账
    */
   async checkUnbudgetedTransactions(req: Request, res: Response): Promise<void> {
     try {
@@ -341,7 +341,7 @@ export class StatisticsController {
       const familyId = value.familyId;
       const accountBookId = value.accountBookId;
 
-      // 检查是否存在无预算交易
+      // 检查是否存在无预算记账
       try {
         const hasUnbudgeted = await this.statisticsService.hasUnbudgetedTransactions(
           userId,
@@ -359,8 +359,8 @@ export class StatisticsController {
         }
       }
     } catch (error) {
-      console.error('检查无预算交易失败:', error);
-      res.status(500).json({ message: '检查无预算交易失败' });
+      console.error('检查无预算记账失败:', error);
+      res.status(500).json({ message: '检查无预算记账失败' });
     }
   }
 }

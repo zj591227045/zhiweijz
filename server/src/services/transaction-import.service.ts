@@ -6,7 +6,7 @@ import { CreateTransactionDto } from '../models/transaction.model';
 import { parse as csvParse } from 'csv-parse/sync';
 
 /**
- * 交易导入格式
+ * 记账导入格式
  */
 export enum ImportFormat {
   CSV = 'csv',
@@ -14,7 +14,7 @@ export enum ImportFormat {
 }
 
 /**
- * 交易导入结果
+ * 记账导入结果
  */
 export interface ImportResult {
   total: number;
@@ -24,7 +24,7 @@ export interface ImportResult {
 }
 
 /**
- * 交易导入服务
+ * 记账导入服务
  */
 export class TransactionImportService {
   private transactionRepository: TransactionRepository;
@@ -38,7 +38,7 @@ export class TransactionImportService {
   }
 
   /**
-   * 导入交易记录
+   * 导入记账记录
    * @param userId 用户ID
    * @param fileContent 文件内容
    * @param format 导入格式
@@ -65,7 +65,7 @@ export class TransactionImportService {
       errors: [],
     };
 
-    // 逐条导入交易记录
+    // 逐条导入记账记录
     for (const record of records) {
       try {
         // 验证必填字段
@@ -80,18 +80,18 @@ export class TransactionImportService {
           throw new Error(`分类 "${record.category}" 不存在`);
         }
 
-        // 验证交易类型
+        // 验证记账类型
         const type = record.type.toUpperCase();
         if (type !== 'INCOME' && type !== 'EXPENSE') {
-          throw new Error(`无效的交易类型: ${record.type}`);
+          throw new Error(`无效的记账类型: ${record.type}`);
         }
 
-        // 验证交易类型与分类类型是否匹配
+        // 验证记账类型与分类类型是否匹配
         if (category.type !== type) {
-          throw new Error(`交易类型 ${type} 与分类类型 ${category.type} 不匹配`);
+          throw new Error(`记账类型 ${type} 与分类类型 ${category.type} 不匹配`);
         }
 
-        // 创建交易记录
+        // 创建记账记录
         const transactionData: CreateTransactionDto = {
           amount: parseFloat(record.amount),
           type: type as TransactionType,
@@ -100,7 +100,7 @@ export class TransactionImportService {
           date: new Date(record.date),
         };
 
-        // 保存交易记录 - 使用交易服务来确保正确设置家庭相关字段
+        // 保存记账记录 - 使用记账服务来确保正确设置家庭相关字段
         await this.transactionService.createTransaction(userId, transactionData);
         result.success++;
       } catch (error) {

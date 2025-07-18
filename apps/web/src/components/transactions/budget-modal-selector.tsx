@@ -77,7 +77,7 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
         params.endDate = endDate;
       }
 
-      // 并行获取预算列表和检查无预算交易
+      // 并行获取预算列表和检查无预算记账
       const [budgetResponse, unbudgetedResponse] = await Promise.all([
         apiClient.get('/budgets', { params }),
         apiClient.get('/statistics/check-unbudgeted', { params })
@@ -92,7 +92,7 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
         setBudgets([]);
       }
 
-      // 处理无预算交易检查响应
+      // 处理无预算记账检查响应
       setHasUnbudgetedTransactions(unbudgetedResponse?.hasUnbudgetedTransactions || false);
     } catch (error: any) {
       console.error('获取预算列表失败:', error);
@@ -331,7 +331,7 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
                 )}
               </button>
 
-              {/* 无预算选项 - 只有当存在无预算交易时才显示 */}
+              {/* 无预算选项 - 只有当存在无预算记账时才显示 */}
               {hasUnbudgetedTransactions && (
                 <button
                   onClick={() => handleBudgetSelect('NO_BUDGET')}
@@ -349,7 +349,7 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
                     </div>
                     <div className="text-left">
                       <div className="font-medium text-gray-900">无预算</div>
-                      <div className="text-sm text-gray-500">显示未分配预算的交易</div>
+                      <div className="text-sm text-gray-500">显示未分配预算的记账</div>
                     </div>
                   </div>
                   {selectedBudgetId === 'NO_BUDGET' && (

@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function createTest13BudgetData() {
   try {
-    console.log('开始为test13@test.com用户生成预算和交易数据...');
+    console.log('开始为test13@test.com用户生成预算和记账数据...');
 
     // 查找test13用户
     const user = await prisma.user.findUnique({
@@ -147,16 +147,16 @@ async function createTest13BudgetData() {
       console.log(`已创建${budget.period}预算: ¥${budget.amount}`);
     }
     
-    // 生成交易数据
+    // 生成记账数据
     const transactions = [
-      // 当前月交易 (总计 ¥176.00)
+      // 当前月记账 (总计 ¥176.00)
       { amount: 45.50, category: '餐饮', description: '午餐', date: new Date(currentMonthStart.getTime() + 2 * 24 * 60 * 60 * 1000) },
       { amount: 12.00, category: '交通', description: '地铁', date: new Date(currentMonthStart.getTime() + 3 * 24 * 60 * 60 * 1000) },
       { amount: 68.80, category: '餐饮', description: '晚餐', date: new Date(currentMonthStart.getTime() + 5 * 24 * 60 * 60 * 1000) },
       { amount: 25.00, category: '娱乐', description: '电影票', date: new Date(currentMonthStart.getTime() + 7 * 24 * 60 * 60 * 1000) },
       { amount: 24.70, category: '交通', description: '打车', date: new Date(currentMonthStart.getTime() + 8 * 24 * 60 * 60 * 1000) },
       
-      // 上月交易 (总计 ¥2,450.00)
+      // 上月记账 (总计 ¥2,450.00)
       { amount: 580.00, category: '购物', description: '购买衣服', date: new Date(lastMonthStart.getTime() + 3 * 24 * 60 * 60 * 1000) },
       { amount: 320.50, category: '餐饮', description: '聚餐', date: new Date(lastMonthStart.getTime() + 5 * 24 * 60 * 60 * 1000) },
       { amount: 150.00, category: '娱乐', description: '健身房', date: new Date(lastMonthStart.getTime() + 8 * 24 * 60 * 60 * 1000) },
@@ -168,7 +168,7 @@ async function createTest13BudgetData() {
       { amount: 68.50, category: '交通', description: '公交月票', date: new Date(lastMonthStart.getTime() + 22 * 24 * 60 * 60 * 1000) },
       { amount: 300.00, category: '娱乐', description: '旅游', date: new Date(lastMonthStart.getTime() + 25 * 24 * 60 * 60 * 1000) },
       
-      // 前月交易 (总计 ¥2,780.00)
+      // 前月记账 (总计 ¥2,780.00)
       { amount: 650.00, category: '购物', description: '家具', date: new Date(twoMonthsAgoStart.getTime() + 2 * 24 * 60 * 60 * 1000) },
       { amount: 280.30, category: '餐饮', description: '生日聚餐', date: new Date(twoMonthsAgoStart.getTime() + 4 * 24 * 60 * 60 * 1000) },
       { amount: 120.00, category: '交通', description: '火车票', date: new Date(twoMonthsAgoStart.getTime() + 6 * 24 * 60 * 60 * 1000) },
@@ -197,7 +197,7 @@ async function createTest13BudgetData() {
       });
     }
     
-    console.log('已生成所有交易数据');
+    console.log('已生成所有记账数据');
     console.log('');
     console.log('=== 数据汇总 ===');
     console.log('当前月支出: ¥176.00 (预算剩余: ¥2,824.00)');

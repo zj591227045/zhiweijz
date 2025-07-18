@@ -92,7 +92,7 @@ export function MobileAttachmentUpload({
     try {
       let response;
       if (transactionId) {
-        // 编辑模式：直接上传到指定交易
+        // 编辑模式：直接上传到指定记账
         formData.append('attachment', {
           uri: fileUri,
           type: mimeType,

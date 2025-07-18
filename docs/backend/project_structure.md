@@ -20,7 +20,7 @@ zhiweijz/
 │   │   ├── controllers/       # 控制器
 │   │   │   ├── auth.controller.ts    # 认证控制器
 │   │   │   ├── user.controller.ts    # 用户控制器
-│   │   │   ├── transaction.controller.ts # 交易控制器
+│   │   │   ├── transaction.controller.ts # 记账控制器
 │   │   │   ├── category.controller.ts    # 分类控制器
 │   │   │   ├── budget.controller.ts      # 预算控制器
 │   │   │   ├── family.controller.ts      # 家庭控制器
@@ -30,7 +30,7 @@ zhiweijz/
 │   │   ├── services/          # 服务层
 │   │   │   ├── auth.service.ts        # 认证服务
 │   │   │   ├── user.service.ts        # 用户服务
-│   │   │   ├── transaction.service.ts # 交易服务
+│   │   │   ├── transaction.service.ts # 记账服务
 │   │   │   ├── category.service.ts    # 分类服务
 │   │   │   ├── budget.service.ts      # 预算服务
 │   │   │   ├── family.service.ts      # 家庭服务
@@ -39,7 +39,7 @@ zhiweijz/
 │   │   │
 │   │   ├── repositories/      # 数据访问层
 │   │   │   ├── user.repository.ts     # 用户数据访问
-│   │   │   ├── transaction.repository.ts # 交易数据访问
+│   │   │   ├── transaction.repository.ts # 记账数据访问
 │   │   │   ├── category.repository.ts    # 分类数据访问
 │   │   │   ├── budget.repository.ts      # 预算数据访问
 │   │   │   ├── family.repository.ts      # 家庭数据访问
@@ -48,7 +48,7 @@ zhiweijz/
 │   │   ├── models/            # 数据模型和接口
 │   │   │   ├── user.model.ts          # 用户模型
 │   │   │   ├── auth.model.ts          # 认证模型
-│   │   │   ├── transaction.model.ts   # 交易模型
+│   │   │   ├── transaction.model.ts   # 记账模型
 │   │   │   ├── category.model.ts      # 分类模型
 │   │   │   ├── budget.model.ts        # 预算模型
 │   │   │   ├── family.model.ts        # 家庭模型
@@ -63,7 +63,7 @@ zhiweijz/
 │   │   ├── validators/        # 请求验证
 │   │   │   ├── auth.validator.ts      # 认证验证器
 │   │   │   ├── user.validator.ts      # 用户验证器
-│   │   │   ├── transaction.validator.ts # 交易验证器
+│   │   │   ├── transaction.validator.ts # 记账验证器
 │   │   │   ├── category.validator.ts  # 分类验证器
 │   │   │   ├── budget.validator.ts    # 预算验证器
 │   │   │   └── family.validator.ts    # 家庭验证器
@@ -84,7 +84,7 @@ zhiweijz/
 │   │   ├── routes/            # 路由定义
 │   │   │   ├── auth.routes.ts         # 认证路由
 │   │   │   ├── user.routes.ts         # 用户路由
-│   │   │   ├── transaction.routes.ts  # 交易路由
+│   │   │   ├── transaction.routes.ts  # 记账路由
 │   │   │   ├── category.routes.ts     # 分类路由
 │   │   │   ├── budget.routes.ts       # 预算路由
 │   │   │   ├── family.routes.ts       # 家庭路由
@@ -228,7 +228,7 @@ export class TransactionService {
       throw new Error('分类不存在');
     }
 
-    // 创建交易记录
+    // 创建记账记录
     const transaction = await this.transactionRepository.create({
       ...data,
       userId
@@ -286,10 +286,10 @@ import { authenticate } from '../middlewares/auth.middleware';
 const router = Router();
 const transactionController = new TransactionController();
 
-// 所有交易路由都需要认证
+// 所有记账路由都需要认证
 router.use(authenticate);
 
-// 交易CRUD路由
+// 记账CRUD路由
 router.post('/', (req, res) => transactionController.create(req, res));
 router.get('/', (req, res) => transactionController.getAll(req, res));
 router.get('/:id', (req, res) => transactionController.getById(req, res));

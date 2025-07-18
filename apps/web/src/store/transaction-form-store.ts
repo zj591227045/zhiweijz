@@ -145,7 +145,7 @@ export const useTransactionFormStore = create<TransactionFormState>((set) => ({
       updates.amount = result.amount.toString();
     }
 
-    // 填充交易类型
+    // 填充记账类型
     if (result.type) {
       updates.type = result.type;
     }

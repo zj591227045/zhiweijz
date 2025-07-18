@@ -65,12 +65,12 @@ export class BudgetDataAnalyzer {
     const startDate = new Date(today);
     startDate.setMonth(today.getMonth() - months);
     
-    // 过滤时间范围内的交易
+    // 过滤时间范围内的记账
     const recentTransactions = transactions.filter(t => 
       t.date >= startDate && t.date <= today
     );
     
-    // 按月分组交易
+    // 按月分组记账
     const monthlyTransactions = this.groupTransactionsByMonth(recentTransactions);
     
     // 计算月平均收入
@@ -134,7 +134,7 @@ export class BudgetDataAnalyzer {
   }
   
   private calculateIncomeStability(incomeTransactions: Transaction[], months: number): 'HIGH' | 'MEDIUM' | 'LOW' {
-    // 如果没有足够的收入交易，返回低稳定性
+    // 如果没有足够的收入记账，返回低稳定性
     if (incomeTransactions.length < months) {
       return 'LOW';
     }
@@ -172,7 +172,7 @@ export class BudgetDataAnalyzer {
     monthlyTransactions: Map<string, Transaction[]>,
     totalMonthlyAverage: number
   ) {
-    // 按分类分组交易
+    // 按分类分组记账
     const categoryTransactions = new Map<string, Transaction[]>();
     
     expenseTransactions.forEach(transaction => {
@@ -245,7 +245,7 @@ export class BudgetDataAnalyzer {
     categories: Map<string, Category>
   ) {
     return budgets.map(budget => {
-      // 找出该预算类别的所有交易
+      // 找出该预算类别的所有记账
       const categoryTransactions = expenseTransactions.filter(t => 
         t.categoryId === budget.categoryId &&
         t.date >= budget.startDate &&

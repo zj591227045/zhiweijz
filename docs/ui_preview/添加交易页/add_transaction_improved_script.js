@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoryItems = document.querySelectorAll('.category-item');
     const changeButton = document.querySelector('.change-category-btn');
     
-    // 交易类型切换
+    // 记账类型切换
     expenseButton.addEventListener('click', function() {
         expenseButton.classList.add('active');
         incomeButton.classList.remove('active');

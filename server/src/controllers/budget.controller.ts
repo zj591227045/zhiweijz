@@ -341,7 +341,7 @@ export class BudgetController {
   }
 
   /**
-   * 获取预算相关交易
+   * 获取预算相关记账
    */
   async getBudgetTransactions(req: Request, res: Response): Promise<void> {
     try {
@@ -359,8 +359,8 @@ export class BudgetController {
 
       // 检查是否为聚合预算ID
       if (budgetId.startsWith('aggregated_')) {
-        console.log('检测到聚合预算ID，使用聚合预算交易逻辑');
-        // 对于聚合预算，返回空的交易记录（因为聚合预算是虚拟的）
+        console.log('检测到聚合预算ID，使用聚合预算记账逻辑');
+        // 对于聚合预算，返回空的记账记录（因为聚合预算是虚拟的）
         res.status(200).json({
           data: [],
           total: 0,
@@ -378,7 +378,7 @@ export class BudgetController {
         return;
       }
 
-      // 获取与预算相关的交易
+      // 获取与预算相关的记账
       const transactions = await this.transactionService.getTransactionsByBudget(
         budgetId,
         page,
@@ -386,7 +386,7 @@ export class BudgetController {
         familyMemberId,
       );
 
-      // 如果需要包含附件信息，为每个交易获取附件
+      // 如果需要包含附件信息，为每个记账获取附件
       if (includeAttachments && transactions.data) {
         for (const transaction of transactions.data) {
           try {
@@ -402,7 +402,7 @@ export class BudgetController {
       }
 
       console.log(
-        `获取预算相关交易，预算ID: ${budgetId}, 家庭成员ID: ${familyMemberId || '无'}, 包含附件: ${includeAttachments}, 找到 ${
+        `获取预算相关记账，预算ID: ${budgetId}, 家庭成员ID: ${familyMemberId || '无'}, 包含附件: ${includeAttachments}, 找到 ${
           transactions.data?.length || 0
         } 条记录`,
       );
@@ -411,7 +411,7 @@ export class BudgetController {
       if (error instanceof Error) {
         res.status(404).json({ message: error.message });
       } else {
-        res.status(500).json({ message: '获取预算相关交易时发生错误' });
+        res.status(500).json({ message: '获取预算相关记账时发生错误' });
       }
     }
   }
@@ -506,7 +506,7 @@ export class BudgetController {
   }
 
   /**
-   * 重新计算预算结转链条（用于修复历史交易影响）
+   * 重新计算预算结转链条（用于修复历史记账影响）
    */
   async recalculateBudgetRolloverChain(req: Request, res: Response): Promise<void> {
     try {
@@ -596,7 +596,7 @@ export class BudgetController {
   }
 
   /**
-   * 生成模拟交易数据
+   * 生成模拟记账数据
    */
   private generateMockTransactions(page: number, limit: number): any {
     const transactions = [];

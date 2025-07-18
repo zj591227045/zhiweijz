@@ -194,7 +194,7 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.message || '获取交易统计失败');
+        throw new Error(data.message || '获取记账统计失败');
       }
 
       set(state => ({
@@ -205,7 +205,7 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
     } catch (error) {
       set(state => ({
         isLoading: { ...state.isLoading, transactionStats: false },
-        error: error instanceof Error ? error.message : '获取交易统计失败',
+        error: error instanceof Error ? error.message : '获取记账统计失败',
       }));
     }
   },

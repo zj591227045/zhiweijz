@@ -1,4 +1,4 @@
-/* 交易添加页面特有样式 */
+/* 记账添加页面特有样式 */
 
 .transaction-add-content {
   display: flex;
@@ -255,7 +255,7 @@
   color: var(--primary-color);
 }
 
-/* 交易详情表单 */
+/* 记账详情表单 */
 .transaction-details-form {
   display: flex;
   flex-direction: column;

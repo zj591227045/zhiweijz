@@ -17,7 +17,7 @@ describe('Transaction API', () => {
       // 使用Express应用
       app = expressApp;
 
-      // 使用测试交易ID
+      // 使用测试记账ID
       createdTransactionId = testTransactionId;
 
       console.log('Using test transaction ID:', testTransactionId);
@@ -164,7 +164,7 @@ describe('Transaction API', () => {
         .set('Authorization', `Bearer ${testUserToken}`)
         .expect(204);
 
-      // 验证交易已被删除
+      // 验证记账已被删除
       await request(app)
         .get(`/api/transactions/${createdTransactionId}`)
         .set('Authorization', `Bearer ${testUserToken}`)

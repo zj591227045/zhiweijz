@@ -162,7 +162,7 @@ export const useAccountingPointsManagement = create<AccountingPointsManagementSt
     }
   },
 
-  // 获取用户交易记录
+  // 获取用户记账记录
   fetchUserTransactions: async (userId: string, page = 1) => {
     set({ isLoadingTransactions: true });
     try {
@@ -176,14 +176,14 @@ export const useAccountingPointsManagement = create<AccountingPointsManagementSt
         if (data?.success) {
           set({ userTransactions: data.data.transactions });
         } else {
-          toast.error('获取用户交易记录失败');
+          toast.error('获取用户记账记录失败');
         }
       } else {
-        toast.error('获取用户交易记录失败');
+        toast.error('获取用户记账记录失败');
       }
     } catch (error) {
-      console.error('获取用户交易记录失败:', error);
-      toast.error('获取用户交易记录失败');
+      console.error('获取用户记账记录失败:', error);
+      toast.error('获取用户记账记录失败');
     } finally {
       set({ isLoadingTransactions: false });
     }
@@ -265,7 +265,7 @@ export const useAccountingPointsManagement = create<AccountingPointsManagementSt
     }
   },
 
-  // 清空用户交易记录
+  // 清空用户记账记录
   clearUserTransactions: () => {
     set({ userTransactions: [] });
   }

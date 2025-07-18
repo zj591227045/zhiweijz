@@ -263,7 +263,7 @@ CREATE INDEX IF NOT EXISTS idx_transactions_metadata_gin ON transactions USING g
 - `deletion_scheduled_at`: 计划删除时间（时间戳，可空）
 
 ### transactions 表
-- `metadata`: 交易元数据（JSONB，可空）
+- `metadata`: 记账元数据（JSONB，可空）
 
 ## 验证修复
 

@@ -312,7 +312,7 @@ class MembershipService {
       }
     });
 
-    // 记录积分交易
+    // 记录积分记账
     await this.prisma.accountingPointsTransactions.create({
       data: {
         userId,

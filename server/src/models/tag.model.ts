@@ -105,7 +105,7 @@ export interface TagDetailResponse {
 }
 
 /**
- * 交易标签关联
+ * 记账标签关联
  */
 export interface TransactionTag {
   id: string;
@@ -115,14 +115,14 @@ export interface TransactionTag {
 }
 
 /**
- * 为交易添加标签DTO
+ * 为记账添加标签DTO
  */
 export interface AddTransactionTagsDto {
   tagIds: string[];
 }
 
 /**
- * 批量操作交易标签DTO
+ * 批量操作记账标签DTO
  */
 export interface BatchTransactionTagsDto {
   transactionIds: string[];
@@ -310,7 +310,7 @@ export const TagErrorMessages = {
   [TagErrorCode.TAG_IN_USE]: '标签正在使用中，无法删除',
   [TagErrorCode.INSUFFICIENT_PERMISSION]: '权限不足',
   [TagErrorCode.ACCOUNT_BOOK_NOT_FOUND]: '账本不存在',
-  [TagErrorCode.TRANSACTION_NOT_FOUND]: '交易记录不存在',
+  [TagErrorCode.TRANSACTION_NOT_FOUND]: '记账记录不存在',
   [TagErrorCode.BATCH_OPERATION_FAILED]: '批量操作部分失败',
   [TagErrorCode.TAG_LIMIT_EXCEEDED]: '标签数量超出限制',
   [TagErrorCode.INVALID_TAG_NAME]: '标签名称格式无效',

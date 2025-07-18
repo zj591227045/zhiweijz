@@ -57,7 +57,7 @@ export class ImageCompressionService {
       progressive: true,
       preserveMetadata: false,
     },
-    // 交易附件压缩策略 - 保持可读性，适度压缩
+    // 记账附件压缩策略 - 保持可读性，适度压缩
     attachment: {
       enabled: true,
       quality: 80, // 中等质量，保证文字清晰

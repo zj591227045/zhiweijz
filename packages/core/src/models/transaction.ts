@@ -2,7 +2,7 @@ import { AccountBook } from './account-book';
 import { Category } from './category';
 
 /**
- * 交易相关类型
+ * 记账相关类型
  */
 export enum TransactionType {
   EXPENSE = "EXPENSE",

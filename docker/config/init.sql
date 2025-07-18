@@ -109,7 +109,7 @@ CREATE TABLE public.budgets (
     refresh_day integer DEFAULT 1 NOT NULL
 );
 
--- 创建交易表
+-- 创建记账表
 CREATE TABLE public.transactions (
     id text NOT NULL,
     amount numeric(10,2) NOT NULL,

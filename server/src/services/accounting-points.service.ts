@@ -249,7 +249,7 @@ class AccountingPointsService {
 
       const newBalance = balanceType === 'gift' ? updatedPoints.giftBalance : updatedPoints.memberBalance;
 
-      // 记录交易
+      // 记录记账
       await tx.accountingPointsTransactions.create({
         data: {
           userId,
@@ -267,7 +267,7 @@ class AccountingPointsService {
   }
 
   /**
-   * 记录记账点交易
+   * 记录记账点记账
    */
   static async recordTransaction(
     userId: string, 
@@ -521,7 +521,7 @@ class AccountingPointsService {
             data: { pointsGiven: pointsToGive }
           });
 
-          // 记录交易
+          // 记录记账
           await tx.accountingPointsTransactions.create({
             data: {
               userId,
@@ -604,7 +604,7 @@ class AccountingPointsService {
   }
 
   /**
-   * 获取用户交易记录
+   * 获取用户记账记录
    */
   static async getUserTransactions(
     userId: string,
@@ -619,7 +619,7 @@ class AccountingPointsService {
     });
 
     // 添加调试日志
-    console.log(`🔍 [AccountingPointsService] 获取用户 ${userId} 的交易记录，数量: ${transactions.length}`);
+    console.log(`🔍 [AccountingPointsService] 获取用户 ${userId} 的记账记录，数量: ${transactions.length}`);
     if (transactions.length > 0) {
       console.log(`🔍 [AccountingPointsService] 第一条记录时间: ${transactions[0].createdAt}`);
       console.log(`🔍 [AccountingPointsService] 最后一条记录时间: ${transactions[transactions.length - 1].createdAt}`);

@@ -24,7 +24,7 @@ export class TransactionController {
   }
 
   /**
-   * 创建交易记录
+   * 创建记账记录
    */
   async createTransaction(req: Request, res: Response): Promise<void> {
     try {
@@ -45,13 +45,13 @@ export class TransactionController {
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
-        res.status(500).json({ message: '创建交易记录时发生错误' });
+        res.status(500).json({ message: '创建记账记录时发生错误' });
       }
     }
   }
 
   /**
-   * 获取交易记录列表
+   * 获取记账记录列表
    */
   async getTransactions(req: Request, res: Response): Promise<void> {
     try {
@@ -115,12 +115,12 @@ export class TransactionController {
 
       res.status(200).json(result);
     } catch (error) {
-      res.status(500).json({ message: '获取交易记录列表时发生错误' });
+      res.status(500).json({ message: '获取记账记录列表时发生错误' });
     }
   }
 
   /**
-   * 获取单个交易记录
+   * 获取单个记账记录
    */
   async getTransaction(req: Request, res: Response): Promise<void> {
     try {
@@ -147,13 +147,13 @@ export class TransactionController {
       if (error instanceof Error) {
         res.status(404).json({ message: error.message });
       } else {
-        res.status(500).json({ message: '获取交易记录时发生错误' });
+        res.status(500).json({ message: '获取记账记录时发生错误' });
       }
     }
   }
 
   /**
-   * 更新交易记录
+   * 更新记账记录
    */
   async updateTransaction(req: Request, res: Response): Promise<void> {
     try {
@@ -179,13 +179,13 @@ export class TransactionController {
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
-        res.status(500).json({ message: '更新交易记录时发生错误' });
+        res.status(500).json({ message: '更新记账记录时发生错误' });
       }
     }
   }
 
   /**
-   * 删除交易记录
+   * 删除记账记录
    */
   async deleteTransaction(req: Request, res: Response): Promise<void> {
     try {
@@ -202,13 +202,13 @@ export class TransactionController {
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
-        res.status(500).json({ message: '删除交易记录时发生错误' });
+        res.status(500).json({ message: '删除记账记录时发生错误' });
       }
     }
   }
 
   /**
-   * 获取按条件分组的交易记录
+   * 获取按条件分组的记账记录
    */
   async getGroupedTransactions(req: Request, res: Response): Promise<void> {
     try {
@@ -262,7 +262,7 @@ export class TransactionController {
       // 检查是否需要包含附件信息
       const includeAttachments = req.query.includeAttachments === 'true';
 
-      // 获取交易记录
+      // 获取记账记录
       const result = await this.transactionService.getTransactions(userId, params);
       
       // 按日期分组处理
@@ -283,7 +283,7 @@ export class TransactionController {
         }
       }
       
-      // 返回分组后的交易数据
+      // 返回分组后的记账数据
       res.status(200).json({
         data: transactions,
         total: result.total,
@@ -292,13 +292,13 @@ export class TransactionController {
         groupBy: groupBy
       });
     } catch (error) {
-      console.error('获取分组交易记录失败:', error);
-      res.status(500).json({ message: '获取分组交易记录时发生错误' });
+      console.error('获取分组记账记录失败:', error);
+      res.status(500).json({ message: '获取分组记账记录时发生错误' });
     }
   }
 
   /**
-   * 获取交易统计
+   * 获取记账统计
    */
   async getTransactionStatistics(req: Request, res: Response): Promise<void> {
     try {
@@ -322,12 +322,12 @@ export class TransactionController {
       );
       res.status(200).json(statistics);
     } catch (error) {
-      res.status(500).json({ message: '获取交易统计时发生错误' });
+      res.status(500).json({ message: '获取记账统计时发生错误' });
     }
   }
 
   /**
-   * 获取交易列表和统计信息
+   * 获取记账列表和统计信息
    * 支持根据时间、收入支出、分类进行过滤后再统计
    */
   async getTransactionsWithStatistics(req: Request, res: Response): Promise<void> {
@@ -369,10 +369,10 @@ export class TransactionController {
       // 检查是否需要包含附件信息
       const includeAttachments = req.query.includeAttachments === 'true';
 
-      // 获取交易列表和统计信息
+      // 获取记账列表和统计信息
       const result = await this.transactionService.getTransactionsWithStatistics(userId, params);
 
-      // 如果需要包含附件信息且有交易数据
+      // 如果需要包含附件信息且有记账数据
       if (includeAttachments && result.transactions && result.transactions.data && result.transactions.data.length > 0) {
         for (const transaction of result.transactions.data) {
           try {
@@ -389,13 +389,13 @@ export class TransactionController {
 
       res.status(200).json(result);
     } catch (error) {
-      console.error('获取交易列表和统计信息时发生错误:', error);
-      res.status(500).json({ message: '获取交易列表和统计信息时发生错误' });
+      console.error('获取记账列表和统计信息时发生错误:', error);
+      res.status(500).json({ message: '获取记账列表和统计信息时发生错误' });
     }
   }
 
   /**
-   * 导出交易记录
+   * 导出记账记录
    */
   async exportTransactions(req: Request, res: Response): Promise<void> {
     try {
@@ -422,7 +422,7 @@ export class TransactionController {
         accountBookId: req.query.accountBookId as string | undefined,
       };
 
-      // 导出交易记录
+      // 导出记账记录
       const format =
         exportData.format === TransactionExportFormat.CSV ? ExportFormat.CSV : ExportFormat.JSON;
       const result = await this.transactionExportService.exportTransactions(userId, params, format);
@@ -437,13 +437,13 @@ export class TransactionController {
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
-        res.status(500).json({ message: '导出交易记录时发生错误' });
+        res.status(500).json({ message: '导出记账记录时发生错误' });
       }
     }
   }
 
   /**
-   * 导入交易记录
+   * 导入记账记录
    */
   async importTransactions(req: Request, res: Response): Promise<void> {
     try {
@@ -467,7 +467,7 @@ export class TransactionController {
         return;
       }
 
-      // 导入交易记录
+      // 导入记账记录
       const format =
         importData.format === TransactionExportFormat.CSV ? ImportFormat.CSV : ImportFormat.JSON;
       const result = await this.transactionImportService.importTransactions(
@@ -482,7 +482,7 @@ export class TransactionController {
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
-        res.status(500).json({ message: '导入交易记录时发生错误' });
+        res.status(500).json({ message: '导入记账记录时发生错误' });
       }
     }
   }

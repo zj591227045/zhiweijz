@@ -110,7 +110,7 @@ export class ImageRecognitionService {
       // 暂时返回模拟数据
       const extractedData = this.getMockExtractedData(request.recognitionType);
 
-      // 生成建议的交易记录
+      // 生成建议的记账记录
       const suggestedTransaction = await this.generateSuggestedTransaction(
         extractedData,
         userId
@@ -124,7 +124,7 @@ export class ImageRecognitionService {
         ConfidenceLevel.MEDIUM
       );
 
-      // 如果启用自动创建交易记录
+      // 如果启用自动创建记账记录
       if (request.options?.autoCreateTransaction && suggestedTransaction) {
         await this.createTransactionFromRecognition(suggestedTransaction, userId, recognition.id);
       }
@@ -436,11 +436,11 @@ export class ImageRecognitionService {
   ): Promise<SuggestedTransactionDto | null> {
     if (!extractedData.totalAmount) return null;
 
-    // 根据提取的数据生成建议的交易记录
+    // 根据提取的数据生成建议的记账记录
     return {
       amount: extractedData.totalAmount,
       type: 'EXPENSE' as any,
-      description: extractedData.description || extractedData.merchantName || '图片识别交易',
+      description: extractedData.description || extractedData.merchantName || '图片识别记账',
       date: extractedData.transactionDate || new Date(),
       categoryName: extractedData.category,
       metadata: {
@@ -457,8 +457,8 @@ export class ImageRecognitionService {
     userId: string,
     recognitionId: string
   ): Promise<void> {
-    // 自动创建交易记录
-    console.log('自动创建交易记录:', suggestedTransaction);
+    // 自动创建记账记录
+    console.log('自动创建记账记录:', suggestedTransaction);
   }
 
   private async saveValidationData(
@@ -495,7 +495,7 @@ export class ImageRecognitionService {
       region: '服务区域',
       default_language: '默认识别语言',
       max_file_size: '最大文件大小',
-      auto_create_transaction: '是否自动创建交易记录',
+      auto_create_transaction: '是否自动创建记账记录',
       confidence_threshold: '置信度阈值',
       enhance_image: '是否增强图片',
       retry_attempts: '重试次数',

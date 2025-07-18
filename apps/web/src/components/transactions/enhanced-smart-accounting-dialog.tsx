@@ -1260,7 +1260,7 @@ export default function EnhancedSmartAccountingDialog({
       );
 
       if (response) {
-        // 将结果存储到sessionStorage，供添加交易页面使用
+        // 将结果存储到sessionStorage，供添加记账页面使用
         sessionStorage.setItem('smartAccountingResult', JSON.stringify(response));
         showSuccess('智能识别成功');
         

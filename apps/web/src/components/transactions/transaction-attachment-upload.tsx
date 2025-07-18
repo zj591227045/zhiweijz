@@ -28,7 +28,7 @@ export interface TransactionAttachment {
 }
 
 export interface TransactionAttachmentUploadProps {
-  /** 交易ID（编辑模式时提供） */
+  /** 记账ID（编辑模式时提供） */
   transactionId?: string;
   /** 初始附件列表 */
   initialAttachments?: TransactionAttachment[];
@@ -207,7 +207,7 @@ export const TransactionAttachmentUpload = React.forwardRef<
     loading: boolean;
   }>({ isOpen: false, attachment: null, loading: false });
 
-  // 待删除的附件列表（只有在保存交易后才真正删除）
+  // 待删除的附件列表（只有在保存记账后才真正删除）
   const [pendingDeletes, setPendingDeletes] = useState<{id: string, fileId: string}[]>([]);
 
   // 当 initialAttachments 更新时，同步更新本地状态
@@ -225,7 +225,7 @@ export const TransactionAttachmentUpload = React.forwardRef<
     try {
       // 编辑模式：批量上传后刷新附件列表
       if (transactionId) {
-        console.log('📎 编辑模式：批量上传附件到交易', transactionId);
+        console.log('📎 编辑模式：批量上传附件到记账', transactionId);
 
         for (const file of files) {
           console.log('📎 开始上传附件:', file.name, file.size, 'bytes');
@@ -358,7 +358,7 @@ export const TransactionAttachmentUpload = React.forwardRef<
         console.log('📎 标记附件为待删除:', attachment.id);
         const fileIdToDelete = attachment.fileId || attachment.id;
         setPendingDeletes(prev => [...prev, { id: attachment.id, fileId: fileIdToDelete }]);
-        toast.success('附件已标记删除，保存交易后生效');
+        toast.success('附件已标记删除，保存记账后生效');
       } else {
         // 临时附件直接删除
         console.log('📎 删除临时附件:', attachment.id);
@@ -383,7 +383,7 @@ export const TransactionAttachmentUpload = React.forwardRef<
     setDeleteConfirm({ isOpen: false, attachment: null, loading: false });
   }, []);
 
-  // 执行真正的删除操作（在交易保存后调用）
+  // 执行真正的删除操作（在记账保存后调用）
   const executePendingDeletes = useCallback(async () => {
     if (pendingDeletes.length === 0) return;
 
@@ -507,7 +507,7 @@ export const TransactionAttachmentUpload = React.forwardRef<
           title="删除附件"
           message={
             transactionId && deleteConfirm.attachment && !deleteConfirm.attachment.id.startsWith('temp-')
-              ? '确定要删除此附件吗？此操作将在保存交易后生效。'
+              ? '确定要删除此附件吗？此操作将在保存记账后生效。'
               : '确定要删除此附件吗？'
           }
           confirmText="删除"

@@ -1,6 +1,6 @@
 /**
  * 生产环境数据分析脚本
- * 分析需要修复的交易记录数量和类型，评估修复风险
+ * 分析需要修复的记账记录数量和类型，评估修复风险
  *
  * 使用方法：
  * npx ts-node src/scripts/production-data-analysis.ts
@@ -25,8 +25,8 @@ async function analyzeProductionData() {
     });
 
     console.log(`\n📈 总体统计:`);
-    console.log(`  总交易数: ${totalTransactions}`);
-    console.log(`  家庭账本交易数: ${familyAccountBookTransactions}`);
+    console.log(`  总记账数: ${totalTransactions}`);
+    console.log(`  家庭账本记账数: ${familyAccountBookTransactions}`);
 
     // 2. 需要修复的数据统计
     const needsFixing = await prisma.transaction.count({
@@ -172,7 +172,7 @@ async function analyzeProductionData() {
     }
 
     if (needsFixing / familyAccountBookTransactions > 0.5) {
-      console.log(`  🔴 数据完整性风险: 超过50%的家庭交易记录需要修复`);
+      console.log(`  🔴 数据完整性风险: 超过50%的家庭记账记录需要修复`);
     }
 
     if (withoutBudget > needsFixing * 0.3) {

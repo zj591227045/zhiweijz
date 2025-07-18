@@ -43,7 +43,7 @@ export interface ImageRecognitionRequestDto {
     language?: string; // 识别语言，默认中文
     extractFields?: string[]; // 需要提取的字段
     enhanceImage?: boolean; // 是否增强图片质量
-    autoCreateTransaction?: boolean; // 是否自动创建交易记录
+    autoCreateTransaction?: boolean; // 是否自动创建记账记录
   };
 }
 
@@ -73,7 +73,7 @@ export interface ExtractedData {
   merchantAddress?: string; // 商户地址
   merchantPhone?: string; // 商户电话
   
-  // 交易信息
+  // 记账信息
   totalAmount?: number; // 总金额
   subtotal?: number; // 小计
   tax?: number; // 税额
@@ -82,8 +82,8 @@ export interface ExtractedData {
   currency?: string; // 币种
   
   // 时间信息
-  transactionDate?: Date; // 交易日期
-  transactionTime?: string; // 交易时间
+  transactionDate?: Date; // 记账日期
+  transactionTime?: string; // 记账时间
   
   // 支付信息
   paymentMethod?: string; // 支付方式
@@ -119,7 +119,7 @@ export interface ExtractedItem {
 }
 
 /**
- * 建议的交易记录DTO
+ * 建议的记账记录DTO
  */
 export interface SuggestedTransactionDto {
   amount: number;
@@ -197,7 +197,7 @@ export interface ImageRecognitionConfigDto {
   supportedTypes: ImageRecognitionType[];
   maxFileSize: number; // 最大文件大小（字节）
   supportedFormats: string[]; // 支持的图片格式
-  autoCreateTransaction: boolean; // 是否自动创建交易记录
+  autoCreateTransaction: boolean; // 是否自动创建记账记录
   confidenceThreshold: number; // 置信度阈值（0-1）
   enhanceImage: boolean; // 是否默认增强图片
   retryAttempts: number; // 重试次数

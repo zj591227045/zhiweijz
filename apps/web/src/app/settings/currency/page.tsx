@@ -120,7 +120,7 @@ export default function CurrencyPage() {
 
         <div className="setting-description">
           <p>选择您偏好的货币单位。货币设置将影响金额的显示格式，并保存在本地。</p>
-          <p className="note">注意：更改货币设置不会影响已有的交易记录，仅影响界面显示。</p>
+          <p className="note">注意：更改货币设置不会影响已有的记账记录，仅影响界面显示。</p>
         </div>
 
         <button className="change-currency-button" onClick={() => setShowModal(true)}>

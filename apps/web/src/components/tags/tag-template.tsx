@@ -204,7 +204,7 @@ export const TagTemplateSelector: React.FC<TagTemplateProps> = ({
               {/* 应用按钮 */}
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-500">
-                  点击应用到当前交易
+                  点击应用到当前记账
                 </span>
                 <Plus className="w-4 h-4 text-gray-400" />
               </div>

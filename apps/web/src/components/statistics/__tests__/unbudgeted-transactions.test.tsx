@@ -24,7 +24,7 @@ jest.mock('@/store/auth-store', () => ({
 
 const mockApiClient = apiClient as jest.Mocked<typeof apiClient>;
 
-describe('无预算交易筛选功能', () => {
+describe('无预算记账筛选功能', () => {
   const mockProps = {
     isOpen: true,
     onClose: jest.fn(),
@@ -39,7 +39,7 @@ describe('无预算交易筛选功能', () => {
     jest.clearAllMocks();
   });
 
-  it('当存在无预算交易时应显示无预算选项', async () => {
+  it('当存在无预算记账时应显示无预算选项', async () => {
     // Mock API responses
     mockApiClient.get.mockImplementation((url) => {
       if (url === '/budgets') {
@@ -69,10 +69,10 @@ describe('无预算交易筛选功能', () => {
 
     // 验证无预算选项存在
     expect(screen.getByText('无预算')).toBeInTheDocument();
-    expect(screen.getByText('显示未分配预算的交易')).toBeInTheDocument();
+    expect(screen.getByText('显示未分配预算的记账')).toBeInTheDocument();
   });
 
-  it('当不存在无预算交易时不应显示无预算选项', async () => {
+  it('当不存在无预算记账时不应显示无预算选项', async () => {
     // Mock API responses
     mockApiClient.get.mockImplementation((url) => {
       if (url === '/budgets') {

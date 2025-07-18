@@ -96,7 +96,7 @@ export function TransactionAddPage() {
     }
   }, [currentStep, setShowKeyboardInitially]);
 
-  // 根据交易类型筛选分类
+  // 根据记账类型筛选分类
   const filteredCategories = categories.filter((category) => category.type === type);
 
   // 处理返回按钮点击
@@ -158,22 +158,22 @@ export function TransactionAddPage() {
 
       // 提交成功
       if (createdTransaction) {
-        // 如果有选择标签，为新创建的交易添加标签
+        // 如果有选择标签，为新创建的记账添加标签
         if (tagIds.length > 0) {
           try {
             await tagApi.addTransactionTags(createdTransaction.id, { tagIds });
-            console.log('成功为交易添加标签:', tagIds);
+            console.log('成功为记账添加标签:', tagIds);
           } catch (error) {
-            console.error('添加交易标签失败:', error);
-            // 标签添加失败不影响交易创建成功的提示
+            console.error('添加记账标签失败:', error);
+            // 标签添加失败不影响记账创建成功的提示
           }
         }
 
-        // 如果有附件，关联到新创建的交易
+        // 如果有附件，关联到新创建的记账
         if (attachments.length > 0) {
           try {
             for (const attachment of attachments) {
-              // 如果是临时附件，需要关联到交易
+              // 如果是临时附件，需要关联到记账
               if (attachment.id.startsWith('temp-')) {
                 await apiClient.post(`/transactions/${createdTransaction.id}/attachments/link`, {
                   fileId: attachment.fileId,
@@ -182,19 +182,19 @@ export function TransactionAddPage() {
                 });
               }
             }
-            console.log('成功关联附件到交易:', attachments.length);
+            console.log('成功关联附件到记账:', attachments.length);
           } catch (error) {
             console.error('关联附件失败:', error);
-            // 附件关联失败不影响交易创建成功的提示
+            // 附件关联失败不影响记账创建成功的提示
           }
         }
 
-        toast.success('交易记录已添加');
+        toast.success('记账记录已添加');
         resetForm();
 
-        console.log('手动记账成功，准备触发交易变化事件');
+        console.log('手动记账成功，准备触发记账变化事件');
 
-        // 触发交易变化事件，让仪表盘自动刷新
+        // 触发记账变化事件，让仪表盘自动刷新
         triggerTransactionChange(currentAccountBook.id);
 
         // 延迟跳转，确保事件能够被处理
@@ -203,12 +203,12 @@ export function TransactionAddPage() {
           router.push('/dashboard');
         }, 100);
       } else {
-        throw new Error('创建交易失败，服务器未返回有效响应');
+        throw new Error('创建记账失败，服务器未返回有效响应');
       }
     } catch (error) {
-      console.error('创建交易失败:', error);
-      setSubmitError('创建交易失败，请重试');
-      toast.error('创建交易失败，请重试');
+      console.error('创建记账失败:', error);
+      setSubmitError('创建记账失败，请重试');
+      toast.error('创建记账失败，请重试');
     } finally {
       setSubmitting(false);
     }
@@ -222,7 +222,7 @@ export function TransactionAddPage() {
       showBottomNav={false}
     >
       <div style={{ padding: '0 20px' }}>
-        {/* iOS 风格交易类型切换 */}
+        {/* iOS 风格记账类型切换 */}
         <div style={{
           display: 'flex',
           backgroundColor: 'var(--background-secondary)',
@@ -340,7 +340,7 @@ export function TransactionAddPage() {
               fontSize: '14px',
               fontWeight: '500',
               color: currentStep >= 2 ? 'var(--primary-color)' : 'var(--text-secondary)'
-            }}>交易详情</span>
+            }}>记账详情</span>
           </div>
         </div>
 
@@ -349,7 +349,7 @@ export function TransactionAddPage() {
           <CategorySelector categories={filteredCategories} isLoading={isCategoriesLoading} />
         )}
 
-        {/* 第二步：交易详情 */}
+        {/* 第二步：记账详情 */}
         {currentStep === 2 && (
           <div className="step-content" id="step-details">
             {/* 显示选中的分类 */}

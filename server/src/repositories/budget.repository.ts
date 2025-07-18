@@ -99,7 +99,7 @@ export class BudgetRepository {
       where.userId = memberId;
     }
 
-    // 查询该成员在该预算期间的所有支出交易
+    // 查询该成员在该预算期间的所有支出记账
     const transactions = await prisma.transaction.findMany({
       where,
       select: {
@@ -373,7 +373,7 @@ export class BudgetRepository {
       budgetId: budgetId, // 直接使用预算ID过滤
     };
 
-    console.log('使用预算ID过滤交易记录:', {
+    console.log('使用预算ID过滤记账记录:', {
       budgetId,
       startDate: budget.startDate,
       endDate: budget.endDate,

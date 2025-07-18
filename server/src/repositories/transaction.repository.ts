@@ -9,9 +9,9 @@ const prisma = new PrismaClient();
 
 export class TransactionRepository {
   /**
-   * 创建交易记录
+   * 创建记账记录
    * @param userId 用户ID
-   * @param transactionData 交易数据
+   * @param transactionData 记账数据
    * @param metadata 元数据（可选）
    */
   async create(
@@ -39,14 +39,14 @@ export class TransactionRepository {
         // 将元数据存储在JSON字段中
         (data as any).metadata = metadata;
 
-        // 如果是历史交易，记录创建时间和消费日期
+        // 如果是历史记账，记录创建时间和消费日期
         if (metadata.isHistorical) {
           console.log(
-            `记录历史交易元数据: 创建时间=${metadata.createdAt}, 消费日期=${metadata.consumptionDate}`,
+            `记录历史记账元数据: 创建时间=${metadata.createdAt}, 消费日期=${metadata.consumptionDate}`,
           );
         }
       } catch (error) {
-        console.error('添加交易元数据失败:', error);
+        console.error('添加记账元数据失败:', error);
       }
     }
 
@@ -59,7 +59,7 @@ export class TransactionRepository {
   }
 
   /**
-   * 根据ID查找交易记录
+   * 根据ID查找记账记录
    */
   async findById(id: string): Promise<any> {
     return prisma.transaction.findUnique({
@@ -73,7 +73,7 @@ export class TransactionRepository {
   }
 
   /**
-   * 查询交易记录列表
+   * 查询记账记录列表
    */
   async findAll(
     userId: string,
@@ -121,7 +121,7 @@ export class TransactionRepository {
       };
     }
 
-    // 如果指定了账本ID，则查询该账本的所有交易记录（家庭成员可以查看家庭账本的所有记录）
+    // 如果指定了账本ID，则查询该账本的所有记账记录（家庭成员可以查看家庭账本的所有记录）
     if (params.accountBookId) {
       where.accountBookId = params.accountBookId;
 
@@ -143,10 +143,10 @@ export class TransactionRepository {
       });
 
       if (!accountBook) {
-        throw new Error('无权限查看该账本的交易记录');
+        throw new Error('无权限查看该账本的记账记录');
       }
     } else {
-      // 如果没有指定账本ID，则只查询用户自己的交易记录
+      // 如果没有指定账本ID，则只查询用户自己的记账记录
       where.userId = userId;
     }
 
@@ -158,7 +158,7 @@ export class TransactionRepository {
     }
 
     // 构建排序条件
-    // 首先按日期排序，然后按创建时间排序，确保同一天的交易按创建时间排序
+    // 首先按日期排序，然后按创建时间排序，确保同一天的记账按创建时间排序
     const orderBy: Prisma.TransactionOrderByWithRelationInput[] = [
       { [sortBy]: sortOrder },
       { createdAt: sortOrder },
@@ -182,9 +182,9 @@ export class TransactionRepository {
   }
 
   /**
-   * 更新交易记录
-   * @param id 交易ID
-   * @param transactionData 交易数据
+   * 更新记账记录
+   * @param id 记账ID
+   * @param transactionData 记账数据
    * @param metadata 元数据（可选）
    */
   async update(id: string, transactionData: UpdateTransactionDto, metadata?: any): Promise<any> {
@@ -213,14 +213,14 @@ export class TransactionRepository {
         const existingMetadata = (existingTransaction as any)?.metadata || {};
         (data as any).metadata = { ...existingMetadata, ...metadata };
 
-        // 如果是历史交易，记录更新时间和消费日期
+        // 如果是历史记账，记录更新时间和消费日期
         if (metadata.isHistorical) {
           console.log(
-            `更新历史交易元数据: 更新时间=${metadata.updatedAt}, 消费日期=${metadata.consumptionDate}`,
+            `更新历史记账元数据: 更新时间=${metadata.updatedAt}, 消费日期=${metadata.consumptionDate}`,
           );
         }
       } catch (error) {
-        console.error('更新交易元数据失败:', error);
+        console.error('更新记账元数据失败:', error);
       }
     }
 
@@ -234,7 +234,7 @@ export class TransactionRepository {
   }
 
   /**
-   * 删除交易记录
+   * 删除记账记录
    */
   async delete(id: string): Promise<Transaction> {
     return prisma.transaction.delete({
@@ -243,7 +243,7 @@ export class TransactionRepository {
   }
 
   /**
-   * 获取用户的交易统计
+   * 获取用户的记账统计
    */
   async getStatistics(
     userId: string,
@@ -273,7 +273,7 @@ export class TransactionRepository {
   }
 
   /**
-   * 按分类统计交易
+   * 按分类统计记账
    */
   async getStatisticsByCategory(
     userId: string,
@@ -306,7 +306,7 @@ export class TransactionRepository {
   }
 
   /**
-   * 根据日期范围查找交易记录
+   * 根据日期范围查找记账记录
    */
   async findByDateRange(
     userId: string,
@@ -343,13 +343,13 @@ export class TransactionRepository {
       },
       ...(familyId && { familyId }),
       // 如果excludeFamilyMember为true，则只查询familyMemberId为null的记录
-      // 这样可以排除托管成员的交易记录
+      // 这样可以排除托管成员的记账记录
       ...(excludeFamilyMember && { familyMemberId: null }),
     };
 
     // 处理预算ID过滤
     if (budgetId === 'NO_BUDGET') {
-      // 无预算筛选：只查询budgetId为null的交易
+      // 无预算筛选：只查询budgetId为null的记账
       whereConditions.budgetId = null;
     } else if (budgetIds && budgetIds.length > 0) {
       // 多个预算ID筛选
@@ -358,9 +358,9 @@ export class TransactionRepository {
       // 单个预算ID筛选
       whereConditions.budgetId = budgetId;
     }
-    // 如果budgetId为null或undefined，则不添加预算筛选条件（查询所有交易）
+    // 如果budgetId为null或undefined，则不添加预算筛选条件（查询所有记账）
 
-    // 如果指定了账本ID，则查询该账本的所有交易记录（家庭成员可以查看家庭账本的所有记录）
+    // 如果指定了账本ID，则查询该账本的所有记账记录（家庭成员可以查看家庭账本的所有记录）
     if (accountBookId) {
       whereConditions.accountBookId = accountBookId;
 
@@ -382,10 +382,10 @@ export class TransactionRepository {
       });
 
       if (!accountBook) {
-        throw new Error('无权限查看该账本的交易记录');
+        throw new Error('无权限查看该账本的记账记录');
       }
     } else {
-      // 如果没有指定账本ID，则只查询用户自己的交易记录
+      // 如果没有指定账本ID，则只查询用户自己的记账记录
       whereConditions.userId = userId;
     }
 
@@ -420,17 +420,17 @@ export class TransactionRepository {
     });
 
     console.log(
-      `找到 ${transactions.length} 条交易记录，其中 ${
+      `找到 ${transactions.length} 条记账记录，其中 ${
         transactions.filter((t) => t.category).length
       } 条有关联的分类信息`,
     );
 
-    // 检查是否有交易没有关联到分类
+    // 检查是否有记账没有关联到分类
     const transactionsWithoutCategory = transactions.filter((t) => !t.category);
     if (transactionsWithoutCategory.length > 0) {
-      console.log(`警告: ${transactionsWithoutCategory.length} 条交易没有关联到分类`);
+      console.log(`警告: ${transactionsWithoutCategory.length} 条记账没有关联到分类`);
       console.log(
-        '没有分类的交易ID:',
+        '没有分类的记账ID:',
         transactionsWithoutCategory.map((t) => t.id),
       );
     }
@@ -439,7 +439,7 @@ export class TransactionRepository {
   }
 
   /**
-   * 获取过滤后的交易统计
+   * 获取过滤后的记账统计
    * 支持根据时间、分类、账本等条件进行过滤
    */
   async getFilteredStatistics(

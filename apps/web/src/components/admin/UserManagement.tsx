@@ -496,7 +496,7 @@ export function UserManagement({
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     <div className="space-y-1">
-                      <div>交易: {user.transactionCount.toLocaleString()} 笔</div>
+                      <div>记账: {user.transactionCount.toLocaleString()} 笔</div>
                       <div>账本: {user.accountBookCount} 个</div>
                     </div>
                   </td>

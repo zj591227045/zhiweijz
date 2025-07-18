@@ -39,9 +39,9 @@ src/admin/
 
 ### 2. 仪表盘统计系统
 
-- ✅ 系统概览数据（用户数、交易数等）
+- ✅ 系统概览数据（用户数、记账数等）
 - ✅ 用户统计（注册趋势、活跃用户）
-- ✅ 交易统计（交易趋势、分类统计）
+- ✅ 记账统计（记账趋势、分类统计）
 - ✅ 系统资源监控（内存、CPU使用情况）
 
 ## API接口
@@ -60,7 +60,7 @@ src/admin/
 |------|------|------|----------|
 | GET | `/api/admin/dashboard/overview` | 获取概览统计 | 管理员权限 |
 | GET | `/api/admin/dashboard/users` | 获取用户统计 | 管理员权限 |
-| GET | `/api/admin/dashboard/transactions` | 获取交易统计 | 管理员权限 |
+| GET | `/api/admin/dashboard/transactions` | 获取记账统计 | 管理员权限 |
 | GET | `/api/admin/dashboard/system` | 获取系统资源 | 管理员权限 |
 
 ## 配置

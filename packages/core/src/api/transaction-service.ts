@@ -20,7 +20,7 @@ export class TransactionService {
     this.apiClient = options.apiClient;
   }
 
-  // 获取交易列表
+  // 获取记账列表
   async getTransactions(params?: {
     accountBookId?: string;
     startDate?: string;
@@ -61,7 +61,7 @@ export class TransactionService {
         data: []
       };
     } catch (error) {
-      console.error("获取交易列表失败:", error);
+      console.error("获取记账列表失败:", error);
       // 出错时返回空数组
       return {
         total: 0,
@@ -72,46 +72,46 @@ export class TransactionService {
     }
   }
 
-  // 获取单个交易
+  // 获取单个记账
   async getTransaction(id: string) {
     try {
       const response = await this.apiClient.get(`/transactions/${id}`) as Transaction;
       return response;
     } catch (error) {
-      console.error(`获取交易 ${id} 失败:`, error);
+      console.error(`获取记账 ${id} 失败:`, error);
       return null;
     }
   }
 
-  // 创建交易
+  // 创建记账
   async createTransaction(data: CreateTransactionData) {
     try {
       const response = await this.apiClient.post("/transactions", data) as Transaction;
       return response;
     } catch (error) {
-      console.error("创建交易失败:", error);
+      console.error("创建记账失败:", error);
       throw error;
     }
   }
 
-  // 更新交易
+  // 更新记账
   async updateTransaction(id: string, data: UpdateTransactionData) {
     try {
       const response = await this.apiClient.put(`/transactions/${id}`, data) as Transaction;
       return response;
     } catch (error) {
-      console.error(`更新交易 ${id} 失败:`, error);
+      console.error(`更新记账 ${id} 失败:`, error);
       throw error;
     }
   }
 
-  // 删除交易
+  // 删除记账
   async deleteTransaction(id: string) {
     try {
       await this.apiClient.delete(`/transactions/${id}`);
       return true;
     } catch (error) {
-      console.error(`删除交易 ${id} 失败:`, error);
+      console.error(`删除记账 ${id} 失败:`, error);
       throw error;
     }
   }

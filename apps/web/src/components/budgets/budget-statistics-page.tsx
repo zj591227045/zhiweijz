@@ -237,7 +237,7 @@ export function BudgetStatisticsPage() {
                   enableCategoryBudget={enableCategoryBudget}
                 />
 
-                {/* 最近交易 */}
+                {/* 最近记账 */}
                 <RecentTransactions
                   transactions={recentTransactions}
                   budgetId={selectedBudgetId}

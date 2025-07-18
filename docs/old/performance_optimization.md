@@ -294,15 +294,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
    - 首页（/）首次加载时间从2494.32ms增加到2939.31ms
    - 登录页（/login）首次加载时间从1079.56ms增加到1356.23ms
    - 仪表盘页（/dashboard）首次加载时间从653.89ms增加到884.51ms
-   - 交易页（/transactions）首次加载时间从1266.84ms增加到2370.11ms
-   - 新增交易页（/transactions/new）首次加载时间从574.57ms增加到714.60ms
+   - 记账页（/transactions）首次加载时间从1266.84ms增加到2370.11ms
+   - 新增记账页（/transactions/new）首次加载时间从574.57ms增加到714.60ms
 
 2. **后续加载性能**：
    - 首页（/）最小加载时间从48.46ms略微提高到48.75ms
    - 登录页（/login）最小加载时间从53.79ms略微降低到53.47ms
    - 仪表盘页（/dashboard）最小加载时间从49.69ms略微提高到49.91ms
-   - 交易页（/transactions）最小加载时间从49.78ms增加到62.50ms
-   - 新增交易页（/transactions/new）最小加载时间从46.74ms略微降低到45.51ms
+   - 记账页（/transactions）最小加载时间从49.78ms增加到62.50ms
+   - 新增记账页（/transactions/new）最小加载时间从46.74ms略微降低到45.51ms
 
 从数据来看，我们的优化措施对首次加载性能产生了负面影响，但对后续加载性能影响不大。这可能是因为：
 

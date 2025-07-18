@@ -3,7 +3,7 @@ import { CategoryResponseDto } from './category.model';
 import { TransactionAttachmentResponseDto } from './file-storage.model';
 
 /**
- * 交易记录创建DTO
+ * 记账记录创建DTO
  */
 export interface CreateTransactionDto {
   amount: number;
@@ -18,7 +18,7 @@ export interface CreateTransactionDto {
 }
 
 /**
- * 交易记录更新DTO
+ * 记账记录更新DTO
  */
 export interface UpdateTransactionDto {
   amount?: number;
@@ -30,7 +30,7 @@ export interface UpdateTransactionDto {
 }
 
 /**
- * 交易记录查询参数
+ * 记账记录查询参数
  */
 export interface TransactionQueryParams {
   type?: TransactionType;
@@ -42,7 +42,7 @@ export interface TransactionQueryParams {
   familyMemberId?: string;
   accountBookId?: string;
   budgetId?: string;
-  search?: string; // 添加搜索参数，用于搜索交易描述
+  search?: string; // 添加搜索参数，用于搜索记账描述
   page?: number;
   limit?: number;
   sortBy?: string;
@@ -50,7 +50,7 @@ export interface TransactionQueryParams {
 }
 
 /**
- * 交易记录导出格式
+ * 记账记录导出格式
  */
 export enum TransactionExportFormat {
   CSV = 'csv',
@@ -58,7 +58,7 @@ export enum TransactionExportFormat {
 }
 
 /**
- * 交易记录导出请求DTO
+ * 记账记录导出请求DTO
  */
 export interface TransactionExportRequestDto {
   format: TransactionExportFormat;
@@ -69,7 +69,7 @@ export interface TransactionExportRequestDto {
 }
 
 /**
- * 交易记录导入请求DTO
+ * 记账记录导入请求DTO
  */
 export interface TransactionImportRequestDto {
   format: TransactionExportFormat;
@@ -77,7 +77,7 @@ export interface TransactionImportRequestDto {
 }
 
 /**
- * 交易记录导入响应DTO
+ * 记账记录导入响应DTO
  */
 export interface TransactionImportResponseDto {
   total: number;
@@ -87,7 +87,7 @@ export interface TransactionImportResponseDto {
 }
 
 /**
- * 交易记录响应DTO
+ * 记账记录响应DTO
  */
 export interface TransactionResponseDto {
   id: string;
@@ -104,13 +104,13 @@ export interface TransactionResponseDto {
   budgetId?: string;
   createdAt: Date;
   updatedAt: Date;
-  metadata?: any; // 交易元数据，如历史交易标记
-  attachments?: TransactionAttachmentResponseDto[]; // 交易附件
+  metadata?: any; // 记账元数据，如历史记账标记
+  attachments?: TransactionAttachmentResponseDto[]; // 记账附件
   attachmentCount?: number; // 附件数量
 }
 
 /**
- * 交易记录分页响应DTO
+ * 记账记录分页响应DTO
  */
 export interface TransactionPaginatedResponseDto {
   total: number;
@@ -120,7 +120,7 @@ export interface TransactionPaginatedResponseDto {
 }
 
 /**
- * 将交易记录实体转换为响应DTO
+ * 将记账记录实体转换为响应DTO
  */
 export function toTransactionResponseDto(
   transaction: PrismaTransaction,

@@ -7,7 +7,7 @@
 #### 后端实现
 - ✅ 统计数据API接口 (`/api/admin/dashboard/overview`)
 - ✅ 用户统计数据API (`/api/admin/dashboard/users`)
-- ✅ 交易统计数据API (`/api/admin/dashboard/transactions`)
+- ✅ 记账统计数据API (`/api/admin/dashboard/transactions`)
 - ✅ 系统资源使用情况API (`/api/admin/dashboard/system`)
 - ✅ 图表数据API (`/api/admin/dashboard/charts`)
 

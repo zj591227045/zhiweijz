@@ -6,7 +6,7 @@ AUTHOR: zhiweijz-team
 
 -- =======================================
 -- 增量迁移：添加文件存储功能
--- 支持S3协议的文件存储，包括用户头像和交易附件
+-- 支持S3协议的文件存储，包括用户头像和记账附件
 -- =======================================
 
 -- 1. 创建文件存储类型枚举
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS "file_storage" (
     CONSTRAINT "file_storage_pkey" PRIMARY KEY ("id")
 );
 
--- 5. 创建交易附件表
+-- 5. 创建记账附件表
 CREATE TABLE IF NOT EXISTS "transaction_attachments" (
     "id" TEXT NOT NULL,
     "transaction_id" TEXT NOT NULL,
@@ -128,8 +128,8 @@ COMMENT ON COLUMN "file_storage"."uploaded_by" IS '上传用户ID';
 COMMENT ON COLUMN "file_storage"."expires_at" IS '文件过期时间（可选）';
 COMMENT ON COLUMN "file_storage"."metadata" IS '文件元数据（JSON格式）';
 
-COMMENT ON TABLE "transaction_attachments" IS '交易附件表：关联交易记录和文件';
-COMMENT ON COLUMN "transaction_attachments"."transaction_id" IS '交易记录ID';
+COMMENT ON TABLE "transaction_attachments" IS '记账附件表：关联记账记录和文件';
+COMMENT ON COLUMN "transaction_attachments"."transaction_id" IS '记账记录ID';
 COMMENT ON COLUMN "transaction_attachments"."file_id" IS '文件ID';
 COMMENT ON COLUMN "transaction_attachments"."attachment_type" IS '附件类型：RECEIPT/INVOICE/CONTRACT等';
 COMMENT ON COLUMN "transaction_attachments"."description" IS '附件描述';

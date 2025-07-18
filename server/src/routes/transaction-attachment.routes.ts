@@ -11,7 +11,7 @@ router.use(authenticate);
 
 /**
  * @route POST /api/transactions/:transactionId/attachments
- * @desc 为交易添加附件
+ * @desc 为记账添加附件
  * @access Private
  */
 router.post('/:transactionId/attachments', s3AttachmentUpload.single('attachment'), (req, res) =>
@@ -20,7 +20,7 @@ router.post('/:transactionId/attachments', s3AttachmentUpload.single('attachment
 
 /**
  * @route POST /api/transactions/:transactionId/attachments/batch
- * @desc 批量上传交易附件
+ * @desc 批量上传记账附件
  * @access Private
  */
 router.post('/:transactionId/attachments/batch', s3AttachmentUpload.array('attachments', 10), (req, res) =>
@@ -29,7 +29,7 @@ router.post('/:transactionId/attachments/batch', s3AttachmentUpload.array('attac
 
 /**
  * @route GET /api/transactions/:transactionId/attachments
- * @desc 获取交易的所有附件
+ * @desc 获取记账的所有附件
  * @access Private
  */
 router.get('/:transactionId/attachments', (req, res) =>
@@ -38,7 +38,7 @@ router.get('/:transactionId/attachments', (req, res) =>
 
 /**
  * @route DELETE /api/transactions/attachments/:attachmentId
- * @desc 删除交易附件
+ * @desc 删除记账附件
  * @access Private
  */
 router.delete('/attachments/:attachmentId', (req, res) =>

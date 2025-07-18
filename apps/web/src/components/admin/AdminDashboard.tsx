@@ -98,7 +98,7 @@ export function AdminDashboard() {
       changeType: 'positive' as const
     },
     {
-      title: '总交易记录',
+      title: '总记账记录',
       value: formatNumber(overview.totalTransactions),
       icon: CreditCardIcon,
       color: 'green',
@@ -239,9 +239,9 @@ export function AdminDashboard() {
           color="#3B82F6"
         />
 
-        {/* 交易数量趋势 */}
+        {/* 记账数量趋势 */}
         <ChartCard
-          title="交易数量趋势"
+          title="记账数量趋势"
           data={transactionStats?.dailyTransactions || []}
           isLoading={isLoading.transactionStats}
           type="bar"

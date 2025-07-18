@@ -186,7 +186,7 @@ export function SwipeableTransactionItem({
     }
   }, [swipeOffset]);
 
-  // 处理交易项点击
+  // 处理记账项点击
   const handleTransactionClick = () => {
     if (swipeOffset > 0) {
       setSwipeOffset(0);
@@ -318,7 +318,7 @@ export function SwipeableTransactionItem({
     if (onDataRefresh) {
       onDataRefresh();
     }
-    console.log('附件上传成功，交易ID:', transaction.id);
+    console.log('附件上传成功，记账ID:', transaction.id);
   };
 
   const firstImageAttachment = getFirstImageAttachment();
@@ -397,7 +397,7 @@ export function SwipeableTransactionItem({
         </button>
       </div>
 
-      {/* 交易项内容 */}
+      {/* 记账项内容 */}
       <div
         className="transaction-content"
         style={{
@@ -435,7 +435,7 @@ export function SwipeableTransactionItem({
           </div>
         )}
 
-        {/* 交易图标或附件缩略图 */}
+        {/* 记账图标或附件缩略图 */}
         <div className="transaction-icon" style={{ width: '40px', height: '40px', flexShrink: 0 }}>
           {firstImageAttachment?.file ? (
             <div 
@@ -466,7 +466,7 @@ export function SwipeableTransactionItem({
           )}
         </div>
 
-        {/* 交易详情 */}
+        {/* 记账详情 */}
         <div className="transaction-details" style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <span style={{ fontWeight: '500', fontSize: '14px', color: 'var(--text-primary, #1f2937)' }}>
@@ -486,7 +486,7 @@ export function SwipeableTransactionItem({
           )}
         </div>
 
-        {/* 交易金额 */}
+        {/* 记账金额 */}
         <div
           className="transaction-amount"
           style={{
@@ -504,7 +504,7 @@ export function SwipeableTransactionItem({
       <QuickUploadModal
         isOpen={showUploadModal}
         transactionId={transaction.id}
-        transactionName={transaction.description || transaction.categoryName || '未知交易'}
+        transactionName={transaction.description || transaction.categoryName || '未知记账'}
         onClose={() => setShowUploadModal(false)}
         onUploadSuccess={handleAttachmentUploaded}
       />

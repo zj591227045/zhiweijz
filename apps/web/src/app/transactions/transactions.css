@@ -1,4 +1,4 @@
-/* 交易列表页面样式 */
+/* 记账列表页面样式 */
 
 /* 应用容器 */
 .app-container {
@@ -77,9 +77,9 @@
   max-height: none;
 }
 
-/* 交易列表样式已由统一组件处理 */
+/* 记账列表样式已由统一组件处理 */
 
-/* 交易统计摘要 */
+/* 记账统计摘要 */
 .transaction-summary {
   display: flex;
   background-color: var(--card-background);
@@ -262,7 +262,7 @@
   margin: 0 4px;
 }
 
-/* 交易类型筛选 - 一行布局 */
+/* 记账类型筛选 - 一行布局 */
 .transaction-type-filter {
   display: flex;
   gap: 8px;

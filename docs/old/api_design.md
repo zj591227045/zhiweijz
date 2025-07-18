@@ -131,9 +131,9 @@ POST /auth/change-password
 }
 ```
 
-## 交易记录API
+## 记账记录API
 
-### 创建交易记录
+### 创建记账记录
 
 ```
 POST /transactions
@@ -168,14 +168,14 @@ POST /transactions
 }
 ```
 
-### 获取交易记录列表
+### 获取记账记录列表
 
 ```
 GET /transactions
 ```
 
 **查询参数**:
-- `type`: 交易类型 (INCOME, EXPENSE)
+- `type`: 记账类型 (INCOME, EXPENSE)
 - `startDate`: 开始日期
 - `endDate`: 结束日期
 - `categoryId`: 分类ID
@@ -209,12 +209,12 @@ GET /transactions
       },
       "createdAt": "2023-05-15T12:35:00Z"
     },
-    // ...更多交易记录
+    // ...更多记账记录
   ]
 }
 ```
 
-### 获取单个交易记录
+### 获取单个记账记录
 
 ```
 GET /transactions/:id
@@ -244,7 +244,7 @@ GET /transactions/:id
 }
 ```
 
-### 更新交易记录
+### 更新记账记录
 
 ```
 PATCH /transactions/:id
@@ -274,7 +274,7 @@ PATCH /transactions/:id
 }
 ```
 
-### 删除交易记录
+### 删除记账记录
 
 ```
 DELETE /transactions/:id

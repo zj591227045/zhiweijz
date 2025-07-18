@@ -1,4 +1,4 @@
-/* 交易详情页面样式 */
+/* 记账详情页面样式 */
 
 /* 应用容器 */
 .app-container {
@@ -68,7 +68,7 @@
   max-height: none;
 }
 
-/* 交易详情卡片 */
+/* 记账详情卡片 */
 .transaction-detail-card {
   background-color: var(--card-background);
   border-radius: 12px;
@@ -76,7 +76,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* 交易详情页面的金额显示 */
+/* 记账详情页面的金额显示 */
 .transaction-detail-amount {
   font-size: 32px;
   font-weight: 700;
@@ -92,7 +92,7 @@
   color: var(--error-color);
 }
 
-/* 交易信息列表 */
+/* 记账信息列表 */
 .transaction-info-list {
   display: flex;
   flex-direction: column;

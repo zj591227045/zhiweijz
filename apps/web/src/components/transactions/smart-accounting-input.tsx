@@ -150,7 +150,7 @@ export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccounti
 
       // 后台异步处理
       setTimeout(() => {
-        progressManager.updateProgress(progressId, '正在识别交易类型和金额...');
+        progressManager.updateProgress(progressId, '正在识别记账类型和金额...');
       }, 1000);
       
       setTimeout(() => {
@@ -158,7 +158,7 @@ export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccounti
       }, 2000);
       
       setTimeout(() => {
-        progressManager.updateProgress(progressId, '正在创建交易记录...');
+        progressManager.updateProgress(progressId, '正在创建记账记录...');
       }, 3000);
 
       // 调用直接添加记账API

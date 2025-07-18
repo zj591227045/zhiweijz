@@ -233,7 +233,7 @@ export default function SettingsPage() {
           </div>
           <div className="item-content">
             <div className="item-title">标签管理</div>
-            <div className="item-description">管理交易记录标签</div>
+            <div className="item-description">管理记账记录标签</div>
           </div>
           <div className="item-action">
             <i className="fas fa-chevron-right"></i>
@@ -257,7 +257,7 @@ export default function SettingsPage() {
           </div>
           <div className="item-content">
             <div className="item-title">分类管理</div>
-            <div className="item-description">管理交易分类</div>
+            <div className="item-description">管理记账分类</div>
           </div>
           <div className="item-action">
             <i className="fas fa-chevron-right"></i>

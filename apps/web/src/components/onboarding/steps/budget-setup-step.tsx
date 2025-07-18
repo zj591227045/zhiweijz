@@ -484,7 +484,7 @@ export function BudgetSetupStep() {
                   </span>
                 )}
                 <span className="account-book-stats">
-                  {currentAccountBook.transactionCount} 笔交易 · {currentAccountBook.budgetCount} 个预算
+                  {currentAccountBook.transactionCount} 笔记账 · {currentAccountBook.budgetCount} 个预算
                 </span>
               </div>
             </div>

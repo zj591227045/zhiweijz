@@ -9,7 +9,7 @@
   gap: 8px; /* 与仪表盘卡片间距保持一致 */
 }
 
-/* 最近交易样式 - 与仪表盘完全一致 */
+/* 最近记账样式 - 与仪表盘完全一致 */
 .calendar-view-container .recent-transactions {
   background-color: var(--card-background, #ffffff);
   border-radius: 12px;

@@ -50,9 +50,9 @@ export const RecentTransactions = memo(
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
 
-    // 处理交易项点击 - 触发模态框编辑
+    // 处理记账项点击 - 触发模态框编辑
     const handleTransactionClick = (transactionId: string) => {
-      console.log('🔄 [RecentTransactions] 交易点击，ID:', transactionId);
+      console.log('🔄 [RecentTransactions] 记账点击，ID:', transactionId);
 
       // 设置 localStorage 标记来触发模态框
       localStorage.setItem('showTransactionEditModal', 'true');
@@ -62,14 +62,14 @@ export const RecentTransactions = memo(
       window.dispatchEvent(new CustomEvent('checkTransactionEditModal'));
     };
 
-    // 处理附件点击 - 跳转到交易详情页
+    // 处理附件点击 - 跳转到记账详情页
     const handleAttachmentClick = (transactionId: string) => {
       router.push(`/transactions/${transactionId}`);
     };
 
-    // 处理删除交易
+    // 处理删除记账
     const handleDeleteClick = (transactionId: string) => {
-      // 找到要删除的交易信息
+      // 找到要删除的记账信息
       const transaction = groupedTransactions
         .flatMap(group => group.transactions)
         .find(t => t.id === transactionId);
@@ -80,7 +80,7 @@ export const RecentTransactions = memo(
       setDeleteDialogOpen(true);
     };
 
-    // 确认删除交易
+    // 确认删除记账
     const handleConfirmDelete = async () => {
       if (!transactionToDelete) return;
 
@@ -95,10 +95,10 @@ export const RecentTransactions = memo(
 
         setDeleteDialogOpen(false);
         setTransactionToDelete(null);
-        console.log('交易删除成功');
+        console.log('记账删除成功');
       } catch (error) {
-        console.error('删除交易失败:', error);
-        alert('删除交易失败，请重试');
+        console.error('删除记账失败:', error);
+        alert('删除记账失败，请重试');
       } finally {
         setDeletingTransactionId(null);
       }
@@ -113,7 +113,7 @@ export const RecentTransactions = memo(
     return (
       <section className="recent-transactions">
         <div className="section-header">
-          <h2>最近交易</h2>
+          <h2>最近记账</h2>
           <Link href="/transactions?refresh=true" className="view-all">
             查看全部
           </Link>
@@ -123,7 +123,7 @@ export const RecentTransactions = memo(
           groupedTransactions={groupedTransactions}
           onTransactionClick={handleTransactionClick}
           showDateHeaders={true}
-          emptyMessage="暂无交易记录"
+          emptyMessage="暂无记账记录"
           enableSwipeActions={true}
           onAttachmentClick={handleAttachmentClick}
           onDeleteClick={handleDeleteClick}
@@ -133,8 +133,8 @@ export const RecentTransactions = memo(
         {/* 删除确认对话框 */}
         <DeleteConfirmationDialog
           isOpen={deleteDialogOpen}
-          title="删除交易"
-          message="确定要删除这笔交易吗？"
+          title="删除记账"
+          message="确定要删除这笔记账吗？"
           itemName={transactionToDelete?.description || transactionToDelete?.categoryName}
           amount={transactionToDelete?.amount}
           isLoading={deletingTransactionId === transactionToDelete?.id}
@@ -145,12 +145,12 @@ export const RecentTransactions = memo(
     );
   },
   (prevProps, nextProps) => {
-    // 自定义比较函数，只有当交易数据真正变化时才重新渲染
+    // 自定义比较函数，只有当记账数据真正变化时才重新渲染
     if (prevProps.groupedTransactions.length !== nextProps.groupedTransactions.length) {
       return false;
     }
 
-    // 深度比较交易组数据
+    // 深度比较记账组数据
     for (let i = 0; i < prevProps.groupedTransactions.length; i++) {
       const prevGroup = prevProps.groupedTransactions[i];
       const nextGroup = nextProps.groupedTransactions[i];
@@ -162,7 +162,7 @@ export const RecentTransactions = memo(
         return false;
       }
 
-      // 比较每个交易
+      // 比较每个记账
       for (let j = 0; j < prevGroup.transactions.length; j++) {
         const prevTx = prevGroup.transactions[j];
         const nextTx = nextGroup.transactions[j];

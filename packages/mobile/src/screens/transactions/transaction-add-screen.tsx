@@ -30,7 +30,7 @@ import { MobileAttachmentUpload, MobileAttachment } from '../../components/trans
 import { apiClient } from '../../lib/api-client';
 import dayjs from 'dayjs';
 
-// 交易类型枚举
+// 记账类型枚举
 export enum TransactionType {
   EXPENSE = "EXPENSE",
   INCOME = "INCOME",
@@ -54,8 +54,8 @@ type TransactionFormData = z.infer<typeof transactionSchema>;
 interface TransactionAddScreenProps extends NavigationProps<'TransactionAdd'> {}
 
 /**
- * 添加交易屏幕
- * 复用web端的添加交易逻辑，适配移动端UI
+ * 添加记账屏幕
+ * 复用web端的添加记账逻辑，适配移动端UI
  */
 const TransactionAddScreen: React.FC<TransactionAddScreenProps> = ({ navigation }) => {
   const theme = useTheme();
@@ -107,7 +107,7 @@ const TransactionAddScreen: React.FC<TransactionAddScreenProps> = ({ navigation 
     }
   }, [currentAccountBook?.id]);
 
-  // 根据交易类型筛选分类
+  // 根据记账类型筛选分类
   const filteredCategories = categories.filter(category => category.type === watchedType);
 
   // 获取选中的分类
@@ -162,11 +162,11 @@ const TransactionAddScreen: React.FC<TransactionAddScreenProps> = ({ navigation 
       const createdTransaction = await createTransaction(transactionData);
 
       if (createdTransaction) {
-        // 如果有附件，关联到新创建的交易
+        // 如果有附件，关联到新创建的记账
         if (attachments.length > 0) {
           try {
             for (const attachment of attachments) {
-              // 如果是临时附件，需要关联到交易
+              // 如果是临时附件，需要关联到记账
               if (attachment.id.startsWith('temp-') && attachment.fileId) {
                 await apiClient.post(`/transactions/${createdTransaction.id}/attachments/link`, {
                   fileId: attachment.fileId,
@@ -175,16 +175,16 @@ const TransactionAddScreen: React.FC<TransactionAddScreenProps> = ({ navigation 
                 });
               }
             }
-            console.log('成功关联附件到交易:', attachments.length);
+            console.log('成功关联附件到记账:', attachments.length);
           } catch (error) {
             console.error('关联附件失败:', error);
-            // 附件关联失败不影响交易创建成功的提示
+            // 附件关联失败不影响记账创建成功的提示
           }
         }
 
         Alert.alert(
           '成功',
-          '交易记录已添加',
+          '记账记录已添加',
           [
             {
               text: '确定',
@@ -194,8 +194,8 @@ const TransactionAddScreen: React.FC<TransactionAddScreenProps> = ({ navigation 
         );
       }
     } catch (error) {
-      console.error('创建交易失败:', error);
-      Alert.alert('错误', '创建交易失败，请重试');
+      console.error('创建记账失败:', error);
+      Alert.alert('错误', '创建记账失败，请重试');
     }
   };
 
@@ -235,13 +235,13 @@ const TransactionAddScreen: React.FC<TransactionAddScreenProps> = ({ navigation 
       <Appbar.Header style={styles.header}>
         <Appbar.BackAction onPress={handleBack} />
         <Appbar.Content 
-          title="添加交易" 
+          title="添加记账" 
           titleStyle={styles.headerTitle}
         />
       </Appbar.Header>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* 交易类型切换 */}
+        {/* 记账类型切换 */}
         <Surface style={styles.typeContainer} elevation={1}>
           <Controller
             control={control}
@@ -376,11 +376,11 @@ const TransactionAddScreen: React.FC<TransactionAddScreenProps> = ({ navigation 
           </Surface>
         )}
 
-        {/* 第二步：交易详情 */}
+        {/* 第二步：记账详情 */}
         {currentStep === 2 && (
           <Surface style={styles.stepContainer} elevation={1}>
             <Text style={[styles.stepTitle, { color: theme.colors.onSurface }]}>
-              交易详情
+              记账详情
             </Text>
 
             {/* 选中的分类 */}

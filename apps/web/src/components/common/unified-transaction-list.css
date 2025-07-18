@@ -1,4 +1,4 @@
-/* 统一交易列表样式 - 基于仪表盘最近交易组件的标准样式 */
+/* 统一记账列表样式 - 基于仪表盘最近记账组件的标准样式 */
 
 .unified-transaction-list {
   /* 基础容器样式 */
@@ -6,13 +6,13 @@
   width: 100%; /* 确保容器充分利用可用宽度 */
 }
 
-/* 交易组 */
+/* 记账组 */
 .unified-transaction-list .transaction-group {
   margin-bottom: 8px; /* 从10px减少到8px */
   width: 100%; /* 确保充分利用可用宽度 */
 }
 
-/* 交易日期 */
+/* 记账日期 */
 .unified-transaction-list .transaction-date {
   font-size: 14px;
   color: var(--text-secondary, #6b7280);
@@ -21,7 +21,7 @@
   border-bottom: 1px solid var(--border-color, #e5e7eb);
 }
 
-/* 交易列表 */
+/* 记账列表 */
 .unified-transaction-list .transaction-list {
   display: flex;
   flex-direction: column;
@@ -29,7 +29,7 @@
   width: 100%; /* 确保充分利用可用宽度 */
 }
 
-/* 交易项 */
+/* 记账项 */
 .unified-transaction-list .transaction-item {
   display: flex;
   align-items: center;
@@ -50,7 +50,7 @@
   background-color: var(--hover-background, rgba(255, 255, 255, 0.1));
 }
 
-/* 交易图标 */
+/* 记账图标 */
 .unified-transaction-list .transaction-icon {
   width: 34px; /* 与仪表盘保持一致 */
   height: 34px;
@@ -63,7 +63,7 @@
   flex-shrink: 0;
 }
 
-/* 交易详情 */
+/* 记账详情 */
 .unified-transaction-list .transaction-details {
   flex: 1;
   min-width: 0;
@@ -84,7 +84,7 @@
   color: var(--text-secondary, #6b7280);
 }
 
-/* 交易金额 */
+/* 记账金额 */
 .unified-transaction-list .transaction-amount {
   font-weight: 600;
   font-size: 14px;
@@ -192,7 +192,7 @@
 
 /* 特殊场景样式覆盖 */
 
-/* 模态框中的交易列表 - 适配模态框环境 */
+/* 模态框中的记账列表 - 适配模态框环境 */
 .modal-content .unified-transaction-list .transaction-date {
   padding: 12px 24px 8px;
   font-size: 14px;
@@ -227,7 +227,7 @@
   background-color: var(--hover-background, #f9fafb);
 }
 
-/* 页面级交易列表 - 适配页面环境 */
+/* 页面级记账列表 - 适配页面环境 */
 .transactions-page .unified-transaction-list .transaction-date {
   font-size: 14px;
   color: var(--text-secondary);
@@ -257,7 +257,7 @@
   border-bottom: none;
 }
 
-/* 滑动交易项特殊样式 */
+/* 滑动记账项特殊样式 */
 .transactions-page .unified-transaction-list .swipeable-transaction-item {
   padding: 0;
   border-bottom: 1px solid var(--border-color);
@@ -271,7 +271,7 @@
   border-bottom: none;
 }
 
-/* 预算统计页面的交易列表 - 保持与仪表盘一致 */
+/* 预算统计页面的记账列表 - 保持与仪表盘一致 */
 .budget-statistics-page .unified-transaction-list .transaction-list {
   margin-top: 15px;
 }

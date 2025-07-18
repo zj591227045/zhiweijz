@@ -4,8 +4,8 @@ import { Suspense } from 'react';
 import './transactions.css';
 
 export const metadata: Metadata = {
-  title: '交易记录 - 只为记账',
-  description: '查看和管理您的交易记录',
+  title: '记账记录 - 只为记账',
+  description: '查看和管理您的记账记录',
 };
 
 // 加载组件
@@ -14,7 +14,7 @@ function TransactionsLoading() {
     <div className="flex items-center justify-center min-h-screen">
       <div className="flex flex-col items-center space-y-4">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <p className="text-gray-600">加载交易记录中...</p>
+        <p className="text-gray-600">加载记账记录中...</p>
       </div>
     </div>
   );

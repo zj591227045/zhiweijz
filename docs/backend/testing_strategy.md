@@ -531,12 +531,12 @@ export function setup() {
 export default function(data) {
   const { token, categoryId } = data;
   
-  // 创建交易
+  // 创建记账
   const createRes = http.post(`${BASE_URL}/transactions`, JSON.stringify({
     amount: Math.floor(Math.random() * 1000) / 100,
     type: 'EXPENSE',
     categoryId: categoryId,
-    description: `性能测试交易 ${Date.now()}`,
+    description: `性能测试记账 ${Date.now()}`,
     date: new Date().toISOString()
   }), {
     headers: {
@@ -551,7 +551,7 @@ export default function(data) {
   
   sleep(1);
   
-  // 获取交易列表
+  // 获取记账列表
   const listRes = http.get(`${BASE_URL}/transactions`, {
     headers: {
       'Authorization': `Bearer ${token}`,

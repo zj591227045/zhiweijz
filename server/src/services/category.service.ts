@@ -307,10 +307,10 @@ export class CategoryService {
       throw new Error('无权删除此分类');
     }
 
-    // 检查分类是否被交易使用
+    // 检查分类是否被记账使用
     const isUsed = await this.categoryRepository.isUsedByTransactions(id);
     if (isUsed) {
-      throw new Error('该分类已被交易使用，无法删除');
+      throw new Error('该分类已被记账使用，无法删除');
     }
 
     // 删除分类

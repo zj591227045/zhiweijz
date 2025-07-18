@@ -705,7 +705,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
                         }}
                       />
                       <span className="whitespace-nowrap text-sm">{tag.name}</span>
-                      {/* 使用次数徽章 - 显示该标签被使用的交易记录数量 */}
+                      {/* 使用次数徽章 - 显示该标签被使用的记账记录数量 */}
                       <span className="text-xs px-1 py-0.5 rounded-full"
                       style={{
                         backgroundColor: isSelected

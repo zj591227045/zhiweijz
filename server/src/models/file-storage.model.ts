@@ -64,7 +64,7 @@ export interface FileStorageResponseDto {
 }
 
 /**
- * 交易附件创建DTO
+ * 记账附件创建DTO
  */
 export interface CreateTransactionAttachmentDto {
   transactionId: string;
@@ -74,7 +74,7 @@ export interface CreateTransactionAttachmentDto {
 }
 
 /**
- * 交易附件响应DTO
+ * 记账附件响应DTO
  */
 export interface TransactionAttachmentResponseDto {
   id: string;

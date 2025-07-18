@@ -154,14 +154,14 @@ await aiService.llmProviderService.updateAccountLLMSettings(
 
 ## 4. 实际应用示例
 
-### 4.1 智能交易分类
+### 4.1 智能记账分类
 
-使用AI自动分类交易：
+使用AI自动分类记账：
 
 ```typescript
 import { ACCOUNTING_PROMPTS } from '../ai/prompts/accounting-prompts';
 
-// 获取交易分类提示模板
+// 获取记账分类提示模板
 const promptTemplate = ACCOUNTING_PROMPTS.transactionClassification;
 
 // 准备提示
@@ -215,7 +215,7 @@ console.log(result.output);
 
 ### 4.3 智能记账
 
-使用AI从自然语言描述中提取交易信息：
+使用AI从自然语言描述中提取记账信息：
 
 ```typescript
 import { ACCOUNTING_PROMPTS } from '../ai/prompts/accounting-prompts';

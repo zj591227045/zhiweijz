@@ -23,7 +23,7 @@
 
 ### 3. 预算结转处理
 - **自动结转**：创建新月份预算时自动处理上个月的结转
-- **历史追溯**：支持重新计算历史交易对结转的影响
+- **历史追溯**：支持重新计算历史记账对结转的影响
 - **数据完整性**：确保结转金额计算准确
 
 ## 技术实现
@@ -135,7 +135,7 @@ cleanupOldBudgetHistory() → 清理历史记录
 使用现有的表结构，并新增refreshDay字段：
 - `budgets`：预算主表（新增 `refresh_day` 字段）
 - `budget_history`：预算历史记录表
-- `transactions`：交易记录表
+- `transactions`：记账记录表
 
 #### 数据库变更
 ```sql
@@ -189,7 +189,7 @@ ALTER TABLE "budgets" ALTER COLUMN "refresh_day" SET NOT NULL;
 
 2. **预算结转金额不正确**
    - 使用 `recalculateBudgetRollover` 方法重新计算
-   - 检查历史交易记录是否完整
+   - 检查历史记账记录是否完整
    - 确认预算的结转设置
 
 3. **定时任务未执行**

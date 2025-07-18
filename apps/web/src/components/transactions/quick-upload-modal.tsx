@@ -291,7 +291,7 @@ export function QuickUploadModal({
         <div className="p-4">
           <div className="mb-4">
             <p className="text-sm text-gray-600">
-              为交易 <span className="font-medium">"{transactionName}"</span> 上传附件
+              为记账 <span className="font-medium">"{transactionName}"</span> 上传附件
             </p>
           </div>
 

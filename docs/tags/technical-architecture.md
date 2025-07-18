@@ -2,14 +2,14 @@
 
 ## 项目概述
 
-为只为记账系统设计并实现一个全新的标签系统功能，支持交易记录的多标签管理、账本级别标签共享、统计分析增强等功能。
+为只为记账系统设计并实现一个全新的标签系统功能，支持记账记录的多标签管理、账本级别标签共享、统计分析增强等功能。
 
 ## 核心功能需求
 
-### 1. 交易记录标签管理
-- 每条交易记录可以添加、移除多个标签
+### 1. 记账记录标签管理
+- 每条记账记录可以添加、移除多个标签
 - 支持批量操作（批量添加/移除标签）
-- 标签与交易记录的多对多关系
+- 标签与记账记录的多对多关系
 
 ### 2. 标签共享机制
 - 标签在账本级别共享
@@ -18,8 +18,8 @@
 
 ### 3. 标签管理界面
 - 设置页面：完整的标签管理功能（添加、编辑、删除、颜色设置）
-- 交易详情页面：快捷添加标签功能
-- 交易列表页面：显示标签信息
+- 记账详情页面：快捷添加标签功能
+- 记账列表页面：显示标签信息
 
 ### 4. 统计分析增强
 - 统计分析页面底部添加"按标签分析"功能按钮
@@ -53,7 +53,7 @@ CREATE INDEX idx_tags_name ON tags(name);
 CREATE INDEX idx_tags_created_by ON tags(created_by);
 ```
 
-### 2. 交易标签关联表 (transaction_tags)
+### 2. 记账标签关联表 (transaction_tags)
 
 ```sql
 CREATE TABLE transaction_tags (
@@ -112,14 +112,14 @@ Body: {
 DELETE /api/tags/{tagId}
 ```
 
-### 2. 交易标签关联API
+### 2. 记账标签关联API
 
-#### 获取交易的标签
+#### 获取记账的标签
 ```
 GET /api/transactions/{transactionId}/tags
 ```
 
-#### 为交易添加标签
+#### 为记账添加标签
 ```
 POST /api/transactions/{transactionId}/tags
 Body: {
@@ -127,12 +127,12 @@ Body: {
 }
 ```
 
-#### 移除交易标签
+#### 移除记账标签
 ```
 DELETE /api/transactions/{transactionId}/tags/{tagId}
 ```
 
-#### 批量操作交易标签
+#### 批量操作记账标签
 ```
 POST /api/transactions/batch/tags
 Body: {
@@ -180,7 +180,7 @@ GET /api/statistics/by-tags?accountBookId={accountBookId}&startDate={date}&endDa
 - 标签颜色显示
 
 **使用场景**:
-- 交易记录编辑页面
+- 记账记录编辑页面
 - 统计分析筛选
 - 批量操作
 
@@ -195,8 +195,8 @@ GET /api/statistics/by-tags?accountBookId={accountBookId}&startDate={date}&endDa
 - 响应式布局
 
 **使用场景**:
-- 交易列表
-- 交易详情
+- 记账列表
+- 记账详情
 - 统计图表
 
 ### 4. 统计分析增强
@@ -254,7 +254,7 @@ GET /api/statistics/by-tags?accountBookId={accountBookId}&startDate={date}&endDa
 
 ### 阶段2: 后端API开发 (2天)
 - 实现标签CRUD API
-- 实现交易标签关联API
+- 实现记账标签关联API
 - 添加权限控制和验证
 
 ### 阶段3: 前端基础组件开发 (2天)
@@ -267,9 +267,9 @@ GET /api/statistics/by-tags?accountBookId={accountBookId}&startDate={date}&endDa
 - 集成CRUD操作
 - 添加搜索和筛选功能
 
-### 阶段5: 交易记录集成 (1天)
-- 交易详情页面标签功能
-- 交易列表标签显示
+### 阶段5: 记账记录集成 (1天)
+- 记账详情页面标签功能
+- 记账列表标签显示
 - 批量操作功能
 
 ### 阶段6: 统计分析增强 (1天)

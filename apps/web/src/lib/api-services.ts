@@ -39,9 +39,9 @@ export const accountBookService = {
   },
 };
 
-// 交易相关API
+// 记账相关API
 export const transactionService = {
-  // 获取所有交易
+  // 获取所有记账
   getTransactions: (params?: any) => {
     // 默认包含附件信息
     const enhancedParams = {
@@ -51,27 +51,27 @@ export const transactionService = {
     return apiClient.get('/transactions', { params: enhancedParams });
   },
 
-  // 获取单个交易
+  // 获取单个记账
   getTransaction: (id: string) => {
     return apiClient.get(`/transactions/${id}?includeAttachments=true`);
   },
 
-  // 创建交易
+  // 创建记账
   createTransaction: (data: any) => {
     return apiClient.post('/transactions', data);
   },
 
-  // 更新交易
+  // 更新记账
   updateTransaction: (id: string, data: any) => {
     return apiClient.put(`/transactions/${id}`, data);
   },
 
-  // 删除交易
+  // 删除记账
   deleteTransaction: (id: string) => {
     return apiClient.delete(`/transactions/${id}`);
   },
 
-  // 获取最近交易
+  // 获取最近记账
   getRecentTransactions: (accountBookId: string, limit: number = 10) => {
     return apiClient.get('/transactions', {
       params: {
@@ -83,7 +83,7 @@ export const transactionService = {
     });
   },
 
-  // 获取按日期分组的交易
+  // 获取按日期分组的记账
   getGroupedTransactions: (accountBookId: string, params?: any) => {
     const defaultParams = {
       accountBookId,
@@ -254,7 +254,7 @@ export const budgetService = {
     return apiClient.get(`/budgets/${budgetId}/trends`, { params });
   },
 
-  // 获取预算交易记录
+  // 获取预算记账记录
   getBudgetTransactions: (budgetId: string, params?: any) => {
     return apiClient.get(`/budgets/${budgetId}/transactions`, { params });
   },
@@ -317,7 +317,7 @@ export const statisticsService = {
     });
   },
 
-  // 检查是否存在无预算交易
+  // 检查是否存在无预算记账
   checkUnbudgetedTransactions: (accountBookId: string, params?: any) => {
     const { startDate, endDate } = getCurrentMonthRange();
     const defaultParams = {
@@ -341,7 +341,7 @@ export const dashboardService = {
 
 // 导出相关API
 export const exportService = {
-  // 导出交易记录
+  // 导出记账记录
   exportTransactions: (accountBookId: string, format: 'csv' | 'json' = 'csv') => {
     return apiClient.post(
       `/transactions/export?accountBookId=${accountBookId}`,

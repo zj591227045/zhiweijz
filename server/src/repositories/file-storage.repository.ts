@@ -204,7 +204,7 @@ export class FileStorageRepository {
 
 export class TransactionAttachmentRepository {
   /**
-   * 创建交易附件
+   * 创建记账附件
    */
   async create(data: CreateTransactionAttachmentDto): Promise<TransactionAttachment> {
     return prisma.transactionAttachment.create({
@@ -213,7 +213,7 @@ export class TransactionAttachmentRepository {
   }
 
   /**
-   * 根据交易ID查找附件
+   * 根据记账ID查找附件
    */
   async findByTransactionId(transactionId: string): Promise<TransactionAttachment[]> {
     return prisma.transactionAttachment.findMany({
@@ -258,7 +258,7 @@ export class TransactionAttachmentRepository {
   }
 
   /**
-   * 删除交易附件
+   * 删除记账附件
    */
   async delete(id: string): Promise<void> {
     await prisma.transactionAttachment.delete({
@@ -267,7 +267,7 @@ export class TransactionAttachmentRepository {
   }
 
   /**
-   * 根据交易ID和文件ID删除附件
+   * 根据记账ID和文件ID删除附件
    */
   async deleteByTransactionAndFile(transactionId: string, fileId: string): Promise<void> {
     await prisma.transactionAttachment.deleteMany({
@@ -279,7 +279,7 @@ export class TransactionAttachmentRepository {
   }
 
   /**
-   * 批量创建交易附件
+   * 批量创建记账附件
    */
   async createMany(attachments: CreateTransactionAttachmentDto[]): Promise<number> {
     const result = await prisma.transactionAttachment.createMany({
@@ -296,7 +296,7 @@ export class TransactionAttachmentRepository {
     totalAttachments: number;
     attachmentsByType: Record<string, number>;
   }> {
-    // 通过交易记录关联查找用户的附件
+    // 通过记账记录关联查找用户的附件
     const attachments = await prisma.transactionAttachment.findMany({
       where: {
         transaction: {

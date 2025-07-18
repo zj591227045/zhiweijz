@@ -112,7 +112,7 @@ model Invitation {
   @@map("invitations")
 }
 
-// 交易分类模型
+// 记账分类模型
 model Category {
   id         String       @id @default(uuid())
   name       String
@@ -133,7 +133,7 @@ model Category {
   @@map("categories")
 }
 
-// 交易记录模型
+// 记账记录模型
 model Transaction {
   id             String          @id @default(uuid())
   amount         Decimal         @db.Decimal(10, 2)
@@ -237,10 +237,10 @@ model Transaction {
   // ... 其他字段
 
   @@index([date]) // 用于日期范围查询
-  @@index([type]) // 用于按类型筛选交易
-  @@index([userId]) // 用于获取用户交易
-  @@index([familyId]) // 用于获取家庭交易
-  @@index([categoryId]) // 用于按分类筛选交易
+  @@index([type]) // 用于按类型筛选记账
+  @@index([userId]) // 用于获取用户记账
+  @@index([familyId]) // 用于获取家庭记账
+  @@index([categoryId]) // 用于按分类筛选记账
 }
 
 model Category {

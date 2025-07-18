@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>交易记录 - 只为记账</title>
+    <title>记账记录 - 只为记账</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="themes.css">
@@ -188,7 +188,7 @@
 <body>
     <div class="app-container">
         <div class="header">
-            <div class="header-title">交易记录</div>
+            <div class="header-title">记账记录</div>
             <div class="header-actions">
                 <button class="icon-button">
                     <i class="fas fa-search"></i>
@@ -360,11 +360,11 @@
                     <i class="fas fa-receipt"></i>
                 </div>
                 <div class="empty-text">
-                    暂无交易记录
+                    暂无记账记录
                 </div>
                 <button class="add-first-button">
                     <i class="fas fa-plus"></i>
-                    添加第一笔交易
+                    添加第一笔记账
                 </button>
             </div>
             
@@ -471,14 +471,14 @@
         document.querySelectorAll('.edit-button').forEach(button => {
             button.addEventListener('click', function() {
                 // 在实际应用中，这里会跳转到编辑页面
-                alert('编辑交易');
+                alert('编辑记账');
             });
         });
         
         document.querySelectorAll('.delete-button').forEach(button => {
             button.addEventListener('click', function() {
-                // 在实际应用中，这里会显示确认对话框并删除交易
-                if (confirm('确定要删除这笔交易吗？')) {
+                // 在实际应用中，这里会显示确认对话框并删除记账
+                if (confirm('确定要删除这笔记账吗？')) {
                     const item = this.closest('.transaction-item');
                     item.style.height = '0';
                     item.style.opacity = '0';
@@ -489,13 +489,13 @@
                     setTimeout(() => {
                         item.remove();
                         
-                        // 检查是否还有交易项
+                        // 检查是否还有记账项
                         const group = this.closest('.transaction-group');
                         if (group.querySelectorAll('.transaction-item').length === 0) {
                             group.remove();
                         }
                         
-                        // 检查是否所有交易组都被删除
+                        // 检查是否所有记账组都被删除
                         if (document.querySelectorAll('.transaction-group').length === 0) {
                             document.querySelector('.transaction-empty').style.display = 'block';
                         }

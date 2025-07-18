@@ -145,7 +145,7 @@ export class DataAggregationService {
           },
         }),
 
-        // 活跃用户数（有交易记录的用户）
+        // 活跃用户数（有记账记录的用户）
         prisma.user.count({
           where: {
             transactions: {
@@ -159,7 +159,7 @@ export class DataAggregationService {
           },
         }),
 
-        // 交易记录数
+        // 记账记录数
         prisma.transaction.count({
           where: {
             createdAt: {
@@ -171,7 +171,7 @@ export class DataAggregationService {
       ]);
 
       console.log(
-        `每日统计 - 新用户: ${newUsers}, 活跃用户: ${activeUsers}, 交易: ${totalTransactions}`,
+        `每日统计 - 新用户: ${newUsers}, 活跃用户: ${activeUsers}, 记账: ${totalTransactions}`,
       );
     } catch (error) {
       console.error('生成每日统计失败:', error);

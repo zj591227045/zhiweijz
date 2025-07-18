@@ -12,7 +12,7 @@ const prisma = new PrismaClient();
 
 export class TransactionTagService {
   /**
-   * 获取交易记录的标签
+   * 获取记账记录的标签
    */
   async getTransactionTags(transactionId: string): Promise<TagResponseDto[]> {
     try {
@@ -39,20 +39,20 @@ export class TransactionTagService {
 
       return transactionTags.map((tt) => this.formatTagResponse(tt.tag));
     } catch (error) {
-      console.error('获取交易标签失败:', error);
-      throw new Error('获取交易标签失败');
+      console.error('获取记账标签失败:', error);
+      throw new Error('获取记账标签失败');
     }
   }
 
   /**
-   * 为交易记录添加标签
+   * 为记账记录添加标签
    */
   async addTransactionTags(
     userId: string,
     transactionId: string,
     data: AddTransactionTagsDto,
   ): Promise<{ addedTags: TagResponseDto[]; skippedTags: string[] }> {
-    // 检查交易记录权限
+    // 检查记账记录权限
     await this.checkTransactionPermission(userId, transactionId);
 
     // 检查标签是否存在且属于同一账本
@@ -115,16 +115,16 @@ export class TransactionTagService {
         skippedTags: existingTagIds,
       };
     } catch (error) {
-      console.error('添加交易标签失败:', error);
-      throw new Error('添加交易标签失败');
+      console.error('添加记账标签失败:', error);
+      throw new Error('添加记账标签失败');
     }
   }
 
   /**
-   * 移除交易记录的标签
+   * 移除记账记录的标签
    */
   async removeTransactionTag(userId: string, transactionId: string, tagId: string): Promise<void> {
-    // 检查交易记录权限
+    // 检查记账记录权限
     await this.checkTransactionPermission(userId, transactionId);
 
     try {
@@ -135,13 +135,13 @@ export class TransactionTagService {
         },
       });
     } catch (error) {
-      console.error('移除交易标签失败:', error);
-      throw new Error('移除交易标签失败');
+      console.error('移除记账标签失败:', error);
+      throw new Error('移除记账标签失败');
     }
   }
 
   /**
-   * 批量操作交易标签
+   * 批量操作记账标签
    */
   async batchOperateTransactionTags(
     userId: string,
@@ -149,7 +149,7 @@ export class TransactionTagService {
   ): Promise<BatchTransactionTagsResponse> {
     const { transactionIds, action, tagIds } = data;
 
-    // 检查交易记录权限
+    // 检查记账记录权限
     for (const transactionId of transactionIds) {
       await this.checkTransactionPermission(userId, transactionId);
     }
@@ -191,7 +191,7 @@ export class TransactionTagService {
           }
           processedTransactions++;
         } catch (error) {
-          console.error(`处理交易 ${transactionId} 失败:`, error);
+          console.error(`处理记账 ${transactionId} 失败:`, error);
           failedTransactions.push(transactionId);
         }
       }
@@ -207,16 +207,16 @@ export class TransactionTagService {
             skipped,
           },
         },
-        message: `成功处理 ${processedTransactions} 条交易记录`,
+        message: `成功处理 ${processedTransactions} 条记账记录`,
       };
     } catch (error) {
-      console.error('批量操作交易标签失败:', error);
-      throw new Error('批量操作交易标签失败');
+      console.error('批量操作记账标签失败:', error);
+      throw new Error('批量操作记账标签失败');
     }
   }
 
   /**
-   * 检查交易记录权限
+   * 检查记账记录权限
    */
   private async checkTransactionPermission(userId: string, transactionId: string): Promise<void> {
     const transaction = await prisma.transaction.findFirst({

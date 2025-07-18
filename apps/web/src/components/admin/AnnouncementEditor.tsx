@@ -250,7 +250,7 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
   const getInternalPageOptions = () => [
     { label: '仪表盘', value: '/dashboard' },
     { label: '账本管理', value: '/account-books' },
-    { label: '交易记录', value: '/transactions' },
+    { label: '记账记录', value: '/transactions' },
     { label: '统计分析', value: '/analytics' },
     { label: '设置', value: '/settings' },
     { label: '个人资料', value: '/settings/profile' },

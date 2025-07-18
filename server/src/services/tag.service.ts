@@ -129,7 +129,7 @@ export class TagService {
             orderBy: {
               createdAt: 'desc',
             },
-            take: 10, // 最近10条交易记录
+            take: 10, // 最近10条记账记录
           },
         },
       });
@@ -141,7 +141,7 @@ export class TagService {
       // 计算统计信息
       const statistics = await this.calculateTagStatistics(tagId);
 
-      // 格式化最近交易记录
+      // 格式化最近记账记录
       const recentTransactions = tag.transactionTags.map((tt: any) => ({
         id: tt.transaction.id,
         amount: Number(tt.transaction.amount),
@@ -496,14 +496,14 @@ export class TagService {
               descriptionLower.includes(tagNameLower)
             ) {
               confidence += 0.3;
-              reason = '与交易描述相关';
+              reason = '与记账描述相关';
             }
           }
 
-          // 基于特定交易的推荐
+          // 基于特定记账的推荐
           if (transactionId) {
-            // 这里可以添加基于特定交易的推荐逻辑
-            // 例如查找相似的交易记录使用的标签
+            // 这里可以添加基于特定记账的推荐逻辑
+            // 例如查找相似的记账记录使用的标签
           }
 
           return {
@@ -551,7 +551,7 @@ export class TagService {
         },
       };
 
-      // 添加交易类型筛选
+      // 添加记账类型筛选
       if (transactionType) {
         whereConditions.transaction.type = transactionType.toUpperCase();
       }
@@ -570,7 +570,7 @@ export class TagService {
         };
       }
 
-      // 获取交易标签关联数据
+      // 获取记账标签关联数据
       const transactionTags = await prisma.transactionTag.findMany({
         where: whereConditions,
         include: {

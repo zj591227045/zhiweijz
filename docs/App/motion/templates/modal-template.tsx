@@ -1,5 +1,5 @@
 // 全屏模态框模板
-// 基于成功的交易编辑模态框实现
+// 基于成功的记账编辑模态框实现
 
 import React, { useEffect, useState } from 'react';
 

@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS "categories" (
     CONSTRAINT "categories_pkey" PRIMARY KEY ("id")
 );
 
--- 交易记录表
+-- 记账记录表
 CREATE TABLE IF NOT EXISTS "transactions" (
     "id" TEXT NOT NULL,
     "amount" DECIMAL(10,2) NOT NULL,

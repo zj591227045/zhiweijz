@@ -25,7 +25,7 @@ import { NavigationProps, TransactionsStackParamList } from '../../navigation/ty
 import { MobileAttachmentPreview, MobileAttachmentFile } from '../../components/transactions/mobile-attachment-preview';
 import dayjs from 'dayjs';
 
-// 交易类型枚举
+// 记账类型枚举
 export enum TransactionType {
   EXPENSE = "EXPENSE",
   INCOME = "INCOME",
@@ -40,8 +40,8 @@ interface TransactionDetailScreenProps extends NavigationProps<'TransactionDetai
 }
 
 /**
- * 交易详情屏幕
- * 复用web端的交易详情逻辑，适配移动端UI
+ * 记账详情屏幕
+ * 复用web端的记账详情逻辑，适配移动端UI
  */
 const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({ navigation, route }) => {
   const theme = useTheme();
@@ -70,7 +70,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({ navig
     }
   }, [isAuthenticated]);
 
-  // 获取交易详情
+  // 获取记账详情
   useEffect(() => {
     if (isAuthenticated && transactionId) {
       fetchTransaction(transactionId);
@@ -93,12 +93,12 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({ navig
     }
   };
 
-  // 处理编辑交易
+  // 处理编辑记账
   const handleEdit = () => {
     navigation.navigate('TransactionEdit', { transactionId });
   };
 
-  // 处理删除交易
+  // 处理删除记账
   const handleDelete = async () => {
     if (!transaction) return;
 
@@ -108,7 +108,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({ navig
       if (success) {
         Alert.alert(
           '删除成功',
-          '交易记录已删除',
+          '记账记录已删除',
           [
             {
               text: '确定',
@@ -118,8 +118,8 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({ navig
         );
       }
     } catch (error) {
-      console.error('删除交易失败:', error);
-      Alert.alert('错误', '删除交易失败，请重试');
+      console.error('删除记账失败:', error);
+      Alert.alert('错误', '删除记账失败，请重试');
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);
@@ -171,7 +171,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({ navig
       <SafeAreaView style={styles.container}>
         <Appbar.Header style={styles.header}>
           <Appbar.BackAction onPress={() => navigation.goBack()} />
-          <Appbar.Content title="交易详情" titleStyle={styles.headerTitle} />
+          <Appbar.Content title="记账详情" titleStyle={styles.headerTitle} />
         </Appbar.Header>
         <View style={styles.centerContent}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
@@ -188,7 +188,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({ navig
       <SafeAreaView style={styles.container}>
         <Appbar.Header style={styles.header}>
           <Appbar.BackAction onPress={() => navigation.goBack()} />
-          <Appbar.Content title="交易详情" titleStyle={styles.headerTitle} />
+          <Appbar.Content title="记账详情" titleStyle={styles.headerTitle} />
         </Appbar.Header>
         <View style={styles.centerContent}>
           <Icon name="alert-circle" size={48} color={theme.colors.error} />
@@ -216,12 +216,12 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({ navig
       <SafeAreaView style={styles.container}>
         <Appbar.Header style={styles.header}>
           <Appbar.BackAction onPress={() => navigation.goBack()} />
-          <Appbar.Content title="交易详情" titleStyle={styles.headerTitle} />
+          <Appbar.Content title="记账详情" titleStyle={styles.headerTitle} />
         </Appbar.Header>
         <View style={styles.centerContent}>
           <Icon name="alert-circle" size={48} color={theme.colors.error} />
           <Text style={[styles.errorText, { color: theme.colors.error }]}>
-            未找到交易记录
+            未找到记账记录
           </Text>
           <TouchableOpacity
             style={[styles.retryButton, { backgroundColor: theme.colors.primary }]}
@@ -242,7 +242,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({ navig
       <Appbar.Header style={styles.header}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content 
-          title="交易详情" 
+          title="记账详情" 
           titleStyle={styles.headerTitle}
         />
         <Appbar.Action icon="pencil" onPress={handleEdit} />
@@ -265,7 +265,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({ navig
           </Text>
         </Surface>
 
-        {/* 交易信息 */}
+        {/* 记账信息 */}
         <Surface style={styles.infoContainer} elevation={1}>
           {/* 类型 */}
           <View style={styles.infoItem}>
@@ -438,9 +438,9 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({ navig
       {/* 删除确认对话框 */}
       <Portal>
         <Dialog visible={showDeleteDialog} onDismiss={() => setShowDeleteDialog(false)}>
-          <Dialog.Title>删除交易</Dialog.Title>
+          <Dialog.Title>删除记账</Dialog.Title>
           <Dialog.Content>
-            <Text>确定要删除这笔交易吗？此操作无法撤销。</Text>
+            <Text>确定要删除这笔记账吗？此操作无法撤销。</Text>
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={() => setShowDeleteDialog(false)}>取消</Button>

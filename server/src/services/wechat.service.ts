@@ -896,7 +896,7 @@ export class WechatService {
   }
 
   /**
-   * 处理最近交易查询
+   * 处理最近记账查询
    */
   private async handleRecentQuery(
     userId: string,
@@ -906,8 +906,8 @@ export class WechatService {
     try {
       return await this.smartAccountingService.getRecentTransactions(userId, accountBookId, limit);
     } catch (error) {
-      console.error('获取最近交易失败:', error);
-      return '获取最近交易失败，请稍后重试。';
+      console.error('获取最近记账失败:', error);
+      return '获取最近记账失败，请稍后重试。';
     }
   }
 
@@ -1764,17 +1764,17 @@ export class WechatService {
               binding.userId,
               binding.defaultAccountBookId,
               recognizedText,
-              true // 创建交易记录
+              true // 创建记账记录
             );
 
             console.log(`✅ 智能记账API调用完成:`, accountingResult);
 
             if (accountingResult.success) {
               if (accountingResult.transaction) {
-                // 有交易记录，使用格式化消息
+                // 有记账记录，使用格式化消息
                 return this.formatAccountingSuccessMessage(accountingResult.transaction, recognizedText);
               } else {
-                // 没有交易记录但成功，直接返回消息
+                // 没有记账记录但成功，直接返回消息
                 return accountingResult.message;
               }
             } else {
@@ -1990,16 +1990,16 @@ export class WechatService {
             binding.userId,
             binding.defaultAccountBookId,
             recognizedText,
-            true // 创建交易记录
+            true // 创建记账记录
           );
 
           console.log(`✅ 智能记账API调用完成:`, accountingResult);
 
           if (accountingResult.success && accountingResult.transaction) {
-            // 第三步：保存图片作为交易附件
+            // 第三步：保存图片作为记账附件
             if (shouldCleanup && imagePath) {
               try {
-                console.log(`💾 开始保存图片附件到交易记录: ${accountingResult.transaction.id}`);
+                console.log(`💾 开始保存图片附件到记账记录: ${accountingResult.transaction.id}`);
                 await this.saveImageAttachment(accountingResult.transaction.id, imagePath, binding.userId);
                 console.log(`✅ 图片附件保存成功`);
               } catch (attachmentError) {
@@ -2011,7 +2011,7 @@ export class WechatService {
             // 发送成功消息 - 使用智能记账的格式化消息，而不是图片识别的原始内容
             await this.sendCustomMessage(openid, accountingResult.message);
           } else if (accountingResult.success) {
-            // 没有交易记录但成功，直接返回消息
+            // 没有记账记录但成功，直接返回消息
             await this.sendCustomMessage(openid, accountingResult.message);
           } else {
             await this.sendCustomMessage(openid, `图片识别成功，但智能记账失败：${accountingResult.message || '未知错误'}\n\n您可以手动输入记账信息。`);
@@ -2038,7 +2038,7 @@ export class WechatService {
   }
 
   /**
-   * 保存图片作为交易附件
+   * 保存图片作为记账附件
    */
   private async saveImageAttachment(transactionId: string, imagePath: string, userId: string): Promise<void> {
     try {
@@ -2094,7 +2094,7 @@ export class WechatService {
         userId,
       );
 
-      // 创建交易附件记录
+      // 创建记账附件记录
       await prisma.transactionAttachment.create({
         data: {
           id: crypto.randomUUID(),
@@ -2152,7 +2152,7 @@ export class WechatService {
   }
 
   /**
-   * 获取交易类型文本
+   * 获取记账类型文本
    */
   private getTransactionTypeText(type: string): string {
     switch (type) {

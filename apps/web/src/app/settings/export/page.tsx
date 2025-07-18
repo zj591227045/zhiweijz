@@ -45,7 +45,7 @@ export default function ExportPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${currentAccountBook.name}_交易记录_${new Date().toISOString().split('T')[0]}.${selectedFormat}`;
+      a.download = `${currentAccountBook.name}_记账记录_${new Date().toISOString().split('T')[0]}.${selectedFormat}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -72,8 +72,8 @@ export default function ExportPage() {
             <i className="fas fa-file-export"></i>
           </div>
           <div className="export-info-content">
-            <h3>导出交易记录</h3>
-            <p>导出当前账本的所有交易记录，包括金额、分类、描述、日期等信息。</p>
+            <h3>导出记账记录</h3>
+            <p>导出当前账本的所有记账记录，包括金额、分类、描述、日期等信息。</p>
           </div>
         </div>
 
@@ -155,7 +155,7 @@ export default function ExportPage() {
             注意事项
           </div>
           <ul className="notes-list">
-            <li>导出的数据仅包含当前账本的交易记录</li>
+            <li>导出的数据仅包含当前账本的记账记录</li>
             <li>导出文件将自动下载到您的设备</li>
             <li>CSV 格式可以直接在 Excel 或其他表格软件中打开</li>
             <li>JSON 格式适合开发者或需要程序处理的场景</li>

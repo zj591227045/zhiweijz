@@ -17,7 +17,7 @@ export type MainTabParamList = {
   More: undefined;
 };
 
-// 交易导航参数类型
+// 记账导航参数类型
 export type TransactionsStackParamList = {
   TransactionList: undefined;
   TransactionAdd: undefined;

@@ -85,11 +85,11 @@ if (params.id === 'placeholder') {
 ## 验证结果
 
 ✅ **所有8个动态路由页面测试通过**:
-- `/transactions/edit/[id]` - 交易编辑页面
+- `/transactions/edit/[id]` - 记账编辑页面
 - `/books/edit/[id]` - 书籍编辑页面  
 - `/families/[id]` - 家庭详情页面
 - `/families/[id]/members` - 家庭成员页面
-- `/transactions/[id]` - 交易详情页面
+- `/transactions/[id]` - 记账详情页面
 - `/budgets/[id]/edit` - 预算编辑页面
 - `/settings/categories/[id]/edit` - 分类编辑页面
 - `/settings/ai-services/edit/[id]` - AI服务编辑页面

@@ -17,7 +17,7 @@ import '../common/unified-transaction-list.css';
 import './budget-filter.css';
 import './filter-container.css';
 
-// 导入交易类型枚举
+// 导入记账类型枚举
 import { TransactionType } from '../common/unified-transaction-list';
 
 // 日期范围类型
@@ -66,7 +66,7 @@ export function TransactionListPage() {
   const [transactionToDelete, setTransactionToDelete] = useState<any>(null);
   const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
 
-  // 交易编辑模态框状态
+  // 记账编辑模态框状态
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
   const [editingTransactionData, setEditingTransactionData] = useState<any>(null);
 
@@ -123,7 +123,7 @@ export function TransactionListPage() {
     }
   }, [currentAccountBook?.id]);
 
-  // 获取交易数据的函数（重置数据）
+  // 获取记账数据的函数（重置数据）
   const fetchTransactions = async (resetData = true) => {
     try {
       if (resetData) {
@@ -174,7 +174,7 @@ export function TransactionListPage() {
         queryParams.budgetId = selectedBudgetId;
       }
 
-      // 获取交易数据
+      // 获取记账数据
       const response = await apiClient.get('/transactions', {
         params: queryParams,
       });
@@ -254,13 +254,13 @@ export function TransactionListPage() {
         setIsLoadingMore(false);
       }
     } catch (error) {
-      console.error('获取交易数据失败:', error);
+      console.error('获取记账数据失败:', error);
       
       // 如果是搜索相关的错误，显示特定的错误信息
       if (searchQuery.trim() && (error as any)?.response?.status === 400) {
         setError('搜索功能暂时不可用，请稍后重试');
       } else {
-        setError('获取交易数据失败，请重试');
+        setError('获取记账数据失败，请重试');
       }
       
       if (resetData) {
@@ -297,7 +297,7 @@ export function TransactionListPage() {
     }
   }, [pagination.hasMore, isLoadingMore, isLoading]);
 
-  // 获取交易数据
+  // 获取记账数据
   useEffect(() => {
     if (!isAuthenticated) return;
     fetchTransactions(true);
@@ -325,7 +325,7 @@ export function TransactionListPage() {
     }
   }, [isAuthenticated]);
 
-  // 按日期分组交易 - 转换为统一组件格式
+  // 按日期分组记账 - 转换为统一组件格式
   const groupTransactionsByDate = (transactions: any[]) => {
     if (!Array.isArray(transactions)) return [];
 
@@ -366,24 +366,24 @@ export function TransactionListPage() {
     }));
   };
 
-  // 处理交易项点击 - 多选模式下选择，否则打开编辑模态框
+  // 处理记账项点击 - 多选模式下选择，否则打开编辑模态框
   const handleTransactionClick = (transactionId: string) => {
     if (isMultiSelectMode) {
       handleTransactionSelect(transactionId);
     } else {
-      // 找到对应的交易数据
+      // 找到对应的记账数据
       const transactionData = transactions.find(t => t.id === transactionId);
       setEditingTransactionId(transactionId);
       setEditingTransactionData(transactionData);
     }
   };
 
-  // 处理附件点击 - 跳转到交易详情页查看附件
+  // 处理附件点击 - 跳转到记账详情页查看附件
   const handleAttachmentClick = (transactionId: string) => {
     smartNavigate(router, `/transactions/${transactionId}`);
   };
 
-  // 处理删除交易
+  // 处理删除记账
   const handleDeleteClick = (transactionId: string) => {
     const transactionData = transactions.find(t => t.id === transactionId);
     if (!transactionData) return;
@@ -392,7 +392,7 @@ export function TransactionListPage() {
     setDeleteDialogOpen(true);
   };
 
-  // 确认删除交易
+  // 确认删除记账
   const handleConfirmDelete = async () => {
     if (!transactionToDelete) return;
 
@@ -400,7 +400,7 @@ export function TransactionListPage() {
       setDeletingTransactionId(transactionToDelete.id);
       await apiClient.delete(`/transactions/${transactionToDelete.id}`);
 
-      // 从本地状态中移除已删除的交易
+      // 从本地状态中移除已删除的记账
       setTransactions(prev => prev.filter(t => t.id !== transactionToDelete.id));
 
       // 重新计算分组数据
@@ -410,10 +410,10 @@ export function TransactionListPage() {
 
       setDeleteDialogOpen(false);
       setTransactionToDelete(null);
-      console.log('交易删除成功');
+      console.log('记账删除成功');
     } catch (error) {
-      console.error('删除交易失败:', error);
-      alert('删除交易失败，请重试');
+      console.error('删除记账失败:', error);
+      alert('删除记账失败，请重试');
     } finally {
       setDeletingTransactionId(null);
     }
@@ -425,7 +425,7 @@ export function TransactionListPage() {
     setTransactionToDelete(null);
   };
 
-  // 处理交易选择
+  // 处理记账选择
   const handleTransactionSelect = (transactionId: string) => {
     setSelectedTransactions((prev) => {
       const newSet = new Set(prev);
@@ -473,7 +473,7 @@ export function TransactionListPage() {
       setIsMultiSelectMode(false);
       setShowDeleteConfirm(false);
 
-      console.log(`成功删除 ${selectedTransactions.size} 条交易记录`);
+      console.log(`成功删除 ${selectedTransactions.size} 条记账记录`);
     } catch (error) {
       console.error('批量删除失败:', error);
     } finally {
@@ -567,15 +567,15 @@ export function TransactionListPage() {
     });
   };
 
-  // 关闭交易编辑模态框
+  // 关闭记账编辑模态框
   const handleCloseEditModal = () => {
     setEditingTransactionId(null);
     setEditingTransactionData(null);
   };
 
-  // 处理交易保存成功
+  // 处理记账保存成功
   const handleTransactionSaved = () => {
-    // 重新获取交易数据
+    // 重新获取记账数据
     fetchTransactions();
     // 关闭模态框
     handleCloseEditModal();
@@ -583,7 +583,7 @@ export function TransactionListPage() {
 
   return (
     <PageContainer
-      title={budgetId ? '预算交易记录' : '交易记录'}
+      title={budgetId ? '预算记账记录' : '记账记录'}
       rightActions={rightActions}
       activeNavItem="profile"
     >
@@ -604,7 +604,7 @@ export function TransactionListPage() {
             <div className="search-input-wrapper">
               <input
                 type="text"
-                placeholder="搜索交易内容或日期..."
+                placeholder="搜索记账内容或日期..."
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 className="search-input"
@@ -631,7 +631,7 @@ export function TransactionListPage() {
           budgetId={budgetId}
         />
 
-        {/* 交易统计摘要 */}
+        {/* 记账统计摘要 */}
         <div className="transaction-summary">
           <div className="summary-item income">
             <span className="label">收入</span>
@@ -649,12 +649,12 @@ export function TransactionListPage() {
           </div>
         </div>
 
-        {/* 交易列表 */}
+        {/* 记账列表 */}
         <UnifiedTransactionList
           groupedTransactions={groupedTransactions}
           onTransactionClick={handleTransactionClick}
           showDateHeaders={true}
-          emptyMessage="暂无交易记录"
+          emptyMessage="暂无记账记录"
           isLoading={isLoading}
           error={error}
           isMultiSelectMode={isMultiSelectMode}
@@ -678,7 +678,7 @@ export function TransactionListPage() {
                 <h3>确认删除</h3>
               </div>
               <div className="modal-body">
-                <p>确定要删除选中的 {selectedTransactions.size} 条交易记录吗？</p>
+                <p>确定要删除选中的 {selectedTransactions.size} 条记账记录吗？</p>
                 <p className="warning-text">此操作不可恢复，请谨慎操作。</p>
               </div>
               <div className="modal-footer">
@@ -700,8 +700,8 @@ export function TransactionListPage() {
         {/* 单个删除确认对话框 */}
         <DeleteConfirmationDialog
           isOpen={deleteDialogOpen}
-          title="删除交易"
-          message="确定要删除这笔交易吗？"
+          title="删除记账"
+          message="确定要删除这笔记账吗？"
           itemName={transactionToDelete?.description || transactionToDelete?.categoryName}
           amount={transactionToDelete?.amount}
           isLoading={deletingTransactionId === transactionToDelete?.id}
@@ -709,7 +709,7 @@ export function TransactionListPage() {
           onCancel={handleCancelDelete}
         />
 
-        {/* 交易编辑模态框 */}
+        {/* 记账编辑模态框 */}
         {editingTransactionId && (
           <TransactionEditModal
             transactionId={editingTransactionId}

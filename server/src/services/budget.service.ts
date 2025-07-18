@@ -380,7 +380,7 @@ export class BudgetService {
   /**
    * 根据日期获取预算列表
    * @param userId 用户ID
-   * @param date 交易日期 (YYYY-MM-DD)
+   * @param date 记账日期 (YYYY-MM-DD)
    * @param accountBookId 账本ID
    * @returns 该日期范围内的预算列表
    */
@@ -691,7 +691,7 @@ export class BudgetService {
 
   /**
    * 增强的支出金额计算
-   * 处理复杂的交易场景和边界情况
+   * 处理复杂的记账场景和边界情况
    */
   private async calculateEnhancedSpentAmount(budgetId: string, options: any = {}): Promise<number> {
     const budget = await this.budgetRepository.findById(budgetId);
@@ -721,7 +721,7 @@ export class BudgetService {
       whereConditions.userId = budget.userId;
     }
 
-    // 验证交易日期（可选）
+    // 验证记账日期（可选）
     if (options.validateTransactionDates) {
       whereConditions.date.gte = new Date(
         Math.max(whereConditions.date.gte.getTime(), budget.startDate.getTime()),
@@ -731,7 +731,7 @@ export class BudgetService {
       );
     }
 
-    // 查询交易记录
+    // 查询记账记录
     const transactions = await prisma.transaction.findMany({
       where: whereConditions,
       select: {
@@ -750,16 +750,16 @@ export class BudgetService {
     for (const transaction of transactions) {
       const amount = Number(transaction.amount);
 
-      // 验证交易金额
+      // 验证记账金额
       if (isNaN(amount) || amount < 0) {
-        console.warn(`发现异常交易: ${transaction.id}, 金额: ${transaction.amount}`);
+        console.warn(`发现异常记账: ${transaction.id}, 金额: ${transaction.amount}`);
         invalidTransactionCount++;
         continue;
       }
 
-      // 验证交易日期
+      // 验证记账日期
       if (transaction.date < budget.startDate || transaction.date > budget.endDate) {
-        console.warn(`发现日期异常交易: ${transaction.id}, 日期: ${transaction.date}`);
+        console.warn(`发现日期异常记账: ${transaction.id}, 日期: ${transaction.date}`);
         invalidTransactionCount++;
         continue;
       }
@@ -769,7 +769,7 @@ export class BudgetService {
     }
 
     console.log(
-      `支出计算完成: 有效交易 ${validTransactionCount} 笔, 异常交易 ${invalidTransactionCount} 笔, 总支出: ${totalSpent}`,
+      `支出计算完成: 有效记账 ${validTransactionCount} 笔, 异常记账 ${invalidTransactionCount} 笔, 总支出: ${totalSpent}`,
     );
 
     return totalSpent;
@@ -1108,7 +1108,7 @@ export class BudgetService {
 
   /**
    * 重新计算预算结转（完整版本）
-   * 用于在添加/修改历史交易后重新计算预算结转链条
+   * 用于在添加/修改历史记账后重新计算预算结转链条
    * @param budgetId 预算ID
    * @param recalculateChain 是否重新计算后续链条（默认true）
    */
@@ -1143,7 +1143,7 @@ export class BudgetService {
 
   /**
    * 重新计算预算结转链条
-   * 当历史交易发生变化时，需要重新计算从指定预算开始的所有后续预算结转
+   * 当历史记账发生变化时，需要重新计算从指定预算开始的所有后续预算结转
    */
   private async recalculateBudgetRolloverChain(startBudgetId: string): Promise<void> {
     const startBudget = await this.budgetRepository.findById(startBudgetId);
@@ -1512,7 +1512,7 @@ export class BudgetService {
 
     console.log(`生成了${months.length}个月份的日期范围`);
 
-    // 获取每个月的交易数据
+    // 获取每个月的记账数据
     const result = [];
     for (const month of months) {
       try {
@@ -1558,12 +1558,12 @@ export class BudgetService {
           whereCondition.userId = budget.userId;
         }
 
-        // 查询该月的交易总额
+        // 查询该月的记账总额
         const transactions = await prisma.transaction.findMany({
           where: whereCondition,
         });
 
-        console.log(`${month.date}月份找到${transactions.length}条交易记录`);
+        console.log(`${month.date}月份找到${transactions.length}条记账记录`);
 
         // 计算总支出
         const amount = transactions.reduce(
@@ -1590,7 +1590,7 @@ export class BudgetService {
           total, // 如果有结转影响，total会不等于amount
         });
       } catch (error) {
-        console.error(`获取${month.date}月份交易数据失败:`, error);
+        console.error(`获取${month.date}月份记账数据失败:`, error);
         // 如果查询失败，添加0值
         result.push({
           date: month.date,
@@ -1638,7 +1638,7 @@ export class BudgetService {
 
     console.log(`生成了${months.length}个月份的日期范围用于聚合预算趋势`);
 
-    // 获取每个月的聚合交易数据
+    // 获取每个月的聚合记账数据
     const result = [];
     for (const month of months) {
       try {
@@ -1654,7 +1654,7 @@ export class BudgetService {
 
         console.log(`${month.date}月份找到${userBudgets.length}个用户预算`);
 
-        // 聚合所有预算的交易数据
+        // 聚合所有预算的记账数据
         let totalAmount = 0;
         for (const budget of userBudgets) {
           // 构建查询条件
@@ -1677,12 +1677,12 @@ export class BudgetService {
             whereCondition.userId = budget.userId;
           }
 
-          // 查询该预算的交易记录
+          // 查询该预算的记账记录
           const transactions = await prisma.transaction.findMany({
             where: whereCondition,
           });
 
-          // 累加交易金额
+          // 累加记账金额
           const budgetAmount = transactions.reduce(
             (sum: number, transaction: Transaction) => sum + Number(transaction.amount),
             0,
@@ -1690,7 +1690,7 @@ export class BudgetService {
           totalAmount += budgetAmount;
         }
 
-        console.log(`${month.date}月份聚合交易总额: ${totalAmount}`);
+        console.log(`${month.date}月份聚合记账总额: ${totalAmount}`);
 
         // 添加到结果中
         result.push({
@@ -1700,7 +1700,7 @@ export class BudgetService {
           total: totalAmount,
         });
       } catch (error) {
-        console.error(`获取${month.date}月份聚合交易数据失败:`, error);
+        console.error(`获取${month.date}月份聚合记账数据失败:`, error);
         // 如果查询失败，添加0值
         result.push({
           date: month.date,

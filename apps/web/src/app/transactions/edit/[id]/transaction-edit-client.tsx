@@ -299,7 +299,7 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
     }
   }, [isAuthenticated, router]);
 
-  // 获取交易详情和分类列表
+  // 获取记账详情和分类列表
   useEffect(() => {
     if (params.id && params.id !== 'placeholder') {
       fetchTransaction(params.id);
@@ -319,7 +319,7 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
     }
   }, [currentAccountBook?.id, fetchActiveBudgets]);
 
-  // 当交易数据加载完成后，初始化表单数据
+  // 当记账数据加载完成后，初始化表单数据
   useEffect(() => {
     if (transaction) {
       const transactionDate = new Date(transaction.date);
@@ -351,7 +351,7 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
     };
   }, []);
 
-  // 根据交易类型筛选分类
+  // 根据记账类型筛选分类
   const filteredCategories = categories.filter(
     category => category.type === formData.type
   );
@@ -403,9 +403,9 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
       };
       const success = await updateTransaction(params.id, updateData);
       if (success) {
-        toast.success('交易更新成功');
+        toast.success('记账更新成功');
 
-        // 触发交易变化事件，让仪表盘自动刷新
+        // 触发记账变化事件，让仪表盘自动刷新
         if (currentAccountBook?.id) {
           triggerTransactionChange(currentAccountBook.id);
         }
@@ -413,8 +413,8 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
         router.push('/transactions');
       }
     } catch (error) {
-      console.error('更新交易失败:', error);
-      setFormError('更新交易失败，请重试');
+      console.error('更新记账失败:', error);
+      setFormError('更新记账失败，请重试');
     } finally {
       setIsSubmitting(false);
     }
@@ -429,7 +429,7 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
     }));
   };
 
-  // 处理交易类型变化
+  // 处理记账类型变化
   const handleTypeChange = (type: TransactionType) => {
     setFormData(prev => ({
       ...prev,
@@ -447,7 +447,7 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
     setCurrentStep(2);
   };
 
-  // 返回交易列表页面
+  // 返回记账列表页面
   const handleBack = () => {
     router.push('/transactions');
   };
@@ -457,7 +457,7 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
 
   return (
     <PageContainer
-      title="编辑交易"
+      title="编辑记账"
       showBackButton={true}
       onBackClick={handleBack}
       showBottomNav={false}
@@ -492,12 +492,12 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
             className="back-button"
             onClick={handleBack}
           >
-            返回交易列表
+            返回记账列表
           </button>
         </div>
       ) : transaction ? (
         <div className="transaction-edit-container">
-          {/* 交易类型切换 */}
+          {/* 记账类型切换 */}
           <div className="transaction-type-toggle">
             <button
               className={`type-button expense ${formData.type === TransactionType.EXPENSE ? 'active' : ''}`}
@@ -540,7 +540,7 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
             <div className="step-line"></div>
             <div className={`step ${currentStep >= 2 ? 'active' : ''}`}>
               <div className="step-number">2</div>
-              <div className="step-label">交易详情</div>
+              <div className="step-label">记账详情</div>
             </div>
           </div>
 
@@ -565,7 +565,7 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
             </div>
           )}
 
-          {/* 第二步：交易详情 */}
+          {/* 第二步：记账详情 */}
           {currentStep === 2 && (
             <div className="step-content">
               <h3 className="step-title">填写详情</h3>
@@ -664,12 +664,12 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
           <div className="error-icon">
             <i className="fas fa-exclamation-circle"></i>
           </div>
-          <div className="error-message">未找到交易记录</div>
+          <div className="error-message">未找到记账记录</div>
           <button
             className="retry-button"
             onClick={() => router.push('/transactions')}
           >
-            返回交易列表
+            返回记账列表
           </button>
         </div>
       )}

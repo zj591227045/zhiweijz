@@ -76,7 +76,7 @@ export class WechatSmartAccountingService {
         };
       }
 
-      // 4. 如果需要创建交易记录
+      // 4. 如果需要创建记账记录
       if (createTransaction) {
         const transaction = await this.createTransactionRecord(analysisResult, userId);
         if (transaction) {
@@ -88,7 +88,7 @@ export class WechatSmartAccountingService {
         } else {
           return {
             success: false,
-            message: '记账分析成功，但创建交易记录失败。',
+            message: '记账分析成功，但创建记账记录失败。',
           };
         }
       }
@@ -138,7 +138,7 @@ export class WechatSmartAccountingService {
   }
 
   /**
-   * 创建交易记录
+   * 创建记账记录
    */
   private async createTransactionRecord(result: SmartAccountingResult, userId: string) {
     try {
@@ -224,14 +224,14 @@ export class WechatSmartAccountingService {
         }
       }
 
-      // 在创建交易前，确保用户有当前月份的预算（如果是支出交易）
+      // 在创建记账前，确保用户有当前月份的预算（如果是支出记账）
       if (result.accountId && result.type === 'EXPENSE') {
         try {
           const budgetService = new (await import('./budget.service')).BudgetService();
           await budgetService.ensureCurrentMonthBudget(userId, result.accountId);
         } catch (error) {
           console.error('智能记账时确保当前月份预算失败:', error);
-          // 不影响交易创建流程，继续执行
+          // 不影响记账创建流程，继续执行
         }
       }
 
@@ -261,7 +261,7 @@ export class WechatSmartAccountingService {
 
       return transaction;
     } catch (error) {
-      console.error('创建交易记录失败:', error);
+      console.error('创建记账记录失败:', error);
       return null;
     }
   }
@@ -391,7 +391,7 @@ export class WechatSmartAccountingService {
       message += `💸 支出：¥${totalExpense.toFixed(2)} (${expenseCount}笔)\n`;
       message += `📈 结余：¥${(totalIncome - totalExpense).toFixed(2)}\n\n`;
 
-      // 获取最近5笔交易
+      // 获取最近5笔记账
       const recentTransactions = await prisma.transaction.findMany({
         where: { accountBookId },
         include: { category: true },
@@ -400,7 +400,7 @@ export class WechatSmartAccountingService {
       });
 
       if (recentTransactions.length > 0) {
-        message += '📝 最近交易：\n';
+        message += '📝 最近记账：\n';
         recentTransactions.forEach((tx, index) => {
           const type = tx.type === 'EXPENSE' ? '支出' : '收入';
           const date = new Date(tx.date).toLocaleDateString('zh-CN');
@@ -418,7 +418,7 @@ export class WechatSmartAccountingService {
   }
 
   /**
-   * 获取最近交易记录
+   * 获取最近记账记录
    */
   async getRecentTransactions(
     userId: string,
@@ -429,10 +429,10 @@ export class WechatSmartAccountingService {
       // 验证权限
       const accountBook = await this.validateAccountBookAccess(userId, accountBookId);
       if (!accountBook) {
-        return '无权访问该账本交易记录。';
+        return '无权访问该账本记账记录。';
       }
 
-      // 获取最近交易
+      // 获取最近记账
       const recentTransactions = await prisma.transaction.findMany({
         where: { accountBookId },
         include: {
@@ -449,10 +449,10 @@ export class WechatSmartAccountingService {
       });
 
       if (recentTransactions.length === 0) {
-        return `📝 ${accountBook.name}\n\n暂无交易记录`;
+        return `📝 ${accountBook.name}\n\n暂无记账记录`;
       }
 
-      let message = `📝 ${accountBook.name} 最近交易\n\n`;
+      let message = `📝 ${accountBook.name} 最近记账\n\n`;
 
       recentTransactions.forEach((tx, index) => {
         const type = tx.type === 'EXPENSE' ? '支出' : '收入';
@@ -478,8 +478,8 @@ export class WechatSmartAccountingService {
 
       return message;
     } catch (error) {
-      console.error('获取最近交易失败:', error);
-      return '获取交易记录失败，请稍后重试。';
+      console.error('获取最近记账失败:', error);
+      return '获取记账记录失败，请稍后重试。';
     }
   }
 
@@ -531,7 +531,7 @@ export class WechatSmartAccountingService {
       message += `💸 支出：¥${totalExpense.toFixed(2)} (${expenseCount}笔)\n`;
       message += `📈 结余：¥${(totalIncome - totalExpense).toFixed(2)}\n`;
 
-      // 如果有交易，显示最近几笔
+      // 如果有记账，显示最近几笔
       if (expenseCount > 0 || incomeCount > 0) {
         const recentTransactions = await prisma.transaction.findMany({
           where: {
@@ -547,7 +547,7 @@ export class WechatSmartAccountingService {
         });
 
         if (recentTransactions.length > 0) {
-          message += '\n📝 最近交易：\n';
+          message += '\n📝 最近记账：\n';
           recentTransactions.forEach((tx, index) => {
             const type = tx.type === 'EXPENSE' ? '支出' : '收入';
             const date = new Date(tx.date).toLocaleDateString('zh-CN', {

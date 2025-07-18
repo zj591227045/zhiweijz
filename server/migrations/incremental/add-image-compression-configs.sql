@@ -24,13 +24,13 @@ DO UPDATE SET
   category = EXCLUDED.category,
   updated_at = NOW();
 
--- 交易附件压缩配置
+-- 记账附件压缩配置
 INSERT INTO system_configs (key, value, description, category) VALUES
-('image_compression_attachment_enabled', 'true', '交易附件图片压缩开关', 'storage'),
-('image_compression_attachment_quality', '80', '交易附件压缩质量 (1-100)', 'storage'),
-('image_compression_attachment_max_width', '1920', '交易附件最大宽度 (像素)', 'storage'),
-('image_compression_attachment_max_height', '1920', '交易附件最大高度 (像素)', 'storage'),
-('image_compression_attachment_format', 'auto', '交易附件输出格式 (jpeg/png/webp/auto)', 'storage')
+('image_compression_attachment_enabled', 'true', '记账附件图片压缩开关', 'storage'),
+('image_compression_attachment_quality', '80', '记账附件压缩质量 (1-100)', 'storage'),
+('image_compression_attachment_max_width', '1920', '记账附件最大宽度 (像素)', 'storage'),
+('image_compression_attachment_max_height', '1920', '记账附件最大高度 (像素)', 'storage'),
+('image_compression_attachment_format', 'auto', '记账附件输出格式 (jpeg/png/webp/auto)', 'storage')
 ON CONFLICT (key) 
 DO UPDATE SET 
   description = EXCLUDED.description,

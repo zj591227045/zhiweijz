@@ -13,8 +13,8 @@
 **服务**: `TransactionService.createTransaction`
 
 **状态**: ✅ 已修复
-- 在创建交易前调用 `budgetService.ensureCurrentMonthBudget()` 检查预算
-- 支出交易会自动创建缺失的当月预算
+- 在创建记账前调用 `budgetService.ensureCurrentMonthBudget()` 检查预算
+- 支出记账会自动创建缺失的当月预算
 
 ### 2. 智能记账接口 ✅
 
@@ -23,15 +23,15 @@
 **控制器**: `AIController.handleSmartAccounting`
 
 **状态**: ✅ 无需修改
-- 只返回分析结果，不创建交易
-- 前端会调用其他接口创建交易
+- 只返回分析结果，不创建记账
+- 前端会调用其他接口创建记账
 
 #### 2.2 API智能记账直接创建（文字）
 **端点**: `POST /api/ai/account/:accountId/smart-accounting/direct`
 **控制器**: `AIController.handleSmartAccountingDirect`
 
 **状态**: ✅ 已修复
-- 修改为使用 `TransactionService.createTransaction()` 而不是直接创建交易
+- 修改为使用 `TransactionService.createTransaction()` 而不是直接创建记账
 - 包含预算检查逻辑
 
 #### 2.3 API智能记账直接创建（带请求体）
@@ -39,7 +39,7 @@
 **控制器**: `AIController.handleSmartAccountingDirectWithBody`
 
 **状态**: ✅ 已修复
-- 修改为使用 `TransactionService.createTransaction()` 而不是直接创建交易
+- 修改为使用 `TransactionService.createTransaction()` 而不是直接创建记账
 - 包含预算检查逻辑
 
 ### 3. 微信智能记账接口 ✅
@@ -47,7 +47,7 @@
 **服务**: `WechatSmartAccountingService.createTransactionRecord`
 
 **状态**: ✅ 已修复
-- 在创建交易前调用 `budgetService.ensureCurrentMonthBudget()` 检查预算
+- 在创建记账前调用 `budgetService.ensureCurrentMonthBudget()` 检查预算
 
 ### 4. 语音记账接口 ✅
 
@@ -56,16 +56,16 @@
 **控制器**: `MultimodalAIController.speechToText`
 
 **状态**: ✅ 无需修改
-- 只进行语音识别，不创建交易
-- 前端会调用智能记账接口创建交易
+- 只进行语音识别，不创建记账
+- 前端会调用智能记账接口创建记账
 
 #### 4.2 智能记账语音识别
 **端点**: `POST /api/ai/smart-accounting/speech`
 **控制器**: `MultimodalAIController.smartAccountingSpeech`
 
 **状态**: ✅ 无需修改
-- 只进行语音识别，不创建交易
-- 前端会调用智能记账接口创建交易
+- 只进行语音识别，不创建记账
+- 前端会调用智能记账接口创建记账
 
 ### 5. 图片记账接口 ✅
 
@@ -74,25 +74,25 @@
 **控制器**: `MultimodalAIController.imageRecognition`
 
 **状态**: ✅ 无需修改
-- 只进行图片识别，不创建交易
-- 前端会调用智能记账接口创建交易
+- 只进行图片识别，不创建记账
+- 前端会调用智能记账接口创建记账
 
 #### 5.2 智能记账图片识别
 **端点**: `POST /api/ai/smart-accounting/vision`
 **控制器**: `MultimodalAIController.smartAccountingVision`
 
 **状态**: ✅ 无需修改
-- 只进行图片识别，不创建交易
-- 前端会调用智能记账接口创建交易
+- 只进行图片识别，不创建记账
+- 前端会调用智能记账接口创建记账
 
-### 6. 交易导入接口 ✅
+### 6. 记账导入接口 ✅
 
 **端点**: `POST /api/transactions/import`
 **控制器**: `TransactionController.importTransactions`
 **服务**: `TransactionImportService.importTransactions`
 
 **状态**: ✅ 已包含
-- 使用 `TransactionService.createTransaction()` 创建交易
+- 使用 `TransactionService.createTransaction()` 创建记账
 - 包含预算检查逻辑
 
 ### 7. 预算查询接口 ✅
@@ -146,10 +146,10 @@
 - **新增 `createDefaultPersonalBudget()` 方法**：为没有历史预算的用户创建默认预算
 - **修复 `autoCreateMissingBudgets()` 方法**：当没有历史预算时自动创建当月预算
 
-### 2. 交易创建预算检查
+### 2. 记账创建预算检查
 - **手动记账**：在 `TransactionService.createTransaction()` 中添加预算检查
 - **智能记账**：在 `WechatSmartAccountingService.createTransactionRecord()` 中添加预算检查
-- **AI控制器**：修改为使用 `TransactionService` 而不是直接创建交易
+- **AI控制器**：修改为使用 `TransactionService` 而不是直接创建记账
 
 ### 3. 预算查询预算检查
 - **预算统计**：在 `StatisticsService.getBudgetStatistics()` 中添加预算检查
@@ -172,7 +172,7 @@ npm run test-budget-creation
 2. 用户进行手动记账时
 3. 用户进行智能记账时（文字、语音、图片）
 4. 用户通过微信进行智能记账时
-5. 用户导入交易时
+5. 用户导入记账时
 6. 用户查看预算统计时
 7. 跨月后首次操作时，无论是否有历史预算
 

@@ -51,7 +51,7 @@ interface BudgetDisplay {
   period?: string;
 }
 
-// 预算选择器组件 - 使用添加交易页面的完整功能
+// 预算选择器组件 - 使用添加记账页面的完整功能
 function BudgetSelector({
   budgetId,
   setBudgetId,
@@ -69,13 +69,13 @@ function BudgetSelector({
   const [dateBudgets, setDateBudgets] = useState<BudgetDisplay[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 根据日期获取预算数据 - 使用与添加交易页面相同的API
+  // 根据日期获取预算数据 - 使用与添加记账页面相同的API
   const fetchBudgetsByDate = useCallback(async (transactionDate: string, accountBookId: string) => {
     try {
       setIsLoading(true);
       console.log('根据日期获取预算:', { transactionDate, accountBookId });
 
-      // 使用与添加交易页面相同的API
+      // 使用与添加记账页面相同的API
       const response = await budgetService.getBudgetsByDate(transactionDate, accountBookId);
       console.log('API响应完整信息:', response);
 
@@ -246,7 +246,7 @@ function BudgetSelector({
 
   return (
     <div className="budget-selector-container">
-      {/* 预算选择器预览 - 使用添加交易页面的完整样式 */}
+      {/* 预算选择器预览 - 使用添加记账页面的完整样式 */}
       <div
         className="budget-selector-preview"
         onClick={() => setIsBudgetSelectorOpen(true)}
@@ -303,7 +303,7 @@ function BudgetSelector({
                   <i className="fas fa-info-circle"></i>
                   <span>{transactionDate ? `${transactionDate} 日期范围内没有可用的预算` : '没有可用的预算'}</span>
                   <div style={{ fontSize: '12px', marginTop: '8px', color: '#666' }}>
-                    {transactionDate ? '请检查该日期是否在任何预算周期内' : '请先选择交易日期'}
+                    {transactionDate ? '请检查该日期是否在任何预算周期内' : '请先选择记账日期'}
                   </div>
                 </div>
               ) : (
@@ -504,15 +504,15 @@ export default function TransactionEditModal({
     }
   }, [currentAccountBook?.id, fetchActiveBudgets]);
 
-  // 获取真实交易数据
+  // 获取真实记账数据
   useEffect(() => {
     if (transactionId && transactionId !== 'placeholder') {
-      console.log('🔄 [TransactionEditModal] 开始获取交易数据:', transactionId);
+      console.log('🔄 [TransactionEditModal] 开始获取记账数据:', transactionId);
       fetchTransaction(transactionId);
     }
   }, [transactionId, fetchTransaction]);
 
-  // 使用获取到的交易数据或传入的数据初始化表单
+  // 使用获取到的记账数据或传入的数据初始化表单
   useEffect(() => {
     const dataToUse = transaction || transactionData;
 
@@ -539,7 +539,7 @@ export default function TransactionEditModal({
       setTime(`${hours}:${minutes}`);
       setCurrentStep(2); // 直接进入详情步骤
 
-      // 获取交易的标签和附件
+      // 获取记账的标签和附件
       if (transactionId && transactionId !== 'placeholder') {
         // 获取标签
         tagApi.getTransactionTags(transactionId)
@@ -550,11 +550,11 @@ export default function TransactionEditModal({
             }
           })
           .catch(error => {
-            console.error('获取交易标签失败:', error);
+            console.error('获取记账标签失败:', error);
           });
 
         // 获取附件
-        console.log('📎 开始获取交易附件:', transactionId);
+        console.log('📎 开始获取记账附件:', transactionId);
         apiClient.get(`/transactions/${transactionId}/attachments`)
           .then(data => {
             console.log('📎 获取附件响应:', data);
@@ -566,13 +566,13 @@ export default function TransactionEditModal({
             }
           })
           .catch(error => {
-            console.error('📎 获取交易附件失败:', error);
+            console.error('📎 获取记账附件失败:', error);
           });
       }
     }
   }, [transaction, transactionData]);
 
-  // 根据交易类型筛选分类
+  // 根据记账类型筛选分类
   const filteredCategories = categories.filter(
     category => category.type === formData.type
   );
@@ -628,12 +628,12 @@ export default function TransactionEditModal({
 
       const success = await updateTransaction(transactionId!, updateData);
       if (success) {
-        toast.success('交易更新成功');
+        toast.success('记账更新成功');
 
-        // 更新交易标签
+        // 更新记账标签
         if (transactionId && transactionId !== 'placeholder') {
           try {
-            // 获取当前交易的标签
+            // 获取当前记账的标签
             const currentTagsResponse = await tagApi.getTransactionTags(transactionId);
             const currentTagIds = currentTagsResponse.success ?
               currentTagsResponse.data.map(tag => tag.id) : [];
@@ -652,8 +652,8 @@ export default function TransactionEditModal({
               await tagApi.removeTransactionTag(transactionId, tagId);
             }
           } catch (error) {
-            console.error('更新交易标签失败:', error);
-            // 标签更新失败不影响交易更新成功的提示
+            console.error('更新记账标签失败:', error);
+            // 标签更新失败不影响记账更新成功的提示
           }
         }
 
@@ -662,10 +662,10 @@ export default function TransactionEditModal({
           await attachmentUploadRef.current?.executePendingDeletes();
         } catch (error) {
           console.error('删除附件失败:', error);
-          // 不影响交易保存成功的流程
+          // 不影响记账保存成功的流程
         }
 
-        // 触发交易变化事件，让仪表盘自动刷新
+        // 触发记账变化事件，让仪表盘自动刷新
         if (currentAccountBook?.id) {
           triggerTransactionChange(currentAccountBook.id);
         }
@@ -673,8 +673,8 @@ export default function TransactionEditModal({
         onSave();
       }
     } catch (error) {
-      console.error('更新交易失败:', error);
-      setFormError('更新交易失败，请重试');
+      console.error('更新记账失败:', error);
+      setFormError('更新记账失败，请重试');
     } finally {
       setIsSubmitting(false);
     }
@@ -844,7 +844,7 @@ export default function TransactionEditModal({
     setAmountInput(formData.amount?.toString() || '');
   };
 
-  // 处理交易类型变化
+  // 处理记账类型变化
   const handleTypeChange = (type: TransactionType) => {
     setFormData(prev => ({
       ...prev,
@@ -862,10 +862,10 @@ export default function TransactionEditModal({
     setCurrentStep(2);
   };
 
-  // 处理删除交易
+  // 处理删除记账
   const handleDeleteTransaction = async () => {
     if (!transactionId || transactionId === 'placeholder') {
-      setFormError('无效的交易ID');
+      setFormError('无效的记账ID');
       return;
     }
 
@@ -875,9 +875,9 @@ export default function TransactionEditModal({
     try {
       const success = await deleteTransaction(transactionId);
       if (success) {
-        toast.success('交易删除成功');
+        toast.success('记账删除成功');
         
-        // 触发交易变化事件，让仪表盘自动刷新
+        // 触发记账变化事件，让仪表盘自动刷新
         if (currentAccountBook?.id) {
           triggerTransactionChange(currentAccountBook.id);
         }
@@ -887,14 +887,14 @@ export default function TransactionEditModal({
         onSave(); // 调用 onSave 来刷新数据并关闭模态框
       }
     } catch (error) {
-      console.error('删除交易失败:', error);
-      setFormError('删除交易失败，请重试');
+      console.error('删除记账失败:', error);
+      setFormError('删除记账失败，请重试');
     } finally {
       setIsDeleting(false);
     }
   };
 
-  // 隐藏仪表盘页面的头部，显示编辑交易的头部
+  // 隐藏仪表盘页面的头部，显示编辑记账的头部
   useEffect(() => {
     // 隐藏仪表盘的头部和底部导航
     const appContainer = document.querySelector('.app-container');
@@ -984,7 +984,7 @@ export default function TransactionEditModal({
       right: 0,
       bottom: 0,
       backgroundColor: 'var(--background-color)',
-      zIndex: 250, // 设置合理的层级，高于分类交易模态框的220
+      zIndex: 250, // 设置合理的层级，高于分类记账模态框的220
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
@@ -1010,12 +1010,12 @@ export default function TransactionEditModal({
         // 确保输入框可以正常工作
         isolation: 'isolate'
       }}>
-        {/* 编辑交易的头部 */}
+        {/* 编辑记账的头部 */}
         <div className="header">
           <button className="icon-button" onClick={onClose}>
             <i className="fas fa-arrow-left"></i>
           </button>
-          <div className="header-title">编辑交易</div>
+          <div className="header-title">编辑记账</div>
           <div style={{ width: '32px' }}></div>
         </div>
 
@@ -1030,7 +1030,7 @@ export default function TransactionEditModal({
           minHeight: 'calc(100vh - 60px)' // 减去头部高度
         }}>
           <div style={{ padding: '0 20px' }}>
-            {/* iOS 风格交易类型切换 */}
+            {/* iOS 风格记账类型切换 */}
             <div style={{
               display: 'flex',
               backgroundColor: 'var(--background-secondary)',
@@ -1221,7 +1221,7 @@ export default function TransactionEditModal({
                   fontSize: '14px',
                   fontWeight: '500',
                   color: currentStep >= 2 ? 'var(--primary-color)' : 'var(--text-secondary)'
-                }}>交易详情</span>
+                }}>记账详情</span>
               </div>
             </div>
             {/* 第一步：分类选择 */}
@@ -1247,7 +1247,7 @@ export default function TransactionEditModal({
               </div>
             )}
 
-            {/* 第二步：交易详情 */}
+            {/* 第二步：记账详情 */}
             {currentStep === 2 && (
               <div className="step-content">
                 <h3 className="step-title">填写详情</h3>
@@ -1592,7 +1592,7 @@ export default function TransactionEditModal({
                 lineHeight: '1.5'
               }}>
                 <p style={{ margin: '0 0 8px' }}>
-                  确定要删除这条交易记录吗？
+                  确定要删除这条记账记录吗？
                 </p>
                 <p style={{ 
                   margin: 0, 

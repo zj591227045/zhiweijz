@@ -967,7 +967,7 @@
   color: var(--text-primary);
 }
 
-/* 交易列表区域 */
+/* 记账列表区域 */
 .transactions-list {
   background-color: var(--card-background);
   border-radius: 12px;

@@ -177,8 +177,8 @@ describe('Statistics API Integration Tests', () => {
     });
     testBudget.id = budget.id;
 
-    // 创建测试交易记录
-    // 收入交易
+    // 创建测试记账记录
+    // 收入记账
     await prisma.transaction.create({
       data: {
         amount: 2000,
@@ -201,7 +201,7 @@ describe('Statistics API Integration Tests', () => {
       },
     });
 
-    // 支出交易
+    // 支出记账
     await prisma.transaction.create({
       data: {
         amount: 500,
@@ -309,7 +309,7 @@ describe('Statistics API Integration Tests', () => {
         .set('Authorization', `Bearer ${token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('total', 500); // 只有今天的交易
+      expect(response.body).toHaveProperty('total', 500); // 只有今天的记账
     });
 
     it('should return 401 if not authenticated', async () => {

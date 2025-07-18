@@ -26,7 +26,7 @@ export const S3_ACCESS_POLICIES: Record<string, S3AccessPolicy> = {
     proxyHttpAccess: true,
   },
   
-  // 交易附件 - 需要认证，安全优先
+  // 记账附件 - 需要认证，安全优先
   'transaction-attachments': {
     requireAuth: true,
     allowDirectAccess: true,

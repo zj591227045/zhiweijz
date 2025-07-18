@@ -350,7 +350,7 @@ END $$;
 | 外键ID（关联现有表） | `TEXT` | 关联users/account_books等 |
 | 短文本 | `VARCHAR(n)` | 用户名、标题 |
 | 长文本 | `TEXT` | 描述、内容 |
-| 金额 | `DECIMAL(10,2)` | 交易金额、预算 |
+| 金额 | `DECIMAL(10,2)` | 记账金额、预算 |
 | 时间戳 | `TIMESTAMP WITH TIME ZONE` | 创建时间、更新时间 |
 | 布尔值 | `BOOLEAN NOT NULL DEFAULT false` | 开关状态 |
 | 枚举 | `ENUM` 类型 | 状态、角色 |
@@ -474,7 +474,7 @@ npm run migrate:check
 - 自定义报表
 
 #### 1.5.0 版本（标签系统）✅ 已完成
-- 交易记录多标签管理
+- 记账记录多标签管理
 - 账本级别标签共享
 - 标签统计分析功能
 

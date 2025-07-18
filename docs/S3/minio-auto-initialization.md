@@ -87,7 +87,7 @@ const secretAccessKey = crypto.randomBytes(20).toString('hex');
 
 默认创建以下存储桶：
 - `avatars` - 用户头像
-- `transaction-attachments` - 交易附件
+- `transaction-attachments` - 记账附件
 - `temp-files` - 临时文件
 - `system-files` - 系统文件
 

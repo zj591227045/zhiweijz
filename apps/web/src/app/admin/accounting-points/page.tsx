@@ -185,7 +185,7 @@ export default function AccountingPointsPage() {
       {/* 页面标题 */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">记账点管理</h1>
-        <p className="text-gray-600 mt-2">管理用户记账点，查看消费统计和交易记录</p>
+        <p className="text-gray-600 mt-2">管理用户记账点，查看消费统计和记账记录</p>
       </div>
 
       {/* 总体统计卡片 */}
@@ -533,7 +533,7 @@ export default function AccountingPointsPage() {
           <div className="relative top-10 mx-auto p-5 border w-4/5 max-w-4xl shadow-lg rounded-md bg-white">
             <div className="mt-3">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-gray-900">用户交易记录</h3>
+                <h3 className="text-lg font-medium text-gray-900">用户记账记录</h3>
                 <button
                   onClick={() => {
                     setShowUserDetailModal(false);
@@ -549,7 +549,7 @@ export default function AccountingPointsPage() {
               {isLoadingTransactions ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-500">加载交易记录...</p>
+                  <p className="text-gray-500">加载记账记录...</p>
                 </div>
               ) : (
                 <div className="max-h-96 overflow-y-auto">
@@ -580,7 +580,7 @@ export default function AccountingPointsPage() {
                       {userTransactions.length === 0 ? (
                         <tr>
                           <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                            暂无交易记录
+                            暂无记账记录
                           </td>
                         </tr>
                       ) : (

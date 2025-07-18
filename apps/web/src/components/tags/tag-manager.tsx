@@ -138,7 +138,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
         <div className="flex-1">
           <h2 className="text-xl font-semibold text-gray-900">标签管理</h2>
           <p className="text-sm text-gray-600 mt-1">
-            管理账本中的标签，为交易记录添加更多维度的分类
+            管理账本中的标签，为记账记录添加更多维度的分类
           </p>
         </div>
         <Button

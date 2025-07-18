@@ -25,7 +25,7 @@ router.post(
 
 /**
  * @route POST /ai/account/:accountId/smart-accounting/direct
- * @desc 智能记账并直接创建交易记录 - 需要提供账本ID作为URL参数
+ * @desc 智能记账并直接创建记账记录 - 需要提供账本ID作为URL参数
  * @access Private
  */
 router.post(
@@ -36,7 +36,7 @@ router.post(
 
 /**
  * @route POST /ai/smart-accounting/direct
- * @desc 智能记账并直接创建交易记录 - 账本ID在请求体中提供，支持家庭成员调用
+ * @desc 智能记账并直接创建记账记录 - 账本ID在请求体中提供，支持家庭成员调用
  * @access Private
  */
 router.post(

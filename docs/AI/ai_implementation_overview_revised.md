@@ -6,8 +6,8 @@
 
 "只为记账"应用将实现以下AI功能：
 
-1. **智能交易分类**：自动将用户输入的交易记录分配到最合适的分类
-2. **消费模式分析**：识别用户的消费习惯和模式，发现周期性支出和异常交易
+1. **智能记账分类**：自动将用户输入的记账记录分配到最合适的分类
+2. **消费模式分析**：识别用户的消费习惯和模式，发现周期性支出和异常记账
 3. **预算建议**：基于历史数据提供个性化的预算分配建议
 4. **财务健康评估**：评估用户的整体财务状况，提供改进建议
 
@@ -125,12 +125,12 @@ model AccountLLMSetting {
    - 实现LLM设置管理
    - 创建LLM提供商接口
 
-2. **智能交易分类**
+2. **智能记账分类**
    - 使用LangGraph构建分类工作流
-   - 实现基于LLM的交易分类
+   - 实现基于LLM的记账分类
 
 3. **基础统计分析**
-   - 实现交易数据的基础统计分析
+   - 实现记账数据的基础统计分析
    - 提供简单的消费模式识别
 
 ### 阶段2: 高级功能实现
@@ -202,7 +202,7 @@ export class BudgetAdvisor {
 ```typescript
 // server/src/ai/analyzers/basic-stats-analyzer.ts
 export class BasicStatsAnalyzer {
-  // 分析交易数据的基础统计信息
+  // 分析记账数据的基础统计信息
   analyze(transactions, categories, startDate, endDate) {...}
 }
 
@@ -266,6 +266,6 @@ POST /api/ai/feedback
 
 AI功能的详细实现将在以下文档中描述：
 
-1. [智能交易分类实现 (修订版)](ai_implementation_revised.md)
+1. [智能记账分类实现 (修订版)](ai_implementation_revised.md)
 2. [消费模式分析实现 (修订版)](ai_implementation_patterns_revised.md)
 3. [预算建议系统实现 (修订版)](ai_implementation_budget_revised.md)

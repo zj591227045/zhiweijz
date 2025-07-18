@@ -22,7 +22,7 @@ router.get('/users', accountingPointsAdminController.getUsersPointsStats.bind(ac
 router.get('/overall-stats', accountingPointsAdminController.getOverallStats.bind(accountingPointsAdminController));
 
 /**
- * 获取用户的记账点交易记录
+ * 获取用户的记账点记账记录
  * GET /admin/accounting-points/users/:userId/transactions
  */
 router.get('/users/:userId/transactions', accountingPointsAdminController.getUserTransactions.bind(accountingPointsAdminController));

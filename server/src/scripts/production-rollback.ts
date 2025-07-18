@@ -95,7 +95,7 @@ async function rollbackChanges(options: RollbackOptions) {
               });
 
               if (!currentTransaction) {
-                console.log(`⚠️  交易记录不存在: ${record.transactionId}`);
+                console.log(`⚠️  记账记录不存在: ${record.transactionId}`);
                 failed++;
                 continue;
               }
@@ -135,7 +135,7 @@ async function rollbackChanges(options: RollbackOptions) {
           });
 
           if (!currentTransaction) {
-            console.log(`⚠️  交易记录不存在: ${record.transactionId}`);
+            console.log(`⚠️  记账记录不存在: ${record.transactionId}`);
             failed++;
             continue;
           }

@@ -330,7 +330,7 @@ export class FileStorageController {
   }
 
   /**
-   * 上传交易附件
+   * 上传记账附件
    */
   async uploadAttachment(req: Request, res: Response): Promise<void> {
     try {
@@ -348,7 +348,7 @@ export class FileStorageController {
       const uploadRequest: FileUploadRequestDto = {
         bucket: BUCKET_CONFIG.ATTACHMENTS,
         category: 'attachments',
-        description: req.body.description || '交易附件',
+        description: req.body.description || '记账附件',
         metadata: {
           transactionId: req.body.transactionId,
           attachmentType: req.body.attachmentType || 'RECEIPT',

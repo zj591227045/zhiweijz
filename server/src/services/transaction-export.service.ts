@@ -4,7 +4,7 @@ import { TransactionQueryParams } from '../models/transaction.model';
 import { createObjectCsvStringifier } from 'csv-writer';
 
 /**
- * 交易导出格式
+ * 记账导出格式
  */
 export enum ExportFormat {
   CSV = 'csv',
@@ -12,7 +12,7 @@ export enum ExportFormat {
 }
 
 /**
- * 交易导出服务
+ * 记账导出服务
  */
 export class TransactionExportService {
   private transactionRepository: TransactionRepository;
@@ -22,7 +22,7 @@ export class TransactionExportService {
   }
 
   /**
-   * 导出交易记录
+   * 导出记账记录
    * @param userId 用户ID
    * @param params 查询参数
    * @param format 导出格式
@@ -33,7 +33,7 @@ export class TransactionExportService {
     params: TransactionQueryParams,
     format: ExportFormat,
   ): Promise<{ data: string; filename: string }> {
-    // 获取交易记录（已包含分类信息）
+    // 获取记账记录（已包含分类信息）
     const { transactions } = await this.transactionRepository.findAll(userId, {
       ...params,
       page: 1,

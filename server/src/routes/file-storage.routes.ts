@@ -38,7 +38,7 @@ router.post('/avatar', s3AvatarUpload.single('avatar'), (req, res) =>
 
 /**
  * @route POST /api/file-storage/attachment
- * @desc 上传交易附件
+ * @desc 上传记账附件
  * @access Private
  */
 router.post('/attachment', s3AttachmentUpload.single('attachment'), (req, res) =>

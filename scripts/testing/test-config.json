@@ -22,7 +22,7 @@
       { "path": "/auth/login", "title": "登录", "name": "登录页面" },
       { "path": "/auth/register", "title": "注册", "name": "注册页面" },
       { "path": "/dashboard", "title": "仪表盘", "name": "仪表盘页面" },
-      { "path": "/transactions", "title": "交易", "name": "交易页面" },
+      { "path": "/transactions", "title": "记账", "name": "记账页面" },
       { "path": "/budgets", "title": "预算", "name": "预算页面" },
       { "path": "/books", "title": "账本", "name": "账本页面" },
       { "path": "/settings", "title": "设置", "name": "设置页面" },
@@ -43,7 +43,7 @@
       "用户登录流程",
       "仪表盘访问",
       "账本管理流程",
-      "交易管理流程",
+      "记账管理流程",
       "预算管理流程",
       "统计页面访问"
     ]

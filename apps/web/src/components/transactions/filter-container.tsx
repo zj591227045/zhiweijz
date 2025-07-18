@@ -143,9 +143,9 @@ export function FilterContainer({
             />
           </div>
 
-          {/* 交易类型筛选 */}
+          {/* 记账类型筛选 */}
           <div className="filter-section">
-            <h4><i className="fas fa-exchange-alt"></i> 交易类型</h4>
+            <h4><i className="fas fa-exchange-alt"></i> 记账类型</h4>
             <div className="transaction-type-filter">
               <label>
                 <input

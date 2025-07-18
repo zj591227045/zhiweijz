@@ -284,7 +284,7 @@ export function validateCreateTransaction(data: any) {
       "description": "午餐费用",
       "date": "2023-05-15T12:30:00Z"
     },
-    // ...更多交易记录
+    // ...更多记账记录
   ]
 }
 ```

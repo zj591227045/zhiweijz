@@ -825,7 +825,7 @@ export class AIController {
   }
 
   /**
-   * 智能记账并直接创建交易记录 - 支持请求体中包含账本ID和用户名称
+   * 智能记账并直接创建记账记录 - 支持请求体中包含账本ID和用户名称
    * @param req 请求
    * @param res 响应
    */
@@ -965,9 +965,9 @@ export class AIController {
         return res.status(400).json({ info: smartResult.error });
       }
 
-      // 从智能记账结果创建交易记录
+      // 从智能记账结果创建记账记录
       try {
-        // 准备交易数据
+        // 准备记账数据
         const now = new Date();
         const dateObj = new Date(
           now.getFullYear(),
@@ -1010,19 +1010,19 @@ export class AIController {
           budgetId: (smartResult as any).budgetId || undefined,
         };
 
-        console.log(`💾 [交易创建] 创建交易记录:`, {
+        console.log(`💾 [记账创建] 创建记账记录:`, {
           amount: transactionData.amount,
           userId: actualUserId,
           accountBookId: transactionData.accountBookId,
           budgetId: transactionData.budgetId,
         });
 
-        // 使用交易服务创建交易记录（包含预算检查逻辑）
+        // 使用记账服务创建记账记录（包含预算检查逻辑）
         const transaction = await this.transactionService.createTransaction(actualUserId, transactionData);
 
-        console.log(`✅ [交易创建] 交易记录创建成功: ${transaction.id}`);
+        console.log(`✅ [记账创建] 记账记录创建成功: ${transaction.id}`);
 
-        // 交易创建成功，扣除记账点（使用请求发起者的记账点）- 仅在记账点系统启用时
+        // 记账创建成功，扣除记账点（使用请求发起者的记账点）- 仅在记账点系统启用时
         if (this.membershipService.isAccountingPointsEnabled()) {
           try {
             await AccountingPointsService.deductPoints(requestUserId, 'text', AccountingPointsService.POINT_COSTS.text);
@@ -1032,16 +1032,16 @@ export class AIController {
           }
         }
 
-        // 返回创建的交易记录
+        // 返回创建的记账记录
         res.status(201).json({
           ...transaction,
           smartAccountingResult: smartResult,
         });
       } catch (createError) {
-        console.error('创建交易记录错误:', createError);
+        console.error('创建记账记录错误:', createError);
         // 即使创建失败，也返回智能记账结果
         res.status(500).json({
-          error: '创建交易记录失败',
+          error: '创建记账记录失败',
           smartAccountingResult: smartResult,
         });
       }
@@ -1052,7 +1052,7 @@ export class AIController {
   }
 
   /**
-   * 智能记账并直接创建交易记录
+   * 智能记账并直接创建记账记录
    * @param req 请求
    * @param res 响应
    */
@@ -1145,9 +1145,9 @@ export class AIController {
       // 使用类型断言
       const smartResult = result as SmartAccountingResult;
 
-      // 从智能记账结果创建交易记录
+      // 从智能记账结果创建记账记录
       try {
-        // 准备交易数据
+        // 准备记账数据
         // 处理日期，使用当前本地时间
         const now = new Date();
         const dateObj = new Date(
@@ -1226,12 +1226,12 @@ export class AIController {
           budgetId: smartResult.budgetId || null,
         };
 
-        // 创建交易记录
+        // 创建记账记录
         const transaction = await this.prisma.transaction.create({
           data: transactionData,
         });
 
-        // 交易创建成功，扣除记账点（仅在记账点系统启用时）
+        // 记账创建成功，扣除记账点（仅在记账点系统启用时）
         if (this.membershipService.isAccountingPointsEnabled()) {
           try {
             await AccountingPointsService.deductPoints(userId, 'text', AccountingPointsService.POINT_COSTS.text);
@@ -1241,16 +1241,16 @@ export class AIController {
           }
         }
 
-        // 返回创建的交易记录
+        // 返回创建的记账记录
         res.status(201).json({
           ...transaction,
           smartAccountingResult: smartResult,
         });
       } catch (createError) {
-        console.error('创建交易记录错误:', createError);
+        console.error('创建记账记录错误:', createError);
         // 即使创建失败，也返回智能记账结果
         res.status(500).json({
-          error: '创建交易记录失败',
+          error: '创建记账记录失败',
           smartAccountingResult: smartResult,
         });
       }

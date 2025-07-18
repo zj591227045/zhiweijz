@@ -32,7 +32,7 @@ export function FamilyManagement({ isAdmin, familyId, onLeave, onDelete }: Famil
       id: 'categories',
       icon: 'tags',
       title: '分类管理',
-      description: '自定义交易分类',
+      description: '自定义记账分类',
       link: `/families/${familyId}/categories`,
       adminOnly: true,
     },

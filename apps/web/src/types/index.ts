@@ -53,7 +53,7 @@ export interface AccountBook {
 }
 
 /**
- * 交易相关类型
+ * 记账相关类型
  */
 export enum TransactionType {
   EXPENSE = 'EXPENSE',

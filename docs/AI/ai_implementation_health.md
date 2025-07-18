@@ -68,7 +68,7 @@ export class FinancialHealthAnalyzer {
     const startDate = new Date(today);
     startDate.setMonth(today.getMonth() - months);
     
-    // 过滤时间范围内的交易
+    // 过滤时间范围内的记账
     const recentTransactions = transactions.filter(t => 
       t.date >= startDate && t.date <= today
     );
@@ -210,7 +210,7 @@ export class FinancialHealthAnalyzer {
     let validBudgets = 0;
     
     budgets.forEach(budget => {
-      // 找出该预算类别的所有交易
+      // 找出该预算类别的所有记账
       const budgetTransactions = transactions.filter(t => 
         t.categoryId === budget.categoryId &&
         t.date >= budget.startDate &&

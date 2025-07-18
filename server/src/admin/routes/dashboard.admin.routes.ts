@@ -15,7 +15,7 @@ router.get('/overview', (req, res) => dashboardController.getOverview(req, res))
 // 获取用户统计数据
 router.get('/users', (req, res) => dashboardController.getUserStats(req, res));
 
-// 获取交易统计数据
+// 获取记账统计数据
 router.get('/transactions', (req, res) => dashboardController.getTransactionStats(req, res));
 
 // 获取系统资源使用情况

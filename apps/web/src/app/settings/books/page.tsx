@@ -249,7 +249,7 @@ export default function BookListPage() {
       <ConfirmDialog
         isOpen={showResetConfirm}
         title="重置家庭账本"
-        message={`确定要重置账本 "${bookToReset?.name}" 吗？此操作将清除所有交易记录、预算信息和历史记录，且不可恢复。`}
+        message={`确定要重置账本 "${bookToReset?.name}" 吗？此操作将清除所有记账记录、预算信息和历史记录，且不可恢复。`}
         confirmText="重置"
         cancelText="取消"
         onConfirm={confirmResetBook}

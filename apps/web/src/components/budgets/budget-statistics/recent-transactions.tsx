@@ -52,19 +52,19 @@ export function RecentTransactions({ transactions, budgetId, onTransactionDelete
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
 
-  // 处理交易项点击 - 直接进入编辑页面
+  // 处理记账项点击 - 直接进入编辑页面
   const handleTransactionClick = (transactionId: string) => {
     smartNavigate(router, `/transactions/edit/${transactionId}`);
   };
 
-  // 处理附件点击 - 跳转到交易详情页
+  // 处理附件点击 - 跳转到记账详情页
   const handleAttachmentClick = (transactionId: string) => {
     smartNavigate(router, `/transactions/${transactionId}`);
   };
 
-  // 处理删除交易
+  // 处理删除记账
   const handleDeleteClick = (transactionId: string) => {
-    // 找到要删除的交易信息
+    // 找到要删除的记账信息
     const transaction = transactions.find(t => t.id === transactionId);
 
     if (!transaction) return;
@@ -73,7 +73,7 @@ export function RecentTransactions({ transactions, budgetId, onTransactionDelete
     setDeleteDialogOpen(true);
   };
 
-  // 确认删除交易
+  // 确认删除记账
   const handleConfirmDelete = async () => {
     if (!transactionToDelete) return;
 
@@ -88,10 +88,10 @@ export function RecentTransactions({ transactions, budgetId, onTransactionDelete
 
       setDeleteDialogOpen(false);
       setTransactionToDelete(null);
-      console.log('交易删除成功');
+      console.log('记账删除成功');
     } catch (error) {
-      console.error('删除交易失败:', error);
-      alert('删除交易失败，请重试');
+      console.error('删除记账失败:', error);
+      alert('删除记账失败，请重试');
     } finally {
       setDeletingTransactionId(null);
     }
@@ -112,14 +112,14 @@ export function RecentTransactions({ transactions, budgetId, onTransactionDelete
       params.set('budgetId', budgetId);
     }
 
-    // 重定向到交易列表页面
+    // 重定向到记账列表页面
     const url = `/transactions${params.toString() ? `?${params.toString()}` : ''}`;
     smartNavigate(router, url);
   };
 
-  // 将交易数据转换为分组格式以适配统一组件
+  // 将记账数据转换为分组格式以适配统一组件
   const groupedTransactions = transactions.length > 0 ? [{
-    date: '最近交易',
+    date: '最近记账',
     transactions: transactions.map(transaction => ({
       id: transaction.id,
       amount: transaction.amount,
@@ -137,7 +137,7 @@ export function RecentTransactions({ transactions, budgetId, onTransactionDelete
   return (
     <section className="recent-transactions">
       <div className="section-header">
-        <h2>最近交易</h2>
+        <h2>最近记账</h2>
         <button className="view-all" onClick={handleViewAll}>
           查看全部
         </button>
@@ -147,7 +147,7 @@ export function RecentTransactions({ transactions, budgetId, onTransactionDelete
         groupedTransactions={groupedTransactions}
         onTransactionClick={handleTransactionClick}
         showDateHeaders={false}
-        emptyMessage="暂无交易记录"
+        emptyMessage="暂无记账记录"
         className="budget-statistics-page"
         enableSwipeActions={true}
         onAttachmentClick={handleAttachmentClick}
@@ -158,8 +158,8 @@ export function RecentTransactions({ transactions, budgetId, onTransactionDelete
       {/* 删除确认对话框 */}
       <DeleteConfirmationDialog
         isOpen={deleteDialogOpen}
-        title="删除交易"
-        message="确定要删除这笔交易吗？"
+        title="删除记账"
+        message="确定要删除这笔记账吗？"
         itemName={transactionToDelete?.title || transactionToDelete?.description || transactionToDelete?.categoryName}
         amount={transactionToDelete?.amount}
         isLoading={deletingTransactionId === transactionToDelete?.id}

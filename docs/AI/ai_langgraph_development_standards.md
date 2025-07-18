@@ -213,7 +213,7 @@ const classifyTransaction = async (description: string, amount: number, date: Da
     
     return response.data;
   } catch (error) {
-    console.error('分类交易错误:', error);
+    console.error('分类记账错误:', error);
     throw error;
   }
 };
@@ -272,7 +272,7 @@ import { AIController } from '../controllers/ai-controller';
 const router = Router();
 const aiController = new AIController();
 
-// 分类交易
+// 分类记账
 router.post('/classify-transaction', aiController.classifyTransaction);
 
 // 预算建议
@@ -361,12 +361,12 @@ export class ConsumptionPatternAnalyzer {
 ```typescript
 // server/src/ai/prompts/transaction-prompts.ts
 export const CLASSIFICATION_SYSTEM_PROMPT = `
-  你是一个专业的财务分类助手。你的任务是将交易记录分配到最合适的分类中。
+  你是一个专业的财务分类助手。你的任务是将记账记录分配到最合适的分类中。
   
   可用的分类有：
   {{categories}}
   
-  请根据交易描述、金额和日期，选择最合适的分类。
+  请根据记账描述、金额和日期，选择最合适的分类。
   你的回答必须是一个JSON对象，包含以下字段：
   - categoryId: 选择的分类ID
   - confidence: 你对这个分类的置信度，范围0-1
@@ -376,7 +376,7 @@ export const CLASSIFICATION_SYSTEM_PROMPT = `
 `;
 
 export const CLASSIFICATION_USER_PROMPT = `
-  交易记录：
+  记账记录：
   - 描述: {{description}}
   - 金额: {{amount}}元
   - 日期: {{date}}

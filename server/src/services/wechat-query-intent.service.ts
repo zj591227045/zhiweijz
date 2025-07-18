@@ -59,7 +59,7 @@ export class WechatQueryIntentService {
       };
     }
 
-    // 4. 最近交易查询
+    // 4. 最近记账查询
     if (this.isRecentQuery(cleanContent)) {
       const limit = this.extractLimit(cleanContent);
       return {
@@ -144,15 +144,15 @@ export class WechatQueryIntentService {
   }
 
   /**
-   * 判断是否为最近交易查询
+   * 判断是否为最近记账查询
    */
   private isRecentQuery(content: string): boolean {
     const recentKeywords = [
-      '最近交易',
+      '最近记账',
       '最近记录',
-      '最新交易',
-      '近期交易',
-      '交易记录',
+      '最新记账',
+      '近期记账',
+      '记账记录',
       '最近消费',
       '最近支出',
       '最近收入',

@@ -3,7 +3,7 @@ import { app } from '../../app';
 import { prisma } from '../../lib/prisma';
 import { generateTestToken } from '../helpers/auth-helper';
 
-describe('无预算交易功能集成测试', () => {
+describe('无预算记账功能集成测试', () => {
   let authToken: string;
   let testUserId: string;
   let testAccountBookId: string;
@@ -60,21 +60,21 @@ describe('无预算交易功能集成测试', () => {
   });
 
   beforeEach(async () => {
-    // 清理交易记录
+    // 清理记账记录
     await prisma.transaction.deleteMany({
       where: { userId: testUserId },
     });
   });
 
-  describe('检查无预算交易API', () => {
-    it('当存在无预算交易时应返回true', async () => {
-      // 创建无预算交易
+  describe('检查无预算记账API', () => {
+    it('当存在无预算记账时应返回true', async () => {
+      // 创建无预算记账
       await prisma.transaction.create({
         data: {
           amount: 100,
           type: 'EXPENSE',
           categoryId: testCategoryId,
-          description: '无预算交易',
+          description: '无预算记账',
           date: new Date('2024-01-15'),
           userId: testUserId,
           accountBookId: testAccountBookId,
@@ -95,8 +95,8 @@ describe('无预算交易功能集成测试', () => {
       expect(response.body.hasUnbudgetedTransactions).toBe(true);
     });
 
-    it('当不存在无预算交易时应返回false', async () => {
-      // 创建有预算的交易（需要先创建预算）
+    it('当不存在无预算记账时应返回false', async () => {
+      // 创建有预算的记账（需要先创建预算）
       const testBudget = await prisma.budget.create({
         data: {
           amount: 1000,
@@ -114,7 +114,7 @@ describe('无预算交易功能集成测试', () => {
           amount: 100,
           type: 'EXPENSE',
           categoryId: testCategoryId,
-          description: '有预算交易',
+          description: '有预算记账',
           date: new Date('2024-01-15'),
           userId: testUserId,
           accountBookId: testAccountBookId,
@@ -140,8 +140,8 @@ describe('无预算交易功能集成测试', () => {
   });
 
   describe('统计数据筛选', () => {
-    it('使用NO_BUDGET筛选应只返回无预算交易的统计', async () => {
-      // 创建有预算的交易
+    it('使用NO_BUDGET筛选应只返回无预算记账的统计', async () => {
+      // 创建有预算的记账
       const testBudget = await prisma.budget.create({
         data: {
           amount: 1000,
@@ -159,7 +159,7 @@ describe('无预算交易功能集成测试', () => {
           amount: 200,
           type: 'EXPENSE',
           categoryId: testCategoryId,
-          description: '有预算交易',
+          description: '有预算记账',
           date: new Date('2024-01-15'),
           userId: testUserId,
           accountBookId: testAccountBookId,
@@ -167,13 +167,13 @@ describe('无预算交易功能集成测试', () => {
         },
       });
 
-      // 创建无预算交易
+      // 创建无预算记账
       await prisma.transaction.create({
         data: {
           amount: 100,
           type: 'EXPENSE',
           categoryId: testCategoryId,
-          description: '无预算交易',
+          description: '无预算记账',
           date: new Date('2024-01-16'),
           userId: testUserId,
           accountBookId: testAccountBookId,
@@ -193,7 +193,7 @@ describe('无预算交易功能集成测试', () => {
         });
 
       expect(response.status).toBe(200);
-      expect(response.body.totalExpense).toBe(100); // 只包含无预算交易
+      expect(response.body.totalExpense).toBe(100); // 只包含无预算记账
       expect(response.body.expenseCategories).toHaveLength(1);
       expect(response.body.expenseCategories[0].amount).toBe(100);
 
@@ -201,14 +201,14 @@ describe('无预算交易功能集成测试', () => {
       await prisma.budget.delete({ where: { id: testBudget.id } });
     });
 
-    it('不使用预算筛选应返回所有交易的统计', async () => {
-      // 创建无预算交易
+    it('不使用预算筛选应返回所有记账的统计', async () => {
+      // 创建无预算记账
       await prisma.transaction.create({
         data: {
           amount: 100,
           type: 'EXPENSE',
           categoryId: testCategoryId,
-          description: '无预算交易',
+          description: '无预算记账',
           date: new Date('2024-01-16'),
           userId: testUserId,
           accountBookId: testAccountBookId,
@@ -216,7 +216,7 @@ describe('无预算交易功能集成测试', () => {
         },
       });
 
-      // 测试全部交易统计
+      // 测试全部记账统计
       const response = await request(app)
         .get('/api/statistics/overview')
         .set('Authorization', `Bearer ${authToken}`)

@@ -91,7 +91,7 @@ export function DeleteConfirmDialog({
               ? '显示后该分类将在添加记录时可选。'
               : category.isDefault
                 ? '隐藏后该分类不会在添加记录时显示，但可以在分类管理中重新显示。'
-                : '此操作不可撤销，使用此分类的交易记录将变为未分类。'}
+                : '此操作不可撤销，使用此分类的记账记录将变为未分类。'}
           </p>
         </div>
         <div className="dialog-footer">

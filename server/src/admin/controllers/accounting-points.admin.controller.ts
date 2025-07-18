@@ -176,7 +176,7 @@ export class AccountingPointsAdminController {
   }
 
   /**
-   * 获取用户的记账点交易记录
+   * 获取用户的记账点记账记录
    */
   async getUserTransactions(req: Request, res: Response) {
     try {
@@ -208,10 +208,10 @@ export class AccountingPointsAdminController {
         }
       });
     } catch (error) {
-      console.error('获取用户交易记录失败:', error);
+      console.error('获取用户记账记录失败:', error);
       res.status(500).json({
         success: false,
-        error: '获取用户交易记录失败'
+        error: '获取用户记账记录失败'
       });
     }
   }

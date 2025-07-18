@@ -35,10 +35,10 @@ export class TransactionService {
   }
 
   /**
-   * 检查交易是否为历史交易（不在当前预算计算周期内）
-   * @param transactionDate 交易消费日期
+   * 检查记账是否为历史记账（不在当前预算计算周期内）
+   * @param transactionDate 记账消费日期
    * @param accountBookId 账本ID（可选）
-   * @returns 是否为历史交易
+   * @returns 是否为历史记账
    */
   private async isHistoricalTransaction(
     transactionDate: Date,
@@ -46,7 +46,7 @@ export class TransactionService {
   ): Promise<boolean> {
     const now = new Date();
 
-    // 如果没有提供账本ID，使用简单的日期比较（超过7天视为历史交易）
+    // 如果没有提供账本ID，使用简单的日期比较（超过7天视为历史记账）
     if (!accountBookId) {
       const daysDifference = Math.floor(
         (now.getTime() - transactionDate.getTime()) / (1000 * 60 * 60 * 24),
@@ -55,7 +55,7 @@ export class TransactionService {
     }
 
     try {
-      // 查找与交易日期相关的预算
+      // 查找与记账日期相关的预算
       const budgets = await prisma.budget.findMany({
         where: {
           accountBookId,
@@ -83,7 +83,7 @@ export class TransactionService {
         // 注意：refreshDay字段目前不存在于数据库中，使用默认值1
         const refreshDay = 1;
 
-        // 获取交易日期的年月
+        // 获取记账日期的年月
         const transactionYear = transactionDate.getFullYear();
         const transactionMonth = transactionDate.getMonth();
         const transactionDay = transactionDate.getDate();
@@ -93,11 +93,11 @@ export class TransactionService {
         const currentMonth = now.getMonth();
         const currentDay = now.getDate();
 
-        // 确定交易所在的计算周期
+        // 确定记账所在的计算周期
         let transactionCycleYear = transactionYear;
         let transactionCycleMonth = transactionMonth;
 
-        // 如果交易日期在刷新日之前，则属于上个月的计算周期
+        // 如果记账日期在刷新日之前，则属于上个月的计算周期
         if (transactionDay < refreshDay) {
           transactionCycleMonth = transactionMonth - 1;
           if (transactionCycleMonth < 0) {
@@ -119,13 +119,13 @@ export class TransactionService {
           }
         }
 
-        // 比较交易周期和当前周期
+        // 比较记账周期和当前周期
         if (
           transactionCycleYear !== currentCycleYear ||
           transactionCycleMonth !== currentCycleMonth
         ) {
           console.log(
-            `检测到历史交易: 交易周期=${transactionCycleYear}年${
+            `检测到历史记账: 记账周期=${transactionCycleYear}年${
               transactionCycleMonth + 1
             }月, 当前周期=${currentCycleYear}年${currentCycleMonth + 1}月`,
           );
@@ -133,10 +133,10 @@ export class TransactionService {
         }
       }
 
-      // 如果所有预算都在当前计算周期内，则不是历史交易
+      // 如果所有预算都在当前计算周期内，则不是历史记账
       return false;
     } catch (error) {
-      console.error('检查历史交易失败:', error);
+      console.error('检查历史记账失败:', error);
       // 出错时使用默认规则
       const daysDifference = Math.floor(
         (now.getTime() - transactionDate.getTime()) / (1000 * 60 * 60 * 24),
@@ -146,9 +146,9 @@ export class TransactionService {
   }
 
   /**
-   * 查找受交易影响的预算
+   * 查找受记账影响的预算
    * @param accountBookId 账本ID
-   * @param date 交易日期
+   * @param date 记账日期
    * @returns 受影响的预算ID数组
    */
   private async findAffectedBudgets(accountBookId: string, date: Date): Promise<string[]> {
@@ -178,7 +178,7 @@ export class TransactionService {
   }
 
   /**
-   * 创建交易记录
+   * 创建记账记录
    */
   async createTransaction(
     userId: string,
@@ -190,9 +190,9 @@ export class TransactionService {
       throw new Error('分类不存在');
     }
 
-    // 验证交易类型与分类类型是否匹配
+    // 验证记账类型与分类类型是否匹配
     if (category.type !== transactionData.type) {
-      throw new Error('交易类型与分类类型不匹配');
+      throw new Error('记账类型与分类类型不匹配');
     }
 
     // 检查账本信息以确定是否为家庭账本
@@ -261,13 +261,13 @@ export class TransactionService {
       }
     }
 
-    // 检查是否为历史交易
+    // 检查是否为历史记账
     const isHistorical = await this.isHistoricalTransaction(
       transactionData.date,
       transactionData.accountBookId,
     );
 
-    // 如果是历史交易，记录交易创建时间与消费日期的差异
+    // 如果是历史记账，记录记账创建时间与消费日期的差异
     const transactionMetadata = isHistorical
       ? {
           isHistorical: true,
@@ -276,24 +276,24 @@ export class TransactionService {
         }
       : undefined;
 
-    // 更新交易数据，确保包含正确的familyId和familyMemberId
+    // 更新记账数据，确保包含正确的familyId和familyMemberId
     const finalTransactionData = {
       ...transactionData,
       familyId: finalFamilyId,
       familyMemberId: finalFamilyMemberId,
     };
 
-    // 在创建交易前，确保用户有当前月份的预算（如果是支出交易）
+    // 在创建记账前，确保用户有当前月份的预算（如果是支出记账）
     if (transactionData.accountBookId && transactionData.type === 'EXPENSE') {
       try {
         await this.budgetService.ensureCurrentMonthBudget(userId, transactionData.accountBookId);
       } catch (error) {
         console.error('确保当前月份预算失败:', error);
-        // 不影响交易创建流程，继续执行
+        // 不影响记账创建流程，继续执行
       }
     }
 
-    // 创建交易记录
+    // 创建记账记录
     const transaction = await this.transactionRepository.create(
       userId,
       finalTransactionData,
@@ -310,10 +310,10 @@ export class TransactionService {
         transactionData.date,
       );
 
-      // 如果是历史交易，查找受影响的预算并重新计算结转
+      // 如果是历史记账，查找受影响的预算并重新计算结转
       if (isHistorical) {
         console.log(
-          `检测到历史交易（日期: ${transactionData.date.toISOString()}），准备重新计算相关预算结转`,
+          `检测到历史记账（日期: ${transactionData.date.toISOString()}），准备重新计算相关预算结转`,
         );
 
         // 查找受影响的预算
@@ -344,7 +344,7 @@ export class TransactionService {
   }
 
   /**
-   * 获取交易记录列表
+   * 获取记账记录列表
    */
   async getTransactions(
     userId: string,
@@ -368,18 +368,18 @@ export class TransactionService {
   }
 
   /**
-   * 获取单个交易记录
+   * 获取单个记账记录
    */
   async getTransactionById(id: string, userId: string): Promise<TransactionResponseDto> {
     const transaction = await this.transactionRepository.findById(id);
 
     if (!transaction) {
-      throw new Error('交易记录不存在');
+      throw new Error('记账记录不存在');
     }
 
     // 验证权限
     if (transaction.userId !== userId && !transaction.familyId) {
-      throw new Error('无权访问此交易记录');
+      throw new Error('无权访问此记账记录');
     }
 
     return toTransactionResponseDto(
@@ -389,22 +389,22 @@ export class TransactionService {
   }
 
   /**
-   * 更新交易记录
+   * 更新记账记录
    */
   async updateTransaction(
     id: string,
     userId: string,
     transactionData: UpdateTransactionDto,
   ): Promise<TransactionResponseDto> {
-    // 检查交易记录是否存在
+    // 检查记账记录是否存在
     const transaction = await this.transactionRepository.findById(id);
     if (!transaction) {
-      throw new Error('交易记录不存在');
+      throw new Error('记账记录不存在');
     }
 
     // 验证权限
     if (transaction.userId !== userId && !transaction.familyId) {
-      throw new Error('无权修改此交易记录');
+      throw new Error('无权修改此记账记录');
     }
 
     // 如果更新了分类，验证分类是否存在
@@ -414,16 +414,16 @@ export class TransactionService {
         throw new Error('分类不存在');
       }
 
-      // 验证交易类型与分类类型是否匹配
+      // 验证记账类型与分类类型是否匹配
       if (category.type !== transaction.type) {
-        throw new Error('交易类型与分类类型不匹配');
+        throw new Error('记账类型与分类类型不匹配');
       }
     }
 
     // 如果是家庭账本，需要通过预算ID确定家庭成员ID
     let finalFamilyMemberId = transactionData.familyMemberId;
     if (transaction.familyId && !finalFamilyMemberId) {
-      // 优先使用更新数据中的budgetId，如果没有则使用原交易的budgetId
+      // 优先使用更新数据中的budgetId，如果没有则使用原记账的budgetId
       const budgetId = transactionData.budgetId || transaction.budgetId;
 
       if (budgetId) {
@@ -456,7 +456,7 @@ export class TransactionService {
         }
       }
 
-      // 如果通过预算无法确定家庭成员ID，且原交易也没有familyMemberId，则使用当前用户作为备选方案
+      // 如果通过预算无法确定家庭成员ID，且原记账也没有familyMemberId，则使用当前用户作为备选方案
       if (!finalFamilyMemberId && !transaction.familyMemberId) {
         const familyMember = await prisma.familyMember.findFirst({
           where: {
@@ -471,10 +471,10 @@ export class TransactionService {
       }
     }
 
-    // 获取原交易记录
+    // 获取原记账记录
     const oldTransaction = await this.transactionRepository.findById(id);
 
-    // 检查是否修改了日期，以及是否为历史交易
+    // 检查是否修改了日期，以及是否为历史记账
     let isHistoricalChange = false;
     if (transactionData.date) {
       isHistoricalChange = await this.isHistoricalTransaction(
@@ -483,7 +483,7 @@ export class TransactionService {
       );
     }
 
-    // 如果修改为历史交易，记录元数据
+    // 如果修改为历史记账，记录元数据
     const transactionMetadata = isHistoricalChange
       ? {
           isHistorical: true,
@@ -492,13 +492,13 @@ export class TransactionService {
         }
       : undefined;
 
-    // 更新交易数据，确保包含正确的familyMemberId
+    // 更新记账数据，确保包含正确的familyMemberId
     const finalTransactionData = {
       ...transactionData,
       ...(finalFamilyMemberId && { familyMemberId: finalFamilyMemberId }),
     };
 
-    // 更新交易记录
+    // 更新记账记录
     const updatedTransaction = await this.transactionRepository.update(
       id,
       finalTransactionData,
@@ -527,12 +527,12 @@ export class TransactionService {
           transactionData.date || oldTransaction.date,
         );
 
-        // 如果是历史交易变更，重新计算受影响的预算结转
+        // 如果是历史记账变更，重新计算受影响的预算结转
         if (
           isHistoricalChange ||
           (await this.isHistoricalTransaction(oldTransaction.date, accountBookId))
         ) {
-          console.log(`检测到历史交易变更，准备重新计算相关预算结转`);
+          console.log(`检测到历史记账变更，准备重新计算相关预算结转`);
 
           // 查找受影响的预算（包括原日期和新日期）
           const oldDateBudgets = await this.findAffectedBudgets(accountBookId, oldTransaction.date);
@@ -570,26 +570,26 @@ export class TransactionService {
   }
 
   /**
-   * 删除交易记录
+   * 删除记账记录
    */
   async deleteTransaction(id: string, userId: string): Promise<void> {
-    // 检查交易记录是否存在
+    // 检查记账记录是否存在
     const transaction = await this.transactionRepository.findById(id);
     if (!transaction) {
-      throw new Error('交易记录不存在');
+      throw new Error('记账记录不存在');
     }
 
     // 验证权限
     if (transaction.userId !== userId && !transaction.familyId) {
-      throw new Error('无权删除此交易记录');
+      throw new Error('无权删除此记账记录');
     }
 
-    // 删除交易记录
+    // 删除记账记录
     await this.transactionRepository.delete(id);
   }
 
   /**
-   * 获取交易统计
+   * 获取记账统计
    */
   async getTransactionStatistics(
     userId: string,
@@ -620,7 +620,7 @@ export class TransactionService {
   }
 
   /**
-   * 获取交易列表和统计信息
+   * 获取记账列表和统计信息
    * 支持根据时间、收入支出、分类进行过滤后再统计
    */
   async getTransactionsWithStatistics(
@@ -647,10 +647,10 @@ export class TransactionService {
       }>;
     };
   }> {
-    // 获取交易列表
+    // 获取记账列表
     const { transactions, total } = await this.transactionRepository.findAll(userId, params);
 
-    // 构建交易响应数据
+    // 构建记账响应数据
     const data = transactions.map((transaction) =>
       toTransactionResponseDto(
         transaction,
@@ -738,7 +738,7 @@ export class TransactionService {
   }
 
   /**
-   * 获取预算相关交易
+   * 获取预算相关记账
    * @param budgetId 预算ID
    * @param page 页码
    * @param limit 每页数量
@@ -780,7 +780,7 @@ export class TransactionService {
         type: 'EXPENSE',
       };
 
-      console.log('使用预算ID过滤交易记录:', {
+      console.log('使用预算ID过滤记账记录:', {
         budgetId,
         startDate: budget.startDate,
         endDate: budget.endDate,
@@ -794,7 +794,7 @@ export class TransactionService {
       // 处理成员过滤 - 统一使用familyMemberId
       if (familyMemberId) {
         // 统一使用familyMemberId过滤，无论是托管成员还是普通成员
-        // 因为交易记录的familyMemberId字段已经正确设置了归属关系
+        // 因为记账记录的familyMemberId字段已经正确设置了归属关系
         where.familyMemberId = familyMemberId;
       }
       // 如果预算本身关联了托管成员，使用预算的familyMemberId查询
@@ -807,7 +807,7 @@ export class TransactionService {
       }
       // 如果是家庭预算，不添加额外过滤，已经通过accountBookId过滤了
 
-      // 查询交易记录
+      // 查询记账记录
       const transactions = await prisma.transaction.findMany({
         where,
         include: {
@@ -840,20 +840,20 @@ export class TransactionService {
         nextPage: page * limit < total ? page + 1 : null,
       };
     } catch (error) {
-      console.error('获取预算相关交易失败:', error);
+      console.error('获取预算相关记账失败:', error);
       throw error;
     }
   }
 
   /**
-   * 获取交易的附件列表
+   * 获取记账的附件列表
    */
   async getTransactionAttachments(transactionId: string, userId: string) {
     try {
-      // 验证交易是否属于当前用户
+      // 验证记账是否属于当前用户
       const transaction = await this.transactionRepository.findById(transactionId);
       if (!transaction || transaction.userId !== userId) {
-        throw new Error('交易不存在或无权限访问');
+        throw new Error('记账不存在或无权限访问');
       }
 
       // 获取附件列表
@@ -861,7 +861,7 @@ export class TransactionService {
 
       return attachments;
     } catch (error) {
-      console.error('获取交易附件失败:', error);
+      console.error('获取记账附件失败:', error);
       throw error;
     }
   }
@@ -880,7 +880,7 @@ export class TransactionService {
   }
 
   /**
-   * 删除交易附件
+   * 删除记账附件
    */
   async deleteTransactionAttachment(attachmentId: string, userId: string) {
     try {
@@ -901,7 +901,7 @@ export class TransactionService {
 
       return { success: true, message: '附件删除成功' };
     } catch (error) {
-      console.error('删除交易附件失败:', error);
+      console.error('删除记账附件失败:', error);
       throw error;
     }
   }

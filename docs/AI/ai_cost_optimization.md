@@ -289,7 +289,7 @@ const batchService = new LLMBatchService(5, 200);
 // 客户端代码
 async function classifyTransaction(description: string) {
   try {
-    const prompt = `请将交易"${description}"分类到最合适的类别。`;
+    const prompt = `请将记账"${description}"分类到最合适的类别。`;
     const response = await batchService.addRequest(prompt);
     return response;
   } catch (error) {
@@ -317,16 +317,16 @@ async function classifyTransaction(description: string) {
 **优化前**：
 
 ```
-你是一个专业的财务分析师。我需要你帮我分析一下这笔交易应该属于什么类别。
-这笔交易的描述是"星巴克咖啡"，金额是30元，发生在2023年5月15日下午2点30分。
-请你根据这些信息，告诉我这笔交易最可能属于哪个类别，比如餐饮、购物、交通等等。
+你是一个专业的财务分析师。我需要你帮我分析一下这笔记账应该属于什么类别。
+这笔记账的描述是"星巴克咖啡"，金额是30元，发生在2023年5月15日下午2点30分。
+请你根据这些信息，告诉我这笔记账最可能属于哪个类别，比如餐饮、购物、交通等等。
 请详细解释你的分类理由，并且如果有其他可能的类别，也请一并列出。谢谢！
 ```
 
 **优化后**：
 
 ```
-分类交易:
+分类记账:
 - 描述: 星巴克咖啡
 - 金额: 30元
 - 日期: 2023-05-15

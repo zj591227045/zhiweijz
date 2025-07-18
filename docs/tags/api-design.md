@@ -2,7 +2,7 @@
 
 ## 概述
 
-本文档详细描述了标签系统的RESTful API接口设计，包括标签管理、交易标签关联、权限控制和统计分析等功能。
+本文档详细描述了标签系统的RESTful API接口设计，包括标签管理、记账标签关联、权限控制和统计分析等功能。
 
 ## API设计原则
 
@@ -134,7 +134,7 @@ interface DeleteTagResponse {
   message: string;
   data: {
     deletedTagId: string;
-    affectedTransactions: number; // 受影响的交易记录数量
+    affectedTransactions: number; // 受影响的记账记录数量
   };
 }
 ```
@@ -150,7 +150,7 @@ interface DeleteTagResponse {
 interface GetTagResponse {
   success: boolean;
   data: Tag & {
-    recentTransactions: Transaction[]; // 最近使用该标签的交易记录
+    recentTransactions: Transaction[]; // 最近使用该标签的记账记录
     statistics: {
       totalAmount: number;
       transactionCount: number;
@@ -165,9 +165,9 @@ interface GetTagResponse {
 }
 ```
 
-## 交易标签关联API
+## 记账标签关联API
 
-### 1. 获取交易的标签
+### 1. 获取记账的标签
 
 **接口**: `GET /api/transactions/{transactionId}/tags`
 
@@ -179,7 +179,7 @@ interface GetTransactionTagsResponse {
 }
 ```
 
-### 2. 为交易添加标签
+### 2. 为记账添加标签
 
 **接口**: `POST /api/transactions/{transactionId}/tags`
 
@@ -202,7 +202,7 @@ interface AddTransactionTagsResponse {
 }
 ```
 
-### 3. 移除交易标签
+### 3. 移除记账标签
 
 **接口**: `DELETE /api/transactions/{transactionId}/tags/{tagId}`
 
@@ -214,7 +214,7 @@ interface RemoveTransactionTagResponse {
 }
 ```
 
-### 4. 批量操作交易标签
+### 4. 批量操作记账标签
 
 **接口**: `POST /api/transactions/batch/tags`
 
@@ -339,7 +339,7 @@ interface TagTrendsResponse {
 
 ## 搜索和筛选API
 
-### 1. 搜索交易记录（按标签）
+### 1. 搜索记账记录（按标签）
 
 **接口**: `GET /api/transactions/search`
 
@@ -361,7 +361,7 @@ interface SearchTransactionsQuery {
 ```typescript
 interface TagSuggestionsQuery {
   accountBookId: string;
-  transactionId?: string;    // 基于交易记录推荐
+  transactionId?: string;    // 基于记账记录推荐
   categoryId?: string;       // 基于分类推荐
   description?: string;      // 基于描述推荐
   limit?: number;
@@ -466,7 +466,7 @@ interface ErrorResponse {
 | TAG_IN_USE | 409 | 标签正在使用中，无法删除 |
 | INSUFFICIENT_PERMISSION | 403 | 权限不足 |
 | ACCOUNT_BOOK_NOT_FOUND | 404 | 账本不存在 |
-| TRANSACTION_NOT_FOUND | 404 | 交易记录不存在 |
+| TRANSACTION_NOT_FOUND | 404 | 记账记录不存在 |
 | BATCH_OPERATION_FAILED | 422 | 批量操作部分失败 |
 
 ## 性能优化

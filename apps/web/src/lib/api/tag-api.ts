@@ -66,14 +66,14 @@ export class TagApi {
   }
 
   /**
-   * 获取交易记录的标签
+   * 获取记账记录的标签
    */
   async getTransactionTags(transactionId: string): Promise<{ success: boolean; data: TagResponseDto[] }> {
     return apiClient.get(`/transactions/${transactionId}/tags`);
   }
 
   /**
-   * 为交易记录添加标签
+   * 为记账记录添加标签
    */
   async addTransactionTags(
     transactionId: string,
@@ -87,14 +87,14 @@ export class TagApi {
   }
 
   /**
-   * 移除交易记录的标签
+   * 移除记账记录的标签
    */
   async removeTransactionTag(transactionId: string, tagId: string): Promise<{ success: boolean; message: string }> {
     return apiClient.delete(`/transactions/${transactionId}/tags/${tagId}`);
   }
 
   /**
-   * 批量操作交易标签
+   * 批量操作记账标签
    */
   async batchOperateTransactionTags(data: BatchTransactionTagsDto): Promise<BatchTransactionTagsResponse> {
     return apiClient.post('/transactions/batch/tags', data);

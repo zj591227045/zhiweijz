@@ -165,14 +165,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             <Button
               mode="outlined"
               onPress={() => {
-                // TODO: 导航到添加交易页面
-                Alert.alert('提示', '添加交易功能即将推出');
+                // TODO: 导航到添加记账页面
+                Alert.alert('提示', '添加记账功能即将推出');
               }}
               style={styles.quickActionButton}
               contentStyle={styles.quickActionContent}
             >
               <Icon name="plus" size={20} />
-              添加交易
+              添加记账
             </Button>
             <Button
               mode="outlined"

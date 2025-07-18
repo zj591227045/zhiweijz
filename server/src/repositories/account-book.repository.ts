@@ -213,12 +213,12 @@ export class AccountBookRepository {
 
   /**
    * 重置账本
-   * 清除所有交易记录、预算信息和历史记录
+   * 清除所有记账记录、预算信息和历史记录
    */
   async resetAccountBook(accountBookId: string): Promise<void> {
     // 使用事务确保所有操作要么全部成功，要么全部失败
     await prisma.$transaction(async (tx) => {
-      // 1. 删除所有关联的交易记录
+      // 1. 删除所有关联的记账记录
       await tx.transaction.deleteMany({
         where: { accountBookId },
       });

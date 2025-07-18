@@ -664,7 +664,7 @@ export class FamilyService {
       // 获取所有家庭账本的ID
       const accountBookIds = familyAccountBooks.data.map((book) => book.id);
 
-      // 获取家庭账本的收入交易
+      // 获取家庭账本的收入记账
       const incomeTransactions = await prisma.transaction.findMany({
         where: {
           accountBookId: { in: accountBookIds },
@@ -681,7 +681,7 @@ export class FamilyService {
         },
       });
 
-      // 获取家庭账本的支出交易
+      // 获取家庭账本的支出记账
       const expenseTransactions = await prisma.transaction.findMany({
         where: {
           accountBookId: { in: accountBookIds },
@@ -712,7 +712,7 @@ export class FamilyService {
         let memberName: string;
 
         if (transaction.familyMemberId) {
-          // 有家庭成员ID的交易
+          // 有家庭成员ID的记账
           member = members.find((m) => m.id === transaction.familyMemberId);
           if (member) {
             memberKey = member.id; // 使用家庭成员ID作为统一标识
@@ -721,7 +721,7 @@ export class FamilyService {
             return; // 跳过找不到的成员
           }
         } else if (transaction.userId) {
-          // 普通成员的交易（通过userId查找）
+          // 普通成员的记账（通过userId查找）
           member = members.find((m) => m.userId === transaction.userId);
           if (member) {
             memberKey = member.id; // 使用家庭成员ID作为统一标识
@@ -730,7 +730,7 @@ export class FamilyService {
             return; // 跳过找不到的成员
           }
         } else {
-          return; // 跳过无效交易
+          return; // 跳过无效记账
         }
 
         const current = memberStats.get(memberKey) || { name: memberName, totalExpense: 0 };
@@ -931,14 +931,14 @@ export class FamilyService {
     // 获取所有家庭账本的ID
     const accountBookIds = familyAccountBooks.data.map((book) => book.id);
 
-    // 获取真实的交易统计数据
+    // 获取真实的记账统计数据
     const memberStatistics = await Promise.all(
       members.map(async (member) => {
         let memberExpense = 0;
         let transactionCount = 0;
 
         try {
-          // 统一使用familyMemberId查询所有成员的交易记录
+          // 统一使用familyMemberId查询所有成员的记账记录
           // 无论是托管成员还是普通成员，都通过familyMemberId进行归属
           const whereCondition = {
             accountBookId: { in: accountBookIds },
@@ -957,7 +957,7 @@ export class FamilyService {
           memberExpense = transactions.reduce((sum, t) => sum + Number(t.amount), 0);
           transactionCount = transactions.length;
         } catch (error) {
-          console.error(`获取成员 ${member.id} 的交易数据失败:`, error);
+          console.error(`获取成员 ${member.id} 的记账数据失败:`, error);
           // 如果查询失败，使用默认值
           memberExpense = 0;
           transactionCount = 0;
@@ -1201,12 +1201,12 @@ export class FamilyService {
       // 不影响成员删除流程，继续执行
     }
 
-    // 删除托管用户的交易记录
+    // 删除托管用户的记账记录
     try {
-      // 这里应该调用交易服务删除与该托管用户相关的交易记录
-      console.log(`需要删除托管用户 ${user.id} 的交易记录`);
+      // 这里应该调用记账服务删除与该托管用户相关的记账记录
+      console.log(`需要删除托管用户 ${user.id} 的记账记录`);
     } catch (error) {
-      console.error(`删除托管用户 ${user.id} 的交易记录失败:`, error);
+      console.error(`删除托管用户 ${user.id} 的记账记录失败:`, error);
       // 不影响成员删除流程，继续执行
     }
 

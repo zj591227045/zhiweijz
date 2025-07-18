@@ -5,16 +5,16 @@ import { PromptTemplate } from './base-prompts';
  */
 export const ACCOUNTING_PROMPTS: Record<string, PromptTemplate> = {
   /**
-   * 交易分类提示模板
+   * 记账分类提示模板
    */
   transactionClassification: {
     name: 'transactionClassification',
-    description: '交易分类',
+    description: '记账分类',
     systemMessage:
-      '你是一个专业的财务分析助手，能够根据交易描述、金额和日期将交易分类到最合适的类别。请根据提供的类别列表选择最匹配的类别，并简要解释你的选择理由。',
-    userMessageTemplate: `请将以下交易分类到最合适的类别：
+      '你是一个专业的财务分析助手，能够根据记账描述、金额和日期将记账分类到最合适的类别。请根据提供的类别列表选择最匹配的类别，并简要解释你的选择理由。',
+    userMessageTemplate: `请将以下记账分类到最合适的类别：
 
-交易描述: {description}
+记账描述: {description}
 金额: {amount}
 日期: {date}
 
@@ -34,7 +34,7 @@ export const ACCOUNTING_PROMPTS: Record<string, PromptTemplate> = {
     exampleOutput: `{
   "categoryId": "1",
   "confidence": 0.95,
-  "reasoning": "这笔交易是在星巴克咖啡店消费，属于餐饮类别。金额35元符合咖啡饮品的价格范围。"
+  "reasoning": "这笔记账是在星巴克咖啡店消费，属于餐饮类别。金额35元符合咖啡饮品的价格范围。"
 }`,
   },
 
@@ -86,8 +86,8 @@ export const ACCOUNTING_PROMPTS: Record<string, PromptTemplate> = {
     name: 'smartAccounting',
     description: '智能记账',
     systemMessage:
-      '你是一个专业的财务助手，能够从用户的自然语言描述中提取交易信息，包括金额、类别、日期、备注等。请尽可能准确地提取这些信息，并在信息不完整时做出合理的推断。',
-    userMessageTemplate: `请从以下描述中提取交易信息：
+      '你是一个专业的财务助手，能够从用户的自然语言描述中提取记账信息，包括金额、类别、日期、备注等。请尽可能准确地提取这些信息，并在信息不完整时做出合理的推断。',
+    userMessageTemplate: `请从以下描述中提取记账信息：
 
 用户描述: {input}
 
@@ -95,10 +95,10 @@ export const ACCOUNTING_PROMPTS: Record<string, PromptTemplate> = {
 {categories}
 
 请以JSON格式返回结果，包含以下字段：
-- amount: 交易金额
+- amount: 记账金额
 - categoryId: 最匹配的类别ID
-- date: 交易日期(YYYY-MM-DD格式，如果未提供则使用今天)
-- note: 交易备注(基于描述提炼)
+- date: 记账日期(YYYY-MM-DD格式，如果未提供则使用今天)
+- note: 记账备注(基于描述提炼)
 - isExpense: 是否为支出(true/false)`,
     exampleInput: {
       input: '昨天在沃尔玛买了日用品，花了128.5元',

@@ -59,7 +59,7 @@ CREATE INDEX idx_tags_usage_count ON tags(usage_count DESC);
 CREATE INDEX idx_tags_created_at ON tags(created_at DESC);
 ```
 
-### 2. 交易标签关联表 (transaction_tags)
+### 2. 记账标签关联表 (transaction_tags)
 
 #### 表结构
 ```sql
@@ -75,13 +75,13 @@ CREATE TABLE transaction_tags (
 | 字段名 | 类型 | 说明 | 约束 |
 |--------|------|------|------|
 | id | UUID | 主键，关联记录唯一标识 | PRIMARY KEY |
-| transaction_id | TEXT | 交易记录ID | NOT NULL, 外键 |
+| transaction_id | TEXT | 记账记录ID | NOT NULL, 外键 |
 | tag_id | UUID | 标签ID | NOT NULL, 外键 |
 | created_at | TIMESTAMP WITH TIME ZONE | 关联创建时间 | NOT NULL, DEFAULT NOW() |
 
 #### 约束和索引
 ```sql
--- 唯一约束：同一交易记录和标签只能关联一次
+-- 唯一约束：同一记账记录和标签只能关联一次
 ALTER TABLE transaction_tags ADD CONSTRAINT transaction_tags_unique 
 UNIQUE (transaction_id, tag_id);
 
@@ -187,7 +187,7 @@ GROUP BY t.id
 ORDER BY actual_usage_count DESC, t.name ASC;
 ```
 
-#### 获取交易记录的标签
+#### 获取记账记录的标签
 ```sql
 SELECT t.*
 FROM tags t
@@ -196,7 +196,7 @@ WHERE tt.transaction_id = $1 AND t.is_active = true
 ORDER BY t.name ASC;
 ```
 
-#### 按标签筛选交易记录
+#### 按标签筛选记账记录
 ```sql
 SELECT DISTINCT tr.*
 FROM transactions tr
@@ -232,13 +232,13 @@ CREATE INDEX idx_tags_active_usage ON tags(usage_count DESC) WHERE is_active = t
 ```sql
 /*META
 VERSION: 1.5.0
-DESCRIPTION: 标签系统 - 添加标签管理和交易标签关联功能
+DESCRIPTION: 标签系统 - 添加标签管理和记账标签关联功能
 AUTHOR: zhiweijz-team
 */
 
 -- =======================================
 -- 增量迁移：标签系统
--- 支持交易记录多标签管理、账本级别标签共享
+-- 支持记账记录多标签管理、账本级别标签共享
 -- =======================================
 
 -- 1. 创建标签表
@@ -255,7 +255,7 @@ CREATE TABLE IF NOT EXISTS tags (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 2. 创建交易标签关联表
+-- 2. 创建记账标签关联表
 CREATE TABLE IF NOT EXISTS transaction_tags (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     transaction_id TEXT NOT NULL,
@@ -340,7 +340,7 @@ WHERE tablename IN ('tags', 'transaction_tags');
 
 ### 1. 关键指标
 - 标签查询响应时间
-- 交易标签关联查询性能
+- 记账标签关联查询性能
 - 标签使用统计准确性
 
 ### 2. 监控查询
@@ -354,7 +354,7 @@ WHERE is_active = true
 GROUP BY usage_count
 ORDER BY usage_count DESC;
 
--- 监控大量标签的交易记录
+-- 监控大量标签的记账记录
 SELECT 
     tr.id,
     COUNT(tt.tag_id) as tag_count

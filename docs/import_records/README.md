@@ -1,4 +1,4 @@
-# 导入交易记录网页 - 项目规划文档
+# 导入记账记录网页 - 项目规划文档
 
 ## 项目概述
 
@@ -66,7 +66,7 @@
 - 账本管理: `/api/account-books`
 - 分类管理: `/api/categories`
 - 预算管理: `/api/budgets`
-- 交易记录: `/api/transactions`
+- 记账记录: `/api/transactions`
 
 ## 智能分类规则
 

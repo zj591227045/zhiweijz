@@ -68,9 +68,9 @@ model AccountLLMSetting {
 
 ## AI功能实现
 
-### 1. 智能交易分类
+### 1. 智能记账分类
 
-使用LangGraph构建交易分类工作流：
+使用LangGraph构建记账分类工作流：
 
 ```typescript
 // server/src/ai/langgraph/transaction-classifier.ts
@@ -137,12 +137,12 @@ export class TransactionClassifier {
     ).join('\n');
     
     return `
-      你是一个专业的财务分类助手。你的任务是将交易记录分配到最合适的分类中。
+      你是一个专业的财务分类助手。你的任务是将记账记录分配到最合适的分类中。
       
       可用的分类有：
       ${categoryOptions}
       
-      请根据交易描述、金额和日期，选择最合适的分类。
+      请根据记账描述、金额和日期，选择最合适的分类。
       你的回答必须是一个JSON对象，包含以下字段：
       - categoryId: 选择的分类ID
       - confidence: 你对这个分类的置信度，范围0-1
@@ -155,7 +155,7 @@ export class TransactionClassifier {
   
   private buildUserPrompt(description: string, amount: number, date: Date): string {
     return `
-      交易记录：
+      记账记录：
       - 描述: ${description}
       - 金额: ${amount}元
       - 日期: ${date.toISOString().split('T')[0]}
@@ -381,7 +381,7 @@ export class LLMProviderService {
 
 ## API设计
 
-### 1. 分类交易API
+### 1. 分类记账API
 
 ```
 POST /api/ai/classify-transaction

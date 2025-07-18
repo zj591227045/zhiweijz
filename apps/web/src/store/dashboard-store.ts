@@ -25,7 +25,7 @@ interface DashboardState {
   fetchDashboardData: (accountBookId: string) => Promise<void>;
   refreshDashboardData: (accountBookId: string) => Promise<void>;
   clearDashboardData: () => void;
-  // 新增：监听交易变化的方法
+  // 新增：监听记账变化的方法
   setupTransactionListener: () => void;
   cleanupTransactionListener: () => void;
 }
@@ -89,12 +89,12 @@ const fetchBudgetStatistics = async (accountBookId: string) => {
   return { categories, totalBudget };
 };
 
-// 获取最近交易的辅助函数
+// 获取最近记账的辅助函数
 const fetchRecentTransactions = async (accountBookId: string) => {
-  console.log('开始获取最近交易数据...');
+  console.log('开始获取最近记账数据...');
 
   const transactionsResponse = await transactionService.getRecentTransactions(accountBookId, 10);
-  console.log('最近交易数据响应:', transactionsResponse);
+  console.log('最近记账数据响应:', transactionsResponse);
 
   if (transactionsResponse?.data && Array.isArray(transactionsResponse.data)) {
     const groupedByDate: Record<string, any[]> = {};
@@ -126,7 +126,7 @@ const fetchRecentTransactions = async (accountBookId: string) => {
         };
       });
 
-    console.log('格式化后的交易数据:', formattedTransactions);
+    console.log('格式化后的记账数据:', formattedTransactions);
     return formattedTransactions;
   }
 
@@ -229,7 +229,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => {
       });
     },
 
-    // 设置交易变化监听器
+    // 设置记账变化监听器
     setupTransactionListener: () => {
       // 确保在浏览器环境中
       if (typeof window === 'undefined') {
@@ -240,13 +240,13 @@ export const useDashboardStore = create<DashboardState>((set, get) => {
       // 如果已经有监听器，先清理
       if (transactionChangeHandler) {
         window.removeEventListener('transactionChanged', transactionChangeHandler as EventListener);
-        console.log('清理旧的交易变化监听器');
+        console.log('清理旧的记账变化监听器');
       }
 
       // 创建新的事件处理函数
       transactionChangeHandler = (event: CustomEvent) => {
         const { accountBookId } = event.detail;
-        console.log('监听到交易变化事件，账本ID:', accountBookId);
+        console.log('监听到记账变化事件，账本ID:', accountBookId);
 
         // 延迟刷新，确保数据库操作已完成
         setTimeout(() => {
@@ -260,10 +260,10 @@ export const useDashboardStore = create<DashboardState>((set, get) => {
       };
 
       window.addEventListener('transactionChanged', transactionChangeHandler as EventListener);
-      console.log('仪表盘交易变化监听器已设置');
+      console.log('仪表盘记账变化监听器已设置');
     },
 
-    // 清理交易变化监听器
+    // 清理记账变化监听器
     cleanupTransactionListener: () => {
       // 确保在浏览器环境中
       if (typeof window === 'undefined') {
@@ -273,13 +273,13 @@ export const useDashboardStore = create<DashboardState>((set, get) => {
       if (transactionChangeHandler) {
         window.removeEventListener('transactionChanged', transactionChangeHandler as EventListener);
         transactionChangeHandler = null;
-        console.log('仪表盘交易变化监听器已清理');
+        console.log('仪表盘记账变化监听器已清理');
       }
     },
   };
 });
 
-// 全局函数：触发交易变化事件
+// 全局函数：触发记账变化事件
 export const triggerTransactionChange = (accountBookId: string) => {
   // 确保在浏览器环境中
   if (typeof window === 'undefined') {
@@ -287,14 +287,14 @@ export const triggerTransactionChange = (accountBookId: string) => {
     return;
   }
 
-  console.log('触发交易变化事件，账本ID:', accountBookId);
+  console.log('触发记账变化事件，账本ID:', accountBookId);
 
   // 方法1：使用自定义事件
   const event = new CustomEvent('transactionChanged', {
     detail: { accountBookId },
   });
   window.dispatchEvent(event);
-  console.log('交易变化事件已触发');
+  console.log('记账变化事件已触发');
 
   // 方法2：使用localStorage作为备用机制
   const refreshSignal = {

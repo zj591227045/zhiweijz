@@ -116,7 +116,7 @@ model FamilyMember {
   @@map("family_members")
 }
 
-// 交易分类模型
+// 记账分类模型
 model Category {
   id         String       @id @default(uuid())
   name       String
@@ -137,7 +137,7 @@ model Category {
   @@map("categories")
 }
 
-// 交易记录模型
+// 记账记录模型
 model Transaction {
   id             String          @id @default(uuid())
   amount         Decimal         @db.Decimal(10, 2)
@@ -203,26 +203,26 @@ enum Role {
 
 ### User (用户)
 - 存储用户基本信息和认证数据
-- 每个用户可以创建个人交易记录、分类和预算
+- 每个用户可以创建个人记账记录、分类和预算
 - 用户可以创建家庭并成为家庭成员
 
 ### Family (家庭)
 - 代表一个家庭单位
 - 由一个用户创建
 - 可以包含多个家庭成员
-- 可以有家庭级别的交易记录、分类和预算
+- 可以有家庭级别的记账记录、分类和预算
 
 ### FamilyMember (家庭成员)
 - 连接用户和家庭的关联表
 - 可以表示已注册用户或未注册成员(如孩子)
 - 定义成员在家庭中的角色(管理员或普通成员)
 
-### Category (交易分类)
-- 定义交易的分类(如食品、交通、工资等)
+### Category (记账分类)
+- 定义记账的分类(如食品、交通、工资等)
 - 可以是系统默认分类、用户自定义分类或家庭自定义分类
 - 分为收入和支出两种类型
 
-### Transaction (交易记录)
+### Transaction (记账记录)
 - 记录用户的每一笔收入或支出
 - 关联到用户、分类，可选关联到家庭和家庭成员
 - 包含金额、日期、描述等详细信息
@@ -239,7 +239,7 @@ enum Role {
 
 1. 所有外键字段
 2. Transaction.date - 用于日期范围查询
-3. Transaction.type - 用于按类型筛选交易
+3. Transaction.type - 用于按类型筛选记账
 4. Category.type - 用于按类型筛选分类
 5. Budget.startDate 和 Budget.endDate - 用于日期范围查询
 

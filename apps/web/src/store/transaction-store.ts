@@ -5,11 +5,11 @@ import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { CreateTransactionData, Transaction, TransactionType } from '@/types';
 
-// 交易状态类型
+// 记账状态类型
 interface TransactionState {
   // 数据状态
   transactions: Transaction[];
-  transaction: Transaction | null; // 当前交易
+  transaction: Transaction | null; // 当前记账
   isLoading: boolean;
   error: string | null;
 
@@ -31,7 +31,7 @@ interface TransactionState {
   deleteTransaction: (id: string) => Promise<boolean>;
 }
 
-// 创建交易状态管理
+// 创建记账状态管理
 export const useTransactionStore = create<TransactionState>((set, get) => ({
   // 初始状态
   transactions: [],
@@ -39,7 +39,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
   isLoading: false,
   error: null,
 
-  // 获取交易列表
+  // 获取记账列表
   fetchTransactions: async (params) => {
     try {
       set({ isLoading: true, error: null });
@@ -79,16 +79,16 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
         isLoading: false,
       });
     } catch (error) {
-      console.error('获取交易列表失败:', error);
+      console.error('获取记账列表失败:', error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : '获取交易列表失败',
+        error: error instanceof Error ? error.message : '获取记账列表失败',
       });
-      toast.error('获取交易列表失败');
+      toast.error('获取记账列表失败');
     }
   },
 
-  // 获取单个交易并设置到状态中
+  // 获取单个记账并设置到状态中
   fetchTransaction: async (id) => {
     try {
       set({ isLoading: true, error: null, transaction: null });
@@ -113,17 +113,17 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
         transaction: transactionData,
       });
     } catch (error) {
-      console.error(`获取交易 ${id} 失败:`, error);
+      console.error(`获取记账 ${id} 失败:`, error);
       set({
         isLoading: false,
         transaction: null,
-        error: error instanceof Error ? error.message : `获取交易 ${id} 失败`,
+        error: error instanceof Error ? error.message : `获取记账 ${id} 失败`,
       });
-      toast.error(`获取交易详情失败`);
+      toast.error(`获取记账详情失败`);
     }
   },
 
-  // 获取单个交易
+  // 获取单个记账
   getTransaction: async (id) => {
     try {
       set({ isLoading: true, error: null });
@@ -145,17 +145,17 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
 
       return null;
     } catch (error) {
-      console.error(`获取交易 ${id} 失败:`, error);
+      console.error(`获取记账 ${id} 失败:`, error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : `获取交易 ${id} 失败`,
+        error: error instanceof Error ? error.message : `获取记账 ${id} 失败`,
       });
-      toast.error(`获取交易详情失败`);
+      toast.error(`获取记账详情失败`);
       return null;
     }
   },
 
-  // 创建交易
+  // 创建记账
   createTransaction: async (data) => {
     try {
       set({ isLoading: true, error: null });
@@ -164,20 +164,20 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
 
       set({ isLoading: false });
 
-      toast.success('交易创建成功');
+      toast.success('记账创建成功');
       return response.data || response;
     } catch (error) {
-      console.error('创建交易失败:', error);
+      console.error('创建记账失败:', error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : '创建交易失败',
+        error: error instanceof Error ? error.message : '创建记账失败',
       });
-      toast.error('创建交易失败');
+      toast.error('创建记账失败');
       return null;
     }
   },
 
-  // 更新交易
+  // 更新记账
   updateTransaction: async (id, data) => {
     try {
       set({ isLoading: true, error: null });
@@ -186,20 +186,20 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
 
       set({ isLoading: false });
 
-      toast.success('交易更新成功');
+      toast.success('记账更新成功');
       return true;
     } catch (error) {
-      console.error(`更新交易 ${id} 失败:`, error);
+      console.error(`更新记账 ${id} 失败:`, error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : `更新交易 ${id} 失败`,
+        error: error instanceof Error ? error.message : `更新记账 ${id} 失败`,
       });
-      toast.error('更新交易失败');
+      toast.error('更新记账失败');
       return false;
     }
   },
 
-  // 删除交易
+  // 删除记账
   deleteTransaction: async (id) => {
     try {
       set({ isLoading: true, error: null });
@@ -208,15 +208,15 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
 
       set({ isLoading: false });
 
-      toast.success('交易删除成功');
+      toast.success('记账删除成功');
       return true;
     } catch (error) {
-      console.error(`删除交易 ${id} 失败:`, error);
+      console.error(`删除记账 ${id} 失败:`, error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : `删除交易 ${id} 失败`,
+        error: error instanceof Error ? error.message : `删除记账 ${id} 失败`,
       });
-      toast.error('删除交易失败');
+      toast.error('删除记账失败');
       return false;
     }
   },

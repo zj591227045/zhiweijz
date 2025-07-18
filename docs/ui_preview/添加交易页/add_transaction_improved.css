@@ -4,7 +4,7 @@
     margin-right: 8px;
 }
 
-/* 交易类型切换 */
+/* 记账类型切换 */
 .transaction-type-toggle {
     display: flex;
     background-color: var(--background-color);
@@ -173,7 +173,7 @@
     cursor: pointer;
 }
 
-/* 交易表单 */
+/* 记账表单 */
 .transaction-form {
     background-color: var(--card-background);
     border-radius: var(--border-radius);

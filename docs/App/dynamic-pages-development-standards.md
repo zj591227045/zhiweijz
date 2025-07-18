@@ -507,7 +507,7 @@ export default function TransactionsPage() {
           onClick={() => handleTransactionClick(transaction.id, transaction)}
           className="transaction-item"
         >
-          {/* 交易项内容 */}
+          {/* 记账项内容 */}
         </div>
       ))}
     </div>

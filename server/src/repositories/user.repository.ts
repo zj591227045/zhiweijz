@@ -115,7 +115,7 @@ export class UserRepository {
    */
   async deleteUserData(userId: string): Promise<void> {
     await prisma.$transaction(async (tx) => {
-      // 1. 删除用户的交易记录
+      // 1. 删除用户的记账记录
       await tx.transaction.deleteMany({
         where: { userId },
       });

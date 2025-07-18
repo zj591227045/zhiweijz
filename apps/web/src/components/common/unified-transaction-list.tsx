@@ -21,7 +21,7 @@ const Paperclip = ({ className }: { className?: string }) => (
   </svg>
 );
 
-// 交易类型枚举
+// 记账类型枚举
 export enum TransactionType {
   EXPENSE = 'EXPENSE',
   INCOME = 'INCOME',
@@ -93,7 +93,7 @@ export const UnifiedTransactionList = memo(
     onTransactionClick,
     showDateHeaders = true,
     className = '',
-    emptyMessage = '暂无交易记录',
+    emptyMessage = '暂无记账记录',
     isLoading = false,
     error = null,
     isMultiSelectMode = false,
@@ -123,7 +123,7 @@ export const UnifiedTransactionList = memo(
       return getCategoryIconClass(iconName);
     };
 
-    // 处理交易项点击
+    // 处理记账项点击
     const handleTransactionClick = (transactionId: string) => {
       if (isMultiSelectMode && onTransactionSelect) {
         onTransactionSelect(transactionId);

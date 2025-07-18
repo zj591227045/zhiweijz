@@ -17,7 +17,7 @@ import dotenv from 'dotenv';
 
 /**
  * 智能记账工作流
- * 实现了从用户描述中提取交易信息，并匹配到预算和账本的功能
+ * 实现了从用户描述中提取记账信息，并匹配到预算和账本的功能
  */
 export class SmartAccounting {
   private llmProviderService: LLMProviderService;
@@ -85,7 +85,7 @@ export class SmartAccounting {
 
     // 由于LangGraph的API变化，我们使用简单的顺序执行
     try {
-      // 分析交易
+      // 分析记账
       const analyzedState = await this.analyzeTransactionHandler(initialState);
 
       // 检查是否有错误（如内容与记账无关）
@@ -247,12 +247,12 @@ export class SmartAccounting {
 
 判断标准：
 1. 包含金额信息（必须）
-2. 包含交易流水明细（必须）
+2. 包含记账流水明细（必须）
 3. 可能包含日期信息（可选）
 4. 可能包含预算信息（可选）
 
-如果描述中包含明确的金额和交易内容（如购买、支付、收入、转账等），则判定为与记账相关。
-如果描述中只是询问、闲聊或其他非交易相关内容，则判定为与记账无关。
+如果描述中包含明确的金额和记账内容（如购买、支付、收入、转账等），则判定为与记账相关。
+如果描述中只是询问、闲聊或其他非记账相关内容，则判定为与记账无关。
 
 请只回答 "相关" 或 "无关"，不要有其他文字。
 
@@ -800,7 +800,7 @@ export class SmartAccounting {
 
       // 生成最终结果
       const result = {
-        // 交易基本信息
+        // 记账基本信息
         amount: state.analyzedTransaction.amount,
         date: state.analyzedTransaction.date,
         categoryId: state.analyzedTransaction.categoryId,

@@ -11,7 +11,7 @@
 - ✅ 成员列表预览（显示前3个成员）
 - ✅ 托管成员管理（添加、编辑、删除）
 - ✅ 家庭统计数据（收入、支出、结余）
-- ✅ 最近交易记录（显示最近5条）
+- ✅ 最近记账记录（显示最近5条）
 - ✅ 家庭管理选项（成员管理、预算管理等）
 - ✅ 邀请成员功能
 - ✅ 退出/解散家庭功能
@@ -21,7 +21,7 @@
 - `MemberList` - 成员列表预览
 - `CustodialMembers` - 托管成员管理
 - `FamilyStatistics` - 家庭统计数据
-- `RecentTransactions` - 最近交易记录
+- `RecentTransactions` - 最近记账记录
 - `FamilyManagement` - 家庭管理选项
 - `InvitationDialog` - 邀请对话框
 

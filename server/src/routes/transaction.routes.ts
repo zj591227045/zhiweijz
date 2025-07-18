@@ -13,75 +13,75 @@ const attachmentController = new TransactionAttachmentController();
 // 所有路由都需要认证
 router.use(authenticate);
 
-// 获取交易统计
+// 获取记账统计
 router.get('/statistics', (req, res) => transactionController.getTransactionStatistics(req, res));
 
-// 获取交易列表和统计信息
+// 获取记账列表和统计信息
 router.get('/with-statistics', (req, res) =>
   transactionController.getTransactionsWithStatistics(req, res),
 );
 
-// 导出交易记录
+// 导出记账记录
 router.post('/export', (req, res) => transactionController.exportTransactions(req, res));
 
-// 导入交易记录
+// 导入记账记录
 router.post('/import', (req, res) => transactionController.importTransactions(req, res));
 
-// 获取分组交易记录
+// 获取分组记账记录
 router.get('/grouped', (req, res) => transactionController.getGroupedTransactions(req, res));
 
-// 获取交易记录列表
+// 获取记账记录列表
 router.get('/', (req, res) => transactionController.getTransactions(req, res));
 
-// 创建交易记录
+// 创建记账记录
 router.post('/', (req, res) => transactionController.createTransaction(req, res));
 
-// 获取单个交易记录
+// 获取单个记账记录
 router.get('/:id', (req, res) => transactionController.getTransaction(req, res));
 
-// 更新交易记录
+// 更新记账记录
 router.put('/:id', (req, res) => transactionController.updateTransaction(req, res));
 
-// 删除交易记录
+// 删除记账记录
 router.delete('/:id', (req, res) => transactionController.deleteTransaction(req, res));
 
-// 交易标签相关路由
-// 获取交易记录的标签
+// 记账标签相关路由
+// 获取记账记录的标签
 router.get('/:transactionId/tags', (req, res) => tagController.getTransactionTags(req, res));
 
-// 为交易记录添加标签
+// 为记账记录添加标签
 router.post('/:transactionId/tags', (req, res) => tagController.addTransactionTags(req, res));
 
-// 移除交易记录的标签
+// 移除记账记录的标签
 router.delete('/:transactionId/tags/:tagId', (req, res) =>
   tagController.removeTransactionTag(req, res),
 );
 
-// 批量操作交易标签
+// 批量操作记账标签
 router.post('/batch/tags', (req, res) => tagController.batchOperateTransactionTags(req, res));
 
-// 交易附件相关路由
-// 为交易添加附件
+// 记账附件相关路由
+// 为记账添加附件
 router.post('/:transactionId/attachments', s3AttachmentUpload.single('attachment'), (req, res) =>
   attachmentController.addAttachment(req, res),
 );
 
-// 批量上传交易附件
+// 批量上传记账附件
 router.post('/:transactionId/attachments/batch', s3AttachmentUpload.array('attachments', 10), (req, res) =>
   attachmentController.batchUploadAttachments(req, res),
 );
 
-// 获取交易的所有附件
+// 获取记账的所有附件
 router.get('/:transactionId/attachments', (req, res) =>
   attachmentController.getTransactionAttachments(req, res),
 );
 
-// 关联已上传的文件到交易
+// 关联已上传的文件到记账
 router.post('/:transactionId/attachments/link', (req, res) =>
   attachmentController.linkFileToTransaction(req, res),
 );
 
-// 删除交易附件
+// 删除记账附件
 router.delete('/attachments/:attachmentId', (req, res) =>
   attachmentController.deleteAttachment(req, res),
 );

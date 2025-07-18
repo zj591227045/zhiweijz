@@ -1085,10 +1085,10 @@ function StorageConfigTab({
                   )}
                 </div>
 
-                {/* 交易附件压缩 */}
+                {/* 记账附件压缩 */}
                 <div className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h5 className="text-sm font-medium text-gray-900">交易附件压缩</h5>
+                    <h5 className="text-sm font-medium text-gray-900">记账附件压缩</h5>
                     <label className="flex items-center">
                       <input
                         type="checkbox"

@@ -129,7 +129,7 @@ export class CategoryRepository {
   }
 
   /**
-   * 检查分类是否被交易使用
+   * 检查分类是否被记账使用
    */
   async isUsedByTransactions(id: string): Promise<boolean> {
     const count = await prisma.transaction.count({

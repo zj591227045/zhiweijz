@@ -188,7 +188,7 @@ export class StorageConfigAdminService {
           { key: 'image_compression_avatar_format', value: compression.avatar.format }
         );
 
-        // 交易附件压缩配置
+        // 记账附件压缩配置
         updates.push(
           { key: 'image_compression_attachment_enabled', value: compression.attachment.enabled.toString() },
           { key: 'image_compression_attachment_quality', value: compression.attachment.quality.toString() },

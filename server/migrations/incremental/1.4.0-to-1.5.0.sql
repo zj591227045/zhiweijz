@@ -1,12 +1,12 @@
 /*META
 VERSION: 1.5.0
-DESCRIPTION: 标签系统 - 添加标签管理和交易标签关联功能
+DESCRIPTION: 标签系统 - 添加标签管理和记账标签关联功能
 AUTHOR: zhiweijz-team
 */
 
 -- =======================================
 -- 增量迁移：标签系统
--- 支持交易记录多标签管理、账本级别标签共享
+-- 支持记账记录多标签管理、账本级别标签共享
 -- =======================================
 
 -- 1. 创建标签表
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS tags (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 2. 创建交易标签关联表
+-- 2. 创建记账标签关联表
 CREATE TABLE IF NOT EXISTS transaction_tags (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     transaction_id TEXT NOT NULL,
@@ -60,7 +60,7 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
--- 4. 添加交易标签关联表约束
+-- 4. 添加记账标签关联表约束
 DO $$ BEGIN
     ALTER TABLE transaction_tags ADD CONSTRAINT transaction_tags_unique 
     UNIQUE (transaction_id, tag_id);
@@ -180,7 +180,7 @@ ON CONFLICT (key) DO UPDATE SET
     updated_at = NOW();
 
 INSERT INTO system_configs (key, value, description, category) 
-VALUES ('tags_max_per_transaction', '10', '每个交易记录最大标签数量', 'limits') 
+VALUES ('tags_max_per_transaction', '10', '每个记账记录最大标签数量', 'limits') 
 ON CONFLICT (key) DO UPDATE SET 
     value = EXCLUDED.value, 
     description = EXCLUDED.description, 

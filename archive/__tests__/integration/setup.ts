@@ -19,13 +19,13 @@ export let testUserToken: string = generateToken({ userId: testUserId });
 // 测试分类ID - 使用已创建的测试分类ID
 export let testCategoryId: string = '01276f41-9b92-48f8-ad07-6ed7485373eb';
 
-// 测试交易ID - 使用已创建的测试交易ID
+// 测试记账ID - 使用已创建的测试记账ID
 export let testTransactionId: string = 'c0be4b39-82ea-4ef7-bd34-48b4c38bfdad';
 
 // 测试收入分类ID
 export let testIncomeCategoryId: string = '230d5aae-7d34-4fd9-ab84-c0d0dca83073';
 
-// 测试收入交易ID
+// 测试收入记账ID
 export let testIncomeTransactionId: string = '8f34f4f8-59bb-4633-bc6d-7307c0b11b3a';
 
 // 测试预算ID

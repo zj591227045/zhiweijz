@@ -68,7 +68,7 @@ export function DeleteConfirmationDialog({
           {itemName && (
             <div className="bg-gray-50 rounded-lg p-3 mb-3">
               <div className="text-sm text-gray-700">
-                <div className="font-medium">交易描述：{itemName}</div>
+                <div className="font-medium">记账描述：{itemName}</div>
                 {amount !== undefined && (
                   <div className="text-red-600 font-semibold mt-1">
                     金额：¥{amount.toFixed(2)}

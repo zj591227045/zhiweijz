@@ -10,8 +10,8 @@ import { TransactionsStackParamList } from './types';
 const Stack = createStackNavigator<TransactionsStackParamList>();
 
 /**
- * 交易导航器
- * 处理交易相关页面的导航
+ * 记账导航器
+ * 处理记账相关页面的导航
  */
 const TransactionsNavigator: React.FC = () => {
   const theme = useTheme();
@@ -36,22 +36,22 @@ const TransactionsNavigator: React.FC = () => {
       <Stack.Screen
         name="TransactionList"
         component={TransactionListScreen}
-        options={{ title: '交易记录' }}
+        options={{ title: '记账记录' }}
       />
       <Stack.Screen
         name="TransactionAdd"
         component={TransactionAddScreen}
-        options={{ title: '添加交易' }}
+        options={{ title: '添加记账' }}
       />
       <Stack.Screen
         name="TransactionEdit"
         component={TransactionEditScreen}
-        options={{ title: '编辑交易' }}
+        options={{ title: '编辑记账' }}
       />
       <Stack.Screen
         name="TransactionDetail"
         component={TransactionDetailScreen}
-        options={{ title: '交易详情' }}
+        options={{ title: '记账详情' }}
       />
     </Stack.Navigator>
   );

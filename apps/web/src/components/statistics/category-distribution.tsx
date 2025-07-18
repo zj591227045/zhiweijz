@@ -247,7 +247,7 @@ export function CategoryDistribution({
               key={index}
               className="legend-item legend-item-clickable"
               onClick={() => handleLegendClick(label, index)}
-              title={`点击查看 ${label} 的交易记录`}
+              title={`点击查看 ${label} 的记账记录`}
             >
               <div className="legend-color" style={{ backgroundColor: color as string }}></div>
               <div className="legend-label">{label}</div>
@@ -262,7 +262,7 @@ export function CategoryDistribution({
         })}
       </div>
 
-      {/* 分类交易记录模态框 */}
+      {/* 分类记账记录模态框 */}
       {selectedCategory && (
         <CategoryTransactionsModal
           isOpen={isModalOpen}

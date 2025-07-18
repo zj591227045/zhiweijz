@@ -7,7 +7,7 @@
 1. **复杂版本**：`AttachmentPreview` - 有很多按钮（缩放、旋转、下载等），布局复杂
 2. **简约版本**：`EnhancedAttachmentPreview` - 简洁界面，只有文件名、图片显示、文件信息和下载按钮
 
-快速上传组件使用了错误的复杂版本，而编辑交易页面和交易记录预览使用的是正确的简约版本。
+快速上传组件使用了错误的复杂版本，而编辑记账页面和记账记录预览使用的是正确的简约版本。
 
 ## 修复内容
 
@@ -77,7 +77,7 @@ const handlePreviewAttachment = (attachment: TransactionAttachment) => {
 )}
 ```
 
-### 2. 修复交易详情页面 (`transaction-detail-client.tsx`)
+### 2. 修复记账详情页面 (`transaction-detail-client.tsx`)
 
 **修改导入**：
 ```typescript
@@ -93,7 +93,7 @@ import { AttachmentThumbnail, EnhancedAttachmentPreview } from '@/components/tra
 - 添加导航功能
 - 使用简约版预览组件
 
-### 3. 修复交易附件上传组件 (`transaction-attachment-upload.tsx`)
+### 3. 修复记账附件上传组件 (`transaction-attachment-upload.tsx`)
 
 **修改导入**：
 ```typescript
@@ -143,12 +143,12 @@ import { AttachmentThumbnail, EnhancedAttachmentGrid, EnhancedAttachmentPreview 
 - ✅ 下载按钮使用新的下载API
 - ✅ 支持多文件预览和导航
 
-### 2. 交易详情页面
+### 2. 记账详情页面
 - ✅ 使用简约版图片查看器
 - ✅ 支持多附件预览和导航
 - ✅ 界面简洁，用户体验良好
 
-### 3. 编辑交易页面
+### 3. 编辑记账页面
 - ✅ 继续使用简约版图片查看器（无需修改）
 - ✅ 保持一致的用户体验
 

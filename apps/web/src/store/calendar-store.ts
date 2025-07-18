@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import { transactionService } from '@/lib/api-services';
 import dayjs from 'dayjs';
 
-// 交易类型
+// 记账类型
 export type TransactionType = 'INCOME' | 'EXPENSE';
 
 // 每日统计数据
@@ -15,7 +15,7 @@ export interface DailyStats {
   count: number;
 }
 
-// 交易记录
+// 记账记录
 export interface Transaction {
   id: string;
   amount: number;
@@ -26,7 +26,7 @@ export interface Transaction {
   date: string;
 }
 
-// 按日期分组的交易
+// 按日期分组的记账
 export interface GroupedTransactions {
   date: string;
   transactions: Transaction[];
@@ -40,7 +40,7 @@ interface CalendarState {
   // 每日统计数据
   dailyStats: DailyStats[];
   
-  // 选中日期的交易记录
+  // 选中日期的记账记录
   selectedDate: string | null; // YYYY-MM-DD
   selectedTransactions: Transaction[];
   
@@ -62,12 +62,12 @@ interface CalendarState {
   clearCalendarData: () => void;
 }
 
-// 获取月度交易统计
+// 获取月度记账统计
 const fetchMonthlyTransactions = async (accountBookId: string, month: string) => {
   const startDate = dayjs(month).startOf('month').format('YYYY-MM-DD');
   const endDate = dayjs(month).endOf('month').format('YYYY-MM-DD');
   
-  console.log('获取月度交易数据:', { accountBookId, startDate, endDate });
+  console.log('获取月度记账数据:', { accountBookId, startDate, endDate });
   
   const response = await transactionService.getGroupedTransactions(accountBookId, {
     startDate,
@@ -75,11 +75,11 @@ const fetchMonthlyTransactions = async (accountBookId: string, month: string) =>
     groupBy: 'date'
   });
   
-  console.log('月度交易响应:', response);
+  console.log('月度记账响应:', response);
   return response;
 };
 
-// 处理交易数据，生成每日统计
+// 处理记账数据，生成每日统计
 const processTransactionsToStats = (transactions: any[]): DailyStats[] => {
   const statsMap = new Map<string, DailyStats>();
   
@@ -110,9 +110,9 @@ const processTransactionsToStats = (transactions: any[]): DailyStats[] => {
   );
 };
 
-// 获取指定日期的交易记录
+// 获取指定日期的记账记录
 const fetchDayTransactions = async (accountBookId: string, date: string) => {
-  console.log('获取指定日期交易:', { accountBookId, date });
+  console.log('获取指定日期记账:', { accountBookId, date });
   
   const response = await transactionService.getGroupedTransactions(accountBookId, {
     startDate: date,
@@ -120,7 +120,7 @@ const fetchDayTransactions = async (accountBookId: string, date: string) => {
     sort: 'date:desc'
   });
   
-  console.log('指定日期交易响应:', response);
+  console.log('指定日期记账响应:', response);
   
   if (response?.data && Array.isArray(response.data)) {
     return response.data.map((tx: any) => ({
@@ -187,7 +187,7 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
     set({ selectedDate: date });
   },
   
-  // 获取指定日期的交易记录
+  // 获取指定日期的记账记录
   fetchDayTransactions: async (accountBookId: string, date: string) => {
     try {
       set({ isLoadingTransactions: true });
@@ -199,7 +199,7 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
         isLoadingTransactions: false 
       });
     } catch (error) {
-      console.error('获取当日交易失败:', error);
+      console.error('获取当日记账失败:', error);
       set({ 
         isLoadingTransactions: false,
         selectedTransactions: []

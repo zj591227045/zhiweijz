@@ -132,7 +132,7 @@ describe('FinancialHealthAdvisor', () => {
   describe('evaluateFinancialHealth', () => {
     it('should process the workflow correctly', async () => {
       // 准备测试数据
-      const transactions = [/* 测试交易数据 */];
+      const transactions = [/* 测试记账数据 */];
       const categories = new Map();
       const budgets = [];
       

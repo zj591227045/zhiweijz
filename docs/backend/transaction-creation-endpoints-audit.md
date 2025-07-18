@@ -1,12 +1,12 @@
-# 交易创建API端点审计报告
+# 记账创建API端点审计报告
 
 ## 概述
 
-本文档记录了对所有能够创建交易信息的API端点的审计结果，确保在家庭账本情况下，每一笔新建的交易记录都能够正确匹配家庭ID、家庭成员ID、预算ID。
+本文档记录了对所有能够创建记账信息的API端点的审计结果，确保在家庭账本情况下，每一笔新建的记账记录都能够正确匹配家庭ID、家庭成员ID、预算ID。
 
 ## 审计的API端点
 
-### 1. 普通交易创建 ✅
+### 1. 普通记账创建 ✅
 
 **端点**: `POST /api/transactions`
 **控制器**: `TransactionController.createTransaction`
@@ -37,7 +37,7 @@
 - 通过预算确定家庭成员归属
 - 包含备选方案逻辑
 
-### 4. 交易导入 ✅
+### 4. 记账导入 ✅
 
 **端点**: `POST /api/transactions/import`
 **控制器**: `TransactionController.importTransactions`
@@ -46,9 +46,9 @@
 **状态**: ✅ 已修复
 - **修复前**: 直接使用Repository创建，绕过了家庭字段设置逻辑
 - **修复后**: 改为使用 `TransactionService.createTransaction`
-- 确保导入的交易也正确设置家庭相关字段
+- 确保导入的记账也正确设置家庭相关字段
 
-### 5. 交易更新 ✅
+### 5. 记账更新 ✅
 
 **端点**: `PUT /api/transactions/:id`
 **控制器**: `TransactionController.updateTransaction`
@@ -63,7 +63,7 @@
 
 ### 家庭成员归属逻辑
 
-所有交易创建端点现在都使用统一的逻辑：
+所有记账创建端点现在都使用统一的逻辑：
 
 ```typescript
 // 1. 检查是否为家庭账本
@@ -107,9 +107,9 @@ if (accountBook?.type === 'FAMILY' && accountBook.familyId) {
 
 ### 字段设置
 
-所有交易记录都正确设置以下字段：
+所有记账记录都正确设置以下字段：
 
-- `userId`: 交易创建者ID
+- `userId`: 记账创建者ID
 - `familyId`: 家庭ID（如果是家庭账本）
 - `familyMemberId`: 家庭成员ID（基于预算归属）
 - `budgetId`: 预算ID（如果指定）
@@ -119,7 +119,7 @@ if (accountBook?.type === 'FAMILY' && accountBook.familyId) {
 
 ### 1. 预算归属优先
 
-交易的家庭成员归属优先基于预算的所有者，而不是交易的创建者。
+记账的家庭成员归属优先基于预算的所有者，而不是记账的创建者。
 
 ### 2. 托管成员统一处理
 
@@ -127,7 +127,7 @@ if (accountBook?.type === 'FAMILY' && accountBook.familyId) {
 
 ### 3. 备选方案
 
-当无法通过预算确定归属时，使用交易创建者作为备选方案。
+当无法通过预算确定归属时，使用记账创建者作为备选方案。
 
 ## 测试建议
 
@@ -150,18 +150,18 @@ if (accountBook?.type === 'FAMILY' && accountBook.familyId) {
    - 验证家庭字段正确设置
 
 5. **批量导入**
-   - 导入交易记录
+   - 导入记账记录
    - 验证每条记录的家庭字段
 
 ### 数据验证
 
 ```sql
--- 检查家庭账本的交易是否都有familyId
+-- 检查家庭账本的记账是否都有familyId
 SELECT COUNT(*) FROM transactions t
 JOIN account_books ab ON t.account_book_id = ab.id
 WHERE ab.type = 'FAMILY' AND t.family_id IS NULL;
 
--- 检查家庭交易的成员归属
+-- 检查家庭记账的成员归属
 SELECT COUNT(*) FROM transactions t
 JOIN account_books ab ON t.account_book_id = ab.id
 WHERE ab.type = 'FAMILY' AND t.family_member_id IS NULL AND t.budget_id IS NOT NULL;
@@ -169,9 +169,9 @@ WHERE ab.type = 'FAMILY' AND t.family_member_id IS NULL AND t.budget_id IS NOT N
 
 ## 结论
 
-✅ 所有交易创建API端点已经过审计和修复
+✅ 所有记账创建API端点已经过审计和修复
 ✅ 统一的家庭成员归属逻辑已实现
 ✅ 数据一致性得到保证
 ✅ 托管成员和普通成员处理逻辑统一
 
-所有交易创建入口现在都能正确设置家庭相关字段，确保交易归属的准确性。
+所有记账创建入口现在都能正确设置家庭相关字段，确保记账归属的准确性。

@@ -8,7 +8,7 @@
 
 1. 识别用户的消费习惯和模式
 2. 发现周期性支出（如月租、订阅服务）
-3. 检测异常交易（金额或频率异常）
+3. 检测异常记账（金额或频率异常）
 4. 分析消费趋势和变化
 
 ## 实现方案
@@ -47,7 +47,7 @@ export class BasicStatsAnalyzer {
     startDate: Date,
     endDate: Date
   ): BasicStatsResult {
-    // 过滤时间范围内的交易
+    // 过滤时间范围内的记账
     const filteredTransactions = transactions.filter(t => 
       t.date >= startDate && t.date <= endDate
     );
@@ -240,7 +240,7 @@ export class ConsumptionPatternAnalyzer {
       
       const llm = await this.getLLM(state.userId, state.accountId, state.accountType);
       
-      // 准备交易数据
+      // 准备记账数据
       const transactionsData = state.transactions
         .filter(t => t.type === 'EXPENSE')
         .map(t => ({
@@ -256,7 +256,7 @@ export class ConsumptionPatternAnalyzer {
         你是一个专业的财务分析师。你的任务是识别用户的周期性支出模式。
         周期性支出是指在固定时间间隔重复发生的支出，如月租、订阅服务、定期缴费等。
         
-        请分析提供的交易数据，识别可能的周期性支出。
+        请分析提供的记账数据，识别可能的周期性支出。
         你的回答必须是一个JSON数组，每个元素包含以下字段：
         - description: 周期性支出的描述
         - category: 支出类别
@@ -270,7 +270,7 @@ export class ConsumptionPatternAnalyzer {
       
       // 构建用户提示
       const userPrompt = `
-        以下是用户的交易记录，请识别周期性支出：
+        以下是用户的记账记录，请识别周期性支出：
         ${JSON.stringify(transactionsData, null, 2)}
       `;
       
@@ -296,13 +296,13 @@ export class ConsumptionPatternAnalyzer {
       return { ...state, periodicExpenses: [] };
     });
     
-    // 添加异常交易检测节点
+    // 添加异常记账检测节点
     workflow.addNode("detectAnomalies", async (state) => {
       if (!state.basicStats) return state;
       
       const llm = await this.getLLM(state.userId, state.accountId, state.accountType);
       
-      // 准备交易数据
+      // 准备记账数据
       const transactionsData = state.transactions
         .filter(t => t.type === 'EXPENSE')
         .map(t => ({
@@ -315,26 +315,26 @@ export class ConsumptionPatternAnalyzer {
       
       // 构建系统提示
       const systemPrompt = `
-        你是一个专业的财务分析师。你的任务是检测用户的异常交易。
-        异常交易是指金额、频率或类别与用户正常消费模式显著不同的交易。
+        你是一个专业的财务分析师。你的任务是检测用户的异常记账。
+        异常记账是指金额、频率或类别与用户正常消费模式显著不同的记账。
         
-        请分析提供的交易数据，识别可能的异常交易。
+        请分析提供的记账数据，识别可能的异常记账。
         你的回答必须是一个JSON数组，每个元素包含以下字段：
-        - transactionId: 交易ID
-        - amount: 交易金额
-        - description: 交易描述
-        - category: 交易类别
-        - date: 交易日期
+        - transactionId: 记账ID
+        - amount: 记账金额
+        - description: 记账描述
+        - category: 记账类别
+        - date: 记账日期
         - reason: 判断为异常的原因
         - typicalAmount: 该类别的典型金额 (如果适用)
-        - confidence: 你对这是异常交易的置信度 (0-1)
+        - confidence: 你对这是异常记账的置信度 (0-1)
         
         只返回JSON数组，不要有其他文字。
       `;
       
       // 构建用户提示
       const userPrompt = `
-        以下是用户的交易记录，请检测异常交易：
+        以下是用户的记账记录，请检测异常记账：
         ${JSON.stringify(transactionsData, null, 2)}
         
         基础统计信息：
@@ -359,7 +359,7 @@ export class ConsumptionPatternAnalyzer {
           return { ...state, anomalies };
         }
       } catch (error) {
-        console.error('检测异常交易错误:', error);
+        console.error('检测异常记账错误:', error);
       }
       
       return { ...state, anomalies: [] };
@@ -450,7 +450,7 @@ export class ConsumptionPatternAnalyzer {
         周期性支出：
         ${JSON.stringify(state.periodicExpenses, null, 2)}
         
-        异常交易：
+        异常记账：
         ${JSON.stringify(state.anomalies, null, 2)}
         
         消费趋势：

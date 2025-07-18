@@ -28,7 +28,7 @@ import { useAuthStore } from '../../store/auth-store';
 import { NavigationProps, TransactionsStackParamList } from '../../navigation/types';
 import dayjs from 'dayjs';
 
-// 交易类型枚举
+// 记账类型枚举
 export enum TransactionType {
   EXPENSE = "EXPENSE",
   INCOME = "INCOME",
@@ -58,8 +58,8 @@ interface TransactionEditScreenProps extends NavigationProps<'TransactionEdit'> 
 }
 
 /**
- * 编辑交易屏幕
- * 复用web端的编辑交易逻辑，适配移动端UI
+ * 编辑记账屏幕
+ * 复用web端的编辑记账逻辑，适配移动端UI
  */
 const TransactionEditScreen: React.FC<TransactionEditScreenProps> = ({ navigation, route }) => {
   const theme = useTheme();
@@ -112,7 +112,7 @@ const TransactionEditScreen: React.FC<TransactionEditScreenProps> = ({ navigatio
     }
   }, [isAuthenticated, transactionId]);
 
-  // 当交易数据加载完成后，初始化表单
+  // 当记账数据加载完成后，初始化表单
   useEffect(() => {
     if (transaction) {
       const transactionDate = new Date(transaction.date);
@@ -134,7 +134,7 @@ const TransactionEditScreen: React.FC<TransactionEditScreenProps> = ({ navigatio
     }
   }, [transaction, reset]);
 
-  // 根据交易类型筛选分类
+  // 根据记账类型筛选分类
   const filteredCategories = categories.filter(category => category.type === watchedType);
 
   // 获取选中的分类
@@ -192,7 +192,7 @@ const TransactionEditScreen: React.FC<TransactionEditScreenProps> = ({ navigatio
       if (success) {
         Alert.alert(
           '成功',
-          '交易记录已更新',
+          '记账记录已更新',
           [
             {
               text: '确定',
@@ -202,8 +202,8 @@ const TransactionEditScreen: React.FC<TransactionEditScreenProps> = ({ navigatio
         );
       }
     } catch (error) {
-      console.error('更新交易失败:', error);
-      Alert.alert('错误', '更新交易失败，请重试');
+      console.error('更新记账失败:', error);
+      Alert.alert('错误', '更新记账失败，请重试');
     } finally {
       setIsSubmitting(false);
     }
@@ -244,7 +244,7 @@ const TransactionEditScreen: React.FC<TransactionEditScreenProps> = ({ navigatio
       <SafeAreaView style={styles.container}>
         <Appbar.Header style={styles.header}>
           <Appbar.BackAction onPress={() => navigation.goBack()} />
-          <Appbar.Content title="编辑交易" titleStyle={styles.headerTitle} />
+          <Appbar.Content title="编辑记账" titleStyle={styles.headerTitle} />
         </Appbar.Header>
         <View style={styles.centerContent}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
@@ -261,7 +261,7 @@ const TransactionEditScreen: React.FC<TransactionEditScreenProps> = ({ navigatio
       <SafeAreaView style={styles.container}>
         <Appbar.Header style={styles.header}>
           <Appbar.BackAction onPress={() => navigation.goBack()} />
-          <Appbar.Content title="编辑交易" titleStyle={styles.headerTitle} />
+          <Appbar.Content title="编辑记账" titleStyle={styles.headerTitle} />
         </Appbar.Header>
         <View style={styles.centerContent}>
           <Icon name="alert-circle" size={48} color={theme.colors.error} />
@@ -289,12 +289,12 @@ const TransactionEditScreen: React.FC<TransactionEditScreenProps> = ({ navigatio
       <SafeAreaView style={styles.container}>
         <Appbar.Header style={styles.header}>
           <Appbar.BackAction onPress={() => navigation.goBack()} />
-          <Appbar.Content title="编辑交易" titleStyle={styles.headerTitle} />
+          <Appbar.Content title="编辑记账" titleStyle={styles.headerTitle} />
         </Appbar.Header>
         <View style={styles.centerContent}>
           <Icon name="alert-circle" size={48} color={theme.colors.error} />
           <Text style={[styles.errorText, { color: theme.colors.error }]}>
-            未找到交易记录
+            未找到记账记录
           </Text>
           <TouchableOpacity
             style={[styles.retryButton, { backgroundColor: theme.colors.primary }]}
@@ -315,13 +315,13 @@ const TransactionEditScreen: React.FC<TransactionEditScreenProps> = ({ navigatio
       <Appbar.Header style={styles.header}>
         <Appbar.BackAction onPress={handleBack} />
         <Appbar.Content 
-          title="编辑交易" 
+          title="编辑记账" 
           titleStyle={styles.headerTitle}
         />
       </Appbar.Header>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* 交易类型切换 */}
+        {/* 记账类型切换 */}
         <Surface style={styles.typeContainer} elevation={1}>
           <Controller
             control={control}
@@ -461,11 +461,11 @@ const TransactionEditScreen: React.FC<TransactionEditScreenProps> = ({ navigatio
           </Surface>
         )}
 
-        {/* 第二步：交易详情 */}
+        {/* 第二步：记账详情 */}
         {currentStep === 2 && (
           <Surface style={styles.stepContainer} elevation={1}>
             <Text style={[styles.stepTitle, { color: theme.colors.onSurface }]}>
-              交易详情
+              记账详情
             </Text>
 
             {/* 选中的分类 */}

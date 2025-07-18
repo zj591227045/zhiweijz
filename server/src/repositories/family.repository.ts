@@ -154,7 +154,7 @@ export class FamilyRepository {
         where: { familyId: id },
       });
 
-      // 5. 更新所有关联的交易记录，移除家庭关联
+      // 5. 更新所有关联的记账记录，移除家庭关联
       await tx.transaction.updateMany({
         where: { familyId: id },
         data: {

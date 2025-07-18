@@ -50,7 +50,7 @@ export class AdminDashboardController {
   }
 
   /**
-   * 获取交易统计数据
+   * 获取记账统计数据
    */
   async getTransactionStats(req: Request, res: Response): Promise<void> {
     try {
@@ -62,10 +62,10 @@ export class AdminDashboardController {
         data: transactionStats,
       });
     } catch (error) {
-      console.error('获取交易统计数据错误:', error);
+      console.error('获取记账统计数据错误:', error);
       res.status(500).json({
         success: false,
-        message: '获取交易统计数据失败',
+        message: '获取记账统计数据失败',
       });
     }
   }

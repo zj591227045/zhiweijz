@@ -594,7 +594,7 @@ export default function BookEditModal({
                       <div style={{
                         fontSize: '14px',
                         color: 'var(--text-secondary)'
-                      }}>新交易将默认使用此账本</div>
+                      }}>新记账将默认使用此账本</div>
                     </div>
                     <label style={{
                       position: 'relative',

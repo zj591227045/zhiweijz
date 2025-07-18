@@ -119,12 +119,12 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
     }
   }, [isAuthenticated, router]);
 
-  // 获取交易详情
+  // 获取记账详情
   useEffect(() => {
     const fetchTransactionDetail = async () => {
       // 如果是占位符，不执行数据获取
       if (transactionId === 'placeholder') {
-        setError('这是一个静态导出的占位符页面。在实际应用中，请通过正确的路由访问交易详情页面。');
+        setError('这是一个静态导出的占位符页面。在实际应用中，请通过正确的路由访问记账详情页面。');
         setIsLoading(false);
         return;
       }
@@ -159,11 +159,11 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
           }
         } else {
           const errorData = await response.json();
-          setError(errorData.message || '获取交易详情失败');
+          setError(errorData.message || '获取记账详情失败');
         }
       } catch (error) {
-        console.error('获取交易详情失败:', error);
-        setError('获取交易详情失败');
+        console.error('获取记账详情失败:', error);
+        setError('获取记账详情失败');
       } finally {
         setIsLoading(false);
       }
@@ -174,7 +174,7 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
     }
   }, [transactionId, token, isAuthenticated]);
 
-  // 处理删除交易
+  // 处理删除记账
   const handleDeleteTransaction = async () => {
     if (!token) {
       toast.error('未提供认证令牌');
@@ -189,16 +189,16 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
       });
 
       if (response.ok) {
-        toast.success('交易已删除');
+        toast.success('记账已删除');
         setIsDeleteDialogOpen(false);
         router.push('/transactions');
       } else {
         const error = await response.json();
-        toast.error(error.message || '删除交易失败');
+        toast.error(error.message || '删除记账失败');
       }
     } catch (error) {
-      console.error('删除交易失败:', error);
-      toast.error('删除交易失败');
+      console.error('删除记账失败:', error);
+      toast.error('删除记账失败');
     } finally {
       setIsProcessing(false);
     }
@@ -225,7 +225,7 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
           <div className="text-destructive">{error}</div>
           <Button onClick={() => router.push('/transactions')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            返回交易列表
+            返回记账列表
           </Button>
         </div>
       </PageContainer>
@@ -236,10 +236,10 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
     return (
       <PageContainer>
         <div className="flex flex-col items-center justify-center min-h-64 space-y-4">
-          <div>交易不存在</div>
+          <div>记账不存在</div>
           <Button onClick={() => router.push('/transactions')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            返回交易列表
+            返回记账列表
           </Button>
         </div>
       </PageContainer>
@@ -255,7 +255,7 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
             <Button variant="ghost" size="sm" onClick={() => router.push('/transactions')}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h1 className="text-2xl font-bold">交易详情</h1>
+            <h1 className="text-2xl font-bold">记账详情</h1>
           </div>
           <div className="flex items-center space-x-2">
             <Button asChild variant="outline" size="sm">
@@ -271,7 +271,7 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
           </div>
         </div>
 
-        {/* 交易信息卡片 */}
+        {/* 记账信息卡片 */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
@@ -305,7 +305,7 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">交易日期</label>
+                <label className="text-sm font-medium text-muted-foreground">记账日期</label>
                 <div className="font-medium">
                   {new Date(transaction.date).toLocaleDateString('zh-CN')}
                 </div>
@@ -443,8 +443,8 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
       <ConfirmDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
-        title="删除交易"
-        description={`确定要删除交易 "${transaction.description}" 吗？此操作无法撤销。`}
+        title="删除记账"
+        description={`确定要删除记账 "${transaction.description}" 吗？此操作无法撤销。`}
         confirmText="删除"
         cancelText="取消"
         onConfirm={handleDeleteTransaction}

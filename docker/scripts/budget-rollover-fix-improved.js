@@ -82,12 +82,12 @@ class BudgetRolloverFixImproved {
         console.log(`  ⚠️  两种计算方法结果不同，可能存在budgetId设置问题`);
         console.log(`     差异: ${spentByConditions - spentByBudgetId}`);
         
-        // 查找没有budgetId的交易
+        // 查找没有budgetId的记账
         const transactionsWithoutBudgetId = await this.findTransactionsWithoutBudgetId(budget);
         if (transactionsWithoutBudgetId.length > 0) {
-          console.log(`     发现 ${transactionsWithoutBudgetId.length} 条交易记录没有设置budgetId`);
+          console.log(`     发现 ${transactionsWithoutBudgetId.length} 条记账记录没有设置budgetId`);
           const totalWithoutBudgetId = transactionsWithoutBudgetId.reduce((sum, t) => sum + Number(t.amount), 0);
-          console.log(`     这些交易的总金额: ${totalWithoutBudgetId}`);
+          console.log(`     这些记账的总金额: ${totalWithoutBudgetId}`);
         }
       }
 
@@ -137,7 +137,7 @@ class BudgetRolloverFixImproved {
     return transactions.reduce((sum, t) => sum + Number(t.amount), 0);
   }
 
-  // 查找没有budgetId的交易
+  // 查找没有budgetId的记账
   async findTransactionsWithoutBudgetId(budget) {
     return await prisma.transaction.findMany({
       where: {
@@ -189,7 +189,7 @@ class BudgetRolloverFixImproved {
   }
 
   async fixBudgetIds() {
-    console.log('🔧 修复模式: 修复交易记录的budgetId');
+    console.log('🔧 修复模式: 修复记账记录的budgetId');
     console.log('');
 
     // 查找上个月启用结转的预算
@@ -210,11 +210,11 @@ class BudgetRolloverFixImproved {
     for (const budget of rolloverBudgets) {
       console.log(`🔧 处理预算: ${budget.name} (${budget.id})`);
 
-      // 查找没有budgetId的相关交易
+      // 查找没有budgetId的相关记账
       const transactionsToFix = await this.findTransactionsWithoutBudgetId(budget);
       
       if (transactionsToFix.length > 0) {
-        console.log(`  发现 ${transactionsToFix.length} 条需要修复的交易`);
+        console.log(`  发现 ${transactionsToFix.length} 条需要修复的记账`);
         
         // 批量更新budgetId
         const result = await prisma.transaction.updateMany({
@@ -226,14 +226,14 @@ class BudgetRolloverFixImproved {
           }
         });
 
-        console.log(`  ✅ 已修复 ${result.count} 条交易记录的budgetId`);
+        console.log(`  ✅ 已修复 ${result.count} 条记账记录的budgetId`);
         fixedCount += result.count;
       } else {
-        console.log(`  ✅ 所有交易记录的budgetId都已正确设置`);
+        console.log(`  ✅ 所有记账记录的budgetId都已正确设置`);
       }
     }
 
-    console.log(`\n🎉 总共修复了 ${fixedCount} 条交易记录的budgetId`);
+    console.log(`\n🎉 总共修复了 ${fixedCount} 条记账记录的budgetId`);
   }
 
   async fixRolloverAmounts() {

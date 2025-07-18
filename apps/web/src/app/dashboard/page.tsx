@@ -50,7 +50,7 @@ export default function DashboardPage() {
     checkUnreadOnLogin
   } = useNotificationStore();
 
-  // 交易编辑模态框状态
+  // 记账编辑模态框状态
   const [showTransactionEditModal, setShowTransactionEditModal] = useState(false);
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
   const [transactionData, setTransactionData] = useState<any>(null);
@@ -102,13 +102,13 @@ export default function DashboardPage() {
     }
   }, [isAuthenticated, user, checkUnreadOnLogin]);
 
-  // 设置交易变化监听器
+  // 设置记账变化监听器
   useEffect(() => {
-    console.log('仪表盘页面：设置交易变化监听器');
+    console.log('仪表盘页面：设置记账变化监听器');
     setupTransactionListener();
 
     return () => {
-      console.log('仪表盘页面：清理交易变化监听器');
+      console.log('仪表盘页面：清理记账变化监听器');
       cleanupTransactionListener();
     };
   }, []); // 只在组件挂载时设置一次
@@ -205,17 +205,17 @@ export default function DashboardPage() {
     }
   }, [pathname, currentAccountBook?.id]); // 移除函数依赖
 
-  // 检测交易编辑模态框标记
+  // 检测记账编辑模态框标记
   useEffect(() => {
     const checkTransactionEditModal = () => {
       if (typeof window !== 'undefined') {
         const showModal = localStorage.getItem('showTransactionEditModal');
         const transactionId = localStorage.getItem('pendingTransactionEdit');
 
-        console.log('🏠 [Dashboard] 检查交易编辑模态框标记:', { showModal, transactionId });
+        console.log('🏠 [Dashboard] 检查记账编辑模态框标记:', { showModal, transactionId });
 
         if (showModal === 'true' && transactionId) {
-          console.log('🏠 [Dashboard] 发现交易编辑请求，交易ID:', transactionId);
+          console.log('🏠 [Dashboard] 发现记账编辑请求，记账ID:', transactionId);
 
           // 清除标记
           localStorage.removeItem('showTransactionEditModal');
@@ -225,7 +225,7 @@ export default function DashboardPage() {
           setEditingTransactionId(transactionId);
           setShowTransactionEditModal(true);
 
-          // 获取交易详情
+          // 获取记账详情
           fetchTransactionData(transactionId);
         }
       }
@@ -233,7 +233,7 @@ export default function DashboardPage() {
 
     // 监听自定义事件
     const handleCheckTransactionEditModal = () => {
-      console.log('🏠 [Dashboard] 收到检查交易编辑模态框事件');
+      console.log('🏠 [Dashboard] 收到检查记账编辑模态框事件');
       checkTransactionEditModal();
     };
 
@@ -247,17 +247,17 @@ export default function DashboardPage() {
     };
   }, [pathname]); // 当路径变化时检查
 
-  // 获取交易详情
+  // 获取记账详情
   const fetchTransactionData = async (transactionId: string) => {
     try {
-      console.log('🏠 [Dashboard] 开始获取交易详情:', transactionId);
+      console.log('🏠 [Dashboard] 开始获取记账详情:', transactionId);
 
-      // 从当前的交易列表中查找交易详情（避免 API 调用）
+      // 从当前的记账列表中查找记账详情（避免 API 调用）
       const allTransactions = groupedTransactions.flatMap(group => group.transactions);
       const transaction = allTransactions.find(t => t.id === transactionId);
 
       if (transaction) {
-        console.log('🏠 [Dashboard] 从本地数据找到交易详情:', transaction);
+        console.log('🏠 [Dashboard] 从本地数据找到记账详情:', transaction);
 
         // 确保数据格式正确
         const formattedTransaction = {
@@ -271,14 +271,14 @@ export default function DashboardPage() {
           category: transaction.category || { name: '未分类' }
         };
 
-        console.log('🏠 [Dashboard] 格式化后的交易数据:', formattedTransaction);
+        console.log('🏠 [Dashboard] 格式化后的记账数据:', formattedTransaction);
         setTransactionData(formattedTransaction);
       } else {
-        // 如果本地没有，创建一个模拟的交易对象
-        console.log('🏠 [Dashboard] 本地未找到交易，创建模拟数据');
+        // 如果本地没有，创建一个模拟的记账对象
+        console.log('🏠 [Dashboard] 本地未找到记账，创建模拟数据');
         const mockTransaction = {
           id: transactionId,
-          description: '交易记录',
+          description: '记账记录',
           amount: 0,
           type: 'EXPENSE',
           date: new Date().toISOString(),
@@ -289,8 +289,8 @@ export default function DashboardPage() {
         setTransactionData(mockTransaction);
       }
     } catch (error) {
-      console.error('🏠 [Dashboard] 获取交易详情失败:', error);
-      alert('获取交易详情失败，请重试');
+      console.error('🏠 [Dashboard] 获取记账详情失败:', error);
+      alert('获取记账详情失败，请重试');
       setShowTransactionEditModal(false);
     }
   };
@@ -364,7 +364,7 @@ export default function DashboardPage() {
               {/* 预算执行情况 */}
               <BudgetProgress categories={budgetCategories} totalBudget={totalBudget} />
 
-              {/* 最近交易 */}
+              {/* 最近记账 */}
               <RecentTransactions
                 groupedTransactions={groupedTransactions}
                 onTransactionDeleted={() => {
@@ -377,7 +377,7 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* 交易编辑模态框 - 使用完整的 App Router 组件 */}
+      {/* 记账编辑模态框 - 使用完整的 App Router 组件 */}
       {showTransactionEditModal && transactionData && (
         <TransactionEditModal
           transactionId={editingTransactionId}

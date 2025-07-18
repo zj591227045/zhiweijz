@@ -23,7 +23,7 @@ echo ""
 # 选择执行模式
 echo "选择执行模式:"
 echo "1. 诊断模式 (分析预算结转问题，对比两种计算方法)"
-echo "2. 修复budgetId (修复交易记录的budgetId字段)"
+echo "2. 修复budgetId (修复记账记录的budgetId字段)"
 echo "3. 修复结转金额 (使用正确的budgetId计算结转)"
 echo "4. 完整修复 (先修复budgetId，再修复结转金额)"
 echo "5. 退出"

@@ -70,7 +70,7 @@ export function StatisticsPage() {
   // 筛选器显示状态
   const [showFilters, setShowFilters] = useState(false);
 
-  // 交易编辑模态框状态
+  // 记账编辑模态框状态
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
   const [editingTransactionData, setEditingTransactionData] = useState<any>(null);
 
@@ -146,7 +146,7 @@ export function StatisticsPage() {
     }
   };
 
-  // 处理交易编辑
+  // 处理记账编辑
   const handleTransactionEdit = (transactionId: string, transactionData?: any) => {
     setEditingTransactionId(transactionId);
     setEditingTransactionData(transactionData);
@@ -158,7 +158,7 @@ export function StatisticsPage() {
     setEditingTransactionData(null);
   };
 
-  // 交易保存后的处理
+  // 记账保存后的处理
   const handleTransactionSaved = () => {
     // 刷新统计数据
     if (currentAccountBook?.id && dateRange.startDate && dateRange.endDate) {
@@ -478,7 +478,7 @@ export function StatisticsPage() {
       )}
       </div>
 
-      {/* 交易编辑模态框 */}
+      {/* 记账编辑模态框 */}
       {editingTransactionId && (
         <TransactionEditModal
           transactionId={editingTransactionId}

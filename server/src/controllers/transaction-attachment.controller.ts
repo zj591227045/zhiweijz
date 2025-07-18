@@ -18,7 +18,7 @@ export class TransactionAttachmentController {
   }
 
   /**
-   * 为交易添加附件
+   * 为记账添加附件
    */
   async addAttachment(req: Request, res: Response): Promise<void> {
     try {
@@ -40,7 +40,7 @@ export class TransactionAttachmentController {
       const uploadRequest: FileUploadRequestDto = {
         bucket: BUCKET_CONFIG.ATTACHMENTS,
         category: 'attachments',
-        description: description || '交易附件',
+        description: description || '记账附件',
         metadata: {
           transactionId,
           attachmentType,
@@ -72,7 +72,7 @@ export class TransactionAttachmentController {
         message: '附件添加成功',
       });
     } catch (error) {
-      console.error('添加交易附件失败:', error);
+      console.error('添加记账附件失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '添加附件失败',
@@ -81,7 +81,7 @@ export class TransactionAttachmentController {
   }
 
   /**
-   * 获取交易的所有附件
+   * 获取记账的所有附件
    */
   async getTransactionAttachments(req: Request, res: Response): Promise<void> {
     try {
@@ -99,16 +99,16 @@ export class TransactionAttachmentController {
         data: attachments,
       });
     } catch (error) {
-      console.error('获取交易附件失败:', error);
+      console.error('获取记账附件失败:', error);
       res.status(500).json({
         success: false,
-        message: '获取交易附件失败',
+        message: '获取记账附件失败',
       });
     }
   }
 
   /**
-   * 关联已上传的文件到交易
+   * 关联已上传的文件到记账
    */
   async linkFileToTransaction(req: Request, res: Response): Promise<void> {
     try {
@@ -149,7 +149,7 @@ export class TransactionAttachmentController {
         message: '文件关联成功',
       });
     } catch (error) {
-      console.error('关联文件到交易失败:', error);
+      console.error('关联文件到记账失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '关联文件失败',
@@ -158,7 +158,7 @@ export class TransactionAttachmentController {
   }
 
   /**
-   * 删除交易附件
+   * 删除记账附件
    */
   async deleteAttachment(req: Request, res: Response): Promise<void> {
     try {
@@ -200,7 +200,7 @@ export class TransactionAttachmentController {
         transactionUserId: attachment.transaction?.userId
       });
 
-      // 检查权限（通过交易记录的用户ID）
+      // 检查权限（通过记账记录的用户ID）
       if (attachment.transaction?.userId !== userId) {
         res.status(403).json({
           success: false,
@@ -221,7 +221,7 @@ export class TransactionAttachmentController {
         message: '附件删除成功',
       });
     } catch (error) {
-      console.error('删除交易附件失败:', error);
+      console.error('删除记账附件失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '删除附件失败',
@@ -230,7 +230,7 @@ export class TransactionAttachmentController {
   }
 
   /**
-   * 批量上传交易附件
+   * 批量上传记账附件
    */
   async batchUploadAttachments(req: Request, res: Response): Promise<void> {
     try {
@@ -256,7 +256,7 @@ export class TransactionAttachmentController {
           const uploadRequest: FileUploadRequestDto = {
             bucket: BUCKET_CONFIG.ATTACHMENTS,
             category: 'attachments',
-            description: `交易附件 - ${file.originalname}`,
+            description: `记账附件 - ${file.originalname}`,
             metadata: {
               transactionId,
               attachmentType: AttachmentType.RECEIPT,
@@ -274,7 +274,7 @@ export class TransactionAttachmentController {
             transactionId,
             fileId: uploadResult.fileId,
             attachmentType: AttachmentType.RECEIPT,
-            description: `交易附件 - ${file.originalname}`,
+            description: `记账附件 - ${file.originalname}`,
           };
 
           const attachment = await this.attachmentRepository.create(attachmentData);
@@ -309,7 +309,7 @@ export class TransactionAttachmentController {
         message: `批量上传完成：成功 ${successCount} 个，失败 ${failCount} 个`,
       });
     } catch (error) {
-      console.error('批量上传交易附件失败:', error);
+      console.error('批量上传记账附件失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '批量上传失败',

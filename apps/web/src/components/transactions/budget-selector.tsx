@@ -367,7 +367,7 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
                     <i className="fas fa-info-circle"></i>
                     <span>{date ? `${date} 日期范围内没有可用的预算` : '没有可用的预算'}</span>
                     <div style={{ fontSize: '12px', marginTop: '8px', color: '#666' }}>
-                      {date ? '请检查该日期是否在任何预算周期内' : '请先选择交易日期'}
+                      {date ? '请检查该日期是否在任何预算周期内' : '请先选择记账日期'}
                     </div>
                   </div>
               ) : (

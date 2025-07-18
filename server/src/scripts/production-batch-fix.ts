@@ -1,6 +1,6 @@
 /**
  * 生产环境分批修复脚本
- * 安全地分批修复家庭交易记录的family_id和family_member_id字段
+ * 安全地分批修复家庭记账记录的family_id和family_member_id字段
  *
  * 使用方法：
  * npx ts-node src/scripts/production-batch-fix.ts --batch-size=500 --dry-run
@@ -192,7 +192,7 @@ async function processTransaction(
       }
     }
 
-    // 如果通过预算无法确定，使用交易创建者
+    // 如果通过预算无法确定，使用记账创建者
     if (!finalFamilyMemberId && transaction.userId) {
       const familyMember = familyMembers.find((m: any) => m.userId === transaction.userId);
       if (familyMember) {
@@ -294,7 +294,7 @@ async function validateFixResults() {
   });
 
   if (remainingIssues === 0) {
-    console.log('✅ 验证通过: 所有家庭交易记录已修复完成');
+    console.log('✅ 验证通过: 所有家庭记账记录已修复完成');
   } else {
     console.log(`⚠️  验证发现: 还有 ${remainingIssues} 条记录需要处理`);
   }

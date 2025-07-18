@@ -136,7 +136,7 @@ const colors = ['#007AFF', '#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#5AC8FA'
    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px' }}>
      <div>
        <div style={{ fontSize: '16px', fontWeight: '500' }}>设为默认账本</div>
-       <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>新交易将默认使用此账本</div>
+       <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>新记账将默认使用此账本</div>
      </div>
      <input type="checkbox" className="ios-switch" />
    </div>

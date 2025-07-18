@@ -170,7 +170,7 @@ INSERT INTO "badges" ("id", "name", "description", "icon", "color", "rarity", "c
 ('donor-badge-001', '捐赠会员徽章', '感谢您对我们的支持，这是专属的捐赠会员徽章', '👑', '#FF6B6B', 'UNCOMMON', 'membership', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('early-adopter', '早期用户', '项目早期的珍贵用户', '⭐', '#4ECDC4', 'RARE', 'special', 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('active-user', '活跃用户', '连续使用30天的活跃用户', '🔥', '#45B7D1', 'COMMON', 'activity', 3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('power-user', '超级用户', '月交易记录超过100笔', '💪', '#96CEB4', 'UNCOMMON', 'activity', 4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('power-user', '超级用户', '月记账记录超过100笔', '💪', '#96CEB4', 'UNCOMMON', 'activity', 4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('beta-tester', '测试先锋', '参与Beta测试的用户', '🚀', '#FFEAA7', 'EPIC', 'special', 5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- 为所有现有用户创建基础会员信息（普通会员）

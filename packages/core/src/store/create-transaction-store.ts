@@ -7,7 +7,7 @@ import {
   UpdateTransactionData
 } from '../models/transaction';
 
-// 交易状态接口
+// 记账状态接口
 export interface TransactionState {
   transactions: Transaction[];
   transaction: Transaction | null;
@@ -22,7 +22,7 @@ export interface TransactionState {
   clearError: () => void;
 }
 
-// 交易store选项接口
+// 记账store选项接口
 export interface TransactionStoreOptions {
   apiClient: any;
   storage: StorageAdapter;
@@ -52,7 +52,7 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
     isLoading: false,
     error: null,
 
-    // 获取交易列表
+    // 获取记账列表
     fetchTransactions: async (params = {}) => {
       try {
         set({ isLoading: true, error: null });
@@ -74,7 +74,7 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
           isLoading: false
         });
       } catch (error: any) {
-        const errorMessage = error.response?.data?.message || error.message || '获取交易列表失败';
+        const errorMessage = error.response?.data?.message || error.message || '获取记账列表失败';
         set({
           isLoading: false,
           error: errorMessage,
@@ -82,7 +82,7 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
       }
     },
 
-    // 获取单个交易
+    // 获取单个记账
     fetchTransaction: async (id: string) => {
       try {
         set({ isLoading: true, error: null });
@@ -104,7 +104,7 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
           isLoading: false
         });
       } catch (error: any) {
-        const errorMessage = error.response?.data?.message || error.message || '获取交易详情失败';
+        const errorMessage = error.response?.data?.message || error.message || '获取记账详情失败';
         set({
           isLoading: false,
           error: errorMessage,
@@ -112,7 +112,7 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
       }
     },
 
-    // 创建交易
+    // 创建记账
     createTransaction: async (data: CreateTransactionData) => {
       try {
         set({ isLoading: true, error: null });
@@ -132,7 +132,7 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
 
         return true;
       } catch (error: any) {
-        const errorMessage = error.response?.data?.message || error.message || '创建交易失败';
+        const errorMessage = error.response?.data?.message || error.message || '创建记账失败';
         set({
           isLoading: false,
           error: errorMessage,
@@ -147,7 +147,7 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
       }
     },
 
-    // 更新交易
+    // 更新记账
     updateTransaction: async (id: string, data: UpdateTransactionData) => {
       try {
         set({ isLoading: true, error: null });
@@ -167,7 +167,7 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
 
         return true;
       } catch (error: any) {
-        const errorMessage = error.response?.data?.message || error.message || '更新交易失败';
+        const errorMessage = error.response?.data?.message || error.message || '更新记账失败';
         set({
           isLoading: false,
           error: errorMessage,
@@ -182,7 +182,7 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
       }
     },
 
-    // 删除交易
+    // 删除记账
     deleteTransaction: async (id: string) => {
       try {
         set({ isLoading: true, error: null });
@@ -198,7 +198,7 @@ export const createTransactionStore = (options: TransactionStoreOptions) => {
 
         return true;
       } catch (error: any) {
-        const errorMessage = error.response?.data?.message || error.message || '删除交易失败';
+        const errorMessage = error.response?.data?.message || error.message || '删除记账失败';
         set({
           isLoading: false,
           error: errorMessage,

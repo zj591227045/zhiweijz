@@ -548,7 +548,7 @@ export class AccountBookService {
 
   /**
    * 重置家庭账本
-   * 清除所有交易记录、预算信息和历史记录
+   * 清除所有记账记录、预算信息和历史记录
    */
   async resetFamilyAccountBook(
     accountBookId: string,

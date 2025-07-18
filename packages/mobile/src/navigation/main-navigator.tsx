@@ -12,7 +12,7 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 
 /**
  * 主导航器
- * 底部标签导航，包含仪表盘、交易、统计、更多等主要功能模块
+ * 底部标签导航，包含仪表盘、记账、统计、更多等主要功能模块
  */
 const MainNavigator: React.FC = () => {
   const theme = useTheme();
@@ -73,8 +73,8 @@ const MainNavigator: React.FC = () => {
         name="Transactions"
         component={TransactionsNavigator}
         options={{
-          title: '交易',
-          headerShown: false, // 交易导航器自己处理头部
+          title: '记账',
+          headerShown: false, // 记账导航器自己处理头部
           tabBarIcon: ({ color, size, focused }) => (
             <Icon 
               name={focused ? "swap-horizontal" : "swap-horizontal"} 

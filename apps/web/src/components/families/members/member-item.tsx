@@ -61,7 +61,7 @@ export function MemberItem({
               </div>
             </div>
             <div className="detail-item">
-              <div className="detail-label">交易次数</div>
+              <div className="detail-label">记账次数</div>
               <div className="detail-value">{member.statistics?.transactionCount || 0}次</div>
             </div>
           </div>

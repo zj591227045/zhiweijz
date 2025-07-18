@@ -25,7 +25,7 @@ export function RecentTransactions({ familyId }: RecentTransactionsProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 获取最近交易
+  // 获取最近记账
   const fetchRecentTransactions = async () => {
     if (!token) {
       console.error('未提供认证令牌');
@@ -41,10 +41,10 @@ export function RecentTransactions({ familyId }: RecentTransactionsProps) {
         const data = await response.json();
         setTransactions(data || []);
       } else {
-        console.error('获取最近交易失败');
+        console.error('获取最近记账失败');
       }
     } catch (error) {
-      console.error('获取最近交易失败:', error);
+      console.error('获取最近记账失败:', error);
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +99,7 @@ export function RecentTransactions({ familyId }: RecentTransactionsProps) {
         <div className="section-header">
           <div className="section-title">
             <i className="fas fa-history"></i>
-            <span>最近交易</span>
+            <span>最近记账</span>
           </div>
         </div>
         <div className="loading-state">
@@ -115,7 +115,7 @@ export function RecentTransactions({ familyId }: RecentTransactionsProps) {
       <div className="section-header">
         <div className="section-title">
           <i className="fas fa-history"></i>
-          <span>最近交易</span>
+          <span>最近记账</span>
         </div>
         <Link href={`/families/${familyId}/transactions`} className="view-all-link">
           查看全部
@@ -148,9 +148,9 @@ export function RecentTransactions({ familyId }: RecentTransactionsProps) {
       ) : (
         <div className="empty-state">
           <i className="fas fa-history"></i>
-          <p>暂无交易记录</p>
+          <p>暂无记账记录</p>
           <Link href="/transactions/new" className="btn-primary">
-            添加交易
+            添加记账
           </Link>
         </div>
       )}

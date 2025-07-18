@@ -122,7 +122,7 @@ export class LLMProviderService {
 LangGraph工作流是一个有向图，由多个节点组成，每个节点处理特定的任务。在智能记账功能中，我们实现了以下工作流：
 
 ```
-初始状态 → 分析交易 → 分类匹配 → 预算匹配 → 账本匹配 → 结果生成
+初始状态 → 分析记账 → 分类匹配 → 预算匹配 → 账本匹配 → 结果生成
 ```
 
 ### 4.2 工作流状态
@@ -152,9 +152,9 @@ interface SmartAccountingState {
 
 ### 4.3 工作流节点
 
-1. **分析交易节点**: 使用LLM分析用户描述，提取交易信息
+1. **分析记账节点**: 使用LLM分析用户描述，提取记账信息
 2. **分类匹配节点**: 将提取的分类信息匹配到系统中的分类
-3. **预算匹配节点**: 根据交易信息匹配相应的预算
+3. **预算匹配节点**: 根据记账信息匹配相应的预算
 4. **账本匹配节点**: 验证账本信息并确保用户有权限访问
 5. **结果生成节点**: 生成最终的结构化结果
 
@@ -191,7 +191,7 @@ export class SmartAccounting {
   }
 
   private async executeWorkflow(state: SmartAccountingState) {
-    // 分析交易
+    // 分析记账
     state = await this.analyzeTransactionHandler(state);
     
     // 分类匹配

@@ -4,8 +4,8 @@ import { CategoryBudgetRepository } from '../repositories/category-budget.reposi
 import { CategoryRepository } from '../repositories/category.repository';
 
 /**
- * 预算交易服务
- * 处理交易记录与预算的关联逻辑
+ * 预算记账服务
+ * 处理记账记录与预算的关联逻辑
  */
 export class BudgetTransactionService {
   private budgetRepository: BudgetRepository;
@@ -19,12 +19,12 @@ export class BudgetTransactionService {
   }
 
   /**
-   * 记录交易并更新相关预算
+   * 记录记账并更新相关预算
    * @param accountBookId 账本ID
    * @param categoryId 分类ID
-   * @param amount 交易金额
-   * @param type 交易类型
-   * @param date 交易日期
+   * @param amount 记账金额
+   * @param type 记账类型
+   * @param date 记账日期
    */
   async recordTransaction(
     accountBookId: string,
@@ -33,7 +33,7 @@ export class BudgetTransactionService {
     type: TransactionType,
     date: Date,
   ): Promise<void> {
-    // 只处理支出类型的交易
+    // 只处理支出类型的记账
     if (type !== 'EXPENSE') {
       return;
     }

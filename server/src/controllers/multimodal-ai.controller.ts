@@ -504,7 +504,7 @@ export class MultimodalAIController {
       const config = await this.configService.getFullConfig();
       const imageAnalysisPrompt = config.smartAccounting.imageAnalysisPrompt ||
         config.smartAccounting.multimodalPrompt ||
-        '分析图片中的记账信息，提取：1.微信/支付宝付款记录：金额、收款人、备注，并从收款人分析交易类别；2.订单截图（美团/淘宝/京东/外卖/抖音）：内容、金额、时间、收件人；3.发票/票据：内容、分类、金额、时间。返回JSON格式。';
+        '分析图片中的记账信息，提取：1.微信/支付宝付款记录：金额、收款人、备注，并从收款人分析记账类别；2.订单截图（美团/淘宝/京东/外卖/抖音）：内容、金额、时间、收件人；3.发票/票据：内容、分类、金额、时间。返回JSON格式。';
 
       // 3. 图片识别
       const visionRequest: VisionRecognitionRequest = {

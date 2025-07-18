@@ -1,4 +1,4 @@
-/* 交易创建页面样式 */
+/* 记账创建页面样式 */
 
 /* 应用容器 */
 .app-container {
@@ -290,9 +290,9 @@
   color: var(--text-secondary);
 }
 
-/* 两步式添加交易页面样式 */
+/* 两步式添加记账页面样式 */
 
-/* 交易类型切换 */
+/* 记账类型切换 */
 .transaction-type-toggle {
   display: flex;
   background-color: var(--background-color);
@@ -503,7 +503,7 @@
   background-color: var(--background-color);
 }
 
-/* 交易详情表单 */
+/* 记账详情表单 */
 .transaction-details-form {
   padding: 0 16px;
 }

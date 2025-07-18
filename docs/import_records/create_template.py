@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-创建交易记录导入模板文件
+创建记账记录导入模板文件
 """
 
 import csv
@@ -31,11 +31,11 @@ def create_csv_template():
         ['', '', '', '', '', ''],
         # 字段说明
         ['### 字段说明 ###', '', '', '', '', ''],
-        ['日期：交易发生日期，格式YYYY-MM-DD', '', '', '', '', ''],
+        ['日期：记账发生日期，格式YYYY-MM-DD', '', '', '', '', ''],
         ['金额：正数表示收入，负数表示支出', '', '', '', '', ''],
         ['类型：收入 或 支出（或INCOME/EXPENSE）', '', '', '', '', ''],
         ['分类：见下方标准分类列表', '', '', '', '', ''],
-        ['描述：可选，交易详细说明（最多200字符）', '', '', '', '', ''],
+        ['描述：可选，记账详细说明（最多200字符）', '', '', '', '', ''],
         ['家庭成员：可选，仅家庭账本需要填写', '', '', '', '', ''],
         ['', '', '', '', '', ''],
         # 标准分类
@@ -50,11 +50,11 @@ def create_csv_template():
     ]
     
     # 写入CSV文件
-    with open('交易记录导入模板.csv', 'w', newline='', encoding='utf-8-sig') as file:
+    with open('记账记录导入模板.csv', 'w', newline='', encoding='utf-8-sig') as file:
         writer = csv.writer(file)
         writer.writerows(csv_data)
     
-    print("✅ CSV模板文件已创建: 交易记录导入模板.csv")
+    print("✅ CSV模板文件已创建: 记账记录导入模板.csv")
 
 def create_excel_template():
     """创建Excel模板文件（需要安装xlsxwriter: pip install xlsxwriter）"""
@@ -62,7 +62,7 @@ def create_excel_template():
         import xlsxwriter
         
         # 创建Excel工作簿
-        workbook = xlsxwriter.Workbook('交易记录导入模板.xlsx')
+        workbook = xlsxwriter.Workbook('记账记录导入模板.xlsx')
         worksheet = workbook.add_worksheet('导入模板')
         
         # 定义样式
@@ -135,11 +135,11 @@ def create_excel_template():
         worksheet.write(row, 0, '### 字段说明 ###', instruction_format)
         
         instructions = [
-            ['日期', '交易发生日期，格式YYYY-MM-DD', '', '', '', ''],
+            ['日期', '记账发生日期，格式YYYY-MM-DD', '', '', '', ''],
             ['金额', '正数表示收入，负数表示支出', '', '', '', ''],
             ['类型', '收入 或 支出（或INCOME/EXPENSE）', '', '', '', ''],
             ['分类', '见下方标准分类列表', '', '', '', ''],
-            ['描述', '可选，交易详细说明（最多200字符）', '', '', '', ''],
+            ['描述', '可选，记账详细说明（最多200字符）', '', '', '', ''],
             ['家庭成员', '可选，仅家庭账本需要填写', '', '', '', '']
         ]
         
@@ -184,7 +184,7 @@ def create_excel_template():
         })
         
         workbook.close()
-        print("✅ Excel模板文件已创建: 交易记录导入模板.xlsx")
+        print("✅ Excel模板文件已创建: 记账记录导入模板.xlsx")
         
     except ImportError:
         print("⚠️  需要安装xlsxwriter库才能创建Excel文件")
@@ -209,7 +209,7 @@ def create_simple_csv():
 
 def main():
     """主函数"""
-    print("开始创建交易记录导入模板文件...")
+    print("开始创建记账记录导入模板文件...")
     print(f"当前时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print()
     
@@ -224,7 +224,7 @@ def main():
     
     print()
     print("🎉 模板文件创建完成！")
-    print("📝 请根据模板说明填写您的交易记录，然后使用导入功能。")
+    print("📝 请根据模板说明填写您的记账记录，然后使用导入功能。")
 
 if __name__ == "__main__":
     main() 

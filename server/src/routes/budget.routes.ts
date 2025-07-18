@@ -46,12 +46,12 @@ router.post('/:id/recalculate-rollover', (req, res) =>
   budgetController.recalculateBudgetRollover(req, res),
 );
 
-// 重新计算预算结转链条（修复历史交易影响）
+// 重新计算预算结转链条（修复历史记账影响）
 router.post('/:id/recalculate-rollover-chain', (req, res) =>
   budgetController.recalculateBudgetRolloverChain(req, res),
 );
 
-// 获取预算相关交易
+// 获取预算相关记账
 router.get('/:id/transactions', (req, res) => budgetController.getBudgetTransactions(req, res));
 
 // 获取家庭预算汇总

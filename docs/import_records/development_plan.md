@@ -1,4 +1,4 @@
-# 导入交易记录网页 - 开发任务规划
+# 导入记账记录网页 - 开发任务规划
 
 ## 项目时间线
 
@@ -68,7 +68,7 @@
 - [ ] 账本API (`api/account-book.ts`)
 - [ ] 分类API (`api/category.ts`)
 - [ ] 预算API (`api/budget.ts`)
-- [ ] 交易API (`api/transaction.ts`)
+- [ ] 记账API (`api/transaction.ts`)
 
 **技术要点**:
 ```typescript

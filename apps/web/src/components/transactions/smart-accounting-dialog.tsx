@@ -481,9 +481,9 @@ export function SmartAccountingDialog({
       setProcessingStep('正在分析您的描述...');
 
       // 延迟显示不同的处理步骤，提升用户体验
-      setTimeout(() => setProcessingStep('正在识别交易类型和金额...'), 800);
+      setTimeout(() => setProcessingStep('正在识别记账类型和金额...'), 800);
       setTimeout(() => setProcessingStep('正在匹配最佳分类...'), 1600);
-      setTimeout(() => setProcessingStep('正在生成交易详情...'), 2400);
+      setTimeout(() => setProcessingStep('正在生成记账详情...'), 2400);
 
       // 调用智能记账API，使用apiClient确保认证令牌被正确添加
       const response = await apiClient.post(
@@ -495,13 +495,13 @@ export function SmartAccountingDialog({
       console.log('智能记账结果:', response);
 
       if (response) {
-        // 将结果存储到sessionStorage，供添加交易页面使用
+        // 将结果存储到sessionStorage，供添加记账页面使用
         sessionStorage.setItem('smartAccountingResult', JSON.stringify(response));
 
         toast.success('智能识别成功');
         onClose();
 
-        // 跳转到添加交易页面
+        // 跳转到添加记账页面
         router.push('/transactions/new');
       } else {
         toast.error('智能识别失败，请手动填写');
@@ -575,7 +575,7 @@ export function SmartAccountingDialog({
 
       // 后台异步处理，不阻塞用户操作
       progressTimers.push(setTimeout(() => {
-        smartAccountingProgressManager.updateProgress(progressId, '正在识别交易类型和金额...');
+        smartAccountingProgressManager.updateProgress(progressId, '正在识别记账类型和金额...');
       }, 1000));
       
       progressTimers.push(setTimeout(() => {
@@ -583,7 +583,7 @@ export function SmartAccountingDialog({
       }, 2000));
       
       progressTimers.push(setTimeout(() => {
-        smartAccountingProgressManager.updateProgress(progressId, '正在创建交易记录...');
+        smartAccountingProgressManager.updateProgress(progressId, '正在创建记账记录...');
       }, 3000));
 
       // 调用直接添加记账API，使用apiClient确保认证令牌被正确添加
@@ -596,7 +596,7 @@ export function SmartAccountingDialog({
       console.log('直接添加记账结果:', response);
 
       if (response && response.id) {
-        console.log('记账成功，交易ID:', response.id);
+        console.log('记账成功，记账ID:', response.id);
         
         // 清除进度定时器（虽然可能已经执行完毕）
         progressTimers.forEach(timer => clearTimeout(timer));
@@ -697,7 +697,7 @@ export function SmartAccountingDialog({
       console.log('图片记账结果:', response);
 
       if (response && response.id) {
-        console.log('图片记账成功，交易ID:', response.id);
+        console.log('图片记账成功，记账ID:', response.id);
         
         // 在后台刷新数据
         if (accountBookId) {

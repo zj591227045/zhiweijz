@@ -192,8 +192,8 @@ model SystemStats {
 **统计指标类型：**
 - `user_count`: 总用户数
 - `daily_registrations`: 每日注册数
-- `transaction_count`: 总交易数
-- `daily_transactions`: 每日交易数
+- `transaction_count`: 总记账数
+- `daily_transactions`: 每日记账数
 - `daily_active_users`: 每日活跃用户数
 - `api_calls_count`: API调用次数
 - `frontend_visits`: 前端访问次数

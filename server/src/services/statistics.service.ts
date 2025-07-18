@@ -79,7 +79,7 @@ export interface BudgetStatisticsResponseDto {
     remaining: number;
     percentage: number;
   }>;
-  // 添加最近交易记录
+  // 添加最近记账记录
   recentTransactions?: Array<{
     id: string;
     title: string;
@@ -159,7 +159,7 @@ export class StatisticsService {
       }
     }
 
-    // 获取交易记录 - 不排除家庭成员的交易记录，统计该账本的所有交易
+    // 获取记账记录 - 不排除家庭成员的记账记录，统计该账本的所有记账
     const transactions = await this.transactionRepository.findByDateRange(
       userId,
       TransactionType.EXPENSE,
@@ -167,7 +167,7 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      false, // 设置excludeFamilyMember为false，统计该账本的所有交易记录
+      false, // 设置excludeFamilyMember为false，统计该账本的所有记账记录
     );
 
     // 获取分类信息
@@ -208,7 +208,7 @@ export class StatisticsService {
       }
     }
 
-    // 获取交易记录 - 不排除家庭成员的交易记录，统计该账本的所有交易
+    // 获取记账记录 - 不排除家庭成员的记账记录，统计该账本的所有记账
     const transactions = await this.transactionRepository.findByDateRange(
       userId,
       TransactionType.INCOME,
@@ -216,7 +216,7 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      false, // 设置excludeFamilyMember为false，统计该账本的所有交易记录
+      false, // 设置excludeFamilyMember为false，统计该账本的所有记账记录
     );
 
     // 获取分类信息
@@ -373,7 +373,7 @@ export class StatisticsService {
       totalAvailableBudget,
     });
 
-    // 获取支出交易记录 - 查询当前用户的交易记录（包括用户自己的交易）
+    // 获取支出记账记录 - 查询当前用户的记账记录（包括用户自己的记账）
     const transactions = await this.transactionRepository.findByDateRange(
       userId,
       TransactionType.EXPENSE,
@@ -381,10 +381,10 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      false, // 设置excludeFamilyMember为false，查询用户的交易记录
+      false, // 设置excludeFamilyMember为false，查询用户的记账记录
     );
 
-    console.log(`找到 ${transactions.length} 条当前用户的交易记录`);
+    console.log(`找到 ${transactions.length} 条当前用户的记账记录`);
 
     // 使用预算仓库的calculateSpentAmount方法来计算总支出
     const { BudgetRepository } = require('../repositories/budget.repository');
@@ -407,7 +407,7 @@ export class StatisticsService {
     // 按分类计算预算执行情况
     const categoriesData = await this.calculateBudgetByCategory(budgets, transactions, categories);
 
-    // 获取最近5条交易记录
+    // 获取最近5条记账记录
     const recentTransactions = transactions
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5)
@@ -415,7 +415,7 @@ export class StatisticsService {
         const category = categories.get(t.categoryId);
         return {
           id: t.id,
-          title: t.description || '未命名交易', // 使用description字段作为title
+          title: t.description || '未命名记账', // 使用description字段作为title
           amount: Number(t.amount),
           date: new Date(t.date).toISOString(),
           categoryId: t.categoryId,
@@ -591,18 +591,18 @@ export class StatisticsService {
       console.log('使用多个预算ID进行查询:', budgetIds);
       actualBudgetId = undefined; // 使用budgetIds时，不使用单个budgetId
     } else if (budgetId === 'NO_BUDGET') {
-      console.log('检测到无预算筛选，查询budgetId为null的交易');
-      // 无预算筛选，保持budgetId为'NO_BUDGET'传递给交易查询
+      console.log('检测到无预算筛选，查询budgetId为null的记账');
+      // 无预算筛选，保持budgetId为'NO_BUDGET'传递给记账查询
       actualBudgetId = 'NO_BUDGET';
       actualBudgetIds = undefined;
     } else if (budgetId && budgetId.startsWith('aggregated_')) {
       console.log('检测到聚合预算ID，将忽略budgetId参数进行聚合查询');
-      // 对于聚合预算，不传递budgetId给交易查询，让它查询所有相关交易
+      // 对于聚合预算，不传递budgetId给记账查询，让它查询所有相关记账
       actualBudgetId = undefined;
       actualBudgetIds = undefined;
     }
 
-    // 获取收入交易记录 - 不排除家庭成员的交易记录，统计该账本的所有交易
+    // 获取收入记账记录 - 不排除家庭成员的记账记录，统计该账本的所有记账
     const incomeTransactions = await this.transactionRepository.findByDateRange(
       userId,
       TransactionType.INCOME,
@@ -610,14 +610,14 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      false, // 设置excludeFamilyMember为false，统计该账本的所有交易记录
+      false, // 设置excludeFamilyMember为false，统计该账本的所有记账记录
       actualBudgetId,
       categoryIds,
       tagIds,
       actualBudgetIds,
     );
 
-    // 获取支出交易记录 - 不排除家庭成员的交易记录，统计该账本的所有交易
+    // 获取支出记账记录 - 不排除家庭成员的记账记录，统计该账本的所有记账
     const expenseTransactions = await this.transactionRepository.findByDateRange(
       userId,
       TransactionType.EXPENSE,
@@ -625,7 +625,7 @@ export class StatisticsService {
       endDate,
       familyId,
       accountBookId,
-      false, // 设置excludeFamilyMember为false，统计该账本的所有交易记录
+      false, // 设置excludeFamilyMember为false，统计该账本的所有记账记录
       actualBudgetId,
       categoryIds,
       tagIds,
@@ -788,7 +788,7 @@ export class StatisticsService {
   }
 
   /**
-   * 按日期分组交易
+   * 按日期分组记账
    */
   private groupTransactionsByDate(
     transactions: any[],
@@ -830,7 +830,7 @@ export class StatisticsService {
   }
 
   /**
-   * 按分类分组交易
+   * 按分类分组记账
    */
   private groupTransactionsByCategory(
     transactions: any[],
@@ -867,7 +867,7 @@ export class StatisticsService {
   }
 
   /**
-   * 检查是否存在无预算交易
+   * 检查是否存在无预算记账
    */
   async hasUnbudgetedTransactions(
     userId: string,
@@ -885,7 +885,7 @@ export class StatisticsService {
     }
 
     const whereConditions: any = {
-      budgetId: null, // 查找无预算的交易
+      budgetId: null, // 查找无预算的记账
       date: {
         gte: startDate,
         lte: endDate,
@@ -893,7 +893,7 @@ export class StatisticsService {
       ...(familyId && { familyId }),
     };
 
-    // 如果指定了账本ID，则查询该账本的交易记录
+    // 如果指定了账本ID，则查询该账本的记账记录
     if (accountBookId) {
       whereConditions.accountBookId = accountBookId;
 
@@ -915,10 +915,10 @@ export class StatisticsService {
       });
 
       if (!accountBook) {
-        throw new Error('无权限查看该账本的交易记录');
+        throw new Error('无权限查看该账本的记账记录');
       }
     } else {
-      // 如果没有指定账本ID，则只查询用户自己的交易记录
+      // 如果没有指定账本ID，则只查询用户自己的记账记录
       whereConditions.userId = userId;
     }
 
