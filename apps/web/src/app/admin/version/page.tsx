@@ -1,5 +1,8 @@
 'use client';
 
+// 强制动态渲染，避免静态生成时的模块解析问题
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,17 +14,17 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { VersionUpdate } from '@/components/settings/VersionUpdate';
-import { 
-  PlusIcon, 
-  PencilIcon, 
-  TrashIcon, 
-  EyeIcon, 
-  PlayIcon, 
+import {
+  PlusIcon,
+  PencilIcon,
+  TrashIcon,
+  EyeIcon,
+  PlayIcon,
   StopIcon,
   DevicePhoneMobileIcon,
   ComputerDesktopIcon,
   ChartBarIcon,
-  RefreshCwIcon
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
 import { useAdminApi } from '@/hooks/useAdminApi';
 
@@ -67,6 +70,7 @@ export default function VersionManagementPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingVersion, setEditingVersion] = useState<AppVersion | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState<string>('');
+  const [versionCheckEnabled, setVersionCheckEnabled] = useState<boolean>(false);
   const { adminApi } = useAdminApi();
 
   // 新版本表单数据
@@ -78,6 +82,7 @@ export default function VersionManagementPage() {
     releaseNotes: '',
     downloadUrl: '',
     appStoreUrl: '',
+    detailUrl: '', // 新增详细链接字段
     isForceUpdate: false,
     isEnabled: true,
     publishNow: false
@@ -110,11 +115,39 @@ export default function VersionManagementPage() {
     }
   };
 
+  // 获取版本检查配置
+  const fetchVersionCheckConfig = async () => {
+    try {
+      const response = await adminApi.get('/api/admin/version/config/version_check_enabled');
+      setVersionCheckEnabled(response.data?.value === 'true');
+    } catch (error) {
+      console.error('获取版本检查配置失败:', error);
+      // 默认为false
+      setVersionCheckEnabled(false);
+    }
+  };
+
+  // 设置版本检查配置
+  const setVersionCheckConfig = async (enabled: boolean) => {
+    try {
+      await adminApi.post('/api/admin/version/config', {
+        key: 'version_check_enabled',
+        value: enabled ? 'true' : 'false',
+        description: '启用版本检查功能'
+      });
+      setVersionCheckEnabled(enabled);
+      alert(`版本检查功能已${enabled ? '启用' : '禁用'}`);
+    } catch (error) {
+      console.error('设置版本检查配置失败:', error);
+      alert('设置版本检查配置失败');
+    }
+  };
+
   // 初始化数据
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      await Promise.all([fetchVersions(), fetchStats()]);
+      await Promise.all([fetchVersions(), fetchStats(), fetchVersionCheckConfig()]);
       setIsLoading(false);
     };
     loadData();
@@ -136,6 +169,7 @@ export default function VersionManagementPage() {
         releaseNotes: formData.releaseNotes || undefined,
         downloadUrl: formData.downloadUrl || undefined,
         appStoreUrl: formData.appStoreUrl || undefined,
+        detailUrl: formData.detailUrl || undefined, // 新增详细链接字段
         isForceUpdate: formData.isForceUpdate,
         isEnabled: formData.isEnabled,
         publishNow: formData.publishNow
@@ -201,6 +235,7 @@ export default function VersionManagementPage() {
       releaseNotes: '',
       downloadUrl: '',
       appStoreUrl: '',
+      detailUrl: '', // 新增详细链接字段
       isForceUpdate: false,
       isEnabled: true,
       publishNow: false
@@ -445,6 +480,19 @@ export default function VersionManagementPage() {
               />
             </div>
 
+            <div>
+              <Label htmlFor="detailUrl">详细更新情况链接</Label>
+              <Input
+                id="detailUrl"
+                placeholder="https://github.com/your-repo/releases/tag/v1.0.0"
+                value={formData.detailUrl}
+                onChange={(e) => setFormData({...formData, detailUrl: e.target.value})}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                用户可以通过此链接查看详细的更新说明，如GitHub Releases页面
+              </p>
+            </div>
+
             <div className="flex items-center space-x-2">
               <Switch
                 id="isForceUpdate"
@@ -500,7 +548,7 @@ export default function VersionManagementPage() {
             onClick={() => Promise.all([fetchVersions(), fetchStats()])}
             disabled={isLoading}
           >
-            <RefreshCwIcon className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            <ArrowPathIcon className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             刷新数据
           </Button>
           <Button onClick={() => setShowCreateDialog(true)}>
@@ -509,6 +557,33 @@ export default function VersionManagementPage() {
           </Button>
         </div>
       </div>
+
+      {/* 版本检查配置 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>版本检查配置</CardTitle>
+          <CardDescription>
+            控制版本检查功能的启用状态
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="version-check-enabled" className="text-sm font-medium">
+                启用版本检查功能
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                启用后，用户可以检查应用版本更新
+              </p>
+            </div>
+            <Switch
+              id="version-check-enabled"
+              checked={versionCheckEnabled}
+              onCheckedChange={setVersionCheckConfig}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* 管理端版本检测 */}
       <VersionUpdate isAdmin={true} />

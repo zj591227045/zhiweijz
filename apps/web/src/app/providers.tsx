@@ -9,6 +9,8 @@ import { AuthInitializer } from '@/components/auth/auth-initializer';
 import { RouteGuard } from '@/components/auth/route-guard';
 import { TokenMonitorProvider } from '@/components/auth/token-monitor-provider';
 import { OnboardingProvider } from '@/components/onboarding/onboarding-provider';
+import { EnhancedVersionProvider } from '@/components/version/EnhancedVersionProvider';
+import { AutoVersionChecker } from '@/components/version/AutoVersionChecker';
 import { initializeAndroidPlatform } from '@/lib/android-platform';
 
 // 在开发环境下加载调试工具
@@ -79,12 +81,33 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <AuthInitializer>
-          <TokenMonitorProvider>
-            <RouteGuard>{children}</RouteGuard>
-            <OnboardingProvider />
-          </TokenMonitorProvider>
-        </AuthInitializer>
+        <EnhancedVersionProvider
+          enabled={true}
+          autoCheck={true}
+          checkInterval={24 * 60 * 60 * 1000} // 24小时
+          checkOnLogin={true}
+          checkOnVisibilityChange={true}
+          showIndicator={true}
+          showNetworkStatus={true}
+        >
+          <AuthInitializer>
+            <TokenMonitorProvider>
+              <RouteGuard>{children}</RouteGuard>
+              <OnboardingProvider />
+              {/* 自动版本检查器 */}
+              <AutoVersionChecker
+                checkOnMount={true}
+                checkOnLogin={true}
+                checkOnFocus={true}
+                checkOnVisibilityChange={true}
+                checkOnNetworkReconnect={true}
+                checkInterval={24 * 60 * 60 * 1000} // 24小时
+                minCheckInterval={5 * 60 * 1000} // 5分钟最小间隔
+                debug={process.env.NODE_ENV === 'development'}
+              />
+            </TokenMonitorProvider>
+          </AuthInitializer>
+        </EnhancedVersionProvider>
         <Toaster position="top-center" />
       </ThemeProvider>
     </QueryClientProvider>

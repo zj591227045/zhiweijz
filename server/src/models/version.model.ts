@@ -6,6 +6,7 @@ export interface AppVersionRequest {
   releaseNotes?: string;
   downloadUrl?: string;
   appStoreUrl?: string;
+  detailUrl?: string; // 详细更新情况链接
   isForceUpdate?: boolean;
   isEnabled?: boolean;
 }
@@ -19,6 +20,7 @@ export interface AppVersionResponse {
   releaseNotes?: string | null;
   downloadUrl?: string | null;
   appStoreUrl?: string | null;
+  detailUrl?: string | null; // 详细更新情况链接
   isForceUpdate: boolean;
   isEnabled: boolean;
   createdAt: Date;

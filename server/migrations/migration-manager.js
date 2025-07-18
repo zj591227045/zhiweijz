@@ -26,7 +26,7 @@ const logger = {
  */
 const MIGRATIONS_CONFIG = {
   // 当前最新版本
-  LATEST_VERSION: '1.7.15',
+  LATEST_VERSION: '1.7.16',
 
   // 迁移文件目录
   MIGRATIONS_DIR: path.join(__dirname, '../migrations/incremental'),
@@ -63,8 +63,10 @@ const MIGRATIONS_CONFIG = {
     '1.7.12': ['fix-invitations-table', 'add-version-management'], // 升级到1.7.15
     '1.7.13': ['add-budget-unique-constraint', 'add-version-management'], // 升级到1.7.15
     '1.7.14': ['add-version-management'], // 升级到1.7.15
-    '1.7.15': [], // 当前最新版本
-    'fresh_install': ['base-schema', 'fix-missing-account-book-id-fields', 'admin-features', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management']
+    '1.7.15': ['add-detail-url-to-app-versions'], // 升级到1.7.16
+    '1.7.16': [], // 当前最新版本
+    'add-version-management': ['add-detail-url-to-app-versions'], // 从版本管理迁移升级
+    'fresh_install': ['base-schema', 'fix-missing-account-book-id-fields', 'admin-features', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions']
   }
 };
 

@@ -53,12 +53,12 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div 
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-2 py-4">
+      <div
         className="fixed inset-0 bg-black bg-opacity-50"
         onClick={() => onOpenChange?.(false)}
       />
-      <div className="relative z-50">
+      <div className="relative z-50 w-full max-w-lg">
         {children}
       </div>
     </div>
@@ -67,7 +67,7 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
 
 export function DialogContent({ className = '', children }: DialogContentProps) {
   return (
-    <div className={`bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto ${className}`}>
+    <div className={`bg-white rounded-lg shadow-lg p-6 w-full max-h-[85vh] overflow-y-auto ${className}`}>
       {children}
     </div>
   );

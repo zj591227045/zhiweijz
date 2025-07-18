@@ -1228,6 +1228,7 @@ model AppVersion {
   releaseNotes  String?   @map("release_notes") @db.Text
   downloadUrl   String?   @map("download_url") @db.Text
   appStoreUrl   String?   @map("app_store_url") @db.Text
+  detailUrl     String?   @map("detail_url") @db.Text
   isForceUpdate Boolean   @default(false) @map("is_force_update")
   isEnabled     Boolean   @default(true) @map("is_enabled")
   createdAt     DateTime  @default(now()) @map("created_at")

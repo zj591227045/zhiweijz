@@ -16,6 +16,7 @@ export interface VersionCheckResponse {
     releaseNotes?: string;
     downloadUrl?: string;
     appStoreUrl?: string;
+    detailUrl?: string; // 详细更新情况链接
     isForceUpdate: boolean;
     publishedAt: string;
   };
@@ -50,11 +51,43 @@ export interface UserVersionStatusRequest {
   postponedUntil?: Date;
 }
 
+// API基础URL配置
+const getApiBaseUrl = (): string => {
+  // 优先使用环境变量配置的URL
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  }
+
+  // 如果没有配置环境变量，智能检测环境
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+
+    // 开发环境 (localhost, 127.0.0.1, 或 .local 域名)
+    if (hostname === 'localhost' ||
+        hostname === '127.0.0.1' ||
+        hostname.endsWith('.local') ||
+        hostname.startsWith('192.168.') ||
+        hostname.startsWith('10.') ||
+        hostname.startsWith('172.')) {
+      return ''; // 使用相对路径
+    }
+
+    // 生产环境使用当前域名
+    return window.location.origin;
+  }
+
+  // 服务端渲染时使用相对路径
+  return '';
+};
+
 // 版本检查API
 export const versionApi = {
   // 检查版本更新
   async checkVersion(data: VersionCheckRequest): Promise<VersionCheckResponse> {
-    const response = await fetch('/api/version/check', {
+    const baseUrl = getApiBaseUrl();
+    const url = `${baseUrl}/api/version/check`;
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -72,8 +105,11 @@ export const versionApi = {
 
   // 获取最新版本信息（公开接口）
   async getLatestVersion(platform: 'web' | 'ios' | 'android') {
-    const response = await fetch(`/api/version/latest/${platform}`);
-    
+    const baseUrl = getApiBaseUrl();
+    const url = `${baseUrl}/api/version/latest/${platform}`;
+
+    const response = await fetch(url);
+
     if (!response.ok) {
       throw new Error('获取版本信息失败');
     }
@@ -84,7 +120,10 @@ export const versionApi = {
 
   // 记录更新操作
   async logUpdate(data: VersionUpdateLogRequest, token: string) {
-    const response = await fetch('/api/version/log/update', {
+    const baseUrl = getApiBaseUrl();
+    const url = `${baseUrl}/api/version/log/update`;
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -102,7 +141,10 @@ export const versionApi = {
 
   // 记录跳过更新操作
   async logSkip(data: VersionUpdateLogRequest, token: string) {
-    const response = await fetch('/api/version/log/skip', {
+    const baseUrl = getApiBaseUrl();
+    const url = `${baseUrl}/api/version/log/skip`;
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

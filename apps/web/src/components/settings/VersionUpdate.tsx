@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { getCurrentAppVersion, getCurrentPlatform, getPlatformDisplayName } from '@/utils/version-utils';
+import { versionApi } from '@/lib/api/version';
 
 interface VersionUpdateProps {
   className?: string;
@@ -11,6 +13,7 @@ interface VersionUpdateProps {
 export function VersionUpdate({ className, isAdmin = false }: VersionUpdateProps) {
   const [isChecking, setIsChecking] = useState(false);
   const [currentVersion, setCurrentVersion] = useState<string>('');
+  const [currentBuildNumber, setCurrentBuildNumber] = useState<number>(0);
   const [hasUpdate, setHasUpdate] = useState(false);
   const [updateInfo, setUpdateInfo] = useState<any>(null);
   const [platform, setPlatform] = useState<'web' | 'ios' | 'android'>('web');
@@ -18,20 +21,20 @@ export function VersionUpdate({ className, isAdmin = false }: VersionUpdateProps
   useEffect(() => {
     // 获取当前版本信息
     if (typeof window !== 'undefined') {
-      if (window.Capacitor) {
-        const capacitorPlatform = window.Capacitor.getPlatform();
-        setPlatform(capacitorPlatform as 'ios' | 'android');
-        
-        // 获取当前应用版本信息
-        if (window.Capacitor.Plugins?.App) {
-          window.Capacitor.Plugins.App.getInfo().then((info: any) => {
-            setCurrentVersion(info.version);
-          });
-        }
+      const detectedPlatform = getCurrentPlatform();
+      setPlatform(detectedPlatform);
+
+      if (window.Capacitor && window.Capacitor.Plugins?.App) {
+        // Capacitor 环境，获取真实的应用版本信息
+        window.Capacitor.Plugins.App.getInfo().then((info: any) => {
+          setCurrentVersion(info.version);
+          setCurrentBuildNumber(parseInt(info.build || '1'));
+        });
       } else {
-        // 网页环境
-        setPlatform('web');
-        setCurrentVersion(process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0');
+        // 网页环境，使用环境变量中的版本信息
+        const { version, buildNumber } = getCurrentAppVersion();
+        setCurrentVersion(version);
+        setCurrentBuildNumber(buildNumber);
       }
     }
   }, []);
@@ -40,35 +43,26 @@ export function VersionUpdate({ className, isAdmin = false }: VersionUpdateProps
   const handleCheckUpdate = async () => {
     setIsChecking(true);
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('请先登录');
-        return;
-      }
-
-      const response = await fetch('/api/version/check', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          platform: platform,
-          currentVersion: currentVersion,
-          currentBuildNumber: 1
-        })
+      // 使用统一的版本API
+      const result = await versionApi.checkVersion({
+        platform: platform,
+        currentVersion: currentVersion,
+        currentBuildNumber: currentBuildNumber
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setUpdateInfo(data);
-        setHasUpdate(data.hasUpdate);
+      setUpdateInfo(result);
+      setHasUpdate(result?.hasUpdate || false);
+
+      // 给用户明确的反馈
+      if (result?.hasUpdate) {
+        // 有更新时不需要额外提示，UI会显示更新信息
       } else {
-        alert('检查更新失败');
+        // 没有更新时给用户提示
+        alert(result?.updateMessage || '当前已是最新版本');
       }
     } catch (error) {
       console.error('检查更新失败:', error);
-      alert('检查更新失败');
+      alert(error instanceof Error ? error.message : '检查更新失败');
     } finally {
       setIsChecking(false);
     }
@@ -98,9 +92,9 @@ export function VersionUpdate({ className, isAdmin = false }: VersionUpdateProps
         <div>
           <h3 className="text-lg font-medium">版本更新</h3>
           <div className="mt-1 text-sm text-gray-500">
-            <div>当前版本: {currentVersion}</div>
+            <div>当前版本: {currentVersion} ({currentBuildNumber})</div>
             <div className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-100 mt-1">
-              {platform.toUpperCase()}
+              {getPlatformDisplayName(platform)}
             </div>
             {isAdmin && (
               <div className="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-100 text-blue-800 mt-1 ml-2">
