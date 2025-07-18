@@ -75,6 +75,33 @@ export class S3StorageService {
   }
 
   /**
+   * 解码metadata中的Base64编码值
+   */
+  private decodeMetadata(metadata: Record<string, string>): Record<string, string> {
+    const decoded: Record<string, string> = {};
+    for (const [key, value] of Object.entries(metadata)) {
+      if (key.endsWith('-encoding') && value === 'base64') {
+        // 跳过编码标记字段
+        continue;
+      }
+
+      const encodingKey = `${key}-encoding`;
+      if (metadata[encodingKey] === 'base64') {
+        // 解码Base64值
+        try {
+          decoded[key] = Buffer.from(value, 'base64').toString('utf8');
+        } catch (error) {
+          console.warn(`解码metadata失败: ${key}`, error);
+          decoded[key] = value; // 解码失败时使用原值
+        }
+      } else {
+        decoded[key] = value;
+      }
+    }
+    return decoded;
+  }
+
+  /**
    * 上传文件
    */
   async uploadFile(
@@ -143,13 +170,27 @@ export class S3StorageService {
         }
       }
 
+      // 处理metadata中的中文字符，确保HTTP头部兼容性
+      const sanitizedMetadata: Record<string, string> = {};
+      if (options.metadata) {
+        for (const [key, value] of Object.entries(options.metadata)) {
+          // 对包含非ASCII字符的值进行Base64编码
+          if (value && /[^\x00-\x7F]/.test(value)) {
+            sanitizedMetadata[key] = Buffer.from(value, 'utf8').toString('base64');
+            sanitizedMetadata[`${key}-encoding`] = 'base64'; // 标记编码方式
+          } else {
+            sanitizedMetadata[key] = value;
+          }
+        }
+      }
+
       const command = new PutObjectCommand({
         Bucket: options.bucket,
         Key: key,
         Body: fileBuffer,
         ContentType: finalContentType,
         Metadata: {
-          ...options.metadata,
+          ...sanitizedMetadata,
           ...(compressionInfo && {
             'original-size': compressionInfo.originalSize.toString(),
             'compressed-size': compressionInfo.compressedSize.toString(),
@@ -211,6 +252,12 @@ export class S3StorageService {
       });
 
       const result = await this.s3Client.send(command);
+
+      // 解码metadata中的中文字符
+      if (result.Metadata) {
+        result.Metadata = this.decodeMetadata(result.Metadata);
+      }
+
       return result;
     } catch (error) {
       console.error('S3 get metadata error:', error);
@@ -266,13 +313,13 @@ export class S3StorageService {
       });
 
       const result = await this.s3Client.send(command);
-      
+
       return {
         contentLength: result.ContentLength,
         contentType: result.ContentType,
         lastModified: result.LastModified,
         etag: result.ETag,
-        metadata: result.Metadata,
+        metadata: result.Metadata ? this.decodeMetadata(result.Metadata) : undefined,
       };
     } catch (error) {
       console.error('S3 get file info error:', error);
