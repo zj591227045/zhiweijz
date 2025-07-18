@@ -8,6 +8,11 @@ import { tagApi } from '@/lib/api/tag-api';
 import { Search, Plus, X, Check } from 'lucide-react';
 import { TagDisplay } from './tag-display';
 import { SimpleColorPicker } from './color-picker';
+import {
+  filterTagsCompatible,
+  canCreateTagCompatible,
+  getAndroidInputProps
+} from '@/lib/android-input-compatibility';
 
 interface TagSelectorProps {
   accountBookId: string;
@@ -44,6 +49,9 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState(DEFAULT_TAG_COLORS[0]);
   const [creating, setCreating] = useState(false);
+
+  // 中文输入法状态
+  const [isComposing, setIsComposing] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -103,11 +111,9 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
     }
   }, [isOpen]);
 
-  // 过滤和排序标签
+  // 过滤和排序标签 - 使用Android兼容性工具
   const filteredTags = useMemo(() => {
-    return tags.filter(tag => 
-      tag.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    return filterTagsCompatible(tags, searchTerm);
   }, [tags, searchTerm]);
 
   // 获取已选择的标签
@@ -171,9 +177,8 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
     }
   };
 
-  // 检查是否可以创建新标签
-  const canCreateTag = allowCreate && searchTerm.trim() && 
-    !filteredTags.some(tag => tag.name.toLowerCase() === searchTerm.toLowerCase());
+  // 检查是否可以创建新标签 - 使用Android兼容性工具
+  const canCreateTag = canCreateTagCompatible(tags, searchTerm, allowCreate, isComposing);
 
   return (
     <div className={cn('relative', className)} ref={dropdownRef}>
@@ -212,8 +217,11 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onCompositionStart={() => setIsComposing(true)}
+                onCompositionEnd={() => setIsComposing(false)}
                 placeholder="搜索标签..."
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                {...getAndroidInputProps()}
               />
             </div>
           </div>
@@ -366,6 +374,9 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
   const [newTagColor, setNewTagColor] = useState(DEFAULT_TAG_COLORS[0]);
   const [creating, setCreating] = useState(false);
 
+  // 中文输入法状态
+  const [isComposing, setIsComposing] = useState(false);
+
   // 获取标签列表
   const fetchTags = async () => {
     if (!accountBookId) return;
@@ -445,16 +456,13 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
     }
   }, [accountBookId, searchTerm, isOpen]);
 
-  // 过滤标签
+  // 过滤标签 - 使用Android兼容性工具
   const filteredTags = useMemo(() => {
-    return tags.filter(tag =>
-      tag.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    return filterTagsCompatible(tags, searchTerm);
   }, [tags, searchTerm]);
 
-  // 检查是否可以创建新标签
-  const canCreateTag = allowCreate && searchTerm.trim() &&
-    !filteredTags.some(tag => tag.name.toLowerCase() === searchTerm.toLowerCase());
+  // 检查是否可以创建新标签 - 使用Android兼容性工具
+  const canCreateTag = canCreateTagCompatible(tags, searchTerm, allowCreate, isComposing);
 
   // 处理关闭动画
   const handleClose = () => {
@@ -600,12 +608,15 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onCompositionStart={() => setIsComposing(true)}
+              onCompositionEnd={() => setIsComposing(false)}
               placeholder={placeholder}
               className="w-full pl-10 pr-3 py-2.5 rounded-xl text-sm shadow-sm transition-all duration-200"
               style={{
                 border: `1px solid var(--border-color)`,
                 backgroundColor: 'var(--card-background)',
-                color: 'var(--text-primary)'
+                color: 'var(--text-primary)',
+                ...getAndroidInputProps().style
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = 'var(--primary-color)';
@@ -616,6 +627,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
                 e.target.style.boxShadow = 'var(--card-shadow)';
               }}
               disabled={disabled}
+              {...getAndroidInputProps()}
             />
           </div>
         </div>
