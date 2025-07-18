@@ -568,6 +568,7 @@ export class StatisticsService {
     type?: string,
     categoryIds?: string[],
     tagIds?: string[],
+    budgetIds?: string[],
   ): Promise<FinancialOverviewResponseDto> {
     // 验证用户是否为家庭成员
     if (familyId) {
@@ -577,12 +578,19 @@ export class StatisticsService {
       }
     }
 
-    // 处理聚合预算ID
+    // 处理预算ID参数
     let actualBudgetId = budgetId;
-    if (budgetId && budgetId.startsWith('aggregated_')) {
+    let actualBudgetIds = budgetIds;
+    
+    // 如果有budgetIds参数，优先使用budgetIds
+    if (budgetIds && budgetIds.length > 0) {
+      console.log('使用多个预算ID进行查询:', budgetIds);
+      actualBudgetId = undefined; // 使用budgetIds时，不使用单个budgetId
+    } else if (budgetId && budgetId.startsWith('aggregated_')) {
       console.log('检测到聚合预算ID，将忽略budgetId参数进行聚合查询');
       // 对于聚合预算，不传递budgetId给交易查询，让它查询所有相关交易
       actualBudgetId = undefined;
+      actualBudgetIds = undefined;
     }
 
     // 获取收入交易记录 - 不排除家庭成员的交易记录，统计该账本的所有交易
@@ -597,6 +605,7 @@ export class StatisticsService {
       actualBudgetId,
       categoryIds,
       tagIds,
+      actualBudgetIds,
     );
 
     // 获取支出交易记录 - 不排除家庭成员的交易记录，统计该账本的所有交易
@@ -611,6 +620,7 @@ export class StatisticsService {
       actualBudgetId,
       categoryIds,
       tagIds,
+      actualBudgetIds,
     );
 
     // 获取分类信息

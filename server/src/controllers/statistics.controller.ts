@@ -211,6 +211,11 @@ export class StatisticsController {
       const familyId = value.familyId;
       const accountBookId = value.accountBookId;
       const budgetId = value.budgetId;
+      const budgetIds = value.budgetIds
+        ? Array.isArray(value.budgetIds)
+          ? value.budgetIds
+          : [value.budgetIds]
+        : undefined;
       const type = value.type;
       const categoryIds = value.categoryIds ? value.categoryIds.split(',') : undefined;
       const tagIds = value.tagIds
@@ -232,6 +237,7 @@ export class StatisticsController {
           type,
           categoryIds,
           tagIds,
+          budgetIds,
         );
         res.status(200).json(overview);
       } catch (error) {

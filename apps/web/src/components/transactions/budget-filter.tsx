@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { useAuthStore } from '@/store/auth-store';
@@ -22,7 +22,7 @@ interface Budget {
 
 interface BudgetFilterProps {
   selectedBudgetId?: string;
-  onBudgetChange: (budgetId: string | null) => void;
+  onBudgetChange: (budgetId: string | null, budgetIds?: string[]) => void;
   startDate?: string;
   endDate?: string;
   className?: string;
@@ -89,11 +89,6 @@ export function BudgetFilter({
     fetchBudgets();
   }, [isAuthenticated, currentAccountBook?.id, startDate, endDate]);
 
-  // 处理预算选择变化
-  const handleBudgetChange = (budgetId: string | null) => {
-    onBudgetChange(budgetId);
-  };
-
   // 获取当前选中预算的显示名称
   const getSelectedBudgetName = () => {
     if (!selectedBudgetId) return '全部预算';
@@ -128,60 +123,99 @@ export function BudgetFilter({
 
   const filteredBudgets = getFilteredBudgets();
 
-  // 聚合相同用户的个人预算（跨月份）
-  const aggregatePersonalBudgets = (budgets: Budget[]) => {
-    const userBudgetMap = new Map<string, Budget[]>();
-
-    // 按用户分组个人预算
-    budgets.forEach(budget => {
-      if (budget.budgetType === 'PERSONAL') {
-        const userKey = budget.userId || 'unknown';
-        if (!userBudgetMap.has(userKey)) {
-          userBudgetMap.set(userKey, []);
-        }
-        userBudgetMap.get(userKey)!.push(budget);
-      }
-    });
-
-    // 为每个用户创建聚合预算
-    const aggregatedBudgets: Budget[] = [];
-    userBudgetMap.forEach((userBudgets, userId) => {
-      if (userBudgets.length === 1) {
-        // 只有一个预算，直接使用
-        aggregatedBudgets.push(userBudgets[0]);
-      } else {
-        // 多个预算，创建聚合预算
-        const totalAmount = userBudgets.reduce((sum, budget) => sum + (budget.amount || 0), 0);
-        const totalSpent = userBudgets.reduce((sum, budget) => sum + (budget.spent || 0), 0);
-        const totalRemaining = userBudgets.reduce((sum, budget) => sum + (budget.remaining || 0), 0);
-
-        // 使用第一个预算作为基础，更新金额信息
-        const aggregatedBudget: Budget = {
-          ...userBudgets[0],
-          id: `aggregated_${userId}`, // 特殊ID标识聚合预算
-          name: `${userBudgets[0].userName || '个人'}预算 (${userBudgets.length}个月)`,
-          amount: totalAmount,
-          spent: totalSpent,
-          remaining: totalRemaining,
-          // 使用最早的开始日期和最晚的结束日期
-          startDate: userBudgets.reduce((earliest, budget) =>
-            budget.startDate < earliest ? budget.startDate : earliest, userBudgets[0].startDate),
-          endDate: userBudgets.reduce((latest, budget) =>
-            budget.endDate > latest ? budget.endDate : latest, userBudgets[0].endDate)
-        };
-
-        aggregatedBudgets.push(aggregatedBudget);
-      }
-    });
-
-    return aggregatedBudgets;
-  };
-
   // 按预算类型分组并根据设置决定是否聚合个人预算
-  const personalBudgets = enableAggregation
-    ? aggregatePersonalBudgets(filteredBudgets)
-    : filteredBudgets.filter(budget => budget.budgetType === 'PERSONAL');
+  const personalBudgetsResult = useMemo(() => {
+    console.log('计算personalBudgetsResult, enableAggregation:', enableAggregation, 'filteredBudgets length:', filteredBudgets.length);
+    
+    if (enableAggregation) {
+      const userBudgetMap = new Map<string, Budget[]>();
+      
+      // 按用户分组个人预算
+      filteredBudgets.forEach(budget => {
+        if (budget.budgetType === 'PERSONAL') {
+          const userKey = budget.userId || 'unknown';
+          if (!userBudgetMap.has(userKey)) {
+            userBudgetMap.set(userKey, []);
+          }
+          userBudgetMap.get(userKey)!.push(budget);
+        }
+      });
+      
+      // 为每个用户创建聚合预算
+      const aggregatedBudgets: Budget[] = [];
+      const idMappingEntries: [string, string[]][] = [];
+      
+      userBudgetMap.forEach((userBudgets, userId) => {
+        if (userBudgets.length === 1) {
+          // 只有一个预算，直接使用
+          aggregatedBudgets.push(userBudgets[0]);
+          // 单个预算也记录映射关系，方便统一处理
+          idMappingEntries.push([userBudgets[0].id, [userBudgets[0].id]]);
+        } else {
+          // 多个预算，创建聚合预算
+          const totalAmount = userBudgets.reduce((sum, budget) => sum + (budget.amount || 0), 0);
+          const totalSpent = userBudgets.reduce((sum, budget) => sum + (budget.spent || 0), 0);
+          const totalRemaining = userBudgets.reduce((sum, budget) => sum + (budget.remaining || 0), 0);
+
+          const aggregatedId = `aggregated_${userId}`;
+          const actualBudgetIds = userBudgets.map(b => b.id);
+          
+          // 使用第一个预算作为基础，更新金额信息
+          const aggregatedBudget: Budget = {
+            ...userBudgets[0],
+            id: aggregatedId, // 特殊ID标识聚合预算
+            name: `${userBudgets[0].userName || '个人'}预算 (${userBudgets.length}个月)`,
+            amount: totalAmount,
+            spent: totalSpent,
+            remaining: totalRemaining,
+            // 使用最早的开始日期和最晚的结束日期
+            startDate: userBudgets.reduce((earliest, budget) =>
+              budget.startDate < earliest ? budget.startDate : earliest, userBudgets[0].startDate),
+            endDate: userBudgets.reduce((latest, budget) =>
+              budget.endDate > latest ? budget.endDate : latest, userBudgets[0].endDate)
+          };
+
+          aggregatedBudgets.push(aggregatedBudget);
+          
+          // 存储映射关系
+          idMappingEntries.push([aggregatedId, actualBudgetIds]);
+        }
+      });
+      
+      // 从数组创建Map，确保引用稳定性
+      const idMapping = new Map(idMappingEntries);
+      
+      console.log('聚合结果:', { budgets: aggregatedBudgets.length, mappings: idMapping.size });
+      return { budgets: aggregatedBudgets, idMapping };
+    } else {
+      const personalBudgets = filteredBudgets.filter(budget => budget.budgetType === 'PERSONAL');
+      // 为非聚合预算也创建映射
+      const idMappingEntries: [string, string[]][] = personalBudgets.map(budget => [budget.id, [budget.id]]);
+      const idMapping = new Map(idMappingEntries);
+      
+      console.log('非聚合结果:', { budgets: personalBudgets.length, mappings: idMapping.size });
+      return { budgets: personalBudgets, idMapping };
+    }
+  }, [filteredBudgets, enableAggregation]);
+
+  const personalBudgets = personalBudgetsResult.budgets;
   const generalBudgets = filteredBudgets.filter(budget => budget.budgetType === 'GENERAL');
+
+  // 处理预算选择变化
+  const handleBudgetChange = useCallback((budgetId: string | null) => {
+    // 直接从personalBudgetsResult中获取映射，避免状态更新循环
+    const idMapping = personalBudgetsResult.idMapping;
+    
+    if (budgetId && idMapping.has(budgetId)) {
+      // 如果是聚合预算，传递实际的预算ID数组
+      const actualBudgetIds = idMapping.get(budgetId);
+      console.log('选择聚合预算:', budgetId, '实际预算IDs:', actualBudgetIds);
+      onBudgetChange(budgetId, actualBudgetIds);
+    } else {
+      // 普通预算或null，直接传递
+      onBudgetChange(budgetId);
+    }
+  }, [onBudgetChange, personalBudgetsResult]);
 
   // 格式化预算显示名称
   const formatBudgetName = (budget: Budget) => {

@@ -108,7 +108,7 @@ export function StatisticsPage() {
   };
 
   // 处理预算筛选变化
-  const handleBudgetChange = (budgetId: string | null) => {
+  const handleBudgetChange = (budgetId: string | null, budgetIds?: string[]) => {
     setSelectedBudgetId(budgetId);
 
     if (currentAccountBook?.id && dateRange.startDate && dateRange.endDate) {
@@ -118,7 +118,8 @@ export function StatisticsPage() {
         currentAccountBook.id,
         selectedTagIds,
         timeRangeType,
-        budgetId
+        budgetId,
+        budgetIds
       );
     }
   };

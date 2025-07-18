@@ -319,6 +319,7 @@ export class TransactionRepository {
     budgetId?: string,
     categoryIds?: string[],
     tagIds?: string[],
+    budgetIds?: string[],
   ): Promise<any[]> {
     console.log('TransactionRepository.findByDateRange 参数:', {
       userId,
@@ -331,6 +332,7 @@ export class TransactionRepository {
       budgetId,
       categoryIds,
       tagIds,
+      budgetIds,
     });
 
     const whereConditions: any = {
@@ -340,7 +342,9 @@ export class TransactionRepository {
         lte: endDate,
       },
       ...(familyId && { familyId }),
-      ...(budgetId && { budgetId }),
+      // 处理预算ID过滤
+      ...(budgetIds && budgetIds.length > 0 && { budgetId: { in: budgetIds } }),
+      ...(budgetId && !budgetIds && { budgetId }),
       // 如果excludeFamilyMember为true，则只查询familyMemberId为null的记录
       // 这样可以排除托管成员的交易记录
       ...(excludeFamilyMember && { familyMemberId: null }),
