@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useBudgetFormStore } from '@/store/budget-form-store';
 import { getCategoryIconClass } from '@/lib/utils';
 
@@ -19,6 +20,18 @@ export function CategoryBudgetSection() {
     errors,
   } = useBudgetFormStore();
 
+  const [categoryAmountInput, setCategoryAmountInput] = useState('');
+
+  // 同步store中的categoryBudgetAmount到本地输入状态
+  useEffect(() => {
+    if (categoryBudgetAmount === 0 && categoryAmountInput === '') {
+      return;
+    }
+    if (categoryBudgetAmount !== parseFloat(categoryAmountInput || '0')) {
+      setCategoryAmountInput(categoryBudgetAmount > 0 ? categoryBudgetAmount.toString() : '');
+    }
+  }, [categoryBudgetAmount, categoryAmountInput]);
+
   // 处理分类选择
   const handleCategorySelect = (id: string) => {
     setSelectedCategoryId(selectedCategoryId === id ? null : id);
@@ -28,9 +41,17 @@ export function CategoryBudgetSection() {
   const handleCategoryBudgetAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
 
-    // 只允许输入数字和小数点
-    if (/^$|^[0-9]+\.?[0-9]*$/.test(value)) {
-      setCategoryBudgetAmount(value ? parseFloat(value) : 0);
+    // 只允许输入数字和小数点，支持以小数点开头的输入
+    if (/^$|^\d*\.?\d*$/.test(value)) {
+      setCategoryAmountInput(value);
+
+      // 更新store中的数值
+      if (value === '' || value === '.') {
+        setCategoryBudgetAmount(0);
+      } else {
+        const numericValue = parseFloat(value);
+        setCategoryBudgetAmount(isNaN(numericValue) ? 0 : numericValue);
+      }
     }
   };
 
@@ -103,7 +124,7 @@ export function CategoryBudgetSection() {
                     type="text"
                     id="category-budget-amount"
                     placeholder="0.00"
-                    value={categoryBudgetAmount || ''}
+                    value={categoryAmountInput}
                     onChange={handleCategoryBudgetAmountChange}
                   />
                 </div>
