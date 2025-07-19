@@ -609,10 +609,18 @@ export class BudgetService {
           previous_rollover as "previousRollover"
         FROM budget_histories
         WHERE budget_id = ${budgetId}
-        ORDER BY created_at DESC
+        ORDER BY period DESC, created_at DESC
       `;
 
       console.log(`从budget_histories表查询到 ${(histories as any[]).length} 条记录`);
+
+      // 打印原始数据用于调试
+      if ((histories as any[]).length > 0) {
+        console.log('原始结转历史数据（前3条）:');
+        (histories as any[]).slice(0, 3).forEach((h: any, index: number) => {
+          console.log(`  ${index + 1}. period: ${h.period}, createdAt: ${h.createdAt}, amount: ${h.amount}, type: ${h.type}`);
+        });
+      }
 
       // 转换为前端需要的格式
       const rolloverHistory = (histories as any[]).map((history: any) => ({
@@ -627,6 +635,21 @@ export class BudgetService {
         spentAmount: history.spentAmount ? Number(history.spentAmount) : undefined,
         previousRollover: history.previousRollover ? Number(history.previousRollover) : undefined,
       }));
+
+      // 在前端格式化后再次排序，确保按期间降序排列
+      rolloverHistory.sort((a, b) => {
+        // 首先按period降序排序
+        if (a.period !== b.period) {
+          return b.period.localeCompare(a.period);
+        }
+        // 如果period相同，按创建时间降序排序
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+
+      console.log('排序后的结转历史（前3条）:');
+      rolloverHistory.slice(0, 3).forEach((h: any, index: number) => {
+        console.log(`  ${index + 1}. period: ${h.period}, createdAt: ${h.createdAt}, amount: ${h.amount}, type: ${h.type}`);
+      });
 
       return rolloverHistory;
     } catch (error) {
@@ -909,9 +932,14 @@ export class BudgetService {
 
 
         },
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy: [
+          {
+            period: 'desc',
+          },
+          {
+            createdAt: 'desc',
+          },
+        ],
         take: options.limit || 100,
       });
 

@@ -246,6 +246,7 @@ export class StatisticsService {
     month: string,
     familyId?: string,
     accountBookId?: string,
+    budgetType?: 'PERSONAL' | 'GENERAL',
   ): Promise<any> {
     // 修改返回类型为any，以便返回扩展的数据
     console.log('StatisticsService.getBudgetStatistics 参数:', {
@@ -253,6 +254,7 @@ export class StatisticsService {
       month,
       familyId,
       accountBookId,
+      budgetType,
     });
 
     // 验证用户是否为家庭成员
@@ -428,7 +430,14 @@ export class StatisticsService {
     // 获取活跃预算
     const { BudgetService } = require('../services/budget.service');
     const budgetService = new BudgetService();
-    const activeBudgets = await budgetService.getActiveBudgets(userId, accountBookId);
+    const allActiveBudgets = await budgetService.getActiveBudgets(userId, accountBookId);
+
+    // 根据预算类型过滤活跃预算
+    const activeBudgets = budgetType
+      ? allActiveBudgets.filter((budget: any) => budget.budgetType === budgetType)
+      : allActiveBudgets;
+
+    console.log(`过滤后的活跃预算数量: ${activeBudgets.length}, 预算类型: ${budgetType || '全部'}`);
 
     // 处理活跃预算，转换为预算卡片格式
     const budgetCards = activeBudgets.map((budget: any) => ({
@@ -442,9 +451,10 @@ export class StatisticsService {
       }月`,
     }));
 
-    // 获取家庭成员信息（如果是家庭账本）
+    // 获取家庭成员信息（只在个人预算类型且是家庭账本时处理）
     let familyMembers: any[] = [];
-    if (accountBook && accountBook.type === 'FAMILY' && accountBook.familyId) {
+    if (accountBook && accountBook.type === 'FAMILY' && accountBook.familyId &&
+        (!budgetType || budgetType === 'PERSONAL')) {
       const { FamilyRepository } = require('../repositories/family.repository');
       const familyRepository = new FamilyRepository();
       const members = await familyRepository.findFamilyMembers(accountBook.familyId);
@@ -456,12 +466,12 @@ export class StatisticsService {
 
         if (member.isCustodial) {
           // 如果是托管成员，通过familyMemberId查找预算
-          memberBudget = activeBudgets.find(
+          memberBudget = allActiveBudgets.find(
             (b: any) => b.familyMemberId === member.id && b.budgetType === 'PERSONAL',
           );
         } else {
           // 如果是普通成员，通过userId查找预算
-          memberBudget = activeBudgets.find(
+          memberBudget = allActiveBudgets.find(
             (b: any) => b.userId === member.userId && b.budgetType === 'PERSONAL',
           );
         }

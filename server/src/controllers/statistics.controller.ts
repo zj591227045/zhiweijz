@@ -145,12 +145,14 @@ export class StatisticsController {
         `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
       const familyId = value.familyId;
       const accountBookId = value.accountBookId;
+      const budgetType = value.budgetType as 'PERSONAL' | 'GENERAL' | undefined;
 
       console.log('预算统计处理参数:', {
         userId,
         month,
         familyId,
         accountBookId,
+        budgetType,
       });
 
       // 获取预算执行情况
@@ -160,6 +162,7 @@ export class StatisticsController {
           month,
           familyId,
           accountBookId,
+          budgetType,
         );
         console.log('预算统计成功返回');
         res.status(200).json(statistics);

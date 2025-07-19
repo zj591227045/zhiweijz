@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { RolloverRecord } from '@/store/budget-statistics-store';
 
 interface RolloverHistoryDialogProps {
@@ -8,6 +10,37 @@ interface RolloverHistoryDialogProps {
 }
 
 export function RolloverHistoryDialog({ history, onClose }: RolloverHistoryDialogProps) {
+  // 阻止背景滚动
+  useEffect(() => {
+    // 保存原始样式
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalBodyPosition = document.body.style.position;
+    const originalBodyWidth = document.body.style.width;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+
+    // 获取当前滚动位置
+    const scrollY = window.scrollY;
+
+    // 阻止滚动
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.top = `-${scrollY}px`;
+    document.documentElement.style.overflow = 'hidden';
+
+    return () => {
+      // 恢复原始样式
+      document.body.style.overflow = originalBodyOverflow;
+      document.body.style.position = originalBodyPosition;
+      document.body.style.width = originalBodyWidth;
+      document.body.style.top = '';
+      document.documentElement.style.overflow = originalHtmlOverflow;
+
+      // 恢复滚动位置
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+
   // 格式化金额
   const formatAmount = (amount: number) => {
     return `¥${amount.toLocaleString(undefined, {
@@ -31,33 +64,54 @@ export function RolloverHistoryDialog({ history, onClose }: RolloverHistoryDialo
     return type === 'SURPLUS' ? 'surplus' : 'deficit';
   };
 
-  return (
-    <div className="rollover-dialog-overlay" onClick={onClose}>
-      <div className="rollover-dialog" onClick={(e) => e.stopPropagation()}>
-        <div className="rollover-dialog-header">
+  // 使用Portal确保模态框渲染在body下，避免被其他元素遮挡
+  if (typeof window === 'undefined') {
+    return null; // 服务端渲染时不渲染模态框
+  }
+
+  return createPortal(
+    <div
+      className="rollover-history-modal"
+      onClick={onClose}
+    >
+      <div
+        className="rollover-history-content"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 头部 */}
+        <div className="rollover-history-header">
           <h3>结转历史</h3>
-          <button className="close-button" onClick={onClose}>
-            <i className="fas fa-times"></i>
+          <button
+            className="rollover-history-close"
+            onClick={onClose}
+            type="button"
+          >
+            ×
           </button>
         </div>
 
-        <div className="rollover-dialog-content">
+        {/* 内容区域 */}
+        <div className="rollover-history-body">
           {history.length === 0 ? (
-            <div className="empty-history">
-              <i className="fas fa-history"></i>
+            <div className="rollover-history-empty">
+              <div className="empty-icon">📊</div>
               <p>暂无结转历史记录</p>
             </div>
           ) : (
-            <div className="history-list">
+            <div className="rollover-history-list">
               {history.map((record) => (
-                <div key={record.id} className="history-item">
-                  <div className="history-info">
-                    <div className="history-period">{record.period}</div>
-                    <div className="history-date">{formatDate(record.createdAt)}</div>
+                <div key={record.id} className="rollover-history-item">
+                  <div className="item-left">
+                    <div className="item-period">{record.period}</div>
+                    <div className="item-date">{formatDate(record.createdAt)}</div>
                   </div>
-                  <div className={`history-amount ${getTypeClass(record.type)}`}>
-                    <span className="type-label">{getTypeText(record.type)}</span>
-                    <span className="amount">{formatAmount(record.amount)}</span>
+                  <div className="item-right">
+                    <div className={`item-type ${record.type.toLowerCase()}`}>
+                      {getTypeText(record.type)}
+                    </div>
+                    <div className="item-amount">
+                      {formatAmount(record.amount)}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -65,6 +119,7 @@ export function RolloverHistoryDialog({ history, onClose }: RolloverHistoryDialo
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

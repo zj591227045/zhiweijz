@@ -23,6 +23,7 @@ interface MonthQuery {
   month?: string;
   familyId?: string;
   accountBookId?: string;
+  budgetType?: string;
 }
 
 /**
@@ -97,6 +98,9 @@ export function validateMonthQuery(query: any) {
     }),
     accountBookId: Joi.string().uuid().messages({
       'string.guid': '账本ID必须是有效的UUID',
+    }),
+    budgetType: Joi.string().valid('PERSONAL', 'GENERAL').messages({
+      'any.only': '预算类型必须是 PERSONAL 或 GENERAL',
     }),
   });
 

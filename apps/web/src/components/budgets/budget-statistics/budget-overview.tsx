@@ -23,11 +23,15 @@ interface BudgetOverviewProps {
 
 export function BudgetOverview({ overview }: BudgetOverviewProps) {
   const {
+    budgetType,
     rolloverHistory,
     isRolloverHistoryOpen,
     toggleRolloverHistory,
     fetchRolloverHistory,
   } = useBudgetStatisticsStore();
+
+  // 判断是否应该显示结转信息（只有个人预算显示结转信息）
+  const shouldShowRollover = budgetType === 'personal';
 
   // 处理结转历史按钮点击
   const handleRolloverHistoryClick = async () => {
@@ -75,19 +79,22 @@ export function BudgetOverview({ overview }: BudgetOverviewProps) {
             <div className="budget-amount">{formatAmount(overview.amount, false)}</div>
           </div>
 
-          <div className="rollover-info">
-            <div className={`rollover-badge ${getRolloverBadgeClass(overview.rollover)}`}>
-              <i className="fas fa-exchange-alt"></i>
-              <span>
-                本月结转: {overview.rollover >= 0 ? '+' : ''}
-                {formatAmount(overview.rollover)}
-              </span>
+          {/* 只有个人预算才显示结转信息 */}
+          {shouldShowRollover && (
+            <div className="rollover-info">
+              <div className={`rollover-badge ${getRolloverBadgeClass(overview.rollover)}`}>
+                <i className="fas fa-exchange-alt"></i>
+                <span>
+                  本月结转: {overview.rollover >= 0 ? '+' : ''}
+                  {formatAmount(overview.rollover)}
+                </span>
+              </div>
+              <button className="rollover-history-button" onClick={handleRolloverHistoryClick}>
+                <i className="fas fa-history"></i>
+                <span>结转历史</span>
+              </button>
             </div>
-            <button className="rollover-history-button" onClick={handleRolloverHistoryClick}>
-              <i className="fas fa-history"></i>
-              <span>结转历史</span>
-            </button>
-          </div>
+          )}
         </div>
 
         {/* 结转历史对话框 */}
@@ -98,33 +105,48 @@ export function BudgetOverview({ overview }: BudgetOverviewProps) {
         {/* 预算进度 - 优化样式 */}
         <div className="budget-progress-container" style={{ marginBottom: '4px' }}>
           <div className="budget-progress-info">
-            {/* 计算调整后的百分比：已用金额/(预算金额+结转金额) */}
+            {/* 根据预算类型计算百分比 */}
             {(() => {
-              const adjustedTotal = overview.amount + overview.rollover;
-              const adjustedPercentage =
-                adjustedTotal > 0 ? (overview.spent / adjustedTotal) * 100 : 0;
+              // 对于个人预算，考虑结转金额；对于通用预算，只考虑基础预算金额
+              const totalBudget = shouldShowRollover
+                ? overview.amount + overview.rollover
+                : overview.amount;
+              const percentage = totalBudget > 0 ? (overview.spent / totalBudget) * 100 : 0;
+
               return (
                 <div className="spent-amount">
-                  已用: {formatAmount(overview.spent)} ({adjustedPercentage.toFixed(1)}%)
+                  已用: {formatAmount(overview.spent)} ({percentage.toFixed(1)}%)
                 </div>
               );
             })()}
             <div
-              className={`remaining-amount ${overview.amount + overview.rollover - overview.spent >= 0 ? 'positive' : 'negative'}`}
+              className={`remaining-amount ${
+                (shouldShowRollover
+                  ? overview.amount + overview.rollover - overview.spent
+                  : overview.amount - overview.spent) >= 0
+                    ? 'positive'
+                    : 'negative'
+              }`}
             >
-              剩余: {formatAmount(overview.amount + overview.rollover - overview.spent)}
+              剩余: {formatAmount(
+                shouldShowRollover
+                  ? overview.amount + overview.rollover - overview.spent
+                  : overview.amount - overview.spent
+              )}
             </div>
           </div>
           <div className="progress-bar">
-            {/* 使用调整后的百分比计算进度条宽度 */}
+            {/* 根据预算类型计算进度条宽度 */}
             {(() => {
-              const adjustedTotal = overview.amount + overview.rollover;
-              const adjustedPercentage =
-                adjustedTotal > 0 ? (overview.spent / adjustedTotal) * 100 : 0;
+              const totalBudget = shouldShowRollover
+                ? overview.amount + overview.rollover
+                : overview.amount;
+              const percentage = totalBudget > 0 ? (overview.spent / totalBudget) * 100 : 0;
+
               return (
                 <div
-                  className={`progress ${getProgressColor(adjustedPercentage)}`}
-                  style={{ width: `${Math.min(adjustedPercentage, 100)}%` }}
+                  className={`progress ${getProgressColor(percentage)}`}
+                  style={{ width: `${Math.min(percentage, 100)}%` }}
                 ></div>
               );
             })()}

@@ -263,29 +263,18 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
         set({ isLoading: true, error: null });
 
         // 构建请求参数
+        const currentBudgetType = get().budgetType;
         const params: any = {
           accountBookId,
           month: dayjs().format('YYYY-MM'),
+          budgetType: currentBudgetType === 'personal' ? 'PERSONAL' : 'GENERAL',
         };
 
         // 调用API获取预算统计数据
         const response = await budgetService.getBudgetStatistics(accountBookId, params);
 
-        // 根据当前选择的预算类型过滤数据
-        const currentBudgetType = get().budgetType;
-
-        // 过滤预算卡片
-        let filteredBudgetCards = response.budgetCards || [];
-        if (response.budgetCards && response.budgetCards.length > 0) {
-          filteredBudgetCards = response.budgetCards.filter((card) => {
-            // 如果是个人预算，只显示PERSONAL类型的预算
-            if (currentBudgetType === 'personal') {
-              return card.type === 'PERSONAL';
-            }
-            // 如果是通用预算，只显示GENERAL类型的预算
-            return card.type === 'GENERAL';
-          });
-        }
+        // 后端已经根据预算类型进行了过滤，直接使用返回的数据
+        const filteredBudgetCards = response.budgetCards || [];
 
         // 确定默认选中的预算ID
         let defaultSelectedBudgetId = null;
