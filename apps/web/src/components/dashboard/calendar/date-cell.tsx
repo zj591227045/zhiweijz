@@ -41,10 +41,18 @@ export const DateCell = memo(function DateCell({
   // 格式化金额显示
   const formatAmount = (amount: number) => {
     if (amount === 0) return '';
+
+    // 格式化数字，最多显示2位小数，去掉末尾的0
+    const formatNumber = (num: number) => {
+      return parseFloat(num.toFixed(2)).toString();
+    };
+
     if (amount >= 1000) {
-      return `-${(amount / 1000).toFixed(1)}k`;
+      return `${formatNumber(amount / 1000)}k`;
     }
-    return displayMode === 'expense' ? `-${amount}` : `+${amount}`;
+
+    // 直接返回金额，不添加正负号（通过CSS颜色区分支出和收入）
+    return formatNumber(amount);
   };
   
   const displayAmount = getDisplayAmount();
