@@ -56,11 +56,13 @@ interface BudgetDisplay {
 function BudgetSelector({
   budgetId,
   setBudgetId,
-  transactionDate
+  transactionDate,
+  isEditMode = false
 }: {
   budgetId: string;
   setBudgetId: (id: string) => void;
   transactionDate: string;
+  isEditMode?: boolean;
 }) {
   const { currentAccountBook } = useAccountBookStore();
   const { user: currentUser } = useAuthStore();
@@ -69,6 +71,7 @@ function BudgetSelector({
   const [hasInitialized, setHasInitialized] = useState(false);
   const [dateBudgets, setDateBudgets] = useState<BudgetDisplay[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [originalBudgetId, setOriginalBudgetId] = useState<string>('');
 
   // 根据日期获取预算数据 - 使用与添加记账页面相同的API
   const fetchBudgetsByDate = useCallback(async (transactionDate: string, accountBookId: string) => {
@@ -118,27 +121,47 @@ function BudgetSelector({
     }
   }, []);
 
+  // 记录初始的budgetId（编辑模式下保持原始预算）
+  useEffect(() => {
+    if (isEditMode && budgetId && !originalBudgetId) {
+      console.log('编辑模式：记录原始预算ID:', budgetId);
+      setOriginalBudgetId(budgetId);
+    }
+  }, [budgetId, isEditMode, originalBudgetId]);
+
   // 监听日期和账本变化，重新获取预算
   useEffect(() => {
     if (transactionDate && currentAccountBook?.id) {
       console.log('日期或账本变化，重新获取预算:', { transactionDate, accountBookId: currentAccountBook.id });
       fetchBudgetsByDate(transactionDate, currentAccountBook.id);
-      // 重置已初始化状态和选中的预算
-      setHasInitialized(false);
-      setSelectedBudget(null);
-      setBudgetId('');
+
+      // 编辑模式下不重置预算选择，保持原始预算
+      if (!isEditMode) {
+        setHasInitialized(false);
+        setSelectedBudget(null);
+        setBudgetId('');
+      } else {
+        console.log('编辑模式：保持原始预算选择，不重置');
+        setHasInitialized(false);
+        setSelectedBudget(null);
+        // 不重置budgetId，保持原始值
+      }
     }
-  }, [transactionDate, currentAccountBook?.id, fetchBudgetsByDate, setBudgetId]);
+  }, [transactionDate, currentAccountBook?.id, fetchBudgetsByDate, setBudgetId, isEditMode]);
 
   // 使用日期获取的预算数据
   const formattedBudgets: BudgetDisplay[] = dateBudgets;
 
   // 智能推荐预算的逻辑 - 在编辑模式下禁用
   const selectRecommendedBudget = useCallback(() => {
-    // 编辑模式不执行智能推荐逻辑
-    console.log('编辑模式：跳过智能推荐预算逻辑');
-    return;
-  }, []);
+    if (isEditMode) {
+      console.log('编辑模式：跳过智能推荐预算逻辑');
+      return;
+    }
+
+    // 新增模式下的智能推荐逻辑可以在这里实现
+    console.log('新增模式：可以执行智能推荐预算逻辑');
+  }, [isEditMode]);
 
   // 当日期预算数据加载完成后，智能推荐预算
   useEffect(() => {
@@ -150,10 +173,13 @@ function BudgetSelector({
     if (budgetId && formattedBudgets.length > 0 && !selectedBudget) {
       const budget = formattedBudgets.find((b) => b.id === budgetId);
       if (budget) {
+        console.log(`找到匹配的预算: ${budget.id} - ${budget.name}`, { isEditMode });
         setSelectedBudget(budget);
+      } else if (isEditMode && budgetId) {
+        console.warn(`编辑模式：未在当前日期预算列表中找到原始预算 ${budgetId}`);
       }
     }
-  }, [budgetId, formattedBudgets, selectedBudget]);
+  }, [budgetId, formattedBudgets, selectedBudget, isEditMode]);
 
   // 处理预算选择
   const handleBudgetSelect = (budget: BudgetDisplay) => {
@@ -220,8 +246,13 @@ function BudgetSelector({
     return '未知周期';
   };
 
-  // 判断预算是否推荐
+  // 判断预算是否推荐 - 编辑模式下不显示推荐标签
   const isRecommendedBudget = (budget: BudgetDisplay) => {
+    // 编辑模式下不显示推荐标签
+    if (isEditMode) {
+      return false;
+    }
+
     // 优先推荐与当前用户匹配的个人预算
     if (budget.familyMemberName === currentUser?.name && budget.budgetType === 'PERSONAL') {
       return true;
@@ -1384,6 +1415,7 @@ export default function TransactionEditModal({
                         budgetId={budgetId}
                         setBudgetId={setBudgetId}
                         transactionDate={formData.date || ''}
+                        isEditMode={true}
                       />
                     </div>
                   )}
