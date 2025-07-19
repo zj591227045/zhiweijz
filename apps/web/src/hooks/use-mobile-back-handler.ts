@@ -166,13 +166,23 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
 
     const handlePopState = (event: PopStateEvent) => {
       console.log('📱 [BackHandler] 浏览器历史后退触发:', event);
-      
+
+      // 检查当前路径，如果是认证相关路径或根路径，不拦截
+      const currentPath = window.location.pathname;
+      const isAuthPath = currentPath.startsWith('/auth/');
+      const isRootPath = currentPath === '/';
+
+      if (isAuthPath || isRootPath) {
+        console.log('📱 [BackHandler] 认证/根路径，允许默认历史行为:', currentPath);
+        return; // 不阻止默认行为，允许正常的路由跳转
+      }
+
       if (preventDefault) {
         event.preventDefault();
-        
+
         const handled = handleBack();
         console.log('📱 [BackHandler] 浏览器后退处理结果:', handled);
-        
+
         if (!handled) {
           // 如果没有处理成功，恢复历史状态
           console.log('📱 [BackHandler] 恢复历史状态');
@@ -181,10 +191,18 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
       }
     };
 
-    // 添加一个历史状态，用于拦截后退
-    window.history.pushState(null, '', window.location.href);
-    window.addEventListener('popstate', handlePopState);
+    // 只在非认证页面添加历史状态拦截
+    const currentPath = window.location.pathname;
+    const isAuthPath = currentPath.startsWith('/auth/');
+    const isRootPath = currentPath === '/';
 
+    if (!isAuthPath && !isRootPath) {
+      // 添加一个历史状态，用于拦截后退
+      window.history.pushState(null, '', window.location.href);
+      console.log('📱 [BackHandler] 为非认证页面添加历史状态拦截');
+    }
+
+    window.addEventListener('popstate', handlePopState);
     console.log('📱 [BackHandler] 注册浏览器历史监听器');
 
     return () => {
