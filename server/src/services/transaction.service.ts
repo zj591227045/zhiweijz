@@ -377,10 +377,8 @@ export class TransactionService {
       throw new Error('记账记录不存在');
     }
 
-    // 验证权限
-    if (transaction.userId !== userId && !transaction.familyId) {
-      throw new Error('无权访问此记账记录');
-    }
+    // 验证权限 - 检查用户是否有权限访问此记账记录
+    await this.checkTransactionPermission(userId, id);
 
     return toTransactionResponseDto(
       transaction,
@@ -402,10 +400,8 @@ export class TransactionService {
       throw new Error('记账记录不存在');
     }
 
-    // 验证权限
-    if (transaction.userId !== userId && !transaction.familyId) {
-      throw new Error('无权修改此记账记录');
-    }
+    // 验证权限 - 检查用户是否有权限修改此记账记录
+    await this.checkTransactionPermission(userId, id);
 
     // 如果更新了分类，验证分类是否存在
     if (transactionData.categoryId) {
@@ -579,10 +575,8 @@ export class TransactionService {
       throw new Error('记账记录不存在');
     }
 
-    // 验证权限
-    if (transaction.userId !== userId && !transaction.familyId) {
-      throw new Error('无权删除此记账记录');
-    }
+    // 验证权限 - 检查用户是否有权限删除此记账记录
+    await this.checkTransactionPermission(userId, id);
 
     // 删除记账记录
     await this.transactionRepository.delete(id);
@@ -850,11 +844,14 @@ export class TransactionService {
    */
   async getTransactionAttachments(transactionId: string, userId: string) {
     try {
-      // 验证记账是否属于当前用户
+      // 验证记账是否属于当前用户或用户有权限访问
       const transaction = await this.transactionRepository.findById(transactionId);
-      if (!transaction || transaction.userId !== userId) {
-        throw new Error('记账不存在或无权限访问');
+      if (!transaction) {
+        throw new Error('记账不存在');
       }
+
+      // 检查用户是否有权限访问此记账记录
+      await this.checkTransactionPermission(userId, transactionId);
 
       // 获取附件列表
       const attachments = await this.attachmentRepository.findByTransactionId(transactionId);
@@ -891,10 +888,8 @@ export class TransactionService {
       }
 
       const attachment = attachments[0];
-      // 验证权限
-      if (attachment.transaction.userId !== userId) {
-        throw new Error('无权限删除此附件');
-      }
+      // 验证权限 - 检查用户是否有权限删除此记账记录的附件
+      await this.checkTransactionPermission(userId, attachment.transactionId);
 
       // 删除附件关联
       await this.attachmentRepository.delete(attachment.id);
@@ -903,6 +898,38 @@ export class TransactionService {
     } catch (error) {
       console.error('删除记账附件失败:', error);
       throw error;
+    }
+  }
+
+  /**
+   * 检查记账记录权限
+   */
+  private async checkTransactionPermission(userId: string, transactionId: string): Promise<void> {
+    const transaction = await prisma.transaction.findFirst({
+      where: {
+        id: transactionId,
+        OR: [
+          { userId }, // 用户自己创建的记录
+          {
+            accountBook: {
+              OR: [
+                { userId }, // 用户自己的账本
+                {
+                  family: {
+                    members: {
+                      some: { userId }, // 用户是家庭成员
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    });
+
+    if (!transaction) {
+      throw new Error('记账不存在或无权限访问');
     }
   }
 }
