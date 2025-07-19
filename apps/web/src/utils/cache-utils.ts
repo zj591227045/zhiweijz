@@ -139,7 +139,7 @@ export function clearAuthCache(): void {
 export function redirectToLogin(delay: number = 500): void {
   if (typeof window !== 'undefined') {
     setTimeout(() => {
-      window.location.href = '/login';
+      window.location.href = '/auth/login';
     }, delay);
   }
 }
