@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { TransactionType } from '@/types';
+import { haptic } from '@/utils/haptic-feedback';
 
 interface AddCategoryButtonProps {
   type: TransactionType;
@@ -12,6 +13,7 @@ export function AddCategoryButton({ type }: AddCategoryButtonProps) {
 
   // 处理添加分类
   const handleAddCategory = () => {
+    haptic.light(); // 轻微震动反馈
     router.push(`/settings/categories/new?type=${type}`);
   };
 

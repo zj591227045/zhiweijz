@@ -138,23 +138,25 @@ function executeWebVibration(pattern: HapticPattern): boolean {
  * @returns Promise<boolean> 是否成功执行震动
  */
 export async function triggerHapticFeedback(
-  type: HapticType, 
+  type: HapticType,
   force: boolean = false
 ): Promise<boolean> {
+  console.log('🔊 [Haptic] 开始执行震动反馈:', type);
+
   // 检查用户是否禁用了震动（可以从设置中读取）
   if (!force) {
     // TODO: 从用户设置中读取震动开关状态
     // const hapticEnabled = getUserSetting('hapticEnabled', true);
     // if (!hapticEnabled) return false;
   }
-  
+
   const pattern = HAPTIC_PATTERNS[type];
   if (!pattern) {
     console.warn('🔊 [Haptic] 未知的震动类型:', type);
     return false;
   }
-  
-  console.log('🔊 [Haptic] 执行震动反馈:', type);
+
+  console.log('🔊 [Haptic] 执行震动反馈:', type, '模式:', pattern);
   
   // 优先使用Capacitor Haptics（原生体验更好）
   if (isCapacitorHapticsAvailable()) {

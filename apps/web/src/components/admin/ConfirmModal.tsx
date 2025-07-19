@@ -1,6 +1,7 @@
 'use client';
 
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { haptic } from '@/utils/haptic-feedback';
 
 interface ConfirmModalProps {
   title: string;
@@ -51,16 +52,26 @@ export function ConfirmModal({
           {/* 按钮 */}
           <div className="flex justify-end gap-3">
             <button
-              onClick={onCancel}
+              onClick={() => {
+                haptic.light(); // 取消按钮轻微震动
+                onCancel();
+              }}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               {cancelText}
             </button>
             <button
-              onClick={onConfirm}
+              onClick={() => {
+                if (type === 'danger') {
+                  haptic.error(); // 危险操作错误震动
+                } else {
+                  haptic.warning(); // 警告操作警告震动
+                }
+                onConfirm();
+              }}
               className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
-                type === 'danger' 
-                  ? 'bg-red-600 hover:bg-red-700' 
+                type === 'danger'
+                  ? 'bg-red-600 hover:bg-red-700'
                   : 'bg-yellow-600 hover:bg-yellow-700'
               }`}
             >

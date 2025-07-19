@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
 import { useDashboardStore } from '@/store/dashboard-store';
+import { haptic } from '@/utils/haptic-feedback';
 import '@/styles/smart-accounting-dialog.css';
 
 interface SmartAccountingDialogProps {
@@ -894,8 +895,22 @@ export function SmartAccountingDialog({
 
   // 处理手动记账
   const handleManualAccounting = () => {
-    onClose();
-    router.push('/transactions/new');
+    console.log('🔄 [ManualAccounting] 手动记账按钮被点击 (原始版本)');
+
+    try {
+      haptic.light(); // 手动记账按钮震动反馈
+      console.log('🔄 [ManualAccounting] 震动反馈已触发');
+
+      onClose();
+      console.log('🔄 [ManualAccounting] 模态框已关闭');
+
+      console.log('🔄 [ManualAccounting] 准备跳转到 /transactions/new');
+      router.push('/transactions/new');
+      console.log('🔄 [ManualAccounting] 路由跳转已执行');
+    } catch (error) {
+      console.error('🔄 [ManualAccounting] 手动记账处理失败:', error);
+      toast.error('跳转失败，请重试');
+    }
   };
 
   if (!isOpen) return null;
@@ -987,7 +1002,19 @@ export function SmartAccountingDialog({
               </div>
 
               <div className="smart-accounting-manual-wrapper">
-                <button className="smart-accounting-manual-button" onClick={handleManualAccounting}>
+                <button
+                  className="smart-accounting-manual-button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔄 [ManualAccounting] 按钮点击事件触发 (原始版本)');
+                    handleManualAccounting();
+                  }}
+                  style={{
+                    pointerEvents: 'auto', // 确保点击事件可以触发
+                    zIndex: 1 // 确保按钮在最上层
+                  }}
+                >
                   手动记账
                 </button>
               </div>

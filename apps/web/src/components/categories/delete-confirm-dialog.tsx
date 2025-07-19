@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Category } from '@/types';
 import { useCategoryStore } from '@/store/category-store';
 import { toast } from 'sonner';
+import { haptic } from '@/utils/haptic-feedback';
 
 interface DeleteConfirmDialogProps {
   category: Category;
@@ -95,7 +96,14 @@ export function DeleteConfirmDialog({
           </p>
         </div>
         <div className="dialog-footer">
-          <button className="dialog-cancel" onClick={onClose} disabled={isDeleting}>
+          <button
+            className="dialog-cancel"
+            onClick={() => {
+              haptic.light(); // 取消按钮轻微震动
+              onClose();
+            }}
+            disabled={isDeleting}
+          >
             取消
           </button>
           <button
@@ -106,7 +114,17 @@ export function DeleteConfirmDialog({
                   ? 'warning'
                   : 'danger'
             }`}
-            onClick={handleAction}
+            onClick={() => {
+              // 根据操作类型选择不同的震动反馈
+              if (isShowingHidden && category.isHidden) {
+                haptic.success(); // 显示操作成功震动
+              } else if (category.isDefault) {
+                haptic.warning(); // 隐藏操作警告震动
+              } else {
+                haptic.error(); // 删除操作错误震动（强烈警告）
+              }
+              handleAction();
+            }}
             disabled={isDeleting}
           >
             {isDeleting ? (

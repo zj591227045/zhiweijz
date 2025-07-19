@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { haptic } from '@/utils/haptic-feedback';
 
 interface NumericKeyboardProps {
   onInput: (value: string) => void;
@@ -19,31 +20,37 @@ export function NumericKeyboard({ onInput, onDelete, onComplete }: NumericKeyboa
 
   // 处理数字按钮点击
   const handleNumberClick = (number: string) => {
+    haptic.light(); // 数字按键轻微震动
     onInput(number);
   };
 
   // 处理删除按钮点击
   const handleDeleteClick = () => {
+    haptic.light(); // 删除按键轻微震动
     onDelete();
   };
 
   // 处理完成按钮点击
   const handleCompleteClick = () => {
+    haptic.medium(); // 完成按键中等震动
     onComplete();
   };
 
   // 处理加号按钮点击
   const handlePlusClick = () => {
+    haptic.light(); // 运算符按键轻微震动
     onInput('+');
   };
 
   // 处理减号按钮点击
   const handleMinusClick = () => {
+    haptic.light(); // 运算符按键轻微震动
     onInput('-');
   };
 
   // 处理等号按钮点击
   const handleEqualsClick = () => {
+    haptic.light(); // 等号按键轻微震动
     // 发送等号，让输入组件处理计算逻辑
     onInput('=');
   };

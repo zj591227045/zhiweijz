@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAccountingPointsStore } from '../../store/accounting-points-store';
 import { toast } from 'react-hot-toast';
+import { haptic } from '@/utils/haptic-feedback';
 
 interface CheckinButtonProps {
   className?: string;
@@ -36,11 +37,16 @@ export const CheckinButton: React.FC<CheckinButtonProps> = ({
       return;
     }
 
+    // 立即触发震动反馈
+    haptic.medium();
+
     setIsCheckinLoading(true);
     try {
       const result = await checkin();
+      haptic.success(); // 签到成功震动
       toast.success(`${result.message} 获得 ${result.pointsAwarded} 记账点！`);
     } catch (error) {
+      haptic.error(); // 签到失败震动
       toast.error(error instanceof Error ? error.message : '签到失败');
     } finally {
       setIsCheckinLoading(false);

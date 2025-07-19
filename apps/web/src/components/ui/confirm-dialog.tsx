@@ -3,6 +3,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, Trash2 } from 'lucide-react';
+import { haptic } from '@/utils/haptic-feedback';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -67,14 +68,24 @@ export function ConfirmDialog({
         {/* 按钮区域 */}
         <div className="flex gap-3 p-6 pt-0">
           <button
-            onClick={onCancel}
+            onClick={() => {
+              haptic.light(); // 取消按钮轻微震动
+              onCancel();
+            }}
             disabled={loading}
             className="flex-1 px-4 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {cancelText}
           </button>
           <button
-            onClick={onConfirm}
+            onClick={() => {
+              if (isDangerous) {
+                haptic.warning(); // 危险操作警告震动
+              } else {
+                haptic.medium(); // 确认操作中等震动
+              }
+              onConfirm();
+            }}
             disabled={loading}
             className={cn(
               "flex-1 px-4 py-2.5 text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed",

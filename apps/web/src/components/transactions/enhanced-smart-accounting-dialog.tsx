@@ -60,7 +60,7 @@ import {
   RECORDING_STATE_ICONS,
   RECORDING_STATE_COLORS
 } from '@/types/recording-state';
-import { recordingHaptics } from '@/utils/haptic-feedback';
+import { recordingHaptics, triggerHapticFeedback, HapticType } from '@/utils/haptic-feedback';
 import { useModalBackHandler } from '@/hooks/use-mobile-back-handler';
 import '@/styles/smart-accounting-dialog.css';
 
@@ -145,6 +145,25 @@ export default function EnhancedSmartAccountingDialog({
 
   // 移动端后退处理
   const { handleBack } = useModalBackHandler('smart-accounting-dialog', onClose);
+
+  // 安全的震动反馈调用
+  const safeHapticFeedback = (type: keyof typeof recordingHaptics) => {
+    console.log('🔊 [SafeHaptic] 尝试执行震动反馈:', type);
+    try {
+      if (recordingHaptics && typeof recordingHaptics[type] === 'function') {
+        console.log('🔊 [SafeHaptic] 震动反馈方法可用，开始执行');
+        recordingHaptics[type]();
+        console.log('🔊 [SafeHaptic] 震动反馈执行完成');
+      } else {
+        console.warn('🔊 [SafeHaptic] 震动反馈方法不可用:', type, {
+          recordingHaptics: !!recordingHaptics,
+          methodType: typeof recordingHaptics?.[type]
+        });
+      }
+    } catch (error) {
+      console.error('🔊 [SafeHaptic] 震动反馈执行失败:', error);
+    }
+  };
 
   // 录音状态管理器监听器
   useEffect(() => {
@@ -389,7 +408,7 @@ export default function EnhancedSmartAccountingDialog({
     }
 
     // 立即触发震动反馈和UI状态更新
-    recordingHaptics.start();
+    safeHapticFeedback('start');
     stateManager.transition(RecordingState.PREPARING);
 
     try {
@@ -411,7 +430,7 @@ export default function EnhancedSmartAccountingDialog({
 
         // 设置错误状态
         stateManager.setError(RecordingErrorType.PERMISSION_DENIED);
-        recordingHaptics.error();
+        safeHapticFeedback('error');
 
         // 检查当前环境
         const isAndroid = typeof window !== 'undefined' &&
@@ -460,7 +479,7 @@ export default function EnhancedSmartAccountingDialog({
 
       // 设备初始化完成，转换到录音状态
       stateManager.transition(RecordingState.RECORDING);
-      recordingHaptics.medium(); // 录音开始的震动反馈
+      safeHapticFeedback('start'); // 录音开始的震动反馈
 
       // 添加超时保护
       const recordingTimeout = setTimeout(() => {
@@ -507,12 +526,12 @@ export default function EnhancedSmartAccountingDialog({
         if (recordingCancelledRef.current) {
           // 录音被取消
           stateManager.transition(RecordingState.CANCELLED);
-          recordingHaptics.cancel();
+          safeHapticFeedback('cancel');
           setTimeout(() => stateManager.reset(), 1500);
         } else if (currentChunks && currentChunks.length > 0) {
           // 录音完成，开始处理
           stateManager.transition(RecordingState.PROCESSING);
-          recordingHaptics.stop();
+          safeHapticFeedback('stop');
 
           console.log('🎤 [MediaRecorder] 开始语音识别，音频块数:', currentChunks.length, '手势类型:', currentGestureType);
           const audioBlob = new Blob(currentChunks, { type: currentChunks[0]?.type || 'audio/webm' });
@@ -520,7 +539,7 @@ export default function EnhancedSmartAccountingDialog({
         } else {
           // 没有录音数据
           stateManager.setError(RecordingErrorType.RECORDING_FAILED);
-          recordingHaptics.error();
+          safeHapticFeedback('error');
           setTimeout(() => stateManager.reset(), 2000);
         }
 
@@ -540,7 +559,7 @@ export default function EnhancedSmartAccountingDialog({
 
         // 设置错误状态
         stateManager.setError(RecordingErrorType.RECORDING_FAILED);
-        recordingHaptics.error();
+        safeHapticFeedback('error');
 
         showError(createError(
           MultimodalErrorType.RECORDING_FAILED,
@@ -569,7 +588,7 @@ export default function EnhancedSmartAccountingDialog({
 
       // 设置错误状态
       stateManager.setError(RecordingErrorType.INITIALIZATION_FAILED);
-      recordingHaptics.error();
+      safeHapticFeedback('error');
 
       // 确保状态重置
       setMediaRecorder(null);
@@ -643,7 +662,7 @@ export default function EnhancedSmartAccountingDialog({
     console.log('🎤 [TouchStart] 触摸开始');
 
     // 立即触发触觉反馈
-    recordingHaptics.touch();
+    safeHapticFeedback('touch');
 
     const touch = e.touches[0];
     const startPos = { x: touch.clientX, y: touch.clientY };
@@ -794,7 +813,7 @@ export default function EnhancedSmartAccountingDialog({
     console.log('🎤 [MouseDown] 鼠标按下');
 
     // 立即触发触觉反馈
-    recordingHaptics.touch();
+    safeHapticFeedback('touch');
 
     setTouchStartPos({ x: e.clientX, y: e.clientY });
     setIsButtonTouched(true);
@@ -969,7 +988,7 @@ export default function EnhancedSmartAccountingDialog({
               // 更新录音状态为完成
               const stateManager = recordingStateManagerRef.current;
               stateManager.transition(RecordingState.COMPLETED);
-              recordingHaptics.success();
+              safeHapticFeedback('success');
 
               // 刷新仪表盘数据
               if (accountBookId) {
@@ -993,7 +1012,7 @@ export default function EnhancedSmartAccountingDialog({
               // 设置错误状态
               const stateManager = recordingStateManagerRef.current;
               stateManager.setError(RecordingErrorType.PROCESSING_FAILED);
-              recordingHaptics.error();
+              safeHapticFeedback('error');
               setTimeout(() => stateManager.reset(), 2000);
             }
           } catch (error: any) {
@@ -1019,7 +1038,7 @@ export default function EnhancedSmartAccountingDialog({
             // 设置错误状态
             const stateManager = recordingStateManagerRef.current;
             stateManager.setError(RecordingErrorType.PROCESSING_FAILED);
-            recordingHaptics.error();
+            safeHapticFeedback('error');
             setTimeout(() => stateManager.reset(), 2000);
           }
         }
@@ -1027,7 +1046,7 @@ export default function EnhancedSmartAccountingDialog({
         // 语音识别失败
         const stateManager = recordingStateManagerRef.current;
         stateManager.setError(RecordingErrorType.PROCESSING_FAILED);
-        recordingHaptics.error();
+        safeHapticFeedback('error');
 
         showError(createError(
           MultimodalErrorType.RECOGNITION_FAILED,
@@ -1042,7 +1061,7 @@ export default function EnhancedSmartAccountingDialog({
       // 设置错误状态
       const stateManager = recordingStateManagerRef.current;
       stateManager.setError(RecordingErrorType.PROCESSING_FAILED);
-      recordingHaptics.error();
+      safeHapticFeedback('error');
 
       showError(error);
       setTimeout(() => stateManager.reset(), 2000);
@@ -1075,6 +1094,7 @@ export default function EnhancedSmartAccountingDialog({
       
       if (result && result.file) {
         console.log('🖼️ [ImageRecording] 相册选择成功:', result.source);
+        safeHapticFeedback('success'); // 选择成功震动
         handleImageRecognition(result.file);
       } else {
         console.log('🖼️ [ImageRecording] 用户取消选择');
@@ -1093,6 +1113,7 @@ export default function EnhancedSmartAccountingDialog({
         }
       }
       
+      safeHapticFeedback('error'); // 错误震动
       showError(createError(
         MultimodalErrorType.PLATFORM_NOT_SUPPORTED,
         errorMessage
@@ -1124,6 +1145,7 @@ export default function EnhancedSmartAccountingDialog({
       
       if (result && result.file) {
         console.log('📷 [CameraCapture] 拍照成功:', result.source);
+        safeHapticFeedback('success'); // 拍照成功震动
         handleImageRecognition(result.file);
       } else {
         console.log('📷 [CameraCapture] 用户取消拍照');
@@ -1142,6 +1164,7 @@ export default function EnhancedSmartAccountingDialog({
         }
       }
       
+      safeHapticFeedback('error'); // 错误震动
       showError(createError(
         MultimodalErrorType.PLATFORM_NOT_SUPPORTED,
         errorMessage
@@ -1154,7 +1177,10 @@ export default function EnhancedSmartAccountingDialog({
     // 不调用 preventDefault() 来避免 passive event listener 错误
     e.stopPropagation();
     console.log('📷 [TouchStart] 相机按钮触摸开始');
-    
+
+    // 立即触发触觉反馈
+    safeHapticFeedback('touch');
+
     const touch = e.touches[0];
     setCameraTouchStartPos({ x: touch.clientX, y: touch.clientY });
     setIsCameraButtonTouched(true);
@@ -1187,17 +1213,19 @@ export default function EnhancedSmartAccountingDialog({
     e.preventDefault();
     e.stopPropagation();
     console.log('📷 [TouchEnd] 相机按钮触摸结束，手势类型:', cameraGestureType);
-    
+
     setIsCameraButtonTouched(false);
-    
-    // 根据手势类型执行对应操作
+
+    // 根据手势类型执行对应操作并提供震动反馈
     if (cameraGestureType === 'capture') {
+      safeHapticFeedback('start'); // 拍照震动
       handleCameraCapture();
     } else if (cameraGestureType === 'upload') {
+      safeHapticFeedback('start'); // 上传震动
       handleImageRecording();
     }
     // 如果是 'none'，则不执行任何操作（原地松开）
-    
+
     // 重置状态
     setCameraTouchStartPos(null);
     setCameraGestureType('none');
@@ -1208,7 +1236,10 @@ export default function EnhancedSmartAccountingDialog({
     e.preventDefault();
     e.stopPropagation();
     console.log('📷 [MouseDown] 相机按钮鼠标按下');
-    
+
+    // 立即触发触觉反馈
+    safeHapticFeedback('touch');
+
     setCameraTouchStartPos({ x: e.clientX, y: e.clientY });
     setIsCameraButtonTouched(true);
     setCameraGestureType('none');
@@ -1237,16 +1268,18 @@ export default function EnhancedSmartAccountingDialog({
     e.preventDefault();
     e.stopPropagation();
     console.log('📷 [MouseUp] 相机按钮鼠标抬起，手势类型:', cameraGestureType);
-    
+
     setIsCameraButtonTouched(false);
-    
-    // 根据手势类型执行对应操作
+
+    // 根据手势类型执行对应操作并提供震动反馈
     if (cameraGestureType === 'capture') {
+      safeHapticFeedback('start'); // 拍照震动
       handleCameraCapture();
     } else if (cameraGestureType === 'upload') {
+      safeHapticFeedback('start'); // 上传震动
       handleImageRecording();
     }
-    
+
     // 重置状态
     setCameraTouchStartPos(null);
     setCameraGestureType('none');
@@ -1511,8 +1544,22 @@ export default function EnhancedSmartAccountingDialog({
 
   // 手动记账
   const handleManualAccounting = () => {
-    onClose();
-    router.push('/transactions/new');
+    console.log('🔄 [ManualAccounting] 手动记账按钮被点击');
+
+    try {
+      safeHapticFeedback('touch'); // 手动记账按钮震动反馈
+      console.log('🔄 [ManualAccounting] 震动反馈已触发');
+
+      onClose();
+      console.log('🔄 [ManualAccounting] 模态框已关闭');
+
+      console.log('🔄 [ManualAccounting] 准备跳转到 /transactions/new');
+      router.push('/transactions/new');
+      console.log('🔄 [ManualAccounting] 路由跳转已执行');
+    } catch (error) {
+      console.error('🔄 [ManualAccounting] 手动记账处理失败:', error);
+      toast.error('跳转失败，请重试');
+    }
   };
 
   // 清除图片选择
@@ -1967,8 +2014,17 @@ export default function EnhancedSmartAccountingDialog({
                   {/* 手动记账按钮 */}
                   <button
                     className="smart-accounting-manual-button"
-                    onClick={handleManualAccounting}
-                    style={{ flex: 1 }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('🔄 [ManualAccounting] 按钮点击事件触发');
+                      handleManualAccounting();
+                    }}
+                    style={{
+                      flex: 1,
+                      pointerEvents: 'auto', // 确保点击事件可以触发
+                      zIndex: 1 // 确保按钮在最上层
+                    }}
                   >
                     手动记账
                   </button>

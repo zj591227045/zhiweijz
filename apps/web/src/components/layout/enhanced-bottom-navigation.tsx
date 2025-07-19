@@ -9,6 +9,7 @@ import { useAccountBookStore } from '@/store/account-book-store';
 import { useGlobalAIStore } from '@/store/global-ai-store';
 import EnhancedSmartAccountingDialog from '../transactions/enhanced-smart-accounting-dialog';
 import { toast } from 'sonner';
+import { haptic } from '@/utils/haptic-feedback';
 import '@/styles/smart-accounting-dialog.css';
 
 interface EnhancedBottomNavigationProps {
@@ -45,6 +46,9 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
 
   const handleAddButtonClick = (e: React.MouseEvent) => {
     e.preventDefault();
+
+    // 立即触发震动反馈
+    haptic.medium();
 
     console.log('添加按钮点击，全局AI配置:', globalConfig);
 
