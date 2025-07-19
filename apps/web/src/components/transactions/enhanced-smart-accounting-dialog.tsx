@@ -1550,12 +1550,16 @@ export default function EnhancedSmartAccountingDialog({
       safeHapticFeedback('touch'); // 手动记账按钮震动反馈
       console.log('🔄 [ManualAccounting] 震动反馈已触发');
 
+      // 先关闭模态框
       onClose();
       console.log('🔄 [ManualAccounting] 模态框已关闭');
 
-      console.log('🔄 [ManualAccounting] 准备跳转到 /transactions/new');
-      router.push('/transactions/new');
-      console.log('🔄 [ManualAccounting] 路由跳转已执行');
+      // 等待模态框关闭动画完成和导航状态重置后再进行路由跳转
+      setTimeout(() => {
+        console.log('🔄 [ManualAccounting] 准备跳转到 /transactions/new');
+        router.push('/transactions/new');
+        console.log('🔄 [ManualAccounting] 路由跳转已执行');
+      }, 300); // 延迟300ms确保模态框完全关闭
     } catch (error) {
       console.error('🔄 [ManualAccounting] 手动记账处理失败:', error);
       toast.error('跳转失败，请重试');
@@ -2013,6 +2017,7 @@ export default function EnhancedSmartAccountingDialog({
 
                   {/* 手动记账按钮 */}
                   <button
+                    type="button"
                     className="smart-accounting-manual-button"
                     onClick={(e) => {
                       e.preventDefault();
