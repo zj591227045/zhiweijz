@@ -144,12 +144,18 @@ export class AuthController {
       const needsRefresh = shouldRefreshToken(token);
       const remainingTime = getTokenRemainingTime(token);
 
-      res.status(200).json({
-        needsRefresh,
-        remainingTime,
+      // 确保返回的数据格式正确
+      const responseData = {
+        needsRefresh: Boolean(needsRefresh),
+        remainingTime: Number(remainingTime),
         user: req.user
-      });
+      };
+
+      console.log('🔍 Token状态检查响应:', responseData);
+
+      res.status(200).json(responseData);
     } catch (error) {
+      console.error('检查token状态时发生错误:', error);
       res.status(500).json({ message: '检查token状态时发生错误' });
     }
   }

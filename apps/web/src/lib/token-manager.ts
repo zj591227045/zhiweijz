@@ -61,24 +61,60 @@ class TokenManager {
       }
 
       const response = await apiClient.get('/auth/token-status');
-      const status: TokenStatus = response.data;
+
+      // 检查响应数据是否有效（注意：apiClient已经返回了response.data）
+      if (!response) {
+        console.error('❌ Token状态检查响应无效:', response);
+        return;
+      }
+
+      const status: TokenStatus = response;
+
+      // 检查status对象是否包含必要的属性
+      if (typeof status.needsRefresh === 'undefined' || typeof status.remainingTime === 'undefined') {
+        console.error('❌ Token状态响应格式无效:', {
+          status,
+          needsRefreshType: typeof status.needsRefresh,
+          remainingTimeType: typeof status.remainingTime,
+          statusKeys: Object.keys(status || {})
+        });
+        return;
+      }
 
       if (status.needsRefresh) {
         console.log('🔄 Token需要刷新，剩余时间:', status.remainingTime, '秒');
         await this.refreshToken();
       } else {
-        // 计算下次检查时间（剩余时间的一半，但不超过30分钟）
-        const nextCheckTime = Math.min(status.remainingTime * 500, 30 * 60 * 1000);
-        
-        if (this.refreshTimer) {
-          clearTimeout(this.refreshTimer);
+        // 确保remainingTime是有效的数字
+        const remainingTime = Number(status.remainingTime);
+        if (isNaN(remainingTime) || remainingTime <= 0) {
+          console.warn('⚠️ Token剩余时间无效，使用默认检查间隔');
+          // 使用默认的5分钟检查间隔
+          const defaultCheckTime = 5 * 60 * 1000;
+
+          if (this.refreshTimer) {
+            clearTimeout(this.refreshTimer);
+          }
+
+          this.refreshTimer = setTimeout(() => {
+            this.checkTokenStatus();
+          }, defaultCheckTime);
+
+          console.log('✅ Token状态正常（使用默认间隔），下次检查时间: 5分钟后');
+        } else {
+          // 计算下次检查时间（剩余时间的一半，但不超过30分钟）
+          const nextCheckTime = Math.min(remainingTime * 500, 30 * 60 * 1000);
+
+          if (this.refreshTimer) {
+            clearTimeout(this.refreshTimer);
+          }
+
+          this.refreshTimer = setTimeout(() => {
+            this.checkTokenStatus();
+          }, nextCheckTime);
+
+          console.log('✅ Token状态正常，下次检查时间:', Math.round(nextCheckTime / 1000), '秒后');
         }
-        
-        this.refreshTimer = setTimeout(() => {
-          this.checkTokenStatus();
-        }, nextCheckTime);
-        
-        console.log('✅ Token状态正常，下次检查时间:', Math.round(nextCheckTime / 1000), '秒后');
       }
 
       this.notifyListeners(true);
@@ -226,8 +262,29 @@ class TokenManager {
   async getCurrentStatus(): Promise<TokenStatus | null> {
     try {
       const response = await apiClient.get('/auth/token-status');
-      return response.data;
+
+      // 检查响应数据是否有效（注意：apiClient已经返回了response.data）
+      if (!response) {
+        console.error('❌ Token状态检查响应无效:', response);
+        return null;
+      }
+
+      const status = response;
+
+      // 检查status对象是否包含必要的属性
+      if (typeof status.needsRefresh === 'undefined' || typeof status.remainingTime === 'undefined') {
+        console.error('❌ Token状态响应格式无效:', {
+          status,
+          needsRefreshType: typeof status.needsRefresh,
+          remainingTimeType: typeof status.remainingTime,
+          statusKeys: Object.keys(status || {})
+        });
+        return null;
+      }
+
+      return status;
     } catch (error) {
+      console.error('获取token状态失败:', error);
       return null;
     }
   }
