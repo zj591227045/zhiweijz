@@ -23,11 +23,11 @@ interface FamilyBudgetFormProps {
   onLoading: (loading: boolean) => void;
 }
 
-export function FamilyBudgetForm({ 
-  accountBookId, 
-  familyId, 
-  onBudgetsUpdated, 
-  onLoading 
+export function FamilyBudgetForm({
+  accountBookId,
+  familyId,
+  onBudgetsUpdated,
+  onLoading,
 }: FamilyBudgetFormProps) {
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [memberBudgets, setMemberBudgets] = useState<Record<string, number>>({});
@@ -55,7 +55,7 @@ export function FamilyBudgetForm({
       hasInitialized,
       familyId,
       accountBookId,
-      shouldRun: !hasInitialized && familyId && accountBookId
+      shouldRun: !hasInitialized && familyId && accountBookId,
     });
 
     // 防止重复初始化
@@ -63,7 +63,7 @@ export function FamilyBudgetForm({
       console.log('⏭️ [FamilyBudgetForm] Skipping fetchData due to conditions:', {
         hasInitialized,
         familyId: !!familyId,
-        accountBookId: !!accountBookId
+        accountBookId: !!accountBookId,
       });
       return;
     }
@@ -73,7 +73,12 @@ export function FamilyBudgetForm({
         setIsLoading(true);
         onLoading(true);
 
-        console.log('💰 [FamilyBudgetForm] Fetching data for accountBookId:', accountBookId, 'familyId:', familyId);
+        console.log(
+          '💰 [FamilyBudgetForm] Fetching data for accountBookId:',
+          accountBookId,
+          'familyId:',
+          familyId,
+        );
 
         // 1. 获取家庭信息，确定所有家庭成员
         console.log('👥 [FamilyBudgetForm] Fetching family data for familyId:', familyId);
@@ -87,7 +92,7 @@ export function FamilyBudgetForm({
         // 2. 获取该账本下的所有个人预算（budgetType = PERSONAL）
         const budgets = await BudgetApiService.getBudgets({
           accountBookId,
-          budgetType: 'PERSONAL'
+          budgetType: 'PERSONAL',
         });
         setCurrentBudgets(budgets);
         console.log('💰 [FamilyBudgetForm] Personal budgets for account book:', budgets);
@@ -100,8 +105,8 @@ export function FamilyBudgetForm({
         familyData.members.forEach((familyMember: any) => {
           if (familyMember.userId) {
             // 查找该用户在当前账本下的最新个人预算
-            const userBudgets = budgets.filter((budget: any) =>
-              budget.userId === familyMember.userId && !budget.categoryId
+            const userBudgets = budgets.filter(
+              (budget: any) => budget.userId === familyMember.userId && !budget.categoryId,
             );
 
             // 选择最新的预算记录
@@ -116,11 +121,14 @@ export function FamilyBudgetForm({
             const memberInfo = {
               id: memberId,
               userId: familyMember.userId,
-              name: familyMember.name || familyMember.user?.name || `用户${familyMember.userId.slice(-4)}`,
+              name:
+                familyMember.name ||
+                familyMember.user?.name ||
+                `用户${familyMember.userId.slice(-4)}`,
               role: familyMember.role,
               isRegistered: true,
               isCustodial: false,
-              isCurrentUser: familyMember.isCurrentUser
+              isCurrentUser: familyMember.isCurrentUser,
             };
 
             processedMembers.push(memberInfo);
@@ -132,26 +140,30 @@ export function FamilyBudgetForm({
               role: memberInfo.role,
               isCurrentUser: memberInfo.isCurrentUser,
               budgetAmount: memberBudgetMap[memberId],
-              latestBudget: latestBudget ? {
-                id: latestBudget.id,
-                amount: latestBudget.amount,
-                startDate: latestBudget.startDate
-              } : null
+              latestBudget: latestBudget
+                ? {
+                    id: latestBudget.id,
+                    amount: latestBudget.amount,
+                    startDate: latestBudget.startDate,
+                  }
+                : null,
             });
           }
         });
 
         // 处理托管成员（从预算记录中获取）
-        const custodialBudgets = budgets.filter((budget: any) =>
-          budget.familyMemberId && budget.familyMember && !budget.categoryId
+        const custodialBudgets = budgets.filter(
+          (budget: any) => budget.familyMemberId && budget.familyMember && !budget.categoryId,
         );
 
         // 按托管成员ID分组，选择最新的预算
         const custodialBudgetMap = new Map();
         custodialBudgets.forEach((budget: any) => {
           const memberId = budget.familyMemberId;
-          if (!custodialBudgetMap.has(memberId) ||
-              new Date(budget.startDate) > new Date(custodialBudgetMap.get(memberId).startDate)) {
+          if (
+            !custodialBudgetMap.has(memberId) ||
+            new Date(budget.startDate) > new Date(custodialBudgetMap.get(memberId).startDate)
+          ) {
             custodialBudgetMap.set(memberId, budget);
           }
         });
@@ -164,7 +176,7 @@ export function FamilyBudgetForm({
             role: 'member',
             isRegistered: false,
             isCustodial: true,
-            isCurrentUser: false
+            isCurrentUser: false,
           };
 
           processedMembers.push(memberInfo);
@@ -177,8 +189,8 @@ export function FamilyBudgetForm({
             budget: {
               id: budget.id,
               amount: budget.amount,
-              startDate: budget.startDate
-            }
+              startDate: budget.startDate,
+            },
           });
         });
 
@@ -190,7 +202,12 @@ export function FamilyBudgetForm({
         if (currentUserMember) {
           setUserRole(currentUserMember.role === 'ADMIN' ? 'ADMIN' : 'MEMBER');
           setCurrentUser(currentUserMember);
-          console.log('👤 [FamilyBudgetForm] Current user role:', currentUserMember.role, 'Setting userRole to:', currentUserMember.role === 'ADMIN' ? 'ADMIN' : 'MEMBER');
+          console.log(
+            '👤 [FamilyBudgetForm] Current user role:',
+            currentUserMember.role,
+            'Setting userRole to:',
+            currentUserMember.role === 'ADMIN' ? 'ADMIN' : 'MEMBER',
+          );
         }
 
         setMemberBudgets(memberBudgetMap);
@@ -198,14 +215,13 @@ export function FamilyBudgetForm({
         onBudgetsUpdated(memberBudgetMap);
         setHasInitialized(true);
         console.log('💰 [FamilyBudgetForm] Initialized member budgets:', memberBudgetMap);
-
       } catch (error) {
         console.error('❌ [FamilyBudgetForm] Failed to fetch data:', error);
         console.error('❌ [FamilyBudgetForm] Error details:', {
           message: error instanceof Error ? error.message : 'Unknown error',
           stack: error instanceof Error ? error.stack : undefined,
           accountBookId,
-          familyId
+          familyId,
         });
         toast.error('获取家庭数据失败');
       } finally {
@@ -236,7 +252,7 @@ export function FamilyBudgetForm({
 
     if (userRole === 'ADMIN') {
       // 管理员可以为所有成员设置
-      familyMembers.forEach(member => {
+      familyMembers.forEach((member) => {
         newBudgets[member.id] = amount;
       });
     } else if (currentUser) {
@@ -253,22 +269,27 @@ export function FamilyBudgetForm({
     console.log('🔍 [FamilyBudgetForm] getEditableMembers called with:', {
       userRole,
       familyMembersLength: familyMembers.length,
-      familyMembers: familyMembers.map(m => ({
+      familyMembers: familyMembers.map((m) => ({
         id: m.id,
         name: m.name,
         role: m.role,
         isCustodial: m.isCustodial,
-        isCurrentUser: m.isCurrentUser
+        isCurrentUser: m.isCurrentUser,
       })),
-      currentUser: currentUser ? {
-        id: currentUser.id,
-        name: currentUser.name,
-        role: currentUser.role
-      } : null
+      currentUser: currentUser
+        ? {
+            id: currentUser.id,
+            name: currentUser.name,
+            role: currentUser.role,
+          }
+        : null,
     });
 
     if (userRole === 'ADMIN') {
-      console.log('🔍 [FamilyBudgetForm] Admin user, returning all family members:', familyMembers.length);
+      console.log(
+        '🔍 [FamilyBudgetForm] Admin user, returning all family members:',
+        familyMembers.length,
+      );
       return familyMembers;
     } else if (currentUser) {
       console.log('🔍 [FamilyBudgetForm] Regular user, returning only current user');
@@ -277,7 +298,11 @@ export function FamilyBudgetForm({
     console.log('🔍 [FamilyBudgetForm] No role or user, returning empty array');
     return [];
   }, [userRole, familyMembers, currentUser]);
-  console.log('🔍 [FamilyBudgetForm] Final editable members:', editableMembers.length, editableMembers);
+  console.log(
+    '🔍 [FamilyBudgetForm] Final editable members:',
+    editableMembers.length,
+    editableMembers,
+  );
 
   if (isLoading) {
     return (
@@ -297,8 +322,7 @@ export function FamilyBudgetForm({
         <div className={styles['family-budget-description']}>
           {userRole === 'ADMIN'
             ? '作为管理员，您可以为每位家庭成员设置月度预算金额'
-            : '设置您的月度预算金额'
-          }
+            : '设置您的月度预算金额'}
         </div>
       </div>
 
@@ -307,7 +331,7 @@ export function FamilyBudgetForm({
         <div className={styles['batch-budget-section']}>
           <div className={styles['batch-budget-title']}>快速批量设置</div>
           <div className={styles['batch-budget-buttons']}>
-            {[1000, 2000, 3000, 5000].map(amount => (
+            {[1000, 2000, 3000, 5000].map((amount) => (
               <button
                 key={amount}
                 className={styles['batch-budget-button']}
@@ -327,13 +351,13 @@ export function FamilyBudgetForm({
           let existingBudget;
           if (member.isCustodial) {
             // 托管成员：通过 familyMemberId 查找
-            existingBudget = currentBudgets.find(budget =>
-              budget.familyMemberId === member.id && !budget.categoryId
+            existingBudget = currentBudgets.find(
+              (budget) => budget.familyMemberId === member.id && !budget.categoryId,
             );
           } else if (member.userId) {
             // 注册用户：通过 userId 查找
-            existingBudget = currentBudgets.find(budget =>
-              budget.userId === member.userId && !budget.categoryId
+            existingBudget = currentBudgets.find(
+              (budget) => budget.userId === member.userId && !budget.categoryId,
             );
           }
 
@@ -342,18 +366,16 @@ export function FamilyBudgetForm({
               <div className={styles['member-info']}>
                 <div className={styles['member-name']}>
                   {member.name}
-                  {member.isCurrentUser && <span className={styles['current-user-badge']}>（您）</span>}
+                  {member.isCurrentUser && (
+                    <span className={styles['current-user-badge']}>（您）</span>
+                  )}
                 </div>
                 <div className={styles['member-details']}>
                   <span className={styles['member-role']}>
                     {member.role === 'admin' ? '管理员' : '成员'}
                   </span>
-                  {member.isCustodial && (
-                    <span className={styles['member-type']}>托管成员</span>
-                  )}
-                  {!member.isRegistered && (
-                    <span className={styles['member-status']}>未注册</span>
-                  )}
+                  {member.isCustodial && <span className={styles['member-type']}>托管成员</span>}
+                  {!member.isRegistered && <span className={styles['member-status']}>未注册</span>}
                 </div>
               </div>
 
@@ -396,7 +418,8 @@ export function FamilyBudgetForm({
           <div className={styles['summary-item']}>
             <span className={styles['summary-label']}>设置成员数：</span>
             <span className={styles['summary-value']}>
-              {Object.values(memberBudgets).filter(amount => amount > 0).length} / {editableMembers.length}
+              {Object.values(memberBudgets).filter((amount) => amount > 0).length} /{' '}
+              {editableMembers.length}
             </span>
           </div>
           <div className={styles['summary-item']}>

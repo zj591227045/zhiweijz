@@ -69,7 +69,7 @@ if (process.env.NODE_ENV === 'development') {
   // 将调试工具挂载到 window 对象
   if (typeof window !== 'undefined') {
     window.__DEBUG_AUTH__ = debugAuth;
-    
+
     // 在控制台输出调试工具说明
     console.log('🔧 认证调试工具已加载');
     console.log('可用命令:');
@@ -80,4 +80,4 @@ if (process.env.NODE_ENV === 'development') {
   }
 }
 
-export {}; 
+export {};

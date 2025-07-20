@@ -8,9 +8,9 @@ import { subscribeWithSelector } from 'zustand/middleware';
 
 // 页面层级定义
 export enum PageLevel {
-  DASHBOARD = 0,    // 仪表盘页面（根页面）
-  FEATURE = 1,      // 功能页面（设置、记录列表等）
-  MODAL = 2,        // 模态框页面（详情、编辑等）
+  DASHBOARD = 0, // 仪表盘页面（根页面）
+  FEATURE = 1, // 功能页面（设置、记录列表等）
+  MODAL = 2, // 模态框页面（详情、编辑等）
 }
 
 // 页面信息接口
@@ -80,7 +80,7 @@ export const useNavigationStore = create<NavigationState & NavigationActions>()(
     pushPage: (page) => {
       const timestamp = Date.now();
       const newPage: PageInfo = { ...page, timestamp };
-      
+
       set((state) => {
         const newStack = [...state.pageStack, newPage];
         return {
@@ -89,7 +89,7 @@ export const useNavigationStore = create<NavigationState & NavigationActions>()(
           canGoBack: newStack.length > 1 || state.modalStack.length > 0,
         };
       });
-      
+
       console.log('📱 [Navigation] 推入页面:', newPage);
     },
 
@@ -119,12 +119,12 @@ export const useNavigationStore = create<NavigationState & NavigationActions>()(
     pushModal: (modal) => {
       const timestamp = Date.now();
       const newModal: PageInfo = { ...modal, timestamp };
-      
+
       set((state) => ({
         modalStack: [...state.modalStack, newModal],
         canGoBack: true,
       }));
-      
+
       console.log('📱 [Navigation] 推入模态框:', newModal);
     },
 
@@ -154,15 +154,15 @@ export const useNavigationStore = create<NavigationState & NavigationActions>()(
         modalStack: [],
         canGoBack: state.pageStack.length > 1,
       }));
-      
+
       console.log('📱 [Navigation] 清空所有模态框');
     },
 
     // 返回到指定页面
     goToPage: (pageId) => {
       const state = get();
-      const pageIndex = state.pageStack.findIndex(page => page.id === pageId);
-      
+      const pageIndex = state.pageStack.findIndex((page) => page.id === pageId);
+
       if (pageIndex === -1) {
         console.log('📱 [Navigation] 页面不存在:', pageId);
         return;
@@ -184,8 +184,8 @@ export const useNavigationStore = create<NavigationState & NavigationActions>()(
     // 返回到仪表盘
     goToDashboard: () => {
       const state = get();
-      const dashboardPage = state.pageStack.find(page => page.level === PageLevel.DASHBOARD);
-      
+      const dashboardPage = state.pageStack.find((page) => page.level === PageLevel.DASHBOARD);
+
       if (!dashboardPage) {
         console.log('📱 [Navigation] 仪表盘页面不存在');
         return;
@@ -204,19 +204,19 @@ export const useNavigationStore = create<NavigationState & NavigationActions>()(
     // 执行后退操作
     goBack: () => {
       const state = get();
-      
+
       // 优先关闭模态框
       if (state.modalStack.length > 0) {
         get().popModal();
         return true;
       }
-      
+
       // 然后返回上一页面
       if (state.pageStack.length > 1) {
         get().popPage();
         return true;
       }
-      
+
       // 无法后退
       console.log('📱 [Navigation] 无法后退：已在根页面且无模态框');
       return false;
@@ -230,7 +230,7 @@ export const useNavigationStore = create<NavigationState & NavigationActions>()(
         modalStack: [],
         canGoBack: false,
       });
-      
+
       console.log('📱 [Navigation] 重置导航状态');
     },
 
@@ -243,32 +243,34 @@ export const useNavigationStore = create<NavigationState & NavigationActions>()(
     // 获取当前层级
     getCurrentLevel: () => {
       const state = get();
-      
+
       if (state.modalStack.length > 0) {
         return PageLevel.MODAL;
       }
-      
+
       if (state.currentPage) {
         return state.currentPage.level;
       }
-      
+
       return PageLevel.DASHBOARD;
     },
 
     // 检查是否可以退出应用
     canExitApp: () => {
       const state = get();
-      return state.modalStack.length === 0 && 
-             state.pageStack.length <= 1 && 
-             (state.currentPage?.level === PageLevel.DASHBOARD || !state.currentPage);
+      return (
+        state.modalStack.length === 0 &&
+        state.pageStack.length <= 1 &&
+        (state.currentPage?.level === PageLevel.DASHBOARD || !state.currentPage)
+      );
     },
-  }))
+  })),
 );
 
 // 导航工具函数
 export class NavigationManager {
   private static instance: NavigationManager;
-  
+
   static getInstance(): NavigationManager {
     if (!NavigationManager.instance) {
       NavigationManager.instance = new NavigationManager();
@@ -279,11 +281,11 @@ export class NavigationManager {
   // 初始化导航管理器
   initialize() {
     const store = useNavigationStore.getState();
-    
+
     // 检测移动端环境
     const isMobile = this.detectMobileEnvironment();
     store.setMobile(isMobile);
-    
+
     // 初始化仪表盘页面
     if (store.pageStack.length === 0) {
       store.pushPage({
@@ -294,34 +296,34 @@ export class NavigationManager {
         canGoBack: false,
       });
     }
-    
+
     console.log('📱 [NavigationManager] 初始化完成');
   }
 
   // 检测移动端环境
   private detectMobileEnvironment(): boolean {
     if (typeof window === 'undefined') return false;
-    
+
     // 检查是否在Capacitor环境中
     const isCapacitor = !!(window as any).Capacitor;
-    
+
     // 检查用户代理
     const userAgent = navigator.userAgent.toLowerCase();
     const isMobileUA = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent);
-    
+
     return isCapacitor || isMobileUA;
   }
 
   // 处理页面导航
   navigateToPage(pageInfo: Omit<PageInfo, 'timestamp'>) {
     const store = useNavigationStore.getState();
-    
+
     // 如果是同一页面，不重复推入
     if (store.currentPage?.id === pageInfo.id) {
       console.log('📱 [NavigationManager] 跳过重复页面:', pageInfo.id);
       return;
     }
-    
+
     store.pushPage(pageInfo);
   }
 

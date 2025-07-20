@@ -20,7 +20,7 @@ export default function TestOnboardingPage() {
     <PageContainer title="引导测试" showBackButton={true}>
       <div style={{ padding: '20px' }}>
         <h2>引导状态测试</h2>
-        
+
         <div style={{ marginBottom: '20px' }}>
           <h3>当前状态</h3>
           <p>已完成: {isCompleted ? '是' : '否'}</p>

@@ -174,7 +174,7 @@ describe('FamilyBudgetForm', () => {
     // 修改 mock 数据，让李四成为当前用户
     const memberFamilyData = {
       ...mockFamilyData,
-      members: mockFamilyData.members.map(member => ({
+      members: mockFamilyData.members.map((member) => ({
         ...member,
         isCurrentUser: member.id === 'member-2',
       })),

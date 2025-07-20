@@ -92,7 +92,7 @@ export default function FamilyDetailModal({
   isOpen,
   onClose,
   onEdit,
-  onManageMembers
+  onManageMembers,
 }: FamilyDetailModalProps) {
   const router = useRouter();
   const { token, isAuthenticated, user } = useAuthStore();
@@ -106,7 +106,7 @@ export default function FamilyDetailModal({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({
     name: '',
-    description: ''
+    description: '',
   });
   const [isEditSubmitting, setIsEditSubmitting] = useState(false);
 
@@ -119,18 +119,24 @@ export default function FamilyDetailModal({
   const [isAddCustodialDialogOpen, setIsAddCustodialDialogOpen] = useState(false);
   const [isEditCustodialDialogOpen, setIsEditCustodialDialogOpen] = useState(false);
   const [isDeleteCustodialDialogOpen, setIsDeleteCustodialDialogOpen] = useState(false);
-  const [selectedCustodialMember, setSelectedCustodialMember] = useState<CustodialMember | null>(null);
+  const [selectedCustodialMember, setSelectedCustodialMember] = useState<CustodialMember | null>(
+    null,
+  );
   const [custodialFormData, setCustodialFormData] = useState({
     name: '',
     gender: '男',
-    birthDate: ''
+    birthDate: '',
   });
   const [isCustodialSubmitting, setIsCustodialSubmitting] = useState(false);
 
   // 检查用户是否为管理员
-  const isAdmin = family?.creator?.id === user?.id ||
-    family?.members.some(member => (member.userId === user?.id || member.isCurrentUser) && member.role === 'ADMIN') ||
-    family?.userPermissions?.canInvite || false;
+  const isAdmin =
+    family?.creator?.id === user?.id ||
+    family?.members.some(
+      (member) => (member.userId === user?.id || member.isCurrentUser) && member.role === 'ADMIN',
+    ) ||
+    family?.userPermissions?.canInvite ||
+    false;
 
   // 获取家庭详情
   const fetchFamilyDetail = async () => {
@@ -150,38 +156,39 @@ export default function FamilyDetailModal({
       const baseURL = getApiBaseUrl();
 
       // 并行获取家庭详情、成员统计、家庭统计数据和托管成员
-      const [familyResponse, memberStatsResponse, statsResponse, custodialResponse] = await Promise.all([
-        fetch(`${baseURL}/families/${familyId}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        }),
-        fetch(`${baseURL}/families/${familyId}/members/statistics?period=month`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        }),
-        fetch(`${baseURL}/families/${familyId}/statistics?period=month`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        }),
-        fetch(`${baseURL}/families/${familyId}/custodial-members`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        })
-      ]);
+      const [familyResponse, memberStatsResponse, statsResponse, custodialResponse] =
+        await Promise.all([
+          fetch(`${baseURL}/families/${familyId}`, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+          fetch(`${baseURL}/families/${familyId}/members/statistics?period=month`, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+          fetch(`${baseURL}/families/${familyId}/statistics?period=month`, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+          fetch(`${baseURL}/families/${familyId}/custodial-members`, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+        ]);
 
       console.log('📊 API响应状态:', {
         family: familyResponse.status,
         memberStats: memberStatsResponse.status,
         stats: statsResponse.status,
-        custodial: custodialResponse.status
+        custodial: custodialResponse.status,
       });
 
       if (familyResponse.ok) {
@@ -209,7 +216,7 @@ export default function FamilyDetailModal({
         // 初始化编辑表单数据
         setEditFormData({
           name: familyData.name,
-          description: familyData.description || ''
+          description: familyData.description || '',
         });
       } else {
         console.error('❌ 家庭详情API失败:', familyResponse.status);
@@ -311,15 +318,15 @@ export default function FamilyDetailModal({
         '.ios-app .header',
         // 可能的状态栏
         '.status-bar',
-        '.capacitor-status-bar'
+        '.capacitor-status-bar',
       ];
 
       const hiddenElements: HTMLElement[] = [];
 
       // 隐藏所有找到的头部元素
-      selectors.forEach(selector => {
+      selectors.forEach((selector) => {
         const elements = document.querySelectorAll(selector);
-        elements.forEach(element => {
+        elements.forEach((element) => {
           const htmlElement = element as HTMLElement;
           if (htmlElement && htmlElement.style.display !== 'none') {
             htmlElement.style.display = 'none';
@@ -333,12 +340,12 @@ export default function FamilyDetailModal({
         '.bottom-nav',
         '.bottom-navigation',
         '.tab-bar',
-        '.capacitor-tab-bar'
+        '.capacitor-tab-bar',
       ];
 
-      bottomNavSelectors.forEach(selector => {
+      bottomNavSelectors.forEach((selector) => {
         const elements = document.querySelectorAll(selector);
-        elements.forEach(element => {
+        elements.forEach((element) => {
           const htmlElement = element as HTMLElement;
           if (htmlElement && htmlElement.style.display !== 'none') {
             htmlElement.style.display = 'none';
@@ -367,7 +374,7 @@ export default function FamilyDetailModal({
 
       return () => {
         // 恢复所有隐藏的元素
-        hiddenElements.forEach(element => {
+        hiddenElements.forEach((element) => {
           element.style.display = '';
         });
 
@@ -404,7 +411,7 @@ export default function FamilyDetailModal({
             position: header.style.position,
             height: header.style.height,
             offsetHeight: header.offsetHeight,
-            clientHeight: header.clientHeight
+            clientHeight: header.clientHeight,
           });
 
           // 强制确保头部可见
@@ -498,7 +505,7 @@ export default function FamilyDetailModal({
     if (family) {
       setEditFormData({
         name: family.name,
-        description: family.description || ''
+        description: family.description || '',
       });
       setIsEditDialogOpen(true);
     }
@@ -527,7 +534,7 @@ export default function FamilyDetailModal({
         },
         body: JSON.stringify({
           name: editFormData.name.trim(),
-          description: editFormData.description.trim() || undefined
+          description: editFormData.description.trim() || undefined,
         }),
       });
 
@@ -623,7 +630,7 @@ export default function FamilyDetailModal({
     setCustodialFormData({
       name: '',
       gender: '男',
-      birthDate: ''
+      birthDate: '',
     });
   };
 
@@ -651,13 +658,13 @@ export default function FamilyDetailModal({
         body: JSON.stringify({
           name: custodialFormData.name.trim(),
           gender: custodialFormData.gender,
-          birthDate: custodialFormData.birthDate || undefined
+          birthDate: custodialFormData.birthDate || undefined,
         }),
       });
 
       if (response.ok) {
         const newMember = await response.json();
-        setCustodialMembers(prev => [...prev, newMember]);
+        setCustodialMembers((prev) => [...prev, newMember]);
         setIsAddCustodialDialogOpen(false);
         resetCustodialForm();
         toast.success('托管成员添加成功');
@@ -679,7 +686,7 @@ export default function FamilyDetailModal({
     setCustodialFormData({
       name: member.name,
       gender: member.gender || '男',
-      birthDate: member.birthDate || ''
+      birthDate: member.birthDate || '',
     });
     setIsEditCustodialDialogOpen(true);
   };
@@ -699,25 +706,26 @@ export default function FamilyDetailModal({
     setIsCustodialSubmitting(true);
     try {
       const baseURL = getApiBaseUrl();
-      const response = await fetch(`${baseURL}/families/${familyId}/custodial-members/${selectedCustodialMember.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        `${baseURL}/families/${familyId}/custodial-members/${selectedCustodialMember.id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: custodialFormData.name.trim(),
+            gender: custodialFormData.gender,
+            birthDate: custodialFormData.birthDate || undefined,
+          }),
         },
-        body: JSON.stringify({
-          name: custodialFormData.name.trim(),
-          gender: custodialFormData.gender,
-          birthDate: custodialFormData.birthDate || undefined
-        }),
-      });
+      );
 
       if (response.ok) {
         const updatedMember = await response.json();
-        setCustodialMembers(prev =>
-          prev.map(member =>
-            member.id === selectedCustodialMember.id ? updatedMember : member
-          )
+        setCustodialMembers((prev) =>
+          prev.map((member) => (member.id === selectedCustodialMember.id ? updatedMember : member)),
         );
         setIsEditCustodialDialogOpen(false);
         setSelectedCustodialMember(null);
@@ -745,17 +753,20 @@ export default function FamilyDetailModal({
     setIsCustodialSubmitting(true);
     try {
       const baseURL = getApiBaseUrl();
-      const response = await fetch(`${baseURL}/families/${familyId}/custodial-members/${selectedCustodialMember.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        `${baseURL}/families/${familyId}/custodial-members/${selectedCustodialMember.id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       if (response.ok) {
-        setCustodialMembers(prev =>
-          prev.filter(member => member.id !== selectedCustodialMember.id)
+        setCustodialMembers((prev) =>
+          prev.filter((member) => member.id !== selectedCustodialMember.id),
         );
         setIsDeleteCustodialDialogOpen(false);
         setSelectedCustodialMember(null);
@@ -780,7 +791,7 @@ export default function FamilyDetailModal({
     familyId,
     isLoading,
     error,
-    family: !!family
+    family: !!family,
   });
 
   return (
@@ -818,8 +829,9 @@ export default function FamilyDetailModal({
         // iOS Capacitor 特殊处理
         marginTop: 'calc(-1 * env(safe-area-inset-top, 0px))',
         // 确保完全覆盖
-        isolation: 'isolate'
-      }}>
+        isolation: 'isolate',
+      }}
+    >
       <style jsx>{`
         .family-detail-modal-overlay {
           z-index: 9999999 !important;
@@ -919,58 +931,66 @@ export default function FamilyDetailModal({
         }
 
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
         }
       `}</style>
 
       {/* 使用完全相同的应用容器结构 */}
-      <div className="app-container" style={{
-        maxWidth: '100vw',
-        margin: 0,
-        width: '100vw',
-        height: '100vh',
-        minHeight: '100vh',
-        position: 'relative',
-        overflow: 'hidden',
-        left: 0,
-        right: 0,
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
+      <div
+        className="app-container"
+        style={{
+          maxWidth: '100vw',
+          margin: 0,
+          width: '100vw',
+          height: '100vh',
+          minHeight: '100vh',
+          position: 'relative',
+          overflow: 'hidden',
+          left: 0,
+          right: 0,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
         {/* 模态框专用头部 */}
         <div
           className="header family-detail-modal-header"
           data-testid="family-detail-modal-header"
           style={{
-          height: '64px',
-          minHeight: '64px',
-          maxHeight: '64px',
-          display: 'flex !important',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '0 16px',
-          backgroundColor: 'var(--background-color)',
-          borderBottom: '1px solid var(--border-color)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 100001, // 确保头部在最顶层
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          // 确保头部始终可见
-          visibility: 'visible !important',
-          opacity: '1 !important',
-          // 防止被其他元素覆盖
-          isolation: 'isolate',
-          // 强制硬件加速
-          transform: 'translateZ(0)',
-          WebkitTransform: 'translateZ(0)',
-          // 确保宽度
-          width: '100%',
-          boxSizing: 'border-box',
-          // 防止收缩
-          flexShrink: 0
-        }}>
+            height: '64px',
+            minHeight: '64px',
+            maxHeight: '64px',
+            display: 'flex !important',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '0 16px',
+            backgroundColor: 'var(--background-color)',
+            borderBottom: '1px solid var(--border-color)',
+            position: 'sticky',
+            top: 0,
+            zIndex: 100001, // 确保头部在最顶层
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            // 确保头部始终可见
+            visibility: 'visible !important',
+            opacity: '1 !important',
+            // 防止被其他元素覆盖
+            isolation: 'isolate',
+            // 强制硬件加速
+            transform: 'translateZ(0)',
+            WebkitTransform: 'translateZ(0)',
+            // 确保宽度
+            width: '100%',
+            boxSizing: 'border-box',
+            // 防止收缩
+            flexShrink: 0,
+          }}
+        >
           <button
             className="icon-button"
             onClick={onClose}
@@ -986,7 +1006,7 @@ export default function FamilyDetailModal({
               color: 'var(--text-primary)',
               cursor: 'pointer',
               fontSize: '18px',
-              transition: 'background-color 0.2s ease'
+              transition: 'background-color 0.2s ease',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'var(--hover-color, rgba(0, 0, 0, 0.05))';
@@ -997,17 +1017,22 @@ export default function FamilyDetailModal({
           >
             <i className="fas fa-arrow-left"></i>
           </button>
-          <div className="header-title" style={{
-            fontSize: '18px',
-            fontWeight: '600',
-            color: 'var(--text-primary)',
-            textAlign: 'center',
-            flex: 1,
-            margin: '0 8px',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
-          }}>家庭详情</div>
+          <div
+            className="header-title"
+            style={{
+              fontSize: '18px',
+              fontWeight: '600',
+              color: 'var(--text-primary)',
+              textAlign: 'center',
+              flex: 1,
+              margin: '0 8px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            家庭详情
+          </div>
           <button
             className="icon-button"
             style={{
@@ -1022,7 +1047,7 @@ export default function FamilyDetailModal({
               color: 'var(--text-primary)',
               cursor: 'pointer',
               fontSize: '18px',
-              transition: 'background-color 0.2s ease'
+              transition: 'background-color 0.2s ease',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'var(--hover-color, rgba(0, 0, 0, 0.05))';
@@ -1036,81 +1061,107 @@ export default function FamilyDetailModal({
         </div>
 
         {/* 主要内容 */}
-        <div className="main-content" style={{
-          paddingBottom: '20px',
-          overflowY: 'auto',
-          overflowX: 'hidden',
-          flex: 1,
-          width: '100%',
-          maxWidth: '100%',
-          position: 'relative',
-          // 移动端优化
-          WebkitOverflowScrolling: 'touch',
-          // 确保不会覆盖头部
-          marginTop: 0,
-          paddingTop: 0,
-          // 确保内容区域高度正确
-          height: 'calc(100vh - 64px)',
-          maxHeight: 'calc(100vh - 64px)'
-        }}>
+        <div
+          className="main-content"
+          style={{
+            paddingBottom: '20px',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            flex: 1,
+            width: '100%',
+            maxWidth: '100%',
+            position: 'relative',
+            // 移动端优化
+            WebkitOverflowScrolling: 'touch',
+            // 确保不会覆盖头部
+            marginTop: 0,
+            paddingTop: 0,
+            // 确保内容区域高度正确
+            height: 'calc(100vh - 64px)',
+            maxHeight: 'calc(100vh - 64px)',
+          }}
+        >
           {isLoading ? (
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '300px',
-              gap: '16px'
-            }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                border: '4px solid var(--border-color)',
-                borderTop: '4px solid var(--primary-color)',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite'
-              }}></div>
-              <div style={{
-                fontSize: '14px',
-                color: 'var(--text-secondary)',
-                fontWeight: '500'
-              }}>加载中...</div>
-            </div>
-          ) : error || !family ? (
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '300px',
-              textAlign: 'center',
-              padding: '0 20px'
-            }}>
-              <div style={{
-                width: '64px',
-                height: '64px',
-                backgroundColor: '#fee2e2',
-                borderRadius: '50%',
+            <div
+              style={{
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: '16px'
-              }}>
-                <i className="fas fa-exclamation-triangle" style={{
-                  color: '#ef4444',
-                  fontSize: '24px'
-                }}></i>
+                height: '300px',
+                gap: '16px',
+              }}
+            >
+              <div
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  border: '4px solid var(--border-color)',
+                  borderTop: '4px solid var(--primary-color)',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite',
+                }}
+              ></div>
+              <div
+                style={{
+                  fontSize: '14px',
+                  color: 'var(--text-secondary)',
+                  fontWeight: '500',
+                }}
+              >
+                加载中...
               </div>
-              <h2 style={{
-                fontSize: '20px',
-                fontWeight: '600',
-                marginBottom: '8px',
-                color: 'var(--text-primary)'
-              }}>无法加载家庭信息</h2>
-              <p style={{
-                color: 'var(--text-secondary)',
-                marginBottom: '24px'
-              }}>{error || '找不到该家庭或您没有权限访问'}</p>
+            </div>
+          ) : error || !family ? (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '300px',
+                textAlign: 'center',
+                padding: '0 20px',
+              }}
+            >
+              <div
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  backgroundColor: '#fee2e2',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '16px',
+                }}
+              >
+                <i
+                  className="fas fa-exclamation-triangle"
+                  style={{
+                    color: '#ef4444',
+                    fontSize: '24px',
+                  }}
+                ></i>
+              </div>
+              <h2
+                style={{
+                  fontSize: '20px',
+                  fontWeight: '600',
+                  marginBottom: '8px',
+                  color: 'var(--text-primary)',
+                }}
+              >
+                无法加载家庭信息
+              </h2>
+              <p
+                style={{
+                  color: 'var(--text-secondary)',
+                  marginBottom: '24px',
+                }}
+              >
+                {error || '找不到该家庭或您没有权限访问'}
+              </p>
               <button
                 onClick={onClose}
                 style={{
@@ -1121,7 +1172,7 @@ export default function FamilyDetailModal({
                   border: 'none',
                   fontSize: '14px',
                   fontWeight: '500',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
                 }}
               >
                 返回
@@ -1130,72 +1181,93 @@ export default function FamilyDetailModal({
           ) : (
             <div style={{ padding: '0 20px' }}>
               {/* 家庭信息主卡片 */}
-              <div style={{
-                backgroundColor: 'var(--background-color)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '12px',
-                padding: '20px',
-                marginBottom: '20px',
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '16px'
-              }}>
-                {/* 家庭图标 */}
-                <div style={{
-                  width: '60px',
-                  height: '60px',
-                  backgroundColor: 'var(--primary-color)',
-                  borderRadius: '50%',
+              <div
+                style={{
+                  backgroundColor: 'var(--background-color)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  marginBottom: '20px',
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}>
-                  <i className="fas fa-home" style={{
-                    color: 'white',
-                    fontSize: '24px'
-                  }}></i>
+                  alignItems: 'flex-start',
+                  gap: '16px',
+                }}
+              >
+                {/* 家庭图标 */}
+                <div
+                  style={{
+                    width: '60px',
+                    height: '60px',
+                    backgroundColor: 'var(--primary-color)',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <i
+                    className="fas fa-home"
+                    style={{
+                      color: 'white',
+                      fontSize: '24px',
+                    }}
+                  ></i>
                 </div>
 
                 {/* 家庭信息 */}
                 <div style={{ flex: 1 }}>
-                  <h1 style={{
-                    fontSize: '20px',
-                    fontWeight: '700',
-                    color: 'var(--text-primary)',
-                    marginBottom: '8px'
-                  }}>{family.name}</h1>
-                  
+                  <h1
+                    style={{
+                      fontSize: '20px',
+                      fontWeight: '700',
+                      color: 'var(--text-primary)',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    {family.name}
+                  </h1>
+
                   {family.description && (
-                    <p style={{
-                      color: 'var(--text-secondary)',
-                      fontSize: '14px',
-                      marginBottom: '12px'
-                    }}>{family.description}</p>
+                    <p
+                      style={{
+                        color: 'var(--text-secondary)',
+                        fontSize: '14px',
+                        marginBottom: '12px',
+                      }}
+                    >
+                      {family.description}
+                    </p>
                   )}
 
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px'
-                  }}>
-                    <div style={{
+                  <div
+                    style={{
                       display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      fontSize: '14px',
-                      color: 'var(--text-secondary)'
-                    }}>
+                      flexDirection: 'column',
+                      gap: '4px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '14px',
+                        color: 'var(--text-secondary)',
+                      }}
+                    >
                       <i className="fas fa-calendar-alt"></i>
                       <span>创建于 {formatDate(family.createdAt)}</span>
                     </div>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      fontSize: '14px',
-                      color: 'var(--text-secondary)'
-                    }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '14px',
+                        color: 'var(--text-secondary)',
+                      }}
+                    >
                       <i className="fas fa-users"></i>
                       <span>{family.memberCount || family.members.length}名成员</span>
                     </div>
@@ -1205,24 +1277,28 @@ export default function FamilyDetailModal({
 
               {/* 家庭管理操作 */}
               <div style={{ marginBottom: '20px' }}>
-                <h2 style={{
-                  fontSize: '18px',
-                  fontWeight: '700',
-                  color: 'var(--text-primary)',
-                  marginBottom: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
+                <h2
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    color: 'var(--text-primary)',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
                   <i className="fas fa-cogs"></i>
                   家庭管理
                 </h2>
 
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px'
-                }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                  }}
+                >
                   {/* 管理成员按钮 */}
                   <button
                     onClick={() => onManageMembers?.(familyId)}
@@ -1240,7 +1316,7 @@ export default function FamilyDetailModal({
                       fontWeight: '600',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
-                      minHeight: '48px'
+                      minHeight: '48px',
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = 'var(--primary-color)';
@@ -1274,7 +1350,7 @@ export default function FamilyDetailModal({
                         cursor: 'pointer',
                         transition: 'all 0.2s ease',
                         minHeight: '48px',
-                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = 'translateY(-1px)';
@@ -1294,36 +1370,43 @@ export default function FamilyDetailModal({
 
               {/* 家庭成员网格 */}
               <div style={{ marginBottom: '20px' }}>
-                <h2 style={{
-                  fontSize: '18px',
-                  fontWeight: '700',
-                  color: 'var(--text-primary)',
-                  marginBottom: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
+                <h2
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    color: 'var(--text-primary)',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
                   <i className="fas fa-users"></i>
                   家庭成员
                 </h2>
 
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '12px'
-                }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '12px',
+                  }}
+                >
                   {family.members.slice(0, 6).map((member) => (
-                    <div key={member.memberId || member.id} style={{
-                      backgroundColor: 'var(--background-color)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '12px',
-                      padding: '16px',
-                      textAlign: 'center',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
+                    <div
+                      key={member.memberId || member.id}
+                      style={{
+                        backgroundColor: 'var(--background-color)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '12px',
+                        padding: '16px',
+                        textAlign: 'center',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '8px',
+                      }}
+                    >
                       {/* 成员头像 */}
                       <AvatarDisplay
                         avatar={member.avatar}
@@ -1335,44 +1418,52 @@ export default function FamilyDetailModal({
                       />
 
                       {/* 成员姓名 */}
-                      <div style={{
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        color: 'var(--text-primary)',
-                        textAlign: 'center',
-                        lineHeight: '1.2'
-                      }}>
+                      <div
+                        style={{
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: 'var(--text-primary)',
+                          textAlign: 'center',
+                          lineHeight: '1.2',
+                        }}
+                      >
                         {member.username || member.name || '未知用户'}
                         {member.isCurrentUser && (
-                          <span style={{
-                            fontSize: '12px',
-                            color: 'var(--primary-color)',
-                            marginLeft: '4px'
-                          }}>
+                          <span
+                            style={{
+                              fontSize: '12px',
+                              color: 'var(--primary-color)',
+                              marginLeft: '4px',
+                            }}
+                          >
                             (我)
                           </span>
                         )}
                       </div>
 
                       {/* 角色标签 */}
-                      <div style={{
-                        fontSize: '12px',
-                        padding: '2px 8px',
-                        borderRadius: '12px',
-                        backgroundColor: member.role === 'ADMIN' ? '#fef3c7' : '#f3f4f6',
-                        color: member.role === 'ADMIN' ? '#d97706' : '#6b7280',
-                        fontWeight: '500'
-                      }}>
+                      <div
+                        style={{
+                          fontSize: '12px',
+                          padding: '2px 8px',
+                          borderRadius: '12px',
+                          backgroundColor: member.role === 'ADMIN' ? '#fef3c7' : '#f3f4f6',
+                          color: member.role === 'ADMIN' ? '#d97706' : '#6b7280',
+                          fontWeight: '500',
+                        }}
+                      >
                         {member.role === 'ADMIN' ? '管理员' : '成员'}
                       </div>
 
                       {/* 消费统计（如果有） */}
                       {member.statistics && (
-                        <div style={{
-                          fontSize: '12px',
-                          color: 'var(--text-secondary)',
-                          textAlign: 'center'
-                        }}>
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: 'var(--text-secondary)',
+                            textAlign: 'center',
+                          }}
+                        >
                           本月: {formatCurrency(member.statistics.totalExpense)}
                         </div>
                       )}
@@ -1381,10 +1472,12 @@ export default function FamilyDetailModal({
                 </div>
 
                 {family.members.length > 6 && (
-                  <div style={{
-                    textAlign: 'center',
-                    marginTop: '12px'
-                  }}>
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      marginTop: '12px',
+                    }}
+                  >
                     <button
                       onClick={() => onManageMembers?.(familyId)}
                       style={{
@@ -1394,7 +1487,7 @@ export default function FamilyDetailModal({
                         background: 'none',
                         border: 'none',
                         cursor: 'pointer',
-                        textDecoration: 'underline'
+                        textDecoration: 'underline',
                       }}
                     >
                       查看全部 {family.members.length} 名成员
@@ -1406,21 +1499,25 @@ export default function FamilyDetailModal({
               {/* 托管成员 */}
               {(custodialMembers.length > 0 || isAdmin) && (
                 <div style={{ marginBottom: '20px' }}>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '16px'
-                  }}>
-                    <h2 style={{
-                      fontSize: '18px',
-                      fontWeight: '700',
-                      color: 'var(--text-primary)',
-                      margin: 0,
+                  <div
+                    style={{
                       display: 'flex',
+                      justifyContent: 'space-between',
                       alignItems: 'center',
-                      gap: '8px'
-                    }}>
+                      marginBottom: '16px',
+                    }}
+                  >
+                    <h2
+                      style={{
+                        fontSize: '18px',
+                        fontWeight: '700',
+                        color: 'var(--text-primary)',
+                        margin: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                      }}
+                    >
                       <i className="fas fa-child"></i>
                       托管成员
                     </h2>
@@ -1438,7 +1535,7 @@ export default function FamilyDetailModal({
                           color: 'white',
                           fontSize: '14px',
                           fontWeight: '500',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
                         }}
                       >
                         <i className="fas fa-plus"></i>
@@ -1448,80 +1545,97 @@ export default function FamilyDetailModal({
                   </div>
 
                   {custodialMembers.length > 0 ? (
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '12px'
-                    }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                      }}
+                    >
                       {custodialMembers.slice(0, 3).map((member) => (
-                        <div key={member.id} style={{
-                          backgroundColor: 'var(--background-color)',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: '12px',
-                          padding: '16px'
-                        }}>
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                            gap: '12px'
-                          }}>
-                            {/* 托管成员头像 */}
-                            <div style={{
-                              width: '40px',
-                              height: '40px',
-                              backgroundColor: '#f59e0b',
-                              borderRadius: '50%',
+                        <div
+                          key={member.id}
+                          style={{
+                            backgroundColor: 'var(--background-color)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '12px',
+                            padding: '16px',
+                          }}
+                        >
+                          <div
+                            style={{
                               display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: 'white',
-                              fontSize: '16px',
-                              flexShrink: 0
-                            }}>
+                              alignItems: 'flex-start',
+                              gap: '12px',
+                            }}
+                          >
+                            {/* 托管成员头像 */}
+                            <div
+                              style={{
+                                width: '40px',
+                                height: '40px',
+                                backgroundColor: '#f59e0b',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontSize: '16px',
+                                flexShrink: 0,
+                              }}
+                            >
                               <i className="fas fa-child"></i>
                             </div>
 
                             {/* 托管成员信息 */}
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{
-                                fontSize: '16px',
-                                fontWeight: '500',
-                                color: 'var(--text-primary)',
-                                marginBottom: '8px'
-                              }}>
+                              <div
+                                style={{
+                                  fontSize: '16px',
+                                  fontWeight: '500',
+                                  color: 'var(--text-primary)',
+                                  marginBottom: '8px',
+                                }}
+                              >
                                 {member.name}
                               </div>
 
                               {/* 第一行：性别和年龄 */}
-                              <div style={{
-                                fontSize: '14px',
-                                color: 'var(--text-secondary)',
-                                marginBottom: '4px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px'
-                              }}>
+                              <div
+                                style={{
+                                  fontSize: '14px',
+                                  color: 'var(--text-secondary)',
+                                  marginBottom: '4px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '12px',
+                                }}
+                              >
                                 {member.gender && <span>{member.gender}</span>}
                                 {member.birthDate && <span>{calculateAge(member.birthDate)}</span>}
                               </div>
 
                               {/* 第二行：添加时间 */}
-                              <div style={{
-                                fontSize: '14px',
-                                color: 'var(--text-secondary)'
-                              }}>
+                              <div
+                                style={{
+                                  fontSize: '14px',
+                                  color: 'var(--text-secondary)',
+                                }}
+                              >
                                 添加于 {formatDate(member.createdAt)}
                               </div>
                             </div>
 
                             {/* 管理按钮 */}
                             {isAdmin && (
-                              <div style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '8px',
-                                flexShrink: 0
-                              }}>
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '8px',
+                                  flexShrink: 0,
+                                }}
+                              >
                                 <button
                                   onClick={() => handleEditCustodialMember(member)}
                                   style={{
@@ -1535,7 +1649,7 @@ export default function FamilyDetailModal({
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '14px'
+                                    fontSize: '14px',
                                   }}
                                 >
                                   <i className="fas fa-edit"></i>
@@ -1556,7 +1670,7 @@ export default function FamilyDetailModal({
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '14px'
+                                    fontSize: '14px',
                                   }}
                                 >
                                   <i className="fas fa-trash"></i>
@@ -1568,10 +1682,12 @@ export default function FamilyDetailModal({
                       ))}
 
                       {custodialMembers.length > 3 && (
-                        <div style={{
-                          textAlign: 'center',
-                          marginTop: '8px'
-                        }}>
+                        <div
+                          style={{
+                            textAlign: 'center',
+                            marginTop: '8px',
+                          }}
+                        >
                           <button
                             onClick={() => onManageMembers?.(familyId)}
                             style={{
@@ -1581,7 +1697,7 @@ export default function FamilyDetailModal({
                               background: 'none',
                               border: 'none',
                               cursor: 'pointer',
-                              textDecoration: 'underline'
+                              textDecoration: 'underline',
                             }}
                           >
                             查看全部 {custodialMembers.length} 名托管成员
@@ -1590,16 +1706,21 @@ export default function FamilyDetailModal({
                       )}
                     </div>
                   ) : (
-                    <div style={{
-                      textAlign: 'center',
-                      padding: '40px 20px',
-                      color: 'var(--text-secondary)'
-                    }}>
-                      <i className="fas fa-child" style={{
-                        fontSize: '32px',
-                        marginBottom: '12px',
-                        display: 'block'
-                      }}></i>
+                    <div
+                      style={{
+                        textAlign: 'center',
+                        padding: '40px 20px',
+                        color: 'var(--text-secondary)',
+                      }}
+                    >
+                      <i
+                        className="fas fa-child"
+                        style={{
+                          fontSize: '32px',
+                          marginBottom: '12px',
+                          display: 'block',
+                        }}
+                      ></i>
                       <p style={{ marginBottom: '16px' }}>暂无托管成员</p>
                       {isAdmin && (
                         <button
@@ -1612,7 +1733,7 @@ export default function FamilyDetailModal({
                             color: 'white',
                             fontSize: '14px',
                             fontWeight: '500',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
                           }}
                         >
                           添加托管成员
@@ -1626,70 +1747,86 @@ export default function FamilyDetailModal({
               {/* 统计数据双列卡片 */}
               {statistics && (
                 <div style={{ marginBottom: '20px' }}>
-                  <h2 style={{
-                    fontSize: '18px',
-                    fontWeight: '700',
-                    color: 'var(--text-primary)',
-                    marginBottom: '16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}>
+                  <h2
+                    style={{
+                      fontSize: '18px',
+                      fontWeight: '700',
+                      color: 'var(--text-primary)',
+                      marginBottom: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
                     <i className="fas fa-chart-pie"></i>
                     家庭统计
                   </h2>
 
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: '12px'
-                  }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(2, 1fr)',
+                      gap: '12px',
+                    }}
+                  >
                     {/* 本月支出 */}
-                    <div style={{
-                      backgroundColor: 'var(--background-color)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '12px',
-                      padding: '20px',
-                      textAlign: 'center'
-                    }}>
-                      <div style={{
-                        fontSize: '24px',
-                        fontWeight: '700',
-                        color: '#ef4444',
-                        marginBottom: '4px'
-                      }}>
+                    <div
+                      style={{
+                        backgroundColor: 'var(--background-color)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '12px',
+                        padding: '20px',
+                        textAlign: 'center',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: '24px',
+                          fontWeight: '700',
+                          color: '#ef4444',
+                          marginBottom: '4px',
+                        }}
+                      >
                         {formatCurrency(statistics.totalExpense)}
                       </div>
-                      <div style={{
-                        fontSize: '14px',
-                        color: 'var(--text-secondary)',
-                        fontWeight: '500'
-                      }}>
+                      <div
+                        style={{
+                          fontSize: '14px',
+                          color: 'var(--text-secondary)',
+                          fontWeight: '500',
+                        }}
+                      >
                         本月支出
                       </div>
                     </div>
 
                     {/* 本月收入 */}
-                    <div style={{
-                      backgroundColor: 'var(--background-color)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '12px',
-                      padding: '20px',
-                      textAlign: 'center'
-                    }}>
-                      <div style={{
-                        fontSize: '24px',
-                        fontWeight: '700',
-                        color: '#10b981',
-                        marginBottom: '4px'
-                      }}>
+                    <div
+                      style={{
+                        backgroundColor: 'var(--background-color)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '12px',
+                        padding: '20px',
+                        textAlign: 'center',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: '24px',
+                          fontWeight: '700',
+                          color: '#10b981',
+                          marginBottom: '4px',
+                        }}
+                      >
                         {formatCurrency(statistics.totalIncome)}
                       </div>
-                      <div style={{
-                        fontSize: '14px',
-                        color: 'var(--text-secondary)',
-                        fontWeight: '500'
-                      }}>
+                      <div
+                        style={{
+                          fontSize: '14px',
+                          color: 'var(--text-secondary)',
+                          fontWeight: '500',
+                        }}
+                      >
                         本月收入
                       </div>
                     </div>
@@ -1700,73 +1837,98 @@ export default function FamilyDetailModal({
               {/* 成员消费排行 */}
               {statistics?.memberStats && statistics.memberStats.length > 0 && (
                 <div style={{ marginBottom: '20px' }}>
-                  <h2 style={{
-                    fontSize: '18px',
-                    fontWeight: '700',
-                    color: 'var(--text-primary)',
-                    marginBottom: '16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}>
+                  <h2
+                    style={{
+                      fontSize: '18px',
+                      fontWeight: '700',
+                      color: 'var(--text-primary)',
+                      marginBottom: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
                     <i className="fas fa-trophy"></i>
                     成员消费排行
                   </h2>
 
-                  <div style={{
-                    backgroundColor: 'var(--background-color)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '12px',
-                    overflow: 'hidden'
-                  }}>
+                  <div
+                    style={{
+                      backgroundColor: 'var(--background-color)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                    }}
+                  >
                     {statistics.memberStats.slice(0, 5).map((member, index) => (
-                      <div key={member.memberId} style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        padding: '16px',
-                        borderBottom: index < Math.min(statistics.memberStats.length, 5) - 1 ? '1px solid var(--border-color)' : 'none'
-                      }}>
-                        {/* 排名 */}
-                        <div style={{
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '50%',
-                          backgroundColor: index === 0 ? '#fbbf24' : index === 1 ? '#9ca3af' : index === 2 ? '#d97706' : 'var(--background-secondary)',
-                          color: index < 3 ? 'white' : 'var(--text-secondary)',
+                      <div
+                        key={member.memberId}
+                        style={{
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          marginRight: '12px'
-                        }}>
+                          padding: '16px',
+                          borderBottom:
+                            index < Math.min(statistics.memberStats.length, 5) - 1
+                              ? '1px solid var(--border-color)'
+                              : 'none',
+                        }}
+                      >
+                        {/* 排名 */}
+                        <div
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            backgroundColor:
+                              index === 0
+                                ? '#fbbf24'
+                                : index === 1
+                                  ? '#9ca3af'
+                                  : index === 2
+                                    ? '#d97706'
+                                    : 'var(--background-secondary)',
+                            color: index < 3 ? 'white' : 'var(--text-secondary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            marginRight: '12px',
+                          }}
+                        >
                           {index + 1}
                         </div>
 
                         {/* 成员信息 */}
                         <div style={{ flex: 1 }}>
-                          <div style={{
-                            fontSize: '16px',
-                            fontWeight: '500',
-                            color: 'var(--text-primary)',
-                            marginBottom: '2px'
-                          }}>
+                          <div
+                            style={{
+                              fontSize: '16px',
+                              fontWeight: '500',
+                              color: 'var(--text-primary)',
+                              marginBottom: '2px',
+                            }}
+                          >
                             {member.memberName}
                           </div>
-                          <div style={{
-                            fontSize: '14px',
-                            color: 'var(--text-secondary)'
-                          }}>
+                          <div
+                            style={{
+                              fontSize: '14px',
+                              color: 'var(--text-secondary)',
+                            }}
+                          >
                             {member.percentage.toFixed(1)}%
                           </div>
                         </div>
 
                         {/* 金额 */}
-                        <div style={{
-                          fontSize: '16px',
-                          fontWeight: '600',
-                          color: 'var(--text-primary)'
-                        }}>
+                        <div
+                          style={{
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            color: 'var(--text-primary)',
+                          }}
+                        >
                           {formatCurrency(member.totalExpense)}
                         </div>
                       </div>
@@ -1778,73 +1940,98 @@ export default function FamilyDetailModal({
               {/* 分类消费排行 */}
               {statistics?.categoryStats && statistics.categoryStats.length > 0 && (
                 <div style={{ marginBottom: '20px' }}>
-                  <h2 style={{
-                    fontSize: '18px',
-                    fontWeight: '700',
-                    color: 'var(--text-primary)',
-                    marginBottom: '16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}>
+                  <h2
+                    style={{
+                      fontSize: '18px',
+                      fontWeight: '700',
+                      color: 'var(--text-primary)',
+                      marginBottom: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
                     <i className="fas fa-chart-pie"></i>
                     分类消费排行
                   </h2>
 
-                  <div style={{
-                    backgroundColor: 'var(--background-color)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '12px',
-                    overflow: 'hidden'
-                  }}>
+                  <div
+                    style={{
+                      backgroundColor: 'var(--background-color)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                    }}
+                  >
                     {statistics.categoryStats.slice(0, 5).map((category, index) => (
-                      <div key={category.categoryId} style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        padding: '16px',
-                        borderBottom: index < Math.min(statistics.categoryStats.length, 5) - 1 ? '1px solid var(--border-color)' : 'none'
-                      }}>
-                        {/* 排名 */}
-                        <div style={{
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '50%',
-                          backgroundColor: index === 0 ? '#fbbf24' : index === 1 ? '#9ca3af' : index === 2 ? '#d97706' : 'var(--background-secondary)',
-                          color: index < 3 ? 'white' : 'var(--text-secondary)',
+                      <div
+                        key={category.categoryId}
+                        style={{
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          marginRight: '12px'
-                        }}>
+                          padding: '16px',
+                          borderBottom:
+                            index < Math.min(statistics.categoryStats.length, 5) - 1
+                              ? '1px solid var(--border-color)'
+                              : 'none',
+                        }}
+                      >
+                        {/* 排名 */}
+                        <div
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            backgroundColor:
+                              index === 0
+                                ? '#fbbf24'
+                                : index === 1
+                                  ? '#9ca3af'
+                                  : index === 2
+                                    ? '#d97706'
+                                    : 'var(--background-secondary)',
+                            color: index < 3 ? 'white' : 'var(--text-secondary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            marginRight: '12px',
+                          }}
+                        >
                           {index + 1}
                         </div>
 
                         {/* 分类信息 */}
                         <div style={{ flex: 1 }}>
-                          <div style={{
-                            fontSize: '16px',
-                            fontWeight: '500',
-                            color: 'var(--text-primary)',
-                            marginBottom: '2px'
-                          }}>
+                          <div
+                            style={{
+                              fontSize: '16px',
+                              fontWeight: '500',
+                              color: 'var(--text-primary)',
+                              marginBottom: '2px',
+                            }}
+                          >
                             {category.categoryName}
                           </div>
-                          <div style={{
-                            fontSize: '14px',
-                            color: 'var(--text-secondary)'
-                          }}>
+                          <div
+                            style={{
+                              fontSize: '14px',
+                              color: 'var(--text-secondary)',
+                            }}
+                          >
                             {category.percentage.toFixed(1)}%
                           </div>
                         </div>
 
                         {/* 金额 */}
-                        <div style={{
-                          fontSize: '16px',
-                          fontWeight: '600',
-                          color: 'var(--text-primary)'
-                        }}>
+                        <div
+                          style={{
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            color: 'var(--text-primary)',
+                          }}
+                        >
                           {formatCurrency(category.totalExpense)}
                         </div>
                       </div>
@@ -1855,25 +2042,29 @@ export default function FamilyDetailModal({
 
               {/* 危险操作区域 */}
               <div style={{ marginBottom: '20px' }}>
-                <h2 style={{
-                  fontSize: '18px',
-                  fontWeight: '700',
-                  color: 'var(--text-primary)',
-                  marginBottom: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
+                <h2
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    color: 'var(--text-primary)',
+                    marginBottom: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
                   <i className="fas fa-exclamation-triangle"></i>
                   危险操作
                 </h2>
 
-                <div style={{
-                  backgroundColor: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  borderRadius: '12px',
-                  padding: '16px'
-                }}>
+                <div
+                  style={{
+                    backgroundColor: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    borderRadius: '12px',
+                    padding: '16px',
+                  }}
+                >
                   {isAdmin ? (
                     <>
                       <button
@@ -1892,18 +2083,20 @@ export default function FamilyDetailModal({
                           fontSize: '16px',
                           fontWeight: '600',
                           cursor: 'pointer',
-                          marginBottom: '8px'
+                          marginBottom: '8px',
                         }}
                       >
                         <i className="fas fa-trash-alt"></i>
                         解散家庭
                       </button>
-                      <p style={{
-                        fontSize: '14px',
-                        color: '#dc2626',
-                        textAlign: 'center',
-                        margin: 0
-                      }}>
+                      <p
+                        style={{
+                          fontSize: '14px',
+                          color: '#dc2626',
+                          textAlign: 'center',
+                          margin: 0,
+                        }}
+                      >
                         解散家庭将永久移除所有相关数据，此操作不可恢复。
                       </p>
                     </>
@@ -1925,18 +2118,20 @@ export default function FamilyDetailModal({
                           fontSize: '16px',
                           fontWeight: '600',
                           cursor: 'pointer',
-                          marginBottom: '8px'
+                          marginBottom: '8px',
                         }}
                       >
                         <i className="fas fa-sign-out-alt"></i>
                         退出家庭
                       </button>
-                      <p style={{
-                        fontSize: '14px',
-                        color: '#d97706',
-                        textAlign: 'center',
-                        margin: 0
-                      }}>
+                      <p
+                        style={{
+                          fontSize: '14px',
+                          color: '#d97706',
+                          textAlign: 'center',
+                          margin: 0,
+                        }}
+                      >
                         退出家庭后，您将无法访问该家庭的数据。
                       </p>
                     </>
@@ -1950,43 +2145,55 @@ export default function FamilyDetailModal({
 
       {/* 编辑家庭信息对话框 */}
       {isEditDialogOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)',
-          zIndex: 10000000, // 增加 z-index 确保在模态框之上
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }} onClick={() => setIsEditDialogOpen(false)}>
-          <div style={{
-            backgroundColor: 'var(--background-color)',
-            borderRadius: '12px',
-            width: '100%',
-            maxWidth: '400px',
-            overflow: 'hidden',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)'
-          }} onClick={(e) => e.stopPropagation()}>
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+            zIndex: 10000000, // 增加 z-index 确保在模态框之上
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+          onClick={() => setIsEditDialogOpen(false)}
+        >
+          <div
+            style={{
+              backgroundColor: 'var(--background-color)',
+              borderRadius: '12px',
+              width: '100%',
+              maxWidth: '400px',
+              overflow: 'hidden',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* 对话框头部 */}
-            <div style={{
-              padding: '20px',
-              borderBottom: '1px solid var(--border-color)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <h3 style={{
-                fontSize: '18px',
-                fontWeight: '600',
-                color: 'var(--text-primary)',
-                margin: 0
-              }}>编辑家庭信息</h3>
+            <div
+              style={{
+                padding: '20px',
+                borderBottom: '1px solid var(--border-color)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: 'var(--text-primary)',
+                  margin: 0,
+                }}
+              >
+                编辑家庭信息
+              </h3>
               <button
                 onClick={() => setIsEditDialogOpen(false)}
                 style={{
@@ -1999,7 +2206,7 @@ export default function FamilyDetailModal({
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
                 }}
               >
                 <i className="fas fa-times"></i>
@@ -2009,13 +2216,15 @@ export default function FamilyDetailModal({
             {/* 对话框内容 */}
             <div style={{ padding: '20px' }}>
               <div style={{ marginBottom: '16px' }}>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: 'var(--text-primary)',
-                  marginBottom: '8px'
-                }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: 'var(--text-primary)',
+                    marginBottom: '8px',
+                  }}
+                >
                   家庭名称 *
                 </label>
                 <input
@@ -2029,7 +2238,7 @@ export default function FamilyDetailModal({
                     borderRadius: '8px',
                     fontSize: '16px',
                     backgroundColor: 'var(--background-color)',
-                    color: 'var(--text-primary)'
+                    color: 'var(--text-primary)',
                   }}
                   placeholder="请输入家庭名称"
                   maxLength={30}
@@ -2037,18 +2246,22 @@ export default function FamilyDetailModal({
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: 'var(--text-primary)',
-                  marginBottom: '8px'
-                }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: 'var(--text-primary)',
+                    marginBottom: '8px',
+                  }}
+                >
                   家庭描述
                 </label>
                 <textarea
                   value={editFormData.description}
-                  onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, description: e.target.value })
+                  }
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -2058,7 +2271,7 @@ export default function FamilyDetailModal({
                     backgroundColor: 'var(--background-color)',
                     color: 'var(--text-primary)',
                     resize: 'vertical',
-                    minHeight: '80px'
+                    minHeight: '80px',
                   }}
                   placeholder="请输入家庭描述（可选）"
                   maxLength={100}
@@ -2066,10 +2279,12 @@ export default function FamilyDetailModal({
               </div>
 
               {/* 对话框按钮 */}
-              <div style={{
-                display: 'flex',
-                gap: '12px'
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '12px',
+                }}
+              >
                 <button
                   onClick={() => setIsEditDialogOpen(false)}
                   disabled={isEditSubmitting}
@@ -2083,7 +2298,7 @@ export default function FamilyDetailModal({
                     fontSize: '16px',
                     fontWeight: '500',
                     cursor: isEditSubmitting ? 'not-allowed' : 'pointer',
-                    opacity: isEditSubmitting ? 0.6 : 1
+                    opacity: isEditSubmitting ? 0.6 : 1,
                   }}
                 >
                   取消
@@ -2100,8 +2315,9 @@ export default function FamilyDetailModal({
                     color: 'white',
                     fontSize: '16px',
                     fontWeight: '600',
-                    cursor: (isEditSubmitting || !editFormData.name.trim()) ? 'not-allowed' : 'pointer',
-                    opacity: (isEditSubmitting || !editFormData.name.trim()) ? 0.6 : 1
+                    cursor:
+                      isEditSubmitting || !editFormData.name.trim() ? 'not-allowed' : 'pointer',
+                    opacity: isEditSubmitting || !editFormData.name.trim() ? 0.6 : 1,
                   }}
                 >
                   {isEditSubmitting ? '保存中...' : '保存'}
@@ -2138,46 +2354,58 @@ export default function FamilyDetailModal({
 
       {/* 添加托管成员对话框 */}
       {isAddCustodialDialogOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)',
-          zIndex: 10000001, // 增加 z-index 确保在模态框之上
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }} onClick={() => {
-          setIsAddCustodialDialogOpen(false);
-          resetCustodialForm();
-        }}>
-          <div style={{
-            backgroundColor: 'var(--background-color)',
-            borderRadius: '12px',
-            width: '100%',
-            maxWidth: '400px',
-            overflow: 'hidden',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)'
-          }} onClick={(e) => e.stopPropagation()}>
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+            zIndex: 10000001, // 增加 z-index 确保在模态框之上
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+          onClick={() => {
+            setIsAddCustodialDialogOpen(false);
+            resetCustodialForm();
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: 'var(--background-color)',
+              borderRadius: '12px',
+              width: '100%',
+              maxWidth: '400px',
+              overflow: 'hidden',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* 对话框头部 */}
-            <div style={{
-              padding: '20px',
-              borderBottom: '1px solid var(--border-color)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <h3 style={{
-                fontSize: '18px',
-                fontWeight: '600',
-                color: 'var(--text-primary)',
-                margin: 0
-              }}>添加托管成员</h3>
+            <div
+              style={{
+                padding: '20px',
+                borderBottom: '1px solid var(--border-color)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: 'var(--text-primary)',
+                  margin: 0,
+                }}
+              >
+                添加托管成员
+              </h3>
               <button
                 onClick={() => {
                   setIsAddCustodialDialogOpen(false);
@@ -2193,7 +2421,7 @@ export default function FamilyDetailModal({
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
                 }}
               >
                 <i className="fas fa-times"></i>
@@ -2203,19 +2431,23 @@ export default function FamilyDetailModal({
             {/* 对话框内容 */}
             <div style={{ padding: '20px' }}>
               <div style={{ marginBottom: '16px' }}>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: 'var(--text-primary)',
-                  marginBottom: '8px'
-                }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: 'var(--text-primary)',
+                    marginBottom: '8px',
+                  }}
+                >
                   姓名 *
                 </label>
                 <input
                   type="text"
                   value={custodialFormData.name}
-                  onChange={(e) => setCustodialFormData({ ...custodialFormData, name: e.target.value })}
+                  onChange={(e) =>
+                    setCustodialFormData({ ...custodialFormData, name: e.target.value })
+                  }
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -2223,7 +2455,7 @@ export default function FamilyDetailModal({
                     borderRadius: '8px',
                     fontSize: '16px',
                     backgroundColor: 'var(--background-color)',
-                    color: 'var(--text-primary)'
+                    color: 'var(--text-primary)',
                   }}
                   placeholder="请输入姓名"
                   maxLength={30}
@@ -2231,18 +2463,22 @@ export default function FamilyDetailModal({
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: 'var(--text-primary)',
-                  marginBottom: '8px'
-                }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: 'var(--text-primary)',
+                    marginBottom: '8px',
+                  }}
+                >
                   性别
                 </label>
                 <select
                   value={custodialFormData.gender}
-                  onChange={(e) => setCustodialFormData({ ...custodialFormData, gender: e.target.value })}
+                  onChange={(e) =>
+                    setCustodialFormData({ ...custodialFormData, gender: e.target.value })
+                  }
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -2250,7 +2486,7 @@ export default function FamilyDetailModal({
                     borderRadius: '8px',
                     fontSize: '16px',
                     backgroundColor: 'var(--background-color)',
-                    color: 'var(--text-primary)'
+                    color: 'var(--text-primary)',
                   }}
                 >
                   <option value="男">男</option>
@@ -2259,19 +2495,23 @@ export default function FamilyDetailModal({
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: 'var(--text-primary)',
-                  marginBottom: '8px'
-                }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: 'var(--text-primary)',
+                    marginBottom: '8px',
+                  }}
+                >
                   出生日期
                 </label>
                 <input
                   type="date"
                   value={custodialFormData.birthDate}
-                  onChange={(e) => setCustodialFormData({ ...custodialFormData, birthDate: e.target.value })}
+                  onChange={(e) =>
+                    setCustodialFormData({ ...custodialFormData, birthDate: e.target.value })
+                  }
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -2279,16 +2519,18 @@ export default function FamilyDetailModal({
                     borderRadius: '8px',
                     fontSize: '16px',
                     backgroundColor: 'var(--background-color)',
-                    color: 'var(--text-primary)'
+                    color: 'var(--text-primary)',
                   }}
                 />
               </div>
 
               {/* 对话框按钮 */}
-              <div style={{
-                display: 'flex',
-                gap: '12px'
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '12px',
+                }}
+              >
                 <button
                   onClick={() => {
                     setIsAddCustodialDialogOpen(false);
@@ -2305,7 +2547,7 @@ export default function FamilyDetailModal({
                     fontSize: '16px',
                     fontWeight: '500',
                     cursor: isCustodialSubmitting ? 'not-allowed' : 'pointer',
-                    opacity: isCustodialSubmitting ? 0.6 : 1
+                    opacity: isCustodialSubmitting ? 0.6 : 1,
                   }}
                 >
                   取消
@@ -2322,8 +2564,11 @@ export default function FamilyDetailModal({
                     color: 'white',
                     fontSize: '16px',
                     fontWeight: '600',
-                    cursor: (isCustodialSubmitting || !custodialFormData.name.trim()) ? 'not-allowed' : 'pointer',
-                    opacity: (isCustodialSubmitting || !custodialFormData.name.trim()) ? 0.6 : 1
+                    cursor:
+                      isCustodialSubmitting || !custodialFormData.name.trim()
+                        ? 'not-allowed'
+                        : 'pointer',
+                    opacity: isCustodialSubmitting || !custodialFormData.name.trim() ? 0.6 : 1,
                   }}
                 >
                   {isCustodialSubmitting ? '添加中...' : '添加'}
@@ -2336,47 +2581,59 @@ export default function FamilyDetailModal({
 
       {/* 编辑托管成员对话框 */}
       {isEditCustodialDialogOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)',
-          zIndex: 10000001, // 增加 z-index 确保在模态框之上
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }} onClick={() => {
-          setIsEditCustodialDialogOpen(false);
-          setSelectedCustodialMember(null);
-          resetCustodialForm();
-        }}>
-          <div style={{
-            backgroundColor: 'var(--background-color)',
-            borderRadius: '12px',
-            width: '100%',
-            maxWidth: '400px',
-            overflow: 'hidden',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)'
-          }} onClick={(e) => e.stopPropagation()}>
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+            zIndex: 10000001, // 增加 z-index 确保在模态框之上
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+          onClick={() => {
+            setIsEditCustodialDialogOpen(false);
+            setSelectedCustodialMember(null);
+            resetCustodialForm();
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: 'var(--background-color)',
+              borderRadius: '12px',
+              width: '100%',
+              maxWidth: '400px',
+              overflow: 'hidden',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* 对话框头部 */}
-            <div style={{
-              padding: '20px',
-              borderBottom: '1px solid var(--border-color)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <h3 style={{
-                fontSize: '18px',
-                fontWeight: '600',
-                color: 'var(--text-primary)',
-                margin: 0
-              }}>编辑托管成员</h3>
+            <div
+              style={{
+                padding: '20px',
+                borderBottom: '1px solid var(--border-color)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: 'var(--text-primary)',
+                  margin: 0,
+                }}
+              >
+                编辑托管成员
+              </h3>
               <button
                 onClick={() => {
                   setIsEditCustodialDialogOpen(false);
@@ -2393,7 +2650,7 @@ export default function FamilyDetailModal({
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
                 }}
               >
                 <i className="fas fa-times"></i>
@@ -2403,19 +2660,23 @@ export default function FamilyDetailModal({
             {/* 对话框内容 */}
             <div style={{ padding: '20px' }}>
               <div style={{ marginBottom: '16px' }}>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: 'var(--text-primary)',
-                  marginBottom: '8px'
-                }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: 'var(--text-primary)',
+                    marginBottom: '8px',
+                  }}
+                >
                   姓名 *
                 </label>
                 <input
                   type="text"
                   value={custodialFormData.name}
-                  onChange={(e) => setCustodialFormData({ ...custodialFormData, name: e.target.value })}
+                  onChange={(e) =>
+                    setCustodialFormData({ ...custodialFormData, name: e.target.value })
+                  }
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -2423,7 +2684,7 @@ export default function FamilyDetailModal({
                     borderRadius: '8px',
                     fontSize: '16px',
                     backgroundColor: 'var(--background-color)',
-                    color: 'var(--text-primary)'
+                    color: 'var(--text-primary)',
                   }}
                   placeholder="请输入姓名"
                   maxLength={30}
@@ -2431,18 +2692,22 @@ export default function FamilyDetailModal({
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: 'var(--text-primary)',
-                  marginBottom: '8px'
-                }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: 'var(--text-primary)',
+                    marginBottom: '8px',
+                  }}
+                >
                   性别
                 </label>
                 <select
                   value={custodialFormData.gender}
-                  onChange={(e) => setCustodialFormData({ ...custodialFormData, gender: e.target.value })}
+                  onChange={(e) =>
+                    setCustodialFormData({ ...custodialFormData, gender: e.target.value })
+                  }
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -2450,7 +2715,7 @@ export default function FamilyDetailModal({
                     borderRadius: '8px',
                     fontSize: '16px',
                     backgroundColor: 'var(--background-color)',
-                    color: 'var(--text-primary)'
+                    color: 'var(--text-primary)',
                   }}
                 >
                   <option value="男">男</option>
@@ -2459,19 +2724,23 @@ export default function FamilyDetailModal({
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: 'var(--text-primary)',
-                  marginBottom: '8px'
-                }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: 'var(--text-primary)',
+                    marginBottom: '8px',
+                  }}
+                >
                   出生日期
                 </label>
                 <input
                   type="date"
                   value={custodialFormData.birthDate}
-                  onChange={(e) => setCustodialFormData({ ...custodialFormData, birthDate: e.target.value })}
+                  onChange={(e) =>
+                    setCustodialFormData({ ...custodialFormData, birthDate: e.target.value })
+                  }
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -2479,16 +2748,18 @@ export default function FamilyDetailModal({
                     borderRadius: '8px',
                     fontSize: '16px',
                     backgroundColor: 'var(--background-color)',
-                    color: 'var(--text-primary)'
+                    color: 'var(--text-primary)',
                   }}
                 />
               </div>
 
               {/* 对话框按钮 */}
-              <div style={{
-                display: 'flex',
-                gap: '12px'
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '12px',
+                }}
+              >
                 <button
                   onClick={() => {
                     setIsEditCustodialDialogOpen(false);
@@ -2506,7 +2777,7 @@ export default function FamilyDetailModal({
                     fontSize: '16px',
                     fontWeight: '500',
                     cursor: isCustodialSubmitting ? 'not-allowed' : 'pointer',
-                    opacity: isCustodialSubmitting ? 0.6 : 1
+                    opacity: isCustodialSubmitting ? 0.6 : 1,
                   }}
                 >
                   取消
@@ -2523,8 +2794,11 @@ export default function FamilyDetailModal({
                     color: 'white',
                     fontSize: '16px',
                     fontWeight: '600',
-                    cursor: (isCustodialSubmitting || !custodialFormData.name.trim()) ? 'not-allowed' : 'pointer',
-                    opacity: (isCustodialSubmitting || !custodialFormData.name.trim()) ? 0.6 : 1
+                    cursor:
+                      isCustodialSubmitting || !custodialFormData.name.trim()
+                        ? 'not-allowed'
+                        : 'pointer',
+                    opacity: isCustodialSubmitting || !custodialFormData.name.trim() ? 0.6 : 1,
                   }}
                 >
                   {isCustodialSubmitting ? '更新中...' : '更新'}
@@ -2537,46 +2811,58 @@ export default function FamilyDetailModal({
 
       {/* 删除托管成员确认对话框 */}
       {isDeleteCustodialDialogOpen && selectedCustodialMember && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)',
-          zIndex: 10000001, // 增加 z-index 确保在模态框之上
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }} onClick={() => {
-          setIsDeleteCustodialDialogOpen(false);
-          setSelectedCustodialMember(null);
-        }}>
-          <div style={{
-            backgroundColor: 'var(--background-color)',
-            borderRadius: '12px',
-            width: '100%',
-            maxWidth: '400px',
-            overflow: 'hidden',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)'
-          }} onClick={(e) => e.stopPropagation()}>
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+            zIndex: 10000001, // 增加 z-index 确保在模态框之上
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+          onClick={() => {
+            setIsDeleteCustodialDialogOpen(false);
+            setSelectedCustodialMember(null);
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: 'var(--background-color)',
+              borderRadius: '12px',
+              width: '100%',
+              maxWidth: '400px',
+              overflow: 'hidden',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* 对话框头部 */}
-            <div style={{
-              padding: '20px',
-              borderBottom: '1px solid var(--border-color)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <h3 style={{
-                fontSize: '18px',
-                fontWeight: '600',
-                color: 'var(--text-primary)',
-                margin: 0
-              }}>删除托管成员</h3>
+            <div
+              style={{
+                padding: '20px',
+                borderBottom: '1px solid var(--border-color)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: 'var(--text-primary)',
+                  margin: 0,
+                }}
+              >
+                删除托管成员
+              </h3>
               <button
                 onClick={() => {
                   setIsDeleteCustodialDialogOpen(false);
@@ -2592,7 +2878,7 @@ export default function FamilyDetailModal({
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
                 }}
               >
                 <i className="fas fa-times"></i>
@@ -2601,20 +2887,24 @@ export default function FamilyDetailModal({
 
             {/* 对话框内容 */}
             <div style={{ padding: '20px' }}>
-              <p style={{
-                fontSize: '16px',
-                color: 'var(--text-primary)',
-                marginBottom: '20px',
-                lineHeight: '1.5'
-              }}>
+              <p
+                style={{
+                  fontSize: '16px',
+                  color: 'var(--text-primary)',
+                  marginBottom: '20px',
+                  lineHeight: '1.5',
+                }}
+              >
                 确定要删除托管成员 "{selectedCustodialMember.name}" 吗？此操作无法撤销。
               </p>
 
               {/* 对话框按钮 */}
-              <div style={{
-                display: 'flex',
-                gap: '12px'
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '12px',
+                }}
+              >
                 <button
                   onClick={() => {
                     setIsDeleteCustodialDialogOpen(false);
@@ -2631,7 +2921,7 @@ export default function FamilyDetailModal({
                     fontSize: '16px',
                     fontWeight: '500',
                     cursor: isCustodialSubmitting ? 'not-allowed' : 'pointer',
-                    opacity: isCustodialSubmitting ? 0.6 : 1
+                    opacity: isCustodialSubmitting ? 0.6 : 1,
                   }}
                 >
                   取消
@@ -2649,7 +2939,7 @@ export default function FamilyDetailModal({
                     fontSize: '16px',
                     fontWeight: '600',
                     cursor: isCustodialSubmitting ? 'not-allowed' : 'pointer',
-                    opacity: isCustodialSubmitting ? 0.6 : 1
+                    opacity: isCustodialSubmitting ? 0.6 : 1,
                   }}
                 >
                   {isCustodialSubmitting ? '删除中...' : '删除'}

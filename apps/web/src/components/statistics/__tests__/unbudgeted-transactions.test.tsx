@@ -151,7 +151,7 @@ describe('预算筛选器显示名称', () => {
   it('应正确显示无预算选项的名称', () => {
     // 这里可以测试BudgetFilter组件的getSelectedBudgetName方法
     // 由于该方法是私有的，我们可以通过渲染组件并检查显示的文本来测试
-    
+
     // 这个测试需要根据实际的BudgetFilter组件实现来编写
     // 目前先保留测试结构
     expect(true).toBe(true);

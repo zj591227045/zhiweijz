@@ -101,13 +101,16 @@ export default function ServerSettings({ onClose, onSave }: ServerSettingsProps)
     } catch (error) {
       console.error('❌ 连接测试异常:', error);
       setConnectionStatus('failed');
-      
+
       // 根据错误类型提供更具体的提示
       let errorMessage = '连接测试失败';
       if (error instanceof Error) {
         if (error.message.includes('CORS')) {
           errorMessage = '跨域请求被阻止，请检查服务器CORS配置';
-        } else if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+        } else if (
+          error.message.includes('NetworkError') ||
+          error.message.includes('Failed to fetch')
+        ) {
           errorMessage = '网络连接失败，请检查服务器地址和网络状态';
         } else if (error.name === 'AbortError') {
           errorMessage = '连接超时，请检查服务器是否可访问';
@@ -115,7 +118,7 @@ export default function ServerSettings({ onClose, onSave }: ServerSettingsProps)
           errorMessage = `连接测试失败: ${error.message}`;
         }
       }
-      
+
       toast.error(errorMessage);
     } finally {
       setIsTestingConnection(false);
@@ -264,7 +267,9 @@ export default function ServerSettings({ onClose, onSave }: ServerSettingsProps)
                     </div>
                     <div className="flex items-center">
                       <div className="px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md">
-                        <span className="text-gray-500 dark:text-gray-400 font-mono text-sm font-medium">/API</span>
+                        <span className="text-gray-500 dark:text-gray-400 font-mono text-sm font-medium">
+                          /API
+                        </span>
                       </div>
                     </div>
                   </div>

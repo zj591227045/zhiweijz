@@ -5,7 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
-import { AttachmentThumbnail, EnhancedAttachmentPreview } from '@/components/transactions/attachment-preview';
+import {
+  AttachmentThumbnail,
+  EnhancedAttachmentPreview,
+} from '@/components/transactions/attachment-preview';
 // 简单的SVG图标组件
 const ArrowLeft = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,7 +149,9 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
 
           // 获取附件信息
           try {
-            const attachmentResponse = await fetchApi(`/api/transactions/${transactionId}/attachments`);
+            const attachmentResponse = await fetchApi(
+              `/api/transactions/${transactionId}/attachments`,
+            );
             if (attachmentResponse.ok) {
               const attachmentData = await attachmentResponse.json();
               if (attachmentData.success) {
@@ -331,38 +336,41 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                {attachments.map((attachment) => (
-                  attachment.file && (
-                    <div key={attachment.id} className="space-y-2">
-                      <AttachmentThumbnail
-                        file={attachment.file}
-                        onClick={() => {
-                          // 获取所有附件文件
-                          const allFiles = attachments
-                            .map(att => att.file)
-                            .filter(Boolean) as AttachmentFile[];
+                {attachments.map(
+                  (attachment) =>
+                    attachment.file && (
+                      <div key={attachment.id} className="space-y-2">
+                        <AttachmentThumbnail
+                          file={attachment.file}
+                          onClick={() => {
+                            // 获取所有附件文件
+                            const allFiles = attachments
+                              .map((att) => att.file)
+                              .filter(Boolean) as AttachmentFile[];
 
-                          // 找到当前文件的索引
-                          const currentIndex = allFiles.findIndex(file => file.id === attachment.file!.id);
+                            // 找到当前文件的索引
+                            const currentIndex = allFiles.findIndex(
+                              (file) => file.id === attachment.file!.id,
+                            );
 
-                          setPreviewFiles(allFiles);
-                          setPreviewIndex(Math.max(0, currentIndex));
-                          setShowPreview(true);
-                        }}
-                        size="large"
-                        className="w-full aspect-square"
-                      />
-                      <div className="text-xs text-center">
-                        <p className="truncate font-medium" title={attachment.file.originalName}>
-                          {attachment.file.originalName}
-                        </p>
-                        <p className="text-muted-foreground">
-                          {formatFileSize(attachment.file.size)}
-                        </p>
+                            setPreviewFiles(allFiles);
+                            setPreviewIndex(Math.max(0, currentIndex));
+                            setShowPreview(true);
+                          }}
+                          size="large"
+                          className="w-full aspect-square"
+                        />
+                        <div className="text-xs text-center">
+                          <p className="truncate font-medium" title={attachment.file.originalName}>
+                            {attachment.file.originalName}
+                          </p>
+                          <p className="text-muted-foreground">
+                            {formatFileSize(attachment.file.size)}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  )
-                ))}
+                    ),
+                )}
               </div>
             </CardContent>
           </Card>
@@ -392,16 +400,18 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
                 throw new Error('未找到认证令牌');
               }
 
-              const apiBaseUrl = typeof window !== 'undefined' && localStorage.getItem('server-config-storage')
-                ? JSON.parse(localStorage.getItem('server-config-storage')!)?.state?.config?.currentUrl || '/api'
-                : '/api';
+              const apiBaseUrl =
+                typeof window !== 'undefined' && localStorage.getItem('server-config-storage')
+                  ? JSON.parse(localStorage.getItem('server-config-storage')!)?.state?.config
+                      ?.currentUrl || '/api'
+                  : '/api';
 
               const downloadUrl = `${apiBaseUrl}/file-storage/${file.id}/download`;
 
               const response = await fetch(downloadUrl, {
                 headers: {
-                  'Authorization': `Bearer ${token}`
-                }
+                  Authorization: `Bearer ${token}`,
+                },
               });
 
               if (!response.ok) {

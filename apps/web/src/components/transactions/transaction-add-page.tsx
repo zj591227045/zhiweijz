@@ -178,7 +178,7 @@ export function TransactionAddPage() {
                 await apiClient.post(`/transactions/${createdTransaction.id}/attachments/link`, {
                   fileId: attachment.fileId,
                   attachmentType: attachment.attachmentType,
-                  description: attachment.description
+                  description: attachment.description,
                 });
               }
             }
@@ -223,13 +223,15 @@ export function TransactionAddPage() {
     >
       <div style={{ padding: '0 20px' }}>
         {/* iOS 风格记账类型切换 */}
-        <div style={{
-          display: 'flex',
-          backgroundColor: 'var(--background-secondary)',
-          borderRadius: '12px',
-          padding: '4px',
-          marginBottom: '24px'
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            backgroundColor: 'var(--background-secondary)',
+            borderRadius: '12px',
+            padding: '4px',
+            marginBottom: '24px',
+          }}
+        >
           <button
             onClick={() => useTransactionFormStore.getState().setType('EXPENSE')}
             disabled={submitting}
@@ -244,7 +246,7 @@ export function TransactionAddPage() {
               fontWeight: '600',
               cursor: submitting ? 'not-allowed' : 'pointer',
               transition: 'all 0.3s ease',
-              opacity: submitting ? 0.6 : 1
+              opacity: submitting ? 0.6 : 1,
             }}
           >
             支出
@@ -263,7 +265,7 @@ export function TransactionAddPage() {
               fontWeight: '600',
               cursor: submitting ? 'not-allowed' : 'pointer',
               transition: 'all 0.3s ease',
-              opacity: submitting ? 0.6 : 1
+              opacity: submitting ? 0.6 : 1,
             }}
           >
             收入
@@ -274,73 +276,93 @@ export function TransactionAddPage() {
         <AmountInput />
 
         {/* iOS 风格步骤指示器 */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '24px 0',
-          gap: '16px'
-        }}>
-          <div style={{
+        <div
+          style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '8px'
-          }}>
-            <div style={{
-              width: '24px',
-              height: '24px',
-              borderRadius: '12px',
-              backgroundColor: currentStep >= 1 ? 'var(--primary-color)' : 'var(--border-color)',
-              color: currentStep >= 1 ? 'white' : 'var(--text-secondary)',
+            justifyContent: 'center',
+            margin: '24px 0',
+            gap: '16px',
+          }}
+        >
+          <div
+            style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '12px',
-              fontWeight: '600',
-              transition: 'all 0.3s ease'
-            }}>
+              gap: '8px',
+            }}
+          >
+            <div
+              style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '12px',
+                backgroundColor: currentStep >= 1 ? 'var(--primary-color)' : 'var(--border-color)',
+                color: currentStep >= 1 ? 'white' : 'var(--text-secondary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px',
+                fontWeight: '600',
+                transition: 'all 0.3s ease',
+              }}
+            >
               {currentStep > 1 ? '✓' : '1'}
             </div>
-            <span style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              color: currentStep >= 1 ? 'var(--primary-color)' : 'var(--text-secondary)'
-            }}>选择分类</span>
+            <span
+              style={{
+                fontSize: '14px',
+                fontWeight: '500',
+                color: currentStep >= 1 ? 'var(--primary-color)' : 'var(--text-secondary)',
+              }}
+            >
+              选择分类
+            </span>
           </div>
 
-          <div style={{
-            width: '32px',
-            height: '2px',
-            backgroundColor: currentStep >= 2 ? 'var(--primary-color)' : 'var(--border-color)',
-            borderRadius: '1px',
-            transition: 'all 0.3s ease'
-          }}></div>
-
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <div style={{
-              width: '24px',
-              height: '24px',
-              borderRadius: '12px',
+          <div
+            style={{
+              width: '32px',
+              height: '2px',
               backgroundColor: currentStep >= 2 ? 'var(--primary-color)' : 'var(--border-color)',
-              color: currentStep >= 2 ? 'white' : 'var(--text-secondary)',
+              borderRadius: '1px',
+              transition: 'all 0.3s ease',
+            }}
+          ></div>
+
+          <div
+            style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '12px',
-              fontWeight: '600',
-              transition: 'all 0.3s ease'
-            }}>
+              gap: '8px',
+            }}
+          >
+            <div
+              style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '12px',
+                backgroundColor: currentStep >= 2 ? 'var(--primary-color)' : 'var(--border-color)',
+                color: currentStep >= 2 ? 'white' : 'var(--text-secondary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px',
+                fontWeight: '600',
+                transition: 'all 0.3s ease',
+              }}
+            >
               2
             </div>
-            <span style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              color: currentStep >= 2 ? 'var(--primary-color)' : 'var(--text-secondary)'
-            }}>记账详情</span>
+            <span
+              style={{
+                fontSize: '14px',
+                fontWeight: '500',
+                color: currentStep >= 2 ? 'var(--primary-color)' : 'var(--text-secondary)',
+              }}
+            >
+              记账详情
+            </span>
           </div>
         </div>
 
@@ -353,35 +375,43 @@ export function TransactionAddPage() {
         {currentStep === 2 && (
           <div className="step-content" id="step-details">
             {/* 显示选中的分类 */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '16px',
-              backgroundColor: 'var(--background-color)',
-              border: '1px solid var(--primary-color)',
-              borderRadius: '12px',
-              marginBottom: '16px'
-            }}>
-              <div style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--primary-color)',
-                color: 'white',
+            <div
+              style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '18px'
-              }}>
+                gap: '12px',
+                padding: '16px',
+                backgroundColor: 'var(--background-color)',
+                border: '1px solid var(--primary-color)',
+                borderRadius: '12px',
+                marginBottom: '16px',
+              }}
+            >
+              <div
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--primary-color)',
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '18px',
+                }}
+              >
                 <i className={getIconClass(categoryIcon || '')}></i>
               </div>
-              <span style={{
-                flex: 1,
-                fontSize: '16px',
-                fontWeight: '500',
-                color: 'var(--text-primary)'
-              }}>{categoryName || '未选择分类'}</span>
+              <span
+                style={{
+                  flex: 1,
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  color: 'var(--text-primary)',
+                }}
+              >
+                {categoryName || '未选择分类'}
+              </span>
               <button
                 onClick={() => goToStep(1)}
                 style={{
@@ -391,7 +421,7 @@ export function TransactionAddPage() {
                   padding: '8px 16px',
                   borderRadius: '6px',
                   fontSize: '14px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
                 }}
               >
                 更改

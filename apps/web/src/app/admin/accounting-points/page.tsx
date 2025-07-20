@@ -8,8 +8,8 @@ import { useAccountingPointsManagement } from '@/store/admin/useAccountingPoints
 import { useAdminAuth } from '@/store/admin/useAdminAuth';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
 import MobileNotSupported from '@/components/admin/MobileNotSupported';
-import { 
-  PlusIcon, 
+import {
+  PlusIcon,
   MagnifyingGlassIcon,
   UserIcon,
   CurrencyDollarIcon,
@@ -17,13 +17,13 @@ import {
   ArrowTrendingDownIcon,
   GiftIcon,
   StarIcon,
-  ChartBarIcon
+  ChartBarIcon,
 } from '@heroicons/react/24/outline';
 
 export default function AccountingPointsPage() {
   const router = useRouter();
   const { config, loading: configLoading } = useSystemConfig();
-  
+
   // 如果是移动端构建，直接返回404
   if (process.env.IS_MOBILE_BUILD === 'true') {
     return <MobileNotSupported />;
@@ -52,11 +52,13 @@ export default function AccountingPointsPage() {
     fetchPointsConfig,
     addPointsToUser,
     batchAddPoints,
-    clearUserTransactions
+    clearUserTransactions,
   } = useAccountingPointsManagement();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'totalBalance' | 'giftBalance' | 'memberBalance' | 'createdAt'>('totalBalance');
+  const [sortBy, setSortBy] = useState<
+    'totalBalance' | 'giftBalance' | 'memberBalance' | 'createdAt'
+  >('totalBalance');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [showAddPointsModal, setShowAddPointsModal] = useState(false);
@@ -65,26 +67,34 @@ export default function AccountingPointsPage() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [addPointsForm, setAddPointsForm] = useState({
     points: 0,
-    description: '管理员手动添加'
+    description: '管理员手动添加',
   });
 
   // 只在认证完成且有token时且功能启用时才执行API请求
   useEffect(() => {
     if (isAuthenticated && token && config.accountingPointsEnabled && !configLoading) {
       console.log('🔍 [AccountingPointsPage] 加载记账点管理数据');
-      
+
       fetchUsersStats({
         page: 1,
         limit: 10,
         searchTerm,
         sortBy,
-        sortOrder
+        sortOrder,
       });
-      
+
       fetchOverallStats();
       fetchPointsConfig();
     }
-  }, [isAuthenticated, token, config.accountingPointsEnabled, configLoading, searchTerm, sortBy, sortOrder]);
+  }, [
+    isAuthenticated,
+    token,
+    config.accountingPointsEnabled,
+    configLoading,
+    searchTerm,
+    sortBy,
+    sortOrder,
+  ]);
 
   // 如果记账点系统未启用，显示加载状态
   if (configLoading || !config.accountingPointsEnabled) {
@@ -101,25 +111,25 @@ export default function AccountingPointsPage() {
   const handleSearch = (term: string) => {
     setSearchTerm(term);
     if (!isAuthenticated || !token) return;
-    
+
     fetchUsersStats({
       page: 1,
       limit: 20,
       search: term.trim() || undefined,
       sortBy,
-      sortOrder
+      sortOrder,
     });
   };
 
   const handlePageChange = (page: number) => {
     if (!isAuthenticated || !token) return;
-    
+
     fetchUsersStats({
       page,
       limit: 20,
       search: searchTerm.trim() || undefined,
       sortBy,
-      sortOrder
+      sortOrder,
     });
   };
 
@@ -129,10 +139,8 @@ export default function AccountingPointsPage() {
   };
 
   const handleUserSelect = (userId: string) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
+    setSelectedUsers((prev) =>
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId],
     );
   };
 
@@ -140,7 +148,7 @@ export default function AccountingPointsPage() {
     if (selectedUsers.length === users.length) {
       setSelectedUsers([]);
     } else {
-      setSelectedUsers(users.map(user => user.id));
+      setSelectedUsers(users.map((user) => user.id));
     }
   };
 
@@ -152,7 +160,7 @@ export default function AccountingPointsPage() {
 
   const handleAddPoints = async () => {
     if (!selectedUserId || addPointsForm.points <= 0) return;
-    
+
     await addPointsToUser(selectedUserId, addPointsForm.points, addPointsForm.description);
     setShowAddPointsModal(false);
     setAddPointsForm({ points: 0, description: '管理员手动添加' });
@@ -161,7 +169,7 @@ export default function AccountingPointsPage() {
 
   const handleBatchAddPoints = async () => {
     if (selectedUsers.length === 0 || addPointsForm.points <= 0) return;
-    
+
     await batchAddPoints(selectedUsers, addPointsForm.points, addPointsForm.description);
     setShowBatchAddModal(false);
     setAddPointsForm({ points: 0, description: '管理员批量添加' });
@@ -198,7 +206,9 @@ export default function AccountingPointsPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">总记账点</p>
-                <p className="text-2xl font-semibold text-gray-900">{overallStats.totalBalance.toLocaleString()}</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {overallStats.totalBalance.toLocaleString()}
+                </p>
               </div>
             </div>
           </div>
@@ -210,7 +220,9 @@ export default function AccountingPointsPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">赠送记账点</p>
-                <p className="text-2xl font-semibold text-gray-900">{overallStats.totalGiftBalance.toLocaleString()}</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {overallStats.totalGiftBalance.toLocaleString()}
+                </p>
               </div>
             </div>
           </div>
@@ -222,7 +234,9 @@ export default function AccountingPointsPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">会员记账点</p>
-                <p className="text-2xl font-semibold text-gray-900">{overallStats.totalMemberBalance.toLocaleString()}</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {overallStats.totalMemberBalance.toLocaleString()}
+                </p>
               </div>
             </div>
           </div>
@@ -234,7 +248,9 @@ export default function AccountingPointsPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">今日新增</p>
-                <p className="text-2xl font-semibold text-gray-900">{overallStats.todayAddition.toLocaleString()}</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {overallStats.todayAddition.toLocaleString()}
+                </p>
               </div>
             </div>
           </div>
@@ -246,7 +262,9 @@ export default function AccountingPointsPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">今日消费</p>
-                <p className="text-2xl font-semibold text-gray-900">{overallStats.todayConsumption.toLocaleString()}</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {overallStats.todayConsumption.toLocaleString()}
+                </p>
               </div>
             </div>
           </div>
@@ -269,7 +287,7 @@ export default function AccountingPointsPage() {
                 />
               </div>
             </div>
-            
+
             <div className="mt-4 sm:mt-0 sm:ml-4 flex space-x-3">
               {selectedUsers.length > 0 && (
                 <button
@@ -300,16 +318,28 @@ export default function AccountingPointsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   用户信息
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSortChange('totalBalance', sortOrder === 'desc' ? 'asc' : 'desc')}>
+                <th
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  onClick={() =>
+                    handleSortChange('totalBalance', sortOrder === 'desc' ? 'asc' : 'desc')
+                  }
+                >
                   总记账点
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSortChange('giftBalance', sortOrder === 'desc' ? 'asc' : 'desc')}>
+                <th
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  onClick={() =>
+                    handleSortChange('giftBalance', sortOrder === 'desc' ? 'asc' : 'desc')
+                  }
+                >
                   赠送记账点
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSortChange('memberBalance', sortOrder === 'desc' ? 'asc' : 'desc')}>
+                <th
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  onClick={() =>
+                    handleSortChange('memberBalance', sortOrder === 'desc' ? 'asc' : 'desc')
+                  }
+                >
                   会员记账点
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -401,7 +431,9 @@ export default function AccountingPointsPage() {
           <div className="px-6 py-4 border-t border-gray-200">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-700">
-                显示第 {((pagination.page - 1) * pagination.limit) + 1} 到 {Math.min(pagination.page * pagination.limit, pagination.total)} 条，共 {pagination.total} 条记录
+                显示第 {(pagination.page - 1) * pagination.limit + 1} 到{' '}
+                {Math.min(pagination.page * pagination.limit, pagination.total)} 条，共{' '}
+                {pagination.total} 条记录
               </div>
               <div className="flex space-x-2">
                 <button
@@ -437,7 +469,12 @@ export default function AccountingPointsPage() {
                     type="number"
                     min="1"
                     value={addPointsForm.points}
-                    onChange={(e) => setAddPointsForm(prev => ({ ...prev, points: parseInt(e.target.value) || 0 }))}
+                    onChange={(e) =>
+                      setAddPointsForm((prev) => ({
+                        ...prev,
+                        points: parseInt(e.target.value) || 0,
+                      }))
+                    }
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -446,7 +483,9 @@ export default function AccountingPointsPage() {
                   <input
                     type="text"
                     value={addPointsForm.description}
-                    onChange={(e) => setAddPointsForm(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setAddPointsForm((prev) => ({ ...prev, description: e.target.value }))
+                    }
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -490,7 +529,12 @@ export default function AccountingPointsPage() {
                     type="number"
                     min="1"
                     value={addPointsForm.points}
-                    onChange={(e) => setAddPointsForm(prev => ({ ...prev, points: parseInt(e.target.value) || 0 }))}
+                    onChange={(e) =>
+                      setAddPointsForm((prev) => ({
+                        ...prev,
+                        points: parseInt(e.target.value) || 0,
+                      }))
+                    }
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -499,7 +543,9 @@ export default function AccountingPointsPage() {
                   <input
                     type="text"
                     value={addPointsForm.description}
-                    onChange={(e) => setAddPointsForm(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setAddPointsForm((prev) => ({ ...prev, description: e.target.value }))
+                    }
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -545,7 +591,7 @@ export default function AccountingPointsPage() {
                   ✕
                 </button>
               </div>
-              
+
               {isLoadingTransactions ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -589,21 +635,28 @@ export default function AccountingPointsPage() {
                             <td className="px-6 py-4 text-sm text-gray-900">
                               {new Date(transaction.createdAt).toLocaleString()}
                             </td>
-                            <td className="px-6 py-4 text-sm text-gray-900">
-                              {transaction.type}
-                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-900">{transaction.type}</td>
                             <td className="px-6 py-4 text-sm">
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                transaction.operation === 'add' 
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-red-100 text-red-800'
-                              }`}>
+                              <span
+                                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  transaction.operation === 'add'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}
+                              >
                                 {transaction.operation === 'add' ? '增加' : '扣除'}
                               </span>
                             </td>
                             <td className="px-6 py-4 text-sm font-medium">
-                              <span className={transaction.operation === 'add' ? 'text-green-600' : 'text-red-600'}>
-                                {transaction.operation === 'add' ? '+' : '-'}{transaction.points}
+                              <span
+                                className={
+                                  transaction.operation === 'add'
+                                    ? 'text-green-600'
+                                    : 'text-red-600'
+                                }
+                              >
+                                {transaction.operation === 'add' ? '+' : '-'}
+                                {transaction.points}
                               </span>
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-900">

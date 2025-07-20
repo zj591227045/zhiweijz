@@ -174,7 +174,7 @@ function applyThemeVariables(config: ThemeConfig): void {
     root.style.setProperty('--border-color', 'rgb(229, 231, 235)');
     root.style.setProperty('--success-color', 'rgb(34, 197, 94)');
     root.style.setProperty('--error-color', 'rgb(239, 68, 68)');
-    
+
     // 使用colorVars统一设置主题色
     root.style.setProperty('--primary-color', `rgb(${colorVars.primary})`);
   }

@@ -13,7 +13,9 @@ export function TermsOfServiceModal({ isOpen, onClose }: TermsOfServiceModalProp
       <div className="terms-of-service-content">
         <div className="terms-section">
           <h3>1. 服务说明</h3>
-          <p>只为记账是一款个人和家庭财务管理应用，提供记账、预算管理、统计分析等功能。通过使用本服务，您同意遵守本服务条款。</p>
+          <p>
+            只为记账是一款个人和家庭财务管理应用，提供记账、预算管理、统计分析等功能。通过使用本服务，您同意遵守本服务条款。
+          </p>
         </div>
 
         <div className="terms-section">
@@ -117,7 +119,9 @@ export function TermsOfServiceModal({ isOpen, onClose }: TermsOfServiceModalProp
 
         <div className="terms-section">
           <h3>11. 条款更新</h3>
-          <p>我们可能会不时更新本服务条款。重大变更时，我们会通过应用内通知或邮件方式告知您。继续使用服务即表示您接受更新后的条款。</p>
+          <p>
+            我们可能会不时更新本服务条款。重大变更时，我们会通过应用内通知或邮件方式告知您。继续使用服务即表示您接受更新后的条款。
+          </p>
         </div>
 
         <div className="terms-section">
@@ -130,8 +134,12 @@ export function TermsOfServiceModal({ isOpen, onClose }: TermsOfServiceModalProp
         </div>
 
         <div className="terms-footer">
-          <p><strong>生效日期：</strong>2024年12月1日</p>
-          <p><strong>最后更新：</strong>2024年12月1日</p>
+          <p>
+            <strong>生效日期：</strong>2024年12月1日
+          </p>
+          <p>
+            <strong>最后更新：</strong>2024年12月1日
+          </p>
         </div>
       </div>
     </ContentModal>

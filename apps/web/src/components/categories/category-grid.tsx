@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Category } from '@/types';
 import { DeleteConfirmDialog } from './delete-confirm-dialog';
 import { getIconClass } from '@/lib/utils';
+import { hapticPresets } from '@/lib/haptic-feedback';
 
 interface CategoryGridProps {
   categories: Category[];
@@ -52,6 +53,9 @@ export function CategoryGrid({
 
   // 处理点击
   const handleClick = (category: Category) => {
+    // 添加分类图标点击的振动反馈
+    hapticPresets.categorySelect();
+
     if (onEditCategory) {
       onEditCategory(category.id);
     } else {

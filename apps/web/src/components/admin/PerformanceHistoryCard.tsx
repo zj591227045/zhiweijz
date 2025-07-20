@@ -24,7 +24,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 );
 
 interface PerformanceData {
@@ -53,7 +53,7 @@ const TIME_RANGE_OPTIONS = [
   { value: 'hour', label: '小时' },
   { value: 'day', label: '天' },
   { value: 'week', label: '周' },
-  { value: '30days', label: '30天' }
+  { value: '30days', label: '30天' },
 ];
 
 export function PerformanceHistoryCard({
@@ -61,7 +61,7 @@ export function PerformanceHistoryCard({
   title,
   color,
   unit,
-  isLoading = false
+  isLoading = false,
 }: PerformanceHistoryCardProps) {
   const [timeRange, setTimeRange] = useState<string>('day');
   const [data, setData] = useState<PerformanceHistoryData | null>(null);
@@ -75,7 +75,7 @@ export function PerformanceHistoryCard({
       setError(null);
 
       const response = await adminApi.get(
-        `${ADMIN_API_ENDPOINTS.DASHBOARD_PERFORMANCE_HISTORY}?metricType=${metricType}&timeRange=${timeRange}`
+        `${ADMIN_API_ENDPOINTS.DASHBOARD_PERFORMANCE_HISTORY}?metricType=${metricType}&timeRange=${timeRange}`,
       );
       const result = await response.json();
 
@@ -98,25 +98,26 @@ export function PerformanceHistoryCard({
 
   // 处理图表数据
   const chartData = {
-    labels: data?.data.map(item => {
-      const date = new Date(item.time);
-      switch (timeRange) {
-        case 'hour':
-          return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-        case 'day':
-          return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-        case 'week':
-          return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' });
-        case '30days':
-          return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' });
-        default:
-          return date.toLocaleString('zh-CN');
-      }
-    }) || [],
+    labels:
+      data?.data.map((item) => {
+        const date = new Date(item.time);
+        switch (timeRange) {
+          case 'hour':
+            return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+          case 'day':
+            return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+          case 'week':
+            return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' });
+          case '30days':
+            return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' });
+          default:
+            return date.toLocaleString('zh-CN');
+        }
+      }) || [],
     datasets: [
       {
         label: `平均${title}`,
-        data: data?.data.map(item => item.avgValue) || [],
+        data: data?.data.map((item) => item.avgValue) || [],
         borderColor: color,
         backgroundColor: `${color}20`,
         fill: true,
@@ -139,7 +140,7 @@ export function PerformanceHistoryCard({
         mode: 'index' as const,
         intersect: false,
         callbacks: {
-          label: function(context: any) {
+          label: function (context: any) {
             const dataIndex = context.dataIndex;
             const dataPoint = data?.data[dataIndex];
             if (dataPoint) {
@@ -147,12 +148,12 @@ export function PerformanceHistoryCard({
                 `平均值: ${dataPoint.avgValue.toFixed(2)}${unit}`,
                 `最小值: ${dataPoint.minValue.toFixed(2)}${unit}`,
                 `最大值: ${dataPoint.maxValue.toFixed(2)}${unit}`,
-                `样本数: ${dataPoint.sampleCount}`
+                `样本数: ${dataPoint.sampleCount}`,
               ];
             }
             return `${context.parsed.y.toFixed(2)}${unit}`;
-          }
-        }
+          },
+        },
       },
     },
     scales: {
@@ -171,12 +172,15 @@ export function PerformanceHistoryCard({
       y: {
         display: true,
         beginAtZero: true,
-        max: metricType === 'disk' || metricType === 'cpu' || metricType === 'memory' ? 100 : undefined,
+        max:
+          metricType === 'disk' || metricType === 'cpu' || metricType === 'memory'
+            ? 100
+            : undefined,
         grid: {
           color: 'rgba(0, 0, 0, 0.1)',
         },
         ticks: {
-          callback: function(value: any) {
+          callback: function (value: any) {
             return `${value}${unit}`;
           },
           font: {
@@ -211,7 +215,7 @@ export function PerformanceHistoryCard({
             onChange={(e) => setTimeRange(e.target.value)}
             className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {TIME_RANGE_OPTIONS.map(option => (
+            {TIME_RANGE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -232,10 +236,7 @@ export function PerformanceHistoryCard({
           <div className="text-center">
             <p className="mb-2">加载失败</p>
             <p className="text-sm text-gray-500">{error}</p>
-            <button
-              onClick={fetchData}
-              className="mt-2 text-sm text-blue-600 hover:text-blue-800"
-            >
+            <button onClick={fetchData} className="mt-2 text-sm text-blue-600 hover:text-blue-800">
               重试
             </button>
           </div>
@@ -264,19 +265,24 @@ export function PerformanceHistoryCard({
             <div className="text-center">
               <div className="text-gray-500">平均值</div>
               <div className="font-medium">
-                {(data.data.reduce((sum, item) => sum + item.avgValue, 0) / data.data.length).toFixed(2)}{unit}
+                {(
+                  data.data.reduce((sum, item) => sum + item.avgValue, 0) / data.data.length
+                ).toFixed(2)}
+                {unit}
               </div>
             </div>
             <div className="text-center">
               <div className="text-gray-500">最小值</div>
               <div className="font-medium">
-                {Math.min(...data.data.map(item => item.minValue)).toFixed(2)}{unit}
+                {Math.min(...data.data.map((item) => item.minValue)).toFixed(2)}
+                {unit}
               </div>
             </div>
             <div className="text-center">
               <div className="text-gray-500">最大值</div>
               <div className="font-medium">
-                {Math.max(...data.data.map(item => item.maxValue)).toFixed(2)}{unit}
+                {Math.max(...data.data.map((item) => item.maxValue)).toFixed(2)}
+                {unit}
               </div>
             </div>
           </div>

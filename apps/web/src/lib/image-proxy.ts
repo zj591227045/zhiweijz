@@ -11,7 +11,7 @@ import {
   shouldUseDirectAccess,
   requiresAuthentication,
   getPresignedUrlTTL,
-  debugAccessPolicy
+  debugAccessPolicy,
 } from './s3-access-config';
 
 /**
@@ -59,7 +59,7 @@ export function convertS3UrlToProxy(s3Url: string): string {
     // 解析S3 URL，提取bucket和key
     // 格式: http://endpoint/bucket/key/path
     const url = new URL(s3Url);
-    const pathParts = url.pathname.split('/').filter(part => part.length > 0);
+    const pathParts = url.pathname.split('/').filter((part) => part.length > 0);
 
     if (pathParts.length < 2) {
       console.warn('无效的S3 URL格式:', s3Url);
@@ -89,13 +89,13 @@ export function convertS3UrlToProxy(s3Url: string): string {
  * @returns 缩略图代理API URL
  */
 export function getThumbnailProxyUrl(
-  s3Url: string, 
+  s3Url: string,
   options: {
     width?: number;
     height?: number;
     quality?: number;
     format?: 'jpeg' | 'webp' | 'png';
-  } = {}
+  } = {},
 ): string {
   if (!s3Url || !s3Url.startsWith('http')) {
     return s3Url; // 如果不是HTTP URL，直接返回
@@ -104,7 +104,7 @@ export function getThumbnailProxyUrl(
   try {
     // 解析S3 URL，提取bucket和key
     const url = new URL(s3Url);
-    const pathParts = url.pathname.split('/').filter(part => part.length > 0);
+    const pathParts = url.pathname.split('/').filter((part) => part.length > 0);
 
     if (pathParts.length < 2) {
       console.warn('无效的S3 URL格式:', s3Url);
@@ -115,12 +115,7 @@ export function getThumbnailProxyUrl(
     const key = pathParts.slice(1).join('/');
 
     // 设置默认参数
-    const {
-      width = 200,
-      height = 200,
-      quality = 80,
-      format = 'jpeg'
-    } = options;
+    const { width = 200, height = 200, quality = 80, format = 'jpeg' } = options;
 
     // 获取动态API基础URL并构建缩略图API URL
     const apiBaseUrl = getApiBaseUrl();
@@ -128,12 +123,12 @@ export function getThumbnailProxyUrl(
       width: width.toString(),
       height: height.toString(),
       quality: quality.toString(),
-      format
+      format,
     });
-    
+
     const thumbnailUrl = `${apiBaseUrl}/image-proxy/thumbnail/s3/${bucket}/${key}?${queryParams}`;
 
-/*     console.log('🖼️ S3 URL转换为缩略图URL:', { 
+    /*     console.log('🖼️ S3 URL转换为缩略图URL:', { 
       original: s3Url, 
       thumbnail: thumbnailUrl, 
       options, 
@@ -169,11 +164,13 @@ export function isS3DirectUrl(url: string): boolean {
   try {
     const urlObj = new URL(url);
     // 检查是否包含常见的S3端点模式
-    return urlObj.hostname.includes('amazonaws.com') || 
-           urlObj.hostname.includes('minio') ||
-           urlObj.port === '9000' || // 常见的MinIO端口
-           urlObj.pathname.includes('/avatars/') ||
-           urlObj.pathname.includes('/transaction-attachments/');
+    return (
+      urlObj.hostname.includes('amazonaws.com') ||
+      urlObj.hostname.includes('minio') ||
+      urlObj.port === '9000' || // 常见的MinIO端口
+      urlObj.pathname.includes('/avatars/') ||
+      urlObj.pathname.includes('/transaction-attachments/')
+    );
   } catch {
     return false;
   }
@@ -202,7 +199,11 @@ const urlProcessCache = new Map<string, string>();
  * @param enableDebug 是否启用调试信息
  * @returns 处理后的URL
  */
-export function processAvatarUrl(avatarUrl: string, userId?: string, enableDebug: boolean = false): string {
+export function processAvatarUrl(
+  avatarUrl: string,
+  userId?: string,
+  enableDebug: boolean = false,
+): string {
   if (!avatarUrl) {
     return avatarUrl;
   }
@@ -291,7 +292,10 @@ export function processAvatarUrl(avatarUrl: string, userId?: string, enableDebug
  * @param expiresIn 过期时间（秒），默认1小时
  * @returns Promise<string> 预签名URL
  */
-export async function generatePresignedUrl(s3Url: string, expiresIn: number = 3600): Promise<string> {
+export async function generatePresignedUrl(
+  s3Url: string,
+  expiresIn: number = 3600,
+): Promise<string> {
   if (!isS3DirectUrl(s3Url) || !isHttpsUrl(s3Url)) {
     return s3Url;
   }
@@ -299,7 +303,7 @@ export async function generatePresignedUrl(s3Url: string, expiresIn: number = 36
   try {
     // 解析S3 URL获取bucket和key
     const url = new URL(s3Url);
-    const pathParts = url.pathname.split('/').filter(part => part.length > 0);
+    const pathParts = url.pathname.split('/').filter((part) => part.length > 0);
 
     if (pathParts.length < 2) {
       console.warn('无效的S3 URL格式:', s3Url);
@@ -345,21 +349,22 @@ export async function generatePresignedUrl(s3Url: string, expiresIn: number = 36
  */
 export function handleImageError(event: Event, fallbackUrl?: string): void {
   const img = event.target as HTMLImageElement;
-  
+
   console.warn('图片加载失败:', img.src);
-  
+
   if (fallbackUrl && img.src !== fallbackUrl) {
     console.log('尝试使用备用URL:', fallbackUrl);
     img.src = fallbackUrl;
   } else {
     // 如果没有备用URL或备用URL也失败，显示默认占位符
     img.style.display = 'none';
-    
+
     // 可以在这里添加显示默认头像的逻辑
     const parent = img.parentElement;
     if (parent && !parent.querySelector('.avatar-fallback')) {
       const fallback = document.createElement('div');
-      fallback.className = 'avatar-fallback w-full h-full flex items-center justify-center bg-gray-200 rounded-full text-gray-600';
+      fallback.className =
+        'avatar-fallback w-full h-full flex items-center justify-center bg-gray-200 rounded-full text-gray-600';
       fallback.textContent = '头像';
       parent.appendChild(fallback);
     }

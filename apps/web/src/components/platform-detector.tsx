@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { initPlatformDetection, getPlatformInfo } from '@/lib/platform-detection';
+import { initializeHapticFeedback } from '@/lib/haptic-feedback';
 
 /**
  * 平台检测组件
@@ -11,6 +12,9 @@ export function PlatformDetector() {
   useEffect(() => {
     // 初始化平台检测
     initPlatformDetection();
+
+    // 初始化振动反馈功能
+    initializeHapticFeedback();
 
     // 输出平台信息用于调试
     const platformInfo = getPlatformInfo();
@@ -38,8 +42,10 @@ export function PlatformDetector() {
             mutation.addedNodes.forEach((node) => {
               if (node.nodeType === Node.ELEMENT_NODE) {
                 const element = node as Element;
-                if (element.matches('header, .header, .modal-header') ||
-                    element.querySelector('header, .header, .modal-header')) {
+                if (
+                  element.matches('header, .header, .modal-header') ||
+                  element.querySelector('header, .header, .modal-header')
+                ) {
                   needsReapply = true;
                 }
               }
@@ -56,7 +62,7 @@ export function PlatformDetector() {
       // 开始观察DOM变化
       observer.observe(document.body, {
         childList: true,
-        subtree: true
+        subtree: true,
       });
 
       // 清理函数

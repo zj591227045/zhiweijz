@@ -7,12 +7,12 @@ import {
   handleImageError,
   isS3DirectUrl,
   isHttpsUrl,
-  generatePresignedUrl
+  generatePresignedUrl,
 } from '@/lib/image-proxy';
 import {
   getAccessMethod,
   requiresAuthentication,
-  getPresignedUrlTTL
+  getPresignedUrlTTL,
 } from '@/lib/s3-access-config';
 import { useAuthStore } from '@/store/auth-store';
 
@@ -35,7 +35,7 @@ export function SmartAvatarDisplay({
   className = '',
   alt = '头像',
   requireAuth = false,
-  presignedUrlTTL = 3600
+  presignedUrlTTL = 3600,
 }: SmartAvatarDisplayProps) {
   const { user } = useAuthStore();
   const [processedUrl, setProcessedUrl] = useState<string>('');
@@ -74,7 +74,7 @@ export function SmartAvatarDisplay({
         userId,
         currentUserId: user.id,
         oldAvatar: currentAvatar,
-        newAvatar: user.avatar
+        newAvatar: user.avatar,
       });
       setCurrentAvatar(user.avatar);
     } else if (!userId || userId !== user?.id) {
@@ -91,7 +91,7 @@ export function SmartAvatarDisplay({
         console.log('🔔 SmartAvatarDisplay: 收到全局头像更新事件:', {
           userId,
           updatedUserId: updatedUser.id,
-          newAvatar: updatedUser.avatar
+          newAvatar: updatedUser.avatar,
         });
         setCurrentAvatar(updatedUser.avatar);
       }
@@ -103,7 +103,7 @@ export function SmartAvatarDisplay({
         console.log('🔔 SmartAvatarDisplay: 收到全局用户信息更新事件:', {
           userId,
           updatedUserId: updatedUser.id,
-          newAvatar: updatedUser.avatar
+          newAvatar: updatedUser.avatar,
         });
         setCurrentAvatar(updatedUser.avatar);
       }
@@ -213,8 +213,8 @@ export function SmartAvatarDisplay({
 
     if (processedUrl && processedUrl.startsWith('http')) {
       return (
-        <img 
-          src={processedUrl} 
+        <img
+          src={processedUrl}
           alt={alt}
           className="w-full h-full object-cover rounded-full"
           onError={(e) => {
@@ -246,7 +246,7 @@ export function SmartAvatarDisplay({
   };
 
   return (
-    <div 
+    <div
       className={`${getSizeClass()} ${className} flex-shrink-0 relative`}
       style={getInlineStyle()}
     >

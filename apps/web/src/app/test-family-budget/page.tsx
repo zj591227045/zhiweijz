@@ -13,7 +13,7 @@ export default function TestFamilyBudgetPage() {
 
   console.log('🧪 [TestPage] Component mounted with:', {
     testFamilyId,
-    testAccountBookId
+    testAccountBookId,
   });
 
   const handleBudgetsUpdated = (newBudgets: Record<string, number>) => {
@@ -29,13 +29,28 @@ export default function TestFamilyBudgetPage() {
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
       <h1>家庭预算表单测试</h1>
-      
-      <div style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+
+      <div
+        style={{
+          marginBottom: '20px',
+          padding: '10px',
+          backgroundColor: '#f5f5f5',
+          borderRadius: '8px',
+        }}
+      >
         <h3>测试信息</h3>
-        <p><strong>家庭ID:</strong> {testFamilyId}</p>
-        <p><strong>账本ID:</strong> {testAccountBookId}</p>
-        <p><strong>加载状态:</strong> {isLoading ? '加载中...' : '已完成'}</p>
-        <p><strong>当前预算:</strong> {JSON.stringify(budgets, null, 2)}</p>
+        <p>
+          <strong>家庭ID:</strong> {testFamilyId}
+        </p>
+        <p>
+          <strong>账本ID:</strong> {testAccountBookId}
+        </p>
+        <p>
+          <strong>加载状态:</strong> {isLoading ? '加载中...' : '已完成'}
+        </p>
+        <p>
+          <strong>当前预算:</strong> {JSON.stringify(budgets, null, 2)}
+        </p>
       </div>
 
       <div style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '20px' }}>

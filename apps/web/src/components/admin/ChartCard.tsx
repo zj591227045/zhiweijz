@@ -25,7 +25,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 );
 
 interface ChartCardProps {
@@ -47,28 +47,27 @@ export function ChartCard({
   dataKey = 'count',
   xAxisKey = 'date',
   color = '#3B82F6',
-  height = 300
+  height = 300,
 }: ChartCardProps) {
   // 处理数据格式
-  const processedData = data.map(item => ({
+  const processedData = data.map((item) => ({
     ...item,
-    date: typeof item[xAxisKey] === 'string' 
-      ? new Date(item[xAxisKey]).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
-      : item[xAxisKey],
-    value: item[dataKey] || item.value || item.count || 0
+    date:
+      typeof item[xAxisKey] === 'string'
+        ? new Date(item[xAxisKey]).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
+        : item[xAxisKey],
+    value: item[dataKey] || item.value || item.count || 0,
   }));
 
   // Chart.js数据格式
   const chartData = {
-    labels: processedData.map(item => item.date),
+    labels: processedData.map((item) => item.date),
     datasets: [
       {
         label: title,
-        data: processedData.map(item => item.value),
+        data: processedData.map((item) => item.value),
         borderColor: color,
-        backgroundColor: type === 'line' 
-          ? `${color}20` 
-          : color,
+        backgroundColor: type === 'line' ? `${color}20` : color,
         borderWidth: 2,
         fill: type === 'line',
         tension: 0.3,
@@ -185,11 +184,9 @@ export function ChartCard({
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-medium text-gray-900">{title}</h3>
-        <div className="text-sm text-gray-500">
-          最近{data.length}天
-        </div>
+        <div className="text-sm text-gray-500">最近{data.length}天</div>
       </div>
-      
+
       <div style={{ height: `${height}px` }}>
         {type === 'line' ? (
           <Line data={chartData} options={options} />
@@ -209,10 +206,12 @@ export function ChartCard({
         <div className="flex justify-between text-sm text-gray-600 mt-1">
           <span>平均</span>
           <span className="font-medium">
-            {Math.round(processedData.reduce((sum, item) => sum + item.value, 0) / processedData.length).toLocaleString()}
+            {Math.round(
+              processedData.reduce((sum, item) => sum + item.value, 0) / processedData.length,
+            ).toLocaleString()}
           </span>
         </div>
       </div>
     </div>
   );
-} 
+}

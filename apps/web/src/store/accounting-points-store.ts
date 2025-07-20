@@ -6,7 +6,7 @@ import {
   AccountingPointsTransaction,
   CheckinStatus,
   CheckinResult,
-  CheckinHistory
+  CheckinHistory,
 } from '../lib/api/accounting-points-service';
 
 interface AccountingPointsState {
@@ -49,9 +49,9 @@ export const useAccountingPointsStore = create<AccountingPointsState>()(
           set({ balance, loading: false });
         } catch (error) {
           console.error('❌ [AccountingPointsStore] 获取记账点余额失败:', error);
-          set({ 
+          set({
             error: error instanceof Error ? error.message : '获取记账点余额失败',
-            loading: false 
+            loading: false,
           });
         }
       },
@@ -64,9 +64,9 @@ export const useAccountingPointsStore = create<AccountingPointsState>()(
           set({ transactions, loading: false });
         } catch (error) {
           console.error('获取消费记录失败:', error);
-          set({ 
+          set({
             error: error instanceof Error ? error.message : '获取消费记录失败',
-            loading: false 
+            loading: false,
           });
         }
       },
@@ -78,8 +78,8 @@ export const useAccountingPointsStore = create<AccountingPointsState>()(
           set({ checkinStatus });
         } catch (error) {
           console.error('获取签到状态失败:', error);
-          set({ 
-            error: error instanceof Error ? error.message : '获取签到状态失败'
+          set({
+            error: error instanceof Error ? error.message : '获取签到状态失败',
           });
         }
       },
@@ -92,9 +92,9 @@ export const useAccountingPointsStore = create<AccountingPointsState>()(
           set({ checkinHistory, loading: false });
         } catch (error) {
           console.error('获取签到历史失败:', error);
-          set({ 
+          set({
             error: error instanceof Error ? error.message : '获取签到历史失败',
-            loading: false 
+            loading: false,
           });
         }
       },
@@ -104,20 +104,20 @@ export const useAccountingPointsStore = create<AccountingPointsState>()(
         try {
           set({ loading: true, error: null });
           const result = await AccountingPointsService.checkin();
-          
+
           // 签到成功后刷新余额和签到状态
           await get().fetchBalance();
           await get().fetchCheckinStatus();
           await get().fetchCheckinHistory();
-          
+
           set({ loading: false });
           return result;
         } catch (error) {
           console.error('签到失败:', error);
           const errorMessage = error instanceof Error ? error.message : '签到失败';
-          set({ 
+          set({
             error: errorMessage,
-            loading: false 
+            loading: false,
           });
           throw new Error(errorMessage);
         }
@@ -127,13 +127,13 @@ export const useAccountingPointsStore = create<AccountingPointsState>()(
       consumePoints: async (points: number, description: string) => {
         try {
           set({ loading: true, error: null });
-          
+
           // 调用记账点消费API
           await AccountingPointsService.consumePoints(points, description);
-          
+
           // 刷新本地余额
           await get().fetchBalance();
-          
+
           // 同步会员系统数据 - 动态导入避免循环依赖
           try {
             const { useMembershipStore } = await import('./membership-store');
@@ -141,14 +141,14 @@ export const useAccountingPointsStore = create<AccountingPointsState>()(
           } catch (syncError) {
             console.warn('同步会员信息失败:', syncError);
           }
-          
+
           set({ loading: false });
         } catch (error) {
           console.error('消费记账点失败:', error);
           const errorMessage = error instanceof Error ? error.message : '消费记账点失败';
-          set({ 
+          set({
             error: errorMessage,
-            loading: false 
+            loading: false,
           });
           throw new Error(errorMessage);
         }
@@ -162,17 +162,17 @@ export const useAccountingPointsStore = create<AccountingPointsState>()(
           checkinStatus: null,
           checkinHistory: null,
           loading: false,
-          error: null
+          error: null,
         });
-      }
+      },
     }),
     {
       name: 'accounting-points-store',
       partialize: (state) => ({
         balance: state.balance,
         checkinStatus: state.checkinStatus,
-        checkinHistory: state.checkinHistory
-      })
-    }
-  )
+        checkinHistory: state.checkinHistory,
+      }),
+    },
+  ),
 );

@@ -4,7 +4,11 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { versionCheckService, VersionCheckResult, UserAction } from '@/lib/services/versionCheckService';
+import {
+  versionCheckService,
+  VersionCheckResult,
+  UserAction,
+} from '@/lib/services/versionCheckService';
 import { VersionCheckResponse } from '@/lib/api/version';
 
 export interface UseEnhancedVersionCheckOptions {
@@ -30,13 +34,13 @@ export interface UseEnhancedVersionCheckReturn {
   updateInfo: VersionCheckResponse | null;
   error: string | null;
   showUpdateDialog: boolean;
-  
+
   // 操作方法
   checkVersion: () => Promise<void>;
   handleUserAction: (action: UserAction) => Promise<void>;
   setShowUpdateDialog: (show: boolean) => void;
   clearError: () => void;
-  
+
   // 工具方法
   getCurrentPlatform: () => string;
   getCurrentVersion: () => { version: string; buildNumber: number };
@@ -44,7 +48,7 @@ export interface UseEnhancedVersionCheckReturn {
 }
 
 export function useEnhancedVersionCheck(
-  options: UseEnhancedVersionCheckOptions = {}
+  options: UseEnhancedVersionCheckOptions = {},
 ): UseEnhancedVersionCheckReturn {
   const {
     autoCheck = true,
@@ -54,7 +58,7 @@ export function useEnhancedVersionCheck(
     onUpdateAvailable,
     onForceUpdate,
     onCheckComplete,
-    onError
+    onError,
   } = options;
 
   // 状态管理
@@ -74,7 +78,7 @@ export function useEnhancedVersionCheck(
   const checkVersion = useCallback(async () => {
     // 防止重复检查
     if (isChecking) return;
-    
+
     // 防止频繁检查（最少间隔5分钟）
     const now = Date.now();
     if (now - lastCheckRef.current < 5 * 60 * 1000) {
@@ -87,7 +91,7 @@ export function useEnhancedVersionCheck(
 
     try {
       const result = await versionCheckService.checkVersion();
-      
+
       // 更新状态
       setHasUpdate(result.hasUpdate);
       setUpdateInfo(result.updateInfo || null);
@@ -100,7 +104,7 @@ export function useEnhancedVersionCheck(
       // 如果需要显示对话框
       if (result.shouldShowDialog && result.updateInfo) {
         setShowUpdateDialog(true);
-        
+
         // 触发相应的回调
         if (result.updateInfo.isForceUpdate && onForceUpdate) {
           onForceUpdate(result.updateInfo);
@@ -108,11 +112,10 @@ export function useEnhancedVersionCheck(
           onUpdateAvailable(result.updateInfo);
         }
       }
-
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '版本检查失败';
       setError(errorMessage);
-      
+
       if (onError) {
         onError(err instanceof Error ? err : new Error(errorMessage));
       }
@@ -124,37 +127,39 @@ export function useEnhancedVersionCheck(
   /**
    * 处理用户操作
    */
-  const handleUserAction = useCallback(async (action: UserAction) => {
-    if (!updateInfo?.latestVersion) {
-      throw new Error('No version information available');
-    }
-
-    try {
-      const version = updateInfo.latestVersion.version;
-      const versionId = updateInfo.latestVersion.id;
-
-      // 处理用户操作
-      await versionCheckService.handleUserAction(action, version, versionId);
-
-      // 如果是更新操作，执行平台特定的更新
-      if (action === 'update') {
-        await versionCheckService.performUpdate(updateInfo);
-      } else {
-        // 其他操作关闭对话框
-        setShowUpdateDialog(false);
-        setHasUpdate(false);
-        setUpdateInfo(null);
+  const handleUserAction = useCallback(
+    async (action: UserAction) => {
+      if (!updateInfo?.latestVersion) {
+        throw new Error('No version information available');
       }
 
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '操作失败';
-      setError(errorMessage);
+      try {
+        const version = updateInfo.latestVersion.version;
+        const versionId = updateInfo.latestVersion.id;
 
-      if (onError) {
-        onError(err instanceof Error ? err : new Error(errorMessage));
+        // 处理用户操作
+        await versionCheckService.handleUserAction(action, version, versionId);
+
+        // 如果是更新操作，执行平台特定的更新
+        if (action === 'update') {
+          await versionCheckService.performUpdate(updateInfo);
+        } else {
+          // 其他操作关闭对话框
+          setShowUpdateDialog(false);
+          setHasUpdate(false);
+          setUpdateInfo(null);
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : '操作失败';
+        setError(errorMessage);
+
+        if (onError) {
+          onError(err instanceof Error ? err : new Error(errorMessage));
+        }
       }
-    }
-  }, [updateInfo, onError]);
+    },
+    [updateInfo, onError],
+  );
 
   /**
    * 清除错误
@@ -216,7 +221,7 @@ export function useEnhancedVersionCheck(
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
@@ -234,7 +239,7 @@ export function useEnhancedVersionCheck(
     };
 
     window.addEventListener('storage', handleStorageChange);
-    
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
@@ -256,16 +261,16 @@ export function useEnhancedVersionCheck(
     updateInfo,
     error,
     showUpdateDialog,
-    
+
     // 操作方法
     checkVersion,
     handleUserAction,
     setShowUpdateDialog,
     clearError,
-    
+
     // 工具方法
     getCurrentPlatform,
     getCurrentVersion,
-    getVersionStats
+    getVersionStats,
   };
 }

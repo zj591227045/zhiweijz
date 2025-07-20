@@ -70,22 +70,12 @@ export function RolloverHistoryDialog({ history, onClose }: RolloverHistoryDialo
   }
 
   return createPortal(
-    <div
-      className="rollover-history-modal"
-      onClick={onClose}
-    >
-      <div
-        className="rollover-history-content"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="rollover-history-modal" onClick={onClose}>
+      <div className="rollover-history-content" onClick={(e) => e.stopPropagation()}>
         {/* 头部 */}
         <div className="rollover-history-header">
           <h3>结转历史</h3>
-          <button
-            className="rollover-history-close"
-            onClick={onClose}
-            type="button"
-          >
+          <button className="rollover-history-close" onClick={onClose} type="button">
             ×
           </button>
         </div>
@@ -109,9 +99,7 @@ export function RolloverHistoryDialog({ history, onClose }: RolloverHistoryDialo
                     <div className={`item-type ${record.type.toLowerCase()}`}>
                       {getTypeText(record.type)}
                     </div>
-                    <div className="item-amount">
-                      {formatAmount(record.amount)}
-                    </div>
+                    <div className="item-amount">{formatAmount(record.amount)}</div>
                   </div>
                 </div>
               ))}
@@ -120,6 +108,6 @@ export function RolloverHistoryDialog({ history, onClose }: RolloverHistoryDialo
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

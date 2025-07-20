@@ -2,7 +2,10 @@
 
 import React, { createContext, useContext, useCallback, useState } from 'react';
 import { useVersionCheck, getCurrentAppVersion, getCurrentPlatform } from '@/hooks/useVersionCheck';
-import { VersionUpdateDialog, VersionCheckIndicator } from '@/components/version/VersionUpdateDialog';
+import {
+  VersionUpdateDialog,
+  VersionCheckIndicator,
+} from '@/components/version/VersionUpdateDialog';
 import { VersionCheckResponse } from '@/lib/api/version';
 
 interface VersionContextType {
@@ -31,15 +34,15 @@ interface VersionProviderProps {
   checkInterval?: number;
 }
 
-export function VersionProvider({ 
-  children, 
+export function VersionProvider({
+  children,
   enabled = true,
   autoCheck = true,
   checkInterval = 24 * 60 * 60 * 1000, // 24小时
 }: VersionProviderProps) {
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [forceUpdateDialog, setForceUpdateDialog] = useState(false);
-  
+
   const platform = getCurrentPlatform();
   const { version, buildNumber } = getCurrentAppVersion();
 
@@ -52,23 +55,16 @@ export function VersionProvider({
     setShowUpdateDialog(true);
   }, []);
 
-  const {
-    isChecking,
-    updateInfo,
-    error,
-    checkVersion,
-    logUpdate,
-    logSkip,
-    clearError,
-  } = useVersionCheck({
-    platform,
-    currentVersion: version,
-    currentBuildNumber: buildNumber,
-    autoCheck: enabled && autoCheck,
-    checkInterval,
-    onUpdateAvailable: handleUpdateAvailable,
-    onForceUpdate: handleForceUpdate,
-  });
+  const { isChecking, updateInfo, error, checkVersion, logUpdate, logSkip, clearError } =
+    useVersionCheck({
+      platform,
+      currentVersion: version,
+      currentBuildNumber: buildNumber,
+      autoCheck: enabled && autoCheck,
+      checkInterval,
+      onUpdateAvailable: handleUpdateAvailable,
+      onForceUpdate: handleForceUpdate,
+    });
 
   const handleCloseDialog = useCallback(() => {
     if (!forceUpdateDialog) {
@@ -102,7 +98,7 @@ export function VersionProvider({
   return (
     <VersionContext.Provider value={contextValue}>
       {children}
-      
+
       {/* 版本检查指示器 */}
       <VersionCheckIndicator
         isChecking={isChecking}
@@ -112,7 +108,7 @@ export function VersionProvider({
           checkVersion();
         }}
       />
-      
+
       {/* 版本更新对话框 */}
       {updateInfo && (
         <VersionUpdateDialog
@@ -131,7 +127,7 @@ export function VersionProvider({
 // 手动检查版本的钩子
 export function useManualVersionCheck() {
   const { checkVersion } = useVersion();
-  
+
   return useCallback(async () => {
     await checkVersion();
   }, [checkVersion]);
@@ -142,7 +138,7 @@ export function useVersionInfo() {
   const { updateInfo } = useVersion();
   const platform = getCurrentPlatform();
   const { version, buildNumber } = getCurrentAppVersion();
-  
+
   return {
     currentVersion: version,
     currentBuildNumber: buildNumber,

@@ -37,7 +37,7 @@ interface BudgetDisplay {
 // 预算选择器组件
 function BudgetSelector({
   budgetId,
-  setBudgetId
+  setBudgetId,
 }: {
   budgetId: string;
   setBudgetId: (id: string) => void;
@@ -56,7 +56,7 @@ function BudgetSelector({
   }, [currentAccountBook?.id, fetchActiveBudgets]);
 
   // 筛选支出类型的预算并格式化数据
-  const formattedBudgets: BudgetDisplay[] = budgets.map(budget => ({
+  const formattedBudgets: BudgetDisplay[] = budgets.map((budget) => ({
     id: budget.id,
     name: (budget as any).name || budget.category?.name || '未知分类',
     amount: budget.amount,
@@ -66,13 +66,13 @@ function BudgetSelector({
     familyMemberName: (budget as any).familyMemberName,
     familyMemberId: (budget as any).familyMemberId,
     userId: (budget as any).userId,
-    userName: (budget as any).userName
+    userName: (budget as any).userName,
   }));
 
   // 根据budgetId查找选中的预算 - 使用useCallback避免循环依赖
   const updateSelectedBudget = useCallback(() => {
     if (budgetId && formattedBudgets.length > 0) {
-      const budget = formattedBudgets.find(b => b.id === budgetId);
+      const budget = formattedBudgets.find((b) => b.id === budgetId);
       if (budget) {
         setSelectedBudget(budget);
       }
@@ -105,7 +105,7 @@ function BudgetSelector({
       style: 'currency',
       currency: 'CNY',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     }).format(amount);
   };
 
@@ -133,19 +133,14 @@ function BudgetSelector({
     <div className="budget-selector-container">
       <label className="form-label">预算</label>
       {/* 预算选择器预览 */}
-      <div
-        className="budget-selector-preview"
-        onClick={() => setIsBudgetSelectorOpen(true)}
-      >
+      <div className="budget-selector-preview" onClick={() => setIsBudgetSelectorOpen(true)}>
         <div className="budget-selector-icon">
           <i className="fas fa-wallet"></i>
         </div>
         <div className="budget-selector-info">
           {selectedBudget ? (
             <>
-              <div className="budget-name">
-                {getBudgetDisplayName(selectedBudget)}
-              </div>
+              <div className="budget-name">{getBudgetDisplayName(selectedBudget)}</div>
               <div className="budget-balance">
                 余额: {formatAmount(calculateBudgetBalance(selectedBudget))}
               </div>
@@ -162,16 +157,10 @@ function BudgetSelector({
       {/* 预算选择器弹窗 */}
       {isBudgetSelectorOpen && (
         <div className="budget-selector-overlay" onClick={() => setIsBudgetSelectorOpen(false)}>
-          <div
-            className="budget-selector-drawer"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="budget-selector-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="budget-selector-header">
               <h3>选择预算</h3>
-              <button
-                className="close-button"
-                onClick={() => setIsBudgetSelectorOpen(false)}
-              >
+              <button className="close-button" onClick={() => setIsBudgetSelectorOpen(false)}>
                 <i className="fas fa-times"></i>
               </button>
             </div>
@@ -201,11 +190,11 @@ function BudgetSelector({
                   </div>
 
                   {/* 个人预算组 */}
-                  {formattedBudgets.filter(b => b.budgetType !== 'GENERAL').length > 0 && (
+                  {formattedBudgets.filter((b) => b.budgetType !== 'GENERAL').length > 0 && (
                     <>
                       <div className="budget-group-header">个人预算</div>
                       {formattedBudgets
-                        .filter(budget => budget.budgetType !== 'GENERAL')
+                        .filter((budget) => budget.budgetType !== 'GENERAL')
                         .map((budget) => (
                           <div
                             key={budget.id}
@@ -213,9 +202,7 @@ function BudgetSelector({
                             onClick={() => handleBudgetSelect(budget)}
                           >
                             <div className="budget-item-info">
-                              <div className="budget-item-name">
-                                {getBudgetDisplayName(budget)}
-                              </div>
+                              <div className="budget-item-name">{getBudgetDisplayName(budget)}</div>
                               <div className="budget-item-balance">
                                 余额: {formatAmount(calculateBudgetBalance(budget))}
                               </div>
@@ -231,11 +218,11 @@ function BudgetSelector({
                   )}
 
                   {/* 通用预算组 */}
-                  {formattedBudgets.filter(b => b.budgetType === 'GENERAL').length > 0 && (
+                  {formattedBudgets.filter((b) => b.budgetType === 'GENERAL').length > 0 && (
                     <>
                       <div className="budget-group-header">通用预算</div>
                       {formattedBudgets
-                        .filter(budget => budget.budgetType === 'GENERAL')
+                        .filter((budget) => budget.budgetType === 'GENERAL')
                         .map((budget) => (
                           <div
                             key={budget.id}
@@ -243,9 +230,7 @@ function BudgetSelector({
                             onClick={() => handleBudgetSelect(budget)}
                           >
                             <div className="budget-item-info">
-                              <div className="budget-item-name">
-                                {getBudgetDisplayName(budget)}
-                              </div>
+                              <div className="budget-item-name">{getBudgetDisplayName(budget)}</div>
                               <div className="budget-item-balance">
                                 余额: {formatAmount(calculateBudgetBalance(budget))}
                               </div>
@@ -272,7 +257,8 @@ function BudgetSelector({
 export default function TransactionEditClient({ params }: TransactionEditClientProps) {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
-  const { transaction, isLoading, error, fetchTransaction, updateTransaction } = useTransactionStore();
+  const { transaction, isLoading, error, fetchTransaction, updateTransaction } =
+    useTransactionStore();
   const { categories, fetchCategories } = useCategoryStore();
   const { currentAccountBook, fetchAccountBooks } = useAccountBookStore();
   const { fetchActiveBudgets } = useBudgetStore();
@@ -283,7 +269,7 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
     type: TransactionType.EXPENSE,
     categoryId: '',
     date: '',
-    description: ''
+    description: '',
   });
   const [amountString, setAmountString] = useState('');
   const [budgetId, setBudgetId] = useState('');
@@ -331,14 +317,15 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
         type: transaction.type,
         categoryId: transaction.categoryId,
         date: formatDateForInput(transactionDate),
-        description: transaction.description || ''
+        description: transaction.description || '',
       });
       setAmountString(Math.abs(transaction.amount)?.toString() || '0');
       setBudgetId(transaction.budgetId || '');
       setTime(`${hours}:${minutes}`);
-      
+
       // 设置为编辑模式（如果使用了 transaction form store）
-      const { setIsEditMode } = require('@/store/transaction-form-store').useTransactionFormStore.getState();
+      const { setIsEditMode } =
+        require('@/store/transaction-form-store').useTransactionFormStore.getState();
       setIsEditMode(true);
     }
   }, [transaction]);
@@ -346,15 +333,14 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
   // 组件卸载时重置编辑模式
   useEffect(() => {
     return () => {
-      const { setIsEditMode } = require('@/store/transaction-form-store').useTransactionFormStore.getState();
+      const { setIsEditMode } =
+        require('@/store/transaction-form-store').useTransactionFormStore.getState();
       setIsEditMode(false);
     };
   }, []);
 
   // 根据记账类型筛选分类
-  const filteredCategories = categories.filter(
-    category => category.type === formData.type
-  );
+  const filteredCategories = categories.filter((category) => category.type === formData.type);
 
   // 处理表单提交
   const handleSubmit = async () => {
@@ -383,8 +369,8 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
     setFormError('');
 
     try {
-      const [hours, minutes] = time.split(":");
-      const [year, month, day] = formData.date.split("-");
+      const [hours, minutes] = time.split(':');
+      const [year, month, day] = formData.date.split('-');
       const transactionDate = new Date(
         parseInt(year),
         parseInt(month) - 1,
@@ -392,14 +378,14 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
         parseInt(hours),
         parseInt(minutes),
         0,
-        0
+        0,
       );
 
       const updateData = {
         ...formData,
         amount,
         date: transactionDate.toISOString(),
-        budgetId: budgetId || undefined
+        budgetId: budgetId || undefined,
       };
       const success = await updateTransaction(params.id, updateData);
       if (success) {
@@ -423,26 +409,26 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
   // 处理表单字段变化
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   // 处理记账类型变化
   const handleTypeChange = (type: TransactionType) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       type,
-      categoryId: '' // 重置分类选择
+      categoryId: '', // 重置分类选择
     }));
   };
 
   // 处理分类选择
   const handleCategorySelect = (categoryId: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      categoryId
+      categoryId,
     }));
     setCurrentStep(2);
   };
@@ -453,7 +439,7 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
   };
 
   // 获取选中的分类信息
-  const selectedCategory = categories.find(cat => cat.id === formData.categoryId);
+  const selectedCategory = categories.find((cat) => cat.id === formData.categoryId);
 
   return (
     <PageContainer
@@ -473,10 +459,7 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
             <i className="fas fa-exclamation-circle"></i>
           </div>
           <div className="error-message">{error}</div>
-          <button
-            className="retry-button"
-            onClick={() => fetchTransaction(params.id)}
-          >
+          <button className="retry-button" onClick={() => fetchTransaction(params.id)}>
             重试
           </button>
         </div>
@@ -488,10 +471,7 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
           <div className="placeholder-message">
             这是一个静态导出的占位符页面。在实际应用中，请通过正确的路由访问编辑页面。
           </div>
-          <button
-            className="back-button"
-            onClick={handleBack}
-          >
+          <button className="back-button" onClick={handleBack}>
             返回记账列表
           </button>
         </div>
@@ -549,7 +529,7 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
             <div className="step-content">
               <h3 className="step-title">选择分类</h3>
               <div className="category-grid">
-                {filteredCategories.map(category => (
+                {filteredCategories.map((category) => (
                   <div
                     key={category.id}
                     className={`category-item ${formData.categoryId === category.id ? 'active' : ''} ${isSubmitting ? 'disabled' : ''}`}
@@ -585,7 +565,9 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
 
               <div className="transaction-form">
                 <div className="form-group">
-                  <label className="form-label" htmlFor="description">描述</label>
+                  <label className="form-label" htmlFor="description">
+                    描述
+                  </label>
                   <input
                     type="text"
                     id="description"
@@ -599,7 +581,9 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label" htmlFor="date">日期</label>
+                  <label className="form-label" htmlFor="date">
+                    日期
+                  </label>
                   <input
                     type="date"
                     id="date"
@@ -613,7 +597,9 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label" htmlFor="time">时间</label>
+                  <label className="form-label" htmlFor="time">
+                    时间
+                  </label>
                   <input
                     type="time"
                     id="time"
@@ -635,9 +621,7 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
               </div>
 
               {/* 错误信息 */}
-              {formError && (
-                <div className="error-message">{formError}</div>
-              )}
+              {formError && <div className="error-message">{formError}</div>}
 
               {/* 操作按钮 */}
               <div className="step2-buttons">
@@ -648,11 +632,7 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
                 >
                   上一步
                 </button>
-                <button
-                  className="save-button"
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                >
+                <button className="save-button" onClick={handleSubmit} disabled={isSubmitting}>
                   {isSubmitting ? '保存中...' : '保存'}
                 </button>
               </div>
@@ -665,14 +645,11 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
             <i className="fas fa-exclamation-circle"></i>
           </div>
           <div className="error-message">未找到记账记录</div>
-          <button
-            className="retry-button"
-            onClick={() => router.push('/transactions')}
-          >
+          <button className="retry-button" onClick={() => router.push('/transactions')}>
             返回记账列表
           </button>
         </div>
       )}
     </PageContainer>
   );
-} 
+}

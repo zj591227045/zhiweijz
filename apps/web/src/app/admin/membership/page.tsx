@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
-import { 
-  UsersIcon, 
+import {
+  UsersIcon,
   TrophyIcon,
   CalendarIcon,
   CurrencyDollarIcon,
@@ -12,7 +12,7 @@ import {
   ChartPieIcon,
   PlusIcon,
   MagnifyingGlassIcon,
-  EllipsisVerticalIcon
+  EllipsisVerticalIcon,
 } from '@heroicons/react/24/outline';
 
 interface MembershipStats {
@@ -55,7 +55,7 @@ interface Membership {
 export default function MembershipManagement() {
   const router = useRouter();
   const { config, loading: configLoading } = useSystemConfig();
-  
+
   const [stats, setStats] = useState<MembershipStats | null>(null);
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,7 +88,7 @@ export default function MembershipManagement() {
         page: currentPage.toString(),
         limit: '20',
         ...(searchTerm && { search: searchTerm }),
-        ...(filterType && { memberType: filterType })
+        ...(filterType && { memberType: filterType }),
       });
 
       const response = await fetch(`/api/admin/membership/list?${params}`);
@@ -136,7 +136,12 @@ export default function MembershipManagement() {
   }
 
   // 手动添加会员
-  const handleAddMembership = async (email: string, memberType: string, duration: number, reason: string) => {
+  const handleAddMembership = async (
+    email: string,
+    memberType: string,
+    duration: number,
+    reason: string,
+  ) => {
     try {
       const response = await fetch('/api/admin/membership/add-membership', {
         method: 'POST',
@@ -147,7 +152,7 @@ export default function MembershipManagement() {
           email,
           memberType,
           duration,
-          reason
+          reason,
         }),
       });
 
@@ -177,7 +182,7 @@ export default function MembershipManagement() {
         body: JSON.stringify({
           memberType,
           duration,
-          reason: '管理员手动升级'
+          reason: '管理员手动升级',
         }),
       });
 
@@ -214,19 +219,27 @@ export default function MembershipManagement() {
 
   const getMemberTypeLabel = (type: string) => {
     switch (type) {
-      case 'REGULAR': return '普通会员';
-      case 'DONOR': return '捐赠会员';
-      case 'LIFETIME': return '永久会员';
-      default: return type;
+      case 'REGULAR':
+        return '普通会员';
+      case 'DONOR':
+        return '捐赠会员';
+      case 'LIFETIME':
+        return '永久会员';
+      default:
+        return type;
     }
   };
 
   const getMemberTypeColor = (type: string) => {
     switch (type) {
-      case 'REGULAR': return 'bg-gray-100 text-gray-800';
-      case 'DONOR': return 'bg-yellow-100 text-yellow-800';
-      case 'LIFETIME': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'REGULAR':
+        return 'bg-gray-100 text-gray-800';
+      case 'DONOR':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'LIFETIME':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -417,7 +430,10 @@ export default function MembershipManagement() {
                           <div className="flex-shrink-0 h-10 w-10">
                             <img
                               className="h-10 w-10 rounded-full"
-                              src={membership.user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(membership.user.name)}&background=random`}
+                              src={
+                                membership.user.avatar ||
+                                `https://ui-avatars.com/api/?name=${encodeURIComponent(membership.user.name)}&background=random`
+                              }
                               alt=""
                             />
                           </div>
@@ -425,14 +441,14 @@ export default function MembershipManagement() {
                             <div className="text-sm font-medium text-gray-900">
                               {membership.user.name}
                             </div>
-                            <div className="text-sm text-gray-500">
-                              {membership.user.email}
-                            </div>
+                            <div className="text-sm text-gray-500">{membership.user.email}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getMemberTypeColor(membership.memberType)}`}>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getMemberTypeColor(membership.memberType)}`}
+                        >
                           {getMemberTypeLabel(membership.memberType)}
                         </span>
                       </td>
@@ -440,22 +456,30 @@ export default function MembershipManagement() {
                         {new Date(membership.startDate).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {membership.endDate ? new Date(membership.endDate).toLocaleDateString() : '永久'}
+                        {membership.endDate
+                          ? new Date(membership.endDate).toLocaleDateString()
+                          : '永久'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {membership.monthlyPoints > 0 ? (
                           <div>
                             <div>月度: {membership.monthlyPoints}</div>
-                            <div className="text-xs text-gray-500">已用: {membership.usedPoints}</div>
+                            <div className="text-xs text-gray-500">
+                              已用: {membership.usedPoints}
+                            </div>
                           </div>
                         ) : (
                           <span className="text-gray-400">无积分</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          membership.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            membership.isActive
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
                           {membership.isActive ? '活跃' : '已到期'}
                         </span>
                       </td>
@@ -533,8 +557,11 @@ export default function MembershipManagement() {
       {showUpgradeModal && selectedUser && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowUpgradeModal(false)}></div>
-            
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+              onClick={() => setShowUpgradeModal(false)}
+            ></div>
+
             <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
               <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
@@ -542,9 +569,7 @@ export default function MembershipManagement() {
                     <TrophyIcon className="h-6 w-6 text-blue-600" />
                   </div>
                   <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                    <h3 className="text-base font-semibold leading-6 text-gray-900">
-                      升级会员
-                    </h3>
+                    <h3 className="text-base font-semibold leading-6 text-gray-900">升级会员</h3>
                     <div className="mt-4 space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700">会员类型</label>
@@ -557,7 +582,9 @@ export default function MembershipManagement() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">时长（月）</label>
+                        <label className="block text-sm font-medium text-gray-700">
+                          时长（月）
+                        </label>
                         <input
                           type="number"
                           id="duration"
@@ -576,8 +603,11 @@ export default function MembershipManagement() {
                   type="button"
                   className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto"
                   onClick={() => {
-                    const memberType = (document.getElementById('memberType') as HTMLSelectElement).value;
-                    const duration = parseInt((document.getElementById('duration') as HTMLInputElement).value);
+                    const memberType = (document.getElementById('memberType') as HTMLSelectElement)
+                      .value;
+                    const duration = parseInt(
+                      (document.getElementById('duration') as HTMLInputElement).value,
+                    );
                     handleUpgradeMember(selectedUser, memberType, duration);
                   }}
                 >
@@ -600,8 +630,11 @@ export default function MembershipManagement() {
       {showAddMemberModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowAddMemberModal(false)}></div>
-            
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+              onClick={() => setShowAddMemberModal(false)}
+            ></div>
+
             <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
               <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
@@ -609,12 +642,12 @@ export default function MembershipManagement() {
                     <PlusIcon className="h-6 w-6 text-green-600" />
                   </div>
                   <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                    <h3 className="text-base font-semibold leading-6 text-gray-900">
-                      添加会员
-                    </h3>
+                    <h3 className="text-base font-semibold leading-6 text-gray-900">添加会员</h3>
                     <div className="mt-4 space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">用户邮箱或用户名</label>
+                        <label className="block text-sm font-medium text-gray-700">
+                          用户邮箱或用户名
+                        </label>
                         <input
                           type="text"
                           id="userEmail"
@@ -633,7 +666,9 @@ export default function MembershipManagement() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">时长（月）</label>
+                        <label className="block text-sm font-medium text-gray-700">
+                          时长（月）
+                        </label>
                         <input
                           type="number"
                           id="addDuration"
@@ -663,15 +698,19 @@ export default function MembershipManagement() {
                   className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 sm:ml-3 sm:w-auto"
                   onClick={() => {
                     const email = (document.getElementById('userEmail') as HTMLInputElement).value;
-                    const memberType = (document.getElementById('addMemberType') as HTMLSelectElement).value;
-                    const duration = parseInt((document.getElementById('addDuration') as HTMLInputElement).value);
+                    const memberType = (
+                      document.getElementById('addMemberType') as HTMLSelectElement
+                    ).value;
+                    const duration = parseInt(
+                      (document.getElementById('addDuration') as HTMLInputElement).value,
+                    );
                     const reason = (document.getElementById('addReason') as HTMLInputElement).value;
-                    
+
                     if (!email.trim()) {
                       alert('请输入用户邮箱或用户名');
                       return;
                     }
-                    
+
                     handleAddMembership(email.trim(), memberType, duration, reason);
                   }}
                 >

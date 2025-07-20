@@ -19,9 +19,14 @@ import './transactions/budget-selector.css';
 import { MobileTagSection } from './tags/mobile-tag-section';
 import { tagApi } from '@/lib/api/tag-api';
 import { TagResponseDto } from '@/lib/api/types/tag.types';
-import { TransactionAttachmentUpload, TransactionAttachment, TransactionAttachmentUploadRef } from './transactions/transaction-attachment-upload';
+import {
+  TransactionAttachmentUpload,
+  TransactionAttachment,
+  TransactionAttachmentUploadRef,
+} from './transactions/transaction-attachment-upload';
 import { apiClient } from '@/lib/api-client';
 import { useModalBackHandler } from '@/hooks/use-mobile-back-handler';
+import { hapticPresets } from '@/lib/haptic-feedback';
 
 interface TransactionEditModalProps {
   transactionId: string | null;
@@ -57,7 +62,7 @@ function BudgetSelector({
   budgetId,
   setBudgetId,
   transactionDate,
-  isEditMode = false
+  isEditMode = false,
 }: {
   budgetId: string;
   setBudgetId: (id: string) => void;
@@ -105,7 +110,7 @@ function BudgetSelector({
         startDate: budget.startDate,
         endDate: budget.endDate,
         category: budget.category,
-        period: budget.period
+        period: budget.period,
       }));
 
       console.log('格式化后的预算数据:', formattedBudgets);
@@ -132,7 +137,10 @@ function BudgetSelector({
   // 监听日期和账本变化，重新获取预算
   useEffect(() => {
     if (transactionDate && currentAccountBook?.id) {
-      console.log('日期或账本变化，重新获取预算:', { transactionDate, accountBookId: currentAccountBook.id });
+      console.log('日期或账本变化，重新获取预算:', {
+        transactionDate,
+        accountBookId: currentAccountBook.id,
+      });
       fetchBudgetsByDate(transactionDate, currentAccountBook.id);
 
       // 编辑模式下不重置预算选择，保持原始预算
@@ -201,7 +209,7 @@ function BudgetSelector({
       style: 'currency',
       currency: 'CNY',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     }).format(amount);
   };
 
@@ -279,10 +287,7 @@ function BudgetSelector({
   return (
     <div className="budget-selector-container">
       {/* 预算选择器预览 - 使用添加记账页面的完整样式 */}
-      <div
-        className="budget-selector-preview"
-        onClick={() => setIsBudgetSelectorOpen(true)}
-      >
+      <div className="budget-selector-preview" onClick={() => setIsBudgetSelectorOpen(true)}>
         <div className="budget-selector-icon">
           <i className="fas fa-wallet"></i>
         </div>
@@ -314,16 +319,10 @@ function BudgetSelector({
       {/* 预算选择器弹窗 - 恢复原始样式 */}
       {isBudgetSelectorOpen && (
         <div className="budget-selector-overlay" onClick={() => setIsBudgetSelectorOpen(false)}>
-          <div
-            className="budget-selector-drawer"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="budget-selector-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="budget-selector-header">
               <h3>选择预算</h3>
-              <button
-                className="close-button"
-                onClick={() => setIsBudgetSelectorOpen(false)}
-              >
+              <button className="close-button" onClick={() => setIsBudgetSelectorOpen(false)}>
                 <i className="fas fa-times"></i>
               </button>
             </div>
@@ -333,7 +332,11 @@ function BudgetSelector({
               ) : formattedBudgets.length === 0 ? (
                 <div className="no-budgets-message">
                   <i className="fas fa-info-circle"></i>
-                  <span>{transactionDate ? `${transactionDate} 日期范围内没有可用的预算` : '没有可用的预算'}</span>
+                  <span>
+                    {transactionDate
+                      ? `${transactionDate} 日期范围内没有可用的预算`
+                      : '没有可用的预算'}
+                  </span>
                   <div style={{ fontSize: '12px', marginTop: '8px', color: '#666' }}>
                     {transactionDate ? '请检查该日期是否在任何预算周期内' : '请先选择记账日期'}
                   </div>
@@ -356,11 +359,11 @@ function BudgetSelector({
                   </div>
 
                   {/* 个人预算组 */}
-                  {formattedBudgets.filter(b => b.budgetType !== 'GENERAL').length > 0 && (
+                  {formattedBudgets.filter((b) => b.budgetType !== 'GENERAL').length > 0 && (
                     <>
                       <div className="budget-group-header">个人预算</div>
                       {formattedBudgets
-                        .filter(budget => budget.budgetType !== 'GENERAL')
+                        .filter((budget) => budget.budgetType !== 'GENERAL')
                         .map((budget) => {
                           const budgetStatus = getBudgetStatus(budget);
                           const isRecommended = isRecommendedBudget(budget);
@@ -380,9 +383,14 @@ function BudgetSelector({
                                 </div>
                                 <div className="budget-item-details">
                                   <span>余额: {formatAmount(calculateBudgetBalance(budget))}</span>
-                                  <span className="budget-period-small">({getBudgetPeriod(budget)})</span>
+                                  <span className="budget-period-small">
+                                    ({getBudgetPeriod(budget)})
+                                  </span>
                                 </div>
-                                <div className="budget-item-status" style={{ color: budgetStatus.color }}>
+                                <div
+                                  className="budget-item-status"
+                                  style={{ color: budgetStatus.color }}
+                                >
                                   {budgetStatus.text}
                                 </div>
                               </div>
@@ -398,11 +406,11 @@ function BudgetSelector({
                   )}
 
                   {/* 通用预算组 */}
-                  {formattedBudgets.filter(b => b.budgetType === 'GENERAL').length > 0 && (
+                  {formattedBudgets.filter((b) => b.budgetType === 'GENERAL').length > 0 && (
                     <>
                       <div className="budget-group-header">通用预算</div>
                       {formattedBudgets
-                        .filter(budget => budget.budgetType === 'GENERAL')
+                        .filter((budget) => budget.budgetType === 'GENERAL')
                         .map((budget) => {
                           const budgetStatus = getBudgetStatus(budget);
                           const isRecommended = isRecommendedBudget(budget);
@@ -422,9 +430,14 @@ function BudgetSelector({
                                 </div>
                                 <div className="budget-item-details">
                                   <span>余额: {formatAmount(calculateBudgetBalance(budget))}</span>
-                                  <span className="budget-period-small">({getBudgetPeriod(budget)})</span>
+                                  <span className="budget-period-small">
+                                    ({getBudgetPeriod(budget)})
+                                  </span>
                                 </div>
-                                <div className="budget-item-status" style={{ color: budgetStatus.color }}>
+                                <div
+                                  className="budget-item-status"
+                                  style={{ color: budgetStatus.color }}
+                                >
                                   {budgetStatus.text}
                                 </div>
                               </div>
@@ -452,7 +465,7 @@ export default function TransactionEditModal({
   transactionId,
   transactionData,
   onClose,
-  onSave
+  onSave,
 }: TransactionEditModalProps) {
   // 组件加载调试日志
   /* console.log('🔍 [TransactionEditModal] 组件初始化', {
@@ -467,7 +480,8 @@ export default function TransactionEditModal({
   }); */
 
   const { isAuthenticated } = useAuthStore();
-  const { transaction, isLoading, error, fetchTransaction, updateTransaction, deleteTransaction } = useTransactionStore();
+  const { transaction, isLoading, error, fetchTransaction, updateTransaction, deleteTransaction } =
+    useTransactionStore();
   const { categories, fetchCategories } = useCategoryStore();
   const { currentAccountBook, fetchAccountBooks } = useAccountBookStore();
   const { fetchActiveBudgets } = useBudgetStore();
@@ -478,7 +492,7 @@ export default function TransactionEditModal({
     type: TransactionType.EXPENSE,
     categoryId: '',
     date: '',
-    description: ''
+    description: '',
   });
 
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
@@ -487,6 +501,12 @@ export default function TransactionEditModal({
   const [budgetId, setBudgetId] = useState('');
   const [time, setTime] = useState('12:00');
   const [currentStep, setCurrentStep] = useState(2); // 默认进入第二步，与原有逻辑一致
+
+  // 带有振动反馈的关闭处理函数
+  const handleCloseWithHaptic = () => {
+    hapticPresets.backButton();
+    onClose();
+  };
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -514,9 +534,10 @@ export default function TransactionEditModal({
   useEffect(() => {
     if (transactionId) {
       // 导入并使用 transaction form store 设置编辑模式
-      const { setIsEditMode } = require('@/store/transaction-form-store').useTransactionFormStore.getState();
+      const { setIsEditMode } =
+        require('@/store/transaction-form-store').useTransactionFormStore.getState();
       setIsEditMode(true);
-      
+
       return () => {
         // 组件卸载时重置编辑模式
         setIsEditMode(false);
@@ -563,7 +584,7 @@ export default function TransactionEditModal({
         type: dataToUse.type,
         categoryId: dataToUse.categoryId || '',
         date: formatDateForInput(transactionDate),
-        description: dataToUse.description || ''
+        description: dataToUse.description || '',
       };
 
       console.log('🔄 [TransactionEditModal] 设置表单数据:', newFormData);
@@ -577,21 +598,23 @@ export default function TransactionEditModal({
       // 获取记账的标签和附件
       if (transactionId && transactionId !== 'placeholder') {
         // 获取标签
-        tagApi.getTransactionTags(transactionId)
-          .then(response => {
+        tagApi
+          .getTransactionTags(transactionId)
+          .then((response) => {
             if (response.success) {
               setTransactionTags(response.data);
-              setSelectedTagIds(response.data.map(tag => tag.id));
+              setSelectedTagIds(response.data.map((tag) => tag.id));
             }
           })
-          .catch(error => {
+          .catch((error) => {
             console.error('获取记账标签失败:', error);
           });
 
         // 获取附件
         console.log('📎 开始获取记账附件:', transactionId);
-        apiClient.get(`/transactions/${transactionId}/attachments`)
-          .then(data => {
+        apiClient
+          .get(`/transactions/${transactionId}/attachments`)
+          .then((data) => {
             console.log('📎 获取附件响应:', data);
             if (data.success) {
               console.log('📎 设置附件数据:', data.data);
@@ -600,7 +623,7 @@ export default function TransactionEditModal({
               console.warn('📎 获取附件失败，响应不成功:', data);
             }
           })
-          .catch(error => {
+          .catch((error) => {
             console.error('📎 获取记账附件失败:', error);
           });
       }
@@ -608,12 +631,10 @@ export default function TransactionEditModal({
   }, [transaction, transactionData]);
 
   // 根据记账类型筛选分类
-  const filteredCategories = categories.filter(
-    category => category.type === formData.type
-  );
+  const filteredCategories = categories.filter((category) => category.type === formData.type);
 
   // 获取选中的分类信息
-  const selectedCategory = categories.find(cat => cat.id === formData.categoryId);
+  const selectedCategory = categories.find((cat) => cat.id === formData.categoryId);
 
   // 处理表单提交
   const handleSubmit = async () => {
@@ -642,8 +663,8 @@ export default function TransactionEditModal({
     setFormError('');
 
     try {
-      const [hours, minutes] = time.split(":");
-      const [year, month, day] = formData.date.split("-");
+      const [hours, minutes] = time.split(':');
+      const [year, month, day] = formData.date.split('-');
       const transactionDate = new Date(
         parseInt(year),
         parseInt(month) - 1,
@@ -651,14 +672,14 @@ export default function TransactionEditModal({
         parseInt(hours),
         parseInt(minutes),
         0,
-        0
+        0,
       );
 
       const updateData = {
         ...formData,
         amount,
         date: transactionDate.toISOString(),
-        budgetId: budgetId || undefined
+        budgetId: budgetId || undefined,
       };
 
       const success = await updateTransaction(transactionId!, updateData);
@@ -670,12 +691,13 @@ export default function TransactionEditModal({
           try {
             // 获取当前记账的标签
             const currentTagsResponse = await tagApi.getTransactionTags(transactionId);
-            const currentTagIds = currentTagsResponse.success ?
-              currentTagsResponse.data.map(tag => tag.id) : [];
+            const currentTagIds = currentTagsResponse.success
+              ? currentTagsResponse.data.map((tag) => tag.id)
+              : [];
 
             // 计算需要添加和移除的标签
-            const tagsToAdd = selectedTagIds.filter(id => !currentTagIds.includes(id));
-            const tagsToRemove = currentTagIds.filter(id => !selectedTagIds.includes(id));
+            const tagsToAdd = selectedTagIds.filter((id) => !currentTagIds.includes(id));
+            const tagsToRemove = currentTagIds.filter((id) => !selectedTagIds.includes(id));
 
             // 添加新标签
             if (tagsToAdd.length > 0) {
@@ -718,9 +740,9 @@ export default function TransactionEditModal({
   // 处理表单字段变化
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -730,9 +752,9 @@ export default function TransactionEditModal({
     // 只允许数字和小数点，最多两位小数
     if (/^\d*\.?\d{0,2}$/.test(value)) {
       setAmountInput(value);
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        amount: parseFloat(value) || 0
+        amount: parseFloat(value) || 0,
       }));
     }
   };
@@ -747,9 +769,9 @@ export default function TransactionEditModal({
         if (typeof result === 'number' && !isNaN(result) && result >= 0) {
           const formattedResult = result.toFixed(2);
           setAmountInput(formattedResult);
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
-            amount: result
+            amount: result,
           }));
         }
       } catch (error) {
@@ -764,9 +786,9 @@ export default function TransactionEditModal({
         // 如果是纯数字，更新表单数据
         const numericValue = parseFloat(newValue);
         if (!isNaN(numericValue)) {
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
-            amount: numericValue
+            amount: numericValue,
           }));
         }
       }
@@ -777,9 +799,9 @@ export default function TransactionEditModal({
   const handleKeyboardDelete = () => {
     const newValue = amountInput.slice(0, -1);
     setAmountInput(newValue);
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      amount: parseFloat(newValue) || 0
+      amount: parseFloat(newValue) || 0,
     }));
   };
 
@@ -788,9 +810,9 @@ export default function TransactionEditModal({
     setShowNumericKeyboard(false);
     // 确保最终值是有效的数字
     const finalValue = parseFloat(amountInput) || 0;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      amount: finalValue
+      amount: finalValue,
     }));
   };
 
@@ -810,7 +832,7 @@ export default function TransactionEditModal({
       activeElement: document.activeElement,
       documentHidden: document.hidden,
       visibilityState: document.visibilityState,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     // 检查页面是否可见
@@ -834,7 +856,7 @@ export default function TransactionEditModal({
       setTimeout(() => {
         console.log('🔍 [focusAmountInput] 聚焦后状态', {
           activeElement: document.activeElement,
-          isFocused: document.activeElement === amountInputRef.current
+          isFocused: document.activeElement === amountInputRef.current,
         });
         focusingRef.current = false;
       }, 100);
@@ -881,18 +903,18 @@ export default function TransactionEditModal({
 
   // 处理记账类型变化
   const handleTypeChange = (type: TransactionType) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       type,
-      categoryId: '' // 重置分类选择
+      categoryId: '', // 重置分类选择
     }));
   };
 
   // 处理分类选择
   const handleCategorySelect = (categoryId: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      categoryId
+      categoryId,
     }));
     setCurrentStep(2);
   };
@@ -911,7 +933,7 @@ export default function TransactionEditModal({
       const success = await deleteTransaction(transactionId);
       if (success) {
         toast.success('记账删除成功');
-        
+
         // 触发记账变化事件，让仪表盘自动刷新
         if (currentAccountBook?.id) {
           triggerTransactionChange(currentAccountBook.id);
@@ -959,7 +981,7 @@ export default function TransactionEditModal({
     console.log('🔍 [KeyboardHandler] 初始化虚拟键盘检测', {
       hasVisualViewport: !!window.visualViewport,
       initialViewportHeight: window.visualViewport?.height || window.innerHeight,
-      documentHeight: document.documentElement.clientHeight
+      documentHeight: document.documentElement.clientHeight,
     });
 
     const handleResize = () => {
@@ -972,7 +994,7 @@ export default function TransactionEditModal({
         viewportHeight,
         documentHeight,
         heightRatio,
-        keyboardLikelyOpen: heightRatio < 0.75
+        keyboardLikelyOpen: heightRatio < 0.75,
       });
 
       if (heightRatio < 0.75) {
@@ -983,7 +1005,7 @@ export default function TransactionEditModal({
             console.log('🔍 [KeyboardHandler] 滚动到输入框位置');
             amountInputRef.current?.scrollIntoView({
               behavior: 'smooth',
-              block: 'center'
+              block: 'center',
             });
           }, 100);
         }
@@ -1012,42 +1034,47 @@ export default function TransactionEditModal({
   }, []);
 
   return createPortal(
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'var(--background-color)',
-      zIndex: 250, // 设置合理的层级，高于分类记账模态框的220
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      // 移动端优化
-      WebkitOverflowScrolling: 'touch',
-      // 确保可以接收触摸事件
-      touchAction: 'manipulation',
-      // 尝试修复虚拟键盘问题
-      transform: 'translateZ(0)', // 强制硬件加速
-      WebkitTransform: 'translateZ(0)'
-    }}>
-      {/* 使用完全相同的应用容器结构 */}
-      <div className="app-container" style={{
-        maxWidth: 'none',
-        margin: 0,
-        width: '100%',
-        height: '100vh',
-        minHeight: '100vh',
-        position: 'relative',
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'var(--background-color)',
+        zIndex: 250, // 设置合理的层级，高于分类记账模态框的220
+        display: 'flex',
+        flexDirection: 'column',
         overflow: 'hidden',
         // 移动端优化
         WebkitOverflowScrolling: 'touch',
-        // 确保输入框可以正常工作
-        isolation: 'isolate'
-      }}>
+        // 确保可以接收触摸事件
+        touchAction: 'manipulation',
+        // 尝试修复虚拟键盘问题
+        transform: 'translateZ(0)', // 强制硬件加速
+        WebkitTransform: 'translateZ(0)',
+      }}
+    >
+      {/* 使用完全相同的应用容器结构 */}
+      <div
+        className="app-container"
+        style={{
+          maxWidth: 'none',
+          margin: 0,
+          width: '100%',
+          height: '100vh',
+          minHeight: '100vh',
+          position: 'relative',
+          overflow: 'hidden',
+          // 移动端优化
+          WebkitOverflowScrolling: 'touch',
+          // 确保输入框可以正常工作
+          isolation: 'isolate',
+        }}
+      >
         {/* 编辑记账的头部 */}
         <div className="header">
-          <button className="icon-button" onClick={onClose}>
+          <button className="icon-button" onClick={handleCloseWithHaptic}>
             <i className="fas fa-arrow-left"></i>
           </button>
           <div className="header-title">编辑记账</div>
@@ -1055,24 +1082,29 @@ export default function TransactionEditModal({
         </div>
 
         {/* 主要内容 */}
-        <div className="main-content" style={{
-          overflowY: 'auto',
-          // 移动端键盘优化
-          WebkitOverflowScrolling: 'touch',
-          // 确保内容可以滚动到键盘上方，包含安全区域
-          paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
-          // 防止键盘遮挡内容
-          minHeight: 'calc(100vh - 60px)' // 减去头部高度
-        }}>
+        <div
+          className="main-content"
+          style={{
+            overflowY: 'auto',
+            // 移动端键盘优化
+            WebkitOverflowScrolling: 'touch',
+            // 确保内容可以滚动到键盘上方，包含安全区域
+            paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
+            // 防止键盘遮挡内容
+            minHeight: 'calc(100vh - 60px)', // 减去头部高度
+          }}
+        >
           <div style={{ padding: '0 20px' }}>
             {/* iOS 风格记账类型切换 */}
-            <div style={{
-              display: 'flex',
-              backgroundColor: 'var(--background-secondary)',
-              borderRadius: '12px',
-              padding: '4px',
-              marginBottom: '24px'
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                backgroundColor: 'var(--background-secondary)',
+                borderRadius: '12px',
+                padding: '4px',
+                marginBottom: '24px',
+              }}
+            >
               <button
                 onClick={() => handleTypeChange(TransactionType.EXPENSE)}
                 disabled={isSubmitting}
@@ -1081,13 +1113,14 @@ export default function TransactionEditModal({
                   height: '40px',
                   borderRadius: '8px',
                   border: 'none',
-                  backgroundColor: formData.type === TransactionType.EXPENSE ? '#ef4444' : 'transparent',
+                  backgroundColor:
+                    formData.type === TransactionType.EXPENSE ? '#ef4444' : 'transparent',
                   color: formData.type === TransactionType.EXPENSE ? 'white' : 'var(--text-color)',
                   fontSize: '16px',
                   fontWeight: '600',
                   cursor: isSubmitting ? 'not-allowed' : 'pointer',
                   transition: 'all 0.3s ease',
-                  opacity: isSubmitting ? 0.6 : 1
+                  opacity: isSubmitting ? 0.6 : 1,
                 }}
               >
                 支出
@@ -1100,13 +1133,14 @@ export default function TransactionEditModal({
                   height: '40px',
                   borderRadius: '8px',
                   border: 'none',
-                  backgroundColor: formData.type === TransactionType.INCOME ? '#10b981' : 'transparent',
+                  backgroundColor:
+                    formData.type === TransactionType.INCOME ? '#10b981' : 'transparent',
                   color: formData.type === TransactionType.INCOME ? 'white' : 'var(--text-color)',
                   fontSize: '16px',
                   fontWeight: '600',
                   cursor: isSubmitting ? 'not-allowed' : 'pointer',
                   transition: 'all 0.3s ease',
-                  opacity: isSubmitting ? 0.6 : 1
+                  opacity: isSubmitting ? 0.6 : 1,
                 }}
               >
                 收入
@@ -1117,7 +1151,7 @@ export default function TransactionEditModal({
             <div
               style={{
                 textAlign: 'center',
-                marginBottom: '24px'
+                marginBottom: '24px',
               }}
             >
               <div
@@ -1133,7 +1167,7 @@ export default function TransactionEditModal({
                   border: '1px solid var(--border-color)',
                   minHeight: '60px',
                   // 确保容器不会阻止点击事件
-                  pointerEvents: 'auto'
+                  pointerEvents: 'auto',
                 }}
                 // 点击容器显示虚拟键盘
                 onClick={(e) => {
@@ -1147,12 +1181,16 @@ export default function TransactionEditModal({
                   setAmountInput(formData.amount?.toString() || '');
                 }}
               >
-                <span style={{
-                  fontSize: '24px',
-                  fontWeight: '300',
-                  color: 'var(--text-secondary)',
-                  pointerEvents: 'none' // 防止符号阻止点击
-                }}>¥</span>
+                <span
+                  style={{
+                    fontSize: '24px',
+                    fontWeight: '300',
+                    color: 'var(--text-secondary)',
+                    pointerEvents: 'none', // 防止符号阻止点击
+                  }}
+                >
+                  ¥
+                </span>
                 <input
                   ref={amountInputRef}
                   type="text"
@@ -1183,80 +1221,103 @@ export default function TransactionEditModal({
                     userSelect: 'none',
                     // 确保在移动端可以点击
                     WebkitTouchCallout: 'none',
-                    WebkitTapHighlightColor: 'transparent'
+                    WebkitTapHighlightColor: 'transparent',
                   }}
                 />
               </div>
             </div>
 
             {/* iOS 风格步骤指示器 */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '24px 0',
-              gap: '16px'
-            }}>
-              <div style={{
+            <div
+              style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
-              }}>
-                <div style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '12px',
-                  backgroundColor: currentStep >= 1 ? 'var(--primary-color)' : 'var(--border-color)',
-                  color: currentStep >= 1 ? 'white' : 'var(--text-secondary)',
+                justifyContent: 'center',
+                margin: '24px 0',
+                gap: '16px',
+              }}
+            >
+              <div
+                style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  transition: 'all 0.3s ease'
-                }}>
+                  gap: '8px',
+                }}
+              >
+                <div
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '12px',
+                    backgroundColor:
+                      currentStep >= 1 ? 'var(--primary-color)' : 'var(--border-color)',
+                    color: currentStep >= 1 ? 'white' : 'var(--text-secondary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    transition: 'all 0.3s ease',
+                  }}
+                >
                   {currentStep > 1 ? '✓' : '1'}
                 </div>
-                <span style={{
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: currentStep >= 1 ? 'var(--primary-color)' : 'var(--text-secondary)'
-                }}>选择分类</span>
+                <span
+                  style={{
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: currentStep >= 1 ? 'var(--primary-color)' : 'var(--text-secondary)',
+                  }}
+                >
+                  选择分类
+                </span>
               </div>
 
-              <div style={{
-                width: '32px',
-                height: '2px',
-                backgroundColor: currentStep >= 2 ? 'var(--primary-color)' : 'var(--border-color)',
-                borderRadius: '1px',
-                transition: 'all 0.3s ease'
-              }}></div>
+              <div
+                style={{
+                  width: '32px',
+                  height: '2px',
+                  backgroundColor:
+                    currentStep >= 2 ? 'var(--primary-color)' : 'var(--border-color)',
+                  borderRadius: '1px',
+                  transition: 'all 0.3s ease',
+                }}
+              ></div>
 
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                <div style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '12px',
-                  backgroundColor: currentStep >= 2 ? 'var(--primary-color)' : 'var(--border-color)',
-                  color: currentStep >= 2 ? 'white' : 'var(--text-secondary)',
+              <div
+                style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  transition: 'all 0.3s ease'
-                }}>
+                  gap: '8px',
+                }}
+              >
+                <div
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '12px',
+                    backgroundColor:
+                      currentStep >= 2 ? 'var(--primary-color)' : 'var(--border-color)',
+                    color: currentStep >= 2 ? 'white' : 'var(--text-secondary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    transition: 'all 0.3s ease',
+                  }}
+                >
                   2
                 </div>
-                <span style={{
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: currentStep >= 2 ? 'var(--primary-color)' : 'var(--text-secondary)'
-                }}>记账详情</span>
+                <span
+                  style={{
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: currentStep >= 2 ? 'var(--primary-color)' : 'var(--text-secondary)',
+                  }}
+                >
+                  记账详情
+                </span>
               </div>
             </div>
             {/* 第一步：分类选择 */}
@@ -1265,7 +1326,7 @@ export default function TransactionEditModal({
                 <h3 className="step-title">选择分类</h3>
                 <div className="category-section">
                   <div className="category-grid">
-                    {filteredCategories.map(category => (
+                    {filteredCategories.map((category) => (
                       <div
                         key={category.id}
                         className={`category-item ${formData.categoryId === category.id ? 'active' : ''} ${isSubmitting ? 'disabled' : ''}`}
@@ -1303,19 +1364,25 @@ export default function TransactionEditModal({
                 {/* iOS 风格表单 */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {/* 描述输入 */}
-                  <div style={{
-                    backgroundColor: 'var(--background-color)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '12px',
-                    padding: '16px'
-                  }}>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: 'var(--text-secondary)',
-                      marginBottom: '8px'
-                    }}>描述</label>
+                  <div
+                    style={{
+                      backgroundColor: 'var(--background-color)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '12px',
+                      padding: '16px',
+                    }}
+                  >
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        color: 'var(--text-secondary)',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      描述
+                    </label>
                     <input
                       type="text"
                       name="description"
@@ -1330,27 +1397,33 @@ export default function TransactionEditModal({
                         backgroundColor: 'transparent',
                         fontSize: '16px',
                         color: 'var(--text-color)',
-                        padding: '0'
+                        padding: '0',
                       }}
                     />
                   </div>
 
                   {/* 日期和时间 - 并排布局 */}
                   <div style={{ display: 'flex', gap: '12px' }}>
-                    <div style={{
-                      flex: 1,
-                      backgroundColor: 'var(--background-color)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '12px',
-                      padding: '16px'
-                    }}>
-                      <label style={{
-                        display: 'block',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        color: 'var(--text-secondary)',
-                        marginBottom: '8px'
-                      }}>日期</label>
+                    <div
+                      style={{
+                        flex: 1,
+                        backgroundColor: 'var(--background-color)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '12px',
+                        padding: '16px',
+                      }}
+                    >
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: 'var(--text-secondary)',
+                          marginBottom: '8px',
+                        }}
+                      >
+                        日期
+                      </label>
                       <input
                         type="date"
                         name="date"
@@ -1365,25 +1438,31 @@ export default function TransactionEditModal({
                           backgroundColor: 'transparent',
                           fontSize: '16px',
                           color: 'var(--text-color)',
-                          padding: '0'
+                          padding: '0',
                         }}
                       />
                     </div>
 
-                    <div style={{
-                      flex: 1,
-                      backgroundColor: 'var(--background-color)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '12px',
-                      padding: '16px'
-                    }}>
-                      <label style={{
-                        display: 'block',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        color: 'var(--text-secondary)',
-                        marginBottom: '8px'
-                      }}>时间</label>
+                    <div
+                      style={{
+                        flex: 1,
+                        backgroundColor: 'var(--background-color)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '12px',
+                        padding: '16px',
+                      }}
+                    >
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: 'var(--text-secondary)',
+                          marginBottom: '8px',
+                        }}
+                      >
+                        时间
+                      </label>
                       <input
                         type="time"
                         value={time}
@@ -1397,7 +1476,7 @@ export default function TransactionEditModal({
                           backgroundColor: 'transparent',
                           fontSize: '16px',
                           color: 'var(--text-color)',
-                          padding: '0'
+                          padding: '0',
                         }}
                       />
                     </div>
@@ -1405,12 +1484,14 @@ export default function TransactionEditModal({
 
                   {/* 预算选择（仅支出类型显示） */}
                   {formData.type === TransactionType.EXPENSE && (
-                    <div style={{
-                      backgroundColor: 'var(--background-color)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '12px',
-                      padding: '16px'
-                    }}>
+                    <div
+                      style={{
+                        backgroundColor: 'var(--background-color)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '12px',
+                        padding: '16px',
+                      }}
+                    >
                       <BudgetSelector
                         budgetId={budgetId}
                         setBudgetId={setBudgetId}
@@ -1422,20 +1503,26 @@ export default function TransactionEditModal({
 
                   {/* 移动端优化的标签选择 */}
                   {currentAccountBook?.id && (
-                    <div style={{
-                      backgroundColor: 'var(--background-color)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '12px',
-                      padding: '16px',
-                      marginBottom: '16px' // 增加底部间距，避免与保存按钮重叠
-                    }}>
-                      <label style={{
-                        display: 'block',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        color: 'var(--text-secondary)',
-                        marginBottom: '12px'
-                      }}>标签</label>
+                    <div
+                      style={{
+                        backgroundColor: 'var(--background-color)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '12px',
+                        padding: '16px',
+                        marginBottom: '16px', // 增加底部间距，避免与保存按钮重叠
+                      }}
+                    >
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: 'var(--text-secondary)',
+                          marginBottom: '12px',
+                        }}
+                      >
+                        标签
+                      </label>
 
                       {/* 使用移动端优化的标签组件 */}
                       <MobileTagSection
@@ -1455,20 +1542,26 @@ export default function TransactionEditModal({
                   )}
 
                   {/* 附件上传 */}
-                  <div style={{
-                    backgroundColor: 'var(--background-color)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    marginBottom: '16px'
-                  }}>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: 'var(--text-secondary)',
-                      marginBottom: '12px'
-                    }}>附件</label>
+                  <div
+                    style={{
+                      backgroundColor: 'var(--background-color)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '12px',
+                      padding: '16px',
+                      marginBottom: '16px',
+                    }}
+                  >
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        color: 'var(--text-secondary)',
+                        marginBottom: '12px',
+                      }}
+                    >
+                      附件
+                    </label>
 
                     <TransactionAttachmentUpload
                       ref={attachmentUploadRef}
@@ -1482,26 +1575,32 @@ export default function TransactionEditModal({
 
                 {/* 错误信息 */}
                 {formError && (
-                  <div style={{
-                    backgroundColor: '#fee2e2',
-                    border: '1px solid #fecaca',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    margin: '16px 0',
-                    color: '#dc2626',
-                    fontSize: '14px',
-                    textAlign: 'center'
-                  }}>{formError}</div>
+                  <div
+                    style={{
+                      backgroundColor: '#fee2e2',
+                      border: '1px solid #fecaca',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      margin: '16px 0',
+                      color: '#dc2626',
+                      fontSize: '14px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {formError}
+                  </div>
                 )}
 
                 {/* iOS 风格操作按钮 */}
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                  marginTop: '32px',
-                  paddingBottom: '32px'
-                }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                    marginTop: '32px',
+                    paddingBottom: '32px',
+                  }}
+                >
                   {/* 保存和上一步按钮 */}
                   <div style={{ display: 'flex', gap: '12px' }}>
                     <button
@@ -1516,12 +1615,12 @@ export default function TransactionEditModal({
                         color: 'var(--text-color)',
                         fontSize: '16px',
                         fontWeight: '500',
-                        cursor: (isSubmitting || isDeleting) ? 'not-allowed' : 'pointer',
-                        opacity: (isSubmitting || isDeleting) ? 0.6 : 1,
+                        cursor: isSubmitting || isDeleting ? 'not-allowed' : 'pointer',
+                        opacity: isSubmitting || isDeleting ? 0.6 : 1,
                         transition: 'all 0.2s ease',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
                       }}
                     >
                       上一步
@@ -1538,13 +1637,13 @@ export default function TransactionEditModal({
                         color: 'white',
                         fontSize: '16px',
                         fontWeight: '600',
-                        cursor: (isSubmitting || isDeleting) ? 'not-allowed' : 'pointer',
-                        opacity: (isSubmitting || isDeleting) ? 0.6 : 1,
+                        cursor: isSubmitting || isDeleting ? 'not-allowed' : 'pointer',
+                        opacity: isSubmitting || isDeleting ? 0.6 : 1,
                         transition: 'all 0.2s ease',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
                       }}
                     >
                       {isSubmitting ? '保存中...' : '保存'}
@@ -1554,7 +1653,12 @@ export default function TransactionEditModal({
                   {/* 删除按钮 */}
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
-                    disabled={isSubmitting || isDeleting || !transactionId || transactionId === 'placeholder'}
+                    disabled={
+                      isSubmitting ||
+                      isDeleting ||
+                      !transactionId ||
+                      transactionId === 'placeholder'
+                    }
                     style={{
                       width: '100%',
                       height: '48px',
@@ -1564,13 +1668,25 @@ export default function TransactionEditModal({
                       color: '#ef4444',
                       fontSize: '16px',
                       fontWeight: '500',
-                      cursor: (isSubmitting || isDeleting || !transactionId || transactionId === 'placeholder') ? 'not-allowed' : 'pointer',
-                      opacity: (isSubmitting || isDeleting || !transactionId || transactionId === 'placeholder') ? 0.4 : 1,
+                      cursor:
+                        isSubmitting ||
+                        isDeleting ||
+                        !transactionId ||
+                        transactionId === 'placeholder'
+                          ? 'not-allowed'
+                          : 'pointer',
+                      opacity:
+                        isSubmitting ||
+                        isDeleting ||
+                        !transactionId ||
+                        transactionId === 'placeholder'
+                          ? 0.4
+                          : 1,
                       transition: 'all 0.2s ease',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '8px'
+                      gap: '8px',
                     }}
                   >
                     <i className="fas fa-trash" style={{ fontSize: '14px' }}></i>
@@ -1584,67 +1700,81 @@ export default function TransactionEditModal({
 
         {/* 删除确认对话框 */}
         {showDeleteConfirm && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10000,
-            padding: '20px'
-          }}>
-            <div style={{
-              backgroundColor: 'var(--background-color)',
-              borderRadius: '16px',
-              width: '100%',
-              maxWidth: '340px',
-              overflow: 'hidden',
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
-            }}>
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10000,
+              padding: '20px',
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: 'var(--background-color)',
+                borderRadius: '16px',
+                width: '100%',
+                maxWidth: '340px',
+                overflow: 'hidden',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+              }}
+            >
               {/* 对话框头部 */}
-              <div style={{
-                padding: '20px 20px 16px',
-                borderBottom: '1px solid var(--border-color)',
-                textAlign: 'center'
-              }}>
-                <h3 style={{
-                  fontSize: '18px',
-                  fontWeight: '600',
-                  color: 'var(--text-color)',
-                  margin: 0
-                }}>确认删除</h3>
+              <div
+                style={{
+                  padding: '20px 20px 16px',
+                  borderBottom: '1px solid var(--border-color)',
+                  textAlign: 'center',
+                }}
+              >
+                <h3
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    color: 'var(--text-color)',
+                    margin: 0,
+                  }}
+                >
+                  确认删除
+                </h3>
               </div>
 
               {/* 对话框内容 */}
-              <div style={{
-                padding: '20px',
-                textAlign: 'center',
-                color: 'var(--text-secondary)',
-                fontSize: '16px',
-                lineHeight: '1.5'
-              }}>
-                <p style={{ margin: '0 0 8px' }}>
-                  确定要删除这条记账记录吗？
-                </p>
-                <p style={{ 
-                  margin: 0, 
-                  fontSize: '14px',
-                  color: '#ef4444',
-                  fontWeight: '500'
-                }}>
+              <div
+                style={{
+                  padding: '20px',
+                  textAlign: 'center',
+                  color: 'var(--text-secondary)',
+                  fontSize: '16px',
+                  lineHeight: '1.5',
+                }}
+              >
+                <p style={{ margin: '0 0 8px' }}>确定要删除这条记账记录吗？</p>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: '14px',
+                    color: '#ef4444',
+                    fontWeight: '500',
+                  }}
+                >
                   此操作不可恢复，请谨慎操作。
                 </p>
               </div>
 
               {/* 对话框按钮 */}
-              <div style={{
-                display: 'flex',
-                borderTop: '1px solid var(--border-color)'
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  borderTop: '1px solid var(--border-color)',
+                }}
+              >
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={isDeleting}
@@ -1659,7 +1789,7 @@ export default function TransactionEditModal({
                     cursor: isDeleting ? 'not-allowed' : 'pointer',
                     opacity: isDeleting ? 0.6 : 1,
                     borderRight: '1px solid var(--border-color)',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
                   }}
                 >
                   取消
@@ -1677,7 +1807,7 @@ export default function TransactionEditModal({
                     fontWeight: '600',
                     cursor: isDeleting ? 'not-allowed' : 'pointer',
                     opacity: isDeleting ? 0.6 : 1,
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
                   }}
                 >
                   {isDeleting ? '删除中...' : '确认删除'}
@@ -1697,6 +1827,6 @@ export default function TransactionEditModal({
         />
       )}
     </div>,
-    document.body
+    document.body,
   );
 }

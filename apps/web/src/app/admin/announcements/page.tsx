@@ -8,11 +8,11 @@ import { useAnnouncementManagement } from '@/store/admin/useAnnouncementManageme
 import { AnnouncementList } from '@/components/admin/AnnouncementList';
 import { AnnouncementEditor } from '@/components/admin/AnnouncementEditor';
 import { AnnouncementStats } from '@/components/admin/AnnouncementStats';
-import { 
-  PlusIcon, 
+import {
+  PlusIcon,
   MagnifyingGlassIcon,
   FunnelIcon,
-  ChartBarIcon
+  ChartBarIcon,
 } from '@heroicons/react/24/outline';
 
 export default function AnnouncementsPage() {
@@ -35,7 +35,7 @@ export default function AnnouncementsPage() {
     unpublishAnnouncement,
     archiveAnnouncement,
     deleteAnnouncement,
-    batchOperation
+    batchOperation,
   } = useAnnouncementManagement();
 
   const [showEditor, setShowEditor] = useState(false);
@@ -87,13 +87,13 @@ export default function AnnouncementsPage() {
   // 保存公告
   const handleSave = async (data: any) => {
     let success = false;
-    
+
     if (editingAnnouncement) {
       success = await updateAnnouncement(editingAnnouncement.id, data);
     } else {
       success = await createAnnouncement(data);
     }
-    
+
     if (success) {
       setShowEditor(false);
       setEditingAnnouncement(null);
@@ -101,7 +101,9 @@ export default function AnnouncementsPage() {
   };
 
   // 批量操作
-  const handleBatchOperation = async (operation: 'publish' | 'unpublish' | 'archive' | 'delete') => {
+  const handleBatchOperation = async (
+    operation: 'publish' | 'unpublish' | 'archive' | 'delete',
+  ) => {
     if (selectedIds.length === 0) {
       return;
     }
@@ -118,9 +120,7 @@ export default function AnnouncementsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">公告管理</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            管理系统公告，向用户发送通知和更新信息
-          </p>
+          <p className="mt-1 text-sm text-gray-500">管理系统公告，向用户发送通知和更新信息</p>
         </div>
         <div className="mt-4 sm:mt-0 flex space-x-3">
           <button
@@ -141,9 +141,7 @@ export default function AnnouncementsPage() {
       </div>
 
       {/* 统计数据 */}
-      {showStats && stats && (
-        <AnnouncementStats stats={stats} />
-      )}
+      {showStats && stats && <AnnouncementStats stats={stats} />}
 
       {/* 搜索和筛选栏 */}
       <div className="bg-white shadow rounded-lg p-6">
@@ -197,9 +195,7 @@ export default function AnnouncementsPage() {
         {/* 批量操作 */}
         {selectedIds.length > 0 && (
           <div className="mt-4 flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-            <span className="text-sm text-blue-700">
-              已选择 {selectedIds.length} 个公告
-            </span>
+            <span className="text-sm text-blue-700">已选择 {selectedIds.length} 个公告</span>
             <div className="flex space-x-2">
               <button
                 onClick={() => handleBatchOperation('publish')}
@@ -258,4 +254,4 @@ export default function AnnouncementsPage() {
       )}
     </div>
   );
-} 
+}

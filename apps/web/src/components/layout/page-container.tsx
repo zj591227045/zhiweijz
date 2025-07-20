@@ -5,6 +5,7 @@ import { EnhancedBottomNavigation } from './enhanced-bottom-navigation';
 import { useThemeStore } from '@/store/theme-store';
 import { SettingsDialog } from './settings-dialog';
 import { DeletionStatusBanner } from '@/components/ui/deletion-status-banner';
+import { hapticPresets } from '@/lib/haptic-feedback';
 import '@/styles/settings-dialog.css';
 
 // 将 activeNavItem 转换为路径
@@ -69,10 +70,10 @@ export function PageContainer({
         if (typeof window !== 'undefined') {
           const capacitorModule = await import('@capacitor/core');
           const { Capacitor } = capacitorModule;
-          
+
           const isCapacitor = Capacitor.isNativePlatform();
           const platform = Capacitor.getPlatform();
-          
+
           if (isCapacitor && platform === 'ios') {
             setIsIOSApp(true);
             // 为body添加iOS专用类
@@ -98,6 +99,9 @@ export function PageContainer({
   }, []);
 
   const handleBackClick = () => {
+    // 添加返回按钮的振动反馈
+    hapticPresets.backButton();
+
     if (onBackClick) {
       onBackClick();
     } else {
@@ -108,11 +112,15 @@ export function PageContainer({
 
   // 处理主题切换
   const handleToggleTheme = () => {
+    // 添加主题切换按钮的振动反馈
+    hapticPresets.toggleSwitch();
     toggleTheme();
   };
 
   // 处理设置按钮点击
   const handleSettingsClick = () => {
+    // 添加设置按钮的振动反馈
+    hapticPresets.buttonTap();
     setIsSettingsOpen(true);
   };
 

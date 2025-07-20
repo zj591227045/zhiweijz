@@ -63,7 +63,7 @@ export const MobileTagSection: React.FC<MobileTagSectionProps> = ({
 
   // 获取已选择的标签
   const selectedTags = useMemo(() => {
-    return allTags.filter(tag => selectedTagIds.includes(tag.id));
+    return allTags.filter((tag) => selectedTagIds.includes(tag.id));
   }, [allTags, selectedTagIds]);
 
   // 处理标签选择
@@ -75,7 +75,7 @@ export const MobileTagSection: React.FC<MobileTagSectionProps> = ({
 
   // 处理标签移除
   const handleTagRemove = (tagId: string) => {
-    onSelectionChange(selectedTagIds.filter(id => id !== tagId));
+    onSelectionChange(selectedTagIds.filter((id) => id !== tagId));
   };
 
   // 打开完整标签选择器
@@ -106,7 +106,7 @@ export const MobileTagSection: React.FC<MobileTagSectionProps> = ({
             </span>
           </div>
           <TagDisplay
-            tags={selectedTags.filter(tag => selectedTagIds.includes(tag.id))}
+            tags={selectedTags.filter((tag) => selectedTagIds.includes(tag.id))}
             size="medium"
             showRemove
             onRemove={(tag) => handleTagRemove(tag.id)}
@@ -123,7 +123,7 @@ export const MobileTagSection: React.FC<MobileTagSectionProps> = ({
             <span>智能推荐</span>
           </div>
         </div>
-        
+
         <CompactTagRecommendationV2
           accountBookId={accountBookId}
           categoryId={categoryId}
@@ -141,12 +141,12 @@ export const MobileTagSection: React.FC<MobileTagSectionProps> = ({
         disabled={disabled}
         className={cn(
           'w-full flex items-center justify-center gap-3 p-4 rounded-2xl border-2 border-dashed transition-all duration-200 shadow-sm',
-          disabled && 'cursor-not-allowed opacity-50'
+          disabled && 'cursor-not-allowed opacity-50',
         )}
         style={{
           borderColor: disabled ? 'var(--border-color)' : 'var(--primary-color)',
           color: disabled ? 'var(--text-secondary)' : 'var(--primary-color)',
-          backgroundColor: disabled ? 'var(--background-secondary)' : 'var(--card-background)'
+          backgroundColor: disabled ? 'var(--background-secondary)' : 'var(--card-background)',
         }}
         onMouseEnter={(e) => {
           if (!disabled) {
@@ -165,10 +165,18 @@ export const MobileTagSection: React.FC<MobileTagSectionProps> = ({
           }
         }}
       >
-        <div className="w-6 h-6 rounded-full flex items-center justify-center"
-             style={{ backgroundColor: disabled ? 'var(--background-secondary)' : 'var(--primary-color-light)' }}>
-          <Plus className="w-4 h-4"
-                style={{ color: disabled ? 'var(--text-secondary)' : 'var(--primary-color)' }} />
+        <div
+          className="w-6 h-6 rounded-full flex items-center justify-center"
+          style={{
+            backgroundColor: disabled
+              ? 'var(--background-secondary)'
+              : 'var(--primary-color-light)',
+          }}
+        >
+          <Plus
+            className="w-4 h-4"
+            style={{ color: disabled ? 'var(--text-secondary)' : 'var(--primary-color)' }}
+          />
         </div>
         <span className="font-semibold text-base">选择更多标签</span>
         <ChevronRight className="w-5 h-5" />
@@ -228,9 +236,7 @@ export const CompactTagRecommendationV2: React.FC<CompactTagRecommendationV2Prop
 
         if (response.success) {
           // 过滤掉已选择的标签
-          const filtered = response.data.filter(
-            rec => !selectedTagIds.includes(rec.tag.id)
-          );
+          const filtered = response.data.filter((rec) => !selectedTagIds.includes(rec.tag.id));
           setRecommendations(filtered.slice(0, maxRecommendations));
         }
       } catch (err) {
@@ -254,11 +260,7 @@ export const CompactTagRecommendationV2: React.FC<CompactTagRecommendationV2Prop
   }
 
   if (recommendations.length === 0) {
-    return (
-      <div className="text-sm text-gray-500 py-2">
-        暂无推荐标签
-      </div>
-    );
+    return <div className="text-sm text-gray-500 py-2">暂无推荐标签</div>;
   }
 
   return (
@@ -272,7 +274,7 @@ export const CompactTagRecommendationV2: React.FC<CompactTagRecommendationV2Prop
           style={{
             background: `linear-gradient(to right, var(--primary-color-light), rgba(var(--primary-rgb), 0.08))`,
             borderColor: 'var(--primary-color)',
-            color: 'var(--primary-color)'
+            color: 'var(--primary-color)',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = `linear-gradient(to right, rgba(var(--primary-rgb), 0.15), rgba(var(--primary-rgb), 0.12))`;
@@ -297,14 +299,15 @@ export const CompactTagRecommendationV2: React.FC<CompactTagRecommendationV2Prop
             className="w-3.5 h-3.5 rounded-full flex-shrink-0 shadow-sm border"
             style={{
               backgroundColor: recommendation.tag.color,
-              borderColor: 'var(--card-background)'
+              borderColor: 'var(--card-background)',
             }}
           />
           <span className="whitespace-nowrap">{recommendation.tag.name}</span>
-          <div className="w-4 h-4 rounded-full flex items-center justify-center"
-               style={{ backgroundColor: 'var(--primary-color)' }}>
-            <Plus className="w-2.5 h-2.5"
-                  style={{ color: 'var(--primary-foreground)' }} />
+          <div
+            className="w-4 h-4 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: 'var(--primary-color)' }}
+          >
+            <Plus className="w-2.5 h-2.5" style={{ color: 'var(--primary-foreground)' }} />
           </div>
         </button>
       ))}

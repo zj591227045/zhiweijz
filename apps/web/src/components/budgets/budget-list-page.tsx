@@ -203,84 +203,88 @@ export function BudgetListPage() {
         {/* 预算类型选择器 */}
         <BudgetListTypeSelector selectedType={selectedType} onTypeChange={handleTypeChange} />
 
-      {/* 预算统计链接 */}
-      <div className="statistics-link-container">
-        <button className="statistics-link" onClick={() => router.push('/budgets/statistics')}>
-          <i className="fas fa-chart-line"></i>
-          <span>查看预算统计</span>
-        </button>
-      </div>
-
-      <section className="budget-section active">
-        <div className="section-header">
-          <h2>{selectedType === 'PERSONAL' ? '个人预算' : '通用预算'}</h2>
-          <div className="section-description">
-            {selectedType === 'PERSONAL' ? '每月自动刷新的个人预算' : '长期或无期限的通用预算'}
-          </div>
-        </div>
-
-        {/* 个人预算的过期预算切换按钮 */}
-        {selectedType === 'PERSONAL' && (
-          <div className="budget-filter-controls">
-            <button
-              className={`filter-toggle-button ${showExpiredBudgets ? 'active' : ''}`}
-              onClick={toggleShowExpiredBudgets}
-            >
-              <i className={`fas ${showExpiredBudgets ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-              <span>{showExpiredBudgets ? '隐藏已结束预算' : '显示已结束预算'}</span>
-            </button>
-          </div>
-        )}
-
-        {/* 预算列表 */}
-        <div className="budget-list">{renderBudgetList()}</div>
-
-        {/* 添加通用预算按钮 - 仅在通用预算页面显示 */}
-        {selectedType === 'GENERAL' && (
-          <button className="add-budget-button" onClick={handleAddBudget}>
-            <i className="fas fa-plus"></i>
-            <span>添加通用预算</span>
+        {/* 预算统计链接 */}
+        <div className="statistics-link-container">
+          <button className="statistics-link" onClick={() => router.push('/budgets/statistics')}>
+            <i className="fas fa-chart-line"></i>
+            <span>查看预算统计</span>
           </button>
-        )}
-      </section>
+        </div>
 
-      {/* 删除确认对话框 */}
-      {showDeleteConfirm && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>确认删除预算</h3>
-            </div>
-            <div className="modal-body">
-              <p>删除预算后，相关的数据将无法恢复。确定要删除此预算吗？</p>
-            </div>
-            <div className="modal-footer">
-              <button
-                className="cancel-button"
-                onClick={() => {
-                  setShowDeleteConfirm(false);
-                  setBudgetToDelete(null);
-                }}
-                disabled={isDeleting}
-              >
-                取消
-              </button>
-              <button className="delete-button" onClick={handleDeleteBudget} disabled={isDeleting}>
-                {isDeleting ? '删除中...' : '确认删除'}
-              </button>
+        <section className="budget-section active">
+          <div className="section-header">
+            <h2>{selectedType === 'PERSONAL' ? '个人预算' : '通用预算'}</h2>
+            <div className="section-description">
+              {selectedType === 'PERSONAL' ? '每月自动刷新的个人预算' : '长期或无期限的通用预算'}
             </div>
           </div>
-        </div>
-      )}
 
-      {/* 预算编辑模态框 */}
-      {showBudgetEditModal && editingBudgetId && (
-        <BudgetEditModal
-          budgetId={editingBudgetId}
-          onClose={handleBudgetEditModalClose}
-          onSave={handleBudgetEditSave}
-        />
-      )}
+          {/* 个人预算的过期预算切换按钮 */}
+          {selectedType === 'PERSONAL' && (
+            <div className="budget-filter-controls">
+              <button
+                className={`filter-toggle-button ${showExpiredBudgets ? 'active' : ''}`}
+                onClick={toggleShowExpiredBudgets}
+              >
+                <i className={`fas ${showExpiredBudgets ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                <span>{showExpiredBudgets ? '隐藏已结束预算' : '显示已结束预算'}</span>
+              </button>
+            </div>
+          )}
+
+          {/* 预算列表 */}
+          <div className="budget-list">{renderBudgetList()}</div>
+
+          {/* 添加通用预算按钮 - 仅在通用预算页面显示 */}
+          {selectedType === 'GENERAL' && (
+            <button className="add-budget-button" onClick={handleAddBudget}>
+              <i className="fas fa-plus"></i>
+              <span>添加通用预算</span>
+            </button>
+          )}
+        </section>
+
+        {/* 删除确认对话框 */}
+        {showDeleteConfirm && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h3>确认删除预算</h3>
+              </div>
+              <div className="modal-body">
+                <p>删除预算后，相关的数据将无法恢复。确定要删除此预算吗？</p>
+              </div>
+              <div className="modal-footer">
+                <button
+                  className="cancel-button"
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setBudgetToDelete(null);
+                  }}
+                  disabled={isDeleting}
+                >
+                  取消
+                </button>
+                <button
+                  className="delete-button"
+                  onClick={handleDeleteBudget}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? '删除中...' : '确认删除'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 预算编辑模态框 */}
+        {showBudgetEditModal && editingBudgetId && (
+          <BudgetEditModal
+            budgetId={editingBudgetId}
+            onClose={handleBudgetEditModalClose}
+            onSave={handleBudgetEditSave}
+          />
+        )}
       </div>
     </PageContainer>
   );

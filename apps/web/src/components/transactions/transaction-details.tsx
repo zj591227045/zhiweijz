@@ -17,9 +17,26 @@ interface TransactionDetailsProps {
   isEditMode?: boolean;
 }
 
-export function TransactionDetails({ onSubmit, isSubmitting, isEditMode = false }: TransactionDetailsProps) {
-  const { type, description, date, time, tagIds, categoryId, amount, attachments, setDescription, setDate, setTime, setTagIds, setAttachments } =
-    useTransactionFormStore();
+export function TransactionDetails({
+  onSubmit,
+  isSubmitting,
+  isEditMode = false,
+}: TransactionDetailsProps) {
+  const {
+    type,
+    description,
+    date,
+    time,
+    tagIds,
+    categoryId,
+    amount,
+    attachments,
+    setDescription,
+    setDate,
+    setTime,
+    setTagIds,
+    setAttachments,
+  } = useTransactionFormStore();
   const { currentAccountBook } = useAccountBookStore();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -27,28 +44,30 @@ export function TransactionDetails({ onSubmit, isSubmitting, isEditMode = false 
     onSubmit();
   };
 
-
-
-
-
   return (
     <form onSubmit={handleSubmit}>
       {/* iOS 风格表单 */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* 描述输入 */}
-        <div style={{
-          backgroundColor: 'var(--background-color)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '12px',
-          padding: '16px'
-        }}>
-          <label style={{
-            display: 'block',
-            fontSize: '14px',
-            fontWeight: '500',
-            color: 'var(--text-secondary)',
-            marginBottom: '8px'
-          }}>描述</label>
+        <div
+          style={{
+            backgroundColor: 'var(--background-color)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '12px',
+            padding: '16px',
+          }}
+        >
+          <label
+            style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: 'var(--text-secondary)',
+              marginBottom: '8px',
+            }}
+          >
+            描述
+          </label>
           <input
             type="text"
             value={description}
@@ -62,27 +81,33 @@ export function TransactionDetails({ onSubmit, isSubmitting, isEditMode = false 
               backgroundColor: 'transparent',
               fontSize: '16px',
               color: 'var(--text-color)',
-              padding: '0'
+              padding: '0',
             }}
           />
         </div>
 
         {/* 日期和时间 - 并排布局 */}
         <div style={{ display: 'flex', gap: '12px' }}>
-          <div style={{
-            flex: 1,
-            backgroundColor: 'var(--background-color)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '12px',
-            padding: '16px'
-          }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '500',
-              color: 'var(--text-secondary)',
-              marginBottom: '8px'
-            }}>日期</label>
+          <div
+            style={{
+              flex: 1,
+              backgroundColor: 'var(--background-color)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '12px',
+              padding: '16px',
+            }}
+          >
+            <label
+              style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: 'var(--text-secondary)',
+                marginBottom: '8px',
+              }}
+            >
+              日期
+            </label>
             <input
               type="date"
               value={date}
@@ -96,25 +121,31 @@ export function TransactionDetails({ onSubmit, isSubmitting, isEditMode = false 
                 backgroundColor: 'transparent',
                 fontSize: '16px',
                 color: 'var(--text-color)',
-                padding: '0'
+                padding: '0',
               }}
             />
           </div>
 
-          <div style={{
-            flex: 1,
-            backgroundColor: 'var(--background-color)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '12px',
-            padding: '16px'
-          }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '500',
-              color: 'var(--text-secondary)',
-              marginBottom: '8px'
-            }}>时间</label>
+          <div
+            style={{
+              flex: 1,
+              backgroundColor: 'var(--background-color)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '12px',
+              padding: '16px',
+            }}
+          >
+            <label
+              style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: 'var(--text-secondary)',
+                marginBottom: '8px',
+              }}
+            >
+              时间
+            </label>
             <input
               type="time"
               value={time}
@@ -128,7 +159,7 @@ export function TransactionDetails({ onSubmit, isSubmitting, isEditMode = false 
                 backgroundColor: 'transparent',
                 fontSize: '16px',
                 color: 'var(--text-color)',
-                padding: '0'
+                padding: '0',
               }}
             />
           </div>
@@ -136,32 +167,40 @@ export function TransactionDetails({ onSubmit, isSubmitting, isEditMode = false 
 
         {/* 预算选择（仅支出类型显示） */}
         {type === TransactionType.EXPENSE && (
-          <div style={{
-            backgroundColor: 'var(--background-color)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '12px',
-            padding: '16px'
-          }}>
+          <div
+            style={{
+              backgroundColor: 'var(--background-color)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '12px',
+              padding: '16px',
+            }}
+          >
             <BudgetSelector isEditMode={isEditMode} />
           </div>
         )}
 
         {/* 移动端优化的标签选择 */}
         {currentAccountBook?.id && (
-          <div style={{
-            backgroundColor: 'var(--background-color)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '12px',
-            padding: '16px',
-            marginBottom: '16px' // 增加底部间距，避免与保存按钮重叠
-          }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '500',
-              color: 'var(--text-secondary)',
-              marginBottom: '12px'
-            }}>标签</label>
+          <div
+            style={{
+              backgroundColor: 'var(--background-color)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '12px',
+              padding: '16px',
+              marginBottom: '16px', // 增加底部间距，避免与保存按钮重叠
+            }}
+          >
+            <label
+              style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: 'var(--text-secondary)',
+                marginBottom: '12px',
+              }}
+            >
+              标签
+            </label>
 
             {/* 使用移动端优化的标签组件 */}
             <MobileTagSection
@@ -181,20 +220,26 @@ export function TransactionDetails({ onSubmit, isSubmitting, isEditMode = false 
         )}
 
         {/* 附件上传 */}
-        <div style={{
-          backgroundColor: 'var(--background-color)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '12px',
-          padding: '16px',
-          marginBottom: '16px'
-        }}>
-          <label style={{
-            display: 'block',
-            fontSize: '14px',
-            fontWeight: '500',
-            color: 'var(--text-secondary)',
-            marginBottom: '12px'
-          }}>附件</label>
+        <div
+          style={{
+            backgroundColor: 'var(--background-color)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '12px',
+            padding: '16px',
+            marginBottom: '16px',
+          }}
+        >
+          <label
+            style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: 'var(--text-secondary)',
+              marginBottom: '12px',
+            }}
+          >
+            附件
+          </label>
 
           <TransactionAttachmentUpload
             initialAttachments={attachments}
@@ -205,21 +250,23 @@ export function TransactionDetails({ onSubmit, isSubmitting, isEditMode = false 
       </div>
 
       {/* iOS 风格操作按钮 */}
-      <div style={{
-        display: 'flex',
-        gap: '12px',
-        marginTop: '32px', // 增加顶部间距
-        paddingBottom: '32px', // 增加底部间距
-        position: 'sticky', // 让按钮固定在底部
-        bottom: '0',
-        backgroundColor: 'var(--background-color)',
-        borderTop: '1px solid var(--border-color)',
-        marginLeft: '-20px',
-        marginRight: '-20px',
-        paddingLeft: '20px',
-        paddingRight: '20px',
-        paddingTop: '16px'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: '12px',
+          marginTop: '32px', // 增加顶部间距
+          paddingBottom: '32px', // 增加底部间距
+          position: 'sticky', // 让按钮固定在底部
+          bottom: '0',
+          backgroundColor: 'var(--background-color)',
+          borderTop: '1px solid var(--border-color)',
+          marginLeft: '-20px',
+          marginRight: '-20px',
+          paddingLeft: '20px',
+          paddingRight: '20px',
+          paddingTop: '16px',
+        }}
+      >
         <button
           type="submit"
           disabled={isSubmitting}
@@ -238,7 +285,7 @@ export function TransactionDetails({ onSubmit, isSubmitting, isEditMode = false 
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
           }}
         >
           {isSubmitting ? '保存中...' : '保存'}

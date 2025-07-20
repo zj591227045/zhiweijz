@@ -4,7 +4,13 @@ import React, { useState } from 'react';
 import { VersionCheckResponse } from '@/lib/api/version';
 import { UserAction } from '@/lib/services/versionCheckService';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import {
   Download,
@@ -17,7 +23,7 @@ import {
   Globe,
   Apple,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
 } from 'lucide-react';
 
 interface EnhancedVersionUpdateDialogProps {
@@ -33,7 +39,7 @@ export function EnhancedVersionUpdateDialog({
   onClose,
   updateInfo,
   onUserAction,
-  platform
+  platform,
 }: EnhancedVersionUpdateDialogProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingAction, setProcessingAction] = useState<UserAction | null>(null);
@@ -54,7 +60,7 @@ export function EnhancedVersionUpdateDialog({
 
     try {
       await onUserAction(action);
-      
+
       // 如果不是更新操作，关闭对话框
       if (action !== 'update') {
         onClose();
@@ -194,7 +200,7 @@ export function EnhancedVersionUpdateDialog({
                 </Badge>
               )}
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">最新版本</span>
@@ -250,8 +256,7 @@ export function EnhancedVersionUpdateDialog({
               >
                 {!showFullReleaseNotes && latestVersion.releaseNotes.length > 100
                   ? latestVersion.releaseNotes.substring(0, 100) + '...'
-                  : latestVersion.releaseNotes
-                }
+                  : latestVersion.releaseNotes}
               </div>
 
               {/* 查看详细更新情况按钮 */}

@@ -133,7 +133,9 @@ export function InvitationHistory({ invitations, isLoading, onRefresh }: Invitat
                   <div className="invitation-details">
                     {invitation.isUsed ? (
                       <div className="used-info">
-                        <div className="used-at">使用时间: {formatDate(invitation.usedAt || '')}</div>
+                        <div className="used-at">
+                          使用时间: {formatDate(invitation.usedAt || '')}
+                        </div>
                         {invitation.usedByUserName && (
                           <div className="used-by">使用者: {invitation.usedByUserName}</div>
                         )}

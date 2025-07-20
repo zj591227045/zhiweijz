@@ -41,10 +41,12 @@ export function ConfirmDialog({
       >
         {/* 图标和标题 */}
         <div className="flex items-center gap-4 p-6 pb-4">
-          <div className={cn(
-            "flex items-center justify-center w-12 h-12 rounded-full",
-            isDangerous ? "bg-red-100" : "bg-blue-100"
-          )}>
+          <div
+            className={cn(
+              'flex items-center justify-center w-12 h-12 rounded-full',
+              isDangerous ? 'bg-red-100' : 'bg-blue-100',
+            )}
+          >
             {isDangerous ? (
               <Trash2 className="w-6 h-6 text-red-600" />
             ) : (
@@ -52,17 +54,13 @@ export function ConfirmDialog({
             )}
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900">
-              {title}
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
           </div>
         </div>
 
         {/* 消息内容 */}
         <div className="px-6 pb-6">
-          <p className="text-gray-600 leading-relaxed">
-            {message}
-          </p>
+          <p className="text-gray-600 leading-relaxed">{message}</p>
         </div>
 
         {/* 按钮区域 */}
@@ -88,10 +86,10 @@ export function ConfirmDialog({
             }}
             disabled={loading}
             className={cn(
-              "flex-1 px-4 py-2.5 text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
+              'flex-1 px-4 py-2.5 text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed',
               isDangerous
-                ? "bg-red-600 hover:bg-red-700 active:bg-red-800 shadow-lg hover:shadow-red-200"
-                : "bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-lg hover:shadow-blue-200"
+                ? 'bg-red-600 hover:bg-red-700 active:bg-red-800 shadow-lg hover:shadow-red-200'
+                : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-lg hover:shadow-blue-200',
             )}
           >
             {loading ? (

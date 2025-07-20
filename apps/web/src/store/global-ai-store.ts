@@ -1,7 +1,14 @@
 'use client';
 
 import { create } from 'zustand';
-import { systemConfigApi, GlobalAIConfig, AIServiceStatus, TodayTokenUsage, TokenUsageStats, TokenUsageParams } from '@/lib/api/system-config';
+import {
+  systemConfigApi,
+  GlobalAIConfig,
+  AIServiceStatus,
+  TodayTokenUsage,
+  TokenUsageStats,
+  TokenUsageParams,
+} from '@/lib/api/system-config';
 import { toast } from 'sonner';
 
 // 全局AI状态类型
@@ -13,7 +20,7 @@ interface GlobalAIState {
   todayUsage: TodayTokenUsage | null;
   tokenStats: TokenUsageStats | null;
   activeService: any | null; // 当前账本激活的AI服务
-  
+
   // 加载状态
   isLoadingConfig: boolean;
   isLoadingUserAI: boolean; // 用户AI状态加载中
@@ -21,7 +28,7 @@ interface GlobalAIState {
   isLoadingUsage: boolean;
   isLoadingStats: boolean;
   isLoadingActiveService: boolean;
-  
+
   // 错误状态
   configError: string | null;
   userAIError: string | null; // 用户AI状态错误
@@ -39,8 +46,15 @@ interface GlobalAIState {
   fetchAccountActiveService: (accountId: string) => Promise<void>;
   updateGlobalConfig: (config: Partial<GlobalAIConfig>) => Promise<void>;
   toggleUserAIService: (enabled: boolean) => Promise<void>; // 切换用户AI服务状态
-  switchServiceType: (serviceType: 'official' | 'custom', serviceId?: string, accountId?: string) => Promise<void>;
-  testServiceConnection: (serviceType: 'official' | 'custom', serviceId?: string) => Promise<{ success: boolean; message: string; responseTime?: number }>;
+  switchServiceType: (
+    serviceType: 'official' | 'custom',
+    serviceId?: string,
+    accountId?: string,
+  ) => Promise<void>;
+  testServiceConnection: (
+    serviceType: 'official' | 'custom',
+    serviceId?: string,
+  ) => Promise<{ success: boolean; message: string; responseTime?: number }>;
   refreshAll: (accountId?: string) => Promise<void>;
   clearErrors: () => void;
 }
@@ -54,14 +68,14 @@ export const useGlobalAIStore = create<GlobalAIState>((set, get) => ({
   todayUsage: null,
   tokenStats: null,
   activeService: null,
-  
+
   isLoadingConfig: false,
   isLoadingUserAI: false, // 用户AI状态加载状态
   isLoadingStatus: false,
   isLoadingUsage: false,
   isLoadingStats: false,
   isLoadingActiveService: false,
-  
+
   configError: null,
   userAIError: null, // 用户AI状态错误
   statusError: null,
@@ -158,33 +172,33 @@ export const useGlobalAIStore = create<GlobalAIState>((set, get) => ({
       set({ activeService, isLoadingActiveService: false });
     } catch (error: any) {
       let errorMessage = '获取账本激活服务失败';
-      
+
       // 对403错误进行特殊处理
       if (error?.response?.status === 403) {
         errorMessage = '您没有权限访问此账本的AI服务配置';
         // 对于403错误，设置一个默认的未启用状态
-        set({ 
+        set({
           activeService: {
             enabled: false,
             type: null,
             maxTokens: 1000,
-            usedTokens: 0
+            usedTokens: 0,
           },
           isLoadingActiveService: false,
-          activeServiceError: errorMessage
+          activeServiceError: errorMessage,
         });
         return;
       }
-      
+
       // 对于其他错误
       if (error instanceof Error) {
         errorMessage = error.message;
       }
-      
-      set({ 
-        activeServiceError: errorMessage, 
+
+      set({
+        activeServiceError: errorMessage,
         isLoadingActiveService: false,
-        activeService: null
+        activeService: null,
       });
       console.error('获取账本激活服务失败:', error);
     }
@@ -207,7 +221,11 @@ export const useGlobalAIStore = create<GlobalAIState>((set, get) => ({
   },
 
   // 切换AI服务类型
-  switchServiceType: async (serviceType: 'official' | 'custom', serviceId?: string, accountId?: string) => {
+  switchServiceType: async (
+    serviceType: 'official' | 'custom',
+    serviceId?: string,
+    accountId?: string,
+  ) => {
     try {
       const result = await systemConfigApi.switchAIServiceType(serviceType, serviceId, accountId);
       if (result.success) {
@@ -232,7 +250,7 @@ export const useGlobalAIStore = create<GlobalAIState>((set, get) => ({
       if (serviceType === 'custom' && !serviceId) {
         return {
           success: true,
-          message: '自定义服务类型切换成功，请选择具体的服务'
+          message: '自定义服务类型切换成功，请选择具体的服务',
         };
       }
 
@@ -243,20 +261,26 @@ export const useGlobalAIStore = create<GlobalAIState>((set, get) => ({
       console.error('测试AI服务连接失败:', error);
       return {
         success: false,
-        message: errorMessage
+        message: errorMessage,
       };
     }
   },
 
   // 刷新所有数据
   refreshAll: async (accountId?: string) => {
-    const { fetchGlobalConfig, fetchUserAIEnabled, fetchServiceStatus, fetchTodayUsage, fetchAccountActiveService } = get();
+    const {
+      fetchGlobalConfig,
+      fetchUserAIEnabled,
+      fetchServiceStatus,
+      fetchTodayUsage,
+      fetchAccountActiveService,
+    } = get();
     await Promise.all([
       fetchGlobalConfig(),
       fetchUserAIEnabled(), // 同时获取用户AI服务状态
       fetchServiceStatus(),
       fetchTodayUsage(),
-      fetchAccountActiveService(accountId || '')
+      fetchAccountActiveService(accountId || ''),
     ]);
   },
 
@@ -268,7 +292,7 @@ export const useGlobalAIStore = create<GlobalAIState>((set, get) => ({
       statusError: null,
       usageError: null,
       statsError: null,
-      activeServiceError: null
+      activeServiceError: null,
     });
-  }
+  },
 }));

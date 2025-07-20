@@ -50,10 +50,10 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       const announcements = response.data || [];
       const unreadCount = announcements.filter((a: UserAnnouncement) => !a.isRead).length;
 
-      set({ 
+      set({
         announcements,
         unreadCount,
-        isLoading: false 
+        isLoading: false,
       });
     } catch (error) {
       console.error('获取通知失败:', error);
@@ -70,15 +70,15 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       if (announcement) {
         // 更新本地状态中的公告为已读状态
         const { announcements } = get();
-        const updatedAnnouncements = announcements.map(a =>
-          a.id === announcementId ? { ...a, isRead: true } : a
+        const updatedAnnouncements = announcements.map((a) =>
+          a.id === announcementId ? { ...a, isRead: true } : a,
         );
-        const unreadCount = updatedAnnouncements.filter(a => !a.isRead).length;
+        const unreadCount = updatedAnnouncements.filter((a) => !a.isRead).length;
 
         set({
           announcements: updatedAnnouncements,
           unreadCount,
-          selectedAnnouncement: announcement
+          selectedAnnouncement: announcement,
         });
 
         return announcement;
@@ -97,14 +97,14 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
       // 更新本地状态
       const { announcements } = get();
-      const updatedAnnouncements = announcements.map(a => 
-        a.id === announcementId ? { ...a, isRead: true } : a
+      const updatedAnnouncements = announcements.map((a) =>
+        a.id === announcementId ? { ...a, isRead: true } : a,
       );
-      const unreadCount = updatedAnnouncements.filter(a => !a.isRead).length;
+      const unreadCount = updatedAnnouncements.filter((a) => !a.isRead).length;
 
-      set({ 
+      set({
         announcements: updatedAnnouncements,
-        unreadCount 
+        unreadCount,
       });
     } catch (error) {
       console.error('标记已读失败:', error);
@@ -118,11 +118,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
       // 更新本地状态
       const { announcements } = get();
-      const updatedAnnouncements = announcements.map(a => ({ ...a, isRead: true }));
+      const updatedAnnouncements = announcements.map((a) => ({ ...a, isRead: true }));
 
-      set({ 
+      set({
         announcements: updatedAnnouncements,
-        unreadCount: 0 
+        unreadCount: 0,
       });
 
       toast.success('已标记全部通知为已读');
@@ -152,7 +152,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   closeDetailModal: () => {
     set({
       isDetailModalOpen: false,
-      selectedAnnouncement: null
+      selectedAnnouncement: null,
     });
   },
 
@@ -162,7 +162,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   checkUnreadOnLogin: async () => {
     const { hasCheckedOnLogin, fetchAnnouncements } = get();
-    
+
     // 如果已经检查过，不重复检查
     if (hasCheckedOnLogin) {
       return;
@@ -171,7 +171,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     try {
       await fetchAnnouncements();
       const { unreadCount, announcements } = get();
-      
+
       // 如果有未读通知，自动打开模态框
       if (unreadCount > 0) {
         // 延迟1秒打开，让用户先看到页面
@@ -186,4 +186,4 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       set({ hasCheckedOnLogin: true });
     }
   },
-})); 
+}));

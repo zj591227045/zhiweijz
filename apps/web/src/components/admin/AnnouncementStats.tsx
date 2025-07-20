@@ -1,10 +1,10 @@
 import { AnnouncementStats as StatsType } from '@/store/admin/useAnnouncementManagement';
-import { 
+import {
   DocumentTextIcon,
   CheckCircleIcon,
   DocumentIcon,
   ArchiveBoxIcon,
-  EyeIcon
+  EyeIcon,
 } from '@heroicons/react/24/outline';
 
 interface AnnouncementStatsProps {
@@ -18,42 +18,42 @@ export function AnnouncementStats({ stats }: AnnouncementStatsProps) {
       value: stats.totalCount,
       icon: DocumentTextIcon,
       color: 'text-blue-600',
-      bgColor: 'bg-blue-100'
+      bgColor: 'bg-blue-100',
     },
     {
       name: '已发布',
       value: stats.publishedCount,
       icon: CheckCircleIcon,
       color: 'text-green-600',
-      bgColor: 'bg-green-100'
+      bgColor: 'bg-green-100',
     },
     {
       name: '草稿',
       value: stats.draftCount,
       icon: DocumentIcon,
       color: 'text-gray-600',
-      bgColor: 'bg-gray-100'
+      bgColor: 'bg-gray-100',
     },
     {
       name: '已归档',
       value: stats.archivedCount,
       icon: ArchiveBoxIcon,
       color: 'text-yellow-600',
-      bgColor: 'bg-yellow-100'
+      bgColor: 'bg-yellow-100',
     },
     {
       name: '总阅读次数',
       value: stats.totalReadCount,
       icon: EyeIcon,
       color: 'text-purple-600',
-      bgColor: 'bg-purple-100'
-    }
+      bgColor: 'bg-purple-100',
+    },
   ];
 
   return (
     <div className="bg-white shadow rounded-lg p-6">
       <h3 className="text-lg font-medium text-gray-900 mb-4">公告统计</h3>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {statItems.map((item) => (
           <div key={item.name} className="bg-gray-50 rounded-lg p-4">
@@ -81,7 +81,7 @@ export function AnnouncementStats({ stats }: AnnouncementStatsProps) {
               </span>
             </div>
             <div className="mt-2 bg-gray-200 rounded-full h-2">
-              <div 
+              <div
                 className="bg-green-600 h-2 rounded-full"
                 style={{ width: `${(stats.publishedCount / stats.totalCount) * 100}%` }}
               />
@@ -96,7 +96,7 @@ export function AnnouncementStats({ stats }: AnnouncementStatsProps) {
               </span>
             </div>
             <div className="mt-2 bg-gray-200 rounded-full h-2">
-              <div 
+              <div
                 className="bg-gray-600 h-2 rounded-full"
                 style={{ width: `${(stats.draftCount / stats.totalCount) * 100}%` }}
               />
@@ -111,7 +111,7 @@ export function AnnouncementStats({ stats }: AnnouncementStatsProps) {
               </span>
             </div>
             <div className="mt-2 bg-gray-200 rounded-full h-2">
-              <div 
+              <div
                 className="bg-yellow-600 h-2 rounded-full"
                 style={{ width: `${(stats.archivedCount / stats.totalCount) * 100}%` }}
               />
@@ -126,13 +126,13 @@ export function AnnouncementStats({ stats }: AnnouncementStatsProps) {
           <div className="flex items-center justify-between">
             <div>
               <h4 className="text-sm font-medium text-blue-900">平均阅读情况</h4>
-              <p className="text-xs text-blue-700 mt-1">
-                基于已发布公告的阅读数据统计
-              </p>
+              <p className="text-xs text-blue-700 mt-1">基于已发布公告的阅读数据统计</p>
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold text-blue-900">
-                {stats.publishedCount > 0 ? (stats.totalReadCount / stats.publishedCount).toFixed(1) : '0'}
+                {stats.publishedCount > 0
+                  ? (stats.totalReadCount / stats.publishedCount).toFixed(1)
+                  : '0'}
               </p>
               <p className="text-xs text-blue-700">平均每个公告阅读次数</p>
             </div>
@@ -141,4 +141,4 @@ export function AnnouncementStats({ stats }: AnnouncementStatsProps) {
       )}
     </div>
   );
-} 
+}

@@ -11,13 +11,13 @@ interface VersionManagerProps {
   onVersionChecked?: (hasUpdate: boolean) => void;
 }
 
-export function VersionManager({ 
+export function VersionManager({
   currentVersion = '1.0.0',
   currentBuildNumber = 1,
   isAdmin = false,
   autoCheck = true,
   checkInterval = 60 * 60 * 1000, // 默认1小时
-  onVersionChecked
+  onVersionChecked,
 }: VersionManagerProps) {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const {
@@ -29,13 +29,13 @@ export function VersionManager({
     error,
     checkVersion,
     setUserVersionStatus,
-    clearError
+    clearError,
   } = useVersionCheck();
 
   // 获取当前平台
   const getCurrentPlatform = (): 'web' | 'ios' | 'android' => {
     if (typeof window === 'undefined') return 'web';
-    
+
     const userAgent = navigator.userAgent.toLowerCase();
     if (userAgent.includes('android')) return 'android';
     if (userAgent.includes('iphone') || userAgent.includes('ipad')) return 'ios';
@@ -48,7 +48,7 @@ export function VersionManager({
     await checkVersion({
       platform,
       currentVersion,
-      currentBuildNumber
+      currentBuildNumber,
     });
   };
 
@@ -66,7 +66,7 @@ export function VersionManager({
         // 设置用户版本状态
         await setUserVersionStatus(action);
       }
-      
+
       if (action !== 'update') {
         setShowUpdateModal(false);
       }
@@ -99,10 +99,9 @@ export function VersionManager({
   useEffect(() => {
     if (hasUpdate && latestVersion) {
       // 检查是否为强制更新或者用户还未处理过此版本
-      const shouldShowModal = latestVersion.isForceUpdate || 
-                            !userStatus || 
-                            userStatus.status === 'PENDING';
-      
+      const shouldShowModal =
+        latestVersion.isForceUpdate || !userStatus || userStatus.status === 'PENDING';
+
       if (shouldShowModal) {
         setShowUpdateModal(true);
       }
@@ -138,10 +137,7 @@ export function VersionManager({
         <div className="fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50">
           <div className="flex items-center gap-2">
             <span className="text-sm">{error}</span>
-            <button
-              onClick={clearError}
-              className="text-white hover:text-red-200"
-            >
+            <button onClick={clearError} className="text-white hover:text-red-200">
               ×
             </button>
           </div>
@@ -162,12 +158,12 @@ export function VersionManager({
 }
 
 // 手动版本检查组件
-export function ManualVersionCheck({ 
+export function ManualVersionCheck({
   currentVersion = '1.0.0',
   currentBuildNumber = 1,
   isAdmin = false,
   onUpdateAvailable,
-  children
+  children,
 }: {
   currentVersion?: string;
   currentBuildNumber?: number;
@@ -176,23 +172,24 @@ export function ManualVersionCheck({
   children: React.ReactNode;
 }) {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const {
-    isChecking,
-    hasUpdate,
-    latestVersion,
-    setUserVersionStatus,
-    checkVersion
-  } = useVersionCheck();
+  const { isChecking, hasUpdate, latestVersion, setUserVersionStatus, checkVersion } =
+    useVersionCheck();
 
   const handleManualCheck = async () => {
-    const platform = typeof window !== 'undefined' ? 
-      (navigator.userAgent.toLowerCase().includes('android') ? 'android' : 
-       navigator.userAgent.toLowerCase().includes('iphone') || navigator.userAgent.toLowerCase().includes('ipad') ? 'ios' : 'web') : 'web';
-    
+    const platform =
+      typeof window !== 'undefined'
+        ? navigator.userAgent.toLowerCase().includes('android')
+          ? 'android'
+          : navigator.userAgent.toLowerCase().includes('iphone') ||
+              navigator.userAgent.toLowerCase().includes('ipad')
+            ? 'ios'
+            : 'web'
+        : 'web';
+
     await checkVersion({
       platform,
       currentVersion,
-      currentBuildNumber
+      currentBuildNumber,
     });
 
     if (hasUpdate && latestVersion) {
@@ -216,7 +213,10 @@ export function ManualVersionCheck({
 
   return (
     <>
-      <div onClick={handleManualCheck} className={isChecking ? 'pointer-events-none opacity-50' : ''}>
+      <div
+        onClick={handleManualCheck}
+        className={isChecking ? 'pointer-events-none opacity-50' : ''}
+      >
         {children}
       </div>
 

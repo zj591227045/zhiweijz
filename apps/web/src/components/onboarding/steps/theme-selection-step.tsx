@@ -106,10 +106,10 @@ export function ThemeSelectionStep() {
 
       // 映射主题色名称
       const colorMap: Record<string, any> = {
-        'blue': 'blue',
-        'green': 'green',
-        'purple': 'purple',
-        'pink': 'pink',
+        blue: 'blue',
+        green: 'green',
+        purple: 'purple',
+        pink: 'pink',
         'orange-light': 'orange-light',
       };
 
@@ -179,9 +179,7 @@ export function ThemeSelectionStep() {
         {themes.map((themeOption) => (
           <div
             key={themeOption.id}
-            className={`theme-selection-card ${
-              selectedTheme === themeOption.id ? 'selected' : ''
-            }`}
+            className={`theme-selection-card ${selectedTheme === themeOption.id ? 'selected' : ''}`}
             onClick={() => handleThemeSelect(themeOption.id)}
           >
             {/* 主题预览 */}
@@ -204,7 +202,7 @@ export function ThemeSelectionStep() {
                     <div className="preview-title">只为记账</div>
                   </div>
                 </div>
-                
+
                 {/* 模拟卡片内容 */}
                 <div className="preview-content">
                   <div
@@ -215,17 +213,26 @@ export function ThemeSelectionStep() {
                     }}
                   >
                     <div className="preview-card-header">
-                      <div className="preview-amount" style={{ color: themeOption.preview.primaryColor }}>
+                      <div
+                        className="preview-amount"
+                        style={{ color: themeOption.preview.primaryColor }}
+                      >
                         ¥1,234.56
                       </div>
                     </div>
                     <div className="preview-card-content">
                       <div className="preview-item">
-                        <div className="preview-dot" style={{ backgroundColor: themeOption.preview.primaryColor }}></div>
+                        <div
+                          className="preview-dot"
+                          style={{ backgroundColor: themeOption.preview.primaryColor }}
+                        ></div>
                         <span>餐饮美食</span>
                       </div>
                       <div className="preview-item">
-                        <div className="preview-dot" style={{ backgroundColor: themeOption.preview.primaryColor }}></div>
+                        <div
+                          className="preview-dot"
+                          style={{ backgroundColor: themeOption.preview.primaryColor }}
+                        ></div>
                         <span>交通出行</span>
                       </div>
                     </div>
@@ -252,16 +259,10 @@ export function ThemeSelectionStep() {
 
       {/* 按钮组 */}
       <div className="onboarding-button-group">
-        <button
-          className="onboarding-button onboarding-button-secondary"
-          onClick={handlePrevious}
-        >
+        <button className="onboarding-button onboarding-button-secondary" onClick={handlePrevious}>
           上一步
         </button>
-        <button
-          className="onboarding-button onboarding-button-primary"
-          onClick={handleNext}
-        >
+        <button className="onboarding-button onboarding-button-primary" onClick={handleNext}>
           下一步
         </button>
       </div>

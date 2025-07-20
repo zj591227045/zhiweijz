@@ -6,12 +6,8 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 export function DeletionStatusBanner() {
-  const { 
-    isDeletionRequested, 
-    deletionScheduledAt, 
-    remainingHours, 
-    setDeletionStatus 
-  } = useAuthStore();
+  const { isDeletionRequested, deletionScheduledAt, remainingHours, setDeletionStatus } =
+    useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
 
   if (!isDeletionRequested) {
@@ -49,7 +45,7 @@ export function DeletionStatusBanner() {
           </p>
         </div>
         <div className="banner-actions">
-          <button 
+          <button
             className="cancel-deletion-btn"
             onClick={handleCancelDeletion}
             disabled={isLoading}
@@ -153,7 +149,11 @@ export function DeletionStatusBanner() {
         /* 深色主题适配 */
         @media (prefers-color-scheme: dark) {
           .deletion-status-banner {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.2) 100%);
+            background: linear-gradient(
+              135deg,
+              rgba(245, 158, 11, 0.1) 0%,
+              rgba(245, 158, 11, 0.2) 100%
+            );
             border-color: rgba(245, 158, 11, 0.3);
           }
 

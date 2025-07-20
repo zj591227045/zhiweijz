@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
+import {
   TrophyIcon,
   StarIcon,
   CalendarIcon,
@@ -12,11 +12,11 @@ import {
   CheckCircleIcon,
   CogIcon,
   GiftIcon,
-  SparklesIcon
+  SparklesIcon,
 } from '@heroicons/react/24/outline';
-import { 
+import {
   TrophyIcon as TrophySolidIcon,
-  StarIcon as StarSolidIcon
+  StarIcon as StarSolidIcon,
 } from '@heroicons/react/24/solid';
 import useMembershipStore from '../../../store/membership-store';
 import membershipApi from '../../../lib/api/membership-service';
@@ -39,13 +39,13 @@ export default function MembershipCenter() {
     fetchNotifications,
     selectBadge,
     markNotificationAsRead,
-    clearError
+    clearError,
   } = useMembershipStore();
 
-  const { 
-    balance: accountingBalance, 
+  const {
+    balance: accountingBalance,
     fetchBalance: fetchAccountingBalance,
-    loading: accountingLoading 
+    loading: accountingLoading,
   } = useAccountingPointsStore();
 
   const [activeTab, setActiveTab] = useState('overview');
@@ -74,9 +74,9 @@ export default function MembershipCenter() {
 
   if (!systemEnabled) {
     return (
-      <PageContainer 
-        title="会员中心" 
-        showBackButton={true} 
+      <PageContainer
+        title="会员中心"
+        showBackButton={true}
         onBackClick={handleBackToSettings}
         activeNavItem="profile"
         showBottomNav={false}
@@ -85,9 +85,7 @@ export default function MembershipCenter() {
           <div className="text-center">
             <TrophyIcon className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">会员系统未启用</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              当前版本未启用会员系统功能
-            </p>
+            <p className="mt-1 text-sm text-gray-500">当前版本未启用会员系统功能</p>
           </div>
         </div>
       </PageContainer>
@@ -129,18 +127,18 @@ export default function MembershipCenter() {
     }
   };
 
-  const unreadNotificationsCount = notifications.filter(n => !n.isRead).length;
+  const unreadNotificationsCount = notifications.filter((n) => !n.isRead).length;
 
   const tabs = [
     { id: 'overview', name: '概览', icon: TrophyIcon },
     { id: 'badges', name: '徽章收藏', icon: StarIcon },
-    { id: 'notifications', name: '通知', icon: BellIcon, badge: unreadNotificationsCount }
+    { id: 'notifications', name: '通知', icon: BellIcon, badge: unreadNotificationsCount },
   ];
 
   return (
-    <PageContainer 
-      title="会员中心" 
-      showBackButton={true} 
+    <PageContainer
+      title="会员中心"
+      showBackButton={true}
       onBackClick={handleBackToSettings}
       activeNavItem="profile"
       showBottomNav={false}
@@ -160,9 +158,7 @@ export default function MembershipCenter() {
 
         {/* 页面标题 */}
         <div className="mb-6">
-          <p className="text-sm text-gray-600">
-            管理您的会员权益、徽章收藏和通知设置
-          </p>
+          <p className="text-sm text-gray-600">管理您的会员权益、徽章收藏和通知设置</p>
         </div>
 
         {loading ? (
@@ -176,9 +172,7 @@ export default function MembershipCenter() {
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0">
-                      {getMemberTypeIcon(membership.memberType)}
-                    </div>
+                    <div className="flex-shrink-0">{getMemberTypeIcon(membership.memberType)}</div>
                     <div>
                       <h2 className="text-xl font-semibold text-gray-900">
                         {membershipApi.getMemberTypeLabel(membership.memberType)}
@@ -188,14 +182,16 @@ export default function MembershipCenter() {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="text-right">
                     {membership.endDate ? (
                       <div>
                         <p className="text-sm text-gray-500">到期时间</p>
-                        <p className={`text-lg font-semibold ${
-                          isExpiringSoon() ? 'text-red-600' : 'text-gray-900'
-                        }`}>
+                        <p
+                          className={`text-lg font-semibold ${
+                            isExpiringSoon() ? 'text-red-600' : 'text-gray-900'
+                          }`}
+                        >
                           {new Date(membership.endDate).toLocaleDateString()}
                         </p>
                         {isExpiringSoon() && (
@@ -231,25 +227,29 @@ export default function MembershipCenter() {
                         </div>
                       </div>
                     )}
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="bg-blue-50 rounded-lg p-4">
                         <div className="flex items-center">
                           <GiftIcon className="h-8 w-8 text-blue-600" />
                           <div className="ml-3">
                             <p className="text-sm font-medium text-blue-900">月度记账点</p>
-                            <p className="text-2xl font-bold text-blue-900">{membership.monthlyPoints}</p>
+                            <p className="text-2xl font-bold text-blue-900">
+                              {membership.monthlyPoints}
+                            </p>
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="bg-green-50 rounded-lg p-4">
                         <div className="flex items-center">
                           <SparklesIcon className="h-8 w-8 text-green-600" />
                           <div className="ml-3">
                             <p className="text-sm font-medium text-green-900">可用记账点</p>
                             <p className="text-2xl font-bold text-green-900">
-                              {accountingBalance ? accountingBalance.memberBalance : (membership.monthlyPoints - membership.usedPoints)}
+                              {accountingBalance
+                                ? accountingBalance.memberBalance
+                                : membership.monthlyPoints - membership.usedPoints}
                             </p>
                             {accountingLoading && (
                               <p className="text-xs text-green-700">更新中...</p>
@@ -275,9 +275,10 @@ export default function MembershipCenter() {
                         onClick={() => setActiveTab(tab.id)}
                         className={`
                           relative py-4 px-6 text-sm font-medium border-b-2 transition-colors duration-200
-                          ${activeTab === tab.id
-                            ? 'border-blue-500 text-blue-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                          ${
+                            activeTab === tab.id
+                              ? 'border-blue-500 text-blue-600'
+                              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                           }
                         `}
                       >
@@ -306,25 +307,33 @@ export default function MembershipCenter() {
                         <div className="bg-gray-50 rounded-lg p-4">
                           <h4 className="font-medium text-gray-900">每月会员记账点</h4>
                           <p className="text-sm text-gray-600 mt-1">
-                            {membership?.memberType === 'DONOR' ? '1000点记账点，用于AI功能' : '暂无记账点权益'}
+                            {membership?.memberType === 'DONOR'
+                              ? '1000点记账点，用于AI功能'
+                              : '暂无记账点权益'}
                           </p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-4">
                           <h4 className="font-medium text-gray-900">专属徽章</h4>
                           <p className="text-sm text-gray-600 mt-1">
-                            {membership?.memberType === 'DONOR' ? '捐赠会员专属徽章' : '普通会员徽章'}
+                            {membership?.memberType === 'DONOR'
+                              ? '捐赠会员专属徽章'
+                              : '普通会员徽章'}
                           </p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-4">
                           <h4 className="font-medium text-gray-900">公益事业署名</h4>
                           <p className="text-sm text-gray-600 mt-1">
-                            {membership?.memberType === 'DONOR' ? '支持公益项目署名权利' : '暂无此权益'}
+                            {membership?.memberType === 'DONOR'
+                              ? '支持公益项目署名权利'
+                              : '暂无此权益'}
                           </p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-4">
                           <h4 className="font-medium text-gray-900">优先客服</h4>
                           <p className="text-sm text-gray-600 mt-1">
-                            {membership?.memberType === 'DONOR' ? '享受优先客服通道' : '标准客服支持'}
+                            {membership?.memberType === 'DONOR'
+                              ? '享受优先客服通道'
+                              : '标准客服支持'}
                           </p>
                         </div>
                       </div>
@@ -335,7 +344,10 @@ export default function MembershipCenter() {
                         <h3 className="text-lg font-medium text-gray-900 mb-4">续费历史</h3>
                         <div className="space-y-3">
                           {membership.renewalHistory.slice(0, 5).map((renewal) => (
-                            <div key={renewal.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div
+                              key={renewal.id}
+                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                            >
                               <div>
                                 <p className="text-sm font-medium text-gray-900">
                                   {renewal.renewalType === 'UPGRADE' ? '升级' : '续费'}
@@ -346,11 +358,16 @@ export default function MembershipCenter() {
                               </div>
                               <div className="text-right">
                                 <p className="text-sm text-gray-900">
-                                  {new Date(renewal.startDate).toLocaleDateString()} - {new Date(renewal.endDate).toLocaleDateString()}
+                                  {new Date(renewal.startDate).toLocaleDateString()} -{' '}
+                                  {new Date(renewal.endDate).toLocaleDateString()}
                                 </p>
-                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                  renewal.status === 'COMPLETED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                                }`}>
+                                <span
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                    renewal.status === 'COMPLETED'
+                                      ? 'bg-green-100 text-green-800'
+                                      : 'bg-yellow-100 text-yellow-800'
+                                  }`}
+                                >
                                   {renewal.status === 'COMPLETED' ? '已完成' : renewal.status}
                                 </span>
                               </div>
@@ -386,9 +403,7 @@ export default function MembershipCenter() {
                         <div className="text-center py-8">
                           <TrophyIcon className="mx-auto h-12 w-12 text-gray-400" />
                           <h3 className="mt-2 text-sm font-medium text-gray-900">暂无徽章</h3>
-                          <p className="mt-1 text-sm text-gray-500">
-                            继续使用应用来获得更多徽章
-                          </p>
+                          <p className="mt-1 text-sm text-gray-500">继续使用应用来获得更多徽章</p>
                         </div>
                       )}
                     </div>
@@ -398,7 +413,9 @@ export default function MembershipCenter() {
                       {badges.length > 0 ? (
                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                           {badges.map((badge) => {
-                            const userBadge = membership?.badges.find(ub => ub.badgeId === badge.id);
+                            const userBadge = membership?.badges.find(
+                              (ub) => ub.badgeId === badge.id,
+                            );
                             return (
                               <BadgeDisplay
                                 key={badge.id}
@@ -415,9 +432,7 @@ export default function MembershipCenter() {
                         <div className="text-center py-8">
                           <TrophyIcon className="mx-auto h-12 w-12 text-gray-400" />
                           <h3 className="mt-2 text-sm font-medium text-gray-900">暂无徽章</h3>
-                          <p className="mt-1 text-sm text-gray-500">
-                            徽章系统即将上线
-                          </p>
+                          <p className="mt-1 text-sm text-gray-500">徽章系统即将上线</p>
                         </div>
                       )}
                     </div>
@@ -435,9 +450,10 @@ export default function MembershipCenter() {
                             key={notification.id}
                             className={`
                               p-4 rounded-lg border cursor-pointer transition-all duration-200
-                              ${notification.isRead 
-                                ? 'border-gray-200 bg-white' 
-                                : 'border-blue-200 bg-blue-50'
+                              ${
+                                notification.isRead
+                                  ? 'border-gray-200 bg-white'
+                                  : 'border-blue-200 bg-blue-50'
                               }
                             `}
                             onClick={() => handleNotificationClick(notification)}
@@ -452,9 +468,7 @@ export default function MembershipCenter() {
                                     <span className="inline-flex h-2 w-2 bg-blue-500 rounded-full"></span>
                                   )}
                                 </div>
-                                <p className="text-sm text-gray-600 mt-1">
-                                  {notification.content}
-                                </p>
+                                <p className="text-sm text-gray-600 mt-1">{notification.content}</p>
                                 <p className="text-xs text-gray-400 mt-2">
                                   {new Date(notification.createdAt).toLocaleString()}
                                 </p>
@@ -467,9 +481,7 @@ export default function MembershipCenter() {
                       <div className="text-center py-8">
                         <BellIcon className="mx-auto h-12 w-12 text-gray-400" />
                         <h3 className="mt-2 text-sm font-medium text-gray-900">暂无通知</h3>
-                        <p className="mt-1 text-sm text-gray-500">
-                          您的所有通知将在这里显示
-                        </p>
+                        <p className="mt-1 text-sm text-gray-500">您的所有通知将在这里显示</p>
                       </div>
                     )}
                   </div>

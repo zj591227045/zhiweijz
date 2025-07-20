@@ -22,7 +22,7 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
       }
 
       setLoading(true);
-      
+
       try {
         const token = localStorage.getItem('auth-token');
         const storedUser = localStorage.getItem('user');

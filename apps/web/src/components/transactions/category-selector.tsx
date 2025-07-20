@@ -5,6 +5,7 @@ import { useTransactionFormStore } from '@/store/transaction-form-store';
 import { useCategoryStore } from '@/store/category-store';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { getIconClass } from '@/lib/utils';
+import { hapticPresets } from '@/lib/haptic-feedback';
 
 interface CategorySelectorProps {
   categories: any[];
@@ -19,6 +20,9 @@ export function CategorySelector({ categories, isLoading }: CategorySelectorProp
 
   // 处理分类选择
   const handleCategorySelect = (category: any) => {
+    // 添加分类选择的振动反馈
+    hapticPresets.categorySelect();
+
     setCategory(category.id, category.name, category.icon || null);
 
     // 自动进入下一步

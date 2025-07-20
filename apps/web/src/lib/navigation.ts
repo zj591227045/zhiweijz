@@ -70,7 +70,10 @@ export function getSmartRoute(route: string): string {
       const id = route.replace(appRoute, '').split('/')[0];
 
       // 特殊处理预算编辑路由
-      if ((appRoute === '/budgets/' || appRoute === '/settings/budgets/') && route.includes('/edit')) {
+      if (
+        (appRoute === '/budgets/' || appRoute === '/settings/budgets/') &&
+        route.includes('/edit')
+      ) {
         return `${pagesRoute}${id}/edit`;
       }
 
@@ -80,12 +83,15 @@ export function getSmartRoute(route: string): string {
       }
 
       // 特殊处理账本编辑路由
-      if ((appRoute === '/books/edit/' || appRoute === '/settings/books/edit/')) {
+      if (appRoute === '/books/edit/' || appRoute === '/settings/books/edit/') {
         return `${pagesRoute}${id}`;
       }
 
       // 特殊处理家庭成员路由
-      if ((appRoute === '/families/' || appRoute === '/settings/families/') && route.includes('/members')) {
+      if (
+        (appRoute === '/families/' || appRoute === '/settings/families/') &&
+        route.includes('/members')
+      ) {
         return `${pagesRoute}${id}/members`;
       }
 

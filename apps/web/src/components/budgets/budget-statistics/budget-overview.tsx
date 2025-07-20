@@ -124,14 +124,15 @@ export function BudgetOverview({ overview }: BudgetOverviewProps) {
                 (shouldShowRollover
                   ? overview.amount + overview.rollover - overview.spent
                   : overview.amount - overview.spent) >= 0
-                    ? 'positive'
-                    : 'negative'
+                  ? 'positive'
+                  : 'negative'
               }`}
             >
-              剩余: {formatAmount(
+              剩余:{' '}
+              {formatAmount(
                 shouldShowRollover
                   ? overview.amount + overview.rollover - overview.spent
-                  : overview.amount - overview.spent
+                  : overview.amount - overview.spent,
               )}
             </div>
           </div>

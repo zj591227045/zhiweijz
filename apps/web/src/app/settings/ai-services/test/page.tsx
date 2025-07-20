@@ -16,9 +16,9 @@ export default function AIServicesTestPage() {
       timestamp: new Date().toISOString(),
       success: !error,
       result: error ? null : result,
-      error: error ? error.message || error : null
+      error: error ? error.message || error : null,
     };
-    setTestResults(prev => [testResult, ...prev]);
+    setTestResults((prev) => [testResult, ...prev]);
   };
 
   const testGlobalAIConfig = async () => {
@@ -69,7 +69,7 @@ export default function AIServicesTestPage() {
     try {
       const result = await systemConfigApi.updateGlobalAIConfig({
         enabled: true,
-        dailyTokenLimit: 60000
+        dailyTokenLimit: 60000,
       });
       addTestResult('更新全局AI配置', result);
       toast.success('更新全局AI配置成功');
@@ -104,7 +104,7 @@ export default function AIServicesTestPage() {
   const runAllTests = async () => {
     setIsLoading(true);
     setTestResults([]);
-    
+
     const tests = [
       testGlobalAIConfig,
       testAIServiceStatus,
@@ -112,15 +112,15 @@ export default function AIServicesTestPage() {
       testLLMSettingsList,
       testUpdateGlobalConfig,
       testSwitchServiceType,
-      testConnectionTest
+      testConnectionTest,
     ];
 
     for (const test of tests) {
       await test();
       // 添加延迟避免请求过快
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
-    
+
     setIsLoading(false);
     toast.success('所有测试完成');
   };
@@ -130,19 +130,17 @@ export default function AIServicesTestPage() {
   };
 
   return (
-    <PageContainer
-      title="AI服务API测试"
-      showBackButton={true}
-      activeNavItem="profile"
-    >
+    <PageContainer title="AI服务API测试" showBackButton={true} activeNavItem="profile">
       <div style={{ padding: '16px' }}>
         {/* 测试按钮 */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '12px',
-          marginBottom: '24px'
-        }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '12px',
+            marginBottom: '24px',
+          }}
+        >
           <button
             onClick={testGlobalAIConfig}
             disabled={isLoading}
@@ -153,12 +151,12 @@ export default function AIServicesTestPage() {
               backgroundColor: 'var(--card-background)',
               color: 'var(--text-primary)',
               fontSize: '14px',
-              cursor: isLoading ? 'not-allowed' : 'pointer'
+              cursor: isLoading ? 'not-allowed' : 'pointer',
             }}
           >
             测试全局AI配置
           </button>
-          
+
           <button
             onClick={testAIServiceStatus}
             disabled={isLoading}
@@ -169,12 +167,12 @@ export default function AIServicesTestPage() {
               backgroundColor: 'var(--card-background)',
               color: 'var(--text-primary)',
               fontSize: '14px',
-              cursor: isLoading ? 'not-allowed' : 'pointer'
+              cursor: isLoading ? 'not-allowed' : 'pointer',
             }}
           >
             测试AI服务状态
           </button>
-          
+
           <button
             onClick={testTodayTokenUsage}
             disabled={isLoading}
@@ -185,12 +183,12 @@ export default function AIServicesTestPage() {
               backgroundColor: 'var(--card-background)',
               color: 'var(--text-primary)',
               fontSize: '14px',
-              cursor: isLoading ? 'not-allowed' : 'pointer'
+              cursor: isLoading ? 'not-allowed' : 'pointer',
             }}
           >
             测试TOKEN使用量
           </button>
-          
+
           <button
             onClick={testLLMSettingsList}
             disabled={isLoading}
@@ -201,12 +199,12 @@ export default function AIServicesTestPage() {
               backgroundColor: 'var(--card-background)',
               color: 'var(--text-primary)',
               fontSize: '14px',
-              cursor: isLoading ? 'not-allowed' : 'pointer'
+              cursor: isLoading ? 'not-allowed' : 'pointer',
             }}
           >
             测试LLM设置列表
           </button>
-          
+
           <button
             onClick={testUpdateGlobalConfig}
             disabled={isLoading}
@@ -217,12 +215,12 @@ export default function AIServicesTestPage() {
               backgroundColor: 'var(--card-background)',
               color: 'var(--text-primary)',
               fontSize: '14px',
-              cursor: isLoading ? 'not-allowed' : 'pointer'
+              cursor: isLoading ? 'not-allowed' : 'pointer',
             }}
           >
             测试更新配置
           </button>
-          
+
           <button
             onClick={testSwitchServiceType}
             disabled={isLoading}
@@ -233,12 +231,12 @@ export default function AIServicesTestPage() {
               backgroundColor: 'var(--card-background)',
               color: 'var(--text-primary)',
               fontSize: '14px',
-              cursor: isLoading ? 'not-allowed' : 'pointer'
+              cursor: isLoading ? 'not-allowed' : 'pointer',
             }}
           >
             测试服务切换
           </button>
-          
+
           <button
             onClick={testConnectionTest}
             disabled={isLoading}
@@ -249,7 +247,7 @@ export default function AIServicesTestPage() {
               backgroundColor: 'var(--card-background)',
               color: 'var(--text-primary)',
               fontSize: '14px',
-              cursor: isLoading ? 'not-allowed' : 'pointer'
+              cursor: isLoading ? 'not-allowed' : 'pointer',
             }}
           >
             测试连接测试
@@ -257,11 +255,13 @@ export default function AIServicesTestPage() {
         </div>
 
         {/* 批量操作按钮 */}
-        <div style={{
-          display: 'flex',
-          gap: '12px',
-          marginBottom: '24px'
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '12px',
+            marginBottom: '24px',
+          }}
+        >
           <button
             onClick={runAllTests}
             disabled={isLoading}
@@ -274,12 +274,12 @@ export default function AIServicesTestPage() {
               fontSize: '14px',
               fontWeight: '500',
               cursor: isLoading ? 'not-allowed' : 'pointer',
-              opacity: isLoading ? 0.6 : 1
+              opacity: isLoading ? 0.6 : 1,
             }}
           >
             {isLoading ? '测试中...' : '运行所有测试'}
           </button>
-          
+
           <button
             onClick={clearResults}
             disabled={isLoading}
@@ -290,7 +290,7 @@ export default function AIServicesTestPage() {
               backgroundColor: 'transparent',
               color: 'var(--text-secondary)',
               fontSize: '14px',
-              cursor: isLoading ? 'not-allowed' : 'pointer'
+              cursor: isLoading ? 'not-allowed' : 'pointer',
             }}
           >
             清除结果
@@ -298,28 +298,34 @@ export default function AIServicesTestPage() {
         </div>
 
         {/* 测试结果 */}
-        <div style={{
-          backgroundColor: 'var(--card-background)',
-          borderRadius: '12px',
-          padding: '16px',
-          maxHeight: '600px',
-          overflowY: 'auto'
-        }}>
-          <h3 style={{
-            fontSize: '16px',
-            fontWeight: '600',
-            marginBottom: '16px',
-            color: 'var(--text-primary)'
-          }}>
+        <div
+          style={{
+            backgroundColor: 'var(--card-background)',
+            borderRadius: '12px',
+            padding: '16px',
+            maxHeight: '600px',
+            overflowY: 'auto',
+          }}
+        >
+          <h3
+            style={{
+              fontSize: '16px',
+              fontWeight: '600',
+              marginBottom: '16px',
+              color: 'var(--text-primary)',
+            }}
+          >
             测试结果 ({testResults.length})
           </h3>
-          
+
           {testResults.length === 0 ? (
-            <p style={{
-              color: 'var(--text-secondary)',
-              textAlign: 'center',
-              padding: '40px'
-            }}>
+            <p
+              style={{
+                color: 'var(--text-secondary)',
+                textAlign: 'center',
+                padding: '40px',
+              }}
+            >
               暂无测试结果
             </p>
           ) : (
@@ -330,59 +336,72 @@ export default function AIServicesTestPage() {
                   style={{
                     padding: '12px',
                     borderRadius: '8px',
-                    backgroundColor: result.success 
-                      ? 'rgba(34, 197, 94, 0.1)' 
+                    backgroundColor: result.success
+                      ? 'rgba(34, 197, 94, 0.1)'
                       : 'rgba(239, 68, 68, 0.1)',
-                    border: `1px solid ${result.success 
-                      ? 'rgba(34, 197, 94, 0.2)' 
-                      : 'rgba(239, 68, 68, 0.2)'}`
+                    border: `1px solid ${
+                      result.success ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)'
+                    }`,
                   }}
                 >
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    marginBottom: '8px'
-                  }}>
-                    <i className={`fas ${result.success ? 'fa-check-circle' : 'fa-times-circle'}`} style={{
-                      color: result.success ? 'rgb(34, 197, 94)' : 'rgb(239, 68, 68)',
-                      marginRight: '8px'
-                    }}></i>
-                    <strong style={{
-                      color: 'var(--text-primary)',
-                      fontSize: '14px'
-                    }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    <i
+                      className={`fas ${result.success ? 'fa-check-circle' : 'fa-times-circle'}`}
+                      style={{
+                        color: result.success ? 'rgb(34, 197, 94)' : 'rgb(239, 68, 68)',
+                        marginRight: '8px',
+                      }}
+                    ></i>
+                    <strong
+                      style={{
+                        color: 'var(--text-primary)',
+                        fontSize: '14px',
+                      }}
+                    >
                       {result.name}
                     </strong>
-                    <span style={{
-                      marginLeft: 'auto',
-                      fontSize: '12px',
-                      color: 'var(--text-secondary)'
-                    }}>
+                    <span
+                      style={{
+                        marginLeft: 'auto',
+                        fontSize: '12px',
+                        color: 'var(--text-secondary)',
+                      }}
+                    >
                       {new Date(result.timestamp).toLocaleTimeString()}
                     </span>
                   </div>
-                  
+
                   {result.error && (
-                    <div style={{
-                      fontSize: '12px',
-                      color: 'rgb(239, 68, 68)',
-                      marginBottom: '8px'
-                    }}>
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        color: 'rgb(239, 68, 68)',
+                        marginBottom: '8px',
+                      }}
+                    >
                       错误: {result.error}
                     </div>
                   )}
-                  
+
                   {result.result && (
-                    <pre style={{
-                      fontSize: '11px',
-                      color: 'var(--text-secondary)',
-                      backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                      padding: '8px',
-                      borderRadius: '4px',
-                      overflow: 'auto',
-                      maxHeight: '200px',
-                      margin: 0
-                    }}>
+                    <pre
+                      style={{
+                        fontSize: '11px',
+                        color: 'var(--text-secondary)',
+                        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                        padding: '8px',
+                        borderRadius: '4px',
+                        overflow: 'auto',
+                        maxHeight: '200px',
+                        margin: 0,
+                      }}
+                    >
                       {JSON.stringify(result.result, null, 2)}
                     </pre>
                   )}

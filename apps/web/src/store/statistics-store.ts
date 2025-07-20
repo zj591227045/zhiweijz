@@ -71,8 +71,24 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
   setSelectedTagIds: (tagIds) => set({ selectedTagIds: tagIds }),
 
   // 获取统计数据
-  fetchStatisticsData: async (startDate, endDate, accountBookId, tagIds, timeRangeType, budgetId, budgetIds) => {
-    console.log('开始获取统计数据:', { startDate, endDate, accountBookId, tagIds, timeRangeType, budgetId, budgetIds });
+  fetchStatisticsData: async (
+    startDate,
+    endDate,
+    accountBookId,
+    tagIds,
+    timeRangeType,
+    budgetId,
+    budgetIds,
+  ) => {
+    console.log('开始获取统计数据:', {
+      startDate,
+      endDate,
+      accountBookId,
+      tagIds,
+      timeRangeType,
+      budgetId,
+      budgetIds,
+    });
     try {
       set({ isLoading: true, error: null });
 
@@ -81,14 +97,14 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
         url += `&accountBookId=${accountBookId}`;
       }
       if (tagIds && tagIds.length > 0) {
-        tagIds.forEach(tagId => {
+        tagIds.forEach((tagId) => {
           url += `&tagIds=${tagId}`;
         });
       }
-      
+
       // 处理预算ID参数 - 优先使用budgetIds
       if (budgetIds && budgetIds.length > 0) {
-        budgetIds.forEach(id => {
+        budgetIds.forEach((id) => {
           url += `&budgetIds=${id}`;
         });
         console.log('使用多个预算ID:', budgetIds);

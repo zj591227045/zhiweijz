@@ -67,12 +67,12 @@ interface AccountingPointsManagementState {
   userTransactions: PointsTransaction[];
   pointsConfig: PointsConfig | null;
   pagination: Pagination;
-  
+
   // UI状态
   isLoading: boolean;
   isLoadingTransactions: boolean;
   isLoadingStats: boolean;
-  
+
   // 操作函数
   fetchUsersStats: (params?: UserListParams) => Promise<void>;
   fetchOverallStats: () => Promise<void>;
@@ -83,190 +83,211 @@ interface AccountingPointsManagementState {
   clearUserTransactions: () => void;
 }
 
-export const useAccountingPointsManagement = create<AccountingPointsManagementState>((set, get) => ({
-  // 初始状态
-  users: [],
-  overallStats: null,
-  userTransactions: [],
-  pointsConfig: null,
-  pagination: {
-    page: 1,
-    limit: 20,
-    total: 0,
-    totalPages: 0
-  },
-  isLoading: false,
-  isLoadingTransactions: false,
-  isLoadingStats: false,
+export const useAccountingPointsManagement = create<AccountingPointsManagementState>(
+  (set, get) => ({
+    // 初始状态
+    users: [],
+    overallStats: null,
+    userTransactions: [],
+    pointsConfig: null,
+    pagination: {
+      page: 1,
+      limit: 20,
+      total: 0,
+      totalPages: 0,
+    },
+    isLoading: false,
+    isLoadingTransactions: false,
+    isLoadingStats: false,
 
-  // 获取用户记账点统计
-  fetchUsersStats: async (params = {}) => {
-    set({ isLoading: true });
-    try {
-      const response = await adminApi.get(ADMIN_API_ENDPOINTS.ACCOUNTING_POINTS_USERS + '?' + new URLSearchParams({
-        page: String(params.page || 1),
-        limit: String(params.limit || 20),
-        search: params.search || '',
-        sortBy: params.sortBy || 'totalBalance',
-        sortOrder: params.sortOrder || 'desc'
-      }));
+    // 获取用户记账点统计
+    fetchUsersStats: async (params = {}) => {
+      set({ isLoading: true });
+      try {
+        const response = await adminApi.get(
+          ADMIN_API_ENDPOINTS.ACCOUNTING_POINTS_USERS +
+            '?' +
+            new URLSearchParams({
+              page: String(params.page || 1),
+              limit: String(params.limit || 20),
+              search: params.search || '',
+              sortBy: params.sortBy || 'totalBalance',
+              sortOrder: params.sortOrder || 'desc',
+            }),
+        );
 
-      if (response.ok) {
-        const data = await response.json();
+        if (response.ok) {
+          const data = await response.json();
 
-        if (data?.success) {
-          set({
-            users: data.data.users,
-            pagination: data.data.pagination
-          });
+          if (data?.success) {
+            set({
+              users: data.data.users,
+              pagination: data.data.pagination,
+            });
+          } else {
+            console.error('📊 [AccountingPoints] API returned unsuccessful response:', data);
+            toast.error('获取用户记账点统计失败');
+          }
         } else {
-          console.error('📊 [AccountingPoints] API returned unsuccessful response:', data);
+          console.error(
+            '📊 [AccountingPoints] API request failed:',
+            response.status,
+            response.statusText,
+          );
           toast.error('获取用户记账点统计失败');
         }
-      } else {
-        console.error('📊 [AccountingPoints] API request failed:', response.status, response.statusText);
+      } catch (error) {
+        console.error('获取用户记账点统计失败:', error);
         toast.error('获取用户记账点统计失败');
+      } finally {
+        set({ isLoading: false });
       }
-    } catch (error) {
-      console.error('获取用户记账点统计失败:', error);
-      toast.error('获取用户记账点统计失败');
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+    },
 
-  // 获取总体统计
-  fetchOverallStats: async () => {
-    set({ isLoadingStats: true });
-    try {
-      const response = await adminApi.get(ADMIN_API_ENDPOINTS.ACCOUNTING_POINTS_OVERALL);
+    // 获取总体统计
+    fetchOverallStats: async () => {
+      set({ isLoadingStats: true });
+      try {
+        const response = await adminApi.get(ADMIN_API_ENDPOINTS.ACCOUNTING_POINTS_OVERALL);
 
-      if (response.ok) {
-        const data = await response.json();
+        if (response.ok) {
+          const data = await response.json();
 
-        if (data?.success) {
-          set({ overallStats: data.data });
+          if (data?.success) {
+            set({ overallStats: data.data });
+          } else {
+            console.error(
+              '📊 [AccountingPoints] Overall stats API returned unsuccessful response:',
+              data,
+            );
+            toast.error('获取总体统计失败');
+          }
         } else {
-          console.error('📊 [AccountingPoints] Overall stats API returned unsuccessful response:', data);
+          console.error(
+            '📊 [AccountingPoints] Overall stats API request failed:',
+            response.status,
+            response.statusText,
+          );
           toast.error('获取总体统计失败');
         }
-      } else {
-        console.error('📊 [AccountingPoints] Overall stats API request failed:', response.status, response.statusText);
+      } catch (error) {
+        console.error('获取总体统计失败:', error);
         toast.error('获取总体统计失败');
+      } finally {
+        set({ isLoadingStats: false });
       }
-    } catch (error) {
-      console.error('获取总体统计失败:', error);
-      toast.error('获取总体统计失败');
-    } finally {
-      set({ isLoadingStats: false });
-    }
-  },
+    },
 
-  // 获取用户记账记录
-  fetchUserTransactions: async (userId: string, page = 1) => {
-    set({ isLoadingTransactions: true });
-    try {
-      const response = await adminApi.get(ADMIN_API_ENDPOINTS.ACCOUNTING_POINTS_USER_TRANSACTIONS(userId) + '?' + new URLSearchParams({
-        page: String(page),
-        limit: '50'
-      }));
+    // 获取用户记账记录
+    fetchUserTransactions: async (userId: string, page = 1) => {
+      set({ isLoadingTransactions: true });
+      try {
+        const response = await adminApi.get(
+          ADMIN_API_ENDPOINTS.ACCOUNTING_POINTS_USER_TRANSACTIONS(userId) +
+            '?' +
+            new URLSearchParams({
+              page: String(page),
+              limit: '50',
+            }),
+        );
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data?.success) {
-          set({ userTransactions: data.data.transactions });
+        if (response.ok) {
+          const data = await response.json();
+          if (data?.success) {
+            set({ userTransactions: data.data.transactions });
+          } else {
+            toast.error('获取用户记账记录失败');
+          }
         } else {
           toast.error('获取用户记账记录失败');
         }
-      } else {
+      } catch (error) {
+        console.error('获取用户记账记录失败:', error);
         toast.error('获取用户记账记录失败');
+      } finally {
+        set({ isLoadingTransactions: false });
       }
-    } catch (error) {
-      console.error('获取用户记账记录失败:', error);
-      toast.error('获取用户记账记录失败');
-    } finally {
-      set({ isLoadingTransactions: false });
-    }
-  },
+    },
 
-  // 获取记账点配置
-  fetchPointsConfig: async () => {
-    try {
-      const response = await adminApi.get(ADMIN_API_ENDPOINTS.ACCOUNTING_POINTS_CONFIG);
+    // 获取记账点配置
+    fetchPointsConfig: async () => {
+      try {
+        const response = await adminApi.get(ADMIN_API_ENDPOINTS.ACCOUNTING_POINTS_CONFIG);
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data?.success) {
-          set({ pointsConfig: data.data });
+        if (response.ok) {
+          const data = await response.json();
+          if (data?.success) {
+            set({ pointsConfig: data.data });
+          } else {
+            toast.error('获取记账点配置失败');
+          }
         } else {
           toast.error('获取记账点配置失败');
         }
-      } else {
+      } catch (error) {
+        console.error('获取记账点配置失败:', error);
         toast.error('获取记账点配置失败');
       }
-    } catch (error) {
-      console.error('获取记账点配置失败:', error);
-      toast.error('获取记账点配置失败');
-    }
-  },
+    },
 
-  // 为用户添加记账点
-  addPointsToUser: async (userId: string, points: number, description = '管理员手动添加') => {
-    try {
-      const response = await adminApi.post(ADMIN_API_ENDPOINTS.ACCOUNTING_POINTS_ADD(userId), {
-        points,
-        description
-      });
+    // 为用户添加记账点
+    addPointsToUser: async (userId: string, points: number, description = '管理员手动添加') => {
+      try {
+        const response = await adminApi.post(ADMIN_API_ENDPOINTS.ACCOUNTING_POINTS_ADD(userId), {
+          points,
+          description,
+        });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data?.success) {
-          toast.success(data.data.message);
-          // 刷新用户列表
-          get().fetchUsersStats();
-          get().fetchOverallStats();
+        if (response.ok) {
+          const data = await response.json();
+          if (data?.success) {
+            toast.success(data.data.message);
+            // 刷新用户列表
+            get().fetchUsersStats();
+            get().fetchOverallStats();
+          } else {
+            toast.error(data?.error || '添加记账点失败');
+          }
         } else {
-          toast.error(data?.error || '添加记账点失败');
+          toast.error('添加记账点失败');
         }
-      } else {
+      } catch (error: any) {
+        console.error('添加记账点失败:', error);
         toast.error('添加记账点失败');
       }
-    } catch (error: any) {
-      console.error('添加记账点失败:', error);
-      toast.error('添加记账点失败');
-    }
-  },
+    },
 
-  // 批量添加记账点
-  batchAddPoints: async (userIds: string[], points: number, description = '管理员批量添加') => {
-    try {
-      const response = await adminApi.post(ADMIN_API_ENDPOINTS.ACCOUNTING_POINTS_BATCH_ADD, {
-        userIds,
-        points,
-        description
-      });
+    // 批量添加记账点
+    batchAddPoints: async (userIds: string[], points: number, description = '管理员批量添加') => {
+      try {
+        const response = await adminApi.post(ADMIN_API_ENDPOINTS.ACCOUNTING_POINTS_BATCH_ADD, {
+          userIds,
+          points,
+          description,
+        });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data?.success) {
-          toast.success(data.data.message);
-          // 刷新用户列表
-          get().fetchUsersStats();
-          get().fetchOverallStats();
+        if (response.ok) {
+          const data = await response.json();
+          if (data?.success) {
+            toast.success(data.data.message);
+            // 刷新用户列表
+            get().fetchUsersStats();
+            get().fetchOverallStats();
+          } else {
+            toast.error(data?.error || '批量添加记账点失败');
+          }
         } else {
-          toast.error(data?.error || '批量添加记账点失败');
+          toast.error('批量添加记账点失败');
         }
-      } else {
+      } catch (error: any) {
+        console.error('批量添加记账点失败:', error);
         toast.error('批量添加记账点失败');
       }
-    } catch (error: any) {
-      console.error('批量添加记账点失败:', error);
-      toast.error('批量添加记账点失败');
-    }
-  },
+    },
 
-  // 清空用户记账记录
-  clearUserTransactions: () => {
-    set({ userTransactions: [] });
-  }
-}));
+    // 清空用户记账记录
+    clearUserTransactions: () => {
+      set({ userTransactions: [] });
+    },
+  }),
+);

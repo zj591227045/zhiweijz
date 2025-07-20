@@ -80,7 +80,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
         className={cn(
           'flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-colors',
           disabled && 'opacity-50 cursor-not-allowed',
-          isOpen && 'ring-2 ring-blue-500 border-blue-500'
+          isOpen && 'ring-2 ring-blue-500 border-blue-500',
         )}
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
@@ -114,7 +114,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                     type="button"
                     className={cn(
                       'w-8 h-8 rounded border-2 transition-all hover:scale-110',
-                      value === color ? 'border-gray-900' : 'border-gray-300'
+                      value === color ? 'border-gray-900' : 'border-gray-300',
                     )}
                     style={{ backgroundColor: color }}
                     onClick={() => handlePresetColorSelect(color)}
@@ -164,9 +164,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                     />
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  输入十六进制颜色值，如 #FF0000
-                </p>
+                <p className="text-xs text-gray-500 mt-1">输入十六进制颜色值，如 #FF0000</p>
               </div>
             )}
           </div>
@@ -214,19 +212,19 @@ export const SimpleColorPicker: React.FC<SimpleColorPickerProps> = ({
           className={cn(
             'rounded border-2 transition-all hover:scale-110',
             getSizeClasses(),
-            value === color ? 'border-gray-900' : 'border-gray-300'
+            value === color ? 'border-gray-900' : 'border-gray-300',
           )}
           style={{ backgroundColor: color }}
           onClick={() => onChange(color)}
           title={color}
         >
           {value === color && (
-            <Check 
+            <Check
               className={cn(
                 'text-white mx-auto',
-                size === 'small' ? 'w-3 h-3' : size === 'large' ? 'w-5 h-5' : 'w-4 h-4'
-              )} 
-              strokeWidth={3} 
+                size === 'small' ? 'w-3 h-3' : size === 'large' ? 'w-5 h-5' : 'w-4 h-4',
+              )}
+              strokeWidth={3}
             />
           )}
         </button>
@@ -268,9 +266,7 @@ export const ColorPreview: React.FC<ColorPreviewProps> = ({
         className={cn('rounded border border-gray-300 flex-shrink-0', getSizeClasses())}
         style={{ backgroundColor: color }}
       />
-      {showLabel && (
-        <span className="text-sm text-gray-600">{color}</span>
-      )}
+      {showLabel && <span className="text-sm text-gray-600">{color}</span>}
     </div>
   );
 };

@@ -11,7 +11,11 @@ interface GlobalAIConfigProps {
   hasCustomServices?: boolean; // 是否有自定义服务
 }
 
-export function GlobalAIConfig({ onServiceTypeChange, selectedType, hasCustomServices = false }: GlobalAIConfigProps) {
+export function GlobalAIConfig({
+  onServiceTypeChange,
+  selectedType,
+  hasCustomServices = false,
+}: GlobalAIConfigProps) {
   const {
     globalConfig,
     isLoadingConfig,
@@ -19,7 +23,7 @@ export function GlobalAIConfig({ onServiceTypeChange, selectedType, hasCustomSer
     fetchGlobalConfig,
     updateGlobalConfig,
     switchServiceType,
-    testServiceConnection
+    testServiceConnection,
   } = useGlobalAIStore();
 
   const [aiEnabled, setAiEnabled] = useState(false);
@@ -90,7 +94,6 @@ export function GlobalAIConfig({ onServiceTypeChange, selectedType, hasCustomSer
           throw error;
         }
       }
-
     } catch (error) {
       console.error('切换服务类型失败:', error);
       toast.error('切换服务类型失败');
@@ -107,28 +110,34 @@ export function GlobalAIConfig({ onServiceTypeChange, selectedType, hasCustomSer
 
   if (isLoadingConfig) {
     return (
-      <div style={{
-        padding: '16px',
-        backgroundColor: 'var(--card-background, white)',
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-        marginBottom: '16px'
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}>
-          <div style={{
-            width: '20px',
-            height: '20px',
-            border: '2px solid rgba(0, 0, 0, 0.1)',
-            borderRadius: '50%',
-            borderTopColor: 'var(--primary-color, rgb(59, 130, 246))',
-            animation: 'spin 1s linear infinite',
-            marginRight: '8px'
-          }}></div>
+      <div
+        style={{
+          padding: '16px',
+          backgroundColor: 'var(--card-background, white)',
+          borderRadius: '12px',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+          marginBottom: '16px',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+        >
+          <div
+            style={{
+              width: '20px',
+              height: '20px',
+              border: '2px solid rgba(0, 0, 0, 0.1)',
+              borderRadius: '50%',
+              borderTopColor: 'var(--primary-color, rgb(59, 130, 246))',
+              animation: 'spin 1s linear infinite',
+              marginRight: '8px',
+            }}
+          ></div>
           <span style={{ color: 'var(--text-secondary, rgb(107, 114, 128))' }}>
             加载AI配置中...
           </span>
@@ -139,19 +148,23 @@ export function GlobalAIConfig({ onServiceTypeChange, selectedType, hasCustomSer
 
   if (configError) {
     return (
-      <div style={{
-        padding: '16px',
-        backgroundColor: 'var(--card-background, white)',
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-        marginBottom: '16px',
-        border: '1px solid rgba(239, 68, 68, 0.2)'
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          color: 'rgb(239, 68, 68)'
-        }}>
+      <div
+        style={{
+          padding: '16px',
+          backgroundColor: 'var(--card-background, white)',
+          borderRadius: '12px',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+          marginBottom: '16px',
+          border: '1px solid rgba(239, 68, 68, 0.2)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            color: 'rgb(239, 68, 68)',
+          }}
+        >
           <i className="fas fa-exclamation-triangle" style={{ marginRight: '8px' }}></i>
           <span>{configError}</span>
         </div>
@@ -160,64 +173,80 @@ export function GlobalAIConfig({ onServiceTypeChange, selectedType, hasCustomSer
   }
 
   return (
-    <div style={{
-      backgroundColor: 'var(--card-background, white)',
-      borderRadius: '12px',
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-      marginBottom: '16px',
-      overflow: 'hidden'
-    }}>
+    <div
+      style={{
+        backgroundColor: 'var(--card-background, white)',
+        borderRadius: '12px',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+        marginBottom: '16px',
+        overflow: 'hidden',
+      }}
+    >
       {/* 权限提示 */}
-      <div style={{
-        padding: '16px',
-        backgroundColor: 'rgba(239, 68, 68, 0.05)',
-        borderBottom: '1px solid rgba(239, 68, 68, 0.2)'
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          color: 'rgb(239, 68, 68)',
-          fontSize: '14px'
-        }}>
+      <div
+        style={{
+          padding: '16px',
+          backgroundColor: 'rgba(239, 68, 68, 0.05)',
+          borderBottom: '1px solid rgba(239, 68, 68, 0.2)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            color: 'rgb(239, 68, 68)',
+            fontSize: '14px',
+          }}
+        >
           <i className="fas fa-lock" style={{ marginRight: '8px' }}></i>
           <span>全局AI配置现在只能由管理员修改。如需调整，请联系系统管理员。</span>
         </div>
       </div>
 
       {/* AI功能总开关 */}
-      <div style={{
-        padding: '16px',
-        borderBottom: '1px solid var(--border-color, #e5e7eb)',
-        opacity: 0.6 // 降低透明度表示不可用
-      }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
+      <div
+        style={{
+          padding: '16px',
+          borderBottom: '1px solid var(--border-color, #e5e7eb)',
+          opacity: 0.6, // 降低透明度表示不可用
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
           <div>
-            <h3 style={{
-              fontSize: '16px',
-              fontWeight: '600',
-              color: 'var(--text-primary, rgb(31, 41, 55))',
-              margin: '0 0 4px 0'
-            }}>
+            <h3
+              style={{
+                fontSize: '16px',
+                fontWeight: '600',
+                color: 'var(--text-primary, rgb(31, 41, 55))',
+                margin: '0 0 4px 0',
+              }}
+            >
               AI功能
             </h3>
-            <p style={{
-              fontSize: '14px',
-              color: 'var(--text-secondary, rgb(107, 114, 128))',
-              margin: 0
-            }}>
+            <p
+              style={{
+                fontSize: '14px',
+                color: 'var(--text-secondary, rgb(107, 114, 128))',
+                margin: 0,
+              }}
+            >
               启用或禁用智能记账和AI分析功能
             </p>
           </div>
-          <label style={{
-            position: 'relative',
-            display: 'inline-block',
-            width: '48px',
-            height: '28px'
-          }}>
+          <label
+            style={{
+              position: 'relative',
+              display: 'inline-block',
+              width: '48px',
+              height: '28px',
+            }}
+          >
             <input
               type="checkbox"
               checked={aiEnabled}
@@ -226,42 +255,48 @@ export function GlobalAIConfig({ onServiceTypeChange, selectedType, hasCustomSer
               style={{
                 opacity: 0,
                 width: 0,
-                height: 0
+                height: 0,
               }}
             />
-            <span style={{
-              position: 'absolute',
-              cursor: 'pointer',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: aiEnabled ? 'var(--primary-color, rgb(59, 130, 246))' : '#ccc',
-              borderRadius: '28px',
-              transition: '0.3s',
-              '&:before': {
-                position: 'absolute',
-                content: '""',
-                height: '20px',
-                width: '20px',
-                left: aiEnabled ? '24px' : '4px',
-                bottom: '4px',
-                backgroundColor: 'white',
-                borderRadius: '50%',
-                transition: '0.3s'
+            <span
+              style={
+                {
+                  position: 'absolute',
+                  cursor: 'pointer',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: aiEnabled ? 'var(--primary-color, rgb(59, 130, 246))' : '#ccc',
+                  borderRadius: '28px',
+                  transition: '0.3s',
+                  '&:before': {
+                    position: 'absolute',
+                    content: '""',
+                    height: '20px',
+                    width: '20px',
+                    left: aiEnabled ? '24px' : '4px',
+                    bottom: '4px',
+                    backgroundColor: 'white',
+                    borderRadius: '50%',
+                    transition: '0.3s',
+                  },
+                } as any
               }
-            } as any}>
-              <span style={{
-                position: 'absolute',
-                content: '""',
-                height: '20px',
-                width: '20px',
-                left: aiEnabled ? '24px' : '4px',
-                bottom: '4px',
-                backgroundColor: 'white',
-                borderRadius: '50%',
-                transition: '0.3s'
-              }}></span>
+            >
+              <span
+                style={{
+                  position: 'absolute',
+                  content: '""',
+                  height: '20px',
+                  width: '20px',
+                  left: aiEnabled ? '24px' : '4px',
+                  bottom: '4px',
+                  backgroundColor: 'white',
+                  borderRadius: '50%',
+                  transition: '0.3s',
+                }}
+              ></span>
             </span>
           </label>
         </div>
@@ -270,18 +305,22 @@ export function GlobalAIConfig({ onServiceTypeChange, selectedType, hasCustomSer
       {/* AI服务选择 */}
       {aiEnabled && (
         <div style={{ padding: '16px' }}>
-          <h4 style={{
-            fontSize: '14px',
-            fontWeight: '600',
-            color: 'var(--text-primary, rgb(31, 41, 55))',
-            margin: '0 0 12px 0'
-          }}>
+          <h4
+            style={{
+              fontSize: '14px',
+              fontWeight: '600',
+              color: 'var(--text-primary, rgb(31, 41, 55))',
+              margin: '0 0 12px 0',
+            }}
+          >
             AI服务类型
           </h4>
-          <div style={{
-            display: 'flex',
-            gap: '8px'
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: '8px',
+            }}
+          >
             <button
               onClick={() => handleServiceTypeChange('official')}
               disabled={true} // 始终禁用
@@ -290,27 +329,33 @@ export function GlobalAIConfig({ onServiceTypeChange, selectedType, hasCustomSer
                 padding: '12px 16px',
                 border: `2px solid ${selectedType === 'official' ? 'var(--primary-color, rgb(59, 130, 246))' : 'var(--border-color, #e5e7eb)'}`,
                 borderRadius: '8px',
-                backgroundColor: selectedType === 'official' ? 'rgba(59, 130, 246, 0.05)' : 'transparent',
-                color: selectedType === 'official' ? 'var(--primary-color, rgb(59, 130, 246))' : 'var(--text-primary, rgb(31, 41, 55))',
+                backgroundColor:
+                  selectedType === 'official' ? 'rgba(59, 130, 246, 0.05)' : 'transparent',
+                color:
+                  selectedType === 'official'
+                    ? 'var(--primary-color, rgb(59, 130, 246))'
+                    : 'var(--text-primary, rgb(31, 41, 55))',
                 fontSize: '14px',
                 fontWeight: '500',
-                cursor: (isSwitching || !aiEnabled) ? 'not-allowed' : 'pointer',
-                opacity: (isSwitching || !aiEnabled) ? 0.6 : 1,
-                transition: 'all 0.2s'
+                cursor: isSwitching || !aiEnabled ? 'not-allowed' : 'pointer',
+                opacity: isSwitching || !aiEnabled ? 0.6 : 1,
+                transition: 'all 0.2s',
               }}
             >
               {isSwitching && selectedType !== 'official' ? (
                 <>
-                  <div style={{
-                    width: '12px',
-                    height: '12px',
-                    border: '2px solid rgba(0, 0, 0, 0.1)',
-                    borderRadius: '50%',
-                    borderTopColor: 'currentColor',
-                    animation: 'spin 1s linear infinite',
-                    marginRight: '8px',
-                    display: 'inline-block'
-                  }}></div>
+                  <div
+                    style={{
+                      width: '12px',
+                      height: '12px',
+                      border: '2px solid rgba(0, 0, 0, 0.1)',
+                      borderRadius: '50%',
+                      borderTopColor: 'currentColor',
+                      animation: 'spin 1s linear infinite',
+                      marginRight: '8px',
+                      display: 'inline-block',
+                    }}
+                  ></div>
                   切换中...
                 </>
               ) : (
@@ -328,27 +373,33 @@ export function GlobalAIConfig({ onServiceTypeChange, selectedType, hasCustomSer
                 padding: '12px 16px',
                 border: `2px solid ${selectedType === 'custom' ? 'var(--primary-color, rgb(59, 130, 246))' : 'var(--border-color, #e5e7eb)'}`,
                 borderRadius: '8px',
-                backgroundColor: selectedType === 'custom' ? 'rgba(59, 130, 246, 0.05)' : 'transparent',
-                color: selectedType === 'custom' ? 'var(--primary-color, rgb(59, 130, 246))' : 'var(--text-primary, rgb(31, 41, 55))',
+                backgroundColor:
+                  selectedType === 'custom' ? 'rgba(59, 130, 246, 0.05)' : 'transparent',
+                color:
+                  selectedType === 'custom'
+                    ? 'var(--primary-color, rgb(59, 130, 246))'
+                    : 'var(--text-primary, rgb(31, 41, 55))',
                 fontSize: '14px',
                 fontWeight: '500',
-                cursor: (isSwitching || !aiEnabled) ? 'not-allowed' : 'pointer',
-                opacity: (isSwitching || !aiEnabled) ? 0.6 : 1,
-                transition: 'all 0.2s'
+                cursor: isSwitching || !aiEnabled ? 'not-allowed' : 'pointer',
+                opacity: isSwitching || !aiEnabled ? 0.6 : 1,
+                transition: 'all 0.2s',
               }}
             >
               {isSwitching && selectedType !== 'custom' ? (
                 <>
-                  <div style={{
-                    width: '12px',
-                    height: '12px',
-                    border: '2px solid rgba(0, 0, 0, 0.1)',
-                    borderRadius: '50%',
-                    borderTopColor: 'currentColor',
-                    animation: 'spin 1s linear infinite',
-                    marginRight: '8px',
-                    display: 'inline-block'
-                  }}></div>
+                  <div
+                    style={{
+                      width: '12px',
+                      height: '12px',
+                      border: '2px solid rgba(0, 0, 0, 0.1)',
+                      borderRadius: '50%',
+                      borderTopColor: 'currentColor',
+                      animation: 'spin 1s linear infinite',
+                      marginRight: '8px',
+                      display: 'inline-block',
+                    }}
+                  ></div>
                   切换中...
                 </>
               ) : (

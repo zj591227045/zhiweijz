@@ -87,7 +87,7 @@ export const systemConfigApi = {
           model: 'gpt-3.5-turbo',
           temperature: 0.7,
           maxTokens: 1000,
-          dailyTokenLimit: 50000
+          dailyTokenLimit: 50000,
         };
       }
 
@@ -115,7 +115,7 @@ export const systemConfigApi = {
         console.warn('认证失败，返回默认AI服务状态');
         return {
           isOnline: false,
-          lastChecked: new Date().toISOString()
+          lastChecked: new Date().toISOString(),
         };
       }
 
@@ -166,7 +166,7 @@ export const systemConfigApi = {
           failedCalls: 0,
           dailyLimit: 50000,
           remainingTokens: 50000,
-          usagePercentage: 0
+          usagePercentage: 0,
         };
       }
 
@@ -185,12 +185,20 @@ export const systemConfigApi = {
   /**
    * 切换AI服务类型（官方/自定义）
    */
-  async switchAIServiceType(serviceType: 'official' | 'custom', serviceId?: string, accountId?: string): Promise<{
+  async switchAIServiceType(
+    serviceType: 'official' | 'custom',
+    serviceId?: string,
+    accountId?: string,
+  ): Promise<{
     success: boolean;
     message: string;
   }> {
     try {
-      console.log('发送切换AI服务类型请求: /system-config/ai-service/switch', { serviceType, serviceId, accountId });
+      console.log('发送切换AI服务类型请求: /system-config/ai-service/switch', {
+        serviceType,
+        serviceId,
+        accountId,
+      });
       const response = await apiClient.post<{
         success: boolean;
         message: string;
@@ -246,13 +254,19 @@ export const systemConfigApi = {
   /**
    * 测试AI服务连接
    */
-  async testAIServiceConnection(serviceType: 'official' | 'custom', serviceId?: string): Promise<{
+  async testAIServiceConnection(
+    serviceType: 'official' | 'custom',
+    serviceId?: string,
+  ): Promise<{
     success: boolean;
     message: string;
     responseTime?: number;
   }> {
     try {
-      console.log('发送测试AI服务连接请求: /system-config/ai-service/test', { serviceType, serviceId });
+      console.log('发送测试AI服务连接请求: /system-config/ai-service/test', {
+        serviceType,
+        serviceId,
+      });
       const response = await apiClient.post<{
         success: boolean;
         message: string;
@@ -301,5 +315,5 @@ export const systemConfigApi = {
       console.error('获取账本激活AI服务失败:', error);
       throw new Error('获取账本激活AI服务失败');
     }
-  }
+  },
 };

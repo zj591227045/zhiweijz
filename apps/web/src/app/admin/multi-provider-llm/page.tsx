@@ -9,16 +9,16 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
-  PlusIcon as Plus, 
-  TrashIcon as Trash2, 
+import {
+  PlusIcon as Plus,
+  TrashIcon as Trash2,
   PencilIcon as Edit,
   BeakerIcon as TestTube,
   SignalIcon as Activity,
   ArrowPathIcon as RefreshCw,
   CheckCircleIcon as CheckCircle,
   XCircleIcon as XCircle,
-  DocumentArrowDownIcon as Save
+  DocumentArrowDownIcon as Save,
 } from '@heroicons/react/24/outline';
 import MobileNotSupported from '@/components/admin/MobileNotSupported';
 import { useAdminAuth } from '@/store/admin/useAdminAuth';
@@ -107,7 +107,7 @@ export default function MultiProviderLLMPage() {
     maxTokens: 1000,
     priority: 1,
     weight: 1,
-    enabled: true
+    enabled: true,
   });
 
   // 加载配置优先级信息
@@ -226,7 +226,10 @@ export default function MultiProviderLLMPage() {
     }
 
     try {
-      const response = await adminApi.post(ADMIN_API_ENDPOINTS.MULTI_PROVIDER_LLM_PROVIDERS, newProvider);
+      const response = await adminApi.post(
+        ADMIN_API_ENDPOINTS.MULTI_PROVIDER_LLM_PROVIDERS,
+        newProvider,
+      );
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -242,7 +245,7 @@ export default function MultiProviderLLMPage() {
             maxTokens: 1000,
             priority: 1,
             weight: 1,
-            enabled: true
+            enabled: true,
           });
           await loadConfig();
         } else {
@@ -262,7 +265,10 @@ export default function MultiProviderLLMPage() {
     if (!editingProvider) return;
 
     try {
-      const response = await adminApi.put(`${ADMIN_API_ENDPOINTS.MULTI_PROVIDER_LLM_PROVIDERS}/${editingProvider.id}`, editingProvider);
+      const response = await adminApi.put(
+        `${ADMIN_API_ENDPOINTS.MULTI_PROVIDER_LLM_PROVIDERS}/${editingProvider.id}`,
+        editingProvider,
+      );
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -286,7 +292,9 @@ export default function MultiProviderLLMPage() {
     if (!confirm('确定要删除这个提供商实例吗？')) return;
 
     try {
-      const response = await adminApi.delete(`${ADMIN_API_ENDPOINTS.MULTI_PROVIDER_LLM_PROVIDERS}/${providerId}`);
+      const response = await adminApi.delete(
+        `${ADMIN_API_ENDPOINTS.MULTI_PROVIDER_LLM_PROVIDERS}/${providerId}`,
+      );
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -307,7 +315,9 @@ export default function MultiProviderLLMPage() {
   // 测试提供商连接
   const testProvider = async (providerId: string) => {
     try {
-      const response = await adminApi.post(`${ADMIN_API_ENDPOINTS.MULTI_PROVIDER_LLM_PROVIDERS}/${providerId}/test`);
+      const response = await adminApi.post(
+        `${ADMIN_API_ENDPOINTS.MULTI_PROVIDER_LLM_PROVIDERS}/${providerId}/test`,
+      );
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -333,7 +343,9 @@ export default function MultiProviderLLMPage() {
   // 触发健康检查
   const triggerHealthCheck = async () => {
     try {
-      const response = await adminApi.post(`${ADMIN_API_ENDPOINTS.MULTI_PROVIDER_LLM_HEALTH}/check`);
+      const response = await adminApi.post(
+        `${ADMIN_API_ENDPOINTS.MULTI_PROVIDER_LLM_HEALTH}/check`,
+      );
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -356,22 +368,22 @@ export default function MultiProviderLLMPage() {
 
   // 选择提供商模板时更新表单
   const handleProviderTemplateChange = (providerType: string) => {
-    const template = templates.find(t => t.provider === providerType);
+    const template = templates.find((t) => t.provider === providerType);
     if (template) {
-      setNewProvider(prev => ({
+      setNewProvider((prev) => ({
         ...prev,
         provider: providerType,
         model: template.defaultModels[0] || '',
         baseUrl: template.defaultBaseUrl,
         temperature: template.defaultTemperature,
-        maxTokens: template.defaultMaxTokens
+        maxTokens: template.defaultMaxTokens,
       }));
     }
   };
 
   // 获取提供商健康状态
   const getProviderHealthStatus = (providerId: string) => {
-    return healthStatuses.find(h => h.providerId === providerId);
+    return healthStatuses.find((h) => h.providerId === providerId);
   };
 
   if (loading) {
@@ -388,43 +400,50 @@ export default function MultiProviderLLMPage() {
     <div className="max-w-7xl mx-auto p-6 space-y-8">
       {/* 页面头部 */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          多提供商 LLM 管理
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">多提供商 LLM 管理</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
           配置多个LLM提供商，支持优先级、故障转移和负载均衡
         </p>
-        
+
         {/* 配置优先级状态 */}
         {priorityInfo && (
-          <div className={`mt-4 p-4 border rounded-lg ${
-            priorityInfo.mode === 'multi-provider' 
-              ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
-              : 'bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800'
-          }`}>
+          <div
+            className={`mt-4 p-4 border rounded-lg ${
+              priorityInfo.mode === 'multi-provider'
+                ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
+                : 'bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800'
+            }`}
+          >
             <div className="flex items-start space-x-3">
-              <div className={`h-5 w-5 mt-0.5 flex-shrink-0 ${
-                priorityInfo.mode === 'multi-provider' 
-                  ? 'text-green-600 dark:text-green-400'
-                  : 'text-orange-600 dark:text-orange-400'
-              }`}>
+              <div
+                className={`h-5 w-5 mt-0.5 flex-shrink-0 ${
+                  priorityInfo.mode === 'multi-provider'
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-orange-600 dark:text-orange-400'
+                }`}
+              >
                 {priorityInfo.mode === 'multi-provider' ? '✓' : '⚠️'}
               </div>
               <div>
-                <h3 className={`text-sm font-semibold ${
-                  priorityInfo.mode === 'multi-provider'
-                    ? 'text-green-900 dark:text-green-100'
-                    : 'text-orange-900 dark:text-orange-100'
-                }`}>
+                <h3
+                  className={`text-sm font-semibold ${
+                    priorityInfo.mode === 'multi-provider'
+                      ? 'text-green-900 dark:text-green-100'
+                      : 'text-orange-900 dark:text-orange-100'
+                  }`}
+                >
                   {priorityInfo.description}
                 </h3>
-                <p className={`text-sm mt-1 ${
-                  priorityInfo.mode === 'multi-provider'
-                    ? 'text-green-800 dark:text-green-200'
-                    : 'text-orange-800 dark:text-orange-200'
-                }`}>
+                <p
+                  className={`text-sm mt-1 ${
+                    priorityInfo.mode === 'multi-provider'
+                      ? 'text-green-800 dark:text-green-200'
+                      : 'text-orange-800 dark:text-orange-200'
+                  }`}
+                >
                   {priorityInfo.note}
-                  {priorityInfo.activeProviders && ` (${priorityInfo.activeProviders} 个活跃提供商)`}
+                  {priorityInfo.activeProviders &&
+                    ` (${priorityInfo.activeProviders} 个活跃提供商)`}
                 </p>
                 {priorityInfo.mode === 'single-provider' && (
                   <div className="mt-2">
@@ -449,11 +468,19 @@ export default function MultiProviderLLMPage() {
           <p className="text-gray-600 mt-2">配置多个LLM提供商，支持优先级、故障转移和负载均衡</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={triggerHealthCheck} variant="outline" className="flex items-center gap-2">
+          <Button
+            onClick={triggerHealthCheck}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
             <RefreshCw className="h-4 w-4" />
             健康检查
           </Button>
-          <Button onClick={saveConfig} disabled={saving || !config} className="flex items-center gap-2">
+          <Button
+            onClick={saveConfig}
+            disabled={saving || !config}
+            className="flex items-center gap-2"
+          >
             <Save className="h-4 w-4" />
             {saving ? '保存中...' : '保存配置'}
           </Button>
@@ -469,16 +496,14 @@ export default function MultiProviderLLMPage() {
                 <Activity className="h-5 w-5" />
                 全局配置
               </CardTitle>
-              <CardDescription>
-                配置多提供商LLM服务的全局参数
-              </CardDescription>
+              <CardDescription>配置多提供商LLM服务的全局参数</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center space-x-2">
                 <Switch
                   id="enabled"
                   checked={config.enabled}
-                  onCheckedChange={(checked) => setConfig({...config, enabled: checked})}
+                  onCheckedChange={(checked) => setConfig({ ...config, enabled: checked })}
                 />
                 <Label htmlFor="enabled">启用多提供商LLM服务</Label>
               </div>
@@ -490,16 +515,16 @@ export default function MultiProviderLLMPage() {
                     <Switch
                       id="failover-enabled"
                       checked={config.failover.enabled}
-                      onCheckedChange={(checked) => 
+                      onCheckedChange={(checked) =>
                         setConfig({
-                          ...config, 
-                          failover: {...config.failover, enabled: checked}
+                          ...config,
+                          failover: { ...config.failover, enabled: checked },
                         })
                       }
                     />
                     <Label htmlFor="failover-enabled">启用故障转移</Label>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="max-retries">最大重试次数</Label>
                     <Input
@@ -508,10 +533,13 @@ export default function MultiProviderLLMPage() {
                       min="1"
                       max="10"
                       value={config.failover.maxRetries}
-                      onChange={(e) => 
+                      onChange={(e) =>
                         setConfig({
                           ...config,
-                          failover: {...config.failover, maxRetries: parseInt(e.target.value) || 3}
+                          failover: {
+                            ...config.failover,
+                            maxRetries: parseInt(e.target.value) || 3,
+                          },
                         })
                       }
                     />
@@ -526,10 +554,13 @@ export default function MultiProviderLLMPage() {
                       max="10000"
                       step="100"
                       value={config.failover.retryInterval}
-                      onChange={(e) => 
+                      onChange={(e) =>
                         setConfig({
                           ...config,
-                          failover: {...config.failover, retryInterval: parseInt(e.target.value) || 1000}
+                          failover: {
+                            ...config.failover,
+                            retryInterval: parseInt(e.target.value) || 1000,
+                          },
                         })
                       }
                     />
@@ -544,13 +575,13 @@ export default function MultiProviderLLMPage() {
                       id="lb-strategy"
                       className="w-full p-2 border rounded-md"
                       value={config.loadBalancing.strategy}
-                      onChange={(e) => 
+                      onChange={(e) =>
                         setConfig({
                           ...config,
                           loadBalancing: {
-                            ...config.loadBalancing, 
-                            strategy: e.target.value as 'round-robin' | 'weighted' | 'random'
-                          }
+                            ...config.loadBalancing,
+                            strategy: e.target.value as 'round-robin' | 'weighted' | 'random',
+                          },
                         })
                       }
                     >
@@ -569,13 +600,13 @@ export default function MultiProviderLLMPage() {
                       max="3600000"
                       step="60000"
                       value={config.loadBalancing.healthCheckInterval}
-                      onChange={(e) => 
+                      onChange={(e) =>
                         setConfig({
                           ...config,
                           loadBalancing: {
-                            ...config.loadBalancing, 
-                            healthCheckInterval: parseInt(e.target.value) || 300000
-                          }
+                            ...config.loadBalancing,
+                            healthCheckInterval: parseInt(e.target.value) || 300000,
+                          },
                         })
                       }
                     />
@@ -595,12 +626,10 @@ export default function MultiProviderLLMPage() {
                     <Activity className="h-5 w-5" />
                     LLM提供商实例
                   </CardTitle>
-                  <CardDescription>
-                    管理配置的LLM提供商实例
-                  </CardDescription>
+                  <CardDescription>管理配置的LLM提供商实例</CardDescription>
                 </div>
-                <Button 
-                  onClick={() => setShowAddProvider(true)} 
+                <Button
+                  onClick={() => setShowAddProvider(true)}
                   className="flex items-center gap-2"
                 >
                   <Plus className="h-4 w-4" />
@@ -625,11 +654,11 @@ export default function MultiProviderLLMPage() {
                             <div className="flex items-center gap-3">
                               <div className="flex items-center gap-2">
                                 <h3 className="text-lg font-semibold">{provider.name}</h3>
-                                <Badge variant={provider.enabled ? "default" : "secondary"}>
-                                  {provider.enabled ? "启用" : "禁用"}
+                                <Badge variant={provider.enabled ? 'default' : 'secondary'}>
+                                  {provider.enabled ? '启用' : '禁用'}
                                 </Badge>
-                                <Badge 
-                                  variant={healthStatus?.healthy ? "default" : "destructive"}
+                                <Badge
+                                  variant={healthStatus?.healthy ? 'default' : 'destructive'}
                                   className="flex items-center gap-1"
                                 >
                                   {healthStatus?.healthy ? (
@@ -637,32 +666,32 @@ export default function MultiProviderLLMPage() {
                                   ) : (
                                     <XCircle className="h-3 w-3" />
                                   )}
-                                  {healthStatus?.healthy ? "健康" : "不健康"}
+                                  {healthStatus?.healthy ? '健康' : '不健康'}
                                 </Badge>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Button 
+                              <Button
                                 onClick={() => testProvider(provider.id)}
-                                variant="outline" 
+                                variant="outline"
                                 size="sm"
                                 className="flex items-center gap-1"
                               >
                                 <TestTube className="h-3 w-3" />
                                 测试
                               </Button>
-                              <Button 
+                              <Button
                                 onClick={() => setEditingProvider(provider)}
-                                variant="outline" 
+                                variant="outline"
                                 size="sm"
                                 className="flex items-center gap-1"
                               >
                                 <Edit className="h-3 w-3" />
                                 编辑
                               </Button>
-                              <Button 
+                              <Button
                                 onClick={() => deleteProvider(provider.id)}
-                                variant="destructive" 
+                                variant="destructive"
                                 size="sm"
                                 className="flex items-center gap-1"
                               >
@@ -695,10 +724,14 @@ export default function MultiProviderLLMPage() {
                             <div className="text-xs text-gray-500">
                               最后检查: {new Date(healthStatus.checkedAt).toLocaleString()}
                               {healthStatus.responseTime && (
-                                <span className="ml-2">响应时间: {healthStatus.responseTime}ms</span>
+                                <span className="ml-2">
+                                  响应时间: {healthStatus.responseTime}ms
+                                </span>
                               )}
                               {healthStatus.error && (
-                                <span className="ml-2 text-red-500">错误: {healthStatus.error}</span>
+                                <span className="ml-2 text-red-500">
+                                  错误: {healthStatus.error}
+                                </span>
                               )}
                             </div>
                           )}
@@ -717,7 +750,7 @@ export default function MultiProviderLLMPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-semibold mb-4">添加LLM提供商</h2>
-            
+
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="provider-type">提供商类型</Label>
@@ -741,7 +774,7 @@ export default function MultiProviderLLMPage() {
                   id="provider-name"
                   placeholder="例如: OpenAI主要服务"
                   value={newProvider.name}
-                  onChange={(e) => setNewProvider({...newProvider, name: e.target.value})}
+                  onChange={(e) => setNewProvider({ ...newProvider, name: e.target.value })}
                 />
               </div>
 
@@ -752,7 +785,7 @@ export default function MultiProviderLLMPage() {
                   type="password"
                   placeholder="输入API密钥"
                   value={newProvider.apiKey}
-                  onChange={(e) => setNewProvider({...newProvider, apiKey: e.target.value})}
+                  onChange={(e) => setNewProvider({ ...newProvider, apiKey: e.target.value })}
                 />
               </div>
 
@@ -762,7 +795,7 @@ export default function MultiProviderLLMPage() {
                   id="provider-model"
                   placeholder="模型名称"
                   value={newProvider.model}
-                  onChange={(e) => setNewProvider({...newProvider, model: e.target.value})}
+                  onChange={(e) => setNewProvider({ ...newProvider, model: e.target.value })}
                 />
               </div>
 
@@ -773,7 +806,7 @@ export default function MultiProviderLLMPage() {
                     id="provider-base-url"
                     placeholder="https://api.example.com/v1"
                     value={newProvider.baseUrl}
-                    onChange={(e) => setNewProvider({...newProvider, baseUrl: e.target.value})}
+                    onChange={(e) => setNewProvider({ ...newProvider, baseUrl: e.target.value })}
                   />
                 </div>
               )}
@@ -787,7 +820,9 @@ export default function MultiProviderLLMPage() {
                     min="1"
                     max="100"
                     value={newProvider.priority}
-                    onChange={(e) => setNewProvider({...newProvider, priority: parseInt(e.target.value) || 1})}
+                    onChange={(e) =>
+                      setNewProvider({ ...newProvider, priority: parseInt(e.target.value) || 1 })
+                    }
                   />
                   <p className="text-xs text-gray-500">数字越小优先级越高</p>
                 </div>
@@ -800,7 +835,9 @@ export default function MultiProviderLLMPage() {
                     min="1"
                     max="100"
                     value={newProvider.weight}
-                    onChange={(e) => setNewProvider({...newProvider, weight: parseInt(e.target.value) || 1})}
+                    onChange={(e) =>
+                      setNewProvider({ ...newProvider, weight: parseInt(e.target.value) || 1 })
+                    }
                   />
                   <p className="text-xs text-gray-500">用于加权负载均衡</p>
                 </div>
@@ -816,7 +853,12 @@ export default function MultiProviderLLMPage() {
                     max="2"
                     step="0.1"
                     value={newProvider.temperature}
-                    onChange={(e) => setNewProvider({...newProvider, temperature: parseFloat(e.target.value) || 0.7})}
+                    onChange={(e) =>
+                      setNewProvider({
+                        ...newProvider,
+                        temperature: parseFloat(e.target.value) || 0.7,
+                      })
+                    }
                   />
                 </div>
 
@@ -828,7 +870,12 @@ export default function MultiProviderLLMPage() {
                     min="100"
                     max="10000"
                     value={newProvider.maxTokens}
-                    onChange={(e) => setNewProvider({...newProvider, maxTokens: parseInt(e.target.value) || 1000})}
+                    onChange={(e) =>
+                      setNewProvider({
+                        ...newProvider,
+                        maxTokens: parseInt(e.target.value) || 1000,
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -837,7 +884,9 @@ export default function MultiProviderLLMPage() {
                 <Switch
                   id="provider-enabled"
                   checked={newProvider.enabled}
-                  onCheckedChange={(checked) => setNewProvider({...newProvider, enabled: checked})}
+                  onCheckedChange={(checked) =>
+                    setNewProvider({ ...newProvider, enabled: checked })
+                  }
                 />
                 <Label htmlFor="provider-enabled">启用此提供商</Label>
               </div>
@@ -847,8 +896,8 @@ export default function MultiProviderLLMPage() {
               <Button onClick={addProvider} className="flex-1">
                 添加提供商
               </Button>
-              <Button 
-                onClick={() => setShowAddProvider(false)} 
+              <Button
+                onClick={() => setShowAddProvider(false)}
                 variant="outline"
                 className="flex-1"
               >
@@ -864,7 +913,7 @@ export default function MultiProviderLLMPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-semibold mb-4">编辑LLM提供商</h2>
-            
+
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-provider-name">显示名称</Label>
@@ -872,7 +921,7 @@ export default function MultiProviderLLMPage() {
                   id="edit-provider-name"
                   placeholder="例如: OpenAI主要服务"
                   value={editingProvider.name}
-                  onChange={(e) => setEditingProvider({...editingProvider, name: e.target.value})}
+                  onChange={(e) => setEditingProvider({ ...editingProvider, name: e.target.value })}
                 />
               </div>
 
@@ -883,7 +932,9 @@ export default function MultiProviderLLMPage() {
                   type="password"
                   placeholder="输入API密钥"
                   value={editingProvider.apiKey}
-                  onChange={(e) => setEditingProvider({...editingProvider, apiKey: e.target.value})}
+                  onChange={(e) =>
+                    setEditingProvider({ ...editingProvider, apiKey: e.target.value })
+                  }
                 />
               </div>
 
@@ -893,7 +944,9 @@ export default function MultiProviderLLMPage() {
                   id="edit-provider-model"
                   placeholder="模型名称"
                   value={editingProvider.model}
-                  onChange={(e) => setEditingProvider({...editingProvider, model: e.target.value})}
+                  onChange={(e) =>
+                    setEditingProvider({ ...editingProvider, model: e.target.value })
+                  }
                 />
               </div>
 
@@ -904,7 +957,9 @@ export default function MultiProviderLLMPage() {
                     id="edit-provider-base-url"
                     placeholder="https://api.example.com/v1"
                     value={editingProvider.baseUrl || ''}
-                    onChange={(e) => setEditingProvider({...editingProvider, baseUrl: e.target.value})}
+                    onChange={(e) =>
+                      setEditingProvider({ ...editingProvider, baseUrl: e.target.value })
+                    }
                   />
                 </div>
               )}
@@ -918,7 +973,12 @@ export default function MultiProviderLLMPage() {
                     min="1"
                     max="100"
                     value={editingProvider.priority}
-                    onChange={(e) => setEditingProvider({...editingProvider, priority: parseInt(e.target.value) || 1})}
+                    onChange={(e) =>
+                      setEditingProvider({
+                        ...editingProvider,
+                        priority: parseInt(e.target.value) || 1,
+                      })
+                    }
                   />
                   <p className="text-xs text-gray-500">数字越小优先级越高</p>
                 </div>
@@ -931,7 +991,12 @@ export default function MultiProviderLLMPage() {
                     min="1"
                     max="100"
                     value={editingProvider.weight}
-                    onChange={(e) => setEditingProvider({...editingProvider, weight: parseInt(e.target.value) || 1})}
+                    onChange={(e) =>
+                      setEditingProvider({
+                        ...editingProvider,
+                        weight: parseInt(e.target.value) || 1,
+                      })
+                    }
                   />
                   <p className="text-xs text-gray-500">用于加权负载均衡</p>
                 </div>
@@ -947,7 +1012,12 @@ export default function MultiProviderLLMPage() {
                     max="2"
                     step="0.1"
                     value={editingProvider.temperature}
-                    onChange={(e) => setEditingProvider({...editingProvider, temperature: parseFloat(e.target.value) || 0.7})}
+                    onChange={(e) =>
+                      setEditingProvider({
+                        ...editingProvider,
+                        temperature: parseFloat(e.target.value) || 0.7,
+                      })
+                    }
                   />
                 </div>
 
@@ -959,7 +1029,12 @@ export default function MultiProviderLLMPage() {
                     min="100"
                     max="10000"
                     value={editingProvider.maxTokens}
-                    onChange={(e) => setEditingProvider({...editingProvider, maxTokens: parseInt(e.target.value) || 1000})}
+                    onChange={(e) =>
+                      setEditingProvider({
+                        ...editingProvider,
+                        maxTokens: parseInt(e.target.value) || 1000,
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -968,7 +1043,9 @@ export default function MultiProviderLLMPage() {
                 <Switch
                   id="edit-provider-enabled"
                   checked={editingProvider.enabled}
-                  onCheckedChange={(checked) => setEditingProvider({...editingProvider, enabled: checked})}
+                  onCheckedChange={(checked) =>
+                    setEditingProvider({ ...editingProvider, enabled: checked })
+                  }
                 />
                 <Label htmlFor="edit-provider-enabled">启用此提供商</Label>
               </div>
@@ -978,11 +1055,7 @@ export default function MultiProviderLLMPage() {
               <Button onClick={updateProvider} className="flex-1">
                 保存更改
               </Button>
-              <Button 
-                onClick={() => setEditingProvider(null)} 
-                variant="outline"
-                className="flex-1"
-              >
+              <Button onClick={() => setEditingProvider(null)} variant="outline" className="flex-1">
                 取消
               </Button>
             </div>

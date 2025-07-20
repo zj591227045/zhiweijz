@@ -28,10 +28,10 @@ async function checkCapacitorPermission(permission: string): Promise<PermissionR
       return { status: 'unavailable', message: 'Capacitor不可用' };
     }
 
-    const { Capacitor } = (window as any);
+    const { Capacitor } = window as any;
     console.log('🔐 [PermissionCheck] Capacitor环境信息:', {
       platform: Capacitor.getPlatform?.(),
-      isNative: Capacitor.isNativePlatform?.()
+      isNative: Capacitor.isNativePlatform?.(),
     });
 
     // 动态导入Capacitor Camera
@@ -62,14 +62,14 @@ async function checkCapacitorPermission(permission: string): Promise<PermissionR
       console.log(`🔐 [PermissionCheck] 相机权限状态: ${status}`);
       return {
         status,
-        message: status === 'denied' ? '相机权限被拒绝' : undefined
+        message: status === 'denied' ? '相机权限被拒绝' : undefined,
       };
     } else if (permission === 'photos') {
       const status = result.photos as PermissionStatus;
       console.log(`🔐 [PermissionCheck] 相册权限状态: ${status}`);
       return {
         status,
-        message: status === 'denied' ? '相册权限被拒绝' : undefined
+        message: status === 'denied' ? '相册权限被拒绝' : undefined,
       };
     }
 
@@ -77,7 +77,10 @@ async function checkCapacitorPermission(permission: string): Promise<PermissionR
     return { status: 'unavailable' };
   } catch (error) {
     console.error('🔐 [PermissionCheck] 检查Capacitor权限失败:', error);
-    return { status: 'unavailable', message: `权限检查失败: ${error instanceof Error ? error.message : '未知错误'}` };
+    return {
+      status: 'unavailable',
+      message: `权限检查失败: ${error instanceof Error ? error.message : '未知错误'}`,
+    };
   }
 }
 
@@ -93,10 +96,10 @@ async function requestCapacitorPermission(permission: string): Promise<Permissio
       return { status: 'unavailable', message: 'Capacitor不可用' };
     }
 
-    const { Capacitor } = (window as any);
+    const { Capacitor } = window as any;
     console.log('🔐 [PermissionRequest] Capacitor环境信息:', {
       platform: Capacitor.getPlatform?.(),
-      isNative: Capacitor.isNativePlatform?.()
+      isNative: Capacitor.isNativePlatform?.(),
     });
 
     // 动态导入Capacitor Camera
@@ -120,7 +123,7 @@ async function requestCapacitorPermission(permission: string): Promise<Permissio
     }
 
     const result = await Camera.requestPermissions({
-      permissions: [permission as any]
+      permissions: [permission as any],
     });
     console.log('🔐 [PermissionRequest] 权限请求结果:', result);
 
@@ -129,14 +132,14 @@ async function requestCapacitorPermission(permission: string): Promise<Permissio
       console.log(`🔐 [PermissionRequest] 相机权限请求结果: ${status}`);
       return {
         status,
-        message: status === 'denied' ? '用户拒绝了相机权限' : undefined
+        message: status === 'denied' ? '用户拒绝了相机权限' : undefined,
       };
     } else if (permission === 'photos') {
       const status = result.photos as PermissionStatus;
       console.log(`🔐 [PermissionRequest] 相册权限请求结果: ${status}`);
       return {
         status,
-        message: status === 'denied' ? '用户拒绝了相册权限' : undefined
+        message: status === 'denied' ? '用户拒绝了相册权限' : undefined,
       };
     }
 
@@ -144,7 +147,10 @@ async function requestCapacitorPermission(permission: string): Promise<Permissio
     return { status: 'unavailable' };
   } catch (error) {
     console.error('🔐 [PermissionRequest] 请求Capacitor权限失败:', error);
-    return { status: 'denied', message: `权限请求失败: ${error instanceof Error ? error.message : '未知错误'}` };
+    return {
+      status: 'denied',
+      message: `权限请求失败: ${error instanceof Error ? error.message : '未知错误'}`,
+    };
   }
 }
 
@@ -230,7 +236,7 @@ export class PlatformPermissions {
    */
   async ensurePermission(type: 'camera' | 'photos'): Promise<PermissionResult> {
     let checkResult: PermissionResult;
-    
+
     if (type === 'camera') {
       checkResult = await this.checkCameraPermission();
     } else {
@@ -260,10 +266,11 @@ export class PlatformPermissions {
    */
   showPermissionDialog(type: 'camera' | 'photos', result: PermissionResult): void {
     if (result.status === 'denied') {
-      const message = type === 'camera' 
-        ? '需要相机权限才能拍照。请在设置中允许应用访问相机。'
-        : '需要相册权限才能选择图片。请在设置中允许应用访问相册。';
-      
+      const message =
+        type === 'camera'
+          ? '需要相机权限才能拍照。请在设置中允许应用访问相机。'
+          : '需要相册权限才能选择图片。请在设置中允许应用访问相册。';
+
       alert(message);
     }
   }

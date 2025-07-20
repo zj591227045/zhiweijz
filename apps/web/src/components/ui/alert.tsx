@@ -16,11 +16,11 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
           'border-gray-200 bg-gray-50': variant === 'default',
           'border-red-200 bg-red-50 text-red-800': variant === 'destructive',
         },
-        className
+        className,
       )}
       {...props}
     />
-  )
+  ),
 );
 Alert.displayName = 'Alert';
 
@@ -28,12 +28,8 @@ const AlertDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn('text-sm [&_p]:leading-relaxed', className)}
-    {...props}
-  />
+  <div ref={ref} className={cn('text-sm [&_p]:leading-relaxed', className)} {...props} />
 ));
 AlertDescription.displayName = 'AlertDescription';
 
-export { Alert, AlertDescription }; 
+export { Alert, AlertDescription };

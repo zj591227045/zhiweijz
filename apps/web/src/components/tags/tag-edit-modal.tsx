@@ -2,7 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { TagResponseDto, CreateTagDto, UpdateTagDto, TagValidation, DEFAULT_TAG_COLORS } from '@/lib/api/types/tag.types';
+import {
+  TagResponseDto,
+  CreateTagDto,
+  UpdateTagDto,
+  TagValidation,
+  DEFAULT_TAG_COLORS,
+} from '@/lib/api/types/tag.types';
 import { ColorPicker } from './color-picker';
 import { TagDisplay } from './tag-display';
 import { Button } from '@/components/ui/button';
@@ -90,23 +96,25 @@ export const TagEditModal: React.FC<TagEditModalProps> = ({
   // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     setSaving(true);
     try {
-      const saveData = isEditing ? {
-        name: formData.name.trim(),
-        color: formData.color,
-        description: formData.description.trim() || undefined,
-      } : {
-        name: formData.name.trim(),
-        color: formData.color,
-        description: formData.description.trim() || undefined,
-        accountBookId,
-      };
+      const saveData = isEditing
+        ? {
+            name: formData.name.trim(),
+            color: formData.color,
+            description: formData.description.trim() || undefined,
+          }
+        : {
+            name: formData.name.trim(),
+            color: formData.color,
+            description: formData.description.trim() || undefined,
+            accountBookId,
+          };
 
       await onSave(saveData);
       onClose();
@@ -122,11 +130,11 @@ export const TagEditModal: React.FC<TagEditModalProps> = ({
 
   // 处理输入变化
   const handleInputChange = (field: keyof typeof formData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
     // 清除对应字段的错误
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -138,10 +146,7 @@ export const TagEditModal: React.FC<TagEditModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* 背景遮罩 */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onClick={onClose} />
 
       {/* 模态框内容 */}
       <div className="flex min-h-full items-center justify-center p-4">
@@ -176,9 +181,7 @@ export const TagEditModal: React.FC<TagEditModalProps> = ({
                 maxLength={TagValidation.name.maxLength}
                 className={cn(errors.name && 'border-red-500')}
               />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-              )}
+              {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
               <p className="mt-1 text-xs text-gray-500">
                 {formData.name.length}/{TagValidation.name.maxLength}
               </p>
@@ -194,14 +197,15 @@ export const TagEditModal: React.FC<TagEditModalProps> = ({
                 onChange={(color) => handleInputChange('color', color)}
                 className={cn(errors.color && 'border-red-500')}
               />
-              {errors.color && (
-                <p className="mt-1 text-sm text-red-600">{errors.color}</p>
-              )}
+              {errors.color && <p className="mt-1 text-sm text-red-600">{errors.color}</p>}
             </div>
 
             {/* 标签描述 */}
             <div>
-              <label htmlFor="tag-description" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="tag-description"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 描述 (可选)
               </label>
               <textarea
@@ -213,7 +217,7 @@ export const TagEditModal: React.FC<TagEditModalProps> = ({
                 maxLength={TagValidation.description.maxLength}
                 className={cn(
                   'w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none',
-                  errors.description && 'border-red-500'
+                  errors.description && 'border-red-500',
                 )}
               />
               {errors.description && (
@@ -227,22 +231,22 @@ export const TagEditModal: React.FC<TagEditModalProps> = ({
             {/* 预览 */}
             {formData.name && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  预览效果
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">预览效果</label>
                 <TagDisplay
-                  tags={[{
-                    id: 'preview',
-                    name: formData.name,
-                    color: formData.color,
-                    description: formData.description,
-                    accountBookId,
-                    createdBy: '',
-                    isActive: true,
-                    usageCount: 0,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                  }]}
+                  tags={[
+                    {
+                      id: 'preview',
+                      name: formData.name,
+                      color: formData.color,
+                      description: formData.description,
+                      accountBookId,
+                      createdBy: '',
+                      isActive: true,
+                      usageCount: 0,
+                      createdAt: new Date(),
+                      updatedAt: new Date(),
+                    },
+                  ]}
                   size="medium"
                 />
               </div>
@@ -266,12 +270,8 @@ export const TagEditModal: React.FC<TagEditModalProps> = ({
               >
                 取消
               </Button>
-              <Button
-                type="submit"
-                className="flex-1"
-                disabled={saving || !formData.name.trim()}
-              >
-                {saving ? '保存中...' : (isEditing ? '更新' : '创建')}
+              <Button type="submit" className="flex-1" disabled={saving || !formData.name.trim()}>
+                {saving ? '保存中...' : isEditing ? '更新' : '创建'}
               </Button>
             </div>
           </form>

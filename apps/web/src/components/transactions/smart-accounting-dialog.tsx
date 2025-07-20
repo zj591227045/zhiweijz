@@ -29,12 +29,15 @@ class SmartAccountingProgressManager {
   private static instance: SmartAccountingProgressManager;
   private progressContainer: HTMLDivElement | null = null;
   private progressToasts: Map<string, HTMLDivElement> = new Map();
-  private pendingRequests: Map<string, {
-    accountBookId: string;
-    description: string;
-    timestamp: number;
-    retryCount: number;
-  }> = new Map();
+  private pendingRequests: Map<
+    string,
+    {
+      accountBookId: string;
+      description: string;
+      timestamp: number;
+      retryCount: number;
+    }
+  > = new Map();
 
   static getInstance(): SmartAccountingProgressManager {
     if (!SmartAccountingProgressManager.instance) {
@@ -46,7 +49,7 @@ class SmartAccountingProgressManager {
   constructor() {
     // 页面加载时检查是否有未完成的请求
     this.checkPendingRequests();
-    
+
     // 监听页面可见性变化，处理用户切换回来的情况
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', () => {
@@ -66,14 +69,15 @@ class SmartAccountingProgressManager {
       if (pendingRequestsData) {
         const requests = JSON.parse(pendingRequestsData);
         const currentTime = Date.now();
-        
+
         // 检查5分钟内的未完成请求
-        Object.keys(requests).forEach(progressId => {
+        Object.keys(requests).forEach((progressId) => {
           const request = requests[progressId];
-          if (currentTime - request.timestamp < 5 * 60 * 1000) { // 5分钟内
+          if (currentTime - request.timestamp < 5 * 60 * 1000) {
+            // 5分钟内
             // 显示恢复状态的通知
             this.showProgress(progressId, '检测到未完成的记账请求，正在验证状态...', 'info');
-            
+
             // 尝试验证请求状态
             this.verifyRequestStatus(progressId, request);
           } else {
@@ -81,7 +85,7 @@ class SmartAccountingProgressManager {
             delete requests[progressId];
           }
         });
-        
+
         // 更新localStorage
         localStorage.setItem('smart-accounting-pending', JSON.stringify(requests));
       }
@@ -112,14 +116,14 @@ class SmartAccountingProgressManager {
     try {
       const pendingRequestsData = localStorage.getItem('smart-accounting-pending') || '{}';
       const requests = JSON.parse(pendingRequestsData);
-      
+
       requests[progressId] = {
         accountBookId,
         description,
         timestamp: Date.now(),
-        retryCount: 0
+        retryCount: 0,
       };
-      
+
       localStorage.setItem('smart-accounting-pending', JSON.stringify(requests));
     } catch (error) {
       console.error('保存待处理请求时出错:', error);
@@ -133,9 +137,9 @@ class SmartAccountingProgressManager {
     try {
       const pendingRequestsData = localStorage.getItem('smart-accounting-pending') || '{}';
       const requests = JSON.parse(pendingRequestsData);
-      
+
       delete requests[progressId];
-      
+
       localStorage.setItem('smart-accounting-pending', JSON.stringify(requests));
       this.pendingRequests.delete(progressId);
     } catch (error) {
@@ -166,10 +170,10 @@ class SmartAccountingProgressManager {
   showProgress(id: string, message: string, type: 'info' | 'success' | 'error' = 'info'): void {
     if (typeof document === 'undefined') return;
     this.createProgressContainer();
-    
+
     // 如果已经存在相同id的通知，更新它
     let progressToast = this.progressToasts.get(id);
-    
+
     if (!progressToast) {
       progressToast = document.createElement('div');
       progressToast.style.cssText = `
@@ -196,17 +200,23 @@ class SmartAccountingProgressManager {
 
     const getIcon = () => {
       switch (type) {
-        case 'success': return '✅';
-        case 'error': return '❌';
-        default: return '<div style="display: inline-block; animation: spin 1s linear infinite;">⏳</div>';
+        case 'success':
+          return '✅';
+        case 'error':
+          return '❌';
+        default:
+          return '<div style="display: inline-block; animation: spin 1s linear infinite;">⏳</div>';
       }
     };
 
     const getColor = () => {
       switch (type) {
-        case 'success': return 'var(--success-color, #22c55e)';
-        case 'error': return 'var(--error-color, #ef4444)';
-        default: return 'var(--primary-color, #3b82f6)';
+        case 'success':
+          return 'var(--success-color, #22c55e)';
+        case 'error':
+          return 'var(--error-color, #ef4444)';
+        default:
+          return 'var(--primary-color, #3b82f6)';
       }
     };
 
@@ -218,14 +228,20 @@ class SmartAccountingProgressManager {
       <div style="flex: 1;">
         <div style="font-weight: 500; margin-bottom: 4px;">智能记账进度</div>
         <div style="color: var(--text-secondary, #6b7280);">${message}</div>
-        ${type === 'info' ? `
+        ${
+          type === 'info'
+            ? `
           <div style="margin-top: 8px; height: 4px; background: var(--background-color, #f5f5f5); border-radius: 2px; overflow: hidden;">
             <div style="height: 100%; background: ${getColor()}; border-radius: 2px; width: 100%; animation: progressPulse 1.5s ease-in-out infinite;"></div>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
       </div>
       <div style="display: flex; align-items: center;">
-        ${type !== 'info' ? `
+        ${
+          type !== 'info'
+            ? `
           <button id="${closeButtonId}" style="
             background: none;
             border: none;
@@ -238,7 +254,9 @@ class SmartAccountingProgressManager {
             transition: color 0.2s ease;
             margin-left: 8px;
           " onmouseover="this.style.color='var(--text-primary, #1f2937)'" onmouseout="this.style.color='var(--text-secondary, #6b7280)'">×</button>
-        ` : ''}
+        `
+            : ''
+        }
       </div>
     `;
 
@@ -307,10 +325,10 @@ class SmartAccountingProgressManager {
           progressToast.parentNode.removeChild(progressToast);
         }
         this.progressToasts.delete(id);
-        
+
         // 移除待处理请求
         this.removePendingRequest(id);
-        
+
         // 如果没有更多的通知，移除容器
         if (this.progressToasts.size === 0 && this.progressContainer) {
           this.progressContainer.remove();
@@ -335,8 +353,6 @@ class SmartAccountingProgressManager {
     this.removePendingRequest(id);
     this.showProgress(id, message, success ? 'success' : 'error');
   }
-
-
 }
 
 // 全局实例
@@ -357,7 +373,11 @@ export function SmartAccountingDialog({
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState<string | null>(null);
   const [isImageProcessing, setIsImageProcessing] = useState(false);
-  const [dragPosition, setDragPosition] = useState<{ startY: number; currentY: number; active: boolean }>({ startY: 0, currentY: 0, active: false });
+  const [dragPosition, setDragPosition] = useState<{
+    startY: number;
+    currentY: number;
+    active: boolean;
+  }>({ startY: 0, currentY: 0, active: false });
   const [touchStartPos, setTouchStartPos] = useState<{ x: number; y: number } | null>(null);
   const [gestureType, setGestureType] = useState<'none' | 'capture' | 'upload'>('none');
   const [isButtonTouched, setIsButtonTouched] = useState(false);
@@ -373,11 +393,11 @@ export function SmartAccountingDialog({
       setTouchStartPos(null);
       setGestureType('none');
       setIsButtonTouched(false);
-      
+
       // 保存当前滚动位置
       const scrollY = window.scrollY;
       const scrollX = window.scrollX;
-      
+
       // 禁用背景页面滚动 - 更强的方式
       const originalStyle = window.getComputedStyle(document.body);
       const originalOverflow = originalStyle.overflow;
@@ -386,7 +406,7 @@ export function SmartAccountingDialog({
       const originalLeft = originalStyle.left;
       const originalWidth = originalStyle.width;
       const originalHeight = originalStyle.height;
-      
+
       // 应用更强的滚动禁用样式
       document.body.style.overflow = 'hidden';
       document.body.style.position = 'fixed';
@@ -394,23 +414,23 @@ export function SmartAccountingDialog({
       document.body.style.left = `-${scrollX}px`;
       document.body.style.width = '100vw';
       document.body.style.height = '100vh';
-      
+
       // 添加 CSS 类以确保样式优先级
       document.body.classList.add('modal-open');
       document.documentElement.classList.add('modal-open');
-      
+
       // 同时禁用 html 元素的滚动
       const htmlElement = document.documentElement;
       const htmlOriginalOverflow = htmlElement.style.overflow;
       htmlElement.style.overflow = 'hidden';
-      
+
       // 阻止所有滚动事件
       const preventScroll = (e: Event) => {
         e.preventDefault();
         e.stopPropagation();
         return false;
       };
-      
+
       const preventTouchMove = (e: TouchEvent) => {
         // 只阻止非模态框内的触摸移动
         const modalElement = document.querySelector('.smart-accounting-dialog');
@@ -420,7 +440,7 @@ export function SmartAccountingDialog({
           return false;
         }
       };
-      
+
       const preventWheel = (e: WheelEvent) => {
         // 只阻止非模态框内的滚轮事件
         const modalElement = document.querySelector('.smart-accounting-dialog');
@@ -430,24 +450,24 @@ export function SmartAccountingDialog({
           return false;
         }
       };
-      
+
       // 添加事件监听器
       document.addEventListener('scroll', preventScroll, { passive: false });
       document.addEventListener('touchmove', preventTouchMove, { passive: false });
       document.addEventListener('wheel', preventWheel, { passive: false });
       window.addEventListener('scroll', preventScroll, { passive: false });
-      
+
       return () => {
         // 移除事件监听器
         document.removeEventListener('scroll', preventScroll);
         document.removeEventListener('touchmove', preventTouchMove);
         document.removeEventListener('wheel', preventWheel);
         window.removeEventListener('scroll', preventScroll);
-        
+
         // 移除 CSS 类
         document.body.classList.remove('modal-open');
         document.documentElement.classList.remove('modal-open');
-        
+
         // 恢复背景页面滚动
         document.body.style.overflow = originalOverflow;
         document.body.style.position = originalPosition;
@@ -455,10 +475,10 @@ export function SmartAccountingDialog({
         document.body.style.left = originalLeft;
         document.body.style.width = originalWidth;
         document.body.style.height = originalHeight;
-        
+
         // 恢复 html 元素
         htmlElement.style.overflow = htmlOriginalOverflow;
-        
+
         // 恢复滚动位置
         window.scrollTo(scrollX, scrollY);
       };
@@ -516,15 +536,15 @@ export function SmartAccountingDialog({
       } else if (error.response) {
         // 服务器返回了错误状态码
         const errorData = error.response.data;
-        
+
         // 特殊处理Token限额错误（HTTP 429）
         if (error.response.status === 429 && errorData?.type === 'TOKEN_LIMIT_EXCEEDED') {
           // 关闭模态框
           onClose();
-          
+
           // 生成唯一的进度ID
           const progressId = `smart-accounting-${Date.now()}`;
-          
+
           // 使用与直接记账相同的浮窗通知
           const errorMessage = errorData.error || 'Token使用量已达限额，请稍后再试';
           smartAccountingProgressManager.completeRequest(progressId, false, errorMessage);
@@ -563,29 +583,35 @@ export function SmartAccountingDialog({
 
     // 生成唯一的进度ID
     const progressId = `direct-add-${Date.now()}`;
-    
+
     // 定时器数组，用于在错误时清除
     const progressTimers: NodeJS.Timeout[] = [];
-    
+
     try {
       // 关闭模态框，让用户可以进行其他操作
       onClose();
-      
+
       // 启动请求并保存到待处理列表
       smartAccountingProgressManager.startRequest(progressId, accountBookId, description);
 
       // 后台异步处理，不阻塞用户操作
-      progressTimers.push(setTimeout(() => {
-        smartAccountingProgressManager.updateProgress(progressId, '正在识别记账类型和金额...');
-      }, 1000));
-      
-      progressTimers.push(setTimeout(() => {
-        smartAccountingProgressManager.updateProgress(progressId, '正在匹配最佳分类...');
-      }, 2000));
-      
-      progressTimers.push(setTimeout(() => {
-        smartAccountingProgressManager.updateProgress(progressId, '正在创建记账记录...');
-      }, 3000));
+      progressTimers.push(
+        setTimeout(() => {
+          smartAccountingProgressManager.updateProgress(progressId, '正在识别记账类型和金额...');
+        }, 1000),
+      );
+
+      progressTimers.push(
+        setTimeout(() => {
+          smartAccountingProgressManager.updateProgress(progressId, '正在匹配最佳分类...');
+        }, 2000),
+      );
+
+      progressTimers.push(
+        setTimeout(() => {
+          smartAccountingProgressManager.updateProgress(progressId, '正在创建记账记录...');
+        }, 3000),
+      );
 
       // 调用直接添加记账API，使用apiClient确保认证令牌被正确添加
       const response = await apiClient.post(
@@ -598,10 +624,10 @@ export function SmartAccountingDialog({
 
       if (response && response.id) {
         console.log('记账成功，记账ID:', response.id);
-        
+
         // 清除进度定时器（虽然可能已经执行完毕）
-        progressTimers.forEach(timer => clearTimeout(timer));
-        
+        progressTimers.forEach((timer) => clearTimeout(timer));
+
         // 在后台刷新数据
         if (accountBookId) {
           try {
@@ -616,28 +642,27 @@ export function SmartAccountingDialog({
 
         // 完成请求，显示成功消息
         smartAccountingProgressManager.completeRequest(progressId, true, '记账完成，数据已更新');
-
       } else {
         // 清除进度定时器
-        progressTimers.forEach(timer => clearTimeout(timer));
+        progressTimers.forEach((timer) => clearTimeout(timer));
         smartAccountingProgressManager.completeRequest(progressId, false, '记账失败，请手动填写');
       }
     } catch (error: any) {
       console.error('直接添加记账失败:', error);
 
       // 清除所有进度定时器
-      progressTimers.forEach(timer => clearTimeout(timer));
+      progressTimers.forEach((timer) => clearTimeout(timer));
 
       // 显示错误通知，包含重试选项
       let errorMessage = '记账失败，请重试';
       let showRetry = true;
-      
+
       if (error.code === 'ECONNABORTED') {
         errorMessage = '请求超时，服务器可能仍在处理，请稍后检查记录';
         showRetry = false; // 超时情况下不提供重试，因为可能已经在处理
       } else if (error.response) {
         const errorData = error.response.data;
-        
+
         // 特殊处理Token限额错误（HTTP 429）
         if (error.response.status === 429 && errorData?.type === 'TOKEN_LIMIT_EXCEEDED') {
           errorMessage = `${errorData.error || 'Token使用量已达限额，请稍后再试'}`;
@@ -645,7 +670,7 @@ export function SmartAccountingDialog({
           smartAccountingProgressManager.completeRequest(progressId, false, errorMessage);
           return;
         }
-        // 特殊处理"消息与记账无关"的情况  
+        // 特殊处理"消息与记账无关"的情况
         else if (errorData?.info && errorData.info.includes('记账无关')) {
           errorMessage = '您的描述似乎与记账无关，请尝试描述具体的消费或收入情况';
           // 对于无关内容，显示信息提示
@@ -657,7 +682,7 @@ export function SmartAccountingDialog({
       } else if (error.request) {
         errorMessage = '网络连接异常，请检查网络后重试';
       }
-      
+
       smartAccountingProgressManager.completeRequest(progressId, false, errorMessage);
     }
   };
@@ -671,11 +696,11 @@ export function SmartAccountingDialog({
 
     // 生成唯一的进度ID
     const progressId = `image-accounting-${Date.now()}`;
-    
+
     try {
       // 关闭模态框，让用户可以进行其他操作
       onClose();
-      
+
       // 启动请求并保存到待处理列表
       smartAccountingProgressManager.startRequest(progressId, accountBookId, '正在分析图片...');
 
@@ -687,19 +712,19 @@ export function SmartAccountingDialog({
       const response = await apiClient.post(
         `/ai/account/${accountBookId}/smart-accounting/image`,
         formData,
-        { 
+        {
           timeout: 60000,
           headers: {
             'Content-Type': 'multipart/form-data',
           },
-        }
+        },
       );
 
       console.log('图片记账结果:', response);
 
       if (response && response.id) {
         console.log('图片记账成功，记账ID:', response.id);
-        
+
         // 在后台刷新数据
         if (accountBookId) {
           try {
@@ -713,21 +738,24 @@ export function SmartAccountingDialog({
 
         // 完成请求，显示成功消息
         smartAccountingProgressManager.completeRequest(progressId, true, '图片识别完成，记账成功');
-
       } else {
-        smartAccountingProgressManager.completeRequest(progressId, false, '图片识别失败，请手动填写');
+        smartAccountingProgressManager.completeRequest(
+          progressId,
+          false,
+          '图片识别失败，请手动填写',
+        );
       }
     } catch (error: any) {
       console.error('图片记账失败:', error);
 
       // 显示错误通知
       let errorMessage = '图片识别失败，请重试';
-      
+
       if (error.code === 'ECONNABORTED') {
         errorMessage = '请求超时，服务器可能仍在处理，请稍后检查记录';
       } else if (error.response) {
         const errorData = error.response.data;
-        
+
         // 特殊处理Token限额错误（HTTP 429）
         if (error.response.status === 429 && errorData?.type === 'TOKEN_LIMIT_EXCEEDED') {
           errorMessage = `${errorData.error || 'Token使用量已达限额，请稍后再试'}`;
@@ -739,7 +767,7 @@ export function SmartAccountingDialog({
       } else if (error.request) {
         errorMessage = '网络连接异常，请检查网络后重试';
       }
-      
+
       smartAccountingProgressManager.completeRequest(progressId, false, errorMessage);
     }
   };
@@ -778,7 +806,7 @@ export function SmartAccountingDialog({
     e.preventDefault();
     e.stopPropagation();
     console.log('📷 [TouchStart] 相机按钮触摸开始');
-    
+
     const touch = e.touches[0];
     setTouchStartPos({ x: touch.clientX, y: touch.clientY });
     setIsButtonTouched(true);
@@ -789,15 +817,16 @@ export function SmartAccountingDialog({
   const handleCameraTouchMove = (e: React.TouchEvent) => {
     if (!touchStartPos || !isButtonTouched) return;
     e.preventDefault();
-    
+
     const touch = e.touches[0];
     const deltaY = touchStartPos.y - touch.clientY;
     const deltaX = Math.abs(touch.clientX - touchStartPos.x);
-    
-    setDragPosition(prev => ({ ...prev, currentY: touch.clientY }));
-    
+
+    setDragPosition((prev) => ({ ...prev, currentY: touch.clientY }));
+
     // 检测手势类型
-    if (Math.abs(deltaY) > 30 && deltaX < 50) { // 垂直滑动，水平偏移不超过50px
+    if (Math.abs(deltaY) > 30 && deltaX < 50) {
+      // 垂直滑动，水平偏移不超过50px
       if (deltaY > 50) {
         // 向上滑动 - 拍照
         setGestureType('capture');
@@ -814,10 +843,10 @@ export function SmartAccountingDialog({
     e.preventDefault();
     e.stopPropagation();
     console.log('📷 [TouchEnd] 相机按钮触摸结束，手势类型:', gestureType);
-    
+
     setIsButtonTouched(false);
     setDragPosition({ startY: 0, currentY: 0, active: false });
-    
+
     // 根据手势类型执行对应操作
     if (gestureType === 'capture') {
       handleCameraCapture();
@@ -825,7 +854,7 @@ export function SmartAccountingDialog({
       handleImageUpload();
     }
     // 如果是 'none'，则不执行任何操作（原地松开）
-    
+
     // 重置状态
     setTouchStartPos(null);
     setGestureType('none');
@@ -836,7 +865,7 @@ export function SmartAccountingDialog({
     e.preventDefault();
     e.stopPropagation();
     console.log('📷 [MouseDown] 相机按钮鼠标按下');
-    
+
     setTouchStartPos({ x: e.clientX, y: e.clientY });
     setIsButtonTouched(true);
     setGestureType('none');
@@ -846,12 +875,12 @@ export function SmartAccountingDialog({
   const handleCameraMouseMove = (e: React.MouseEvent) => {
     if (!touchStartPos || !isButtonTouched) return;
     e.preventDefault();
-    
+
     const deltaY = touchStartPos.y - e.clientY;
     const deltaX = Math.abs(e.clientX - touchStartPos.x);
-    
-    setDragPosition(prev => ({ ...prev, currentY: e.clientY }));
-    
+
+    setDragPosition((prev) => ({ ...prev, currentY: e.clientY }));
+
     // 检测手势类型
     if (Math.abs(deltaY) > 30 && deltaX < 50) {
       if (deltaY > 50) {
@@ -868,17 +897,17 @@ export function SmartAccountingDialog({
     e.preventDefault();
     e.stopPropagation();
     console.log('📷 [MouseUp] 相机按钮鼠标抬起，手势类型:', gestureType);
-    
+
     setIsButtonTouched(false);
     setDragPosition({ startY: 0, currentY: 0, active: false });
-    
+
     // 根据手势类型执行对应操作
     if (gestureType === 'capture') {
       handleCameraCapture();
     } else if (gestureType === 'upload') {
       handleImageUpload();
     }
-    
+
     // 重置状态
     setTouchStartPos(null);
     setGestureType('none');
@@ -923,10 +952,7 @@ export function SmartAccountingDialog({
   };
 
   return (
-    <div 
-      className="smart-accounting-dialog-overlay" 
-      onClick={handleOverlayClick}
-    >
+    <div className="smart-accounting-dialog-overlay" onClick={handleOverlayClick}>
       <div className="smart-accounting-dialog">
         <div className="smart-accounting-dialog-header">
           <h3 className="smart-accounting-dialog-title">智能记账</h3>
@@ -993,10 +1019,13 @@ export function SmartAccountingDialog({
                 >
                   <i className="fas fa-camera"></i>
                   <span className="camera-hint">
-                    {isButtonTouched 
-                      ? (gestureType === 'capture' ? '松开拍照' : gestureType === 'upload' ? '松开上传' : '上滑拍照 下滑上传')
-                      : '按住滑动'
-                    }
+                    {isButtonTouched
+                      ? gestureType === 'capture'
+                        ? '松开拍照'
+                        : gestureType === 'upload'
+                          ? '松开上传'
+                          : '上滑拍照 下滑上传'
+                      : '按住滑动'}
                   </span>
                 </button>
               </div>
@@ -1012,7 +1041,7 @@ export function SmartAccountingDialog({
                   }}
                   style={{
                     pointerEvents: 'auto', // 确保点击事件可以触发
-                    zIndex: 1 // 确保按钮在最上层
+                    zIndex: 1, // 确保按钮在最上层
                   }}
                 >
                   手动记账

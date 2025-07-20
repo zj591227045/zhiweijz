@@ -46,7 +46,11 @@ interface RecentTransactionsProps {
   onTransactionDeleted?: () => void; // 删除成功后的回调
 }
 
-export function RecentTransactions({ transactions, budgetId, onTransactionDeleted }: RecentTransactionsProps) {
+export function RecentTransactions({
+  transactions,
+  budgetId,
+  onTransactionDeleted,
+}: RecentTransactionsProps) {
   const router = useRouter();
   const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -65,7 +69,7 @@ export function RecentTransactions({ transactions, budgetId, onTransactionDelete
   // 处理删除记账
   const handleDeleteClick = (transactionId: string) => {
     // 找到要删除的记账信息
-    const transaction = transactions.find(t => t.id === transactionId);
+    const transaction = transactions.find((t) => t.id === transactionId);
 
     if (!transaction) return;
 
@@ -118,21 +122,26 @@ export function RecentTransactions({ transactions, budgetId, onTransactionDelete
   };
 
   // 将记账数据转换为分组格式以适配统一组件
-  const groupedTransactions = transactions.length > 0 ? [{
-    date: '最近记账',
-    transactions: transactions.map(transaction => ({
-      id: transaction.id,
-      amount: transaction.amount,
-      type: transaction.type,
-      categoryName: transaction.categoryName,
-      categoryIcon: transaction.categoryIcon || transaction.category?.icon,
-      description: transaction.title || transaction.description,
-      date: dayjs(transaction.date).format('M月D日 HH:mm'),
-      category: transaction.category,
-      tags: transaction.tags,
-      attachments: transaction.attachments
-    }))
-  }] : [];
+  const groupedTransactions =
+    transactions.length > 0
+      ? [
+          {
+            date: '最近记账',
+            transactions: transactions.map((transaction) => ({
+              id: transaction.id,
+              amount: transaction.amount,
+              type: transaction.type,
+              categoryName: transaction.categoryName,
+              categoryIcon: transaction.categoryIcon || transaction.category?.icon,
+              description: transaction.title || transaction.description,
+              date: dayjs(transaction.date).format('M月D日 HH:mm'),
+              category: transaction.category,
+              tags: transaction.tags,
+              attachments: transaction.attachments,
+            })),
+          },
+        ]
+      : [];
 
   return (
     <section className="recent-transactions">
@@ -160,7 +169,11 @@ export function RecentTransactions({ transactions, budgetId, onTransactionDelete
         isOpen={deleteDialogOpen}
         title="删除记账"
         message="确定要删除这笔记账吗？"
-        itemName={transactionToDelete?.title || transactionToDelete?.description || transactionToDelete?.categoryName}
+        itemName={
+          transactionToDelete?.title ||
+          transactionToDelete?.description ||
+          transactionToDelete?.categoryName
+        }
         amount={transactionToDelete?.amount}
         isLoading={deletingTransactionId === transactionToDelete?.id}
         onConfirm={handleConfirmDelete}

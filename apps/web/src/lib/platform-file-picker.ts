@@ -30,12 +30,14 @@ export interface PlatformFilePickerOptions {
  */
 async function isCapacitorPluginAvailable(pluginName: string): Promise<boolean> {
   if (typeof window === 'undefined' || !(window as any).Capacitor) {
-    console.log(`🔍 [PluginCheck] ${pluginName}: Capacitor不可用 - window未定义或Capacitor对象不存在`);
+    console.log(
+      `🔍 [PluginCheck] ${pluginName}: Capacitor不可用 - window未定义或Capacitor对象不存在`,
+    );
     return false;
   }
 
   try {
-    const { Capacitor } = (window as any);
+    const { Capacitor } = window as any;
 
     // 输出调试信息
     console.log(`🔍 [PluginCheck] ${pluginName}: 开始检查插件可用性`);
@@ -89,7 +91,7 @@ async function webFilePicker(options: PlatformFilePickerOptions): Promise<FilePi
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    
+
     // 移动端支持相机
     const capabilities = getDeviceCapabilities();
     if (capabilities.isMobile && options.allowCamera) {
@@ -99,11 +101,11 @@ async function webFilePicker(options: PlatformFilePickerOptions): Promise<FilePi
     input.onchange = (event) => {
       const target = event.target as HTMLInputElement;
       const file = target.files?.[0];
-      
+
       if (file) {
         resolve({
           file,
-          source: capabilities.isMobile && options.allowCamera ? 'camera' : 'gallery'
+          source: capabilities.isMobile && options.allowCamera ? 'camera' : 'gallery',
         });
       } else {
         resolve(null);
@@ -118,7 +120,9 @@ async function webFilePicker(options: PlatformFilePickerOptions): Promise<FilePi
 /**
  * Capacitor相机插件
  */
-async function capacitorCamera(options: PlatformFilePickerOptions): Promise<FilePickerResult | null> {
+async function capacitorCamera(
+  options: PlatformFilePickerOptions,
+): Promise<FilePickerResult | null> {
   try {
     console.log('📷 [CapacitorCamera] 开始调用相机插件...');
 
@@ -128,11 +132,11 @@ async function capacitorCamera(options: PlatformFilePickerOptions): Promise<File
       throw new Error('Capacitor not available in web environment');
     }
 
-    const { Capacitor } = (window as any);
+    const { Capacitor } = window as any;
     console.log('📷 [CapacitorCamera] Capacitor环境信息:', {
       platform: Capacitor.getPlatform?.(),
       isNative: Capacitor.isNativePlatform?.(),
-      plugins: Object.keys(Capacitor.Plugins || {})
+      plugins: Object.keys(Capacitor.Plugins || {}),
     });
 
     // 动态导入Capacitor Camera
@@ -173,7 +177,7 @@ async function capacitorCamera(options: PlatformFilePickerOptions): Promise<File
     console.log('📷 [CapacitorCamera] Camera.getPhoto调用成功:', {
       hasBase64: !!image.base64String,
       format: image.format,
-      webPath: image.webPath
+      webPath: image.webPath,
     });
 
     if (image.base64String) {
@@ -195,12 +199,12 @@ async function capacitorCamera(options: PlatformFilePickerOptions): Promise<File
       console.log('📷 [CapacitorCamera] 文件创建成功:', {
         name: file.name,
         size: file.size,
-        type: file.type
+        type: file.type,
       });
 
       return {
         file,
-        source: 'camera'
+        source: 'camera',
       };
     }
 
@@ -230,7 +234,9 @@ async function capacitorCamera(options: PlatformFilePickerOptions): Promise<File
 /**
  * Capacitor相册选择器
  */
-async function capacitorGallery(options: PlatformFilePickerOptions): Promise<FilePickerResult | null> {
+async function capacitorGallery(
+  options: PlatformFilePickerOptions,
+): Promise<FilePickerResult | null> {
   try {
     console.log('🖼️ [CapacitorGallery] 开始调用相册选择器...');
 
@@ -240,11 +246,11 @@ async function capacitorGallery(options: PlatformFilePickerOptions): Promise<Fil
       throw new Error('Capacitor not available in web environment');
     }
 
-    const { Capacitor } = (window as any);
+    const { Capacitor } = window as any;
     console.log('🖼️ [CapacitorGallery] Capacitor环境信息:', {
       platform: Capacitor.getPlatform?.(),
       isNative: Capacitor.isNativePlatform?.(),
-      plugins: Object.keys(Capacitor.Plugins || {})
+      plugins: Object.keys(Capacitor.Plugins || {}),
     });
 
     // 动态导入Capacitor Camera
@@ -285,7 +291,7 @@ async function capacitorGallery(options: PlatformFilePickerOptions): Promise<Fil
     console.log('🖼️ [CapacitorGallery] Camera.getPhoto调用成功:', {
       hasBase64: !!image.base64String,
       format: image.format,
-      webPath: image.webPath
+      webPath: image.webPath,
     });
 
     if (image.base64String) {
@@ -307,12 +313,12 @@ async function capacitorGallery(options: PlatformFilePickerOptions): Promise<Fil
       console.log('🖼️ [CapacitorGallery] 文件创建成功:', {
         name: file.name,
         size: file.size,
-        type: file.type
+        type: file.type,
       });
 
       return {
         file,
-        source: 'gallery'
+        source: 'gallery',
       };
     }
 
@@ -363,7 +369,7 @@ export class PlatformFilePicker {
       hasCamera: false,
       hasGallery: false,
       hasFilePicker: true,
-      platform: 'web' as 'web' | 'ios' | 'android'
+      platform: 'web' as 'web' | 'ios' | 'android',
     };
 
     // 输出设备能力信息
@@ -472,7 +478,9 @@ export class PlatformFilePicker {
    * 从相册选择 (别名方法，保持API兼容性)
    * @deprecated 请使用 pickFromGallery 方法
    */
-  async selectFromGallery(options: PlatformFilePickerOptions = {}): Promise<FilePickerResult | null> {
+  async selectFromGallery(
+    options: PlatformFilePickerOptions = {},
+  ): Promise<FilePickerResult | null> {
     return this.pickFromGallery(options);
   }
 
@@ -481,7 +489,7 @@ export class PlatformFilePicker {
    */
   async pickFile(options: PlatformFilePickerOptions = {}): Promise<FilePickerResult | null> {
     const capabilities = await this.checkCapabilities();
-    
+
     // 如果只有一种选择方式，直接使用
     if (capabilities.hasCamera && !capabilities.hasGallery) {
       return await this.takePhoto(options);

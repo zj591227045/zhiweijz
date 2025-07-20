@@ -41,20 +41,20 @@ export function BadgeDisplay({
   showTooltip = true,
   onClick,
   isSelected = false,
-  className = ''
+  className = '',
 }: BadgeDisplayProps) {
   const [showTooltipState, setShowTooltipState] = useState(false);
 
   const sizeClasses = {
     small: 'w-8 h-8 text-sm',
     medium: 'w-12 h-12 text-xl',
-    large: 'w-16 h-16 text-2xl'
+    large: 'w-16 h-16 text-2xl',
   };
 
   const containerSizeClasses = {
     small: 'p-2',
     medium: 'p-3',
-    large: 'p-4'
+    large: 'p-4',
   };
 
   const isOwned = !!userBadge;
@@ -66,13 +66,14 @@ export function BadgeDisplay({
         className={`
           ${containerSizeClasses[size]}
           rounded-lg border-2 transition-all duration-200 cursor-pointer
-          ${isSelected 
-            ? 'border-blue-500 bg-blue-50' 
-            : isDisplayed
-            ? 'border-green-500 bg-green-50'
-            : isOwned
-            ? 'border-gray-300 bg-white hover:border-gray-400'
-            : 'border-gray-200 bg-gray-50'
+          ${
+            isSelected
+              ? 'border-blue-500 bg-blue-50'
+              : isDisplayed
+                ? 'border-green-500 bg-green-50'
+                : isOwned
+                  ? 'border-gray-300 bg-white hover:border-gray-400'
+                  : 'border-gray-200 bg-gray-50'
           }
           ${!isOwned ? 'opacity-60' : ''}
         `}
@@ -89,41 +90,39 @@ export function BadgeDisplay({
 
         {/* 徽章图标 */}
         <div className="text-center">
-          <div 
+          <div
             className={`
               ${sizeClasses[size]}
               mx-auto rounded-full flex items-center justify-center font-bold
               ${!isOwned ? 'grayscale' : ''}
             `}
-            style={{ 
-              backgroundColor: badge.color + '20', 
-              color: badge.color 
+            style={{
+              backgroundColor: badge.color + '20',
+              color: badge.color,
             }}
           >
             {badge.icon}
           </div>
-          
+
           {/* 徽章名称 */}
           {size !== 'small' && (
-            <p className="text-xs font-medium text-gray-900 mt-1 truncate">
-              {badge.name}
-            </p>
+            <p className="text-xs font-medium text-gray-900 mt-1 truncate">{badge.name}</p>
           )}
-          
+
           {/* 稀有度标签 */}
           {showRarity && size !== 'small' && (
-            <span className={`
+            <span
+              className={`
               inline-flex px-1 py-0.5 text-xs font-semibold rounded-full mt-1
               ${membershipApi.getBadgeRarityColor(badge.rarity)}
-            `}>
+            `}
+            >
               {membershipApi.getBadgeRarityLabel(badge.rarity)}
             </span>
           )}
 
           {/* 未获得提示 */}
-          {!isOwned && size !== 'small' && (
-            <p className="text-xs text-gray-400 mt-1">未获得</p>
-          )}
+          {!isOwned && size !== 'small' && <p className="text-xs text-gray-400 mt-1">未获得</p>}
         </div>
       </div>
 
@@ -144,9 +143,7 @@ export function BadgeDisplay({
               </div>
             )}
             {userBadge?.awardReason && (
-              <div className="text-gray-400 text-xs mt-1">
-                获得原因: {userBadge.awardReason}
-              </div>
+              <div className="text-gray-400 text-xs mt-1">获得原因: {userBadge.awardReason}</div>
             )}
             {/* 箭头 */}
             <div className="absolute top-full left-1/2 transform -translate-x-1/2">
@@ -166,35 +163,32 @@ interface AvatarBadgeProps {
   size?: 'small' | 'medium';
 }
 
-export function AvatarBadge({ 
-  badge, 
-  position = 'top-right',
-  size = 'small'
-}: AvatarBadgeProps) {
+export function AvatarBadge({ badge, position = 'top-right', size = 'small' }: AvatarBadgeProps) {
   const positionClasses = {
     'top-right': 'top-0 right-0',
     'top-left': 'top-0 left-0',
     'bottom-right': 'bottom-0 right-0',
-    'bottom-left': 'bottom-0 left-0'
+    'bottom-left': 'bottom-0 left-0',
   };
 
   const sizeClasses = {
     small: 'w-4 h-4 text-xs',
-    medium: 'w-6 h-6 text-sm'
+    medium: 'w-6 h-6 text-sm',
   };
 
   return (
-    <div className={`
+    <div
+      className={`
       absolute ${positionClasses[position]}
       ${sizeClasses[size]}
       rounded-full border-2 border-white shadow-sm
       flex items-center justify-center font-bold z-10
     `}
-    style={{ 
-      backgroundColor: badge.color, 
-      color: '#ffffff' 
-    }}
-    title={badge.name}
+      style={{
+        backgroundColor: badge.color,
+        color: '#ffffff',
+      }}
+      title={badge.name}
     >
       {badge.icon}
     </div>
@@ -219,15 +213,17 @@ export function EnhancedAvatar({
   size = 'medium',
   badge,
   className = '',
-  alt = '用户头像'
+  alt = '用户头像',
 }: EnhancedAvatarProps) {
   const sizeClasses = {
     small: 'w-8 h-8',
     medium: 'w-12 h-12',
-    large: 'w-16 h-16'
+    large: 'w-16 h-16',
   };
 
-  const avatarUrl = avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random&size=128`;
+  const avatarUrl =
+    avatar ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random&size=128`;
 
   return (
     <div className={`relative inline-block ${className}`}>
@@ -241,11 +237,11 @@ export function EnhancedAvatar({
           target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random&size=128`;
         }}
       />
-      
+
       {/* 徽章装饰 */}
       {badge && (
-        <AvatarBadge 
-          badge={badge} 
+        <AvatarBadge
+          badge={badge}
           size={size === 'large' ? 'medium' : 'small'}
           position="top-right"
         />

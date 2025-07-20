@@ -44,14 +44,16 @@ class ApiClient {
             }
           }
         }
-        if (isDev) console.log('🔍 API请求token检查:', { 
-          hasToken: !!token, 
-          tokenPrefix: token ? token.substring(0, 20) + '...' : 'null',
-          url: config.url 
-        });
+        if (isDev)
+          console.log('🔍 API请求token检查:', {
+            hasToken: !!token,
+            tokenPrefix: token ? token.substring(0, 20) + '...' : 'null',
+            url: config.url,
+          });
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
-          if (isDev) console.log('✅ 已添加Authorization头:', `Bearer ${token.substring(0, 20)}...`);
+          if (isDev)
+            console.log('✅ 已添加Authorization头:', `Bearer ${token.substring(0, 20)}...`);
         } else {
           if (isDev) console.warn('⚠️ 没有token，请求可能被拒绝');
         }
@@ -60,7 +62,7 @@ class ApiClient {
       },
       (error) => {
         return Promise.reject(error);
-      }
+      },
     );
 
     // 响应拦截器
@@ -71,7 +73,8 @@ class ApiClient {
       (error) => {
         if (error.response?.status === 401) {
           // 检查是否是注销相关的请求，如果是则不自动跳转
-          const isDeletionRelated = error.config?.url?.includes('/users/me/') &&
+          const isDeletionRelated =
+            error.config?.url?.includes('/users/me/') &&
             (error.config.url.includes('deletion') || error.config.url.includes('cancel-deletion'));
 
           // 检查是否是登录请求，登录失败不应该触发自动跳转
@@ -89,7 +92,7 @@ class ApiClient {
           }
         }
         return Promise.reject(error);
-      }
+      },
     );
   }
 
@@ -144,12 +147,13 @@ export const fetchApi = async (url: string, options: RequestInit = {}): Promise<
     ...options.headers,
   };
 
-  if (isDev) console.log('🚀 fetchApi 调用:', {
-    originalUrl: url,
-    fullUrl,
-    method: options.method || 'GET',
-    hasToken: !!token
-  });
+  if (isDev)
+    console.log('🚀 fetchApi 调用:', {
+      originalUrl: url,
+      fullUrl,
+      method: options.method || 'GET',
+      hasToken: !!token,
+    });
 
   return fetch(fullUrl, {
     ...options,

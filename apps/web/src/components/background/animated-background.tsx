@@ -21,9 +21,9 @@ export default function AnimatedBackground() {
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
       {/* 主要动态渐变背景 */}
       <div className="absolute inset-0 animated-gradient" />
-      
+
       {/* 鼠标跟随光晕 */}
-      <div 
+      <div
         className="absolute inset-0 opacity-40 dark:opacity-25 transition-opacity duration-300"
         style={{
           background: `radial-gradient(circle 400px at ${mousePosition.x}% ${mousePosition.y}%, 
@@ -61,8 +61,8 @@ export default function AnimatedBackground() {
             style={{
               width: `${4 + (i % 3) * 2}px`,
               height: `${4 + (i % 3) * 2}px`,
-              top: `${15 + (i * 12)}%`,
-              left: `${8 + (i * 11)}%`,
+              top: `${15 + i * 12}%`,
+              left: `${8 + i * 11}%`,
               animation: `float ${15 + (i % 4) * 5}s ease-in-out infinite`,
               animationDelay: `${i * 2}s`,
             }}
@@ -88,7 +88,7 @@ export default function AnimatedBackground() {
       </div>
 
       {/* 背景纹理 */}
-      <div 
+      <div
         className="absolute inset-0 opacity-[0.02] dark:opacity-[0.01]"
         style={{
           backgroundImage: `
@@ -103,4 +103,4 @@ export default function AnimatedBackground() {
       />
     </div>
   );
-} 
+}

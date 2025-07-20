@@ -10,7 +10,12 @@ interface FamilyListProps {
   onFamilyClick?: (familyId: string) => void;
 }
 
-export function FamilyList({ families, onCreateFamily, onJoinFamily, onFamilyClick }: FamilyListProps) {
+export function FamilyList({
+  families,
+  onCreateFamily,
+  onJoinFamily,
+  onFamilyClick,
+}: FamilyListProps) {
   return (
     <div className="space-y-4">
       <div className="book-header-card">

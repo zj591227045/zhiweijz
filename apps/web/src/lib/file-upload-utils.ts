@@ -7,10 +7,10 @@
  */
 export const SUPPORTED_IMAGE_TYPES = [
   'image/jpeg',
-  'image/jpg', 
+  'image/jpg',
   'image/png',
   'image/webp',
-  'image/gif'
+  'image/gif',
 ];
 
 /**
@@ -42,14 +42,14 @@ export function validateAvatarFile(file: File): { valid: boolean; error?: string
   if (!isValidImageType(file)) {
     return {
       valid: false,
-      error: '不支持的文件格式，请选择 JPG、PNG、WebP 或 GIF 格式的图片'
+      error: '不支持的文件格式，请选择 JPG、PNG、WebP 或 GIF 格式的图片',
     };
   }
 
   if (!isValidFileSize(file)) {
     return {
       valid: false,
-      error: `文件大小不能超过 ${FILE_SIZE_LIMITS.AVATAR / 1024 / 1024}MB`
+      error: `文件大小不能超过 ${FILE_SIZE_LIMITS.AVATAR / 1024 / 1024}MB`,
     };
   }
 
@@ -63,7 +63,7 @@ export function compressImage(
   file: File,
   maxWidth: number = FILE_SIZE_LIMITS.MAX_DIMENSION,
   maxHeight: number = FILE_SIZE_LIMITS.MAX_DIMENSION,
-  quality: number = 0.8
+  quality: number = 0.8,
 ): Promise<File> {
   return new Promise((resolve, reject) => {
     // 检查是否在浏览器环境中
@@ -79,7 +79,7 @@ export function compressImage(
     img.onload = () => {
       // 计算新尺寸
       let { width, height } = img;
-      
+
       if (width > maxWidth || height > maxHeight) {
         const ratio = Math.min(maxWidth / width, maxHeight / height);
         width *= ratio;
@@ -106,7 +106,7 @@ export function compressImage(
           }
         },
         file.type,
-        quality
+        quality,
       );
     };
 
@@ -171,8 +171,10 @@ export function getDeviceCapabilities(): DeviceCapabilities {
   const isCapacitor = !!(window as any).Capacitor;
 
   // 更严格的移动设备检测，排除桌面浏览器的模拟模式
-  const isDesktopBrowser = /windows|macintosh|linux/.test(userAgent) && !/mobile|tablet/.test(userAgent);
-  const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent) && !isDesktopBrowser;
+  const isDesktopBrowser =
+    /windows|macintosh|linux/.test(userAgent) && !/mobile|tablet/.test(userAgent);
+  const isMobile =
+    /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent) && !isDesktopBrowser;
 
   // 只有在真正的移动设备或Capacitor环境中才认为是iOS/Android
   const isIOS = /iphone|ipad|ipod/i.test(userAgent) && !isDesktopBrowser;
@@ -234,11 +236,11 @@ export function createFilePicker(options: FilePickerOptions = {}): Promise<FileL
  */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 B';
-  
+
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
@@ -246,7 +248,7 @@ export function formatFileSize(bytes: number): string {
  * 获取文件扩展名
  */
 export function getFileExtension(filename: string): string {
-  return filename.slice((filename.lastIndexOf('.') - 1 >>> 0) + 2);
+  return filename.slice(((filename.lastIndexOf('.') - 1) >>> 0) + 2);
 }
 
 /**

@@ -163,7 +163,7 @@ export const useServerConfigStore = create<ServerConfigState>()(
             });
 
             clearTimeout(timeoutId);
-            
+
             // 检查响应状态
             if (response.ok) {
               // 尝试解析JSON以确保是有效的API响应
@@ -188,7 +188,7 @@ export const useServerConfigStore = create<ServerConfigState>()(
           }
         } catch (error) {
           console.error('🔗 连接测试失败:', error);
-          
+
           // 提供更详细的错误信息用于调试
           if (error instanceof Error) {
             if (error.name === 'AbortError') {
@@ -199,7 +199,7 @@ export const useServerConfigStore = create<ServerConfigState>()(
               console.error('🔗 网络错误');
             }
           }
-          
+
           return false;
         }
       },

@@ -35,9 +35,7 @@ export function ContentModal({ isOpen, onClose, title, children }: ContentModalP
             <div className="content-modal-header">
               <h2>{title}</h2>
             </div>
-            <div className="content-modal-content">
-              {children}
-            </div>
+            <div className="content-modal-content">{children}</div>
             <div className="content-modal-footer">
               <button className="content-close-button" onClick={onClose}>
                 关闭

@@ -70,7 +70,7 @@ export function ResetPasswordModal({ isOpen, onClose, user }: ResetPasswordModal
     }
     setNewPassword(password);
     setConfirmPassword(password);
-    
+
     // 清除错误
     setErrors({});
   };
@@ -89,7 +89,7 @@ export function ResetPasswordModal({ isOpen, onClose, user }: ResetPasswordModal
 
     try {
       const success = await resetPassword(user.id, newPassword);
-      
+
       if (success) {
         toast.success(`用户 "${user.name}" 的密码重置成功`);
         handleClose();
@@ -108,7 +108,7 @@ export function ResetPasswordModal({ isOpen, onClose, user }: ResetPasswordModal
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* 遮罩层 */}
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div 
+        <div
           className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
           onClick={handleClose}
         />
@@ -186,7 +186,10 @@ export function ResetPasswordModal({ isOpen, onClose, user }: ResetPasswordModal
 
             {/* 确认密码 */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 确认新密码 <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -270,4 +273,4 @@ export function ResetPasswordModal({ isOpen, onClose, user }: ResetPasswordModal
       </div>
     </div>
   );
-} 
+}

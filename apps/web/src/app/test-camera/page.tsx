@@ -15,34 +15,34 @@ export default function TestCameraPage() {
 
   useEffect(() => {
     setMounted(true);
-    
+
     // 获取设备能力
     const deviceCaps = getDeviceCapabilities();
     setDeviceCapabilities(deviceCaps);
-    
+
     // 获取平台信息
     const platInfo = getPlatformInfo();
     setPlatformInfo(platInfo);
-    
+
     // 异步获取平台能力
     platformFilePicker.checkCapabilities().then(setPlatformCapabilities);
   }, []);
 
   const addTestResult = (message: string) => {
-    setTestResults(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
+    setTestResults((prev) => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
   };
 
   const testCameraPlugin = async () => {
     setIsLoading(true);
     addTestResult('🧪 开始测试Camera插件...');
-    
+
     try {
       const result = await platformFilePicker.takePhoto({
         quality: 0.8,
         maxWidth: 1024,
         maxHeight: 1024,
       });
-      
+
       if (result) {
         addTestResult(`✅ 拍照成功: ${result.source}, 文件大小: ${result.file.size} bytes`);
       } else {
@@ -58,14 +58,14 @@ export default function TestCameraPage() {
   const testGalleryPlugin = async () => {
     setIsLoading(true);
     addTestResult('🧪 开始测试Gallery插件...');
-    
+
     try {
       const result = await platformFilePicker.pickFromGallery({
         quality: 0.8,
         maxWidth: 1024,
         maxHeight: 1024,
       });
-      
+
       if (result) {
         addTestResult(`✅ 相册选择成功: ${result.source}, 文件大小: ${result.file.size} bytes`);
       } else {
@@ -90,11 +90,11 @@ export default function TestCameraPage() {
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold mb-6">Camera插件测试页面</h1>
-        
+
         {/* 环境信息 */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4">环境信息</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <h3 className="font-medium mb-2">设备能力</h3>
@@ -102,7 +102,7 @@ export default function TestCameraPage() {
                 {JSON.stringify(deviceCapabilities, null, 2)}
               </pre>
             </div>
-            
+
             <div>
               <h3 className="font-medium mb-2">平台信息</h3>
               <pre className="bg-gray-100 p-3 rounded text-sm overflow-auto">
@@ -110,7 +110,7 @@ export default function TestCameraPage() {
               </pre>
             </div>
           </div>
-          
+
           <div className="mt-4">
             <h3 className="font-medium mb-2">平台能力</h3>
             <pre className="bg-gray-100 p-3 rounded text-sm overflow-auto">
@@ -122,7 +122,7 @@ export default function TestCameraPage() {
         {/* 测试按钮 */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4">功能测试</h2>
-          
+
           <div className="flex flex-wrap gap-4">
             <button
               onClick={testCameraPlugin}
@@ -131,7 +131,7 @@ export default function TestCameraPage() {
             >
               {isLoading ? '测试中...' : '测试相机'}
             </button>
-            
+
             <button
               onClick={testGalleryPlugin}
               disabled={isLoading}
@@ -139,7 +139,7 @@ export default function TestCameraPage() {
             >
               {isLoading ? '测试中...' : '测试相册'}
             </button>
-            
+
             <button
               onClick={clearResults}
               className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
@@ -152,7 +152,7 @@ export default function TestCameraPage() {
         {/* 测试结果 */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4">测试结果</h2>
-          
+
           <div className="bg-black text-green-400 p-4 rounded font-mono text-sm h-64 overflow-auto">
             {testResults.length === 0 ? (
               <div className="text-gray-500">暂无测试结果...</div>

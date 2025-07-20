@@ -8,21 +8,21 @@
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number,
-  immediate?: boolean
+  immediate?: boolean,
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null;
-  
+
   return function executedFunction(...args: Parameters<T>) {
     const later = () => {
       timeout = null;
       if (!immediate) func(...args);
     };
-    
+
     const callNow = immediate && !timeout;
-    
+
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(later, wait);
-    
+
     if (callNow) func(...args);
   };
 }
@@ -32,15 +32,15 @@ export function debounce<T extends (...args: any[]) => any>(
  */
 export function throttle<T extends (...args: any[]) => any>(
   func: T,
-  limit: number
+  limit: number,
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean;
-  
+
   return function executedFunction(...args: Parameters<T>) {
     if (!inThrottle) {
       func.apply(this, args);
       inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
+      setTimeout(() => (inThrottle = false), limit);
     }
   };
 }
@@ -61,7 +61,7 @@ export function preloadImage(src: string): Promise<HTMLImageElement> {
  * 批量预加载图片
  */
 export async function preloadImages(srcs: string[]): Promise<HTMLImageElement[]> {
-  const promises = srcs.map(src => preloadImage(src));
+  const promises = srcs.map((src) => preloadImage(src));
   return Promise.all(promises);
 }
 
@@ -73,21 +73,24 @@ export class LazyLoadObserver {
   private targets: Map<Element, () => void> = new Map();
 
   constructor(options?: IntersectionObserverInit) {
-    this.observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const callback = this.targets.get(entry.target);
-          if (callback) {
-            callback();
-            this.unobserve(entry.target);
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const callback = this.targets.get(entry.target);
+            if (callback) {
+              callback();
+              this.unobserve(entry.target);
+            }
           }
-        }
-      });
-    }, {
-      rootMargin: '50px',
-      threshold: 0.1,
-      ...options
-    });
+        });
+      },
+      {
+        rootMargin: '50px',
+        threshold: 0.1,
+        ...options,
+      },
+    );
   }
 
   observe(element: Element, callback: () => void) {
@@ -119,7 +122,7 @@ export function getMemoryUsage(): {
     return {
       used: memory.usedJSHeapSize,
       total: memory.totalJSHeapSize,
-      percentage: (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100
+      percentage: (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100,
     };
   }
   return null;
@@ -148,12 +151,12 @@ export class PerformanceTimer {
   end(label?: string): number {
     const endTime = performance.now();
     const duration = endTime - this.startTime;
-    
+
     if (label) {
       performance.mark(`${label}-end`);
       performance.measure(label, `${label}-start`, `${label}-end`);
     }
-    
+
     return duration;
   }
 
@@ -205,23 +208,23 @@ export function getOptimalQuality(fileSize: number): number {
 export function getOptimalDimensions(
   originalWidth: number,
   originalHeight: number,
-  maxSize: number = 1024
+  maxSize: number = 1024,
 ): { width: number; height: number } {
   const aspectRatio = originalWidth / originalHeight;
-  
+
   if (originalWidth <= maxSize && originalHeight <= maxSize) {
     return { width: originalWidth, height: originalHeight };
   }
-  
+
   if (originalWidth > originalHeight) {
     return {
       width: maxSize,
-      height: Math.round(maxSize / aspectRatio)
+      height: Math.round(maxSize / aspectRatio),
     };
   } else {
     return {
       width: Math.round(maxSize * aspectRatio),
-      height: maxSize
+      height: maxSize,
     };
   }
 }
@@ -232,26 +235,26 @@ export function getOptimalDimensions(
 export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   maxRetries: number = 3,
-  baseDelay: number = 1000
+  baseDelay: number = 1000,
 ): Promise<T> {
   let lastError: Error;
-  
+
   for (let i = 0; i <= maxRetries; i++) {
     try {
       return await fn();
     } catch (error) {
       lastError = error as Error;
-      
+
       if (i === maxRetries) {
         throw lastError;
       }
-      
+
       // 指数退避
       const delay = baseDelay * Math.pow(2, i);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
-  
+
   throw lastError!;
 }
 
@@ -265,20 +268,20 @@ export class CacheManager {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
-      ttl
+      ttl,
     });
   }
 
   get(key: string): any | null {
     const item = this.cache.get(key);
-    
+
     if (!item) return null;
-    
+
     if (Date.now() - item.timestamp > item.ttl) {
       this.cache.delete(key);
       return null;
     }
-    
+
     return item.data;
   }
 

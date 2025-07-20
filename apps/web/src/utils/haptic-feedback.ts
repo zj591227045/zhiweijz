@@ -18,7 +18,7 @@ export enum HapticType {
   // 错误震动 - 用于错误提示
   ERROR = 'error',
   // 选择震动 - 用于选择操作
-  SELECTION = 'selection'
+  SELECTION = 'selection',
 }
 
 // 震动模式配置
@@ -36,37 +36,37 @@ const HAPTIC_PATTERNS: Record<HapticType, HapticPattern> = {
   [HapticType.LIGHT]: {
     capacitorType: 'impact',
     capacitorStyle: 'light',
-    webPattern: 50
+    webPattern: 50,
   },
   [HapticType.MEDIUM]: {
     capacitorType: 'impact',
     capacitorStyle: 'medium',
-    webPattern: 100
+    webPattern: 100,
   },
   [HapticType.HEAVY]: {
     capacitorType: 'impact',
     capacitorStyle: 'heavy',
-    webPattern: 200
+    webPattern: 200,
   },
   [HapticType.SUCCESS]: {
     capacitorType: 'notification',
     capacitorNotificationType: 'success',
-    webPattern: [100, 50, 100]
+    webPattern: [100, 50, 100],
   },
   [HapticType.WARNING]: {
     capacitorType: 'notification',
     capacitorNotificationType: 'warning',
-    webPattern: [150, 100, 150]
+    webPattern: [150, 100, 150],
   },
   [HapticType.ERROR]: {
     capacitorType: 'notification',
     capacitorNotificationType: 'error',
-    webPattern: [200, 100, 200, 100, 200]
+    webPattern: [200, 100, 200, 100, 200],
   },
   [HapticType.SELECTION]: {
     capacitorType: 'selection',
-    webPattern: 30
-  }
+    webPattern: 30,
+  },
 };
 
 // 检测是否在Capacitor环境中
@@ -77,10 +77,10 @@ function isCapacitorEnvironment(): boolean {
 // 检测是否支持Capacitor Haptics
 function isCapacitorHapticsAvailable(): boolean {
   if (!isCapacitorEnvironment()) return false;
-  
+
   try {
     const capacitor = (window as any).Capacitor;
-    return !!(capacitor?.Plugins?.Haptics);
+    return !!capacitor?.Plugins?.Haptics;
   } catch {
     return false;
   }
@@ -95,22 +95,22 @@ function isWebVibrationAvailable(): boolean {
 async function executeCapacitorHaptic(pattern: HapticPattern): Promise<boolean> {
   try {
     const { Haptics } = (window as any).Capacitor.Plugins;
-    
+
     if (pattern.capacitorType === 'impact' && pattern.capacitorStyle) {
       await Haptics.impact({ style: pattern.capacitorStyle });
       return true;
     }
-    
+
     if (pattern.capacitorType === 'notification' && pattern.capacitorNotificationType) {
       await Haptics.notification({ type: pattern.capacitorNotificationType });
       return true;
     }
-    
+
     if (pattern.capacitorType === 'selection') {
       await Haptics.selectionStart();
       return true;
     }
-    
+
     return false;
   } catch (error) {
     console.warn('🔊 [Haptic] Capacitor震动执行失败:', error);
@@ -122,7 +122,7 @@ async function executeCapacitorHaptic(pattern: HapticPattern): Promise<boolean> 
 function executeWebVibration(pattern: HapticPattern): boolean {
   try {
     if (!navigator.vibrate) return false;
-    
+
     const success = navigator.vibrate(pattern.webPattern);
     return success;
   } catch (error) {
@@ -139,7 +139,7 @@ function executeWebVibration(pattern: HapticPattern): boolean {
  */
 export async function triggerHapticFeedback(
   type: HapticType,
-  force: boolean = false
+  force: boolean = false,
 ): Promise<boolean> {
   console.log('🔊 [Haptic] 开始执行震动反馈:', type);
 
@@ -157,20 +157,20 @@ export async function triggerHapticFeedback(
   }
 
   console.log('🔊 [Haptic] 执行震动反馈:', type, '模式:', pattern);
-  
+
   // 优先使用Capacitor Haptics（原生体验更好）
   if (isCapacitorHapticsAvailable()) {
     console.log('🔊 [Haptic] 使用Capacitor Haptics');
     const success = await executeCapacitorHaptic(pattern);
     if (success) return true;
   }
-  
+
   // 回退到Web Vibration API
   if (isWebVibrationAvailable()) {
     console.log('🔊 [Haptic] 使用Web Vibration API');
     return executeWebVibration(pattern);
   }
-  
+
   console.log('🔊 [Haptic] 当前环境不支持震动反馈');
   return false;
 }
@@ -192,7 +192,7 @@ export const haptic = {
   // 错误反馈
   error: () => triggerHapticFeedback(HapticType.ERROR),
   // 选择反馈
-  selection: () => triggerHapticFeedback(HapticType.SELECTION)
+  selection: () => triggerHapticFeedback(HapticType.SELECTION),
 };
 
 /**
@@ -205,11 +205,11 @@ export function getHapticSupport(): {
 } {
   const capacitor = isCapacitorHapticsAvailable();
   const web = isWebVibrationAvailable();
-  
+
   return {
     capacitor,
     web,
-    supported: capacitor || web
+    supported: capacitor || web,
   };
 }
 
@@ -228,5 +228,5 @@ export const recordingHaptics = {
   // 录音错误
   error: () => triggerHapticFeedback(HapticType.ERROR),
   // 按钮触摸
-  touch: () => triggerHapticFeedback(HapticType.LIGHT)
+  touch: () => triggerHapticFeedback(HapticType.LIGHT),
 };

@@ -19,12 +19,7 @@ interface BudgetEditModalProps {
   onSave: () => void;
 }
 
-export default function BudgetEditModal({
-  budgetId,
-  onClose,
-  onSave
-}: BudgetEditModalProps) {
-
+export default function BudgetEditModal({ budgetId, onClose, onSave }: BudgetEditModalProps) {
   const { isAuthenticated } = useAuthStore();
   const { currentAccountBook } = useAccountBookStore();
   const { categories, fetchCategories } = useCategoryStore();
@@ -42,7 +37,7 @@ export default function BudgetEditModal({
       if (budgetId && budgetId !== 'placeholder') {
         loadBudgetData(budgetId);
       }
-    }
+    },
   });
 
   const {
@@ -133,27 +128,32 @@ export default function BudgetEditModal({
   // 检查认证状态和token有效性
   if (!isAuthenticated || !isTokenValid) {
     return (
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'var(--background-color)',
-        zIndex: 9999,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden'
-      }}>
-        <div className="app-container" style={{
-          maxWidth: 'none',
-          margin: 0,
-          width: '100%',
-          height: '100vh',
-          minHeight: '100vh',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'var(--background-color)',
+          zIndex: 9999,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          className="app-container"
+          style={{
+            maxWidth: 'none',
+            margin: 0,
+            width: '100%',
+            height: '100vh',
+            minHeight: '100vh',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
           <div className="header">
             <button className="icon-button" onClick={onClose}>
               <i className="fas fa-arrow-left"></i>
@@ -166,9 +166,7 @@ export default function BudgetEditModal({
               <div className="form-section">
                 <div className="error-message">
                   <i className="fas fa-lock"></i>
-                  <span>
-                    {!isAuthenticated ? '请先登录账户' : 'Token已失效，请重新登录'}
-                  </span>
+                  <span>{!isAuthenticated ? '请先登录账户' : 'Token已失效，请重新登录'}</span>
                   {isRefreshing ? (
                     <button type="button" className="retry-button" disabled>
                       <span className="loading-spinner"></span>
@@ -176,17 +174,13 @@ export default function BudgetEditModal({
                     </button>
                   ) : (
                     <div className="button-group">
-                      <button
-                        type="button"
-                        onClick={refreshToken}
-                        className="retry-button"
-                      >
+                      <button type="button" onClick={refreshToken} className="retry-button">
                         <i className="fas fa-redo"></i>
                         重试
                       </button>
                       <button
                         type="button"
-                        onClick={() => window.location.href = '/auth/login'}
+                        onClick={() => (window.location.href = '/auth/login')}
                         className="retry-button"
                       >
                         <i className="fas fa-sign-in-alt"></i>
@@ -231,27 +225,32 @@ export default function BudgetEditModal({
   // 如果正在加载，显示加载状态
   if (isLoading || isDataLoading) {
     return (
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'var(--background-color)',
-        zIndex: 9999,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden'
-      }}>
-        <div className="app-container" style={{
-          maxWidth: 'none',
-          margin: 0,
-          width: '100%',
-          height: '100vh',
-          minHeight: '100vh',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'var(--background-color)',
+          zIndex: 9999,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          className="app-container"
+          style={{
+            maxWidth: 'none',
+            margin: 0,
+            width: '100%',
+            height: '100vh',
+            minHeight: '100vh',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
           <div className="header">
             <button className="icon-button" onClick={onClose}>
               <i className="fas fa-arrow-left"></i>
@@ -277,27 +276,32 @@ export default function BudgetEditModal({
   // 如果是占位符，显示占位符信息
   if (budgetId === 'placeholder') {
     return (
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'var(--background-color)',
-        zIndex: 9999,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden'
-      }}>
-        <div className="app-container" style={{
-          maxWidth: 'none',
-          margin: 0,
-          width: '100%',
-          height: '100vh',
-          minHeight: '100vh',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'var(--background-color)',
+          zIndex: 9999,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          className="app-container"
+          style={{
+            maxWidth: 'none',
+            margin: 0,
+            width: '100%',
+            height: '100vh',
+            minHeight: '100vh',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
           <div className="header">
             <button className="icon-button" onClick={onClose}>
               <i className="fas fa-arrow-left"></i>
@@ -310,7 +314,9 @@ export default function BudgetEditModal({
               <div className="form-section">
                 <div className="placeholder-message">
                   <i className="fas fa-info-circle"></i>
-                  <span>这是一个静态导出的占位符页面。在实际应用中，请通过正确的路由访问预算编辑页面。</span>
+                  <span>
+                    这是一个静态导出的占位符页面。在实际应用中，请通过正确的路由访问预算编辑页面。
+                  </span>
                 </div>
               </div>
             </div>
@@ -321,39 +327,44 @@ export default function BudgetEditModal({
   }
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'var(--background-color)',
-      zIndex: 9999,
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      // 移动端优化
-      WebkitOverflowScrolling: 'touch',
-      // 确保可以接收触摸事件
-      touchAction: 'manipulation',
-      // 尝试修复虚拟键盘问题
-      transform: 'translateZ(0)', // 强制硬件加速
-      WebkitTransform: 'translateZ(0)'
-    }}>
-      {/* 使用完全相同的应用容器结构 */}
-      <div className="app-container" style={{
-        maxWidth: 'none',
-        margin: 0,
-        width: '100%',
-        height: '100vh',
-        minHeight: '100vh',
-        position: 'relative',
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'var(--background-color)',
+        zIndex: 9999,
+        display: 'flex',
+        flexDirection: 'column',
         overflow: 'hidden',
         // 移动端优化
         WebkitOverflowScrolling: 'touch',
-        // 确保输入框可以正常工作
-        isolation: 'isolate'
-      }}>
+        // 确保可以接收触摸事件
+        touchAction: 'manipulation',
+        // 尝试修复虚拟键盘问题
+        transform: 'translateZ(0)', // 强制硬件加速
+        WebkitTransform: 'translateZ(0)',
+      }}
+    >
+      {/* 使用完全相同的应用容器结构 */}
+      <div
+        className="app-container"
+        style={{
+          maxWidth: 'none',
+          margin: 0,
+          width: '100%',
+          height: '100vh',
+          minHeight: '100vh',
+          position: 'relative',
+          overflow: 'hidden',
+          // 移动端优化
+          WebkitOverflowScrolling: 'touch',
+          // 确保输入框可以正常工作
+          isolation: 'isolate',
+        }}
+      >
         {/* 编辑预算的头部 */}
         <div className="header">
           <button className="icon-button" onClick={onClose}>
@@ -364,16 +375,19 @@ export default function BudgetEditModal({
         </div>
 
         {/* 主要内容 */}
-        <div className="main-content" style={{
-          paddingBottom: '20px',
-          overflowY: 'auto',
-          // 移动端键盘优化
-          WebkitOverflowScrolling: 'touch',
-          // 确保内容可以滚动到键盘上方
-          paddingBottom: 'env(safe-area-inset-bottom, 20px)',
-          // 防止键盘遮挡内容
-          minHeight: 'calc(100vh - 60px)' // 减去头部高度
-        }}>
+        <div
+          className="main-content"
+          style={{
+            paddingBottom: '20px',
+            overflowY: 'auto',
+            // 移动端键盘优化
+            WebkitOverflowScrolling: 'touch',
+            // 确保内容可以滚动到键盘上方
+            paddingBottom: 'env(safe-area-inset-bottom, 20px)',
+            // 防止键盘遮挡内容
+            minHeight: 'calc(100vh - 60px)', // 减去头部高度
+          }}
+        >
           <div style={{ padding: '0 20px' }}>
             <form onSubmit={handleSubmit} className="budget-form">
               {/* 错误提示 */}

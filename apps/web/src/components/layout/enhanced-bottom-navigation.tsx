@@ -9,7 +9,7 @@ import { useAccountBookStore } from '@/store/account-book-store';
 import { useGlobalAIStore } from '@/store/global-ai-store';
 import EnhancedSmartAccountingDialog from '../transactions/enhanced-smart-accounting-dialog';
 import { toast } from 'sonner';
-import { haptic } from '@/utils/haptic-feedback';
+import { hapticPresets } from '@/lib/haptic-feedback';
 import '@/styles/smart-accounting-dialog.css';
 
 interface EnhancedBottomNavigationProps {
@@ -35,8 +35,6 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
     fetchGlobalConfig();
   }, [fetchGlobalConfig]);
 
-
-
   const isActive = (path: string) => {
     if (currentPath) {
       return currentPath === path;
@@ -44,11 +42,16 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
     return pathname === path;
   };
 
+  const handleNavItemClick = (e: React.MouseEvent) => {
+    // 为导航项点击添加振动反馈
+    hapticPresets.navigation();
+  };
+
   const handleAddButtonClick = (e: React.MouseEvent) => {
     e.preventDefault();
 
     // 立即触发震动反馈
-    haptic.medium();
+    hapticPresets.buttonTap();
 
     console.log('添加按钮点击，全局AI配置:', globalConfig);
 
@@ -68,29 +71,40 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
 
   const navigationContent = (
     <>
-      <nav className="bottom-nav" style={{
-        position: 'fixed',
-        bottom: '0',
-        left: '0',
-        right: '0',
-        height: '56px',
-        background: 'var(--card-background)',
-        display: 'flex',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.05)',
-        zIndex: '99998', // 比虚拟键盘低一点，但比其他内容高
-        maxWidth: '480px',
-        margin: '0 auto',
-        // 确保在任何容器之上
-        transform: 'translateZ(0)',
-        WebkitTransform: 'translateZ(0)',
-      }}>
-        <Link href="/dashboard" className={`nav-item ${isActive('/dashboard') ? 'active' : ''}`}>
+      <nav
+        className="bottom-nav"
+        style={{
+          position: 'fixed',
+          bottom: '0',
+          left: '0',
+          right: '0',
+          height: '56px',
+          background: 'var(--card-background)',
+          display: 'flex',
+          justifyContent: 'space-around',
+          alignItems: 'center',
+          boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.05)',
+          zIndex: '99998', // 比虚拟键盘低一点，但比其他内容高
+          maxWidth: '480px',
+          margin: '0 auto',
+          // 确保在任何容器之上
+          transform: 'translateZ(0)',
+          WebkitTransform: 'translateZ(0)',
+        }}
+      >
+        <Link
+          href="/dashboard"
+          className={`nav-item ${isActive('/dashboard') ? 'active' : ''}`}
+          onClick={handleNavItemClick}
+        >
           <i className="fas fa-home"></i>
           <span>首页</span>
         </Link>
-        <Link href="/statistics" className={`nav-item ${isActive('/statistics') ? 'active' : ''}`}>
+        <Link
+          href="/statistics"
+          className={`nav-item ${isActive('/statistics') ? 'active' : ''}`}
+          onClick={handleNavItemClick}
+        >
           <i className="fas fa-chart-pie"></i>
           <span>统计</span>
         </Link>
@@ -107,11 +121,16 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
         <Link
           href="/budgets/statistics"
           className={`nav-item ${isActive('/budgets') || (pathname && pathname.startsWith('/budgets/')) ? 'active' : ''}`}
+          onClick={handleNavItemClick}
         >
           <i className="fas fa-wallet"></i>
           <span>预算</span>
         </Link>
-        <Link href="/settings" className={`nav-item ${isActive('/settings') ? 'active' : ''}`}>
+        <Link
+          href="/settings"
+          className={`nav-item ${isActive('/settings') ? 'active' : ''}`}
+          onClick={handleNavItemClick}
+        >
           <i className="fas fa-user"></i>
           <span>我的</span>
         </Link>

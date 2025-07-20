@@ -21,7 +21,7 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
     priority: 'NORMAL' as 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT',
     publishedAt: '',
     expiresAt: '',
-    targetUserType: 'all'
+    targetUserType: 'all',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,7 +30,7 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
   const [linkData, setLinkData] = useState<LinkModalData>({
     text: '',
     url: '',
-    isInternal: true
+    isInternal: true,
   });
   const [cursorPosition, setCursorPosition] = useState(0);
   const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -44,7 +44,7 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
         priority: announcement.priority,
         publishedAt: announcement.publishedAt ? announcement.publishedAt.slice(0, 16) : '',
         expiresAt: announcement.expiresAt ? announcement.expiresAt.slice(0, 16) : '',
-        targetUserType: announcement.targetUserType
+        targetUserType: announcement.targetUserType,
       });
     } else {
       setFormData({
@@ -53,7 +53,7 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
         priority: 'NORMAL',
         publishedAt: '',
         expiresAt: '',
-        targetUserType: 'all'
+        targetUserType: 'all',
       });
     }
   }, [announcement]);
@@ -97,7 +97,7 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
   // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -108,7 +108,7 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
         title: formData.title.trim(),
         content: formData.content.trim(),
         priority: formData.priority,
-        targetUserType: formData.targetUserType
+        targetUserType: formData.targetUserType,
       };
 
       if (formData.publishedAt) {
@@ -131,10 +131,10 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
 
   // 处理输入变化
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // 清除对应字段的错误
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -153,11 +153,11 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
       const selectedText = formData.content.substring(start, end);
-      
+
       setLinkData({
         text: selectedText || '',
         url: '',
-        isInternal: true
+        isInternal: true,
       });
       setCursorPosition(start);
       setShowLinkModal(true);
@@ -172,17 +172,15 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
 
     const linkMarkdown = `[${linkData.text}](${linkData.url})`;
     const textarea = contentTextareaRef.current;
-    
+
     if (textarea) {
       const start = cursorPosition;
       const end = cursorPosition;
-      const newContent = 
-        formData.content.substring(0, start) + 
-        linkMarkdown + 
-        formData.content.substring(end);
-      
+      const newContent =
+        formData.content.substring(0, start) + linkMarkdown + formData.content.substring(end);
+
       handleInputChange('content', newContent);
-      
+
       // 设置新的光标位置
       setTimeout(() => {
         const newPosition = start + linkMarkdown.length;
@@ -198,37 +196,41 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
   // 解析Markdown链接为HTML
   const parseLinksToHtml = (content: string) => {
     let result = content;
-    
+
     // 1. 匹配标准Markdown链接格式 [文本](URL)
     const standardLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
     result = result.replace(standardLinkRegex, (match, text, url) => {
       // 判断是否为内部链接
-      const isInternal = url.startsWith('/') || url.startsWith('#') || 
-                        (!url.startsWith('http://') && !url.startsWith('https://'));
+      const isInternal =
+        url.startsWith('/') ||
+        url.startsWith('#') ||
+        (!url.startsWith('http://') && !url.startsWith('https://'));
       const target = isInternal ? '_self' : '_blank';
       const rel = isInternal ? '' : 'noopener noreferrer';
-      
+
       return `<a href="${url}" target="${target}" ${rel ? `rel="${rel}"` : ''} 
               style="color: #3b82f6; text-decoration: underline; cursor: pointer;">
               ${text}
               </a>`;
     });
-    
+
     // 2. 匹配方括号链接格式 [文本][URL]
     const bracketLinkRegex = /\[([^\]]+)\]\[([^\]]+)\]/g;
     result = result.replace(bracketLinkRegex, (match, text, url) => {
       // 判断是否为内部链接
-      const isInternal = url.startsWith('/') || url.startsWith('#') || 
-                        (!url.startsWith('http://') && !url.startsWith('https://'));
+      const isInternal =
+        url.startsWith('/') ||
+        url.startsWith('#') ||
+        (!url.startsWith('http://') && !url.startsWith('https://'));
       const target = isInternal ? '_self' : '_blank';
       const rel = isInternal ? '' : 'noopener noreferrer';
-      
+
       return `<a href="${url}" target="${target}" ${rel ? `rel="${rel}"` : ''} 
               style="color: #3b82f6; text-decoration: underline; cursor: pointer;">
               ${text}
               </a>`;
     });
-    
+
     // 3. 匹配纯URL格式（自动链接）
     const urlRegex = /(https?:\/\/[^\s<>"{}|\\^`[\]]+)/g;
     result = result.replace(urlRegex, (match, url) => {
@@ -236,13 +238,13 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
       if (result.includes(`href="${url}"`)) {
         return match; // 已经是链接，不重复处理
       }
-      
+
       return `<a href="${url}" target="_blank" rel="noopener noreferrer" 
               style="color: #3b82f6; text-decoration: underline; cursor: pointer;">
               ${url}
               </a>`;
     });
-    
+
     return result;
   };
 
@@ -266,10 +268,7 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
           <h3 className="text-lg font-medium text-gray-900">
             {announcement ? '编辑公告' : '新建公告'}
           </h3>
-          <button
-            onClick={onCancel}
-            className="text-gray-400 hover:text-gray-600"
-          >
+          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600">
             <XMarkIcon className="h-6 w-6" />
           </button>
         </div>
@@ -292,12 +291,8 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
               placeholder="请输入公告标题"
               maxLength={200}
             />
-            {errors.title && (
-              <p className="mt-1 text-sm text-red-600">{errors.title}</p>
-            )}
-            <p className="mt-1 text-sm text-gray-500">
-              {formData.title.length}/200 字符
-            </p>
+            {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
+            <p className="mt-1 text-sm text-gray-500">{formData.title.length}/200 字符</p>
           </div>
 
           {/* 内容 */}
@@ -329,9 +324,7 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
               placeholder="请输入公告内容，支持换行和超链接。支持格式：[链接文本](链接地址) 或 [链接文本][链接地址]"
               maxLength={10000}
             />
-            {errors.content && (
-              <p className="mt-1 text-sm text-red-600">{errors.content}</p>
-            )}
+            {errors.content && <p className="mt-1 text-sm text-red-600">{errors.content}</p>}
             <div className="mt-1 flex items-center justify-between text-sm text-gray-500">
               <span>支持链接格式：[文本](URL) 或 [文本][URL] 或直接输入URL</span>
               <span>{formData.content.length}/10000 字符</span>
@@ -397,9 +390,7 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
               {errors.publishedAt && (
                 <p className="mt-1 text-sm text-red-600">{errors.publishedAt}</p>
               )}
-              <p className="mt-1 text-sm text-gray-500">
-                留空表示立即生效
-              </p>
+              <p className="mt-1 text-sm text-gray-500">留空表示立即生效</p>
             </div>
 
             {/* 过期时间 */}
@@ -419,26 +410,22 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
                   errors.expiresAt ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
-              {errors.expiresAt && (
-                <p className="mt-1 text-sm text-red-600">{errors.expiresAt}</p>
-              )}
-              <p className="mt-1 text-sm text-gray-500">
-                留空表示永不过期
-              </p>
+              {errors.expiresAt && <p className="mt-1 text-sm text-red-600">{errors.expiresAt}</p>}
+              <p className="mt-1 text-sm text-gray-500">留空表示永不过期</p>
             </div>
           </div>
 
           {/* 预览区域 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              内容预览
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">内容预览</label>
             <div className="border border-gray-300 rounded-md p-4 bg-gray-50 min-h-[100px]">
               {formData.content ? (
                 <div className="prose prose-sm max-w-none">
-                  <div dangerouslySetInnerHTML={{ 
-                    __html: parseLinksToHtml(formData.content.replace(/\n/g, '<br>'))
-                  }} />
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: parseLinksToHtml(formData.content.replace(/\n/g, '<br>')),
+                    }}
+                  />
                 </div>
               ) : (
                 <p className="text-gray-500 italic">内容预览将在这里显示...</p>
@@ -482,15 +469,15 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
               <div className="mt-4 space-y-4">
                 {/* 链接类型选择 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    链接类型
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">链接类型</label>
                   <div className="flex space-x-4">
                     <label className="flex items-center">
                       <input
                         type="radio"
                         checked={linkData.isInternal}
-                        onChange={() => setLinkData(prev => ({ ...prev, isInternal: true, url: '' }))}
+                        onChange={() =>
+                          setLinkData((prev) => ({ ...prev, isInternal: true, url: '' }))
+                        }
                         className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                       />
                       <span className="ml-2 text-sm text-gray-700">内部页面</span>
@@ -499,7 +486,9 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
                       <input
                         type="radio"
                         checked={!linkData.isInternal}
-                        onChange={() => setLinkData(prev => ({ ...prev, isInternal: false, url: '' }))}
+                        onChange={() =>
+                          setLinkData((prev) => ({ ...prev, isInternal: false, url: '' }))
+                        }
                         className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                       />
                       <span className="ml-2 text-sm text-gray-700">外部链接</span>
@@ -516,7 +505,7 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
                     type="text"
                     id="linkText"
                     value={linkData.text}
-                    onChange={(e) => setLinkData(prev => ({ ...prev, text: e.target.value }))}
+                    onChange={(e) => setLinkData((prev) => ({ ...prev, text: e.target.value }))}
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     placeholder="请输入链接显示的文本"
                   />
@@ -531,11 +520,11 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
                     <select
                       id="linkUrl"
                       value={linkData.url}
-                      onChange={(e) => setLinkData(prev => ({ ...prev, url: e.target.value }))}
+                      onChange={(e) => setLinkData((prev) => ({ ...prev, url: e.target.value }))}
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="">请选择页面</option>
-                      {getInternalPageOptions().map(option => (
+                      {getInternalPageOptions().map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
@@ -546,7 +535,7 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
                       type="url"
                       id="linkUrl"
                       value={linkData.url}
-                      onChange={(e) => setLinkData(prev => ({ ...prev, url: e.target.value }))}
+                      onChange={(e) => setLinkData((prev) => ({ ...prev, url: e.target.value }))}
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="请输入完整的URL地址，如：https://example.com"
                     />
@@ -556,9 +545,7 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
                 {/* 预览 */}
                 {linkData.text && linkData.url && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      预览效果
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">预览效果</label>
                     <div className="p-3 bg-gray-50 rounded-md border">
                       <a
                         href={linkData.url}
@@ -598,4 +585,4 @@ export function AnnouncementEditor({ announcement, onSave, onCancel }: Announcem
       </div>
     </div>
   );
-} 
+}

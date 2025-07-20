@@ -109,27 +109,35 @@ export function AmountInput() {
 
   return (
     <>
-      <div style={{
-        textAlign: 'center',
-        marginBottom: '24px'
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-          marginBottom: '8px',
-          padding: '16px',
-          backgroundColor: 'var(--background-secondary)',
-          borderRadius: '12px',
-          border: '1px solid var(--border-color)',
-          minHeight: '60px'
-        }}>
-          <span style={{
-            fontSize: '24px',
-            fontWeight: '300',
-            color: 'var(--text-secondary)'
-          }}>¥</span>
+      <div
+        style={{
+          textAlign: 'center',
+          marginBottom: '24px',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            marginBottom: '8px',
+            padding: '16px',
+            backgroundColor: 'var(--background-secondary)',
+            borderRadius: '12px',
+            border: '1px solid var(--border-color)',
+            minHeight: '60px',
+          }}
+        >
+          <span
+            style={{
+              fontSize: '24px',
+              fontWeight: '300',
+              color: 'var(--text-secondary)',
+            }}
+          >
+            ¥
+          </span>
           <input
             ref={inputRef}
             type="text"
@@ -149,7 +157,7 @@ export function AmountInput() {
               width: '100%',
               maxWidth: '200px',
               padding: '8px',
-              cursor: 'pointer'
+              cursor: 'pointer',
             }}
           />
         </div>

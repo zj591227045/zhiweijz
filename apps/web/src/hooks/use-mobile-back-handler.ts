@@ -41,7 +41,7 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
   useEffect(() => {
     if (pageId && typeof window !== 'undefined') {
       const currentPath = window.location.pathname;
-      
+
       navigationManager.navigateToPage({
         id: pageId,
         level: pageLevel,
@@ -66,7 +66,7 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
 
     try {
       console.log('📱 [BackHandler] 开始处理后退');
-      
+
       // 1. 优先执行自定义后退处理
       if (onBack) {
         const customResult = onBack();
@@ -79,11 +79,11 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
       // 2. 使用导航管理器处理后退
       const navigationResult = navigationManager.handleBackAction();
       console.log('📱 [BackHandler] 导航管理器处理结果:', navigationResult);
-      
+
       if (navigationResult) {
         // 导航管理器成功处理了后退
         const state = navigationManager.getNavigationState();
-        
+
         // 根据当前状态决定路由跳转
         if (state.modalStack.length > 0) {
           // 还有模态框，不需要路由跳转
@@ -97,14 +97,14 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
           console.log('📱 [BackHandler] 返回仪表盘');
           router.push('/dashboard');
         }
-        
+
         return true;
       }
 
       // 3. 检查是否可以退出应用
       if (navigationState.canExitApp()) {
         console.log('📱 [BackHandler] 可以退出应用');
-        
+
         // 在移动端环境中，尝试退出应用
         if (navigationState.isMobile && typeof window !== 'undefined') {
           const capacitor = (window as any).Capacitor;
@@ -114,7 +114,7 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
             return true;
           }
         }
-        
+
         // Web环境或无法退出应用时，允许默认行为
         console.log('📱 [BackHandler] 允许默认后退行为');
         return false;
@@ -123,7 +123,6 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
       // 4. 默认情况：阻止后退
       console.log('📱 [BackHandler] 阻止默认后退行为');
       return true;
-
     } finally {
       // 延迟重置标志，避免快速连续触发
       setTimeout(() => {
@@ -141,10 +140,10 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
 
     const backButtonListener = capacitor.Plugins.App.addListener('backButton', (data: any) => {
       console.log('📱 [BackHandler] 硬件后退按钮触发:', data);
-      
+
       const handled = handleBack();
       console.log('📱 [BackHandler] 硬件后退处理结果:', handled);
-      
+
       // 如果没有处理，允许默认行为
       if (!handled && !preventDefault) {
         console.log('📱 [BackHandler] 执行默认硬件后退');
@@ -250,15 +249,15 @@ export function useGlobalBackHandler() {
 export function useModalBackHandler(modalId: string, onClose?: () => void) {
   const closeModal = useCallback(() => {
     console.log('📱 [ModalBackHandler] 关闭模态框:', modalId);
-    
+
     // 从导航管理器中移除模态框
     const removedModal = navigationManager.closeModal();
-    
+
     // 执行关闭回调
     if (onClose) {
       onClose();
     }
-    
+
     return true; // 表示已处理
   }, [modalId, onClose]);
 

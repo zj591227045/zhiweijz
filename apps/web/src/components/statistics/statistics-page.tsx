@@ -61,7 +61,7 @@ export function StatisticsPage() {
     setDateRange,
     setTimeRangeType,
     setSelectedTagIds,
-    reset
+    reset,
   } = useStatisticsStore();
 
   // 预算筛选状态
@@ -88,7 +88,14 @@ export function StatisticsPage() {
       const { startDate, endDate } = getCurrentMonthRange();
       setDateRange({ startDate, endDate });
       setTimeRangeType('month');
-      fetchStatisticsData(startDate, endDate, currentAccountBook.id, selectedTagIds, 'month', selectedBudgetId);
+      fetchStatisticsData(
+        startDate,
+        endDate,
+        currentAccountBook.id,
+        selectedTagIds,
+        'month',
+        selectedBudgetId,
+      );
     }
 
     // 组件卸载时重置状态
@@ -96,7 +103,10 @@ export function StatisticsPage() {
   }, [currentAccountBook?.id, fetchStatisticsData, setDateRange, setTimeRangeType, reset]);
 
   // 处理日期范围变化
-  const handleDateRangeChange = (newDateRange: { startDate: string; endDate: string }, rangeType: TimeRangeType) => {
+  const handleDateRangeChange = (
+    newDateRange: { startDate: string; endDate: string },
+    rangeType: TimeRangeType,
+  ) => {
     setDateRange(newDateRange);
     setTimeRangeType(rangeType);
 
@@ -107,7 +117,7 @@ export function StatisticsPage() {
         currentAccountBook.id,
         selectedTagIds,
         rangeType,
-        selectedBudgetId
+        selectedBudgetId,
       );
     }
   };
@@ -124,7 +134,7 @@ export function StatisticsPage() {
         selectedTagIds,
         timeRangeType,
         budgetId,
-        budgetIds
+        budgetIds,
       );
     }
   };
@@ -141,7 +151,7 @@ export function StatisticsPage() {
         currentAccountBook.id,
         [],
         timeRangeType,
-        null
+        null,
       );
     }
   };
@@ -168,7 +178,7 @@ export function StatisticsPage() {
         currentAccountBook.id,
         selectedTagIds,
         timeRangeType,
-        selectedBudgetId
+        selectedBudgetId,
       );
     }
     handleCloseEditModal();
@@ -201,21 +211,23 @@ export function StatisticsPage() {
         style={{
           backgroundColor: showFilters || hasActiveFilters ? 'var(--primary-color)' : 'transparent',
           color: showFilters || hasActiveFilters ? 'white' : 'var(--text-primary)',
-          position: 'relative'
+          position: 'relative',
         }}
       >
         <i className="fas fa-filter"></i>
         {hasActiveFilters && !showFilters && (
-          <span style={{
-            position: 'absolute',
-            top: '4px',
-            right: '4px',
-            width: '8px',
-            height: '8px',
-            backgroundColor: '#ef4444',
-            borderRadius: '50%',
-            border: '1px solid white'
-          }}></span>
+          <span
+            style={{
+              position: 'absolute',
+              top: '4px',
+              right: '4px',
+              width: '8px',
+              height: '8px',
+              backgroundColor: '#ef4444',
+              borderRadius: '50%',
+              border: '1px solid white',
+            }}
+          ></span>
         )}
       </button>
     </>
@@ -242,7 +254,7 @@ export function StatisticsPage() {
               boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
               overflow: 'hidden',
               animation: 'slideDown 0.3s ease-out',
-              border: '1px solid #f1f5f9'
+              border: '1px solid #f1f5f9',
             }}
           >
             <div
@@ -253,36 +265,42 @@ export function StatisticsPage() {
                 alignItems: 'center',
                 padding: '12px 16px',
                 background: 'linear-gradient(135deg, var(--primary-color) 0%, #667eea 100%)',
-                color: 'white'
+                color: 'white',
               }}
             >
-              <h3 style={{
-                fontSize: '16px',
-                fontWeight: '600',
-                color: 'white',
-                margin: '0',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                flex: '1'
-              }}>
+              <h3
+                style={{
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: 'white',
+                  margin: '0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  flex: '1',
+                }}
+              >
                 <i className="fas fa-filter"></i>
                 筛选条件
                 {hasActiveFilters && (
-                  <span style={{
-                    marginLeft: '4px',
-                    color: '#fbbf24',
-                    animation: 'pulse 2s infinite'
-                  }}>
+                  <span
+                    style={{
+                      marginLeft: '4px',
+                      color: '#fbbf24',
+                      animation: 'pulse 2s infinite',
+                    }}
+                  >
                     <i className="fas fa-circle" style={{ fontSize: '8px' }}></i>
                   </span>
                 )}
               </h3>
-              <div style={{
-                display: 'flex',
-                gap: '8px',
-                flexShrink: '0'
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '8px',
+                  flexShrink: '0',
+                }}
+              >
                 {hasActiveFilters && (
                   <button
                     className="reset-filters-btn"
@@ -299,7 +317,7 @@ export function StatisticsPage() {
                       fontWeight: '500',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '4px'
+                      gap: '4px',
                     }}
                   >
                     <i className="fas fa-undo"></i>
@@ -320,7 +338,7 @@ export function StatisticsPage() {
                     fontWeight: '500',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '4px'
+                    gap: '4px',
                   }}
                 >
                   <i className="fas fa-times"></i>
@@ -334,7 +352,7 @@ export function StatisticsPage() {
               style={{
                 padding: '20px',
                 borderBottom: '1px solid #f1f5f9',
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
               }}
             >
               <div
@@ -346,15 +364,18 @@ export function StatisticsPage() {
                   marginBottom: '16px',
                   fontSize: '15px',
                   fontWeight: '600',
-                  color: '#374151'
+                  color: '#374151',
                 }}
               >
-                <i className="fas fa-wallet" style={{
-                  fontSize: '14px',
-                  color: '#3b82f6',
-                  width: '18px',
-                  textAlign: 'center'
-                }}></i>
+                <i
+                  className="fas fa-wallet"
+                  style={{
+                    fontSize: '14px',
+                    color: '#3b82f6',
+                    width: '18px',
+                    textAlign: 'center',
+                  }}
+                ></i>
                 <span>预算筛选</span>
               </div>
               <BudgetFilter
@@ -367,18 +388,20 @@ export function StatisticsPage() {
               />
               {/* 聚合提示信息 - 只在跨月时显示 */}
               {isMultiMonthRange() && (
-                <div style={{
-                  marginTop: '8px',
-                  padding: '8px 12px',
-                  backgroundColor: '#f0f9ff',
-                  border: '1px solid #bae6fd',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  color: '#0369a1',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}>
+                <div
+                  style={{
+                    marginTop: '8px',
+                    padding: '8px 12px',
+                    backgroundColor: '#f0f9ff',
+                    border: '1px solid #bae6fd',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    color: '#0369a1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
                   <i className="fas fa-info-circle" style={{ fontSize: '10px' }}></i>
                   <span>跨月份时间范围时，相同用户的个人预算将自动聚合显示</span>
                 </div>
@@ -390,7 +413,7 @@ export function StatisticsPage() {
               className="filter-item"
               style={{
                 padding: '20px',
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
               }}
             >
               <div
@@ -402,15 +425,18 @@ export function StatisticsPage() {
                   marginBottom: '16px',
                   fontSize: '15px',
                   fontWeight: '600',
-                  color: '#374151'
+                  color: '#374151',
                 }}
               >
-                <i className="fas fa-tags" style={{
-                  fontSize: '14px',
-                  color: '#10b981',
-                  width: '18px',
-                  textAlign: 'center'
-                }}></i>
+                <i
+                  className="fas fa-tags"
+                  style={{
+                    fontSize: '14px',
+                    color: '#10b981',
+                    width: '18px',
+                    textAlign: 'center',
+                  }}
+                ></i>
                 <span>标签筛选</span>
               </div>
               <TagFilterSelector
@@ -420,7 +446,14 @@ export function StatisticsPage() {
                   setSelectedTagIds(tagIds);
                   // 标签变化时重新获取数据
                   if (dateRange.startDate && dateRange.endDate) {
-                    fetchStatisticsData(dateRange.startDate, dateRange.endDate, currentAccountBook.id, tagIds, timeRangeType, selectedBudgetId);
+                    fetchStatisticsData(
+                      dateRange.startDate,
+                      dateRange.endDate,
+                      currentAccountBook.id,
+                      tagIds,
+                      timeRangeType,
+                      selectedBudgetId,
+                    );
                   }
                 }}
               />
@@ -428,54 +461,60 @@ export function StatisticsPage() {
           </div>
         )}
 
-      {isLoading ? (
-        <div className="loading-state">
-          <i className="fas fa-spinner fa-spin"></i>
-          <p>加载中...</p>
-        </div>
-      ) : error ? (
-        <div className="error-state">
-          <i className="fas fa-exclamation-circle"></i>
-          <p>{error.message}</p>
-          <button
-            className="retry-button"
-            onClick={() => {
-              if (dateRange.startDate && dateRange.endDate && currentAccountBook?.id) {
-                fetchStatisticsData(dateRange.startDate, dateRange.endDate, currentAccountBook.id, selectedTagIds, timeRangeType);
-              }
-            }}
-          >
-            重试
-          </button>
-        </div>
-      ) : statisticsData ? (
-        <>
-          {/* 财务概览 */}
-          <StatsSummaryCard
-            totalIncome={statisticsData.totalIncome}
-            totalExpense={statisticsData.totalExpense}
-            balance={statisticsData.balance}
-          />
+        {isLoading ? (
+          <div className="loading-state">
+            <i className="fas fa-spinner fa-spin"></i>
+            <p>加载中...</p>
+          </div>
+        ) : error ? (
+          <div className="error-state">
+            <i className="fas fa-exclamation-circle"></i>
+            <p>{error.message}</p>
+            <button
+              className="retry-button"
+              onClick={() => {
+                if (dateRange.startDate && dateRange.endDate && currentAccountBook?.id) {
+                  fetchStatisticsData(
+                    dateRange.startDate,
+                    dateRange.endDate,
+                    currentAccountBook.id,
+                    selectedTagIds,
+                    timeRangeType,
+                  );
+                }
+              }}
+            >
+              重试
+            </button>
+          </div>
+        ) : statisticsData ? (
+          <>
+            {/* 财务概览 */}
+            <StatsSummaryCard
+              totalIncome={statisticsData.totalIncome}
+              totalExpense={statisticsData.totalExpense}
+              balance={statisticsData.balance}
+            />
 
-          {/* 分类分布 */}
-          <CategoryDistribution
-            expenseCategories={statisticsData.expenseByCategory}
-            incomeCategories={statisticsData.incomeByCategory}
-            onTransactionEdit={handleTransactionEdit}
-          />
+            {/* 分类分布 */}
+            <CategoryDistribution
+              expenseCategories={statisticsData.expenseByCategory}
+              incomeCategories={statisticsData.incomeByCategory}
+              onTransactionEdit={handleTransactionEdit}
+            />
 
-          {/* 收支趋势 */}
-          <TrendChart dailyStatistics={statisticsData.dailyStatistics} />
+            {/* 收支趋势 */}
+            <TrendChart dailyStatistics={statisticsData.dailyStatistics} />
 
-          {/* 统计导航 */}
-          <AnalysisNavigation />
-        </>
-      ) : (
-        <div className="empty-state">
-          <i className="fas fa-chart-bar"></i>
-          <p>暂无统计数据</p>
-        </div>
-      )}
+            {/* 统计导航 */}
+            <AnalysisNavigation />
+          </>
+        ) : (
+          <div className="empty-state">
+            <i className="fas fa-chart-bar"></i>
+            <p>暂无统计数据</p>
+          </div>
+        )}
       </div>
 
       {/* 记账编辑模态框 */}

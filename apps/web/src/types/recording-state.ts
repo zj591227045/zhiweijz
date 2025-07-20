@@ -17,18 +17,26 @@ export enum RecordingState {
   // 错误 - 录音过程中出现错误
   ERROR = 'error',
   // 取消 - 用户取消录音
-  CANCELLED = 'cancelled'
+  CANCELLED = 'cancelled',
 }
 
 // 录音状态转换映射
 export const RECORDING_STATE_TRANSITIONS: Record<RecordingState, RecordingState[]> = {
   [RecordingState.IDLE]: [RecordingState.PREPARING],
-  [RecordingState.PREPARING]: [RecordingState.RECORDING, RecordingState.ERROR, RecordingState.CANCELLED],
-  [RecordingState.RECORDING]: [RecordingState.PROCESSING, RecordingState.CANCELLED, RecordingState.ERROR],
+  [RecordingState.PREPARING]: [
+    RecordingState.RECORDING,
+    RecordingState.ERROR,
+    RecordingState.CANCELLED,
+  ],
+  [RecordingState.RECORDING]: [
+    RecordingState.PROCESSING,
+    RecordingState.CANCELLED,
+    RecordingState.ERROR,
+  ],
   [RecordingState.PROCESSING]: [RecordingState.COMPLETED, RecordingState.ERROR],
   [RecordingState.COMPLETED]: [RecordingState.IDLE],
   [RecordingState.ERROR]: [RecordingState.IDLE],
-  [RecordingState.CANCELLED]: [RecordingState.IDLE]
+  [RecordingState.CANCELLED]: [RecordingState.IDLE],
 };
 
 // 录音状态显示文本
@@ -39,7 +47,7 @@ export const RECORDING_STATE_LABELS: Record<RecordingState, string> = {
   [RecordingState.PROCESSING]: '处理中...',
   [RecordingState.COMPLETED]: '录音完成',
   [RecordingState.ERROR]: '录音失败',
-  [RecordingState.CANCELLED]: '已取消'
+  [RecordingState.CANCELLED]: '已取消',
 };
 
 // 录音状态图标
@@ -50,7 +58,7 @@ export const RECORDING_STATE_ICONS: Record<RecordingState, string> = {
   [RecordingState.PROCESSING]: 'fas fa-spinner fa-spin',
   [RecordingState.COMPLETED]: 'fas fa-check',
   [RecordingState.ERROR]: 'fas fa-exclamation-triangle',
-  [RecordingState.CANCELLED]: 'fas fa-times'
+  [RecordingState.CANCELLED]: 'fas fa-times',
 };
 
 // 录音状态颜色
@@ -61,7 +69,7 @@ export const RECORDING_STATE_COLORS: Record<RecordingState, string> = {
   [RecordingState.PROCESSING]: 'var(--info-color, #3b82f6)',
   [RecordingState.COMPLETED]: 'var(--success-color, #10b981)',
   [RecordingState.ERROR]: 'var(--error-color, #ef4444)',
-  [RecordingState.CANCELLED]: 'var(--gray-color, #6b7280)'
+  [RecordingState.CANCELLED]: 'var(--gray-color, #6b7280)',
 };
 
 // 录音错误类型
@@ -73,7 +81,7 @@ export enum RecordingErrorType {
   RECORDING_FAILED = 'recording_failed',
   PROCESSING_FAILED = 'processing_failed',
   NETWORK_ERROR = 'network_error',
-  UNKNOWN_ERROR = 'unknown_error'
+  UNKNOWN_ERROR = 'unknown_error',
 }
 
 // 录音错误信息
@@ -85,7 +93,7 @@ export const RECORDING_ERROR_MESSAGES: Record<RecordingErrorType, string> = {
   [RecordingErrorType.RECORDING_FAILED]: '录音过程中发生错误',
   [RecordingErrorType.PROCESSING_FAILED]: '音频处理失败',
   [RecordingErrorType.NETWORK_ERROR]: '网络连接错误，请检查网络设置',
-  [RecordingErrorType.UNKNOWN_ERROR]: '发生未知错误，请重试'
+  [RecordingErrorType.UNKNOWN_ERROR]: '发生未知错误，请重试',
 };
 
 // 录音状态数据接口
@@ -130,7 +138,7 @@ export class RecordingStateManagerImpl implements RecordingStateManager {
       state: RecordingState.IDLE,
       progress: 0,
       duration: 0,
-      audioLevel: 0
+      audioLevel: 0,
     };
   }
 
@@ -157,7 +165,7 @@ export class RecordingStateManagerImpl implements RecordingStateManager {
     this._stateData = {
       ...this._stateData,
       state: newState,
-      ...data
+      ...data,
     };
 
     // 清除错误（除非新状态是错误状态）
@@ -181,8 +189,8 @@ export class RecordingStateManagerImpl implements RecordingStateManager {
       error: {
         type: errorType,
         message: RECORDING_ERROR_MESSAGES[errorType],
-        details
-      }
+        details,
+      },
     };
 
     this._notifyListeners();
@@ -196,7 +204,7 @@ export class RecordingStateManagerImpl implements RecordingStateManager {
       state: RecordingState.IDLE,
       progress: 0,
       duration: 0,
-      audioLevel: 0
+      audioLevel: 0,
     };
 
     this._notifyListeners();
@@ -204,10 +212,10 @@ export class RecordingStateManagerImpl implements RecordingStateManager {
 
   onStateChange(callback: (state: RecordingStateData) => void): () => void {
     this._listeners.add(callback);
-    
+
     // 立即调用一次回调，传递当前状态
     callback(this.stateData);
-    
+
     // 返回取消监听的函数
     return () => {
       this._listeners.delete(callback);
@@ -215,7 +223,7 @@ export class RecordingStateManagerImpl implements RecordingStateManager {
   }
 
   private _notifyListeners(): void {
-    this._listeners.forEach(listener => {
+    this._listeners.forEach((listener) => {
       try {
         listener(this.stateData);
       } catch (error) {
@@ -257,9 +265,5 @@ export function isProcessing(state: RecordingState): boolean {
  * 检查状态是否为最终状态
  */
 export function isFinalState(state: RecordingState): boolean {
-  return [
-    RecordingState.COMPLETED,
-    RecordingState.ERROR,
-    RecordingState.CANCELLED
-  ].includes(state);
+  return [RecordingState.COMPLETED, RecordingState.ERROR, RecordingState.CANCELLED].includes(state);
 }

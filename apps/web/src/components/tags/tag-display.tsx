@@ -55,15 +55,15 @@ export const TagDisplay: React.FC<TagDisplayProps> = ({
   const getTextColor = (backgroundColor: string): string => {
     // 移除 # 号
     const hex = backgroundColor.replace('#', '');
-    
+
     // 转换为 RGB
     const r = parseInt(hex.substr(0, 2), 16);
     const g = parseInt(hex.substr(2, 2), 16);
     const b = parseInt(hex.substr(4, 2), 16);
-    
+
     // 计算亮度
     const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-    
+
     // 根据亮度返回黑色或白色文本
     return brightness > 128 ? '#000000' : '#FFFFFF';
   };
@@ -93,7 +93,7 @@ export const TagDisplay: React.FC<TagDisplayProps> = ({
             'inline-flex items-center rounded-full font-medium transition-all duration-200',
             getSizeClasses(),
             interactive && 'cursor-pointer hover:scale-105 hover:shadow-sm',
-            onClick && 'cursor-pointer'
+            onClick && 'cursor-pointer',
           )}
           style={{
             backgroundColor: tag.color,
@@ -108,7 +108,7 @@ export const TagDisplay: React.FC<TagDisplayProps> = ({
               type="button"
               className={cn(
                 'ml-1 rounded-full hover:bg-black/10 transition-colors',
-                size === 'small' ? 'p-0.5' : 'p-1'
+                size === 'small' ? 'p-0.5' : 'p-1',
               )}
               onClick={(e) => handleRemoveClick(tag, e)}
               aria-label={`移除标签 ${tag.name}`}
@@ -118,13 +118,13 @@ export const TagDisplay: React.FC<TagDisplayProps> = ({
           )}
         </span>
       ))}
-      
+
       {remainingCount > 0 && (
         <span
           className={cn(
             'inline-flex items-center rounded-full bg-gray-100 text-gray-600 font-medium',
             getSizeClasses(),
-            interactive && 'cursor-pointer hover:bg-gray-200'
+            interactive && 'cursor-pointer hover:bg-gray-200',
           )}
           title={`还有 ${remainingCount} 个标签`}
         >
@@ -221,7 +221,7 @@ export const TagList: React.FC<TagListProps> = ({
               )}
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             {onTagEdit && (
               <button
@@ -231,7 +231,12 @@ export const TagList: React.FC<TagListProps> = ({
                 aria-label={`编辑标签 ${tag.name}`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
                 </svg>
               </button>
             )}
@@ -243,7 +248,12 @@ export const TagList: React.FC<TagListProps> = ({
                 aria-label={`删除标签 ${tag.name}`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
                 </svg>
               </button>
             )}

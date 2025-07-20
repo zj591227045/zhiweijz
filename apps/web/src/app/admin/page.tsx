@@ -23,13 +23,19 @@ export default function AdminDashboardPage() {
 
   // Web端完整功能
   const { isAuthenticated, token } = useAdminAuth();
-  const { fetchOverview, fetchUserStats, fetchTransactionStats, fetchSystemResources } = useAdminDashboard();
+  const { fetchOverview, fetchUserStats, fetchTransactionStats, fetchSystemResources } =
+    useAdminDashboard();
 
   useEffect(() => {
     // 只在认证完成且有token时才执行API请求
     if (isAuthenticated && token) {
-      console.log('🔍 [AdminDashboard] Fetching dashboard data, authenticated:', isAuthenticated, 'hasToken:', !!token);
-      
+      console.log(
+        '🔍 [AdminDashboard] Fetching dashboard data, authenticated:',
+        isAuthenticated,
+        'hasToken:',
+        !!token,
+      );
+
       // 页面加载时获取所有仪表盘数据
       const fetchAllData = async () => {
         try {
@@ -46,7 +52,14 @@ export default function AdminDashboardPage() {
 
       fetchAllData();
     }
-  }, [isAuthenticated, token, fetchOverview, fetchUserStats, fetchTransactionStats, fetchSystemResources]);
+  }, [
+    isAuthenticated,
+    token,
+    fetchOverview,
+    fetchUserStats,
+    fetchTransactionStats,
+    fetchSystemResources,
+  ]);
 
   // 如果未认证，显示加载状态
   if (!isAuthenticated || !token) {
@@ -66,8 +79,8 @@ export default function AdminDashboardPage() {
         <h1 className="text-3xl font-bold text-gray-900">管理仪表盘</h1>
         <p className="text-gray-600 mt-2">系统运行状态和数据统计概览</p>
       </div>
-      
+
       <AdminDashboard />
     </div>
   );
-} 
+}

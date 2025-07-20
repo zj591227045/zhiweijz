@@ -60,18 +60,18 @@ export function ModalNavigationProvider({ children }: { children: React.ReactNod
   const openModal = useCallback((config: ModalConfig) => {
     console.log('🎭 [ModalNavigation] 打开模态框:', config.id);
 
-    setModalState(prev => {
+    setModalState((prev) => {
       const newModals = new Map(prev.modals);
       newModals.set(config.id, config);
 
       const newStack = [...prev.modalStack];
-      
+
       // 如果模态框已存在于栈中，先移除
       const existingIndex = newStack.indexOf(config.id);
       if (existingIndex !== -1) {
         newStack.splice(existingIndex, 1);
       }
-      
+
       // 添加到栈顶
       newStack.push(config.id);
 
@@ -99,7 +99,7 @@ export function ModalNavigationProvider({ children }: { children: React.ReactNod
   // 关闭当前模态框
   const closeModal = useCallback(() => {
     const currentModalId = modalState.modalStack[modalState.modalStack.length - 1];
-    
+
     if (!currentModalId) {
       console.log('🎭 [ModalNavigation] 没有模态框可关闭');
       return;
@@ -109,7 +109,7 @@ export function ModalNavigationProvider({ children }: { children: React.ReactNod
 
     const modalConfig = modalState.modals.get(currentModalId);
 
-    setModalState(prev => {
+    setModalState((prev) => {
       const newModals = new Map(prev.modals);
       newModals.delete(currentModalId);
 
@@ -135,7 +135,7 @@ export function ModalNavigationProvider({ children }: { children: React.ReactNod
     console.log('🎭 [ModalNavigation] 关闭所有模态框');
 
     // 执行所有模态框的关闭回调
-    modalState.modalStack.forEach(modalId => {
+    modalState.modalStack.forEach((modalId) => {
       const modalConfig = modalState.modals.get(modalId);
       if (modalConfig?.onClose) {
         modalConfig.onClose();
@@ -155,7 +155,7 @@ export function ModalNavigationProvider({ children }: { children: React.ReactNod
   const updateModal = useCallback((id: string, updates: Partial<ModalConfig>) => {
     console.log('🎭 [ModalNavigation] 更新模态框:', id, updates);
 
-    setModalState(prev => {
+    setModalState((prev) => {
       const existingConfig = prev.modals.get(id);
       if (!existingConfig) {
         console.warn('🎭 [ModalNavigation] 模态框不存在:', id);
@@ -181,17 +181,20 @@ export function ModalNavigationProvider({ children }: { children: React.ReactNod
   // 获取模态框栈
   const getModalStack = useCallback((): ModalConfig[] => {
     return modalState.modalStack
-      .map(id => modalState.modals.get(id))
+      .map((id) => modalState.modals.get(id))
       .filter((config): config is ModalConfig => config !== undefined);
   }, [modalState]);
 
   // 检查模态框是否打开
-  const isModalOpen = useCallback((id?: string): boolean => {
-    if (id) {
-      return modalState.modalStack.includes(id);
-    }
-    return modalState.modalStack.length > 0;
-  }, [modalState.modalStack]);
+  const isModalOpen = useCallback(
+    (id?: string): boolean => {
+      if (id) {
+        return modalState.modalStack.includes(id);
+      }
+      return modalState.modalStack.length > 0;
+    },
+    [modalState.modalStack],
+  );
 
   // 监听导航状态变化，同步模态框状态
   useEffect(() => {
@@ -203,7 +206,7 @@ export function ModalNavigationProvider({ children }: { children: React.ReactNod
           console.log('🎭 [ModalNavigation] 同步清空模态框');
           closeAllModals();
         }
-      }
+      },
     );
 
     return unsubscribe;
@@ -222,7 +225,7 @@ export function ModalNavigationProvider({ children }: { children: React.ReactNod
   return (
     <ModalContext.Provider value={contextValue}>
       {children}
-      <ModalRenderer 
+      <ModalRenderer
         modals={modalState.modals}
         modalStack={modalState.modalStack}
         onClose={closeModal}
@@ -259,14 +262,14 @@ function ModalRenderer({ modals, modalStack, onClose }: ModalRendererProps) {
             style={{ zIndex: 1000 + index }}
           >
             {/* 遮罩层 */}
-            <div 
+            <div
               className="absolute inset-0 bg-black bg-opacity-50"
               onClick={config.maskClosable ? onClose : undefined}
             />
-            
+
             {/* 模态框内容 */}
             <div className="relative z-10 flex items-center justify-center min-h-full p-4">
-              <div 
+              <div
                 className={`
                   bg-white rounded-lg shadow-xl max-h-full overflow-auto
                   ${config.size === 'sm' ? 'max-w-sm' : ''}
@@ -284,17 +287,18 @@ function ModalRenderer({ modals, modalStack, onClose }: ModalRendererProps) {
                     className="absolute top-4 right-4 z-20 p-1 text-gray-400 hover:text-gray-600"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 )}
-                
+
                 {/* 模态框内容 */}
-                <Component
-                  {...(config.props || {})}
-                  onClose={onClose}
-                  isOpen={true}
-                />
+                <Component {...(config.props || {})} onClose={onClose} isOpen={true} />
               </div>
             </div>
           </div>

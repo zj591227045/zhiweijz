@@ -22,12 +22,12 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
 
   const { currentAccountBook } = useAccountBookStore();
   const { services } = useAIServicesStore();
-  const { 
+  const {
     globalConfig,
     activeService,
     updateGlobalConfig,
     switchServiceType,
-    fetchAccountActiveService
+    fetchAccountActiveService,
   } = useGlobalAIStore();
 
   // 每次打开向导时重置到第一步
@@ -103,10 +103,14 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
 
   const getCurrentStepName = () => {
     switch (currentStep) {
-      case 'service-type': return '选择服务类型';
-      case 'custom-service': return '选择自定义服务';
-      case 'confirmation': return '确认配置';
-      default: return '';
+      case 'service-type':
+        return '选择服务类型';
+      case 'custom-service':
+        return '选择自定义服务';
+      case 'confirmation':
+        return '确认配置';
+      default:
+        return '';
     }
   };
 
@@ -114,7 +118,7 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
     if (selectedServiceType === 'official') {
       return '只为记账官方AI服务';
     } else {
-      const service = services.find(s => s.id === selectedCustomServiceId);
+      const service = services.find((s) => s.id === selectedCustomServiceId);
       return service ? service.name : '未选择';
     }
   };
@@ -122,45 +126,55 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
   if (!isOpen) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      padding: '20px'
-    }}>
-      <div style={{
-        backgroundColor: 'var(--card-background, white)',
-        borderRadius: '16px',
-        width: '100%',
-        maxWidth: '520px',
-        maxHeight: '90vh',
-        overflow: 'hidden',
-        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)'
-      }}>
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+        padding: '20px',
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: 'var(--card-background, white)',
+          borderRadius: '16px',
+          width: '100%',
+          maxWidth: '520px',
+          maxHeight: '90vh',
+          overflow: 'hidden',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
+        }}
+      >
         {/* 头部 */}
-        <div style={{
-          padding: '24px 24px 16px 24px',
-          borderBottom: '1px solid var(--border-color, #e5e7eb)'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '8px'
-          }}>
-            <h2 style={{
-              fontSize: '20px',
-              fontWeight: '600',
-              color: 'var(--text-primary, rgb(31, 41, 55))',
-              margin: 0
-            }}>
+        <div
+          style={{
+            padding: '24px 24px 16px 24px',
+            borderBottom: '1px solid var(--border-color, #e5e7eb)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '8px',
+            }}
+          >
+            <h2
+              style={{
+                fontSize: '20px',
+                fontWeight: '600',
+                color: 'var(--text-primary, rgb(31, 41, 55))',
+                margin: 0,
+              }}
+            >
               AI服务设置向导
             </h2>
             <button
@@ -177,94 +191,115 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '18px'
+                fontSize: '18px',
               }}
             >
               <i className="fas fa-times"></i>
             </button>
           </div>
-          
+
           {/* 步骤指示器 */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            marginTop: '16px'
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginTop: '16px',
+            }}
+          >
             {[1, 2, 3].map((step, index) => {
               const stepTypes: WizardStep[] = ['service-type', 'custom-service', 'confirmation'];
               const isActive = stepTypes[index] === currentStep;
               const isCompleted = stepTypes.indexOf(currentStep) > index;
-              const isSkipped = selectedServiceType === 'official' && stepTypes[index] === 'custom-service';
-              
+              const isSkipped =
+                selectedServiceType === 'official' && stepTypes[index] === 'custom-service';
+
               return (
                 <div key={step} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                  <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    backgroundColor: isCompleted ? 'var(--primary-color, rgb(59, 130, 246))' : 
-                                   isActive ? 'var(--primary-color, rgb(59, 130, 246))' : 
-                                   isSkipped ? 'var(--border-color, #e5e7eb)' : 'var(--border-color, #e5e7eb)',
-                    color: (isCompleted || isActive) ? 'white' : 'var(--text-secondary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    opacity: isSkipped ? 0.5 : 1
-                  }}>
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      backgroundColor: isCompleted
+                        ? 'var(--primary-color, rgb(59, 130, 246))'
+                        : isActive
+                          ? 'var(--primary-color, rgb(59, 130, 246))'
+                          : isSkipped
+                            ? 'var(--border-color, #e5e7eb)'
+                            : 'var(--border-color, #e5e7eb)',
+                      color: isCompleted || isActive ? 'white' : 'var(--text-secondary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      opacity: isSkipped ? 0.5 : 1,
+                    }}
+                  >
                     {isCompleted ? <i className="fas fa-check"></i> : step}
                   </div>
                   {index < 2 && (
-                    <div style={{
-                      height: '2px',
-                      flex: 1,
-                      backgroundColor: isCompleted ? 'var(--primary-color, rgb(59, 130, 246))' : 'var(--border-color, #e5e7eb)',
-                      marginLeft: '8px',
-                      marginRight: '8px',
-                      opacity: isSkipped && index === 0 ? 0.5 : 1
-                    }}></div>
+                    <div
+                      style={{
+                        height: '2px',
+                        flex: 1,
+                        backgroundColor: isCompleted
+                          ? 'var(--primary-color, rgb(59, 130, 246))'
+                          : 'var(--border-color, #e5e7eb)',
+                        marginLeft: '8px',
+                        marginRight: '8px',
+                        opacity: isSkipped && index === 0 ? 0.5 : 1,
+                      }}
+                    ></div>
                   )}
                 </div>
               );
             })}
           </div>
-          
-          <p style={{
-            fontSize: '14px',
-            color: 'var(--text-secondary, rgb(107, 114, 128))',
-            margin: '8px 0 0 0'
-          }}>
+
+          <p
+            style={{
+              fontSize: '14px',
+              color: 'var(--text-secondary, rgb(107, 114, 128))',
+              margin: '8px 0 0 0',
+            }}
+          >
             当前步骤：{getCurrentStepName()}
           </p>
         </div>
 
         {/* 内容区域 */}
-        <div style={{
-          padding: '24px',
-          maxHeight: 'calc(90vh - 200px)',
-          overflowY: 'auto'
-        }}>
+        <div
+          style={{
+            padding: '24px',
+            maxHeight: 'calc(90vh - 200px)',
+            overflowY: 'auto',
+          }}
+        >
           {/* 步骤1：选择服务类型 */}
           {currentStep === 'service-type' && (
             <div>
-              <h3 style={{
-                fontSize: '16px',
-                fontWeight: '600',
-                color: 'var(--text-primary, rgb(31, 41, 55))',
-                margin: '0 0 16px 0'
-              }}>
+              <h3
+                style={{
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: 'var(--text-primary, rgb(31, 41, 55))',
+                  margin: '0 0 16px 0',
+                }}
+              >
                 选择AI服务类型
               </h3>
-              <p style={{
-                fontSize: '14px',
-                color: 'var(--text-secondary, rgb(107, 114, 128))',
-                margin: '0 0 24px 0'
-              }}>
+              <p
+                style={{
+                  fontSize: '14px',
+                  color: 'var(--text-secondary, rgb(107, 114, 128))',
+                  margin: '0 0 24px 0',
+                }}
+              >
                 请选择您要使用的AI服务类型：
               </p>
-              
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <button
                   onClick={() => handleServiceTypeSelect('official')}
@@ -272,36 +307,48 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
                     padding: '16px',
                     border: `2px solid ${selectedServiceType === 'official' ? 'var(--primary-color, rgb(59, 130, 246))' : 'var(--border-color, #e5e7eb)'}`,
                     borderRadius: '12px',
-                    backgroundColor: selectedServiceType === 'official' ? 'rgba(59, 130, 246, 0.05)' : 'transparent',
+                    backgroundColor:
+                      selectedServiceType === 'official'
+                        ? 'rgba(59, 130, 246, 0.05)'
+                        : 'transparent',
                     cursor: 'pointer',
                     textAlign: 'left',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
                   }}
                 >
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '12px'
-                  }}>
-                    <i className="fas fa-cloud" style={{
-                      fontSize: '20px',
-                      color: 'var(--primary-color, rgb(59, 130, 246))',
-                      marginTop: '2px'
-                    }}></i>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '12px',
+                    }}
+                  >
+                    <i
+                      className="fas fa-cloud"
+                      style={{
+                        fontSize: '20px',
+                        color: 'var(--primary-color, rgb(59, 130, 246))',
+                        marginTop: '2px',
+                      }}
+                    ></i>
                     <div>
-                      <h4 style={{
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        color: 'var(--text-primary, rgb(31, 41, 55))',
-                        margin: '0 0 4px 0'
-                      }}>
+                      <h4
+                        style={{
+                          fontSize: '16px',
+                          fontWeight: '600',
+                          color: 'var(--text-primary, rgb(31, 41, 55))',
+                          margin: '0 0 4px 0',
+                        }}
+                      >
                         官方AI服务
                       </h4>
-                      <p style={{
-                        fontSize: '14px',
-                        color: 'var(--text-secondary, rgb(107, 114, 128))',
-                        margin: 0
-                      }}>
+                      <p
+                        style={{
+                          fontSize: '14px',
+                          color: 'var(--text-secondary, rgb(107, 114, 128))',
+                          margin: 0,
+                        }}
+                      >
                         使用只为记账提供的官方AI服务，开箱即用，无需配置
                       </p>
                     </div>
@@ -314,40 +361,51 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
                     padding: '16px',
                     border: `2px solid ${selectedServiceType === 'custom' ? 'var(--primary-color, rgb(59, 130, 246))' : 'var(--border-color, #e5e7eb)'}`,
                     borderRadius: '12px',
-                    backgroundColor: selectedServiceType === 'custom' ? 'rgba(59, 130, 246, 0.05)' : 'transparent',
+                    backgroundColor:
+                      selectedServiceType === 'custom' ? 'rgba(59, 130, 246, 0.05)' : 'transparent',
                     cursor: 'pointer',
                     textAlign: 'left',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
                   }}
                 >
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '12px'
-                  }}>
-                    <i className="fas fa-cog" style={{
-                      fontSize: '20px',
-                      color: 'var(--primary-color, rgb(59, 130, 246))',
-                      marginTop: '2px'
-                    }}></i>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '12px',
+                    }}
+                  >
+                    <i
+                      className="fas fa-cog"
+                      style={{
+                        fontSize: '20px',
+                        color: 'var(--primary-color, rgb(59, 130, 246))',
+                        marginTop: '2px',
+                      }}
+                    ></i>
                     <div>
-                      <h4 style={{
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        color: 'var(--text-primary, rgb(31, 41, 55))',
-                        margin: '0 0 4px 0'
-                      }}>
+                      <h4
+                        style={{
+                          fontSize: '16px',
+                          fontWeight: '600',
+                          color: 'var(--text-primary, rgb(31, 41, 55))',
+                          margin: '0 0 4px 0',
+                        }}
+                      >
                         自定义AI服务
                       </h4>
-                      <p style={{
-                        fontSize: '14px',
-                        color: 'var(--text-secondary, rgb(107, 114, 128))',
-                        margin: 0
-                      }}>
+                      <p
+                        style={{
+                          fontSize: '14px',
+                          color: 'var(--text-secondary, rgb(107, 114, 128))',
+                          margin: 0,
+                        }}
+                      >
                         使用您自己配置的AI服务，支持多种AI提供商
                         {services.length === 0 && (
                           <span style={{ color: 'rgba(239, 68, 68, 0.8)', fontWeight: '500' }}>
-                            {' '}（需要先添加自定义服务）
+                            {' '}
+                            （需要先添加自定义服务）
                           </span>
                         )}
                       </p>
@@ -361,39 +419,50 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
           {/* 步骤2：选择自定义服务 */}
           {currentStep === 'custom-service' && (
             <div>
-              <h3 style={{
-                fontSize: '16px',
-                fontWeight: '600',
-                color: 'var(--text-primary, rgb(31, 41, 55))',
-                margin: '0 0 16px 0'
-              }}>
+              <h3
+                style={{
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: 'var(--text-primary, rgb(31, 41, 55))',
+                  margin: '0 0 16px 0',
+                }}
+              >
                 选择自定义AI服务
               </h3>
-              <p style={{
-                fontSize: '14px',
-                color: 'var(--text-secondary, rgb(107, 114, 128))',
-                margin: '0 0 24px 0'
-              }}>
+              <p
+                style={{
+                  fontSize: '14px',
+                  color: 'var(--text-secondary, rgb(107, 114, 128))',
+                  margin: '0 0 24px 0',
+                }}
+              >
                 请选择要激活的自定义AI服务：
               </p>
 
               {services.length === 0 ? (
-                <div style={{
-                  padding: '24px',
-                  textAlign: 'center',
-                  border: '2px dashed var(--border-color, #e5e7eb)',
-                  borderRadius: '12px'
-                }}>
-                  <i className="fas fa-plus-circle" style={{
-                    fontSize: '32px',
-                    color: 'var(--text-secondary, rgb(107, 114, 128))',
-                    marginBottom: '12px'
-                  }}></i>
-                  <p style={{
-                    fontSize: '14px',
-                    color: 'var(--text-secondary, rgb(107, 114, 128))',
-                    margin: '0 0 16px 0'
-                  }}>
+                <div
+                  style={{
+                    padding: '24px',
+                    textAlign: 'center',
+                    border: '2px dashed var(--border-color, #e5e7eb)',
+                    borderRadius: '12px',
+                  }}
+                >
+                  <i
+                    className="fas fa-plus-circle"
+                    style={{
+                      fontSize: '32px',
+                      color: 'var(--text-secondary, rgb(107, 114, 128))',
+                      marginBottom: '12px',
+                    }}
+                  ></i>
+                  <p
+                    style={{
+                      fontSize: '14px',
+                      color: 'var(--text-secondary, rgb(107, 114, 128))',
+                      margin: '0 0 16px 0',
+                    }}
+                  >
                     您还没有添加任何自定义AI服务
                   </p>
                   <button
@@ -409,7 +478,7 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
                       borderRadius: '8px',
                       fontSize: '14px',
                       fontWeight: '500',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
                     }}
                   >
                     添加新服务
@@ -425,44 +494,58 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
                         padding: '16px',
                         border: `2px solid ${selectedCustomServiceId === service.id ? 'var(--primary-color, rgb(59, 130, 246))' : 'var(--border-color, #e5e7eb)'}`,
                         borderRadius: '12px',
-                        backgroundColor: selectedCustomServiceId === service.id ? 'rgba(59, 130, 246, 0.05)' : 'transparent',
+                        backgroundColor:
+                          selectedCustomServiceId === service.id
+                            ? 'rgba(59, 130, 246, 0.05)'
+                            : 'transparent',
                         cursor: 'pointer',
                         textAlign: 'left',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s',
                       }}
                     >
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '12px'
-                      }}>
-                        <i className="fas fa-robot" style={{
-                          fontSize: '20px',
-                          color: 'var(--primary-color, rgb(59, 130, 246))',
-                          marginTop: '2px'
-                        }}></i>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '12px',
+                        }}
+                      >
+                        <i
+                          className="fas fa-robot"
+                          style={{
+                            fontSize: '20px',
+                            color: 'var(--primary-color, rgb(59, 130, 246))',
+                            marginTop: '2px',
+                          }}
+                        ></i>
                         <div style={{ flex: 1 }}>
-                          <h4 style={{
-                            fontSize: '16px',
-                            fontWeight: '600',
-                            color: 'var(--text-primary, rgb(31, 41, 55))',
-                            margin: '0 0 4px 0'
-                          }}>
+                          <h4
+                            style={{
+                              fontSize: '16px',
+                              fontWeight: '600',
+                              color: 'var(--text-primary, rgb(31, 41, 55))',
+                              margin: '0 0 4px 0',
+                            }}
+                          >
                             {service.name}
                           </h4>
-                          <p style={{
-                            fontSize: '14px',
-                            color: 'var(--text-secondary, rgb(107, 114, 128))',
-                            margin: '0 0 4px 0'
-                          }}>
+                          <p
+                            style={{
+                              fontSize: '14px',
+                              color: 'var(--text-secondary, rgb(107, 114, 128))',
+                              margin: '0 0 4px 0',
+                            }}
+                          >
                             {service.provider} · {service.model}
                           </p>
                           {service.description && (
-                            <p style={{
-                              fontSize: '12px',
-                              color: 'var(--text-secondary, rgb(107, 114, 128))',
-                              margin: 0
-                            }}>
+                            <p
+                              style={{
+                                fontSize: '12px',
+                                color: 'var(--text-secondary, rgb(107, 114, 128))',
+                                margin: 0,
+                              }}
+                            >
                               {service.description}
                             </p>
                           )}
@@ -478,78 +561,99 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
           {/* 步骤3：确认配置 */}
           {currentStep === 'confirmation' && (
             <div>
-              <h3 style={{
-                fontSize: '16px',
-                fontWeight: '600',
-                color: 'var(--text-primary, rgb(31, 41, 55))',
-                margin: '0 0 16px 0'
-              }}>
+              <h3
+                style={{
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: 'var(--text-primary, rgb(31, 41, 55))',
+                  margin: '0 0 16px 0',
+                }}
+              >
                 确认AI服务配置
               </h3>
-              <p style={{
-                fontSize: '14px',
-                color: 'var(--text-secondary, rgb(107, 114, 128))',
-                margin: '0 0 24px 0'
-              }}>
+              <p
+                style={{
+                  fontSize: '14px',
+                  color: 'var(--text-secondary, rgb(107, 114, 128))',
+                  margin: '0 0 24px 0',
+                }}
+              >
                 请确认您的AI服务配置：
               </p>
 
-              <div style={{
-                padding: '16px',
-                backgroundColor: 'rgba(59, 130, 246, 0.05)',
-                borderRadius: '12px',
-                border: '1px solid rgba(59, 130, 246, 0.2)',
-                marginBottom: '24px'
-              }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  marginBottom: '12px'
-                }}>
-                  <i className={selectedServiceType === 'official' ? 'fas fa-cloud' : 'fas fa-cog'} style={{
-                    fontSize: '20px',
-                    color: 'var(--primary-color, rgb(59, 130, 246))'
-                  }}></i>
+              <div
+                style={{
+                  padding: '16px',
+                  backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(59, 130, 246, 0.2)',
+                  marginBottom: '24px',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    marginBottom: '12px',
+                  }}
+                >
+                  <i
+                    className={selectedServiceType === 'official' ? 'fas fa-cloud' : 'fas fa-cog'}
+                    style={{
+                      fontSize: '20px',
+                      color: 'var(--primary-color, rgb(59, 130, 246))',
+                    }}
+                  ></i>
                   <div>
-                    <h4 style={{
-                      fontSize: '16px',
-                      fontWeight: '600',
-                      color: 'var(--text-primary, rgb(31, 41, 55))',
-                      margin: '0 0 4px 0'
-                    }}>
+                    <h4
+                      style={{
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        color: 'var(--text-primary, rgb(31, 41, 55))',
+                        margin: '0 0 4px 0',
+                      }}
+                    >
                       {getCurrentServiceName()}
                     </h4>
-                    <p style={{
-                      fontSize: '14px',
-                      color: 'var(--text-secondary, rgb(107, 114, 128))',
-                      margin: 0
-                    }}>
+                    <p
+                      style={{
+                        fontSize: '14px',
+                        color: 'var(--text-secondary, rgb(107, 114, 128))',
+                        margin: 0,
+                      }}
+                    >
                       {selectedServiceType === 'official' ? '官方AI服务' : '自定义AI服务'}
                     </p>
                   </div>
                 </div>
-                
-                <div style={{
-                  padding: '12px',
-                  backgroundColor: 'white',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(59, 130, 246, 0.1)'
-                }}>
-                  <p style={{
-                    fontSize: '13px',
-                    color: 'var(--text-primary, rgb(31, 41, 55))',
-                    margin: '0 0 8px 0',
-                    fontWeight: '500'
-                  }}>
+
+                <div
+                  style={{
+                    padding: '12px',
+                    backgroundColor: 'white',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(59, 130, 246, 0.1)',
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: '13px',
+                      color: 'var(--text-primary, rgb(31, 41, 55))',
+                      margin: '0 0 8px 0',
+                      fontWeight: '500',
+                    }}
+                  >
                     配置生效后：
                   </p>
-                  <ul style={{
-                    fontSize: '13px',
-                    color: 'var(--text-secondary, rgb(107, 114, 128))',
-                    margin: 0,
-                    paddingLeft: '16px'
-                  }}>
+                  <ul
+                    style={{
+                      fontSize: '13px',
+                      color: 'var(--text-secondary, rgb(107, 114, 128))',
+                      margin: 0,
+                      paddingLeft: '16px',
+                    }}
+                  >
                     <li>所有账本的AI功能将使用新的服务配置</li>
                     <li>智能记账和AI分析功能将立即生效</li>
                     <li>您可以随时回到此页面更改配置</li>
@@ -561,13 +665,15 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
         </div>
 
         {/* 底部按钮 */}
-        <div style={{
-          padding: '16px 24px 24px 24px',
-          borderTop: '1px solid var(--border-color, #e5e7eb)',
-          display: 'flex',
-          gap: '12px',
-          justifyContent: 'flex-end'
-        }}>
+        <div
+          style={{
+            padding: '16px 24px 24px 24px',
+            borderTop: '1px solid var(--border-color, #e5e7eb)',
+            display: 'flex',
+            gap: '12px',
+            justifyContent: 'flex-end',
+          }}
+        >
           {currentStep !== 'service-type' && (
             <button
               onClick={handleBack}
@@ -581,13 +687,13 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
                 fontSize: '14px',
                 fontWeight: '500',
                 cursor: 'pointer',
-                opacity: isProcessing ? 0.6 : 1
+                opacity: isProcessing ? 0.6 : 1,
               }}
             >
               上一步
             </button>
           )}
-          
+
           <button
             onClick={onClose}
             disabled={isProcessing}
@@ -600,7 +706,7 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
               fontSize: '14px',
               fontWeight: '500',
               cursor: 'pointer',
-              opacity: isProcessing ? 0.6 : 1
+              opacity: isProcessing ? 0.6 : 1,
             }}
           >
             取消
@@ -609,7 +715,9 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
           {currentStep === 'confirmation' && (
             <button
               onClick={handleConfirm}
-              disabled={isProcessing || (selectedServiceType === 'custom' && !selectedCustomServiceId)}
+              disabled={
+                isProcessing || (selectedServiceType === 'custom' && !selectedCustomServiceId)
+              }
               style={{
                 padding: '12px 24px',
                 border: 'none',
@@ -619,21 +727,26 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
                 fontSize: '14px',
                 fontWeight: '500',
                 cursor: 'pointer',
-                opacity: (isProcessing || (selectedServiceType === 'custom' && !selectedCustomServiceId)) ? 0.6 : 1,
+                opacity:
+                  isProcessing || (selectedServiceType === 'custom' && !selectedCustomServiceId)
+                    ? 0.6
+                    : 1,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: '8px',
               }}
             >
               {isProcessing && (
-                <div style={{
-                  width: '16px',
-                  height: '16px',
-                  border: '2px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '50%',
-                  borderTopColor: 'white',
-                  animation: 'spin 1s linear infinite'
-                }}></div>
+                <div
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '50%',
+                    borderTopColor: 'white',
+                    animation: 'spin 1s linear infinite',
+                  }}
+                ></div>
               )}
               {isProcessing ? '配置中...' : '完成配置'}
             </button>
@@ -642,4 +755,4 @@ export function AIServiceWizard({ isOpen, onClose, onComplete }: AIServiceWizard
       </div>
     </div>
   );
-} 
+}

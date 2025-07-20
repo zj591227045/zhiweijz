@@ -54,55 +54,36 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-2 py-4">
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50"
-        onClick={() => onOpenChange?.(false)}
-      />
-      <div className="relative z-50 w-full max-w-lg">
-        {children}
-      </div>
+      <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => onOpenChange?.(false)} />
+      <div className="relative z-50 w-full max-w-lg">{children}</div>
     </div>
   );
 }
 
 export function DialogContent({ className = '', children }: DialogContentProps) {
   return (
-    <div className={`bg-white rounded-lg shadow-lg p-6 w-full max-h-[85vh] overflow-y-auto ${className}`}>
+    <div
+      className={`bg-white rounded-lg shadow-lg p-6 w-full max-h-[85vh] overflow-y-auto ${className}`}
+    >
       {children}
     </div>
   );
 }
 
 export function DialogHeader({ children, className = '' }: DialogHeaderProps) {
-  return (
-    <div className={`mb-4 ${className}`}>
-      {children}
-    </div>
-  );
+  return <div className={`mb-4 ${className}`}>{children}</div>;
 }
 
 export function DialogTitle({ children, className = '' }: DialogTitleProps) {
-  return (
-    <h2 className={`text-lg font-semibold mb-2 ${className}`}>
-      {children}
-    </h2>
-  );
+  return <h2 className={`text-lg font-semibold mb-2 ${className}`}>{children}</h2>;
 }
 
 export function DialogDescription({ children, className = '' }: DialogDescriptionProps) {
-  return (
-    <p className={`text-sm text-gray-600 ${className}`}>
-      {children}
-    </p>
-  );
+  return <p className={`text-sm text-gray-600 ${className}`}>{children}</p>;
 }
 
 export function DialogFooter({ children, className = '' }: DialogFooterProps) {
-  return (
-    <div className={`flex justify-end gap-2 mt-4 ${className}`}>
-      {children}
-    </div>
-  );
+  return <div className={`flex justify-end gap-2 mt-4 ${className}`}>{children}</div>;
 }
 
 // 导出所有组件

@@ -35,7 +35,7 @@ export default function AiServiceEditModal({
   isOpen,
   onClose,
   serviceId,
-  onSave
+  onSave,
 }: AiServiceEditModalProps) {
   // 组件状态
   const [isLoading, setIsLoading] = useState(true);
@@ -54,7 +54,7 @@ export default function AiServiceEditModal({
     baseUrl: '',
     temperature: 0.7,
     maxTokens: 1000,
-    description: ''
+    description: '',
   });
 
   // Store hooks
@@ -114,7 +114,7 @@ export default function AiServiceEditModal({
           baseUrl: data.baseUrl || '',
           temperature: data.temperature || 0.7,
           maxTokens: data.maxTokens || 1000,
-          description: data.description || ''
+          description: data.description || '',
         });
       } else {
         toast.error('获取AI服务详情失败');
@@ -164,12 +164,14 @@ export default function AiServiceEditModal({
   }, [isOpen]);
 
   // 处理表单字段变化
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
     const { name, value, type } = e.target;
-    
-    setFormData(prev => ({
+
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : value
+      [name]: type === 'number' ? parseFloat(value) || 0 : value,
     }));
 
     // 清除错误信息
@@ -188,11 +190,11 @@ export default function AiServiceEditModal({
     const provider = e.target.value;
     const models = getModelOptions(provider);
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       provider,
       model: models.length > 0 ? models[0].value : '',
-      baseUrl: '' // 重置baseUrl
+      baseUrl: '', // 重置baseUrl
     }));
 
     // 清除测试结果
@@ -216,7 +218,7 @@ export default function AiServiceEditModal({
         provider: formData.provider,
         model: formData.model,
         hasApiKey: !!formData.apiKey,
-        baseUrl: formData.baseUrl
+        baseUrl: formData.baseUrl,
       });
 
       // 使用项目的fetchApi函数，它会自动处理动态API URL和认证
@@ -226,8 +228,8 @@ export default function AiServiceEditModal({
           provider: formData.provider,
           apiKey: formData.apiKey,
           baseUrl: formData.baseUrl || undefined,
-          model: formData.model || 'gpt-3.5-turbo'
-        })
+          model: formData.model || 'gpt-3.5-turbo',
+        }),
       });
 
       const data = await response.json();
@@ -235,19 +237,19 @@ export default function AiServiceEditModal({
       console.log('🧪 连接测试响应:', {
         status: response.status,
         ok: response.ok,
-        data
+        data,
       });
 
       if (response.ok) {
         setTestResult({
           success: true,
-          message: data.message || '连接测试成功！'
+          message: data.message || '连接测试成功！',
         });
         toast.success('连接测试成功！');
       } else {
         setTestResult({
           success: false,
-          message: data.message || '连接测试失败'
+          message: data.message || '连接测试失败',
         });
         toast.error(data.message || '连接测试失败');
       }
@@ -256,7 +258,7 @@ export default function AiServiceEditModal({
       const errorMessage = error.message || '连接测试失败';
       setTestResult({
         success: false,
-        message: errorMessage
+        message: errorMessage,
       });
       toast.error(errorMessage);
     } finally {
@@ -296,7 +298,7 @@ export default function AiServiceEditModal({
         isNew: serviceId === 'new',
         name: formData.name,
         provider: formData.provider,
-        model: formData.model
+        model: formData.model,
       });
 
       // 构建请求数据
@@ -308,7 +310,7 @@ export default function AiServiceEditModal({
         baseUrl: formData.baseUrl.trim() || undefined,
         temperature: formData.temperature,
         maxTokens: formData.maxTokens,
-        description: formData.description.trim() || undefined
+        description: formData.description.trim() || undefined,
       };
 
       let response: Response;
@@ -317,19 +319,19 @@ export default function AiServiceEditModal({
         // 创建新服务
         response = await fetchApi('/api/ai/llm-settings', {
           method: 'POST',
-          body: JSON.stringify(requestData)
+          body: JSON.stringify(requestData),
         });
       } else {
         // 更新现有服务
         response = await fetchApi(`/api/ai/llm-settings/${serviceId}`, {
           method: 'PUT',
-          body: JSON.stringify(requestData)
+          body: JSON.stringify(requestData),
         });
       }
 
       console.log('💾 保存响应:', {
         status: response.status,
-        ok: response.ok
+        ok: response.ok,
       });
 
       if (response.ok) {
@@ -365,34 +367,39 @@ export default function AiServiceEditModal({
   if (!isOpen) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'var(--background-color)',
-      zIndex: 9999,
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      WebkitOverflowScrolling: 'touch',
-      touchAction: 'manipulation',
-      transform: 'translateZ(0)',
-      WebkitTransform: 'translateZ(0)'
-    }}>
-      {/* 应用容器 */}
-      <div className="app-container" style={{
-        maxWidth: 'none',
-        margin: 0,
-        width: '100%',
-        height: '100vh',
-        minHeight: '100vh',
-        position: 'relative',
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'var(--background-color)',
+        zIndex: 9999,
+        display: 'flex',
+        flexDirection: 'column',
         overflow: 'hidden',
         WebkitOverflowScrolling: 'touch',
-        isolation: 'isolate'
-      }}>
+        touchAction: 'manipulation',
+        transform: 'translateZ(0)',
+        WebkitTransform: 'translateZ(0)',
+      }}
+    >
+      {/* 应用容器 */}
+      <div
+        className="app-container"
+        style={{
+          maxWidth: 'none',
+          margin: 0,
+          width: '100%',
+          height: '100vh',
+          minHeight: '100vh',
+          position: 'relative',
+          overflow: 'hidden',
+          WebkitOverflowScrolling: 'touch',
+          isolation: 'isolate',
+        }}
+      >
         {/* 模态框头部 */}
         <div className="header">
           <button className="icon-button" onClick={onClose}>
@@ -403,45 +410,58 @@ export default function AiServiceEditModal({
         </div>
 
         {/* 主要内容 */}
-        <div className="main-content" style={{
-          paddingBottom: '100px', // 为底部按钮留出足够空间
-          overflowY: 'auto',
-          WebkitOverflowScrolling: 'touch',
-          minHeight: 'calc(100vh - 60px)'
-        }}>
+        <div
+          className="main-content"
+          style={{
+            paddingBottom: '100px', // 为底部按钮留出足够空间
+            overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            minHeight: 'calc(100vh - 60px)',
+          }}
+        >
           <div style={{ padding: '0 20px' }}>
             {/* 加载状态 */}
             {isLoading ? (
-              <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '200px',
-                color: 'var(--text-secondary)'
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '200px',
+                  color: 'var(--text-secondary)',
+                }}
+              >
                 加载中...
               </div>
             ) : (
               <>
                 {/* 基本信息卡片 */}
-                <div style={{
-                  backgroundColor: 'var(--background-color)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '12px',
-                  padding: '16px',
-                  marginBottom: '20px'
-                }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>基本信息</h3>
-                  
+                <div
+                  style={{
+                    backgroundColor: 'var(--background-color)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    marginBottom: '20px',
+                  }}
+                >
+                  <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>
+                    基本信息
+                  </h3>
+
                   {/* 服务名称 */}
                   <div style={{ marginBottom: '16px' }}>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: 'var(--text-secondary)',
-                      marginBottom: '8px'
-                    }}>服务名称 *</label>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        color: 'var(--text-secondary)',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      服务名称 *
+                    </label>
                     <input
                       type="text"
                       name="name"
@@ -457,20 +477,24 @@ export default function AiServiceEditModal({
                         fontSize: '16px',
                         color: 'var(--text-color)',
                         backgroundColor: 'var(--background-secondary)',
-                        outline: 'none'
+                        outline: 'none',
                       }}
                     />
                   </div>
 
                   {/* 服务描述 */}
                   <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: 'var(--text-secondary)',
-                      marginBottom: '8px'
-                    }}>服务描述</label>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        color: 'var(--text-secondary)',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      服务描述
+                    </label>
                     <textarea
                       name="description"
                       value={formData.description}
@@ -487,31 +511,39 @@ export default function AiServiceEditModal({
                         color: 'var(--text-color)',
                         backgroundColor: 'var(--background-secondary)',
                         outline: 'none',
-                        resize: 'vertical'
+                        resize: 'vertical',
                       }}
                     />
                   </div>
                 </div>
 
                 {/* API配置卡片 */}
-                <div style={{
-                  backgroundColor: 'var(--background-color)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '12px',
-                  padding: '16px',
-                  marginBottom: '20px'
-                }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>API配置</h3>
+                <div
+                  style={{
+                    backgroundColor: 'var(--background-color)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    marginBottom: '20px',
+                  }}
+                >
+                  <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>
+                    API配置
+                  </h3>
 
                   {/* 服务提供商 */}
                   <div style={{ marginBottom: '16px' }}>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: 'var(--text-secondary)',
-                      marginBottom: '8px'
-                    }}>服务提供商 *</label>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        color: 'var(--text-secondary)',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      服务提供商 *
+                    </label>
                     <select
                       name="provider"
                       value={formData.provider}
@@ -525,7 +557,7 @@ export default function AiServiceEditModal({
                         fontSize: '16px',
                         color: 'var(--text-color)',
                         backgroundColor: 'var(--background-secondary)',
-                        outline: 'none'
+                        outline: 'none',
                       }}
                     >
                       <option value="">请选择服务提供商</option>
@@ -540,13 +572,17 @@ export default function AiServiceEditModal({
                   {/* 模型选择/输入 */}
                   {formData.provider && (
                     <div style={{ marginBottom: '16px' }}>
-                      <label style={{
-                        display: 'block',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        color: 'var(--text-secondary)',
-                        marginBottom: '8px'
-                      }}>模型名称 *</label>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: 'var(--text-secondary)',
+                          marginBottom: '8px',
+                        }}
+                      >
+                        模型名称 *
+                      </label>
                       {formData.provider === 'custom' ? (
                         <input
                           type="text"
@@ -563,7 +599,7 @@ export default function AiServiceEditModal({
                             fontSize: '16px',
                             color: 'var(--text-color)',
                             backgroundColor: 'var(--background-secondary)',
-                            outline: 'none'
+                            outline: 'none',
                           }}
                         />
                       ) : (
@@ -580,7 +616,7 @@ export default function AiServiceEditModal({
                             fontSize: '16px',
                             color: 'var(--text-color)',
                             backgroundColor: 'var(--background-secondary)',
-                            outline: 'none'
+                            outline: 'none',
                           }}
                         >
                           <option value="">请选择模型</option>
@@ -592,11 +628,13 @@ export default function AiServiceEditModal({
                         </select>
                       )}
                       {formData.provider === 'custom' && (
-                        <div style={{
-                          fontSize: '12px',
-                          color: 'var(--text-secondary)',
-                          marginTop: '4px'
-                        }}>
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: 'var(--text-secondary)',
+                            marginTop: '4px',
+                          }}
+                        >
                           请输入兼容OpenAI API的模型名称
                         </div>
                       )}
@@ -605,13 +643,17 @@ export default function AiServiceEditModal({
 
                   {/* API Key */}
                   <div style={{ marginBottom: '16px' }}>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: 'var(--text-secondary)',
-                      marginBottom: '8px'
-                    }}>API Key *</label>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        color: 'var(--text-secondary)',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      API Key *
+                    </label>
                     <div style={{ position: 'relative' }}>
                       <input
                         type={showApiKey ? 'text' : 'password'}
@@ -628,7 +670,7 @@ export default function AiServiceEditModal({
                           fontSize: '16px',
                           color: 'var(--text-color)',
                           backgroundColor: 'var(--background-secondary)',
-                          outline: 'none'
+                          outline: 'none',
                         }}
                       />
                       <button
@@ -643,7 +685,7 @@ export default function AiServiceEditModal({
                           border: 'none',
                           color: 'var(--text-secondary)',
                           cursor: 'pointer',
-                          fontSize: '16px'
+                          fontSize: '16px',
                         }}
                       >
                         <i className={`fas ${showApiKey ? 'fa-eye-slash' : 'fa-eye'}`}></i>
@@ -652,15 +694,19 @@ export default function AiServiceEditModal({
                   </div>
 
                   {/* Base URL */}
-                  {(formData.provider === 'openai' || formData.provider === 'deepseek' || formData.provider === 'custom') && (
+                  {(formData.provider === 'openai' ||
+                    formData.provider === 'deepseek' ||
+                    formData.provider === 'custom') && (
                     <div>
-                      <label style={{
-                        display: 'block',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        color: 'var(--text-secondary)',
-                        marginBottom: '8px'
-                      }}>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: 'var(--text-secondary)',
+                          marginBottom: '8px',
+                        }}
+                      >
                         API基础URL{formData.provider === 'custom' ? ' *' : '（可选）'}
                       </label>
                       <input
@@ -672,8 +718,8 @@ export default function AiServiceEditModal({
                           formData.provider === 'deepseek'
                             ? '默认：https://api.deepseek.com'
                             : formData.provider === 'custom'
-                            ? '例如：https://api.anthropic.com/v1 或 https://api.moonshot.cn/v1'
-                            : '例如：https://api.openai.com/v1'
+                              ? '例如：https://api.anthropic.com/v1 或 https://api.moonshot.cn/v1'
+                              : '例如：https://api.openai.com/v1'
                         }
                         disabled={isSubmitting}
                         style={{
@@ -684,38 +730,50 @@ export default function AiServiceEditModal({
                           fontSize: '16px',
                           color: 'var(--text-color)',
                           backgroundColor: 'var(--background-secondary)',
-                          outline: 'none'
+                          outline: 'none',
                         }}
                       />
-                      <div style={{
-                        fontSize: '12px',
-                        color: 'var(--text-secondary)',
-                        marginTop: '4px'
-                      }}>
+                      <div
+                        style={{
+                          fontSize: '12px',
+                          color: 'var(--text-secondary)',
+                          marginTop: '4px',
+                        }}
+                      >
                         {formData.provider === 'deepseek'
                           ? 'Deepseek API基础URL，留空使用默认地址'
                           : formData.provider === 'custom'
-                          ? '请输入兼容OpenAI API格式的服务地址'
-                          : '如果使用兼容OpenAI API的第三方服务，请填写API基础URL'}
+                            ? '请输入兼容OpenAI API格式的服务地址'
+                            : '如果使用兼容OpenAI API的第三方服务，请填写API基础URL'}
                       </div>
                     </div>
                   )}
                 </div>
 
                 {/* 连接测试卡片 */}
-                <div style={{
-                  backgroundColor: 'var(--background-color)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '12px',
-                  padding: '16px',
-                  marginBottom: '20px'
-                }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>连接测试</h3>
+                <div
+                  style={{
+                    backgroundColor: 'var(--background-color)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    marginBottom: '20px',
+                  }}
+                >
+                  <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>
+                    连接测试
+                  </h3>
 
                   <button
                     type="button"
                     onClick={handleTestConnection}
-                    disabled={isTesting || !formData.provider || !formData.apiKey || isSubmitting || (formData.provider === 'custom' && !formData.baseUrl)}
+                    disabled={
+                      isTesting ||
+                      !formData.provider ||
+                      !formData.apiKey ||
+                      isSubmitting ||
+                      (formData.provider === 'custom' && !formData.baseUrl)
+                    }
                     style={{
                       width: '100%',
                       height: '48px',
@@ -725,13 +783,27 @@ export default function AiServiceEditModal({
                       color: 'white',
                       fontSize: '16px',
                       fontWeight: '600',
-                      cursor: (isTesting || !formData.provider || !formData.apiKey || isSubmitting || (formData.provider === 'custom' && !formData.baseUrl)) ? 'not-allowed' : 'pointer',
-                      opacity: (isTesting || !formData.provider || !formData.apiKey || isSubmitting || (formData.provider === 'custom' && !formData.baseUrl)) ? 0.6 : 1,
+                      cursor:
+                        isTesting ||
+                        !formData.provider ||
+                        !formData.apiKey ||
+                        isSubmitting ||
+                        (formData.provider === 'custom' && !formData.baseUrl)
+                          ? 'not-allowed'
+                          : 'pointer',
+                      opacity:
+                        isTesting ||
+                        !formData.provider ||
+                        !formData.apiKey ||
+                        isSubmitting ||
+                        (formData.provider === 'custom' && !formData.baseUrl)
+                          ? 0.6
+                          : 1,
                       transition: 'all 0.2s ease',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      marginBottom: '12px'
+                      marginBottom: '12px',
                     }}
                   >
                     {isTesting ? '测试中...' : '测试连接'}
@@ -739,34 +811,38 @@ export default function AiServiceEditModal({
 
                   {/* 测试结果显示 */}
                   {testResult && (
-                    <div style={{
-                      padding: '12px',
-                      borderRadius: '8px',
-                      backgroundColor: testResult.success ? '#dcfce7' : '#fee2e2',
-                      border: `1px solid ${testResult.success ? '#bbf7d0' : '#fecaca'}`,
-                      color: testResult.success ? '#166534' : '#dc2626',
-                      fontSize: '14px',
-                      textAlign: 'center'
-                    }}>
+                    <div
+                      style={{
+                        padding: '12px',
+                        borderRadius: '8px',
+                        backgroundColor: testResult.success ? '#dcfce7' : '#fee2e2',
+                        border: `1px solid ${testResult.success ? '#bbf7d0' : '#fecaca'}`,
+                        color: testResult.success ? '#166534' : '#dc2626',
+                        fontSize: '14px',
+                        textAlign: 'center',
+                      }}
+                    >
                       {testResult.message}
                     </div>
                   )}
                 </div>
 
-
-
                 {/* 错误信息 */}
                 {formError && (
-                  <div style={{
-                    backgroundColor: '#fee2e2',
-                    border: '1px solid #fecaca',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    margin: '16px 0',
-                    color: '#dc2626',
-                    fontSize: '14px',
-                    textAlign: 'center'
-                  }}>{formError}</div>
+                  <div
+                    style={{
+                      backgroundColor: '#fee2e2',
+                      border: '1px solid #fecaca',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      margin: '16px 0',
+                      color: '#dc2626',
+                      fontSize: '14px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {formError}
+                  </div>
                 )}
               </>
             )}
@@ -775,42 +851,69 @@ export default function AiServiceEditModal({
 
         {/* 底部保存按钮 */}
         {!isLoading && (
-          <div style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            backgroundColor: 'var(--background-color)',
-            borderTop: '1px solid var(--border-color)',
-            padding: '16px 20px',
-            paddingBottom: 'env(safe-area-inset-bottom, 16px)',
-            zIndex: 10000002 // 确保按钮在最顶层，高于模态框内容
-          }}>
+          <div
+            style={{
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              backgroundColor: 'var(--background-color)',
+              borderTop: '1px solid var(--border-color)',
+              padding: '16px 20px',
+              paddingBottom: 'env(safe-area-inset-bottom, 16px)',
+              zIndex: 10000002, // 确保按钮在最顶层，高于模态框内容
+            }}
+          >
             <button
               onClick={handleSubmit}
-              disabled={isSubmitting || !formData.name || !formData.provider || !formData.model || !formData.apiKey || (formData.provider === 'custom' && !formData.baseUrl)}
+              disabled={
+                isSubmitting ||
+                !formData.name ||
+                !formData.provider ||
+                !formData.model ||
+                !formData.apiKey ||
+                (formData.provider === 'custom' && !formData.baseUrl)
+              }
               style={{
                 width: '100%',
                 height: '48px',
                 borderRadius: '12px',
                 border: 'none',
-                backgroundColor: (isSubmitting || !formData.name || !formData.provider || !formData.model || !formData.apiKey || (formData.provider === 'custom' && !formData.baseUrl))
-                  ? 'var(--text-secondary)'
-                  : 'var(--primary-color)',
+                backgroundColor:
+                  isSubmitting ||
+                  !formData.name ||
+                  !formData.provider ||
+                  !formData.model ||
+                  !formData.apiKey ||
+                  (formData.provider === 'custom' && !formData.baseUrl)
+                    ? 'var(--text-secondary)'
+                    : 'var(--primary-color)',
                 color: 'white',
                 fontSize: '16px',
                 fontWeight: '600',
-                cursor: (isSubmitting || !formData.name || !formData.provider || !formData.model || !formData.apiKey || (formData.provider === 'custom' && !formData.baseUrl))
-                  ? 'not-allowed'
-                  : 'pointer',
-                opacity: (isSubmitting || !formData.name || !formData.provider || !formData.model || !formData.apiKey || (formData.provider === 'custom' && !formData.baseUrl))
-                  ? 0.6
-                  : 1,
+                cursor:
+                  isSubmitting ||
+                  !formData.name ||
+                  !formData.provider ||
+                  !formData.model ||
+                  !formData.apiKey ||
+                  (formData.provider === 'custom' && !formData.baseUrl)
+                    ? 'not-allowed'
+                    : 'pointer',
+                opacity:
+                  isSubmitting ||
+                  !formData.name ||
+                  !formData.provider ||
+                  !formData.model ||
+                  !formData.apiKey ||
+                  (formData.provider === 'custom' && !formData.baseUrl)
+                    ? 0.6
+                    : 1,
                 transition: 'all 0.2s ease',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
               }}
             >
               {isSubmitting ? '保存中...' : '保存'}

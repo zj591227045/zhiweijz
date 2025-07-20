@@ -11,7 +11,7 @@ import { SimpleColorPicker } from './color-picker';
 import {
   filterTagsCompatible,
   canCreateTagCompatible,
-  getAndroidInputProps
+  getAndroidInputProps,
 } from '@/lib/android-input-compatibility';
 
 interface TagSelectorProps {
@@ -34,7 +34,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   accountBookId,
   selectedTagIds,
   onSelectionChange,
-  placeholder = "选择标签",
+  placeholder = '选择标签',
   maxSelection,
   allowCreate = true,
   size = 'medium',
@@ -59,7 +59,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   // 获取标签列表
   const fetchTags = async () => {
     if (!accountBookId) return;
-    
+
     setLoading(true);
     try {
       const response = await tagApi.getTags({
@@ -118,7 +118,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
 
   // 获取已选择的标签
   const selectedTags = useMemo(() => {
-    return tags.filter(tag => selectedTagIds.includes(tag.id));
+    return tags.filter((tag) => selectedTagIds.includes(tag.id));
   }, [tags, selectedTagIds]);
 
   // 处理标签选择
@@ -127,7 +127,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
     let newSelectedIds: string[];
 
     if (isSelected) {
-      newSelectedIds = selectedTagIds.filter(id => id !== tagId);
+      newSelectedIds = selectedTagIds.filter((id) => id !== tagId);
     } else {
       if (maxSelection && selectedTagIds.length >= maxSelection) {
         return; // 达到最大选择数量
@@ -140,7 +140,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
 
   // 移除已选择的标签
   const handleRemoveTag = (tagId: string) => {
-    const newSelectedIds = selectedTagIds.filter(id => id !== tagId);
+    const newSelectedIds = selectedTagIds.filter((id) => id !== tagId);
     onSelectionChange(newSelectedIds);
   };
 
@@ -160,8 +160,8 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
       const newTag = response.data;
 
       // 添加到标签列表
-      setTags(prev => [newTag, ...prev]);
-      
+      setTags((prev) => [newTag, ...prev]);
+
       // 自动选择新创建的标签
       onSelectionChange([...selectedTagIds, newTag.id]);
 
@@ -187,7 +187,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
         className={cn(
           'min-h-10 w-full border border-gray-300 rounded-md bg-white px-3 py-2 cursor-pointer transition-colors',
           disabled && 'opacity-50 cursor-not-allowed bg-gray-50',
-          isOpen && 'ring-2 ring-blue-500 border-blue-500'
+          isOpen && 'ring-2 ring-blue-500 border-blue-500',
         )}
         onClick={() => !disabled && setIsOpen(!isOpen)}
       >
@@ -237,8 +237,9 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
               <div className="p-2">
                 {filteredTags.map((tag) => {
                   const isSelected = selectedTagIds.includes(tag.id);
-                  const isDisabled = !isSelected && maxSelection && selectedTagIds.length >= maxSelection;
-                  
+                  const isDisabled =
+                    !isSelected && maxSelection && selectedTagIds.length >= maxSelection;
+
                   return (
                     <button
                       key={tag.id}
@@ -247,7 +248,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                         'w-full flex items-center space-x-3 p-2 rounded-md transition-colors text-left',
                         isSelected && 'bg-blue-50 text-blue-700',
                         !isSelected && !isDisabled && 'hover:bg-gray-50',
-                        isDisabled && 'opacity-50 cursor-not-allowed'
+                        isDisabled && 'opacity-50 cursor-not-allowed',
                       )}
                       onClick={() => !isDisabled && handleTagToggle(tag.id)}
                       disabled={isDisabled}
@@ -258,18 +259,14 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                       />
                       <span className="flex-1 truncate">{tag.name}</span>
                       <span className="text-xs text-gray-500">({tag.usageCount})</span>
-                      {isSelected && (
-                        <Check className="w-4 h-4 text-blue-600" />
-                      )}
+                      {isSelected && <Check className="w-4 h-4 text-blue-600" />}
                     </button>
                   );
                 })}
               </div>
             ) : (
               <div className="p-4 text-center text-gray-500">
-                <p className="text-sm">
-                  {searchTerm ? '未找到匹配的标签' : '暂无标签'}
-                </p>
+                <p className="text-sm">{searchTerm ? '未找到匹配的标签' : '暂无标签'}</p>
               </div>
             )}
           </div>
@@ -288,14 +285,8 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                     maxLength={50}
                   />
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      选择颜色
-                    </label>
-                    <SimpleColorPicker
-                      value={newTagColor}
-                      onChange={setNewTagColor}
-                      size="small"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">选择颜色</label>
+                    <SimpleColorPicker value={newTagColor} onChange={setNewTagColor} size="small" />
                   </div>
                   <div className="flex space-x-2">
                     <button
@@ -330,9 +321,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                   disabled={!canCreateTag}
                 >
                   <Plus className="w-4 h-4" />
-                  <span>
-                    {canCreateTag ? `创建标签 "${searchTerm}"` : '创建新标签'}
-                  </span>
+                  <span>{canCreateTag ? `创建标签 "${searchTerm}"` : '创建新标签'}</span>
                 </button>
               )}
             </div>
@@ -358,7 +347,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
   accountBookId,
   selectedTagIds,
   onSelectionChange,
-  placeholder = "搜索标签",
+  placeholder = '搜索标签',
   maxSelection,
   allowCreate = true,
   disabled = false,
@@ -413,7 +402,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
 
       if (response.success) {
         // 添加到标签列表
-        setTags(prev => [response.data, ...prev]);
+        setTags((prev) => [response.data, ...prev]);
 
         // 自动选择新创建的标签
         if (!selectedTagIds.includes(response.data.id)) {
@@ -438,7 +427,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
     let newSelectedIds: string[];
 
     if (isSelected) {
-      newSelectedIds = selectedTagIds.filter(id => id !== tagId);
+      newSelectedIds = selectedTagIds.filter((id) => id !== tagId);
     } else {
       if (maxSelection && selectedTagIds.length >= maxSelection) {
         return; // 达到最大选择数量
@@ -491,7 +480,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
           backgroundColor: 'rgba(0, 0, 0, 0.5)',
           backdropFilter: 'blur(4px)',
           WebkitBackdropFilter: 'blur(4px)',
-          willChange: 'backdrop-filter'
+          willChange: 'backdrop-filter',
         }}
         onClick={(e) => {
           e.preventDefault();
@@ -506,26 +495,30 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
         className={position === 'center' ? 'rounded-3xl' : 'rounded-t-3xl'}
         style={{
           position: 'absolute',
-          ...(position === 'center' ? {
-            top: '10vh',
-            left: '5vw',
-            right: '5vw',
-            width: 'auto',
-            maxWidth: '500px',
-            height: 'auto',
-            maxHeight: '80vh',
-            minHeight: '400px',
-            margin: '0 auto',
-            animation: isClosing ? 'fadeOut 0.3s ease-in' : 'fadeIn 0.3s ease-out'
-          } : {
-            bottom: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '95vw',
-            minHeight: '40vh',
-            maxHeight: '80vh',
-            animation: isClosing ? 'slideDownToBottom 0.3s ease-in' : 'slideUpFromBottom 0.3s ease-out'
-          }),
+          ...(position === 'center'
+            ? {
+                top: '10vh',
+                left: '5vw',
+                right: '5vw',
+                width: 'auto',
+                maxWidth: '500px',
+                height: 'auto',
+                maxHeight: '80vh',
+                minHeight: '400px',
+                margin: '0 auto',
+                animation: isClosing ? 'fadeOut 0.3s ease-in' : 'fadeIn 0.3s ease-out',
+              }
+            : {
+                bottom: 0,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '95vw',
+                minHeight: '40vh',
+                maxHeight: '80vh',
+                animation: isClosing
+                  ? 'slideDownToBottom 0.3s ease-in'
+                  : 'slideUpFromBottom 0.3s ease-out',
+              }),
           backgroundColor: 'var(--card-background)',
           boxShadow: `0 -10px 25px -5px rgba(0, 0, 0, 0.1),
                      0 -4px 6px -2px rgba(0, 0, 0, 0.05),
@@ -534,7 +527,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
           zIndex: 210, // 模态框标准层级
           overflow: 'hidden',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
         }}
         onClick={(e) => {
           e.preventDefault();
@@ -549,25 +542,33 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
         )}
 
         {/* 头部 - 压缩内边距 */}
-        <div className="flex items-center justify-between px-4 py-2 flex-shrink-0"
-             style={{
-               borderBottom: `1px solid var(--border-color)`,
-               background: `linear-gradient(to right, var(--primary-color-light), rgba(var(--primary-rgb), 0.08))`
-             }}>
-          <h3 className="text-lg font-semibold flex items-center gap-1.5"
-              style={{ color: 'var(--text-primary)' }}>
-            <div className="w-1.5 h-1.5 rounded-full"
-                 style={{ backgroundColor: 'var(--primary-color)' }}></div>
+        <div
+          className="flex items-center justify-between px-4 py-2 flex-shrink-0"
+          style={{
+            borderBottom: `1px solid var(--border-color)`,
+            background: `linear-gradient(to right, var(--primary-color-light), rgba(var(--primary-rgb), 0.08))`,
+          }}
+        >
+          <h3
+            className="text-lg font-semibold flex items-center gap-1.5"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            <div
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ backgroundColor: 'var(--primary-color)' }}
+            ></div>
             选择标签
           </h3>
           <div className="flex items-center gap-2">
             {selectedTagIds.length > 0 && (
-              <span className="text-xs font-medium px-2 py-1 rounded-full border"
-                    style={{
-                      color: 'var(--primary-color)',
-                      backgroundColor: 'var(--primary-color-light)',
-                      borderColor: 'var(--primary-color)'
-                    }}>
+              <span
+                className="text-xs font-medium px-2 py-1 rounded-full border"
+                style={{
+                  color: 'var(--primary-color)',
+                  backgroundColor: 'var(--primary-color-light)',
+                  borderColor: 'var(--primary-color)',
+                }}
+              >
                 已选 {selectedTagIds.length}
               </span>
             )}
@@ -577,7 +578,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
               className="p-1.5 rounded-full transition-all duration-200"
               style={{
                 color: 'var(--text-secondary)',
-                backgroundColor: 'transparent'
+                backgroundColor: 'transparent',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.color = 'var(--text-primary)';
@@ -596,14 +597,18 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
         </div>
 
         {/* 搜索框 - 压缩高度 */}
-        <div className="px-4 py-2 flex-shrink-0"
-             style={{
-               borderBottom: `1px solid var(--border-color)`,
-               backgroundColor: 'var(--background-secondary)'
-             }}>
+        <div
+          className="px-4 py-2 flex-shrink-0"
+          style={{
+            borderBottom: `1px solid var(--border-color)`,
+            backgroundColor: 'var(--background-secondary)',
+          }}
+        >
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4"
-                    style={{ color: 'var(--text-secondary)' }} />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4"
+              style={{ color: 'var(--text-secondary)' }}
+            />
             <input
               type="text"
               value={searchTerm}
@@ -616,7 +621,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
                 border: `1px solid var(--border-color)`,
                 backgroundColor: 'var(--card-background)',
                 color: 'var(--text-primary)',
-                ...getAndroidInputProps().style
+                ...getAndroidInputProps().style,
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = 'var(--primary-color)';
@@ -633,17 +638,22 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
         </div>
 
         {/* 标签列表 - 最大化内容区域 */}
-        <div className="flex-1 overflow-y-auto min-h-0"
-             style={{ backgroundColor: 'var(--card-background)' }}>
+        <div
+          className="flex-1 overflow-y-auto min-h-0"
+          style={{ backgroundColor: 'var(--card-background)' }}
+        >
           {loading ? (
             <div className="flex flex-col items-center justify-center py-8">
-              <div className="animate-spin w-6 h-6 border-2 rounded-full"
-                   style={{
-                     borderColor: 'var(--primary-color)',
-                     borderTopColor: 'transparent'
-                   }}></div>
-              <span className="mt-2 text-sm"
-                    style={{ color: 'var(--text-secondary)' }}>加载中...</span>
+              <div
+                className="animate-spin w-6 h-6 border-2 rounded-full"
+                style={{
+                  borderColor: 'var(--primary-color)',
+                  borderTopColor: 'transparent',
+                }}
+              ></div>
+              <span className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                加载中...
+              </span>
             </div>
           ) : (
             <div className="p-4">
@@ -651,7 +661,9 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
               <div className="flex flex-wrap gap-2.5">
                 {filteredTags.map((tag) => {
                   const isSelected = selectedTagIds.includes(tag.id);
-                  const isDisabled = disabled || (maxSelection && !isSelected && selectedTagIds.length >= maxSelection);
+                  const isDisabled =
+                    disabled ||
+                    (maxSelection && !isSelected && selectedTagIds.length >= maxSelection);
 
                   return (
                     <button
@@ -659,7 +671,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
                       type="button"
                       className={cn(
                         'inline-flex items-center gap-1.5 px-3 py-2 rounded-full transition-all duration-200 text-sm font-medium shadow-sm border-2 min-h-[40px]',
-                        isDisabled && 'opacity-50 cursor-not-allowed'
+                        isDisabled && 'opacity-50 cursor-not-allowed',
                       )}
                       style={{
                         backgroundColor: isSelected
@@ -678,7 +690,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
                             ? 'var(--border-color)'
                             : 'var(--border-color)',
                         boxShadow: isSelected ? 'var(--card-shadow)' : undefined,
-                        transform: isSelected ? 'scale(1.05)' : undefined
+                        transform: isSelected ? 'scale(1.05)' : undefined,
                       }}
                       onMouseEnter={(e) => {
                         if (!isDisabled && !isSelected) {
@@ -701,30 +713,36 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
                         className="w-3.5 h-3.5 rounded-full flex-shrink-0 shadow-sm border"
                         style={{
                           backgroundColor: tag.color,
-                          borderColor: isSelected ? 'var(--primary-foreground)' : 'var(--border-color)'
+                          borderColor: isSelected
+                            ? 'var(--primary-foreground)'
+                            : 'var(--border-color)',
                         }}
                       />
                       <span className="whitespace-nowrap text-sm">{tag.name}</span>
                       {/* 使用次数徽章 - 显示该标签被使用的记账记录数量 */}
-                      <span className="text-xs px-1 py-0.5 rounded-full"
-                      style={{
-                        backgroundColor: isSelected
-                          ? 'rgba(255, 255, 255, 0.2)'
-                          : 'var(--background-secondary)',
-                        color: isSelected
-                          ? 'var(--primary-foreground)'
-                          : 'var(--text-secondary)'
-                      }}
-                      title={`该标签已被使用 ${tag.usageCount} 次`}>
+                      <span
+                        className="text-xs px-1 py-0.5 rounded-full"
+                        style={{
+                          backgroundColor: isSelected
+                            ? 'rgba(255, 255, 255, 0.2)'
+                            : 'var(--background-secondary)',
+                          color: isSelected ? 'var(--primary-foreground)' : 'var(--text-secondary)',
+                        }}
+                        title={`该标签已被使用 ${tag.usageCount} 次`}
+                      >
                         {tag.usageCount}
                       </span>
                       {isSelected && (
-                        <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center"
-                             style={{
-                               backgroundColor: 'rgba(255, 255, 255, 0.2)'
-                             }}>
-                          <Check className="w-2.5 h-2.5"
-                                 style={{ color: 'var(--primary-foreground)' }} />
+                        <div
+                          className="w-3.5 h-3.5 rounded-full flex items-center justify-center"
+                          style={{
+                            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                          }}
+                        >
+                          <Check
+                            className="w-2.5 h-2.5"
+                            style={{ color: 'var(--primary-foreground)' }}
+                          />
                         </div>
                       )}
                     </button>
@@ -744,7 +762,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
                   style={{
                     borderColor: 'var(--primary-color)',
                     backgroundColor: 'var(--primary-color-light)',
-                    color: 'var(--primary-color)'
+                    color: 'var(--primary-color)',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = 'var(--primary-color-light)';
@@ -756,30 +774,31 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
                   }}
                   disabled={!canCreateTag}
                 >
-                  <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center"
-                       style={{ backgroundColor: 'var(--primary-color)' }}>
-                    <Plus className="w-2.5 h-2.5"
-                          style={{ color: 'var(--primary-foreground)' }} />
+                  <div
+                    className="w-3.5 h-3.5 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: 'var(--primary-color)' }}
+                  >
+                    <Plus className="w-2.5 h-2.5" style={{ color: 'var(--primary-foreground)' }} />
                   </div>
-                  <span className="whitespace-nowrap text-sm">
-                    创建 "{searchTerm}"
-                  </span>
+                  <span className="whitespace-nowrap text-sm">创建 "{searchTerm}"</span>
                 </button>
               )}
 
               {filteredTags.length === 0 && !canCreateTag && !loading && (
-                <div className="text-center py-8 w-full"
-                     style={{ color: 'var(--text-secondary)' }}>
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
-                       style={{ backgroundColor: 'var(--background-secondary)' }}>
-                    <Search className="w-6 h-6"
-                            style={{ color: 'var(--text-secondary)' }} />
+                <div className="text-center py-8 w-full" style={{ color: 'var(--text-secondary)' }}>
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
+                    style={{ backgroundColor: 'var(--background-secondary)' }}
+                  >
+                    <Search className="w-6 h-6" style={{ color: 'var(--text-secondary)' }} />
                   </div>
-                  <p className="text-base font-medium"
-                     style={{ color: 'var(--text-primary)' }}>未找到相关标签</p>
+                  <p className="text-base font-medium" style={{ color: 'var(--text-primary)' }}>
+                    未找到相关标签
+                  </p>
                   {allowCreate && (
-                    <p className="text-sm mt-1"
-                       style={{ color: 'var(--text-secondary)' }}>输入名称创建新标签</p>
+                    <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                      输入名称创建新标签
+                    </p>
                   )}
                 </div>
               )}
@@ -789,15 +808,19 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
 
         {/* 创建标签表单 - 压缩样式 */}
         {showCreateForm && (
-          <div className="p-4 flex-shrink-0"
-               style={{
-                 borderTop: `1px solid var(--border-color)`,
-                 background: `linear-gradient(to right, var(--background-secondary), var(--primary-color-light))`
-               }}>
+          <div
+            className="p-4 flex-shrink-0"
+            style={{
+              borderTop: `1px solid var(--border-color)`,
+              background: `linear-gradient(to right, var(--background-secondary), var(--primary-color-light))`,
+            }}
+          >
             <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium mb-1"
-                       style={{ color: 'var(--text-primary)' }}>
+                <label
+                  className="block text-sm font-medium mb-1"
+                  style={{ color: 'var(--text-primary)' }}
+                >
                   标签名称
                 </label>
                 <input
@@ -809,7 +832,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
                   style={{
                     border: `1px solid var(--border-color)`,
                     backgroundColor: 'var(--card-background)',
-                    color: 'var(--text-primary)'
+                    color: 'var(--text-primary)',
                   }}
                   onFocus={(e) => {
                     e.target.style.borderColor = 'var(--primary-color)';
@@ -824,15 +847,19 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2"
-                       style={{ color: 'var(--text-primary)' }}>
+                <label
+                  className="block text-sm font-medium mb-2"
+                  style={{ color: 'var(--text-primary)' }}
+                >
                   选择颜色
                 </label>
-                <div className="p-2 rounded-lg border"
-                     style={{
-                       backgroundColor: 'var(--card-background)',
-                       borderColor: 'var(--border-color)'
-                     }}>
+                <div
+                  className="p-2 rounded-lg border"
+                  style={{
+                    backgroundColor: 'var(--card-background)',
+                    borderColor: 'var(--border-color)',
+                  }}
+                >
                   <SimpleColorPicker
                     value={newTagColor}
                     onChange={setNewTagColor}
@@ -849,7 +876,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
                   style={{
                     color: 'var(--text-primary)',
                     backgroundColor: 'var(--card-background)',
-                    borderColor: 'var(--border-color)'
+                    borderColor: 'var(--border-color)',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = 'var(--background-hover)';
@@ -871,8 +898,8 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
                   style={{
                     backgroundColor: 'var(--primary-color)',
                     color: 'var(--primary-foreground)',
-                    opacity: (!newTagName.trim() || creating) ? 0.5 : 1,
-                    cursor: (!newTagName.trim() || creating) ? 'not-allowed' : 'pointer'
+                    opacity: !newTagName.trim() || creating ? 0.5 : 1,
+                    cursor: !newTagName.trim() || creating ? 'not-allowed' : 'pointer',
                   }}
                   onMouseEnter={(e) => {
                     if (!(!newTagName.trim() || creating)) {

@@ -17,44 +17,28 @@ const features: FeatureItem[] = [
     icon: 'fas fa-plus-circle',
     title: '添加记账记录',
     description: '快速记录收入和支出',
-    details: [
-      '支持多种分类选择',
-      '可添加备注和标签',
-      '支持拍照记录凭证',
-    ],
+    details: ['支持多种分类选择', '可添加备注和标签', '支持拍照记录凭证'],
   },
   {
     id: 'view-statistics',
     icon: 'fas fa-chart-bar',
     title: '查看统计数据',
     description: '直观了解财务状况',
-    details: [
-      '月度/年度收支统计',
-      '分类支出分析',
-      '趋势图表展示',
-    ],
+    details: ['月度/年度收支统计', '分类支出分析', '趋势图表展示'],
   },
   {
     id: 'budget-tracking',
     icon: 'fas fa-target',
     title: '预算执行情况',
     description: '实时监控预算使用',
-    details: [
-      '预算进度可视化',
-      '超支预警提醒',
-      '剩余预算计算',
-    ],
+    details: ['预算进度可视化', '超支预警提醒', '剩余预算计算'],
   },
   {
     id: 'import-records',
     icon: 'fas fa-file-import',
     title: '导入记录',
     description: '从其他应用导入数据',
-    details: [
-      '支持多种格式导入',
-      '智能数据解析',
-      '快速数据迁移',
-    ],
+    details: ['支持多种格式导入', '智能数据解析', '快速数据迁移'],
   },
 ];
 
@@ -65,7 +49,7 @@ export function FeatureIntroStep() {
   // 处理导入记录
   const handleImportRecords = () => {
     const importUrl = 'https://import.zhiweijz.cn:1443';
-    
+
     // 只在新窗口打开导入页面，不使用fallback策略
     if (typeof window !== 'undefined') {
       try {
@@ -84,7 +68,7 @@ export function FeatureIntroStep() {
 
     try {
       // 模拟完成处理
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       completeOnboarding();
 
       // 跳转到主页面
@@ -101,15 +85,13 @@ export function FeatureIntroStep() {
   return (
     <div className="onboarding-step">
       <div className="onboarding-step-title">功能介绍</div>
-      <div className="onboarding-step-description">
-        了解核心功能，快速上手使用
-      </div>
+      <div className="onboarding-step-description">了解核心功能，快速上手使用</div>
 
       {/* 所有功能介绍 */}
       <div className="features-overview">
         {features.map((feature, index) => (
-          <div 
-            key={feature.id} 
+          <div
+            key={feature.id}
             className={`feature-overview-card ${feature.id === 'import-records' ? 'clickable' : ''}`}
             onClick={feature.id === 'import-records' ? handleImportRecords : undefined}
             style={feature.id === 'import-records' ? { cursor: 'pointer' } : {}}
@@ -122,7 +104,10 @@ export function FeatureIntroStep() {
                 <div className="feature-overview-title">
                   {feature.title}
                   {feature.id === 'import-records' && (
-                    <i className="fas fa-external-link-alt" style={{ marginLeft: '8px', fontSize: '12px', opacity: 0.7 }}></i>
+                    <i
+                      className="fas fa-external-link-alt"
+                      style={{ marginLeft: '8px', fontSize: '12px', opacity: 0.7 }}
+                    ></i>
                   )}
                 </div>
                 <div className="feature-overview-description">{feature.description}</div>

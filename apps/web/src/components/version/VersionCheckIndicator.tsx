@@ -2,12 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  AlertCircle,
-  RefreshCw,
-  X,
-  WifiOff
-} from 'lucide-react';
+import { AlertCircle, RefreshCw, X, WifiOff } from 'lucide-react';
 
 interface VersionCheckIndicatorProps {
   isChecking: boolean;
@@ -22,7 +17,7 @@ export function VersionCheckIndicator({
   error,
   onRetry,
   onDismiss,
-  className = ''
+  className = '',
 }: VersionCheckIndicatorProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [autoHideTimer, setAutoHideTimer] = useState<NodeJS.Timeout | null>(null);
@@ -87,11 +82,11 @@ export function VersionCheckIndicator({
                 <AlertCircle className="w-4 h-4 text-red-500" />
               )}
             </div>
-            
+
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-red-800">版本检查失败</p>
               <p className="text-xs text-red-600 mt-1 break-words">{error}</p>
-              
+
               <div className="flex items-center gap-2 mt-2">
                 {onRetry && (
                   <Button
@@ -104,7 +99,7 @@ export function VersionCheckIndicator({
                     重试
                   </Button>
                 )}
-                
+
                 <Button
                   onClick={handleDismiss}
                   size="sm"
@@ -133,7 +128,7 @@ export function SimpleVersionCheckIndicator({
   isChecking,
   error,
   onRetry,
-  className = ''
+  className = '',
 }: Omit<VersionCheckIndicatorProps, 'onDismiss'>) {
   if (isChecking) {
     return (

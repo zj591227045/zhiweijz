@@ -4,7 +4,12 @@
  */
 
 import { useCallback } from 'react';
-import { haptic, recordingHaptics, triggerHapticFeedback, HapticType } from '@/utils/haptic-feedback';
+import {
+  haptic,
+  recordingHaptics,
+  triggerHapticFeedback,
+  HapticType,
+} from '@/utils/haptic-feedback';
 
 export interface UseHapticFeedbackReturn {
   // 基础震动函数
@@ -15,7 +20,7 @@ export interface UseHapticFeedbackReturn {
   warning: () => Promise<boolean>;
   error: () => Promise<boolean>;
   selection: () => Promise<boolean>;
-  
+
   // 录音专用震动函数
   recording: {
     start: () => Promise<boolean>;
@@ -25,33 +30,33 @@ export interface UseHapticFeedbackReturn {
     error: () => Promise<boolean>;
     touch: () => Promise<boolean>;
   };
-  
+
   // 按钮类型震动函数
   button: {
-    primary: () => Promise<boolean>;      // 主要按钮（保存、确认等）
-    secondary: () => Promise<boolean>;    // 次要按钮（取消、返回等）
-    destructive: () => Promise<boolean>;  // 危险按钮（删除、清空等）
-    add: () => Promise<boolean>;          // 添加按钮
-    edit: () => Promise<boolean>;         // 编辑按钮
-    submit: () => Promise<boolean>;       // 提交按钮
+    primary: () => Promise<boolean>; // 主要按钮（保存、确认等）
+    secondary: () => Promise<boolean>; // 次要按钮（取消、返回等）
+    destructive: () => Promise<boolean>; // 危险按钮（删除、清空等）
+    add: () => Promise<boolean>; // 添加按钮
+    edit: () => Promise<boolean>; // 编辑按钮
+    submit: () => Promise<boolean>; // 提交按钮
   };
-  
+
   // 表单操作震动函数
   form: {
-    save: () => Promise<boolean>;         // 保存表单
-    submit: () => Promise<boolean>;       // 提交表单
-    reset: () => Promise<boolean>;        // 重置表单
-    validate: () => Promise<boolean>;     // 验证失败
+    save: () => Promise<boolean>; // 保存表单
+    submit: () => Promise<boolean>; // 提交表单
+    reset: () => Promise<boolean>; // 重置表单
+    validate: () => Promise<boolean>; // 验证失败
   };
-  
+
   // 导航操作震动函数
   navigation: {
-    tab: () => Promise<boolean>;          // 切换标签页
-    back: () => Promise<boolean>;         // 返回操作
-    forward: () => Promise<boolean>;      // 前进操作
-    menu: () => Promise<boolean>;         // 菜单操作
+    tab: () => Promise<boolean>; // 切换标签页
+    back: () => Promise<boolean>; // 返回操作
+    forward: () => Promise<boolean>; // 前进操作
+    menu: () => Promise<boolean>; // 菜单操作
   };
-  
+
   // 自定义震动函数
   custom: (type: HapticType) => Promise<boolean>;
 }
@@ -63,18 +68,21 @@ export interface UseHapticFeedbackReturn {
  */
 export function useHapticFeedback(enabled: boolean = true): UseHapticFeedbackReturn {
   // 创建安全的震动调用函数
-  const createSafeHaptic = useCallback((hapticFn: () => Promise<boolean>) => {
-    return async () => {
-      if (!enabled) return false;
-      
-      try {
-        return await hapticFn();
-      } catch (error) {
-        console.warn('🔊 [useHapticFeedback] 震动反馈执行失败:', error);
-        return false;
-      }
-    };
-  }, [enabled]);
+  const createSafeHaptic = useCallback(
+    (hapticFn: () => Promise<boolean>) => {
+      return async () => {
+        if (!enabled) return false;
+
+        try {
+          return await hapticFn();
+        } catch (error) {
+          console.warn('🔊 [useHapticFeedback] 震动反馈执行失败:', error);
+          return false;
+        }
+      };
+    },
+    [enabled],
+  );
 
   // 基础震动函数
   const light = useCallback(() => haptic.light(), []);
@@ -92,33 +100,33 @@ export function useHapticFeedback(enabled: boolean = true): UseHapticFeedbackRet
     cancel: useCallback(() => recordingHaptics.cancel(), []),
     success: useCallback(() => recordingHaptics.success(), []),
     error: useCallback(() => recordingHaptics.error(), []),
-    touch: useCallback(() => recordingHaptics.touch(), [])
+    touch: useCallback(() => recordingHaptics.touch(), []),
   };
 
   // 按钮类型震动函数
   const button = {
-    primary: useCallback(() => haptic.medium(), []),      // 主要按钮使用中等震动
-    secondary: useCallback(() => haptic.light(), []),     // 次要按钮使用轻微震动
+    primary: useCallback(() => haptic.medium(), []), // 主要按钮使用中等震动
+    secondary: useCallback(() => haptic.light(), []), // 次要按钮使用轻微震动
     destructive: useCallback(() => haptic.warning(), []), // 危险按钮使用警告震动
-    add: useCallback(() => haptic.light(), []),           // 添加按钮使用轻微震动
-    edit: useCallback(() => haptic.light(), []),          // 编辑按钮使用轻微震动
-    submit: useCallback(() => haptic.medium(), [])        // 提交按钮使用中等震动
+    add: useCallback(() => haptic.light(), []), // 添加按钮使用轻微震动
+    edit: useCallback(() => haptic.light(), []), // 编辑按钮使用轻微震动
+    submit: useCallback(() => haptic.medium(), []), // 提交按钮使用中等震动
   };
 
   // 表单操作震动函数
   const form = {
-    save: useCallback(() => haptic.success(), []),        // 保存成功使用成功震动
-    submit: useCallback(() => haptic.medium(), []),       // 提交使用中等震动
-    reset: useCallback(() => haptic.warning(), []),       // 重置使用警告震动
-    validate: useCallback(() => haptic.error(), [])       // 验证失败使用错误震动
+    save: useCallback(() => haptic.success(), []), // 保存成功使用成功震动
+    submit: useCallback(() => haptic.medium(), []), // 提交使用中等震动
+    reset: useCallback(() => haptic.warning(), []), // 重置使用警告震动
+    validate: useCallback(() => haptic.error(), []), // 验证失败使用错误震动
   };
 
   // 导航操作震动函数
   const navigation = {
-    tab: useCallback(() => haptic.selection(), []),       // 标签切换使用选择震动
-    back: useCallback(() => haptic.light(), []),          // 返回使用轻微震动
-    forward: useCallback(() => haptic.light(), []),       // 前进使用轻微震动
-    menu: useCallback(() => haptic.light(), [])           // 菜单使用轻微震动
+    tab: useCallback(() => haptic.selection(), []), // 标签切换使用选择震动
+    back: useCallback(() => haptic.light(), []), // 返回使用轻微震动
+    forward: useCallback(() => haptic.light(), []), // 前进使用轻微震动
+    menu: useCallback(() => haptic.light(), []), // 菜单使用轻微震动
   };
 
   // 自定义震动函数
@@ -135,7 +143,7 @@ export function useHapticFeedback(enabled: boolean = true): UseHapticFeedbackRet
     warning: createSafeHaptic(warning),
     error: createSafeHaptic(error),
     selection: createSafeHaptic(selection),
-    
+
     // 录音专用震动函数（包装为安全调用）
     recording: {
       start: createSafeHaptic(recording.start),
@@ -143,9 +151,9 @@ export function useHapticFeedback(enabled: boolean = true): UseHapticFeedbackRet
       cancel: createSafeHaptic(recording.cancel),
       success: createSafeHaptic(recording.success),
       error: createSafeHaptic(recording.error),
-      touch: createSafeHaptic(recording.touch)
+      touch: createSafeHaptic(recording.touch),
     },
-    
+
     // 按钮类型震动函数（包装为安全调用）
     button: {
       primary: createSafeHaptic(button.primary),
@@ -153,27 +161,27 @@ export function useHapticFeedback(enabled: boolean = true): UseHapticFeedbackRet
       destructive: createSafeHaptic(button.destructive),
       add: createSafeHaptic(button.add),
       edit: createSafeHaptic(button.edit),
-      submit: createSafeHaptic(button.submit)
+      submit: createSafeHaptic(button.submit),
     },
-    
+
     // 表单操作震动函数（包装为安全调用）
     form: {
       save: createSafeHaptic(form.save),
       submit: createSafeHaptic(form.submit),
       reset: createSafeHaptic(form.reset),
-      validate: createSafeHaptic(form.validate)
+      validate: createSafeHaptic(form.validate),
     },
-    
+
     // 导航操作震动函数（包装为安全调用）
     navigation: {
       tab: createSafeHaptic(navigation.tab),
       back: createSafeHaptic(navigation.back),
       forward: createSafeHaptic(navigation.forward),
-      menu: createSafeHaptic(navigation.menu)
+      menu: createSafeHaptic(navigation.menu),
     },
-    
+
     // 自定义震动函数（包装为安全调用）
-    custom: createSafeHaptic(custom)
+    custom: createSafeHaptic(custom),
   };
 }
 
@@ -187,14 +195,14 @@ export function useHapticFeedback(enabled: boolean = true): UseHapticFeedbackRet
 export function withHapticFeedback<T extends (...args: any[]) => any>(
   onClick: T,
   hapticType: keyof UseHapticFeedbackReturn['button'] = 'primary',
-  enabled: boolean = true
+  enabled: boolean = true,
 ): T {
   const { button } = useHapticFeedback(enabled);
-  
+
   return ((...args: Parameters<T>) => {
     // 先触发震动反馈
     button[hapticType]();
-    
+
     // 然后执行原始点击事件
     return onClick(...args);
   }) as T;
@@ -208,14 +216,14 @@ export function withHapticFeedback<T extends (...args: any[]) => any>(
  */
 export function withFormHapticFeedback<T extends (...args: any[]) => any>(
   onSubmit: T,
-  enabled: boolean = true
+  enabled: boolean = true,
 ): T {
   const { form } = useHapticFeedback(enabled);
-  
+
   return ((...args: Parameters<T>) => {
     // 先触发提交震动反馈
     form.submit();
-    
+
     // 然后执行原始提交事件
     return onSubmit(...args);
   }) as T;
@@ -240,7 +248,7 @@ export const defaultHapticConfig: HapticConfig = {
   buttonFeedback: true,
   formFeedback: true,
   navigationFeedback: true,
-  recordingFeedback: true
+  recordingFeedback: true,
 };
 
 /**
@@ -248,7 +256,9 @@ export const defaultHapticConfig: HapticConfig = {
  * @param config 震动反馈配置
  * @returns 震动反馈函数集合
  */
-export function useConfiguredHapticFeedback(config: Partial<HapticConfig> = {}): UseHapticFeedbackReturn {
+export function useConfiguredHapticFeedback(
+  config: Partial<HapticConfig> = {},
+): UseHapticFeedbackReturn {
   const finalConfig = { ...defaultHapticConfig, ...config };
   return useHapticFeedback(finalConfig.enabled);
 }

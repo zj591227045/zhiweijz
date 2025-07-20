@@ -21,7 +21,7 @@ export function UrlConfigDebug() {
       NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
       NEXT_PUBLIC_BUILD_NUMBER: process.env.NEXT_PUBLIC_BUILD_NUMBER,
       windowOrigin: typeof window !== 'undefined' ? window.location.origin : 'N/A',
-      currentUrl: typeof window !== 'undefined' ? window.location.href : 'N/A'
+      currentUrl: typeof window !== 'undefined' ? window.location.href : 'N/A',
     };
     setConfig(currentConfig);
   }, []);
@@ -35,12 +35,14 @@ export function UrlConfigDebug() {
       const hostname = window.location.hostname;
 
       // 开发环境检测
-      if (hostname === 'localhost' ||
-          hostname === '127.0.0.1' ||
-          hostname.endsWith('.local') ||
-          hostname.startsWith('192.168.') ||
-          hostname.startsWith('10.') ||
-          hostname.startsWith('172.')) {
+      if (
+        hostname === 'localhost' ||
+        hostname === '127.0.0.1' ||
+        hostname.endsWith('.local') ||
+        hostname.startsWith('192.168.') ||
+        hostname.startsWith('10.') ||
+        hostname.startsWith('172.')
+      ) {
         return '';
       }
 
@@ -62,7 +64,11 @@ export function UrlConfigDebug() {
         return '开发环境 (localhost)';
       } else if (hostname.endsWith('.local')) {
         return '开发环境 (本地域名)';
-      } else if (hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
+      } else if (
+        hostname.startsWith('192.168.') ||
+        hostname.startsWith('10.') ||
+        hostname.startsWith('172.')
+      ) {
         return '开发环境 (内网IP)';
       } else {
         return '生产环境 (自动检测)';
@@ -76,26 +82,28 @@ export function UrlConfigDebug() {
     try {
       const baseUrl = getApiBaseUrl();
       const fullUrl = `${baseUrl}${endpoint}`;
-      
+
       console.log(`测试API端点: ${fullUrl}`);
-      
+
       const response = await fetch(fullUrl, {
         method: endpoint.includes('/check') ? 'POST' : 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: endpoint.includes('/check') ? JSON.stringify({
-          platform: 'web',
-          currentVersion: '0.5.1',
-          currentBuildNumber: 501
-        }) : undefined
+        body: endpoint.includes('/check')
+          ? JSON.stringify({
+              platform: 'web',
+              currentVersion: '0.5.1',
+              currentBuildNumber: 501,
+            })
+          : undefined,
       });
 
       const result = {
         url: fullUrl,
         status: response.status,
         ok: response.ok,
-        statusText: response.statusText
+        statusText: response.statusText,
       };
 
       if (response.ok) {
@@ -107,18 +115,17 @@ export function UrlConfigDebug() {
         }
       }
 
-      setTestResults(prev => ({
+      setTestResults((prev) => ({
         ...prev,
-        [endpoint]: result
+        [endpoint]: result,
       }));
-
     } catch (error) {
-      setTestResults(prev => ({
+      setTestResults((prev) => ({
         ...prev,
         [endpoint]: {
           url: `${getApiBaseUrl()}${endpoint}`,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        }
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
       }));
     }
   };
@@ -127,7 +134,7 @@ export function UrlConfigDebug() {
     '/api/version/check',
     '/api/version/latest/web',
     '/api/version/latest/ios',
-    '/api/version/latest/android'
+    '/api/version/latest/android',
   ];
 
   return (
@@ -147,31 +154,30 @@ export function UrlConfigDebug() {
               </div>
               <div>
                 <strong>检测环境:</strong>
-                <Badge variant="outline">
-                  {detectEnvironment()}
-                </Badge>
+                <Badge variant="outline">{detectEnvironment()}</Badge>
               </div>
               <div className="md:col-span-2">
                 <strong>当前域名:</strong> {config.windowOrigin}
               </div>
             </div>
-            
+
             <div>
-              <strong>配置的API基础URL:</strong> 
+              <strong>配置的API基础URL:</strong>
               <code className="ml-2 px-2 py-1 bg-gray-100 rounded">
                 {config.NEXT_PUBLIC_API_BASE_URL || '(空 - 使用相对路径)'}
               </code>
             </div>
-            
+
             <div>
-              <strong>实际使用的API基础URL:</strong> 
+              <strong>实际使用的API基础URL:</strong>
               <code className="ml-2 px-2 py-1 bg-blue-100 rounded">
                 {getApiBaseUrl() || '(相对路径)'}
               </code>
             </div>
-            
+
             <div>
-              <strong>应用版本:</strong> {config.NEXT_PUBLIC_APP_VERSION} ({config.NEXT_PUBLIC_BUILD_NUMBER})
+              <strong>应用版本:</strong> {config.NEXT_PUBLIC_APP_VERSION} (
+              {config.NEXT_PUBLIC_BUILD_NUMBER})
             </div>
           </div>
         </CardContent>
@@ -184,7 +190,7 @@ export function UrlConfigDebug() {
         <CardContent>
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
-              {endpoints.map(endpoint => (
+              {endpoints.map((endpoint) => (
                 <Button
                   key={endpoint}
                   variant="outline"
@@ -209,14 +215,20 @@ export function UrlConfigDebug() {
                       <Badge variant="secondary">⚠️ {result.status}</Badge>
                     )}
                   </div>
-                  
+
                   <div className="text-sm space-y-1">
-                    <div><strong>URL:</strong> <code>{result.url}</code></div>
+                    <div>
+                      <strong>URL:</strong> <code>{result.url}</code>
+                    </div>
                     {result.status && (
-                      <div><strong>状态:</strong> {result.status} {result.statusText}</div>
+                      <div>
+                        <strong>状态:</strong> {result.status} {result.statusText}
+                      </div>
                     )}
                     {result.error && (
-                      <div className="text-red-600"><strong>错误:</strong> {result.error}</div>
+                      <div className="text-red-600">
+                        <strong>错误:</strong> {result.error}
+                      </div>
                     )}
                     {result.data && (
                       <details>

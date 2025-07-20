@@ -9,17 +9,17 @@ interface AutoVersionCheckerProps {
   checkOnLogin?: boolean;
   checkOnFocus?: boolean;
   checkOnVisibilityChange?: boolean;
-  
+
   // 检查间隔设置
   checkInterval?: number; // 毫秒
   minCheckInterval?: number; // 最小检查间隔，防止频繁检查
-  
+
   // 网络状态检查
   checkOnNetworkReconnect?: boolean;
-  
+
   // 调试选项
   debug?: boolean;
-  
+
   // 回调函数
   onCheckTriggered?: (reason: string) => void;
   onCheckCompleted?: (hasUpdate: boolean) => void;
@@ -37,12 +37,11 @@ export function AutoVersionChecker({
   debug = false,
   onCheckTriggered,
   onCheckCompleted,
-  onError
+  onError,
 }: AutoVersionCheckerProps) {
-  
   const { checkVersion, isChecking, hasUpdate, error } = useEnhancedVersionCheck({
     autoCheck: false, // 我们手动控制检查时机
-    onError
+    onError,
   });
 
   // 引用
@@ -55,7 +54,7 @@ export function AutoVersionChecker({
    */
   const performCheck = async (reason: string) => {
     const now = Date.now();
-    
+
     // 防止频繁检查
     if (now - lastCheckTimeRef.current < minCheckInterval) {
       if (debug) {
@@ -87,7 +86,6 @@ export function AutoVersionChecker({
       if (debug) {
         console.log(`[AutoVersionChecker] 版本检查完成: ${reason}`);
       }
-
     } catch (err) {
       if (debug) {
         console.error(`[AutoVersionChecker] 版本检查失败: ${reason}`, err);
@@ -156,7 +154,7 @@ export function AutoVersionChecker({
     };
 
     window.addEventListener('focus', handleFocus);
-    
+
     return () => {
       window.removeEventListener('focus', handleFocus);
     };
@@ -173,7 +171,7 @@ export function AutoVersionChecker({
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
@@ -188,7 +186,7 @@ export function AutoVersionChecker({
     };
 
     window.addEventListener('online', handleOnline);
-    
+
     return () => {
       window.removeEventListener('online', handleOnline);
     };
@@ -220,7 +218,7 @@ export function AutoVersionChecker({
  */
 export function useVersionCheckStatus() {
   const { isChecking, hasUpdate, error, updateInfo } = useEnhancedVersionCheck({
-    autoCheck: false
+    autoCheck: false,
   });
 
   return {
@@ -232,7 +230,7 @@ export function useVersionCheckStatus() {
     isIdle: !isChecking && !error,
     hasError: !!error,
     needsUpdate: hasUpdate && !!updateInfo,
-    isForceUpdate: hasUpdate && updateInfo?.isForceUpdate
+    isForceUpdate: hasUpdate && updateInfo?.isForceUpdate,
   };
 }
 
@@ -242,28 +240,28 @@ export function useVersionCheckStatus() {
  */
 export function useVersionCheckDebug() {
   const { checkVersion, clearError, getVersionStats } = useEnhancedVersionCheck({
-    autoCheck: false
+    autoCheck: false,
   });
 
   return {
     // 手动触发检查
     triggerCheck: () => checkVersion(),
-    
+
     // 清除错误
     clearError,
-    
+
     // 获取统计信息
     getStats: getVersionStats,
-    
+
     // 清除本地数据
     clearLocalData: () => {
       localStorage.removeItem('versionCheck');
     },
-    
+
     // 模拟网络错误
     simulateNetworkError: () => {
       // 这里可以添加模拟网络错误的逻辑
       console.warn('[VersionCheckDebug] 模拟网络错误功能需要在开发环境中实现');
-    }
+    },
   };
 }

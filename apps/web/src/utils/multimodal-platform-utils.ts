@@ -43,22 +43,22 @@ export function detectPlatform(): PlatformType {
   }
 
   const userAgent = navigator.userAgent.toLowerCase();
-  
+
   // 检测iOS
   if (/iphone|ipad|ipod/.test(userAgent)) {
     return PlatformType.IOS;
   }
-  
+
   // 检测Android
   if (/android/.test(userAgent)) {
     return PlatformType.ANDROID;
   }
-  
+
   // 检测移动端Web
   if (/mobile|tablet|android|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent)) {
     return PlatformType.WEB_MOBILE;
   }
-  
+
   // 默认为桌面Web
   return PlatformType.WEB_DESKTOP;
 }
@@ -68,21 +68,21 @@ export function detectPlatform(): PlatformType {
  */
 export async function detectMediaCapabilities(): Promise<MediaCapabilities> {
   const platform = detectPlatform();
-  
+
   let hasCamera = false;
   let hasMicrophone = false;
-  
+
   try {
     // 检测摄像头
     const videoDevices = await navigator.mediaDevices.enumerateDevices();
-    hasCamera = videoDevices.some(device => device.kind === 'videoinput');
-    
+    hasCamera = videoDevices.some((device) => device.kind === 'videoinput');
+
     // 检测麦克风
-    hasMicrophone = videoDevices.some(device => device.kind === 'audioinput');
+    hasMicrophone = videoDevices.some((device) => device.kind === 'audioinput');
   } catch (error) {
     console.warn('无法检测媒体设备:', error);
   }
-  
+
   // 根据平台返回支持的格式
   const capabilities: MediaCapabilities = {
     hasCamera,
@@ -91,7 +91,7 @@ export async function detectMediaCapabilities(): Promise<MediaCapabilities> {
     supportedImageFormats: getSupportedImageFormats(platform),
     maxFileSize: getMaxFileSize(platform),
   };
-  
+
   return capabilities;
 }
 
@@ -195,55 +195,58 @@ export function isFileSelectionSupported(): boolean {
 /**
  * 请求媒体权限
  */
-export async function requestMediaPermissions(audio: boolean = true, video: boolean = false): Promise<{
+export async function requestMediaPermissions(
+  audio: boolean = true,
+  video: boolean = false,
+): Promise<{
   audio: boolean;
   video: boolean;
   error?: string;
 }> {
   try {
     const constraints: MediaStreamConstraints = {};
-    
+
     if (audio) {
       constraints.audio = true;
     }
-    
+
     if (video) {
       constraints.video = true;
     }
-    
+
     console.log('🎤 [MediaPermissions] 请求媒体流权限:', constraints);
-    
+
     // 在Capacitor环境中，特别是Android，直接尝试getUserMedia
     // 系统会自动处理权限请求
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    
+
     // 立即停止流，我们只是为了获取权限
-    stream.getTracks().forEach(track => track.stop());
-    
+    stream.getTracks().forEach((track) => track.stop());
+
     const result = {
       audio: audio && stream.getAudioTracks().length > 0,
       video: video && stream.getVideoTracks().length > 0,
     };
-    
+
     console.log('🎤 [MediaPermissions] 权限请求成功:', result);
     return result;
   } catch (error) {
     console.error('🎤 [MediaPermissions] 请求媒体权限失败:', error);
-    
+
     let errorMessage = '无法获取媒体权限';
-    
+
     // 检查是否在Capacitor环境中
     const isCapacitor = typeof window !== 'undefined' && (window as any).Capacitor;
     const isAndroid = isCapacitor && (window as any).Capacitor.getPlatform?.() === 'android';
-    
+
     if (error instanceof Error) {
       console.log('🎤 [MediaPermissions] 错误详情:', {
         name: error.name,
         message: error.message,
         isCapacitor,
-        isAndroid
+        isAndroid,
       });
-      
+
       if (error.name === 'NotAllowedError') {
         if (isAndroid) {
           // 在Android上，如果权限已经在系统级别被授予，但仍然出现NotAllowedError
@@ -264,7 +267,7 @@ export async function requestMediaPermissions(audio: boolean = true, video: bool
         errorMessage = `媒体权限错误: ${error.message}`;
       }
     }
-    
+
     return {
       audio: false,
       video: false,
@@ -279,14 +282,14 @@ export async function requestMediaPermissions(audio: boolean = true, video: bool
 export async function convertFileFormat(
   file: File,
   targetFormat: string,
-  platform: PlatformType
+  platform: PlatformType,
 ): Promise<File> {
   // 如果文件已经是目标格式，直接返回
   const currentExtension = file.name.split('.').pop()?.toLowerCase();
   if (currentExtension === targetFormat.toLowerCase()) {
     return file;
   }
-  
+
   // 对于音频文件，我们通常不在前端进行转换
   // 而是让后端处理，这里只是返回原文件
   return file;
@@ -305,7 +308,7 @@ export function getFileExtension(filename: string): string {
 export function validateFileFormat(
   file: File,
   supportedFormats: string[],
-  maxSize: number
+  maxSize: number,
 ): { valid: boolean; error?: string } {
   // 检查文件大小
   if (file.size > maxSize) {
@@ -314,7 +317,7 @@ export function validateFileFormat(
       error: `文件大小超过限制 (${Math.round(maxSize / 1024 / 1024)}MB)`,
     };
   }
-  
+
   // 检查文件格式
   const extension = getFileExtension(file.name);
   if (!supportedFormats.includes(extension)) {
@@ -323,7 +326,7 @@ export function validateFileFormat(
       error: `不支持的文件格式。支持的格式：${supportedFormats.join(', ')}`,
     };
   }
-  
+
   return { valid: true };
 }
 

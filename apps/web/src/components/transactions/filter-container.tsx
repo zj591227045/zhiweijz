@@ -12,7 +12,7 @@ interface FilterContainerProps {
     accountBookId: string;
     budgetId?: string;
   };
-  
+
   // 筛选器选项
   filterOptions: {
     budgets: any[];
@@ -21,11 +21,11 @@ interface FilterContainerProps {
   // 事件处理
   onFilterChange: (key: string, value: any) => void;
   onResetFilters: () => void;
-  
+
   // 显示控制
   isOpen: boolean;
   onToggle: () => void;
-  
+
   // 其他属性
   className?: string;
   budgetId?: string; // 来自URL参数的预算ID
@@ -39,7 +39,7 @@ export function FilterContainer({
   isOpen,
   onToggle,
   className = '',
-  budgetId
+  budgetId,
 }: FilterContainerProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -84,7 +84,7 @@ export function FilterContainer({
             )}
           </h3>
         </div>
-        
+
         <div className="filter-container-actions">
           <button
             onClick={toggleCollapse}
@@ -93,12 +93,12 @@ export function FilterContainer({
           >
             <i className={`fas ${isCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'}`}></i>
           </button>
-          
+
           <button onClick={onResetFilters} className="reset-button">
             <i className="fas fa-undo"></i>
             重置
           </button>
-          
+
           <button onClick={onToggle} className="close-button">
             <i className="fas fa-times"></i>
             关闭
@@ -111,7 +111,9 @@ export function FilterContainer({
         <div className="filter-container-content">
           {/* 时间范围筛选 */}
           <div className="filter-section">
-            <h4><i className="fas fa-calendar-alt"></i> 时间范围</h4>
+            <h4>
+              <i className="fas fa-calendar-alt"></i> 时间范围
+            </h4>
             <div className="date-range">
               <input
                 type="date"
@@ -133,7 +135,9 @@ export function FilterContainer({
 
           {/* 预算筛选 */}
           <div className="filter-section">
-            <h4><i className="fas fa-wallet"></i> 预算筛选</h4>
+            <h4>
+              <i className="fas fa-wallet"></i> 预算筛选
+            </h4>
             <BudgetFilter
               selectedBudgetId={filters.budgetId || budgetId}
               onBudgetChange={handleBudgetChange}
@@ -145,7 +149,9 @@ export function FilterContainer({
 
           {/* 记账类型筛选 */}
           <div className="filter-section">
-            <h4><i className="fas fa-exchange-alt"></i> 记账类型</h4>
+            <h4>
+              <i className="fas fa-exchange-alt"></i> 记账类型
+            </h4>
             <div className="transaction-type-filter">
               <label>
                 <input
@@ -183,7 +189,9 @@ export function FilterContainer({
           {/* 当前预算信息（如果来自URL参数） */}
           {budgetId && (
             <div className="filter-section">
-              <h4><i className="fas fa-info-circle"></i> 当前预算</h4>
+              <h4>
+                <i className="fas fa-info-circle"></i> 当前预算
+              </h4>
               <div className="current-budget-info">
                 {filterOptions.budgets.find((budget: any) => budget.id === budgetId)?.name ||
                   '未知预算'}

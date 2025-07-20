@@ -17,9 +17,7 @@ export function SkipConfirmDialog({ isOpen, onConfirm, onCancel }: SkipConfirmDi
         </div>
         <div className="dialog-body">
           <p>确定要跳过引导流程吗？</p>
-          <p className="dialog-description">
-            您可以随时在设置中重新查看引导内容。
-          </p>
+          <p className="dialog-description">您可以随时在设置中重新查看引导内容。</p>
         </div>
         <div className="dialog-actions">
           <button className="dialog-button dialog-button-secondary" onClick={onCancel}>

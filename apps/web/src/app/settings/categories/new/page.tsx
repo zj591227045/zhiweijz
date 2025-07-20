@@ -23,17 +23,49 @@ import { getIconClass } from '@/lib/utils';
 
 // 可用的分类图标 - 与编辑模态框保持一致
 const availableIcons = [
-  'restaurant', 'shopping', 'daily', 'transport', 'sports', 'entertainment',
-  'clothing', 'clinic', 'beauty', 'housing', 'communication', 'electronics',
-  'social', 'travel', 'digital', 'car', 'medical', 'reading',
-  'investment', 'education', 'office', 'repair', 'insurance', 'salary',
-  'part-time', 'investment-income', 'bonus', 'commission', 'other'
+  'restaurant',
+  'shopping',
+  'daily',
+  'transport',
+  'sports',
+  'entertainment',
+  'clothing',
+  'clinic',
+  'beauty',
+  'housing',
+  'communication',
+  'electronics',
+  'social',
+  'travel',
+  'digital',
+  'car',
+  'medical',
+  'reading',
+  'investment',
+  'education',
+  'office',
+  'repair',
+  'insurance',
+  'salary',
+  'part-time',
+  'investment-income',
+  'bonus',
+  'commission',
+  'other',
 ];
 
 // 预设颜色 - 与编辑模态框保持一致
 const presetColors = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-  '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
+  '#FF6B6B',
+  '#4ECDC4',
+  '#45B7D1',
+  '#96CEB4',
+  '#FFEAA7',
+  '#DDA0DD',
+  '#98D8C8',
+  '#F7DC6F',
+  '#BB8FCE',
+  '#85C1E9',
 ];
 
 // 分离使用 useSearchParams 的组件
@@ -48,9 +80,10 @@ function NewCategoryForm() {
 
   useEffect(() => {
     const checkTheme = () => {
-      const isDark = document.documentElement.classList.contains('dark') ||
-                     document.documentElement.getAttribute('data-theme') === 'dark' ||
-                     window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark =
+        document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        window.matchMedia('(prefers-color-scheme: dark)').matches;
       setIsDarkMode(isDark);
     };
 
@@ -60,7 +93,7 @@ function NewCategoryForm() {
     const observer = new MutationObserver(checkTheme);
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class', 'data-theme']
+      attributeFilter: ['class', 'data-theme'],
     });
 
     return () => observer.disconnect();
@@ -144,14 +177,14 @@ function NewCategoryForm() {
       style={{
         minHeight: '100vh',
         backgroundColor: isDarkMode ? '#111827' : '#f9fafb',
-        paddingBottom: '24px'
+        paddingBottom: '24px',
       }}
     >
       <PageContainer title="添加分类" showBack onBack={() => router.push('/settings/categories')}>
         <div
           className="max-w-2xl mx-auto p-4"
           style={{
-            backgroundColor: isDarkMode ? '#111827' : '#f9fafb'
+            backgroundColor: isDarkMode ? '#111827' : '#f9fafb',
           }}
         >
           {/* 页面标题卡片 */}
@@ -162,7 +195,9 @@ function NewCategoryForm() {
               borderRadius: '16px',
               padding: '24px',
               marginBottom: '16px',
-              boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+              boxShadow: isDarkMode
+                ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)'
+                : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
             }}
           >
             <h1
@@ -173,7 +208,7 @@ function NewCategoryForm() {
                 margin: 0,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: '8px',
               }}
             >
               <i className="fas fa-palette" />
@@ -189,7 +224,9 @@ function NewCategoryForm() {
                 borderRadius: '16px',
                 padding: '24px',
                 marginBottom: '16px',
-                boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                boxShadow: isDarkMode
+                  ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)'
+                  : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
               }}
             >
               <label
@@ -198,7 +235,7 @@ function NewCategoryForm() {
                   fontSize: '14px',
                   fontWeight: '500',
                   marginBottom: '12px',
-                  display: 'block'
+                  display: 'block',
                 }}
               >
                 分类类型
@@ -209,7 +246,7 @@ function NewCategoryForm() {
                   backgroundColor: isDarkMode ? '#374151' : '#f3f4f6',
                   borderRadius: '12px',
                   padding: '4px',
-                  gap: '4px'
+                  gap: '4px',
                 }}
                 role="radiogroup"
                 aria-label="选择分类类型"
@@ -226,12 +263,14 @@ function NewCategoryForm() {
                     fontWeight: '500',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    backgroundColor: formData.type === TransactionType.EXPENSE
-                      ? '#3b82f6'
-                      : 'transparent',
-                    color: formData.type === TransactionType.EXPENSE
-                      ? 'white'
-                      : isDarkMode ? '#f3f4f6' : '#1f2937'
+                    backgroundColor:
+                      formData.type === TransactionType.EXPENSE ? '#3b82f6' : 'transparent',
+                    color:
+                      formData.type === TransactionType.EXPENSE
+                        ? 'white'
+                        : isDarkMode
+                          ? '#f3f4f6'
+                          : '#1f2937',
                   }}
                   role="radio"
                   aria-checked={formData.type === TransactionType.EXPENSE}
@@ -251,12 +290,14 @@ function NewCategoryForm() {
                     fontWeight: '500',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    backgroundColor: formData.type === TransactionType.INCOME
-                      ? '#3b82f6'
-                      : 'transparent',
-                    color: formData.type === TransactionType.INCOME
-                      ? 'white'
-                      : isDarkMode ? '#f3f4f6' : '#1f2937'
+                    backgroundColor:
+                      formData.type === TransactionType.INCOME ? '#3b82f6' : 'transparent',
+                    color:
+                      formData.type === TransactionType.INCOME
+                        ? 'white'
+                        : isDarkMode
+                          ? '#f3f4f6'
+                          : '#1f2937',
                   }}
                   role="radio"
                   aria-checked={formData.type === TransactionType.INCOME}
@@ -280,7 +321,9 @@ function NewCategoryForm() {
                 borderRadius: '16px',
                 padding: '24px',
                 marginBottom: '16px',
-                boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                boxShadow: isDarkMode
+                  ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)'
+                  : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
               }}
             >
               <label
@@ -290,7 +333,7 @@ function NewCategoryForm() {
                   fontSize: '14px',
                   fontWeight: '500',
                   marginBottom: '12px',
-                  display: 'block'
+                  display: 'block',
                 }}
               >
                 分类名称 *
@@ -311,7 +354,7 @@ function NewCategoryForm() {
                   color: isDarkMode ? '#f3f4f6' : '#1f2937',
                   fontSize: '16px',
                   outline: 'none',
-                  transition: 'border-color 0.2s ease'
+                  transition: 'border-color 0.2s ease',
                 }}
                 onFocus={(e) => {
                   e.target.style.borderBottomColor = '#3b82f6';
@@ -335,7 +378,9 @@ function NewCategoryForm() {
                 borderRadius: '16px',
                 padding: '24px',
                 marginBottom: '16px',
-                boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                boxShadow: isDarkMode
+                  ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)'
+                  : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
               }}
             >
               <label
@@ -344,7 +389,7 @@ function NewCategoryForm() {
                   fontSize: '14px',
                   fontWeight: '500',
                   marginBottom: '12px',
-                  display: 'block'
+                  display: 'block',
                 }}
               >
                 分类图标 *
@@ -358,7 +403,7 @@ function NewCategoryForm() {
                   backgroundColor: isDarkMode ? '#374151' : '#f3f4f6',
                   borderRadius: '12px',
                   maxHeight: '240px',
-                  overflowY: 'auto'
+                  overflowY: 'auto',
                 }}
                 role="radiogroup"
                 aria-label="选择分类图标"
@@ -376,17 +421,18 @@ function NewCategoryForm() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: 'pointer',
-                      border: formData.icon === iconName
-                        ? '2px solid #3b82f6'
-                        : isDarkMode ? '2px solid #4b5563' : '2px solid #e5e7eb',
-                      backgroundColor: formData.icon === iconName
-                        ? '#3b82f6'
-                        : isDarkMode ? '#1f2937' : '#ffffff',
-                      color: formData.icon === iconName
-                        ? 'white'
-                        : isDarkMode ? '#f3f4f6' : '#1f2937',
+                      border:
+                        formData.icon === iconName
+                          ? '2px solid #3b82f6'
+                          : isDarkMode
+                            ? '2px solid #4b5563'
+                            : '2px solid #e5e7eb',
+                      backgroundColor:
+                        formData.icon === iconName ? '#3b82f6' : isDarkMode ? '#1f2937' : '#ffffff',
+                      color:
+                        formData.icon === iconName ? 'white' : isDarkMode ? '#f3f4f6' : '#1f2937',
                       fontSize: '20px',
-                      transition: 'all 0.2s ease'
+                      transition: 'all 0.2s ease',
                     }}
                     role="radio"
                     aria-checked={formData.icon === iconName}
@@ -412,7 +458,9 @@ function NewCategoryForm() {
                 borderRadius: '16px',
                 padding: '24px',
                 marginBottom: '16px',
-                boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                boxShadow: isDarkMode
+                  ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)'
+                  : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
               }}
             >
               <label
@@ -421,7 +469,7 @@ function NewCategoryForm() {
                   fontSize: '14px',
                   fontWeight: '500',
                   marginBottom: '12px',
-                  display: 'block'
+                  display: 'block',
                 }}
               >
                 分类颜色
@@ -433,7 +481,7 @@ function NewCategoryForm() {
                   gap: '16px',
                   padding: '16px',
                   backgroundColor: isDarkMode ? '#374151' : '#f3f4f6',
-                  borderRadius: '12px'
+                  borderRadius: '12px',
                 }}
                 role="radiogroup"
                 aria-label="选择分类颜色"
@@ -449,13 +497,18 @@ function NewCategoryForm() {
                       height: '48px',
                       borderRadius: '50%',
                       cursor: 'pointer',
-                      border: formData.color === color
-                        ? isDarkMode ? '3px solid #f3f4f6' : '3px solid #1f2937'
-                        : '3px solid transparent',
+                      border:
+                        formData.color === color
+                          ? isDarkMode
+                            ? '3px solid #f3f4f6'
+                            : '3px solid #1f2937'
+                          : '3px solid transparent',
                       position: 'relative',
-                      boxShadow: isDarkMode ? '0 2px 8px rgba(0, 0, 0, 0.3)' : '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      boxShadow: isDarkMode
+                        ? '0 2px 8px rgba(0, 0, 0, 0.3)'
+                        : '0 2px 8px rgba(0, 0, 0, 0.1)',
                       transition: 'all 0.2s ease',
-                      transform: formData.color === color ? 'scale(1.1)' : 'scale(1)'
+                      transform: formData.color === color ? 'scale(1.1)' : 'scale(1)',
                     }}
                     role="radio"
                     aria-checked={formData.color === color}
@@ -463,16 +516,18 @@ function NewCategoryForm() {
                     title={`选择颜色 ${color}`}
                   >
                     {formData.color === color && (
-                      <span style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        color: 'white',
-                        fontWeight: 'bold',
-                        fontSize: '14px',
-                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)'
-                      }}>
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          color: 'white',
+                          fontWeight: 'bold',
+                          fontSize: '14px',
+                          textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+                        }}
+                      >
                         ✓
                       </span>
                     )}
@@ -489,7 +544,9 @@ function NewCategoryForm() {
                 borderRadius: '16px',
                 padding: '24px',
                 marginBottom: '16px',
-                boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                boxShadow: isDarkMode
+                  ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)'
+                  : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
               }}
             >
               <label
@@ -498,7 +555,7 @@ function NewCategoryForm() {
                   fontSize: '14px',
                   fontWeight: '500',
                   marginBottom: '12px',
-                  display: 'block'
+                  display: 'block',
                 }}
               >
                 预览效果
@@ -510,7 +567,7 @@ function NewCategoryForm() {
                   gap: '16px',
                   padding: '16px',
                   backgroundColor: isDarkMode ? '#374151' : '#f3f4f6',
-                  borderRadius: '12px'
+                  borderRadius: '12px',
                 }}
               >
                 <div
@@ -523,7 +580,7 @@ function NewCategoryForm() {
                     justifyContent: 'center',
                     backgroundColor: formData.color,
                     color: 'white',
-                    fontSize: '20px'
+                    fontSize: '20px',
                   }}
                 >
                   <i className={getIconClass(formData.icon)} aria-hidden="true" />
@@ -534,7 +591,7 @@ function NewCategoryForm() {
                       color: isDarkMode ? '#f3f4f6' : '#1f2937',
                       fontSize: '16px',
                       fontWeight: '500',
-                      marginBottom: '4px'
+                      marginBottom: '4px',
                     }}
                   >
                     {formData.name || '分类名称'}
@@ -542,7 +599,7 @@ function NewCategoryForm() {
                   <div
                     style={{
                       color: isDarkMode ? '#9ca3af' : '#6b7280',
-                      fontSize: '14px'
+                      fontSize: '14px',
                     }}
                   >
                     {formData.type === TransactionType.EXPENSE ? '支出分类' : '收入分类'}
@@ -570,7 +627,7 @@ function NewCategoryForm() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '8px'
+                  gap: '8px',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = isDarkMode ? '#374151' : '#f3f4f6';
@@ -599,7 +656,7 @@ function NewCategoryForm() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '8px'
+                  gap: '8px',
                 }}
                 onMouseEnter={(e) => {
                   if (!isLoading) {
@@ -648,7 +705,7 @@ export default function NewCategoryPage() {
                   borderRadius: '16px',
                   padding: '24px',
                   marginBottom: '16px',
-                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                 }}
               >
                 <h1
@@ -659,7 +716,7 @@ export default function NewCategoryPage() {
                     margin: 0,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px'
+                    gap: '8px',
                   }}
                 >
                   <i className="fas fa-palette" />
@@ -676,11 +733,21 @@ export default function NewCategoryPage() {
                     border: '1px solid #e5e7eb',
                     borderRadius: '16px',
                     padding: '24px',
-                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                   }}
                 >
-                  <div style={{ height: '16px', backgroundColor: '#e5e7eb', borderRadius: '4px', width: '80px', marginBottom: '12px' }}></div>
-                  <div style={{ height: '48px', backgroundColor: '#f3f4f6', borderRadius: '12px' }}></div>
+                  <div
+                    style={{
+                      height: '16px',
+                      backgroundColor: '#e5e7eb',
+                      borderRadius: '4px',
+                      width: '80px',
+                      marginBottom: '12px',
+                    }}
+                  ></div>
+                  <div
+                    style={{ height: '48px', backgroundColor: '#f3f4f6', borderRadius: '12px' }}
+                  ></div>
                 </div>
 
                 {/* 基本信息表单骨架 */}
@@ -690,11 +757,21 @@ export default function NewCategoryPage() {
                     border: '1px solid #e5e7eb',
                     borderRadius: '16px',
                     padding: '24px',
-                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                   }}
                 >
-                  <div style={{ height: '16px', backgroundColor: '#e5e7eb', borderRadius: '4px', width: '100px', marginBottom: '12px' }}></div>
-                  <div style={{ height: '48px', backgroundColor: '#f3f4f6', borderRadius: '8px' }}></div>
+                  <div
+                    style={{
+                      height: '16px',
+                      backgroundColor: '#e5e7eb',
+                      borderRadius: '4px',
+                      width: '100px',
+                      marginBottom: '12px',
+                    }}
+                  ></div>
+                  <div
+                    style={{ height: '48px', backgroundColor: '#f3f4f6', borderRadius: '8px' }}
+                  ></div>
                 </div>
 
                 {/* 图标选择器骨架 */}
@@ -704,14 +781,38 @@ export default function NewCategoryPage() {
                     border: '1px solid #e5e7eb',
                     borderRadius: '16px',
                     padding: '24px',
-                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                   }}
                 >
-                  <div style={{ height: '16px', backgroundColor: '#e5e7eb', borderRadius: '4px', width: '80px', marginBottom: '12px' }}></div>
-                  <div style={{ padding: '16px', backgroundColor: '#f3f4f6', borderRadius: '12px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                  <div
+                    style={{
+                      height: '16px',
+                      backgroundColor: '#e5e7eb',
+                      borderRadius: '4px',
+                      width: '80px',
+                      marginBottom: '12px',
+                    }}
+                  ></div>
+                  <div
+                    style={{ padding: '16px', backgroundColor: '#f3f4f6', borderRadius: '12px' }}
+                  >
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(4, 1fr)',
+                        gap: '12px',
+                      }}
+                    >
                       {Array.from({ length: 12 }).map((_, i) => (
-                        <div key={i} style={{ width: '60px', height: '60px', backgroundColor: '#e5e7eb', borderRadius: '12px' }}></div>
+                        <div
+                          key={i}
+                          style={{
+                            width: '60px',
+                            height: '60px',
+                            backgroundColor: '#e5e7eb',
+                            borderRadius: '12px',
+                          }}
+                        ></div>
                       ))}
                     </div>
                   </div>

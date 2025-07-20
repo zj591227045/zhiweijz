@@ -22,10 +22,10 @@ interface FileStorageState {
   isLoading: boolean;
   error: string | null;
   lastChecked: number | null;
-  
+
   // 缓存控制
   cacheTimeout: number; // 缓存超时时间（毫秒）
-  
+
   // Actions
   fetchStorageStatus: () => Promise<void>;
   clearError: () => void;
@@ -105,8 +105,8 @@ export const useFileStorageStore = create<FileStorageState>()(
         lastChecked: state.lastChecked,
         cacheTimeout: state.cacheTimeout,
       }),
-    }
-  )
+    },
+  ),
 );
 
 /**

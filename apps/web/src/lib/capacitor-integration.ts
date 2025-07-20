@@ -71,7 +71,7 @@ export class CapacitorIntegration {
 
     // 检查Capacitor是否可用
     this.capacitor = (window as any).Capacitor;
-    
+
     if (!this.capacitor) {
       console.log('🔌 [Capacitor] Capacitor不可用，使用Web模式');
       return;
@@ -97,7 +97,7 @@ export class CapacitorIntegration {
     // 应用状态变化监听
     App.addListener('appStateChange', (state) => {
       console.log('🔌 [Capacitor] 应用状态变化:', state);
-      
+
       if (state.isActive) {
         // 应用激活时的处理
         this.onAppActivated();
@@ -170,7 +170,7 @@ export class CapacitorIntegration {
   // 处理应用退出
   private handleAppExit() {
     const now = Date.now();
-    
+
     if (this.config.exitConfirmation) {
       // 显示退出确认
       this.showExitConfirmation();
@@ -193,7 +193,7 @@ export class CapacitorIntegration {
   private showExitToast() {
     // 这里可以集成Toast组件或使用原生提示
     console.log('💬 [Capacitor] 显示退出提示：再按一次退出应用');
-    
+
     // 简单的原生alert（实际项目中应该使用更好的UI组件）
     if (this.capacitor?.isNativePlatform()) {
       // 在原生环境中可以使用Toast插件
@@ -214,9 +214,9 @@ export class CapacitorIntegration {
         z-index: 10000;
         font-size: 14px;
       `;
-      
+
       document.body.appendChild(toast);
-      
+
       setTimeout(() => {
         document.body.removeChild(toast);
       }, 2000);
@@ -259,7 +259,7 @@ export class CapacitorIntegration {
       StatusBar.setStyle({ style: 'LIGHT' });
       StatusBar.setBackgroundColor({ color: '#FFFFFF' });
       StatusBar.setOverlaysWebView({ overlay: false });
-      
+
       console.log('🔌 [Capacitor] 状态栏已配置');
     } catch (error) {
       console.error('🔌 [Capacitor] 状态栏配置失败:', error);
@@ -293,10 +293,10 @@ export class CapacitorIntegration {
   // 应用激活处理
   private onAppActivated() {
     console.log('🔌 [Capacitor] 应用已激活');
-    
+
     // 重新初始化导航状态
     navigationManager.initialize();
-    
+
     // 触发自定义事件
     window.dispatchEvent(new CustomEvent('app:activated'));
   }
@@ -304,10 +304,10 @@ export class CapacitorIntegration {
   // 应用进入后台处理
   private onAppDeactivated() {
     console.log('🔌 [Capacitor] 应用进入后台');
-    
+
     // 清理临时状态
     this.lastBackPress = 0;
-    
+
     // 触发自定义事件
     window.dispatchEvent(new CustomEvent('app:deactivated'));
   }
@@ -315,7 +315,7 @@ export class CapacitorIntegration {
   // 处理URL打开
   private handleUrlOpen(url: string) {
     console.log('🔗 [Capacitor] 处理URL打开:', url);
-    
+
     // 这里可以添加深度链接处理逻辑
     // 例如：解析URL并导航到相应页面
   }
@@ -374,7 +374,7 @@ export class CapacitorIntegration {
       this.backButtonListener.remove();
       this.backButtonListener = null;
     }
-    
+
     console.log('💥 [Capacitor] Capacitor集成已销毁');
   }
 }
@@ -387,7 +387,7 @@ export function initializeCapacitorIntegration(config?: Partial<BackButtonConfig
   if (config) {
     capacitorIntegration.updateConfig(config);
   }
-  
+
   console.log('🚀 [Capacitor] Capacitor集成已初始化');
   return capacitorIntegration;
 }

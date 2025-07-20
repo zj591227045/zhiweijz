@@ -21,7 +21,6 @@ export function MemberItem({
   onToggleRoleSelector,
   onRemove,
 }: MemberItemProps) {
-
   return (
     <>
       {/* 成员信息和详情的横向容器 */}

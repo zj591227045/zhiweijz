@@ -26,7 +26,6 @@ interface DiskMonitoringCardProps {
 }
 
 export function DiskMonitoringCard({ data, isLoading = false }: DiskMonitoringCardProps) {
-  
   // 格式化字节数
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -76,9 +75,7 @@ export function DiskMonitoringCard({ data, isLoading = false }: DiskMonitoringCa
     return (
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">磁盘空间监控</h3>
-        <div className="h-32 flex items-center justify-center text-gray-500">
-          暂无数据
-        </div>
+        <div className="h-32 flex items-center justify-center text-gray-500">暂无数据</div>
       </div>
     );
   }
@@ -86,13 +83,17 @@ export function DiskMonitoringCard({ data, isLoading = false }: DiskMonitoringCa
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-medium text-gray-900 mb-4">磁盘空间监控</h3>
-      
+
       {data.error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
           <div className="flex">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
             <div className="ml-3">
@@ -113,7 +114,7 @@ export function DiskMonitoringCard({ data, isLoading = false }: DiskMonitoringCa
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
-              <div 
+              <div
                 className={`h-3 rounded-full transition-all duration-300 ${getUsageColor(data.usagePercent)}`}
                 style={{ width: `${data.usagePercent}%` }}
               />
@@ -141,16 +142,18 @@ export function DiskMonitoringCard({ data, isLoading = false }: DiskMonitoringCa
                       </span>
                     </div>
                     {drive.total > 0 && (
-                      <span className={`text-sm font-semibold ${getUsageTextColor(drive.usagePercent)}`}>
+                      <span
+                        className={`text-sm font-semibold ${getUsageTextColor(drive.usagePercent)}`}
+                      >
                         {drive.usagePercent.toFixed(1)}%
                       </span>
                     )}
                   </div>
-                  
+
                   {drive.total > 0 ? (
                     <>
                       <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                        <div 
+                        <div
                           className={`h-2 rounded-full transition-all duration-300 ${getUsageColor(drive.usagePercent)}`}
                           style={{ width: `${drive.usagePercent}%` }}
                         />
@@ -175,13 +178,13 @@ export function DiskMonitoringCard({ data, isLoading = false }: DiskMonitoringCa
                       {drive.note || drive.error || '无法获取磁盘信息'}
                     </div>
                   )}
-                  
+
                   {drive.note && drive.total > 0 && (
                     <div className="mt-2 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
                       {drive.note}
                     </div>
                   )}
-                  
+
                   {drive.error && (
                     <div className="mt-2 text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
                       {drive.error}
@@ -202,7 +205,7 @@ export function DiskMonitoringCard({ data, isLoading = false }: DiskMonitoringCa
                 if (drive.total === 0) return null;
                 return (
                   <div key={index} className="flex items-center space-x-1">
-                    <div 
+                    <div
                       className={`w-3 h-3 rounded-full ${getUsageColor(drive.usagePercent)}`}
                       title={`${drive.drive}: ${drive.usagePercent.toFixed(1)}%`}
                     />

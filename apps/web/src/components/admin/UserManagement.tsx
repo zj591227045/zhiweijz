@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { 
+import {
   MagnifyingGlassIcon,
   PlusIcon,
   TrashIcon,
@@ -12,7 +12,7 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
   CogIcon,
-  KeyIcon
+  KeyIcon,
 } from '@heroicons/react/24/outline';
 import { UserModal } from './UserModal';
 import { ConfirmModal } from './ConfirmModal';
@@ -55,7 +55,10 @@ interface UserManagementProps {
   onSortChange: (field: 'createdAt' | 'name' | 'email', order: 'asc' | 'desc') => void;
   onDeleteUser: (id: string) => Promise<boolean>;
   onToggleUserStatus: (id: string) => Promise<boolean>;
-  onBatchOperation: (userIds: string[], operation: 'activate' | 'deactivate' | 'delete') => Promise<boolean>;
+  onBatchOperation: (
+    userIds: string[],
+    operation: 'activate' | 'deactivate' | 'delete',
+  ) => Promise<boolean>;
   onToggleRegistration: (enabled: boolean) => Promise<boolean>;
 }
 
@@ -75,7 +78,7 @@ export function UserManagement({
   onDeleteUser,
   onToggleUserStatus,
   onBatchOperation,
-  onToggleRegistration
+  onToggleRegistration,
 }: UserManagementProps) {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [showUserModal, setShowUserModal] = useState(false);
@@ -91,24 +94,30 @@ export function UserManagement({
   } | null>(null);
 
   // 全选/取消全选
-  const handleSelectAll = useCallback((checked: boolean) => {
-    if (checked) {
-      setSelectedUsers(new Set(users.map(user => user.id)));
-    } else {
-      setSelectedUsers(new Set());
-    }
-  }, [users]);
+  const handleSelectAll = useCallback(
+    (checked: boolean) => {
+      if (checked) {
+        setSelectedUsers(new Set(users.map((user) => user.id)));
+      } else {
+        setSelectedUsers(new Set());
+      }
+    },
+    [users],
+  );
 
   // 选择单个用户
-  const handleSelectUser = useCallback((userId: string, checked: boolean) => {
-    const newSelected = new Set(selectedUsers);
-    if (checked) {
-      newSelected.add(userId);
-    } else {
-      newSelected.delete(userId);
-    }
-    setSelectedUsers(newSelected);
-  }, [selectedUsers]);
+  const handleSelectUser = useCallback(
+    (userId: string, checked: boolean) => {
+      const newSelected = new Set(selectedUsers);
+      if (checked) {
+        newSelected.add(userId);
+      } else {
+        newSelected.delete(userId);
+      }
+      setSelectedUsers(newSelected);
+    },
+    [selectedUsers],
+  );
 
   // 打开创建用户弹窗
   const handleCreateUser = () => {
@@ -143,16 +152,16 @@ export function UserManagement({
   // 处理批量操作
   const handleBatchOperation = (operation: 'activate' | 'deactivate' | 'delete') => {
     if (selectedUsers.size === 0) return;
-    
+
     setConfirmAction({ type: 'batch', batchOperation: operation });
     setShowConfirmModal(true);
   };
 
   // 处理注册开关切换
   const handleToggleRegistration = () => {
-    setConfirmAction({ 
-      type: 'toggleRegistration', 
-      registrationEnabled: !registrationEnabled 
+    setConfirmAction({
+      type: 'toggleRegistration',
+      registrationEnabled: !registrationEnabled,
     });
     setShowConfirmModal(true);
   };
@@ -160,7 +169,7 @@ export function UserManagement({
   // 执行确认操作
   const executeConfirmAction = async () => {
     if (!confirmAction) return;
-    
+
     try {
       switch (confirmAction.type) {
         case 'delete':
@@ -176,8 +185,8 @@ export function UserManagement({
         case 'batch':
           if (confirmAction.batchOperation) {
             const success = await onBatchOperation(
-              Array.from(selectedUsers), 
-              confirmAction.batchOperation
+              Array.from(selectedUsers),
+              confirmAction.batchOperation,
             );
             if (success) {
               setSelectedUsers(new Set());
@@ -210,9 +219,11 @@ export function UserManagement({
     if (sortBy !== field) {
       return <ArrowUpIcon className="w-4 h-4 opacity-30" />;
     }
-    return sortOrder === 'asc' 
-      ? <ArrowUpIcon className="w-4 h-4" />
-      : <ArrowDownIcon className="w-4 h-4" />;
+    return sortOrder === 'asc' ? (
+      <ArrowUpIcon className="w-4 h-4" />
+    ) : (
+      <ArrowDownIcon className="w-4 h-4" />
+    );
   };
 
   // 格式化日期
@@ -222,21 +233,21 @@ export function UserManagement({
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
   // 获取确认弹窗的内容
   const getConfirmModalContent = () => {
     if (!confirmAction) return { title: '', message: '', confirmText: '', confirmStyle: '' };
-    
+
     switch (confirmAction.type) {
       case 'delete':
         return {
           title: '确认删除用户',
           message: `确定要删除用户 "${confirmAction.user?.name}" 吗？此操作不可撤销。`,
           confirmText: '删除',
-          confirmStyle: 'bg-red-600 hover:bg-red-700'
+          confirmStyle: 'bg-red-600 hover:bg-red-700',
         };
       case 'toggle':
         const isActivating = !confirmAction.user?.isActive;
@@ -244,28 +255,39 @@ export function UserManagement({
           title: `确认${isActivating ? '启用' : '禁用'}用户`,
           message: `确定要${isActivating ? '启用' : '禁用'}用户 "${confirmAction.user?.name}" 吗？`,
           confirmText: isActivating ? '启用' : '禁用',
-          confirmStyle: isActivating ? 'bg-green-600 hover:bg-green-700' : 'bg-yellow-600 hover:bg-yellow-700'
+          confirmStyle: isActivating
+            ? 'bg-green-600 hover:bg-green-700'
+            : 'bg-yellow-600 hover:bg-yellow-700',
         };
       case 'batch':
-        const operationText = confirmAction.batchOperation === 'activate' ? '启用' : 
-                             confirmAction.batchOperation === 'deactivate' ? '禁用' : '删除';
+        const operationText =
+          confirmAction.batchOperation === 'activate'
+            ? '启用'
+            : confirmAction.batchOperation === 'deactivate'
+              ? '禁用'
+              : '删除';
         return {
           title: `确认批量${operationText}`,
           message: `确定要${operationText} ${selectedUsers.size} 个用户吗？${confirmAction.batchOperation === 'delete' ? '此操作不可撤销。' : ''}`,
           confirmText: operationText,
-          confirmStyle: confirmAction.batchOperation === 'delete' ? 'bg-red-600 hover:bg-red-700' :
-                       confirmAction.batchOperation === 'activate' ? 'bg-green-600 hover:bg-green-700' :
-                       'bg-yellow-600 hover:bg-yellow-700'
+          confirmStyle:
+            confirmAction.batchOperation === 'delete'
+              ? 'bg-red-600 hover:bg-red-700'
+              : confirmAction.batchOperation === 'activate'
+                ? 'bg-green-600 hover:bg-green-700'
+                : 'bg-yellow-600 hover:bg-yellow-700',
         };
       case 'toggleRegistration':
         const enabling = confirmAction.registrationEnabled;
         return {
           title: `确认${enabling ? '开放' : '关闭'}用户注册`,
-          message: enabling 
+          message: enabling
             ? '确定要开放用户注册吗？开放后，任何人都可以注册新账号。'
             : '确定要关闭用户注册吗？关闭后，新用户将无法自行注册，只能由管理员创建账号。',
           confirmText: enabling ? '开放注册' : '关闭注册',
-          confirmStyle: enabling ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
+          confirmStyle: enabling
+            ? 'bg-green-600 hover:bg-green-700'
+            : 'bg-red-600 hover:bg-red-700',
         };
       default:
         return { title: '', message: '', confirmText: '', confirmStyle: '' };
@@ -319,9 +341,11 @@ export function UserManagement({
                   }`}
                 />
               </button>
-              <span className={`text-sm font-medium ${
-                registrationEnabled ? 'text-green-600' : 'text-red-600'
-              }`}>
+              <span
+                className={`text-sm font-medium ${
+                  registrationEnabled ? 'text-green-600' : 'text-red-600'
+                }`}
+              >
                 {registrationEnabled ? '已开放' : '已关闭'}
               </span>
             </div>
@@ -330,7 +354,8 @@ export function UserManagement({
         {!registrationEnabled && (
           <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-sm text-yellow-800">
-              <strong>注意：</strong>用户注册已关闭，新用户无法自行注册。如需添加新用户，请使用"创建用户"功能。
+              <strong>注意：</strong>
+              用户注册已关闭，新用户无法自行注册。如需添加新用户，请使用"创建用户"功能。
             </p>
           </div>
         )}
@@ -358,7 +383,9 @@ export function UserManagement({
             {/* 状态筛选 */}
             <select
               value={statusFilter}
-              onChange={(e) => onStatusFilterChange(e.target.value as 'all' | 'active' | 'inactive')}
+              onChange={(e) =>
+                onStatusFilterChange(e.target.value as 'all' | 'active' | 'inactive')
+              }
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">全部状态</option>
@@ -369,9 +396,7 @@ export function UserManagement({
             {/* 批量操作 */}
             {selectedUsers.size > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">
-                  已选 {selectedUsers.size} 项
-                </span>
+                <span className="text-sm text-gray-600">已选 {selectedUsers.size} 项</span>
                 <button
                   onClick={() => handleBatchOperation('activate')}
                   className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200"
@@ -419,7 +444,7 @@ export function UserManagement({
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                 </th>
-                <th 
+                <th
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('name')}
                 >
@@ -428,7 +453,7 @@ export function UserManagement({
                     {renderSortIcon('name')}
                   </div>
                 </th>
-                <th 
+                <th
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('email')}
                 >
@@ -443,7 +468,7 @@ export function UserManagement({
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   状态
                 </th>
-                <th 
+                <th
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('createdAt')}
                 >
@@ -480,20 +505,14 @@ export function UserManagement({
                         />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {user.name}
-                        </div>
+                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
                         {user.bio && (
-                          <div className="text-sm text-gray-500 truncate max-w-48">
-                            {user.bio}
-                          </div>
+                          <div className="text-sm text-gray-500 truncate max-w-48">{user.bio}</div>
                         )}
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {user.email}
-                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{user.email}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     <div className="space-y-1">
                       <div>记账: {user.transactionCount.toLocaleString()} 笔</div>
@@ -501,11 +520,11 @@ export function UserManagement({
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      user.isActive 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}
+                    >
                       {user.isActive ? '已启用' : '已禁用'}
                     </span>
                   </td>
@@ -538,13 +557,17 @@ export function UserManagement({
                       <button
                         onClick={() => handleToggleUserStatus(user)}
                         className={`${
-                          user.isActive 
-                            ? 'text-yellow-600 hover:text-yellow-900' 
+                          user.isActive
+                            ? 'text-yellow-600 hover:text-yellow-900'
                             : 'text-green-600 hover:text-green-900'
                         }`}
                         title={user.isActive ? '禁用用户' : '启用用户'}
                       >
-                        {user.isActive ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
+                        {user.isActive ? (
+                          <EyeSlashIcon className="w-4 h-4" />
+                        ) : (
+                          <EyeIcon className="w-4 h-4" />
+                        )}
                       </button>
                       <button
                         onClick={() => handleDeleteUser(user)}
@@ -566,7 +589,8 @@ export function UserManagement({
           <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-700">
-                显示 {((pagination.page - 1) * pagination.limit) + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)} 
+                显示 {(pagination.page - 1) * pagination.limit + 1} -{' '}
+                {Math.min(pagination.page * pagination.limit, pagination.total)}
                 条，共 {pagination.total} 条
               </div>
               <div className="flex items-center gap-2">
@@ -577,12 +601,12 @@ export function UserManagement({
                 >
                   上一页
                 </button>
-                
+
                 {/* 页码 */}
                 {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
                   const pageNum = Math.max(1, pagination.page - 2) + i;
                   if (pageNum > pagination.totalPages) return null;
-                  
+
                   return (
                     <button
                       key={pageNum}
@@ -597,7 +621,7 @@ export function UserManagement({
                     </button>
                   );
                 })}
-                
+
                 <button
                   onClick={() => onPageChange(pagination.page + 1)}
                   disabled={pagination.page >= pagination.totalPages}
@@ -670,4 +694,4 @@ export function UserManagement({
       />
     </div>
   );
-} 
+}

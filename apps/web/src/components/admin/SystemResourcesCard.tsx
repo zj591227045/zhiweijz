@@ -6,7 +6,6 @@ interface SystemResourcesCardProps {
 }
 
 export function SystemResourcesCard({ data, isLoading = false }: SystemResourcesCardProps) {
-  
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
@@ -27,9 +26,7 @@ export function SystemResourcesCard({ data, isLoading = false }: SystemResources
     return (
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">系统资源</h3>
-        <div className="h-32 flex items-center justify-center text-gray-500">
-          暂无数据
-        </div>
+        <div className="h-32 flex items-center justify-center text-gray-500">暂无数据</div>
       </div>
     );
   }
@@ -48,7 +45,7 @@ export function SystemResourcesCard({ data, isLoading = false }: SystemResources
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    
+
     if (days > 0) {
       return `${days}天 ${hours}小时`;
     } else if (hours > 0) {
@@ -64,7 +61,7 @@ export function SystemResourcesCard({ data, isLoading = false }: SystemResources
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-medium text-gray-900 mb-4">系统资源</h3>
-      
+
       <div className="space-y-4">
         {/* 内存使用情况 */}
         <div>
@@ -73,10 +70,13 @@ export function SystemResourcesCard({ data, isLoading = false }: SystemResources
             <span>{memoryUsagePercent.toFixed(1)}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className={`h-2 rounded-full transition-all duration-300 ${
-                memoryUsagePercent > 80 ? 'bg-red-500' : 
-                memoryUsagePercent > 60 ? 'bg-yellow-500' : 'bg-green-500'
+                memoryUsagePercent > 80
+                  ? 'bg-red-500'
+                  : memoryUsagePercent > 60
+                    ? 'bg-yellow-500'
+                    : 'bg-green-500'
               }`}
               style={{ width: `${memoryUsagePercent}%` }}
             />
@@ -94,17 +94,14 @@ export function SystemResourcesCard({ data, isLoading = false }: SystemResources
             <span>{cpuLoad1Min.toFixed(2)}</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className={`h-2 rounded-full transition-all duration-300 ${
-                cpuLoad1Min > 2 ? 'bg-red-500' : 
-                cpuLoad1Min > 1 ? 'bg-yellow-500' : 'bg-green-500'
+                cpuLoad1Min > 2 ? 'bg-red-500' : cpuLoad1Min > 1 ? 'bg-yellow-500' : 'bg-green-500'
               }`}
               style={{ width: `${Math.min(cpuLoad1Min * 50, 100)}%` }}
             />
           </div>
-          <div className="text-xs text-gray-500 mt-1">
-            1分钟平均负载
-          </div>
+          <div className="text-xs text-gray-500 mt-1">1分钟平均负载</div>
         </div>
 
         {/* 进程内存 */}
@@ -134,8 +131,11 @@ export function SystemResourcesCard({ data, isLoading = false }: SystemResources
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className={`h-2 rounded-full transition-all duration-300 ${
-                  data.disk.usagePercent > 80 ? 'bg-red-500' :
-                  data.disk.usagePercent > 60 ? 'bg-yellow-500' : 'bg-green-500'
+                  data.disk.usagePercent > 80
+                    ? 'bg-red-500'
+                    : data.disk.usagePercent > 60
+                      ? 'bg-yellow-500'
+                      : 'bg-green-500'
                 }`}
                 style={{ width: `${data.disk.usagePercent}%` }}
               />
@@ -170,11 +170,7 @@ export function SystemResourcesCard({ data, isLoading = false }: SystemResources
               </div>
             )}
 
-            {data.disk.error && (
-              <div className="text-xs text-red-500 mt-1">
-                {data.disk.error}
-              </div>
-            )}
+            {data.disk.error && <div className="text-xs text-red-500 mt-1">{data.disk.error}</div>}
           </div>
         )}
 
@@ -202,4 +198,4 @@ export function SystemResourcesCard({ data, isLoading = false }: SystemResources
       </div>
     </div>
   );
-} 
+}

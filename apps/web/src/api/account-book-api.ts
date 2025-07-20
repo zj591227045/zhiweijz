@@ -31,7 +31,7 @@ export class AccountBookApiService {
   static async getAccountBooks(): Promise<AccountBookResponse[]> {
     try {
       const response = await apiClient.get('/account-books');
-      
+
       // 处理不同的响应格式
       if (response && typeof response === 'object') {
         // 如果响应是对象且有data字段，且data是数组
@@ -99,7 +99,10 @@ export class AccountBookApiService {
   /**
    * 更新账本
    */
-  static async updateAccountBook(id: string, data: Partial<CreateAccountBookRequest>): Promise<AccountBookResponse> {
+  static async updateAccountBook(
+    id: string,
+    data: Partial<CreateAccountBookRequest>,
+  ): Promise<AccountBookResponse> {
     try {
       const response = await apiClient.put(`/account-books/${id}`, data);
       return response;
@@ -137,7 +140,10 @@ export class AccountBookApiService {
   /**
    * 创建家庭账本
    */
-  static async createFamilyAccountBook(familyId: string, data: CreateAccountBookRequest): Promise<AccountBookResponse> {
+  static async createFamilyAccountBook(
+    familyId: string,
+    data: CreateAccountBookRequest,
+  ): Promise<AccountBookResponse> {
     try {
       const response = await apiClient.post(`/account-books/family/${familyId}`, data);
       return response;

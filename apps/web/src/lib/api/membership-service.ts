@@ -129,51 +129,75 @@ class MembershipApiService {
   }
 
   // 升级会员
-  async upgradeMembership(memberType: string, duration = 12, paymentMethod = 'manual'): Promise<MembershipResponse> {
+  async upgradeMembership(
+    memberType: string,
+    duration = 12,
+    paymentMethod = 'manual',
+  ): Promise<MembershipResponse> {
     return apiClient.post('/membership/upgrade', { memberType, duration, paymentMethod });
   }
 
   // 获取会员类型标签
   getMemberTypeLabel(type: string): string {
     switch (type) {
-      case 'REGULAR': return '普通会员';
-      case 'DONOR': return '捐赠会员';
-      case 'LIFETIME': return '永久会员';
-      default: return type;
+      case 'REGULAR':
+        return '普通会员';
+      case 'DONOR':
+        return '捐赠会员';
+      case 'LIFETIME':
+        return '永久会员';
+      default:
+        return type;
     }
   }
 
   // 获取会员类型颜色
   getMemberTypeColor(type: string): string {
     switch (type) {
-      case 'REGULAR': return 'bg-gray-100 text-gray-800';
-      case 'DONOR': return 'bg-yellow-100 text-yellow-800';
-      case 'LIFETIME': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'REGULAR':
+        return 'bg-gray-100 text-gray-800';
+      case 'DONOR':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'LIFETIME':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   }
 
   // 获取徽章稀有度标签
   getBadgeRarityLabel(rarity: string): string {
     switch (rarity) {
-      case 'COMMON': return '普通';
-      case 'UNCOMMON': return '不常见';
-      case 'RARE': return '稀有';
-      case 'EPIC': return '史诗';
-      case 'LEGENDARY': return '传说';
-      default: return rarity;
+      case 'COMMON':
+        return '普通';
+      case 'UNCOMMON':
+        return '不常见';
+      case 'RARE':
+        return '稀有';
+      case 'EPIC':
+        return '史诗';
+      case 'LEGENDARY':
+        return '传说';
+      default:
+        return rarity;
     }
   }
 
   // 获取徽章稀有度颜色
   getBadgeRarityColor(rarity: string): string {
     switch (rarity) {
-      case 'COMMON': return 'bg-gray-100 text-gray-800';
-      case 'UNCOMMON': return 'bg-green-100 text-green-800';
-      case 'RARE': return 'bg-blue-100 text-blue-800';
-      case 'EPIC': return 'bg-purple-100 text-purple-800';
-      case 'LEGENDARY': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'COMMON':
+        return 'bg-gray-100 text-gray-800';
+      case 'UNCOMMON':
+        return 'bg-green-100 text-green-800';
+      case 'RARE':
+        return 'bg-blue-100 text-blue-800';
+      case 'EPIC':
+        return 'bg-purple-100 text-purple-800';
+      case 'LEGENDARY':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   }
 

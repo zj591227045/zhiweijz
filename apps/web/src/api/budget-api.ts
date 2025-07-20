@@ -92,7 +92,10 @@ export class BudgetApiService {
   /**
    * 更新预算
    */
-  static async updateBudget(id: string, data: Partial<CreateBudgetRequest>): Promise<BudgetResponse> {
+  static async updateBudget(
+    id: string,
+    data: Partial<CreateBudgetRequest>,
+  ): Promise<BudgetResponse> {
     try {
       const response = await apiClient.put(`/budgets/${id}`, data);
       return response;
@@ -134,7 +137,7 @@ export class BudgetApiService {
   static async getBudgetsByDate(date: string, accountBookId: string): Promise<BudgetResponse[]> {
     try {
       const response = await apiClient.get('/budgets/by-date', {
-        params: { date, accountBookId }
+        params: { date, accountBookId },
       });
       return Array.isArray(response) ? response : response.data || [];
     } catch (error: any) {
@@ -148,9 +151,7 @@ export class BudgetApiService {
    */
   static async createBudgets(budgets: CreateBudgetRequest[]): Promise<BudgetResponse[]> {
     try {
-      const results = await Promise.all(
-        budgets.map(budget => this.createBudget(budget))
-      );
+      const results = await Promise.all(budgets.map((budget) => this.createBudget(budget)));
       return results;
     } catch (error: any) {
       console.error('批量创建预算失败:', error);

@@ -75,7 +75,7 @@ export function AccountDeletionModal({ isOpen, onClose }: AccountDeletionModalPr
           isDeletionRequested: true,
           deletionRequestedAt: data.deletionRequestedAt,
           deletionScheduledAt: data.deletionScheduledAt,
-          remainingHours: data.remainingHours
+          remainingHours: data.remainingHours,
         });
         setStep('cooldown');
       } else {
@@ -129,7 +129,7 @@ export function AccountDeletionModal({ isOpen, onClose }: AccountDeletionModalPr
     try {
       const response = await apiClient.post('/users/me/request-deletion', {
         password,
-        confirmText
+        confirmText,
       });
 
       // 注销请求成功，清除本地存储并跳转到登录页面
@@ -145,7 +145,6 @@ export function AccountDeletionModal({ isOpen, onClose }: AccountDeletionModalPr
 
       // 跳转到登录页面
       window.location.href = '/auth/login?message=账户注销请求已提交，24小时后将自动删除';
-
     } catch (error: any) {
       console.error('注销请求失败:', error);
       setError(error.response?.data?.message || '注销请求失败');
@@ -166,7 +165,7 @@ export function AccountDeletionModal({ isOpen, onClose }: AccountDeletionModalPr
         isDeletionRequested: false,
         deletionRequestedAt: undefined,
         deletionScheduledAt: undefined,
-        remainingHours: 0
+        remainingHours: 0,
       });
 
       // 重置全局认证状态
@@ -188,7 +187,7 @@ export function AccountDeletionModal({ isOpen, onClose }: AccountDeletionModalPr
         <i className="fas fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
         <h3 className="text-xl font-bold text-red-600 mb-4">注销账户警告</h3>
       </div>
-      
+
       <div className="warning-content space-y-4 mb-6">
         <div className="warning-item">
           <i className="fas fa-times-circle text-red-500 mr-2"></i>
@@ -248,11 +247,7 @@ export function AccountDeletionModal({ isOpen, onClose }: AccountDeletionModalPr
         <button variant="outline" onClick={() => setStep('warning')}>
           上一步
         </button>
-        <button
-          variant="destructive"
-          onClick={handleNextStep}
-          disabled={isLoading}
-        >
+        <button variant="destructive" onClick={handleNextStep} disabled={isLoading}>
           {isLoading ? '验证中...' : '下一步'}
         </button>
       </div>
@@ -290,11 +285,7 @@ export function AccountDeletionModal({ isOpen, onClose }: AccountDeletionModalPr
         <button variant="outline" onClick={() => setStep('password')}>
           上一步
         </button>
-        <button
-          variant="destructive"
-          onClick={handleRequestDeletion}
-          disabled={isLoading}
-        >
+        <button variant="destructive" onClick={handleRequestDeletion} disabled={isLoading}>
           {isLoading ? '处理中...' : '确认注销账户'}
         </button>
       </div>
@@ -315,19 +306,17 @@ export function AccountDeletionModal({ isOpen, onClose }: AccountDeletionModalPr
         <div className="info-item">
           <span className="label">注销请求时间：</span>
           <span className="value">
-            {deletionStatus?.deletionRequestedAt ? 
-              new Date(deletionStatus.deletionRequestedAt).toLocaleString('zh-CN') : 
-              '-'
-            }
+            {deletionStatus?.deletionRequestedAt
+              ? new Date(deletionStatus.deletionRequestedAt).toLocaleString('zh-CN')
+              : '-'}
           </span>
         </div>
         <div className="info-item">
           <span className="label">预定删除时间：</span>
           <span className="value">
-            {deletionStatus?.deletionScheduledAt ? 
-              new Date(deletionStatus.deletionScheduledAt).toLocaleString('zh-CN') : 
-              '-'
-            }
+            {deletionStatus?.deletionScheduledAt
+              ? new Date(deletionStatus.deletionScheduledAt).toLocaleString('zh-CN')
+              : '-'}
           </span>
         </div>
       </div>
@@ -343,11 +332,7 @@ export function AccountDeletionModal({ isOpen, onClose }: AccountDeletionModalPr
         <button variant="outline" onClick={handleClose}>
           关闭
         </button>
-        <button
-          variant="default"
-          onClick={handleCancelDeletion}
-          disabled={isLoading}
-        >
+        <button variant="default" onClick={handleCancelDeletion} disabled={isLoading}>
           {isLoading ? '处理中...' : '取消注销'}
         </button>
       </div>
@@ -378,9 +363,7 @@ export function AccountDeletionModal({ isOpen, onClose }: AccountDeletionModalPr
           <button className="modal-close-btn" onClick={handleClose} aria-label="关闭">
             <i className="fas fa-times"></i>
           </button>
-          <div className="modal-body">
-            {renderCurrentStep()}
-          </div>
+          <div className="modal-body">{renderCurrentStep()}</div>
         </div>
       </div>
     </div>

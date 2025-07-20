@@ -65,20 +65,18 @@ export function DeleteConfirmationDialog({
         {/* 内容 */}
         <div className="mb-6">
           <p className="text-gray-600 mb-3">{message}</p>
-          
+
           {itemName && (
             <div className="bg-gray-50 rounded-lg p-3 mb-3">
               <div className="text-sm text-gray-700">
                 <div className="font-medium">记账描述：{itemName}</div>
                 {amount !== undefined && (
-                  <div className="text-red-600 font-semibold mt-1">
-                    金额：¥{amount.toFixed(2)}
-                  </div>
+                  <div className="text-red-600 font-semibold mt-1">金额：¥{amount.toFixed(2)}</div>
                 )}
               </div>
             </div>
           )}
-          
+
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
             <div className="flex items-center">
               <svg
@@ -94,9 +92,7 @@ export function DeleteConfirmationDialog({
                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
                 />
               </svg>
-              <span className="text-sm text-yellow-800 font-medium">
-                此操作无法撤销
-              </span>
+              <span className="text-sm text-yellow-800 font-medium">此操作无法撤销</span>
             </div>
           </div>
         </div>

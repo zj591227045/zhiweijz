@@ -8,7 +8,7 @@
 export function getCurrentAppVersion() {
   return {
     version: process.env.NEXT_PUBLIC_APP_VERSION || '0.5.1',
-    buildNumber: parseInt(process.env.NEXT_PUBLIC_BUILD_NUMBER || '501')
+    buildNumber: parseInt(process.env.NEXT_PUBLIC_BUILD_NUMBER || '501'),
   };
 }
 
@@ -18,7 +18,7 @@ export function getCurrentAppVersion() {
  */
 export function getCurrentPlatform(): 'web' | 'ios' | 'android' {
   if (typeof window === 'undefined') return 'web';
-  
+
   // 首先检查是否为 Capacitor 环境
   if ((window as any).Capacitor) {
     const capacitorPlatform = (window as any).Capacitor.getPlatform();
@@ -26,18 +26,18 @@ export function getCurrentPlatform(): 'web' | 'ios' | 'android' {
       return capacitorPlatform;
     }
   }
-  
+
   // 检查 User Agent (支持开发者工具模拟)
   const userAgent = navigator.userAgent.toLowerCase();
-  
+
   if (userAgent.includes('android')) {
     return 'android';
   }
-  
+
   if (userAgent.includes('iphone') || userAgent.includes('ipad')) {
     return 'ios';
   }
-  
+
   return 'web';
 }
 
@@ -46,10 +46,14 @@ export function getCurrentPlatform(): 'web' | 'ios' | 'android' {
  */
 export function getPlatformDisplayName(platform: string): string {
   switch (platform.toLowerCase()) {
-    case 'web': return '网页版';
-    case 'ios': return 'iOS';
-    case 'android': return 'Android';
-    default: return platform;
+    case 'web':
+      return '网页版';
+    case 'ios':
+      return 'iOS';
+    case 'android':
+      return 'Android';
+    default:
+      return platform;
   }
 }
 
@@ -58,10 +62,14 @@ export function getPlatformDisplayName(platform: string): string {
  */
 export function getPlatformIcon(platform: string): string {
   switch (platform.toLowerCase()) {
-    case 'web': return '🌐';
-    case 'ios': return '🍎';
-    case 'android': return '🤖';
-    default: return '❓';
+    case 'web':
+      return '🌐';
+    case 'ios':
+      return '🍎';
+    case 'android':
+      return '🤖';
+    default:
+      return '❓';
   }
 }
 
@@ -110,9 +118,13 @@ export function getUpdateDownloadUrl(platform: string, versionInfo: any): string
  */
 export function getUpdateButtonText(platform: string): string {
   switch (platform.toLowerCase()) {
-    case 'web': return '立即更新';
-    case 'ios': return '前往App Store';
-    case 'android': return '下载更新';
-    default: return '立即更新';
+    case 'web':
+      return '立即更新';
+    case 'ios':
+      return '前往App Store';
+    case 'android':
+      return '下载更新';
+    default:
+      return '立即更新';
   }
 }

@@ -10,19 +10,12 @@ interface CheckinButtonProps {
   showBalance?: boolean;
 }
 
-export const CheckinButton: React.FC<CheckinButtonProps> = ({ 
-  className = '', 
-  showBalance = true 
+export const CheckinButton: React.FC<CheckinButtonProps> = ({
+  className = '',
+  showBalance = true,
 }) => {
-  const {
-    balance,
-    checkinStatus,
-    loading,
-    error,
-    fetchBalance,
-    fetchCheckinStatus,
-    checkin
-  } = useAccountingPointsStore();
+  const { balance, checkinStatus, loading, error, fetchBalance, fetchCheckinStatus, checkin } =
+    useAccountingPointsStore();
 
   const [isCheckinLoading, setIsCheckinLoading] = useState(false);
 
@@ -72,7 +65,7 @@ export const CheckinButton: React.FC<CheckinButtonProps> = ({
           </div>
         </div>
       )}
-      
+
       <button
         className={`checkin-button ${hasCheckedIn ? 'checked-in' : ''} ${isDisabled ? 'disabled' : ''}`}
         onClick={handleCheckin}
@@ -96,11 +89,7 @@ export const CheckinButton: React.FC<CheckinButtonProps> = ({
         )}
       </button>
 
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
+      {error && <div className="error-message">{error}</div>}
     </div>
   );
 };

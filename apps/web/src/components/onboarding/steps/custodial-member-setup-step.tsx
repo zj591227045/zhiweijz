@@ -22,13 +22,8 @@ const calculateAge = (birthDate: string): string => {
 };
 
 export function CustodialMemberSetupStep() {
-  const {
-    createdFamilyId,
-    custodialMembers,
-    addCustodialMember,
-    setCurrentStep,
-    previousStep,
-  } = useOnboardingStore();
+  const { createdFamilyId, custodialMembers, addCustodialMember, setCurrentStep, previousStep } =
+    useOnboardingStore();
 
   // 确保 custodialMembers 始终是数组
   const safeCustodialMembers = custodialMembers || [];
@@ -51,7 +46,10 @@ export function CustodialMemberSetupStep() {
       // 切换到新创建的家庭账本
       if (createdFamilyId) {
         try {
-          console.log('📚 [CustodialMemberSetup] Switching to family account book:', createdFamilyId);
+          console.log(
+            '📚 [CustodialMemberSetup] Switching to family account book:',
+            createdFamilyId,
+          );
           setCurrentAccountBook(createdFamilyId);
           console.log('✅ [CustodialMemberSetup] Successfully switched to family account book');
         } catch (error) {
@@ -105,7 +103,12 @@ export function CustodialMemberSetupStep() {
       // 添加到本地状态
       addCustodialMember({
         name: custodialMemberName.trim(),
-        gender: custodialMemberGender === '男' ? 'male' : custodialMemberGender === '女' ? 'female' : 'other',
+        gender:
+          custodialMemberGender === '男'
+            ? 'male'
+            : custodialMemberGender === '女'
+              ? 'female'
+              : 'other',
         birthDate: custodialMemberBirthDate || undefined,
       });
 
@@ -194,13 +197,25 @@ export function CustodialMemberSetupStep() {
             {safeCustodialMembers.map((member, index) => (
               <div key={index} className="member-item">
                 <div className="member-avatar">
-                  <i className={`fas ${member.gender === 'female' ? 'fa-female' : member.gender === 'male' ? 'fa-male' : 'fa-user'}`}></i>
+                  <i
+                    className={`fas ${member.gender === 'female' ? 'fa-female' : member.gender === 'male' ? 'fa-male' : 'fa-user'}`}
+                  ></i>
                 </div>
                 <div className="member-info">
                   <div className="member-name">{member.name}</div>
                   <div className="member-details">
-                    {member.gender && <span className="member-gender">{member.gender === 'male' ? '男' : member.gender === 'female' ? '女' : '其他'}</span>}
-                    {member.birthDate && <span className="member-age">{calculateAge(member.birthDate)}</span>}
+                    {member.gender && (
+                      <span className="member-gender">
+                        {member.gender === 'male'
+                          ? '男'
+                          : member.gender === 'female'
+                            ? '女'
+                            : '其他'}
+                      </span>
+                    )}
+                    {member.birthDate && (
+                      <span className="member-age">{calculateAge(member.birthDate)}</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -212,7 +227,7 @@ export function CustodialMemberSetupStep() {
       {/* 添加托管成员表单 */}
       <div className="custodial-member-form">
         <div className="form-title">添加托管成员</div>
-        
+
         <div className="form-row">
           <div className="form-group">
             <label className="form-label">成员姓名</label>
@@ -280,10 +295,7 @@ export function CustodialMemberSetupStep() {
 
       {/* 按钮组 */}
       <div className="onboarding-button-group">
-        <button
-          className="onboarding-button onboarding-button-secondary"
-          onClick={handlePrevious}
-        >
+        <button className="onboarding-button onboarding-button-secondary" onClick={handlePrevious}>
           上一步
         </button>
         <button

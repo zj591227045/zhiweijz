@@ -9,9 +9,9 @@ export default function TestAvatarPage() {
     <div style={{ padding: '20px' }}>
       <h1>头像上传功能测试</h1>
       <p>{message}</p>
-      
+
       <div style={{ marginTop: '20px' }}>
-        <button 
+        <button
           onClick={() => setMessage('功能正常工作！')}
           style={{
             padding: '10px 20px',
@@ -19,13 +19,13 @@ export default function TestAvatarPage() {
             color: 'white',
             border: 'none',
             borderRadius: '5px',
-            cursor: 'pointer'
+            cursor: 'pointer',
           }}
         >
           测试按钮
         </button>
       </div>
-      
+
       <div style={{ marginTop: '20px' }}>
         <h2>功能状态</h2>
         <ul>

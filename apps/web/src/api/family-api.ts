@@ -139,7 +139,7 @@ export class FamilyApiService {
    */
   static async addCustodialMember(
     familyId: string,
-    data: CreateCustodialMemberRequest
+    data: CreateCustodialMemberRequest,
   ): Promise<CustodialMemberResponse> {
     try {
       const response = await apiClient.post(`/families/${familyId}/custodial-members`, data);

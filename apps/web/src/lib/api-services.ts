@@ -46,7 +46,7 @@ export const transactionService = {
     // 默认包含附件信息
     const enhancedParams = {
       ...params,
-      includeAttachments: true
+      includeAttachments: true,
     };
     return apiClient.get('/transactions', { params: enhancedParams });
   },
@@ -267,11 +267,9 @@ export const budgetService = {
   // 根据日期获取预算列表
   getBudgetsByDate: (date: string, accountBookId: string) => {
     return apiClient.get('/budgets/by-date', {
-      params: { date, accountBookId }
+      params: { date, accountBookId },
     });
   },
-
-
 };
 
 // 统计相关API

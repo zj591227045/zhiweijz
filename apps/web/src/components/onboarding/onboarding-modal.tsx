@@ -14,13 +14,8 @@ import { useState } from 'react';
 import './onboarding-modal.css';
 
 export function OnboardingModal() {
-  const {
-    isVisible,
-    currentStep,
-    completeOnboarding,
-    skipOnboarding,
-  } = useOnboardingStore();
-  
+  const { isVisible, currentStep, completeOnboarding, skipOnboarding } = useOnboardingStore();
+
   const [showSkipDialog, setShowSkipDialog] = useState(false);
 
   // 隐藏页面头部和导航
@@ -29,14 +24,15 @@ export function OnboardingModal() {
       const appContainer = document.querySelector('.app-container');
       const pageHeader = appContainer?.querySelector('.header');
       // 尝试多种选择器来找到底部导航栏
-      const bottomNav = document.querySelector('.bottom-nav') ||
-                       document.querySelector('nav[class*="bottom"]') ||
-                       document.querySelector('[class*="bottom-nav"]');
+      const bottomNav =
+        document.querySelector('.bottom-nav') ||
+        document.querySelector('nav[class*="bottom"]') ||
+        document.querySelector('[class*="bottom-nav"]');
 
       console.log('🔍 [OnboardingModal] Found elements:', {
         pageHeader: !!pageHeader,
         bottomNav: !!bottomNav,
-        bottomNavClass: bottomNav?.className
+        bottomNavClass: bottomNav?.className,
       });
 
       if (pageHeader) {
@@ -142,7 +138,15 @@ export function OnboardingModal() {
 
   // 获取步骤进度
   const getStepProgress = () => {
-    const steps = ['account-type', 'invite-code-display', 'custodial-member-setup', 'budget-setup', 'theme-selection', 'ai-service-setup', 'feature-intro'];
+    const steps = [
+      'account-type',
+      'invite-code-display',
+      'custodial-member-setup',
+      'budget-setup',
+      'theme-selection',
+      'ai-service-setup',
+      'feature-intro',
+    ];
     const currentIndex = steps.indexOf(currentStep);
     return {
       current: currentIndex + 1,
@@ -162,18 +166,15 @@ export function OnboardingModal() {
           <div className="onboarding-modal-header">
             <div className="onboarding-header-content">
               <h2 className="onboarding-title">{getStepTitle()}</h2>
-              <button 
-                className="onboarding-skip-button"
-                onClick={handleSkipClick}
-              >
+              <button className="onboarding-skip-button" onClick={handleSkipClick}>
                 跳过
               </button>
             </div>
-            
+
             {/* 进度指示器 */}
             <div className="onboarding-progress">
               <div className="progress-bar">
-                <div 
+                <div
                   className="progress-fill"
                   style={{ width: `${(progress.current / progress.total) * 100}%` }}
                 />
@@ -185,9 +186,7 @@ export function OnboardingModal() {
           </div>
 
           {/* 内容区域 */}
-          <div className="onboarding-modal-content">
-            {renderCurrentStep()}
-          </div>
+          <div className="onboarding-modal-content">{renderCurrentStep()}</div>
         </div>
       </div>
 

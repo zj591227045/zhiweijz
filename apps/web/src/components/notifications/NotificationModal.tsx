@@ -6,13 +6,13 @@ import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
 import { AnnouncementDetailModal } from './AnnouncementDetailModal';
-import { 
+import {
   XMarkIcon,
   CheckIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
   BellIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
 } from '@heroicons/react/24/outline';
 
 interface NotificationModalProps {
@@ -31,41 +31,41 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
     fetchAnnouncements,
     openDetailModal,
     isDetailModalOpen,
-    closeDetailModal
+    closeDetailModal,
   } = useNotificationStore();
 
   const [activeTab, setActiveTab] = useState<'unread' | 'all'>('unread');
 
   // 检测是否为原生应用环境
-  const isNativeApp = typeof window !== 'undefined' && (
-    window.navigator.userAgent.includes('CapacitorJS') ||
-    window.navigator.userAgent.includes('Capacitor') ||
-    // 检测iOS应用
-    (window.navigator.userAgent.includes('iPhone') && window.navigator.standalone) ||
-    // 检测Android应用
-    window.navigator.userAgent.includes('wv') // WebView标识
-  );
+  const isNativeApp =
+    typeof window !== 'undefined' &&
+    (window.navigator.userAgent.includes('CapacitorJS') ||
+      window.navigator.userAgent.includes('Capacitor') ||
+      // 检测iOS应用
+      (window.navigator.userAgent.includes('iPhone') && window.navigator.standalone) ||
+      // 检测Android应用
+      window.navigator.userAgent.includes('wv')); // WebView标识
 
   // 计算Web移动端的padding
   const getWebMobilePadding = () => {
     if (typeof window === 'undefined') return { paddingTop: '2rem', paddingBottom: '2rem' };
-    
+
     const viewportHeight = window.innerHeight;
     const isMobile = viewportHeight < 800; // 简单的移动端检测
-    
+
     if (isMobile) {
       // 移动端：考虑底部导航栏，但确保居中
-      const topPadding = Math.max(16, (viewportHeight * 0.1)); // 至少16px，最多10%
-      const bottomPadding = Math.max(80, (viewportHeight * 0.1)); // 至少80px（底部导航栏），最多10%
+      const topPadding = Math.max(16, viewportHeight * 0.1); // 至少16px，最多10%
+      const bottomPadding = Math.max(80, viewportHeight * 0.1); // 至少80px（底部导航栏），最多10%
       return {
         paddingTop: `${topPadding}px`,
-        paddingBottom: `${bottomPadding}px`
+        paddingBottom: `${bottomPadding}px`,
       };
     } else {
       // 桌面端：简单居中
       return {
         paddingTop: '2rem',
-        paddingBottom: '2rem'
+        paddingBottom: '2rem',
       };
     }
   };
@@ -87,39 +87,43 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
   // 解析Markdown链接为HTML
   const parseLinksToHtml = (content: string) => {
     let result = content;
-    
+
     // 1. 匹配标准Markdown链接格式 [文本](URL)
     const standardLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
     result = result.replace(standardLinkRegex, (match, text, url) => {
       // 判断是否为内部链接
-      const isInternal = url.startsWith('/') || url.startsWith('#') || 
-                        (!url.startsWith('http://') && !url.startsWith('https://'));
+      const isInternal =
+        url.startsWith('/') ||
+        url.startsWith('#') ||
+        (!url.startsWith('http://') && !url.startsWith('https://'));
       const target = isInternal ? '_self' : '_blank';
       const rel = isInternal ? '' : 'noopener noreferrer';
-      
+
       return `<a href="${url}" target="${target}" ${rel ? `rel="${rel}"` : ''} 
               style="color: var(--primary-color, #3b82f6); text-decoration: underline; cursor: pointer;"
               data-link="true">
               ${text}
               </a>`;
     });
-    
+
     // 2. 匹配方括号链接格式 [文本][URL]
     const bracketLinkRegex = /\[([^\]]+)\]\[([^\]]+)\]/g;
     result = result.replace(bracketLinkRegex, (match, text, url) => {
       // 判断是否为内部链接
-      const isInternal = url.startsWith('/') || url.startsWith('#') || 
-                        (!url.startsWith('http://') && !url.startsWith('https://'));
+      const isInternal =
+        url.startsWith('/') ||
+        url.startsWith('#') ||
+        (!url.startsWith('http://') && !url.startsWith('https://'));
       const target = isInternal ? '_self' : '_blank';
       const rel = isInternal ? '' : 'noopener noreferrer';
-      
+
       return `<a href="${url}" target="${target}" ${rel ? `rel="${rel}"` : ''} 
               style="color: var(--primary-color, #3b82f6); text-decoration: underline; cursor: pointer;"
               data-link="true">
               ${text}
               </a>`;
     });
-    
+
     // 3. 匹配纯URL格式（自动链接）
     const urlRegex = /(https?:\/\/[^\s<>"{}|\\^`[\]]+)/g;
     result = result.replace(urlRegex, (match, url) => {
@@ -127,14 +131,14 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
       if (result.includes(`href="${url}"`)) {
         return match; // 已经是链接，不重复处理
       }
-      
+
       return `<a href="${url}" target="_blank" rel="noopener noreferrer" 
               style="color: var(--primary-color, #3b82f6); text-decoration: underline; cursor: pointer;"
               data-link="true">
               ${url}
               </a>`;
     });
-    
+
     return result;
   };
 
@@ -143,13 +147,15 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
     const target = e.target as HTMLElement;
     if (target.tagName === 'A' && target.getAttribute('data-link') === 'true') {
       e.stopPropagation(); // 阻止事件冒泡，避免触发已读逻辑
-      
+
       const href = target.getAttribute('href');
       if (href) {
         // 判断是否为内部链接
-        const isInternal = href.startsWith('/') || href.startsWith('#') || 
-                          (!href.startsWith('http://') && !href.startsWith('https://'));
-        
+        const isInternal =
+          href.startsWith('/') ||
+          href.startsWith('#') ||
+          (!href.startsWith('http://') && !href.startsWith('https://'));
+
         if (isInternal) {
           // 内部链接使用路由跳转
           router.push(href);
@@ -169,11 +175,17 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
       case 'HIGH':
         return <ExclamationTriangleIcon className="h-5 w-5 text-orange-500" />;
       case 'NORMAL':
-        return <InformationCircleIcon className="h-5 w-5" style={{ color: 'var(--primary-color)' }} />;
+        return (
+          <InformationCircleIcon className="h-5 w-5" style={{ color: 'var(--primary-color)' }} />
+        );
       case 'LOW':
-        return <InformationCircleIcon className="h-5 w-5" style={{ color: 'var(--text-secondary)' }} />;
+        return (
+          <InformationCircleIcon className="h-5 w-5" style={{ color: 'var(--text-secondary)' }} />
+        );
       default:
-        return <InformationCircleIcon className="h-5 w-5" style={{ color: 'var(--primary-color)' }} />;
+        return (
+          <InformationCircleIcon className="h-5 w-5" style={{ color: 'var(--primary-color)' }} />
+        );
     }
   };
 
@@ -203,37 +215,41 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
   };
 
   // 过滤通知
-  const unreadAnnouncements = announcements.filter(a => !a.isRead);
-  const readAnnouncements = announcements.filter(a => a.isRead);
+  const unreadAnnouncements = announcements.filter((a) => !a.isRead);
+  const readAnnouncements = announcements.filter((a) => a.isRead);
   const displayAnnouncements = activeTab === 'unread' ? unreadAnnouncements : announcements;
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       {/* 背景遮罩 */}
-      <div 
+      <div
         className="fixed inset-0 transition-opacity"
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
         onClick={onClose}
       />
-      
+
       {/* 模态框内容 - 居中显示，适配不同平台 */}
-      <div 
+      <div
         className="flex items-center justify-center min-h-full p-4"
-        style={isNativeApp ? {
-          // 原生应用：使用安全区域，保持原有逻辑
-          paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))',
-          paddingBottom: 'max(1rem, calc(env(safe-area-inset-bottom, 0px) + 1rem))'
-        } : getWebMobilePadding()}
+        style={
+          isNativeApp
+            ? {
+                // 原生应用：使用安全区域，保持原有逻辑
+                paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))',
+                paddingBottom: 'max(1rem, calc(env(safe-area-inset-bottom, 0px) + 1rem))',
+              }
+            : getWebMobilePadding()
+        }
       >
-        <div 
+        <div
           className="relative w-full max-w-md transform overflow-hidden rounded-lg shadow-xl transition-all flex flex-col"
-          style={{ 
+          style={{
             backgroundColor: 'var(--card-background)',
-            maxHeight: 'calc(100vh - 8rem)' // 确保不会延伸到底部导航栏
+            maxHeight: 'calc(100vh - 8rem)', // 确保不会延伸到底部导航栏
           }}
         >
           {/* 头部 */}
-          <div 
+          <div
             className="flex items-center justify-between px-6 py-4"
             style={{ borderBottom: '1px solid var(--border-color)' }}
           >
@@ -251,12 +267,12 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
             <button
               onClick={onClose}
               className="rounded-md p-2 transition-colors"
-              style={{ 
+              style={{
                 color: 'var(--text-secondary)',
                 ':hover': {
                   backgroundColor: 'var(--hover-background)',
-                  color: 'var(--text-primary)'
-                }
+                  color: 'var(--text-primary)',
+                },
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = 'var(--hover-background)';
@@ -272,20 +288,18 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
           </div>
 
           {/* 标签栏 */}
-          <div 
-            className="flex"
-            style={{ borderBottom: '1px solid var(--border-color)' }}
-          >
+          <div className="flex" style={{ borderBottom: '1px solid var(--border-color)' }}>
             <button
               onClick={() => setActiveTab('unread')}
               className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
-                activeTab === 'unread' 
-                  ? 'border-b-2 border-blue-500' 
-                  : ''
+                activeTab === 'unread' ? 'border-b-2 border-blue-500' : ''
               }`}
-              style={{ 
+              style={{
                 color: activeTab === 'unread' ? 'var(--primary-color)' : 'var(--text-secondary)',
-                backgroundColor: activeTab === 'unread' ? 'var(--primary-color-light, rgba(59, 130, 246, 0.1))' : 'transparent'
+                backgroundColor:
+                  activeTab === 'unread'
+                    ? 'var(--primary-color-light, rgba(59, 130, 246, 0.1))'
+                    : 'transparent',
               }}
             >
               未读 {unreadCount > 0 && `(${unreadCount})`}
@@ -293,13 +307,14 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
             <button
               onClick={() => setActiveTab('all')}
               className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
-                activeTab === 'all' 
-                  ? 'border-b-2 border-blue-500' 
-                  : ''
+                activeTab === 'all' ? 'border-b-2 border-blue-500' : ''
               }`}
-              style={{ 
+              style={{
                 color: activeTab === 'all' ? 'var(--primary-color)' : 'var(--text-secondary)',
-                backgroundColor: activeTab === 'all' ? 'var(--primary-color-light, rgba(59, 130, 246, 0.1))' : 'transparent'
+                backgroundColor:
+                  activeTab === 'all'
+                    ? 'var(--primary-color-light, rgba(59, 130, 246, 0.1))'
+                    : 'transparent',
               }}
             >
               全部 ({announcements.length})
@@ -308,21 +323,19 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
 
           {/* 操作栏 */}
           {activeTab === 'unread' && unreadCount > 0 && (
-            <div 
-              className="px-6 py-3"
-              style={{ borderBottom: '1px solid var(--border-color)' }}
-            >
+            <div className="px-6 py-3" style={{ borderBottom: '1px solid var(--border-color)' }}>
               <button
                 onClick={handleMarkAllRead}
                 className="inline-flex items-center space-x-2 text-sm py-2 px-3 rounded-md transition-colors"
-                style={{ 
+                style={{
                   color: 'var(--primary-color)',
                   ':hover': {
-                    backgroundColor: 'var(--primary-color-light, rgba(59, 130, 246, 0.1))'
-                  }
+                    backgroundColor: 'var(--primary-color-light, rgba(59, 130, 246, 0.1))',
+                  },
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--primary-color-light, rgba(59, 130, 246, 0.1))';
+                  e.currentTarget.style.backgroundColor =
+                    'var(--primary-color-light, rgba(59, 130, 246, 0.1))';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = 'transparent';
@@ -338,17 +351,23 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
           <div className="flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 20rem)' }}>
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
-                <div 
+                <div
                   className="animate-spin rounded-full h-8 w-8 border-b-2"
                   style={{ borderColor: 'var(--primary-color)' }}
                 ></div>
               </div>
             ) : displayAnnouncements.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8" style={{ color: 'var(--text-secondary)' }}>
-                <BellIcon className="h-12 w-12 mb-2" style={{ color: 'var(--text-secondary)', opacity: 0.5 }} />
+              <div
+                className="flex flex-col items-center justify-center py-8"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                <BellIcon
+                  className="h-12 w-12 mb-2"
+                  style={{ color: 'var(--text-secondary)', opacity: 0.5 }}
+                />
                 <p>{activeTab === 'unread' ? '暂无未读通知' : '暂无通知'}</p>
               </div>
-            ) :
+            ) : (
               <div>
                 {displayAnnouncements.map((announcement) => (
                   <div
@@ -366,7 +385,7 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
                         <div className="flex-shrink-0 mt-0.5">
                           {getPriorityIcon(announcement.priority)}
                         </div>
-                        
+
                         {/* 通知内容 */}
                         <div className="flex-1 min-w-0">
                           <div
@@ -379,7 +398,9 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
                                 !announcement.isRead ? 'font-semibold' : ''
                               }`}
                               style={{
-                                color: !announcement.isRead ? 'var(--text-primary)' : 'var(--text-secondary)'
+                                color: !announcement.isRead
+                                  ? 'var(--text-primary)'
+                                  : 'var(--text-secondary)',
                               }}
                             >
                               {announcement.title}
@@ -403,19 +424,25 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
                                   className="p-1 rounded-full transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
                                   title="标记为已读"
                                 >
-                                  <CheckCircleIcon className="h-4 w-4" style={{ color: 'var(--primary-color)' }} />
+                                  <CheckCircleIcon
+                                    className="h-4 w-4"
+                                    style={{ color: 'var(--primary-color)' }}
+                                  />
                                 </button>
                               )}
                             </div>
                           </div>
-                          
+
                           {/* 移除内容显示，只保留标题和元信息 */}
-                          
-                          <div className="mt-2 flex items-center justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
+
+                          <div
+                            className="mt-2 flex items-center justify-between text-xs"
+                            style={{ color: 'var(--text-secondary)' }}
+                          >
                             <span>
                               {formatDistanceToNow(new Date(announcement.publishedAt), {
                                 addSuffix: true,
-                                locale: zhCN
+                                locale: zhCN,
                               })}
                             </span>
                             {announcement.expiresAt && (
@@ -430,27 +457,27 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
                   </div>
                 ))}
               </div>
-            }
+            )}
           </div>
 
           {/* 底部 */}
-          <div 
+          <div
             className="px-6 py-4"
-            style={{ 
+            style={{
               borderTop: '1px solid var(--border-color)',
-              backgroundColor: 'var(--background-secondary, var(--card-background))'
+              backgroundColor: 'var(--background-secondary, var(--card-background))',
             }}
           >
             <button
               onClick={onClose}
               className="w-full rounded-md px-4 py-3 text-base font-medium transition-colors shadow-sm"
-              style={{ 
+              style={{
                 backgroundColor: 'var(--card-background)',
                 border: '1px solid var(--border-color)',
                 color: 'var(--text-primary)',
                 ':hover': {
-                  backgroundColor: 'var(--hover-background)'
-                }
+                  backgroundColor: 'var(--hover-background)',
+                },
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = 'var(--hover-background)';
@@ -466,10 +493,7 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
       </div>
 
       {/* 公告详情模态框 */}
-      <AnnouncementDetailModal
-        isOpen={isDetailModalOpen}
-        onClose={closeDetailModal}
-      />
+      <AnnouncementDetailModal isOpen={isDetailModalOpen} onClose={closeDetailModal} />
     </div>
   );
 }

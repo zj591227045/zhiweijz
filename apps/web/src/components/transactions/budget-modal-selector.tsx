@@ -80,7 +80,7 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
       // 并行获取预算列表和检查无预算记账
       const [budgetResponse, unbudgetedResponse] = await Promise.all([
         apiClient.get('/budgets', { params }),
-        apiClient.get('/statistics/check-unbudgeted', { params })
+        apiClient.get('/statistics/check-unbudgeted', { params }),
       ]);
 
       // 处理预算列表响应
@@ -140,7 +140,7 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
     const filterStartDate = new Date(startDate);
     const filterEndDate = new Date(endDate);
 
-    return budgets.filter(budget => {
+    return budgets.filter((budget) => {
       const budgetStartDate = new Date(budget.startDate);
       const budgetEndDate = new Date(budget.endDate);
 
@@ -152,9 +152,9 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
   // 聚合相同用户的个人预算（跨月份）
   const aggregatePersonalBudgets = (budgets: Budget[]) => {
     const userBudgetMap = new Map<string, Budget[]>();
-    
+
     // 按用户分组个人预算
-    budgets.forEach(budget => {
+    budgets.forEach((budget) => {
       if (budget.budgetType === 'PERSONAL') {
         const userKey = budget.userId || 'unknown';
         if (!userBudgetMap.has(userKey)) {
@@ -163,7 +163,7 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
         userBudgetMap.get(userKey)!.push(budget);
       }
     });
-    
+
     // 为每个用户创建聚合预算
     const aggregatedBudgets: Budget[] = [];
     userBudgetMap.forEach((userBudgets, userId) => {
@@ -174,8 +174,11 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
         // 多个预算，创建聚合预算
         const totalAmount = userBudgets.reduce((sum, budget) => sum + (budget.amount || 0), 0);
         const totalSpent = userBudgets.reduce((sum, budget) => sum + (budget.spent || 0), 0);
-        const totalRemaining = userBudgets.reduce((sum, budget) => sum + (budget.remaining || 0), 0);
-        
+        const totalRemaining = userBudgets.reduce(
+          (sum, budget) => sum + (budget.remaining || 0),
+          0,
+        );
+
         // 使用第一个预算作为基础，更新金额信息
         const aggregatedBudget: Budget = {
           ...userBudgets[0],
@@ -185,16 +188,20 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
           spent: totalSpent,
           remaining: totalRemaining,
           // 使用最早的开始日期和最晚的结束日期
-          startDate: userBudgets.reduce((earliest, budget) => 
-            budget.startDate < earliest ? budget.startDate : earliest, userBudgets[0].startDate),
-          endDate: userBudgets.reduce((latest, budget) => 
-            budget.endDate > latest ? budget.endDate : latest, userBudgets[0].endDate)
+          startDate: userBudgets.reduce(
+            (earliest, budget) => (budget.startDate < earliest ? budget.startDate : earliest),
+            userBudgets[0].startDate,
+          ),
+          endDate: userBudgets.reduce(
+            (latest, budget) => (budget.endDate > latest ? budget.endDate : latest),
+            userBudgets[0].endDate,
+          ),
         };
-        
+
         aggregatedBudgets.push(aggregatedBudget);
       }
     });
-    
+
     return aggregatedBudgets;
   };
 
@@ -203,8 +210,8 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
   // 按预算类型分组并根据设置决定是否聚合个人预算
   const personalBudgets = enableAggregation
     ? aggregatePersonalBudgets(filteredBudgets)
-    : filteredBudgets.filter(budget => budget.budgetType === 'PERSONAL');
-  const generalBudgets = filteredBudgets.filter(budget => budget.budgetType === 'GENERAL');
+    : filteredBudgets.filter((budget) => budget.budgetType === 'PERSONAL');
+  const generalBudgets = filteredBudgets.filter((budget) => budget.budgetType === 'GENERAL');
 
   // 处理预算选择
   const handleBudgetSelect = (budgetId: string | null) => {
@@ -225,15 +232,15 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
   const formatBudgetInfo = (budget: Budget) => {
     const spent = budget.spent || 0;
     const amount = budget.amount || 0;
-    const remaining = budget.remaining || (amount - spent);
+    const remaining = budget.remaining || amount - spent;
     const usagePercentage = amount > 0 ? Math.round((spent / amount) * 100) : 0;
-    
+
     return {
       spent,
       amount,
       remaining,
       usagePercentage,
-      isAggregated: budget.id.startsWith('aggregated_')
+      isAggregated: budget.id.startsWith('aggregated_'),
     };
   };
 
@@ -251,7 +258,7 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
       className={cn(
         'fixed inset-0 z-50 flex items-center justify-center p-4',
         'bg-black bg-opacity-50 backdrop-blur-sm',
-        isClosing ? 'animate-out fade-out duration-200' : 'animate-in fade-in duration-200'
+        isClosing ? 'animate-out fade-out duration-200' : 'animate-in fade-in duration-200',
       )}
       onClick={(e) => {
         // 点击背景关闭模态框
@@ -264,7 +271,7 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
         className={cn(
           'w-full max-w-md bg-white rounded-2xl shadow-2xl',
           'max-h-[80vh] overflow-hidden',
-          isClosing ? 'animate-out zoom-out-95 duration-200' : 'animate-in zoom-in-95 duration-200'
+          isClosing ? 'animate-out zoom-out-95 duration-200' : 'animate-in zoom-in-95 duration-200',
         )}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
@@ -314,7 +321,7 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
                   'flex items-center justify-between',
                   selectedBudgetId === null
                     ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
                 )}
               >
                 <div className="flex items-center gap-3">
@@ -326,9 +333,7 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
                     <div className="text-sm text-gray-500">显示所有预算的数据</div>
                   </div>
                 </div>
-                {selectedBudgetId === null && (
-                  <Check className="w-5 h-5 text-blue-600" />
-                )}
+                {selectedBudgetId === null && <Check className="w-5 h-5 text-blue-600" />}
               </button>
 
               {/* 无预算选项 - 只有当存在无预算记账时才显示 */}
@@ -340,7 +345,7 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
                     'flex items-center justify-between',
                     selectedBudgetId === 'NO_BUDGET'
                       ? 'border-orange-500 bg-orange-50'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
                   )}
                 >
                   <div className="flex items-center gap-3">
@@ -366,7 +371,7 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
                     <span className="text-sm font-medium text-gray-700">个人预算</span>
                   </div>
                   <div className="space-y-2">
-                    {personalBudgets.map(budget => {
+                    {personalBudgets.map((budget) => {
                       const info = formatBudgetInfo(budget);
                       return (
                         <button
@@ -376,7 +381,7 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
                             'w-full p-4 rounded-xl border-2 transition-all text-left',
                             selectedBudgetId === budget.id
                               ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
                           )}
                         >
                           <div className="flex items-start justify-between">
@@ -389,24 +394,28 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
                                   </span>
                                 )}
                               </div>
-                              
+
                               {budget.userName && (
                                 <div className="text-sm text-gray-600 mb-2">
                                   👤 {budget.userName}
                                 </div>
                               )}
-                              
+
                               <div className="space-y-1">
                                 <div className="flex justify-between text-sm">
                                   <span className="text-gray-600">预算总额</span>
-                                  <span className="font-medium">¥{info.amount.toLocaleString()}</span>
+                                  <span className="font-medium">
+                                    ¥{info.amount.toLocaleString()}
+                                  </span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                   <span className="text-gray-600">已使用</span>
-                                  <span className={cn(
-                                    'font-medium',
-                                    info.usagePercentage >= 90 ? 'text-red-600' : 'text-gray-900'
-                                  )}>
+                                  <span
+                                    className={cn(
+                                      'font-medium',
+                                      info.usagePercentage >= 90 ? 'text-red-600' : 'text-gray-900',
+                                    )}
+                                  >
                                     ¥{info.spent.toLocaleString()} ({info.usagePercentage}%)
                                   </span>
                                 </div>
@@ -417,22 +426,25 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
                                   </span>
                                 </div>
                               </div>
-                              
+
                               {/* 进度条 */}
                               <div className="mt-3">
                                 <div className="w-full bg-gray-200 rounded-full h-2">
-                                  <div 
+                                  <div
                                     className={cn(
                                       'h-2 rounded-full transition-all',
-                                      info.usagePercentage >= 90 ? 'bg-red-500' :
-                                      info.usagePercentage >= 70 ? 'bg-orange-500' : 'bg-green-500'
+                                      info.usagePercentage >= 90
+                                        ? 'bg-red-500'
+                                        : info.usagePercentage >= 70
+                                          ? 'bg-orange-500'
+                                          : 'bg-green-500',
                                     )}
                                     style={{ width: `${Math.min(info.usagePercentage, 100)}%` }}
                                   />
                                 </div>
                               </div>
                             </div>
-                            
+
                             {selectedBudgetId === budget.id && (
                               <Check className="w-5 h-5 text-blue-600 ml-3 flex-shrink-0" />
                             )}
@@ -452,7 +464,7 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
                     <span className="text-sm font-medium text-gray-700">通用预算</span>
                   </div>
                   <div className="space-y-2">
-                    {generalBudgets.map(budget => {
+                    {generalBudgets.map((budget) => {
                       const info = formatBudgetInfo(budget);
                       return (
                         <button
@@ -462,7 +474,7 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
                             'w-full p-4 rounded-xl border-2 transition-all text-left',
                             selectedBudgetId === budget.id
                               ? 'border-green-500 bg-green-50'
-                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
                           )}
                         >
                           <div className="flex items-start justify-between">
@@ -470,24 +482,28 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="font-medium text-gray-900">{budget.name}</span>
                               </div>
-                              
+
                               {budget.familyMemberName && (
                                 <div className="text-sm text-gray-600 mb-2">
                                   👥 {budget.familyMemberName}
                                 </div>
                               )}
-                              
+
                               <div className="space-y-1">
                                 <div className="flex justify-between text-sm">
                                   <span className="text-gray-600">预算总额</span>
-                                  <span className="font-medium">¥{info.amount.toLocaleString()}</span>
+                                  <span className="font-medium">
+                                    ¥{info.amount.toLocaleString()}
+                                  </span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                   <span className="text-gray-600">已使用</span>
-                                  <span className={cn(
-                                    'font-medium',
-                                    info.usagePercentage >= 90 ? 'text-red-600' : 'text-gray-900'
-                                  )}>
+                                  <span
+                                    className={cn(
+                                      'font-medium',
+                                      info.usagePercentage >= 90 ? 'text-red-600' : 'text-gray-900',
+                                    )}
+                                  >
                                     ¥{info.spent.toLocaleString()} ({info.usagePercentage}%)
                                   </span>
                                 </div>
@@ -498,22 +514,25 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
                                   </span>
                                 </div>
                               </div>
-                              
+
                               {/* 进度条 */}
                               <div className="mt-3">
                                 <div className="w-full bg-gray-200 rounded-full h-2">
-                                  <div 
+                                  <div
                                     className={cn(
                                       'h-2 rounded-full transition-all',
-                                      info.usagePercentage >= 90 ? 'bg-red-500' :
-                                      info.usagePercentage >= 70 ? 'bg-orange-500' : 'bg-green-500'
+                                      info.usagePercentage >= 90
+                                        ? 'bg-red-500'
+                                        : info.usagePercentage >= 70
+                                          ? 'bg-orange-500'
+                                          : 'bg-green-500',
                                     )}
                                     style={{ width: `${Math.min(info.usagePercentage, 100)}%` }}
                                   />
                                 </div>
                               </div>
                             </div>
-                            
+
                             {selectedBudgetId === budget.id && (
                               <Check className="w-5 h-5 text-green-600 ml-3 flex-shrink-0" />
                             )}
@@ -537,6 +556,6 @@ export const BudgetModalSelector: React.FC<BudgetModalSelectorProps> = ({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };

@@ -54,7 +54,11 @@ interface AuthState {
   verifyCaptcha: (token: string, action: 'login' | 'register') => Promise<boolean>;
   syncUserToLocalStorage: (updatedUser: User) => boolean;
   checkDeletionStatus: () => Promise<void>;
-  setDeletionStatus: (isDeletionRequested: boolean, deletionScheduledAt?: string, remainingHours?: number) => void;
+  setDeletionStatus: (
+    isDeletionRequested: boolean,
+    deletionScheduledAt?: string,
+    remainingHours?: number,
+  ) => void;
 }
 
 // 创建认证状态管理
@@ -83,15 +87,15 @@ export const useAuthStore = create<AuthState>()(
             password: credentials.password,
             captchaToken: credentials.captchaToken,
           });
-          
+
           // 调试：打印完整的响应数据
           console.log('🔍 登录响应调试:', {
             response: response,
             responseData: response.data,
             dataType: typeof response.data,
-            dataKeys: response.data ? Object.keys(response.data) : 'null'
+            dataKeys: response.data ? Object.keys(response.data) : 'null',
           });
-          
+
           // 修复：根据实际响应结构获取数据
           // 如果response.data存在就使用response.data，否则使用response本身
           const responseData = response.data || response;
@@ -129,7 +133,7 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             hasUser: !!user,
             hasToken: !!token,
-            userId: user?.id
+            userId: user?.id,
           });
 
           // 登录成功，重置登录尝试次数
@@ -186,7 +190,7 @@ export const useAuthStore = create<AuthState>()(
             password: data.password,
             captchaToken: data.captchaToken,
           });
-          
+
           // 修复：根据实际响应结构获取数据
           const responseData = response.data || response;
           const { user, token } = responseData;
@@ -291,11 +295,13 @@ export const useAuthStore = create<AuthState>()(
           if (typeof window !== 'undefined') {
             localStorage.setItem('user', JSON.stringify(updatedUser));
             console.log('🔍 用户信息已同步更新到localStorage:', updatedUser);
-            
+
             // 触发全局用户信息更新事件，通知所有订阅的组件
-            window.dispatchEvent(new CustomEvent('userProfileUpdated', {
-              detail: { user: updatedUser }
-            }));
+            window.dispatchEvent(
+              new CustomEvent('userProfileUpdated', {
+                detail: { user: updatedUser },
+              }),
+            );
           }
 
           return true;
@@ -324,11 +330,13 @@ export const useAuthStore = create<AuthState>()(
           if (typeof window !== 'undefined') {
             localStorage.setItem('user', JSON.stringify(updatedUser));
             console.log('🔍 头像信息已同步更新到localStorage:', updatedUser);
-            
+
             // 触发全局头像更新事件，通知所有订阅的组件
-            window.dispatchEvent(new CustomEvent('avatarUpdated', {
-              detail: { user: updatedUser, avatarUrl }
-            }));
+            window.dispatchEvent(
+              new CustomEvent('avatarUpdated', {
+                detail: { user: updatedUser, avatarUrl },
+              }),
+            );
           }
 
           return true;
@@ -450,7 +458,11 @@ export const useAuthStore = create<AuthState>()(
       },
 
       // 设置注销状态
-      setDeletionStatus: (isDeletionRequested: boolean, deletionScheduledAt?: string, remainingHours?: number) => {
+      setDeletionStatus: (
+        isDeletionRequested: boolean,
+        deletionScheduledAt?: string,
+        remainingHours?: number,
+      ) => {
         set({
           isDeletionRequested,
           deletionScheduledAt: deletionScheduledAt || null,

@@ -13,14 +13,14 @@ interface ConfirmModalProps {
   type?: 'warning' | 'danger';
 }
 
-export function ConfirmModal({ 
-  title, 
-  message, 
-  onConfirm, 
+export function ConfirmModal({
+  title,
+  message,
+  onConfirm,
   onCancel,
   confirmText = '确认',
   cancelText = '取消',
-  type = 'warning'
+  type = 'warning',
 }: ConfirmModalProps) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -28,25 +28,23 @@ export function ConfirmModal({
         <div className="p-6">
           {/* 图标和标题 */}
           <div className="flex items-center mb-4">
-            <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-              type === 'danger' ? 'bg-red-100' : 'bg-yellow-100'
-            }`}>
-              <ExclamationTriangleIcon className={`w-6 h-6 ${
-                type === 'danger' ? 'text-red-600' : 'text-yellow-600'
-              }`} />
+            <div
+              className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                type === 'danger' ? 'bg-red-100' : 'bg-yellow-100'
+              }`}
+            >
+              <ExclamationTriangleIcon
+                className={`w-6 h-6 ${type === 'danger' ? 'text-red-600' : 'text-yellow-600'}`}
+              />
             </div>
             <div className="ml-4">
-              <h3 className="text-lg font-medium text-gray-900">
-                {title}
-              </h3>
+              <h3 className="text-lg font-medium text-gray-900">{title}</h3>
             </div>
           </div>
 
           {/* 消息内容 */}
           <div className="mb-6">
-            <p className="text-sm text-gray-500">
-              {message}
-            </p>
+            <p className="text-sm text-gray-500">{message}</p>
           </div>
 
           {/* 按钮 */}
@@ -82,4 +80,4 @@ export function ConfirmModal({
       </div>
     </div>
   );
-} 
+}

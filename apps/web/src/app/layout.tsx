@@ -7,7 +7,6 @@ import '../styles/ios-fixes.css';
 import { ClientProviders } from './providers';
 import { PlatformDetector } from '@/components/platform-detector';
 
-
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
@@ -35,11 +34,11 @@ export default function RootLayout({
     <html lang="zh-CN" suppressHydrationWarning>
       <head>
         {/* 移动端视口设置，支持安全区域 */}
-        <meta 
-          name="viewport" 
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" 
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
         />
-        
+
         {/* 预加载字体 */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

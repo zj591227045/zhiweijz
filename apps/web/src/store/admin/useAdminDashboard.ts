@@ -130,7 +130,7 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
   error: null,
 
   fetchOverview: async () => {
-    set(state => ({
+    set((state) => ({
       isLoading: { ...state.isLoading, overview: true },
       error: null,
     }));
@@ -143,13 +143,13 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
         throw new Error(data.message || '获取概览数据失败');
       }
 
-      set(state => ({
+      set((state) => ({
         overview: data.data,
         isLoading: { ...state.isLoading, overview: false },
         error: null,
       }));
     } catch (error) {
-      set(state => ({
+      set((state) => ({
         isLoading: { ...state.isLoading, overview: false },
         error: error instanceof Error ? error.message : '获取概览数据失败',
       }));
@@ -157,26 +157,28 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
   },
 
   fetchUserStats: async (period: string) => {
-    set(state => ({
+    set((state) => ({
       isLoading: { ...state.isLoading, userStats: true },
       error: null,
     }));
 
     try {
-      const response = await adminApi.getWithParams(ADMIN_API_ENDPOINTS.DASHBOARD_USERS, { period });
+      const response = await adminApi.getWithParams(ADMIN_API_ENDPOINTS.DASHBOARD_USERS, {
+        period,
+      });
       const data = await response.json();
 
       if (!response.ok || !data.success) {
         throw new Error(data.message || '获取用户统计失败');
       }
 
-      set(state => ({
+      set((state) => ({
         userStats: data.data,
         isLoading: { ...state.isLoading, userStats: false },
         error: null,
       }));
     } catch (error) {
-      set(state => ({
+      set((state) => ({
         isLoading: { ...state.isLoading, userStats: false },
         error: error instanceof Error ? error.message : '获取用户统计失败',
       }));
@@ -184,26 +186,28 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
   },
 
   fetchTransactionStats: async (period: string) => {
-    set(state => ({
+    set((state) => ({
       isLoading: { ...state.isLoading, transactionStats: true },
       error: null,
     }));
 
     try {
-      const response = await adminApi.getWithParams(ADMIN_API_ENDPOINTS.DASHBOARD_TRANSACTIONS, { period });
+      const response = await adminApi.getWithParams(ADMIN_API_ENDPOINTS.DASHBOARD_TRANSACTIONS, {
+        period,
+      });
       const data = await response.json();
 
       if (!response.ok || !data.success) {
         throw new Error(data.message || '获取记账统计失败');
       }
 
-      set(state => ({
+      set((state) => ({
         transactionStats: data.data,
         isLoading: { ...state.isLoading, transactionStats: false },
         error: null,
       }));
     } catch (error) {
-      set(state => ({
+      set((state) => ({
         isLoading: { ...state.isLoading, transactionStats: false },
         error: error instanceof Error ? error.message : '获取记账统计失败',
       }));
@@ -211,7 +215,7 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
   },
 
   fetchSystemResources: async () => {
-    set(state => ({
+    set((state) => ({
       isLoading: { ...state.isLoading, systemResources: true },
       error: null,
     }));
@@ -224,13 +228,13 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
         throw new Error(data.message || '获取系统资源失败');
       }
 
-      set(state => ({
+      set((state) => ({
         systemResources: data.data,
         isLoading: { ...state.isLoading, systemResources: false },
         error: null,
       }));
     } catch (error) {
-      set(state => ({
+      set((state) => ({
         isLoading: { ...state.isLoading, systemResources: false },
         error: error instanceof Error ? error.message : '获取系统资源失败',
       }));
@@ -238,26 +242,29 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
   },
 
   fetchDailyActiveStats: async (days: number = 7) => {
-    set(state => ({
+    set((state) => ({
       isLoading: { ...state.isLoading, dailyActiveStats: true },
       error: null,
     }));
 
     try {
-      const response = await adminApi.getWithParams(ADMIN_API_ENDPOINTS.ACCOUNTING_POINTS_DAILY_ACTIVE, { days });
+      const response = await adminApi.getWithParams(
+        ADMIN_API_ENDPOINTS.ACCOUNTING_POINTS_DAILY_ACTIVE,
+        { days },
+      );
       const data = await response.json();
 
       if (!response.ok || !data.success) {
         throw new Error(data.message || '获取日活跃统计失败');
       }
 
-      set(state => ({
+      set((state) => ({
         dailyActiveStats: data.data,
         isLoading: { ...state.isLoading, dailyActiveStats: false },
         error: null,
       }));
     } catch (error) {
-      set(state => ({
+      set((state) => ({
         isLoading: { ...state.isLoading, dailyActiveStats: false },
         error: error instanceof Error ? error.message : '获取日活跃统计失败',
       }));
@@ -265,4 +272,4 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
   },
 
   clearError: () => set({ error: null }),
-})); 
+}));

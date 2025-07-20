@@ -14,7 +14,7 @@ interface SettingsPageHeaderProps {
 
 /**
  * 设置页面统一的顶部工具栏组件
- * 
+ *
  * @param title 页面标题
  * @param backUrl 返回按钮的目标URL，默认为 /settings
  * @param onBackClick 自定义返回按钮点击事件
@@ -40,7 +40,7 @@ export function SettingsPageHeader({
   };
 
   return (
-    <header 
+    <header
       className={`settings-page-header ${className}`}
       style={{
         position: 'sticky',
@@ -96,7 +96,7 @@ export function SettingsPageHeader({
           }, 150);
         }}
       >
-        <i 
+        <i
           className="fas fa-arrow-left"
           style={{
             fontSize: '18px',
@@ -164,7 +164,7 @@ export function SettingsPageContainer({
   className = '',
 }: SettingsPageContainerProps) {
   return (
-    <div 
+    <div
       className={`settings-page-container ${className}`}
       style={{
         minHeight: '100vh',

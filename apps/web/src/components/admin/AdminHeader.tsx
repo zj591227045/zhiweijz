@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useAdminAuth } from '@/store/admin/useAdminAuth';
 import { AvatarDisplay } from '@/components/ui/avatar-display';
 import { ChangePasswordModal } from './ChangePasswordModal';
-import { 
+import {
   Bars3Icon,
   ChevronDownIcon,
   ArrowRightOnRectangleIcon,
-  KeyIcon
+  KeyIcon,
 } from '@heroicons/react/24/outline';
 
 interface AdminHeaderProps {
@@ -45,7 +45,7 @@ export function AdminHeader({ onMenuClick, isMobile }: AdminHeaderProps) {
             >
               <Bars3Icon className="h-6 w-6" />
             </button>
-            
+
             {/* 页面标题 */}
             <div className="ml-4 lg:ml-0">
               <h1 className="text-lg font-semibold text-gray-900">管理后台</h1>
@@ -69,7 +69,7 @@ export function AdminHeader({ onMenuClick, isMobile }: AdminHeaderProps) {
                   className="h-8 w-8"
                   alt="管理员头像"
                 />
-                
+
                 {/* 用户信息 */}
                 <div className="hidden sm:block text-left">
                   <div className="text-sm font-medium text-gray-900">
@@ -79,7 +79,7 @@ export function AdminHeader({ onMenuClick, isMobile }: AdminHeaderProps) {
                     {admin?.role === 'SUPER_ADMIN' ? '超级管理员' : '管理员'}
                   </div>
                 </div>
-                
+
                 <ChevronDownIcon className="h-4 w-4 text-gray-400" />
               </button>
 
@@ -87,25 +87,18 @@ export function AdminHeader({ onMenuClick, isMobile }: AdminHeaderProps) {
               {isDropdownOpen && (
                 <>
                   {/* 遮罩层 */}
-                  <div 
-                    className="fixed inset-0 z-10" 
-                    onClick={() => setIsDropdownOpen(false)}
-                  />
-                  
+                  <div className="fixed inset-0 z-10" onClick={() => setIsDropdownOpen(false)} />
+
                   {/* 下拉内容 */}
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-20">
                     <div className="p-4 border-b border-gray-100">
-                      <div className="text-sm font-medium text-gray-900">
-                        {admin?.username}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {admin?.email || '无邮箱'}
-                      </div>
+                      <div className="text-sm font-medium text-gray-900">{admin?.username}</div>
+                      <div className="text-xs text-gray-500 mt-1">{admin?.email || '无邮箱'}</div>
                       <div className="text-xs text-blue-600 mt-1">
                         {admin?.role === 'SUPER_ADMIN' ? '超级管理员' : '管理员'}
                       </div>
                     </div>
-                    
+
                     <div className="p-2">
                       <button
                         onClick={handleChangePassword}
@@ -137,4 +130,4 @@ export function AdminHeader({ onMenuClick, isMobile }: AdminHeaderProps) {
       />
     </>
   );
-} 
+}

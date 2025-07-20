@@ -126,8 +126,6 @@ export function AIServiceForm({
     { value: 'deepseek', label: 'Deepseek' },
   ];
 
-
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="ai-service-form space-y-6">
       <div className="form-group">
@@ -294,12 +292,7 @@ export function AIServiceForm({
 
       {/* 测试连接 */}
       <div className="test-connection">
-        <button
-          type="button"
-          className="test-button"
-          onClick={testConnection}
-          disabled={isTesting}
-        >
+        <button type="button" className="test-button" onClick={testConnection} disabled={isTesting}>
           {isTesting ? '测试中...' : '测试连接'}
         </button>
         {testResult && (

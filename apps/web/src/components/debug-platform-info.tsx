@@ -80,7 +80,7 @@ export function DebugPlatformInfo() {
           }}
         >
           <h3 style={{ margin: '0 0 12px 0', color: '#007AFF' }}>平台检测信息</h3>
-          
+
           <div style={{ marginBottom: '12px' }}>
             <strong>平台检测结果:</strong>
             <div>iOS: {platformInfo.isIOS ? '✅' : '❌'}</div>
@@ -98,9 +98,7 @@ export function DebugPlatformInfo() {
 
           <div style={{ marginBottom: '12px' }}>
             <strong>User Agent:</strong>
-            <div style={{ wordBreak: 'break-all', fontSize: '10px' }}>
-              {platformInfo.userAgent}
-            </div>
+            <div style={{ wordBreak: 'break-all', fontSize: '10px' }}>{platformInfo.userAgent}</div>
           </div>
 
           {safeAreaInfo && (
@@ -115,16 +113,12 @@ export function DebugPlatformInfo() {
 
               <div style={{ marginBottom: '12px' }}>
                 <strong>Body Classes:</strong>
-                <div style={{ fontSize: '10px' }}>
-                  {safeAreaInfo.bodyClasses.join(', ')}
-                </div>
+                <div style={{ fontSize: '10px' }}>{safeAreaInfo.bodyClasses.join(', ')}</div>
               </div>
 
               <div style={{ marginBottom: '12px' }}>
                 <strong>HTML Classes:</strong>
-                <div style={{ fontSize: '10px' }}>
-                  {safeAreaInfo.htmlClasses.join(', ')}
-                </div>
+                <div style={{ fontSize: '10px' }}>{safeAreaInfo.htmlClasses.join(', ')}</div>
               </div>
             </>
           )}
@@ -134,7 +128,7 @@ export function DebugPlatformInfo() {
               // 刷新信息
               const info = getPlatformInfo();
               setPlatformInfo(info);
-              
+
               const computedStyle = getComputedStyle(document.documentElement);
               setSafeAreaInfo({
                 top: computedStyle.getPropertyValue('env(safe-area-inset-top)') || '0px',

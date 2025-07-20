@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { 
+import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
@@ -23,7 +23,7 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
 
 interface DailyActiveStats {
@@ -45,11 +45,11 @@ const PERIOD_OPTIONS = [
   { value: 30, label: '30天' },
 ];
 
-export function DailyActiveStatsCard({ 
-  data, 
-  isLoading, 
+export function DailyActiveStatsCard({
+  data,
+  isLoading,
   onPeriodChange,
-  selectedDays = 7 
+  selectedDays = 7,
 }: DailyActiveStatsCardProps) {
   // 处理图表数据
   const chartData = useMemo(() => {
@@ -57,9 +57,11 @@ export function DailyActiveStatsCard({
       return null;
     }
 
-    const sortedData = [...data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    
-    const labels = sortedData.map(item => {
+    const sortedData = [...data].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
+
+    const labels = sortedData.map((item) => {
       const date = new Date(item.date);
       return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
     });
@@ -69,7 +71,7 @@ export function DailyActiveStatsCard({
       datasets: [
         {
           label: '日活跃用户数',
-          data: sortedData.map(item => item.activeUsers),
+          data: sortedData.map((item) => item.activeUsers),
           borderColor: '#3B82F6',
           backgroundColor: 'rgba(59, 130, 246, 0.1)',
           borderWidth: 2,
@@ -85,9 +87,11 @@ export function DailyActiveStatsCard({
       return null;
     }
 
-    const sortedData = [...data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    
-    const labels = sortedData.map(item => {
+    const sortedData = [...data].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
+
+    const labels = sortedData.map((item) => {
       const date = new Date(item.date);
       return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
     });
@@ -97,7 +101,7 @@ export function DailyActiveStatsCard({
       datasets: [
         {
           label: '赠送记账点数',
-          data: sortedData.map(item => item.totalPointsGiven),
+          data: sortedData.map((item) => item.totalPointsGiven),
           backgroundColor: '#10B981',
           borderColor: '#10B981',
           borderWidth: 1,
@@ -121,19 +125,21 @@ export function DailyActiveStatsCard({
         borderColor: '#374151',
         borderWidth: 1,
         callbacks: {
-          title: function(context: any) {
+          title: function (context: any) {
             const dataIndex = context[0]?.dataIndex;
             if (data && dataIndex !== undefined) {
-              const item = [...data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[dataIndex];
-              return new Date(item.date).toLocaleDateString('zh-CN', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+              const item = [...data].sort(
+                (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+              )[dataIndex];
+              return new Date(item.date).toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
               });
             }
             return '';
           },
-          label: function(context: any) {
+          label: function (context: any) {
             const value = context.parsed.y;
             return `${context.dataset.label}: ${value}`;
           },
@@ -172,18 +178,21 @@ export function DailyActiveStatsCard({
     const totalActiveUsers = data.reduce((sum, item) => sum + item.activeUsers, 0);
     const totalPointsGiven = data.reduce((sum, item) => sum + item.totalPointsGiven, 0);
     const avgActiveUsers = Math.round(totalActiveUsers / data.length);
-    const maxActiveUsers = Math.max(...data.map(item => item.activeUsers));
+    const maxActiveUsers = Math.max(...data.map((item) => item.activeUsers));
 
     // 计算趋势（最后3天vs前面的平均）
-    const sortedData = [...data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const sortedData = [...data].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
     const recent3Days = sortedData.slice(-3);
     const earlier = sortedData.slice(0, -3);
-    
+
     let trend = 'stable';
     if (recent3Days.length >= 3 && earlier.length > 0) {
-      const recentAvg = recent3Days.reduce((sum, item) => sum + item.activeUsers, 0) / recent3Days.length;
+      const recentAvg =
+        recent3Days.reduce((sum, item) => sum + item.activeUsers, 0) / recent3Days.length;
       const earlierAvg = earlier.reduce((sum, item) => sum + item.activeUsers, 0) / earlier.length;
-      
+
       if (recentAvg > earlierAvg * 1.1) {
         trend = 'up';
       } else if (recentAvg < earlierAvg * 0.9) {
@@ -259,23 +268,28 @@ export function DailyActiveStatsCard({
                     <p className="text-sm font-medium text-blue-600">平均日活</p>
                     <p className="text-2xl font-bold text-blue-900">{stats.avgActiveUsers}</p>
                   </div>
-                  <div className={`w-3 h-3 rounded-full ${
-                    stats.trend === 'up' ? 'bg-green-500' : 
-                    stats.trend === 'down' ? 'bg-red-500' : 'bg-gray-400'
-                  }`}></div>
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      stats.trend === 'up'
+                        ? 'bg-green-500'
+                        : stats.trend === 'down'
+                          ? 'bg-red-500'
+                          : 'bg-gray-400'
+                    }`}
+                  ></div>
                 </div>
               </div>
-              
+
               <div className="bg-green-50 rounded-lg p-4">
                 <p className="text-sm font-medium text-green-600">峰值日活</p>
                 <p className="text-2xl font-bold text-green-900">{stats.maxActiveUsers}</p>
               </div>
-              
+
               <div className="bg-purple-50 rounded-lg p-4">
                 <p className="text-sm font-medium text-purple-600">总活跃用户</p>
                 <p className="text-2xl font-bold text-purple-900">{stats.totalActiveUsers}</p>
               </div>
-              
+
               <div className="bg-orange-50 rounded-lg p-4">
                 <p className="text-sm font-medium text-orange-600">总赠送点数</p>
                 <p className="text-2xl font-bold text-orange-900">{stats.totalPointsGiven}</p>

@@ -32,7 +32,7 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
       if (mode === 'edit' && budgetId && budgetId !== 'placeholder') {
         loadBudgetData(budgetId);
       }
-    }
+    },
   });
   const {
     mode: formMode,
@@ -54,18 +54,18 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
     setMode(mode);
     if (mode === 'edit' && budgetId) {
       setBudgetId(budgetId);
-      
+
       // 如果是占位符，不执行数据加载
       if (budgetId === 'placeholder') {
         return;
       }
-      
+
       // 检查token有效性
       if (!isTokenValid) {
         console.warn('⚠️ Token无效');
         return;
       }
-      
+
       loadBudgetData(budgetId);
     } else {
       resetForm();
@@ -130,17 +130,13 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
               </button>
             ) : (
               <div className="button-group">
-                <button
-                  type="button"
-                  onClick={refreshToken}
-                  className="retry-button"
-                >
+                <button type="button" onClick={refreshToken} className="retry-button">
                   <i className="fas fa-redo"></i>
                   重试
                 </button>
                 <button
                   type="button"
-                  onClick={() => window.location.href = '/auth/login'}
+                  onClick={() => (window.location.href = '/auth/login')}
                   className="retry-button"
                 >
                   <i className="fas fa-sign-in-alt"></i>
@@ -175,7 +171,9 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
         <div className="form-section">
           <div className="placeholder-message">
             <i className="fas fa-info-circle"></i>
-            <span>这是一个静态导出的占位符页面。在实际应用中，请通过正确的路由访问预算编辑页面。</span>
+            <span>
+              这是一个静态导出的占位符页面。在实际应用中，请通过正确的路由访问预算编辑页面。
+            </span>
           </div>
         </div>
       </div>
@@ -191,8 +189,8 @@ export function BudgetForm({ mode, budgetId }: BudgetFormProps) {
             <i className="fas fa-exclamation-triangle"></i>
             <span>{errors.general}</span>
             {mode === 'edit' && budgetId && budgetId !== 'placeholder' && (
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => loadBudgetData(budgetId)}
                 className="retry-button"
                 disabled={isLoading}

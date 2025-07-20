@@ -3,7 +3,13 @@
 import React, { useState } from 'react';
 import { VersionCheckResponse } from '@/lib/api/version';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink, Download, AlertTriangle, Info } from 'lucide-react';
 
@@ -34,10 +40,10 @@ export function VersionUpdateDialog({
 
   const handleUpdate = async () => {
     setIsUpdating(true);
-    
+
     try {
       await onUpdate();
-      
+
       // 根据平台执行不同的更新逻辑
       if (platform === 'web') {
         // Web平台刷新页面
@@ -112,14 +118,14 @@ export function VersionUpdateDialog({
                 {latestVersion.version} (Build {latestVersion.buildNumber})
               </Badge>
             </div>
-            
+
             {isForceUpdate && (
               <div className="flex items-center gap-2 text-sm text-red-600">
                 <AlertTriangle className="w-4 h-4" />
                 <span>此更新为强制更新</span>
               </div>
             )}
-            
+
             <div className="text-sm text-gray-600">
               发布时间: {new Date(latestVersion.publishedAt).toLocaleDateString('zh-CN')}
             </div>
@@ -137,7 +143,7 @@ export function VersionUpdateDialog({
 
           {/* 操作按钮 */}
           <div className="flex gap-2">
-            <Button 
+            <Button
               onClick={handleUpdate}
               disabled={isUpdating}
               className="flex-1"
@@ -146,13 +152,9 @@ export function VersionUpdateDialog({
               {getUpdateIcon()}
               {isUpdating ? '更新中...' : getUpdateButtonText()}
             </Button>
-            
+
             {!isForceUpdate && (
-              <Button 
-                onClick={handleSkip}
-                variant="outline"
-                className="flex-1"
-              >
+              <Button onClick={handleSkip} variant="outline" className="flex-1">
                 稍后提醒
               </Button>
             )}
@@ -164,11 +166,9 @@ export function VersionUpdateDialog({
               下载更新包后，请允许安装未知来源应用
             </div>
           )}
-          
+
           {platform === 'ios' && latestVersion.appStoreUrl && (
-            <div className="text-xs text-gray-500 text-center">
-              将跳转到App Store进行更新
-            </div>
+            <div className="text-xs text-gray-500 text-center">将跳转到App Store进行更新</div>
           )}
         </div>
       </DialogContent>
@@ -183,11 +183,7 @@ interface VersionCheckIndicatorProps {
   onRetry: () => void;
 }
 
-export function VersionCheckIndicator({ 
-  isChecking, 
-  error, 
-  onRetry 
-}: VersionCheckIndicatorProps) {
+export function VersionCheckIndicator({ isChecking, error, onRetry }: VersionCheckIndicatorProps) {
   if (!isChecking && !error) {
     return null;
   }
@@ -200,17 +196,12 @@ export function VersionCheckIndicator({
           <span className="text-sm text-gray-600">检查更新中...</span>
         </div>
       )}
-      
+
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg shadow-lg p-3 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-red-500" />
           <span className="text-sm text-red-700">{error}</span>
-          <Button
-            onClick={onRetry}
-            variant="outline"
-            size="sm"
-            className="ml-2"
-          >
+          <Button onClick={onRetry} variant="outline" size="sm" className="ml-2">
             重试
           </Button>
         </div>

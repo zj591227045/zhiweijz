@@ -44,9 +44,9 @@ export default function AdminLoginPage() {
   // 处理登录提交
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     console.log('🔍 [AdminLoginPage] Login form submitted');
-    
+
     if (!username.trim() || !password.trim()) {
       toast.error('请输入用户名和密码');
       return;
@@ -74,12 +74,8 @@ export default function AdminLoginPage() {
         <div className="space-y-6 sm:space-y-8">
           {/* 头部 */}
           <div className="text-center">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
-              管理员登录
-            </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              请使用管理员账户登录
-            </p>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">管理员登录</h2>
+            <p className="mt-2 text-sm text-gray-600">请使用管理员账户登录</p>
           </div>
 
           {/* 登录表单 */}
@@ -141,9 +137,7 @@ export default function AdminLoginPage() {
             {/* 错误信息显示 */}
             {error && (
               <div className="rounded-md bg-red-50 p-4">
-                <div className="text-sm text-red-700">
-                  {error}
-                </div>
+                <div className="text-sm text-red-700">{error}</div>
               </div>
             )}
 
@@ -168,12 +162,10 @@ export default function AdminLoginPage() {
 
           {/* 底部信息 */}
           <div className="text-center">
-            <p className="text-xs text-gray-500">
-              只为记账 - 管理后台
-            </p>
+            <p className="text-xs text-gray-500">只为记账 - 管理后台</p>
           </div>
         </div>
       </div>
     </div>
   );
-} 
+}

@@ -17,40 +17,67 @@ interface CategoryEditModalProps {
 
 // 可用的分类图标 - 参考原有编辑页面
 const availableIcons = [
-  'restaurant', 'shopping', 'daily', 'transport', 'sports', 'entertainment',
-  'clothing', 'clinic', 'beauty', 'housing', 'communication', 'electronics',
-  'social', 'travel', 'digital', 'car', 'medical', 'reading',
-  'investment', 'education', 'office', 'repair', 'insurance', 'salary',
-  'part-time', 'investment-income', 'bonus', 'commission', 'other'
+  'restaurant',
+  'shopping',
+  'daily',
+  'transport',
+  'sports',
+  'entertainment',
+  'clothing',
+  'clinic',
+  'beauty',
+  'housing',
+  'communication',
+  'electronics',
+  'social',
+  'travel',
+  'digital',
+  'car',
+  'medical',
+  'reading',
+  'investment',
+  'education',
+  'office',
+  'repair',
+  'insurance',
+  'salary',
+  'part-time',
+  'investment-income',
+  'bonus',
+  'commission',
+  'other',
 ];
 
 // 预设颜色 - 参考原有编辑页面
 const presetColors = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-  '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
+  '#FF6B6B',
+  '#4ECDC4',
+  '#45B7D1',
+  '#96CEB4',
+  '#FFEAA7',
+  '#DDA0DD',
+  '#98D8C8',
+  '#F7DC6F',
+  '#BB8FCE',
+  '#85C1E9',
 ];
 
-export default function CategoryEditModal({
-  categoryId,
-  onClose,
-  onSave
-}: CategoryEditModalProps) {
-
-
+export default function CategoryEditModal({ categoryId, onClose, onSave }: CategoryEditModalProps) {
   // 检测主题模式
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     const checkTheme = () => {
-      const isDark = document.documentElement.classList.contains('dark') ||
-                     document.documentElement.getAttribute('data-theme') === 'dark' ||
-                     window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark =
+        document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        window.matchMedia('(prefers-color-scheme: dark)').matches;
       setIsDarkMode(isDark);
       console.log('🎨 [CategoryEditModal] 主题检测', {
         isDark,
         classList: Array.from(document.documentElement.classList),
         dataTheme: document.documentElement.getAttribute('data-theme'),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     };
 
@@ -60,7 +87,7 @@ export default function CategoryEditModal({
     const observer = new MutationObserver(checkTheme);
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class', 'data-theme']
+      attributeFilter: ['class', 'data-theme'],
     });
 
     return () => observer.disconnect();
@@ -75,7 +102,7 @@ export default function CategoryEditModal({
     name: '',
     type: 'EXPENSE' as 'EXPENSE' | 'INCOME',
     icon: 'restaurant', // 默认使用第一个图标
-    color: '#FF6B6B'
+    color: '#FF6B6B',
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -89,11 +116,11 @@ export default function CategoryEditModal({
 
   // 性能优化：使用 useCallback 缓存事件处理函数
   const handleTypeChange = useCallback((type: 'EXPENSE' | 'INCOME') => {
-    setFormData(prev => ({ ...prev, type }));
+    setFormData((prev) => ({ ...prev, type }));
   }, []);
 
   const handleIconSelect = useCallback((icon: string) => {
-    setFormData(prev => ({ ...prev, icon }));
+    setFormData((prev) => ({ ...prev, icon }));
     // 添加触觉反馈（如果支持）
     if ('vibrate' in navigator) {
       navigator.vibrate(50);
@@ -101,20 +128,23 @@ export default function CategoryEditModal({
   }, []);
 
   const handleColorSelect = useCallback((color: string) => {
-    setFormData(prev => ({ ...prev, color }));
+    setFormData((prev) => ({ ...prev, color }));
     // 添加触觉反馈（如果支持）
     if ('vibrate' in navigator) {
       navigator.vibrate(50);
     }
   }, []);
 
-  const handleInputChange = useCallback((field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // 清除错误状态
-    if (error) {
-      setError(null);
-    }
-  }, [error]);
+  const handleInputChange = useCallback(
+    (field: string, value: string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      // 清除错误状态
+      if (error) {
+        setError(null);
+      }
+    },
+    [error],
+  );
 
   // 加载分类数据
   useEffect(() => {
@@ -135,7 +165,7 @@ export default function CategoryEditModal({
             name: category.name,
             type: category.type,
             icon: category.icon || 'restaurant',
-            color: category.color || '#FF6B6B'
+            color: category.color || '#FF6B6B',
           });
         } else {
           setError('分类不存在或已被删除');
@@ -178,7 +208,7 @@ export default function CategoryEditModal({
       const success = await updateCategory(categoryId, {
         name: formData.name.trim(),
         icon: formData.icon,
-        color: formData.color
+        color: formData.color,
       });
 
       if (success) {
@@ -250,7 +280,7 @@ export default function CategoryEditModal({
             </div>
             <div className="category-edit-modal__card" style={{ textAlign: 'center' }}>
               <button
-                onClick={() => window.location.href = '/auth/login'}
+                onClick={() => (window.location.href = '/auth/login')}
                 className="category-edit-modal__save-btn"
                 style={{ position: 'relative', bottom: 'auto', left: 'auto', right: 'auto' }}
               >
@@ -308,13 +338,19 @@ export default function CategoryEditModal({
             <div style={{ width: '40px' }}></div>
           </div>
           <div className="category-edit-modal__content">
-            <div className="category-edit-modal__card" style={{
-              backgroundColor: '#fef3c7',
-              borderColor: '#fcd34d',
-              color: '#92400e',
-              textAlign: 'center'
-            }}>
-              <i className="fas fa-info-circle" style={{ fontSize: '24px', marginBottom: '16px' }}></i>
+            <div
+              className="category-edit-modal__card"
+              style={{
+                backgroundColor: '#fef3c7',
+                borderColor: '#fcd34d',
+                color: '#92400e',
+                textAlign: 'center',
+              }}
+            >
+              <i
+                className="fas fa-info-circle"
+                style={{ fontSize: '24px', marginBottom: '16px' }}
+              ></i>
               <p style={{ margin: 0, lineHeight: 1.5 }}>
                 这是一个静态导出的占位符页面。在实际应用中，请通过正确的路由访问分类编辑页面。
               </p>
@@ -338,7 +374,7 @@ export default function CategoryEditModal({
         zIndex: 9999,
         display: 'flex',
         flexDirection: 'column',
-        overflow: 'hidden'
+        overflow: 'hidden',
       }}
     >
       <div
@@ -347,7 +383,7 @@ export default function CategoryEditModal({
           width: '100%',
           height: '100vh',
           position: 'relative',
-          overflow: 'hidden'
+          overflow: 'hidden',
         }}
       >
         {/* 编辑分类的头部 */}
@@ -360,14 +396,10 @@ export default function CategoryEditModal({
             padding: '16px 24px',
             backgroundColor: isDarkMode ? '#111827' : '#f9fafb',
             borderBottom: isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb',
-            minHeight: '60px'
+            minHeight: '60px',
           }}
         >
-          <button
-            className="category-edit-modal__back-button"
-            onClick={onClose}
-            aria-label="返回"
-          >
+          <button className="category-edit-modal__back-button" onClick={onClose} aria-label="返回">
             <i className="fas fa-arrow-left"></i>
           </button>
           <h1
@@ -387,7 +419,7 @@ export default function CategoryEditModal({
             overflowY: 'auto',
             padding: '24px',
             paddingBottom: 'calc(80px + 24px)',
-            backgroundColor: isDarkMode ? '#111827' : '#f9fafb'
+            backgroundColor: isDarkMode ? '#111827' : '#f9fafb',
           }}
         >
           {/* 错误提示 */}
@@ -407,7 +439,9 @@ export default function CategoryEditModal({
               borderRadius: '16px',
               padding: '24px',
               marginBottom: '16px',
-              boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+              boxShadow: isDarkMode
+                ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)'
+                : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
             }}
           >
             <label
@@ -416,7 +450,11 @@ export default function CategoryEditModal({
             >
               分类类型
             </label>
-            <div className="category-edit-modal__type-selector" role="radiogroup" aria-label="选择分类类型">
+            <div
+              className="category-edit-modal__type-selector"
+              role="radiogroup"
+              aria-label="选择分类类型"
+            >
               <button
                 type="button"
                 onClick={() => handleTypeChange('EXPENSE')}
@@ -455,7 +493,9 @@ export default function CategoryEditModal({
               borderRadius: '16px',
               padding: '24px',
               marginBottom: '16px',
-              boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+              boxShadow: isDarkMode
+                ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)'
+                : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
             }}
           >
             <label
@@ -476,14 +516,12 @@ export default function CategoryEditModal({
               style={{
                 color: isDarkMode ? '#f3f4f6' : '#1f2937',
                 backgroundColor: 'transparent',
-                borderBottom: `2px solid ${isDarkMode ? '#4b5563' : '#e5e7eb'}`
+                borderBottom: `2px solid ${isDarkMode ? '#4b5563' : '#e5e7eb'}`,
               }}
               aria-required="true"
               aria-invalid={!isFormValid && formData.name.length > 0}
               maxLength={20}
             />
-
-
           </div>
 
           {/* 图标选择器 */}
@@ -495,7 +533,9 @@ export default function CategoryEditModal({
               borderRadius: '16px',
               padding: '24px',
               marginBottom: '16px',
-              boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+              boxShadow: isDarkMode
+                ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)'
+                : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
             }}
           >
             <label
@@ -516,10 +556,10 @@ export default function CategoryEditModal({
                 backgroundColor: isDarkMode ? '#374151' : '#f3f4f6',
                 borderRadius: '12px',
                 maxHeight: '240px',
-                overflowY: 'auto'
+                overflowY: 'auto',
               }}
             >
-              {availableIcons.map(icon => (
+              {availableIcons.map((icon) => (
                 <button
                   key={icon}
                   type="button"
@@ -540,17 +580,17 @@ export default function CategoryEditModal({
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    border: formData.icon === icon
-                      ? '2px solid #3b82f6'
-                      : isDarkMode ? '2px solid #4b5563' : '2px solid #e5e7eb',
-                    backgroundColor: formData.icon === icon
-                      ? '#3b82f6'
-                      : isDarkMode ? '#1f2937' : '#ffffff',
-                    color: formData.icon === icon
-                      ? 'white'
-                      : isDarkMode ? '#f3f4f6' : '#1f2937',
+                    border:
+                      formData.icon === icon
+                        ? '2px solid #3b82f6'
+                        : isDarkMode
+                          ? '2px solid #4b5563'
+                          : '2px solid #e5e7eb',
+                    backgroundColor:
+                      formData.icon === icon ? '#3b82f6' : isDarkMode ? '#1f2937' : '#ffffff',
+                    color: formData.icon === icon ? 'white' : isDarkMode ? '#f3f4f6' : '#1f2937',
                     fontSize: '20px',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
                   }}
                 >
                   <i className={getIconClass(icon)} aria-hidden="true"></i>
@@ -568,7 +608,9 @@ export default function CategoryEditModal({
               borderRadius: '16px',
               padding: '24px',
               marginBottom: '16px',
-              boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+              boxShadow: isDarkMode
+                ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)'
+                : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
             }}
           >
             <label
@@ -587,10 +629,10 @@ export default function CategoryEditModal({
                 gap: '16px',
                 padding: '16px',
                 backgroundColor: isDarkMode ? '#374151' : '#f3f4f6',
-                borderRadius: '12px'
+                borderRadius: '12px',
               }}
             >
-              {presetColors.map(color => (
+              {presetColors.map((color) => (
                 <button
                   key={color}
                   type="button"
@@ -605,13 +647,18 @@ export default function CategoryEditModal({
                     height: '48px',
                     borderRadius: '50%',
                     cursor: 'pointer',
-                    border: formData.color === color
-                      ? isDarkMode ? '3px solid #f3f4f6' : '3px solid #1f2937'
-                      : '3px solid transparent',
+                    border:
+                      formData.color === color
+                        ? isDarkMode
+                          ? '3px solid #f3f4f6'
+                          : '3px solid #1f2937'
+                        : '3px solid transparent',
                     position: 'relative',
-                    boxShadow: isDarkMode ? '0 2px 8px rgba(0, 0, 0, 0.3)' : '0 2px 8px rgba(0, 0, 0, 0.1)',
+                    boxShadow: isDarkMode
+                      ? '0 2px 8px rgba(0, 0, 0, 0.3)'
+                      : '0 2px 8px rgba(0, 0, 0, 0.1)',
                     transition: 'all 0.2s ease',
-                    transform: formData.color === color ? 'scale(1.1)' : 'scale(1)'
+                    transform: formData.color === color ? 'scale(1.1)' : 'scale(1)',
                   }}
                   role="radio"
                   aria-checked={formData.color === color}
@@ -619,16 +666,18 @@ export default function CategoryEditModal({
                   title={`选择颜色 ${color}`}
                 >
                   {formData.color === color && (
-                    <span style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      color: 'white',
-                      fontWeight: 'bold',
-                      fontSize: '14px',
-                      textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)'
-                    }}>
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: '14px',
+                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+                      }}
+                    >
                       ✓
                     </span>
                   )}
@@ -646,7 +695,9 @@ export default function CategoryEditModal({
               borderRadius: '16px',
               padding: '24px',
               marginBottom: '16px',
-              boxShadow: isDarkMode ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+              boxShadow: isDarkMode
+                ? '0 1px 2px 0 rgba(0, 0, 0, 0.3)'
+                : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
             }}
           >
             <label
@@ -691,7 +742,11 @@ export default function CategoryEditModal({
         >
           {isSubmitting ? (
             <>
-              <i className="fas fa-spinner fa-spin" style={{ marginRight: '8px' }} aria-hidden="true"></i>
+              <i
+                className="fas fa-spinner fa-spin"
+                style={{ marginRight: '8px' }}
+                aria-hidden="true"
+              ></i>
               保存中...
             </>
           ) : (

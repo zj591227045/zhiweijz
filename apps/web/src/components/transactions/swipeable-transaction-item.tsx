@@ -8,6 +8,7 @@ import { TagDisplay } from '../tags/tag-display';
 import { AttachmentThumbnail, EnhancedAttachmentPreview } from './attachment-preview';
 import { QuickUploadModal } from './quick-upload-modal';
 import { TagResponseDto } from '@/lib/api/types/tag.types';
+import { hapticPresets } from '@/lib/haptic-feedback';
 
 export enum TransactionType {
   EXPENSE = 'EXPENSE',
@@ -70,13 +71,13 @@ export function SwipeableTransactionItem({
   isMultiSelectMode = false,
   isSelected = false,
   onTransactionSelect,
-  className = ''
+  className = '',
 }: SwipeableTransactionItemProps) {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  
+
   // 图片预览状态
   const [previewFiles, setPreviewFiles] = useState<AttachmentFile[]>([]);
   const [previewIndex, setPreviewIndex] = useState(0);
@@ -89,8 +90,8 @@ export function SwipeableTransactionItem({
 
   // 获取第一张图片附件作为缩略图
   const getFirstImageAttachment = () => {
-    return transaction.attachments?.find(
-      attachment => attachment.file?.mimeType.startsWith('image/')
+    return transaction.attachments?.find((attachment) =>
+      attachment.file?.mimeType.startsWith('image/'),
     );
   };
 
@@ -127,9 +128,9 @@ export function SwipeableTransactionItem({
   // 处理触摸结束
   const handleTouchEnd = () => {
     if (!isDragging || isMultiSelectMode) return;
-    
+
     setIsDragging(false);
-    
+
     // 根据滑动距离决定是否显示操作按钮
     if (swipeOffset > SWIPE_THRESHOLD) {
       setSwipeOffset(MAX_SWIPE);
@@ -144,30 +145,30 @@ export function SwipeableTransactionItem({
 
     setStartX(e.clientX);
     setIsDragging(true);
-    
+
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging) return;
-      
+
       const deltaX = startX - e.clientX;
       if (deltaX > 0) {
         const newOffset = Math.min(deltaX, MAX_SWIPE);
         setSwipeOffset(newOffset);
       }
     };
-    
+
     const handleMouseUp = () => {
       setIsDragging(false);
-      
+
       if (swipeOffset > SWIPE_THRESHOLD) {
         setSwipeOffset(MAX_SWIPE);
       } else {
         setSwipeOffset(0);
       }
-      
+
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-    
+
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   };
@@ -192,10 +193,14 @@ export function SwipeableTransactionItem({
       setSwipeOffset(0);
       return;
     }
-    
+
     if (isMultiSelectMode && onTransactionSelect) {
+      // 多选模式下的项目选择振动
+      hapticPresets.itemSelect();
       onTransactionSelect(transaction.id);
     } else if (onTransactionClick) {
+      // 正常点击记账项的振动反馈
+      hapticPresets.transactionTap();
       onTransactionClick(transaction.id);
     }
   };
@@ -230,14 +235,15 @@ export function SwipeableTransactionItem({
   // 处理缩略图点击
   const handleThumbnailClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     // 获取所有图片附件
-    const imageAttachments = transaction.attachments?.filter(
-      attachment => attachment.file?.mimeType?.startsWith('image/')
-    ) || [];
+    const imageAttachments =
+      transaction.attachments?.filter((attachment) =>
+        attachment.file?.mimeType?.startsWith('image/'),
+      ) || [];
 
     if (imageAttachments.length > 0) {
-      const files = imageAttachments.map(att => att.file).filter(Boolean) as AttachmentFile[];
+      const files = imageAttachments.map((att) => att.file).filter(Boolean) as AttachmentFile[];
       setPreviewFiles(files);
       setPreviewIndex(0);
       setShowPreview(true);
@@ -261,16 +267,18 @@ export function SwipeableTransactionItem({
         throw new Error('未找到认证令牌');
       }
 
-      const apiBaseUrl = typeof window !== 'undefined' && localStorage.getItem('server-config-storage')
-        ? JSON.parse(localStorage.getItem('server-config-storage')!)?.state?.config?.currentUrl || '/api'
-        : '/api';
+      const apiBaseUrl =
+        typeof window !== 'undefined' && localStorage.getItem('server-config-storage')
+          ? JSON.parse(localStorage.getItem('server-config-storage')!)?.state?.config?.currentUrl ||
+            '/api'
+          : '/api';
 
       const downloadUrl = `${apiBaseUrl}/file-storage/${file.id}/download`;
 
       const response = await fetch(downloadUrl, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
@@ -324,7 +332,7 @@ export function SwipeableTransactionItem({
   const firstImageAttachment = getFirstImageAttachment();
 
   return (
-    <div 
+    <div
       ref={itemRef}
       className={`swipeable-transaction-item ${className} ${isMultiSelectMode ? 'multi-select-mode' : ''} ${isSelected ? 'selected' : ''}`}
       style={{
@@ -333,11 +341,11 @@ export function SwipeableTransactionItem({
         borderRadius: '8px',
         marginBottom: '4px',
         width: '100%',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
       }}
     >
       {/* 背景操作按钮 */}
-      <div 
+      <div
         ref={actionsRef}
         className="swipe-actions"
         style={{
@@ -349,7 +357,7 @@ export function SwipeableTransactionItem({
           display: 'flex',
           alignItems: 'center',
           backgroundColor: 'var(--background-secondary, #f3f4f6)',
-          zIndex: 1
+          zIndex: 1,
         }}
       >
         <button
@@ -358,7 +366,8 @@ export function SwipeableTransactionItem({
           style={{
             width: '60px',
             height: '100%',
-            backgroundColor: transaction.attachments && transaction.attachments.length > 0 ? '#10b981' : '#3b82f6',
+            backgroundColor:
+              transaction.attachments && transaction.attachments.length > 0 ? '#10b981' : '#3b82f6',
             color: 'white',
             border: 'none',
             display: 'flex',
@@ -367,9 +376,13 @@ export function SwipeableTransactionItem({
             cursor: 'pointer',
             flexDirection: 'column',
             fontSize: '10px',
-            gap: '2px'
+            gap: '2px',
           }}
-          title={transaction.attachments && transaction.attachments.length > 0 ? `添加更多附件 (当前${transaction.attachments.length}个)` : '上传附件'}
+          title={
+            transaction.attachments && transaction.attachments.length > 0
+              ? `添加更多附件 (当前${transaction.attachments.length}个)`
+              : '上传附件'
+          }
         >
           <Paperclip size={16} />
           {transaction.attachments && transaction.attachments.length > 0 ? (
@@ -390,7 +403,7 @@ export function SwipeableTransactionItem({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            cursor: 'pointer'
+            cursor: 'pointer',
           }}
         >
           <Trash2 size={20} />
@@ -414,7 +427,7 @@ export function SwipeableTransactionItem({
           borderRadius: '8px',
           border: '1px solid var(--border-color, #e5e7eb)',
           width: '100%',
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -438,7 +451,7 @@ export function SwipeableTransactionItem({
         {/* 记账图标或附件缩略图 */}
         <div className="transaction-icon" style={{ width: '40px', height: '40px', flexShrink: 0 }}>
           {firstImageAttachment?.file ? (
-            <div 
+            <div
               onClick={handleThumbnailClick}
               style={{ cursor: 'pointer', width: '100%', height: '100%' }}
             >
@@ -458,10 +471,12 @@ export function SwipeableTransactionItem({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--primary-color, #3b82f6)'
+                color: 'var(--primary-color, #3b82f6)',
               }}
             >
-              <i className={`fas ${getIconClass(transaction.categoryIcon || transaction.category?.icon || '', transaction.type)}`} />
+              <i
+                className={`fas ${getIconClass(transaction.categoryIcon || transaction.category?.icon || '', transaction.type)}`}
+              />
             </div>
           )}
         </div>
@@ -469,7 +484,9 @@ export function SwipeableTransactionItem({
         {/* 记账详情 */}
         <div className="transaction-details" style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <span style={{ fontWeight: '500', fontSize: '14px', color: 'var(--text-primary, #1f2937)' }}>
+            <span
+              style={{ fontWeight: '500', fontSize: '14px', color: 'var(--text-primary, #1f2937)' }}
+            >
               {transaction.description || transaction.title || transaction.categoryName}
             </span>
             {transaction.attachments && transaction.attachments.length > 0 && (
@@ -492,7 +509,10 @@ export function SwipeableTransactionItem({
           style={{
             fontWeight: '600',
             fontSize: '16px',
-            color: transaction.type === TransactionType.EXPENSE ? 'var(--error-color, #ef4444)' : 'var(--success-color, #10b981)'
+            color:
+              transaction.type === TransactionType.EXPENSE
+                ? 'var(--error-color, #ef4444)'
+                : 'var(--success-color, #10b981)',
           }}
         >
           {transaction.type === TransactionType.EXPENSE ? '-' : '+'}
@@ -510,7 +530,9 @@ export function SwipeableTransactionItem({
       />
 
       {/* 图片预览模态框 - 使用 Portal 渲染到 body */}
-      {showPreview && previewFiles.length > 0 && typeof window !== 'undefined' && 
+      {showPreview &&
+        previewFiles.length > 0 &&
+        typeof window !== 'undefined' &&
         createPortal(
           <EnhancedAttachmentPreview
             files={previewFiles}
@@ -520,9 +542,8 @@ export function SwipeableTransactionItem({
             onNavigate={handlePreviewNavigate}
             onDownload={handlePreviewDownload}
           />,
-          document.body
-        )
-      }
+          document.body,
+        )}
     </div>
   );
 }

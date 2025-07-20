@@ -23,14 +23,17 @@ class TokenManager {
    */
   startMonitoring(): void {
     this.stopMonitoring(); // 先停止现有监控
-    
+
     // 立即检查一次token状态
     this.checkTokenStatus();
-    
+
     // 每5分钟检查一次token状态
-    this.statusCheckTimer = setInterval(() => {
-      this.checkTokenStatus();
-    }, 5 * 60 * 1000);
+    this.statusCheckTimer = setInterval(
+      () => {
+        this.checkTokenStatus();
+      },
+      5 * 60 * 1000,
+    );
   }
 
   /**
@@ -41,7 +44,7 @@ class TokenManager {
       clearTimeout(this.refreshTimer);
       this.refreshTimer = null;
     }
-    
+
     if (this.statusCheckTimer) {
       clearInterval(this.statusCheckTimer);
       this.statusCheckTimer = null;
@@ -71,12 +74,15 @@ class TokenManager {
       const status: TokenStatus = response;
 
       // 检查status对象是否包含必要的属性
-      if (typeof status.needsRefresh === 'undefined' || typeof status.remainingTime === 'undefined') {
+      if (
+        typeof status.needsRefresh === 'undefined' ||
+        typeof status.remainingTime === 'undefined'
+      ) {
         console.error('❌ Token状态响应格式无效:', {
           status,
           needsRefreshType: typeof status.needsRefresh,
           remainingTimeType: typeof status.remainingTime,
-          statusKeys: Object.keys(status || {})
+          statusKeys: Object.keys(status || {}),
         });
         return;
       }
@@ -137,19 +143,19 @@ class TokenManager {
     }
 
     this.isRefreshing = true;
-    
+
     this.refreshPromise = new Promise<boolean>(async (resolve) => {
       try {
         console.log('🔄 开始刷新token...');
         const response = await apiClient.post('/auth/refresh');
-        
+
         if (response.data?.token) {
           localStorage.setItem('auth-token', response.data.token);
           console.log('✅ Token刷新成功');
-          
+
           // 刷新成功后，重新开始监控
           this.checkTokenStatus();
-          
+
           this.notifyListeners(true);
           resolve(true);
         } else {
@@ -168,15 +174,21 @@ class TokenManager {
         if (isNetworkError) {
           console.log('🌐 网络错误，稍后重试');
           // 网络错误时不清除认证数据，5分钟后重试
-          setTimeout(() => {
-            this.checkTokenStatus();
-          }, 5 * 60 * 1000);
+          setTimeout(
+            () => {
+              this.checkTokenStatus();
+            },
+            5 * 60 * 1000,
+          );
         } else if (isServerError) {
           console.log('🔧 服务器错误，稍后重试');
           // 服务器错误时不清除认证数据，2分钟后重试
-          setTimeout(() => {
-            this.checkTokenStatus();
-          }, 2 * 60 * 1000);
+          setTimeout(
+            () => {
+              this.checkTokenStatus();
+            },
+            2 * 60 * 1000,
+          );
         } else if (isUnauthorized) {
           console.log('🚨 认证失败，清除认证数据');
           this.handleRefreshFailure();
@@ -235,7 +247,7 @@ class TokenManager {
    * 通知所有监听器
    */
   private notifyListeners(isValid: boolean): void {
-    this.listeners.forEach(callback => {
+    this.listeners.forEach((callback) => {
       try {
         callback(isValid);
       } catch (error) {
@@ -272,12 +284,15 @@ class TokenManager {
       const status = response;
 
       // 检查status对象是否包含必要的属性
-      if (typeof status.needsRefresh === 'undefined' || typeof status.remainingTime === 'undefined') {
+      if (
+        typeof status.needsRefresh === 'undefined' ||
+        typeof status.remainingTime === 'undefined'
+      ) {
         console.error('❌ Token状态响应格式无效:', {
           status,
           needsRefreshType: typeof status.needsRefresh,
           remainingTimeType: typeof status.remainingTime,
-          statusKeys: Object.keys(status || {})
+          statusKeys: Object.keys(status || {}),
         });
         return null;
       }

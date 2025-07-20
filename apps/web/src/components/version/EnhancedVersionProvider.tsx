@@ -1,7 +1,10 @@
 'use client';
 
 import React, { createContext, useContext, useCallback, useEffect } from 'react';
-import { useEnhancedVersionCheck, UseEnhancedVersionCheckOptions } from '@/hooks/useEnhancedVersionCheck';
+import {
+  useEnhancedVersionCheck,
+  UseEnhancedVersionCheckOptions,
+} from '@/hooks/useEnhancedVersionCheck';
 import { EnhancedVersionUpdateDialog } from './EnhancedVersionUpdateDialog';
 import { VersionCheckIndicator, NetworkStatusIndicator } from './VersionCheckIndicator';
 import { VersionCheckResponse } from '@/lib/api/version';
@@ -14,13 +17,13 @@ interface EnhancedVersionContextType {
   updateInfo: VersionCheckResponse | null;
   error: string | null;
   showUpdateDialog: boolean;
-  
+
   // 操作方法
   checkVersion: () => Promise<void>;
   handleUserAction: (action: UserAction) => Promise<void>;
   setShowUpdateDialog: (show: boolean) => void;
   clearError: () => void;
-  
+
   // 工具方法
   getCurrentPlatform: () => string;
   getCurrentVersion: () => { version: string; buildNumber: number };
@@ -45,12 +48,12 @@ interface EnhancedVersionProviderProps {
   checkInterval?: number;
   checkOnVisibilityChange?: boolean;
   checkOnLogin?: boolean;
-  
+
   // UI选项
   showIndicator?: boolean;
   showNetworkStatus?: boolean;
   indicatorPosition?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
-  
+
   // 回调函数
   onUpdateAvailable?: (updateInfo: VersionCheckResponse) => void;
   onForceUpdate?: (updateInfo: VersionCheckResponse) => void;
@@ -71,9 +74,8 @@ export function EnhancedVersionProvider({
   onUpdateAvailable,
   onForceUpdate,
   onUpdateComplete,
-  onError
+  onError,
 }: EnhancedVersionProviderProps) {
-  
   // 版本检查选项
   const versionCheckOptions: UseEnhancedVersionCheckOptions = {
     autoCheck: enabled && autoCheck,
@@ -82,7 +84,7 @@ export function EnhancedVersionProvider({
     checkOnLogin,
     onUpdateAvailable,
     onForceUpdate,
-    onError
+    onError,
   };
 
   // 使用增强的版本检查Hook
@@ -98,18 +100,21 @@ export function EnhancedVersionProvider({
     clearError,
     getCurrentPlatform,
     getCurrentVersion,
-    getVersionStats
+    getVersionStats,
   } = useEnhancedVersionCheck(versionCheckOptions);
 
   // 包装用户操作处理，添加完成回调
-  const handleUserAction = useCallback(async (action: UserAction) => {
-    await originalHandleUserAction(action);
-    
-    // 如果是更新操作且有完成回调
-    if (action === 'update' && onUpdateComplete) {
-      onUpdateComplete();
-    }
-  }, [originalHandleUserAction, onUpdateComplete]);
+  const handleUserAction = useCallback(
+    async (action: UserAction) => {
+      await originalHandleUserAction(action);
+
+      // 如果是更新操作且有完成回调
+      if (action === 'update' && onUpdateComplete) {
+        onUpdateComplete();
+      }
+    },
+    [originalHandleUserAction, onUpdateComplete],
+  );
 
   // 获取指示器位置样式
   const getIndicatorPositionClass = () => {
@@ -139,7 +144,7 @@ export function EnhancedVersionProvider({
     clearError,
     getCurrentPlatform,
     getCurrentVersion,
-    getVersionStats
+    getVersionStats,
   };
 
   // 如果未启用，只渲染子组件
@@ -150,7 +155,7 @@ export function EnhancedVersionProvider({
   return (
     <EnhancedVersionContext.Provider value={contextValue}>
       {children}
-      
+
       {/* 版本检查状态指示器 */}
       {showIndicator && (
         <VersionCheckIndicator
@@ -161,10 +166,10 @@ export function EnhancedVersionProvider({
           className={getIndicatorPositionClass()}
         />
       )}
-      
+
       {/* 网络状态指示器 */}
       {showNetworkStatus && <NetworkStatusIndicator />}
-      
+
       {/* 版本更新对话框 */}
       {updateInfo && (
         <EnhancedVersionUpdateDialog
@@ -185,7 +190,7 @@ export function EnhancedVersionProvider({
  */
 export function useManualVersionCheck() {
   const { checkVersion } = useEnhancedVersion();
-  
+
   return useCallback(async () => {
     await checkVersion();
   }, [checkVersion]);
@@ -196,34 +201,29 @@ export function useManualVersionCheck() {
  * 获取当前版本和更新信息
  */
 export function useVersionInfo() {
-  const { 
-    hasUpdate, 
-    updateInfo, 
-    getCurrentPlatform, 
-    getCurrentVersion,
-    getVersionStats 
-  } = useEnhancedVersion();
-  
+  const { hasUpdate, updateInfo, getCurrentPlatform, getCurrentVersion, getVersionStats } =
+    useEnhancedVersion();
+
   const currentVersion = getCurrentVersion();
   const platform = getCurrentPlatform();
   const stats = getVersionStats();
-  
+
   return {
     // 当前版本信息
     currentVersion: currentVersion.version,
     currentBuildNumber: currentVersion.buildNumber,
     platform,
-    
+
     // 更新信息
     hasUpdate,
     latestVersion: updateInfo?.latestVersion,
     isForceUpdate: updateInfo?.isForceUpdate || false,
     updateMessage: updateInfo?.updateMessage,
-    
+
     // 统计信息
     skippedVersionsCount: stats.skippedVersionsCount,
     hasPostponedVersion: stats.hasPostponedVersion,
-    lastCheckTime: stats.lastCheckTime
+    lastCheckTime: stats.lastCheckTime,
   };
 }
 
@@ -232,23 +232,17 @@ export function useVersionInfo() {
  * 提供版本检查的控制方法
  */
 export function useVersionCheckControl() {
-  const { 
-    checkVersion, 
-    setShowUpdateDialog, 
-    clearError,
-    isChecking,
-    error 
-  } = useEnhancedVersion();
-  
+  const { checkVersion, setShowUpdateDialog, clearError, isChecking, error } = useEnhancedVersion();
+
   return {
     // 状态
     isChecking,
     error,
-    
+
     // 控制方法
     checkVersion,
     showUpdateDialog: () => setShowUpdateDialog(true),
     hideUpdateDialog: () => setShowUpdateDialog(false),
-    clearError
+    clearError,
   };
 }

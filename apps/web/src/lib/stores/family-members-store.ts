@@ -86,8 +86,6 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
         console.log('fetchMembers: 总支出:', data.totalExpense || 0);
         console.log('fetchMembers: 用户权限:', data.userPermissions);
 
-
-
         set({
           members: data.members || [],
           totalExpense: data.totalExpense || 0,
@@ -121,7 +119,9 @@ export const useFamilyMembersStore = create<FamilyMembersState>((set, get) => ({
 
     try {
       set({ isLoading: true, period, error: null });
-      const response = await fetchApi(`/api/families/${familyId}/members/statistics?period=${period}`);
+      const response = await fetchApi(
+        `/api/families/${familyId}/members/statistics?period=${period}`,
+      );
 
       if (response.ok) {
         const data = await response.json();

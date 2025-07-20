@@ -72,29 +72,29 @@ export function FamilyCard({ family, onFamilyClick }: FamilyCardProps) {
         }}
         style={{ cursor: 'pointer' }}
       >
-          <div className="family-card-avatar">
-            <i className="fas fa-home"></i>
-          </div>
-          <div className="family-card-content">
-            <div className="family-card-header">
-              <div className="family-card-name">{family.name}</div>
-              <div className="family-card-meta">
-                <RoleBadge role={isCreator ? FamilyRole.ADMIN : FamilyRole.MEMBER} />
-                <span className="family-card-date">{formattedDate}</span>
-              </div>
-            </div>
-            <div className="family-card-stats">
-              <div className="family-card-members">
-                <i className="fas fa-users"></i>
-                <span>{family.memberCount || 0}名成员</span>
-              </div>
-              <div className="family-card-role">{isCreator ? '创建者' : '成员'}</div>
+        <div className="family-card-avatar">
+          <i className="fas fa-home"></i>
+        </div>
+        <div className="family-card-content">
+          <div className="family-card-header">
+            <div className="family-card-name">{family.name}</div>
+            <div className="family-card-meta">
+              <RoleBadge role={isCreator ? FamilyRole.ADMIN : FamilyRole.MEMBER} />
+              <span className="family-card-date">{formattedDate}</span>
             </div>
           </div>
-          <div className="family-card-arrow">
-            <i className="fas fa-chevron-right"></i>
+          <div className="family-card-stats">
+            <div className="family-card-members">
+              <i className="fas fa-users"></i>
+              <span>{family.memberCount || 0}名成员</span>
+            </div>
+            <div className="family-card-role">{isCreator ? '创建者' : '成员'}</div>
           </div>
         </div>
+        <div className="family-card-arrow">
+          <i className="fas fa-chevron-right"></i>
+        </div>
+      </div>
 
       {/* 操作菜单 */}
       {showActions && (

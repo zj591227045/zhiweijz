@@ -3,11 +3,15 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar } from './calendar';
-import { UnifiedTransactionList, TransactionType } from '@/components/common/unified-transaction-list';
+import {
+  UnifiedTransactionList,
+  TransactionType,
+} from '@/components/common/unified-transaction-list';
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog';
 import { useCalendarStore } from '@/store/calendar-store';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { apiClient } from '@/lib/api-client';
+import { hapticPresets } from '@/lib/haptic-feedback';
 import dayjs from 'dayjs';
 import '@/components/common/unified-transaction-list.css';
 import './calendar-view.css';
@@ -35,12 +39,12 @@ export function CalendarView() {
   const [todayTransactions, setTodayTransactions] = useState<Transaction[]>([]);
   const [isLoadingToday, setIsLoadingToday] = useState(false);
   const [currentDate, setCurrentDate] = useState(() => dayjs().format('YYYY-MM-DD'));
-  
+
   // 删除相关状态 - 与仪表盘最近记账组件保持一致
   const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
-  
+
   const {
     currentMonth,
     dailyStats,
@@ -53,28 +57,28 @@ export function CalendarView() {
     fetchMonthlyStats,
     selectDate,
     clearSelectedDate,
-    clearCalendarData
+    clearCalendarData,
   } = useCalendarStore();
 
   // 获取指定日期的记账数据
   const fetchDateTransactions = async (accountBookId: string, date: string) => {
     try {
       setIsLoadingToday(true);
-      
+
       console.log('🗓️ [CalendarView] 获取日期记账:', { accountBookId, date });
-      
+
       const params = {
         accountBookId,
         startDate: date,
         endDate: date,
         sort: 'date:desc',
-        limit: 50
+        limit: 50,
       };
-      
+
       const response = await apiClient.get('/transactions', { params });
-      
+
       console.log('🗓️ [CalendarView] 获取到', response?.data?.length || 0, '笔记账记录');
-      
+
       if (response?.data && Array.isArray(response.data)) {
         const transactions = response.data.map((tx: any) => ({
           id: tx.id,
@@ -85,9 +89,9 @@ export function CalendarView() {
           categoryIcon: tx.categoryIcon || tx.category?.icon || 'other',
           date: tx.date,
           createdAt: tx.createdAt || tx.date,
-          attachments: tx.attachments || []
+          attachments: tx.attachments || [],
         }));
-        
+
         setTodayTransactions(transactions);
       } else {
         setTodayTransactions([]);
@@ -131,6 +135,9 @@ export function CalendarView() {
 
   // 处理记账项点击 - 与仪表盘最近记账组件完全一致
   const handleTransactionClick = (transactionId: string) => {
+    // 添加交易点击的振动反馈
+    hapticPresets.transactionTap();
+    
     console.log('🗓️ [CalendarView] 记账点击，ID:', transactionId);
 
     // 设置 localStorage 标记来触发模态框
@@ -149,7 +156,7 @@ export function CalendarView() {
   // 处理删除记账 - 与仪表盘最近记账组件完全一致
   const handleDeleteClick = (transactionId: string) => {
     // 找到要删除的记账信息
-    const transaction = todayTransactions.find(t => t.id === transactionId);
+    const transaction = todayTransactions.find((t) => t.id === transactionId);
 
     if (!transaction) return;
 
@@ -201,18 +208,18 @@ export function CalendarView() {
   // 分组记账数据
   const groupTransactionsByDate = (transactions: Transaction[]): GroupedTransactions[] => {
     const grouped = transactions.reduce((acc: GroupedTransactions[], transaction: Transaction) => {
-      const existingGroup = acc.find(group => group.date === transaction.date);
+      const existingGroup = acc.find((group) => group.date === transaction.date);
       if (existingGroup) {
         existingGroup.transactions.push(transaction);
       } else {
         acc.push({
           date: transaction.date,
-          transactions: [transaction]
+          transactions: [transaction],
         });
       }
       return acc;
     }, []);
-    
+
     return grouped.sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf());
   };
 
@@ -242,13 +249,14 @@ export function CalendarView() {
 
   return (
     <div className="calendar-view-container">
-
       {/* 错误提示 */}
       {error && (
         <div className="error-message">
           <p>{error}</p>
-          <button 
-            onClick={() => currentAccountBook && fetchMonthlyStats(currentAccountBook.id, currentMonth)}
+          <button
+            onClick={() =>
+              currentAccountBook && fetchMonthlyStats(currentAccountBook.id, currentMonth)
+            }
             className="retry-btn"
           >
             重试
@@ -286,17 +294,13 @@ export function CalendarView() {
               {isLoadingToday ? '加载中...' : `${todayTransactions.length} 笔`}
             </span>
             {selectedDate && (
-              <button 
-                className="close-btn"
-                onClick={clearSelectedDate}
-                title="回到今日"
-              >
+              <button className="close-btn" onClick={clearSelectedDate} title="回到今日">
                 ×
               </button>
             )}
           </div>
         </div>
-        
+
         {isLoadingToday ? (
           <div className="loading-state">
             <div className="loading-spinner"></div>

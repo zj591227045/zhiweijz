@@ -14,7 +14,7 @@ import {
   CogIcon as Settings,
   DocumentArrowDownIcon as Save,
   ExclamationCircleIcon as AlertCircle,
-  CheckCircleIcon as CheckCircle
+  CheckCircleIcon as CheckCircle,
 } from '@heroicons/react/24/outline';
 import { adminApi } from '@/lib/admin-api-client';
 import { toast } from 'sonner';
@@ -63,10 +63,10 @@ export default function LLMSettingsPage() {
     try {
       setSaving(true);
       const response = await adminApi.post('/token-limit/global/limit', {
-        dailyLimit: formData.globalDailyTokenLimit
+        dailyLimit: formData.globalDailyTokenLimit,
       });
       const responseData = await response.json();
-      
+
       if (responseData.success) {
         toast.success('全局Token限额设置成功');
         await loadSettings();
@@ -83,13 +83,13 @@ export default function LLMSettingsPage() {
   const toggleFeature = async (enabled: boolean) => {
     try {
       const response = await adminApi.post('/token-limit/toggle-feature', {
-        enabled
+        enabled,
       });
       const responseData = await response.json();
-      
+
       if (responseData.success) {
         toast.success(enabled ? 'Token限额功能已启用' : 'Token限额功能已禁用');
-        setFormData(prev => ({ ...prev, tokenLimitEnabled: enabled }));
+        setFormData((prev) => ({ ...prev, tokenLimitEnabled: enabled }));
         await loadSettings();
       }
     } catch (error) {
@@ -102,13 +102,13 @@ export default function LLMSettingsPage() {
   const toggleEnforcement = async (enforced: boolean) => {
     try {
       const response = await adminApi.post('/token-limit/toggle-enforcement', {
-        enforced
+        enforced,
       });
       const responseData = await response.json();
-      
+
       if (responseData.success) {
         toast.success(enforced ? 'Token限额强制执行已启用' : 'Token限额强制执行已禁用');
-        setFormData(prev => ({ ...prev, tokenLimitEnforced: enforced }));
+        setFormData((prev) => ({ ...prev, tokenLimitEnforced: enforced }));
         await loadSettings();
       }
     } catch (error) {
@@ -145,10 +145,10 @@ export default function LLMSettingsPage() {
         <AlertDescription>
           <div className="flex items-center gap-4">
             <span>当前状态:</span>
-            <Badge variant={settings?.tokenLimitEnabled ? "default" : "secondary"}>
+            <Badge variant={settings?.tokenLimitEnabled ? 'default' : 'secondary'}>
               功能{settings?.tokenLimitEnabled ? '已启用' : '已禁用'}
             </Badge>
-            <Badge variant={settings?.tokenLimitEnforced ? "destructive" : "outline"}>
+            <Badge variant={settings?.tokenLimitEnforced ? 'destructive' : 'outline'}>
               {settings?.tokenLimitEnforced ? '强制执行' : '仅统计'}
             </Badge>
           </div>
@@ -170,10 +170,7 @@ export default function LLMSettingsPage() {
                   控制是否启用Token使用量统计和限制功能
                 </p>
               </div>
-              <Switch
-                checked={formData.tokenLimitEnabled}
-                onCheckedChange={toggleFeature}
-              />
+              <Switch checked={formData.tokenLimitEnabled} onCheckedChange={toggleFeature} />
             </div>
 
             <Separator />
@@ -210,10 +207,12 @@ export default function LLMSettingsPage() {
                   min="0"
                   step="1000"
                   value={formData.globalDailyTokenLimit}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    globalDailyTokenLimit: parseInt(e.target.value) || 0
-                  }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      globalDailyTokenLimit: parseInt(e.target.value) || 0,
+                    }))
+                  }
                   className="flex-1"
                 />
                 <Button
@@ -229,9 +228,7 @@ export default function LLMSettingsPage() {
                   保存
                 </Button>
               </div>
-              <p className="text-sm text-muted-foreground">
-                设置所有用户的默认每日Token使用限额
-              </p>
+              <p className="text-sm text-muted-foreground">设置所有用户的默认每日Token使用限额</p>
             </div>
 
             {/* 限额说明 */}
@@ -281,4 +278,4 @@ export default function LLMSettingsPage() {
       </Card>
     </div>
   );
-} 
+}

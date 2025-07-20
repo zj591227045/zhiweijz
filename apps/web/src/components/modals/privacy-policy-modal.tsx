@@ -111,8 +111,12 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
         </div>
 
         <div className="policy-footer">
-          <p><strong>生效日期：</strong>2024年12月1日</p>
-          <p><strong>最后更新：</strong>2024年12月1日</p>
+          <p>
+            <strong>生效日期：</strong>2024年12月1日
+          </p>
+          <p>
+            <strong>最后更新：</strong>2024年12月1日
+          </p>
         </div>
       </div>
     </ContentModal>

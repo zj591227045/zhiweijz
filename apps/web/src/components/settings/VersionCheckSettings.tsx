@@ -4,11 +4,11 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  RefreshCw, 
-  CheckCircle, 
-  AlertCircle, 
-  Info, 
+import {
+  RefreshCw,
+  CheckCircle,
+  AlertCircle,
+  Info,
   Download,
   ExternalLink,
   Clock,
@@ -16,9 +16,13 @@ import {
   Smartphone,
   Globe,
   Apple,
-  Settings
+  Settings,
 } from 'lucide-react';
-import { useVersionInfo, useVersionCheckControl, useManualVersionCheck } from '@/components/version/EnhancedVersionProvider';
+import {
+  useVersionInfo,
+  useVersionCheckControl,
+  useManualVersionCheck,
+} from '@/components/version/EnhancedVersionProvider';
 import { SimpleVersionCheckIndicator } from '@/components/version/VersionCheckIndicator';
 
 interface VersionCheckSettingsProps {
@@ -47,12 +51,12 @@ export function VersionCheckSettings({ className = '' }: VersionCheckSettingsPro
       updateMessage: undefined,
       skippedVersionsCount: 0,
       hasPostponedVersion: false,
-      lastCheckTime: undefined
+      lastCheckTime: undefined,
     };
     versionControl = {
       isChecking: false,
       error: null,
-      clearError: () => {}
+      clearError: () => {},
     };
     manualCheck = async () => {};
   }
@@ -67,7 +71,7 @@ export function VersionCheckSettings({ className = '' }: VersionCheckSettingsPro
     updateMessage,
     skippedVersionsCount,
     hasPostponedVersion,
-    lastCheckTime
+    lastCheckTime,
   } = versionInfo;
 
   const { isChecking, error, clearError } = versionControl;
@@ -121,7 +125,7 @@ export function VersionCheckSettings({ className = '' }: VersionCheckSettingsPro
    */
   const formatTime = (timeString?: string) => {
     if (!timeString) return '从未检查';
-    
+
     const time = new Date(timeString);
     const now = new Date();
     const diffMs = now.getTime() - time.getTime();
@@ -131,12 +135,12 @@ export function VersionCheckSettings({ className = '' }: VersionCheckSettingsPro
     if (diffMinutes < 1) return '刚刚';
     if (diffMinutes < 60) return `${diffMinutes}分钟前`;
     if (diffHours < 24) return `${diffHours}小时前`;
-    
+
     return time.toLocaleDateString('zh-CN', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
@@ -149,9 +153,7 @@ export function VersionCheckSettings({ className = '' }: VersionCheckSettingsPro
             <Settings className="w-5 h-5" />
             版本信息
           </CardTitle>
-          <CardDescription>
-            查看当前应用版本和检查更新
-          </CardDescription>
+          <CardDescription>查看当前应用版本和检查更新</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* 当前版本 */}
@@ -186,15 +188,15 @@ export function VersionCheckSettings({ className = '' }: VersionCheckSettingsPro
               size="sm"
               className="flex items-center gap-2"
             >
-              <RefreshCw className={`w-4 h-4 ${(isChecking || isManualChecking) ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`w-4 h-4 ${isChecking || isManualChecking ? 'animate-spin' : ''}`}
+              />
               {isChecking || isManualChecking ? '检查中...' : '检查更新'}
             </Button>
           </div>
 
           {/* 最后检查时间 */}
-          <div className="text-sm text-gray-600">
-            最后检查: {formatTime(lastCheckTime)}
-          </div>
+          <div className="text-sm text-gray-600">最后检查: {formatTime(lastCheckTime)}</div>
         </CardContent>
       </Card>
 
@@ -210,7 +212,9 @@ export function VersionCheckSettings({ className = '' }: VersionCheckSettingsPro
               )}
               {isForceUpdate ? '需要更新' : '发现新版本'}
               {isForceUpdate && (
-                <Badge variant="destructive" className="ml-2">强制更新</Badge>
+                <Badge variant="destructive" className="ml-2">
+                  强制更新
+                </Badge>
               )}
             </CardTitle>
             <CardDescription className="text-blue-600">
@@ -243,12 +247,13 @@ export function VersionCheckSettings({ className = '' }: VersionCheckSettingsPro
             {/* 发布时间 */}
             {latestVersion.publishedAt && (
               <div className="text-sm text-gray-600">
-                发布时间: {new Date(latestVersion.publishedAt).toLocaleDateString('zh-CN', {
+                发布时间:{' '}
+                {new Date(latestVersion.publishedAt).toLocaleDateString('zh-CN', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
                   hour: '2-digit',
-                  minute: '2-digit'
+                  minute: '2-digit',
                 })}
               </div>
             )}
@@ -264,9 +269,7 @@ export function VersionCheckSettings({ className = '' }: VersionCheckSettingsPro
               <Clock className="w-5 h-5" />
               更新偏好
             </CardTitle>
-            <CardDescription>
-              您的版本更新偏好设置
-            </CardDescription>
+            <CardDescription>您的版本更新偏好设置</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {skippedVersionsCount > 0 && (

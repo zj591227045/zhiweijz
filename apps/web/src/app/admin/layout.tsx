@@ -10,11 +10,7 @@ import { EnhancedVersionProvider } from '@/components/version/EnhancedVersionPro
 import { AutoVersionChecker } from '@/components/version/AutoVersionChecker';
 import MobileNotSupported from '@/components/admin/MobileNotSupported';
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -39,11 +35,7 @@ export default function AdminLayout({
 
   // 如果是登录页面，只包裹AuthGuard但不显示布局
   if (pathname === '/admin/login') {
-    return (
-      <AdminAuthGuard>
-        {children}
-      </AdminAuthGuard>
-    );
+    return <AdminAuthGuard>{children}</AdminAuthGuard>;
   }
 
   return (
@@ -72,16 +64,11 @@ export default function AdminLayout({
           {/* 主要内容区域 */}
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* 顶部头部 */}
-            <AdminHeader
-              onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              isMobile={isMobile}
-            />
+            <AdminHeader onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} isMobile={isMobile} />
 
             {/* 内容区域 */}
             <main className="flex-1 overflow-y-auto">
-              <div className="p-6">
-                {children}
-              </div>
+              <div className="p-6">{children}</div>
             </main>
           </div>
 
@@ -113,4 +100,4 @@ export default function AdminLayout({
       </EnhancedVersionProvider>
     </AdminAuthGuard>
   );
-} 
+}

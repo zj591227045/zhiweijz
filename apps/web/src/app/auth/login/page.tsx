@@ -42,7 +42,7 @@ export default function LoginPage() {
       if (config.type === 'official') {
         setSystemInfo({
           registrationEnabled: true,
-          isSelfHosted: false
+          isSelfHosted: false,
         });
         return;
       }
@@ -51,18 +51,18 @@ export default function LoginPage() {
         // 使用普通的fetch请求公共API，不需要认证
         const response = await fetch('/api/system/registration-status');
         const data = await response.json();
-        
+
         if (data.success) {
           setSystemInfo({
             registrationEnabled: data.data.enabled,
             isSelfHosted: true, // 自托管服务器
-            message: data.data.message
+            message: data.data.message,
           });
         } else {
           // 如果API失败，假设是自托管服务器且允许注册
           setSystemInfo({
             registrationEnabled: true,
-            isSelfHosted: true
+            isSelfHosted: true,
           });
         }
       } catch (error) {
@@ -70,7 +70,7 @@ export default function LoginPage() {
         // 网络错误时，假设是自托管服务器且允许注册
         setSystemInfo({
           registrationEnabled: true,
-          isSelfHosted: true
+          isSelfHosted: true,
         });
       }
     };
@@ -87,19 +87,19 @@ export default function LoginPage() {
           // 动态导入Capacitor避免SSR问题
           const capacitorModule = await import('@capacitor/core');
           const { Capacitor } = capacitorModule;
-          
+
           const isCapacitor = Capacitor.isNativePlatform();
           const platform = Capacitor.getPlatform();
-          
+
           console.log('Capacitor platform check:', { isCapacitor, platform });
-          
+
           if (isCapacitor && platform === 'ios') {
             setIsIOSApp(true);
             console.log('iOS Capacitor environment detected, applying iOS styles');
             // 为body添加iOS专用类和登录页面类
             document.body.classList.add('ios-app', 'login-page');
             document.documentElement.classList.add('ios-app', 'login-page');
-            
+
             // 添加调试信息
             console.log('iOS app classes added to DOM');
           }
@@ -232,9 +232,7 @@ export default function LoginPage() {
   // 渲染注册链接
   const renderRegisterLink = () => {
     if (!systemInfo) {
-      return (
-        <span className="text-gray-500 dark:text-gray-400">检查注册状态中...</span>
-      );
+      return <span className="text-gray-500 dark:text-gray-400">检查注册状态中...</span>;
     }
 
     if (systemInfo.isSelfHosted && !systemInfo.registrationEnabled) {
@@ -253,12 +251,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={`app-container h-screen flex flex-col overflow-hidden relative ${isIOSApp ? 'ios-login-container' : ''}`}>
-
-      
+    <div
+      className={`app-container h-screen flex flex-col overflow-hidden relative ${isIOSApp ? 'ios-login-container' : ''}`}
+    >
       {/* 动态背景 */}
       <AnimatedBackground />
-      
+
       <div className="auth-container px-3 sm:px-6 md:px-8 flex flex-col h-full max-w-screen-xl mx-auto w-full box-border relative z-10">
         {/* 主题切换器 - 响应式显示 */}
         <div className="flex-shrink-0">
@@ -293,105 +291,105 @@ export default function LoginPage() {
             onSubmit={handleSubmit}
             className="auth-form flex flex-col gap-3 sm:gap-4 w-full max-w-[95%] sm:max-w-sm md:max-w-md mx-auto bg-white/30 dark:bg-gray-800/30 backdrop-blur-md p-3 sm:p-6 md:p-8 rounded-lg shadow-lg box-border border border-white/30 dark:border-gray-700/40"
           >
-          <div className="form-group">
-            <label
-              htmlFor="email"
-              className="form-label text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              邮箱
-            </label>
-            <input
-              id="email"
-              type="email"
-              placeholder="请输入邮箱地址"
-              className="form-input p-2 sm:p-3 border rounded-md w-full box-border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm border-gray-300/60 dark:border-gray-600/60 dark:text-white text-sm sm:text-base focus:bg-white/90 dark:focus:bg-gray-700/90 transition-all duration-200"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label
-              htmlFor="password"
-              className="form-label text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              密码
-            </label>
-            <div className="password-input-wrapper relative">
+            <div className="form-group">
+              <label
+                htmlFor="email"
+                className="form-label text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                邮箱
+              </label>
               <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="请输入密码"
+                id="email"
+                type="email"
+                placeholder="请输入邮箱地址"
                 className="form-input p-2 sm:p-3 border rounded-md w-full box-border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm border-gray-300/60 dark:border-gray-600/60 dark:text-white text-sm sm:text-base focus:bg-white/90 dark:focus:bg-gray-700/90 transition-all duration-200"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
-              <button
-                type="button"
-                className="password-toggle absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 bg-transparent border-none cursor-pointer"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? '隐藏密码' : '显示密码'}
-              >
-                {showPassword ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                    <path
-                      fillRule="evenodd"
-                      d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
-                      clipRule="evenodd"
-                    />
-                    <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
-                  </svg>
-                )}
-              </button>
             </div>
-          </div>
 
-          <div className="remember-me flex items-center">
-            <input type="checkbox" id="remember" className="w-4 h-4 mr-2 accent-blue-500" />
-            <label htmlFor="remember" className="text-sm text-gray-700 dark:text-gray-300">
-              记住我
-            </label>
-          </div>
+            <div className="form-group">
+              <label
+                htmlFor="password"
+                className="form-label text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                密码
+              </label>
+              <div className="password-input-wrapper relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="请输入密码"
+                  className="form-input p-2 sm:p-3 border rounded-md w-full box-border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm border-gray-300/60 dark:border-gray-600/60 dark:text-white text-sm sm:text-base focus:bg-white/90 dark:focus:bg-gray-700/90 transition-all duration-200"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 bg-transparent border-none cursor-pointer"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? '隐藏密码' : '显示密码'}
+                >
+                  {showPassword ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                      <path
+                        fillRule="evenodd"
+                        d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
+                        clipRule="evenodd"
+                      />
+                      <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
 
-          <button
-            type="submit"
-            className="submit-button bg-blue-600 text-white py-2.5 sm:py-3 rounded-md font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600 text-sm sm:text-base"
-            disabled={isLoading}
-          >
-            {isLoading ? '登录中...' : '登录'}
-          </button>
+            <div className="remember-me flex items-center">
+              <input type="checkbox" id="remember" className="w-4 h-4 mr-2 accent-blue-500" />
+              <label htmlFor="remember" className="text-sm text-gray-700 dark:text-gray-300">
+                记住我
+              </label>
+            </div>
 
-          <div className="auth-links flex justify-between mt-3 sm:mt-4">
-            {renderRegisterLink()}
-            <Link
-              href="/auth/forgot-password"
-              className="auth-link text-blue-600 dark:text-blue-400 text-xs sm:text-sm hover:underline"
+            <button
+              type="submit"
+              className="submit-button bg-blue-600 text-white py-2.5 sm:py-3 rounded-md font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600 text-sm sm:text-base"
+              disabled={isLoading}
             >
-              忘记密码？
-            </Link>
-          </div>
-        </form>
+              {isLoading ? '登录中...' : '登录'}
+            </button>
+
+            <div className="auth-links flex justify-between mt-3 sm:mt-4">
+              {renderRegisterLink()}
+              <Link
+                href="/auth/forgot-password"
+                className="auth-link text-blue-600 dark:text-blue-400 text-xs sm:text-sm hover:underline"
+              >
+                忘记密码？
+              </Link>
+            </div>
+          </form>
         </div>
 
         {/* 底部区域 - 固定在底部 */}
@@ -421,11 +419,13 @@ export default function LoginPage() {
                   </svg>
                   <span>服务器设置</span>
                 </div>
-                <span className={`absolute right-3 px-2 py-1 rounded-full text-xs font-medium ${
-                  config.type === 'official' 
-                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' 
-                    : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                }`}>
+                <span
+                  className={`absolute right-3 px-2 py-1 rounded-full text-xs font-medium ${
+                    config.type === 'official'
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                      : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                  }`}
+                >
                   {config.type === 'official' ? '官方' : '自托管'}
                 </span>
               </button>

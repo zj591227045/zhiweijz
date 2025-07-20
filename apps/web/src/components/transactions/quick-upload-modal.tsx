@@ -46,7 +46,7 @@ export function QuickUploadModal({
   transactionId,
   transactionName,
   onClose,
-  onUploadSuccess
+  onUploadSuccess,
 }: QuickUploadModalProps) {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -160,11 +160,11 @@ export function QuickUploadModal({
     if (attachment.file) {
       // 获取所有附件文件
       const allFiles = existingAttachments
-        .map(att => att.file)
+        .map((att) => att.file)
         .filter(Boolean) as AttachmentFile[];
 
       // 找到当前文件的索引
-      const currentIndex = allFiles.findIndex(file => file.id === attachment.file!.id);
+      const currentIndex = allFiles.findIndex((file) => file.id === attachment.file!.id);
 
       setPreviewFiles(allFiles);
       setPreviewIndex(Math.max(0, currentIndex));
@@ -189,7 +189,7 @@ export function QuickUploadModal({
     try {
       // 使用apiClient下载文件，自动携带认证信息
       const response = await apiClient.get(`/file-storage/${file.id}/download`, {
-        responseType: 'blob'
+        responseType: 'blob',
       });
 
       // 创建blob URL
@@ -228,7 +228,7 @@ export function QuickUploadModal({
     try {
       // 使用apiClient下载文件，自动携带认证信息
       const response = await apiClient.get(`/file-storage/${attachment.file.id}/download`, {
-        responseType: 'blob'
+        responseType: 'blob',
       });
 
       // 创建blob URL
@@ -275,9 +275,7 @@ export function QuickUploadModal({
       >
         {/* 标题栏 */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">
-            快速上传附件
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900">快速上传附件</h3>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600"
@@ -311,7 +309,10 @@ export function QuickUploadModal({
               <div className="bg-gray-50 rounded-lg p-3 max-h-32 overflow-y-auto">
                 <div className="space-y-2">
                   {existingAttachments.map((attachment) => (
-                    <div key={attachment.id} className="flex items-center justify-between bg-white rounded p-2 shadow-sm">
+                    <div
+                      key={attachment.id}
+                      className="flex items-center justify-between bg-white rounded p-2 shadow-sm"
+                    >
                       <div className="flex items-center flex-1 min-w-0">
                         <div className="w-8 h-8 mr-2 flex-shrink-0">
                           {attachment.file?.mimeType?.startsWith('image/') ? (
@@ -331,7 +332,9 @@ export function QuickUploadModal({
                             {attachment.file?.originalName || '未知文件'}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {attachment.file?.size ? formatFileSize(attachment.file.size) : '大小未知'}
+                            {attachment.file?.size
+                              ? formatFileSize(attachment.file.size)
+                              : '大小未知'}
                           </p>
                         </div>
                       </div>
@@ -368,18 +371,14 @@ export function QuickUploadModal({
           {/* 拖拽上传区域 */}
           <div
             className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-              dragOver
-                ? 'border-blue-400 bg-blue-50'
-                : 'border-gray-300 hover:border-gray-400'
+              dragOver ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
             }`}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
           >
             <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <p className="text-sm text-gray-600 mb-4">
-              拖拽文件到此处，或点击下方按钮选择文件
-            </p>
+            <p className="text-sm text-gray-600 mb-4">拖拽文件到此处，或点击下方按钮选择文件</p>
 
             {/* 操作按钮 */}
             <div className="flex justify-center space-x-4">
@@ -391,7 +390,7 @@ export function QuickUploadModal({
                 <FileText size={16} className="mr-2" />
                 选择文件
               </button>
-              
+
               <button
                 onClick={handleCameraSelect}
                 disabled={uploading}
@@ -413,9 +412,7 @@ export function QuickUploadModal({
           </div>
 
           {/* 支持格式说明 */}
-          <div className="mt-4 text-xs text-gray-500">
-            支持格式：JPG、PNG、GIF、WebP、PDF
-          </div>
+          <div className="mt-4 text-xs text-gray-500">支持格式：JPG、PNG、GIF、WebP、PDF</div>
         </div>
 
         {/* 隐藏的文件输入 */}
@@ -427,7 +424,7 @@ export function QuickUploadModal({
           onChange={(e) => handleFileUpload(e.target.files)}
           className="hidden"
         />
-        
+
         <input
           ref={cameraInputRef}
           type="file"

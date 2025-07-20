@@ -11,7 +11,7 @@ interface SystemConfig {
 export function useSystemConfig() {
   const [config, setConfig] = useState<SystemConfig>({
     membershipEnabled: false,
-    accountingPointsEnabled: false
+    accountingPointsEnabled: false,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export function useSystemConfig() {
         // 如果获取失败，设置默认值（启用所有功能）
         setConfig({
           membershipEnabled: true,
-          accountingPointsEnabled: true
+          accountingPointsEnabled: true,
         });
       } finally {
         setLoading(false);

@@ -9,10 +9,10 @@ export { EnhancedVersionUpdateDialog } from './EnhancedVersionUpdateDialog';
 export { AutoVersionChecker } from './AutoVersionChecker';
 
 // 指示器组件
-export { 
-  VersionCheckIndicator, 
-  SimpleVersionCheckIndicator, 
-  NetworkStatusIndicator 
+export {
+  VersionCheckIndicator,
+  SimpleVersionCheckIndicator,
+  NetworkStatusIndicator,
 } from './VersionCheckIndicator';
 
 // 设置和调试组件
@@ -24,13 +24,10 @@ export {
   useEnhancedVersion,
   useManualVersionCheck,
   useVersionInfo,
-  useVersionCheckControl
+  useVersionCheckControl,
 } from './EnhancedVersionProvider';
 
-export {
-  useVersionCheckStatus,
-  useVersionCheckDebug
-} from './AutoVersionChecker';
+export { useVersionCheckStatus, useVersionCheckDebug } from './AutoVersionChecker';
 
 // 服务
 export { versionCheckService } from '../../lib/services/versionCheckService';
@@ -40,10 +37,10 @@ export type {
   Platform,
   UserAction,
   VersionCheckData,
-  VersionCheckResult
+  VersionCheckResult,
 } from '../../lib/services/versionCheckService';
 
 export type {
   UseEnhancedVersionCheckOptions,
-  UseEnhancedVersionCheckReturn
+  UseEnhancedVersionCheckReturn,
 } from '../../hooks/useEnhancedVersionCheck';

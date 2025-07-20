@@ -51,8 +51,10 @@ export function AnnouncementDetailModal({ isOpen, onClose }: AnnouncementDetailM
     const standardLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
     result = result.replace(standardLinkRegex, (match, text, url) => {
       // 判断是否为内部链接
-      const isInternal = url.startsWith('/') || url.startsWith('#') ||
-                        (!url.startsWith('http://') && !url.startsWith('https://'));
+      const isInternal =
+        url.startsWith('/') ||
+        url.startsWith('#') ||
+        (!url.startsWith('http://') && !url.startsWith('https://'));
       const target = isInternal ? '_self' : '_blank';
       const rel = isInternal ? '' : 'noopener noreferrer';
 
@@ -63,8 +65,10 @@ export function AnnouncementDetailModal({ isOpen, onClose }: AnnouncementDetailM
     const bracketLinkRegex = /\[([^\]]+)\]\[([^\]]+)\]/g;
     result = result.replace(bracketLinkRegex, (match, text, url) => {
       // 判断是否为内部链接
-      const isInternal = url.startsWith('/') || url.startsWith('#') ||
-                        (!url.startsWith('http://') && !url.startsWith('https://'));
+      const isInternal =
+        url.startsWith('/') ||
+        url.startsWith('#') ||
+        (!url.startsWith('http://') && !url.startsWith('https://'));
       const target = isInternal ? '_self' : '_blank';
       const rel = isInternal ? '' : 'noopener noreferrer';
 
@@ -94,8 +98,10 @@ export function AnnouncementDetailModal({ isOpen, onClose }: AnnouncementDetailM
       const href = target.getAttribute('href');
       if (href) {
         // 判断是否为内部链接
-        const isInternal = href.startsWith('/') || href.startsWith('#') ||
-                          (!href.startsWith('http://') && !href.startsWith('https://'));
+        const isInternal =
+          href.startsWith('/') ||
+          href.startsWith('#') ||
+          (!href.startsWith('http://') && !href.startsWith('https://'));
 
         if (isInternal) {
           // 内部链接使用路由跳转
@@ -161,24 +167,24 @@ export function AnnouncementDetailModal({ isOpen, onClose }: AnnouncementDetailM
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       {/* 背景遮罩 */}
-      <div 
+      <div
         className="fixed inset-0 transition-opacity"
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
         onClick={onClose}
       />
-      
+
       {/* 模态框内容 */}
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <div 
+        <div
           className="relative w-full max-w-2xl max-h-[90vh] rounded-lg shadow-xl overflow-hidden"
-          style={{ 
+          style={{
             backgroundColor: 'var(--background-color)',
-            border: '1px solid var(--border-color)'
+            border: '1px solid var(--border-color)',
           }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* 头部 */}
-          <div 
+          <div
             className="flex items-center justify-between px-6 py-4"
             style={{ borderBottom: '1px solid var(--border-color)' }}
           >
@@ -186,19 +192,21 @@ export function AnnouncementDetailModal({ isOpen, onClose }: AnnouncementDetailM
               <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
                 公告详情
               </h3>
-              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getPriorityBadgeColor(selectedAnnouncement.priority)}`}>
+              <span
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getPriorityBadgeColor(selectedAnnouncement.priority)}`}
+              >
                 {getPriorityText(selectedAnnouncement.priority)}
               </span>
             </div>
             <button
               onClick={onClose}
               className="rounded-md p-2 transition-colors"
-              style={{ 
+              style={{
                 color: 'var(--text-secondary)',
                 ':hover': {
                   backgroundColor: 'var(--hover-background)',
-                  color: 'var(--text-primary)'
-                }
+                  color: 'var(--text-primary)',
+                },
               }}
             >
               <XMarkIcon className="h-5 w-5" />
@@ -208,24 +216,28 @@ export function AnnouncementDetailModal({ isOpen, onClose }: AnnouncementDetailM
           {/* 内容区域 */}
           <div className="flex-1 overflow-y-auto p-6" style={{ maxHeight: 'calc(90vh - 8rem)' }}>
             {/* 公告标题 */}
-            <div className={`border-l-4 pl-4 mb-6 ${getPriorityColor(selectedAnnouncement.priority)}`}>
+            <div
+              className={`border-l-4 pl-4 mb-6 ${getPriorityColor(selectedAnnouncement.priority)}`}
+            >
               <h1 className="text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
                 {selectedAnnouncement.title}
               </h1>
               <div className="flex items-center text-sm" style={{ color: 'var(--text-secondary)' }}>
                 <span>
-                  发布于 {formatDistanceToNow(new Date(selectedAnnouncement.publishedAt), {
+                  发布于{' '}
+                  {formatDistanceToNow(new Date(selectedAnnouncement.publishedAt), {
                     addSuffix: true,
-                    locale: zhCN
+                    locale: zhCN,
                   })}
                 </span>
                 {selectedAnnouncement.expiresAt && (
                   <>
                     <span className="mx-2">•</span>
                     <span>
-                      过期时间：{formatDistanceToNow(new Date(selectedAnnouncement.expiresAt), {
+                      过期时间：
+                      {formatDistanceToNow(new Date(selectedAnnouncement.expiresAt), {
                         addSuffix: true,
-                        locale: zhCN
+                        locale: zhCN,
                       })}
                     </span>
                   </>
@@ -240,13 +252,16 @@ export function AnnouncementDetailModal({ isOpen, onClose }: AnnouncementDetailM
               onClick={handleLinkClick}
             >
               {(() => {
-                const processedContent = parseLinksToHtml(selectedAnnouncement.content).replace(/\n/g, '<br>');
+                const processedContent = parseLinksToHtml(selectedAnnouncement.content).replace(
+                  /\n/g,
+                  '<br>',
+                );
                 console.log('原始内容:', selectedAnnouncement.content);
                 console.log('处理后的HTML:', processedContent);
                 return (
                   <div
                     dangerouslySetInnerHTML={{
-                      __html: processedContent
+                      __html: processedContent,
                     }}
                   />
                 );
@@ -255,7 +270,7 @@ export function AnnouncementDetailModal({ isOpen, onClose }: AnnouncementDetailM
           </div>
 
           {/* 底部操作区域 */}
-          <div 
+          <div
             className="flex items-center justify-end px-6 py-4"
             style={{ borderTop: '1px solid var(--border-color)' }}
           >
@@ -265,7 +280,7 @@ export function AnnouncementDetailModal({ isOpen, onClose }: AnnouncementDetailM
               style={{
                 color: 'var(--text-secondary)',
                 backgroundColor: 'var(--secondary-background)',
-                border: '1px solid var(--border-color)'
+                border: '1px solid var(--border-color)',
               }}
             >
               关闭

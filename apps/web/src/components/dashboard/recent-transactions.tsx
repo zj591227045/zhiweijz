@@ -6,6 +6,7 @@ import { memo, useState } from 'react';
 import { UnifiedTransactionList, TransactionType } from '../common/unified-transaction-list';
 import { DeleteConfirmationDialog } from '../ui/delete-confirmation-dialog';
 import { apiClient } from '@/lib/api-client';
+import { hapticPresets } from '@/lib/haptic-feedback';
 import '../common/unified-transaction-list.css';
 
 interface Transaction {
@@ -44,7 +45,10 @@ interface RecentTransactionsProps {
 
 // 使用React.memo优化渲染性能
 export const RecentTransactions = memo(
-  function RecentTransactions({ groupedTransactions, onTransactionDeleted }: RecentTransactionsProps) {
+  function RecentTransactions({
+    groupedTransactions,
+    onTransactionDeleted,
+  }: RecentTransactionsProps) {
     const router = useRouter();
     const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -52,6 +56,9 @@ export const RecentTransactions = memo(
 
     // 处理记账项点击 - 触发模态框编辑
     const handleTransactionClick = (transactionId: string) => {
+      // 添加交易点击的振动反馈
+      hapticPresets.transactionTap();
+      
       console.log('🔄 [RecentTransactions] 记账点击，ID:', transactionId);
 
       // 设置 localStorage 标记来触发模态框
@@ -71,8 +78,8 @@ export const RecentTransactions = memo(
     const handleDeleteClick = (transactionId: string) => {
       // 找到要删除的记账信息
       const transaction = groupedTransactions
-        .flatMap(group => group.transactions)
-        .find(t => t.id === transactionId);
+        .flatMap((group) => group.transactions)
+        .find((t) => t.id === transactionId);
 
       if (!transaction) return;
 

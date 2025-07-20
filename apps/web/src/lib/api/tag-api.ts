@@ -27,7 +27,7 @@ export class TagApi {
    */
   async getTags(params: TagQueryParams): Promise<TagListResponse> {
     const queryParams = new URLSearchParams();
-    
+
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         queryParams.append(key, String(value));
@@ -47,14 +47,19 @@ export class TagApi {
   /**
    * 创建标签
    */
-  async createTag(data: CreateTagDto): Promise<{ success: boolean; data: TagResponseDto; message: string }> {
+  async createTag(
+    data: CreateTagDto,
+  ): Promise<{ success: boolean; data: TagResponseDto; message: string }> {
     return apiClient.post('/tags', data);
   }
 
   /**
    * 更新标签
    */
-  async updateTag(tagId: string, data: UpdateTagDto): Promise<{ success: boolean; data: TagResponseDto; message: string }> {
+  async updateTag(
+    tagId: string,
+    data: UpdateTagDto,
+  ): Promise<{ success: boolean; data: TagResponseDto; message: string }> {
     return apiClient.put(`/tags/${tagId}`, data);
   }
 
@@ -68,7 +73,9 @@ export class TagApi {
   /**
    * 获取记账记录的标签
    */
-  async getTransactionTags(transactionId: string): Promise<{ success: boolean; data: TagResponseDto[] }> {
+  async getTransactionTags(
+    transactionId: string,
+  ): Promise<{ success: boolean; data: TagResponseDto[] }> {
     return apiClient.get(`/transactions/${transactionId}/tags`);
   }
 
@@ -77,7 +84,7 @@ export class TagApi {
    */
   async addTransactionTags(
     transactionId: string,
-    data: AddTransactionTagsDto
+    data: AddTransactionTagsDto,
   ): Promise<{
     success: boolean;
     data: { addedTags: TagResponseDto[]; skippedTags: string[] };
@@ -89,14 +96,19 @@ export class TagApi {
   /**
    * 移除记账记录的标签
    */
-  async removeTransactionTag(transactionId: string, tagId: string): Promise<{ success: boolean; message: string }> {
+  async removeTransactionTag(
+    transactionId: string,
+    tagId: string,
+  ): Promise<{ success: boolean; message: string }> {
     return apiClient.delete(`/transactions/${transactionId}/tags/${tagId}`);
   }
 
   /**
    * 批量操作记账标签
    */
-  async batchOperateTransactionTags(data: BatchTransactionTagsDto): Promise<BatchTransactionTagsResponse> {
+  async batchOperateTransactionTags(
+    data: BatchTransactionTagsDto,
+  ): Promise<BatchTransactionTagsResponse> {
     return apiClient.post('/transactions/batch/tags', data);
   }
 
@@ -105,11 +117,11 @@ export class TagApi {
    */
   async getTagStatistics(params: TagStatisticsQuery): Promise<TagStatisticsResponse> {
     const queryParams = new URLSearchParams();
-    
+
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         if (Array.isArray(value)) {
-          value.forEach(item => queryParams.append(key, String(item)));
+          value.forEach((item) => queryParams.append(key, String(item)));
         } else {
           queryParams.append(key, String(value));
         }
@@ -124,7 +136,7 @@ export class TagApi {
    */
   async getTagTrends(params: TagTrendsQuery): Promise<TagTrendsResponse> {
     const queryParams = new URLSearchParams();
-    
+
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         queryParams.append(key, String(value));

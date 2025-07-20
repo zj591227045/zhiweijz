@@ -19,7 +19,7 @@ export function TokenErrorHandler() {
     hasError: false,
     errorType: null,
     retryCount: 0,
-    nextRetryTime: null
+    nextRetryTime: null,
   });
 
   const [countdown, setCountdown] = useState<number>(0);
@@ -36,12 +36,16 @@ export function TokenErrorHandler() {
       else if (isServerError) errorType = 'server';
       else if (isAuthError) errorType = 'auth';
 
-      setErrorState(prev => ({
+      setErrorState((prev) => ({
         hasError: true,
         errorType,
         retryCount: prev.retryCount + 1,
-        nextRetryTime: errorType === 'network' ? Date.now() + 5 * 60 * 1000 : 
-                      errorType === 'server' ? Date.now() + 2 * 60 * 1000 : null
+        nextRetryTime:
+          errorType === 'network'
+            ? Date.now() + 5 * 60 * 1000
+            : errorType === 'server'
+              ? Date.now() + 2 * 60 * 1000
+              : null,
       }));
     };
 
@@ -50,7 +54,7 @@ export function TokenErrorHandler() {
         hasError: false,
         errorType: null,
         retryCount: 0,
-        nextRetryTime: null
+        nextRetryTime: null,
       });
     };
 
@@ -73,7 +77,7 @@ export function TokenErrorHandler() {
       setCountdown(remaining);
 
       if (remaining === 0) {
-        setErrorState(prev => ({ ...prev, nextRetryTime: null }));
+        setErrorState((prev) => ({ ...prev, nextRetryTime: null }));
       }
     }, 1000);
 
@@ -89,7 +93,7 @@ export function TokenErrorHandler() {
           hasError: false,
           errorType: null,
           retryCount: 0,
-          nextRetryTime: null
+          nextRetryTime: null,
         });
       }
     } catch (error) {
@@ -124,11 +128,15 @@ export function TokenErrorHandler() {
     <div className="token-error-handler">
       <div className="error-banner">
         <div className="error-content">
-          <i className={`fas ${
-            errorState.errorType === 'network' ? 'fa-wifi' :
-            errorState.errorType === 'server' ? 'fa-server' :
-            'fa-exclamation-triangle'
-          }`}></i>
+          <i
+            className={`fas ${
+              errorState.errorType === 'network'
+                ? 'fa-wifi'
+                : errorState.errorType === 'server'
+                  ? 'fa-server'
+                  : 'fa-exclamation-triangle'
+            }`}
+          ></i>
           <div className="error-text">
             <div className="error-message">{getErrorMessage()}</div>
             {errorState.retryCount > 1 && (
@@ -136,21 +144,17 @@ export function TokenErrorHandler() {
             )}
           </div>
         </div>
-        
+
         <div className="error-actions">
           {errorState.errorType === 'auth' ? (
             <button
               className="error-button primary"
-              onClick={() => window.location.href = '/auth/login'}
+              onClick={() => (window.location.href = '/auth/login')}
             >
               重新登录
             </button>
           ) : (
-            <button
-              className="error-button"
-              onClick={handleRetry}
-              disabled={countdown > 0}
-            >
+            <button className="error-button" onClick={handleRetry} disabled={countdown > 0}>
               {getRetryText()}
             </button>
           )}

@@ -37,7 +37,7 @@ export default function RegisterPage() {
       if (config.type === 'official') {
         setSystemInfo({
           registrationEnabled: true,
-          isSelfHosted: false
+          isSelfHosted: false,
         });
         setIsCheckingRegistration(false);
         return;
@@ -45,18 +45,18 @@ export default function RegisterPage() {
 
       try {
         const data = await adminApiClient.get('/api/system/registration-status');
-        
+
         if (data.success) {
           setSystemInfo({
             registrationEnabled: data.data.enabled,
             isSelfHosted: true, // 自托管服务器
-            message: data.data.message
+            message: data.data.message,
           });
         } else {
           // 如果API失败，假设是自托管服务器且允许注册
           setSystemInfo({
             registrationEnabled: true,
-            isSelfHosted: true
+            isSelfHosted: true,
           });
         }
       } catch (error) {
@@ -64,7 +64,7 @@ export default function RegisterPage() {
         // 网络错误时，假设是自托管服务器且允许注册
         setSystemInfo({
           registrationEnabled: true,
-          isSelfHosted: true
+          isSelfHosted: true,
         });
       } finally {
         setIsCheckingRegistration(false);
@@ -197,8 +197,18 @@ export default function RegisterPage() {
           <div className="text-center py-8">
             <div className="mb-6">
               <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                <svg
+                  className="w-8 h-8 text-yellow-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
                 </svg>
               </div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">用户注册已关闭</h2>
@@ -214,9 +224,7 @@ export default function RegisterPage() {
               >
                 返回登录页面
               </Link>
-              <p className="text-sm text-gray-500">
-                如需注册账号，请联系系统管理员
-              </p>
+              <p className="text-sm text-gray-500">如需注册账号，请联系系统管理员</p>
             </div>
           </div>
         </div>
@@ -330,16 +338,10 @@ export default function RegisterPage() {
               <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
             </button>
           </div>
-          {passwordError && (
-            <p className="text-red-500 text-sm mt-1">{passwordError}</p>
-          )}
+          {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
         </div>
 
-        <button
-          type="submit"
-          className="btn-primary full-width"
-          disabled={isLoading}
-        >
+        <button type="submit" className="btn-primary full-width" disabled={isLoading}>
           {isLoading ? '注册中...' : '注册'}
         </button>
 

@@ -106,7 +106,10 @@ export function CategoryTransactionsModal({
         setTransactions(transactionData);
 
         // 计算统计数据
-        const totalAmount = transactionData.reduce((sum: number, t: Transaction) => sum + t.amount, 0);
+        const totalAmount = transactionData.reduce(
+          (sum: number, t: Transaction) => sum + t.amount,
+          0,
+        );
         setStatistics({
           totalAmount,
           transactionCount: transactionData.length,
@@ -141,7 +144,7 @@ export function CategoryTransactionsModal({
     return Object.entries(groups)
       .map(([date, transactions]) => ({
         date: dayjs(date).format('MM月DD日'),
-        transactions: transactions.map(transaction => ({
+        transactions: transactions.map((transaction) => ({
           id: transaction.id,
           amount: transaction.amount,
           type: transaction.type,
@@ -151,8 +154,8 @@ export function CategoryTransactionsModal({
           date: dayjs(transaction.date).format('HH:mm'),
           category: transaction.category,
           tags: transaction.tags,
-          attachments: transaction.attachments
-        }))
+          attachments: transaction.attachments,
+        })),
       }))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   };
@@ -161,7 +164,7 @@ export function CategoryTransactionsModal({
   const handleTransactionClick = (transactionId: string) => {
     if (onTransactionEdit) {
       // 找到对应的记账数据
-      const transactionData = transactions.find(t => t.id === transactionId);
+      const transactionData = transactions.find((t) => t.id === transactionId);
       onTransactionEdit(transactionId, transactionData);
     } else {
       // 回退到直接导航
@@ -244,6 +247,6 @@ export function CategoryTransactionsModal({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

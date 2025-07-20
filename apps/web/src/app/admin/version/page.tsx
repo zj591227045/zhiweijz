@@ -8,7 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -24,7 +30,7 @@ import {
   DevicePhoneMobileIcon,
   ComputerDesktopIcon,
   ChartBarIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import { useAdminApi } from '@/hooks/useAdminApi';
 
@@ -54,13 +60,13 @@ interface VersionStats {
 const platformNames = {
   WEB: '网页版',
   IOS: 'iOS',
-  ANDROID: 'Android'
+  ANDROID: 'Android',
 };
 
 const platformIcons = {
   WEB: ComputerDesktopIcon,
   IOS: DevicePhoneMobileIcon,
-  ANDROID: DevicePhoneMobileIcon
+  ANDROID: DevicePhoneMobileIcon,
 };
 
 export default function VersionManagementPage() {
@@ -85,7 +91,7 @@ export default function VersionManagementPage() {
     detailUrl: '', // 新增详细链接字段
     isForceUpdate: false,
     isEnabled: true,
-    publishNow: false
+    publishNow: false,
   });
 
   // 获取版本列表
@@ -94,8 +100,8 @@ export default function VersionManagementPage() {
       const response = await adminApi.get('/api/admin/version', {
         params: {
           platform: selectedPlatform || undefined,
-          limit: 50
-        }
+          limit: 50,
+        },
       });
       setVersions(response.data || []);
     } catch (error) {
@@ -133,7 +139,7 @@ export default function VersionManagementPage() {
       await adminApi.post('/api/admin/version/config', {
         key: 'version_check_enabled',
         value: enabled ? 'true' : 'false',
-        description: '启用版本检查功能'
+        description: '启用版本检查功能',
       });
       setVersionCheckEnabled(enabled);
       alert(`版本检查功能已${enabled ? '启用' : '禁用'}`);
@@ -156,7 +162,12 @@ export default function VersionManagementPage() {
   // 创建版本
   const handleCreateVersion = async () => {
     try {
-      if (!formData.platform || !formData.version || !formData.buildNumber || !formData.versionCode) {
+      if (
+        !formData.platform ||
+        !formData.version ||
+        !formData.buildNumber ||
+        !formData.versionCode
+      ) {
         alert('请填写必填字段');
         return;
       }
@@ -172,7 +183,7 @@ export default function VersionManagementPage() {
         detailUrl: formData.detailUrl || undefined, // 新增详细链接字段
         isForceUpdate: formData.isForceUpdate,
         isEnabled: formData.isEnabled,
-        publishNow: formData.publishNow
+        publishNow: formData.publishNow,
       });
 
       alert('版本创建成功');
@@ -238,7 +249,7 @@ export default function VersionManagementPage() {
       detailUrl: '', // 新增详细链接字段
       isForceUpdate: false,
       isEnabled: true,
-      publishNow: false
+      publishNow: false,
     });
     setEditingVersion(null);
   };
@@ -291,11 +302,7 @@ export default function VersionManagementPage() {
     }
 
     if (versions.length === 0) {
-      return (
-        <div className="text-center py-8 text-muted-foreground">
-          暂无版本信息
-        </div>
-      );
+      return <div className="text-center py-8 text-muted-foreground">暂无版本信息</div>;
     }
 
     return (
@@ -318,25 +325,19 @@ export default function VersionManagementPage() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {version.isForceUpdate && (
-                      <Badge variant="destructive">强制更新</Badge>
-                    )}
+                    {version.isForceUpdate && <Badge variant="destructive">强制更新</Badge>}
                     {version.publishedAt ? (
                       <Badge variant="default">已发布</Badge>
                     ) : (
                       <Badge variant="secondary">未发布</Badge>
                     )}
-                    {!version.isEnabled && (
-                      <Badge variant="outline">已禁用</Badge>
-                    )}
+                    {!version.isEnabled && <Badge variant="outline">已禁用</Badge>}
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 {version.releaseNotes && (
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {version.releaseNotes}
-                  </p>
+                  <p className="text-sm text-muted-foreground mb-3">{version.releaseNotes}</p>
                 )}
                 <div className="flex items-center justify-between">
                   <div className="text-xs text-muted-foreground">
@@ -395,16 +396,14 @@ export default function VersionManagementPage() {
         <Card className="w-full max-w-md max-h-[80vh] overflow-y-auto">
           <CardHeader>
             <CardTitle>创建新版本</CardTitle>
-            <CardDescription>
-              添加新的应用版本信息
-            </CardDescription>
+            <CardDescription>添加新的应用版本信息</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="platform">平台 *</Label>
-              <Select 
-                value={formData.platform} 
-                onValueChange={(value) => setFormData({...formData, platform: value})}
+              <Select
+                value={formData.platform}
+                onValueChange={(value) => setFormData({ ...formData, platform: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="选择平台" />
@@ -423,7 +422,7 @@ export default function VersionManagementPage() {
                 id="version"
                 placeholder="例如: 1.0.0"
                 value={formData.version}
-                onChange={(e) => setFormData({...formData, version: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, version: e.target.value })}
               />
             </div>
 
@@ -435,7 +434,7 @@ export default function VersionManagementPage() {
                   type="number"
                   placeholder="例如: 1"
                   value={formData.buildNumber}
-                  onChange={(e) => setFormData({...formData, buildNumber: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, buildNumber: e.target.value })}
                 />
               </div>
               <div>
@@ -445,7 +444,7 @@ export default function VersionManagementPage() {
                   type="number"
                   placeholder="例如: 1000"
                   value={formData.versionCode}
-                  onChange={(e) => setFormData({...formData, versionCode: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, versionCode: e.target.value })}
                 />
               </div>
             </div>
@@ -456,7 +455,7 @@ export default function VersionManagementPage() {
                 id="releaseNotes"
                 placeholder="描述此版本的更新内容..."
                 value={formData.releaseNotes}
-                onChange={(e) => setFormData({...formData, releaseNotes: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, releaseNotes: e.target.value })}
               />
             </div>
 
@@ -466,7 +465,7 @@ export default function VersionManagementPage() {
                 id="downloadUrl"
                 placeholder="APK下载链接"
                 value={formData.downloadUrl}
-                onChange={(e) => setFormData({...formData, downloadUrl: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, downloadUrl: e.target.value })}
               />
             </div>
 
@@ -476,7 +475,7 @@ export default function VersionManagementPage() {
                 id="appStoreUrl"
                 placeholder="App Store链接"
                 value={formData.appStoreUrl}
-                onChange={(e) => setFormData({...formData, appStoreUrl: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, appStoreUrl: e.target.value })}
               />
             </div>
 
@@ -486,7 +485,7 @@ export default function VersionManagementPage() {
                 id="detailUrl"
                 placeholder="https://github.com/your-repo/releases/tag/v1.0.0"
                 value={formData.detailUrl}
-                onChange={(e) => setFormData({...formData, detailUrl: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, detailUrl: e.target.value })}
               />
               <p className="text-xs text-gray-500 mt-1">
                 用户可以通过此链接查看详细的更新说明，如GitHub Releases页面
@@ -497,7 +496,7 @@ export default function VersionManagementPage() {
               <Switch
                 id="isForceUpdate"
                 checked={formData.isForceUpdate}
-                onCheckedChange={(checked) => setFormData({...formData, isForceUpdate: checked})}
+                onCheckedChange={(checked) => setFormData({ ...formData, isForceUpdate: checked })}
               />
               <Label htmlFor="isForceUpdate">强制更新</Label>
             </div>
@@ -506,7 +505,7 @@ export default function VersionManagementPage() {
               <Switch
                 id="isEnabled"
                 checked={formData.isEnabled}
-                onCheckedChange={(checked) => setFormData({...formData, isEnabled: checked})}
+                onCheckedChange={(checked) => setFormData({ ...formData, isEnabled: checked })}
               />
               <Label htmlFor="isEnabled">启用版本</Label>
             </div>
@@ -515,18 +514,22 @@ export default function VersionManagementPage() {
               <Switch
                 id="publishNow"
                 checked={formData.publishNow}
-                onCheckedChange={(checked) => setFormData({...formData, publishNow: checked})}
+                onCheckedChange={(checked) => setFormData({ ...formData, publishNow: checked })}
               />
               <Label htmlFor="publishNow">立即发布</Label>
             </div>
           </CardContent>
           <div className="flex justify-end space-x-2 p-6 pt-0">
-            <Button variant="outline" onClick={() => { setShowCreateDialog(false); resetForm(); }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCreateDialog(false);
+                resetForm();
+              }}
+            >
               取消
             </Button>
-            <Button onClick={handleCreateVersion}>
-              创建版本
-            </Button>
+            <Button onClick={handleCreateVersion}>创建版本</Button>
           </div>
         </Card>
       </div>
@@ -538,13 +541,11 @@ export default function VersionManagementPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">版本管理</h1>
-          <p className="text-muted-foreground">
-            管理应用的版本发布和更新
-          </p>
+          <p className="text-muted-foreground">管理应用的版本发布和更新</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => Promise.all([fetchVersions(), fetchStats()])}
             disabled={isLoading}
           >
@@ -562,9 +563,7 @@ export default function VersionManagementPage() {
       <Card>
         <CardHeader>
           <CardTitle>版本检查配置</CardTitle>
-          <CardDescription>
-            控制版本检查功能的启用状态
-          </CardDescription>
+          <CardDescription>控制版本检查功能的启用状态</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
@@ -572,9 +571,7 @@ export default function VersionManagementPage() {
               <Label htmlFor="version-check-enabled" className="text-sm font-medium">
                 启用版本检查功能
               </Label>
-              <p className="text-sm text-muted-foreground">
-                启用后，用户可以检查应用版本更新
-              </p>
+              <p className="text-sm text-muted-foreground">启用后，用户可以检查应用版本更新</p>
             </div>
             <Switch
               id="version-check-enabled"

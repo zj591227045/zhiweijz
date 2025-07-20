@@ -17,7 +17,7 @@ interface FileStorageState {
   status: FileStorageStatus | null;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   setStatus: (status: FileStorageStatus) => void;
   setLoading: (loading: boolean) => void;
@@ -38,7 +38,7 @@ export const useFileStorageStore = create<FileStorageState>((set, get) => ({
   setStatus: (status) => set({ status, error: null }),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
-  
+
   // 检查存储是否可用
   isStorageAvailable: () => {
     const { status } = get();
@@ -50,12 +50,7 @@ export const useFileStorageStore = create<FileStorageState>((set, get) => ({
  * 简化版文件存储状态Hook
  */
 export const useFileStorageStatus = () => {
-  const {
-    status,
-    isLoading,
-    error,
-    isStorageAvailable,
-  } = useFileStorageStore();
+  const { status, isLoading, error, isStorageAvailable } = useFileStorageStore();
 
   return {
     status,

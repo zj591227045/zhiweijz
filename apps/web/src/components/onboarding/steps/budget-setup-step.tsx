@@ -75,14 +75,15 @@ export function BudgetSetupStep() {
     const fetchData = async () => {
       try {
         // 获取当前账本
-        const accountBook = storeCurrentAccountBook || await AccountBookApiService.getDefaultAccountBook();
+        const accountBook =
+          storeCurrentAccountBook || (await AccountBookApiService.getDefaultAccountBook());
         if (accountBook) {
           setCurrentAccountBook(accountBook);
           console.log('📚 [BudgetSetup] Current account book:', {
             id: accountBook.id,
             name: accountBook.name,
             type: accountBook.type,
-            familyId: accountBook.familyId
+            familyId: accountBook.familyId,
           });
 
           // 检查是否已有当月预算
@@ -91,18 +92,28 @@ export function BudgetSetupStep() {
           // 如果是家庭账本，获取家庭成员信息和用户角色
           if (accountBook.type === 'FAMILY' && accountBook.familyId) {
             try {
-              console.log('👥 [BudgetSetup] Fetching family data for familyId:', accountBook.familyId);
+              console.log(
+                '👥 [BudgetSetup] Fetching family data for familyId:',
+                accountBook.familyId,
+              );
               const familyData = await FamilyApiService.getFamilyById(accountBook.familyId);
               if (familyData.members) {
                 setFamilyMembers(familyData.members);
                 console.log('👥 [BudgetSetup] Family members:', familyData.members);
 
                 // 找到当前用户并设置角色
-                const currentUserMember = familyData.members.find((member: any) => member.isCurrentUser);
+                const currentUserMember = familyData.members.find(
+                  (member: any) => member.isCurrentUser,
+                );
                 if (currentUserMember) {
                   setUserRole(currentUserMember.role === 'ADMIN' ? 'ADMIN' : 'MEMBER');
                   setCurrentUser(currentUserMember);
-                  console.log('👤 [BudgetSetup] Current user role:', currentUserMember.role, 'Setting userRole to:', currentUserMember.role === 'ADMIN' ? 'ADMIN' : 'MEMBER');
+                  console.log(
+                    '👤 [BudgetSetup] Current user role:',
+                    currentUserMember.role,
+                    'Setting userRole to:',
+                    currentUserMember.role === 'ADMIN' ? 'ADMIN' : 'MEMBER',
+                  );
                 }
 
                 // 初始化家庭成员预算
@@ -129,11 +140,16 @@ export function BudgetSetupStep() {
   // 检查当前预算
   const checkCurrentBudgets = async (accountBookId: string, accountBookType?: string) => {
     try {
-      console.log('🔍 [BudgetSetup] Checking current budgets for accountBookId:', accountBookId, 'type:', accountBookType);
+      console.log(
+        '🔍 [BudgetSetup] Checking current budgets for accountBookId:',
+        accountBookId,
+        'type:',
+        accountBookType,
+      );
 
       // 查询该账本下的所有预算
       const budgets = await BudgetApiService.getBudgets({
-        accountBookId
+        accountBookId,
       });
 
       console.log('🔍 [BudgetSetup] Raw budgets from API:', budgets);
@@ -158,14 +174,16 @@ export function BudgetSetupStep() {
           currentDate,
           isAmountValid: budget.amount > 0,
           isStartValid: budgetStart <= currentDate,
-          isEndValid: !budgetEnd || budgetEnd >= currentDate
+          isEndValid: !budgetEnd || budgetEnd >= currentDate,
         });
 
         // 检查预算是否覆盖当前月份
         // 注意：金额为0的预算被认为是"未设置"的预算，不应该触发智能跳过
-        return budget.amount > 0 &&
-               budgetStart <= currentDate &&
-               (!budgetEnd || budgetEnd >= currentDate);
+        return (
+          budget.amount > 0 &&
+          budgetStart <= currentDate &&
+          (!budgetEnd || budgetEnd >= currentDate)
+        );
       });
 
       console.log('🔍 [BudgetSetup] Active budgets after filtering:', activeBudgets);
@@ -219,21 +237,21 @@ export function BudgetSetupStep() {
     setLocalPersonalBudget(amount);
   };
 
-
-
   // 处理确认设置
   const handleConfirmSetup = async () => {
     console.log('✅ [BudgetSetup] Confirm setup clicked');
     console.log('🔍 [BudgetSetup] Current state:', {
-      currentAccountBook: currentAccountBook ? {
-        id: currentAccountBook.id,
-        type: currentAccountBook.type,
-        familyId: currentAccountBook.familyId
-      } : null,
+      currentAccountBook: currentAccountBook
+        ? {
+            id: currentAccountBook.id,
+            type: currentAccountBook.type,
+            familyId: currentAccountBook.familyId,
+          }
+        : null,
       userRole,
       localFamilyBudgets,
       familyMembers: familyMembers.length,
-      currentUser
+      currentUser,
     });
 
     if (!currentAccountBook) {
@@ -253,41 +271,48 @@ export function BudgetSetupStep() {
       console.log('🔍 [BudgetSetup] Force re-querying PERSONAL budgets for submission');
       const budgets = await BudgetApiService.getBudgets({
         accountBookId: currentAccountBook.id,
-        budgetType: 'PERSONAL'
+        budgetType: 'PERSONAL',
       });
       const budgetsToSearch = budgets;
       console.log('🔍 [BudgetSetup] Personal budgets for submission:', budgets);
 
       // 根据实际账本类型而不是选择的账本类型来判断
-      const isPersonalAccountBook = !currentAccountBook.familyId || currentAccountBook.type === 'PERSONAL';
+      const isPersonalAccountBook =
+        !currentAccountBook.familyId || currentAccountBook.type === 'PERSONAL';
 
       if (isPersonalAccountBook) {
         // 处理个人预算
         if (localPersonalBudget > 0) {
           // 查找用户的个人预算：budgetType为PERSONAL且userId为当前用户ID
-          console.log('🔍 [BudgetSetup] Looking for personal budget in budgetsToSearch:', budgetsToSearch.map(b => ({
-            id: b.id,
-            name: b.name,
-            budgetType: b.budgetType,
-            familyMemberId: b.familyMemberId,
-            categoryId: b.categoryId,
-            userId: b.userId,
-            amount: b.amount,
-            startDate: b.startDate,
-            endDate: b.endDate
-          })));
+          console.log(
+            '🔍 [BudgetSetup] Looking for personal budget in budgetsToSearch:',
+            budgetsToSearch.map((b) => ({
+              id: b.id,
+              name: b.name,
+              budgetType: b.budgetType,
+              familyMemberId: b.familyMemberId,
+              categoryId: b.categoryId,
+              userId: b.userId,
+              amount: b.amount,
+              startDate: b.startDate,
+              endDate: b.endDate,
+            })),
+          );
 
           // 简化查询：budgetType为PERSONAL且userId为当前用户ID
-          const personalBudgets = budgetsToSearch.filter(budget =>
-            budget.budgetType === 'PERSONAL' && budget.userId
+          const personalBudgets = budgetsToSearch.filter(
+            (budget) => budget.budgetType === 'PERSONAL' && budget.userId,
           );
 
           console.log('🔍 [BudgetSetup] Found personal budgets:', personalBudgets);
 
           // 如果有多个，选择最新的（按startDate排序）
-          const existingBudget = personalBudgets.length > 0
-            ? personalBudgets.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())[0]
-            : null;
+          const existingBudget =
+            personalBudgets.length > 0
+              ? personalBudgets.sort(
+                  (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime(),
+                )[0]
+              : null;
 
           console.log('🔍 [BudgetSetup] Selected personal budget:', existingBudget);
 
@@ -301,7 +326,9 @@ export function BudgetSetupStep() {
             setPersonalBudgetAmount(localPersonalBudget);
           } else {
             // 在引导页面中，预算一定存在，如果没找到说明查询逻辑有问题
-            console.error('❌ [BudgetSetup] No existing personal budget found, but budget should exist in onboarding');
+            console.error(
+              '❌ [BudgetSetup] No existing personal budget found, but budget should exist in onboarding',
+            );
             console.error('❌ [BudgetSetup] Current budgets:', budgetsToSearch);
             toast.error('未找到个人预算，请联系管理员');
             return;
@@ -316,7 +343,7 @@ export function BudgetSetupStep() {
           // 管理员可以为所有成员更新预算
           for (const [memberId, amount] of Object.entries(localFamilyBudgets)) {
             if (amount > 0) {
-              const member = familyMembers.find(m => m.id === memberId);
+              const member = familyMembers.find((m) => m.id === memberId);
 
               // 提取真实的用户ID - 如果memberId是user_xxx格式，提取xxx部分
               let realUserId = memberId;
@@ -325,41 +352,52 @@ export function BudgetSetupStep() {
               }
 
               // 检查是否已有该成员的预算 - 家庭账本中的个人预算使用userId字段
-              const existingBudget = budgetsToSearch.find(budget =>
-                budget.budgetType === 'PERSONAL' && budget.userId === realUserId && !budget.categoryId
+              const existingBudget = budgetsToSearch.find(
+                (budget) =>
+                  budget.budgetType === 'PERSONAL' &&
+                  budget.userId === realUserId &&
+                  !budget.categoryId,
               );
 
-              console.log(`🔍 [BudgetSetup] Looking for budget for member ${memberId} (realUserId: ${realUserId}):`, {
-                searchCriteria: {
-                  budgetType: 'PERSONAL',
-                  userId: realUserId,
-                  categoryId: null
+              console.log(
+                `🔍 [BudgetSetup] Looking for budget for member ${memberId} (realUserId: ${realUserId}):`,
+                {
+                  searchCriteria: {
+                    budgetType: 'PERSONAL',
+                    userId: realUserId,
+                    categoryId: null,
+                  },
+                  budgetsToSearch: budgetsToSearch.map((b) => ({
+                    id: b.id,
+                    budgetType: b.budgetType,
+                    userId: b.userId,
+                    familyMemberId: b.familyMemberId,
+                    categoryId: b.categoryId,
+                    matches: {
+                      budgetType: b.budgetType === 'PERSONAL',
+                      userId: b.userId === realUserId,
+                      categoryId: !b.categoryId,
+                    },
+                  })),
+                  foundBudget: existingBudget,
                 },
-                budgetsToSearch: budgetsToSearch.map(b => ({
-                  id: b.id,
-                  budgetType: b.budgetType,
-                  userId: b.userId,
-                  familyMemberId: b.familyMemberId,
-                  categoryId: b.categoryId,
-                  matches: {
-                    budgetType: b.budgetType === 'PERSONAL',
-                    userId: b.userId === realUserId,
-                    categoryId: !b.categoryId
-                  }
-                })),
-                foundBudget: existingBudget
-              });
+              );
 
               if (existingBudget) {
                 // 更新现有预算
-                console.log(`🔄 [BudgetSetup] Updating existing budget for member ${memberId} (realUserId: ${realUserId}):`, existingBudget.id);
+                console.log(
+                  `🔄 [BudgetSetup] Updating existing budget for member ${memberId} (realUserId: ${realUserId}):`,
+                  existingBudget.id,
+                );
                 budgetsToUpdate.push({
                   id: existingBudget.id,
                   amount: amount,
                 });
               } else {
                 // 在引导页面中，预算一定存在，如果没找到说明查询逻辑有问题
-                console.error(`❌ [BudgetSetup] No existing budget found for member ${memberId} (realUserId: ${realUserId}), but budget should exist in onboarding`);
+                console.error(
+                  `❌ [BudgetSetup] No existing budget found for member ${memberId} (realUserId: ${realUserId}), but budget should exist in onboarding`,
+                );
                 missingBudgets.push(member?.name || `成员${memberId}`);
               }
             }
@@ -367,36 +405,47 @@ export function BudgetSetupStep() {
         } else {
           // 普通成员只能为自己更新预算
           // 检查 localFamilyBudgets 中是否有当前用户的预算（可能是 user_xxx 格式）
-          const userBudgetKey = Object.keys(localFamilyBudgets).find(key =>
-            key === currentUser?.id || key === `user_${currentUser?.id}`
+          const userBudgetKey = Object.keys(localFamilyBudgets).find(
+            (key) => key === currentUser?.id || key === `user_${currentUser?.id}`,
           );
 
           if (currentUser && userBudgetKey && localFamilyBudgets[userBudgetKey] > 0) {
-            const existingBudget = budgetsToSearch.find(budget =>
-              budget.budgetType === 'PERSONAL' && budget.userId === currentUser.id && !budget.categoryId
+            const existingBudget = budgetsToSearch.find(
+              (budget) =>
+                budget.budgetType === 'PERSONAL' &&
+                budget.userId === currentUser.id &&
+                !budget.categoryId,
             );
 
-            console.log(`🔍 [BudgetSetup] Looking for budget for current user ${currentUser.id} (budgetKey: ${userBudgetKey}):`, {
-              budgetsToSearch: budgetsToSearch.map(b => ({
-                id: b.id,
-                budgetType: b.budgetType,
-                userId: b.userId,
-                familyMemberId: b.familyMemberId,
-                categoryId: b.categoryId
-              })),
-              foundBudget: existingBudget
-            });
+            console.log(
+              `🔍 [BudgetSetup] Looking for budget for current user ${currentUser.id} (budgetKey: ${userBudgetKey}):`,
+              {
+                budgetsToSearch: budgetsToSearch.map((b) => ({
+                  id: b.id,
+                  budgetType: b.budgetType,
+                  userId: b.userId,
+                  familyMemberId: b.familyMemberId,
+                  categoryId: b.categoryId,
+                })),
+                foundBudget: existingBudget,
+              },
+            );
 
             if (existingBudget) {
               // 更新现有预算
-              console.log(`🔄 [BudgetSetup] Updating existing budget for current user:`, existingBudget.id);
+              console.log(
+                `🔄 [BudgetSetup] Updating existing budget for current user:`,
+                existingBudget.id,
+              );
               budgetsToUpdate.push({
                 id: existingBudget.id,
                 amount: localFamilyBudgets[userBudgetKey],
               });
             } else {
               // 在引导页面中，预算一定存在，如果没找到说明查询逻辑有问题
-              console.error(`❌ [BudgetSetup] No existing budget found for current user, but budget should exist in onboarding`);
+              console.error(
+                `❌ [BudgetSetup] No existing budget found for current user, but budget should exist in onboarding`,
+              );
               missingBudgets.push(currentUser.name);
             }
           }
@@ -418,7 +467,9 @@ export function BudgetSetupStep() {
 
         if (budgetsToUpdate.length > 0) {
           setFamilyBudgets(localFamilyBudgets);
-          toast.success(`成功更新${budgetsToUpdate.length}个${userRole === 'ADMIN' ? '家庭成员' : '个人'}预算！`);
+          toast.success(
+            `成功更新${budgetsToUpdate.length}个${userRole === 'ADMIN' ? '家庭成员' : '个人'}预算！`,
+          );
         }
       }
 
@@ -441,7 +492,7 @@ export function BudgetSetupStep() {
     currentBudgets: currentBudgets.length,
     budgetEnabled,
     selectedAccountType,
-    userRole
+    userRole,
   });
 
   // 只在组件初始化时重置预算启用状态
@@ -458,9 +509,7 @@ export function BudgetSetupStep() {
   return (
     <div className="onboarding-step">
       <div className="onboarding-step-title">预算控制设置</div>
-      <div className="onboarding-step-description">
-        科学的预算管理，让您的财务更加健康
-      </div>
+      <div className="onboarding-step-description">科学的预算管理，让您的财务更加健康</div>
 
       {/* 当前账本信息 */}
       {currentAccountBook && (
@@ -484,15 +533,14 @@ export function BudgetSetupStep() {
                   </span>
                 )}
                 <span className="account-book-stats">
-                  {currentAccountBook.transactionCount} 笔记账 · {currentAccountBook.budgetCount} 个预算
+                  {currentAccountBook.transactionCount} 笔记账 · {currentAccountBook.budgetCount}{' '}
+                  个预算
                 </span>
               </div>
             </div>
           </div>
           {currentAccountBook.description && (
-            <div className="account-book-description">
-              {currentAccountBook.description}
-            </div>
+            <div className="account-book-description">{currentAccountBook.description}</div>
           )}
         </div>
       )}
@@ -515,15 +563,15 @@ export function BudgetSetupStep() {
                   name: budget.name,
                   familyMemberId: budget.familyMemberId,
                   userId: budget.userId,
-                  amount: budget.amount
+                  amount: budget.amount,
                 });
 
                 let budgetLabel = '';
                 if (budget.familyMemberId) {
-                  const member = familyMembers.find(m => m.id === budget.familyMemberId);
+                  const member = familyMembers.find((m) => m.id === budget.familyMemberId);
                   budgetLabel = `${member?.name || '成员'}的预算`;
                 } else if (budget.userId) {
-                  const user = familyMembers.find(m => m.id === budget.userId);
+                  const user = familyMembers.find((m) => m.id === budget.userId);
                   budgetLabel = `${user?.name || '用户'}的预算`;
                 } else {
                   budgetLabel = budget.name || '通用预算';
@@ -533,7 +581,8 @@ export function BudgetSetupStep() {
                   <div key={budget.id} className="smart-skip-current-info">
                     <i className="fas fa-calendar-alt"></i>
                     <span>
-                      {budgetLabel}：¥{budget.amount} ({budget.startDate.split('T')[0]} 至 {budget.endDate ? budget.endDate.split('T')[0] : '月末'})
+                      {budgetLabel}：¥{budget.amount} ({budget.startDate.split('T')[0]} 至{' '}
+                      {budget.endDate ? budget.endDate.split('T')[0] : '月末'})
                     </span>
                   </div>
                 );
@@ -561,51 +610,51 @@ export function BudgetSetupStep() {
       {/* 预算控制理念介绍 */}
       {!showSkipPrompt && (
         <div className="budget-concept-section">
-        <div className="budget-concept-header">
-          <div className="budget-concept-icon">
-            <i className="fas fa-lightbulb"></i>
+          <div className="budget-concept-header">
+            <div className="budget-concept-icon">
+              <i className="fas fa-lightbulb"></i>
+            </div>
+            <h3 className="budget-concept-title">预算控制的设计理念</h3>
           </div>
-          <h3 className="budget-concept-title">预算控制的设计理念</h3>
+
+          <div className="budget-concept-cards">
+            <div className="budget-concept-card">
+              <div className="concept-card-icon">
+                <i className="fas fa-shield-alt"></i>
+              </div>
+              <div className="concept-card-content">
+                <h4 className="concept-card-title">设置消费预算，控制支出</h4>
+                <p className="concept-card-description">
+                  为每月设定合理的支出上限，实时监控消费进度，避免冲动消费和超支风险
+                </p>
+              </div>
+            </div>
+
+            <div className="budget-concept-card">
+              <div className="concept-card-icon">
+                <i className="fas fa-exchange-alt"></i>
+              </div>
+              <div className="concept-card-content">
+                <h4 className="concept-card-title">通过预算结转，确保这月多花，下月少花</h4>
+                <p className="concept-card-description">
+                  超支金额自动结转到下月，形成负债提醒；节余金额也可结转，让理财更灵活
+                </p>
+              </div>
+            </div>
+
+            <div className="budget-concept-card">
+              <div className="concept-card-icon">
+                <i className="fas fa-chart-line"></i>
+              </div>
+              <div className="concept-card-content">
+                <h4 className="concept-card-title">通过预算控制实现真正的开源节流</h4>
+                <p className="concept-card-description">
+                  数据驱动的财务决策，帮您发现消费规律，优化支出结构，实现财富积累
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-
-        <div className="budget-concept-cards">
-          <div className="budget-concept-card">
-            <div className="concept-card-icon">
-              <i className="fas fa-shield-alt"></i>
-            </div>
-            <div className="concept-card-content">
-              <h4 className="concept-card-title">设置消费预算，控制支出</h4>
-              <p className="concept-card-description">
-                为每月设定合理的支出上限，实时监控消费进度，避免冲动消费和超支风险
-              </p>
-            </div>
-          </div>
-
-          <div className="budget-concept-card">
-            <div className="concept-card-icon">
-              <i className="fas fa-exchange-alt"></i>
-            </div>
-            <div className="concept-card-content">
-              <h4 className="concept-card-title">通过预算结转，确保这月多花，下月少花</h4>
-              <p className="concept-card-description">
-                超支金额自动结转到下月，形成负债提醒；节余金额也可结转，让理财更灵活
-              </p>
-            </div>
-          </div>
-
-          <div className="budget-concept-card">
-            <div className="concept-card-icon">
-              <i className="fas fa-chart-line"></i>
-            </div>
-            <div className="concept-card-content">
-              <h4 className="concept-card-title">通过预算控制实现真正的开源节流</h4>
-              <p className="concept-card-description">
-                数据驱动的财务决策，帮您发现消费规律，优化支出结构，实现财富积累
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
       )}
 
       {/* 预算启用选择 */}
@@ -687,24 +736,24 @@ export function BudgetSetupStep() {
                   step="100"
                 />
               </div>
-              <div className="budget-suggestion">
-                建议设置为月收入的70-80%
-              </div>
+              <div className="budget-suggestion">建议设置为月收入的70-80%</div>
             </div>
           )}
 
           {/* 家庭预算设置 */}
           {(() => {
             console.log('🔍 [BudgetSetup] Family budget form condition check:', {
-              currentAccountBook: currentAccountBook ? {
-                id: currentAccountBook.id,
-                name: currentAccountBook.name,
-                type: currentAccountBook.type,
-                familyId: currentAccountBook.familyId
-              } : null,
+              currentAccountBook: currentAccountBook
+                ? {
+                    id: currentAccountBook.id,
+                    name: currentAccountBook.name,
+                    type: currentAccountBook.type,
+                    familyId: currentAccountBook.familyId,
+                  }
+                : null,
               hasFamilyId: !!currentAccountBook?.familyId,
               isFamily: currentAccountBook?.type === 'FAMILY',
-              shouldShow: currentAccountBook?.familyId && currentAccountBook?.type === 'FAMILY'
+              shouldShow: currentAccountBook?.familyId && currentAccountBook?.type === 'FAMILY',
             });
 
             return currentAccountBook?.familyId && currentAccountBook?.type === 'FAMILY' ? (

@@ -7,15 +7,15 @@ import { ChartCard } from './ChartCard';
 import { SystemResourcesCard } from './SystemResourcesCard';
 import { PerformanceHistoryCard } from './PerformanceHistoryCard';
 import { DailyActiveStatsCard } from './DailyActiveStatsCard';
-import { 
-  UsersIcon, 
-  CreditCardIcon, 
-  UserPlusIcon, 
+import {
+  UsersIcon,
+  CreditCardIcon,
+  UserPlusIcon,
   PlusIcon,
   BookOpenIcon,
   UserGroupIcon,
   TrophyIcon,
-  StarIcon
+  StarIcon,
 } from '@heroicons/react/24/outline';
 
 const PERIOD_OPTIONS = [
@@ -25,18 +25,18 @@ const PERIOD_OPTIONS = [
 ];
 
 export function AdminDashboard() {
-  const { 
-    overview, 
-    userStats, 
-    transactionStats, 
+  const {
+    overview,
+    userStats,
+    transactionStats,
     systemResources,
     dailyActiveStats,
     isLoading,
     fetchUserStats,
     fetchTransactionStats,
-    fetchDailyActiveStats
+    fetchDailyActiveStats,
   } = useAdminDashboard();
-  
+
   const [selectedPeriod, setSelectedPeriod] = useState('7d');
   const [selectedDays, setSelectedDays] = useState(7);
   const [membershipStats, setMembershipStats] = useState<any>(null);
@@ -66,10 +66,7 @@ export function AdminDashboard() {
 
   const handlePeriodChange = async (period: string) => {
     setSelectedPeriod(period);
-    await Promise.all([
-      fetchUserStats(period),
-      fetchTransactionStats(period)
-    ]);
+    await Promise.all([fetchUserStats(period), fetchTransactionStats(period)]);
   };
 
   const handleDaysChange = async (days: number) => {
@@ -88,60 +85,67 @@ export function AdminDashboard() {
   };
 
   // 概览统计卡片数据
-  const overviewStats = overview ? [
-    {
-      title: '总用户数',
-      value: formatNumber(overview.totalUsers),
-      icon: UsersIcon,
-      color: 'blue',
-      change: overview.todayUsers > 0 ? `今日新增 ${overview.todayUsers}` : '今日无新增',
-      changeType: 'positive' as const
-    },
-    {
-      title: '总记账记录',
-      value: formatNumber(overview.totalTransactions),
-      icon: CreditCardIcon,
-      color: 'green',
-      change: overview.todayTransactions > 0 ? `今日新增 ${overview.todayTransactions}` : '今日无新增',
-      changeType: 'positive' as const
-    },
-    {
-      title: '账本数量',
-      value: formatNumber(overview.totalAccountBooks),
-      icon: BookOpenIcon,
-      color: 'purple',
-      change: '累计创建',
-      changeType: 'neutral' as const
-    },
-    {
-      title: '活跃家庭',
-      value: formatNumber(overview.activeFamilies),
-      icon: UserGroupIcon,
-      color: 'orange',
-      change: '有成员的家庭',
-      changeType: 'neutral' as const
-    }
-  ] : [];
+  const overviewStats = overview
+    ? [
+        {
+          title: '总用户数',
+          value: formatNumber(overview.totalUsers),
+          icon: UsersIcon,
+          color: 'blue',
+          change: overview.todayUsers > 0 ? `今日新增 ${overview.todayUsers}` : '今日无新增',
+          changeType: 'positive' as const,
+        },
+        {
+          title: '总记账记录',
+          value: formatNumber(overview.totalTransactions),
+          icon: CreditCardIcon,
+          color: 'green',
+          change:
+            overview.todayTransactions > 0
+              ? `今日新增 ${overview.todayTransactions}`
+              : '今日无新增',
+          changeType: 'positive' as const,
+        },
+        {
+          title: '账本数量',
+          value: formatNumber(overview.totalAccountBooks),
+          icon: BookOpenIcon,
+          color: 'purple',
+          change: '累计创建',
+          changeType: 'neutral' as const,
+        },
+        {
+          title: '活跃家庭',
+          value: formatNumber(overview.activeFamilies),
+          icon: UserGroupIcon,
+          color: 'orange',
+          change: '有成员的家庭',
+          changeType: 'neutral' as const,
+        },
+      ]
+    : [];
 
   // 会员统计卡片数据
-  const membershipStatsCards = membershipStats ? [
-    {
-      title: '捐赠会员',
-      value: formatNumber(membershipStats.donorMembers),
-      icon: TrophyIcon,
-      color: 'yellow',
-      change: '活跃付费用户',
-      changeType: 'positive' as const
-    },
-    {
-      title: '即将到期',
-      value: formatNumber(membershipStats.expiringInWeek),
-      icon: StarIcon,
-      color: 'red',
-      change: '7天内到期',
-      changeType: 'warning' as const
-    }
-  ] : [];
+  const membershipStatsCards = membershipStats
+    ? [
+        {
+          title: '捐赠会员',
+          value: formatNumber(membershipStats.donorMembers),
+          icon: TrophyIcon,
+          color: 'yellow',
+          change: '活跃付费用户',
+          changeType: 'positive' as const,
+        },
+        {
+          title: '即将到期',
+          value: formatNumber(membershipStats.expiringInWeek),
+          icon: StarIcon,
+          color: 'red',
+          change: '7天内到期',
+          changeType: 'warning' as const,
+        },
+      ]
+    : [];
 
   return (
     <div className="space-y-6">
@@ -200,7 +204,7 @@ export function AdminDashboard() {
                 isLoading={membershipLoading}
               />
             ))}
-            
+
             {/* 总会员数 */}
             <StatsCard
               title="总会员数"
@@ -211,7 +215,7 @@ export function AdminDashboard() {
               changeType="neutral"
               isLoading={membershipLoading}
             />
-            
+
             {/* 普通会员 */}
             <StatsCard
               title="普通会员"
@@ -283,30 +287,27 @@ export function AdminDashboard() {
                       <span className="text-gray-500">{category.transactionCount}笔</span>
                     </div>
                     <div className="mt-1 w-full bg-gray-200 rounded-full h-2">
-                      <div 
+                      <div
                         className="bg-blue-600 h-2 rounded-full"
-                        style={{ 
+                        style={{
                           width: `${Math.min(
-                            (category.transactionCount / (transactionStats?.categoryStats[0]?.transactionCount || 1)) * 100, 
-                            100
-                          )}%` 
+                            (category.transactionCount /
+                              (transactionStats?.categoryStats[0]?.transactionCount || 1)) *
+                              100,
+                            100,
+                          )}%`,
                         }}
                       ></div>
                     </div>
                   </div>
                 </div>
-              )) || (
-                <p className="text-gray-500 text-center py-4">暂无数据</p>
-              )}
+              )) || <p className="text-gray-500 text-center py-4">暂无数据</p>}
             </div>
           )}
         </div>
 
         {/* 系统资源 */}
-        <SystemResourcesCard
-          data={systemResources}
-          isLoading={isLoading.systemResources}
-        />
+        <SystemResourcesCard data={systemResources} isLoading={isLoading.systemResources} />
       </div>
 
       {/* 系统性能历史图表 */}

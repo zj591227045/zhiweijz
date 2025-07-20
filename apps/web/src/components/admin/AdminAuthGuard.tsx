@@ -44,14 +44,14 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
       try {
         await checkAuth();
         setIsLoading(false);
-        
+
         // 如果认证成功且在登录页面，跳转到管理页面
         if (isLoginPage) {
           router.push('/admin');
         }
       } catch (error) {
         setIsLoading(false);
-        
+
         // 认证失败，跳转到登录页面
         if (!isLoginPage) {
           router.push('/admin/login');
@@ -93,4 +93,4 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
 
   // 已认证，显示受保护的内容
   return <>{children}</>;
-} 
+}

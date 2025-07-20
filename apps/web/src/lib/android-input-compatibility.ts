@@ -16,20 +16,20 @@ export function containsChinese(text: string): boolean {
  */
 export function safeStringCompare(str1: string, str2: string): boolean {
   if (!str1 || !str2) return false;
-  
+
   // 原始字符串比较
   if (str1 === str2) return true;
-  
+
   // 去除空格后比较
   const trimmed1 = str1.trim();
   const trimmed2 = str2.trim();
   if (trimmed1 === trimmed2) return true;
-  
+
   // 如果包含中文，优先使用原始字符串比较
   if (containsChinese(str1) || containsChinese(str2)) {
     return trimmed1 === trimmed2;
   }
-  
+
   // 英文字符使用toLowerCase比较
   try {
     return trimmed1.toLowerCase() === trimmed2.toLowerCase();
@@ -45,18 +45,18 @@ export function safeStringCompare(str1: string, str2: string): boolean {
  */
 export function safeStringIncludes(haystack: string, needle: string): boolean {
   if (!haystack || !needle) return false;
-  
+
   const trimmedHaystack = haystack.trim();
   const trimmedNeedle = needle.trim();
-  
+
   // 原始字符串包含检查
   if (trimmedHaystack.includes(trimmedNeedle)) return true;
-  
+
   // 如果包含中文，只使用原始字符串检查
   if (containsChinese(haystack) || containsChinese(needle)) {
     return trimmedHaystack.includes(trimmedNeedle);
   }
-  
+
   // 英文字符使用toLowerCase检查
   try {
     return trimmedHaystack.toLowerCase().includes(trimmedNeedle.toLowerCase());
@@ -70,27 +70,30 @@ export function safeStringIncludes(haystack: string, needle: string): boolean {
 /**
  * 标签过滤函数，兼容Android中文输入法
  */
-export function filterTagsCompatible(tags: Array<{name: string}>, searchTerm: string): Array<{name: string}> {
+export function filterTagsCompatible(
+  tags: Array<{ name: string }>,
+  searchTerm: string,
+): Array<{ name: string }> {
   if (!searchTerm.trim()) return tags;
-  
-  return tags.filter(tag => safeStringIncludes(tag.name, searchTerm));
+
+  return tags.filter((tag) => safeStringIncludes(tag.name, searchTerm));
 }
 
 /**
  * 检查是否可以创建新标签，兼容Android中文输入法
  */
 export function canCreateTagCompatible(
-  tags: Array<{name: string}>, 
-  searchTerm: string, 
+  tags: Array<{ name: string }>,
+  searchTerm: string,
   allowCreate: boolean = true,
-  isComposing: boolean = false
+  isComposing: boolean = false,
 ): boolean {
   if (!allowCreate || !searchTerm.trim() || isComposing) {
     return false;
   }
-  
+
   // 检查是否已存在相同名称的标签
-  return !tags.some(tag => safeStringCompare(tag.name, searchTerm));
+  return !tags.some((tag) => safeStringCompare(tag.name, searchTerm));
 }
 
 /**
@@ -99,14 +102,14 @@ export function canCreateTagCompatible(
 export class InputMethodHandler {
   private isComposing = false;
   private compositionCallbacks: Array<(isComposing: boolean) => void> = [];
-  
+
   /**
    * 添加输入法状态变化回调
    */
   addCompositionCallback(callback: (isComposing: boolean) => void): void {
     this.compositionCallbacks.push(callback);
   }
-  
+
   /**
    * 移除输入法状态变化回调
    */
@@ -116,7 +119,7 @@ export class InputMethodHandler {
       this.compositionCallbacks.splice(index, 1);
     }
   }
-  
+
   /**
    * 处理输入法开始事件
    */
@@ -124,7 +127,7 @@ export class InputMethodHandler {
     this.isComposing = true;
     this.notifyCallbacks();
   };
-  
+
   /**
    * 处理输入法结束事件
    */
@@ -135,19 +138,19 @@ export class InputMethodHandler {
       this.notifyCallbacks();
     }, 0);
   };
-  
+
   /**
    * 获取当前输入法状态
    */
   getIsComposing(): boolean {
     return this.isComposing;
   }
-  
+
   /**
    * 通知所有回调函数
    */
   private notifyCallbacks(): void {
-    this.compositionCallbacks.forEach(callback => {
+    this.compositionCallbacks.forEach((callback) => {
       try {
         callback(this.isComposing);
       } catch (error) {
@@ -167,17 +170,17 @@ export const globalInputMethodHandler = new InputMethodHandler();
  */
 export function addInputMethodSupport(
   inputElement: HTMLInputElement | HTMLTextAreaElement,
-  onCompositionChange?: (isComposing: boolean) => void
+  onCompositionChange?: (isComposing: boolean) => void,
 ): () => void {
   const handler = new InputMethodHandler();
-  
+
   if (onCompositionChange) {
     handler.addCompositionCallback(onCompositionChange);
   }
-  
+
   inputElement.addEventListener('compositionstart', handler.handleCompositionStart);
   inputElement.addEventListener('compositionend', handler.handleCompositionEnd);
-  
+
   // 返回清理函数
   return () => {
     inputElement.removeEventListener('compositionstart', handler.handleCompositionStart);
@@ -193,7 +196,7 @@ export function addInputMethodSupport(
  */
 export function isAndroidEnvironment(): boolean {
   if (typeof window === 'undefined') return false;
-  
+
   const userAgent = window.navigator.userAgent.toLowerCase();
   return userAgent.includes('android');
 }
@@ -203,7 +206,7 @@ export function isAndroidEnvironment(): boolean {
  */
 export function isAndroidCapacitorApp(): boolean {
   if (typeof window === 'undefined') return false;
-  
+
   return isAndroidEnvironment() && !!(window as any).Capacitor;
 }
 
@@ -212,7 +215,7 @@ export function isAndroidCapacitorApp(): boolean {
  */
 export function getAndroidInputProps(): Record<string, any> {
   if (!isAndroidEnvironment()) return {};
-  
+
   return {
     // 防止Android自动缩放
     style: {

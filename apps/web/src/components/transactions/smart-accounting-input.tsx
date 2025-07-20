@@ -143,7 +143,7 @@ export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccounti
 
     // 生成唯一的进度ID
     const progressId = `direct-add-input-${Date.now()}`;
-    
+
     try {
       // 显示初始进度通知
       progressManager.showProgress(progressId, '正在分析您的描述...', 'info');
@@ -152,11 +152,11 @@ export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccounti
       setTimeout(() => {
         progressManager.updateProgress(progressId, '正在识别记账类型和金额...');
       }, 1000);
-      
+
       setTimeout(() => {
         progressManager.updateProgress(progressId, '正在匹配最佳分类...');
       }, 2000);
-      
+
       setTimeout(() => {
         progressManager.updateProgress(progressId, '正在创建记账记录...');
       }, 3000);
@@ -172,31 +172,38 @@ export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccounti
 
       if (response.ok) {
         const result = await response.json();
-        
+
         // 显示成功通知
         progressManager.showProgress(progressId, '记账成功！数据已更新', 'success');
-        
+
         // 清空输入
         setDescription('');
-        
       } else {
         const error = await response.json();
         // 特殊处理"消息与记账无关"的情况
         if (error.info && error.info.includes('记账无关')) {
-          progressManager.showProgress(progressId, '您的描述似乎与记账无关，请尝试描述具体的消费或收入情况', 'info');
+          progressManager.showProgress(
+            progressId,
+            '您的描述似乎与记账无关，请尝试描述具体的消费或收入情况',
+            'info',
+          );
         } else {
-          progressManager.showProgress(progressId, error.message || error.error || '记账失败，请手动填写', 'error');
+          progressManager.showProgress(
+            progressId,
+            error.message || error.error || '记账失败，请手动填写',
+            'error',
+          );
         }
       }
     } catch (error) {
       console.error('直接添加记账失败:', error);
-      
+
       // 显示错误通知
       let errorMessage = '记账失败，请重试';
       if (error instanceof Error) {
         errorMessage = error.message;
       }
-      
+
       progressManager.showProgress(progressId, errorMessage, 'error');
     }
   };

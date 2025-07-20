@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { getCurrentAppVersion, getCurrentPlatform, getPlatformDisplayName } from '@/utils/version-utils';
+import {
+  getCurrentAppVersion,
+  getCurrentPlatform,
+  getPlatformDisplayName,
+} from '@/utils/version-utils';
 import { versionApi } from '@/lib/api/version';
 
 interface VersionUpdateProps {
@@ -47,7 +51,7 @@ export function VersionUpdate({ className, isAdmin = false }: VersionUpdateProps
       const result = await versionApi.checkVersion({
         platform: platform,
         currentVersion: currentVersion,
-        currentBuildNumber: currentBuildNumber
+        currentBuildNumber: currentBuildNumber,
       });
 
       setUpdateInfo(result);
@@ -73,7 +77,7 @@ export function VersionUpdate({ className, isAdmin = false }: VersionUpdateProps
     if (!updateInfo?.latestVersion) return;
 
     const version = updateInfo.latestVersion;
-    
+
     if (platform === 'web') {
       // 网页版刷新页面
       window.location.reload();
@@ -92,7 +96,9 @@ export function VersionUpdate({ className, isAdmin = false }: VersionUpdateProps
         <div>
           <h3 className="text-lg font-medium">版本更新</h3>
           <div className="mt-1 text-sm text-gray-500">
-            <div>当前版本: {currentVersion} ({currentBuildNumber})</div>
+            <div>
+              当前版本: {currentVersion} ({currentBuildNumber})
+            </div>
             <div className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-100 mt-1">
               {getPlatformDisplayName(platform)}
             </div>
@@ -102,7 +108,7 @@ export function VersionUpdate({ className, isAdmin = false }: VersionUpdateProps
               </div>
             )}
           </div>
-          
+
           {hasUpdate && updateInfo?.latestVersion && (
             <div className="mt-2 p-3 bg-blue-50 rounded-lg">
               <div className="text-sm font-medium text-blue-900">
@@ -114,28 +120,19 @@ export function VersionUpdate({ className, isAdmin = false }: VersionUpdateProps
                 </div>
               )}
               {updateInfo.latestVersion.isForceUpdate && (
-                <div className="mt-1 text-xs text-red-600 font-medium">
-                  ⚠️ 强制更新
-                </div>
+                <div className="mt-1 text-xs text-red-600 font-medium">⚠️ 强制更新</div>
               )}
             </div>
           )}
         </div>
-        
+
         <div className="ml-4">
           {hasUpdate ? (
-            <Button
-              onClick={handleUpdate}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
+            <Button onClick={handleUpdate} className="bg-blue-600 hover:bg-blue-700 text-white">
               立即更新
             </Button>
           ) : (
-            <Button
-              onClick={handleCheckUpdate}
-              disabled={isChecking}
-              variant="outline"
-            >
+            <Button onClick={handleCheckUpdate} disabled={isChecking} variant="outline">
               {isChecking ? '检查中...' : '检查更新'}
             </Button>
           )}

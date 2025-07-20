@@ -44,9 +44,7 @@ export const TagFilterSelector: React.FC<TagFilterSelectorProps> = ({
         });
 
         if (response.success) {
-          const tags = response.data.tags.filter(tag => 
-            selectedTagIds.includes(tag.id)
-          );
+          const tags = response.data.tags.filter((tag) => selectedTagIds.includes(tag.id));
           setSelectedTags(tags);
         }
       } catch (error) {
@@ -61,7 +59,7 @@ export const TagFilterSelector: React.FC<TagFilterSelectorProps> = ({
 
   // 移除标签
   const handleRemoveTag = (tagId: string) => {
-    const newTagIds = selectedTagIds.filter(id => id !== tagId);
+    const newTagIds = selectedTagIds.filter((id) => id !== tagId);
     onSelectionChange(newTagIds);
   };
 
@@ -78,12 +76,10 @@ export const TagFilterSelector: React.FC<TagFilterSelectorProps> = ({
           <Filter className="w-4 h-4 text-gray-500" />
           <span className="text-sm font-medium text-gray-700">标签筛选</span>
           {selectedTagIds.length > 0 && (
-            <span className="text-xs text-gray-500">
-              ({selectedTagIds.length} 个标签)
-            </span>
+            <span className="text-xs text-gray-500">({selectedTagIds.length} 个标签)</span>
           )}
         </div>
-        
+
         {selectedTagIds.length > 0 && (
           <button
             type="button"
@@ -120,7 +116,7 @@ export const TagFilterSelector: React.FC<TagFilterSelectorProps> = ({
         type="button"
         onClick={() => setIsOpen(true)}
         className={cn(
-          'w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-colors'
+          'w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-colors',
         )}
       >
         <span className="text-sm text-gray-600">
@@ -154,10 +150,15 @@ export const TagFilterSelector: React.FC<TagFilterSelectorProps> = ({
         <div className="text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded-md p-2">
           <div className="flex items-center space-x-1">
             <svg className="w-3 h-3 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                clipRule="evenodd"
+              />
             </svg>
             <span>
-              当前统计数据已按选中的 {selectedTagIds.length} 个标签进行筛选，只显示包含这些标签的记账记录
+              当前统计数据已按选中的 {selectedTagIds.length}{' '}
+              个标签进行筛选，只显示包含这些标签的记账记录
             </span>
           </div>
         </div>
@@ -189,25 +190,18 @@ export const MobileTagFilter: React.FC<MobileTagFilterProps> = ({
   return (
     <div className="fixed inset-0 z-50 lg:hidden">
       {/* 背景遮罩 */}
-      <div 
-        className="absolute inset-0 bg-black bg-opacity-50"
-        onClick={onClose}
-      />
-      
+      <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose} />
+
       {/* 底部弹出内容 */}
       <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-lg max-h-[80vh] overflow-hidden">
         {/* 头部 */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h3 className="text-lg font-medium">标签筛选</h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600"
-          >
+          <button type="button" onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600">
             <X className="w-5 h-5" />
           </button>
         </div>
-        
+
         {/* 标签筛选内容 */}
         <div className="p-4">
           <TagFilterSelector
@@ -216,7 +210,7 @@ export const MobileTagFilter: React.FC<MobileTagFilterProps> = ({
             onSelectionChange={onSelectionChange}
           />
         </div>
-        
+
         {/* 底部操作 */}
         <div className="p-4 border-t border-gray-200">
           <button

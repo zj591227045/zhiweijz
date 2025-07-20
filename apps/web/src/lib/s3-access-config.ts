@@ -25,7 +25,7 @@ export const S3_ACCESS_POLICIES: Record<string, S3AccessPolicy> = {
     presignedUrlTTL: 3600, // 1小时
     proxyHttpAccess: true,
   },
-  
+
   // 记账附件 - 需要认证，安全优先
   'transaction-attachments': {
     requireAuth: true,
@@ -33,7 +33,7 @@ export const S3_ACCESS_POLICIES: Record<string, S3AccessPolicy> = {
     presignedUrlTTL: 1800, // 30分钟
     proxyHttpAccess: true,
   },
-  
+
   // 临时文件 - 需要认证，短期访问
   'temp-files': {
     requireAuth: true,
@@ -41,7 +41,7 @@ export const S3_ACCESS_POLICIES: Record<string, S3AccessPolicy> = {
     presignedUrlTTL: 300, // 5分钟
     proxyHttpAccess: true,
   },
-  
+
   // 系统文件 - 需要认证，长期缓存
   'system-files': {
     requireAuth: true,
@@ -59,12 +59,12 @@ export const S3_ACCESS_POLICIES: Record<string, S3AccessPolicy> = {
 export function getS3AccessPolicy(s3Url: string): S3AccessPolicy {
   try {
     const url = new URL(s3Url);
-    const pathParts = url.pathname.split('/').filter(part => part.length > 0);
-    
+    const pathParts = url.pathname.split('/').filter((part) => part.length > 0);
+
     if (pathParts.length > 0) {
       const bucket = pathParts[0];
       const policy = S3_ACCESS_POLICIES[bucket];
-      
+
       if (policy) {
         console.log(`📋 使用${bucket}存储桶的访问策略:`, policy);
         return policy;
@@ -73,7 +73,7 @@ export function getS3AccessPolicy(s3Url: string): S3AccessPolicy {
   } catch (error) {
     console.warn('解析S3 URL失败:', error);
   }
-  
+
   // 默认策略：需要认证，允许直接访问HTTPS
   const defaultPolicy: S3AccessPolicy = {
     requireAuth: true,
@@ -81,7 +81,7 @@ export function getS3AccessPolicy(s3Url: string): S3AccessPolicy {
     presignedUrlTTL: 3600,
     proxyHttpAccess: true,
   };
-  
+
   console.log('📋 使用默认访问策略:', defaultPolicy);
   return defaultPolicy;
 }
@@ -93,7 +93,7 @@ export function getS3AccessPolicy(s3Url: string): S3AccessPolicy {
  */
 export function shouldUseDirectAccess(s3Url: string): boolean {
   const policy = getS3AccessPolicy(s3Url);
-  
+
   // 只有HTTPS且策略允许时才直接访问
   return s3Url.startsWith('https://') && policy.allowDirectAccess;
 }
@@ -141,10 +141,10 @@ export function getAccessMethod(s3Url: string): {
   if (!s3Url.startsWith('http')) {
     return { method: 'direct', reason: '非HTTP URL' };
   }
-  
+
   const isHttps = s3Url.startsWith('https://');
   const policy = getS3AccessPolicy(s3Url);
-  
+
   if (!isHttps) {
     if (policy.proxyHttpAccess) {
       return { method: 'proxy', reason: 'HTTP协议，使用代理解决混合内容问题' };
@@ -152,20 +152,20 @@ export function getAccessMethod(s3Url: string): {
       return { method: 'direct', reason: 'HTTP协议，但策略不允许代理' };
     }
   }
-  
+
   // HTTPS协议
   if (!policy.allowDirectAccess) {
     return { method: 'proxy', reason: 'HTTPS协议，但策略要求使用代理' };
   }
-  
+
   if (policy.requireAuth) {
-    return { 
-      method: 'presigned', 
+    return {
+      method: 'presigned',
       reason: 'HTTPS协议，需要认证，使用预签名URL',
-      ttl: policy.presignedUrlTTL
+      ttl: policy.presignedUrlTTL,
     };
   }
-  
+
   return { method: 'direct', reason: 'HTTPS协议，公开访问，直接访问' };
 }
 
@@ -176,7 +176,7 @@ export function getAccessMethod(s3Url: string): {
 export function debugAccessPolicy(s3Url: string): void {
   const policy = getS3AccessPolicy(s3Url);
   const method = getAccessMethod(s3Url);
-  
+
   console.group(`🔍 S3访问策略调试: ${s3Url}`);
   console.log('📋 访问策略:', policy);
   console.log('🎯 选择的访问方式:', method);

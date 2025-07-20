@@ -47,7 +47,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       // 添加附件信息参数
       const enhancedParams = {
         ...params,
-        includeAttachments: true
+        includeAttachments: true,
       };
 
       const response = await apiClient.get('/transactions', { params: enhancedParams });

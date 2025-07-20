@@ -16,7 +16,7 @@ interface AdminAuthState {
   token: string | null;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
@@ -36,7 +36,7 @@ export const useAdminAuth = create<AdminAuthState>()(
 
       login: async (username: string, password: string) => {
         set({ isLoading: true, error: null });
-        
+
         try {
           const response = await adminApi.post(ADMIN_API_ENDPOINTS.LOGIN, { username, password });
 
@@ -82,7 +82,7 @@ export const useAdminAuth = create<AdminAuthState>()(
 
       checkAuth: async () => {
         const { token } = get();
-        
+
         if (!token) {
           set({ isAuthenticated: false, admin: null });
           return;
@@ -104,7 +104,7 @@ export const useAdminAuth = create<AdminAuthState>()(
           });
         } catch (error) {
           // token会通过persist自动清除
-          
+
           set({
             isAuthenticated: false,
             admin: null,
@@ -116,11 +116,11 @@ export const useAdminAuth = create<AdminAuthState>()(
 
       changePassword: async (oldPassword: string, newPassword: string) => {
         set({ isLoading: true, error: null });
-        
+
         try {
           const response = await adminApi.post(ADMIN_API_ENDPOINTS.CHANGE_PASSWORD, {
             oldPassword,
-            newPassword
+            newPassword,
           });
 
           const data = await response.json();
@@ -165,6 +165,6 @@ export const useAdminAuth = create<AdminAuthState>()(
         admin: state.admin,
         isAuthenticated: state.isAuthenticated,
       }),
-    }
-  )
-); 
+    },
+  ),
+);

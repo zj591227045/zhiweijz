@@ -27,8 +27,8 @@ export default function ModalTestPage() {
       appStoreUrl: 'https://apps.apple.com/app/test',
       detailUrl: 'https://github.com/your-repo/releases/tag/v1.2.0',
       isForceUpdate: false,
-      publishedAt: new Date().toISOString()
-    }
+      publishedAt: new Date().toISOString(),
+    },
   };
 
   const mockForceUpdateInfo = {
@@ -39,8 +39,9 @@ export default function ModalTestPage() {
       ...mockUpdateInfo.latestVersion,
       isForceUpdate: true,
       version: '1.2.1',
-      releaseNotes: '• 重要安全修复\n• 修复了严重的安全漏洞\n• 更新了加密算法\n• 提升了数据保护能力'
-    }
+      releaseNotes:
+        '• 重要安全修复\n• 修复了严重的安全漏洞\n• 更新了加密算法\n• 提升了数据保护能力',
+    },
   };
 
   const mockLongContentInfo = {
@@ -73,15 +74,15 @@ export default function ModalTestPage() {
 • 兼容性更新：
   - 支持最新的操作系统
   - 优化了不同设备的适配
-  - 改进了浏览器兼容性`
-    }
+  - 改进了浏览器兼容性`,
+    },
   };
 
   const handleUserAction = async (action: 'update' | 'postpone' | 'skip') => {
     console.log('用户操作:', action);
     // 模拟异步操作
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     // 关闭对话框
     setShowNormalUpdate(false);
     setShowForceUpdate(false);
@@ -106,19 +107,12 @@ export default function ModalTestPage() {
   }
 
   return (
-    <PageContainer
-      title="模态框测试"
-      showHeader={true}
-      showBottomNav={false}
-      className="pb-6"
-    >
+    <PageContainer title="模态框测试" showHeader={true} showBottomNav={false} className="pb-6">
       <div className="max-w-2xl mx-auto space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>版本更新模态框测试</CardTitle>
-            <CardDescription>
-              测试不同场景下的版本更新模态框显示效果
-            </CardDescription>
+            <CardDescription>测试不同场景下的版本更新模态框显示效果</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -129,7 +123,7 @@ export default function ModalTestPage() {
               >
                 普通更新
               </Button>
-              
+
               <Button
                 onClick={() => setShowForceUpdate(true)}
                 variant="destructive"
@@ -137,18 +131,16 @@ export default function ModalTestPage() {
               >
                 强制更新
               </Button>
-              
-              <Button
-                onClick={() => setShowLongContent(true)}
-                variant="outline"
-                className="w-full"
-              >
+
+              <Button onClick={() => setShowLongContent(true)} variant="outline" className="w-full">
                 长内容更新
               </Button>
             </div>
-            
+
             <div className="text-sm text-gray-600 space-y-2">
-              <p><strong>测试要点：</strong></p>
+              <p>
+                <strong>测试要点：</strong>
+              </p>
               <ul className="list-disc list-inside space-y-1">
                 <li>模态框是否在屏幕中央显示</li>
                 <li>左右边距是否一致</li>
@@ -170,19 +162,27 @@ export default function ModalTestPage() {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-gray-600">视口宽度:</span>
-                <span className="ml-2 font-mono">{typeof window !== 'undefined' ? window.innerWidth : 'N/A'}px</span>
+                <span className="ml-2 font-mono">
+                  {typeof window !== 'undefined' ? window.innerWidth : 'N/A'}px
+                </span>
               </div>
               <div>
                 <span className="text-gray-600">视口高度:</span>
-                <span className="ml-2 font-mono">{typeof window !== 'undefined' ? window.innerHeight : 'N/A'}px</span>
+                <span className="ml-2 font-mono">
+                  {typeof window !== 'undefined' ? window.innerHeight : 'N/A'}px
+                </span>
               </div>
               <div>
                 <span className="text-gray-600">设备像素比:</span>
-                <span className="ml-2 font-mono">{typeof window !== 'undefined' ? window.devicePixelRatio : 'N/A'}</span>
+                <span className="ml-2 font-mono">
+                  {typeof window !== 'undefined' ? window.devicePixelRatio : 'N/A'}
+                </span>
               </div>
               <div>
                 <span className="text-gray-600">用户代理:</span>
-                <span className="ml-2 text-xs break-all">{typeof window !== 'undefined' ? navigator.userAgent.slice(0, 50) + '...' : 'N/A'}</span>
+                <span className="ml-2 text-xs break-all">
+                  {typeof window !== 'undefined' ? navigator.userAgent.slice(0, 50) + '...' : 'N/A'}
+                </span>
               </div>
             </div>
           </CardContent>

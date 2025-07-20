@@ -50,12 +50,12 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
     try {
       setIsLoading(true);
       console.log('根据日期获取预算:', { transactionDate, accountBookId });
-      
+
       const response = await budgetService.getBudgetsByDate(transactionDate, accountBookId);
       console.log('API响应完整信息:', response);
       console.log('API响应类型:', typeof response);
       console.log('API响应keys:', response ? Object.keys(response) : 'null');
-      
+
       // 检查不同的响应格式
       if (Array.isArray(response)) {
         console.log('响应是数组格式，直接使用:', response);
@@ -102,7 +102,12 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
   }, [date, currentAccountBook?.id, fetchBudgetsByDate, setBudgetId]);
 
   // 使用日期获取的预算数据
-  console.log('准备格式化预算数据，dateBudgets长度:', dateBudgets.length, 'dateBudgets:', dateBudgets);
+  console.log(
+    '准备格式化预算数据，dateBudgets长度:',
+    dateBudgets.length,
+    'dateBudgets:',
+    dateBudgets,
+  );
   const formattedBudgets: Budget[] = dateBudgets.map((budget) => {
     console.log('处理预算数据:', budget);
 
@@ -169,7 +174,7 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
       currentUser: currentUser?.name,
       hasInitialized,
       date,
-      isEditMode: isInEditMode
+      isEditMode: isInEditMode,
     });
 
     if (formattedBudgets.length > 0 && !selectedBudget && currentUser && !hasInitialized) {
@@ -210,7 +215,16 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
         setHasInitialized(true);
       }
     }
-  }, [formattedBudgets, selectedBudget, currentUser, hasInitialized, date, setBudgetId, isEditMode, storeIsEditMode]);
+  }, [
+    formattedBudgets,
+    selectedBudget,
+    currentUser,
+    hasInitialized,
+    date,
+    setBudgetId,
+    isEditMode,
+    storeIsEditMode,
+  ]);
 
   // 当日期预算数据加载完成后，智能推荐预算
   useEffect(() => {
@@ -339,9 +353,7 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
               </div>
             </>
           ) : (
-            <div className="budget-name">
-              {date ? `选择 ${date} 的预算` : '请先选择日期'}
-            </div>
+            <div className="budget-name">{date ? `选择 ${date} 的预算` : '请先选择日期'}</div>
           )}
         </div>
         <div className="budget-selector-arrow">
@@ -363,13 +375,13 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
               {isLoading ? (
                 <div className="loading-state">加载中...</div>
               ) : formattedBudgets.length === 0 ? (
-                                  <div className="no-budgets-message">
-                    <i className="fas fa-info-circle"></i>
-                    <span>{date ? `${date} 日期范围内没有可用的预算` : '没有可用的预算'}</span>
-                    <div style={{ fontSize: '12px', marginTop: '8px', color: '#666' }}>
-                      {date ? '请检查该日期是否在任何预算周期内' : '请先选择记账日期'}
-                    </div>
+                <div className="no-budgets-message">
+                  <i className="fas fa-info-circle"></i>
+                  <span>{date ? `${date} 日期范围内没有可用的预算` : '没有可用的预算'}</span>
+                  <div style={{ fontSize: '12px', marginTop: '8px', color: '#666' }}>
+                    {date ? '请检查该日期是否在任何预算周期内' : '请先选择记账日期'}
                   </div>
+                </div>
               ) : (
                 <div className="budget-list">
                   {/* 不使用预算选项 */}
@@ -396,14 +408,14 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
                         .map((budget) => {
                           const budgetStatus = getBudgetStatus(budget);
                           const isRecommended = isRecommendedBudget(budget);
-                          
+
                           return (
                             <div
                               key={budget.id}
                               className={cn(
                                 'budget-item',
                                 selectedBudget?.id === budget.id && 'active',
-                                isRecommended && 'recommended'
+                                isRecommended && 'recommended',
                               )}
                               onClick={() => handleBudgetSelect(budget)}
                             >
@@ -416,9 +428,14 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
                                 </div>
                                 <div className="budget-item-details">
                                   <span>余额: {formatAmount(calculateBudgetBalance(budget))}</span>
-                                  <span className="budget-period-small">({getBudgetPeriod(budget)})</span>
+                                  <span className="budget-period-small">
+                                    ({getBudgetPeriod(budget)})
+                                  </span>
                                 </div>
-                                <div className="budget-item-status" style={{ color: budgetStatus.color }}>
+                                <div
+                                  className="budget-item-status"
+                                  style={{ color: budgetStatus.color }}
+                                >
                                   {budgetStatus.text}
                                 </div>
                               </div>
@@ -442,14 +459,14 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
                         .map((budget) => {
                           const budgetStatus = getBudgetStatus(budget);
                           const isRecommended = isRecommendedBudget(budget);
-                          
+
                           return (
                             <div
                               key={budget.id}
                               className={cn(
                                 'budget-item',
                                 selectedBudget?.id === budget.id && 'active',
-                                isRecommended && 'recommended'
+                                isRecommended && 'recommended',
                               )}
                               onClick={() => handleBudgetSelect(budget)}
                             >
@@ -462,9 +479,14 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
                                 </div>
                                 <div className="budget-item-details">
                                   <span>余额: {formatAmount(calculateBudgetBalance(budget))}</span>
-                                  <span className="budget-period-small">({getBudgetPeriod(budget)})</span>
+                                  <span className="budget-period-small">
+                                    ({getBudgetPeriod(budget)})
+                                  </span>
                                 </div>
-                                <div className="budget-item-status" style={{ color: budgetStatus.color }}>
+                                <div
+                                  className="budget-item-status"
+                                  style={{ color: budgetStatus.color }}
+                                >
                                   {budgetStatus.text}
                                 </div>
                               </div>

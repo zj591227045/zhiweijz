@@ -58,8 +58,6 @@ export default function SettingsPage() {
         };
 
         syncUserToLocalStorage(updatedUser);
-
-
       } catch (error) {
         console.error('获取最新用户信息失败:', error);
       } finally {
@@ -135,7 +133,7 @@ export default function SettingsPage() {
   // 处理导入记录
   const handleImportRecords = () => {
     const importUrl = 'https://import.zhiweijz.cn:1443';
-    
+
     // 只在新窗口打开导入页面，不使用fallback策略
     if (typeof window !== 'undefined') {
       try {
@@ -152,8 +150,6 @@ export default function SettingsPage() {
     return null;
   }
 
-
-
   return (
     <PageContainer title="设置" activeNavItem="profile">
       <div className="user-card">
@@ -169,7 +165,7 @@ export default function SettingsPage() {
         <div className="user-info">
           <div className="user-name">{user.name}</div>
           <div className="user-email">{user.email}</div>
-          
+
           {/* 快捷操作按钮 */}
           <div className="user-actions">
             {config.accountingPointsEnabled && (

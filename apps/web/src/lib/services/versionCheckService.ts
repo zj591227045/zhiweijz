@@ -3,7 +3,12 @@
  * 提供完整的版本检查、更新管理和用户偏好设置功能
  */
 
-import { versionApi, VersionCheckRequest, VersionCheckResponse, UserVersionStatusRequest } from '@/lib/api/version';
+import {
+  versionApi,
+  VersionCheckRequest,
+  VersionCheckResponse,
+  UserVersionStatusRequest,
+} from '@/lib/api/version';
 
 // 版本检查数据结构
 export interface VersionCheckData {
@@ -36,7 +41,7 @@ class VersionCheckService {
    */
   getCurrentPlatform(): Platform {
     if (typeof window === 'undefined') return 'web';
-    
+
     const userAgent = navigator.userAgent.toLowerCase();
     if (userAgent.includes('android')) return 'android';
     if (userAgent.includes('iphone') || userAgent.includes('ipad')) return 'ios';
@@ -49,7 +54,7 @@ class VersionCheckService {
   getCurrentAppVersion(): { version: string; buildNumber: number } {
     // 从环境变量获取版本信息，如果没有则使用默认值
     let version = process.env.NEXT_PUBLIC_APP_VERSION;
-    let buildNumber = parseInt(process.env.NEXT_PUBLIC_BUILD_NUMBER || '1', 10);
+    const buildNumber = parseInt(process.env.NEXT_PUBLIC_BUILD_NUMBER || '1', 10);
 
     // 如果环境变量中没有版本信息，尝试从package.json获取
     if (!version) {
@@ -105,14 +110,14 @@ class VersionCheckService {
    */
   private isVersionPostponed(version: string): boolean {
     const data = this.getVersionCheckData();
-    
+
     if (data.postponedVersion !== version || !data.postponedUntil) {
       return false;
     }
 
     const postponedUntil = new Date(data.postponedUntil);
     const now = new Date();
-    
+
     return now < postponedUntil;
   }
 
@@ -122,17 +127,17 @@ class VersionCheckService {
   private compareVersions(current: string, latest: string): number {
     const currentParts = current.split('.').map(Number);
     const latestParts = latest.split('.').map(Number);
-    
+
     const maxLength = Math.max(currentParts.length, latestParts.length);
-    
+
     for (let i = 0; i < maxLength; i++) {
       const currentPart = currentParts[i] || 0;
       const latestPart = latestParts[i] || 0;
-      
+
       if (currentPart < latestPart) return -1;
       if (currentPart > latestPart) return 1;
     }
-    
+
     return 0;
   }
 
@@ -162,7 +167,7 @@ class VersionCheckService {
         return {
           hasUpdate: false,
           shouldShowDialog: false,
-          reason: 'No update available'
+          reason: 'No update available',
         };
       }
 
@@ -174,7 +179,7 @@ class VersionCheckService {
           hasUpdate: true,
           shouldShowDialog: false,
           updateInfo: response,
-          reason: 'Version skipped by user'
+          reason: 'Version skipped by user',
         };
       }
 
@@ -184,7 +189,7 @@ class VersionCheckService {
           hasUpdate: true,
           shouldShowDialog: false,
           updateInfo: response,
-          reason: 'Version postponed by user'
+          reason: 'Version postponed by user',
         };
       }
 
@@ -192,15 +197,14 @@ class VersionCheckService {
       return {
         hasUpdate: true,
         shouldShowDialog: true,
-        updateInfo: response
+        updateInfo: response,
       };
-
     } catch (error) {
       console.error('Version check failed:', error);
       return {
         hasUpdate: false,
         shouldShowDialog: false,
-        reason: 'Check failed'
+        reason: 'Check failed',
       };
     }
   }
@@ -232,7 +236,7 @@ class VersionCheckService {
 
       case 'update':
         // 清除该版本的所有设置
-        data.skippedVersions = data.skippedVersions.filter(v => v !== version);
+        data.skippedVersions = data.skippedVersions.filter((v) => v !== version);
         if (data.postponedVersion === version) {
           delete data.postponedVersion;
           delete data.postponedUntil;
@@ -250,20 +254,24 @@ class VersionCheckService {
 
         if (action === 'update') {
           // 记录更新操作
-          await versionApi.logUpdate({
-            platform,
-            currentVersion: this.getCurrentAppVersion().version,
-            currentBuildNumber: this.getCurrentAppVersion().buildNumber,
-            latestVersion: version,
-            latestBuildNumber: 0
-          }, token);
+          await versionApi.logUpdate(
+            {
+              platform,
+              currentVersion: this.getCurrentAppVersion().version,
+              currentBuildNumber: this.getCurrentAppVersion().buildNumber,
+              latestVersion: version,
+              latestBuildNumber: 0,
+            },
+            token,
+          );
         } else {
           // 设置用户版本状态
           const statusRequest: UserVersionStatusRequest = {
             platform,
             appVersionId: versionId,
             status: action === 'skip' ? 'ignored' : 'postponed',
-            postponedUntil: action === 'postpone' ? new Date(Date.now() + this.POSTPONE_DURATION) : undefined
+            postponedUntil:
+              action === 'postpone' ? new Date(Date.now() + this.POSTPONE_DURATION) : undefined,
           };
 
           await versionApi.setUserVersionStatus(statusRequest, token);
@@ -334,7 +342,7 @@ class VersionCheckService {
     return {
       skippedVersionsCount: data.skippedVersions.length,
       hasPostponedVersion: !!data.postponedVersion,
-      lastCheckTime: data.lastCheckTime
+      lastCheckTime: data.lastCheckTime,
     };
   }
 }

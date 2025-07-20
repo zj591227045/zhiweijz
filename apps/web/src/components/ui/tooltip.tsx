@@ -21,7 +21,7 @@ export function Tooltip({ children, content, side = 'top', className }: TooltipP
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const tooltipRect = tooltipRef.current.getBoundingClientRect();
-    
+
     let x = 0;
     let y = 0;
 
@@ -57,7 +57,7 @@ export function Tooltip({ children, content, side = 'top', className }: TooltipP
       updatePosition();
       window.addEventListener('scroll', updatePosition);
       window.addEventListener('resize', updatePosition);
-      
+
       return () => {
         window.removeEventListener('scroll', updatePosition);
         window.removeEventListener('resize', updatePosition);
@@ -83,14 +83,14 @@ export function Tooltip({ children, content, side = 'top', className }: TooltipP
       >
         {children}
       </div>
-      
+
       {isVisible && (
         <div
           ref={tooltipRef}
           className={cn(
             'fixed z-50 px-3 py-2 text-sm text-white bg-gray-900 rounded-md shadow-lg pointer-events-none',
             'animate-in fade-in-0 zoom-in-95',
-            className
+            className,
           )}
           style={{
             left: position.x,
@@ -100,15 +100,12 @@ export function Tooltip({ children, content, side = 'top', className }: TooltipP
           {content}
           {/* 箭头 */}
           <div
-            className={cn(
-              'absolute w-2 h-2 bg-gray-900 transform rotate-45',
-              {
-                'bottom-[-4px] left-1/2 -translate-x-1/2': side === 'top',
-                'top-[-4px] left-1/2 -translate-x-1/2': side === 'bottom',
-                'right-[-4px] top-1/2 -translate-y-1/2': side === 'left',
-                'left-[-4px] top-1/2 -translate-y-1/2': side === 'right',
-              }
-            )}
+            className={cn('absolute w-2 h-2 bg-gray-900 transform rotate-45', {
+              'bottom-[-4px] left-1/2 -translate-x-1/2': side === 'top',
+              'top-[-4px] left-1/2 -translate-x-1/2': side === 'bottom',
+              'right-[-4px] top-1/2 -translate-y-1/2': side === 'left',
+              'left-[-4px] top-1/2 -translate-y-1/2': side === 'right',
+            })}
           />
         </div>
       )}
@@ -121,22 +118,22 @@ export function TooltipProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export function TooltipTrigger({ 
-  children, 
-  asChild = false 
-}: { 
-  children: React.ReactNode; 
-  asChild?: boolean; 
+export function TooltipTrigger({
+  children,
+  asChild = false,
+}: {
+  children: React.ReactNode;
+  asChild?: boolean;
 }) {
   return <>{children}</>;
 }
 
-export function TooltipContent({ 
-  children, 
-  className 
-}: { 
-  children: React.ReactNode; 
-  className?: string; 
+export function TooltipContent({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
 }) {
   return <div className={className}>{children}</div>;
 }

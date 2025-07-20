@@ -9,20 +9,12 @@ export interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
-export function Progress({ 
-  value = 0, 
-  max = 100, 
-  className, 
-  ...props 
-}: ProgressProps) {
+export function Progress({ value = 0, max = 100, className, ...props }: ProgressProps) {
   const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
 
   return (
     <div
-      className={cn(
-        'relative h-2 w-full overflow-hidden rounded-full bg-gray-200',
-        className
-      )}
+      className={cn('relative h-2 w-full overflow-hidden rounded-full bg-gray-200', className)}
       {...props}
     >
       <div

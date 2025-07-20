@@ -165,20 +165,12 @@ export default function FamilyMembersClient({ params }: FamilyMembersClientProps
   // 如果是占位符，显示占位符信息
   if (familyId === 'placeholder') {
     return (
-      <PageContainer
-        title="成员管理"
-        showBackButton
-        backUrl="/families"
-        activeNavItem="profile"
-      >
+      <PageContainer title="成员管理" showBackButton backUrl="/families" activeNavItem="profile">
         <div className="flex flex-col items-center justify-center h-full space-y-4">
           <div className="text-muted-foreground">
             这是一个静态导出的占位符页面。在实际应用中，请通过正确的路由访问成员管理页面。
           </div>
-          <button
-            className="btn btn-primary"
-            onClick={() => router.push('/families')}
-          >
+          <button className="btn btn-primary" onClick={() => router.push('/families')}>
             返回家庭列表
           </button>
         </div>

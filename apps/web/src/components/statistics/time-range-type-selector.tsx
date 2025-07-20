@@ -37,8 +37,12 @@ export function TimeRangeTypeSelector({
   // 点击外部关闭下拉菜单
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
-          buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -52,7 +56,7 @@ export function TimeRangeTypeSelector({
     };
   }, [isOpen]);
 
-  const currentOption = TIME_RANGE_OPTIONS.find(option => option.value === value);
+  const currentOption = TIME_RANGE_OPTIONS.find((option) => option.value === value);
 
   // 计算下拉菜单位置
   const calculateDropdownPosition = () => {
@@ -87,35 +91,31 @@ export function TimeRangeTypeSelector({
         aria-haspopup="listbox"
         title={`当前选择: ${currentOption?.label || '月'}`}
       >
-        <span className="time-range-type-text">
-          {currentOption?.shortLabel || '月'}
-        </span>
+        <span className="time-range-type-text">{currentOption?.shortLabel || '月'}</span>
         <i className={`fas fa-chevron-down time-range-type-arrow ${isOpen ? 'open' : ''}`}></i>
       </button>
 
       {/* 使用Portal渲染下拉菜单到body，避免层叠上下文限制 */}
-      {isOpen && mounted && createPortal(
-        <div
-          ref={dropdownRef}
-          className="time-range-type-dropdown"
-          style={dropdownStyle}
-        >
-          <ul className="time-range-type-options" role="listbox">
-            {TIME_RANGE_OPTIONS.map((option) => (
-              <li
-                key={option.value}
-                className={`time-range-type-option ${value === option.value ? 'active' : ''}`}
-                onClick={() => handleSelect(option.value)}
-                role="option"
-                aria-selected={value === option.value}
-              >
-                {option.label}
-              </li>
-            ))}
-          </ul>
-        </div>,
-        document.body
-      )}
+      {isOpen &&
+        mounted &&
+        createPortal(
+          <div ref={dropdownRef} className="time-range-type-dropdown" style={dropdownStyle}>
+            <ul className="time-range-type-options" role="listbox">
+              {TIME_RANGE_OPTIONS.map((option) => (
+                <li
+                  key={option.value}
+                  className={`time-range-type-option ${value === option.value ? 'active' : ''}`}
+                  onClick={() => handleSelect(option.value)}
+                  role="option"
+                  aria-selected={value === option.value}
+                >
+                  {option.label}
+                </li>
+              ))}
+            </ul>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

@@ -24,14 +24,14 @@ export const ADMIN_API_ENDPOINTS = {
   LOGIN: '/api/admin/auth/login',
   CHECK_AUTH: '/api/admin/auth/check',
   CHANGE_PASSWORD: '/api/admin/auth/change-password',
-  
+
   // 用户管理
   USERS: '/api/admin/users',
   USER_DETAIL: (id: string) => `/api/admin/users/${id}`,
   USER_RESET_PASSWORD: (id: string) => `/api/admin/users/${id}/reset-password`,
   USER_TOGGLE_STATUS: (id: string) => `/api/admin/users/${id}/toggle-status`,
   USER_BATCH: '/api/admin/users/batch',
-  
+
   // 仪表盘
   DASHBOARD_OVERVIEW: '/api/admin/dashboard/overview',
   DASHBOARD_USERS: '/api/admin/dashboard/users',
@@ -40,7 +40,7 @@ export const ADMIN_API_ENDPOINTS = {
   DASHBOARD_PERFORMANCE_HISTORY: '/api/admin/dashboard/performance/history',
   DASHBOARD_PERFORMANCE_ALL: '/api/admin/dashboard/performance/all',
   DASHBOARD_PERFORMANCE_STATS: '/api/admin/dashboard/performance/stats',
-  
+
   // 系统配置
   SYSTEM_CONFIG_REGISTRATION: '/api/admin/system-configs/registration',
   SYSTEM_CONFIG_LLM: '/api/admin/system-configs/llm/configs',
@@ -51,18 +51,18 @@ export const ADMIN_API_ENDPOINTS = {
   STORAGE_TEST: '/api/admin/storage/test',
   STORAGE_FILES: '/api/admin/storage/files',
   STORAGE_MINIO_INITIALIZE: '/api/admin/storage/minio/initialize',
-  
+
   // 公告管理
   ANNOUNCEMENTS: '/api/admin/announcements',
   ANNOUNCEMENT_STATS: '/api/admin/announcements/stats',
-  
+
   // LLM日志
   LLM_LOGS: '/api/admin/llm-logs',
   LLM_LOGS_CLEANUP: '/api/admin/llm-logs/cleanup',
 
   // 统一AI调用日志
   AI_CALL_LOGS: '/api/admin/ai-call-logs',
-  
+
   // 多提供商LLM管理
   MULTI_PROVIDER_LLM: '/api/admin/multi-provider-llm',
   MULTI_PROVIDER_LLM_CONFIG: '/api/admin/multi-provider-llm/config',
@@ -79,17 +79,18 @@ export const ADMIN_API_ENDPOINTS = {
   MULTIMODAL_AI_VISION_TEST: '/api/admin/multimodal-ai/vision/test',
   MULTIMODAL_AI_MODELS: '/api/admin/multimodal-ai/models',
   MULTIMODAL_AI_STATUS: '/api/admin/multimodal-ai/status',
-  
+
   // 记账点管理
   ACCOUNTING_POINTS_STATS: '/api/admin/accounting-points/stats',
   ACCOUNTING_POINTS_USERS: '/api/admin/accounting-points/users',
   ACCOUNTING_POINTS_OVERALL: '/api/admin/accounting-points/overall-stats',
-  ACCOUNTING_POINTS_USER_TRANSACTIONS: (userId: string) => `/api/admin/accounting-points/users/${userId}/transactions`,
+  ACCOUNTING_POINTS_USER_TRANSACTIONS: (userId: string) =>
+    `/api/admin/accounting-points/users/${userId}/transactions`,
   ACCOUNTING_POINTS_ADD: (userId: string) => `/api/admin/accounting-points/users/${userId}/add`,
   ACCOUNTING_POINTS_BATCH_ADD: '/api/admin/accounting-points/batch-add',
   ACCOUNTING_POINTS_CONFIG: '/api/admin/accounting-points/config',
   ACCOUNTING_POINTS_DAILY_ACTIVE: '/api/admin/accounting-points/daily-active-stats',
-  
+
   // 版本管理
   VERSION_MANAGEMENT: '/api/admin/version',
   VERSION_MANAGEMENT_STATS: '/api/admin/version/stats',
@@ -138,12 +139,12 @@ class AdminApiClient {
     if (endpoint.startsWith('http')) {
       return endpoint;
     }
-    
+
     // 如果是相对路径且baseUrl也是相对路径，直接拼接
     if (this.baseUrl.startsWith('/') && endpoint.startsWith('/')) {
       return endpoint;
     }
-    
+
     // 其他情况拼接baseUrl
     return `${this.baseUrl}${endpoint}`;
   }
@@ -151,13 +152,10 @@ class AdminApiClient {
   /**
    * 通用请求方法
    */
-  private async request(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<Response> {
+  private async request(endpoint: string, options: RequestInit = {}): Promise<Response> {
     const url = this.buildUrl(endpoint);
     const token = this.getAuthToken();
-    
+
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -173,7 +171,7 @@ class AdminApiClient {
       url,
       hasToken: !!token,
       token: token ? `${token.substring(0, 20)}...` : 'null',
-      baseUrl: this.baseUrl
+      baseUrl: this.baseUrl,
     });
 
     const response = await fetch(url, {
@@ -185,7 +183,7 @@ class AdminApiClient {
       console.error('❌ Admin API 请求失败:', {
         status: response.status,
         statusText: response.statusText,
-        url
+        url,
       });
     }
 
@@ -241,16 +239,14 @@ class AdminApiClient {
    */
   async getWithParams(endpoint: string, params: Record<string, any>): Promise<Response> {
     const queryParams = new URLSearchParams();
-    
+
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         queryParams.append(key, value.toString());
       }
     });
 
-    const url = queryParams.toString() 
-      ? `${endpoint}?${queryParams.toString()}`
-      : endpoint;
+    const url = queryParams.toString() ? `${endpoint}?${queryParams.toString()}` : endpoint;
 
     return this.get(url);
   }
@@ -266,6 +262,6 @@ export const adminApi = {
   put: (endpoint: string, data?: any) => adminApiClient.put(endpoint, data),
   patch: (endpoint: string, data?: any) => adminApiClient.patch(endpoint, data),
   delete: (endpoint: string) => adminApiClient.delete(endpoint),
-  getWithParams: (endpoint: string, params: Record<string, any>) => 
+  getWithParams: (endpoint: string, params: Record<string, any>) =>
     adminApiClient.getWithParams(endpoint, params),
-}; 
+};

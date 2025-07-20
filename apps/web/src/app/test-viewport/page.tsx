@@ -15,7 +15,7 @@ export default function TestViewportPage() {
       const isIOS = /iPad|iPhone|iPod/.test(userAgent);
       const isAndroid = /Android/.test(userAgent);
       const isMobile = /Mobi|Android/i.test(userAgent);
-      
+
       return {
         userAgent,
         isIOS,
@@ -54,7 +54,7 @@ export default function TestViewportPage() {
               StatusBar: Capacitor.isPluginAvailable('StatusBar'),
               Keyboard: Capacitor.isPluginAvailable('Keyboard'),
               Camera: Capacitor.isPluginAvailable('Camera'),
-            }
+            },
           };
         }
       } catch (error) {
@@ -99,9 +99,7 @@ export default function TestViewportPage() {
       <div className="space-y-6">
         {/* 测试说明 */}
         <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-          <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
-            缩放测试说明
-          </h3>
+          <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">缩放测试说明</h3>
           <p className="text-blue-700 dark:text-blue-300 text-sm">
             在移动设备上尝试双指缩放或双击缩放此页面。如果配置正确，页面应该无法被缩放。
           </p>
@@ -111,13 +109,27 @@ export default function TestViewportPage() {
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
           <h3 className="font-semibold mb-3">设备信息</h3>
           <div className="space-y-2 text-sm">
-            <div><strong>平台:</strong> {deviceInfo.platform}</div>
-            <div><strong>是否iOS:</strong> {deviceInfo.isIOS ? '是' : '否'}</div>
-            <div><strong>是否Android:</strong> {deviceInfo.isAndroid ? '是' : '否'}</div>
-            <div><strong>是否移动设备:</strong> {deviceInfo.isMobile ? '是' : '否'}</div>
-            <div><strong>屏幕尺寸:</strong> {deviceInfo.screenWidth} × {deviceInfo.screenHeight}</div>
-            <div><strong>窗口尺寸:</strong> {deviceInfo.windowWidth} × {deviceInfo.windowHeight}</div>
-            <div><strong>设备像素比:</strong> {deviceInfo.devicePixelRatio}</div>
+            <div>
+              <strong>平台:</strong> {deviceInfo.platform}
+            </div>
+            <div>
+              <strong>是否iOS:</strong> {deviceInfo.isIOS ? '是' : '否'}
+            </div>
+            <div>
+              <strong>是否Android:</strong> {deviceInfo.isAndroid ? '是' : '否'}
+            </div>
+            <div>
+              <strong>是否移动设备:</strong> {deviceInfo.isMobile ? '是' : '否'}
+            </div>
+            <div>
+              <strong>屏幕尺寸:</strong> {deviceInfo.screenWidth} × {deviceInfo.screenHeight}
+            </div>
+            <div>
+              <strong>窗口尺寸:</strong> {deviceInfo.windowWidth} × {deviceInfo.windowHeight}
+            </div>
+            <div>
+              <strong>设备像素比:</strong> {deviceInfo.devicePixelRatio}
+            </div>
           </div>
         </div>
 
@@ -125,12 +137,19 @@ export default function TestViewportPage() {
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
           <h3 className="font-semibold mb-3">视口信息</h3>
           <div className="space-y-2 text-sm">
-            <div><strong>Viewport Meta:</strong></div>
+            <div>
+              <strong>Viewport Meta:</strong>
+            </div>
             <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded text-xs break-all">
               {viewportInfo.viewportContent}
             </div>
-            <div><strong>文档尺寸:</strong> {viewportInfo.documentWidth} × {viewportInfo.documentHeight}</div>
-            <div><strong>Body尺寸:</strong> {viewportInfo.bodyWidth} × {viewportInfo.bodyHeight}</div>
+            <div>
+              <strong>文档尺寸:</strong> {viewportInfo.documentWidth} ×{' '}
+              {viewportInfo.documentHeight}
+            </div>
+            <div>
+              <strong>Body尺寸:</strong> {viewportInfo.bodyWidth} × {viewportInfo.bodyHeight}
+            </div>
           </div>
         </div>
 
@@ -142,15 +161,23 @@ export default function TestViewportPage() {
               <div className="text-gray-500">{capacitorInfo.error}</div>
             ) : (
               <>
-                <div><strong>原生平台:</strong> {capacitorInfo.isNativePlatform ? '是' : '否'}</div>
-                <div><strong>平台:</strong> {capacitorInfo.platform}</div>
-                <div><strong>可用插件:</strong></div>
+                <div>
+                  <strong>原生平台:</strong> {capacitorInfo.isNativePlatform ? '是' : '否'}
+                </div>
+                <div>
+                  <strong>平台:</strong> {capacitorInfo.platform}
+                </div>
+                <div>
+                  <strong>可用插件:</strong>
+                </div>
                 <ul className="ml-4 space-y-1">
-                  {Object.entries(capacitorInfo.isPluginAvailable || {}).map(([plugin, available]) => (
-                    <li key={plugin}>
-                      {plugin}: {available ? '✅' : '❌'}
-                    </li>
-                  ))}
+                  {Object.entries(capacitorInfo.isPluginAvailable || {}).map(
+                    ([plugin, available]) => (
+                      <li key={plugin}>
+                        {plugin}: {available ? '✅' : '❌'}
+                      </li>
+                    ),
+                  )}
                 </ul>
               </>
             )}

@@ -21,11 +21,7 @@ export const dynamicParams = true;
 
 export default function EditCategoryPage({ params }: EditCategoryPageProps) {
   return (
-    <PageContainer
-      title="编辑分类"
-      showBack
-      backUrl="/settings/categories"
-    >
+    <PageContainer title="编辑分类" showBack backUrl="/settings/categories">
       <EditCategoryForm categoryId={params.id} />
     </PageContainer>
   );

@@ -19,7 +19,7 @@ import {
   DocumentArrowDownIcon as Save,
   ExclamationCircleIcon as AlertCircle,
   CheckCircleIcon,
-  ArrowPathIcon as RefreshCcw
+  ArrowPathIcon as RefreshCcw,
 } from '@heroicons/react/24/outline';
 import MobileNotSupported from '@/components/admin/MobileNotSupported';
 import { useAdminAuth } from '@/store/admin/useAdminAuth';
@@ -57,7 +57,7 @@ export default function LLMConfigPage() {
     apiKey: '',
     baseUrl: '',
     temperature: 0.7,
-    maxTokens: 1000
+    maxTokens: 1000,
   });
 
   const [loading, setLoading] = useState(false);
@@ -71,23 +71,23 @@ export default function LLMConfigPage() {
       id: 'openai',
       name: 'OpenAI',
       models: ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo'],
-      defaultBaseUrl: 'https://api.openai.com/v1'
+      defaultBaseUrl: 'https://api.openai.com/v1',
     },
     {
       id: 'siliconflow',
       name: '硅基流动',
       models: ['Qwen/Qwen3-32B', 'Qwen/Qwen2.5-32B-Instruct', 'Qwen/Qwen3-14B', 'Qwen/Qwen3-8B'],
-      defaultBaseUrl: 'https://api.siliconflow.cn/v1'
+      defaultBaseUrl: 'https://api.siliconflow.cn/v1',
     },
     {
       id: 'custom',
       name: '自定义',
       models: [],
-      defaultBaseUrl: ''
-    }
+      defaultBaseUrl: '',
+    },
   ];
 
-  const currentProvider = providers.find(p => p.id === config.provider);
+  const currentProvider = providers.find((p) => p.id === config.provider);
 
   // 加载配置
   const loadConfig = async () => {
@@ -107,7 +107,7 @@ export default function LLMConfigPage() {
             apiKey: configs.apiKey || '',
             baseUrl: configs.baseUrl || '',
             temperature: configs.temperature ?? 0.7,
-            maxTokens: configs.maxTokens ?? 1000
+            maxTokens: configs.maxTokens ?? 1000,
           });
         }
       } else {
@@ -166,7 +166,7 @@ export default function LLMConfigPage() {
         provider: config.provider,
         model: config.model,
         apiKey: config.apiKey,
-        baseUrl: config.baseUrl
+        baseUrl: config.baseUrl,
       });
 
       if (response.ok) {
@@ -181,14 +181,14 @@ export default function LLMConfigPage() {
         } else {
           setTestResult({
             success: false,
-            message: data.message || '测试失败'
+            message: data.message || '测试失败',
           });
           toast.error(data.message || '测试失败');
         }
       } else {
         setTestResult({
           success: false,
-          message: '网络请求失败'
+          message: '网络请求失败',
         });
         toast.error('测试请求失败');
       }
@@ -196,7 +196,7 @@ export default function LLMConfigPage() {
       console.error('测试LLM连接错误:', error);
       setTestResult({
         success: false,
-        message: '测试请求异常'
+        message: '测试请求异常',
       });
       toast.error('测试请求异常');
     } finally {
@@ -206,13 +206,13 @@ export default function LLMConfigPage() {
 
   // 处理提供商变更
   const handleProviderChange = (providerId: string) => {
-    const provider = providers.find(p => p.id === providerId);
+    const provider = providers.find((p) => p.id === providerId);
     if (provider) {
-      setConfig(prev => ({
+      setConfig((prev) => ({
         ...prev,
         provider: providerId,
         model: provider.models[0] || '',
-        baseUrl: provider.defaultBaseUrl
+        baseUrl: provider.defaultBaseUrl,
       }));
       setTestResult(null);
     }
@@ -221,7 +221,12 @@ export default function LLMConfigPage() {
   useEffect(() => {
     // 只在认证完成且有token时才执行API请求
     if (isAuthenticated && token) {
-      console.log('🔍 [LLMConfig] Loading config, authenticated:', isAuthenticated, 'hasToken:', !!token);
+      console.log(
+        '🔍 [LLMConfig] Loading config, authenticated:',
+        isAuthenticated,
+        'hasToken:',
+        !!token,
+      );
       loadConfig();
     }
   }, [isAuthenticated, token]);
@@ -250,23 +255,23 @@ export default function LLMConfigPage() {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          全局 LLM 配置
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">全局 LLM 配置</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
           配置系统默认的AI服务提供商（单一提供商模式）
         </p>
-        
+
         {/* 配置优先级说明 */}
         <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
           <div className="flex items-start space-x-3">
             <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
             <div>
-              <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100">配置优先级说明</h3>
+              <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                配置优先级说明
+              </h3>
               <p className="text-sm text-blue-800 dark:text-blue-200 mt-1">
-                • <strong>全局LLM配置</strong>：单一提供商模式，适合简单场景<br/>
-                • <strong>多提供商配置</strong>：支持多个提供商、优先级、故障转移等高级功能<br/>
-                • 当多提供商模式启用时，系统将优先使用多提供商配置，全局配置将被忽略
+                • <strong>全局LLM配置</strong>：单一提供商模式，适合简单场景
+                <br />• <strong>多提供商配置</strong>：支持多个提供商、优先级、故障转移等高级功能
+                <br />• 当多提供商模式启用时，系统将优先使用多提供商配置，全局配置将被忽略
               </p>
               <div className="mt-2">
                 <Button
@@ -286,9 +291,7 @@ export default function LLMConfigPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">LLM 服务管理</h1>
-          <p className="text-gray-600">
-            配置全局的大语言模型服务，为用户提供AI助手功能
-          </p>
+          <p className="text-gray-600">配置全局的大语言模型服务，为用户提供AI助手功能</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={loadConfig} disabled={loading}>
@@ -313,27 +316,21 @@ export default function LLMConfigPage() {
             <Activity className="h-5 w-5" />
             服务状态
           </CardTitle>
-          <CardDescription>
-            控制LLM服务的全局开关状态
-          </CardDescription>
+          <CardDescription>控制LLM服务的全局开关状态</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label htmlFor="service-enabled">启用LLM服务</Label>
-              <p className="text-sm text-gray-600">
-                启用后，用户可以使用全局配置的LLM服务
-              </p>
+              <p className="text-sm text-gray-600">启用后，用户可以使用全局配置的LLM服务</p>
             </div>
             <div className="flex items-center gap-2">
               <Switch
                 checked={config.enabled}
-                onCheckedChange={(checked) =>
-                  setConfig(prev => ({ ...prev, enabled: checked }))
-                }
+                onCheckedChange={(checked) => setConfig((prev) => ({ ...prev, enabled: checked }))}
               />
-              <Badge variant={config.enabled ? "default" : "secondary"}>
-                {config.enabled ? "已启用" : "已禁用"}
+              <Badge variant={config.enabled ? 'default' : 'secondary'}>
+                {config.enabled ? '已启用' : '已禁用'}
               </Badge>
             </div>
           </div>
@@ -347,9 +344,7 @@ export default function LLMConfigPage() {
             <Settings className="h-5 w-5" />
             LLM配置
           </CardTitle>
-          <CardDescription>
-            配置LLM服务提供商和相关参数
-          </CardDescription>
+          <CardDescription>配置LLM服务提供商和相关参数</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* 提供商选择 */}
@@ -388,7 +383,7 @@ export default function LLMConfigPage() {
                   id="model"
                   className="w-full p-2 border rounded-md"
                   value={config.model || ''}
-                  onChange={(e) => setConfig(prev => ({ ...prev, model: e.target.value }))}
+                  onChange={(e) => setConfig((prev) => ({ ...prev, model: e.target.value }))}
                 >
                   {currentProvider.models.map((model) => (
                     <option key={model} value={model}>
@@ -401,7 +396,7 @@ export default function LLMConfigPage() {
                   id="model"
                   placeholder="输入模型名称"
                   value={config.model || ''}
-                  onChange={(e) => setConfig(prev => ({ ...prev, model: e.target.value }))}
+                  onChange={(e) => setConfig((prev) => ({ ...prev, model: e.target.value }))}
                 />
               )}
             </div>
@@ -412,7 +407,7 @@ export default function LLMConfigPage() {
                 id="base-url"
                 placeholder="https://api.example.com/v1"
                 value={config.baseUrl || ''}
-                onChange={(e) => setConfig(prev => ({ ...prev, baseUrl: e.target.value }))}
+                onChange={(e) => setConfig((prev) => ({ ...prev, baseUrl: e.target.value }))}
               />
             </div>
           </div>
@@ -425,11 +420,9 @@ export default function LLMConfigPage() {
               type="password"
               placeholder="输入API密钥"
               value={config.apiKey || ''}
-              onChange={(e) => setConfig(prev => ({ ...prev, apiKey: e.target.value }))}
+              onChange={(e) => setConfig((prev) => ({ ...prev, apiKey: e.target.value }))}
             />
-            <p className="text-sm text-gray-600">
-              API密钥将安全存储在服务器端，不会在前端显示
-            </p>
+            <p className="text-sm text-gray-600">API密钥将安全存储在服务器端，不会在前端显示</p>
           </div>
 
           <Separator />
@@ -437,9 +430,7 @@ export default function LLMConfigPage() {
           {/* 参数配置 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="temperature">
-                温度参数: {config.temperature}
-              </Label>
+              <Label htmlFor="temperature">温度参数: {config.temperature}</Label>
               <input
                 id="temperature"
                 type="range"
@@ -447,12 +438,12 @@ export default function LLMConfigPage() {
                 max="2"
                 step="0.1"
                 value={config.temperature ?? 0.7}
-                onChange={(e) => setConfig(prev => ({ ...prev, temperature: parseFloat(e.target.value) }))}
+                onChange={(e) =>
+                  setConfig((prev) => ({ ...prev, temperature: parseFloat(e.target.value) }))
+                }
                 className="w-full"
               />
-              <p className="text-xs text-gray-600">
-                控制回答的随机性，0表示确定性，2表示高随机性
-              </p>
+              <p className="text-xs text-gray-600">控制回答的随机性，0表示确定性，2表示高随机性</p>
             </div>
 
             <div className="space-y-2">
@@ -463,17 +454,15 @@ export default function LLMConfigPage() {
                 min="1"
                 max="100000"
                 value={config.maxTokens || 1000}
-                onChange={(e) => setConfig(prev => ({ ...prev, maxTokens: parseInt(e.target.value) || 1000 }))}
+                onChange={(e) =>
+                  setConfig((prev) => ({ ...prev, maxTokens: parseInt(e.target.value) || 1000 }))
+                }
               />
-              <p className="text-xs text-gray-600">
-                限制AI回答的最大长度
-              </p>
+              <p className="text-xs text-gray-600">限制AI回答的最大长度</p>
             </div>
           </div>
         </CardContent>
       </Card>
-
-
 
       {/* 连接测试 */}
       <Card>
@@ -482,9 +471,7 @@ export default function LLMConfigPage() {
             <TestTube className="h-5 w-5" />
             连接测试
           </CardTitle>
-          <CardDescription>
-            测试当前配置是否能正常连接到LLM服务
-          </CardDescription>
+          <CardDescription>测试当前配置是否能正常连接到LLM服务</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Button
@@ -501,30 +488,30 @@ export default function LLMConfigPage() {
           </Button>
 
           {testResult && (
-            <div className={`border rounded-lg p-4 ${
-              testResult.success ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
-            }`}>
+            <div
+              className={`border rounded-lg p-4 ${
+                testResult.success ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
+              }`}
+            >
               <div className="flex items-center gap-2 mb-2">
                 {testResult.success ? (
                   <CheckCircleIcon className="h-5 w-5 text-green-600" />
                 ) : (
                   <AlertCircle className="h-5 w-5 text-red-600" />
                 )}
-                <span className={`font-medium ${
-                  testResult.success ? 'text-green-800' : 'text-red-800'
-                }`}>
+                <span
+                  className={`font-medium ${
+                    testResult.success ? 'text-green-800' : 'text-red-800'
+                  }`}
+                >
                   {testResult.success ? '连接成功' : '连接失败'}
                 </span>
               </div>
-              <p className={`text-sm ${
-                testResult.success ? 'text-green-700' : 'text-red-700'
-              }`}>
+              <p className={`text-sm ${testResult.success ? 'text-green-700' : 'text-red-700'}`}>
                 {testResult.message}
               </p>
               {testResult.responseTime && (
-                <p className="text-xs text-gray-600 mt-1">
-                  响应时间: {testResult.responseTime}ms
-                </p>
+                <p className="text-xs text-gray-600 mt-1">响应时间: {testResult.responseTime}ms</p>
               )}
             </div>
           )}
@@ -532,4 +519,4 @@ export default function LLMConfigPage() {
       </Card>
     </div>
   );
-} 
+}

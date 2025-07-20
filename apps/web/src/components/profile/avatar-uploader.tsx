@@ -2,7 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { presetAvatars, avatarCategories, PresetAvatar, getAvatarUrl, getAvatarUrlById } from '@/data/preset-avatars';
+import {
+  presetAvatars,
+  avatarCategories,
+  PresetAvatar,
+  getAvatarUrl,
+  getAvatarUrlById,
+} from '@/data/preset-avatars';
 import { useFileStorageStatus } from '@/store/file-storage-store';
 import {
   validateAvatarFile,
@@ -11,12 +17,18 @@ import {
   createImagePreview,
   revokeImagePreview,
   compressImage,
-  type DeviceCapabilities
+  type DeviceCapabilities,
 } from '@/lib/file-upload-utils';
 import { platformFilePicker } from '@/lib/platform-file-picker';
 import { ImageCropper } from './image-cropper';
 import { UploadProgress, useUploadProgress } from '@/components/ui/upload-progress';
-import { debounce, throttle, PerformanceTimer, getOptimalQuality, getOptimalDimensions } from '@/lib/performance-utils';
+import {
+  debounce,
+  throttle,
+  PerformanceTimer,
+  getOptimalQuality,
+  getOptimalDimensions,
+} from '@/lib/performance-utils';
 import { processAvatarUrl, handleImageError } from '@/lib/image-proxy';
 import { AuthenticatedImage } from '@/components/ui/authenticated-image';
 
@@ -24,7 +36,9 @@ interface AvatarUploaderProps {
   currentAvatar?: string; // 现在存储头像ID而不是URL
   username?: string;
   registrationOrder?: number;
-  onAvatarChange: (avatarData: { type: 'preset'; data: PresetAvatar } | { type: 'file'; data: File }) => void;
+  onAvatarChange: (
+    avatarData: { type: 'preset'; data: PresetAvatar } | { type: 'file'; data: File },
+  ) => void;
   isUploading?: boolean;
 }
 
@@ -96,14 +110,14 @@ export function AvatarUploader({
     debounce((event: React.DragEvent) => {
       event.preventDefault();
       event.stopPropagation();
-    }, 100)
+    }, 100),
   ).current;
 
   // 节流的进度更新
   const throttledProgressUpdate = useRef(
     throttle((progress: number, message?: string) => {
       uploadProgress.updateProgress(progress, message);
-    }, 100)
+    }, 100),
   ).current;
 
   // 处理头像点击
@@ -180,7 +194,8 @@ export function AvatarUploader({
 
       // 智能压缩图片
       let processedFile = croppedFile;
-      if (croppedFile.size > 512 * 1024) { // 大于512KB时压缩
+      if (croppedFile.size > 512 * 1024) {
+        // 大于512KB时压缩
         performanceTimer.current.mark('compression-start');
         throttledProgressUpdate(50, '正在智能压缩图片...');
 
@@ -194,7 +209,11 @@ export function AvatarUploader({
 
         performanceTimer.current.mark('compression-end');
         console.log('🗜️ 压缩完成，文件大小:', (processedFile.size / 1024 / 1024).toFixed(2), 'MB');
-        console.log('🗜️ 压缩耗时:', performanceTimer.current.getDuration('compression-start'), 'ms');
+        console.log(
+          '🗜️ 压缩耗时:',
+          performanceTimer.current.getDuration('compression-start'),
+          'ms',
+        );
       }
 
       throttledProgressUpdate(80, '准备上传...');
@@ -228,16 +247,16 @@ export function AvatarUploader({
       console.log('📤 onAvatarChange 已调用，等待父组件处理上传');
     } catch (error) {
       console.error('处理裁剪结果失败:', error);
-      
+
       // 确保关闭裁剪器
       setShowCropper(false);
-      
+
       // 清理临时URL
       if (cropImageUrl) {
         revokeImagePreview(cropImageUrl);
         setCropImageUrl(null);
       }
-      
+
       uploadProgress.setError('处理图片失败，请重试');
     }
   };
@@ -356,7 +375,7 @@ export function AvatarUploader({
 
   // 获取当前分类的头像
   const getCurrentCategoryAvatars = () => {
-    return presetAvatars.filter(avatar => avatar.category === selectedCategory);
+    return presetAvatars.filter((avatar) => avatar.category === selectedCategory);
   };
 
   // 渲染上传选项弹窗
@@ -376,7 +395,7 @@ export function AvatarUploader({
             bottom: 0,
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
             zIndex: 9999,
-            backdropFilter: 'blur(4px)'
+            backdropFilter: 'blur(4px)',
           }}
         ></div>
         <div
@@ -393,19 +412,28 @@ export function AvatarUploader({
             zIndex: 10000,
             animation: 'slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             maxWidth: '420px',
-            margin: '0 auto'
+            margin: '0 auto',
           }}
         >
           <div className="upload-options-header">
-            <div className="upload-options-title" style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>
+            <div
+              className="upload-options-title"
+              style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}
+            >
               更换头像
             </div>
-            <div className="upload-options-subtitle" style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+            <div
+              className="upload-options-subtitle"
+              style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '20px' }}
+            >
               选择头像来源
             </div>
           </div>
 
-          <div className="upload-options-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div
+            className="upload-options-list"
+            style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
+          >
             {/* 拍照选项 */}
             {platformCapabilities.hasCamera && (
               <button
@@ -420,7 +448,7 @@ export function AvatarUploader({
                   borderRadius: '12px',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
-                  fontSize: '16px'
+                  fontSize: '16px',
                 }}
               >
                 <div className="option-icon" style={{ marginRight: '16px', fontSize: '20px' }}>
@@ -446,7 +474,7 @@ export function AvatarUploader({
                   borderRadius: '12px',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
-                  fontSize: '16px'
+                  fontSize: '16px',
                 }}
               >
                 <div className="option-icon" style={{ marginRight: '16px', fontSize: '20px' }}>
@@ -474,7 +502,7 @@ export function AvatarUploader({
                 borderRadius: '12px',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
-                fontSize: '16px'
+                fontSize: '16px',
               }}
             >
               <div className="option-icon" style={{ marginRight: '16px', fontSize: '20px' }}>
@@ -497,7 +525,7 @@ export function AvatarUploader({
               borderRadius: '12px',
               cursor: 'pointer',
               fontSize: '16px',
-              color: 'var(--text-secondary)'
+              color: 'var(--text-secondary)',
             }}
           >
             取消
@@ -535,7 +563,7 @@ export function AvatarUploader({
             bottom: 0,
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
             zIndex: 9999,
-            backdropFilter: 'blur(4px)'
+            backdropFilter: 'blur(4px)',
           }}
         ></div>
         <div
@@ -555,7 +583,7 @@ export function AvatarUploader({
             maxHeight: '80vh',
             display: 'flex',
             flexDirection: 'column',
-            animation: 'scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+            animation: 'scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
           <div className="selector-header">
@@ -567,7 +595,7 @@ export function AvatarUploader({
 
           {/* 分类选择 */}
           <div className="category-tabs">
-            {avatarCategories.map(category => (
+            {avatarCategories.map((category) => (
               <button
                 key={category.id}
                 className={`category-tab ${selectedCategory === category.id ? 'active' : ''}`}
@@ -581,7 +609,7 @@ export function AvatarUploader({
 
           {/* 头像网格 */}
           <div className="avatar-grid">
-            {getCurrentCategoryAvatars().map(avatar => (
+            {getCurrentCategoryAvatars().map((avatar) => (
               <button
                 key={avatar.id}
                 className="avatar-option"
@@ -589,11 +617,7 @@ export function AvatarUploader({
                 style={{ backgroundColor: avatar.color }}
                 title={avatar.name}
               >
-                <img
-                  src={getAvatarUrl(avatar)}
-                  alt={avatar.name}
-                  className="avatar-option-image"
-                />
+                <img src={getAvatarUrl(avatar)} alt={avatar.name} className="avatar-option-image" />
               </button>
             ))}
           </div>
@@ -682,7 +706,10 @@ export function AvatarUploader({
                 {isStorageAvailable ? '更换头像' : '选择头像'}
               </div>
               {isStorageAvailable && deviceCapabilities?.supportsDragDrop && (
-                <div className="drag-hint" style={{ fontSize: '12px', marginTop: '4px', opacity: 0.8 }}>
+                <div
+                  className="drag-hint"
+                  style={{ fontSize: '12px', marginTop: '4px', opacity: 0.8 }}
+                >
                   点击或拖拽图片
                 </div>
               )}

@@ -266,9 +266,7 @@ export function CustomDateRangePicker({
       {!error && localStartDate && localEndDate && (
         <div className="date-range-info-compact">
           <i className="fas fa-info-circle"></i>
-          <span>
-            共 {dayjs(localEndDate).diff(dayjs(localStartDate), 'day') + 1} 天
-          </span>
+          <span>共 {dayjs(localEndDate).diff(dayjs(localStartDate), 'day') + 1} 天</span>
         </div>
       )}
     </div>

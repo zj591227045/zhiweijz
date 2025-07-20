@@ -10,19 +10,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
+import {
   MicrophoneIcon,
   EyeIcon,
-  CogIcon as Settings, 
-  BeakerIcon as TestTube, 
-  DocumentArrowDownIcon as Save, 
-  ExclamationCircleIcon as AlertCircle, 
+  CogIcon as Settings,
+  BeakerIcon as TestTube,
+  DocumentArrowDownIcon as Save,
+  ExclamationCircleIcon as AlertCircle,
   CheckCircleIcon,
-  ArrowPathIcon as RefreshCcw 
+  ArrowPathIcon as RefreshCcw,
 } from '@heroicons/react/24/outline';
 import MobileNotSupported from '@/components/admin/MobileNotSupported';
 import PlaceholderHelp from '@/components/admin/PlaceholderHelp';
@@ -57,9 +63,9 @@ interface VisionConfig {
 interface SmartAccountingConfig {
   multimodalPrompt: string;
   // 新增的三个提示词字段
-  relevanceCheckPrompt: string;    // 记账相关性判断提示词
-  smartAccountingPrompt: string;   // 智能记账主要提示词
-  imageAnalysisPrompt: string;     // 图片分析提示词
+  relevanceCheckPrompt: string; // 记账相关性判断提示词
+  smartAccountingPrompt: string; // 智能记账主要提示词
+  imageAnalysisPrompt: string; // 图片分析提示词
 }
 
 interface MultimodalAIConfig {
@@ -117,7 +123,8 @@ export default function MultimodalAIConfigPage() {
       timeout: 60,
     },
     smartAccounting: {
-      multimodalPrompt: '分析图片中的记账信息，提取：1.微信/支付宝付款记录：金额、收款人、备注，并从收款人分析记账类别；2.订单截图（美团/淘宝/京东/外卖/抖音）：内容、金额、时间、收件人；3.发票/票据：内容、分类、金额、时间。返回JSON格式。',
+      multimodalPrompt:
+        '分析图片中的记账信息，提取：1.微信/支付宝付款记录：金额、收款人、备注，并从收款人分析记账类别；2.订单截图（美团/淘宝/京东/外卖/抖音）：内容、金额、时间、收件人；3.发票/票据：内容、分类、金额、时间。返回JSON格式。',
       relevanceCheckPrompt: `你是一个专业的财务助手。请判断以下用户描述是否与记账相关。
 
 判断标准：
@@ -273,7 +280,7 @@ export default function MultimodalAIConfigPage() {
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          setTestResults(prev => ({
+          setTestResults((prev) => ({
             ...prev,
             [type]: data.data,
           }));
@@ -337,9 +344,7 @@ export default function MultimodalAIConfigPage() {
                 <MicrophoneIcon className="w-5 h-5" />
                 语音识别配置
               </CardTitle>
-              <CardDescription>
-                配置语音转文本服务，支持多种音频格式
-              </CardDescription>
+              <CardDescription>配置语音转文本服务，支持多种音频格式</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* 基础配置 */}
@@ -350,9 +355,9 @@ export default function MultimodalAIConfigPage() {
                     id="speech-enabled"
                     checked={config.speech.enabled}
                     onCheckedChange={(checked) =>
-                      setConfig(prev => ({
+                      setConfig((prev) => ({
                         ...prev,
-                        speech: { ...prev.speech, enabled: checked }
+                        speech: { ...prev.speech, enabled: checked },
                       }))
                     }
                   />
@@ -364,23 +369,23 @@ export default function MultimodalAIConfigPage() {
                     <Select
                       value={config.speech.provider}
                       onValueChange={(value) =>
-                      setConfig(prev => {
-                        const newConfig = {
-                          ...prev,
-                          speech: { ...prev.speech, provider: value }
-                        };
-                        
-                        // 根据提供商设置默认值
-                        if (value === 'baidu') {
-                          newConfig.speech.model = 'default';
-                          newConfig.speech.baseUrl = 'https://vop.baidu.com/server_api';
-                        } else if (value === 'siliconflow') {
-                          newConfig.speech.model = 'FunAudioLLM/SenseVoiceSmall';
-                          newConfig.speech.baseUrl = 'https://api.siliconflow.cn/v1';
-                        }
-                        
-                        return newConfig;
-                      })
+                        setConfig((prev) => {
+                          const newConfig = {
+                            ...prev,
+                            speech: { ...prev.speech, provider: value },
+                          };
+
+                          // 根据提供商设置默认值
+                          if (value === 'baidu') {
+                            newConfig.speech.model = 'default';
+                            newConfig.speech.baseUrl = 'https://vop.baidu.com/server_api';
+                          } else if (value === 'siliconflow') {
+                            newConfig.speech.model = 'FunAudioLLM/SenseVoiceSmall';
+                            newConfig.speech.baseUrl = 'https://api.siliconflow.cn/v1';
+                          }
+
+                          return newConfig;
+                        })
                       }
                     >
                       <SelectTrigger>
@@ -402,21 +407,21 @@ export default function MultimodalAIConfigPage() {
                       id="speech-model"
                       value={config.speech.model}
                       onChange={(e) =>
-                        setConfig(prev => ({
+                        setConfig((prev) => ({
                           ...prev,
-                          speech: { ...prev.speech, model: e.target.value }
+                          speech: { ...prev.speech, model: e.target.value },
                         }))
                       }
-                      placeholder={config.speech.provider === 'baidu' ? 
-                        '请输入模型名称，如：default' :
-                        '请输入模型名称，如：FunAudioLLM/SenseVoiceSmall'
+                      placeholder={
+                        config.speech.provider === 'baidu'
+                          ? '请输入模型名称，如：default'
+                          : '请输入模型名称，如：FunAudioLLM/SenseVoiceSmall'
                       }
                     />
                     <p className="text-sm text-gray-500">
-                      {config.speech.provider === 'baidu' ? 
-                        '百度云模型：default (通用普通话)、pro (极速版专业)、longform (长语音/远场)' :
-                        '常用模型：FunAudioLLM/SenseVoiceSmall、whisper-1、speech-to-text-v1'
-                      }
+                      {config.speech.provider === 'baidu'
+                        ? '百度云模型：default (通用普通话)、pro (极速版专业)、longform (长语音/远场)'
+                        : '常用模型：FunAudioLLM/SenseVoiceSmall、whisper-1、speech-to-text-v1'}
                     </p>
                   </div>
                 </div>
@@ -430,14 +435,15 @@ export default function MultimodalAIConfigPage() {
                     type="password"
                     value={config.speech.apiKey}
                     onChange={(e) =>
-                      setConfig(prev => ({
+                      setConfig((prev) => ({
                         ...prev,
-                        speech: { ...prev.speech, apiKey: e.target.value }
+                        speech: { ...prev.speech, apiKey: e.target.value },
                       }))
                     }
-                    placeholder={config.speech.provider === 'baidu' ? 
-                      '请输入百度云应用的 API Key' :
-                      '输入API密钥'
+                    placeholder={
+                      config.speech.provider === 'baidu'
+                        ? '请输入百度云应用的 API Key'
+                        : '输入API密钥'
                     }
                   />
                 </div>
@@ -448,12 +454,16 @@ export default function MultimodalAIConfigPage() {
                     id="speech-base-url"
                     value={config.speech.baseUrl}
                     onChange={(e) =>
-                      setConfig(prev => ({
+                      setConfig((prev) => ({
                         ...prev,
-                        speech: { ...prev.speech, baseUrl: e.target.value }
+                        speech: { ...prev.speech, baseUrl: e.target.value },
                       }))
                     }
-                    placeholder={config.speech.provider === 'baidu' ? 'https://vop.baidu.com/server_api' : 'https://api.siliconflow.cn/v1'}
+                    placeholder={
+                      config.speech.provider === 'baidu'
+                        ? 'https://vop.baidu.com/server_api'
+                        : 'https://api.siliconflow.cn/v1'
+                    }
                     disabled={config.speech.provider === 'baidu'}
                   />
                   {config.speech.provider === 'baidu' && (
@@ -467,33 +477,64 @@ export default function MultimodalAIConfigPage() {
                 {config.speech.provider === 'baidu' && (
                   <>
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                      <h5 className="font-medium text-blue-800 mb-2">📋 百度智能云语音识别配置指南</h5>
+                      <h5 className="font-medium text-blue-800 mb-2">
+                        📋 百度智能云语音识别配置指南
+                      </h5>
                       <div className="text-sm text-blue-700 space-y-3">
                         <div>
                           <p className="font-medium">🔑 1. 获取API凭证</p>
                           <ul className="ml-4 space-y-1">
-                            <li>• 访问 <a href="https://console.bce.baidu.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">百度智能云控制台</a></li>
+                            <li>
+                              • 访问{' '}
+                              <a
+                                href="https://console.bce.baidu.com/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline hover:text-blue-900"
+                              >
+                                百度智能云控制台
+                              </a>
+                            </li>
                             <li>• 选择"产品服务" → "人工智能" → "语音技术"</li>
                             <li>• 创建"语音识别"应用</li>
-                            <li>• 在应用详情页获取 <strong>API Key</strong> 和 <strong>Secret Key</strong></li>
+                            <li>
+                              • 在应用详情页获取 <strong>API Key</strong> 和{' '}
+                              <strong>Secret Key</strong>
+                            </li>
                           </ul>
                         </div>
                         <div>
                           <p className="font-medium">⚙️ 2. 技术规格</p>
                           <ul className="ml-4 space-y-1">
-                            <li>• <strong>音频格式：</strong>wav, mp3, pcm, flac, aac, m4a, amr</li>
-                            <li>• <strong>文件限制：</strong>最大 60MB，时长 ≤ 60秒</li>
-                            <li>• <strong>采样率：</strong>8000Hz 或 16000Hz (推荐16000Hz)</li>
-                            <li>• <strong>声道数：</strong>仅支持单声道 (mono)</li>
-                            <li>• <strong>语言支持：</strong>普通话、英语、粤语、四川话等</li>
+                            <li>
+                              • <strong>音频格式：</strong>wav, mp3, pcm, flac, aac, m4a, amr
+                            </li>
+                            <li>
+                              • <strong>文件限制：</strong>最大 60MB，时长 ≤ 60秒
+                            </li>
+                            <li>
+                              • <strong>采样率：</strong>8000Hz 或 16000Hz (推荐16000Hz)
+                            </li>
+                            <li>
+                              • <strong>声道数：</strong>仅支持单声道 (mono)
+                            </li>
+                            <li>
+                              • <strong>语言支持：</strong>普通话、英语、粤语、四川话等
+                            </li>
                           </ul>
                         </div>
                         <div>
                           <p className="font-medium">🎯 3. 模型类型</p>
                           <ul className="ml-4 space-y-1">
-                            <li>• <strong>default：</strong>通用普通话模型，识别准确率高</li>
-                            <li>• <strong>pro：</strong>极速版专业模型，响应速度快 (500ms内)</li>
-                            <li>• <strong>longform：</strong>长语音/远场模型，适合会议录音</li>
+                            <li>
+                              • <strong>default：</strong>通用普通话模型，识别准确率高
+                            </li>
+                            <li>
+                              • <strong>pro：</strong>极速版专业模型，响应速度快 (500ms内)
+                            </li>
+                            <li>
+                              • <strong>longform：</strong>长语音/远场模型，适合会议录音
+                            </li>
                           </ul>
                         </div>
                         <div>
@@ -501,12 +542,25 @@ export default function MultimodalAIConfigPage() {
                           <ul className="ml-4 space-y-1">
                             <li>• 按实际调用次数计费，无最低消费</li>
                             <li>• 新用户享有免费额度</li>
-                            <li>• 详细价格请查看 <a href="https://cloud.baidu.com/doc/SPEECH/s/price" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">官方价格文档</a></li>
+                            <li>
+                              • 详细价格请查看{' '}
+                              <a
+                                href="https://cloud.baidu.com/doc/SPEECH/s/price"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline hover:text-blue-900"
+                              >
+                                官方价格文档
+                              </a>
+                            </li>
                           </ul>
                         </div>
                         <div className="bg-blue-100 rounded p-2 mt-2">
                           <p className="font-medium text-blue-900">💡 温馨提示</p>
-                          <p className="text-blue-800">首次使用建议选择 <code className="bg-white px-1 rounded">default</code> 模型进行测试，确认效果后再根据业务需求选择合适的模型。</p>
+                          <p className="text-blue-800">
+                            首次使用建议选择 <code className="bg-white px-1 rounded">default</code>{' '}
+                            模型进行测试，确认效果后再根据业务需求选择合适的模型。
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -518,9 +572,9 @@ export default function MultimodalAIConfigPage() {
                         type="password"
                         value={config.speech.secretKey || ''}
                         onChange={(e) =>
-                          setConfig(prev => ({
+                          setConfig((prev) => ({
                             ...prev,
-                            speech: { ...prev.speech, secretKey: e.target.value }
+                            speech: { ...prev.speech, secretKey: e.target.value },
                           }))
                         }
                         placeholder="请输入百度云应用的 Secret Key"
@@ -546,11 +600,11 @@ export default function MultimodalAIConfigPage() {
                   <Button
                     variant="outline"
                     onClick={() => testConnection('speech')}
-                    disabled={!config.speech.enabled || 
-                      (config.speech.provider === 'baidu' ? 
-                        (!config.speech.apiKey || !config.speech.secretKey) :
-                        !config.speech.apiKey
-                      )
+                    disabled={
+                      !config.speech.enabled ||
+                      (config.speech.provider === 'baidu'
+                        ? !config.speech.apiKey || !config.speech.secretKey
+                        : !config.speech.apiKey)
                     }
                   >
                     <TestTube className="w-4 h-4 mr-2" />
@@ -559,20 +613,24 @@ export default function MultimodalAIConfigPage() {
                 </div>
 
                 {testResults.speech && (
-                  <div className={`p-4 rounded-lg border ${
-                    testResults.speech.success 
-                      ? 'bg-green-50 border-green-200' 
-                      : 'bg-red-50 border-red-200'
-                  }`}>
+                  <div
+                    className={`p-4 rounded-lg border ${
+                      testResults.speech.success
+                        ? 'bg-green-50 border-green-200'
+                        : 'bg-red-50 border-red-200'
+                    }`}
+                  >
                     <div className="flex items-center gap-2">
                       {testResults.speech.success ? (
                         <CheckCircleIcon className="w-5 h-5 text-green-600" />
                       ) : (
                         <AlertCircle className="w-5 h-5 text-red-600" />
                       )}
-                      <span className={`font-medium ${
-                        testResults.speech.success ? 'text-green-800' : 'text-red-800'
-                      }`}>
+                      <span
+                        className={`font-medium ${
+                          testResults.speech.success ? 'text-green-800' : 'text-red-800'
+                        }`}
+                      >
                         {testResults.speech.message}
                       </span>
                     </div>
@@ -591,9 +649,7 @@ export default function MultimodalAIConfigPage() {
                 <EyeIcon className="w-5 h-5" />
                 视觉识别配置
               </CardTitle>
-              <CardDescription>
-                配置图片识别服务，支持多种图片格式
-              </CardDescription>
+              <CardDescription>配置图片识别服务，支持多种图片格式</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* 基础配置 */}
@@ -604,9 +660,9 @@ export default function MultimodalAIConfigPage() {
                     id="vision-enabled"
                     checked={config.vision.enabled}
                     onCheckedChange={(checked) =>
-                      setConfig(prev => ({
+                      setConfig((prev) => ({
                         ...prev,
-                        vision: { ...prev.vision, enabled: checked }
+                        vision: { ...prev.vision, enabled: checked },
                       }))
                     }
                   />
@@ -618,9 +674,9 @@ export default function MultimodalAIConfigPage() {
                     <Select
                       value={config.vision.provider}
                       onValueChange={(value) =>
-                        setConfig(prev => ({
+                        setConfig((prev) => ({
                           ...prev,
-                          vision: { ...prev.vision, provider: value }
+                          vision: { ...prev.vision, provider: value },
                         }))
                       }
                     >
@@ -643,9 +699,9 @@ export default function MultimodalAIConfigPage() {
                       id="vision-model"
                       value={config.vision.model}
                       onChange={(e) =>
-                        setConfig(prev => ({
+                        setConfig((prev) => ({
                           ...prev,
-                          vision: { ...prev.vision, model: e.target.value }
+                          vision: { ...prev.vision, model: e.target.value },
                         }))
                       }
                       placeholder="请输入模型名称，如：Qwen/Qwen2.5-VL-72B-Instruct"
@@ -663,9 +719,9 @@ export default function MultimodalAIConfigPage() {
                     type="password"
                     value={config.vision.apiKey}
                     onChange={(e) =>
-                      setConfig(prev => ({
+                      setConfig((prev) => ({
                         ...prev,
-                        vision: { ...prev.vision, apiKey: e.target.value }
+                        vision: { ...prev.vision, apiKey: e.target.value },
                       }))
                     }
                     placeholder="输入API密钥"
@@ -678,9 +734,9 @@ export default function MultimodalAIConfigPage() {
                     id="vision-base-url"
                     value={config.vision.baseUrl}
                     onChange={(e) =>
-                      setConfig(prev => ({
+                      setConfig((prev) => ({
                         ...prev,
-                        vision: { ...prev.vision, baseUrl: e.target.value }
+                        vision: { ...prev.vision, baseUrl: e.target.value },
                       }))
                     }
                     placeholder="https://api.siliconflow.cn/v1"
@@ -692,9 +748,9 @@ export default function MultimodalAIConfigPage() {
                   <Select
                     value={config.vision.detailLevel}
                     onValueChange={(value: 'low' | 'high' | 'auto') =>
-                      setConfig(prev => ({
+                      setConfig((prev) => ({
                         ...prev,
-                        vision: { ...prev.vision, detailLevel: value }
+                        vision: { ...prev.vision, detailLevel: value },
                       }))
                     }
                   >
@@ -730,20 +786,24 @@ export default function MultimodalAIConfigPage() {
                 </div>
 
                 {testResults.vision && (
-                  <div className={`p-4 rounded-lg border ${
-                    testResults.vision.success
-                      ? 'bg-green-50 border-green-200'
-                      : 'bg-red-50 border-red-200'
-                  }`}>
+                  <div
+                    className={`p-4 rounded-lg border ${
+                      testResults.vision.success
+                        ? 'bg-green-50 border-green-200'
+                        : 'bg-red-50 border-red-200'
+                    }`}
+                  >
                     <div className="flex items-center gap-2">
                       {testResults.vision.success ? (
                         <CheckCircleIcon className="w-5 h-5 text-green-600" />
                       ) : (
                         <AlertCircle className="w-5 h-5 text-red-600" />
                       )}
-                      <span className={`font-medium ${
-                        testResults.vision.success ? 'text-green-800' : 'text-red-800'
-                      }`}>
+                      <span
+                        className={`font-medium ${
+                          testResults.vision.success ? 'text-green-800' : 'text-red-800'
+                        }`}
+                      >
                         {testResults.vision.message}
                       </span>
                     </div>
@@ -754,8 +814,6 @@ export default function MultimodalAIConfigPage() {
           </Card>
         </TabsContent>
 
-
-
         {/* 智能记账设置 */}
         <TabsContent value="smart-accounting">
           <Card>
@@ -764,9 +822,7 @@ export default function MultimodalAIConfigPage() {
                 <Settings className="w-5 h-5" />
                 智能记账设置
               </CardTitle>
-              <CardDescription>
-                配置智能记账中的多模态AI功能和提示词
-              </CardDescription>
+              <CardDescription>配置智能记账中的多模态AI功能和提示词</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* 提示词配置 */}
@@ -793,16 +849,23 @@ export default function MultimodalAIConfigPage() {
                     rows={8}
                     value={config.smartAccounting.relevanceCheckPrompt}
                     onChange={(e) =>
-                      setConfig(prev => ({
+                      setConfig((prev) => ({
                         ...prev,
-                        smartAccounting: { ...prev.smartAccounting, relevanceCheckPrompt: e.target.value }
+                        smartAccounting: {
+                          ...prev.smartAccounting,
+                          relevanceCheckPrompt: e.target.value,
+                        },
                       }))
                     }
                   />
                   <div className="text-xs text-muted-foreground">
-                    <p><strong>变量占位符：</strong></p>
+                    <p>
+                      <strong>变量占位符：</strong>
+                    </p>
                     <ul className="list-disc ml-4 mt-1">
-                      <li><code>{'{{description}}'}</code> - 用户输入的描述内容</li>
+                      <li>
+                        <code>{'{{description}}'}</code> - 用户输入的描述内容
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -822,19 +885,32 @@ export default function MultimodalAIConfigPage() {
                     rows={12}
                     value={config.smartAccounting.smartAccountingPrompt}
                     onChange={(e) =>
-                      setConfig(prev => ({
+                      setConfig((prev) => ({
                         ...prev,
-                        smartAccounting: { ...prev.smartAccounting, smartAccountingPrompt: e.target.value }
+                        smartAccounting: {
+                          ...prev.smartAccounting,
+                          smartAccountingPrompt: e.target.value,
+                        },
                       }))
                     }
                   />
                   <div className="text-xs text-muted-foreground">
-                    <p><strong>变量占位符：</strong></p>
+                    <p>
+                      <strong>变量占位符：</strong>
+                    </p>
                     <ul className="list-disc ml-4 mt-1">
-                      <li><code>{'{{categories}}'}</code> - 动态插入的分类列表</li>
-                      <li><code>{'{{budgets}}'}</code> - 动态插入的预算列表</li>
-                      <li><code>{'{{description}}'}</code> - 用户输入的记账描述</li>
-                      <li><code>{'{{currentDate}}'}</code> - 当前日期</li>
+                      <li>
+                        <code>{'{{categories}}'}</code> - 动态插入的分类列表
+                      </li>
+                      <li>
+                        <code>{'{{budgets}}'}</code> - 动态插入的预算列表
+                      </li>
+                      <li>
+                        <code>{'{{description}}'}</code> - 用户输入的记账描述
+                      </li>
+                      <li>
+                        <code>{'{{currentDate}}'}</code> - 当前日期
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -854,14 +930,20 @@ export default function MultimodalAIConfigPage() {
                     rows={10}
                     value={config.smartAccounting.imageAnalysisPrompt}
                     onChange={(e) =>
-                      setConfig(prev => ({
+                      setConfig((prev) => ({
                         ...prev,
-                        smartAccounting: { ...prev.smartAccounting, imageAnalysisPrompt: e.target.value }
+                        smartAccounting: {
+                          ...prev.smartAccounting,
+                          imageAnalysisPrompt: e.target.value,
+                        },
                       }))
                     }
                   />
                   <div className="text-xs text-muted-foreground">
-                    <p><strong>说明：</strong>此提示词用于从图片中提取记账信息，支持微信/支付宝付款记录、电商订单截图、发票票据等场景。</p>
+                    <p>
+                      <strong>说明：</strong>
+                      此提示词用于从图片中提取记账信息，支持微信/支付宝付款记录、电商订单截图、发票票据等场景。
+                    </p>
                   </div>
                 </div>
 
@@ -877,14 +959,20 @@ export default function MultimodalAIConfigPage() {
                     rows={4}
                     value={config.smartAccounting.multimodalPrompt}
                     onChange={(e) =>
-                      setConfig(prev => ({
+                      setConfig((prev) => ({
                         ...prev,
-                        smartAccounting: { ...prev.smartAccounting, multimodalPrompt: e.target.value }
+                        smartAccounting: {
+                          ...prev.smartAccounting,
+                          multimodalPrompt: e.target.value,
+                        },
                       }))
                     }
                   />
                   <div className="text-xs text-muted-foreground">
-                    <p><strong>说明：</strong>这个提示词主要用于向后兼容，当专门的图片分析提示词为空时使用此提示词。</p>
+                    <p>
+                      <strong>说明：</strong>
+                      这个提示词主要用于向后兼容，当专门的图片分析提示词为空时使用此提示词。
+                    </p>
                   </div>
                 </div>
               </div>
@@ -895,21 +983,34 @@ export default function MultimodalAIConfigPage() {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h5 className="font-medium text-blue-800 mb-2">📝 变量占位符说明</h5>
                 <div className="text-sm text-blue-700 space-y-2">
-                  <p><strong>占位符格式：</strong>使用双花括号包围变量名，如 <code className="bg-blue-100 px-1 rounded">{'{{variableName}}'}</code></p>
+                  <p>
+                    <strong>占位符格式：</strong>使用双花括号包围变量名，如{' '}
+                    <code className="bg-blue-100 px-1 rounded">{'{{variableName}}'}</code>
+                  </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
                     <div>
                       <p className="font-medium">记账相关性判断：</p>
                       <ul className="ml-4 space-y-1 text-xs">
-                        <li>• <code>{'{{description}}'}</code> - 用户描述内容</li>
+                        <li>
+                          • <code>{'{{description}}'}</code> - 用户描述内容
+                        </li>
                       </ul>
                     </div>
                     <div>
                       <p className="font-medium">智能记账分析：</p>
                       <ul className="ml-4 space-y-1 text-xs">
-                        <li>• <code>{'{{categories}}'}</code> - 账本分类列表</li>
-                        <li>• <code>{'{{budgets}}'}</code> - 预算列表</li>
-                        <li>• <code>{'{{description}}'}</code> - 记账描述</li>
-                        <li>• <code>{'{{currentDate}}'}</code> - 当前日期</li>
+                        <li>
+                          • <code>{'{{categories}}'}</code> - 账本分类列表
+                        </li>
+                        <li>
+                          • <code>{'{{budgets}}'}</code> - 预算列表
+                        </li>
+                        <li>
+                          • <code>{'{{description}}'}</code> - 记账描述
+                        </li>
+                        <li>
+                          • <code>{'{{currentDate}}'}</code> - 当前日期
+                        </li>
                       </ul>
                     </div>
                   </div>

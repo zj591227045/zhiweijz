@@ -74,7 +74,10 @@ interface UserManagementState {
   deleteUser: (id: string) => Promise<boolean>;
   resetPassword: (id: string, newPassword: string) => Promise<boolean>;
   toggleUserStatus: (id: string) => Promise<boolean>;
-  batchOperation: (userIds: string[], operation: 'activate' | 'deactivate' | 'delete') => Promise<boolean>;
+  batchOperation: (
+    userIds: string[],
+    operation: 'activate' | 'deactivate' | 'delete',
+  ) => Promise<boolean>;
   getRegistrationStatus: () => Promise<void>;
   toggleRegistration: (enabled: boolean) => Promise<boolean>;
   clearSelectedUser: () => void;
@@ -93,17 +96,17 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
     set({ isLoading: true });
     try {
       const response = await adminApi.getWithParams(ADMIN_API_ENDPOINTS.USERS, params);
-      
+
       if (!response.ok) {
         throw new Error('获取用户列表失败');
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
-        set({ 
+        set({
           users: result.data.users,
-          pagination: result.data.pagination
+          pagination: result.data.pagination,
         });
       } else {
         throw new Error(result.message || '获取用户列表失败');
@@ -126,13 +129,13 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
     set({ isLoading: true });
     try {
       const response = await adminApi.get(ADMIN_API_ENDPOINTS.USER_DETAIL(id));
-      
+
       if (!response.ok) {
         throw new Error('获取用户详情失败');
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         set({ selectedUser: result.data.user });
       } else {
@@ -152,7 +155,7 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
       const response = await adminApi.post(ADMIN_API_ENDPOINTS.USERS, data);
 
       const result = await response.json();
-      
+
       if (result.success) {
         toast.success('用户创建成功');
         // 刷新用户列表
@@ -174,7 +177,7 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
       const response = await adminApi.put(ADMIN_API_ENDPOINTS.USER_DETAIL(id), data);
 
       const result = await response.json();
-      
+
       if (result.success) {
         toast.success('用户更新成功');
         // 刷新用户列表
@@ -196,7 +199,7 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
       const response = await adminApi.delete(ADMIN_API_ENDPOINTS.USER_DETAIL(id));
 
       const result = await response.json();
-      
+
       if (result.success) {
         toast.success('用户删除成功');
         // 刷新用户列表
@@ -215,10 +218,12 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   // 重置密码
   resetPassword: async (id: string, newPassword: string) => {
     try {
-      const response = await adminApi.post(ADMIN_API_ENDPOINTS.USER_RESET_PASSWORD(id), { newPassword });
+      const response = await adminApi.post(ADMIN_API_ENDPOINTS.USER_RESET_PASSWORD(id), {
+        newPassword,
+      });
 
       const result = await response.json();
-      
+
       if (result.success) {
         toast.success('密码重置成功');
         return true;
@@ -238,7 +243,7 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
       const response = await adminApi.patch(ADMIN_API_ENDPOINTS.USER_TOGGLE_STATUS(id));
 
       const result = await response.json();
-      
+
       if (result.success) {
         toast.success(`用户${result.data.user.isActive ? '启用' : '禁用'}成功`);
         // 刷新用户列表
@@ -260,9 +265,11 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
       const response = await adminApi.post(ADMIN_API_ENDPOINTS.USER_BATCH, { userIds, operation });
 
       const result = await response.json();
-      
+
       if (result.success) {
-        toast.success(`批量${operation === 'activate' ? '启用' : operation === 'deactivate' ? '禁用' : '删除'}成功`);
+        toast.success(
+          `批量${operation === 'activate' ? '启用' : operation === 'deactivate' ? '禁用' : '删除'}成功`,
+        );
         // 刷新用户列表
         await get().fetchUsers();
         return true;
@@ -295,10 +302,12 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   // 切换注册状态
   toggleRegistration: async (enabled: boolean) => {
     try {
-      const response = await adminApi.put(ADMIN_API_ENDPOINTS.SYSTEM_CONFIG_REGISTRATION, { enabled });
+      const response = await adminApi.put(ADMIN_API_ENDPOINTS.SYSTEM_CONFIG_REGISTRATION, {
+        enabled,
+      });
 
       const result = await response.json();
-      
+
       if (result.success) {
         set({ registrationEnabled: enabled });
         toast.success(`用户注册已${enabled ? '启用' : '禁用'}`);
@@ -317,4 +326,4 @@ export const useUserManagement = create<UserManagementState>((set, get) => ({
   clearSelectedUser: () => {
     set({ selectedUser: null });
   },
-})); 
+}));

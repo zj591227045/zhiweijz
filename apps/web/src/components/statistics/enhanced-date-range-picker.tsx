@@ -59,7 +59,9 @@ export function EnhancedDateRangePicker({
         return (
           <div className="week-display">
             <span className="week-date-start">{startStr}</span>
-            <span className="week-main">{currentPeriod.year}年第{currentPeriod.week || 1}周</span>
+            <span className="week-main">
+              {currentPeriod.year}年第{currentPeriod.week || 1}周
+            </span>
             <span className="week-date-end">{endStr}</span>
           </div>
         );
@@ -101,7 +103,10 @@ export function EnhancedDateRangePicker({
         };
       }
       case 'month': {
-        const monthStart = dayjs().year(period.year).month((period.month || 1) - 1).startOf('month');
+        const monthStart = dayjs()
+          .year(period.year)
+          .month((period.month || 1) - 1)
+          .startOf('month');
         const monthEnd = monthStart.endOf('month');
         return {
           startDate: monthStart.format('YYYY-MM-DD'),
@@ -153,7 +158,7 @@ export function EnhancedDateRangePicker({
   const handlePrevious = () => {
     if (rangeType === 'custom') return;
 
-    let newPeriod = { ...currentPeriod };
+    const newPeriod = { ...currentPeriod };
 
     switch (rangeType) {
       case 'week':
@@ -191,7 +196,7 @@ export function EnhancedDateRangePicker({
   const handleNext = () => {
     if (rangeType === 'custom') return;
 
-    let newPeriod = { ...currentPeriod };
+    const newPeriod = { ...currentPeriod };
 
     switch (rangeType) {
       case 'week':
@@ -289,11 +294,7 @@ export function EnhancedDateRangePicker({
                 <i className="fas fa-chevron-left"></i>
               </button>
 
-              <button
-                className="date-display"
-                onClick={handleToday}
-                title="回到当前时间段"
-              >
+              <button className="date-display" onClick={handleToday} title="回到当前时间段">
                 {getDisplayText()}
               </button>
 
@@ -307,9 +308,7 @@ export function EnhancedDateRangePicker({
               </button>
             </>
           ) : (
-            <div className="custom-date-display">
-              {getDisplayText()}
-            </div>
+            <div className="custom-date-display">{getDisplayText()}</div>
           )}
         </div>
       </div>

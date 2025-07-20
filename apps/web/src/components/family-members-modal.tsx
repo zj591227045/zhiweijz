@@ -19,11 +19,7 @@ interface FamilyMembersModalProps {
   onClose: () => void;
 }
 
-export default function FamilyMembersModal({
-  familyId,
-  isOpen,
-  onClose
-}: FamilyMembersModalProps) {
+export default function FamilyMembersModal({ familyId, isOpen, onClose }: FamilyMembersModalProps) {
   const { isAuthenticated, token } = useAuthStore();
 
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
@@ -167,15 +163,15 @@ export default function FamilyMembersModal({
         '.ios-app .header',
         // 可能的状态栏
         '.status-bar',
-        '.capacitor-status-bar'
+        '.capacitor-status-bar',
       ];
 
       const hiddenElements: HTMLElement[] = [];
 
       // 隐藏所有找到的头部元素
-      selectors.forEach(selector => {
+      selectors.forEach((selector) => {
         const elements = document.querySelectorAll(selector);
-        elements.forEach(element => {
+        elements.forEach((element) => {
           const htmlElement = element as HTMLElement;
           if (htmlElement && htmlElement.style.display !== 'none') {
             htmlElement.style.display = 'none';
@@ -189,12 +185,12 @@ export default function FamilyMembersModal({
         '.bottom-nav',
         '.bottom-navigation',
         '.tab-bar',
-        '.capacitor-tab-bar'
+        '.capacitor-tab-bar',
       ];
 
-      bottomNavSelectors.forEach(selector => {
+      bottomNavSelectors.forEach((selector) => {
         const elements = document.querySelectorAll(selector);
-        elements.forEach(element => {
+        elements.forEach((element) => {
           const htmlElement = element as HTMLElement;
           if (htmlElement && htmlElement.style.display !== 'none') {
             htmlElement.style.display = 'none';
@@ -226,7 +222,7 @@ export default function FamilyMembersModal({
         document.body.classList.remove('modal-open');
 
         // 恢复所有隐藏的元素
-        hiddenElements.forEach(element => {
+        hiddenElements.forEach((element) => {
           element.style.display = '';
         });
 
@@ -271,10 +267,7 @@ export default function FamilyMembersModal({
               <div className="text-muted-foreground">
                 这是一个静态导出的占位符页面。在实际应用中，请通过正确的路由访问成员管理页面。
               </div>
-              <button
-                className="btn btn-primary"
-                onClick={onClose}
-              >
+              <button className="btn btn-primary" onClick={onClose}>
                 返回
               </button>
             </div>

@@ -3,12 +3,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/store/admin/useAdminAuth';
-import { 
-  XMarkIcon,
-  EyeIcon,
-  EyeSlashIcon,
-  KeyIcon
-} from '@heroicons/react/24/outline';
+import { XMarkIcon, EyeIcon, EyeSlashIcon, KeyIcon } from '@heroicons/react/24/outline';
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -20,12 +15,12 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
   const [formData, setFormData] = useState({
     oldPassword: '',
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   const [showPasswords, setShowPasswords] = useState({
     old: false,
     new: false,
-    confirm: false
+    confirm: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -34,13 +29,13 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
     setFormData({
       oldPassword: '',
       newPassword: '',
-      confirmPassword: ''
+      confirmPassword: '',
     });
     setErrors({});
     setShowPasswords({
       old: false,
       new: false,
-      confirm: false
+      confirm: false,
     });
   };
 
@@ -70,7 +65,11 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
       newErrors.confirmPassword = '两次输入的新密码不一致';
     }
 
-    if (formData.oldPassword && formData.newPassword && formData.oldPassword === formData.newPassword) {
+    if (
+      formData.oldPassword &&
+      formData.newPassword &&
+      formData.oldPassword === formData.newPassword
+    ) {
       newErrors.newPassword = '新密码不能与当前密码相同';
     }
 
@@ -88,7 +87,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
 
     try {
       const success = await changePassword(formData.oldPassword, formData.newPassword);
-      
+
       if (success) {
         toast.success('密码修改成功');
         handleClose();
@@ -102,9 +101,9 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
 
   // 切换密码显示状态
   const togglePasswordVisibility = (field: 'old' | 'new' | 'confirm') => {
-    setShowPasswords(prev => ({
+    setShowPasswords((prev) => ({
       ...prev,
-      [field]: !prev[field]
+      [field]: !prev[field],
     }));
   };
 
@@ -114,7 +113,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* 遮罩层 */}
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div 
+        <div
           className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
           onClick={handleClose}
         />
@@ -152,7 +151,9 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
                   type={showPasswords.old ? 'text' : 'password'}
                   id="oldPassword"
                   value={formData.oldPassword}
-                  onChange={(e) => setFormData(prev => ({ ...prev, oldPassword: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, oldPassword: e.target.value }))
+                  }
                   className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.oldPassword ? 'border-red-300' : 'border-gray-300'
                   }`}
@@ -185,7 +186,9 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
                   type={showPasswords.new ? 'text' : 'password'}
                   id="newPassword"
                   value={formData.newPassword}
-                  onChange={(e) => setFormData(prev => ({ ...prev, newPassword: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, newPassword: e.target.value }))
+                  }
                   className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.newPassword ? 'border-red-300' : 'border-gray-300'
                   }`}
@@ -210,7 +213,10 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
 
             {/* 确认新密码 */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 确认新密码
               </label>
               <div className="relative">
@@ -218,7 +224,9 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
                   type={showPasswords.confirm ? 'text' : 'password'}
                   id="confirmPassword"
                   value={formData.confirmPassword}
-                  onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, confirmPassword: e.target.value }))
+                  }
                   className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
                   }`}
@@ -282,4 +290,4 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
       </div>
     </div>
   );
-} 
+}

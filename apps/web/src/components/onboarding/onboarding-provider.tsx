@@ -22,7 +22,8 @@ const debugOnboardingState = () => {
 export function OnboardingProvider() {
   const pathname = usePathname();
   const { isAuthenticated, user, isLoading } = useAuthStore();
-  const { isCompleted, isVisible, startOnboarding, setAccountType, setCurrentStep } = useOnboardingStore();
+  const { isCompleted, isVisible, startOnboarding, setAccountType, setCurrentStep } =
+    useOnboardingStore();
   const { currentAccountBook } = useAccountBookStore();
 
   // 检查是否在不需要显示引导的页面
@@ -44,7 +45,7 @@ export function OnboardingProvider() {
       isVisible,
       isAdminPage,
       isAuthPage,
-      shouldSkipOnboarding
+      shouldSkipOnboarding,
     });
 
     // 如果认证状态还在加载中，不执行任何操作
@@ -76,7 +77,16 @@ export function OnboardingProvider() {
 
       return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, user, isLoading, isCompleted, isVisible, startOnboarding, shouldSkipOnboarding, pathname]);
+  }, [
+    isAuthenticated,
+    user,
+    isLoading,
+    isCompleted,
+    isVisible,
+    startOnboarding,
+    shouldSkipOnboarding,
+    pathname,
+  ]);
 
   // 管理员页面和认证页面不渲染引导弹窗
   if (shouldSkipOnboarding) {

@@ -267,7 +267,9 @@ export const useBudgetFormStore = create<BudgetFormState>()(
             name: budget.name || '',
             amount: budget.amount || 0,
             budgetType: 'GENERAL',
-            startDate: budget.startDate ? dayjs(budget.startDate).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
+            startDate: budget.startDate
+              ? dayjs(budget.startDate).format('YYYY-MM-DD')
+              : dayjs().format('YYYY-MM-DD'),
             endDate: budget.endDate ? dayjs(budget.endDate).format('YYYY-MM-DD') : '',
             isUnlimited: !budget.endDate,
             enableCategoryBudget: budget.enableCategoryBudget || false,
@@ -277,9 +279,9 @@ export const useBudgetFormStore = create<BudgetFormState>()(
         }
       } catch (error) {
         console.error('加载预算数据失败:', error);
-        
+
         let errorMessage = '数据加载失败，请刷新页面重试';
-        
+
         // 检查是否为认证错误
         if (error.response?.status === 401) {
           errorMessage = '请先登录账户';
@@ -292,16 +294,16 @@ export const useBudgetFormStore = create<BudgetFormState>()(
         } else if (error.message) {
           errorMessage = error.message;
         }
-        
+
         toast.error(`加载预算数据失败: ${errorMessage}`);
-        
+
         // 设置默认值以防止 undefined 错误
-        set({ 
+        set({
           isLoading: false,
           budgetType: 'GENERAL', // 设置默认值
           name: '',
           amount: 0,
-          errors: { general: errorMessage }
+          errors: { general: errorMessage },
         });
       }
     },

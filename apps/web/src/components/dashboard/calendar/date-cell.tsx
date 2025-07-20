@@ -23,21 +23,20 @@ export const DateCell = memo(function DateCell({
   dailyStats,
   displayMode,
   onClick,
-  fullDate
+  fullDate,
 }: DateCellProps) {
-  
   const handleClick = () => {
     if (isCurrentMonth) {
       onClick(fullDate);
     }
   };
-  
+
   // 获取显示金额
   const getDisplayAmount = () => {
     if (!dailyStats) return 0;
     return displayMode === 'expense' ? dailyStats.expense : dailyStats.income;
   };
-  
+
   // 格式化金额显示
   const formatAmount = (amount: number) => {
     if (amount === 0) return '';
@@ -54,21 +53,17 @@ export const DateCell = memo(function DateCell({
     // 直接返回金额，不添加正负号（通过CSS颜色区分支出和收入）
     return formatNumber(amount);
   };
-  
+
   const displayAmount = getDisplayAmount();
   const hasData = dailyStats && dailyStats.count > 0;
-  
+
   return (
-    <div 
+    <div
       className={`date-cell ${isCurrentMonth ? 'current-month' : 'other-month'} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${hasData ? 'has-data' : ''}`}
       onClick={handleClick}
     >
       <div className="date-number">{date}</div>
-      {hasData && (
-        <div className={`amount ${displayMode}`}>
-          {formatAmount(displayAmount)}
-        </div>
-      )}
+      {hasData && <div className={`amount ${displayMode}`}>{formatAmount(displayAmount)}</div>}
     </div>
   );
 });

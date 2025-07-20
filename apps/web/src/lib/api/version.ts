@@ -63,12 +63,14 @@ const getApiBaseUrl = (): string => {
     const hostname = window.location.hostname;
 
     // 开发环境 (localhost, 127.0.0.1, 或 .local 域名)
-    if (hostname === 'localhost' ||
-        hostname === '127.0.0.1' ||
-        hostname.endsWith('.local') ||
-        hostname.startsWith('192.168.') ||
-        hostname.startsWith('10.') ||
-        hostname.startsWith('172.')) {
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.endsWith('.local') ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('10.') ||
+      hostname.startsWith('172.')
+    ) {
       return ''; // 使用相对路径
     }
 
@@ -127,7 +129,7 @@ export const versionApi = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });
@@ -148,7 +150,7 @@ export const versionApi = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });
@@ -166,7 +168,7 @@ export const versionApi = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });
@@ -179,10 +181,14 @@ export const versionApi = {
   },
 
   // 获取用户版本状态
-  async getUserVersionStatus(platform: 'web' | 'ios' | 'android', appVersionId: string, token: string) {
+  async getUserVersionStatus(
+    platform: 'web' | 'ios' | 'android',
+    appVersionId: string,
+    token: string,
+  ) {
     const response = await fetch(`/api/version/user/status/${platform}/${appVersionId}`, {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -195,11 +201,15 @@ export const versionApi = {
 
   // 获取用户所有版本状态
   async getUserVersionStatuses(platform?: 'web' | 'ios' | 'android', token?: string) {
-    const url = platform ? `/api/version/user/statuses?platform=${platform}` : '/api/version/user/statuses';
+    const url = platform
+      ? `/api/version/user/statuses?platform=${platform}`
+      : '/api/version/user/statuses';
     const response = await fetch(url, {
-      headers: token ? {
-        'Authorization': `Bearer ${token}`,
-      } : {},
+      headers: token
+        ? {
+            Authorization: `Bearer ${token}`,
+          }
+        : {},
     });
 
     if (!response.ok) {

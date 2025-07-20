@@ -13,7 +13,7 @@ export default function TestIOSPage() {
   useEffect(() => {
     setMounted(true);
     addTestResult('📱 iOS功能测试页面已加载');
-    
+
     // 检查平台信息
     if (typeof window !== 'undefined') {
       const isCapacitor = !!(window as any).Capacitor;
@@ -23,20 +23,24 @@ export default function TestIOSPage() {
   }, []);
 
   const addTestResult = (message: string) => {
-    setTestResults(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
+    setTestResults((prev) => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
   };
 
   const testCameraPermission = async () => {
     setIsLoading(true);
     addTestResult('🔐 开始测试相机权限...');
-    
+
     try {
       const checkResult = await platformPermissions.checkCameraPermission();
-      addTestResult(`📋 相机权限检查结果: ${checkResult.status} - ${checkResult.message || '无附加信息'}`);
-      
+      addTestResult(
+        `📋 相机权限检查结果: ${checkResult.status} - ${checkResult.message || '无附加信息'}`,
+      );
+
       if (checkResult.status !== 'granted') {
         const requestResult = await platformPermissions.requestCameraPermission();
-        addTestResult(`🙋 相机权限请求结果: ${requestResult.status} - ${requestResult.message || '无附加信息'}`);
+        addTestResult(
+          `🙋 相机权限请求结果: ${requestResult.status} - ${requestResult.message || '无附加信息'}`,
+        );
       }
     } catch (error) {
       addTestResult(`❌ 相机权限测试失败: ${error instanceof Error ? error.message : '未知错误'}`);
@@ -48,14 +52,18 @@ export default function TestIOSPage() {
   const testPhotosPermission = async () => {
     setIsLoading(true);
     addTestResult('🔐 开始测试相册权限...');
-    
+
     try {
       const checkResult = await platformPermissions.checkPhotosPermission();
-      addTestResult(`📋 相册权限检查结果: ${checkResult.status} - ${checkResult.message || '无附加信息'}`);
-      
+      addTestResult(
+        `📋 相册权限检查结果: ${checkResult.status} - ${checkResult.message || '无附加信息'}`,
+      );
+
       if (checkResult.status !== 'granted') {
         const requestResult = await platformPermissions.requestPhotosPermission();
-        addTestResult(`🙋 相册权限请求结果: ${requestResult.status} - ${requestResult.message || '无附加信息'}`);
+        addTestResult(
+          `🙋 相册权限请求结果: ${requestResult.status} - ${requestResult.message || '无附加信息'}`,
+        );
       }
     } catch (error) {
       addTestResult(`❌ 相册权限测试失败: ${error instanceof Error ? error.message : '未知错误'}`);
@@ -67,14 +75,14 @@ export default function TestIOSPage() {
   const testTakePhoto = async () => {
     setIsLoading(true);
     addTestResult('📷 开始测试拍照功能...');
-    
+
     try {
       const result = await platformFilePicker.takePhoto({
         quality: 0.8,
         maxWidth: 1024,
         maxHeight: 1024,
       });
-      
+
       if (result) {
         addTestResult(`✅ 拍照成功! 来源: ${result.source}, 文件大小: ${result.file.size} bytes`);
         addTestResult(`📂 文件信息: ${result.file.name} (${result.file.type})`);
@@ -91,22 +99,26 @@ export default function TestIOSPage() {
   const testSelectFromGallery = async () => {
     setIsLoading(true);
     addTestResult('🖼️ 开始测试相册选择功能...');
-    
+
     try {
       const result = await platformFilePicker.pickFromGallery({
         quality: 0.8,
         maxWidth: 1024,
         maxHeight: 1024,
       });
-      
+
       if (result) {
-        addTestResult(`✅ 相册选择成功! 来源: ${result.source}, 文件大小: ${result.file.size} bytes`);
+        addTestResult(
+          `✅ 相册选择成功! 来源: ${result.source}, 文件大小: ${result.file.size} bytes`,
+        );
         addTestResult(`📂 文件信息: ${result.file.name} (${result.file.type})`);
       } else {
         addTestResult('❌ 相册选择失败: 未获取到图片数据');
       }
     } catch (error) {
-      addTestResult(`❌ 相册选择功能测试失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      addTestResult(
+        `❌ 相册选择功能测试失败: ${error instanceof Error ? error.message : '未知错误'}`,
+      );
     } finally {
       setIsLoading(false);
     }
@@ -124,7 +136,7 @@ export default function TestIOSPage() {
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">iOS功能测试</h1>
-        
+
         {/* 测试按钮 */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4">功能测试</h2>
@@ -136,7 +148,7 @@ export default function TestIOSPage() {
             >
               🔐 测试相机权限
             </button>
-            
+
             <button
               onClick={testPhotosPermission}
               disabled={isLoading}
@@ -144,7 +156,7 @@ export default function TestIOSPage() {
             >
               🔐 测试相册权限
             </button>
-            
+
             <button
               onClick={testTakePhoto}
               disabled={isLoading}
@@ -152,7 +164,7 @@ export default function TestIOSPage() {
             >
               📷 测试拍照功能
             </button>
-            
+
             <button
               onClick={testSelectFromGallery}
               disabled={isLoading}
@@ -161,7 +173,7 @@ export default function TestIOSPage() {
               🖼️ 测试相册选择
             </button>
           </div>
-          
+
           <div className="mt-4 flex justify-center">
             <button
               onClick={clearResults}

@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Announcement, Pagination } from '@/store/admin/useAnnouncementManagement';
-import { 
-  PencilIcon, 
+import {
+  PencilIcon,
   TrashIcon,
   EyeIcon,
   CheckIcon,
   XMarkIcon,
   ArchiveBoxIcon,
   ClockIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
@@ -38,14 +38,14 @@ export function AnnouncementList({
   onPublish,
   onUnpublish,
   onArchive,
-  onDelete
+  onDelete,
 }: AnnouncementListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // 处理全选
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      onSelectionChange(announcements.map(a => a.id));
+      onSelectionChange(announcements.map((a) => a.id));
     } else {
       onSelectionChange([]);
     }
@@ -56,7 +56,7 @@ export function AnnouncementList({
     if (checked) {
       onSelectionChange([...selectedIds, id]);
     } else {
-      onSelectionChange(selectedIds.filter(selectedId => selectedId !== id));
+      onSelectionChange(selectedIds.filter((selectedId) => selectedId !== id));
     }
   };
 
@@ -93,21 +93,30 @@ export function AnnouncementList({
   // 获取状态文本
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'PUBLISHED': return '已发布';
-      case 'DRAFT': return '草稿';
-      case 'ARCHIVED': return '已归档';
-      default: return status;
+      case 'PUBLISHED':
+        return '已发布';
+      case 'DRAFT':
+        return '草稿';
+      case 'ARCHIVED':
+        return '已归档';
+      default:
+        return status;
     }
   };
 
   // 获取优先级文本
   const getPriorityText = (priority: string) => {
     switch (priority) {
-      case 'URGENT': return '紧急';
-      case 'HIGH': return '高';
-      case 'NORMAL': return '普通';
-      case 'LOW': return '低';
-      default: return priority;
+      case 'URGENT':
+        return '紧急';
+      case 'HIGH':
+        return '高';
+      case 'NORMAL':
+        return '普通';
+      case 'LOW':
+        return '低';
+      default:
+        return priority;
     }
   };
 
@@ -175,10 +184,14 @@ export function AnnouncementList({
                       {announcement.title}
                     </h3>
                     <div className="flex items-center space-x-2">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(announcement.status)}`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(announcement.status)}`}
+                      >
                         {getStatusText(announcement.status)}
                       </span>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityBadge(announcement.priority)}`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityBadge(announcement.priority)}`}
+                      >
                         {getPriorityText(announcement.priority)}
                       </span>
                     </div>
@@ -186,15 +199,17 @@ export function AnnouncementList({
 
                   {/* 公告摘要 */}
                   <div className="mt-2">
-                    <p className="text-sm text-gray-600 overflow-hidden" style={{
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical'
-                    }}>
-                      {announcement.content.length > 100 
+                    <p
+                      className="text-sm text-gray-600 overflow-hidden"
+                      style={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                      }}
+                    >
+                      {announcement.content.length > 100
                         ? `${announcement.content.substring(0, 100)}...`
-                        : announcement.content
-                      }
+                        : announcement.content}
                     </p>
                   </div>
 
@@ -202,7 +217,11 @@ export function AnnouncementList({
                   {expandedId === announcement.id && (
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                       <div className="prose prose-sm max-w-none">
-                        <div dangerouslySetInnerHTML={{ __html: announcement.content.replace(/\n/g, '<br>') }} />
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: announcement.content.replace(/\n/g, '<br>'),
+                          }}
+                        />
                       </div>
                     </div>
                   )}
@@ -212,16 +231,18 @@ export function AnnouncementList({
                     <div className="flex items-center space-x-4">
                       <span>创建者: {announcement.creator?.username || '未知'}</span>
                       <span>
-                        创建时间: {formatDistanceToNow(new Date(announcement.createdAt), { 
-                          addSuffix: true, 
-                          locale: zhCN 
+                        创建时间:{' '}
+                        {formatDistanceToNow(new Date(announcement.createdAt), {
+                          addSuffix: true,
+                          locale: zhCN,
                         })}
                       </span>
                       {announcement.publishedAt && (
                         <span>
-                          发布时间: {formatDistanceToNow(new Date(announcement.publishedAt), { 
-                            addSuffix: true, 
-                            locale: zhCN 
+                          发布时间:{' '}
+                          {formatDistanceToNow(new Date(announcement.publishedAt), {
+                            addSuffix: true,
+                            locale: zhCN,
                           })}
                         </span>
                       )}
@@ -232,17 +253,21 @@ export function AnnouncementList({
                         </span>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                       <span>阅读率: {announcement.readRate.toFixed(1)}%</span>
-                      <span>({announcement.readCount}/{announcement.totalUsers})</span>
+                      <span>
+                        ({announcement.readCount}/{announcement.totalUsers})
+                      </span>
                     </div>
                   </div>
 
                   {/* 操作按钮 */}
                   <div className="mt-4 flex items-center space-x-2">
                     <button
-                      onClick={() => setExpandedId(expandedId === announcement.id ? null : announcement.id)}
+                      onClick={() =>
+                        setExpandedId(expandedId === announcement.id ? null : announcement.id)
+                      }
                       className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                       <EyeIcon className="h-4 w-4 mr-1" />
@@ -328,7 +353,9 @@ export function AnnouncementList({
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-gray-700">
-                显示第 <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> 到{' '}
+                显示第{' '}
+                <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span>{' '}
+                到{' '}
                 <span className="font-medium">
                   {Math.min(pagination.page * pagination.limit, pagination.total)}
                 </span>{' '}
@@ -336,7 +363,10 @@ export function AnnouncementList({
               </p>
             </div>
             <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <nav
+                className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                aria-label="Pagination"
+              >
                 <button
                   onClick={() => onPageChange(pagination.page - 1)}
                   disabled={pagination.page <= 1}
@@ -344,7 +374,7 @@ export function AnnouncementList({
                 >
                   上一页
                 </button>
-                
+
                 {/* 页码按钮 */}
                 {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
                   const pageNum = i + 1;
@@ -362,7 +392,7 @@ export function AnnouncementList({
                     </button>
                   );
                 })}
-                
+
                 <button
                   onClick={() => onPageChange(pagination.page + 1)}
                   disabled={pagination.page >= pagination.totalPages}
@@ -377,4 +407,4 @@ export function AnnouncementList({
       )}
     </div>
   );
-} 
+}

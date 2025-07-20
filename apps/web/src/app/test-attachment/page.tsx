@@ -16,8 +16,8 @@ const mockAttachments = [
       originalName: '收据-001.jpg',
       mimeType: 'image/jpeg',
       size: 1024 * 500, // 500KB
-      url: 'https://picsum.photos/400/600?random=1'
-    }
+      url: 'https://picsum.photos/400/600?random=1',
+    },
   },
   {
     id: '2',
@@ -30,8 +30,8 @@ const mockAttachments = [
       originalName: '发票-001.pdf',
       mimeType: 'application/pdf',
       size: 1024 * 1024 * 2, // 2MB
-      url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
-    }
+      url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    },
   },
   {
     id: '3',
@@ -44,8 +44,8 @@ const mockAttachments = [
       originalName: '照片-001.jpg',
       mimeType: 'image/jpeg',
       size: 1024 * 800, // 800KB
-      url: 'https://picsum.photos/600/400?random=2'
-    }
+      url: 'https://picsum.photos/600/400?random=2',
+    },
   },
   {
     id: '4',
@@ -58,9 +58,9 @@ const mockAttachments = [
       originalName: '文档-001.jpg',
       mimeType: 'image/jpeg',
       size: 1024 * 300, // 300KB
-      url: 'https://picsum.photos/500/700?random=3'
-    }
-  }
+      url: 'https://picsum.photos/500/700?random=3',
+    },
+  },
 ];
 
 export default function TestAttachmentPage() {
@@ -80,7 +80,7 @@ export default function TestAttachmentPage() {
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h1 className="text-2xl font-bold mb-6">附件上传组件测试</h1>
-          
+
           <div className="space-y-6">
             <div>
               <h2 className="text-lg font-semibold mb-4">增强版附件上传组件</h2>
@@ -98,7 +98,7 @@ export default function TestAttachmentPage() {
                   <li>• 点击预览可全屏查看，支持缩放平移</li>
                 </ul>
               </div>
-              
+
               <TransactionAttachmentUpload
                 transactionId="test-transaction"
                 initialAttachments={attachments}

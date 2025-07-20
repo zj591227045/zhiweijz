@@ -50,13 +50,13 @@ export class AccountingPointsService {
       const response = await apiClient.get('/accounting-points/balance');
       console.log('📊 [AccountingPointsService] API响应:', response);
       console.log('📊 [AccountingPointsService] 响应数据:', response.data);
-      
+
       // 由于API客户端响应拦截器已经返回了response.data，所以这里直接访问response.data
       const balanceData = response.data;
       if (!balanceData) {
         throw new Error('余额数据为空');
       }
-      
+
       console.log('✅ [AccountingPointsService] 最终余额数据:', balanceData);
       return balanceData;
     } catch (error) {
@@ -68,9 +68,12 @@ export class AccountingPointsService {
   /**
    * 获取用户记账点消费记录
    */
-  static async getTransactions(limit: number = 50, offset: number = 0): Promise<AccountingPointsTransaction[]> {
+  static async getTransactions(
+    limit: number = 50,
+    offset: number = 0,
+  ): Promise<AccountingPointsTransaction[]> {
     const response = await apiClient.get('/accounting-points/transactions', {
-      params: { limit, offset }
+      params: { limit, offset },
     });
     return response.data;
   }
@@ -96,7 +99,7 @@ export class AccountingPointsService {
    */
   static async getCheckinHistory(days: number = 30): Promise<CheckinHistory> {
     const response = await apiClient.get('/accounting-points/checkin-history', {
-      params: { days }
+      params: { days },
     });
     return response.data;
   }
@@ -109,7 +112,7 @@ export class AccountingPointsService {
     try {
       const response = await apiClient.post('/accounting-points/consume', {
         points,
-        description
+        description,
       });
       console.log('✅ [AccountingPointsService] 记账点消费成功:', response.data);
       return response.data;

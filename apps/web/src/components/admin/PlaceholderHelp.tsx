@@ -27,7 +27,7 @@ export default function PlaceholderHelp({ type, className = '' }: PlaceholderHel
 
   const loadDescriptions = async () => {
     if (Object.keys(descriptions).length > 0) return; // 已加载过
-    
+
     setLoading(true);
     try {
       const response = await adminApi.get('/api/admin/prompt-utils/placeholders');
@@ -60,22 +60,22 @@ export default function PlaceholderHelp({ type, className = '' }: PlaceholderHel
 
   return (
     <>
-      <Button 
-        variant="ghost" 
-        size="sm" 
+      <Button
+        variant="ghost"
+        size="sm"
         className={`text-blue-600 hover:text-blue-800 hover:bg-blue-50 ${className}`}
         onClick={() => handleOpen(true)}
       >
         <QuestionMarkCircleIcon className="w-4 h-4 mr-1" />
         占位符说明
       </Button>
-      
+
       {open && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           onClick={() => setOpen(false)}
         >
-          <div 
+          <div
             className="bg-white rounded-lg shadow-xl max-w-4xl max-h-[80vh] overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
@@ -92,11 +92,16 @@ export default function PlaceholderHelp({ type, className = '' }: PlaceholderHel
                 onClick={() => setOpen(false)}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
-            
+
             {/* Content */}
             <div className="flex-1 overflow-y-auto px-6 py-4">
               {loading ? (
@@ -109,8 +114,17 @@ export default function PlaceholderHelp({ type, className = '' }: PlaceholderHel
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <h4 className="font-medium text-blue-800 mb-2">📝 基本格式</h4>
                     <div className="text-sm text-blue-700">
-                      <p>占位符格式：<code className="bg-blue-100 px-2 py-1 rounded">{'{{variableName}}'}</code></p>
-                      <p className="mt-2">例如：<code className="bg-blue-100 px-2 py-1 rounded">{'{{description}}'}</code> 会被替换为实际的用户描述内容</p>
+                      <p>
+                        占位符格式：
+                        <code className="bg-blue-100 px-2 py-1 rounded">{'{{variableName}}'}</code>
+                      </p>
+                      <p className="mt-2">
+                        例如：
+                        <code className="bg-blue-100 px-2 py-1 rounded">
+                          {'{{description}}'}
+                        </code>{' '}
+                        会被替换为实际的用户描述内容
+                      </p>
                     </div>
                   </div>
 

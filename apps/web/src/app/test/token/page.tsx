@@ -46,18 +46,18 @@ export default function TokenTestPage() {
         test: testName,
         success: result.success,
         message: result.message,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-      setTestResults(prev => [...prev, testResult]);
+      setTestResults((prev) => [...prev, testResult]);
       await updateTokenStatus();
     } catch (error) {
       const testResult: TestResult = {
         test: testName,
         success: false,
         message: `测试异常: ${error.message}`,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-      setTestResults(prev => [...prev, testResult]);
+      setTestResults((prev) => [...prev, testResult]);
     } finally {
       setIsRunning(false);
     }
@@ -115,7 +115,7 @@ export default function TokenTestPage() {
           ) : (
             <div className="status-loading">加载中...</div>
           )}
-          <button 
+          <button
             className="test-button secondary"
             onClick={updateTokenStatus}
             disabled={isRunning}
@@ -130,12 +130,14 @@ export default function TokenTestPage() {
           <div className="test-buttons">
             <button
               className="test-button"
-              onClick={() => runSingleTest('Token状态检查', () => tokenTestHelper.testCurrentTokenStatus())}
+              onClick={() =>
+                runSingleTest('Token状态检查', () => tokenTestHelper.testCurrentTokenStatus())
+              }
               disabled={isRunning}
             >
               检查Token状态
             </button>
-            
+
             <button
               className="test-button"
               onClick={() => runSingleTest('Token刷新', () => tokenTestHelper.testTokenRefresh())}
@@ -143,7 +145,7 @@ export default function TokenTestPage() {
             >
               手动刷新Token
             </button>
-            
+
             <button
               className="test-button"
               onClick={() => runSingleTest('API调用', () => tokenTestHelper.testApiCall())}
@@ -151,7 +153,7 @@ export default function TokenTestPage() {
             >
               测试API调用
             </button>
-            
+
             <button
               className="test-button"
               onClick={() => tokenTestHelper.runFullTestSuite()}
@@ -177,14 +179,11 @@ export default function TokenTestPage() {
         <div className="results-section">
           <div className="results-header">
             <h3>测试结果</h3>
-            <button
-              className="test-button secondary small"
-              onClick={clearResults}
-            >
+            <button className="test-button secondary small" onClick={clearResults}>
               清除结果
             </button>
           </div>
-          
+
           <div className="results-list">
             {testResults.length === 0 ? (
               <div className="no-results">暂无测试结果</div>
@@ -192,13 +191,9 @@ export default function TokenTestPage() {
               testResults.map((result, index) => (
                 <div key={index} className={`result-item ${result.success ? 'success' : 'error'}`}>
                   <div className="result-header">
-                    <span className="result-icon">
-                      {result.success ? '✅' : '❌'}
-                    </span>
+                    <span className="result-icon">{result.success ? '✅' : '❌'}</span>
                     <span className="result-test">{result.test}</span>
-                    <span className="result-time">
-                      {result.timestamp.toLocaleTimeString()}
-                    </span>
+                    <span className="result-time">{result.timestamp.toLocaleTimeString()}</span>
                   </div>
                   <div className="result-message">{result.message}</div>
                 </div>

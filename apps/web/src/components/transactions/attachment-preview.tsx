@@ -2,7 +2,16 @@
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Download, ZoomIn, ZoomOut, RotateCw, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import {
+  X,
+  Download,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+  ChevronLeft,
+  ChevronRight,
+  Trash2,
+} from 'lucide-react';
 import { AuthenticatedImage } from '@/components/ui/authenticated-image';
 import { processAvatarUrl, getThumbnailProxyUrl } from '@/lib/image-proxy';
 import { Button } from '@/components/ui/button';
@@ -15,8 +24,6 @@ export interface AttachmentFile {
   size: number;
   url?: string;
 }
-
-
 
 // 增强版预览模态框属性
 export interface EnhancedAttachmentPreviewProps {
@@ -36,9 +43,6 @@ export interface EnhancedAttachmentPreviewProps {
   className?: string;
 }
 
-
-
-
 // 格式化文件大小
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
@@ -56,7 +60,7 @@ export function EnhancedAttachmentPreview({
   onClose,
   onNavigate,
   onDownload,
-  className
+  className,
 }: EnhancedAttachmentPreviewProps) {
   const [zoom, setZoom] = useState(1);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -111,7 +115,7 @@ export function EnhancedAttachmentPreview({
     e.preventDefault();
     e.stopPropagation();
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    setZoom(prev => {
+    setZoom((prev) => {
       const newZoom = Math.max(0.5, Math.min(prev + delta, 3));
       console.log('Zoom changed from', prev, 'to', newZoom);
       return newZoom;
@@ -127,8 +131,7 @@ export function EnhancedAttachmentPreview({
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const distance = Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) +
-        Math.pow(touch2.clientY - touch1.clientY, 2)
+        Math.pow(touch2.clientX - touch1.clientX, 2) + Math.pow(touch2.clientY - touch1.clientY, 2),
       );
       lastTouchDistance.current = distance;
       isSwiping.current = false;
@@ -141,76 +144,82 @@ export function EnhancedAttachmentPreview({
     }
   }, []);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      // 双指缩放
-      console.log('Touch move with 2 fingers');
-      e.preventDefault();
-      e.stopPropagation();
-      const touch1 = e.touches[0];
-      const touch2 = e.touches[1];
-      const distance = Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) +
-        Math.pow(touch2.clientY - touch1.clientY, 2)
-      );
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length === 2) {
+        // 双指缩放
+        console.log('Touch move with 2 fingers');
+        e.preventDefault();
+        e.stopPropagation();
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const distance = Math.sqrt(
+          Math.pow(touch2.clientX - touch1.clientX, 2) +
+            Math.pow(touch2.clientY - touch1.clientY, 2),
+        );
 
-      if (lastTouchDistance.current > 0) {
-        const delta = (distance - lastTouchDistance.current) * 0.01;
-        setZoom(prev => {
-          const newZoom = Math.max(0.5, Math.min(prev + delta, 3));
-          console.log('Touch zoom changed from', prev, 'to', newZoom);
-          return newZoom;
-        });
+        if (lastTouchDistance.current > 0) {
+          const delta = (distance - lastTouchDistance.current) * 0.01;
+          setZoom((prev) => {
+            const newZoom = Math.max(0.5, Math.min(prev + delta, 3));
+            console.log('Touch zoom changed from', prev, 'to', newZoom);
+            return newZoom;
+          });
+        }
+
+        lastTouchDistance.current = distance;
+        isSwiping.current = false;
+      } else if (e.touches.length === 1 && isSwiping.current) {
+        // 单指滑动 - 只有在缩放比例为1时才允许滑动切换
+        if (zoom === 1) {
+          const touch = e.touches[0];
+          const deltaX = Math.abs(touch.clientX - touchStartX.current);
+          const deltaY = Math.abs(touch.clientY - touchStartY.current);
+
+          // 如果水平滑动距离大于垂直滑动距离，且超过阈值，阻止默认行为
+          if (deltaX > deltaY && deltaX > 30) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }
+      }
+    },
+    [zoom],
+  );
+
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length < 2) {
+        console.log('Touch end, resetting distance');
+        lastTouchDistance.current = 0;
       }
 
-      lastTouchDistance.current = distance;
-      isSwiping.current = false;
-    } else if (e.touches.length === 1 && isSwiping.current) {
-      // 单指滑动 - 只有在缩放比例为1时才允许滑动切换
-      if (zoom === 1) {
-        const touch = e.touches[0];
-        const deltaX = Math.abs(touch.clientX - touchStartX.current);
+      // 处理滑动切换
+      if (isSwiping.current && e.changedTouches.length > 0 && zoom === 1) {
+        const touch = e.changedTouches[0];
+        const deltaX = touch.clientX - touchStartX.current;
         const deltaY = Math.abs(touch.clientY - touchStartY.current);
 
-        // 如果水平滑动距离大于垂直滑动距离，且超过阈值，阻止默认行为
-        if (deltaX > deltaY && deltaX > 30) {
-          e.preventDefault();
-          e.stopPropagation();
+        // 水平滑动距离大于垂直滑动距离，且超过阈值
+        if (Math.abs(deltaX) > deltaY && Math.abs(deltaX) > 100) {
+          console.log('Swipe detected:', deltaX > 0 ? 'right' : 'left');
+
+          if (deltaX > 0) {
+            // 右滑 - 上一张
+            const prevIndex = currentIndex > 0 ? currentIndex - 1 : files.length - 1;
+            onNavigate(prevIndex);
+          } else {
+            // 左滑 - 下一张
+            const nextIndex = currentIndex < files.length - 1 ? currentIndex + 1 : 0;
+            onNavigate(nextIndex);
+          }
         }
       }
-    }
-  }, [zoom]);
 
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length < 2) {
-      console.log('Touch end, resetting distance');
-      lastTouchDistance.current = 0;
-    }
-
-    // 处理滑动切换
-    if (isSwiping.current && e.changedTouches.length > 0 && zoom === 1) {
-      const touch = e.changedTouches[0];
-      const deltaX = touch.clientX - touchStartX.current;
-      const deltaY = Math.abs(touch.clientY - touchStartY.current);
-
-      // 水平滑动距离大于垂直滑动距离，且超过阈值
-      if (Math.abs(deltaX) > deltaY && Math.abs(deltaX) > 100) {
-        console.log('Swipe detected:', deltaX > 0 ? 'right' : 'left');
-
-        if (deltaX > 0) {
-          // 右滑 - 上一张
-          const prevIndex = currentIndex > 0 ? currentIndex - 1 : files.length - 1;
-          onNavigate(prevIndex);
-        } else {
-          // 左滑 - 下一张
-          const nextIndex = currentIndex < files.length - 1 ? currentIndex + 1 : 0;
-          onNavigate(nextIndex);
-        }
-      }
-    }
-
-    isSwiping.current = false;
-  }, [zoom, currentIndex, files.length, onNavigate]);
+      isSwiping.current = false;
+    },
+    [zoom, currentIndex, files.length, onNavigate],
+  );
 
   const handleDownload = () => {
     if (currentFile && onDownload) {
@@ -281,7 +290,7 @@ export function EnhancedAttachmentPreview({
                     naturalHeight: img.naturalHeight,
                     displayWidth: img.width,
                     displayHeight: img.height,
-                    src: img.src
+                    src: img.src,
                   });
                   setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
                 } else {
@@ -367,7 +376,7 @@ export function EnhancedAttachmentGrid({
   onPreview,
   onRemove,
   disabled = false,
-  className
+  className,
 }: EnhancedAttachmentGridProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -379,9 +388,7 @@ export function EnhancedAttachmentGrid({
     if (!container) return;
 
     setCanScrollLeft(container.scrollLeft > 0);
-    setCanScrollRight(
-      container.scrollLeft < container.scrollWidth - container.clientWidth
-    );
+    setCanScrollRight(container.scrollLeft < container.scrollWidth - container.clientWidth);
   };
 
   useEffect(() => {
@@ -399,13 +406,14 @@ export function EnhancedAttachmentGrid({
     if (!container) return;
 
     const scrollAmount = 200; // 每次滚动200px
-    const newScrollLeft = direction === 'left'
-      ? container.scrollLeft - scrollAmount
-      : container.scrollLeft + scrollAmount;
+    const newScrollLeft =
+      direction === 'left'
+        ? container.scrollLeft - scrollAmount
+        : container.scrollLeft + scrollAmount;
 
     container.scrollTo({
       left: newScrollLeft,
-      behavior: 'smooth'
+      behavior: 'smooth',
     });
   };
 
@@ -470,7 +478,7 @@ function EnhancedAttachmentCard({
   file,
   onPreview,
   onRemove,
-  disabled = false
+  disabled = false,
 }: EnhancedAttachmentCardProps) {
   const isImage = file.mimeType.startsWith('image/');
   const isPDF = file.mimeType === 'application/pdf';
@@ -501,9 +509,7 @@ function EnhancedAttachmentCard({
         ) : (
           <div className="w-full h-full bg-gray-50 flex flex-col items-center justify-center">
             <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-2">
-              <span className="text-red-600 font-semibold text-sm">
-                {isPDF ? 'PDF' : 'FILE'}
-              </span>
+              <span className="text-red-600 font-semibold text-sm">{isPDF ? 'PDF' : 'FILE'}</span>
             </div>
             <span className="text-xs text-gray-500">点击预览</span>
           </div>
@@ -516,9 +522,7 @@ function EnhancedAttachmentCard({
           <p className="text-sm font-medium truncate" title={file.originalName}>
             {file.originalName}
           </p>
-          <p className="text-xs text-gray-500">
-            {formatFileSize(file.size)}
-          </p>
+          <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
         </div>
       </div>
 
@@ -552,7 +556,7 @@ export function AttachmentThumbnail({
   file,
   onClick,
   className,
-  size = 'medium'
+  size = 'medium',
 }: AttachmentThumbnailProps) {
   const isImage = file.mimeType.startsWith('image/');
   const isPDF = file.mimeType === 'application/pdf';
@@ -560,17 +564,17 @@ export function AttachmentThumbnail({
   // 使用useMemo缓存处理后的URL
   const processedUrl = useMemo(() => {
     if (!file.url) return '';
-    
+
     // 如果是图片文件，使用缩略图URL
     if (isImage) {
       return getThumbnailProxyUrl(file.url, {
         width: size === 'small' ? 64 : size === 'medium' ? 96 : 128,
         height: size === 'small' ? 64 : size === 'medium' ? 96 : 128,
         quality: 80,
-        format: 'jpeg'
+        format: 'jpeg',
       });
     }
-    
+
     // 非图片文件使用原始URL处理
     return processAvatarUrl(file.url);
   }, [file.url, isImage, size]);
@@ -589,7 +593,7 @@ export function AttachmentThumbnail({
   };
 
   return (
-    <div 
+    <div
       className={`${getSizeClass()} bg-gray-100 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity ${className || ''}`}
       onClick={onClick}
       title={file.originalName}
@@ -607,9 +611,7 @@ export function AttachmentThumbnail({
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center">
-          <span className="text-xs font-medium text-gray-600">
-            {isPDF ? 'PDF' : 'FILE'}
-          </span>
+          <span className="text-xs font-medium text-gray-600">{isPDF ? 'PDF' : 'FILE'}</span>
         </div>
       )}
     </div>

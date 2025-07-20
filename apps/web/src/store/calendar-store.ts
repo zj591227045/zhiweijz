@@ -36,22 +36,22 @@ export interface GroupedTransactions {
 interface CalendarState {
   // 当前选中月份
   currentMonth: string; // YYYY-MM
-  
+
   // 每日统计数据
   dailyStats: DailyStats[];
-  
+
   // 选中日期的记账记录
   selectedDate: string | null; // YYYY-MM-DD
   selectedTransactions: Transaction[];
-  
+
   // 显示模式：支出或收入
   displayMode: 'expense' | 'income';
-  
+
   // 加载状态
   isLoading: boolean;
   isLoadingTransactions: boolean;
   error: string | null;
-  
+
   // 操作方法
   setCurrentMonth: (month: string) => void;
   setDisplayMode: (mode: 'expense' | 'income') => void;
@@ -66,15 +66,15 @@ interface CalendarState {
 const fetchMonthlyTransactions = async (accountBookId: string, month: string) => {
   const startDate = dayjs(month).startOf('month').format('YYYY-MM-DD');
   const endDate = dayjs(month).endOf('month').format('YYYY-MM-DD');
-  
+
   console.log('获取月度记账数据:', { accountBookId, startDate, endDate });
-  
+
   const response = await transactionService.getGroupedTransactions(accountBookId, {
     startDate,
     endDate,
-    groupBy: 'date'
+    groupBy: 'date',
   });
-  
+
   console.log('月度记账响应:', response);
   return response;
 };
@@ -82,46 +82,46 @@ const fetchMonthlyTransactions = async (accountBookId: string, month: string) =>
 // 处理记账数据，生成每日统计
 const processTransactionsToStats = (transactions: any[]): DailyStats[] => {
   const statsMap = new Map<string, DailyStats>();
-  
+
   transactions.forEach((tx: any) => {
     const date = dayjs(tx.date).format('YYYY-MM-DD');
-    
+
     if (!statsMap.has(date)) {
       statsMap.set(date, {
         date,
         income: 0,
         expense: 0,
-        count: 0
+        count: 0,
       });
     }
-    
+
     const stats = statsMap.get(date)!;
     stats.count++;
-    
+
     if (tx.type === 'INCOME') {
       stats.income += tx.amount;
     } else {
       stats.expense += tx.amount;
     }
   });
-  
-  return Array.from(statsMap.values()).sort((a, b) => 
-    new Date(a.date).getTime() - new Date(b.date).getTime()
+
+  return Array.from(statsMap.values()).sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   );
 };
 
 // 获取指定日期的记账记录
 const fetchDayTransactions = async (accountBookId: string, date: string) => {
   console.log('获取指定日期记账:', { accountBookId, date });
-  
+
   const response = await transactionService.getGroupedTransactions(accountBookId, {
     startDate: date,
     endDate: date,
-    sort: 'date:desc'
+    sort: 'date:desc',
   });
-  
+
   console.log('指定日期记账响应:', response);
-  
+
   if (response?.data && Array.isArray(response.data)) {
     return response.data.map((tx: any) => ({
       id: tx.id,
@@ -133,7 +133,7 @@ const fetchDayTransactions = async (accountBookId: string, date: string) => {
       date: tx.date,
     }));
   }
-  
+
   return [];
 };
 
@@ -148,24 +148,24 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
   isLoading: false,
   isLoadingTransactions: false,
   error: null,
-  
+
   // 设置当前月份
   setCurrentMonth: (month: string) => {
     set({ currentMonth: month });
   },
-  
+
   // 设置显示模式
   setDisplayMode: (mode: 'expense' | 'income') => {
     set({ displayMode: mode });
   },
-  
+
   // 获取月度统计数据
   fetchMonthlyStats: async (accountBookId: string, month: string) => {
     try {
       set({ isLoading: true, error: null });
-      
+
       const response = await fetchMonthlyTransactions(accountBookId, month);
-      
+
       if (response?.data && Array.isArray(response.data)) {
         const dailyStats = processTransactionsToStats(response.data);
         set({ dailyStats, isLoading: false });
@@ -174,47 +174,47 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
       }
     } catch (error) {
       console.error('获取月度统计失败:', error);
-      set({ 
-        isLoading: false, 
+      set({
+        isLoading: false,
         error: '获取月度统计失败',
-        dailyStats: []
+        dailyStats: [],
       });
     }
   },
-  
+
   // 选择日期
   selectDate: (date: string) => {
     set({ selectedDate: date });
   },
-  
+
   // 获取指定日期的记账记录
   fetchDayTransactions: async (accountBookId: string, date: string) => {
     try {
       set({ isLoadingTransactions: true });
-      
+
       const transactions = await fetchDayTransactions(accountBookId, date);
-      
-      set({ 
+
+      set({
         selectedTransactions: transactions,
-        isLoadingTransactions: false 
+        isLoadingTransactions: false,
       });
     } catch (error) {
       console.error('获取当日记账失败:', error);
-      set({ 
+      set({
         isLoadingTransactions: false,
-        selectedTransactions: []
+        selectedTransactions: [],
       });
     }
   },
-  
+
   // 清除选中日期
   clearSelectedDate: () => {
-    set({ 
+    set({
       selectedDate: null,
-      selectedTransactions: []
+      selectedTransactions: [],
     });
   },
-  
+
   // 清空日历数据
   clearCalendarData: () => {
     set({

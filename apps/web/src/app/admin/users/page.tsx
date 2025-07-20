@@ -17,9 +17,9 @@ export default function UsersPage() {
 
   // Web端完整功能
   const { isAuthenticated, token } = useAdminAuth();
-  const { 
-    users, 
-    isLoading, 
+  const {
+    users,
+    isLoading,
     pagination,
     registrationEnabled,
     fetchUsers,
@@ -28,7 +28,7 @@ export default function UsersPage() {
     toggleUserStatus,
     batchOperation,
     getRegistrationStatus,
-    toggleRegistration
+    toggleRegistration,
   } = useUserManagement();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,17 +39,22 @@ export default function UsersPage() {
   // 只在认证完成且有token时才执行API请求
   useEffect(() => {
     if (isAuthenticated && token) {
-      console.log('🔍 [UsersPage] Fetching users and registration status, authenticated:', isAuthenticated, 'hasToken:', !!token);
-      
+      console.log(
+        '🔍 [UsersPage] Fetching users and registration status, authenticated:',
+        isAuthenticated,
+        'hasToken:',
+        !!token,
+      );
+
       // 获取用户列表
       fetchUsers({
         page: 1,
         limit: 20,
         status: statusFilter === 'all' ? undefined : statusFilter,
         sort: sortBy,
-        order: sortOrder
+        order: sortOrder,
       });
-      
+
       // 获取注册状态
       getRegistrationStatus();
     }
@@ -58,7 +63,7 @@ export default function UsersPage() {
   const handleSearch = (term: string) => {
     setSearchTerm(term);
     if (!isAuthenticated || !token) return;
-    
+
     if (term.trim()) {
       searchUsers(term.trim());
     } else {
@@ -67,21 +72,21 @@ export default function UsersPage() {
         limit: 20,
         status: statusFilter === 'all' ? undefined : statusFilter,
         sort: sortBy,
-        order: sortOrder
+        order: sortOrder,
       });
     }
   };
 
   const handlePageChange = (page: number) => {
     if (!isAuthenticated || !token) return;
-    
+
     fetchUsers({
       page,
       limit: 20,
       search: searchTerm.trim() || undefined,
       status: statusFilter === 'all' ? undefined : statusFilter,
       sort: sortBy,
-      order: sortOrder
+      order: sortOrder,
     });
   };
 
@@ -137,4 +142,4 @@ export default function UsersPage() {
       />
     </div>
   );
-} 
+}

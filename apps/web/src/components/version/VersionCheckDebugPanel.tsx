@@ -4,20 +4,20 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Bug, 
-  RefreshCw, 
-  Trash2, 
-  Info, 
+import {
+  Bug,
+  RefreshCw,
+  Trash2,
+  Info,
   AlertTriangle,
   CheckCircle,
   Clock,
-  EyeOff
+  EyeOff,
 } from 'lucide-react';
-import { 
-  useVersionInfo, 
-  useVersionCheckControl, 
-  useManualVersionCheck 
+import {
+  useVersionInfo,
+  useVersionCheckControl,
+  useManualVersionCheck,
 } from '@/components/version/EnhancedVersionProvider';
 import { useVersionCheckDebug } from '@/components/version/AutoVersionChecker';
 
@@ -27,7 +27,7 @@ interface VersionCheckDebugPanelProps {
 
 export function VersionCheckDebugPanel({ className = '' }: VersionCheckDebugPanelProps) {
   const [isClearing, setIsClearing] = useState(false);
-  
+
   // 版本信息和控制
   const versionInfo = useVersionInfo();
   const { isChecking, error, clearError } = useVersionCheckControl();
@@ -45,7 +45,7 @@ export function VersionCheckDebugPanel({ className = '' }: VersionCheckDebugPane
     try {
       clearLocalData();
       // 等待一下让用户看到操作完成
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
     } finally {
       setIsClearing(false);
     }
@@ -59,14 +59,14 @@ export function VersionCheckDebugPanel({ className = '' }: VersionCheckDebugPane
       name: '正常检查',
       description: '执行正常的版本检查',
       action: () => triggerCheck(),
-      icon: RefreshCw
+      icon: RefreshCw,
     },
     {
       name: '手动检查',
       description: '手动触发版本检查',
       action: () => manualCheck(),
-      icon: RefreshCw
-    }
+      icon: RefreshCw,
+    },
   ];
 
   // 只在开发环境显示
@@ -119,7 +119,9 @@ export function VersionCheckDebugPanel({ className = '' }: VersionCheckDebugPane
                     <Info className="w-4 h-4 text-blue-500" />
                     <span className="text-blue-600">有更新</span>
                     {versionInfo.isForceUpdate && (
-                      <Badge variant="destructive" className="text-xs">强制</Badge>
+                      <Badge variant="destructive" className="text-xs">
+                        强制
+                      </Badge>
                     )}
                   </>
                 ) : (
@@ -233,9 +235,7 @@ export function VersionCheckDebugPanel({ className = '' }: VersionCheckDebugPane
               <Trash2 className="w-4 h-4" />
               {isClearing ? '清除中...' : '清除本地数据'}
             </Button>
-            <div className="text-xs text-gray-500 mt-1">
-              清除所有版本检查相关的本地存储数据
-            </div>
+            <div className="text-xs text-gray-500 mt-1">清除所有版本检查相关的本地存储数据</div>
           </div>
         </CardContent>
       </Card>

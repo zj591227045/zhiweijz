@@ -13,35 +13,35 @@ export enum MultimodalErrorType {
   NETWORK_ERROR = 'NETWORK_ERROR',
   TIMEOUT_ERROR = 'TIMEOUT_ERROR',
   CONNECTION_ERROR = 'CONNECTION_ERROR',
-  
+
   // API相关错误
   API_ERROR = 'API_ERROR',
   AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
   AUTHORIZATION_ERROR = 'AUTHORIZATION_ERROR',
   QUOTA_EXCEEDED = 'QUOTA_EXCEEDED',
   RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
-  
+
   // 文件相关错误
   FILE_TOO_LARGE = 'FILE_TOO_LARGE',
   UNSUPPORTED_FORMAT = 'UNSUPPORTED_FORMAT',
   FILE_CORRUPTED = 'FILE_CORRUPTED',
   FILE_UPLOAD_ERROR = 'FILE_UPLOAD_ERROR',
-  
+
   // 媒体相关错误
   MEDIA_PERMISSION_DENIED = 'MEDIA_PERMISSION_DENIED',
   MEDIA_DEVICE_NOT_FOUND = 'MEDIA_DEVICE_NOT_FOUND',
   MEDIA_NOT_SUPPORTED = 'MEDIA_NOT_SUPPORTED',
   RECORDING_ERROR = 'RECORDING_ERROR',
-  
+
   // 处理相关错误
   PROCESSING_ERROR = 'PROCESSING_ERROR',
   RECOGNITION_FAILED = 'RECOGNITION_FAILED',
   INVALID_RESPONSE = 'INVALID_RESPONSE',
-  
+
   // 配置相关错误
   CONFIG_ERROR = 'CONFIG_ERROR',
   SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
-  
+
   // 通用错误
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 }
@@ -65,35 +65,35 @@ const ERROR_MESSAGES: Record<MultimodalErrorType, string> = {
   [MultimodalErrorType.NETWORK_ERROR]: '网络连接失败，请检查网络设置',
   [MultimodalErrorType.TIMEOUT_ERROR]: '请求超时，请稍后重试',
   [MultimodalErrorType.CONNECTION_ERROR]: '无法连接到服务器，请稍后重试',
-  
+
   // API相关错误
   [MultimodalErrorType.API_ERROR]: 'API调用失败，请稍后重试',
   [MultimodalErrorType.AUTHENTICATION_ERROR]: '身份验证失败，请重新登录',
   [MultimodalErrorType.AUTHORIZATION_ERROR]: '权限不足，无法执行此操作',
   [MultimodalErrorType.QUOTA_EXCEEDED]: 'API调用次数已达上限，请稍后重试',
   [MultimodalErrorType.RATE_LIMIT_EXCEEDED]: '请求过于频繁，请稍后重试',
-  
+
   // 文件相关错误
   [MultimodalErrorType.FILE_TOO_LARGE]: '文件大小超过限制',
   [MultimodalErrorType.UNSUPPORTED_FORMAT]: '不支持的文件格式',
   [MultimodalErrorType.FILE_CORRUPTED]: '文件已损坏，请选择其他文件',
   [MultimodalErrorType.FILE_UPLOAD_ERROR]: '文件上传失败，请重试',
-  
+
   // 媒体相关错误
   [MultimodalErrorType.MEDIA_PERMISSION_DENIED]: '需要媒体访问权限，请在浏览器设置中允许',
   [MultimodalErrorType.MEDIA_DEVICE_NOT_FOUND]: '未找到可用的媒体设备',
   [MultimodalErrorType.MEDIA_NOT_SUPPORTED]: '当前浏览器不支持媒体功能',
   [MultimodalErrorType.RECORDING_ERROR]: '录音失败，请重试',
-  
+
   // 处理相关错误
   [MultimodalErrorType.PROCESSING_ERROR]: '处理失败，请重试',
   [MultimodalErrorType.RECOGNITION_FAILED]: '识别失败，请尝试其他方式',
   [MultimodalErrorType.INVALID_RESPONSE]: '服务器响应异常，请重试',
-  
+
   // 配置相关错误
   [MultimodalErrorType.CONFIG_ERROR]: '配置错误，请联系管理员',
   [MultimodalErrorType.SERVICE_UNAVAILABLE]: '服务暂时不可用，请稍后重试',
-  
+
   // 通用错误
   [MultimodalErrorType.UNKNOWN_ERROR]: '发生未知错误，请重试',
 };
@@ -144,7 +144,7 @@ export function parseError(error: any): MultimodalError {
   // HTTP状态码错误
   if (error?.response?.status) {
     const status = error.response.status;
-    
+
     switch (status) {
       case 401:
         return {
@@ -153,7 +153,7 @@ export function parseError(error: any): MultimodalError {
           retryable: false,
           details: error,
         };
-      
+
       case 403:
         return {
           type: MultimodalErrorType.AUTHORIZATION_ERROR,
@@ -161,7 +161,7 @@ export function parseError(error: any): MultimodalError {
           retryable: false,
           details: error,
         };
-      
+
       case 413:
         return {
           type: MultimodalErrorType.FILE_TOO_LARGE,
@@ -169,7 +169,7 @@ export function parseError(error: any): MultimodalError {
           retryable: false,
           details: error,
         };
-      
+
       case 429:
         return {
           type: MultimodalErrorType.RATE_LIMIT_EXCEEDED,
@@ -177,7 +177,7 @@ export function parseError(error: any): MultimodalError {
           retryable: true,
           details: error,
         };
-      
+
       case 500:
       case 502:
       case 503:
@@ -188,7 +188,7 @@ export function parseError(error: any): MultimodalError {
           retryable: true,
           details: error,
         };
-      
+
       default:
         return {
           type: MultimodalErrorType.API_ERROR,
@@ -241,13 +241,13 @@ export function parseError(error: any): MultimodalError {
  */
 export function showError(error: MultimodalError | any, showRetryHint: boolean = true): void {
   const parsedError = parseError(error);
-  
+
   let message = parsedError.userMessage || parsedError.message;
-  
+
   if (showRetryHint && parsedError.retryable) {
     message += '，您可以重试';
   }
-  
+
   toast.error(message);
 }
 
@@ -279,7 +279,7 @@ export function createError(
   type: MultimodalErrorType,
   message?: string,
   details?: any,
-  userMessage?: string
+  userMessage?: string,
 ): MultimodalError {
   return {
     type,

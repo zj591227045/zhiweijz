@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  SignalIcon as Activity, 
+import {
+  SignalIcon as Activity,
   CheckCircleIcon,
   XCircleIcon,
-  ArrowPathIcon as RefreshCcw 
+  ArrowPathIcon as RefreshCcw,
 } from '@heroicons/react/24/outline';
 import { aiService } from '@/lib/api/ai-service';
 import { toast } from 'sonner';
@@ -45,9 +45,9 @@ export default function LLMServiceStatus() {
 
   const getProviderDisplayName = (provider?: string) => {
     const providers: { [key: string]: string } = {
-      'openai': 'OpenAI',
-      'siliconflow': '硅基流动',
-      'custom': '自定义'
+      openai: 'OpenAI',
+      siliconflow: '硅基流动',
+      custom: '自定义',
     };
     return provider ? providers[provider] || provider : '未知';
   };
@@ -72,9 +72,7 @@ export default function LLMServiceStatus() {
           <Activity className="h-5 w-5" />
           LLM 服务状态
         </CardTitle>
-        <CardDescription>
-          查看系统管理员配置的全局LLM服务状态
-        </CardDescription>
+        <CardDescription>查看系统管理员配置的全局LLM服务状态</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* 服务状态 */}
@@ -88,15 +86,10 @@ export default function LLMServiceStatus() {
             <span className="font-medium">全局LLM服务</span>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant={config.enabled ? "default" : "secondary"}>
-              {config.enabled ? "已启用" : "未启用"}
+            <Badge variant={config.enabled ? 'default' : 'secondary'}>
+              {config.enabled ? '已启用' : '未启用'}
             </Badge>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={loadGlobalConfig}
-              disabled={loading}
-            >
+            <Button variant="outline" size="sm" onClick={loadGlobalConfig} disabled={loading}>
               <RefreshCcw className="h-4 w-4" />
             </Button>
           </div>
@@ -117,9 +110,7 @@ export default function LLMServiceStatus() {
               {config.baseUrl && (
                 <div className="col-span-2">
                   <span className="text-gray-600">服务地址:</span>
-                  <p className="font-medium text-xs text-gray-800 break-all">
-                    {config.baseUrl}
-                  </p>
+                  <p className="font-medium text-xs text-gray-800 break-all">{config.baseUrl}</p>
                 </div>
               )}
               {config.temperature !== undefined && (
@@ -149,4 +140,4 @@ export default function LLMServiceStatus() {
       </CardContent>
     </Card>
   );
-} 
+}

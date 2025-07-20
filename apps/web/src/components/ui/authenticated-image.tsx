@@ -24,13 +24,13 @@ export function AuthenticatedImage({
   style,
   onLoad,
   onError,
-  fallback
+  fallback,
 }: AuthenticatedImageProps) {
   const [blobUrl, setBlobUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  
+
   // 获取认证token
   const { token } = useAuthStore();
 
@@ -100,7 +100,7 @@ export function AuthenticatedImage({
 
         const response = await fetch(src, {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
           signal,
         });
@@ -110,7 +110,7 @@ export function AuthenticatedImage({
         }
 
         const blob = await response.blob();
-        
+
         // 检查是否被取消
         if (signal.aborted) return;
 
@@ -130,10 +130,10 @@ export function AuthenticatedImage({
         tempImg.src = url;
       } catch (err) {
         if (signal.aborted) return; // 忽略取消的请求
-        
+
         const error = err instanceof Error ? err : new Error('图片加载失败');
         console.error('❌ 认证图片加载失败:', src, error);
-        
+
         setError(error);
         stableOnError(error);
       } finally {
@@ -169,7 +169,7 @@ export function AuthenticatedImage({
   // 如果正在加载，显示加载状态
   if (isLoading) {
     return (
-      <div 
+      <div
         className={`flex items-center justify-center bg-gray-100 ${className || ''}`}
         style={style}
       >
@@ -183,9 +183,9 @@ export function AuthenticatedImage({
     if (fallback) {
       return <>{fallback}</>;
     }
-    
+
     return (
-      <div 
+      <div
         className={`flex items-center justify-center bg-red-50 text-red-600 text-xs ${className || ''}`}
         style={style}
         title={error.message}
@@ -198,7 +198,7 @@ export function AuthenticatedImage({
   // 如果没有URL，显示空状态
   if (!blobUrl) {
     return (
-      <div 
+      <div
         className={`flex items-center justify-center bg-gray-100 ${className || ''}`}
         style={style}
       >
@@ -263,7 +263,7 @@ export function useAuthenticatedImage(src: string) {
 
         const response = await fetch(src, {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 

@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
+import {
   DocumentTextIcon as FileText,
   FunnelIcon as Filter,
   ArrowDownTrayIcon as Download,
@@ -22,7 +22,7 @@ import {
   CpuChipIcon as Cpu,
   CheckCircleIcon,
   XCircleIcon,
-  ClockIcon
+  ClockIcon,
 } from '@heroicons/react/24/outline';
 import MobileNotSupported from '@/components/admin/MobileNotSupported';
 import { useAdminAuth } from '@/store/admin/useAdminAuth';
@@ -101,13 +101,13 @@ export default function LLMLogsPage() {
   const [statistics, setStatistics] = useState<LogStatistics | null>(null);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
-  
+
   // 分页状态
   const [pagination, setPagination] = useState({
     page: 1,
     pageSize: 20,
     total: 0,
-    totalPages: 0
+    totalPages: 0,
   });
 
   // 筛选状态
@@ -120,7 +120,7 @@ export default function LLMLogsPage() {
     serviceType: '',
     startDate: '',
     endDate: '',
-    search: ''
+    search: '',
   });
 
   // 加载日志列表
@@ -130,13 +130,11 @@ export default function LLMLogsPage() {
       const params = new URLSearchParams({
         page: page.toString(),
         pageSize: pagination.pageSize.toString(),
-        ...Object.fromEntries(
-          Object.entries(filters).filter(([_, value]) => value !== '')
-        )
+        ...Object.fromEntries(Object.entries(filters).filter(([_, value]) => value !== '')),
       });
 
       const response = await adminApi.get(`${ADMIN_API_ENDPOINTS.AI_CALL_LOGS}?${params}`);
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -163,8 +161,10 @@ export default function LLMLogsPage() {
       if (filters.startDate) params.append('startDate', filters.startDate);
       if (filters.endDate) params.append('endDate', filters.endDate);
 
-      const response = await adminApi.get(`${ADMIN_API_ENDPOINTS.AI_CALL_LOGS}/statistics?${params}`);
-      
+      const response = await adminApi.get(
+        `${ADMIN_API_ENDPOINTS.AI_CALL_LOGS}/statistics?${params}`,
+      );
+
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -181,13 +181,11 @@ export default function LLMLogsPage() {
     setExporting(true);
     try {
       const params = new URLSearchParams(
-        Object.fromEntries(
-          Object.entries(filters).filter(([_, value]) => value !== '')
-        )
+        Object.fromEntries(Object.entries(filters).filter(([_, value]) => value !== '')),
       );
 
       const response = await adminApi.get(`${ADMIN_API_ENDPOINTS.AI_CALL_LOGS}/export?${params}`);
-      
+
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -212,7 +210,7 @@ export default function LLMLogsPage() {
 
   // 处理筛选变更
   const handleFilterChange = (key: string, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   // 应用筛选
@@ -232,7 +230,7 @@ export default function LLMLogsPage() {
       serviceType: '',
       startDate: '',
       endDate: '',
-      search: ''
+      search: '',
     });
   };
 
@@ -256,7 +254,12 @@ export default function LLMLogsPage() {
   useEffect(() => {
     // 只在认证完成且有token时才执行API请求
     if (isAuthenticated && token) {
-      console.log('🔍 [LLMLogsPage] Loading logs, authenticated:', isAuthenticated, 'hasToken:', !!token);
+      console.log(
+        '🔍 [LLMLogsPage] Loading logs, authenticated:',
+        isAuthenticated,
+        'hasToken:',
+        !!token,
+      );
       loadLogs();
       loadStatistics();
     }
@@ -294,7 +297,14 @@ export default function LLMLogsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => { loadLogs(); loadStatistics(); }} disabled={loading}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              loadLogs();
+              loadStatistics();
+            }}
+            disabled={loading}
+          >
             <RefreshCcw className="h-4 w-4 mr-2" />
             刷新
           </Button>
@@ -317,13 +327,15 @@ export default function LLMLogsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">总调用次数</p>
-                  <p className="text-2xl font-bold">{statistics?.overview?.totalCalls?.toLocaleString() || '0'}</p>
+                  <p className="text-2xl font-bold">
+                    {statistics?.overview?.totalCalls?.toLocaleString() || '0'}
+                  </p>
                 </div>
                 <FileText className="h-8 w-8 text-blue-500" />
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -331,33 +343,42 @@ export default function LLMLogsPage() {
                   <p className="text-sm text-gray-600">成功率</p>
                   <p className="text-2xl font-bold">
                     {(statistics?.overview?.totalCalls || 0) > 0
-                      ? (((statistics?.overview?.successCalls || 0) / (statistics?.overview?.totalCalls || 1)) * 100).toFixed(1)
-                      : 0}%
+                      ? (
+                          ((statistics?.overview?.successCalls || 0) /
+                            (statistics?.overview?.totalCalls || 1)) *
+                          100
+                        ).toFixed(1)
+                      : 0}
+                    %
                   </p>
                 </div>
                 <CheckCircleIcon className="h-8 w-8 text-green-500" />
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">总Token数</p>
-                  <p className="text-2xl font-bold">{statistics?.overview?.totalTokens?.toLocaleString() || '0'}</p>
+                  <p className="text-2xl font-bold">
+                    {statistics?.overview?.totalTokens?.toLocaleString() || '0'}
+                  </p>
                 </div>
                 <Cpu className="h-8 w-8 text-purple-500" />
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">平均响应时间</p>
-                  <p className="text-2xl font-bold">{formatDuration(statistics?.overview?.avgDuration || 0)}</p>
+                  <p className="text-2xl font-bold">
+                    {formatDuration(statistics?.overview?.avgDuration || 0)}
+                  </p>
                 </div>
                 <ClockIcon className="h-8 w-8 text-orange-500" />
               </div>
@@ -509,16 +530,12 @@ export default function LLMLogsPage() {
               <FileText className="h-5 w-5" />
               调用日志
             </span>
-            <span className="text-sm font-normal text-gray-600">
-              共 {pagination.total} 条记录
-            </span>
+            <span className="text-sm font-normal text-gray-600">共 {pagination.total} 条记录</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {logs.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              暂无日志记录
-            </div>
+            <div className="text-center py-8 text-gray-500">暂无日志记录</div>
           ) : (
             <div className="space-y-4">
               {/* 表格头部 */}
@@ -571,17 +588,19 @@ export default function LLMLogsPage() {
                         {log.ai_service_type === 'llm' ? (
                           <>
                             <p className="text-sm">
-                              <span className="text-gray-600">总计:</span> {log.total_tokens?.toLocaleString() || 'N/A'}
+                              <span className="text-gray-600">总计:</span>{' '}
+                              {log.total_tokens?.toLocaleString() || 'N/A'}
                             </p>
                             <p className="text-xs text-gray-500">
-                              输入: {log.prompt_tokens?.toLocaleString() || 'N/A'} |
-                              输出: {log.completion_tokens?.toLocaleString() || 'N/A'}
+                              输入: {log.prompt_tokens?.toLocaleString() || 'N/A'} | 输出:{' '}
+                              {log.completion_tokens?.toLocaleString() || 'N/A'}
                             </p>
                           </>
                         ) : (
                           <>
                             <p className="text-sm">
-                              <span className="text-gray-600">输入大小:</span> {log.input_size ? `${(log.input_size / 1024).toFixed(1)}KB` : 'N/A'}
+                              <span className="text-gray-600">输入大小:</span>{' '}
+                              {log.input_size ? `${(log.input_size / 1024).toFixed(1)}KB` : 'N/A'}
                             </p>
                             <p className="text-xs text-gray-500">
                               格式: {log.input_format || 'N/A'}
@@ -589,9 +608,7 @@ export default function LLMLogsPage() {
                           </>
                         )}
                         {log.cost && (
-                          <p className="text-xs text-green-600">
-                            成本: {formatCost(log.cost)}
-                          </p>
+                          <p className="text-xs text-green-600">成本: {formatCost(log.cost)}</p>
                         )}
                       </div>
                     </div>
@@ -600,7 +617,8 @@ export default function LLMLogsPage() {
                     <div className="col-span-2">
                       <div className="space-y-1">
                         <p className="text-sm">
-                          <span className="text-gray-600">响应时间:</span> {formatDuration(log.duration)}
+                          <span className="text-gray-600">响应时间:</span>{' '}
+                          {formatDuration(log.duration)}
                         </p>
                         {log.user_message && (
                           <p className="text-xs text-gray-500 truncate" title={log.user_message}>
@@ -608,7 +626,10 @@ export default function LLMLogsPage() {
                           </p>
                         )}
                         {log.assistant_message && (
-                          <p className="text-xs text-blue-500 truncate" title={log.assistant_message}>
+                          <p
+                            className="text-xs text-blue-500 truncate"
+                            title={log.assistant_message}
+                          >
                             回复: {log.assistant_message.substring(0, 30)}...
                           </p>
                         )}
@@ -638,9 +659,7 @@ export default function LLMLogsPage() {
                         ) : (
                           <>
                             <XCircleIcon className="h-5 w-5 text-red-500" />
-                            <Badge variant="destructive">
-                              失败
-                            </Badge>
+                            <Badge variant="destructive">失败</Badge>
                           </>
                         )}
                       </div>
@@ -660,8 +679,9 @@ export default function LLMLogsPage() {
           {pagination.totalPages > 1 && (
             <div className="flex items-center justify-between mt-6">
               <div className="text-sm text-gray-600">
-                显示第 {((pagination.page - 1) * pagination.pageSize) + 1} - {Math.min(pagination.page * pagination.pageSize, pagination.total)} 条，
-                共 {pagination.total} 条记录
+                显示第 {(pagination.page - 1) * pagination.pageSize + 1} -{' '}
+                {Math.min(pagination.page * pagination.pageSize, pagination.total)} 条， 共{' '}
+                {pagination.total} 条记录
               </div>
               <div className="flex gap-2">
                 <Button

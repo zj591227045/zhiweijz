@@ -34,15 +34,14 @@ export function AccountTypeStep() {
     setCurrentStep: typeof setCurrentStep,
   });
 
-  const { currentAccountBook, fetchAccountBooks, setCurrentAccountBook, accountBooks } = useAccountBookStore();
+  const { currentAccountBook, fetchAccountBooks, setCurrentAccountBook, accountBooks } =
+    useAccountBookStore();
 
   const [localFamilyName, setLocalFamilyName] = useState(familyName);
   const [localInviteCode, setLocalInviteCode] = useState(inviteCode);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showSkipPrompt, setShowSkipPrompt] = useState(false);
-
-
 
   // 专门的方法来跳转到预算设置步骤
   const goToBudgetSetup = () => {
@@ -136,7 +135,7 @@ export function AccountTypeStep() {
     try {
       // 调用创建家庭API
       const response = await FamilyApiService.createFamily({
-        name: localFamilyName.trim()
+        name: localFamilyName.trim(),
       });
 
       setFamilyName(localFamilyName);
@@ -149,27 +148,33 @@ export function AccountTypeStep() {
         await fetchAccountBooks();
 
         // 等待一小段时间确保状态更新
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         // 重新获取最新的账本列表
         const { accountBooks: latestAccountBooks } = useAccountBookStore.getState();
 
         // 查找对应的家庭账本
-        const familyAccountBook = latestAccountBooks.find(book =>
-          book.familyId === response.id && book.type === 'FAMILY'
+        const familyAccountBook = latestAccountBooks.find(
+          (book) => book.familyId === response.id && book.type === 'FAMILY',
         );
 
         if (familyAccountBook) {
           await setCurrentAccountBook(familyAccountBook.id);
-          console.log('✅ [AccountType] Successfully switched to family account book:', familyAccountBook.name);
+          console.log(
+            '✅ [AccountType] Successfully switched to family account book:',
+            familyAccountBook.name,
+          );
         } else {
           console.warn('⚠️ [AccountType] Family account book not found for family:', response.id);
-          console.log('📚 [AccountType] Available account books:', latestAccountBooks.map(book => ({
-            id: book.id,
-            name: book.name,
-            type: book.type,
-            familyId: book.familyId
-          })));
+          console.log(
+            '📚 [AccountType] Available account books:',
+            latestAccountBooks.map((book) => ({
+              id: book.id,
+              name: book.name,
+              type: book.type,
+              familyId: book.familyId,
+            })),
+          );
         }
       } catch (error) {
         console.error('❌ [AccountType] Failed to switch account book:', error);
@@ -192,7 +197,7 @@ export function AccountTypeStep() {
 
       console.log('🏠 [AccountType] Family created successfully:', {
         familyId: response.id,
-        familyName: localFamilyName
+        familyName: localFamilyName,
       });
 
       // 跳转到邀请码展示步骤
@@ -220,7 +225,7 @@ export function AccountTypeStep() {
     try {
       // 调用加入家庭API
       const response = await FamilyApiService.joinFamily({
-        invitationCode: localInviteCode.trim()
+        invitationCode: localInviteCode.trim(),
       });
 
       setInviteCode(localInviteCode);
@@ -229,32 +234,44 @@ export function AccountTypeStep() {
 
       // 立即切换到加入的家庭账本
       try {
-        console.log('📚 [AccountType] Switching to joined family account book for family:', response.id);
+        console.log(
+          '📚 [AccountType] Switching to joined family account book for family:',
+          response.id,
+        );
         // 先刷新账本列表
         await fetchAccountBooks();
 
         // 等待一小段时间确保状态更新
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         // 重新获取最新的账本列表
         const { accountBooks: latestAccountBooks } = useAccountBookStore.getState();
 
         // 查找对应的家庭账本
-        const familyAccountBook = latestAccountBooks.find(book =>
-          book.familyId === response.id && book.type === 'FAMILY'
+        const familyAccountBook = latestAccountBooks.find(
+          (book) => book.familyId === response.id && book.type === 'FAMILY',
         );
 
         if (familyAccountBook) {
           await setCurrentAccountBook(familyAccountBook.id);
-          console.log('✅ [AccountType] Successfully switched to joined family account book:', familyAccountBook.name);
+          console.log(
+            '✅ [AccountType] Successfully switched to joined family account book:',
+            familyAccountBook.name,
+          );
         } else {
-          console.warn('⚠️ [AccountType] Joined family account book not found for family:', response.id);
-          console.log('📚 [AccountType] Available account books:', latestAccountBooks.map(book => ({
-            id: book.id,
-            name: book.name,
-            type: book.type,
-            familyId: book.familyId
-          })));
+          console.warn(
+            '⚠️ [AccountType] Joined family account book not found for family:',
+            response.id,
+          );
+          console.log(
+            '📚 [AccountType] Available account books:',
+            latestAccountBooks.map((book) => ({
+              id: book.id,
+              name: book.name,
+              type: book.type,
+              familyId: book.familyId,
+            })),
+          );
         }
       } catch (error) {
         console.error('❌ [AccountType] Failed to switch account book:', error);
@@ -273,8 +290,6 @@ export function AccountTypeStep() {
     }
   };
 
-
-
   return (
     <div className="onboarding-step">
       {/* 欢迎区域 */}
@@ -289,8 +304,6 @@ export function AccountTypeStep() {
         让我们为您设置最适合的记账方式，开始您的财务管理之旅
       </div>
 
-
-
       {/* 账本类型选择 */}
       {!selectedAccountType && (
         <div className="onboarding-options">
@@ -303,24 +316,17 @@ export function AccountTypeStep() {
             </div>
             <div className="onboarding-option-content">
               <div className="onboarding-option-title">个人记账</div>
-              <div className="onboarding-option-description">
-                管理个人收支，简单高效
-              </div>
+              <div className="onboarding-option-description">管理个人收支，简单高效</div>
             </div>
           </div>
 
-          <div
-            className="onboarding-option-card"
-            onClick={() => handleAccountTypeSelect('family')}
-          >
+          <div className="onboarding-option-card" onClick={() => handleAccountTypeSelect('family')}>
             <div className="onboarding-option-icon">
               <i className="fas fa-users"></i>
             </div>
             <div className="onboarding-option-content">
               <div className="onboarding-option-title">家庭记账</div>
-              <div className="onboarding-option-description">
-                与家人共同管理家庭财务
-              </div>
+              <div className="onboarding-option-description">与家人共同管理家庭财务</div>
             </div>
           </div>
         </div>
@@ -366,24 +372,17 @@ export function AccountTypeStep() {
             </div>
             <div className="onboarding-option-content">
               <div className="onboarding-option-title">创建家庭</div>
-              <div className="onboarding-option-description">
-                创建新的家庭账本，邀请家人加入
-              </div>
+              <div className="onboarding-option-description">创建新的家庭账本，邀请家人加入</div>
             </div>
           </div>
 
-          <div
-            className="onboarding-option-card"
-            onClick={() => handleFamilyActionSelect('join')}
-          >
+          <div className="onboarding-option-card" onClick={() => handleFamilyActionSelect('join')}>
             <div className="onboarding-option-icon">
               <i className="fas fa-sign-in-alt"></i>
             </div>
             <div className="onboarding-option-content">
               <div className="onboarding-option-title">加入家庭</div>
-              <div className="onboarding-option-description">
-                使用邀请码加入现有家庭
-              </div>
+              <div className="onboarding-option-description">使用邀请码加入现有家庭</div>
             </div>
           </div>
         </div>
@@ -513,8 +512,6 @@ export function AccountTypeStep() {
           </div>
         </div>
       )}
-
-
     </div>
   );
 }

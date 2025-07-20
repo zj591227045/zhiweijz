@@ -24,16 +24,11 @@ export default function VersionCheckDebugPage() {
   }
 
   return (
-    <PageContainer
-      title="版本检查调试"
-      showHeader={true}
-      showBottomNav={false}
-      className="pb-6"
-    >
+    <PageContainer title="版本检查调试" showHeader={true} showBottomNav={false} className="pb-6">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* 调试面板 */}
         <VersionCheckDebugPanel />
-        
+
         {/* 版本设置 */}
         <VersionCheckSettings />
       </div>

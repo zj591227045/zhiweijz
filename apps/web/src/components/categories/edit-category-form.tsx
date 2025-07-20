@@ -6,7 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { TransactionType } from '@/types';
 import { useCategoryStore } from '@/store/category-store';
@@ -16,17 +22,49 @@ import { getIconClass } from '@/lib/utils';
 
 // 可用的分类图标
 const availableIcons = [
-  'restaurant', 'shopping', 'daily', 'transport', 'sports', 'entertainment',
-  'clothing', 'clinic', 'beauty', 'housing', 'communication', 'electronics',
-  'social', 'travel', 'digital', 'car', 'medical', 'reading',
-  'investment', 'education', 'office', 'repair', 'insurance', 'salary',
-  'part-time', 'investment-income', 'bonus', 'commission', 'other'
+  'restaurant',
+  'shopping',
+  'daily',
+  'transport',
+  'sports',
+  'entertainment',
+  'clothing',
+  'clinic',
+  'beauty',
+  'housing',
+  'communication',
+  'electronics',
+  'social',
+  'travel',
+  'digital',
+  'car',
+  'medical',
+  'reading',
+  'investment',
+  'education',
+  'office',
+  'repair',
+  'insurance',
+  'salary',
+  'part-time',
+  'investment-income',
+  'bonus',
+  'commission',
+  'other',
 ];
 
 // 预设颜色
 const presetColors = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-  '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
+  '#FF6B6B',
+  '#4ECDC4',
+  '#45B7D1',
+  '#96CEB4',
+  '#FFEAA7',
+  '#DDA0DD',
+  '#98D8C8',
+  '#F7DC6F',
+  '#BB8FCE',
+  '#85C1E9',
 ];
 
 interface FormData {
@@ -43,7 +81,7 @@ interface EditCategoryFormProps {
 
 export default function EditCategoryForm({ categoryId }: EditCategoryFormProps) {
   const router = useRouter();
-  
+
   const { categories, updateCategory, fetchCategories, getCategory } = useCategoryStore();
   const { currentAccountBook } = useAccountBookStore();
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +92,7 @@ export default function EditCategoryForm({ categoryId }: EditCategoryFormProps) 
     type: TransactionType.EXPENSE,
     icon: 'restaurant',
     color: '#FF6B6B',
-    isHidden: false
+    isHidden: false,
   });
 
   // 初始化获取分类数据
@@ -62,20 +100,20 @@ export default function EditCategoryForm({ categoryId }: EditCategoryFormProps) 
     const initializeData = async () => {
       try {
         setIsInitialLoading(true);
-        
+
         // 如果分类列表为空，先获取分类列表
         if (categories.length === 0) {
           await fetchCategories();
         }
-        
+
         // 尝试从已有分类列表中查找
-        let foundCategory = categories.find(cat => cat.id === categoryId);
-        
+        let foundCategory = categories.find((cat) => cat.id === categoryId);
+
         // 如果在分类列表中没找到，直接获取该分类
         if (!foundCategory && categoryId !== 'placeholder') {
           foundCategory = await getCategory(categoryId);
         }
-        
+
         if (foundCategory) {
           setCategory(foundCategory);
           setFormData({
@@ -83,7 +121,7 @@ export default function EditCategoryForm({ categoryId }: EditCategoryFormProps) 
             type: foundCategory.type,
             icon: foundCategory.icon || 'restaurant',
             color: foundCategory.color || '#FF6B6B',
-            isHidden: foundCategory.isHidden || false
+            isHidden: foundCategory.isHidden || false,
           });
         }
       } catch (error) {
@@ -102,15 +140,15 @@ export default function EditCategoryForm({ categoryId }: EditCategoryFormProps) 
   }, [categoryId, categories, fetchCategories, getCategory]);
 
   const handleInputChange = (field: keyof FormData, value: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim()) {
       toast.error('请输入分类名称');
       return;
@@ -130,7 +168,7 @@ export default function EditCategoryForm({ categoryId }: EditCategoryFormProps) 
         color: formData.color,
         isHidden: formData.isHidden,
       });
-      
+
       if (success) {
         toast.success('分类更新成功');
         router.push('/settings/categories');
@@ -164,9 +202,7 @@ export default function EditCategoryForm({ categoryId }: EditCategoryFormProps) 
         <Card>
           <CardContent className="text-center py-8">
             <div className="mb-4">未找到该分类</div>
-            <Button onClick={() => router.push('/settings/categories')}>
-              返回分类列表
-            </Button>
+            <Button onClick={() => router.push('/settings/categories')}>返回分类列表</Button>
           </CardContent>
         </Card>
       </div>
@@ -198,9 +234,7 @@ export default function EditCategoryForm({ categoryId }: EditCategoryFormProps) 
                 placeholder="请输入分类名称"
                 disabled={isDefaultCategory}
               />
-              {isDefaultCategory && (
-                <p className="text-sm text-gray-500">默认分类名称不可修改</p>
-              )}
+              {isDefaultCategory && <p className="text-sm text-gray-500">默认分类名称不可修改</p>}
             </div>
 
             {/* 分类类型 */}
@@ -219,9 +253,7 @@ export default function EditCategoryForm({ categoryId }: EditCategoryFormProps) 
                   <SelectItem value={TransactionType.INCOME}>收入</SelectItem>
                 </SelectContent>
               </Select>
-              {isDefaultCategory && (
-                <p className="text-sm text-gray-500">默认分类类型不可修改</p>
-              )}
+              {isDefaultCategory && <p className="text-sm text-gray-500">默认分类类型不可修改</p>}
             </div>
 
             {/* 分类图标 */}
@@ -236,9 +268,10 @@ export default function EditCategoryForm({ categoryId }: EditCategoryFormProps) 
                     className={`
                       p-3 rounded-lg border-2 transition-all duration-200 
                       flex flex-col items-center gap-1 hover:scale-105
-                      ${formData.icon === iconName
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                      ${
+                        formData.icon === iconName
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
                       }
                     `}
                   >
@@ -283,9 +316,7 @@ export default function EditCategoryForm({ categoryId }: EditCategoryFormProps) 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>隐藏分类</Label>
-                <p className="text-sm text-gray-500">
-                  隐藏后该分类不会在添加记录时显示
-                </p>
+                <p className="text-sm text-gray-500">隐藏后该分类不会在添加记录时显示</p>
               </div>
               <Switch
                 checked={formData.isHidden}
@@ -326,11 +357,7 @@ export default function EditCategoryForm({ categoryId }: EditCategoryFormProps) 
                 <i className="fas fa-arrow-left mr-2" />
                 取消
               </Button>
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="flex-1"
-              >
+              <Button type="submit" disabled={isLoading} className="flex-1">
                 <i className="fas fa-save mr-2" />
                 {isLoading ? '保存中...' : '保存修改'}
               </Button>
@@ -340,4 +367,4 @@ export default function EditCategoryForm({ categoryId }: EditCategoryFormProps) 
       </Card>
     </div>
   );
-} 
+}

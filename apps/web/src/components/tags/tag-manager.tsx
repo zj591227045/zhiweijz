@@ -61,9 +61,11 @@ export const TagManager: React.FC<TagManagerProps> = ({
         setTags(response.data.tags);
         setPage(1);
       } else {
-        setTags(prev => currentPage === 1 ? response.data.tags : [...prev, ...response.data.tags]);
+        setTags((prev) =>
+          currentPage === 1 ? response.data.tags : [...prev, ...response.data.tags],
+        );
       }
-      
+
       setTotalPages(response.data.pagination.totalPages);
     } catch (error) {
       console.error('获取标签列表失败:', error);
@@ -82,8 +84,8 @@ export const TagManager: React.FC<TagManagerProps> = ({
     try {
       const response = await tagApi.createTag(data);
       const newTag = response.data;
-      
-      setTags(prev => [newTag, ...prev]);
+
+      setTags((prev) => [newTag, ...prev]);
       setShowCreateModal(false);
       onTagCreate?.(newTag);
     } catch (error) {
@@ -97,8 +99,8 @@ export const TagManager: React.FC<TagManagerProps> = ({
     try {
       const response = await tagApi.updateTag(tagId, data);
       const updatedTag = response.data;
-      
-      setTags(prev => prev.map(tag => tag.id === tagId ? updatedTag : tag));
+
+      setTags((prev) => prev.map((tag) => (tag.id === tagId ? updatedTag : tag)));
       setEditingTag(null);
       onTagUpdate?.(updatedTag);
     } catch (error) {
@@ -115,7 +117,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
 
     try {
       await tagApi.deleteTag(tag.id);
-      setTags(prev => prev.filter(t => t.id !== tag.id));
+      setTags((prev) => prev.filter((t) => t.id !== tag.id));
       onTagDelete?.(tag.id);
     } catch (error) {
       console.error('删除标签失败:', error);
@@ -126,7 +128,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
   // 加载更多
   const handleLoadMore = () => {
     if (page < totalPages && !loading) {
-      setPage(prev => prev + 1);
+      setPage((prev) => prev + 1);
       fetchTags();
     }
   };
@@ -141,10 +143,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
             管理账本中的标签，为记账记录添加更多维度的分类
           </p>
         </div>
-        <Button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center space-x-2"
-        >
+        <Button onClick={() => setShowCreateModal(true)} className="flex items-center space-x-2">
           <Plus className="w-4 h-4" />
           <span>新建标签</span>
         </Button>
@@ -170,7 +169,10 @@ export const TagManager: React.FC<TagManagerProps> = ({
           <select
             value={`${sortBy}-${sortOrder}`}
             onChange={(e) => {
-              const [newSortBy, newSortOrder] = e.target.value.split('-') as [typeof sortBy, typeof sortOrder];
+              const [newSortBy, newSortOrder] = e.target.value.split('-') as [
+                typeof sortBy,
+                typeof sortOrder,
+              ];
               setSortBy(newSortBy);
               setSortOrder(newSortOrder);
             }}
@@ -212,7 +214,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
               onTagDelete={handleDeleteTag}
               className="p-4"
             />
-            
+
             {/* 加载更多 */}
             {page < totalPages && (
               <div className="p-4 border-t border-gray-200 text-center">
@@ -244,7 +246,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
         </div>
         <div className="bg-white p-4 rounded-lg border border-gray-200">
           <div className="text-2xl font-bold text-purple-600">
-            {tags.filter(tag => tag.usageCount > 0).length}
+            {tags.filter((tag) => tag.usageCount > 0).length}
           </div>
           <div className="text-sm text-gray-600">已使用标签</div>
         </div>
@@ -260,10 +262,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
           }}
           tag={editingTag}
           accountBookId={accountBookId}
-          onSave={editingTag ? 
-            (data) => handleUpdateTag(editingTag.id, data) : 
-            handleCreateTag
-          }
+          onSave={editingTag ? (data) => handleUpdateTag(editingTag.id, data) : handleCreateTag}
         />
       )}
     </div>

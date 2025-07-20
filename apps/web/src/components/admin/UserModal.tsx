@@ -94,7 +94,7 @@ export function UserModal({ user, onClose }: UserModalProps) {
   // 提交表单
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -103,7 +103,7 @@ export function UserModal({ user, onClose }: UserModalProps) {
 
     try {
       let success = false;
-      
+
       if (user) {
         // 编辑用户
         const updateData: any = {
@@ -111,14 +111,14 @@ export function UserModal({ user, onClose }: UserModalProps) {
           email: formData.email.trim(),
           bio: formData.bio.trim() || undefined,
         };
-        
+
         // 处理Token限额
         if (formData.dailyLlmTokenLimit.trim()) {
           updateData.dailyLlmTokenLimit = parseInt(formData.dailyLlmTokenLimit);
         } else {
           updateData.dailyLlmTokenLimit = null; // 空值表示使用全局限额
         }
-        
+
         success = await updateUser(user.id, updateData);
       } else {
         // 创建用户
@@ -128,12 +128,12 @@ export function UserModal({ user, onClose }: UserModalProps) {
           password: formData.password,
           bio: formData.bio.trim() || undefined,
         };
-        
+
         // 处理Token限额
         if (formData.dailyLlmTokenLimit.trim()) {
           createData.dailyLlmTokenLimit = parseInt(formData.dailyLlmTokenLimit);
         }
-        
+
         success = await createUser(createData);
       }
 
@@ -149,16 +149,16 @@ export function UserModal({ user, onClose }: UserModalProps) {
 
   // 输入框变更处理
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
-    
+
     // 清除对应字段的错误
     if (errors[field]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [field]: ''
+        [field]: '',
       }));
     }
   };
@@ -168,13 +168,8 @@ export function UserModal({ user, onClose }: UserModalProps) {
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
         {/* 头部 */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {user ? '编辑用户' : '创建用户'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
+          <h2 className="text-lg font-semibold text-gray-900">{user ? '编辑用户' : '创建用户'}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <XMarkIcon className="w-6 h-6" />
           </button>
         </div>
@@ -196,9 +191,7 @@ export function UserModal({ user, onClose }: UserModalProps) {
               }`}
               placeholder="请输入姓名"
             />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-            )}
+            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
           </div>
 
           {/* 邮箱 */}
@@ -216,9 +209,7 @@ export function UserModal({ user, onClose }: UserModalProps) {
               }`}
               placeholder="请输入邮箱"
             />
-            {errors.email && (
-              <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-            )}
+            {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
           </div>
 
           {/* 密码（仅创建时显示） */}
@@ -237,9 +228,7 @@ export function UserModal({ user, onClose }: UserModalProps) {
                 }`}
                 placeholder="请输入密码"
               />
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-              )}
+              {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
             </div>
           )}
 
@@ -258,17 +247,16 @@ export function UserModal({ user, onClose }: UserModalProps) {
               }`}
               placeholder="请输入个人简介（可选）"
             />
-            {errors.bio && (
-              <p className="mt-1 text-sm text-red-600">{errors.bio}</p>
-            )}
-            <p className="mt-1 text-xs text-gray-500">
-              {formData.bio.length}/200
-            </p>
+            {errors.bio && <p className="mt-1 text-sm text-red-600">{errors.bio}</p>}
+            <p className="mt-1 text-xs text-gray-500">{formData.bio.length}/200</p>
           </div>
 
           {/* Token限额 */}
           <div>
-            <label htmlFor="dailyLlmTokenLimit" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="dailyLlmTokenLimit"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               每日LLM Token限额
             </label>
             <input
@@ -306,11 +294,11 @@ export function UserModal({ user, onClose }: UserModalProps) {
               disabled={isSubmitting}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? '处理中...' : (user ? '更新' : '创建')}
+              {isSubmitting ? '处理中...' : user ? '更新' : '创建'}
             </button>
           </div>
         </form>
       </div>
     </div>
   );
-} 
+}

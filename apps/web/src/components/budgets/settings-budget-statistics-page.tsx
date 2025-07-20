@@ -172,9 +172,9 @@ export function SettingsBudgetStatisticsPage() {
   );
 
   return (
-    <PageContainer 
-      title="预算统计" 
-      rightActions={rightActions} 
+    <PageContainer
+      title="预算统计"
+      rightActions={rightActions}
       showBackButton={true}
       onBackClick={() => router.push('/settings/budgets')}
       showBottomNav={false}
@@ -185,93 +185,93 @@ export function SettingsBudgetStatisticsPage() {
           <BudgetTypeSelector activeType={budgetType} onChange={handleBudgetTypeChange} />
         </div>
 
-      <div className="budget-statistics-container">
-        {isLoading ? (
-          <div className="loading-skeleton">
-            <div className="loading-state">
-              <i className="fas fa-spinner fa-spin"></i>
-              <p>加载中...</p>
-            </div>
-          </div>
-        ) : error ? (
-          <div className="error-message">
-            <p>{error}</p>
-            <button
-              onClick={() => {
-                if (currentAccountBook) {
-                  fetchBudgetStatistics(
-                    currentAccountBook.id,
-                    undefined, // 移除budgetType参数
-                    undefined, // 移除userId参数
-                  );
-                }
-              }}
-              className="retry-button"
-            >
-              重试
-            </button>
-          </div>
-        ) : (
-          <>
-            {/* 预算卡片轮播 */}
-            <BudgetCarousel
-              budgetCards={budgetCards}
-              familyMembers={familyMembers}
-              selectedBudgetId={selectedBudgetId}
-              onBudgetSelect={handleBudgetSelect}
-              accountBookType={currentAccountBook?.type || 'PERSONAL'}
-            />
-
-            {/* 预算概览 */}
-            {overview ? (
-              <>
-                <BudgetOverview overview={overview} />
-
-                {/* 预算趋势图表 */}
-                <BudgetTrendChart
-                  data={trendData[chartViewMode] || []}
-                  showRolloverImpact={showRolloverImpact}
-                  viewMode={chartViewMode}
-                  timeRange={chartTimeRange}
-                  onViewModeChange={handleViewModeChange}
-                  onTimeRangeChange={handleTimeRangeChange}
-                  onRolloverImpactToggle={toggleRolloverImpact}
-                  isLoading={isLoadingTrends}
-                />
-
-                {/* 分类预算列表 */}
-                <CategoryBudgetList
-                  categoryBudgets={categoryBudgets}
-                  filter={categoryFilter}
-                  onFilterChange={setCategoryFilter}
-                  enableCategoryBudget={enableCategoryBudget}
-                />
-
-                {/* 最近记账 */}
-                <RecentTransactions
-                  transactions={recentTransactions}
-                  budgetId={selectedBudgetId}
-                  onTransactionDeleted={() => {
-                    // 删除成功后重新获取数据
-                    fetchBudgetData();
-                  }}
-                />
-              </>
-            ) : (
-              <div className="no-budget-data">
-                <div className="no-data-message">
-                  <i className="fas fa-chart-pie"></i>
-                  <h3>暂无预算数据</h3>
-                  <p>请先创建预算或选择其他账本</p>
-                  <button className="create-budget-button" onClick={handleAddBudget}>
-                    创建预算
-                  </button>
-                </div>
+        <div className="budget-statistics-container">
+          {isLoading ? (
+            <div className="loading-skeleton">
+              <div className="loading-state">
+                <i className="fas fa-spinner fa-spin"></i>
+                <p>加载中...</p>
               </div>
-            )}
-          </>
-        )}
-      </div>
+            </div>
+          ) : error ? (
+            <div className="error-message">
+              <p>{error}</p>
+              <button
+                onClick={() => {
+                  if (currentAccountBook) {
+                    fetchBudgetStatistics(
+                      currentAccountBook.id,
+                      undefined, // 移除budgetType参数
+                      undefined, // 移除userId参数
+                    );
+                  }
+                }}
+                className="retry-button"
+              >
+                重试
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* 预算卡片轮播 */}
+              <BudgetCarousel
+                budgetCards={budgetCards}
+                familyMembers={familyMembers}
+                selectedBudgetId={selectedBudgetId}
+                onBudgetSelect={handleBudgetSelect}
+                accountBookType={currentAccountBook?.type || 'PERSONAL'}
+              />
+
+              {/* 预算概览 */}
+              {overview ? (
+                <>
+                  <BudgetOverview overview={overview} />
+
+                  {/* 预算趋势图表 */}
+                  <BudgetTrendChart
+                    data={trendData[chartViewMode] || []}
+                    showRolloverImpact={showRolloverImpact}
+                    viewMode={chartViewMode}
+                    timeRange={chartTimeRange}
+                    onViewModeChange={handleViewModeChange}
+                    onTimeRangeChange={handleTimeRangeChange}
+                    onRolloverImpactToggle={toggleRolloverImpact}
+                    isLoading={isLoadingTrends}
+                  />
+
+                  {/* 分类预算列表 */}
+                  <CategoryBudgetList
+                    categoryBudgets={categoryBudgets}
+                    filter={categoryFilter}
+                    onFilterChange={setCategoryFilter}
+                    enableCategoryBudget={enableCategoryBudget}
+                  />
+
+                  {/* 最近记账 */}
+                  <RecentTransactions
+                    transactions={recentTransactions}
+                    budgetId={selectedBudgetId}
+                    onTransactionDeleted={() => {
+                      // 删除成功后重新获取数据
+                      fetchBudgetData();
+                    }}
+                  />
+                </>
+              ) : (
+                <div className="no-budget-data">
+                  <div className="no-data-message">
+                    <i className="fas fa-chart-pie"></i>
+                    <h3>暂无预算数据</h3>
+                    <p>请先创建预算或选择其他账本</p>
+                    <button className="create-budget-button" onClick={handleAddBudget}>
+                      创建预算
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </PageContainer>
   );

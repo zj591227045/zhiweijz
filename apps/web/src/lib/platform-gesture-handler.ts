@@ -53,9 +53,9 @@ export class PlatformGestureHandler {
   constructor(config: Partial<GestureConfig> = {}) {
     this.platform = this.detectPlatform();
     this.config = { ...DEFAULT_GESTURE_CONFIG, ...config };
-    
+
     console.log('🎯 [GestureHandler] 初始化平台手势处理器:', this.platform);
-    
+
     this.initialize();
   }
 
@@ -115,7 +115,7 @@ export class PlatformGestureHandler {
 
     // Android主要依赖硬件后退按钮，但也支持边缘滑动
     this.setupEdgeSwipeGestures();
-    
+
     // 禁用默认的浏览器手势
     this.disableBrowserGestures();
   }
@@ -126,7 +126,7 @@ export class PlatformGestureHandler {
 
     // iOS主要依赖边缘滑动手势
     this.setupEdgeSwipeGestures();
-    
+
     // 尝试启用iOS特定的手势
     this.enableIOSSpecificGestures();
   }
@@ -159,8 +159,11 @@ export class PlatformGestureHandler {
           timestamp: Date.now(),
         };
         isEdgeSwipe = true;
-        
-        console.log('👆 [GestureHandler] 边缘滑动开始:', { x: touch.clientX, edge: isLeftEdge ? 'left' : 'right' });
+
+        console.log('👆 [GestureHandler] 边缘滑动开始:', {
+          x: touch.clientX,
+          edge: isLeftEdge ? 'left' : 'right',
+        });
       }
     };
 
@@ -175,17 +178,17 @@ export class PlatformGestureHandler {
       // 检查是否为有效的水平滑动
       if (Math.abs(deltaX) > Math.abs(deltaY) && distance > this.config.minDistance) {
         const direction = deltaX > 0 ? 'right' : 'left';
-        
+
         // 只处理从左边缘向右滑动（后退手势）
         if (startTouch.x <= this.config.edgeWidth && direction === 'right') {
           console.log('👆 [GestureHandler] 检测到后退手势');
-          
+
           // 阻止默认行为
           e.preventDefault();
-          
+
           // 触发后退处理
           this.handleBackGesture();
-          
+
           // 重置状态
           startTouch = null;
           isEdgeSwipe = false;
@@ -229,12 +232,16 @@ export class PlatformGestureHandler {
     // 监听iOS特定事件
     if ('ontouchstart' in window) {
       // 禁用iOS的默认滑动行为
-      document.addEventListener('touchmove', (e) => {
-        // 只在特定条件下阻止默认行为
-        if (this.shouldPreventDefault(e)) {
-          e.preventDefault();
-        }
-      }, { passive: false });
+      document.addEventListener(
+        'touchmove',
+        (e) => {
+          // 只在特定条件下阻止默认行为
+          if (this.shouldPreventDefault(e)) {
+            e.preventDefault();
+          }
+        },
+        { passive: false },
+      );
     }
 
     console.log('🍎 [GestureHandler] iOS特定手势已启用');
@@ -246,12 +253,12 @@ export class PlatformGestureHandler {
     if (e.touches.length === 1) {
       const touch = e.touches[0];
       const isLeftEdge = touch.clientX <= this.config.edgeWidth;
-      
+
       if (isLeftEdge) {
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -274,7 +281,8 @@ export class PlatformGestureHandler {
   private setupMouseGestures() {
     const handleMouseDown = (e: MouseEvent) => {
       // 鼠标侧键（后退按钮）
-      if (e.button === 3) { // 后退按钮
+      if (e.button === 3) {
+        // 后退按钮
         console.log('🖱️ [GestureHandler] 鼠标后退按钮');
         e.preventDefault();
         this.handleBackGesture();
@@ -303,13 +311,13 @@ export class PlatformGestureHandler {
   // 处理后退手势
   private handleBackGesture() {
     console.log('⬅️ [GestureHandler] 处理后退手势');
-    
+
     // 使用导航管理器处理后退
     const handled = navigationManager.handleBackAction();
-    
+
     if (!handled) {
       console.log('⬅️ [GestureHandler] 导航管理器未处理，尝试其他方式');
-      
+
       // 通知注册的监听器
       for (const listener of this.gestureListeners) {
         if (listener('left')) {
@@ -317,7 +325,7 @@ export class PlatformGestureHandler {
           return;
         }
       }
-      
+
       // 最后尝试浏览器历史后退
       if (window.history.length > 1) {
         console.log('⬅️ [GestureHandler] 执行浏览器历史后退');
@@ -369,7 +377,7 @@ export function initializePlatformGestures(config?: Partial<GestureConfig>) {
   if (config) {
     platformGestureHandler.updateConfig(config);
   }
-  
+
   console.log('🚀 [GestureHandler] 平台手势处理器已初始化');
   return platformGestureHandler;
 }

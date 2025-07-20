@@ -8,12 +8,8 @@ import { toast } from 'sonner';
 
 export function AIServiceSetupStep() {
   const { nextStep, previousStep, setCurrentStep } = useOnboardingStore();
-  const {
-    userAIEnabled,
-    isLoadingUserAI,
-    toggleUserAIService,
-    fetchUserAIEnabled
-  } = useGlobalAIStore();
+  const { userAIEnabled, isLoadingUserAI, toggleUserAIService, fetchUserAIEnabled } =
+    useGlobalAIStore();
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -60,13 +56,13 @@ export function AIServiceSetupStep() {
     try {
       setIsProcessing(true);
       await toggleUserAIService(enabled);
-      
+
       if (enabled) {
         toast.success('AI服务已开启，您可以使用智能记账功能了！');
       } else {
         toast.success('AI服务已关闭');
       }
-      
+
       // 无论开启还是关闭，都直接完成设置并进入下一步
       setTimeout(() => {
         goToFeatureIntro();
@@ -117,15 +113,17 @@ export function AIServiceSetupStep() {
 
         <div className="ai-service-toggle-section">
           <h4>是否启用AI服务？</h4>
-          <p style={{
-            fontSize: '14px',
-            color: 'var(--text-secondary)',
-            marginBottom: '20px',
-            textAlign: 'center'
-          }}>
+          <p
+            style={{
+              fontSize: '14px',
+              color: 'var(--text-secondary)',
+              marginBottom: '20px',
+              textAlign: 'center',
+            }}
+          >
             使用官方AI服务，无需额外配置，开箱即用
           </p>
-          
+
           <div className="toggle-options">
             <button
               className="toggle-option-button primary"
@@ -167,7 +165,7 @@ export function AIServiceSetupStep() {
         >
           上一步
         </button>
-        
+
         <button
           className="onboarding-button onboarding-button-secondary"
           onClick={handleSkip}
@@ -178,4 +176,4 @@ export function AIServiceSetupStep() {
       </div>
     </div>
   );
-} 
+}

@@ -65,17 +65,17 @@ interface AnnouncementManagementState {
   selectedAnnouncement: Announcement | null;
   stats: AnnouncementStats | null;
   pagination: Pagination | null;
-  
+
   // UI状态
   isLoading: boolean;
   isCreating: boolean;
   isUpdating: boolean;
-  
+
   // 筛选和搜索状态
   searchTerm: string;
   statusFilter: 'all' | 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
   priorityFilter: 'all' | 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
-  
+
   // 操作方法
   fetchAnnouncements: (page?: number) => Promise<void>;
   fetchAnnouncementById: (id: string) => Promise<void>;
@@ -86,8 +86,11 @@ interface AnnouncementManagementState {
   unpublishAnnouncement: (id: string) => Promise<boolean>;
   archiveAnnouncement: (id: string) => Promise<boolean>;
   deleteAnnouncement: (id: string) => Promise<boolean>;
-  batchOperation: (ids: string[], operation: 'publish' | 'unpublish' | 'archive' | 'delete') => Promise<boolean>;
-  
+  batchOperation: (
+    ids: string[],
+    operation: 'publish' | 'unpublish' | 'archive' | 'delete',
+  ) => Promise<boolean>;
+
   // UI操作方法
   setSearchTerm: (term: string) => void;
   setStatusFilter: (status: 'all' | 'DRAFT' | 'PUBLISHED' | 'ARCHIVED') => void;
@@ -113,12 +116,12 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
     try {
       set({ isLoading: true });
       const { searchTerm, statusFilter, priorityFilter } = get();
-      
+
       const params: Record<string, any> = {
         page: page.toString(),
-        limit: '20'
+        limit: '20',
       };
-      
+
       if (searchTerm) params.search = searchTerm;
       if (statusFilter !== 'all') params.status = statusFilter;
       if (priorityFilter !== 'all') params.priority = priorityFilter;
@@ -126,11 +129,11 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
       const response = await adminApi.getWithParams(ADMIN_API_ENDPOINTS.ANNOUNCEMENTS, params);
 
       const result = await response.json();
-      
+
       if (result.success) {
         set({
           announcements: result.data.announcements,
-          pagination: result.data.pagination
+          pagination: result.data.pagination,
         });
       } else {
         throw new Error(result.message || '获取公告列表失败');
@@ -147,11 +150,11 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
   fetchAnnouncementById: async (id: string) => {
     try {
       set({ isLoading: true });
-      
+
       const response = await adminApi.get(`${ADMIN_API_ENDPOINTS.ANNOUNCEMENTS}/${id}`);
 
       const result = await response.json();
-      
+
       if (result.success) {
         set({ selectedAnnouncement: result.data.announcement });
       } else {
@@ -171,7 +174,7 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
       const response = await adminApi.get(ADMIN_API_ENDPOINTS.ANNOUNCEMENT_STATS);
 
       const result = await response.json();
-      
+
       if (result.success) {
         set({ stats: result.data });
       }
@@ -184,11 +187,11 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
   createAnnouncement: async (data: CreateAnnouncementData) => {
     try {
       set({ isCreating: true });
-      
+
       const response = await adminApi.post(ADMIN_API_ENDPOINTS.ANNOUNCEMENTS, data);
 
       const result = await response.json();
-      
+
       if (result.success) {
         toast.success('公告创建成功');
         await get().fetchAnnouncements();
@@ -210,11 +213,11 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
   updateAnnouncement: async (id: string, data: UpdateAnnouncementData) => {
     try {
       set({ isUpdating: true });
-      
+
       const response = await adminApi.put(`${ADMIN_API_ENDPOINTS.ANNOUNCEMENTS}/${id}`, data);
 
       const result = await response.json();
-      
+
       if (result.success) {
         toast.success('公告更新成功');
         await get().fetchAnnouncements();
@@ -240,7 +243,7 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
       const response = await adminApi.post(`${ADMIN_API_ENDPOINTS.ANNOUNCEMENTS}/${id}/publish`);
 
       const result = await response.json();
-      
+
       if (result.success) {
         toast.success('公告发布成功');
         await get().fetchAnnouncements();
@@ -262,7 +265,7 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
       const response = await adminApi.post(`${ADMIN_API_ENDPOINTS.ANNOUNCEMENTS}/${id}/unpublish`);
 
       const result = await response.json();
-      
+
       if (result.success) {
         toast.success('公告撤回成功');
         await get().fetchAnnouncements();
@@ -284,7 +287,7 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
       const response = await adminApi.post(`${ADMIN_API_ENDPOINTS.ANNOUNCEMENTS}/${id}/archive`);
 
       const result = await response.json();
-      
+
       if (result.success) {
         toast.success('公告归档成功');
         await get().fetchAnnouncements();
@@ -306,7 +309,7 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
       const response = await adminApi.delete(`${ADMIN_API_ENDPOINTS.ANNOUNCEMENTS}/${id}`);
 
       const result = await response.json();
-      
+
       if (result.success) {
         toast.success('公告删除成功');
         await get().fetchAnnouncements();
@@ -323,12 +326,18 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
   },
 
   // 批量操作
-  batchOperation: async (ids: string[], operation: 'publish' | 'unpublish' | 'archive' | 'delete') => {
+  batchOperation: async (
+    ids: string[],
+    operation: 'publish' | 'unpublish' | 'archive' | 'delete',
+  ) => {
     try {
-      const response = await adminApi.post(`${ADMIN_API_ENDPOINTS.ANNOUNCEMENTS}/batch`, { ids, operation });
+      const response = await adminApi.post(`${ADMIN_API_ENDPOINTS.ANNOUNCEMENTS}/batch`, {
+        ids,
+        operation,
+      });
 
       const result = await response.json();
-      
+
       if (result.success) {
         toast.success(result.message);
         await get().fetchAnnouncements();
@@ -359,5 +368,5 @@ export const useAnnouncementManagement = create<AnnouncementManagementState>((se
 
   clearSelectedAnnouncement: () => {
     set({ selectedAnnouncement: null });
-  }
-})); 
+  },
+}));

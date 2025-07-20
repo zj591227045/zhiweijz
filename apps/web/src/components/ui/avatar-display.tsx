@@ -32,7 +32,7 @@ export function AvatarDisplay({
   className = '',
   alt = '头像',
   badge,
-  showBadge = true
+  showBadge = true,
 }: AvatarDisplayProps) {
   const { user } = useAuthStore();
   const [currentAvatar, setCurrentAvatar] = useState(avatar);
@@ -44,7 +44,7 @@ export function AvatarDisplay({
         userId,
         currentUserId: user.id,
         oldAvatar: currentAvatar,
-        newAvatar: user.avatar
+        newAvatar: user.avatar,
       });
       setCurrentAvatar(user.avatar);
     } else if (!userId || userId !== user?.id) {
@@ -61,7 +61,7 @@ export function AvatarDisplay({
         console.log('🔔 收到全局头像更新事件:', {
           userId,
           updatedUserId: updatedUser.id,
-          newAvatar: updatedUser.avatar
+          newAvatar: updatedUser.avatar,
         });
         setCurrentAvatar(updatedUser.avatar);
       }
@@ -73,7 +73,7 @@ export function AvatarDisplay({
         console.log('🔔 收到全局用户信息更新事件:', {
           userId,
           updatedUserId: updatedUser.id,
-          newAvatar: updatedUser.avatar
+          newAvatar: updatedUser.avatar,
         });
         setCurrentAvatar(updatedUser.avatar);
       }
@@ -190,18 +190,18 @@ export function AvatarDisplay({
       style={getInlineStyle()}
     >
       {getAvatarContent()}
-      
+
       {/* 徽章装饰 */}
       {badge && showBadge && (
-        <div 
+        <div
           className={`
             absolute top-0 right-0 ${getBadgeSize()}
             rounded-full border-2 border-white shadow-sm
             flex items-center justify-center font-bold z-10
           `}
-          style={{ 
-            backgroundColor: badge.color, 
-            color: '#ffffff' 
+          style={{
+            backgroundColor: badge.color,
+            color: '#ffffff',
           }}
           title={badge.name}
         >

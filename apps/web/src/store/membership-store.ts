@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import membershipApi, { MembershipInfo, Badge, MembershipNotification } from '../lib/api/membership-service';
+import membershipApi, {
+  MembershipInfo,
+  Badge,
+  MembershipNotification,
+} from '../lib/api/membership-service';
 
 interface MembershipState {
   // 状态
@@ -42,25 +46,25 @@ export const useMembershipStore = create<MembershipState>()(
         try {
           set({ loading: true, error: null });
           const response = await membershipApi.getMembershipInfo();
-          
+
           if (response.success) {
-            set({ 
+            set({
               membership: response.data,
               systemEnabled: response.systemEnabled,
               pointsEnabled: response.pointsEnabled,
-              loading: false 
+              loading: false,
             });
           } else {
-            set({ 
+            set({
               error: response.message || '获取会员信息失败',
-              loading: false 
+              loading: false,
             });
           }
         } catch (error) {
           console.error('获取会员信息失败:', error);
-          set({ 
+          set({
             error: '获取会员信息失败',
-            loading: false 
+            loading: false,
           });
         }
       },
@@ -70,23 +74,23 @@ export const useMembershipStore = create<MembershipState>()(
         try {
           set({ loading: true, error: null });
           const response = await membershipApi.resetMemberPoints();
-          
+
           if (response.success) {
-            set({ 
+            set({
               membership: response.data,
-              loading: false 
+              loading: false,
             });
           } else {
-            set({ 
+            set({
               error: response.message || '重置记账点失败',
-              loading: false 
+              loading: false,
             });
           }
         } catch (error) {
           console.error('重置记账点失败:', error);
-          set({ 
+          set({
             error: '重置记账点失败',
-            loading: false 
+            loading: false,
           });
         }
       },
@@ -96,36 +100,36 @@ export const useMembershipStore = create<MembershipState>()(
         try {
           set({ loading: true, error: null });
           const response = await membershipApi.selectBadge(badgeId);
-          
+
           if (response.success) {
             // 更新本地状态
             const { membership } = get();
             if (membership) {
-              const updatedBadges = membership.badges.map(badge => ({
+              const updatedBadges = membership.badges.map((badge) => ({
                 ...badge,
-                isDisplayed: badge.badgeId === badgeId
+                isDisplayed: badge.badgeId === badgeId,
               }));
-              
+
               set({
                 membership: {
                   ...membership,
                   selectedBadge: badgeId,
-                  badges: updatedBadges
+                  badges: updatedBadges,
                 },
-                loading: false
+                loading: false,
               });
             }
           } else {
-            set({ 
+            set({
               error: response.message || '设置徽章失败',
-              loading: false 
+              loading: false,
             });
           }
         } catch (error) {
           console.error('设置徽章失败:', error);
-          set({ 
+          set({
             error: '设置徽章失败',
-            loading: false 
+            loading: false,
           });
         }
       },
@@ -135,23 +139,23 @@ export const useMembershipStore = create<MembershipState>()(
         try {
           set({ loading: true, error: null });
           const response = await membershipApi.getAllBadges();
-          
+
           if (response.success) {
-            set({ 
+            set({
               badges: response.data,
-              loading: false 
+              loading: false,
             });
           } else {
-            set({ 
+            set({
               error: response.message || '获取徽章列表失败',
-              loading: false 
+              loading: false,
             });
           }
         } catch (error) {
           console.error('获取徽章列表失败:', error);
-          set({ 
+          set({
             error: '获取徽章列表失败',
-            loading: false 
+            loading: false,
           });
         }
       },
@@ -161,23 +165,23 @@ export const useMembershipStore = create<MembershipState>()(
         try {
           set({ loading: true, error: null });
           const response = await membershipApi.getNotifications();
-          
+
           if (response.success) {
-            set({ 
+            set({
               notifications: response.data,
-              loading: false 
+              loading: false,
             });
           } else {
-            set({ 
+            set({
               error: response.message || '获取通知失败',
-              loading: false 
+              loading: false,
             });
           }
         } catch (error) {
           console.error('获取通知失败:', error);
-          set({ 
+          set({
             error: '获取通知失败',
-            loading: false 
+            loading: false,
           });
         }
       },
@@ -186,16 +190,14 @@ export const useMembershipStore = create<MembershipState>()(
       markNotificationAsRead: async (notificationId: string) => {
         try {
           const response = await membershipApi.markNotificationAsRead(notificationId);
-          
+
           if (response.success) {
             // 更新本地状态
             const { notifications } = get();
-            const updatedNotifications = notifications.map(notification =>
-              notification.id === notificationId
-                ? { ...notification, isRead: true }
-                : notification
+            const updatedNotifications = notifications.map((notification) =>
+              notification.id === notificationId ? { ...notification, isRead: true } : notification,
             );
-            
+
             set({ notifications: updatedNotifications });
           }
         } catch (error) {
@@ -208,11 +210,11 @@ export const useMembershipStore = create<MembershipState>()(
         try {
           set({ loading: true, error: null });
           const response = await membershipApi.useMemberPoints(points, description);
-          
+
           if (response.success) {
             // 重新获取会员信息以更新记账点
             await get().fetchMembershipInfo();
-            
+
             // 同步记账点余额 - 动态导入避免循环依赖
             try {
               const { useAccountingPointsStore } = await import('./accounting-points-store');
@@ -220,21 +222,21 @@ export const useMembershipStore = create<MembershipState>()(
             } catch (syncError) {
               console.warn('同步记账点余额失败:', syncError);
             }
-            
+
             set({ loading: false });
             return true;
           } else {
-            set({ 
+            set({
               error: response.message || '使用记账点失败',
-              loading: false 
+              loading: false,
             });
             return false;
           }
         } catch (error) {
           console.error('使用记账点失败:', error);
-          set({ 
+          set({
             error: '使用记账点失败',
-            loading: false 
+            loading: false,
           });
           return false;
         }
@@ -245,23 +247,23 @@ export const useMembershipStore = create<MembershipState>()(
         try {
           set({ loading: true, error: null });
           const response = await membershipApi.upgradeMembership(memberType, duration);
-          
+
           if (response.success) {
-            set({ 
+            set({
               membership: response.data,
-              loading: false 
+              loading: false,
             });
           } else {
-            set({ 
+            set({
               error: response.message || '升级会员失败',
-              loading: false 
+              loading: false,
             });
           }
         } catch (error) {
           console.error('升级会员失败:', error);
-          set({ 
+          set({
             error: '升级会员失败',
-            loading: false 
+            loading: false,
           });
         }
       },
@@ -274,12 +276,12 @@ export const useMembershipStore = create<MembershipState>()(
       // 设置加载状态
       setLoading: (loading: boolean) => {
         set({ loading });
-      }
+      },
     }),
     {
       name: 'membership-store',
-    }
-  )
+    },
+  ),
 );
 
 export default useMembershipStore;

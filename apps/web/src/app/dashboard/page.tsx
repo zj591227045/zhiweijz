@@ -44,19 +44,14 @@ export default function DashboardPage() {
     cleanupTransactionListener,
   } = useDashboardStore();
 
-  const {
-    unreadCount,
-    isModalOpen,
-    openModal,
-    closeModal,
-    checkUnreadOnLogin
-  } = useNotificationStore();
+  const { unreadCount, isModalOpen, openModal, closeModal, checkUnreadOnLogin } =
+    useNotificationStore();
 
   // 记账编辑模态框状态
   const [showTransactionEditModal, setShowTransactionEditModal] = useState(false);
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
   const [transactionData, setTransactionData] = useState<any>(null);
-  
+
   // 视图切换状态
   const [currentView, setCurrentView] = useState<'dashboard' | 'calendar'>('dashboard');
 
@@ -277,8 +272,8 @@ export default function DashboardPage() {
       console.log('🏠 [Dashboard] 开始获取记账详情:', transactionId);
 
       // 从当前的记账列表中查找记账详情（避免 API 调用）
-      const allTransactions = groupedTransactions.flatMap(group => group.transactions);
-      const transaction = allTransactions.find(t => t.id === transactionId);
+      const allTransactions = groupedTransactions.flatMap((group) => group.transactions);
+      const transaction = allTransactions.find((t) => t.id === transactionId);
 
       if (transaction) {
         console.log('🏠 [Dashboard] 从本地数据找到记账详情:', transaction);
@@ -292,7 +287,7 @@ export default function DashboardPage() {
           date: transaction.date || new Date().toISOString(),
           categoryId: transaction.categoryId || '',
           budgetId: transaction.budgetId || '',
-          category: transaction.category || { name: '未分类' }
+          category: transaction.category || { name: '未分类' },
         };
 
         console.log('🏠 [Dashboard] 格式化后的记账数据:', formattedTransaction);
@@ -308,7 +303,7 @@ export default function DashboardPage() {
           date: new Date().toISOString(),
           categoryId: '',
           budgetId: '',
-          category: { name: '未分类' }
+          category: { name: '未分类' },
         };
         setTransactionData(mockTransaction);
       }
@@ -322,7 +317,7 @@ export default function DashboardPage() {
   // 右侧操作按钮
   const rightActions = (
     <>
-      <button 
+      <button
         className={`icon-button ${currentView === 'calendar' ? 'active' : ''}`}
         onClick={() => setCurrentView(currentView === 'calendar' ? 'dashboard' : 'calendar')}
         aria-label={currentView === 'calendar' ? '切换到仪表盘' : '切换到日历'}
@@ -330,11 +325,7 @@ export default function DashboardPage() {
       >
         <i className={`fas ${currentView === 'calendar' ? 'fa-chart-line' : 'fa-calendar'}`}></i>
       </button>
-      <button 
-        className="icon-button relative" 
-        onClick={openModal}
-        aria-label="通知"
-      >
+      <button className="icon-button relative" onClick={openModal} aria-label="通知">
         <i className="fas fa-bell"></i>
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -346,9 +337,9 @@ export default function DashboardPage() {
   );
 
   return (
-    <PageContainer 
-      title={currentView === 'calendar' ? '日历视图' : '仪表盘'} 
-      rightActions={rightActions} 
+    <PageContainer
+      title={currentView === 'calendar' ? '日历视图' : '仪表盘'}
+      rightActions={rightActions}
       activeNavItem="home"
       className="dashboard-content"
     >
@@ -424,10 +415,7 @@ export default function DashboardPage() {
       )}
 
       {/* 通知模态框 */}
-      <NotificationModal 
-        isOpen={isModalOpen} 
-        onClose={closeModal} 
-      />
+      <NotificationModal isOpen={isModalOpen} onClose={closeModal} />
     </PageContainer>
   );
 }

@@ -13,7 +13,12 @@ export function ThemeSwitcher() {
       setThemeColor('blue');
     } else if (newTheme === 'dark') {
       setTheme('dark');
-    } else if (newTheme === 'green' || newTheme === 'purple' || newTheme === 'pink' || newTheme === 'orange-light') {
+    } else if (
+      newTheme === 'green' ||
+      newTheme === 'purple' ||
+      newTheme === 'pink' ||
+      newTheme === 'orange-light'
+    ) {
       setTheme('light');
       setThemeColor(newTheme as any);
     }

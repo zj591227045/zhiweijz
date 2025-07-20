@@ -33,48 +33,46 @@ interface TokenMonitorState {
 }
 
 export function useTokenMonitor(options: UseTokenMonitorOptions = {}): TokenMonitorState {
-  const {
-    autoRedirect = true,
-    enabled = true,
-    onTokenInvalid,
-    onTokenRefreshed
-  } = options;
+  const { autoRedirect = true, enabled = true, onTokenInvalid, onTokenRefreshed } = options;
 
   const router = useRouter();
   const { isAuthenticated, logout } = useAuthStore();
-  
+
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [isTokenValid, setIsTokenValid] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // token状态变化处理
-  const handleTokenStatusChange = useCallback((isValid: boolean) => {
-    setIsTokenValid(isValid);
+  const handleTokenStatusChange = useCallback(
+    (isValid: boolean) => {
+      setIsTokenValid(isValid);
 
-    if (!isValid) {
-      console.log('🚨 Token失效，执行清理操作');
+      if (!isValid) {
+        console.log('🚨 Token失效，执行清理操作');
 
-      // 检查当前是否在登录页面，如果是则不执行清理操作
-      const currentPath = window.location.pathname;
-      if (currentPath.startsWith('/auth/')) {
-        console.log('📍 当前在认证页面，跳过token失效处理');
-        return;
+        // 检查当前是否在登录页面，如果是则不执行清理操作
+        const currentPath = window.location.pathname;
+        if (currentPath.startsWith('/auth/')) {
+          console.log('📍 当前在认证页面，跳过token失效处理');
+          return;
+        }
+
+        // 执行用户自定义回调
+        if (onTokenInvalid) {
+          onTokenInvalid();
+        }
+
+        // 清除认证状态
+        logout();
+
+        // 自动跳转到登录页
+        if (autoRedirect && typeof window !== 'undefined') {
+          router.push('/auth/login');
+        }
       }
-
-      // 执行用户自定义回调
-      if (onTokenInvalid) {
-        onTokenInvalid();
-      }
-
-      // 清除认证状态
-      logout();
-
-      // 自动跳转到登录页
-      if (autoRedirect && typeof window !== 'undefined') {
-        router.push('/auth/login');
-      }
-    }
-  }, [onTokenInvalid, logout, autoRedirect, router]);
+    },
+    [onTokenInvalid, logout, autoRedirect, router],
+  );
 
   // 手动刷新token
   const refreshToken = useCallback(async (): Promise<boolean> => {
@@ -108,7 +106,7 @@ export function useTokenMonitor(options: UseTokenMonitorOptions = {}): TokenMoni
 
     // 添加监听器
     tokenManager.addListener(handleTokenStatusChange);
-    
+
     // 启动监控
     tokenManager.startMonitoring();
     setIsMonitoring(true);
@@ -132,7 +130,7 @@ export function useTokenMonitor(options: UseTokenMonitorOptions = {}): TokenMoni
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
@@ -143,7 +141,7 @@ export function useTokenMonitor(options: UseTokenMonitorOptions = {}): TokenMoni
     isTokenValid,
     isRefreshing,
     refreshToken,
-    checkTokenStatus
+    checkTokenStatus,
   };
 }
 

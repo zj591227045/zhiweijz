@@ -49,7 +49,7 @@ export const BudgetProgress = memo(
   function BudgetProgress({ categories, totalBudget }: BudgetProgressProps) {
     // 状态控制折叠/展开
     const [isCollapsed, setIsCollapsed] = useState(false);
-    
+
     // 获取当前用户信息
     const { user } = useAuthStore();
 
@@ -190,7 +190,9 @@ export const BudgetProgress = memo(
                             className="rounded-full"
                           />
                         ) : (
-                          <i className={`fas ${getCategoryIconClass(category.icon || 'other')}`}></i>
+                          <i
+                            className={`fas ${getCategoryIconClass(category.icon || 'other')}`}
+                          ></i>
                         )}
                       </div>
                       <span className="dashboard-category-name">{category.name}</span>

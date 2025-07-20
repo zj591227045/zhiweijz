@@ -37,7 +37,9 @@ export default function ProfilePage() {
   }, []);
 
   // 处理头像变更
-  const handleAvatarChange = async (avatarData: { type: 'preset'; data: PresetAvatar } | { type: 'file'; data: File }) => {
+  const handleAvatarChange = async (
+    avatarData: { type: 'preset'; data: PresetAvatar } | { type: 'file'; data: File },
+  ) => {
     setIsUploadingAvatar(true);
 
     try {
@@ -111,7 +113,7 @@ export default function ProfilePage() {
       // 调用 userService 更新数据库
       const updatedProfile = await userService.updateUserProfile(data);
       setProfile(updatedProfile);
-      
+
       // 同步更新 auth store 和 localStorage（将前端格式转换为后端格式）
       const success = syncUserToLocalStorage({
         id: updatedProfile.id,
@@ -122,7 +124,7 @@ export default function ProfilePage() {
         birthDate: updatedProfile.birthDate,
         createdAt: updatedProfile.createdAt,
       });
-      
+
       if (success) {
         console.log('🔍 用户资料更新成功，localStorage已同步更新');
         toast.success('个人资料更新成功');

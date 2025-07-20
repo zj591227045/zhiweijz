@@ -56,53 +56,65 @@ export function UploadProgress({
     switch (status) {
       case 'uploading':
         return (
-          <div className="upload-spinner" style={{
-            width: '24px',
-            height: '24px',
-            border: '3px solid #f3f3f3',
-            borderTop: '3px solid #007AFF',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-          }} />
+          <div
+            className="upload-spinner"
+            style={{
+              width: '24px',
+              height: '24px',
+              border: '3px solid #f3f3f3',
+              borderTop: '3px solid #007AFF',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+            }}
+          />
         );
       case 'processing':
         return (
-          <div className="processing-icon" style={{
-            width: '24px',
-            height: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '16px',
-          }}>
+          <div
+            className="processing-icon"
+            style={{
+              width: '24px',
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '16px',
+            }}
+          >
             ⚙️
           </div>
         );
       case 'success':
         return (
-          <div className="success-icon" style={{
-            width: '24px',
-            height: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '16px',
-            color: '#34C759',
-          }}>
+          <div
+            className="success-icon"
+            style={{
+              width: '24px',
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '16px',
+              color: '#34C759',
+            }}
+          >
             ✓
           </div>
         );
       case 'error':
         return (
-          <div className="error-icon" style={{
-            width: '24px',
-            height: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '16px',
-            color: '#FF3B30',
-          }}>
+          <div
+            className="error-icon"
+            style={{
+              width: '24px',
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '16px',
+              color: '#FF3B30',
+            }}
+          >
             ✕
           </div>
         );
@@ -129,7 +141,7 @@ export function UploadProgress({
   // 获取状态文本
   const getStatusText = () => {
     if (message) return message;
-    
+
     switch (status) {
       case 'uploading':
         return '正在上传...';
@@ -169,7 +181,7 @@ export function UploadProgress({
           }
         `}
       </style>
-      
+
       <div
         className="upload-progress-overlay"
         style={{
@@ -204,9 +216,7 @@ export function UploadProgress({
           onClick={(e) => e.stopPropagation()}
         >
           {/* 状态图标 */}
-          <div className="status-icon">
-            {getStatusIcon()}
-          </div>
+          <div className="status-icon">{getStatusIcon()}</div>
 
           {/* 状态文本 */}
           <div

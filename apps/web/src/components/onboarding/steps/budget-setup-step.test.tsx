@@ -13,7 +13,9 @@ jest.mock('@/api/budget-api');
 jest.mock('@/api/family-api');
 
 const mockUseOnboardingStore = useOnboardingStore as jest.MockedFunction<typeof useOnboardingStore>;
-const mockUseAccountBookStore = useAccountBookStore as jest.MockedFunction<typeof useAccountBookStore>;
+const mockUseAccountBookStore = useAccountBookStore as jest.MockedFunction<
+  typeof useAccountBookStore
+>;
 const mockBudgetApiService = BudgetApiService as jest.Mocked<typeof BudgetApiService>;
 const mockFamilyApiService = FamilyApiService as jest.Mocked<typeof FamilyApiService>;
 
@@ -26,7 +28,7 @@ describe('BudgetSetupStep', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockUseOnboardingStore.mockReturnValue({
       selectedAccountType: 'personal',
       budgetEnabled: null,
@@ -56,7 +58,7 @@ describe('BudgetSetupStep', () => {
 
   it('应该正确渲染个人预算设置', async () => {
     render(<BudgetSetupStep />);
-    
+
     expect(screen.getByText('预算控制设置')).toBeInTheDocument();
     expect(screen.getByText('科学的预算管理，让您的财务更加健康')).toBeInTheDocument();
   });
@@ -68,13 +70,13 @@ describe('BudgetSetupStep', () => {
         amount: 3000,
         startDate: '2024-01-01T00:00:00.000Z',
         endDate: '2024-01-31T23:59:59.999Z',
-      }
+      },
     ];
-    
+
     mockBudgetApiService.getBudgets.mockResolvedValue(mockBudgets);
-    
+
     render(<BudgetSetupStep />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('检测到您已设置了本月预算')).toBeInTheDocument();
     });
@@ -87,7 +89,7 @@ describe('BudgetSetupStep', () => {
       members: [
         { id: 'member-1', name: '用户1', role: 'ADMIN', isCurrentUser: true },
         { id: 'member-2', name: '用户2', role: 'MEMBER', isCurrentUser: false },
-      ]
+      ],
     };
 
     mockUseOnboardingStore.mockReturnValue({
@@ -104,12 +106,14 @@ describe('BudgetSetupStep', () => {
     });
 
     mockFamilyApiService.getFamilyById.mockResolvedValue(mockFamilyData);
-    
+
     render(<BudgetSetupStep />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('设置家庭成员预算')).toBeInTheDocument();
-      expect(screen.getByText('作为管理员，您可以为每位家庭成员设置月度预算金额')).toBeInTheDocument();
+      expect(
+        screen.getByText('作为管理员，您可以为每位家庭成员设置月度预算金额'),
+      ).toBeInTheDocument();
     });
   });
 
@@ -120,7 +124,7 @@ describe('BudgetSetupStep', () => {
       members: [
         { id: 'member-1', name: '管理员', role: 'ADMIN', isCurrentUser: false },
         { id: 'member-2', name: '当前用户', role: 'MEMBER', isCurrentUser: true },
-      ]
+      ],
     };
 
     mockUseOnboardingStore.mockReturnValue({
@@ -137,9 +141,9 @@ describe('BudgetSetupStep', () => {
     });
 
     mockFamilyApiService.getFamilyById.mockResolvedValue(mockFamilyData);
-    
+
     render(<BudgetSetupStep />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('设置您的个人预算')).toBeInTheDocument();
       expect(screen.getByText('设置您的月度预算金额')).toBeInTheDocument();
@@ -154,13 +158,13 @@ describe('BudgetSetupStep', () => {
         startDate: '2024-01-01T00:00:00.000Z',
         endDate: '2024-01-31T23:59:59.999Z',
         familyMemberId: null,
-      }
+      },
     ];
-    
+
     mockBudgetApiService.getBudgets.mockResolvedValue(mockBudgets);
-    
+
     render(<BudgetSetupStep />);
-    
+
     await waitFor(() => {
       expect(screen.getByText(/2024-01-01 至 2024-01-31/)).toBeInTheDocument();
     });

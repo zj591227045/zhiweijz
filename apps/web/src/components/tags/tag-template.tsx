@@ -67,7 +67,7 @@ export const TagTemplateSelector: React.FC<TagTemplateProps> = ({
   // 应用模板
   const handleApplyTemplate = async (template: TagTemplate) => {
     try {
-      const tagIds = template.tags.map(tag => tag.id);
+      const tagIds = template.tags.map((tag) => tag.id);
       onTagsApply(tagIds);
 
       // 暂时不更新使用次数，因为相关API还未实现
@@ -81,7 +81,10 @@ export const TagTemplateSelector: React.FC<TagTemplateProps> = ({
   const defaultTemplates: Omit<TagTemplate, 'id'>[] = [];
 
   // 合并默认模板和用户模板
-  const allTemplates = [...defaultTemplates.map((t, index) => ({ ...t, id: `default-${index}` })), ...templates];
+  const allTemplates = [
+    ...defaultTemplates.map((t, index) => ({ ...t, id: `default-${index}` })),
+    ...templates,
+  ];
 
   // 获取分类图标
   const getCategoryIcon = (category?: string) => {
@@ -111,12 +114,10 @@ export const TagTemplateSelector: React.FC<TagTemplateProps> = ({
           <FileText className="w-4 h-4 text-purple-500" />
           <span className="text-sm font-medium text-gray-700">标签模板</span>
           {allTemplates.length > 0 && (
-            <span className="text-xs text-gray-500">
-              ({allTemplates.length} 个模板)
-            </span>
+            <span className="text-xs text-gray-500">({allTemplates.length} 个模板)</span>
           )}
         </div>
-        
+
         <div className="flex items-center space-x-2">
           {onTemplateCreate && (
             <button
@@ -127,7 +128,7 @@ export const TagTemplateSelector: React.FC<TagTemplateProps> = ({
               创建模板
             </button>
           )}
-          
+
           {allTemplates.length > 2 && (
             <button
               type="button"
@@ -170,27 +171,23 @@ export const TagTemplateSelector: React.FC<TagTemplateProps> = ({
                   <div>
                     <div className="font-medium text-sm text-gray-900 flex items-center space-x-1">
                       <span>{template.name}</span>
-                      {template.isDefault && (
-                        <Star className="w-3 h-3 text-yellow-500" />
-                      )}
+                      {template.isDefault && <Star className="w-3 h-3 text-yellow-500" />}
                     </div>
                     {template.description && (
                       <div className="text-xs text-gray-500">{template.description}</div>
                     )}
                   </div>
                 </div>
-                
+
                 {template.usageCount !== undefined && template.usageCount > 0 && (
-                  <div className="text-xs text-gray-500">
-                    {template.usageCount} 次使用
-                  </div>
+                  <div className="text-xs text-gray-500">{template.usageCount} 次使用</div>
                 )}
               </div>
-              
+
               {/* 标签预览 */}
               <div className="mb-2">
-                <TagDisplay 
-                  tags={template.tags.slice(0, 3)} 
+                <TagDisplay
+                  tags={template.tags.slice(0, 3)}
                   size="small"
                   className="pointer-events-none"
                 />
@@ -200,12 +197,10 @@ export const TagTemplateSelector: React.FC<TagTemplateProps> = ({
                   </span>
                 )}
               </div>
-              
+
               {/* 应用按钮 */}
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">
-                  点击应用到当前记账
-                </span>
+                <span className="text-xs text-gray-500">点击应用到当前记账</span>
                 <Plus className="w-4 h-4 text-gray-400" />
               </div>
             </div>
@@ -226,7 +221,7 @@ export const TagTemplateSelector: React.FC<TagTemplateProps> = ({
               ×
             </button>
           </div>
-          
+
           <div className="space-y-3">
             <input
               type="text"
@@ -238,13 +233,13 @@ export const TagTemplateSelector: React.FC<TagTemplateProps> = ({
               placeholder="模板描述（可选）"
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
             />
-            
+
             {selectedTagIds.length > 0 && (
               <div className="text-sm text-gray-600">
                 将使用当前选中的 {selectedTagIds.length} 个标签创建模板
               </div>
             )}
-            
+
             <div className="flex space-x-2">
               <button
                 type="button"
@@ -274,14 +269,10 @@ export const TagTemplateSelector: React.FC<TagTemplateProps> = ({
         <div className="text-xs text-gray-500 bg-purple-50 border border-purple-200 rounded-md p-2">
           <div className="flex items-center space-x-1">
             <Bookmark className="w-3 h-3 text-purple-500" />
-            <span>
-              选择模板快速应用一组相关标签，提高记账效率
-            </span>
+            <span>选择模板快速应用一组相关标签，提高记账效率</span>
           </div>
         </div>
       )}
     </div>
   );
 };
-
-

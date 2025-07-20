@@ -55,7 +55,7 @@ export function FileUpload({
   onRemove,
   className,
   disabled = false,
-  placeholder = '点击上传文件或拖拽文件到此处'
+  placeholder = '点击上传文件或拖拽文件到此处',
 }: FileUploadProps) {
   const [files, setFiles] = useState<FileUploadItem[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -77,108 +77,126 @@ export function FileUpload({
   }, []);
 
   // 验证文件
-  const validateFile = useCallback((file: File): string | null => {
-    // 检查文件类型
-    const allowedTypes = accept.split(',').map(type => type.trim());
-    if (!allowedTypes.includes(file.type)) {
-      return `不支持的文件类型: ${file.type}`;
-    }
+  const validateFile = useCallback(
+    (file: File): string | null => {
+      // 检查文件类型
+      const allowedTypes = accept.split(',').map((type) => type.trim());
+      if (!allowedTypes.includes(file.type)) {
+        return `不支持的文件类型: ${file.type}`;
+      }
 
-    // 检查文件大小
-    if (file.size > maxSize) {
-      return `文件大小超过限制: ${(file.size / 1024 / 1024).toFixed(2)}MB > ${(maxSize / 1024 / 1024).toFixed(2)}MB`;
-    }
+      // 检查文件大小
+      if (file.size > maxSize) {
+        return `文件大小超过限制: ${(file.size / 1024 / 1024).toFixed(2)}MB > ${(maxSize / 1024 / 1024).toFixed(2)}MB`;
+      }
 
-    return null;
-  }, [accept, maxSize]);
+      return null;
+    },
+    [accept, maxSize],
+  );
 
   // 处理文件添加
-  const handleFilesAdd = useCallback(async (newFiles: File[]) => {
-    if (disabled) return;
+  const handleFilesAdd = useCallback(
+    async (newFiles: File[]) => {
+      if (disabled) return;
 
-    // 检查文件数量限制
-    if (files.length + newFiles.length > maxFiles) {
-      alert(`最多只能上传 ${maxFiles} 个文件`);
-      return;
-    }
+      // 检查文件数量限制
+      if (files.length + newFiles.length > maxFiles) {
+        alert(`最多只能上传 ${maxFiles} 个文件`);
+        return;
+      }
 
-    const validFiles: FileUploadItem[] = [];
+      const validFiles: FileUploadItem[] = [];
 
-    for (const file of newFiles) {
-      const error = validateFile(file);
-      const preview = await generatePreview(file);
+      for (const file of newFiles) {
+        const error = validateFile(file);
+        const preview = await generatePreview(file);
 
-      const fileItem: FileUploadItem = {
-        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        file,
-        preview,
-        progress: 0,
-        status: error ? 'error' : 'pending',
-        error
-      };
+        const fileItem: FileUploadItem = {
+          id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          file,
+          preview,
+          progress: 0,
+          status: error ? 'error' : 'pending',
+          error,
+        };
 
-      validFiles.push(fileItem);
-    }
+        validFiles.push(fileItem);
+      }
 
-    const updatedFiles = [...files, ...validFiles];
-    setFiles(updatedFiles);
-    onChange?.(updatedFiles);
+      const updatedFiles = [...files, ...validFiles];
+      setFiles(updatedFiles);
+      onChange?.(updatedFiles);
 
-    // 自动上传有效文件
-    if (onUpload) {
-      const filesToUpload = validFiles.filter(item => !item.error).map(item => item.file);
-      if (filesToUpload.length > 0) {
-        try {
-          await onUpload(filesToUpload);
-        } catch (error) {
-          console.error('文件上传失败:', error);
+      // 自动上传有效文件
+      if (onUpload) {
+        const filesToUpload = validFiles.filter((item) => !item.error).map((item) => item.file);
+        if (filesToUpload.length > 0) {
+          try {
+            await onUpload(filesToUpload);
+          } catch (error) {
+            console.error('文件上传失败:', error);
+          }
         }
       }
-    }
-  }, [files, maxFiles, validateFile, generatePreview, onChange, onUpload, disabled]);
+    },
+    [files, maxFiles, validateFile, generatePreview, onChange, onUpload, disabled],
+  );
 
   // 处理文件选择
-  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(event.target.files || []);
-    if (selectedFiles.length > 0) {
-      handleFilesAdd(selectedFiles);
-    }
-    // 清空input值，允许重复选择同一文件
-    event.target.value = '';
-  }, [handleFilesAdd]);
+  const handleFileSelect = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFiles = Array.from(event.target.files || []);
+      if (selectedFiles.length > 0) {
+        handleFilesAdd(selectedFiles);
+      }
+      // 清空input值，允许重复选择同一文件
+      event.target.value = '';
+    },
+    [handleFilesAdd],
+  );
 
   // 处理拖拽
-  const handleDragOver = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    if (!disabled) {
-      setIsDragOver(true);
-    }
-  }, [disabled]);
+  const handleDragOver = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+      if (!disabled) {
+        setIsDragOver(true);
+      }
+    },
+    [disabled],
+  );
 
   const handleDragLeave = useCallback((event: React.DragEvent) => {
     event.preventDefault();
     setIsDragOver(false);
   }, []);
 
-  const handleDrop = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    setIsDragOver(false);
+  const handleDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+      setIsDragOver(false);
 
-    if (disabled) return;
+      if (disabled) return;
 
-    const droppedFiles = Array.from(event.dataTransfer.files);
-    if (droppedFiles.length > 0) {
-      handleFilesAdd(droppedFiles);
-    }
-  }, [handleFilesAdd, disabled]);
+      const droppedFiles = Array.from(event.dataTransfer.files);
+      if (droppedFiles.length > 0) {
+        handleFilesAdd(droppedFiles);
+      }
+    },
+    [handleFilesAdd, disabled],
+  );
 
   // 删除文件
-  const handleRemoveFile = useCallback((fileId: string) => {
-    const updatedFiles = files.filter(file => file.id !== fileId);
-    setFiles(updatedFiles);
-    onChange?.(updatedFiles);
-    onRemove?.(fileId);
-  }, [files, onChange, onRemove]);
+  const handleRemoveFile = useCallback(
+    (fileId: string) => {
+      const updatedFiles = files.filter((file) => file.id !== fileId);
+      setFiles(updatedFiles);
+      onChange?.(updatedFiles);
+      onRemove?.(fileId);
+    },
+    [files, onChange, onRemove],
+  );
 
   // 打开文件选择器
   const openFileSelector = useCallback(() => {
@@ -220,7 +238,9 @@ export function FileUpload({
         className={cn(
           'border-2 border-dashed rounded-lg p-6 text-center transition-colors',
           isDragOver ? 'border-primary bg-primary/5' : 'border-gray-300',
-          disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-primary hover:bg-primary/5'
+          disabled
+            ? 'opacity-50 cursor-not-allowed'
+            : 'cursor-pointer hover:border-primary hover:bg-primary/5',
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -259,8 +279,12 @@ export function FileUpload({
           )}
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          支持 {accept.split(',').map(type => type.split('/')[1]?.toUpperCase()).join(', ')} 格式，
-          最大 {(maxSize / 1024 / 1024).toFixed(0)}MB
+          支持{' '}
+          {accept
+            .split(',')
+            .map((type) => type.split('/')[1]?.toUpperCase())
+            .join(', ')}{' '}
+          格式， 最大 {(maxSize / 1024 / 1024).toFixed(0)}MB
         </p>
       </div>
 
@@ -317,12 +341,12 @@ export function FileUpload({
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{fileItem.file.name}</p>
                   <p className="text-xs text-gray-500">{formatFileSize(fileItem.file.size)}</p>
-                  
+
                   {/* 进度条 */}
                   {fileItem.status === 'uploading' && (
                     <Progress value={fileItem.progress} className="mt-1" />
                   )}
-                  
+
                   {/* 错误信息 */}
                   {fileItem.error && (
                     <div className="flex items-center gap-1 mt-1">

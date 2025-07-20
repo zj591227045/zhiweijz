@@ -32,8 +32,13 @@ export function CategoryDistribution({
   incomeCategories,
   onTransactionEdit,
 }: CategoryDistributionProps) {
-  const { categoryChartType, setCategoryChartType, selectedCategoryType, setSelectedCategoryType, dateRange } =
-    useStatisticsStore();
+  const {
+    categoryChartType,
+    setCategoryChartType,
+    selectedCategoryType,
+    setSelectedCategoryType,
+    dateRange,
+  } = useStatisticsStore();
   const { currentAccountBook } = useAccountBookStore();
 
   const chartRef = useRef<any>(null);
@@ -114,7 +119,7 @@ export function CategoryDistribution({
   // 处理图例点击
   const handleLegendClick = (categoryName: string, index: number) => {
     // 查找对应的分类数据
-    const categoryData = categories.find(cat => cat.categoryName === categoryName);
+    const categoryData = categories.find((cat) => cat.categoryName === categoryName);
 
     setSelectedCategory({
       name: categoryName,

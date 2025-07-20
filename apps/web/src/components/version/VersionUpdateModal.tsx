@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, X, Download, Clock, EyeOff } from 'lucide-react';
 
@@ -22,13 +28,13 @@ interface VersionUpdateModalProps {
   onAction: (action: 'update' | 'postpone' | 'ignore') => void;
 }
 
-export function VersionUpdateModal({ 
-  open, 
-  onOpenChange, 
-  version, 
+export function VersionUpdateModal({
+  open,
+  onOpenChange,
+  version,
   currentVersion,
   isAdmin = false,
-  onAction 
+  onAction,
 }: VersionUpdateModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -81,7 +87,7 @@ export function VersionUpdateModal({
 
   const handleUpdate = () => {
     const downloadUrl = getDownloadUrl();
-    
+
     if (version.platform === 'WEB') {
       // 网页版通过刷新页面更新
       handleAction('update');
@@ -98,9 +104,7 @@ export function VersionUpdateModal({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-bold">
-              {getUpdateTitle()}
-            </DialogTitle>
+            <DialogTitle className="text-xl font-bold">{getUpdateTitle()}</DialogTitle>
             {!version.isForceUpdate && (
               <Button
                 variant="ghost"
@@ -112,9 +116,7 @@ export function VersionUpdateModal({
               </Button>
             )}
           </div>
-          <DialogDescription className="text-base">
-            {getUpdateDescription()}
-          </DialogDescription>
+          <DialogDescription className="text-base">{getUpdateDescription()}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -127,9 +129,7 @@ export function VersionUpdateModal({
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-500">
-                当前版本: {currentVersion || '未知'}
-              </span>
+              <span className="text-xs text-gray-500">当前版本: {currentVersion || '未知'}</span>
               <span className="text-sm font-semibold text-blue-600">
                 最新版本: {version.version}
               </span>

@@ -289,7 +289,7 @@ function getPageInfoFromPath(pathname: string): {
 
   // 默认处理：未知路径作为功能页面
   console.warn('🤷 [MobileNavInit] 未知路径，使用默认配置:', cleanPath);
-  
+
   return {
     id: generatePageId(cleanPath),
     level: PageLevel.FEATURE,
@@ -308,7 +308,7 @@ function generatePageId(path: string): string {
 // 从路径获取页面标题
 function getPageTitleFromPath(path: string): string {
   const segments = path.split('/').filter(Boolean);
-  
+
   if (segments.length === 0) {
     return '仪表盘';
   }

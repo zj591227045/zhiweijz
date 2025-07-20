@@ -12,7 +12,7 @@ export default function TagInputTestPage() {
   const { accountBooks } = useAccountBookStore();
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [showMobileSelector, setShowMobileSelector] = useState(false);
-  
+
   const defaultAccountBook = accountBooks?.[0];
 
   if (!defaultAccountBook) {
@@ -27,7 +27,7 @@ export default function TagInputTestPage() {
   return (
     <div className="p-4 space-y-6">
       <h1 className="text-xl font-bold">标签输入测试页面</h1>
-      
+
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">测试说明</h2>
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -65,7 +65,7 @@ export default function TagInputTestPage() {
         >
           打开移动端标签选择器
         </button>
-        
+
         <MobileTagSelector
           isOpen={showMobileSelector}
           onClose={() => setShowMobileSelector(false)}
@@ -89,7 +89,7 @@ export default function TagInputTestPage() {
               <li>• 输入"购物"</li>
             </ul>
           </div>
-          
+
           <div className="border border-gray-200 rounded-lg p-4">
             <h3 className="font-medium mb-2">英文输入测试</h3>
             <ul className="text-sm text-gray-600 space-y-1">
@@ -99,7 +99,7 @@ export default function TagInputTestPage() {
               <li>• 输入"shopping"</li>
             </ul>
           </div>
-          
+
           <div className="border border-gray-200 rounded-lg p-4">
             <h3 className="font-medium mb-2">混合输入测试</h3>
             <ul className="text-sm text-gray-600 space-y-1">
@@ -108,7 +108,7 @@ export default function TagInputTestPage() {
               <li>• 输入"娱乐Fun"</li>
             </ul>
           </div>
-          
+
           <div className="border border-gray-200 rounded-lg p-4">
             <h3 className="font-medium mb-2">特殊情况测试</h3>
             <ul className="text-sm text-gray-600 space-y-1">
@@ -137,10 +137,19 @@ export default function TagInputTestPage() {
         <h2 className="text-lg font-semibold">调试信息</h2>
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div className="text-sm space-y-1">
-            <div>用户代理: {typeof window !== 'undefined' ? window.navigator.userAgent : 'N/A'}</div>
-            <div>是否Android: {typeof window !== 'undefined' ? /android/i.test(window.navigator.userAgent) : 'N/A'}</div>
-            <div>是否Capacitor: {typeof window !== 'undefined' ? !!(window as any).Capacitor : 'N/A'}</div>
-            <div>当前账本: {defaultAccountBook.name} ({defaultAccountBook.id})</div>
+            <div>
+              用户代理: {typeof window !== 'undefined' ? window.navigator.userAgent : 'N/A'}
+            </div>
+            <div>
+              是否Android:{' '}
+              {typeof window !== 'undefined' ? /android/i.test(window.navigator.userAgent) : 'N/A'}
+            </div>
+            <div>
+              是否Capacitor: {typeof window !== 'undefined' ? !!(window as any).Capacitor : 'N/A'}
+            </div>
+            <div>
+              当前账本: {defaultAccountBook.name} ({defaultAccountBook.id})
+            </div>
           </div>
         </div>
       </div>
