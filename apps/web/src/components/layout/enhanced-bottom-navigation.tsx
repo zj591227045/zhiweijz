@@ -24,10 +24,52 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
   const [isSmartAccountingOpen, setIsSmartAccountingOpen] = useState(false);
 
   const [mounted, setMounted] = useState(false);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+  const [lastClickTime, setLastClickTime] = useState<Record<string, number>>({});
 
-  // 确保只在客户端渲染
+  // 防抖机制 - 防止快速连续点击
+  const isClickAllowed = (itemId: string) => {
+    const now = Date.now();
+    const lastClick = lastClickTime[itemId] || 0;
+    const debounceTime = 300; // 300ms防抖
+    
+    if (now - lastClick < debounceTime) {
+      console.log('🚫 [BottomNav] 跳过快速连续点击:', itemId);
+      return false;
+    }
+    
+    setLastClickTime(prev => ({ ...prev, [itemId]: now }));
+    return true;
+  };
+
+  // 确保只在客户端渲染，并创建安全的Portal容器
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // 创建专用的Portal容器，避免直接使用document.body
+    const container = document.createElement('div');
+    container.id = 'bottom-navigation-portal';
+    container.style.cssText = `
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      pointer-events: auto;
+    `;
+    
+    document.body.appendChild(container);
+    setPortalContainer(container);
     setMounted(true);
+
+    return () => {
+      // 清理Portal容器
+      if (container && container.parentNode) {
+        container.parentNode.removeChild(container);
+      }
+      setPortalContainer(null);
+      setMounted(false);
+    };
   }, []);
 
   // 获取全局AI配置
@@ -42,16 +84,41 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
     return pathname === path;
   };
 
-  const handleNavItemClick = (e: React.MouseEvent) => {
-    // 为导航项点击添加振动反馈
-    hapticPresets.navigation();
+  const handleNavItemClick = (e: React.MouseEvent, itemId: string) => {
+    // 防抖检查 - 但不阻止导航本身，只阻止重复的振动反馈
+    const shouldVibrate = isClickAllowed(itemId);
+
+    // 异步执行振动反馈，避免阻塞主线程
+    if (shouldVibrate) {
+      setTimeout(() => {
+        try {
+          hapticPresets.navigation();
+        } catch (error) {
+          console.warn('振动反馈失败:', error);
+        }
+      }, 0);
+    }
+
+    console.log('🧭 [BottomNav] 导航项点击:', itemId);
+    // 不阻止默认的Link导航行为
   };
 
   const handleAddButtonClick = (e: React.MouseEvent) => {
     e.preventDefault();
 
-    // 立即触发震动反馈
-    hapticPresets.buttonTap();
+    // 防抖检查
+    if (!isClickAllowed('add-button')) {
+      return;
+    }
+
+    // 异步执行振动反馈，避免阻塞主线程
+    setTimeout(() => {
+      try {
+        hapticPresets.buttonTap();
+      } catch (error) {
+        console.warn('振动反馈失败:', error);
+      }
+    }, 0);
 
     console.log('添加按钮点击，全局AI配置:', globalConfig);
 
@@ -84,10 +151,10 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
           justifyContent: 'space-around',
           alignItems: 'center',
           boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.05)',
-          zIndex: '99998', // 比虚拟键盘低一点，但比其他内容高
+          zIndex: '40',
           maxWidth: '480px',
           margin: '0 auto',
-          // 确保在任何容器之上
+          pointerEvents: 'auto', // 确保导航栏可以接收点击事件
           transform: 'translateZ(0)',
           WebkitTransform: 'translateZ(0)',
         }}
@@ -95,7 +162,7 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
         <Link
           href="/dashboard"
           className={`nav-item ${isActive('/dashboard') ? 'active' : ''}`}
-          onClick={handleNavItemClick}
+          onClick={(e) => handleNavItemClick(e, 'dashboard')}
         >
           <i className="fas fa-home"></i>
           <span>首页</span>
@@ -103,7 +170,7 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
         <Link
           href="/statistics"
           className={`nav-item ${isActive('/statistics') ? 'active' : ''}`}
-          onClick={handleNavItemClick}
+          onClick={(e) => handleNavItemClick(e, 'statistics')}
         >
           <i className="fas fa-chart-pie"></i>
           <span>统计</span>
@@ -121,7 +188,7 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
         <Link
           href="/budgets/statistics"
           className={`nav-item ${isActive('/budgets') || (pathname && pathname.startsWith('/budgets/')) ? 'active' : ''}`}
-          onClick={handleNavItemClick}
+          onClick={(e) => handleNavItemClick(e, 'budgets')}
         >
           <i className="fas fa-wallet"></i>
           <span>预算</span>
@@ -129,7 +196,7 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
         <Link
           href="/settings"
           className={`nav-item ${isActive('/settings') ? 'active' : ''}`}
-          onClick={handleNavItemClick}
+          onClick={(e) => handleNavItemClick(e, 'settings')}
         >
           <i className="fas fa-user"></i>
           <span>我的</span>
@@ -145,10 +212,10 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
     </>
   );
 
-  // 只在客户端渲染，并使用Portal渲染到body
-  if (!mounted) {
+  // 只在客户端渲染，并使用安全的Portal容器
+  if (!mounted || !portalContainer) {
     return null;
   }
 
-  return createPortal(navigationContent, document.body);
+  return createPortal(navigationContent, portalContainer);
 }

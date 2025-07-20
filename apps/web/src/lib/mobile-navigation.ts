@@ -270,6 +270,8 @@ export const useNavigationStore = create<NavigationState & NavigationActions>()(
 // 导航工具函数
 export class NavigationManager {
   private static instance: NavigationManager;
+  private isInitialized = false;
+  private maxStackSize = 10; // 限制栈大小，防止内存累积
 
   static getInstance(): NavigationManager {
     if (!NavigationManager.instance) {
@@ -280,11 +282,20 @@ export class NavigationManager {
 
   // 初始化导航管理器
   initialize() {
+    // 防止重复初始化
+    if (this.isInitialized) {
+      console.log('📱 [NavigationManager] 已初始化，跳过重复初始化');
+      return;
+    }
+
     const store = useNavigationStore.getState();
 
     // 检测移动端环境
     const isMobile = this.detectMobileEnvironment();
     store.setMobile(isMobile);
+
+    // 清理可能存在的无效状态
+    this.cleanupInvalidStates();
 
     // 初始化仪表盘页面
     if (store.pageStack.length === 0) {
@@ -297,7 +308,33 @@ export class NavigationManager {
       });
     }
 
+    this.isInitialized = true;
     console.log('📱 [NavigationManager] 初始化完成');
+  }
+
+  // 清理无效状态
+  private cleanupInvalidStates() {
+    const store = useNavigationStore.getState();
+    
+    // 限制页面栈大小
+    if (store.pageStack.length > this.maxStackSize) {
+      const trimmedStack = store.pageStack.slice(-this.maxStackSize);
+      console.log('📱 [NavigationManager] 清理过大的页面栈:', store.pageStack.length, '->', trimmedStack.length);
+      
+      useNavigationStore.setState({
+        pageStack: trimmedStack,
+        currentPage: trimmedStack[trimmedStack.length - 1] || null,
+      });
+    }
+
+    // 清理过时的模态框
+    if (store.modalStack.length > 5) {
+      console.log('📱 [NavigationManager] 清理过多的模态框');
+      useNavigationStore.setState({
+        modalStack: [],
+        canGoBack: store.pageStack.length > 1,
+      });
+    }
   }
 
   // 检测移动端环境
@@ -324,7 +361,83 @@ export class NavigationManager {
       return;
     }
 
+    // 智能导航逻辑
+    this.smartNavigate(pageInfo);
+  }
+
+  // 智能导航 - 根据页面层级决定是推入、替换还是重置
+  private smartNavigate(pageInfo: Omit<PageInfo, 'timestamp'>) {
+    const store = useNavigationStore.getState();
+    
+    // 对于仪表盘级别的页面，直接替换或重置到该页面
+    if (pageInfo.level === PageLevel.DASHBOARD) {
+      const existingDashboard = store.pageStack.find(p => p.level === PageLevel.DASHBOARD);
+      if (existingDashboard) {
+        // 重置到仪表盘
+        store.goToDashboard();
+        console.log('📱 [NavigationManager] 重置到仪表盘页面');
+      } else {
+        // 推入新的仪表盘页面
+        store.pushPage(pageInfo);
+        console.log('📱 [NavigationManager] 推入仪表盘页面');
+      }
+      return;
+    }
+
+    // 对于功能页面，检查是否应该替换当前页面
+    if (pageInfo.level === PageLevel.FEATURE) {
+      const currentPage = store.currentPage;
+      
+      // 如果当前页面也是功能页面，且不是相同类型，替换而不是推入
+      if (currentPage && currentPage.level === PageLevel.FEATURE) {
+        const currentCategory = this.getPageCategory(currentPage.path);
+        const newCategory = this.getPageCategory(pageInfo.path);
+        
+        // 如果是不同的主要功能区域，替换而不是推入
+        if (currentCategory !== newCategory) {
+          this.replacePage(pageInfo);
+          console.log('📱 [NavigationManager] 替换功能页面:', pageInfo.id);
+          return;
+        }
+      }
+    }
+
+    // 默认推入页面
     store.pushPage(pageInfo);
+    console.log('📱 [NavigationManager] 推入新页面:', pageInfo.id);
+    
+    // 定期清理
+    this.cleanupInvalidStates();
+  }
+
+  // 替换当前页面
+  private replacePage(pageInfo: Omit<PageInfo, 'timestamp'>) {
+    const store = useNavigationStore.getState();
+    const timestamp = Date.now();
+    const newPage: PageInfo = { ...pageInfo, timestamp };
+
+    // 如果有页面栈，替换最后一个；否则推入新页面
+    if (store.pageStack.length > 0) {
+      const newStack = [...store.pageStack.slice(0, -1), newPage];
+      useNavigationStore.setState({
+        pageStack: newStack,
+        currentPage: newPage,
+        canGoBack: newStack.length > 1 || store.modalStack.length > 0,
+      });
+    } else {
+      store.pushPage(pageInfo);
+    }
+  }
+
+  // 获取页面类别 - 用于判断是否应该替换页面
+  private getPageCategory(path: string): string {
+    if (path.startsWith('/dashboard')) return 'dashboard';
+    if (path.startsWith('/statistics')) return 'statistics';
+    if (path.startsWith('/budgets')) return 'budgets';
+    if (path.startsWith('/transactions')) return 'transactions';
+    if (path.startsWith('/settings')) return 'settings';
+    if (path.startsWith('/auth')) return 'auth';
+    return 'other';
   }
 
   // 处理模态框导航

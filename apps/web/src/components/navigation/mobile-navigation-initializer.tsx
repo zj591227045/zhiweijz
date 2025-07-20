@@ -24,8 +24,16 @@ export function MobileNavigationInitializer({ children }: MobileNavigationInitia
   // 使用全局后退处理器
   const { navigationState } = useGlobalBackHandler();
 
-  // 初始化移动端导航系统
+  // 防抖控制
+  const [lastPathname, setLastPathname] = React.useState<string>('');
+  const [isInitializing, setIsInitializing] = React.useState(false);
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // 初始化移动端导航系统 - 只初始化一次
   useEffect(() => {
+    if (isInitializing) return;
+    
+    setIsInitializing(true);
     console.log('🚀 [MobileNavInit] 初始化移动端导航系统');
 
     // 1. 初始化导航管理器
@@ -52,14 +60,20 @@ export function MobileNavigationInitializer({ children }: MobileNavigationInitia
     // 清理函数
     return () => {
       console.log('🧹 [MobileNavInit] 清理移动端导航系统');
+      setIsInitializing(false);
     };
-  }, []);
+  }, []); // 只在组件挂载时初始化一次
 
-  // 监听路径变化，更新当前页面信息
+  // 监听路径变化，更新当前页面信息 - 实现防抖机制
   useEffect(() => {
-    if (!pathname) return;
+    if (!pathname || pathname === lastPathname) return;
 
     console.log('🧭 [MobileNavInit] 路径变化:', pathname, { isAuthenticated, isLoading });
+
+    // 清除之前的定时器
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
 
     // 如果认证状态正在加载，等待加载完成
     if (isLoading) {
@@ -67,68 +81,84 @@ export function MobileNavigationInitializer({ children }: MobileNavigationInitia
       return;
     }
 
-    // 检查是否在认证相关的路径变化过程中，如果是则延迟处理
-    const isAuthPath = pathname.startsWith('/auth/');
-    const isRootPath = pathname === '/';
-
-    // 如果是认证页面或根路径，延迟处理以避免干扰RouteGuard的重定向
-    if (isAuthPath || isRootPath) {
-      console.log('🧭 [MobileNavInit] 检测到认证/根路径，延迟处理:', pathname);
-
-      // 延迟500ms处理，给RouteGuard足够时间完成重定向
-      const timer = setTimeout(() => {
-        const currentPathname = window.location.pathname;
-        console.log('🧭 [MobileNavInit] 延迟处理路径:', currentPathname);
-
-        // 只有当路径没有再次变化时才处理
-        if (currentPathname === pathname) {
-          const pageInfo = getPageInfoFromPath(pathname);
-          if (pageInfo) {
-            const currentPage = navigationState.currentPage;
-            if (!currentPage || currentPage.path !== pathname) {
-              navigationManager.navigateToPage(pageInfo);
-              console.log('📝 [MobileNavInit] 延迟注册页面:', pageInfo);
-            }
-          }
-        }
-      }, 500);
-
-      return () => clearTimeout(timer);
-    }
-
-    // 对于需要认证的页面，检查认证状态
-    const requiresAuth = !isAuthPath && pathname !== '/';
-    if (requiresAuth && !isAuthenticated) {
-      console.log('🧭 [MobileNavInit] 需要认证的页面但未登录，跳过页面注册:', pathname);
-      return;
-    }
-
-    // 非认证页面或已认证用户立即处理
-    const pageInfo = getPageInfoFromPath(pathname);
-
-    if (pageInfo) {
-      // 如果是新页面，注册到导航管理器
-      const currentPage = navigationState.currentPage;
-      if (!currentPage || currentPage.path !== pathname) {
-        navigationManager.navigateToPage(pageInfo);
-        console.log('📝 [MobileNavInit] 注册新页面:', pageInfo);
+    // 防抖处理 - 300ms内的重复路径变化会被忽略
+    timeoutRef.current = setTimeout(() => {
+      const currentPathname = window.location.pathname;
+      
+      // 路径已经变化了，跳过这次处理
+      if (currentPathname !== pathname) {
+        console.log('🧭 [MobileNavInit] 路径已变化，跳过处理:', pathname, '->', currentPathname);
+        return;
       }
-    }
-  }, [pathname, navigationState.currentPage, isAuthenticated, isLoading]);
 
-  // 监听页面可见性变化
+      // 检查是否在认证相关的路径变化过程中
+      const isAuthPath = pathname.startsWith('/auth/');
+      const isRootPath = pathname === '/';
+
+      // 对于需要认证的页面，检查认证状态
+      const requiresAuth = !isAuthPath && pathname !== '/';
+      if (requiresAuth && !isAuthenticated) {
+        console.log('🧭 [MobileNavInit] 需要认证的页面但未登录，跳过页面注册:', pathname);
+        return;
+      }
+
+      // 处理页面注册
+      const pageInfo = getPageInfoFromPath(pathname);
+      if (pageInfo) {
+        // 检查是否需要注册新页面
+        const currentPage = navigationState.currentPage;
+        const shouldRegister = !currentPage || 
+          currentPage.path !== pathname || 
+          currentPage.id !== pageInfo.id;
+
+        if (shouldRegister) {
+          navigationManager.navigateToPage(pageInfo);
+          console.log('📝 [MobileNavInit] 注册页面:', pageInfo);
+        } else {
+          console.log('📝 [MobileNavInit] 页面已存在，跳过注册:', pageInfo.id);
+        }
+      }
+
+      // 更新最后处理的路径
+      setLastPathname(pathname);
+    }, 300); // 300ms防抖
+
+    // 清理定时器
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [pathname, lastPathname, navigationState.currentPage, isAuthenticated, isLoading]);
+
+  // 监听页面可见性变化 - 减少重复初始化
   useEffect(() => {
+    let visibilityChangeCount = 0;
+    const maxReinitCount = 3; // 限制重新初始化次数
+
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        console.log('👁️ [MobileNavInit] 页面变为可见');
-        // 页面重新可见时，重新初始化导航状态
-        navigationManager.initialize();
+        visibilityChangeCount++;
+        console.log(`👁️ [MobileNavInit] 页面变为可见 (第${visibilityChangeCount}次)`);
+        
+        // 只在前几次可见性变化时重新初始化，避免过度初始化
+        if (visibilityChangeCount <= maxReinitCount) {
+          // 延迟一下再初始化，避免与其他初始化冲突
+          setTimeout(() => {
+            if (document.visibilityState === 'visible') {
+              navigationManager.initialize();
+            }
+          }, 100);
+        } else {
+          console.log('👁️ [MobileNavInit] 跳过重复初始化，已达到最大次数');
+        }
       } else {
         console.log('👁️ [MobileNavInit] 页面变为隐藏');
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange, { passive: true });
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);

@@ -10,7 +10,7 @@
   justify-content: space-around;
   align-items: center;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
-  z-index: 100;
+  z-index: 40;
   max-width: 480px;
   margin: 0 auto;
 }

@@ -131,39 +131,68 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
     }
   }, [onBack, router, navigationState]);
 
-  // 处理硬件后退按钮（Android）
+  // 处理硬件后退按钮（Android） - 只在组件挂载时创建一次
   useEffect(() => {
     if (!enableHardwareBack || typeof window === 'undefined') return;
 
     const capacitor = (window as any).Capacitor;
     if (!capacitor?.Plugins?.App) return;
 
-    const backButtonListener = capacitor.Plugins.App.addListener('backButton', (data: any) => {
-      console.log('📱 [BackHandler] 硬件后退按钮触发:', data);
+    let backButtonListener: { remove: () => void } | null = null;
+    let isComponentMounted = true;
 
-      const handled = handleBack();
-      console.log('📱 [BackHandler] 硬件后退处理结果:', handled);
+    const setupListener = () => {
+      try {
+        backButtonListener = capacitor.Plugins.App.addListener('backButton', (data: any) => {
+          if (!isComponentMounted) return; // 检查组件是否还挂载
+          
+          console.log('📱 [BackHandler] 硬件后退按钮触发:', data);
 
-      // 如果没有处理，允许默认行为
-      if (!handled && !preventDefault) {
-        console.log('📱 [BackHandler] 执行默认硬件后退');
-        // 这里可以添加默认的硬件后退逻辑
+          // 使用ref获取最新的handleBack函数
+          const currentHandleBack = backHandlerRef.current;
+          if (currentHandleBack) {
+            const handled = currentHandleBack();
+            console.log('📱 [BackHandler] 硬件后退处理结果:', handled);
+
+            // 如果没有处理，允许默认行为
+            if (!handled && !preventDefault) {
+              console.log('📱 [BackHandler] 执行默认硬件后退');
+            }
+          }
+        });
+
+        console.log('📱 [BackHandler] 注册硬件后退监听器');
+      } catch (error) {
+        console.error('📱 [BackHandler] 硬件后退监听器注册失败:', error);
       }
-    });
+    };
 
-    console.log('📱 [BackHandler] 注册硬件后退监听器');
+    setupListener();
 
     return () => {
+      isComponentMounted = false;
       console.log('📱 [BackHandler] 移除硬件后退监听器');
-      backButtonListener?.remove();
+      
+      if (backButtonListener) {
+        try {
+          backButtonListener.remove();
+        } catch (error) {
+          console.error('📱 [BackHandler] 移除硬件后退监听器失败:', error);
+        }
+        backButtonListener = null;
+      }
     };
-  }, [enableHardwareBack, handleBack, preventDefault]);
+  }, []); // 移除依赖，只在挂载时创建一次
 
-  // 处理浏览器历史后退
+  // 处理浏览器历史后退 - 只在组件挂载时创建一次
   useEffect(() => {
     if (!enableBrowserBack || typeof window === 'undefined') return;
 
+    let isComponentMounted = true;
+
     const handlePopState = (event: PopStateEvent) => {
+      if (!isComponentMounted) return; // 检查组件是否还挂载
+      
       console.log('📱 [BackHandler] 浏览器历史后退触发:', event);
 
       // 检查当前路径，如果是认证相关路径或根路径，不拦截
@@ -177,15 +206,23 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
       }
 
       if (preventDefault) {
-        event.preventDefault();
+        try {
+          event.preventDefault();
 
-        const handled = handleBack();
-        console.log('📱 [BackHandler] 浏览器后退处理结果:', handled);
+          // 使用ref获取最新的handleBack函数
+          const currentHandleBack = backHandlerRef.current;
+          if (currentHandleBack) {
+            const handled = currentHandleBack();
+            console.log('📱 [BackHandler] 浏览器后退处理结果:', handled);
 
-        if (!handled) {
-          // 如果没有处理成功，恢复历史状态
-          console.log('📱 [BackHandler] 恢复历史状态');
-          window.history.pushState(null, '', window.location.href);
+            if (!handled) {
+              // 如果没有处理成功，恢复历史状态
+              console.log('📱 [BackHandler] 恢复历史状态');
+              window.history.pushState(null, '', window.location.href);
+            }
+          }
+        } catch (error) {
+          console.error('📱 [BackHandler] 浏览器后退处理失败:', error);
         }
       }
     };
@@ -196,19 +233,24 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
     const isRootPath = currentPath === '/';
 
     if (!isAuthPath && !isRootPath) {
-      // 添加一个历史状态，用于拦截后退
-      window.history.pushState(null, '', window.location.href);
-      console.log('📱 [BackHandler] 为非认证页面添加历史状态拦截');
+      try {
+        // 添加一个历史状态，用于拦截后退
+        window.history.pushState(null, '', window.location.href);
+        console.log('📱 [BackHandler] 为非认证页面添加历史状态拦截');
+      } catch (error) {
+        console.error('📱 [BackHandler] 添加历史状态失败:', error);
+      }
     }
 
-    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', handlePopState, { passive: false });
     console.log('📱 [BackHandler] 注册浏览器历史监听器');
 
     return () => {
+      isComponentMounted = false;
       console.log('📱 [BackHandler] 移除浏览器历史监听器');
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [enableBrowserBack, handleBack, preventDefault]);
+  }, []); // 移除依赖，只在挂载时创建一次
 
   // 存储当前的后退处理函数引用
   backHandlerRef.current = handleBack;

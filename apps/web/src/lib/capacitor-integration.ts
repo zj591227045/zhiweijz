@@ -53,9 +53,13 @@ const DEFAULT_BACK_BUTTON_CONFIG: BackButtonConfig = {
 export class CapacitorIntegration {
   private capacitor: CapacitorGlobal['Capacitor'] | null = null;
   private backButtonListener: { remove: () => void } | null = null;
+  private appStateListener: { remove: () => void } | null = null;
+  private urlOpenListener: { remove: () => void } | null = null;
+  private appRestoredListener: { remove: () => void } | null = null;
   private config: BackButtonConfig;
   private lastBackPress = 0;
   private exitToast: any = null;
+  private isDestroyed = false;
 
   constructor(config: Partial<BackButtonConfig> = {}) {
     this.config = { ...DEFAULT_BACK_BUTTON_CONFIG, ...config };
@@ -90,35 +94,45 @@ export class CapacitorIntegration {
 
   // 设置应用监听器
   private setupAppListeners() {
-    if (!this.capacitor?.Plugins?.App) return;
+    if (!this.capacitor?.Plugins?.App || this.isDestroyed) return;
 
     const { App } = this.capacitor.Plugins;
 
-    // 应用状态变化监听
-    App.addListener('appStateChange', (state) => {
-      console.log('🔌 [Capacitor] 应用状态变化:', state);
+    try {
+      // 应用状态变化监听
+      this.appStateListener = App.addListener('appStateChange', (state) => {
+        if (this.isDestroyed) return; // 检查是否已销毁
+        
+        console.log('🔌 [Capacitor] 应用状态变化:', state);
 
-      if (state.isActive) {
-        // 应用激活时的处理
-        this.onAppActivated();
-      } else {
-        // 应用进入后台时的处理
-        this.onAppDeactivated();
-      }
-    });
+        if (state.isActive) {
+          // 应用激活时的处理
+          this.onAppActivated();
+        } else {
+          // 应用进入后台时的处理
+          this.onAppDeactivated();
+        }
+      });
 
-    // URL打开监听
-    App.addListener('appUrlOpen', (data) => {
-      console.log('🔌 [Capacitor] URL打开:', data);
-      this.handleUrlOpen(data.url);
-    });
+      // URL打开监听
+      this.urlOpenListener = App.addListener('appUrlOpen', (data) => {
+        if (this.isDestroyed) return;
+        
+        console.log('🔌 [Capacitor] URL打开:', data);
+        this.handleUrlOpen(data.url);
+      });
 
-    // 应用恢复监听
-    App.addListener('appRestoredResult', (data) => {
-      console.log('🔌 [Capacitor] 应用恢复:', data);
-    });
+      // 应用恢复监听
+      this.appRestoredListener = App.addListener('appRestoredResult', (data) => {
+        if (this.isDestroyed) return;
+        
+        console.log('🔌 [Capacitor] 应用恢复:', data);
+      });
 
-    console.log('🔌 [Capacitor] 应用监听器已设置');
+      console.log('🔌 [Capacitor] 应用监听器已设置');
+    } catch (error) {
+      console.error('🔌 [Capacitor] 设置应用监听器失败:', error);
+    }
   }
 
   // 设置硬件后退按钮处理
@@ -370,12 +384,38 @@ export class CapacitorIntegration {
 
   // 销毁
   public destroy() {
-    if (this.backButtonListener) {
-      this.backButtonListener.remove();
-      this.backButtonListener = null;
-    }
+    this.isDestroyed = true;
+    
+    // 清理所有监听器
+    try {
+      if (this.backButtonListener) {
+        this.backButtonListener.remove();
+        this.backButtonListener = null;
+      }
 
-    console.log('💥 [Capacitor] Capacitor集成已销毁');
+      if (this.appStateListener) {
+        this.appStateListener.remove();
+        this.appStateListener = null;
+      }
+
+      if (this.urlOpenListener) {
+        this.urlOpenListener.remove();
+        this.urlOpenListener = null;
+      }
+
+      if (this.appRestoredListener) {
+        this.appRestoredListener.remove();
+        this.appRestoredListener = null;
+      }
+
+      // 清理其他状态
+      this.lastBackPress = 0;
+      this.exitToast = null;
+
+      console.log('💥 [Capacitor] Capacitor集成已销毁');
+    } catch (error) {
+      console.error('💥 [Capacitor] 销毁过程中出现错误:', error);
+    }
   }
 }
 
