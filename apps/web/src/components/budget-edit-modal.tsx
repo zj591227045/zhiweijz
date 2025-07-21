@@ -11,6 +11,10 @@ import { TimeSettingsSection } from './budgets/budget-form/time-settings-section
 import { CategoryBudgetSection } from './budgets/budget-form/category-budget-section';
 import { BudgetTypeCard } from './budgets/budget-form/budget-type-card';
 import { RolloverInfoSection } from './budgets/budget-form/rollover-info-section';
+
+// 导入样式
+import '@/styles/budget-form.css';
+import '@/styles/budget-edit-modal.css';
 import '@/styles/budget-form.css';
 
 interface BudgetEditModalProps {
@@ -54,6 +58,17 @@ export default function BudgetEditModal({ budgetId, onClose, onSave }: BudgetEdi
     resetForm,
     errors,
   } = useBudgetFormStore();
+
+  // 设置模态框状态
+  useEffect(() => {
+    // 添加modal-open类到body
+    document.body.classList.add('modal-open');
+
+    // 清理函数
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, []);
 
   // 设置表单模式为编辑模式
   useEffect(() => {
@@ -328,43 +343,16 @@ export default function BudgetEditModal({ budgetId, onClose, onSave }: BudgetEdi
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'var(--background-color)',
-        zIndex: 9999,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        // 移动端优化
-        WebkitOverflowScrolling: 'touch',
-        // 确保可以接收触摸事件
-        touchAction: 'manipulation',
-        // 尝试修复虚拟键盘问题
-        transform: 'translateZ(0)', // 强制硬件加速
-        WebkitTransform: 'translateZ(0)',
+      className="budget-edit-modal"
+      onClick={(e) => {
+        // 只有点击背景时才关闭模态框
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
       }}
     >
       {/* 使用完全相同的应用容器结构 */}
-      <div
-        className="app-container"
-        style={{
-          maxWidth: 'none',
-          margin: 0,
-          width: '100%',
-          height: '100vh',
-          minHeight: '100vh',
-          position: 'relative',
-          overflow: 'hidden',
-          // 移动端优化
-          WebkitOverflowScrolling: 'touch',
-          // 确保输入框可以正常工作
-          isolation: 'isolate',
-        }}
-      >
+      <div className="app-container">
         {/* 编辑预算的头部 */}
         <div className="header">
           <button className="icon-button" onClick={onClose}>
@@ -375,20 +363,8 @@ export default function BudgetEditModal({ budgetId, onClose, onSave }: BudgetEdi
         </div>
 
         {/* 主要内容 */}
-        <div
-          className="main-content"
-          style={{
-            paddingBottom: '20px',
-            overflowY: 'auto',
-            // 移动端键盘优化
-            WebkitOverflowScrolling: 'touch',
-            // 确保内容可以滚动到键盘上方
-            paddingBottom: 'env(safe-area-inset-bottom, 20px)',
-            // 防止键盘遮挡内容
-            minHeight: 'calc(100vh - 60px)', // 减去头部高度
-          }}
-        >
-          <div style={{ padding: '0 20px' }}>
+        <div className="main-content">
+          <div>
             <form onSubmit={handleSubmit} className="budget-form">
               {/* 错误提示 */}
               {errors.general && (
