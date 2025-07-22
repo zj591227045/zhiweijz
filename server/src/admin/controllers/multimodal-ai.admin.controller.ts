@@ -17,7 +17,19 @@ export class MultimodalAIAdminController {
    */
   async getConfig(req: Request, res: Response): Promise<void> {
     try {
+      console.log('📝 [管理端] 获取多模态AI配置请求');
       const config = await this.multimodalAIAdminService.getFullConfig();
+      
+      console.log('📝 [管理端] 返回的配置概览:', {
+        speechEnabled: config.speech.enabled,
+        visionEnabled: config.vision.enabled,
+        smartAccountingConfigLength: {
+          relevanceCheck: config.smartAccounting.relevanceCheckPrompt.length,
+          smartAccounting: config.smartAccounting.smartAccountingPrompt.length,
+          imageAnalysis: config.smartAccounting.imageAnalysisPrompt.length,
+          multimodal: config.smartAccounting.multimodalPrompt.length
+        }
+      });
       
       res.json({
         success: true,

@@ -252,8 +252,10 @@ export class SmartAccounting {
       const config = await this.configService.getFullConfig();
       
       // 第一步：判断请求内容是否与记账相关
-      const relevanceCheckTemplate = config.smartAccounting.relevanceCheckPrompt || `
-你是一个专业的财务助手。请判断以下用户描述是否与记账相关。
+      // 使用数据库配置的提示词，如果配置为空字符串或null，则使用默认提示词
+      const relevanceCheckTemplate = (config.smartAccounting.relevanceCheckPrompt && config.smartAccounting.relevanceCheckPrompt.trim()) ? 
+        config.smartAccounting.relevanceCheckPrompt : 
+        `你是一个专业的财务助手。请判断以下用户描述是否与记账相关。
 
 判断标准：
 1. 包含金额信息（必须）
@@ -310,15 +312,27 @@ export class SmartAccounting {
         state.accountId || '',
       );
 
-      // 按需获取预算列表
-      const needBudgetInfo = this.hasBudgetKeywords(state.description);
-      const budgetList = needBudgetInfo
-        ? `预算列表：${await this.getBudgetListForPrompt(state.userId, state.accountId || '')}`
-        : '';
+      // 始终获取预算列表（不再“按需”获取）
+      const budgetListText = await this.getBudgetListForPrompt(state.userId, state.accountId || '');
+      const budgetList = budgetListText ? `预算列表：\n${budgetListText}` : '';
+      
+      console.log('📊 [预算信息] 获取预算列表:', {
+        hasPrebudget: !!budgetListText,
+        budgetCount: budgetListText.split('\n').filter(line => line.trim()).length,
+        budgetPreview: budgetListText.substring(0, 200) + (budgetListText.length > 200 ? '...' : '')
+      });
 
-      // 准备提示词 - 使用配置的提示词
+      // 准备提示词 - 使用配置的提示词，如果配置为空字符串或null，则使用默认提示词
       const currentDate = new Date().toISOString().split('T')[0];
-      const smartAccountingTemplate = config.smartAccounting.smartAccountingPrompt || SMART_ACCOUNTING_SYSTEM_PROMPT;
+      const smartAccountingTemplate = (config.smartAccounting.smartAccountingPrompt && config.smartAccounting.smartAccountingPrompt.trim()) ? 
+        config.smartAccounting.smartAccountingPrompt : 
+        SMART_ACCOUNTING_SYSTEM_PROMPT;
+      
+      console.log('🔧 [智能记账] 使用的提示词模板:', {
+        isFromDatabase: !!(config.smartAccounting.smartAccountingPrompt && config.smartAccounting.smartAccountingPrompt.trim()),
+        templateLength: smartAccountingTemplate.length,
+        templatePreview: smartAccountingTemplate.substring(0, 100) + '...'
+      });
       
       // 使用工具函数替换占位符
       const smartAccountingVariables: SmartAccountingPromptVariables = {

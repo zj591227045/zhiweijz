@@ -216,17 +216,30 @@ export default function MultimodalAIConfigPage() {
   });
 
   // 加载配置
-  const loadConfig = async () => {
+  const loadConfig = async (forceReload = false) => {
     setLoading(true);
     try {
+      // 如果是强制刷新，添加时间戳参数绕过缓存
+      const timestamp = forceReload ? `?t=${Date.now()}` : '';
       const [configResponse, modelsResponse] = await Promise.all([
-        adminApi.get('/api/admin/multimodal-ai/config'),
-        adminApi.get('/api/admin/multimodal-ai/models'),
+        adminApi.get(`/api/admin/multimodal-ai/config${timestamp}`),
+        adminApi.get(`/api/admin/multimodal-ai/models${timestamp}`),
       ]);
 
       if (configResponse.ok) {
         const data = await configResponse.json();
         if (data.success) {
+          console.log('📝 [前端] 从服务器获取到的配置数据:', {
+            hasData: !!data.data,
+            smartAccountingKeysLength: {
+              relevanceCheck: data.data.smartAccounting?.relevanceCheckPrompt?.length || 0,
+              smartAccounting: data.data.smartAccounting?.smartAccountingPrompt?.length || 0,
+              imageAnalysis: data.data.smartAccounting?.imageAnalysisPrompt?.length || 0,
+              multimodal: data.data.smartAccounting?.multimodalPrompt?.length || 0
+            }
+          });
+          
+          // 完全替换配置，不使用合并
           setConfig(data.data);
         }
       } else {
@@ -257,6 +270,8 @@ export default function MultimodalAIConfigPage() {
         const data = await response.json();
         if (data.success) {
           toast.success('多模态AI配置保存成功');
+          // 保存成功后强制刷新配置
+          await loadConfig(true);
         } else {
           toast.error(data.message || '保存配置失败');
         }
@@ -314,10 +329,20 @@ export default function MultimodalAIConfigPage() {
           <h1 className="text-3xl font-bold">多模态AI配置</h1>
           <p className="text-muted-foreground">配置语音识别和视觉识别功能</p>
         </div>
-        <Button onClick={saveConfig} disabled={saving}>
-          <Save className="w-4 h-4 mr-2" />
-          {saving ? '保存中...' : '保存配置'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => loadConfig(true)} 
+            disabled={loading}
+          >
+            <RefreshCcw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            {loading ? '刷新中...' : '刷新配置'}
+          </Button>
+          <Button onClick={saveConfig} disabled={saving}>
+            <Save className="w-4 h-4 mr-2" />
+            {saving ? '保存中...' : '保存配置'}
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="speech" className="space-y-6">

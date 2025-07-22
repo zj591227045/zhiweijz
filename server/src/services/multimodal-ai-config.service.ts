@@ -22,22 +22,47 @@ export class MultimodalAIConfigService {
    */
   async getFullConfig(): Promise<FullMultimodalAIConfig> {
     try {
+      // 查询所有相关配置，不限定category
       const configs = await prisma.systemConfig.findMany({
         where: {
-          category: 'ai_multimodal',
+          OR: [
+            { category: 'ai_multimodal' },
+            { category: 'general', key: { contains: 'smart_accounting' } },
+            { category: 'general', key: { contains: 'speech_' } },
+            { category: 'general', key: { contains: 'vision_' } }
+          ],
         },
       });
 
+      console.log('🔍 [配置服务] 从数据库获取到的配置数量:', configs.length);
+      console.log('🔍 [配置服务] 获取到的配置键名:', configs.map(c => c.key));
+      
       const configMap = configs.reduce((acc, config) => {
         acc[config.key] = config.value || '';
         return acc;
       }, {} as Record<string, string>);
+      
+      console.log('🔍 [配置服务] 智能记账相关配置键:', {
+        hasRelevanceCheck: !!configMap.smart_accounting_relevance_check_prompt,
+        hasSmartAccounting: !!configMap.smart_accounting_prompt,
+        hasImageAnalysis: !!configMap.smart_accounting_image_analysis_prompt,
+        hasMultimodal: !!configMap.smart_accounting_multimodal_prompt
+      });
 
-      return {
+      const result = {
         speech: this.parseSpeechConfig(configMap),
         vision: this.parseVisionConfig(configMap),
         smartAccounting: this.parseSmartAccountingConfig(configMap),
       };
+      
+      console.log('🔍 [配置服务] 最终返回的智能记账配置长度:', {
+        relevanceCheck: result.smartAccounting.relevanceCheckPrompt.length,
+        smartAccounting: result.smartAccounting.smartAccountingPrompt.length,
+        imageAnalysis: result.smartAccounting.imageAnalysisPrompt.length,
+        multimodal: result.smartAccounting.multimodalPrompt.length
+      });
+      
+      return result;
     } catch (error) {
       console.error('获取多模态AI配置失败:', error);
       return DEFAULT_MULTIMODAL_CONFIG;
@@ -64,76 +89,80 @@ export class MultimodalAIConfigService {
    * 更新语音识别配置
    */
   async updateSpeechConfig(config: Partial<SpeechRecognitionConfig>): Promise<void> {
-    const updates: Promise<any>[] = [];
+    const configsToUpdate: { key: string; value: string }[] = [];
 
     if (config.enabled !== undefined) {
-      updates.push(this.upsertConfig('speech_enabled', config.enabled.toString()));
+      configsToUpdate.push({ key: 'speech_enabled', value: config.enabled.toString() });
     }
     if (config.provider !== undefined) {
-      updates.push(this.upsertConfig('speech_provider', config.provider));
+      configsToUpdate.push({ key: 'speech_provider', value: config.provider });
     }
     if (config.model !== undefined) {
-      updates.push(this.upsertConfig('speech_model', config.model));
+      configsToUpdate.push({ key: 'speech_model', value: config.model });
     }
     if (config.apiKey !== undefined) {
-      updates.push(this.upsertConfig('speech_api_key', config.apiKey));
+      configsToUpdate.push({ key: 'speech_api_key', value: config.apiKey });
     }
     if (config.baseUrl !== undefined) {
-      updates.push(this.upsertConfig('speech_base_url', config.baseUrl));
+      configsToUpdate.push({ key: 'speech_base_url', value: config.baseUrl });
     }
     if (config.maxFileSize !== undefined) {
-      updates.push(this.upsertConfig('speech_max_file_size', config.maxFileSize.toString()));
+      configsToUpdate.push({ key: 'speech_max_file_size', value: config.maxFileSize.toString() });
     }
     if (config.allowedFormats !== undefined) {
-      updates.push(this.upsertConfig('speech_allowed_formats', config.allowedFormats.join(',')));
+      configsToUpdate.push({ key: 'speech_allowed_formats', value: config.allowedFormats.join(',') });
     }
     if (config.timeout !== undefined) {
-      updates.push(this.upsertConfig('speech_timeout', config.timeout.toString()));
+      configsToUpdate.push({ key: 'speech_timeout', value: config.timeout.toString() });
     }
     
     // 百度云特有配置
     if (config.secretKey !== undefined) {
-      updates.push(this.upsertConfig('speech_secret_key', config.secretKey));
+      configsToUpdate.push({ key: 'speech_secret_key', value: config.secretKey });
     }
 
-    await Promise.all(updates);
+    if (configsToUpdate.length > 0) {
+      await this.batchUpsertConfigs(configsToUpdate);
+    }
   }
 
   /**
    * 更新视觉识别配置
    */
   async updateVisionConfig(config: Partial<VisionRecognitionConfig>): Promise<void> {
-    const updates: Promise<any>[] = [];
+    const configsToUpdate: { key: string; value: string }[] = [];
 
     if (config.enabled !== undefined) {
-      updates.push(this.upsertConfig('vision_enabled', config.enabled.toString()));
+      configsToUpdate.push({ key: 'vision_enabled', value: config.enabled.toString() });
     }
     if (config.provider !== undefined) {
-      updates.push(this.upsertConfig('vision_provider', config.provider));
+      configsToUpdate.push({ key: 'vision_provider', value: config.provider });
     }
     if (config.model !== undefined) {
-      updates.push(this.upsertConfig('vision_model', config.model));
+      configsToUpdate.push({ key: 'vision_model', value: config.model });
     }
     if (config.apiKey !== undefined) {
-      updates.push(this.upsertConfig('vision_api_key', config.apiKey));
+      configsToUpdate.push({ key: 'vision_api_key', value: config.apiKey });
     }
     if (config.baseUrl !== undefined) {
-      updates.push(this.upsertConfig('vision_base_url', config.baseUrl));
+      configsToUpdate.push({ key: 'vision_base_url', value: config.baseUrl });
     }
     if (config.maxFileSize !== undefined) {
-      updates.push(this.upsertConfig('vision_max_file_size', config.maxFileSize.toString()));
+      configsToUpdate.push({ key: 'vision_max_file_size', value: config.maxFileSize.toString() });
     }
     if (config.allowedFormats !== undefined) {
-      updates.push(this.upsertConfig('vision_allowed_formats', config.allowedFormats.join(',')));
+      configsToUpdate.push({ key: 'vision_allowed_formats', value: config.allowedFormats.join(',') });
     }
     if (config.detailLevel !== undefined) {
-      updates.push(this.upsertConfig('vision_detail_level', config.detailLevel));
+      configsToUpdate.push({ key: 'vision_detail_level', value: config.detailLevel });
     }
     if (config.timeout !== undefined) {
-      updates.push(this.upsertConfig('vision_timeout', config.timeout.toString()));
+      configsToUpdate.push({ key: 'vision_timeout', value: config.timeout.toString() });
     }
 
-    await Promise.all(updates);
+    if (configsToUpdate.length > 0) {
+      await this.batchUpsertConfigs(configsToUpdate);
+    }
   }
 
   /**
@@ -180,22 +209,24 @@ export class MultimodalAIConfigService {
    * 更新智能记账配置
    */
   async updateSmartAccountingConfig(config: Partial<SmartAccountingMultimodalConfig>): Promise<void> {
-    const updates: Promise<any>[] = [];
+    const configsToUpdate: { key: string; value: string }[] = [];
 
     if (config.multimodalPrompt !== undefined) {
-      updates.push(this.upsertConfig('smart_accounting_multimodal_prompt', config.multimodalPrompt));
+      configsToUpdate.push({ key: 'smart_accounting_multimodal_prompt', value: config.multimodalPrompt });
     }
     if (config.relevanceCheckPrompt !== undefined) {
-      updates.push(this.upsertConfig('smart_accounting_relevance_check_prompt', config.relevanceCheckPrompt));
+      configsToUpdate.push({ key: 'smart_accounting_relevance_check_prompt', value: config.relevanceCheckPrompt });
     }
     if (config.smartAccountingPrompt !== undefined) {
-      updates.push(this.upsertConfig('smart_accounting_prompt', config.smartAccountingPrompt));
+      configsToUpdate.push({ key: 'smart_accounting_prompt', value: config.smartAccountingPrompt });
     }
     if (config.imageAnalysisPrompt !== undefined) {
-      updates.push(this.upsertConfig('smart_accounting_image_analysis_prompt', config.imageAnalysisPrompt));
+      configsToUpdate.push({ key: 'smart_accounting_image_analysis_prompt', value: config.imageAnalysisPrompt });
     }
 
-    await Promise.all(updates);
+    if (configsToUpdate.length > 0) {
+      await this.batchUpsertConfigs(configsToUpdate);
+    }
   }
 
 
@@ -241,25 +272,74 @@ export class MultimodalAIConfigService {
    * 解析智能记账配置
    */
   private parseSmartAccountingConfig(configMap: Record<string, string>): SmartAccountingMultimodalConfig {
+    console.log('🔍 [解析配置] 数据库原始配置值:', {
+      multimodal: configMap.smart_accounting_multimodal_prompt?.length || 0,
+      relevance: configMap.smart_accounting_relevance_check_prompt?.length || 0,
+      smartAccounting: configMap.smart_accounting_prompt?.length || 0,
+      imageAnalysis: configMap.smart_accounting_image_analysis_prompt?.length || 0
+    });
+    
     return {
-      multimodalPrompt: configMap.smart_accounting_multimodal_prompt || DEFAULT_MULTIMODAL_CONFIG.smartAccounting.multimodalPrompt,
-      relevanceCheckPrompt: configMap.smart_accounting_relevance_check_prompt || DEFAULT_MULTIMODAL_CONFIG.smartAccounting.relevanceCheckPrompt,
-      smartAccountingPrompt: configMap.smart_accounting_prompt || DEFAULT_MULTIMODAL_CONFIG.smartAccounting.smartAccountingPrompt,
-      imageAnalysisPrompt: configMap.smart_accounting_image_analysis_prompt || DEFAULT_MULTIMODAL_CONFIG.smartAccounting.imageAnalysisPrompt,
+      multimodalPrompt: (configMap.smart_accounting_multimodal_prompt !== undefined && configMap.smart_accounting_multimodal_prompt !== null) ? 
+        configMap.smart_accounting_multimodal_prompt : 
+        DEFAULT_MULTIMODAL_CONFIG.smartAccounting.multimodalPrompt,
+      relevanceCheckPrompt: (configMap.smart_accounting_relevance_check_prompt !== undefined && configMap.smart_accounting_relevance_check_prompt !== null) ? 
+        configMap.smart_accounting_relevance_check_prompt : 
+        DEFAULT_MULTIMODAL_CONFIG.smartAccounting.relevanceCheckPrompt,
+      smartAccountingPrompt: (configMap.smart_accounting_prompt !== undefined && configMap.smart_accounting_prompt !== null) ? 
+        configMap.smart_accounting_prompt : 
+        DEFAULT_MULTIMODAL_CONFIG.smartAccounting.smartAccountingPrompt,
+      imageAnalysisPrompt: (configMap.smart_accounting_image_analysis_prompt !== undefined && configMap.smart_accounting_image_analysis_prompt !== null) ? 
+        configMap.smart_accounting_image_analysis_prompt : 
+        DEFAULT_MULTIMODAL_CONFIG.smartAccounting.imageAnalysisPrompt,
     };
   }
 
   /**
-   * 更新或插入配置
+   * 更新多个配置（批量操作，避免过多数据库连接）
+   */
+  private async batchUpsertConfigs(configs: { key: string; value: string }[]): Promise<void> {
+    try {
+      // 使用事务批量更新，减少数据库连接
+      await prisma.$transaction(async (tx) => {
+        const updatePromises = configs.map(({ key, value }) => {
+          // 根据键名决定使用的category
+          const category = key.startsWith('smart_accounting') ? 'general' : 'ai_multimodal';
+          
+          return tx.systemConfig.upsert({
+            where: { key },
+            update: { value, updatedAt: new Date() },
+            create: {
+              key,
+              value,
+              category,
+              description: `多模态AI配置: ${key}`,
+            },
+          });
+        });
+        
+        await Promise.all(updatePromises);
+      });
+    } catch (error) {
+      console.error('批量更新配置失败:', error);
+      throw new Error('批量更新配置失败');
+    }
+  }
+
+  /**
+   * 更新或插入单个配置（保留以保持兼容性）
    */
   private async upsertConfig(key: string, value: string): Promise<void> {
+    // 根据键名决定使用的category
+    const category = key.startsWith('smart_accounting') ? 'general' : 'ai_multimodal';
+    
     await prisma.systemConfig.upsert({
       where: { key },
       update: { value, updatedAt: new Date() },
       create: {
         key,
         value,
-        category: 'ai_multimodal',
+        category,
         description: `多模态AI配置: ${key}`,
       },
     });
