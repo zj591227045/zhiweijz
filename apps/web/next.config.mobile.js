@@ -43,13 +43,20 @@ const nextConfig = {
   webpack: (config, { dev, isServer }) => {
     // 确保mobile-stub.js文件存在的路径别名
     const stubPath = path.resolve(__dirname, 'src/lib/mobile-stub.js');
-    
+
     // 添加别名，将admin相关导入重定向到空模块
     config.resolve.alias = {
       ...config.resolve.alias,
       '@/components/admin': stubPath,
       '@/store/admin': stubPath,
+      '@/lib/admin-api-client': stubPath,
     };
+
+    // 排除admin页面文件
+    config.module.rules.push({
+      test: /src\/app\/admin/,
+      use: 'null-loader'
+    });
 
     // 定义全局变量
     config.plugins.push(

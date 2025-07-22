@@ -20,15 +20,27 @@ export const AnnouncementStats = MobileStub;
 export const MobileNotSupported = MobileStub;
 
 // 导出常见的hooks
-export const useAdminAuth = () => ({ 
-  isAuthenticated: false, 
-  token: null, 
-  login: () => {}, 
+export const useAdminAuth = () => ({
+  isAuthenticated: false,
+  token: null,
+  login: () => Promise.resolve(),
   logout: () => {},
+  checkAuth: () => Promise.resolve(),
+  changePassword: () => Promise.resolve(false),
   isLoading: false,
   error: null,
   clearError: () => {}
 });
+
+// 导出管理端API客户端
+export const adminApi = {
+  get: () => Promise.resolve({ json: () => Promise.resolve({}) }),
+  post: () => Promise.resolve({ json: () => Promise.resolve({}) }),
+  put: () => Promise.resolve({ json: () => Promise.resolve({}) }),
+  delete: () => Promise.resolve({ json: () => Promise.resolve({}) })
+};
+
+export const ADMIN_API_ENDPOINTS = {};
 
 export const useAdminDashboard = () => ({
   fetchOverview: () => {},

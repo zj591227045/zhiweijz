@@ -69,15 +69,7 @@ export class SmartAccounting {
       return null;
     }
 
-    // 检查记账点余额（LLM文字记账消费1点）- 仅在记账点系统启用时检查
-    if (this.membershipService.isAccountingPointsEnabled()) {
-      const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.text);
-      if (!canUsePoints) {
-        return {
-          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员'
-        };
-      }
-    }
+    // 注意：记账点检查和扣除已移动到调用层（控制器层）处理，避免重复扣除
 
     // 生成缓存键
     const cacheKey = `smartAccounting:${userId}:${accountId}:${description}`;
@@ -85,15 +77,8 @@ export class SmartAccounting {
     // 检查缓存
     const cachedResult = this.cache.get(cacheKey);
     if (cachedResult) {
-      // 注意：缓存命中时也需要扣除记账点，因为用户确实使用了服务
-      if (this.membershipService.isAccountingPointsEnabled()) {
-        try {
-          await AccountingPointsService.deductPoints(userId, 'text', AccountingPointsService.POINT_COSTS.text);
-        } catch (pointsError) {
-          console.error('扣除记账点失败:', pointsError);
-          // 记账点扣除失败不影响返回结果，但需要记录日志
-        }
-      }
+      // 缓存命中时不需要扣除记账点，因为调用层会处理记账点扣除
+      console.log('智能记账缓存命中，返回缓存结果');
       return cachedResult as SmartAccountingResponse;
     }
 
@@ -127,15 +112,7 @@ export class SmartAccounting {
       // 生成结果
       const resultState = await this.generateResultHandler(accountState);
 
-      // 智能记账成功，扣除记账点（仅在记账点系统启用时）
-      if (this.membershipService.isAccountingPointsEnabled()) {
-        try {
-          await AccountingPointsService.deductPoints(userId, 'text', AccountingPointsService.POINT_COSTS.text);
-        } catch (pointsError) {
-          console.error('扣除记账点失败:', pointsError);
-          // 记账点扣除失败不影响返回结果，但需要记录日志
-        }
-      }
+      // 注意：记账点扣除已移动到调用层（控制器层）处理，避免重复扣除
 
       // 缓存结果
       if (resultState.result) {

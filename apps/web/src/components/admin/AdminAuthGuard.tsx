@@ -25,16 +25,26 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
 
   useEffect(() => {
     const verifyAuth = async () => {
+      console.log('🔍 [AdminAuthGuard] verifyAuth called:', {
+        isLoginPage,
+        hasToken: !!token,
+        pathname,
+        normalizedPath
+      });
+
       // 如果在登录页面且没有token，直接完成加载
       if (isLoginPage && !token) {
+        console.log('🔍 [AdminAuthGuard] Login page without token, finishing load');
         setIsLoading(false);
         return;
       }
 
       // 如果没有token且不在登录页面，跳转到登录页
       if (!token) {
+        console.log('🔍 [AdminAuthGuard] No token, redirecting to login if needed');
         setIsLoading(false);
         if (!isLoginPage) {
+          console.log('🔍 [AdminAuthGuard] Redirecting to /admin/login');
           router.push('/admin/login');
         }
         return;
@@ -42,18 +52,23 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
 
       // 如果有token，验证token有效性
       try {
+        console.log('🔍 [AdminAuthGuard] Checking auth with token');
         await checkAuth();
+        console.log('🔍 [AdminAuthGuard] Auth check successful');
         setIsLoading(false);
 
         // 如果认证成功且在登录页面，跳转到管理页面
         if (isLoginPage) {
+          console.log('🔍 [AdminAuthGuard] Authenticated on login page, redirecting to /admin');
           router.push('/admin');
         }
       } catch (error) {
+        console.log('🔍 [AdminAuthGuard] Auth check failed:', error);
         setIsLoading(false);
 
         // 认证失败，跳转到登录页面
         if (!isLoginPage) {
+          console.log('🔍 [AdminAuthGuard] Auth failed, redirecting to /admin/login');
           router.push('/admin/login');
         }
       }

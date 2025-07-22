@@ -30,7 +30,7 @@ export const useAdminAuth = create<AdminAuthState>()(
     (set, get) => ({
       isAuthenticated: false,
       admin: null,
-      token: typeof window !== 'undefined' ? localStorage.getItem('admin-auth-token') : null,
+      token: null, // token将通过persist中间件自动恢复
       isLoading: false,
       error: null,
 
@@ -83,26 +83,37 @@ export const useAdminAuth = create<AdminAuthState>()(
       checkAuth: async () => {
         const { token } = get();
 
+        console.log('🔍 [useAdminAuth] checkAuth called:', { hasToken: !!token });
+
         if (!token) {
+          console.log('🔍 [useAdminAuth] No token, setting unauthenticated');
           set({ isAuthenticated: false, admin: null });
           return;
         }
 
         try {
+          console.log('🔍 [useAdminAuth] Making auth check request');
           const response = await adminApi.get(ADMIN_API_ENDPOINTS.CHECK_AUTH);
 
           const data = await response.json();
+          console.log('🔍 [useAdminAuth] Auth check response:', {
+            ok: response.ok,
+            status: response.status,
+            success: data.success
+          });
 
           if (!response.ok || !data.success) {
             throw new Error('认证失败');
           }
 
+          console.log('🔍 [useAdminAuth] Auth check successful, setting authenticated');
           set({
             isAuthenticated: true,
             admin: data.data.admin,
             error: null,
           });
         } catch (error) {
+          console.log('🔍 [useAdminAuth] Auth check failed:', error);
           // token会通过persist自动清除
 
           set({
@@ -111,6 +122,7 @@ export const useAdminAuth = create<AdminAuthState>()(
             token: null,
             error: '认证失败，请重新登录',
           });
+          throw error; // 重新抛出错误以便上层处理
         }
       },
 
