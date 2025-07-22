@@ -1053,6 +1053,82 @@ html.modal-open {
   background-color: var(--retry-button-bg-hover-dark, var(--warning-400, #fbbf24));
 }
 
+/* 智能记账模态框夜间模式适配 */
+[data-theme="dark"] .smart-accounting-dialog {
+  background-color: var(--card-background, #1f2937);
+  color: var(--text-primary, #f3f4f6);
+}
+
+[data-theme="dark"] .smart-accounting-dialog-header {
+  border-bottom-color: var(--border-color, #374151);
+}
+
+[data-theme="dark"] .smart-accounting-dialog-title {
+  color: var(--text-primary, #f3f4f6);
+}
+
+[data-theme="dark"] .smart-accounting-dialog-subtitle {
+  color: var(--text-secondary, #9ca3af);
+}
+
+[data-theme="dark"] .smart-accounting-textarea {
+  background-color: var(--input-bg-color, #374151);
+  color: var(--text-primary, #f3f4f6);
+  border-color: var(--border-color, #4b5563);
+}
+
+[data-theme="dark"] .smart-accounting-textarea::placeholder {
+  color: var(--text-secondary, #9ca3af);
+}
+
+[data-theme="dark"] .smart-accounting-processing {
+  color: var(--text-primary, #f3f4f6);
+}
+
+[data-theme="dark"] .smart-accounting-processing-text {
+  color: var(--text-secondary, #9ca3af);
+}
+
+[data-theme="dark"] .smart-accounting-dialog-close {
+  color: var(--text-secondary, #9ca3af);
+}
+
+[data-theme="dark"] .smart-accounting-dialog-close:hover {
+  color: var(--text-primary, #f3f4f6);
+  background-color: var(--background-hover, rgba(255, 255, 255, 0.1));
+}
+
+/* 按钮夜间模式适配 */
+[data-theme="dark"] .identify-button {
+  background-color: var(--primary-color, #3b82f6);
+  color: var(--primary-foreground, white);
+}
+
+[data-theme="dark"] .direct-button {
+  background-color: var(--success-color, #22c55e);
+  color: var(--success-foreground, white);
+}
+
+[data-theme="dark"] .camera-button {
+  background-color: var(--secondary-color, #6366f1);
+  color: var(--secondary-foreground, white);
+}
+
+[data-theme="dark"] .smart-accounting-manual-button {
+  background-color: var(--warning-color, #f59e0b);
+  color: var(--warning-foreground, white);
+}
+
+[data-theme="dark"] .recognize-image-button {
+  background-color: var(--primary-color, #3b82f6);
+  color: var(--primary-foreground, white);
+}
+
+[data-theme="dark"] .retry-button {
+  background-color: var(--warning-color, #f59e0b);
+  color: var(--warning-foreground, white);
+}
+
 /* 移动端适配 */
 @media (max-width: 640px) {
   .multimodal-input-options {

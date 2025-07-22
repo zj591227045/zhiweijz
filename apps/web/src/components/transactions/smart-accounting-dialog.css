@@ -247,16 +247,80 @@
 }
 
 /* 暗色模式适配 */
-.dark .smart-accounting-dialog {
+.dark .smart-accounting-dialog,
+[data-theme="dark"] .smart-accounting-dialog {
   background-color: var(--card-background, #1f2937);
+  color: var(--text-primary, #f3f4f6);
 }
 
-.dark .smart-accounting-textarea {
+.dark .smart-accounting-dialog-title,
+[data-theme="dark"] .smart-accounting-dialog-title {
+  color: var(--text-primary, #f3f4f6);
+}
+
+.dark .smart-accounting-dialog-subtitle,
+[data-theme="dark"] .smart-accounting-dialog-subtitle {
+  color: var(--text-secondary, #9ca3af);
+}
+
+.dark .smart-accounting-textarea,
+[data-theme="dark"] .smart-accounting-textarea {
   background-color: var(--input-bg-color, #374151);
   color: var(--text-primary, #f9fafb);
   border-color: var(--border-color, #4b5563);
 }
 
-.dark .smart-accounting-container {
+.dark .smart-accounting-textarea::placeholder,
+[data-theme="dark"] .smart-accounting-textarea::placeholder {
+  color: var(--text-secondary, #9ca3af);
+}
+
+.dark .smart-accounting-container,
+[data-theme="dark"] .smart-accounting-container {
   background-color: var(--card-background, #1f2937);
+}
+
+.dark .smart-accounting-dialog-close,
+[data-theme="dark"] .smart-accounting-dialog-close {
+  color: var(--text-secondary, #9ca3af);
+}
+
+.dark .smart-accounting-dialog-close:hover,
+[data-theme="dark"] .smart-accounting-dialog-close:hover {
+  color: var(--text-primary, #f3f4f6);
+  background-color: var(--background-hover, rgba(255, 255, 255, 0.1));
+}
+
+.dark .smart-accounting-processing,
+[data-theme="dark"] .smart-accounting-processing {
+  color: var(--text-primary, #f3f4f6);
+}
+
+.dark .smart-accounting-processing-text,
+[data-theme="dark"] .smart-accounting-processing-text {
+  color: var(--text-secondary, #9ca3af);
+}
+
+.dark .smart-accounting-dialog-footer,
+[data-theme="dark"] .smart-accounting-dialog-footer {
+  border-top-color: var(--border-color, #374151);
+}
+
+/* 按钮夜间模式适配 */
+.dark .identify-button,
+[data-theme="dark"] .identify-button {
+  background-color: var(--primary-color, #3b82f6);
+  color: var(--primary-foreground, white);
+}
+
+.dark .direct-button,
+[data-theme="dark"] .direct-button {
+  background-color: var(--success-color, #22c55e);
+  color: var(--success-foreground, white);
+}
+
+.dark .smart-accounting-manual-button,
+[data-theme="dark"] .smart-accounting-manual-button {
+  background-color: var(--warning-color, #f59e0b);
+  color: var(--warning-foreground, white);
 }

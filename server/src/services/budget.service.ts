@@ -1295,6 +1295,7 @@ export class BudgetService {
     const rolloverType = remaining >= 0 ? 'SURPLUS' : 'DEFICIT';
     const historyData = {
       budgetId: budget.id,
+      userId: budget.userId || budget.familyMemberId || null, // 添加用户ID
       period: period,
       amount: remaining,
       type: rolloverType as any,
@@ -1302,7 +1303,6 @@ export class BudgetService {
       budgetAmount: amount,
       spentAmount: spent,
       previousRollover: previousRollover,
-      updatedAt: new Date(),
     };
 
     if (existingHistory) {
@@ -1320,7 +1320,7 @@ export class BudgetService {
           data: {
             id: `history-${budget.id}-${period}`,
             budgetId: budget.id,
-            userId: budget.userId || budget.familyMemberId, // 添加用户ID
+            userId: budget.userId || budget.familyMemberId || null, // 添加用户ID，允许为null
             period: period,
             amount: remaining,
             type: rolloverType as any,
@@ -1328,8 +1328,6 @@ export class BudgetService {
             budgetAmount: amount,
             spentAmount: spent,
             previousRollover: previousRollover,
-            createdAt: new Date(),
-            updatedAt: new Date(),
           },
         });
         console.log(`创建历史记录: ${period}, 结转金额: ${remaining}, 用户ID: ${budget.userId || budget.familyMemberId}`);
