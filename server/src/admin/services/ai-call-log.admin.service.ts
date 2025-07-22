@@ -202,43 +202,77 @@ export class AICallLogAdminService {
         ];
       }
 
-      // 使用统一视图查询
+      // 使用参数化查询避免SQL注入
+      const queryParams: any[] = [];
+      const countParams: any[] = [];
+      let paramIndex = 1;
+
+      let whereConditions = 'WHERE 1=1';
+
+      if (isSuccess !== undefined) {
+        whereConditions += ` AND is_success = $${paramIndex}`;
+        queryParams.push(isSuccess);
+        countParams.push(isSuccess);
+        paramIndex++;
+      }
+
+      if (accountBookId) {
+        whereConditions += ` AND account_book_id = $${paramIndex}`;
+        queryParams.push(accountBookId);
+        countParams.push(accountBookId);
+        paramIndex++;
+      }
+
+      if (aiServiceType) {
+        whereConditions += ` AND ai_service_type = $${paramIndex}`;
+        queryParams.push(aiServiceType);
+        countParams.push(aiServiceType);
+        paramIndex++;
+      }
+
+      if (source) {
+        whereConditions += ` AND source = $${paramIndex}`;
+        queryParams.push(source);
+        countParams.push(source);
+        paramIndex++;
+      }
+
+      if (startDate && endDate) {
+        whereConditions += ` AND created_at BETWEEN $${paramIndex}::timestamp AND $${paramIndex + 1}::timestamp`;
+        queryParams.push(startDate, endDate);
+        countParams.push(startDate, endDate);
+        paramIndex += 2;
+      }
+
+      if (search && search.trim()) {
+        const searchPattern = `%${search.trim()}%`;
+        whereConditions += ` AND (user_name ILIKE $${paramIndex} OR user_email ILIKE $${paramIndex + 1} OR account_book_name ILIKE $${paramIndex + 2} OR provider ILIKE $${paramIndex + 3} OR model ILIKE $${paramIndex + 4})`;
+        queryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
+        countParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
+        paramIndex += 5;
+      }
+
       const query = `
         SELECT * FROM ai_call_logs_unified
-        WHERE 1=1
-        ${userEmail ? `AND user_email ILIKE '%${userEmail}%'` : ''}
-        ${provider ? `AND provider ILIKE '%${provider}%'` : ''}
-        ${model ? `AND model ILIKE '%${model}%'` : ''}
-        ${isSuccess !== undefined ? `AND is_success = ${isSuccess}` : ''}
-        ${accountBookId ? `AND account_book_id = '${accountBookId}'` : ''}
-        ${aiServiceType ? `AND ai_service_type = '${aiServiceType}'` : ''}
-        ${source ? `AND source = '${source}'` : ''}
-        ${startDate && endDate ? `AND created_at BETWEEN '${startDate}' AND '${endDate}'` : ''}
-        ${search ? `AND (user_name ILIKE '%${search}%' OR user_email ILIKE '%${search}%' OR account_book_name ILIKE '%${search}%' OR provider ILIKE '%${search}%' OR model ILIKE '%${search}%')` : ''}
+        ${whereConditions}
         ORDER BY created_at DESC
-        LIMIT ${pageSize} OFFSET ${skip}
+        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
       `;
+      queryParams.push(pageSize, skip);
 
       const countQuery = `
         SELECT COUNT(*) as total FROM ai_call_logs_unified
-        WHERE 1=1
-        ${userEmail ? `AND user_email ILIKE '%${userEmail}%'` : ''}
-        ${provider ? `AND provider ILIKE '%${provider}%'` : ''}
-        ${model ? `AND model ILIKE '%${model}%'` : ''}
-        ${isSuccess !== undefined ? `AND is_success = ${isSuccess}` : ''}
-        ${accountBookId ? `AND account_book_id = '${accountBookId}'` : ''}
-        ${aiServiceType ? `AND ai_service_type = '${aiServiceType}'` : ''}
-        ${source ? `AND source = '${source}'` : ''}
-        ${startDate && endDate ? `AND created_at BETWEEN '${startDate}' AND '${endDate}'` : ''}
-        ${search ? `AND (user_name ILIKE '%${search}%' OR user_email ILIKE '%${search}%' OR account_book_name ILIKE '%${search}%' OR provider ILIKE '%${search}%' OR model ILIKE '%${search}%')` : ''}
+        ${whereConditions}
       `;
 
       console.log('🔍 [AI调用日志] 执行查询SQL:', query);
+      console.log('🔍 [AI调用日志] 查询参数:', queryParams);
       console.log('🔍 [AI调用日志] 执行计数SQL:', countQuery);
+      console.log('🔍 [AI调用日志] 计数参数:', countParams);
 
       const [logs, countResult] = await Promise.all([
-        prisma.$queryRawUnsafe(query),
-        prisma.$queryRawUnsafe(countQuery),
+        prisma.$queryRawUnsafe(query, ...queryParams),
+        prisma.$queryRawUnsafe(countQuery, ...countParams),
       ]);
 
       console.log('🔍 [AI调用日志] 查询结果数量:', (logs as any[]).length);
