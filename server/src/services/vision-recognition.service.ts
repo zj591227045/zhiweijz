@@ -25,7 +25,41 @@ export class VisionRecognitionService {
   }
 
   /**
-   * 图片识别（带记账点扣除）
+   * 图片识别（带记账点扣除）- 用于普通图片识别
+   * @param request 图片识别请求
+   * @param userId 用户ID（用于记账点扣除）
+   */
+  async recognizeImageWithStandalonePointsDeduction(request: VisionRecognitionRequest, userId: string): Promise<MultimodalAIResponse> {
+    // 检查记账点余额（普通图片识别需要2点）- 仅在记账点系统启用时检查
+    if (this.membershipService.isAccountingPointsEnabled()) {
+      const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.image);
+      if (!canUsePoints) {
+        return {
+          success: false,
+          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+          usage: { duration: 0 },
+        };
+      }
+    }
+
+    // 调用原始的图片识别方法
+    const result = await this.recognizeImage(request);
+
+    // 如果识别成功，扣除图片识别记账点（2点）- 仅在记账点系统启用时
+    if (result.success && this.membershipService.isAccountingPointsEnabled()) {
+      try {
+        await AccountingPointsService.deductPoints(userId, 'image', AccountingPointsService.POINT_COSTS.image);
+      } catch (pointsError) {
+        console.error('扣除记账点失败:', pointsError);
+        // 记账点扣除失败不影响返回结果，但需要记录日志
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * 图片识别（带记账点扣除）- 用于智能记账
    * @param request 图片识别请求
    * @param userId 用户ID（用于记账点扣除）
    */

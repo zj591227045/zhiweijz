@@ -104,8 +104,8 @@ export class MultimodalAIController {
         format: req.body.format,
       };
 
-      // 调用语音识别服务
-      const result = await this.speechService.speechToText(speechRequest);
+      // 调用语音识别服务（使用带记账点扣除的方法）
+      const result = await this.speechService.speechToTextWithStandalonePointsDeduction(speechRequest, userId);
 
       isSuccess = result.success;
       if (!isSuccess) {
@@ -226,8 +226,8 @@ export class MultimodalAIController {
         return;
       }
 
-      // 调用图片识别服务
-      const result = await this.visionService.recognizeImage(visionRequest);
+      // 调用图片识别服务（使用带记账点扣除的方法）
+      const result = await this.visionService.recognizeImageWithStandalonePointsDeduction(visionRequest, userId);
 
       isSuccess = result.success;
       if (!isSuccess) {

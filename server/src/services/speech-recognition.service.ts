@@ -30,7 +30,41 @@ export class SpeechRecognitionService {
   }
 
   /**
-   * 语音转文本（带记账点扣除）
+   * 语音转文本（带记账点扣除）- 用于普通语音识别
+   * @param request 语音识别请求
+   * @param userId 用户ID（用于记账点扣除）
+   */
+  async speechToTextWithStandalonePointsDeduction(request: SpeechRecognitionRequest, userId: string): Promise<MultimodalAIResponse> {
+    // 检查记账点余额（普通语音识别需要1点）- 仅在记账点系统启用时检查
+    if (this.membershipService.isAccountingPointsEnabled()) {
+      const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.voice);
+      if (!canUsePoints) {
+        return {
+          success: false,
+          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+          usage: { duration: 0 },
+        };
+      }
+    }
+
+    // 调用原始的语音识别方法
+    const result = await this.speechToText(request);
+
+    // 如果识别成功，扣除语音识别记账点（1点）- 仅在记账点系统启用时
+    if (result.success && this.membershipService.isAccountingPointsEnabled()) {
+      try {
+        await AccountingPointsService.deductPoints(userId, 'voice', AccountingPointsService.POINT_COSTS.voice);
+      } catch (pointsError) {
+        console.error('扣除记账点失败:', pointsError);
+        // 记账点扣除失败不影响返回结果，但需要记录日志
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * 语音转文本（带记账点扣除）- 用于智能记账
    * @param request 语音识别请求
    * @param userId 用户ID（用于记账点扣除）
    */
