@@ -1382,16 +1382,24 @@ export default function EnhancedSmartAccountingDialog({
 
         // 调用直接添加记账API（与语音记账相同的逻辑）
         try {
-          const response = await apiClient.post(
+          const requestBody: any = { description: recognizedText };
+          
+          // 如果有文件信息，添加附件文件ID
+          if (response.data?.fileInfo?.id) {
+            requestBody.attachmentFileId = response.data.fileInfo.id;
+            console.log('🖼️ [ImageRecognition] 添加附件文件ID:', response.data.fileInfo.id);
+          }
+          
+          const directAddResponse = await apiClient.post(
             `/ai/account/${accountBookId}/smart-accounting/direct`,
-            { description: recognizedText },
+            requestBody,
             { timeout: 60000 },
           );
 
-          if (response && (response.id || (response.transactions && response.count > 0))) {
-            const successMessage = response.id 
+          if (directAddResponse && (directAddResponse.id || (directAddResponse.transactions && directAddResponse.count > 0))) {
+            const successMessage = directAddResponse.id 
               ? '记账成功' 
-              : `记账成功，已创建${response.count}条记录`;
+              : `记账成功，已创建${directAddResponse.count}条记录`;
             progressManager.showProgress(progressId, successMessage, 'success');
 
             // 刷新仪表盘数据

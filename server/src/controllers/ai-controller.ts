@@ -7,6 +7,8 @@ import AccountingPointsService from '../services/accounting-points.service';
 import { SourceDetectionUtil } from '../utils/source-detection.util';
 import { TransactionService } from '../services/transaction.service';
 import { MembershipService } from '../services/membership.service';
+import { TransactionAttachmentRepository } from '../repositories/file-storage.repository';
+import { AttachmentType } from '../models/file-storage.model';
 
 /**
  * AI功能控制器
@@ -18,6 +20,7 @@ export class AIController {
   private prisma: PrismaClient;
   private transactionService: TransactionService;
   private membershipService: MembershipService;
+  private attachmentRepository: TransactionAttachmentRepository;
 
   /**
    * 构造函数
@@ -28,6 +31,7 @@ export class AIController {
     this.prisma = new PrismaClient();
     this.transactionService = new TransactionService();
     this.membershipService = new MembershipService();
+    this.attachmentRepository = new TransactionAttachmentRepository();
   }
 
   /**
@@ -1098,7 +1102,7 @@ export class AIController {
    */
   public async handleSmartAccountingDirect(req: Request, res: Response) {
     try {
-      const { description } = req.body;
+      const { description, attachmentFileId } = req.body; // 添加附件文件ID参数
       const { accountId } = req.params;
       const userId = req.user?.id;
 
@@ -1303,6 +1307,39 @@ export class AIController {
           });
 
           createdTransactions.push(transaction);
+          
+          // 如果有附件文件ID，将其关联到创建的交易记录（只为第一条记录添加附件，避免重复）
+          if (attachmentFileId && i === 0) {
+            try {
+              console.log(`📎 [附件关联] 正在为交易记录 ${transaction.id} 关联附件 ${attachmentFileId}`);
+              
+              // 验证文件是否存在
+              const fileInfo = await this.prisma.fileStorage.findUnique({
+                where: { 
+                  id: attachmentFileId,
+                  uploadedBy: userId, // 确保文件属于当前用户
+                },
+              });
+              
+              if (fileInfo) {
+                // 创建附件关联
+                await this.attachmentRepository.create({
+                  transactionId: transaction.id,
+                  fileId: attachmentFileId,
+                  attachmentType: AttachmentType.RECEIPT,
+                  description: '智能记账上传图片',
+                });
+                
+                console.log(`✅ [附件关联] 附件关联成功`);
+              } else {
+                console.warn(`⚠️ [附件关联] 文件不存在或无权访问: ${attachmentFileId}`);
+              }
+            } catch (attachmentError) {
+              console.error('关联附件失败:', attachmentError);
+              // 附件关联失败不影响记账创建的成功
+            }
+          }
+          
           console.log(`✅ [记账创建] 第 ${i + 1} 条记账记录创建成功: ${transaction.id}`);
         }
 

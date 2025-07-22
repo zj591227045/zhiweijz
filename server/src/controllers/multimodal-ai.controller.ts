@@ -436,23 +436,50 @@ export class MultimodalAIController {
         console.warn('获取视觉识别配置失败:', configError);
       }
 
-      // 2. 先保存图片到S3（带压缩）
+      // 2. 先保存图片到S3（带压缩）- 保存到永久存储桶以备附件使用
       let savedImageFile: Express.Multer.File = req.file;
+      let permanentFileInfo: any = null;
+      
       try {
-        const uploadResult = await this.fileStorageService.uploadFile(
+        // 保存到永久存储桶以便后续作为附件
+        const permanentUploadResult = await this.fileStorageService.uploadFile(
           req.file,
           {
-            bucket: BUCKET_CONFIG.TEMP, // 使用临时存储桶
-            category: 'multimodal',
-            description: '智能记账图片识别',
-            expiresIn: 3600, // 1小时后过期
+            bucket: BUCKET_CONFIG.ATTACHMENTS, // 使用交易附件存储桶
+            category: 'smart-accounting-images',
+            description: '智能记账上传图片',
           },
           userId
         );
-        console.log(`图片已保存到S3: ${uploadResult.url}, 文件大小: ${uploadResult.size} bytes`);
+        
+        permanentFileInfo = {
+          id: permanentUploadResult.fileId,
+          url: permanentUploadResult.url,
+          size: permanentUploadResult.size,
+          filename: permanentUploadResult.filename,
+          mimeType: permanentUploadResult.mimeType,
+        };
+        
+        console.log(`图片已保存到永久存储: ${permanentUploadResult.url}, 文件大小: ${permanentUploadResult.size} bytes`);
       } catch (uploadError) {
-        console.warn('保存图片到S3失败，使用原始文件进行识别:', uploadError);
-        // 上传失败不影响识别流程，继续使用原始文件
+        console.warn('保存图片到永久存储失败，使用临时存储进行识别:', uploadError);
+        
+        // 备用方案：保存到临时存储桶
+        try {
+          const tempUploadResult = await this.fileStorageService.uploadFile(
+            req.file,
+            {
+              bucket: BUCKET_CONFIG.TEMP,
+              category: 'multimodal',
+              description: '智能记账图片识别（临时）',
+              expiresIn: 3600, // 1小时后过期
+            },
+            userId
+          );
+          console.log(`图片已保存到临时存储: ${tempUploadResult.url}, 文件大小: ${tempUploadResult.size} bytes`);
+        } catch (tempUploadError) {
+          console.warn('保存图片到临时存储也失败，使用原始文件进行识别:', tempUploadError);
+        }
       }
 
       // 2. 获取配置的提示词
@@ -483,13 +510,15 @@ export class MultimodalAIController {
         recognizedText = visionResult.data?.text;
       }
 
-      // 3. 返回识别结果，前端将调用智能记账API
+      // 3. 返回识别结果和文件信息，前端将调用智能记账API
       res.json({
         success: true,
         data: {
           text: visionResult.data?.text || '',
           confidence: visionResult.data?.confidence || 0,
           type: 'vision',
+          // 如果成功保存到永久存储，则返回文件信息
+          fileInfo: permanentFileInfo,
         },
         usage: visionResult.usage,
       });
