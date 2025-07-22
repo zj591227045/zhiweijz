@@ -315,12 +315,17 @@ export class NavigationManager {
   // 清理无效状态
   private cleanupInvalidStates() {
     const store = useNavigationStore.getState();
-    
+
     // 限制页面栈大小
     if (store.pageStack.length > this.maxStackSize) {
       const trimmedStack = store.pageStack.slice(-this.maxStackSize);
-      console.log('📱 [NavigationManager] 清理过大的页面栈:', store.pageStack.length, '->', trimmedStack.length);
-      
+      console.log(
+        '📱 [NavigationManager] 清理过大的页面栈:',
+        store.pageStack.length,
+        '->',
+        trimmedStack.length,
+      );
+
       useNavigationStore.setState({
         pageStack: trimmedStack,
         currentPage: trimmedStack[trimmedStack.length - 1] || null,
@@ -368,10 +373,10 @@ export class NavigationManager {
   // 智能导航 - 根据页面层级决定是推入、替换还是重置
   private smartNavigate(pageInfo: Omit<PageInfo, 'timestamp'>) {
     const store = useNavigationStore.getState();
-    
+
     // 对于仪表盘级别的页面，直接替换或重置到该页面
     if (pageInfo.level === PageLevel.DASHBOARD) {
-      const existingDashboard = store.pageStack.find(p => p.level === PageLevel.DASHBOARD);
+      const existingDashboard = store.pageStack.find((p) => p.level === PageLevel.DASHBOARD);
       if (existingDashboard) {
         // 重置到仪表盘
         store.goToDashboard();
@@ -387,12 +392,12 @@ export class NavigationManager {
     // 对于功能页面，检查是否应该替换当前页面
     if (pageInfo.level === PageLevel.FEATURE) {
       const currentPage = store.currentPage;
-      
+
       // 如果当前页面也是功能页面，且不是相同类型，替换而不是推入
       if (currentPage && currentPage.level === PageLevel.FEATURE) {
         const currentCategory = this.getPageCategory(currentPage.path);
         const newCategory = this.getPageCategory(pageInfo.path);
-        
+
         // 如果是不同的主要功能区域，替换而不是推入
         if (currentCategory !== newCategory) {
           this.replacePage(pageInfo);
@@ -405,7 +410,7 @@ export class NavigationManager {
     // 默认推入页面
     store.pushPage(pageInfo);
     console.log('📱 [NavigationManager] 推入新页面:', pageInfo.id);
-    
+
     // 定期清理
     this.cleanupInvalidStates();
   }

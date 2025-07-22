@@ -32,20 +32,20 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
     const now = Date.now();
     const lastClick = lastClickTime[itemId] || 0;
     const debounceTime = 300; // 300ms防抖
-    
+
     if (now - lastClick < debounceTime) {
       console.log('🚫 [BottomNav] 跳过快速连续点击:', itemId);
       return false;
     }
-    
-    setLastClickTime(prev => ({ ...prev, [itemId]: now }));
+
+    setLastClickTime((prev) => ({ ...prev, [itemId]: now }));
     return true;
   };
 
   // 确保只在客户端渲染，并创建安全的Portal容器
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
+
     // 创建专用的Portal容器，避免直接使用document.body
     const container = document.createElement('div');
     container.id = 'bottom-navigation-portal';
@@ -57,7 +57,7 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
       z-index: 40;
       pointer-events: auto;
     `;
-    
+
     document.body.appendChild(container);
     setPortalContainer(container);
     setMounted(true);

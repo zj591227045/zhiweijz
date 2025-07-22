@@ -378,7 +378,7 @@ export function TransactionListPage() {
     } else {
       // 正常模式下，点击打开编辑模态框
       hapticPresets.transactionTap();
-      
+
       // 找到对应的记账数据
       const transactionData = transactions.find((t) => t.id === transactionId);
       setEditingTransactionId(transactionId);

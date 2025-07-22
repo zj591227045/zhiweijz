@@ -32,7 +32,7 @@ export function MobileNavigationInitializer({ children }: MobileNavigationInitia
   // 初始化移动端导航系统 - 只初始化一次
   useEffect(() => {
     if (isInitializing) return;
-    
+
     setIsInitializing(true);
     console.log('🚀 [MobileNavInit] 初始化移动端导航系统');
 
@@ -84,7 +84,7 @@ export function MobileNavigationInitializer({ children }: MobileNavigationInitia
     // 防抖处理 - 300ms内的重复路径变化会被忽略
     timeoutRef.current = setTimeout(() => {
       const currentPathname = window.location.pathname;
-      
+
       // 路径已经变化了，跳过这次处理
       if (currentPathname !== pathname) {
         console.log('🧭 [MobileNavInit] 路径已变化，跳过处理:', pathname, '->', currentPathname);
@@ -107,9 +107,8 @@ export function MobileNavigationInitializer({ children }: MobileNavigationInitia
       if (pageInfo) {
         // 检查是否需要注册新页面
         const currentPage = navigationState.currentPage;
-        const shouldRegister = !currentPage || 
-          currentPage.path !== pathname || 
-          currentPage.id !== pageInfo.id;
+        const shouldRegister =
+          !currentPage || currentPage.path !== pathname || currentPage.id !== pageInfo.id;
 
         if (shouldRegister) {
           navigationManager.navigateToPage(pageInfo);
@@ -141,7 +140,7 @@ export function MobileNavigationInitializer({ children }: MobileNavigationInitia
       if (document.visibilityState === 'visible') {
         visibilityChangeCount++;
         console.log(`👁️ [MobileNavInit] 页面变为可见 (第${visibilityChangeCount}次)`);
-        
+
         // 只在前几次可见性变化时重新初始化，避免过度初始化
         if (visibilityChangeCount <= maxReinitCount) {
           // 延迟一下再初始化，避免与其他初始化冲突

@@ -29,7 +29,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
         isLoginPage,
         hasToken: !!token,
         pathname,
-        normalizedPath
+        normalizedPath,
       });
 
       // 如果在登录页面且没有token，直接完成加载

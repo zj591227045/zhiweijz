@@ -102,7 +102,7 @@ export class CapacitorIntegration {
       // 应用状态变化监听
       this.appStateListener = App.addListener('appStateChange', (state) => {
         if (this.isDestroyed) return; // 检查是否已销毁
-        
+
         console.log('🔌 [Capacitor] 应用状态变化:', state);
 
         if (state.isActive) {
@@ -117,7 +117,7 @@ export class CapacitorIntegration {
       // URL打开监听
       this.urlOpenListener = App.addListener('appUrlOpen', (data) => {
         if (this.isDestroyed) return;
-        
+
         console.log('🔌 [Capacitor] URL打开:', data);
         this.handleUrlOpen(data.url);
       });
@@ -125,7 +125,7 @@ export class CapacitorIntegration {
       // 应用恢复监听
       this.appRestoredListener = App.addListener('appRestoredResult', (data) => {
         if (this.isDestroyed) return;
-        
+
         console.log('🔌 [Capacitor] 应用恢复:', data);
       });
 
@@ -385,7 +385,7 @@ export class CapacitorIntegration {
   // 销毁
   public destroy() {
     this.isDestroyed = true;
-    
+
     // 清理所有监听器
     try {
       if (this.backButtonListener) {

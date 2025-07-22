@@ -522,6 +522,14 @@ export const TransactionAttachmentUpload = React.forwardRef<
             onClose={handleEnhancedPreviewClose}
             onNavigate={handleEnhancedPreviewNavigate}
             onDownload={handleEnhancedPreviewDownload}
+            onDelete={(file, index) => {
+              // 根据文件ID找到对应的附件并删除
+              const attachmentToDelete = attachments.find((att) => att.file?.id === file.id);
+              if (attachmentToDelete) {
+                handleRemoveAttachment(attachmentToDelete.id);
+              }
+              handleEnhancedPreviewClose();
+            }}
           />
 
           {/* 删除确认对话框 */}

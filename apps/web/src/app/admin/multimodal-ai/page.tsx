@@ -235,10 +235,10 @@ export default function MultimodalAIConfigPage() {
               relevanceCheck: data.data.smartAccounting?.relevanceCheckPrompt?.length || 0,
               smartAccounting: data.data.smartAccounting?.smartAccountingPrompt?.length || 0,
               imageAnalysis: data.data.smartAccounting?.imageAnalysisPrompt?.length || 0,
-              multimodal: data.data.smartAccounting?.multimodalPrompt?.length || 0
-            }
+              multimodal: data.data.smartAccounting?.multimodalPrompt?.length || 0,
+            },
           });
-          
+
           // 完全替换配置，不使用合并
           setConfig(data.data);
         }
@@ -330,11 +330,7 @@ export default function MultimodalAIConfigPage() {
           <p className="text-muted-foreground">配置语音识别和视觉识别功能</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            onClick={() => loadConfig(true)} 
-            disabled={loading}
-          >
+          <Button variant="outline" onClick={() => loadConfig(true)} disabled={loading}>
             <RefreshCcw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             {loading ? '刷新中...' : '刷新配置'}
           </Button>

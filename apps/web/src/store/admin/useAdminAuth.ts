@@ -99,7 +99,7 @@ export const useAdminAuth = create<AdminAuthState>()(
           console.log('🔍 [useAdminAuth] Auth check response:', {
             ok: response.ok,
             status: response.status,
-            success: data.success
+            success: data.success,
           });
 
           if (!response.ok || !data.success) {

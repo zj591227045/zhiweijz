@@ -39,6 +39,8 @@ export interface EnhancedAttachmentPreviewProps {
   onNavigate: (index: number) => void;
   /** 下载文件回调 */
   onDownload?: (file: AttachmentFile) => void;
+  /** 删除文件回调 */
+  onDelete?: (file: AttachmentFile, index: number) => void;
   /** 自定义样式类名 */
   className?: string;
 }
@@ -60,11 +62,14 @@ export function EnhancedAttachmentPreview({
   onClose,
   onNavigate,
   onDownload,
+  onDelete,
   className,
 }: EnhancedAttachmentPreviewProps) {
   const [zoom, setZoom] = useState(1);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
+  const [showActionMenu, setShowActionMenu] = useState(false);
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
 
   const currentFile = files[currentIndex];
   const isImage = currentFile?.mimeType.startsWith('image/');
@@ -75,7 +80,68 @@ export function EnhancedAttachmentPreview({
     setImageLoaded(false);
     setNaturalSize({ width: 0, height: 0 });
     setZoom(1);
+    setShowActionMenu(false);
   }, [currentIndex]);
+
+  // 清除长按定时器
+  useEffect(() => {
+    return () => {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+      }
+    };
+  }, [longPressTimer]);
+
+  // 长按处理
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!isImage) return;
+    
+    const timer = setTimeout(() => {
+      // 触发震动反馈
+      if ('vibrate' in navigator) {
+        navigator.vibrate(100);
+      }
+      setShowActionMenu(true);
+      setLongPressTimer(null); // 清除timer引用，表示长按已经触发
+    }, 500);
+    setLongPressTimer(timer);
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (longPressTimer) {
+      // 如果timer还存在，说明是短点击，执行关闭操作
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+      
+      // 短点击关闭功能
+      if (e.target === e.currentTarget || e.target instanceof HTMLImageElement) {
+        onClose();
+      }
+    }
+    // 如果timer已经被清除（长按已触发），则不执行关闭操作
+  };
+
+  const handleMouseLeave = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
+  // 处理删除
+  const handleDelete = () => {
+    if (!onDelete || !currentFile) return;
+
+    // 先关闭操作菜单
+    setShowActionMenu(false);
+    
+    // 显示确认对话框
+    const confirmDelete = window.confirm(`确定要删除图片"${currentFile.originalName}"吗？此操作无法撤销。`);
+    
+    if (confirmDelete) {
+      onDelete(currentFile, currentIndex);
+    }
+  };
 
   // 键盘导航
   useEffect(() => {
@@ -125,7 +191,6 @@ export function EnhancedAttachmentPreview({
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2) {
       // 双指缩放
-      console.log('Touch start with 2 fingers');
       e.preventDefault();
       e.stopPropagation();
       const touch1 = e.touches[0];
@@ -135,14 +200,34 @@ export function EnhancedAttachmentPreview({
       );
       lastTouchDistance.current = distance;
       isSwiping.current = false;
+      
+      // 清除长按定时器
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        setLongPressTimer(null);
+      }
     } else if (e.touches.length === 1) {
-      // 单指滑动
+      // 单指触摸
       const touch = e.touches[0];
       touchStartX.current = touch.clientX;
       touchStartY.current = touch.clientY;
       isSwiping.current = true;
+      
+      // 开始长按检测
+      if (isImage) {
+        const timer = setTimeout(() => {
+          // 触发震动反馈
+          if ('vibrate' in navigator) {
+            navigator.vibrate(100);
+          }
+          setShowActionMenu(true);
+          setLongPressTimer(null);
+          isSwiping.current = false; // 阻止滑动
+        }, 500);
+        setLongPressTimer(timer);
+      }
     }
-  }, []);
+  }, [isImage, longPressTimer]);
 
   const handleTouchMove = useCallback(
     (e: React.TouchEvent) => {
@@ -176,34 +261,61 @@ export function EnhancedAttachmentPreview({
           const deltaX = Math.abs(touch.clientX - touchStartX.current);
           const deltaY = Math.abs(touch.clientY - touchStartY.current);
 
+          // 检测移动距离，如果超过阈值则取消长按
+          if ((deltaX > 10 || deltaY > 10) && longPressTimer) {
+            clearTimeout(longPressTimer);
+            setLongPressTimer(null);
+          }
+
           // 如果水平滑动距离大于垂直滑动距离，且超过阈值，阻止默认行为
           if (deltaX > deltaY && deltaX > 30) {
             e.preventDefault();
             e.stopPropagation();
           }
+        } else {
+          // 缩放状态下的移动也要取消长按
+          const touch = e.touches[0];
+          const deltaX = Math.abs(touch.clientX - touchStartX.current);
+          const deltaY = Math.abs(touch.clientY - touchStartY.current);
+          
+          if ((deltaX > 10 || deltaY > 10) && longPressTimer) {
+            clearTimeout(longPressTimer);
+            setLongPressTimer(null);
+          }
         }
       }
     },
-    [zoom],
+    [zoom, longPressTimer],
   );
 
   const handleTouchEnd = useCallback(
     (e: React.TouchEvent) => {
       if (e.touches.length < 2) {
-        console.log('Touch end, resetting distance');
         lastTouchDistance.current = 0;
       }
 
+      // 处理长按逻辑
+      if (longPressTimer) {
+        // 如果timer还存在，说明是短触摸，执行关闭操作
+        clearTimeout(longPressTimer);
+        setLongPressTimer(null);
+        
+        // 短触摸关闭功能
+        if (e.target === e.currentTarget) {
+          onClose();
+          return; // 直接返回，不执行滑动逻辑
+        }
+      }
+      // 如果是长按后的释放，不执行关闭操作，但可以执行滑动切换
+
       // 处理滑动切换
-      if (isSwiping.current && e.changedTouches.length > 0 && zoom === 1) {
+      if (isSwiping.current && e.changedTouches.length > 0 && zoom === 1 && !showActionMenu) {
         const touch = e.changedTouches[0];
         const deltaX = touch.clientX - touchStartX.current;
         const deltaY = Math.abs(touch.clientY - touchStartY.current);
 
         // 水平滑动距离大于垂直滑动距离，且超过阈值
         if (Math.abs(deltaX) > deltaY && Math.abs(deltaX) > 100) {
-          console.log('Swipe detected:', deltaX > 0 ? 'right' : 'left');
-
           if (deltaX > 0) {
             // 右滑 - 上一张
             const prevIndex = currentIndex > 0 ? currentIndex - 1 : files.length - 1;
@@ -218,12 +330,56 @@ export function EnhancedAttachmentPreview({
 
       isSwiping.current = false;
     },
-    [zoom, currentIndex, files.length, onNavigate],
+    [zoom, currentIndex, files.length, onNavigate, onClose, longPressTimer, showActionMenu],
   );
 
-  const handleDownload = () => {
-    if (currentFile && onDownload) {
-      onDownload(currentFile);
+  const handleDownload = async () => {
+    if (!currentFile) return;
+
+    try {
+      // 获取图片URL
+      const imageUrl = processedUrl || currentFile.url;
+      if (!imageUrl) {
+        console.error('图片URL不存在');
+        return;
+      }
+
+      // 创建一个临时的下载链接
+      const link = document.createElement('a');
+      link.href = imageUrl;
+      link.download = currentFile.originalName || `image-${Date.now()}.jpg`;
+      
+      // 对于跨域图片，尝试通过fetch获取blob
+      try {
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        link.href = blobUrl;
+      } catch (error) {
+        console.warn('无法通过fetch下载，使用直接链接:', error);
+        // 如果fetch失败，回退到直接链接下载
+      }
+
+      // 触发下载
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // 如果创建了blob URL，记得释放
+      if (link.href.startsWith('blob:')) {
+        URL.revokeObjectURL(link.href);
+      }
+
+      // 如果有外部回调，也调用它
+      if (onDownload) {
+        onDownload(currentFile);
+      }
+    } catch (error) {
+      console.error('保存图片失败:', error);
+      // 回退到外部回调
+      if (onDownload) {
+        onDownload(currentFile);
+      }
     }
   };
 
@@ -239,30 +395,18 @@ export function EnhancedAttachmentPreview({
 
   const modalContent = (
     <div
-      className={`fixed inset-0 z-[99999] bg-black bg-opacity-95 flex flex-col ${className || ''}`}
+      className={`fixed inset-0 z-[99999] bg-black bg-opacity-100 flex items-center justify-center ${className || ''}`}
     >
-      {/* 顶部区域 - 文件名和导航指示器 */}
-      <div className="flex-shrink-0 bg-white px-6 py-4 border-b">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium text-gray-900 truncate flex-1 mr-4">
-            {currentFile.originalName}
-          </h3>
-          {files.length > 1 && (
-            <div className="text-sm text-gray-500 whitespace-nowrap">
-              {currentIndex + 1} / {files.length}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 中间区域 - 纯净的图片显示 */}
+      {/* 全屏图片显示区域 */}
       <div
-        className="flex-1 flex items-center justify-center bg-black cursor-pointer"
-        onClick={onClose}
+        className="flex-1 flex items-center justify-center cursor-pointer relative"
         onWheel={handleWheel}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
       >
         {isImage ? (
           <div
@@ -277,8 +421,8 @@ export function EnhancedAttachmentPreview({
               alt={currentFile.originalName}
               className="select-none"
               style={{
-                maxWidth: '90vw',
-                maxHeight: '80vh',
+                maxWidth: '100vw',
+                maxHeight: '100vh',
                 width: 'auto',
                 height: 'auto',
                 objectFit: 'contain',
@@ -331,35 +475,108 @@ export function EnhancedAttachmentPreview({
             <p className="text-sm text-gray-300">此文件类型不支持预览</p>
           </div>
         )}
-      </div>
 
-      {/* 底部区域 - 文件信息和下载按钮 */}
-      <div className="flex-shrink-0 bg-white px-6 py-4 border-t">
-        <div className="flex items-center justify-between mb-2">
-          <div className="text-sm text-gray-600">
-            {formatFileSize(currentFile.size)} • {currentFile.mimeType}
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDownload}
-            className="flex items-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            下载
-          </Button>
-        </div>
+        {/* 导航按钮 */}
         {files.length > 1 && (
-          <div className="text-xs text-gray-500 text-center">
-            滑动或使用 ← → 键切换图片 • 滚轮或双指缩放
-          </div>
+          <>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const prevIndex = currentIndex > 0 ? currentIndex - 1 : files.length - 1;
+                onNavigate(prevIndex);
+              }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full p-2 transition-opacity duration-200"
+              aria-label="上一张"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const nextIndex = currentIndex < files.length - 1 ? currentIndex + 1 : 0;
+                onNavigate(nextIndex);
+              }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full p-2 transition-opacity duration-200"
+              aria-label="下一张"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </>
         )}
       </div>
+
+      {/* 关闭按钮 */}
+      <button
+        onClick={onClose}
+        className="absolute top-12 right-4 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full p-2 transition-opacity duration-200 z-10"
+        aria-label="关闭"
+      >
+        <X className="w-6 h-6" />
+      </button>
+
+      {/* 文件指示器 */}
+      {files.length > 1 && (
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+          {currentIndex + 1} / {files.length}
+        </div>
+      )}
     </div>
   );
 
   // 使用Portal将模态框渲染到document.body中，确保全屏显示
-  return typeof window !== 'undefined' ? createPortal(modalContent, document.body) : null;
+  const modalPortal = typeof window !== 'undefined' ? createPortal(modalContent, document.body) : null;
+  
+  // 使用单独的Portal渲染菜单，确保最高层级
+  const menuPortal = typeof window !== 'undefined' && showActionMenu ? createPortal(
+    <>
+      {/* 菜单遮罩 */}
+      <div 
+        className="fixed inset-0 z-[100000] bg-transparent"
+        onClick={() => setShowActionMenu(false)}
+      />
+      {/* 长按操作菜单 */}
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl overflow-hidden z-[100001] min-w-[240px]">
+        <div className="py-3">
+          {onDownload && (
+            <button
+              onClick={() => {
+                setShowActionMenu(false);
+                handleDownload();
+              }}
+              className="flex items-center px-6 py-4 hover:bg-gray-100 transition-colors duration-150 w-full text-left"
+            >
+              <Download className="w-6 h-6 mr-4 text-blue-600" />
+              <span className="text-gray-800 text-lg font-medium">保存图片</span>
+            </button>
+          )}
+          {onDelete && (
+            <button
+              onClick={handleDelete}
+              className="flex items-center px-6 py-4 hover:bg-gray-100 transition-colors duration-150 w-full text-left"
+            >
+              <Trash2 className="w-6 h-6 mr-4 text-red-600" />
+              <span className="text-red-600 text-lg font-medium">删除图片</span>
+            </button>
+          )}
+          <button
+            onClick={() => setShowActionMenu(false)}
+            className="flex items-center px-6 py-4 hover:bg-gray-100 transition-colors duration-150 w-full text-left"
+          >
+            <X className="w-6 h-6 mr-4 text-gray-600" />
+            <span className="text-gray-700 text-lg font-medium">取消</span>
+          </button>
+        </div>
+      </div>
+    </>,
+    document.body
+  ) : null;
+
+  return (
+    <>
+      {modalPortal}
+      {menuPortal}
+    </>
+  );
 }
 
 // 增强版附件网格组件

@@ -550,6 +550,17 @@ export function MobileAttachmentUpload({
           isVisible={previewVisible}
           onClose={() => setPreviewVisible(false)}
           onNavigate={setPreviewIndex}
+          onDelete={(index) => {
+            // 找到对应的附件并删除
+            const fileToDelete = previewFiles[index];
+            const attachmentToDelete = attachments.find(att => 
+              att.file?.id === fileToDelete.id || att.localUri === fileToDelete.url
+            );
+            if (attachmentToDelete) {
+              removeAttachment(attachmentToDelete.id);
+            }
+            setPreviewVisible(false);
+          }}
         />
       )}
     </View>

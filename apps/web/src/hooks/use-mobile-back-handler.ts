@@ -145,7 +145,7 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
       try {
         backButtonListener = capacitor.Plugins.App.addListener('backButton', (data: any) => {
           if (!isComponentMounted) return; // 检查组件是否还挂载
-          
+
           console.log('📱 [BackHandler] 硬件后退按钮触发:', data);
 
           // 使用ref获取最新的handleBack函数
@@ -172,7 +172,7 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
     return () => {
       isComponentMounted = false;
       console.log('📱 [BackHandler] 移除硬件后退监听器');
-      
+
       if (backButtonListener) {
         try {
           backButtonListener.remove();
@@ -192,7 +192,7 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
 
     const handlePopState = (event: PopStateEvent) => {
       if (!isComponentMounted) return; // 检查组件是否还挂载
-      
+
       console.log('📱 [BackHandler] 浏览器历史后退触发:', event);
 
       // 检查当前路径，如果是认证相关路径或根路径，不拦截

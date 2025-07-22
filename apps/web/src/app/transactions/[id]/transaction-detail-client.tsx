@@ -389,6 +389,67 @@ export default function TransactionDetailClient({ params }: TransactionDetailCli
             setPreviewIndex(0);
           }}
           onNavigate={setPreviewIndex}
+          onDelete={async (file: AttachmentFile, index: number) => {
+            try {
+              // 从附件列表中找到对应的附件ID
+              const attachmentToDelete = attachments.find(att => att.file?.id === file.id);
+              if (!attachmentToDelete) {
+                throw new Error('未找到对应的附件记录');
+              }
+
+              // 获取认证信息
+              const token = localStorage.getItem('auth-storage')
+                ? JSON.parse(localStorage.getItem('auth-storage')!)?.state?.token
+                : null;
+              
+              if (!token) {
+                throw new Error('未找到认证令牌');
+              }
+
+              const apiBaseUrl =
+                typeof window !== 'undefined' && localStorage.getItem('server-config-storage')
+                  ? JSON.parse(localStorage.getItem('server-config-storage')!)?.state?.config
+                      ?.currentUrl || '/api'
+                  : '/api';
+
+              // 删除附件API调用 - 使用正确的API端点和附件ID
+              const deleteUrl = `${apiBaseUrl}/transactions/attachments/${attachmentToDelete.id}`;
+              const response = await fetch(deleteUrl, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+              });
+
+              if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '删除附件失败');
+              }
+
+              // 从预览文件列表中移除
+              const newPreviewFiles = previewFiles.filter((_, i) => i !== index);
+              setPreviewFiles(newPreviewFiles);
+              
+              // 如果删除的是当前显示的文件，调整索引
+              if (index === previewIndex && newPreviewFiles.length > 0) {
+                setPreviewIndex(Math.min(index, newPreviewFiles.length - 1));
+              } else if (newPreviewFiles.length === 0) {
+                // 如果没有文件了，关闭预览
+                setShowPreview(false);
+                setPreviewIndex(0);
+              }
+
+              // 重新获取交易数据以更新附件列表
+              // 这里需要重新加载页面数据
+              window.location.reload();
+
+              alert('附件删除成功');
+            } catch (error) {
+              console.error('删除附件失败:', error);
+              alert(error instanceof Error ? error.message : '删除附件失败');
+            }
+          }}
           onDownload={async (file: AttachmentFile) => {
             try {
               // 使用fetch下载文件，携带认证信息

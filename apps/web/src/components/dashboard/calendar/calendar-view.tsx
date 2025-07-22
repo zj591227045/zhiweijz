@@ -137,7 +137,7 @@ export function CalendarView() {
   const handleTransactionClick = (transactionId: string) => {
     // 添加交易点击的振动反馈
     hapticPresets.transactionTap();
-    
+
     console.log('🗓️ [CalendarView] 记账点击，ID:', transactionId);
 
     // 设置 localStorage 标记来触发模态框

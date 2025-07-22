@@ -444,6 +444,14 @@ export function QuickUploadModal({
           onClose={handlePreviewClose}
           onNavigate={handlePreviewNavigate}
           onDownload={handlePreviewDownload}
+          onDelete={(file, index) => {
+            // 快速上传模态框中的删除功能
+            const attachmentToDelete = attachments.find((att) => att.file?.id === file.id);
+            if (attachmentToDelete) {
+              handleRemove(attachmentToDelete.id);
+            }
+            handlePreviewClose();
+          }}
         />
       )}
     </div>
