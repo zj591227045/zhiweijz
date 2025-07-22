@@ -30,6 +30,7 @@ model User {
   announcement_reads      AnnouncementRead[]
   api_call_logs           ApiCallLog[]
   budgets                 Budget[]
+  budgetHistories         BudgetHistory[]
   categories              Category[]
   compressionStats        CompressionStats[]
   dailyGiftRecords        DailyGiftRecords[]
@@ -388,6 +389,7 @@ model user_account_books {
 model BudgetHistory {
   id               String       @id @default(uuid())
   budgetId         String       @map("budget_id")
+  userId           String?      @map("user_id")
   period           String
   amount           Decimal      @db.Decimal(10, 2)
   type             RolloverType
@@ -398,7 +400,10 @@ model BudgetHistory {
   spentAmount      Decimal?     @map("spent_amount") @db.Decimal(10, 2)
   previousRollover Decimal?     @map("previous_rollover") @db.Decimal(10, 2)
   budget           Budget       @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  user             User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId], map: "idx_budget_histories_user_id")
+  @@index([userId, period], map: "idx_budget_histories_user_period")
   @@map("budget_histories")
 }
 

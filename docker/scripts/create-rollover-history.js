@@ -76,6 +76,7 @@ class RolloverHistoryCreator {
         const historyRecord = await prisma.budgetHistory.create({
           data: {
             budgetId: budget.id,
+            userId: budget.userId || budget.familyMemberId, // 添加用户ID
             period: period,
             amount: Math.abs(rolloverAmount), // 存储绝对值
             type: rolloverType,
@@ -83,10 +84,6 @@ class RolloverHistoryCreator {
             budgetAmount: amount,
             spentAmount: spent,
             previousRollover: currentRolloverAmount,
-            // 注意：根据实际数据库结构，这些字段可能不存在
-            // userId: budget.userId,
-            // accountBookId: budget.accountBookId,
-            // budgetType: budget.budgetType || 'PERSONAL',
           }
         });
 

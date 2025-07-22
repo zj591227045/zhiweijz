@@ -5,6 +5,7 @@ import { BudgetHistory as PrismaBudgetHistory, RolloverType } from '@prisma/clie
  */
 export interface CreateBudgetHistoryDto {
   budgetId: string;
+  userId: string; // 用户ID，必填
   period: string;
   amount: number;
   type: RolloverType;
@@ -12,7 +13,6 @@ export interface CreateBudgetHistoryDto {
   budgetAmount?: number; // 预算金额
   spentAmount?: number; // 已使用金额
   previousRollover?: number; // 上一期结转金额
-  userId?: string; // 用户ID
   accountBookId?: string; // 账本ID
   budgetType?: string; // 预算类型
 }
@@ -50,6 +50,7 @@ export interface UserBudgetHistoryQueryParams {
 export interface BudgetHistoryResponseDto {
   id: string;
   budgetId: string;
+  userId?: string; // 用户ID
   period: string;
   amount: number;
   type: RolloverType;
@@ -80,6 +81,7 @@ export function toBudgetHistoryResponseDto(
   const {
     id,
     budgetId,
+    userId,
     period,
     amount,
     type,
@@ -94,6 +96,7 @@ export function toBudgetHistoryResponseDto(
   return {
     id,
     budgetId,
+    userId: userId || undefined,
     period,
     amount: Number(amount),
     type,

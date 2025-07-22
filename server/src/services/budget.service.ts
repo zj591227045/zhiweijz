@@ -582,7 +582,7 @@ export class BudgetService {
   }
 
   /**
-   * 获取预算结转历史（基于预算记录）
+   * 获取预算结转历史（基于用户ID查询）
    */
   async getBudgetRolloverHistoryByBudgetId(budgetId: string, userId: string): Promise<any[]> {
     // 检查预算是否存在
@@ -597,19 +597,29 @@ export class BudgetService {
       throw new Error('无权访问此预算');
     }
 
-    console.log(`获取预算结转历史，预算ID: ${budgetId}`);
+    console.log(`获取预算结转历史，预算ID: ${budgetId}, 用户ID: ${userId}`);
 
-    // 使用原生SQL查询避免Prisma字段不匹配问题
+    // 获取预算对应的用户ID（可能是托管用户）
+    const targetUserId = budget.userId || budget.familyMemberId;
+    if (!targetUserId) {
+      console.log('预算没有关联的用户ID，返回空历史');
+      return [];
+    }
+
+    console.log(`查询用户 ${targetUserId} 的预算结转历史`);
+
+    // 使用原生SQL查询，通过用户ID查询该用户的所有预算结转历史
     try {
       const histories = await prisma.$queryRaw`
         SELECT
-          id, budget_id as "budgetId", period, amount, type,
-          description, created_at as "createdAt", updated_at as "updatedAt",
-          budget_amount as "budgetAmount", spent_amount as "spentAmount",
-          previous_rollover as "previousRollover"
-        FROM budget_histories
-        WHERE budget_id = ${budgetId}
-        ORDER BY period DESC, created_at DESC
+          bh.id, bh.budget_id as "budgetId", bh.user_id as "userId",
+          bh.period, bh.amount, bh.type,
+          bh.description, bh.created_at as "createdAt", bh.updated_at as "updatedAt",
+          bh.budget_amount as "budgetAmount", bh.spent_amount as "spentAmount",
+          bh.previous_rollover as "previousRollover"
+        FROM budget_histories bh
+        WHERE bh.user_id = ${targetUserId}
+        ORDER BY bh.period DESC, bh.created_at DESC
       `;
 
       console.log(`从budget_histories表查询到 ${(histories as any[]).length} 条记录`);
@@ -618,7 +628,7 @@ export class BudgetService {
       if ((histories as any[]).length > 0) {
         console.log('原始结转历史数据（前3条）:');
         (histories as any[]).slice(0, 3).forEach((h: any, index: number) => {
-          console.log(`  ${index + 1}. period: ${h.period}, createdAt: ${h.createdAt}, amount: ${h.amount}, type: ${h.type}`);
+          console.log(`  ${index + 1}. period: ${h.period}, createdAt: ${h.createdAt}, amount: ${h.amount}, type: ${h.type}, userId: ${h.userId}`);
         });
       }
 
@@ -626,6 +636,7 @@ export class BudgetService {
       const rolloverHistory = (histories as any[]).map((history: any) => ({
         id: history.id,
         budgetId: history.budgetId,
+        userId: history.userId,
         period: history.period,
         amount: Number(history.amount),
         type: history.type,
@@ -1309,6 +1320,7 @@ export class BudgetService {
           data: {
             id: `history-${budget.id}-${period}`,
             budgetId: budget.id,
+            userId: budget.userId || budget.familyMemberId, // 添加用户ID
             period: period,
             amount: remaining,
             type: rolloverType as any,
@@ -1320,7 +1332,7 @@ export class BudgetService {
             updatedAt: new Date(),
           },
         });
-        console.log(`创建历史记录: ${period}, 结转金额: ${remaining}`);
+        console.log(`创建历史记录: ${period}, 结转金额: ${remaining}, 用户ID: ${budget.userId || budget.familyMemberId}`);
       }
     }
   }

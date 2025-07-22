@@ -100,7 +100,8 @@ export class BudgetHistoryService {
     try {
       const budget = await this.budgetRepository.findById(budgetId);
       if (budget) {
-        userId = budget.userId || undefined;
+        // 优先使用userId，如果没有则使用familyMemberId（托管用户）
+        userId = budget.userId || budget.familyMemberId || undefined;
         accountBookId = budget.accountBookId || undefined;
         budgetType = (budget as any).budgetType || 'PERSONAL';
 
@@ -111,6 +112,11 @@ export class BudgetHistoryService {
       }
     } catch (error) {
       console.error('获取预算信息失败:', error);
+    }
+
+    // 确保userId不为空
+    if (!userId) {
+      throw new Error('无法确定预算对应的用户ID');
     }
 
     // 创建历史记录

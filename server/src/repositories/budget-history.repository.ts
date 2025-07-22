@@ -15,6 +15,7 @@ export class BudgetHistoryRepository {
     return prisma.budgetHistory.create({
       data: {
         budgetId: data.budgetId,
+        userId: data.userId, // userId现在是必填的
         period: data.period,
         amount: new Prisma.Decimal(data.amount),
         type: data.type,
@@ -28,7 +29,6 @@ export class BudgetHistoryRepository {
         ...(data.previousRollover !== undefined && {
           previousRollover: new Prisma.Decimal(data.previousRollover),
         }),
-        ...(data.userId && { userId: data.userId }),
         ...(data.accountBookId && { accountBookId: data.accountBookId }),
         ...(data.budgetType && { budgetType: data.budgetType }),
       },
