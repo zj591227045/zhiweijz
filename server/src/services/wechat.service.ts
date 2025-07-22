@@ -1771,8 +1771,14 @@ export class WechatService {
 
             if (accountingResult.success) {
               if (accountingResult.transaction) {
-                // 有记账记录，使用格式化消息
-                return this.formatAccountingSuccessMessage(accountingResult.transaction, recognizedText);
+                // 检查是否是多条记录（数组格式）
+                if (Array.isArray(accountingResult.transaction)) {
+                  // 多条记录，直接使用已格式化的消息
+                  return accountingResult.message;
+                } else {
+                  // 单条记录，使用传统格式化方法
+                  return this.formatAccountingSuccessMessage(accountingResult.transaction, recognizedText);
+                }
               } else {
                 // 没有记账记录但成功，直接返回消息
                 return accountingResult.message;
@@ -1999,9 +2005,22 @@ export class WechatService {
             // 第三步：保存图片作为记账附件
             if (shouldCleanup && imagePath) {
               try {
-                console.log(`💾 开始保存图片附件到记账记录: ${accountingResult.transaction.id}`);
-                await this.saveImageAttachment(accountingResult.transaction.id, imagePath, binding.userId);
-                console.log(`✅ 图片附件保存成功`);
+                // 检查是否是多条记录
+                if (Array.isArray(accountingResult.transaction)) {
+                  // 多条记录，为每条记录都保存图片附件
+                  console.log(`💾 开始为 ${accountingResult.transaction.length} 条记录保存图片附件`);
+                  for (let i = 0; i < accountingResult.transaction.length; i++) {
+                    const transaction = accountingResult.transaction[i];
+                    console.log(`💾 保存图片附件到第 ${i + 1} 条记录: ${transaction.id}`);
+                    await this.saveImageAttachment(transaction.id, imagePath, binding.userId);
+                  }
+                  console.log(`✅ 所有图片附件保存成功`);
+                } else {
+                  // 单条记录
+                  console.log(`💾 开始保存图片附件到记账记录: ${accountingResult.transaction.id}`);
+                  await this.saveImageAttachment(accountingResult.transaction.id, imagePath, binding.userId);
+                  console.log(`✅ 图片附件保存成功`);
+                }
               } catch (attachmentError) {
                 console.error('保存图片附件失败:', attachmentError);
                 // 附件保存失败不影响记账结果
