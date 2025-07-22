@@ -28,96 +28,107 @@ export interface AICallLogStatisticsParams {
  */
 export class AICallLogAdminService {
   /**
+   * 初始化服务 - 强制重新创建统一视图
+   */
+  async initialize() {
+    await this.ensureUnifiedViewExists();
+  }
+
+  /**
    * 确保统一视图存在
    */
   private async ensureUnifiedViewExists() {
     try {
-      // 检查视图是否存在
-      const viewExists = await prisma.$queryRaw`
-        SELECT EXISTS (
-          SELECT FROM information_schema.views
-          WHERE table_schema = 'public'
-          AND table_name = 'ai_call_logs_unified'
-        );
+      console.log('🔍 [统一视图] 强制重新创建统一视图...');
+
+      // 先删除现有视图
+      await prisma.$executeRaw`DROP VIEW IF EXISTS ai_call_logs_unified;`;
+      console.log('🗑️ [统一视图] 已删除现有视图');
+
+      // 重新创建统一视图，包含用户邮箱信息
+      await prisma.$executeRaw`
+        CREATE VIEW ai_call_logs_unified AS
+        SELECT
+            l.id,
+            l.user_id,
+            l.user_name,
+            u.email as user_email,
+            u.name as user_real_name,
+            l.account_book_id,
+            l.account_book_name,
+            l.ai_service_type,
+            l.provider,
+            l.model,
+            l.source,
+            l.is_success,
+            l.error_message,
+            l.duration,
+            l.cost,
+            l.created_at,
+            -- LLM特有字段
+            l.prompt_tokens,
+            l.completion_tokens,
+            l.total_tokens,
+            l.user_message,
+            l.assistant_message,
+            l.system_prompt,
+            -- 多模态AI字段设为NULL
+            NULL::INTEGER as input_size,
+            NULL::VARCHAR(20) as input_format,
+            NULL::TEXT as output_text,
+            NULL::DECIMAL(5,4) as confidence_score,
+            'llm' as log_type
+        FROM llm_call_logs l
+        LEFT JOIN users u ON l.user_id = u.id
+
+        UNION ALL
+
+        SELECT
+            m.id,
+            m.user_id,
+            m.user_name,
+            u.email as user_email,
+            u.name as user_real_name,
+            m.account_book_id,
+            m.account_book_name,
+            m.ai_service_type,
+            m.provider,
+            m.model,
+            m.source,
+            m.is_success,
+            m.error_message,
+            m.duration,
+            m.cost,
+            m.created_at,
+            -- LLM字段设为NULL或默认值
+            NULL::INTEGER as prompt_tokens,
+            NULL::INTEGER as completion_tokens,
+            m.tokens as total_tokens,
+            NULL::TEXT as user_message,
+            m.output_text as assistant_message,
+            NULL::TEXT as system_prompt,
+            -- 多模态AI特有字段
+            m.input_size,
+            m.input_format,
+            m.output_text,
+            m.confidence_score,
+            'multimodal' as log_type
+        FROM multimodal_ai_call_logs m
+        LEFT JOIN users u ON m.user_id = u.id;
       `;
 
-      if (!(viewExists as any)[0].exists) {
-        console.log('统一视图不存在，正在创建...');
+      console.log('✅ [统一视图] 统一视图重新创建成功');
 
-        // 创建统一视图，包含用户邮箱信息
-        await prisma.$executeRaw`
-          CREATE OR REPLACE VIEW ai_call_logs_unified AS
-          SELECT
-              l.id,
-              l.user_id,
-              l.user_name,
-              u.email as user_email,
-              l.account_book_id,
-              l.account_book_name,
-              l.ai_service_type,
-              l.provider,
-              l.model,
-              l.source,
-              l.is_success,
-              l.error_message,
-              l.duration,
-              l.cost,
-              l.created_at,
-              -- LLM特有字段
-              l.prompt_tokens,
-              l.completion_tokens,
-              l.total_tokens,
-              l.user_message,
-              l.assistant_message,
-              l.system_prompt,
-              -- 多模态AI字段设为NULL
-              NULL::INTEGER as input_size,
-              NULL::VARCHAR(20) as input_format,
-              NULL::TEXT as output_text,
-              NULL::DECIMAL(5,4) as confidence_score,
-              'llm' as log_type
-          FROM llm_call_logs l
-          LEFT JOIN users u ON l.user_id = u.id
+      // 测试查询一条记录验证视图
+      const testRecord = await prisma.$queryRaw`
+        SELECT id, user_id, user_name, user_email, user_real_name
+        FROM ai_call_logs_unified
+        LIMIT 1;
+      `;
+      console.log('🔍 [统一视图] 测试记录:', JSON.stringify(testRecord, null, 2));
 
-          UNION ALL
-
-          SELECT
-              m.id,
-              m.user_id,
-              m.user_name,
-              u.email as user_email,
-              m.account_book_id,
-              m.account_book_name,
-              m.ai_service_type,
-              m.provider,
-              m.model,
-              m.source,
-              m.is_success,
-              m.error_message,
-              m.duration,
-              m.cost,
-              m.created_at,
-              -- LLM字段设为NULL或默认值
-              NULL::INTEGER as prompt_tokens,
-              NULL::INTEGER as completion_tokens,
-              m.tokens as total_tokens,
-              NULL::TEXT as user_message,
-              m.output_text as assistant_message,
-              NULL::TEXT as system_prompt,
-              -- 多模态AI特有字段
-              m.input_size,
-              m.input_format,
-              m.output_text,
-              m.confidence_score,
-              'multimodal' as log_type
-          FROM multimodal_ai_call_logs m
-          LEFT JOIN users u ON m.user_id = u.id;
-        `;
-
-        console.log('统一视图创建成功');
-      }
     } catch (error) {
-      console.error('检查或创建统一视图时出错:', error);
+      console.error('❌ [统一视图] 检查或创建统一视图时出错:', error);
       // 不抛出错误，继续执行
     }
   }
@@ -237,8 +248,40 @@ export class AICallLogAdminService {
       const total = Number((countResult as any)[0].total);
       const totalPages = Math.ceil(total / pageSize);
 
+      // 转换字段名为camelCase格式
+      const formattedLogs = (logs as any[]).map((log) => ({
+        id: log.id,
+        userId: log.user_id,
+        userName: log.user_real_name || log.user_name || 'Unknown User',
+        userEmail: log.user_email || 'N/A',
+        accountBookId: log.account_book_id,
+        accountBookName: log.account_book_name,
+        aiServiceType: log.ai_service_type,
+        provider: log.provider,
+        model: log.model,
+        source: log.source,
+        isSuccess: log.is_success,
+        errorMessage: log.error_message,
+        duration: log.duration,
+        cost: log.cost ? Number(log.cost) : null,
+        createdAt: log.created_at,
+        // LLM特有字段
+        promptTokens: log.prompt_tokens,
+        completionTokens: log.completion_tokens,
+        totalTokens: log.total_tokens,
+        userMessage: log.user_message,
+        assistantMessage: log.assistant_message,
+        systemPrompt: log.system_prompt,
+        // 多模态AI特有字段
+        inputSize: log.input_size,
+        inputFormat: log.input_format,
+        outputText: log.output_text,
+        confidenceScore: log.confidence_score ? Number(log.confidence_score) : null,
+        logType: log.log_type,
+      }));
+
       return {
-        logs,
+        logs: formattedLogs,
         pagination: {
           page,
           pageSize,

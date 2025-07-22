@@ -123,6 +123,46 @@ export default function LLMLogsPage() {
     search: '',
   });
 
+  // 时间范围筛选状态
+  const [timeRange, setTimeRange] = useState('7d'); // '1d', '7d', '30d', 'custom'
+
+  // 处理时间范围变化
+  const handleTimeRangeChange = (range: string) => {
+    setTimeRange(range);
+
+    if (range === 'custom') {
+      // 自定义时间范围，不自动设置日期
+      return;
+    }
+
+    const now = new Date();
+    const endDate = now.toISOString().split('T')[0];
+    let startDate = '';
+
+    switch (range) {
+      case '1d':
+        startDate = endDate; // 今天
+        break;
+      case '7d':
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        startDate = sevenDaysAgo.toISOString().split('T')[0];
+        break;
+      case '30d':
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        startDate = thirtyDaysAgo.toISOString().split('T')[0];
+        break;
+      default:
+        startDate = '';
+        break;
+    }
+
+    setFilters(prev => ({
+      ...prev,
+      startDate,
+      endDate: range === 'all' ? '' : endDate,
+    }));
+  };
+
   // 加载日志列表
   const loadLogs = async (page = 1) => {
     setLoading(true);
@@ -232,6 +272,9 @@ export default function LLMLogsPage() {
       endDate: '',
       search: '',
     });
+    setTimeRange('7d');
+    // 重置为默认的7天范围
+    handleTimeRangeChange('7d');
   };
 
   // 格式化时间
@@ -251,6 +294,11 @@ export default function LLMLogsPage() {
     return `¥${Number(cost).toFixed(4)}`;
   };
 
+  // 初始化默认时间范围
+  useEffect(() => {
+    handleTimeRangeChange('7d');
+  }, []);
+
   useEffect(() => {
     // 只在认证完成且有token时才执行API请求
     if (isAuthenticated && token) {
@@ -264,6 +312,14 @@ export default function LLMLogsPage() {
       loadStatistics();
     }
   }, [isAuthenticated, token]);
+
+  // 当筛选条件变化时重新加载数据
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      loadLogs();
+      loadStatistics();
+    }
+  }, [filters]);
 
   // 如果未认证，显示加载状态
   if (!isAuthenticated || !token) {
@@ -396,6 +452,41 @@ export default function LLMLogsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* 时间范围选择器 */}
+          <div className="space-y-2">
+            <Label>时间范围</Label>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={timeRange === '1d' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleTimeRangeChange('1d')}
+              >
+                今天
+              </Button>
+              <Button
+                variant={timeRange === '7d' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleTimeRangeChange('7d')}
+              >
+                最近7天
+              </Button>
+              <Button
+                variant={timeRange === '30d' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleTimeRangeChange('30d')}
+              >
+                最近30天
+              </Button>
+              <Button
+                variant={timeRange === 'custom' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleTimeRangeChange('custom')}
+              >
+                自定义
+              </Button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="space-y-2">
               <Label htmlFor="aiServiceType">AI服务类型</Label>
@@ -479,25 +570,29 @@ export default function LLMLogsPage() {
               </select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="startDate">开始日期</Label>
-              <Input
-                id="startDate"
-                type="date"
-                value={filters.startDate}
-                onChange={(e) => handleFilterChange('startDate', e.target.value)}
-              />
-            </div>
+            {timeRange === 'custom' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="startDate">开始日期</Label>
+                  <Input
+                    id="startDate"
+                    type="date"
+                    value={filters.startDate}
+                    onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="endDate">结束日期</Label>
-              <Input
-                id="endDate"
-                type="date"
-                value={filters.endDate}
-                onChange={(e) => handleFilterChange('endDate', e.target.value)}
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="endDate">结束日期</Label>
+                  <Input
+                    id="endDate"
+                    type="date"
+                    value={filters.endDate}
+                    onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                  />
+                </div>
+              </>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="search">关键词搜索</Label>
@@ -557,10 +652,10 @@ export default function LLMLogsPage() {
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-gray-400" />
                         <div>
-                          <p className="font-medium text-sm">{log.user_name || 'Unknown User'}</p>
-                          <p className="text-xs text-gray-500">{log.user_email || 'N/A'}</p>
-                          {log.account_book_name && (
-                            <p className="text-xs text-blue-600">{log.account_book_name}</p>
+                          <p className="font-medium text-sm">{log.userName || 'Unknown User'}</p>
+                          <p className="text-xs text-gray-500">{log.userEmail || 'N/A'}</p>
+                          {log.accountBookName && (
+                            <p className="text-xs text-blue-600">{log.accountBookName}</p>
                           )}
                         </div>
                       </div>
@@ -574,7 +669,7 @@ export default function LLMLogsPage() {
                             {log.provider || 'unknown'}
                           </Badge>
                           <Badge variant="secondary" className="text-xs">
-                            {log.ai_service_type || 'unknown'}
+                            {log.aiServiceType || 'unknown'}
                           </Badge>
                         </div>
                         <p className="text-sm font-mono">{log.model || 'unknown'}</p>
@@ -585,25 +680,25 @@ export default function LLMLogsPage() {
                     {/* Token使用/输入信息 */}
                     <div className="col-span-2">
                       <div className="space-y-1">
-                        {log.ai_service_type === 'llm' ? (
+                        {log.aiServiceType === 'llm' ? (
                           <>
                             <p className="text-sm">
                               <span className="text-gray-600">总计:</span>{' '}
-                              {log.total_tokens?.toLocaleString() || 'N/A'}
+                              {log.totalTokens?.toLocaleString() || 'N/A'}
                             </p>
                             <p className="text-xs text-gray-500">
-                              输入: {log.prompt_tokens?.toLocaleString() || 'N/A'} | 输出:{' '}
-                              {log.completion_tokens?.toLocaleString() || 'N/A'}
+                              输入: {log.promptTokens?.toLocaleString() || 'N/A'} | 输出:{' '}
+                              {log.completionTokens?.toLocaleString() || 'N/A'}
                             </p>
                           </>
                         ) : (
                           <>
                             <p className="text-sm">
                               <span className="text-gray-600">输入大小:</span>{' '}
-                              {log.input_size ? `${(log.input_size / 1024).toFixed(1)}KB` : 'N/A'}
+                              {log.inputSize ? `${(log.inputSize / 1024).toFixed(1)}KB` : 'N/A'}
                             </p>
                             <p className="text-xs text-gray-500">
-                              格式: {log.input_format || 'N/A'}
+                              格式: {log.inputFormat || 'N/A'}
                             </p>
                           </>
                         )}
@@ -620,17 +715,17 @@ export default function LLMLogsPage() {
                           <span className="text-gray-600">响应时间:</span>{' '}
                           {formatDuration(log.duration)}
                         </p>
-                        {log.user_message && (
-                          <p className="text-xs text-gray-500 truncate" title={log.user_message}>
-                            消息: {log.user_message.substring(0, 30)}...
+                        {log.userMessage && (
+                          <p className="text-xs text-gray-500 truncate" title={log.userMessage}>
+                            消息: {log.userMessage.substring(0, 30)}...
                           </p>
                         )}
-                        {log.assistant_message && (
+                        {log.assistantMessage && (
                           <p
                             className="text-xs text-blue-500 truncate"
-                            title={log.assistant_message}
+                            title={log.assistantMessage}
                           >
-                            回复: {log.assistant_message.substring(0, 30)}...
+                            回复: {log.assistantMessage.substring(0, 30)}...
                           </p>
                         )}
                       </div>
@@ -641,7 +736,7 @@ export default function LLMLogsPage() {
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-gray-400" />
                         <div>
-                          <p className="text-sm">{formatDate(log.created_at)}</p>
+                          <p className="text-sm">{formatDate(log.createdAt)}</p>
                         </div>
                       </div>
                     </div>
@@ -649,7 +744,7 @@ export default function LLMLogsPage() {
                     {/* 状态 */}
                     <div className="col-span-2">
                       <div className="flex items-center gap-2">
-                        {log.is_success ? (
+                        {log.isSuccess ? (
                           <>
                             <CheckCircleIcon className="h-5 w-5 text-green-500" />
                             <Badge variant="default" className="bg-green-100 text-green-800">
@@ -663,9 +758,9 @@ export default function LLMLogsPage() {
                           </>
                         )}
                       </div>
-                      {log.error_message && (
-                        <p className="text-xs text-red-600 mt-1 truncate" title={log.error_message}>
-                          {log.error_message.substring(0, 50)}...
+                      {log.errorMessage && (
+                        <p className="text-xs text-red-600 mt-1 truncate" title={log.errorMessage}>
+                          {log.errorMessage.substring(0, 50)}...
                         </p>
                       )}
                     </div>

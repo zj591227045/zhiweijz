@@ -6,6 +6,7 @@ import { UserDeletionService } from './services/user-deletion.service';
 import TaskScheduler from './services/task-scheduler.service';
 import WechatMediaCleanupTask from './tasks/wechat-media-cleanup.task';
 import { FileStorageService } from './services/file-storage.service';
+import { AICallLogAdminService } from './admin/services/ai-call-log.admin.service';
 
 // 连接数据库
 connectDatabase();
@@ -40,6 +41,15 @@ const server = app.listen(config.port, '0.0.0.0', async () => {
 
   // 初始化文件存储服务
   await initializeFileStorageService();
+
+  // 初始化AI调用日志服务
+  try {
+    const aiCallLogService = new AICallLogAdminService();
+    await aiCallLogService.initialize();
+    console.log('✅ AI调用日志服务初始化成功');
+  } catch (error) {
+    console.error('❌ AI调用日志服务初始化失败:', error);
+  }
 
   // 启动数据聚合服务
   startAggregationService().catch(console.error);

@@ -125,6 +125,7 @@ export class LLMLogAdminService {
             user: {
               select: {
                 email: true,
+                name: true,
               },
             },
             accountBook: {
@@ -139,11 +140,11 @@ export class LLMLogAdminService {
 
       const totalPages = Math.ceil(total / pageSize);
 
-      // 格式化日志数据，添加用户邮箱信息
+      // 格式化日志数据，优先使用关联的用户信息
       const formattedLogs = logs.map((log) => ({
         id: log.id,
         userId: log.userId,
-        userName: log.userName,
+        userName: log.user?.name || log.userName || 'Unknown User',
         userEmail: log.user?.email || 'N/A',
         accountBookId: log.accountBookId,
         accountBookName: log.accountBookName || log.accountBook?.name,
@@ -162,6 +163,12 @@ export class LLMLogAdminService {
         duration: log.duration,
         cost: log.cost ? Number(log.cost) : null,
         createdAt: log.createdAt.toISOString(),
+        // 添加多模态AI相关字段（LLM日志中这些字段为null）
+        inputSize: null,
+        inputFormat: null,
+        outputText: null,
+        confidenceScore: null,
+        logType: 'llm',
       }));
 
       return {
