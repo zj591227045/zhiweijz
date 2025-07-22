@@ -653,7 +653,7 @@ class AccountingPointsService {
    * 管理员手动添加记账点
    */
   static async adminAddPoints(userId: string, points: number, description: string = '管理员手动添加'): Promise<number> {
-    return await this.addPoints(userId, 'admin', points, 'member', description);
+    return await this.addPoints(userId, 'admin', points, 'gift', description);
   }
 
   /**
