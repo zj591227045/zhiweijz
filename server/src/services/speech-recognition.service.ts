@@ -11,6 +11,8 @@ import {
 } from '../models/multimodal-ai.model';
 import { MultimodalAIConfigService } from './multimodal-ai-config.service';
 import { BaiduSpeechRecognitionService } from './speech-recognition-baidu.service';
+import AccountingPointsService from './accounting-points.service';
+import { MembershipService } from './membership.service';
 
 /**
  * 语音识别服务
@@ -19,14 +21,51 @@ import { BaiduSpeechRecognitionService } from './speech-recognition-baidu.servic
 export class SpeechRecognitionService {
   private configService: MultimodalAIConfigService;
   private baiduService: BaiduSpeechRecognitionService;
+  private membershipService: MembershipService;
 
   constructor() {
     this.configService = new MultimodalAIConfigService();
     this.baiduService = new BaiduSpeechRecognitionService();
+    this.membershipService = new MembershipService();
   }
 
   /**
-   * 语音转文本
+   * 语音转文本（带记账点扣除）
+   * @param request 语音识别请求
+   * @param userId 用户ID（用于记账点扣除）
+   */
+  async speechToTextWithPointsDeduction(request: SpeechRecognitionRequest, userId: string): Promise<MultimodalAIResponse> {
+    // 检查记账点余额（语音智能记账总共需要2点：语音识别1点+智能记账1点）- 仅在记账点系统启用时检查
+    if (this.membershipService.isAccountingPointsEnabled()) {
+      const totalRequiredPoints = AccountingPointsService.POINT_COSTS.voice + AccountingPointsService.POINT_COSTS.text;
+      const canUsePoints = await AccountingPointsService.canUsePoints(userId, totalRequiredPoints);
+      if (!canUsePoints) {
+        return {
+          success: false,
+          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+          usage: { duration: 0 },
+        };
+      }
+    }
+
+    // 调用原始的语音识别方法
+    const result = await this.speechToText(request);
+
+    // 如果识别成功，扣除语音识别记账点（1点）- 仅在记账点系统启用时
+    if (result.success && this.membershipService.isAccountingPointsEnabled()) {
+      try {
+        await AccountingPointsService.deductPoints(userId, 'voice', AccountingPointsService.POINT_COSTS.voice);
+      } catch (pointsError) {
+        console.error('扣除记账点失败:', pointsError);
+        // 记账点扣除失败不影响返回结果，但需要记录日志
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * 语音转文本（原始方法，不扣除记账点）
    */
   async speechToText(request: SpeechRecognitionRequest): Promise<MultimodalAIResponse> {
     const startTime = Date.now();

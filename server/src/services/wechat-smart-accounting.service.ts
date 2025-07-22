@@ -2,6 +2,8 @@ import crypto from 'crypto';
 import prisma from '../config/database';
 import { AIController } from '../controllers/ai-controller';
 import { SmartAccountingResult, SmartAccountingError } from '../types/smart-accounting';
+import AccountingPointsService from './accounting-points.service';
+import { MembershipService } from './membership.service';
 
 export interface WechatSmartAccountingResult {
   success: boolean;
@@ -12,9 +14,11 @@ export interface WechatSmartAccountingResult {
 
 export class WechatSmartAccountingService {
   private aiController: AIController;
+  private membershipService: MembershipService;
 
   constructor() {
     this.aiController = new AIController();
+    this.membershipService = new MembershipService();
   }
 
   /**
@@ -29,6 +33,7 @@ export class WechatSmartAccountingService {
     try {
       // 设置LLM请求上下文为微信来源
       this.aiController['llmProviderService'].setRequestContext({ source: 'WeChat' });
+      
       // 1. 验证账本权限
       const accountBook = await this.validateAccountBookAccess(userId, accountBookId);
       if (!accountBook) {
@@ -38,7 +43,19 @@ export class WechatSmartAccountingService {
         };
       }
 
-      // 2. 调用智能记账分析
+      // 2. 检查记账点余额（文字记账消费1点）- 仅在记账点系统启用时检查
+      if (this.membershipService.isAccountingPointsEnabled()) {
+        const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.text);
+        if (!canUsePoints) {
+          return {
+            success: false,
+            message: '记账点余额不足，请进行签到获取记账点或开通捐赠会员。',
+            error: 'INSUFFICIENT_POINTS',
+          };
+        }
+      }
+
+      // 3. 调用智能记账分析
       const smartAccounting = this.aiController['smartAccounting'];
       if (!smartAccounting) {
         return {
@@ -61,7 +78,7 @@ export class WechatSmartAccountingService {
         };
       }
 
-      // 3. 检查分析结果
+      // 4. 检查分析结果
       if ('error' in analysisResult) {
         if (analysisResult.error.includes('Token使用受限')) {
           return {
@@ -76,7 +93,17 @@ export class WechatSmartAccountingService {
         };
       }
 
-      // 4. 如果需要创建记账记录
+      // 5. 智能记账成功，扣除记账点（仅在记账点系统启用时）
+      if (this.membershipService.isAccountingPointsEnabled()) {
+        try {
+          await AccountingPointsService.deductPoints(userId, 'text', AccountingPointsService.POINT_COSTS.text);
+        } catch (pointsError) {
+          console.error('扣除记账点失败:', pointsError);
+          // 记账点扣除失败不影响返回结果，但需要记录日志
+        }
+      }
+
+      // 6. 如果需要创建记账记录
       if (createTransaction) {
         const transaction = await this.createTransactionRecord(analysisResult, userId);
         if (transaction) {
@@ -93,7 +120,7 @@ export class WechatSmartAccountingService {
         }
       }
 
-      // 5. 仅返回分析结果
+      // 7. 仅返回分析结果
       return {
         success: true,
         message: this.formatSuccessMessage(analysisResult, false),

@@ -317,34 +317,13 @@ export class MultimodalAIController {
         return;
       }
 
-      // 检查记账点余额（语音记账消费2点）- 仅在记账点系统启用时检查
-      if (this.membershipService.isAccountingPointsEnabled()) {
-        const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.voice);
-        if (!canUsePoints) {
-          res.status(402).json({
-            success: false,
-            error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
-            type: 'INSUFFICIENT_POINTS',
-            required: AccountingPointsService.POINT_COSTS.voice
-          });
-          return;
-        }
-      }
-
-      // 获取语音识别配置（用于日志记录）
-      try {
-        speechConfig = await this.configService.getSpeechConfig();
-      } catch (configError) {
-        console.warn('获取语音识别配置失败:', configError);
-      }
-
-      // 1. 语音转文本
+      // 1. 语音识别（使用带记账点扣除的服务方法）
       const speechRequest: SpeechRecognitionRequest = {
         audioFile: req.file,
         language: 'zh',
       };
 
-      const speechResult = await this.speechService.speechToText(speechRequest);
+      const speechResult = await this.speechService.speechToTextWithPointsDeduction(speechRequest, userId);
 
       isSuccess = speechResult.success;
       if (!isSuccess) {
@@ -359,17 +338,7 @@ export class MultimodalAIController {
         recognizedText = speechResult.data?.text;
       }
 
-      // 2. 语音识别成功，扣除记账点（仅在记账点系统启用时）
-      if (this.membershipService.isAccountingPointsEnabled()) {
-        try {
-          await AccountingPointsService.deductPoints(userId, 'voice', AccountingPointsService.POINT_COSTS.voice);
-        } catch (pointsError) {
-          console.error('扣除记账点失败:', pointsError);
-          // 记账点扣除失败不影响返回结果，但需要记录日志
-        }
-      }
-
-      // 3. 返回识别结果，前端将调用智能记账API
+      // 2. 返回识别结果，前端将调用智能记账API
       res.json({
         success: true,
         data: {
@@ -460,28 +429,14 @@ export class MultimodalAIController {
         return;
       }
 
-      // 检查记账点余额（图片记账消费3点）- 仅在记账点系统启用时检查
-      if (this.membershipService.isAccountingPointsEnabled()) {
-        const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.image);
-        if (!canUsePoints) {
-          res.status(402).json({
-            success: false,
-            error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
-            type: 'INSUFFICIENT_POINTS',
-            required: AccountingPointsService.POINT_COSTS.image
-          });
-          return;
-        }
-      }
-
-      // 获取视觉识别配置（用于日志记录）
+      // 1. 获取视觉识别配置（用于日志记录）
       try {
         visionConfig = await this.configService.getVisionConfig();
       } catch (configError) {
         console.warn('获取视觉识别配置失败:', configError);
       }
 
-      // 1. 先保存图片到S3（带压缩）
+      // 2. 先保存图片到S3（带压缩）
       let savedImageFile: Express.Multer.File = req.file;
       try {
         const uploadResult = await this.fileStorageService.uploadFile(
@@ -513,7 +468,7 @@ export class MultimodalAIController {
         detailLevel: 'high',
       };
 
-      const visionResult = await this.visionService.recognizeImage(visionRequest);
+      const visionResult = await this.visionService.recognizeImageWithPointsDeduction(visionRequest, userId);
 
       isSuccess = visionResult.success;
       if (!isSuccess) {
@@ -528,17 +483,7 @@ export class MultimodalAIController {
         recognizedText = visionResult.data?.text;
       }
 
-      // 3. 图片识别成功，扣除记账点（仅在记账点系统启用时）
-      if (this.membershipService.isAccountingPointsEnabled()) {
-        try {
-          await AccountingPointsService.deductPoints(userId, 'image', AccountingPointsService.POINT_COSTS.image);
-        } catch (pointsError) {
-          console.error('扣除记账点失败:', pointsError);
-          // 记账点扣除失败不影响返回结果，但需要记录日志
-        }
-      }
-
-      // 4. 返回识别结果，前端将调用智能记账API
+      // 3. 返回识别结果，前端将调用智能记账API
       res.json({
         success: true,
         data: {

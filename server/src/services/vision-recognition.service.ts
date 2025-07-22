@@ -8,6 +8,8 @@ import {
   VisionRecognitionConfig,
 } from '../models/multimodal-ai.model';
 import { MultimodalAIConfigService } from './multimodal-ai-config.service';
+import AccountingPointsService from './accounting-points.service';
+import { MembershipService } from './membership.service';
 
 /**
  * 视觉识别服务
@@ -15,13 +17,50 @@ import { MultimodalAIConfigService } from './multimodal-ai-config.service';
  */
 export class VisionRecognitionService {
   private configService: MultimodalAIConfigService;
+  private membershipService: MembershipService;
 
   constructor() {
     this.configService = new MultimodalAIConfigService();
+    this.membershipService = new MembershipService();
   }
 
   /**
-   * 图片识别
+   * 图片识别（带记账点扣除）
+   * @param request 图片识别请求
+   * @param userId 用户ID（用于记账点扣除）
+   */
+  async recognizeImageWithPointsDeduction(request: VisionRecognitionRequest, userId: string): Promise<MultimodalAIResponse> {
+    // 检查记账点余额（图片智能记账总共需要3点：图片识别2点+智能记账1点）- 仅在记账点系统启用时检查
+    if (this.membershipService.isAccountingPointsEnabled()) {
+      const totalRequiredPoints = AccountingPointsService.POINT_COSTS.image + AccountingPointsService.POINT_COSTS.text;
+      const canUsePoints = await AccountingPointsService.canUsePoints(userId, totalRequiredPoints);
+      if (!canUsePoints) {
+        return {
+          success: false,
+          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+          usage: { duration: 0 },
+        };
+      }
+    }
+
+    // 调用原始的图片识别方法
+    const result = await this.recognizeImage(request);
+
+    // 如果识别成功，扣除图片识别记账点（2点）- 仅在记账点系统启用时
+    if (result.success && this.membershipService.isAccountingPointsEnabled()) {
+      try {
+        await AccountingPointsService.deductPoints(userId, 'image', AccountingPointsService.POINT_COSTS.image);
+      } catch (pointsError) {
+        console.error('扣除记账点失败:', pointsError);
+        // 记账点扣除失败不影响返回结果，但需要记录日志
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * 图片识别（原始方法，不扣除记账点）
    */
   async recognizeImage(request: VisionRecognitionRequest): Promise<MultimodalAIResponse> {
     const startTime = Date.now();

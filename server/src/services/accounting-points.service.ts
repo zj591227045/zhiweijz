@@ -14,9 +14,9 @@ const prisma = new PrismaClient();
 class AccountingPointsService {
   // 记账点消费标准
   static POINT_COSTS = {
-    text: 1,
-    voice: 2,
-    image: 3
+    text: 1,    // LLM文字记账：1点
+    voice: 1,   // 语音识别：1点  
+    image: 2    // 图片识别：2点
   };
 
   // 签到奖励点数

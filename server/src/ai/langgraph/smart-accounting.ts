@@ -14,6 +14,8 @@ import {
 import NodeCache from 'node-cache';
 import prisma from '../../config/database';
 import dotenv from 'dotenv';
+import AccountingPointsService from '../../services/accounting-points.service';
+import { MembershipService } from '../../services/membership.service';
 
 /**
  * 智能记账工作流
@@ -23,6 +25,7 @@ export class SmartAccounting {
   private llmProviderService: LLMProviderService;
   private configService: MultimodalAIConfigService;
   private cache: NodeCache;
+  private membershipService: MembershipService;
 
   /**
    * 构造函数
@@ -35,6 +38,7 @@ export class SmartAccounting {
     this.llmProviderService = llmProviderService;
     this.configService = new MultimodalAIConfigService();
     this.cache = new NodeCache({ stdTTL: 3600 }); // 1小时过期
+    this.membershipService = new MembershipService();
 
     // 移除硬编码的API密钥 - 应该通过环境变量或配置文件设置
     // process.env.SILICONFLOW_API_KEY = process.env.SILICONFLOW_API_KEY || 'sk-limqgsnsbmlwuxltjfmshpkfungijbliynwmmcknjupedyme';
@@ -65,12 +69,31 @@ export class SmartAccounting {
       return null;
     }
 
+    // 检查记账点余额（LLM文字记账消费1点）- 仅在记账点系统启用时检查
+    if (this.membershipService.isAccountingPointsEnabled()) {
+      const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.text);
+      if (!canUsePoints) {
+        return {
+          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员'
+        };
+      }
+    }
+
     // 生成缓存键
     const cacheKey = `smartAccounting:${userId}:${accountId}:${description}`;
 
     // 检查缓存
     const cachedResult = this.cache.get(cacheKey);
     if (cachedResult) {
+      // 注意：缓存命中时也需要扣除记账点，因为用户确实使用了服务
+      if (this.membershipService.isAccountingPointsEnabled()) {
+        try {
+          await AccountingPointsService.deductPoints(userId, 'text', AccountingPointsService.POINT_COSTS.text);
+        } catch (pointsError) {
+          console.error('扣除记账点失败:', pointsError);
+          // 记账点扣除失败不影响返回结果，但需要记录日志
+        }
+      }
       return cachedResult as SmartAccountingResponse;
     }
 
@@ -103,6 +126,16 @@ export class SmartAccounting {
 
       // 生成结果
       const resultState = await this.generateResultHandler(accountState);
+
+      // 智能记账成功，扣除记账点（仅在记账点系统启用时）
+      if (this.membershipService.isAccountingPointsEnabled()) {
+        try {
+          await AccountingPointsService.deductPoints(userId, 'text', AccountingPointsService.POINT_COSTS.text);
+        } catch (pointsError) {
+          console.error('扣除记账点失败:', pointsError);
+          // 记账点扣除失败不影响返回结果，但需要记录日志
+        }
+      }
 
       // 缓存结果
       if (resultState.result) {
