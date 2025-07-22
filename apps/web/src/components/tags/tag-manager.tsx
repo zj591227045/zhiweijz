@@ -9,6 +9,7 @@ import { TagEditModal } from './tag-edit-modal';
 import { Search, Plus, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import '@/styles/tags-theme.css';
 
 interface TagManagerProps {
   accountBookId: string;
@@ -134,12 +135,12 @@ export const TagManager: React.FC<TagManagerProps> = ({
   };
 
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn('tag-manager-container space-y-6', className)}>
       {/* 头部操作栏 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex-1">
-          <h2 className="text-xl font-semibold text-gray-900">标签管理</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <h2 className="tag-manager-title text-xl font-semibold">标签管理</h2>
+          <p className="tag-manager-subtitle text-sm mt-1">
             管理账本中的标签，为记账记录添加更多维度的分类
           </p>
         </div>
@@ -153,13 +154,13 @@ export const TagManager: React.FC<TagManagerProps> = ({
       <div className="flex flex-col sm:flex-row gap-4">
         {/* 搜索框 */}
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="tag-search-icon absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" />
           <Input
             type="text"
             placeholder="搜索标签名称..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="tag-search-input pl-10"
           />
         </div>
 
@@ -176,7 +177,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
               setSortBy(newSortBy);
               setSortOrder(newSortOrder);
             }}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="tag-filter-select px-3 py-2 border rounded-md text-sm focus:ring-2"
           >
             <option value="usage-desc">使用次数 ↓</option>
             <option value="usage-asc">使用次数 ↑</option>
@@ -187,12 +188,12 @@ export const TagManager: React.FC<TagManagerProps> = ({
           </select>
 
           {/* 显示状态 */}
-          <label className="flex items-center space-x-2 text-sm">
+          <label className="tag-filter-label flex items-center space-x-2 text-sm">
             <input
               type="checkbox"
               checked={showActiveOnly}
               onChange={(e) => setShowActiveOnly(e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="tag-filter-checkbox rounded border focus:ring-2"
             />
             <span>仅显示活跃标签</span>
           </label>
@@ -200,11 +201,11 @@ export const TagManager: React.FC<TagManagerProps> = ({
       </div>
 
       {/* 标签列表 */}
-      <div className="bg-white rounded-lg border border-gray-200">
+      <div className="tag-list-container rounded-lg border">
         {loading && page === 1 ? (
-          <div className="p-8 text-center">
-            <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-            <p className="mt-2 text-gray-500">加载中...</p>
+          <div className="tag-loading-container p-8 text-center">
+            <div className="tag-loading-spinner animate-spin w-6 h-6 border-2 border-t-transparent rounded-full mx-auto"></div>
+            <p className="mt-2">加载中...</p>
           </div>
         ) : (
           <>
@@ -217,15 +218,17 @@ export const TagManager: React.FC<TagManagerProps> = ({
 
             {/* 加载更多 */}
             {page < totalPages && (
-              <div className="p-4 border-t border-gray-200 text-center">
-                <Button
-                  variant="outline"
-                  onClick={handleLoadMore}
-                  disabled={loading}
-                  className="w-full sm:w-auto"
-                >
-                  {loading ? '加载中...' : '加载更多'}
-                </Button>
+              <div className="p-4 border-t" style={{ borderColor: 'var(--border-color, #e5e7eb)' }}>
+                <div className="text-center">
+                  <Button
+                    variant="outline"
+                    onClick={handleLoadMore}
+                    disabled={loading}
+                    className="w-full sm:w-auto"
+                  >
+                    {loading ? '加载中...' : '加载更多'}
+                  </Button>
+                </div>
               </div>
             )}
           </>
@@ -234,21 +237,23 @@ export const TagManager: React.FC<TagManagerProps> = ({
 
       {/* 统计信息 */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <div className="text-2xl font-bold text-blue-600">{tags.length}</div>
-          <div className="text-sm text-gray-600">标签总数</div>
+        <div className="tag-stats-card p-4 rounded-lg border">
+          <div className="tag-stats-number text-2xl font-bold" style={{ color: 'var(--primary-color, #3b82f6)' }}>
+            {tags.length}
+          </div>
+          <div className="tag-stats-label text-sm">标签总数</div>
         </div>
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <div className="text-2xl font-bold text-green-600">
+        <div className="tag-stats-card p-4 rounded-lg border">
+          <div className="tag-stats-number text-2xl font-bold" style={{ color: 'var(--success-color, #22c55e)' }}>
             {tags.reduce((sum, tag) => sum + tag.usageCount, 0)}
           </div>
-          <div className="text-sm text-gray-600">总使用次数</div>
+          <div className="tag-stats-label text-sm">总使用次数</div>
         </div>
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <div className="text-2xl font-bold text-purple-600">
+        <div className="tag-stats-card p-4 rounded-lg border">
+          <div className="tag-stats-number text-2xl font-bold" style={{ color: 'var(--secondary-color, #8b5cf6)' }}>
             {tags.filter((tag) => tag.usageCount > 0).length}
           </div>
-          <div className="text-sm text-gray-600">已使用标签</div>
+          <div className="tag-stats-label text-sm">已使用标签</div>
         </div>
       </div>
 

@@ -122,10 +122,14 @@ export const TagDisplay: React.FC<TagDisplayProps> = ({
       {remainingCount > 0 && (
         <span
           className={cn(
-            'inline-flex items-center rounded-full bg-gray-100 text-gray-600 font-medium',
+            'inline-flex items-center rounded-full font-medium',
             getSizeClasses(),
-            interactive && 'cursor-pointer hover:bg-gray-200',
+            interactive && 'cursor-pointer',
           )}
+          style={{
+            backgroundColor: 'var(--background-secondary, #f3f4f6)',
+            color: 'var(--text-secondary, #6b7280)',
+          }}
           title={`还有 ${remainingCount} 个标签`}
         >
           +{remainingCount}
@@ -189,7 +193,7 @@ export const TagList: React.FC<TagListProps> = ({
 }) => {
   if (!tags || tags.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="tag-empty-state text-center py-8">
         <p>暂无标签</p>
         <p className="text-sm mt-1">点击上方按钮创建第一个标签</p>
       </div>
@@ -201,7 +205,7 @@ export const TagList: React.FC<TagListProps> = ({
       {tags.map((tag) => (
         <div
           key={tag.id}
-          className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
+          className="tag-list-item flex items-center justify-between p-3 rounded-lg border transition-colors"
         >
           <div
             className="flex items-center space-x-3 flex-1 cursor-pointer"
@@ -213,11 +217,11 @@ export const TagList: React.FC<TagListProps> = ({
             />
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2">
-                <h3 className="font-medium text-gray-900 truncate">{tag.name}</h3>
-                <span className="text-sm text-gray-500">({tag.usageCount})</span>
+                <h3 className="tag-list-item-name font-medium truncate">{tag.name}</h3>
+                <span className="tag-list-item-count text-sm">({tag.usageCount})</span>
               </div>
               {tag.description && (
-                <p className="text-sm text-gray-600 truncate mt-1">{tag.description}</p>
+                <p className="tag-list-item-description text-sm truncate mt-1">{tag.description}</p>
               )}
             </div>
           </div>
@@ -226,7 +230,7 @@ export const TagList: React.FC<TagListProps> = ({
             {onTagEdit && (
               <button
                 type="button"
-                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                className="tag-action-button p-2 transition-colors"
                 onClick={() => onTagEdit(tag)}
                 aria-label={`编辑标签 ${tag.name}`}
               >
@@ -243,7 +247,7 @@ export const TagList: React.FC<TagListProps> = ({
             {onTagDelete && (
               <button
                 type="button"
-                className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                className="tag-action-button tag-delete-button p-2 transition-colors"
                 onClick={() => onTagDelete(tag)}
                 aria-label={`删除标签 ${tag.name}`}
               >

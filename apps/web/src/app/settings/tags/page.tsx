@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { TagResponseDto } from '@/lib/api/types/tag.types';
 import { toast } from 'sonner';
+import '@/styles/tags-theme.css';
 
 /**
  * 标签管理页面

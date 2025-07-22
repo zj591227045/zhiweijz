@@ -146,31 +146,31 @@ export const TagEditModal: React.FC<TagEditModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* 背景遮罩 */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onClick={onClose} />
+      <div className="tag-edit-modal-overlay fixed inset-0 transition-opacity" onClick={onClose} />
 
       {/* 模态框内容 */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md">
+      <div className="flex min-h-full items-center justify-center p-4" style={{ overflow: 'visible' }}>
+        <div className="tag-edit-modal-content relative rounded-lg shadow-xl w-full max-w-md" style={{ overflow: 'visible' }}>
           {/* 头部 */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">
+          <div className="tag-edit-modal-header flex items-center justify-between p-6 border-b">
+            <h3 className="tag-edit-modal-title text-lg font-medium">
               {isEditing ? '编辑标签' : '创建标签'}
             </h3>
             <button
               type="button"
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="tag-edit-modal-close transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* 表单内容 */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="p-6 space-y-6" style={{ overflow: 'visible' }}>
             {/* 标签名称 */}
             <div>
-              <label htmlFor="tag-name" className="block text-sm font-medium text-gray-700 mb-2">
-                标签名称 <span className="text-red-500">*</span>
+              <label htmlFor="tag-name" className="tag-form-label block text-sm font-medium mb-2">
+                标签名称 <span className="tag-form-required">*</span>
               </label>
               <Input
                 id="tag-name"
@@ -179,32 +179,32 @@ export const TagEditModal: React.FC<TagEditModalProps> = ({
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="请输入标签名称"
                 maxLength={TagValidation.name.maxLength}
-                className={cn(errors.name && 'border-red-500')}
+                className={cn('tag-form-input', errors.name && 'error')}
               />
-              {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
-              <p className="mt-1 text-xs text-gray-500">
+              {errors.name && <p className="tag-form-error mt-1 text-sm">{errors.name}</p>}
+              <p className="tag-form-help mt-1 text-xs">
                 {formData.name.length}/{TagValidation.name.maxLength}
               </p>
             </div>
 
             {/* 标签颜色 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                标签颜色 <span className="text-red-500">*</span>
+              <label className="tag-form-label block text-sm font-medium mb-2">
+                标签颜色 <span className="tag-form-required">*</span>
               </label>
               <ColorPicker
                 value={formData.color}
                 onChange={(color) => handleInputChange('color', color)}
-                className={cn(errors.color && 'border-red-500')}
+                className={cn(errors.color && 'error')}
               />
-              {errors.color && <p className="mt-1 text-sm text-red-600">{errors.color}</p>}
+              {errors.color && <p className="tag-form-error mt-1 text-sm">{errors.color}</p>}
             </div>
 
             {/* 标签描述 */}
             <div>
               <label
                 htmlFor="tag-description"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="tag-form-label block text-sm font-medium mb-2"
               >
                 描述 (可选)
               </label>
@@ -216,14 +216,14 @@ export const TagEditModal: React.FC<TagEditModalProps> = ({
                 rows={3}
                 maxLength={TagValidation.description.maxLength}
                 className={cn(
-                  'w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none',
-                  errors.description && 'border-red-500',
+                  'tag-form-textarea w-full px-3 py-2 border rounded-md focus:ring-2 resize-none',
+                  errors.description && 'error',
                 )}
               />
               {errors.description && (
-                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+                <p className="tag-form-error mt-1 text-sm">{errors.description}</p>
               )}
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="tag-form-help mt-1 text-xs">
                 {formData.description.length}/{TagValidation.description.maxLength}
               </p>
             </div>
@@ -231,7 +231,7 @@ export const TagEditModal: React.FC<TagEditModalProps> = ({
             {/* 预览 */}
             {formData.name && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">预览效果</label>
+                <label className="tag-form-label block text-sm font-medium mb-2">预览效果</label>
                 <TagDisplay
                   tags={[
                     {
@@ -254,8 +254,8 @@ export const TagEditModal: React.FC<TagEditModalProps> = ({
 
             {/* 错误信息 */}
             {errors.submit && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-sm text-red-600">{errors.submit}</p>
+              <div className="tag-form-error-container p-3 border rounded-md">
+                <p className="tag-form-error text-sm">{errors.submit}</p>
               </div>
             )}
 
