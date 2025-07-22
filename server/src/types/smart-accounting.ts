@@ -22,4 +22,4 @@ export interface SmartAccountingError {
   error: string;
 }
 
-export type SmartAccountingResponse = SmartAccountingResult | SmartAccountingError | null;
+export type SmartAccountingResponse = SmartAccountingResult | SmartAccountingResult[] | SmartAccountingError | null;

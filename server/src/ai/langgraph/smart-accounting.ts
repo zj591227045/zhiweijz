@@ -360,22 +360,52 @@ export class SmartAccounting {
         state.accountType,
       );
 
-      // 解析响应
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      // 解析响应 - 支持单个对象 {...} 和数组格式 [{...}, {...}, {...}]
+      let jsonMatch = response.match(/\[[\s\S]*\]/); // 先尝试匹配数组格式
+      let isArrayFormat = true;
+      
+      if (!jsonMatch) {
+        jsonMatch = response.match(/\{[\s\S]*\}/); // 再尝试匹配单个对象格式
+        isArrayFormat = false;
+      }
+      
       if (jsonMatch) {
-        const analyzedTransaction = JSON.parse(jsonMatch[0]);
+        const parsedResult = JSON.parse(jsonMatch[0]);
+        
+        // 统一处理为数组格式
+        const transactions = isArrayFormat ? parsedResult : [parsedResult];
+        
+        // 处理每个交易记录
+        for (let i = 0; i < transactions.length; i++) {
+          const analyzedTransaction = transactions[i];
+          
+          // 处理日期
+          if (analyzedTransaction.date) {
+            analyzedTransaction.date = new Date(analyzedTransaction.date);
+          } else {
+            analyzedTransaction.date = new Date();
+          }
 
-        // 处理日期
-        if (analyzedTransaction.date) {
-          analyzedTransaction.date = new Date(analyzedTransaction.date);
-        } else {
-          analyzedTransaction.date = new Date();
-        }
+          // 验证分类ID是否有效
+          const validCategory = categories.find((c: any) => c.id === analyzedTransaction.categoryId);
+          if (!validCategory) {
+            throw new Error(`第 ${i + 1} 条记录的分类ID无效: ${analyzedTransaction.categoryId}`);
+          }
 
-        // 验证分类ID是否有效
-        const validCategory = categories.find((c: any) => c.id === analyzedTransaction.categoryId);
-        if (!validCategory) {
-          throw new Error('无效的分类ID');
+          // 为每条记录进行简单的预算匹配
+          console.log(`🎯 [预算匹配] 为第 ${i + 1} 条记录匹配预算`);
+          const matchedBudget = await this.findBestBudgetForTransaction(
+            analyzedTransaction,
+            state.userId,
+            state.accountId || ''
+          );
+          
+          if (matchedBudget) {
+            analyzedTransaction.budgetId = matchedBudget.id;
+            console.log(`✅ [预算匹配] 第 ${i + 1} 条记录匹配预算: ${matchedBudget.name}`);
+          } else {
+            console.log(`❌ [预算匹配] 第 ${i + 1} 条记录未找到匹配预算`);
+          }
         }
 
         // 保存调试信息
@@ -383,12 +413,15 @@ export class SmartAccounting {
           systemPrompt,
           userPrompt,
           llmResponse: response,
-          parsedResult: analyzedTransaction,
+          parsedResult: parsedResult,
+          isArrayFormat,
+          transactionCount: transactions.length,
         };
 
+        // 如果是数组格式，直接返回数组；如果是单个对象，返回单个对象
         return {
           ...state,
-          analyzedTransaction,
+          analyzedTransaction: isArrayFormat ? transactions : transactions[0],
           debugInfo,
         };
       }
@@ -744,7 +777,7 @@ export class SmartAccounting {
   }
 
   /**
-   * 结果生成节点
+   * 结果生成节点 - 支持单个和多个交易记录
    * @param state 工作流状态
    * @returns 更新后的工作流状态
    */
@@ -776,119 +809,233 @@ export class SmartAccounting {
         where: { id: state.accountId },
       });
 
-      // 获取分类信息
-      const category = await prisma.category.findUnique({
-        where: { id: state.analyzedTransaction.categoryId },
-      });
+      // 检查是否是数组格式（多条记录）
+      const isArrayFormat = Array.isArray(state.analyzedTransaction);
+      const transactions = isArrayFormat ? (state.analyzedTransaction as unknown as any[]) : [(state.analyzedTransaction as unknown) as any];
+      
+      console.log(`🔄 [结果生成] 处理 ${transactions.length} 条交易记录`);
 
-      // 获取预算信息
-      let budget = null;
-      let budgetOwnerName = null;
-      if (state.matchedBudget?.id) {
-        budget = await prisma.budget.findUnique({
-          where: { id: state.matchedBudget.id },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
+      const results = [];
+
+      // 处理每条交易记录
+      for (let i = 0; i < transactions.length; i++) {
+        const transaction = transactions[i];
+        console.log(`🔄 [结果生成] 处理第 ${i + 1} 条记录:`, transaction);
+
+        // 获取分类信息
+        const category = await prisma.category.findUnique({
+          where: { id: transaction.categoryId },
+        });
+
+        // 获取预算信息（如果有预算匹配）
+        let budget = null;
+        let budgetOwnerName = null;
+        if (transaction.budgetId) {
+          budget = await prisma.budget.findUnique({
+            where: { id: transaction.budgetId },
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                },
               },
-            },
-            familyMember: {
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
+              familyMember: {
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
                   },
                 },
               },
             },
-          },
-        });
+          });
 
-        // 获取预算所属人员名称
-        if (budget) {
-          if (budget.familyMemberId && budget.familyMember) {
-            // 家庭成员预算（包括托管成员）
-            budgetOwnerName = budget.familyMember.user?.name || budget.familyMember.name;
-          } else if (budget.userId && budget.user) {
-            // 个人用户预算
-            budgetOwnerName = budget.user.name;
-          } else {
-            // 通用预算（直接使用预算名称）
-            budgetOwnerName = budget.name;
+          // 获取预算所属人员名称
+          if (budget) {
+            if (budget.familyMemberId && budget.familyMember) {
+              // 家庭成员预算（包括托管成员）
+              budgetOwnerName = budget.familyMember.user?.name || budget.familyMember.name;
+            } else if (budget.userId && budget.user) {
+              // 个人用户预算
+              budgetOwnerName = budget.user.name;
+            } else {
+              // 通用预算（直接使用预算名称）
+              budgetOwnerName = budget.name;
+            }
           }
         }
+
+        // 生成当前记录的最终结果
+        const result = {
+          // 记账基本信息
+          amount: transaction.amount,
+          date: transaction.date,
+          categoryId: transaction.categoryId,
+          categoryName: category?.name || transaction.categoryName,
+          type: category?.type || transaction.type,
+          note: transaction.note,
+
+          // 账本信息
+          accountId: state.accountId || '',
+          accountName: accountBook?.name || '未知账本',
+          accountType: accountBook?.type.toLowerCase() || state.accountType || 'personal',
+
+          // 预算信息
+          budgetId: transaction.budgetId,
+          budgetName: budget?.name,
+          budgetOwnerName: budgetOwnerName || undefined,
+          budgetType: budget?.period === 'MONTHLY' ? 'PERSONAL' : 'GENERAL',
+
+          // 用户信息
+          userId: state.userId,
+
+          // AI分析信息
+          confidence: transaction.confidence,
+
+          // 创建时间
+          createdAt: new Date(),
+
+          // 原始描述
+          originalDescription: state.description,
+
+          // 调试信息（仅在开发环境或调试模式下包含）
+          ...(process.env.NODE_ENV === 'development' || state.includeDebugInfo
+            ? {
+                debugInfo: state.debugInfo,
+              }
+            : {}),
+        };
+
+        results.push(result);
+        console.log(`✅ [结果生成] 第 ${i + 1} 条记录生成完成:`, result);
       }
 
-      // 生成最终结果
-      const result = {
-        // 记账基本信息
-        amount: state.analyzedTransaction.amount,
-        date: state.analyzedTransaction.date,
-        categoryId: state.analyzedTransaction.categoryId,
-        categoryName: category?.name || state.analyzedTransaction.categoryName,
-        type: category?.type || state.analyzedTransaction.type,
-        note: state.analyzedTransaction.note,
-
-        // 账本信息
-        accountId: state.accountId,
-        accountName: accountBook?.name || '未知账本',
-        accountType: accountBook?.type.toLowerCase() || state.accountType || 'personal',
-
-        // 预算信息
-        budgetId: state.matchedBudget?.id,
-        budgetName: budget?.name || state.matchedBudget?.name,
-        budgetOwnerName: budgetOwnerName || undefined,
-        budgetType: budget?.period === 'MONTHLY' ? 'PERSONAL' : 'GENERAL',
-
-        // 用户信息
-        userId: state.userId,
-
-        // AI分析信息
-        confidence: state.analyzedTransaction.confidence,
-
-        // 创建时间
-        createdAt: new Date(),
-
-        // 原始描述
-        originalDescription: state.description,
-
-        // 调试信息（仅在开发环境或调试模式下包含）
-        ...(process.env.NODE_ENV === 'development' || state.includeDebugInfo
-          ? {
-              debugInfo: state.debugInfo,
-            }
-          : {}),
-      };
-
-      console.log('生成智能记账结果:', JSON.stringify(result, null, 2));
-      return { ...state, result };
+      // 如果是多条记录，返回数组；如果是单条记录，返回单个对象
+      const finalResult = isArrayFormat ? results : results[0];
+      
+      console.log('生成智能记账结果:', JSON.stringify(finalResult, null, 2));
+      return { ...state, result: finalResult };
     } catch (error) {
       console.error('生成结果时出错:', error);
 
-      // 生成基本结果
-      const result = {
-        amount: state.analyzedTransaction.amount,
-        date: state.analyzedTransaction.date,
-        categoryId: state.analyzedTransaction.categoryId,
-        categoryName: state.analyzedTransaction.categoryName,
-        type: state.analyzedTransaction.type,
-        note: state.analyzedTransaction.note,
-        accountId: state.accountId,
-        accountName: '未知账本', // 添加缺失的 accountName 字段
+      // 如果出错，尝试生成基本结果
+      const isArrayFormat = Array.isArray(state.analyzedTransaction);
+      const transactions = isArrayFormat ? (state.analyzedTransaction as unknown as any[]) : [(state.analyzedTransaction as unknown) as any];
+      
+      const results = transactions.map((transaction: any) => ({
+        amount: transaction.amount,
+        date: transaction.date,
+        categoryId: transaction.categoryId,
+        categoryName: transaction.categoryName,
+        type: transaction.type,
+        note: transaction.note,
+        accountId: state.accountId || '',
+        accountName: '未知账本',
         accountType: state.accountType || 'personal',
-        budgetId: state.matchedBudget?.id,
-        budgetName: state.matchedBudget?.name,
-        budgetOwnerName: undefined, // 添加缺失的 budgetOwnerName 字段
+        budgetId: transaction.budgetId,
+        budgetName: undefined,
+        budgetOwnerName: undefined,
         userId: state.userId,
-        confidence: state.analyzedTransaction.confidence,
+        confidence: transaction.confidence,
         createdAt: new Date(),
         originalDescription: state.description,
-      };
+      }));
 
-      return { ...state, result };
+      const finalResult = isArrayFormat ? results : results[0];
+      return { ...state, result: finalResult };
+    }
+  }
+
+  /**
+   * 为单个交易记录找到最佳匹配的预算
+   * @param transaction 交易记录
+   * @param userId 用户ID
+   * @param accountId 账本ID
+   * @returns 匹配的预算或null
+   */
+  private async findBestBudgetForTransaction(transaction: any, userId: string, accountId: string) {
+    try {
+      let budget = null;
+
+      // 如果LLM识别出了预算名称，优先根据预算名称匹配
+      if (transaction.budgetName) {
+        console.log(`🔍 [预算匹配] 尝试根据预算名称匹配: ${transaction.budgetName}`);
+        budget = await this.findBudgetByName(transaction.budgetName, userId, accountId);
+        if (budget) {
+          console.log(`✅ [预算匹配] 根据预算名称找到匹配的预算: ${budget.id} - ${budget.name}`);
+          return budget;
+        }
+      }
+
+      // 优先级：
+      // 1. 请求发起人在当前账本的个人预算（优先级最高）
+      // 2. 请求发起人的个人预算（按分类匹配）
+      // 3. 当前账本+分类+日期范围匹配的预算
+
+      // 首先尝试找到请求发起人的个人预算
+      budget = await prisma.budget.findFirst({
+        where: {
+          userId: userId,
+          accountBookId: accountId,
+          startDate: { lte: transaction.date },
+          endDate: { gte: transaction.date },
+        },
+        orderBy: [
+          // 优先匹配分类
+          { categoryId: transaction.categoryId ? 'desc' : 'asc' },
+        ],
+      });
+
+      if (budget) {
+        console.log(
+          `✅ [预算匹配] 找到用户个人预算: ${budget.id} - ${budget.name} (分类匹配: ${
+            budget.categoryId === transaction.categoryId ? '是' : '否'
+          })`,
+        );
+        return budget;
+      }
+
+      // 如果没有找到发起人的个人预算，再尝试其他预算
+      budget = await prisma.budget.findFirst({
+        where: {
+          OR: [
+            // 当前账本预算（按分类匹配）
+            {
+              accountBookId: accountId,
+              categoryId: transaction.categoryId,
+              startDate: { lte: transaction.date },
+              endDate: { gte: transaction.date },
+            },
+            // 通用账本预算
+            {
+              accountBookId: accountId,
+              categoryId: null,
+              startDate: { lte: transaction.date },
+              endDate: { gte: transaction.date },
+            },
+          ],
+        },
+        orderBy: [
+          // 优先匹配分类的预算
+          { categoryId: 'desc' },
+        ],
+      });
+
+      if (budget) {
+        console.log(
+          `✅ [预算匹配] 找到账本预算: ${budget.id} - ${budget.name} (类型: ${
+            budget.categoryId ? '分类预算' : '通用预算'
+          })`,
+        );
+      }
+
+      return budget;
+    } catch (error) {
+      console.error('预算匹配失败:', error);
+      return null;
     }
   }
 

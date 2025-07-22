@@ -622,8 +622,14 @@ export function SmartAccountingDialog({
 
       console.log('直接添加记账结果:', response);
 
-      if (response && response.id) {
-        console.log('记账成功，记账ID:', response.id);
+      if (response && (response.id || (response.transactions && response.count > 0))) {
+        // 处理单条记录或多条记录的成功情况
+        if (response.id) {
+          console.log('单条记账成功，记账ID:', response.id);
+        } else if (response.transactions) {
+          console.log('多条记账成功，创建了', response.count, '条记录');
+          console.log('记录详情:', response.transactions);
+        }
 
         // 清除进度定时器（虽然可能已经执行完毕）
         progressTimers.forEach((timer) => clearTimeout(timer));
@@ -641,7 +647,10 @@ export function SmartAccountingDialog({
         }
 
         // 完成请求，显示成功消息
-        smartAccountingProgressManager.completeRequest(progressId, true, '记账完成，数据已更新');
+        const successMessage = response.id 
+          ? '记账完成，数据已更新' 
+          : `记账完成，已创建${response.count}条记录`;
+        smartAccountingProgressManager.completeRequest(progressId, true, successMessage);
       } else {
         // 清除进度定时器
         progressTimers.forEach((timer) => clearTimeout(timer));
@@ -722,8 +731,13 @@ export function SmartAccountingDialog({
 
       console.log('图片记账结果:', response);
 
-      if (response && response.id) {
-        console.log('图片记账成功，记账ID:', response.id);
+      if (response && (response.id || (response.transactions && response.count > 0))) {
+        // 处理单条记录或多条记录的成功情况
+        if (response.id) {
+          console.log('图片记账成功，记账ID:', response.id);
+        } else if (response.transactions) {
+          console.log('图片记账成功，创建了', response.count, '条记录');
+        }
 
         // 在后台刷新数据
         if (accountBookId) {
@@ -737,7 +751,10 @@ export function SmartAccountingDialog({
         }
 
         // 完成请求，显示成功消息
-        smartAccountingProgressManager.completeRequest(progressId, true, '图片识别完成，记账成功');
+        const successMessage = response.id 
+          ? '图片识别完成，记账成功' 
+          : `图片识别完成，已创建${response.count}条记录`;
+        smartAccountingProgressManager.completeRequest(progressId, true, successMessage);
       } else {
         smartAccountingProgressManager.completeRequest(
           progressId,

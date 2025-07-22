@@ -1022,8 +1022,11 @@ export default function EnhancedSmartAccountingDialog({
               { timeout: 60000 },
             );
 
-            if (response && response.id) {
-              progressManager.showProgress(progressId, '记账成功', 'success');
+            if (response && (response.id || (response.transactions && response.count > 0))) {
+              const successMessage = response.id 
+                ? '记账成功' 
+                : `记账成功，已创建${response.count}条记录`;
+              progressManager.showProgress(progressId, successMessage, 'success');
 
               // 更新录音状态为完成
               const stateManager = recordingStateManagerRef.current;
@@ -1385,8 +1388,11 @@ export default function EnhancedSmartAccountingDialog({
             { timeout: 60000 },
           );
 
-          if (response && response.id) {
-            progressManager.showProgress(progressId, '记账成功', 'success');
+          if (response && (response.id || (response.transactions && response.count > 0))) {
+            const successMessage = response.id 
+              ? '记账成功' 
+              : `记账成功，已创建${response.count}条记录`;
+            progressManager.showProgress(progressId, successMessage, 'success');
 
             // 刷新仪表盘数据
             if (accountBookId) {
@@ -1527,8 +1533,11 @@ export default function EnhancedSmartAccountingDialog({
         { timeout: 60000 },
       );
 
-      if (response && response.id) {
-        progressManager.showProgress(progressId, '记账成功', 'success');
+      if (response && (response.id || (response.transactions && response.count > 0))) {
+        const successMessage = response.id 
+          ? '记账成功' 
+          : `记账成功，已创建${response.count}条记录`;
+        progressManager.showProgress(progressId, successMessage, 'success');
 
         // 刷新仪表盘数据
         if (accountBookId) {

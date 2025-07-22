@@ -105,12 +105,32 @@ export class WechatSmartAccountingService {
 
       // 6. 如果需要创建记账记录
       if (createTransaction) {
-        const transaction = await this.createTransactionRecord(analysisResult, userId);
-        if (transaction) {
+        // 检查是否为数组格式（多条记录）
+        const isMultipleRecords = Array.isArray(analysisResult);
+        const recordsToCreate = isMultipleRecords ? analysisResult : [analysisResult];
+        
+        console.log(`📝 [微信记账] 检测到 ${recordsToCreate.length} 条记录需要创建`);
+        
+        const createdTransactions = [];
+        
+        // 循环创建每条记录
+        for (let i = 0; i < recordsToCreate.length; i++) {
+          const record = recordsToCreate[i];
+          const transaction = await this.createTransactionRecord(record, userId);
+          
+          if (transaction) {
+            createdTransactions.push(transaction);
+            console.log(`✅ [微信记账] 第 ${i + 1} 条记账记录创建成功: ${transaction.id}`);
+          } else {
+            console.error(`❌ [微信记账] 第 ${i + 1} 条记账记录创建失败`);
+          }
+        }
+        
+        if (createdTransactions.length > 0) {
           return {
             success: true,
-            message: this.formatSuccessMessage(analysisResult, true),
-            transaction,
+            message: this.formatSuccessMessage(analysisResult, true, createdTransactions.length),
+            transaction: isMultipleRecords ? createdTransactions : createdTransactions[0],
           };
         } else {
           return {
@@ -123,7 +143,7 @@ export class WechatSmartAccountingService {
       // 7. 仅返回分析结果
       return {
         success: true,
-        message: this.formatSuccessMessage(analysisResult, false),
+        message: this.formatSuccessMessage(analysisResult, false, Array.isArray(analysisResult) ? analysisResult.length : 1),
       };
     } catch (error) {
       console.error('微信智能记账处理失败:', error);
@@ -296,7 +316,49 @@ export class WechatSmartAccountingService {
   /**
    * 格式化成功消息
    */
-  private formatSuccessMessage(result: SmartAccountingResult, transactionCreated: boolean): string {
+  private formatSuccessMessage(result: SmartAccountingResult | SmartAccountingResult[], transactionCreated: boolean, count: number = 1): string {
+    // 如果是多条记录
+    if (Array.isArray(result)) {
+      const status = transactionCreated ? '记账成功' : '分析完成';
+      let message = `✅ ${status}！已处理 ${count} 条记录\n\n`;
+      
+      result.forEach((record, index) => {
+        const amount = record.amount;
+        const type = record.type === 'EXPENSE' ? '支出' : '收入';
+        const categoryIcon = this.getCategoryIcon(record.categoryName);
+        const category = `${categoryIcon}${record.categoryName || '未分类'}`;
+        const desc = record.note || '';
+        
+        // 格式化日期 - 只显示日期部分
+        const transactionDate = new Date(record.date);
+        const dateStr = transactionDate.toLocaleDateString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        });
+        
+        message += `${index + 1}. ${type} ¥${amount}\n`;
+        message += `   ${category} ${desc}\n`;
+        message += `   📅 ${dateStr}\n`;
+        
+        // 构建预算信息
+        if (record.budgetName) {
+          if (record.budgetOwnerName && record.budgetName !== record.budgetOwnerName) {
+            message += `   📊 预算：个人预算（${record.budgetOwnerName}）\n`;
+          } else {
+            message += `   📊 预算：${record.budgetName}\n`;
+          }
+        }
+        
+        if (index < result.length - 1) {
+          message += '\n';
+        }
+      });
+      
+      return message;
+    }
+    
+    // 单条记录的原有逻辑
     const amount = result.amount;
     const type = result.type === 'EXPENSE' ? '支出' : '收入';
     const categoryIcon = this.getCategoryIcon(result.categoryName);

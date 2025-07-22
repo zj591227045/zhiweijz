@@ -967,18 +967,15 @@ export class AIController {
 
       // 从智能记账结果创建记账记录
       try {
-        // 准备记账数据
+        // 检查是否为数组格式（多条记录）
+        const isMultipleRecords = Array.isArray(smartResult);
+        const recordsToCreate = isMultipleRecords ? smartResult : [smartResult];
+        
+        console.log(`📝 [记账处理] 检测到 ${recordsToCreate.length} 条记录需要创建`);
+        
+        const createdTransactions = [];
         const now = new Date();
-        const dateObj = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate(),
-          now.getHours(),
-          now.getMinutes(),
-          now.getSeconds(),
-          now.getMilliseconds(),
-        );
-
+        
         // 如果是家庭账本，确定家庭成员ID
         let familyMemberId = null;
         if (accountBook.type === 'FAMILY' && accountBook.familyId) {
@@ -1000,27 +997,60 @@ export class AIController {
           }
         }
 
-        const transactionData = {
-          amount: (smartResult as any).amount,
-          type: (smartResult as any).type as TransactionType,
-          categoryId: (smartResult as any).categoryId,
-          description: (smartResult as any).note || description,
-          date: dateObj,
-          accountBookId: accountBookId,
-          budgetId: (smartResult as any).budgetId || undefined,
-        };
+        // 循环创建每条记录
+        for (let i = 0; i < recordsToCreate.length; i++) {
+          const record = recordsToCreate[i];
+          
+          // 处理日期，如果记录中有日期则使用该日期但保持当前时间，否则使用当前完整时间
+          let dateObj;
+          if (record.date) {
+            // 如果有日期，解析日期但使用当前的时分秒
+            const recordDate = new Date(record.date);
+            dateObj = new Date(
+              recordDate.getFullYear(),
+              recordDate.getMonth(),
+              recordDate.getDate(),
+              now.getHours(),    // 使用当前小时
+              now.getMinutes(),  // 使用当前分钟
+              now.getSeconds(),  // 使用当前秒
+              now.getMilliseconds() // 使用当前毫秒
+            );
+          } else {
+            // 如果没有日期，使用完整的当前时间
+            dateObj = new Date(
+              now.getFullYear(),
+              now.getMonth(),
+              now.getDate(),
+              now.getHours(),
+              now.getMinutes(),
+              now.getSeconds(),
+              now.getMilliseconds(),
+            );
+          }
 
-        console.log(`💾 [记账创建] 创建记账记录:`, {
-          amount: transactionData.amount,
-          userId: actualUserId,
-          accountBookId: transactionData.accountBookId,
-          budgetId: transactionData.budgetId,
-        });
+          const transactionData = {
+            amount: record.amount,
+            type: record.type as TransactionType,
+            categoryId: record.categoryId,
+            description: record.note || `${description} (${i + 1})`,
+            date: dateObj,
+            accountBookId: accountBookId,
+            budgetId: record.budgetId || undefined,
+          };
 
-        // 使用记账服务创建记账记录（包含预算检查逻辑）
-        const transaction = await this.transactionService.createTransaction(actualUserId, transactionData);
+          console.log(`💾 [记账创建] 创建第 ${i + 1} 条记账记录:`, {
+            amount: transactionData.amount,
+            userId: actualUserId,
+            accountBookId: transactionData.accountBookId,
+            budgetId: transactionData.budgetId,
+          });
 
-        console.log(`✅ [记账创建] 记账记录创建成功: ${transaction.id}`);
+          // 使用记账服务创建记账记录（包含预算检查逻辑）
+          const transaction = await this.transactionService.createTransaction(actualUserId, transactionData);
+          createdTransactions.push(transaction);
+          
+          console.log(`✅ [记账创建] 第 ${i + 1} 条记账记录创建成功: ${transaction.id}`);
+        }
 
         // 记账创建成功，扣除记账点（使用请求发起者的记账点）- 仅在记账点系统启用时
         if (this.membershipService.isAccountingPointsEnabled()) {
@@ -1033,10 +1063,20 @@ export class AIController {
         }
 
         // 返回创建的记账记录
-        res.status(201).json({
-          ...transaction,
-          smartAccountingResult: smartResult,
-        });
+        if (isMultipleRecords) {
+          // 多条记录，返回数组
+          res.status(201).json({
+            transactions: createdTransactions,
+            count: createdTransactions.length,
+            smartAccountingResult: smartResult,
+          });
+        } else {
+          // 单条记录，保持原有格式
+          res.status(201).json({
+            ...createdTransactions[0],
+            smartAccountingResult: smartResult,
+          });
+        }
       } catch (createError) {
         console.error('创建记账记录错误:', createError);
         // 即使创建失败，也返回智能记账结果
@@ -1142,94 +1182,129 @@ export class AIController {
         return res.status(400).json({ info: result.error });
       }
 
-      // 使用类型断言
-      const smartResult = result as SmartAccountingResult;
-
       // 从智能记账结果创建记账记录
       try {
-        // 准备记账数据
-        // 处理日期，使用当前本地时间
+        // 检查是否为数组格式（多条记录）
+        const isMultipleRecords = Array.isArray(result);
+        const recordsToCreate = isMultipleRecords ? result : [result as SmartAccountingResult];
+        
+        console.log(`📝 [记账处理] 检测到 ${recordsToCreate.length} 条记录需要创建`);
+        
+        const createdTransactions = [];
         const now = new Date();
-        const dateObj = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate(),
-          now.getHours(),
-          now.getMinutes(),
-          now.getSeconds(),
-          now.getMilliseconds(),
-        );
 
-        // 如果是家庭账本，需要通过预算ID确定家庭成员ID
-        let familyMemberId = null;
-        if (accountBook.type === 'FAMILY' && accountBook.familyId) {
-          const budgetId = smartResult.budgetId;
+        // 循环创建每条记录
+        for (let i = 0; i < recordsToCreate.length; i++) {
+          const smartResult = recordsToCreate[i];
+          
+          // 处理日期，如果记录中有日期则使用该日期但保持当前时间，否则使用当前完整时间
+          let dateObj;
+          if (smartResult.date) {
+            // 如果有日期，解析日期但使用当前的时分秒
+            const recordDate = new Date(smartResult.date);
+            dateObj = new Date(
+              recordDate.getFullYear(),
+              recordDate.getMonth(),
+              recordDate.getDate(),
+              now.getHours(),    // 使用当前小时
+              now.getMinutes(),  // 使用当前分钟
+              now.getSeconds(),  // 使用当前秒
+              now.getMilliseconds() // 使用当前毫秒
+            );
+          } else {
+            // 如果没有日期，使用完整的当前时间
+            dateObj = new Date(
+              now.getFullYear(),
+              now.getMonth(),
+              now.getDate(),
+              now.getHours(),
+              now.getMinutes(),
+              now.getSeconds(),
+              now.getMilliseconds(),
+            );
+          }
 
-          if (budgetId) {
-            // 通过预算ID查找预算记录
-            const budget = await this.prisma.budget.findUnique({
-              where: { id: budgetId },
-              include: {
-                familyMember: true,
-                user: true,
-              },
-            });
+          // 如果是家庭账本，需要通过预算ID确定家庭成员ID
+          let familyMemberId = null;
+          if (accountBook.type === 'FAMILY' && accountBook.familyId) {
+            const budgetId = smartResult.budgetId;
 
-            if (budget) {
-              if (budget.familyMemberId) {
-                // 预算直接关联到家庭成员（旧架构的托管成员预算）
-                familyMemberId = budget.familyMemberId;
-              } else if (budget.userId) {
-                // 预算关联到用户（包括普通用户和托管用户），需要查找该用户在家庭中的成员记录
-                // 这是统一的处理逻辑：无论是普通用户还是托管用户，都通过userId查找对应的familyMember.id
-                const familyMember = await this.prisma.familyMember.findFirst({
-                  where: {
-                    familyId: accountBook.familyId,
-                    userId: budget.userId,
-                  },
-                });
+            if (budgetId) {
+              // 通过预算ID查找预算记录
+              const budget = await this.prisma.budget.findUnique({
+                where: { id: budgetId },
+                include: {
+                  familyMember: true,
+                  user: true,
+                },
+              });
 
-                if (familyMember) {
-                  familyMemberId = familyMember.id;
+              if (budget) {
+                if (budget.familyMemberId) {
+                  // 预算直接关联到家庭成员（旧架构的托管成员预算）
+                  familyMemberId = budget.familyMemberId;
+                } else if (budget.userId) {
+                  // 预算关联到用户（包括普通用户和托管用户），需要查找该用户在家庭中的成员记录
+                  // 这是统一的处理逻辑：无论是普通用户还是托管用户，都通过userId查找对应的familyMember.id
+                  const familyMember = await this.prisma.familyMember.findFirst({
+                    where: {
+                      familyId: accountBook.familyId,
+                      userId: budget.userId,
+                    },
+                  });
+
+                  if (familyMember) {
+                    familyMemberId = familyMember.id;
+                  }
                 }
+              }
+            }
+
+            // 如果通过预算无法确定家庭成员ID，则使用当前用户作为备选方案
+            if (!familyMemberId) {
+              const familyMember = await this.prisma.familyMember.findFirst({
+                where: {
+                  familyId: accountBook.familyId,
+                  userId: userId,
+                },
+              });
+
+              if (familyMember) {
+                familyMemberId = familyMember.id;
               }
             }
           }
 
-          // 如果通过预算无法确定家庭成员ID，则使用当前用户作为备选方案
-          if (!familyMemberId) {
-            const familyMember = await this.prisma.familyMember.findFirst({
-              where: {
-                familyId: accountBook.familyId,
-                userId: userId,
-              },
-            });
+          const transactionData = {
+            amount: smartResult.amount,
+            type: smartResult.type as TransactionType,
+            categoryId: smartResult.categoryId,
+            description: smartResult.note || `${description} (${i + 1})`,
+            date: dateObj,
+            accountBookId: accountId,
+            userId,
+            // 如果是家庭账本，添加家庭ID和家庭成员ID
+            familyId: accountBook.type === 'FAMILY' ? accountBook.familyId : null,
+            familyMemberId: familyMemberId,
+            // 预算ID如果有的话
+            budgetId: smartResult.budgetId || null,
+          };
 
-            if (familyMember) {
-              familyMemberId = familyMember.id;
-            }
-          }
+          console.log(`💾 [记账创建] 创建第 ${i + 1} 条记账记录:`, {
+            amount: transactionData.amount,
+            userId: transactionData.userId,
+            accountBookId: transactionData.accountBookId,
+            budgetId: transactionData.budgetId,
+          });
+
+          // 创建记账记录
+          const transaction = await this.prisma.transaction.create({
+            data: transactionData,
+          });
+
+          createdTransactions.push(transaction);
+          console.log(`✅ [记账创建] 第 ${i + 1} 条记账记录创建成功: ${transaction.id}`);
         }
-
-        const transactionData = {
-          amount: smartResult.amount,
-          type: smartResult.type as TransactionType,
-          categoryId: smartResult.categoryId,
-          description: smartResult.note || description,
-          date: dateObj,
-          accountBookId: accountId,
-          userId,
-          // 如果是家庭账本，添加家庭ID和家庭成员ID
-          familyId: accountBook.type === 'FAMILY' ? accountBook.familyId : null,
-          familyMemberId: familyMemberId,
-          // 预算ID如果有的话
-          budgetId: smartResult.budgetId || null,
-        };
-
-        // 创建记账记录
-        const transaction = await this.prisma.transaction.create({
-          data: transactionData,
-        });
 
         // 记账创建成功，扣除记账点（仅在记账点系统启用时）
         if (this.membershipService.isAccountingPointsEnabled()) {
@@ -1242,16 +1317,26 @@ export class AIController {
         }
 
         // 返回创建的记账记录
-        res.status(201).json({
-          ...transaction,
-          smartAccountingResult: smartResult,
-        });
+        if (isMultipleRecords) {
+          // 多条记录，返回数组
+          res.status(201).json({
+            transactions: createdTransactions,
+            count: createdTransactions.length,
+            smartAccountingResult: result,
+          });
+        } else {
+          // 单条记录，保持原有格式
+          res.status(201).json({
+            ...createdTransactions[0],
+            smartAccountingResult: result,
+          });
+        }
       } catch (createError) {
         console.error('创建记账记录错误:', createError);
         // 即使创建失败，也返回智能记账结果
         res.status(500).json({
           error: '创建记账记录失败',
-          smartAccountingResult: smartResult,
+          smartAccountingResult: result,
         });
       }
     } catch (error) {
