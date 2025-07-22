@@ -177,7 +177,10 @@ export const RecentTransactions = memo(
         if (
           prevTx.id !== nextTx.id ||
           prevTx.amount !== nextTx.amount ||
-          prevTx.type !== nextTx.type
+          prevTx.type !== nextTx.type ||
+          prevTx.description !== nextTx.description ||
+          prevTx.categoryName !== nextTx.categoryName ||
+          prevTx.categoryIcon !== nextTx.categoryIcon
         ) {
           return false;
         }
