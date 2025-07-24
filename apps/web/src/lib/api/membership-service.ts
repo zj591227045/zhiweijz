@@ -3,7 +3,7 @@ import { apiClient } from '../api-client';
 export interface MembershipInfo {
   id: string;
   userId: string;
-  memberType: 'REGULAR' | 'DONOR' | 'LIFETIME';
+  memberType: 'REGULAR' | 'DONATION_ONE' | 'DONATION_TWO' | 'DONATION_THREE' | 'DONOR' | 'LIFETIME';
   startDate: string;
   endDate: string | null;
   isActive: boolean;
@@ -142,6 +142,12 @@ class MembershipApiService {
     switch (type) {
       case 'REGULAR':
         return '普通会员';
+      case 'DONATION_ONE':
+        return '捐赠会员（壹）';
+      case 'DONATION_TWO':
+        return '捐赠会员（贰）';
+      case 'DONATION_THREE':
+        return '捐赠会员（叁）';
       case 'DONOR':
         return '捐赠会员';
       case 'LIFETIME':
@@ -156,6 +162,12 @@ class MembershipApiService {
     switch (type) {
       case 'REGULAR':
         return 'bg-gray-100 text-gray-800';
+      case 'DONATION_ONE':
+        return 'bg-blue-100 text-blue-800';
+      case 'DONATION_TWO':
+        return 'bg-green-100 text-green-800';
+      case 'DONATION_THREE':
+        return 'bg-yellow-100 text-yellow-800';
       case 'DONOR':
         return 'bg-yellow-100 text-yellow-800';
       case 'LIFETIME':

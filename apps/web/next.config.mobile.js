@@ -52,9 +52,9 @@ const nextConfig = {
       '@/lib/admin-api-client': stubPath,
     };
 
-    // 排除admin页面文件
+    // 排除admin页面文件 - 使用更精确的匹配
     config.module.rules.push({
-      test: /src\/app\/admin/,
+      test: /src[\/\\]app[\/\\]admin/,
       use: 'null-loader'
     });
 

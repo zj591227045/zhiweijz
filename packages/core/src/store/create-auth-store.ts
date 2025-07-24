@@ -20,9 +20,9 @@ export interface AuthState {
 export interface AuthStoreOptions {
   apiClient: any;
   storage: StorageAdapter;
-  onLoginSuccess?: () => void;
+  onLoginSuccess?: (user?: User) => void | Promise<void>;
   onLoginError?: (error: string) => void;
-  onRegisterSuccess?: () => void;
+  onRegisterSuccess?: (user?: User) => void | Promise<void>;
   onRegisterError?: (error: string) => void;
   onLogout?: () => void;
   onResetPasswordSuccess?: () => void;
@@ -68,7 +68,7 @@ export const createAuthStore = (options: AuthStoreOptions) => {
 
             // 登录成功回调
             if (onLoginSuccess) {
-              onLoginSuccess();
+              await onLoginSuccess(response.user);
             }
           } catch (error: any) {
             const errorMessage = error.response?.data?.error?.message || "登录失败，请检查您的凭据";
@@ -101,7 +101,7 @@ export const createAuthStore = (options: AuthStoreOptions) => {
 
             // 注册成功回调
             if (onRegisterSuccess) {
-              onRegisterSuccess();
+              await onRegisterSuccess(response.user);
             }
           } catch (error: any) {
             const errorMessage = error.response?.data?.error?.message || "注册失败，请稍后再试";

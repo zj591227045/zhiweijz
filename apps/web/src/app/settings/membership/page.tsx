@@ -2,15 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createPortal } from 'react-dom';
 import {
   TrophyIcon,
   StarIcon,
-  CalendarIcon,
-  CurrencyDollarIcon,
   ExclamationTriangleIcon,
   BellIcon,
   CheckCircleIcon,
-  CogIcon,
   GiftIcon,
   SparklesIcon,
 } from '@heroicons/react/24/outline';
@@ -23,6 +21,9 @@ import membershipApi from '../../../lib/api/membership-service';
 import { BadgeDisplay } from '../../../components/ui/badge-display';
 import { PageContainer } from '../../../components/layout/page-container';
 import { useAccountingPointsStore } from '../../../store/accounting-points-store';
+import { MobilePaymentModal } from '../../../components/MobilePaymentModal';
+import { SubscriptionUpgradeCard } from '../../../components/SubscriptionUpgradeCard';
+import { MobilePaymentService } from '../../../services/mobile-payment.service';
 
 export default function MembershipCenter() {
   const router = useRouter();
@@ -50,15 +51,65 @@ export default function MembershipCenter() {
 
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedBadgeId, setSelectedBadgeId] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showSubscriptionInfo, setShowSubscriptionInfo] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // 处理模态框背景滚动锁定
+  useEffect(() => {
+    if (showSubscriptionInfo) {
+      // 锁定背景滚动
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    } else {
+      // 恢复背景滚动
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    }
+
+    // 清理函数
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, [showSubscriptionInfo]);
 
   useEffect(() => {
-    fetchMembershipInfo();
-    fetchBadges();
-    fetchNotifications();
-    // 获取准确的记账点余额
-    if (pointsEnabled) {
-      fetchAccountingBalance();
-    }
+    const initializeData = async () => {
+      try {
+        // 如果是移动端，先尝试同步RevenueCat状态
+        if (typeof window !== 'undefined' && window.Capacitor) {
+          try {
+            console.log('🔄 移动端环境，先同步RevenueCat状态...');
+            const mobilePaymentService = MobilePaymentService.getInstance();
+            await mobilePaymentService.refreshCustomerInfo();
+            console.log('✅ RevenueCat状态同步完成');
+
+            // 等待一段时间确保后端同步完成
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          } catch (error) {
+            console.warn('⚠️ RevenueCat同步失败，继续加载页面:', error);
+          }
+        }
+
+        await fetchMembershipInfo();
+        await fetchBadges();
+        await fetchNotifications();
+        // 获取准确的记账点余额
+        if (pointsEnabled) {
+          await fetchAccountingBalance();
+        }
+      } catch (error) {
+        console.error('会员中心数据初始化失败:', error);
+        setInitError('数据加载失败，请刷新页面重试');
+      }
+    };
+
+    initializeData();
   }, [pointsEnabled]);
 
   useEffect(() => {
@@ -66,6 +117,43 @@ export default function MembershipCenter() {
       setTimeout(() => clearError(), 5000);
     }
   }, [error]);
+
+  // 手动刷新会员状态
+  const handleRefreshMembership = async () => {
+    setRefreshing(true);
+    try {
+      console.log('🔄 手动刷新会员状态...');
+
+      // 如果是移动端，尝试刷新RevenueCat状态
+      if (typeof window !== 'undefined' && window.Capacitor) {
+        try {
+          const mobilePaymentService = MobilePaymentService.getInstance();
+          await mobilePaymentService.refreshCustomerInfo();
+          console.log('✅ RevenueCat状态已刷新');
+
+          // 等待一段时间确保后端同步完成
+          console.log('⏳ 等待后端同步完成...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } catch (error) {
+          console.warn('⚠️ RevenueCat刷新失败:', error);
+        }
+      }
+
+      // 刷新会员信息
+      await fetchMembershipInfo();
+
+      // 如果启用了积分系统，也刷新积分余额
+      if (pointsEnabled) {
+        await fetchAccountingBalance();
+      }
+
+      console.log('✅ 会员状态刷新完成');
+    } catch (error) {
+      console.error('❌ 刷新会员状态失败:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   // 返回到设置页面
   const handleBackToSettings = () => {
@@ -94,6 +182,12 @@ export default function MembershipCenter() {
 
   const getMemberTypeIcon = (type: string) => {
     switch (type) {
+      case 'DONATION_ONE':
+        return <TrophySolidIcon className="h-6 w-6 text-blue-500" />;
+      case 'DONATION_TWO':
+        return <TrophySolidIcon className="h-6 w-6 text-green-500" />;
+      case 'DONATION_THREE':
+        return <TrophySolidIcon className="h-6 w-6 text-yellow-500" />;
       case 'DONOR':
         return <TrophySolidIcon className="h-6 w-6 text-yellow-500" />;
       case 'LIFETIME':
@@ -143,23 +237,30 @@ export default function MembershipCenter() {
       activeNavItem="profile"
       showBottomNav={false}
     >
-      <div className="px-4 py-4">
-        {/* 错误提示 */}
-        {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
-            <div className="flex">
-              <ExclamationTriangleIcon className="h-5 w-5 text-red-400" />
-              <div className="ml-3">
-                <p className="text-sm text-red-800">{error}</p>
-              </div>
+      {/* 错误提示 */}
+      {(error || initError) && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
+          <div className="flex">
+            <ExclamationTriangleIcon className="h-5 w-5 text-red-400" />
+            <div className="ml-3">
+              <p className="text-sm text-red-800">{error || initError}</p>
+              {initError && (
+                <button
+                  onClick={() => window.location.reload()}
+                  className="mt-2 text-sm text-red-600 underline hover:text-red-800"
+                >
+                  刷新页面
+                </button>
+              )}
             </div>
           </div>
-        )}
-
-        {/* 页面标题 */}
-        <div className="mb-6">
-          <p className="text-sm text-gray-600">管理您的会员权益、徽章收藏和通知设置</p>
         </div>
+      )}
+
+      {/* 页面标题 */}
+      <div className="mb-6">
+        <p className="text-sm text-gray-600">管理您的会员权益、徽章收藏和通知设置</p>
+      </div>
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
@@ -183,7 +284,30 @@ export default function MembershipCenter() {
                     </div>
                   </div>
 
-                  <div className="text-right">
+                  <div className="flex items-center space-x-3">
+                    {/* 刷新按钮 */}
+                    <button
+                      onClick={handleRefreshMembership}
+                      disabled={refreshing}
+                      className="p-2 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+                      title="刷新会员状态"
+                    >
+                      <svg
+                        className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      </svg>
+                    </button>
+
+                    <div className="text-right">
                     {membership.endDate ? (
                       <div>
                         <p className="text-sm text-gray-500">到期时间</p>
@@ -206,37 +330,30 @@ export default function MembershipCenter() {
                         <p className="text-lg font-semibold text-purple-600">永久有效</p>
                       </div>
                     )}
+                    </div>
                   </div>
                 </div>
 
                 {/* 会员记账点信息 */}
-                {pointsEnabled && membership.memberType === 'DONOR' && (
+                {pointsEnabled && ['DONATION_ONE', 'DONATION_TWO', 'DONATION_THREE', 'DONOR'].includes(membership.memberType) && (
                   <div className="mt-6 pt-6 border-t border-gray-200">
-                    {/* 总记账点概览 */}
-                    {accountingBalance && (
-                      <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-                        <div className="text-center">
-                          <div className="text-3xl font-bold text-blue-900 mb-1">
-                            {accountingBalance.totalBalance}
-                          </div>
-                          <div className="text-sm text-blue-700">总可用记账点</div>
-                          <div className="flex justify-center gap-4 mt-2 text-xs text-blue-600">
-                            <span>会员记账点：{accountingBalance.memberBalance}</span>
-                            <span>赠送记账点：{accountingBalance.giftBalance}</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="bg-blue-50 rounded-lg p-4">
                         <div className="flex items-center">
                           <GiftIcon className="h-8 w-8 text-blue-600" />
                           <div className="ml-3">
-                            <p className="text-sm font-medium text-blue-900">月度记账点</p>
+                            <p className="text-sm font-medium text-blue-900">会员记账点</p>
                             <p className="text-2xl font-bold text-blue-900">
-                              {membership.monthlyPoints}
+                              {accountingBalance ? accountingBalance.memberBalance : 0}
                             </p>
+                            <p className="text-xs text-blue-700">
+                              每月{membership.monthlyPoints}点，用于AI功能
+                            </p>
+                            {accountingLoading && (
+                              <p className="text-xs text-blue-700">更新中...</p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -245,21 +362,30 @@ export default function MembershipCenter() {
                         <div className="flex items-center">
                           <SparklesIcon className="h-8 w-8 text-green-600" />
                           <div className="ml-3">
-                            <p className="text-sm font-medium text-green-900">可用记账点</p>
+                            <p className="text-sm font-medium text-green-900">赠送记账点</p>
                             <p className="text-2xl font-bold text-green-900">
-                              {accountingBalance
-                                ? accountingBalance.memberBalance
-                                : membership.monthlyPoints - membership.usedPoints}
+                              {accountingBalance ? accountingBalance.giftBalance : 0}
                             </p>
-                            {accountingLoading && (
-                              <p className="text-xs text-green-700">更新中...</p>
-                            )}
+                            <p className="text-xs text-green-700">
+                              签到获得，每日最多5点
+                            </p>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* 订阅升级卡片 - 独立容器 */}
+            {membership && (
+              <div className="mb-6">
+                <SubscriptionUpgradeCard
+                  currentMemberType={membership.memberType}
+                  onUpgradeClick={() => setShowPaymentModal(true)}
+                  onInfoClick={() => setShowSubscriptionInfo(true)}
+                />
               </div>
             )}
 
@@ -302,20 +428,20 @@ export default function MembershipCenter() {
                 {activeTab === 'overview' && (
                   <div className="space-y-6">
                     <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">会员权益</h3>
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">当前会员权益</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="bg-gray-50 rounded-lg p-4">
-                          <h4 className="font-medium text-gray-900">每月会员记账点</h4>
+                          <h4 className="font-medium text-gray-900">会员记账点</h4>
                           <p className="text-sm text-gray-600 mt-1">
-                            {membership?.memberType === 'DONOR'
-                              ? '1000点记账点，用于AI功能'
+                            {['DONATION_ONE', 'DONATION_TWO', 'DONATION_THREE', 'DONOR'].includes(membership?.memberType || '')
+                              ? `每月${membership?.monthlyPoints || 1000}点，用于AI功能消费`
                               : '暂无记账点权益'}
                           </p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-4">
                           <h4 className="font-medium text-gray-900">专属徽章</h4>
                           <p className="text-sm text-gray-600 mt-1">
-                            {membership?.memberType === 'DONOR'
+                            {['DONATION_ONE', 'DONATION_TWO', 'DONATION_THREE', 'DONOR'].includes(membership?.memberType || '')
                               ? '捐赠会员专属徽章'
                               : '普通会员徽章'}
                           </p>
@@ -323,7 +449,7 @@ export default function MembershipCenter() {
                         <div className="bg-gray-50 rounded-lg p-4">
                           <h4 className="font-medium text-gray-900">公益事业署名</h4>
                           <p className="text-sm text-gray-600 mt-1">
-                            {membership?.memberType === 'DONOR'
+                            {['DONATION_TWO', 'DONATION_THREE'].includes(membership?.memberType || '')
                               ? '支持公益项目署名权利'
                               : '暂无此权益'}
                           </p>
@@ -331,7 +457,7 @@ export default function MembershipCenter() {
                         <div className="bg-gray-50 rounded-lg p-4">
                           <h4 className="font-medium text-gray-900">优先客服</h4>
                           <p className="text-sm text-gray-600 mt-1">
-                            {membership?.memberType === 'DONOR'
+                            {membership?.memberType === 'DONATION_THREE'
                               ? '享受优先客服通道'
                               : '标准客服支持'}
                           </p>
@@ -490,7 +616,219 @@ export default function MembershipCenter() {
             </div>
           </>
         )}
-      </div>
+
+      {/* 支付模态框 */}
+      {showPaymentModal && (
+        <MobilePaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          onSuccess={() => {
+            setShowPaymentModal(false);
+            fetchMembershipInfo(); // 刷新会员信息
+          }}
+        />
+      )}
+
+      {/* 订阅服务说明模态框 */}
+      {showSubscriptionInfo && typeof window !== 'undefined' && createPortal(
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+            margin: 0
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowSubscriptionInfo(false);
+            }
+          }}
+        >
+          <div
+            style={{
+              position: 'relative',
+              width: '100%',
+              maxWidth: '1024px',
+              backgroundColor: 'white',
+              borderRadius: '16px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              maxHeight: '90vh',
+              overflow: 'hidden'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 滚动容器 */}
+            <div
+              style={{
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                padding: '24px'
+              }}
+            >
+                <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-medium text-gray-900">订阅服务说明</h3>
+                <button
+                  onClick={() => setShowSubscriptionInfo(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <span className="sr-only">关闭</span>
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* 会员类型对比 */}
+                <div>
+                  <h4 className="text-md font-medium text-gray-900 mb-4">会员类型对比</h4>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200 text-sm">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">权益项目</th>
+                          <th className="px-1 sm:px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">普通</th>
+                          <th className="px-1 sm:px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">捐赠（壹）</th>
+                          <th className="px-1 sm:px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">捐赠（贰）</th>
+                          <th className="px-1 sm:px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">捐赠（叁）</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        <tr>
+                          <td className="px-2 sm:px-4 py-3 text-sm text-gray-900 whitespace-nowrap">基础功能</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-green-600">✓</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-green-600">✓</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-green-600">✓</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-green-600">✓</td>
+                        </tr>
+                        <tr className="bg-gray-50">
+                          <td className="px-2 sm:px-4 py-3 text-sm text-gray-900 whitespace-nowrap">AI智能记账</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-green-600">✓</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-green-600">✓</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-green-600">✓</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-green-600">✓</td>
+                        </tr>
+                        <tr>
+                          <td className="px-2 sm:px-4 py-3 text-sm text-gray-900 whitespace-nowrap">月度积分</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-gray-400 text-xs">0</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-blue-600 text-xs">1000/1500*</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-blue-600 text-xs">1000/1500*</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-blue-600 text-xs">1000/1500*</td>
+                        </tr>
+                        <tr className="bg-gray-50">
+                          <td className="px-2 sm:px-4 py-3 text-sm text-gray-900 whitespace-nowrap">公益署名</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-gray-400">✗</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-gray-400">✗</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-green-600">✓</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-green-600">✓</td>
+                        </tr>
+                        <tr>
+                          <td className="px-2 sm:px-4 py-3 text-sm text-gray-900 whitespace-nowrap">优先客服</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-gray-400">✗</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-gray-400">✗</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-gray-400">✗</td>
+                          <td className="px-1 sm:px-2 py-3 text-center text-green-600">✓</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <p className="text-xs text-gray-500 mt-2">* 年付用户获得1500积分，月付用户获得1000积分</p>
+                  </div>
+                </div>
+
+                {/* 订阅价格 */}
+                <div>
+                  <h4 className="text-md font-medium text-gray-900 mb-4">订阅价格</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                    <div className="border border-gray-200 rounded-lg p-3 sm:p-4">
+                      <h5 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">捐赠会员（壹）</h5>
+                      <div className="space-y-1">
+                        <p className="text-xs sm:text-sm text-gray-600">月付：¥5/月</p>
+                        <p className="text-xs sm:text-sm text-gray-600">年付：¥55/年 <span className="text-green-600">(省¥5)</span></p>
+                      </div>
+                    </div>
+                    <div className="border border-blue-200 rounded-lg p-3 sm:p-4 bg-blue-50">
+                      <h5 className="font-medium text-blue-900 mb-2 text-sm sm:text-base">捐赠会员（贰）</h5>
+                      <div className="space-y-1">
+                        <p className="text-xs sm:text-sm text-blue-700">月付：¥10/月</p>
+                        <p className="text-xs sm:text-sm text-blue-700">年付：¥110/年 <span className="text-green-600">(省¥10)</span></p>
+                      </div>
+                    </div>
+                    <div className="border border-purple-200 rounded-lg p-3 sm:p-4 bg-purple-50">
+                      <h5 className="font-medium text-purple-900 mb-2 text-sm sm:text-base">捐赠会员（叁）</h5>
+                      <div className="space-y-1">
+                        <p className="text-xs sm:text-sm text-purple-700">月付：¥15/月</p>
+                        <p className="text-xs sm:text-sm text-purple-700">年付：¥165/年 <span className="text-green-600">(省¥15)</span></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 订阅说明 */}
+                <div>
+                  <h4 className="text-md font-medium text-gray-900 mb-4">订阅说明</h4>
+                  <div className="space-y-3 text-sm text-gray-600">
+                    <div className="flex items-start gap-2">
+                      <CheckCircleIcon className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                      <p>订阅会自动续费，您可以随时在设置中取消</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircleIcon className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                      <p>年付订阅享受优惠价格和更多积分奖励</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircleIcon className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                      <p>所有订阅收入将用于应用开发和公益事业</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircleIcon className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                      <p>支持iOS App Store和Android多种支付方式</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 操作按钮 */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <button
+                    onClick={() => {
+                      setShowSubscriptionInfo(false);
+                      setShowPaymentModal(true);
+                    }}
+                    className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors min-h-[44px]"
+                  >
+                    立即订阅
+                  </button>
+                  {(process.env.NODE_ENV === 'development' || process.env.IS_MOBILE_BUILD === 'true') && (
+                    <button
+                      onClick={() => {
+                        setShowSubscriptionInfo(false);
+                        router.push('/payment-test');
+                      }}
+                      className="flex-1 bg-orange-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-orange-700 transition-colors min-h-[44px]"
+                    >
+                      支付测试
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowSubscriptionInfo(false)}
+                    className="flex-1 bg-gray-200 text-gray-800 px-4 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors min-h-[44px]"
+                  >
+                    稍后再说
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </PageContainer>
   );
 }

@@ -38,6 +38,17 @@ cp next.config.js next.config.js.backup
 echo "🔧 应用移动端配置（排除admin页面）..."
 cp next.config.mobile.js next.config.js
 
+# 3.1. 临时移动admin目录到项目外部以排除构建
+echo "📁 临时移动admin目录..."
+if [ -d "src/app/admin" ]; then
+    mv src/app/admin /tmp/zhiweijz-admin-backup-$$
+    echo "✅ admin目录已移动到 /tmp/zhiweijz-admin-backup-$$"
+    ADMIN_BACKUP_PATH="/tmp/zhiweijz-admin-backup-$$"
+else
+    echo "⚠️ admin目录不存在，跳过移动"
+    ADMIN_BACKUP_PATH=""
+fi
+
 # 4. 构建静态文件
 echo "🏗️ 构建静态文件（移动端模式）..."
 if NEXT_PUBLIC_IS_MOBILE=true NEXT_BUILD_MODE=export npm run build; then
@@ -51,9 +62,23 @@ if NEXT_PUBLIC_IS_MOBILE=true NEXT_BUILD_MODE=export npm run build; then
     fi
 else
     echo "❌ 静态文件构建失败"
+    # 恢复admin目录
+    if [ -n "$ADMIN_BACKUP_PATH" ] && [ -d "$ADMIN_BACKUP_PATH" ]; then
+        mv "$ADMIN_BACKUP_PATH" src/app/admin
+        echo "🔄 admin目录已恢复"
+    fi
     # 恢复配置
     cp next.config.js.backup next.config.js
     exit 1
+fi
+
+# 4.1. 恢复admin目录
+echo "🔄 恢复admin目录..."
+if [ -n "$ADMIN_BACKUP_PATH" ] && [ -d "$ADMIN_BACKUP_PATH" ]; then
+    mv "$ADMIN_BACKUP_PATH" src/app/admin
+    echo "✅ admin目录已恢复"
+else
+    echo "⚠️ admin备份目录不存在，跳过恢复"
 fi
 
 # 5. 验证构建输出

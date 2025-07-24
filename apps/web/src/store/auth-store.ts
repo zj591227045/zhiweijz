@@ -142,6 +142,16 @@ export const useAuthStore = create<AuthState>()(
           // 检查用户注销状态
           await get().checkDeletionStatus();
 
+          // 设置RevenueCat用户ID（移动端）
+          try {
+            const { setPaymentUserId } = await import('@/lib/mobile-payment-init');
+            await setPaymentUserId(user.id);
+            console.log('💰 [Auth] RevenueCat用户ID设置成功');
+          } catch (error) {
+            console.warn('💰 [Auth] 设置RevenueCat用户ID失败:', error);
+            // 不影响登录流程，继续执行
+          }
+
           toast.success('登录成功');
           return true;
         } catch (error: any) {

@@ -28,6 +28,8 @@ import imageProxyRoutes from './image-proxy.routes';
 import multimodalAIRoutes from './multimodal-ai.routes';
 import accountingPointsRoutes from './accounting-points.routes';
 import membershipRoutes from './membership.routes';
+import paymentRoutes from './payment.routes';
+import webhookRoutes from './webhook.routes';
 import versionRoutes from './version.routes';
 import { MembershipService } from '../services/membership.service';
 
@@ -75,6 +77,10 @@ router.use('/image-proxy', authenticate, dailyFirstVisitGift, imageProxyRoutes);
 router.use('/ai', authenticate, dailyFirstVisitGift, multimodalAIRoutes);
 router.use('/accounting-points', authenticate, dailyFirstVisitGift, accountingPointsRoutes);
 router.use('/membership', authenticate, dailyFirstVisitGift, membershipRoutes);
+router.use('/payment', paymentRoutes);
+
+// Webhook路由（不需要认证，但需要签名验证）
+router.use('/webhooks', webhookRoutes);
 
 // 管理后台路由
 router.use('/admin', adminRoutes);

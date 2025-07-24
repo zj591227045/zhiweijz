@@ -1,0 +1,15 @@
+{
+  "timestamp": "2025-07-23T01:45:37.475Z",
+  "results": {
+    "passed": 16,
+    "failed": 0,
+    "warnings": 2
+  },
+  "status": "READY",
+  "recommendations": [
+    "处理警告项以获得更好的体验",
+    "集成检查通过，可以开始测试支付功能",
+    "访问 /payment-test 页面进行功能测试",
+    "在iOS设备上测试实际购买流程"
+  ]
+}

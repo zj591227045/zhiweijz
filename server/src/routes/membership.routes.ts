@@ -28,7 +28,7 @@ router.get('/me', authenticate, async (req: Request, res: Response) => {
 // 重置会员积分（手动触发）
 router.post('/reset-points', authenticate, async (req: Request, res: Response) => {
   try {
-    await membershipService.resetMemberPoints(req.user!.id);
+    await membershipService.monthlyResetMemberPoints(req.user!.id);
     const membership = await membershipService.getUserMembership(req.user!.id);
     res.json({
       success: true,

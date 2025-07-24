@@ -875,6 +875,18 @@ model UserMembership {
   usedPoints       Int                 @default(0) @map("used_points")
   lastPointsReset  DateTime?           @map("last_points_reset") @db.Date
   selectedBadge    String?             @map("selected_badge")
+
+  // RevenueCat集成字段
+  revenueCatUserId String?             @map("revenuecat_user_id")
+  platform         String?             @map("platform") // ios, android, web
+  externalProductId String?            @map("external_product_id")
+  externalTransactionId String?        @map("external_transaction_id")
+  billingPeriod    String?             @map("billing_period") // monthly, yearly
+
+  // 权益相关字段
+  hasCharityAttribution Boolean         @default(false) @map("has_charity_attribution")
+  hasPrioritySupport   Boolean         @default(false) @map("has_priority_support")
+
   createdAt        DateTime            @default(now()) @map("created_at")
   updatedAt        DateTime            @updatedAt @map("updated_at")
   renewalHistory   MembershipRenewal[]
@@ -885,7 +897,25 @@ model UserMembership {
   @@index([endDate], map: "idx_user_membership_end_date")
   @@index([isActive], map: "idx_user_membership_active")
   @@index([autoRenewal, endDate], map: "idx_user_membership_auto_renewal")
+  @@index([revenueCatUserId], map: "idx_user_membership_revenuecat_user")
+  @@index([platform], map: "idx_user_membership_platform")
   @@map("user_memberships")
+}
+
+// 会员权益配置表
+model MembershipEntitlements {
+  id               String     @id @default(uuid())
+  memberType       MemberType @map("member_type")
+  entitlementKey   String     @map("entitlement_key") @db.VarChar(100)
+  entitlementValue String?    @map("entitlement_value") @db.Text
+  isActive         Boolean    @default(true) @map("is_active")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  @@unique([memberType, entitlementKey])
+  @@index([memberType], map: "idx_membership_entitlements_member_type")
+  @@index([entitlementKey], map: "idx_membership_entitlements_key")
+  @@map("membership_entitlements")
 }
 
 model MembershipRenewal {
@@ -1307,9 +1337,11 @@ model UserVersionStatus {
 }
 
 enum MemberType {
-  REGULAR
-  DONOR
-  LIFETIME
+  REGULAR           // 普通会员
+  DONATION_ONE      // 捐赠会员（壹）
+  DONATION_TWO      // 捐赠会员（贰）
+  DONATION_THREE    // 捐赠会员（叁）
+  LIFETIME          // 永久会员
 }
 
 enum RenewalType {
@@ -1317,6 +1349,7 @@ enum RenewalType {
   AUTO
   ADMIN
   UPGRADE
+  REVENUECAT_PURCHASE
 }
 
 enum RenewalStatus {
@@ -1377,4 +1410,30 @@ enum SubscriptionStatus {
   expired
   paused
   past_due
+}
+
+// 待关联的会员购买记录（用于处理匿名用户购买）
+model PendingMembershipPurchase {
+  id               String     @id @default(uuid())
+  revenueCatUserId String     @map("revenuecat_user_id") @db.VarChar(255)
+  memberType       MemberType @map("member_type")
+  duration         Int        @map("duration") // 月数
+  productId        String     @map("product_id") @db.VarChar(255)
+  transactionId    String     @map("transaction_id") @db.VarChar(255)
+  platform         String     @map("platform") @db.VarChar(50)
+  purchasedAt      DateTime   @map("purchased_at")
+  expiresAt        DateTime?  @map("expires_at")
+  eventType        String     @map("event_type") @db.VarChar(100)
+  eventData        String     @map("event_data") @db.Text
+  status           String     @default("PENDING") @map("status") @db.VarChar(50) // PENDING, PROCESSED, EXPIRED
+  processedAt      DateTime?  @map("processed_at")
+  associatedUserId String?    @map("associated_user_id")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  @@index([revenueCatUserId], map: "idx_pending_membership_revenuecat_user")
+  @@index([status], map: "idx_pending_membership_status")
+  @@index([createdAt], map: "idx_pending_membership_created_at")
+  @@index([associatedUserId], map: "idx_pending_membership_associated_user")
+  @@map("pending_membership_purchases")
 }
