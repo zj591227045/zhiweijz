@@ -1,14 +1,16 @@
 #!/bin/bash
 # 支付模块集成脚本
+# 注意：zhiweijz-payment-premium 子项目已被移除，此脚本仅支持 mock 和 disabled 模式
 
 set -e
 
 # 配置
-PAYMENT_MODULE_REPO="./zhiweijz-payment-premium"
+PAYMENT_MODULE_REPO="./zhiweijz-payment-premium"  # 已移除，仅保留引用以避免脚本错误
 PROJECT_ROOT=$(pwd)
 PAYMENT_MODULE_TYPE=${1:-"mock"}
 
 echo "🚀 集成支付模块: $PAYMENT_MODULE_TYPE"
+echo "⚠️  注意：premium 支付模块已被移除，仅支持 mock 和 disabled 模式"
 
 # 检查是否在主项目根目录
 if [ ! -f "CLAUDE.md" ]; then
@@ -19,14 +21,11 @@ fi
 # 1. 检查权限和认证
 check_access() {
     echo "检查支付模块访问权限..."
-    
+
     if [ "$PAYMENT_MODULE_TYPE" = "premium" ]; then
-        if [ ! -d "$PAYMENT_MODULE_REPO" ]; then
-            echo "❌ 找不到高级支付模块目录: $PAYMENT_MODULE_REPO"
-            echo "请确保已正确克隆高级支付模块"
-            exit 1
-        fi
-        echo "✅ 高级支付模块已找到"
+        echo "❌ premium 支付模块已被移除，无法使用"
+        echo "可用选项: mock, disabled"
+        exit 1
     fi
 }
 
@@ -36,18 +35,9 @@ setup_environment() {
     
     case $PAYMENT_MODULE_TYPE in
         "premium")
-            cat >> .env.local << EOF
-
-# Premium Payment Module Configuration
-PAYMENT_PROVIDER=full
-ENABLE_PAYMENT_MODULE=true
-PAYMENT_MODULE_PATH=./zhiweijz-payment-premium/dist
-
-# 支付模块开发配置
-PAYMENT_DEBUG=true
-PAYMENT_LOG_LEVEL=debug
-EOF
-            echo "✅ 高级支付模块环境变量已设置"
+            echo "❌ premium 支付模块已被移除，无法配置"
+            echo "请使用 mock 或 disabled 模式"
+            exit 1
             ;;
             
         "mock")
@@ -77,7 +67,7 @@ EOF
             
         *)
             echo "❌ 未知的支付模块类型: $PAYMENT_MODULE_TYPE"
-            echo "可用选项: premium, mock, disabled"
+            echo "可用选项: mock, disabled"
             exit 1
             ;;
     esac
@@ -86,27 +76,10 @@ EOF
 # 3. 安装和构建支付模块
 build_payment_module() {
     if [ "$PAYMENT_MODULE_TYPE" = "premium" ]; then
-        echo "构建高级支付模块..."
-        
-        cd $PAYMENT_MODULE_REPO
-        
-        # 检查并安装依赖
-        if [ ! -d "node_modules" ]; then
-            echo "安装支付模块依赖..."
-            npm install
-        fi
-        
-        # 运行测试
-        echo "运行支付模块测试..."
-        npm test
-        
-        # 构建模块
-        echo "构建支付模块..."
-        npm run build
-        
-        cd $PROJECT_ROOT
-        echo "✅ 高级支付模块构建完成"
+        echo "❌ premium 支付模块已被移除，无法构建"
+        exit 1
     fi
+    echo "✅ 无需构建支付模块（使用 $PAYMENT_MODULE_TYPE 模式）"
 }
 
 # 4. 集成到主项目
