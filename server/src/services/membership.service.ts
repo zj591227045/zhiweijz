@@ -722,7 +722,7 @@ export class MembershipService {
 
   // 辅助方法：判断是否为捐赠会员
   private isDonationMember(memberType: string): boolean {
-    return ['DONATION_ONE', 'DONATION_TWO', 'DONATION_THREE', 'DONOR'].includes(memberType);
+    return ['DONATION_ONE', 'DONATION_TWO', 'DONATION_THREE'].includes(memberType);
   }
 
   // 辅助方法：根据会员类型获取月度积分
@@ -758,8 +758,6 @@ export class MembershipService {
         return '捐赠会员（贰）';
       case 'DONATION_THREE':
         return '捐赠会员（叁）';
-      case 'DONOR':
-        return '捐赠会员';
       case 'LIFETIME':
         return '永久会员';
       default:

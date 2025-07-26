@@ -54,7 +54,13 @@ class MembershipService {
           }
         }
       }),
-      this.prisma.userMembership.count({ where: { memberType: 'DONOR' } }),
+      this.prisma.userMembership.count({
+        where: {
+          memberType: {
+            in: ['DONATION_ONE', 'DONATION_TWO', 'DONATION_THREE']
+          }
+        }
+      }),
       this.prisma.userMembership.count({ where: { memberType: 'LIFETIME' } }),
       this.prisma.userMembership.count({ 
         where: { 
@@ -167,9 +173,9 @@ class MembershipService {
           endDate,
           isActive: true,
           activationMethod: 'upgrade',
-          monthlyPoints: memberType === 'DONOR' ? this.membershipMonthlyPoints : 0,
+          monthlyPoints: ['DONATION_ONE', 'DONATION_TWO', 'DONATION_THREE'].includes(memberType) ? this.membershipMonthlyPoints : 0,
           usedPoints: 0,
-          lastPointsReset: memberType === 'DONOR' ? new Date() : null
+          lastPointsReset: ['DONATION_ONE', 'DONATION_TWO', 'DONATION_THREE'].includes(memberType) ? new Date() : null
         },
         include: {
           renewalHistory: true,
@@ -194,7 +200,7 @@ class MembershipService {
       });
 
       // 如果升级为捐赠会员，自动颁发捐赠徽章
-      if (memberType === 'DONOR') {
+      if (['DONATION_ONE', 'DONATION_TWO', 'DONATION_THREE'].includes(memberType)) {
         await this.awardDonorBadge(userId);
       }
 
@@ -544,7 +550,7 @@ router.post('/add-membership', async (req, res) => {
       });
     }
 
-    if (!['DONOR', 'LIFETIME'].includes(memberType)) {
+    if (!['DONATION_ONE', 'DONATION_TWO', 'DONATION_THREE', 'LIFETIME'].includes(memberType)) {
       return res.status(400).json({
         success: false,
         message: '无效的会员类型'

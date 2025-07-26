@@ -436,11 +436,14 @@ export class DashboardService {
 
       try {
         const { stdout } = await execAsync('df -h');
+        console.log('df -h 输出:', stdout);
         const lines = stdout.split('\n').slice(1); // 跳过标题行
 
         for (const line of lines) {
           if (line.trim()) {
             const parts = line.trim().split(/\s+/);
+            console.log(`处理行: "${line}", 分割结果:`, parts);
+
             if (parts.length >= 6) {
               const filesystem = parts[0];
               const total = this.parseSize(parts[1]);
@@ -449,12 +452,19 @@ export class DashboardService {
               const usagePercent = parseFloat(parts[4].replace('%', '')) || 0;
               const mountPoint = parts[5];
 
-              // 只包含主要的挂载点
+              console.log(`解析结果: ${filesystem} -> ${mountPoint}, 总计: ${total}, 已用: ${used}, 可用: ${free}, 使用率: ${usagePercent}%`);
+
+              // 更宽松的过滤条件，包含更多有用的挂载点
               if (
-                mountPoint === '/' ||
-                mountPoint.startsWith('/home') ||
-                mountPoint.startsWith('/var') ||
-                mountPoint.startsWith('/usr')
+                total > 0 &&
+                !filesystem.startsWith('tmpfs') &&
+                !filesystem.startsWith('devtmpfs') &&
+                !filesystem.startsWith('overlay') &&
+                !filesystem.startsWith('shm') &&
+                !mountPoint.startsWith('/dev') &&
+                !mountPoint.startsWith('/sys') &&
+                !mountPoint.startsWith('/proc') &&
+                mountPoint !== '/dev/shm'
               ) {
                 drives.push({
                   drive: mountPoint,
@@ -464,6 +474,9 @@ export class DashboardService {
                   usagePercent,
                   filesystem: filesystem.includes('/') ? filesystem.split('/').pop() : filesystem,
                 });
+                console.log(`✅ 添加磁盘: ${mountPoint}`);
+              } else {
+                console.log(`❌ 跳过磁盘: ${mountPoint} (${filesystem})`);
               }
             }
           }
@@ -502,22 +515,38 @@ export class DashboardService {
    * 解析磁盘大小字符串 (如 "10G", "500M", "1.5T")
    */
   private parseSize(sizeStr: string): number {
-    if (!sizeStr || sizeStr === '-') return 0;
+    if (!sizeStr || sizeStr === '-' || sizeStr === '0') return 0;
 
     const units: { [key: string]: number } = {
+      B: 1,
       K: 1024,
       M: 1024 * 1024,
       G: 1024 * 1024 * 1024,
       T: 1024 * 1024 * 1024 * 1024,
+      P: 1024 * 1024 * 1024 * 1024 * 1024,
     };
 
-    const match = sizeStr.match(/^([\d.]+)([KMGT]?)$/i);
+    // 支持更多格式：10G, 10Gi, 10GB, 1.5T, 500M 等
+    const match = sizeStr.match(/^([\d.]+)([BKMGTPE]?i?B?)$/i);
     if (match) {
       const value = parseFloat(match[1]);
-      const unit = match[2].toUpperCase();
-      return value * (units[unit] || 1);
+      let unit = match[2].toUpperCase();
+
+      // 处理不同的单位格式
+      if (unit.endsWith('IB') || unit.endsWith('I')) {
+        unit = unit.charAt(0); // 移除 'iB' 或 'i' 后缀
+      } else if (unit.endsWith('B')) {
+        unit = unit.charAt(0); // 移除 'B' 后缀
+      }
+
+      const multiplier = units[unit] || 1;
+      const result = Math.round(value * multiplier);
+
+      console.log(`解析大小: "${sizeStr}" -> ${value} * ${multiplier} = ${result}`);
+      return result;
     }
 
+    console.warn(`无法解析大小字符串: "${sizeStr}"`);
     return 0;
   }
 

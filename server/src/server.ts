@@ -7,6 +7,7 @@ import TaskScheduler from './services/task-scheduler.service';
 import WechatMediaCleanupTask from './tasks/wechat-media-cleanup.task';
 import { FileStorageService } from './services/file-storage.service';
 import { AICallLogAdminService } from './admin/services/ai-call-log.admin.service';
+import { performanceMonitoringService } from './services/performance-monitoring.service';
 
 // 连接数据库
 connectDatabase();
@@ -66,11 +67,27 @@ const server = app.listen(config.port, '0.0.0.0', async () => {
     const wechatCleanupTask = new WechatMediaCleanupTask();
     wechatCleanupTask.start();
   }
+
+  // 启动性能监控服务
+  try {
+    await performanceMonitoringService.startMonitoring();
+    console.log('✅ 性能监控服务启动成功');
+  } catch (error) {
+    console.error('❌ 性能监控服务启动失败:', error);
+  }
 });
 
 // 处理进程终止信号
 const gracefulShutdown = async () => {
   console.log('正在关闭服务器...');
+
+  // 停止性能监控服务
+  try {
+    performanceMonitoringService.stopMonitoring();
+    console.log('✅ 性能监控服务已停止');
+  } catch (error) {
+    console.error('❌ 停止性能监控服务失败:', error);
+  }
 
   server.close(async () => {
     console.log('服务器已关闭');

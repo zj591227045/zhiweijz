@@ -188,8 +188,6 @@ export default function MembershipCenter() {
         return <TrophySolidIcon className="h-6 w-6 text-green-500" />;
       case 'DONATION_THREE':
         return <TrophySolidIcon className="h-6 w-6 text-yellow-500" />;
-      case 'DONOR':
-        return <TrophySolidIcon className="h-6 w-6 text-yellow-500" />;
       case 'LIFETIME':
         return <StarSolidIcon className="h-6 w-6 text-purple-500" />;
       default:
