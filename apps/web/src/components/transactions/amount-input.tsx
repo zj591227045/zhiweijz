@@ -112,7 +112,7 @@ export function AmountInput() {
       <div
         style={{
           textAlign: 'center',
-          marginBottom: '24px',
+          marginBottom: '16px', /* 减少从24px到16px */
         }}
       >
         <div
@@ -120,18 +120,18 @@ export function AmountInput() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '8px',
-            marginBottom: '8px',
-            padding: '16px',
+            gap: '6px', /* 减少从8px到6px */
+            marginBottom: '6px', /* 减少从8px到6px */
+            padding: '12px', /* 减少从16px到12px */
             backgroundColor: 'var(--background-secondary)',
-            borderRadius: '12px',
+            borderRadius: '10px', /* 减少从12px到10px */
             border: '1px solid var(--border-color)',
-            minHeight: '60px',
+            minHeight: '48px', /* 减少从60px到48px */
           }}
         >
           <span
             style={{
-              fontSize: '24px',
+              fontSize: '20px', /* 减少从24px到20px */
               fontWeight: '300',
               color: 'var(--text-secondary)',
             }}
@@ -147,7 +147,7 @@ export function AmountInput() {
             onClick={handleInputClick}
             readOnly // 使用虚拟键盘输入，禁用系统键盘
             style={{
-              fontSize: '28px',
+              fontSize: '24px', /* 减少从28px到24px */
               fontWeight: '400',
               color: 'var(--text-color)',
               border: 'none',
@@ -155,8 +155,8 @@ export function AmountInput() {
               backgroundColor: 'transparent',
               textAlign: 'center',
               width: '100%',
-              maxWidth: '200px',
-              padding: '8px',
+              maxWidth: '180px', /* 减少从200px到180px */
+              padding: '6px', /* 减少从8px到6px */
               cursor: 'pointer',
             }}
           />

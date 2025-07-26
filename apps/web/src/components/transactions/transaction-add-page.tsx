@@ -221,15 +221,15 @@ export function TransactionAddPage() {
       onBackClick={handleBackClick}
       showBottomNav={false}
     >
-      <div style={{ padding: '0 20px' }}>
+      <div style={{ padding: '0 16px' }}> {/* 减少从20px到16px */}
         {/* iOS 风格记账类型切换 */}
         <div
           style={{
             display: 'flex',
             backgroundColor: 'var(--background-secondary)',
-            borderRadius: '12px',
-            padding: '4px',
-            marginBottom: '24px',
+            borderRadius: '10px', /* 减少从12px到10px */
+            padding: '3px', /* 减少从4px到3px */
+            marginBottom: '16px', /* 减少从24px到16px */
           }}
         >
           <button
@@ -237,12 +237,12 @@ export function TransactionAddPage() {
             disabled={submitting}
             style={{
               flex: 1,
-              height: '40px',
-              borderRadius: '8px',
+              height: '36px', /* 减少从40px到36px */
+              borderRadius: '7px', /* 减少从8px到7px */
               border: 'none',
               backgroundColor: type === 'EXPENSE' ? '#ef4444' : 'transparent',
               color: type === 'EXPENSE' ? 'white' : 'var(--text-color)',
-              fontSize: '16px',
+              fontSize: '15px', /* 减少从16px到15px */
               fontWeight: '600',
               cursor: submitting ? 'not-allowed' : 'pointer',
               transition: 'all 0.3s ease',
@@ -256,12 +256,12 @@ export function TransactionAddPage() {
             disabled={submitting}
             style={{
               flex: 1,
-              height: '40px',
-              borderRadius: '8px',
+              height: '36px', /* 减少从40px到36px */
+              borderRadius: '7px', /* 减少从8px到7px */
               border: 'none',
               backgroundColor: type === 'INCOME' ? '#10b981' : 'transparent',
               color: type === 'INCOME' ? 'white' : 'var(--text-color)',
-              fontSize: '16px',
+              fontSize: '15px', /* 减少从16px到15px */
               fontWeight: '600',
               cursor: submitting ? 'not-allowed' : 'pointer',
               transition: 'all 0.3s ease',
@@ -281,28 +281,28 @@ export function TransactionAddPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '24px 0',
-            gap: '16px',
+            margin: '16px 0', /* 减少从24px到16px */
+            gap: '12px', /* 减少从16px到12px */
           }}
         >
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '6px', /* 减少从8px到6px */
             }}
           >
             <div
               style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '12px',
+                width: '20px', /* 减少从24px到20px */
+                height: '20px', /* 减少从24px到20px */
+                borderRadius: '10px', /* 减少从12px到10px */
                 backgroundColor: currentStep >= 1 ? 'var(--primary-color)' : 'var(--border-color)',
                 color: currentStep >= 1 ? 'white' : 'var(--text-secondary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '12px',
+                fontSize: '11px', /* 减少从12px到11px */
                 fontWeight: '600',
                 transition: 'all 0.3s ease',
               }}
@@ -311,7 +311,7 @@ export function TransactionAddPage() {
             </div>
             <span
               style={{
-                fontSize: '14px',
+                fontSize: '13px', /* 减少从14px到13px */
                 fontWeight: '500',
                 color: currentStep >= 1 ? 'var(--primary-color)' : 'var(--text-secondary)',
               }}
@@ -322,7 +322,7 @@ export function TransactionAddPage() {
 
           <div
             style={{
-              width: '32px',
+              width: '28px', /* 减少从32px到28px */
               height: '2px',
               backgroundColor: currentStep >= 2 ? 'var(--primary-color)' : 'var(--border-color)',
               borderRadius: '1px',
@@ -334,20 +334,20 @@ export function TransactionAddPage() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '6px', /* 减少从8px到6px */
             }}
           >
             <div
               style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '12px',
+                width: '20px', /* 减少从24px到20px */
+                height: '20px', /* 减少从24px到20px */
+                borderRadius: '10px', /* 减少从12px到10px */
                 backgroundColor: currentStep >= 2 ? 'var(--primary-color)' : 'var(--border-color)',
                 color: currentStep >= 2 ? 'white' : 'var(--text-secondary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '12px',
+                fontSize: '11px', /* 减少从12px到11px */
                 fontWeight: '600',
                 transition: 'all 0.3s ease',
               }}
@@ -356,7 +356,7 @@ export function TransactionAddPage() {
             </div>
             <span
               style={{
-                fontSize: '14px',
+                fontSize: '13px', /* 减少从14px到13px */
                 fontWeight: '500',
                 color: currentStep >= 2 ? 'var(--primary-color)' : 'var(--text-secondary)',
               }}
@@ -379,25 +379,25 @@ export function TransactionAddPage() {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
-                padding: '16px',
+                gap: '10px', /* 减少从12px到10px */
+                padding: '12px', /* 减少从16px到12px */
                 backgroundColor: 'var(--background-color)',
                 border: '1px solid var(--primary-color)',
-                borderRadius: '12px',
-                marginBottom: '16px',
+                borderRadius: '10px', /* 减少从12px到10px */
+                marginBottom: '12px', /* 减少从16px到12px */
               }}
             >
               <div
                 style={{
-                  width: '48px',
-                  height: '48px',
+                  width: '42px', /* 减少从48px到42px */
+                  height: '42px', /* 减少从48px到42px */
                   borderRadius: '50%',
                   backgroundColor: 'var(--primary-color)',
                   color: 'white',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '18px',
+                  fontSize: '16px', /* 减少从18px到16px */
                 }}
               >
                 <i className={getIconClass(categoryIcon || '')}></i>
@@ -405,7 +405,7 @@ export function TransactionAddPage() {
               <span
                 style={{
                   flex: 1,
-                  fontSize: '16px',
+                  fontSize: '15px', /* 减少从16px到15px */
                   fontWeight: '500',
                   color: 'var(--text-primary)',
                 }}
@@ -418,9 +418,9 @@ export function TransactionAddPage() {
                   background: 'none',
                   border: '1px solid var(--border-color)',
                   color: 'var(--text-secondary)',
-                  padding: '8px 16px',
+                  padding: '6px 12px', /* 减少从8px 16px到6px 12px */
                   borderRadius: '6px',
-                  fontSize: '14px',
+                  fontSize: '13px', /* 减少从14px到13px */
                   cursor: 'pointer',
                 }}
               >

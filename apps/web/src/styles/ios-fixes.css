@@ -201,25 +201,35 @@ html.ios-app .page-header {
 
 /* iOS主要内容区域适配 - 优化顶部和底部间距 */
 .ios-app .main-content {
-  /* 适中的顶部padding，保持与标准样式一致 */
-  padding-top: 16px !important;
-  /* 底部padding考虑增加后的导航栏高度 */
-  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 24px) !important;
+  /* 减少顶部padding */
+  padding-top: 12px !important; /* 减少从16px到12px */
+  /* 针对记账页面，大幅减少底部padding */
+  padding-bottom: 20px !important; /* 大幅减少，移除导航栏相关的额外空间 */
   /* 优化内容区域最小高度 */
-  min-height: calc(100vh - 56px - env(safe-area-inset-top, 0px) - 64px - env(safe-area-inset-bottom, 0px) - 28px) !important;
+  min-height: calc(100vh - 56px - env(safe-area-inset-top, 0px)) !important; /* 简化高度计算 */
   /* 减少水平内边距，让内容更充分利用空间 */
-  padding-left: 12px !important;
-  padding-right: 12px !important;
+  padding-left: 10px !important; /* 减少从12px到10px */
+  padding-right: 10px !important; /* 减少从12px到10px */
+}
+
+/* 对于有底部导航栏的页面，保持原有的底部间距 */
+.ios-app .main-content:not(.no-bottom-nav) {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* 没有底部导航栏的页面（如记账页面）在iOS上的特殊优化 */
+.ios-app .main-content.no-bottom-nav {
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important; /* 只保留安全区域和最小间距 */
 }
 
 /* 增加更高特异性的选择器，确保覆盖全局样式 */
 .ios-app .app-container .main-content,
 .ios-app .page-container .main-content {
-  /* 保持适中的顶部间距，与标准样式一致 */
-  padding-top: 16px !important;
+  /* 减少顶部间距 */
+  padding-top: 12px !important; /* 减少从16px到12px */
   /* 保持水平间距优化 */
-  padding-left: 12px !important;
-  padding-right: 12px !important;
+  padding-left: 10px !important; /* 减少从12px到10px */
+  padding-right: 10px !important; /* 减少从12px到10px */
 }
 
 /* iOS底部导航栏固定优化 - 使用Portal渲染时的样式 */

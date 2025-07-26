@@ -1088,21 +1088,21 @@ export default function TransactionEditModal({
             overflowY: 'auto',
             // 移动端键盘优化
             WebkitOverflowScrolling: 'touch',
-            // 确保内容可以滚动到键盘上方，包含安全区域
-            paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
+            // 大幅减少底部padding，移除多余空白
+            paddingBottom: '0', /* 移除底部padding */
             // 防止键盘遮挡内容
             minHeight: 'calc(100vh - 60px)', // 减去头部高度
           }}
         >
-          <div style={{ padding: '0 20px' }}>
+          <div style={{ padding: '0 16px' }}> {/* 减少从20px到16px */}
             {/* iOS 风格记账类型切换 */}
             <div
               style={{
                 display: 'flex',
                 backgroundColor: 'var(--background-secondary)',
-                borderRadius: '12px',
-                padding: '4px',
-                marginBottom: '24px',
+                borderRadius: '10px', /* 减少从12px到10px */
+                padding: '3px', /* 减少从4px到3px */
+                marginBottom: '16px', /* 减少从24px到16px */
               }}
             >
               <button
@@ -1110,13 +1110,13 @@ export default function TransactionEditModal({
                 disabled={isSubmitting}
                 style={{
                   flex: 1,
-                  height: '40px',
-                  borderRadius: '8px',
+                  height: '36px', /* 减少从40px到36px */
+                  borderRadius: '7px', /* 减少从8px到7px */
                   border: 'none',
                   backgroundColor:
                     formData.type === TransactionType.EXPENSE ? '#ef4444' : 'transparent',
                   color: formData.type === TransactionType.EXPENSE ? 'white' : 'var(--text-color)',
-                  fontSize: '16px',
+                  fontSize: '15px', /* 减少从16px到15px */
                   fontWeight: '600',
                   cursor: isSubmitting ? 'not-allowed' : 'pointer',
                   transition: 'all 0.3s ease',
@@ -1130,13 +1130,13 @@ export default function TransactionEditModal({
                 disabled={isSubmitting}
                 style={{
                   flex: 1,
-                  height: '40px',
-                  borderRadius: '8px',
+                  height: '36px', /* 减少从40px到36px */
+                  borderRadius: '7px', /* 减少从8px到7px */
                   border: 'none',
                   backgroundColor:
                     formData.type === TransactionType.INCOME ? '#10b981' : 'transparent',
                   color: formData.type === TransactionType.INCOME ? 'white' : 'var(--text-color)',
-                  fontSize: '16px',
+                  fontSize: '15px', /* 减少从16px到15px */
                   fontWeight: '600',
                   cursor: isSubmitting ? 'not-allowed' : 'pointer',
                   transition: 'all 0.3s ease',
@@ -1151,7 +1151,7 @@ export default function TransactionEditModal({
             <div
               style={{
                 textAlign: 'center',
-                marginBottom: '24px',
+                marginBottom: '16px', /* 减少从24px到16px */
               }}
             >
               <div
@@ -1159,13 +1159,13 @@ export default function TransactionEditModal({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '8px',
-                  marginBottom: '8px',
-                  padding: '16px',
+                  gap: '6px', /* 减少从8px到6px */
+                  marginBottom: '6px', /* 减少从8px到6px */
+                  padding: '12px', /* 减少从16px到12px */
                   backgroundColor: 'var(--background-secondary)',
-                  borderRadius: '12px',
+                  borderRadius: '10px', /* 减少从12px到10px */
                   border: '1px solid var(--border-color)',
-                  minHeight: '60px',
+                  minHeight: '48px', /* 减少从60px到48px */
                   // 确保容器不会阻止点击事件
                   pointerEvents: 'auto',
                 }}
@@ -1183,7 +1183,7 @@ export default function TransactionEditModal({
               >
                 <span
                   style={{
-                    fontSize: '24px',
+                    fontSize: '20px', /* 减少从24px到20px */
                     fontWeight: '300',
                     color: 'var(--text-secondary)',
                     pointerEvents: 'none', // 防止符号阻止点击
@@ -1201,7 +1201,7 @@ export default function TransactionEditModal({
                   onClick={handleAmountClick}
                   disabled={isSubmitting}
                   style={{
-                    fontSize: '28px',
+                    fontSize: '24px', /* 减少从28px到24px */
                     fontWeight: '400',
                     color: 'var(--text-color)',
                     border: 'none',
@@ -1209,8 +1209,8 @@ export default function TransactionEditModal({
                     backgroundColor: 'transparent',
                     textAlign: 'center',
                     width: '100%',
-                    maxWidth: '200px',
-                    padding: '8px',
+                    maxWidth: '180px', /* 减少从200px到180px */
+                    padding: '6px', /* 减少从8px到6px */
                     cursor: 'pointer',
                     // 移动端优化
                     WebkitAppearance: 'none',
@@ -1233,29 +1233,29 @@ export default function TransactionEditModal({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                margin: '24px 0',
-                gap: '16px',
+                margin: '16px 0', /* 减少从24px到16px */
+                gap: '12px', /* 减少从16px到12px */
               }}
             >
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
+                  gap: '6px', /* 减少从8px到6px */
                 }}
               >
                 <div
                   style={{
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '12px',
+                    width: '20px', /* 减少从24px到20px */
+                    height: '20px', /* 减少从24px到20px */
+                    borderRadius: '10px', /* 减少从12px到10px */
                     backgroundColor:
                       currentStep >= 1 ? 'var(--primary-color)' : 'var(--border-color)',
                     color: currentStep >= 1 ? 'white' : 'var(--text-secondary)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '12px',
+                    fontSize: '11px', /* 减少从12px到11px */
                     fontWeight: '600',
                     transition: 'all 0.3s ease',
                   }}
@@ -1264,7 +1264,7 @@ export default function TransactionEditModal({
                 </div>
                 <span
                   style={{
-                    fontSize: '14px',
+                    fontSize: '13px', /* 减少从14px到13px */
                     fontWeight: '500',
                     color: currentStep >= 1 ? 'var(--primary-color)' : 'var(--text-secondary)',
                   }}
@@ -1275,7 +1275,7 @@ export default function TransactionEditModal({
 
               <div
                 style={{
-                  width: '32px',
+                  width: '28px', /* 减少从32px到28px */
                   height: '2px',
                   backgroundColor:
                     currentStep >= 2 ? 'var(--primary-color)' : 'var(--border-color)',
@@ -1288,21 +1288,21 @@ export default function TransactionEditModal({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
+                  gap: '6px', /* 减少从8px到6px */
                 }}
               >
                 <div
                   style={{
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '12px',
+                    width: '20px', /* 减少从24px到20px */
+                    height: '20px', /* 减少从24px到20px */
+                    borderRadius: '10px', /* 减少从12px到10px */
                     backgroundColor:
                       currentStep >= 2 ? 'var(--primary-color)' : 'var(--border-color)',
                     color: currentStep >= 2 ? 'white' : 'var(--text-secondary)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '12px',
+                    fontSize: '11px', /* 减少从12px到11px */
                     fontWeight: '600',
                     transition: 'all 0.3s ease',
                   }}
@@ -1311,7 +1311,7 @@ export default function TransactionEditModal({
                 </div>
                 <span
                   style={{
-                    fontSize: '14px',
+                    fontSize: '13px', /* 减少从14px到13px */
                     fontWeight: '500',
                     color: currentStep >= 2 ? 'var(--primary-color)' : 'var(--text-secondary)',
                   }}
@@ -1362,23 +1362,23 @@ export default function TransactionEditModal({
                 )}
 
                 {/* iOS 风格表单 */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}> {/* 减少从16px到12px */}
                   {/* 描述输入 */}
                   <div
                     style={{
                       backgroundColor: 'var(--background-color)',
                       border: '1px solid var(--border-color)',
-                      borderRadius: '12px',
-                      padding: '16px',
+                      borderRadius: '10px', /* 减少从12px到10px */
+                      padding: '12px', /* 减少从16px到12px */
                     }}
                   >
                     <label
                       style={{
                         display: 'block',
-                        fontSize: '14px',
+                        fontSize: '13px', /* 减少从14px到13px */
                         fontWeight: '500',
                         color: 'var(--text-secondary)',
-                        marginBottom: '8px',
+                        marginBottom: '6px', /* 减少从8px到6px */
                       }}
                     >
                       描述
@@ -1395,7 +1395,7 @@ export default function TransactionEditModal({
                         border: 'none',
                         outline: 'none',
                         backgroundColor: 'transparent',
-                        fontSize: '16px',
+                        fontSize: '15px', /* 减少从16px到15px */
                         color: 'var(--text-color)',
                         padding: '0',
                       }}
@@ -1403,23 +1403,23 @@ export default function TransactionEditModal({
                   </div>
 
                   {/* 日期和时间 - 并排布局 */}
-                  <div style={{ display: 'flex', gap: '12px' }}>
+                  <div style={{ display: 'flex', gap: '10px' }}> {/* 减少从12px到10px */}
                     <div
                       style={{
                         flex: 1,
                         backgroundColor: 'var(--background-color)',
                         border: '1px solid var(--border-color)',
-                        borderRadius: '12px',
-                        padding: '16px',
+                        borderRadius: '10px', /* 减少从12px到10px */
+                        padding: '12px', /* 减少从16px到12px */
                       }}
                     >
                       <label
                         style={{
                           display: 'block',
-                          fontSize: '14px',
+                          fontSize: '13px', /* 减少从14px到13px */
                           fontWeight: '500',
                           color: 'var(--text-secondary)',
-                          marginBottom: '8px',
+                          marginBottom: '6px', /* 减少从8px到6px */
                         }}
                       >
                         日期
@@ -1436,7 +1436,7 @@ export default function TransactionEditModal({
                           border: 'none',
                           outline: 'none',
                           backgroundColor: 'transparent',
-                          fontSize: '16px',
+                          fontSize: '15px', /* 减少从16px到15px */
                           color: 'var(--text-color)',
                           padding: '0',
                         }}
@@ -1448,17 +1448,17 @@ export default function TransactionEditModal({
                         flex: 1,
                         backgroundColor: 'var(--background-color)',
                         border: '1px solid var(--border-color)',
-                        borderRadius: '12px',
-                        padding: '16px',
+                        borderRadius: '10px', /* 减少从12px到10px */
+                        padding: '12px', /* 减少从16px到12px */
                       }}
                     >
                       <label
                         style={{
                           display: 'block',
-                          fontSize: '14px',
+                          fontSize: '13px', /* 减少从14px到13px */
                           fontWeight: '500',
                           color: 'var(--text-secondary)',
-                          marginBottom: '8px',
+                          marginBottom: '6px', /* 减少从8px到6px */
                         }}
                       >
                         时间
@@ -1474,7 +1474,7 @@ export default function TransactionEditModal({
                           border: 'none',
                           outline: 'none',
                           backgroundColor: 'transparent',
-                          fontSize: '16px',
+                          fontSize: '15px', /* 减少从16px到15px */
                           color: 'var(--text-color)',
                           padding: '0',
                         }}
@@ -1488,8 +1488,8 @@ export default function TransactionEditModal({
                       style={{
                         backgroundColor: 'var(--background-color)',
                         border: '1px solid var(--border-color)',
-                        borderRadius: '12px',
-                        padding: '16px',
+                        borderRadius: '10px', /* 减少从12px到10px */
+                        padding: '12px', /* 减少从16px到12px */
                       }}
                     >
                       <BudgetSelector
@@ -1507,18 +1507,18 @@ export default function TransactionEditModal({
                       style={{
                         backgroundColor: 'var(--background-color)',
                         border: '1px solid var(--border-color)',
-                        borderRadius: '12px',
-                        padding: '16px',
-                        marginBottom: '16px', // 增加底部间距，避免与保存按钮重叠
+                        borderRadius: '10px', /* 减少从12px到10px */
+                        padding: '12px', /* 减少从16px到12px */
+                        marginBottom: '12px', /* 减少从16px到12px */
                       }}
                     >
                       <label
                         style={{
                           display: 'block',
-                          fontSize: '14px',
+                          fontSize: '13px', /* 减少从14px到13px */
                           fontWeight: '500',
                           color: 'var(--text-secondary)',
-                          marginBottom: '12px',
+                          marginBottom: '8px', /* 减少从12px到8px */
                         }}
                       >
                         标签
@@ -1546,18 +1546,18 @@ export default function TransactionEditModal({
                     style={{
                       backgroundColor: 'var(--background-color)',
                       border: '1px solid var(--border-color)',
-                      borderRadius: '12px',
-                      padding: '16px',
-                      marginBottom: '16px',
+                      borderRadius: '10px', /* 减少从12px到10px */
+                      padding: '12px', /* 减少从16px到12px */
+                      marginBottom: '12px', /* 减少从16px到12px */
                     }}
                   >
                     <label
                       style={{
                         display: 'block',
-                        fontSize: '14px',
+                        fontSize: '13px', /* 减少从14px到13px */
                         fontWeight: '500',
                         color: 'var(--text-secondary)',
-                        marginBottom: '12px',
+                        marginBottom: '8px', /* 减少从12px到8px */
                       }}
                     >
                       附件
@@ -1580,10 +1580,10 @@ export default function TransactionEditModal({
                       backgroundColor: '#fee2e2',
                       border: '1px solid #fecaca',
                       borderRadius: '8px',
-                      padding: '12px',
-                      margin: '16px 0',
+                      padding: '10px', /* 减少从12px到10px */
+                      margin: '12px 0', /* 减少从16px到12px */
                       color: '#dc2626',
-                      fontSize: '14px',
+                      fontSize: '13px', /* 减少从14px到13px */
                       textAlign: 'center',
                     }}
                   >
@@ -1596,24 +1596,24 @@ export default function TransactionEditModal({
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '12px',
-                    marginTop: '32px',
-                    paddingBottom: '32px',
+                    gap: '10px', /* 减少从12px到10px */
+                    marginTop: '16px', /* 减少间距 */
+                    paddingBottom: '0', /* 移除底部padding，减少空白 */
                   }}
                 >
                   {/* 保存和上一步按钮 */}
-                  <div style={{ display: 'flex', gap: '12px' }}>
+                  <div style={{ display: 'flex', gap: '10px' }}> {/* 减少从12px到10px */}
                     <button
                       onClick={() => setCurrentStep(1)}
                       disabled={isSubmitting || isDeleting}
                       style={{
                         flex: 1,
-                        height: '48px',
-                        borderRadius: '12px',
+                        height: '44px', /* 减少从48px到44px */
+                        borderRadius: '10px', /* 减少从12px到10px */
                         border: '1px solid var(--border-color)',
                         backgroundColor: 'var(--background-color)',
                         color: 'var(--text-color)',
-                        fontSize: '16px',
+                        fontSize: '15px', /* 减少从16px到15px */
                         fontWeight: '500',
                         cursor: isSubmitting || isDeleting ? 'not-allowed' : 'pointer',
                         opacity: isSubmitting || isDeleting ? 0.6 : 1,
@@ -1630,12 +1630,12 @@ export default function TransactionEditModal({
                       disabled={isSubmitting || isDeleting}
                       style={{
                         flex: 2,
-                        height: '48px',
-                        borderRadius: '12px',
+                        height: '44px', /* 减少从48px到44px */
+                        borderRadius: '10px', /* 减少从12px到10px */
                         border: 'none',
                         backgroundColor: 'var(--primary-color)',
                         color: 'white',
-                        fontSize: '16px',
+                        fontSize: '15px', /* 减少从16px到15px */
                         fontWeight: '600',
                         cursor: isSubmitting || isDeleting ? 'not-allowed' : 'pointer',
                         opacity: isSubmitting || isDeleting ? 0.6 : 1,
@@ -1661,12 +1661,12 @@ export default function TransactionEditModal({
                     }
                     style={{
                       width: '100%',
-                      height: '48px',
-                      borderRadius: '12px',
+                      height: '44px', /* 减少从48px到44px */
+                      borderRadius: '10px', /* 减少从12px到10px */
                       border: '1px solid #ef4444',
                       backgroundColor: 'transparent',
                       color: '#ef4444',
-                      fontSize: '16px',
+                      fontSize: '15px', /* 减少从16px到15px */
                       fontWeight: '500',
                       cursor:
                         isSubmitting ||
@@ -1686,10 +1686,10 @@ export default function TransactionEditModal({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '8px',
+                      gap: '6px', /* 减少从8px到6px */
                     }}
                   >
-                    <i className="fas fa-trash" style={{ fontSize: '14px' }}></i>
+                    <i className="fas fa-trash" style={{ fontSize: '13px' }}></i> {/* 减少从14px到13px */}
                     删除记录
                   </button>
                 </div>

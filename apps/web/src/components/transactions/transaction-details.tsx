@@ -47,23 +47,23 @@ export function TransactionDetails({
   return (
     <form onSubmit={handleSubmit}>
       {/* iOS 风格表单 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}> {/* 减少从16px到12px */}
         {/* 描述输入 */}
         <div
           style={{
             backgroundColor: 'var(--background-color)',
             border: '1px solid var(--border-color)',
-            borderRadius: '12px',
-            padding: '16px',
+            borderRadius: '10px', /* 减少从12px到10px */
+            padding: '12px', /* 减少从16px到12px */
           }}
         >
           <label
             style={{
               display: 'block',
-              fontSize: '14px',
+              fontSize: '13px', /* 减少从14px到13px */
               fontWeight: '500',
               color: 'var(--text-secondary)',
-              marginBottom: '8px',
+              marginBottom: '6px', /* 减少从8px到6px */
             }}
           >
             描述
@@ -79,7 +79,7 @@ export function TransactionDetails({
               border: 'none',
               outline: 'none',
               backgroundColor: 'transparent',
-              fontSize: '16px',
+              fontSize: '15px', /* 减少从16px到15px */
               color: 'var(--text-color)',
               padding: '0',
             }}
@@ -87,23 +87,23 @@ export function TransactionDetails({
         </div>
 
         {/* 日期和时间 - 并排布局 */}
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '10px' }}> {/* 减少从12px到10px */}
           <div
             style={{
               flex: 1,
               backgroundColor: 'var(--background-color)',
               border: '1px solid var(--border-color)',
-              borderRadius: '12px',
-              padding: '16px',
+              borderRadius: '10px', /* 减少从12px到10px */
+              padding: '12px', /* 减少从16px到12px */
             }}
           >
             <label
               style={{
                 display: 'block',
-                fontSize: '14px',
+                fontSize: '13px', /* 减少从14px到13px */
                 fontWeight: '500',
                 color: 'var(--text-secondary)',
-                marginBottom: '8px',
+                marginBottom: '6px', /* 减少从8px到6px */
               }}
             >
               日期
@@ -119,7 +119,7 @@ export function TransactionDetails({
                 border: 'none',
                 outline: 'none',
                 backgroundColor: 'transparent',
-                fontSize: '16px',
+                fontSize: '15px', /* 减少从16px到15px */
                 color: 'var(--text-color)',
                 padding: '0',
               }}
@@ -131,17 +131,17 @@ export function TransactionDetails({
               flex: 1,
               backgroundColor: 'var(--background-color)',
               border: '1px solid var(--border-color)',
-              borderRadius: '12px',
-              padding: '16px',
+              borderRadius: '10px', /* 减少从12px到10px */
+              padding: '12px', /* 减少从16px到12px */
             }}
           >
             <label
               style={{
                 display: 'block',
-                fontSize: '14px',
+                fontSize: '13px', /* 减少从14px到13px */
                 fontWeight: '500',
                 color: 'var(--text-secondary)',
-                marginBottom: '8px',
+                marginBottom: '6px', /* 减少从8px到6px */
               }}
             >
               时间
@@ -157,7 +157,7 @@ export function TransactionDetails({
                 border: 'none',
                 outline: 'none',
                 backgroundColor: 'transparent',
-                fontSize: '16px',
+                fontSize: '15px', /* 减少从16px到15px */
                 color: 'var(--text-color)',
                 padding: '0',
               }}
@@ -171,8 +171,8 @@ export function TransactionDetails({
             style={{
               backgroundColor: 'var(--background-color)',
               border: '1px solid var(--border-color)',
-              borderRadius: '12px',
-              padding: '16px',
+              borderRadius: '10px', /* 减少从12px到10px */
+              padding: '12px', /* 减少从16px到12px */
             }}
           >
             <BudgetSelector isEditMode={isEditMode} />
@@ -185,18 +185,18 @@ export function TransactionDetails({
             style={{
               backgroundColor: 'var(--background-color)',
               border: '1px solid var(--border-color)',
-              borderRadius: '12px',
-              padding: '16px',
-              marginBottom: '16px', // 增加底部间距，避免与保存按钮重叠
+              borderRadius: '10px', /* 减少从12px到10px */
+              padding: '12px', /* 减少从16px到12px */
+              marginBottom: '12px', /* 减少从16px到12px */
             }}
           >
             <label
               style={{
                 display: 'block',
-                fontSize: '14px',
+                fontSize: '13px', /* 减少从14px到13px */
                 fontWeight: '500',
                 color: 'var(--text-secondary)',
-                marginBottom: '12px',
+                marginBottom: '8px', /* 减少从12px到8px */
               }}
             >
               标签
@@ -224,18 +224,18 @@ export function TransactionDetails({
           style={{
             backgroundColor: 'var(--background-color)',
             border: '1px solid var(--border-color)',
-            borderRadius: '12px',
-            padding: '16px',
-            marginBottom: '16px',
+            borderRadius: '10px', /* 减少从12px到10px */
+            padding: '12px', /* 减少从16px到12px */
+            marginBottom: '12px', /* 减少从16px到12px */
           }}
         >
           <label
             style={{
               display: 'block',
-              fontSize: '14px',
+              fontSize: '13px', /* 减少从14px到13px */
               fontWeight: '500',
               color: 'var(--text-secondary)',
-              marginBottom: '12px',
+              marginBottom: '8px', /* 减少从12px到8px */
             }}
           >
             附件
@@ -253,18 +253,10 @@ export function TransactionDetails({
       <div
         style={{
           display: 'flex',
-          gap: '12px',
-          marginTop: '32px', // 增加顶部间距
-          paddingBottom: '32px', // 增加底部间距
-          position: 'sticky', // 让按钮固定在底部
-          bottom: '0',
-          backgroundColor: 'var(--background-color)',
-          borderTop: '1px solid var(--border-color)',
-          marginLeft: '-20px',
-          marginRight: '-20px',
-          paddingLeft: '20px',
-          paddingRight: '20px',
-          paddingTop: '16px',
+          gap: '10px', /* 减少从12px到10px */
+          marginTop: '16px', /* 减少间距 */
+          paddingBottom: '0', /* 移除底部padding，减少空白 */
+          /* 移除sticky定位，让按钮在页面内容底部 */
         }}
       >
         <button
@@ -272,12 +264,12 @@ export function TransactionDetails({
           disabled={isSubmitting}
           style={{
             flex: 1,
-            height: '48px',
-            borderRadius: '12px',
+            height: '44px', /* 减少从48px到44px */
+            borderRadius: '10px', /* 减少从12px到10px */
             border: 'none',
             backgroundColor: 'var(--primary-color)',
             color: 'white',
-            fontSize: '16px',
+            fontSize: '15px', /* 减少从16px到15px */
             fontWeight: '600',
             cursor: isSubmitting ? 'not-allowed' : 'pointer',
             opacity: isSubmitting ? 0.6 : 1,

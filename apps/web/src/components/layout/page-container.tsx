@@ -153,7 +153,7 @@ export function PageContainer({
       <DeletionStatusBanner />
 
       {/* 主要内容区域 */}
-      <main className={`main-content ${className || ''}`}>{children}</main>
+      <main className={`main-content ${!showBottomNav ? 'no-bottom-nav' : ''} ${className || ''}`}>{children}</main>
 
       {/* 底部导航栏 */}
       {showBottomNav && (
