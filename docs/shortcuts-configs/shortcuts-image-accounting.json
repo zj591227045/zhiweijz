@@ -1,0 +1,108 @@
+{
+  "name": "只为记账-图片记账",
+  "description": "轻敲背面截图并使用AI识别进行智能记账",
+  "version": "1.0.0",
+  "actions": [
+    {
+      "type": "TakeScreenshot",
+      "name": "截取屏幕",
+      "parameters": {},
+      "description": "截取当前屏幕内容"
+    },
+    {
+      "type": "ResizeImage",
+      "name": "调整图像大小",
+      "parameters": {
+        "width": 1080,
+        "height": "auto",
+        "format": "JPEG",
+        "quality": 0.8
+      },
+      "description": "优化图片大小以提高处理速度",
+      "optional": true
+    },
+    {
+      "type": "Base64Encode",
+      "name": "转换为Base64",
+      "parameters": {
+        "input": "调整后的图像",
+        "lineBreaks": "None"
+      },
+      "description": "将图片转换为Base64编码"
+    },
+    {
+      "type": "OpenURL",
+      "name": "打开只为记账",
+      "parameters": {
+        "url": "zhiweijz://smart-accounting?type=image&data={{Base64编码结果}}&source=shortcuts",
+        "method": "GET"
+      },
+      "description": "调用只为记账App进行智能记账"
+    }
+  ],
+  "triggers": [
+    {
+      "type": "BackTap",
+      "name": "轻点背面",
+      "parameters": {
+        "tapCount": 2
+      },
+      "description": "双击iPhone背面触发"
+    }
+  ],
+  "settings": {
+    "askBeforeRunning": false,
+    "showInWidget": true,
+    "showInShareSheet": false,
+    "showInAppleWatch": false,
+    "privacy": {
+      "requiresUnlock": false,
+      "allowedWhenLocked": true
+    }
+  },
+  "metadata": {
+    "author": "只为记账团队",
+    "category": "财务管理",
+    "tags": ["记账", "截图", "AI识别", "快捷指令"],
+    "supportedDevices": ["iPhone"],
+    "minimumIOSVersion": "14.0",
+    "lastUpdated": "2024-01-20"
+  },
+  "instructions": {
+    "setup": [
+      "1. 确保已安装只为记账App并完成登录",
+      "2. 在App中选择要记账的账本",
+      "3. 导入此快捷指令",
+      "4. 在设置 > 辅助功能 > 触控 > 轻点背面中启用此快捷指令",
+      "5. 测试功能是否正常工作"
+    ],
+    "usage": [
+      "1. 打开需要记账的页面（支付记录、订单详情等）",
+      "2. 轻敲iPhone背面两次",
+      "3. 等待自动截图和AI识别",
+      "4. 查看记账结果"
+    ],
+    "troubleshooting": [
+      "如果无法触发：检查轻点背面设置",
+      "如果识别不准确：确保截图内容清晰完整",
+      "如果记账失败：检查网络连接和账本选择"
+    ]
+  },
+  "examples": {
+    "supportedScenarios": [
+      "微信支付记录",
+      "支付宝付款页面",
+      "淘宝/京东订单详情",
+      "美团/饿了么外卖订单",
+      "银行转账记录",
+      "发票和收据",
+      "线下POS机小票"
+    ],
+    "bestPractices": [
+      "选择信息完整的页面进行截图",
+      "避免截图时有弹窗或遮挡",
+      "确保金额和商家信息清晰可见",
+      "在网络良好的环境下使用"
+    ]
+  }
+}

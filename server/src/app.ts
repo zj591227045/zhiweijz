@@ -95,6 +95,13 @@ app.get('/api/health', (req: Request, res: Response) => {
 // API路由
 app.use('/api', routes);
 
+// 上传路由
+import uploadRoutes from './routes/upload-routes';
+app.use('/api/upload', uploadRoutes);
+
+// 静态文件服务（用于访问上传的文件）
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 // 404处理
 app.use((req: Request, res: Response) => {
   res.status(404).json({ message: '未找到请求的资源' });

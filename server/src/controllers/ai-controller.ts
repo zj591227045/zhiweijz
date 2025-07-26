@@ -73,6 +73,14 @@ export class AIController {
         return res.status(400).json({ error: '描述不能为空' });
       }
 
+      // 限制描述文本长度，避免过长的文本导致LLM处理超时
+      const MAX_DESCRIPTION_LENGTH = 2000;
+      let processedDescription = description;
+      if (description.length > MAX_DESCRIPTION_LENGTH) {
+        console.log(`[智能记账] 描述过长(${description.length}字符)，截取前${MAX_DESCRIPTION_LENGTH}字符`);
+        processedDescription = description.substring(0, MAX_DESCRIPTION_LENGTH) + '...';
+      }
+
       if (!accountId) {
         return res.status(400).json({ error: '账本ID不能为空' });
       }
@@ -118,7 +126,7 @@ export class AIController {
 
       // 处理描述
       const result = await this.smartAccounting.processDescription(
-        description,
+        processedDescription,
         userId,
         accountId,
         accountBook.type,
@@ -135,6 +143,13 @@ export class AIController {
           return res.status(429).json({
             error: result.error,
             type: 'TOKEN_LIMIT_EXCEEDED',
+          });
+        }
+        // 检查是否是网络连接错误
+        if (result.error.includes('ECONNRESET') || result.error.includes('socket hang up')) {
+          return res.status(503).json({
+            error: 'AI服务暂时不可用，请稍后重试',
+            type: 'SERVICE_UNAVAILABLE',
           });
         }
         // 其他错误（如内容与记账无关）
@@ -854,6 +869,14 @@ export class AIController {
         return res.status(400).json({ error: '账本ID不能为空' });
       }
 
+      // 限制描述文本长度，避免过长的文本导致LLM处理超时
+      const MAX_DESCRIPTION_LENGTH = 2000;
+      let processedDescription = description;
+      if (description.length > MAX_DESCRIPTION_LENGTH) {
+        console.log(`[智能记账] 描述过长(${description.length}字符)，截取前${MAX_DESCRIPTION_LENGTH}字符`);
+        processedDescription = description.substring(0, MAX_DESCRIPTION_LENGTH) + '...';
+      }
+
       // 检查账本是否存在并且请求者有权限访问
       const accountBook = await this.prisma.accountBook.findFirst({
         where: {
@@ -945,7 +968,7 @@ export class AIController {
 
       // 使用实际用户ID进行智能记账分析
       const smartResult = await this.smartAccounting.processDescription(
-        description,
+        processedDescription,
         actualUserId, // 使用实际的记账用户ID，这样预算匹配会优先使用该用户的预算
         accountBookId,
         accountBook.type,
@@ -1122,6 +1145,14 @@ export class AIController {
         return res.status(400).json({ error: '账本ID不能为空' });
       }
 
+      // 限制描述文本长度，避免过长的文本导致LLM处理超时
+      const MAX_DESCRIPTION_LENGTH = 2000;
+      let processedDescription = description;
+      if (description.length > MAX_DESCRIPTION_LENGTH) {
+        console.log(`[智能记账] 描述过长(${description.length}字符)，截取前${MAX_DESCRIPTION_LENGTH}字符`);
+        processedDescription = description.substring(0, MAX_DESCRIPTION_LENGTH) + '...';
+      }
+
       // 检查账本是否存在并且用户有权限访问
       const accountBook = await this.prisma.accountBook.findFirst({
         where: {
@@ -1163,7 +1194,7 @@ export class AIController {
 
       // 处理描述，获取智能记账结果
       const result = await this.smartAccounting.processDescription(
-        description,
+        processedDescription,
         userId,
         accountId,
         accountBook.type,
@@ -1814,4 +1845,223 @@ export class AIController {
       return null;
     }
   }
+
+  /**
+   * 获取快捷指令临时上传token
+   * @param req 请求
+   * @param res 响应
+   */
+  async getShortcutsToken(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ error: '用户未认证' });
+        return;
+      }
+
+      // 生成临时token，包含用户ID和过期时间
+      const tempToken = Buffer.from(JSON.stringify({
+        userId,
+        exp: Date.now() + 5 * 60 * 1000, // 5分钟过期
+        purpose: 'shortcuts-upload'
+      })).toString('base64');
+
+      // 动态确定API基础URL
+      let apiBaseUrl = process.env.API_BASE_URL;
+
+      // 如果没有设置环境变量，根据NODE_ENV判断
+      if (!apiBaseUrl) {
+        if (process.env.NODE_ENV === 'development') {
+          apiBaseUrl = 'https://jz-dev.jacksonz.cn:4443';
+        } else {
+          apiBaseUrl = 'https://app.zhiweijz.cn:1443';
+        }
+      }
+
+      res.json({
+        success: true,
+        token: tempToken,
+        uploadUrl: `${apiBaseUrl}/api/upload/shortcuts`,
+        expiresIn: 300 // 5分钟
+      });
+    } catch (error) {
+      console.error('获取快捷指令token错误:', error);
+      res.status(500).json({
+        error: '获取token失败',
+        details: error instanceof Error ? error.message : '未知错误',
+      });
+    }
+  }
+
+  /**
+   * 快捷指令图片记账（通过图片URL）
+   * @param req 请求
+   * @param res 响应
+   */
+  async shortcutsImageAccounting(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ error: '用户未认证' });
+        return;
+      }
+
+      const { imageUrl, accountBookId } = req.body;
+
+      if (!imageUrl || !accountBookId) {
+        res.status(400).json({
+          error: '缺少必需参数',
+          required: ['imageUrl', 'accountBookId']
+        });
+        return;
+      }
+
+      console.log(`🚀 [快捷指令图片记账] 开始处理:`, {
+        userId,
+        accountBookId,
+        imageUrl: imageUrl.substring(0, 100) + '...'
+      });
+
+      // 验证账本权限
+      const accountBook = await this.prisma.accountBook.findFirst({
+        where: {
+          id: accountBookId,
+          OR: [
+            { userId: userId },
+            {
+              family: {
+                members: {
+                  some: {
+                    userId: userId,
+                  },
+                },
+              },
+            },
+          ],
+        },
+      });
+
+      if (!accountBook) {
+        res.status(404).json({ error: '账本不存在或无权限访问' });
+        return;
+      }
+
+      // 检查是否是代理URL，如果是则直接从S3下载
+      let imageBuffer: Buffer;
+
+      if (imageUrl.includes('/api/image-proxy/s3/')) {
+        console.log('🔄 [快捷指令图片记账] 检测到代理URL，直接从S3下载');
+
+        // 解析代理URL，提取bucket和key
+        const urlParts = imageUrl.split('/api/image-proxy/s3/')[1];
+        const pathParts = urlParts.split('/');
+        const bucket = pathParts[0];
+        const key = pathParts.slice(1).join('/');
+
+        console.log('🔄 [快捷指令图片记账] S3参数:', { bucket, key });
+
+        // 直接从S3下载 - 使用全局实例避免重复初始化
+        const { getGlobalFileStorageService, FileStorageService } = await import('../services/file-storage.service');
+        let fileStorageService = getGlobalFileStorageService();
+
+        // 如果全局实例不存在，创建新实例
+        if (!fileStorageService) {
+          console.log('🔄 [快捷指令图片记账] 全局存储服务不存在，创建新实例...');
+          fileStorageService = new FileStorageService();
+        }
+
+        // 确保存储服务已初始化
+        if (!fileStorageService.isStorageAvailable()) {
+          console.log('🔄 [快捷指令图片记账] 存储服务未初始化，尝试重新加载配置...');
+          await fileStorageService.reloadConfig();
+
+          // 等待一段时间让服务初始化完成
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        const s3Service = fileStorageService.getS3Service();
+
+        if (!s3Service) {
+          console.error('🔄 [快捷指令图片记账] S3服务仍然不可用');
+          res.status(503).json({ error: 'S3存储服务不可用' });
+          return;
+        }
+
+        try {
+          const fileStream = await s3Service.downloadFile(bucket, key);
+          const chunks: Buffer[] = [];
+
+          for await (const chunk of fileStream) {
+            chunks.push(chunk);
+          }
+
+          imageBuffer = Buffer.concat(chunks);
+          console.log('🔄 [快捷指令图片记账] S3下载成功，大小:', imageBuffer.length);
+        } catch (s3Error) {
+          console.error('🔄 [快捷指令图片记账] S3下载失败:', s3Error);
+          res.status(400).json({ error: '无法从S3下载图片' });
+          return;
+        }
+      } else {
+        // 普通URL，使用fetch下载
+        console.log('🔄 [快捷指令图片记账] 普通URL，使用fetch下载');
+        const fetch = (await import('node-fetch')).default;
+        const imageResponse = await fetch(imageUrl);
+
+        if (!imageResponse.ok) {
+          res.status(400).json({ error: '无法下载图片' });
+          return;
+        }
+
+        imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+      }
+
+      // 创建临时文件对象
+      const tempFile = {
+        buffer: imageBuffer,
+        mimetype: 'image/jpeg',
+        originalname: 'shortcuts-image.jpg',
+        size: imageBuffer.length
+      } as Express.Multer.File;
+
+      // 调用现有的图片智能记账逻辑
+      const { MultimodalAIController } = await import('./multimodal-ai.controller');
+      const multimodalController = new MultimodalAIController();
+
+      // 创建模拟请求对象
+      const mockReq = {
+        user: req.user,
+        file: tempFile,
+        body: { accountBookId }
+      } as any;
+
+      // 创建响应拦截器
+      let visionResult: any = null;
+      let statusCode = 200;
+      const mockRes = {
+        json: (data: any) => { visionResult = data; },
+        status: (code: number) => { statusCode = code; return mockRes; }
+      } as any;
+
+      await multimodalController.smartAccountingVision(mockReq, mockRes);
+
+      if (statusCode === 200 && visionResult?.success) {
+        res.status(201).json(visionResult);
+      } else {
+        res.status(statusCode || 400).json({
+          error: '图片识别失败',
+          details: visionResult?.error || '无法从图片中提取有效信息'
+        });
+      }
+
+    } catch (error) {
+      console.error('🚀 [快捷指令图片记账] 处理失败:', error);
+      res.status(500).json({
+        error: '快捷指令图片记账处理失败',
+        details: error instanceof Error ? error.message : '未知错误'
+      });
+    }
+  }
+
+
 }

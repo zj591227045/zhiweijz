@@ -77,6 +77,40 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
     fetchGlobalConfig();
   }, [fetchGlobalConfig]);
 
+  // 监听快捷指令打开智能记账模态框的事件
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleOpenSmartAccountingDialog = (event: CustomEvent) => {
+      console.log('🖼️ [BottomNav] 收到快捷指令打开智能记账模态框事件:', event.detail);
+
+      const { type, imageUrl, accountBookId } = event.detail;
+
+      if (type === 'shortcut-image' && imageUrl && accountBookId) {
+        console.log('🖼️ [BottomNav] 打开智能记账模态框，准备处理快捷指令图片');
+
+        // 打开智能记账模态框
+        setIsSmartAccountingOpen(true);
+
+        // 将快捷指令信息存储到sessionStorage，供模态框使用
+        sessionStorage.setItem('shortcutImageData', JSON.stringify({
+          type: 'shortcut-image',
+          imageUrl,
+          accountBookId,
+          timestamp: Date.now()
+        }));
+      }
+    };
+
+    // 添加事件监听器
+    window.addEventListener('openSmartAccountingDialog', handleOpenSmartAccountingDialog as EventListener);
+
+    return () => {
+      // 清理事件监听器
+      window.removeEventListener('openSmartAccountingDialog', handleOpenSmartAccountingDialog as EventListener);
+    };
+  }, []);
+
   const isActive = (path: string) => {
     if (currentPath) {
       return currentPath === path;

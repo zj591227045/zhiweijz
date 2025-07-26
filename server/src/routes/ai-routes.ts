@@ -45,6 +45,8 @@ router.post(
   aiController.handleSmartAccountingDirectWithBody.bind(aiController),
 );
 
+
+
 /**
  * @route GET /api/ai/global-llm-config
  * @desc 获取全局LLM配置
@@ -149,5 +151,27 @@ router.delete(
  * @access Private
  */
 router.post('/llm-settings/test', authenticate, aiController.testLLMConnection.bind(aiController));
+
+/**
+ * @route GET /ai/shortcuts/token
+ * @desc 获取快捷指令临时上传token
+ * @access Private
+ */
+router.get(
+  '/shortcuts/token',
+  authenticate,
+  aiController.getShortcutsToken.bind(aiController),
+);
+
+/**
+ * @route POST /ai/shortcuts/image-accounting
+ * @desc 快捷指令图片记账（通过图片URL）
+ * @access Private
+ */
+router.post(
+  '/shortcuts/image-accounting',
+  authenticate,
+  aiController.shortcutsImageAccounting.bind(aiController),
+);
 
 export default router;

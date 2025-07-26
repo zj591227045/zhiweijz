@@ -57,6 +57,17 @@ export class SiliconFlowProvider implements LLMProvider {
     } catch (error) {
       console.error(`[SiliconFlow] 使用模型 ${options.model} 生成文本时出错:`, error);
 
+      // 检查是否是网络连接错误
+      if (axios.isAxiosError(error)) {
+        if (error.code === 'ECONNRESET') {
+          console.error(`[SiliconFlow] 网络连接被重置，模型: ${options.model}`);
+        } else if (error.code === 'ECONNABORTED') {
+          console.error(`[SiliconFlow] 请求超时，模型: ${options.model}`);
+        } else if (error.response?.status === 429) {
+          console.error(`[SiliconFlow] API调用频率限制，模型: ${options.model}`);
+        }
+      }
+
       // 如果当前模型不是优先级最低的模型，尝试使用下一个优先级的模型
       if (options.model && this.modelPriority.includes(options.model)) {
         const currentIndex = this.modelPriority.indexOf(options.model);
@@ -112,6 +123,17 @@ export class SiliconFlowProvider implements LLMProvider {
       return response.content.toString();
     } catch (error) {
       console.error(`[SiliconFlow] 使用模型 ${options.model} 生成聊天响应时出错:`, error);
+
+      // 检查是否是网络连接错误
+      if (axios.isAxiosError(error)) {
+        if (error.code === 'ECONNRESET') {
+          console.error(`[SiliconFlow] 网络连接被重置，模型: ${options.model}`);
+        } else if (error.code === 'ECONNABORTED') {
+          console.error(`[SiliconFlow] 请求超时，模型: ${options.model}`);
+        } else if (error.response?.status === 429) {
+          console.error(`[SiliconFlow] API调用频率限制，模型: ${options.model}`);
+        }
+      }
 
       // 如果当前模型不是优先级最低的模型，尝试使用下一个优先级的模型
       if (options.model && this.modelPriority.includes(options.model)) {
@@ -201,6 +223,7 @@ export class SiliconFlowProvider implements LLMProvider {
           Authorization: `Bearer ${options.apiKey}`,
           'Content-Type': 'application/json',
         },
+        timeout: 60000, // 60秒超时，与其他提供商保持一致
       });
 
       const data = response.data;
@@ -225,6 +248,17 @@ export class SiliconFlowProvider implements LLMProvider {
       };
     } catch (error) {
       console.error(`[SiliconFlow] 使用模型 ${options.model} 生成聊天响应时出错:`, error);
+
+      // 检查是否是网络连接错误
+      if (axios.isAxiosError(error)) {
+        if (error.code === 'ECONNRESET') {
+          console.error(`[SiliconFlow] 网络连接被重置，模型: ${options.model}`);
+        } else if (error.code === 'ECONNABORTED') {
+          console.error(`[SiliconFlow] 请求超时，模型: ${options.model}`);
+        } else if (error.response?.status === 429) {
+          console.error(`[SiliconFlow] API调用频率限制，模型: ${options.model}`);
+        }
+      }
 
       // 如果当前模型不是优先级最低的模型，尝试使用下一个优先级的模型
       if (options.model && this.modelPriority.includes(options.model)) {

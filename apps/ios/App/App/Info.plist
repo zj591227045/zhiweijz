@@ -45,21 +45,34 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
-	
+
 	<!-- Camera permissions -->
 	<key>NSCameraUsageDescription</key>
 	<string>需要访问相机来拍摄收据和账单，以便进行智能记账识别</string>
-	
+
 	<!-- Photo Library permissions -->
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>需要访问相册来选择收据和账单图片，以便进行智能记账识别</string>
-	
+
 	<!-- Photo Library Add permissions (iOS 14+) -->
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>需要将拍摄的收据和账单照片保存到相册中，以便您随时查看</string>
-	
+
 	<!-- Microphone permissions -->
 	<key>NSMicrophoneUsageDescription</key>
 	<string>需要访问麦克风来进行语音记账，将语音转换为文字记录</string>
+
+	<!-- URL Schemes for deep linking -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>cn.jacksonz.pwa.twa.zhiweijz</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>zhiweijz</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

@@ -396,6 +396,42 @@ export default function EnhancedSmartAccountingDialog({
     }
   };
 
+  // 检查并处理快捷指令图片数据
+  const checkShortcutImageData = async () => {
+    try {
+      const shortcutDataStr = sessionStorage.getItem('shortcutImageData');
+      if (!shortcutDataStr) return;
+
+      const shortcutData = JSON.parse(shortcutDataStr);
+      console.log('🖼️ [SmartAccountingDialog] 检测到快捷指令图片数据:', shortcutData);
+
+      // 检查数据是否是最近5秒内的（避免处理过期数据）
+      if (Date.now() - shortcutData.timestamp > 5000) {
+        console.log('🖼️ [SmartAccountingDialog] 快捷指令数据已过期，清除');
+        sessionStorage.removeItem('shortcutImageData');
+        return;
+      }
+
+      // 检查是否是快捷指令图片类型
+      if (shortcutData.type === 'shortcut-image' && shortcutData.imageUrl && shortcutData.accountBookId === accountBookId) {
+        console.log('🖼️ [SmartAccountingDialog] 开始处理快捷指令图片');
+
+        // 清除数据，避免重复处理
+        sessionStorage.removeItem('shortcutImageData');
+
+        // 设置UI状态：图片识别中
+        setIsProcessingMultimodal(true);
+        setDescription('快捷指令图片识别中...');
+
+        // 开始处理快捷指令图片
+        await handleShortcutImageRecognition(shortcutData.imageUrl);
+      }
+    } catch (error) {
+      console.error('🖼️ [SmartAccountingDialog] 处理快捷指令图片数据失败:', error);
+      sessionStorage.removeItem('shortcutImageData');
+    }
+  };
+
   // 开始录音（长按开始）
   const startRecording = async () => {
     const stateManager = recordingStateManagerRef.current;
@@ -1342,6 +1378,101 @@ export default function EnhancedSmartAccountingDialog({
     handleImageRecognition(file);
   };
 
+  // 处理快捷指令图片识别
+  const handleShortcutImageRecognition = async (imageUrl: string) => {
+    if (!accountBookId) {
+      toast.error('请先选择账本');
+      return;
+    }
+
+    try {
+      console.log('🖼️ [ShortcutImageRecognition] 开始处理快捷指令图片:', imageUrl.substring(0, 100) + '...');
+
+      // 调用快捷指令图片识别API
+      const response = await apiClient.post(
+        `/ai/shortcuts/image-accounting`,
+        {
+          imageUrl,
+          accountBookId
+        },
+        { timeout: 120000 }
+      );
+
+      if (response && response.data && response.data.text) {
+        const recognizedText = response.data.text;
+        console.log('🖼️ [ShortcutImageRecognition] 图片识别成功，开始直接记账');
+
+        // 生成唯一进度ID
+        const progressId = `shortcut-image-direct-add-${Date.now()}`;
+
+        // 获取智能记账进度管理器实例
+        const progressManager = SmartAccountingProgressManager.getInstance();
+
+        // 显示进度通知并立即关闭模态框
+        progressManager.showProgress(progressId, '正在启动智能记账...');
+        onClose(); // 立即关闭模态框
+
+        // 设置识别的文本到描述框（为了保持一致性）
+        setDescription(recognizedText);
+
+        // 调用直接添加记账API（与相册图片记账相同的逻辑）
+        try {
+          const requestBody: any = { description: recognizedText };
+
+          // 如果有文件信息，添加附件文件ID
+          if (response.data?.fileInfo?.id) {
+            requestBody.attachmentFileId = response.data.fileInfo.id;
+            console.log('🖼️ [ShortcutImageRecognition] 添加附件文件ID:', response.data.fileInfo.id);
+          }
+
+          // 更新进度
+          progressManager.updateProgress(progressId, '正在分析记账信息...');
+
+          const directResponse = await apiClient.post(
+            `/ai/account/${accountBookId}/smart-accounting/direct`,
+            requestBody,
+            { timeout: 60000 }
+          );
+
+          console.log('🖼️ [ShortcutImageRecognition] 直接记账成功:', directResponse.data);
+
+          // 刷新仪表盘数据
+          if (accountBookId) {
+            try {
+              console.log('🖼️ [ShortcutImageRecognition] 开始刷新仪表盘数据...');
+              await refreshDashboardData(accountBookId);
+              console.log('🖼️ [ShortcutImageRecognition] 仪表盘数据刷新完成');
+            } catch (refreshError) {
+              console.error('🖼️ [ShortcutImageRecognition] 刷新仪表盘数据失败:', refreshError);
+            }
+          }
+
+          // 完成请求，显示成功消息
+          const successMessage = directResponse.data?.id
+            ? '快捷指令图片识别完成，记账成功'
+            : `快捷指令图片识别完成，已创建${directResponse.data?.count || 1}条记录`;
+          progressManager.completeRequest(progressId, true, successMessage);
+
+        } catch (directError) {
+          console.error('🖼️ [ShortcutImageRecognition] 直接记账失败:', directError);
+          progressManager.completeRequest(
+            progressId,
+            false,
+            '快捷指令记账失败，请重试'
+          );
+        }
+      } else {
+        console.error('🖼️ [ShortcutImageRecognition] 图片识别失败，没有返回文本');
+        toast.error('快捷指令图片识别失败，请重试');
+      }
+    } catch (error) {
+      console.error('🖼️ [ShortcutImageRecognition] 快捷指令图片识别失败:', error);
+      toast.error('快捷指令图片识别失败，请重试');
+    } finally {
+      setIsProcessingMultimodal(false);
+    }
+  };
+
   // 处理图片识别
   const handleImageRecognition = async (imageFile: File) => {
     if (!accountBookId) {
@@ -1630,6 +1761,10 @@ export default function EnhancedSmartAccountingDialog({
       // 初始化多模态状态
       loadMultimodalStatus();
 
+      // 检查是否有快捷指令数据
+      const shortcutDataStr = sessionStorage.getItem('shortcutImageData');
+      const hasShortcutData = shortcutDataStr && JSON.parse(shortcutDataStr).type === 'shortcut-image';
+
       // 如果记账点系统启用，获取记账点余额
       if (config.accountingPointsEnabled) {
         fetchBalance()
@@ -1643,16 +1778,23 @@ export default function EnhancedSmartAccountingDialog({
         console.log('💰 记账点系统未启用，跳过余额获取');
       }
 
-      // 重置所有状态
-      setDescription('');
+      // 重置所有状态（快捷指令模式下保留某些状态）
+      if (!hasShortcutData) {
+        setDescription('');
+        setIsProcessingMultimodal(false);
+      }
       setIsProcessing(false);
       setProcessingStep('');
-      setIsProcessingMultimodal(false);
       recordingCancelledRef.current = false;
       setIsButtonTouched(false);
       setTouchStartPos(null);
       setGestureType('none');
       setShowGestureHint(false);
+
+      // 检查并处理快捷指令图片数据（在状态重置之后）
+      if (hasShortcutData) {
+        checkShortcutImageData();
+      }
 
       // 重置相机按钮状态
       setIsCameraButtonTouched(false);
@@ -1816,7 +1958,8 @@ export default function EnhancedSmartAccountingDialog({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  autoFocus
+                  autoFocus={!isProcessingMultimodal}
+                  readOnly={isProcessingMultimodal && description.includes('快捷指令')}
                 />
               </div>
 

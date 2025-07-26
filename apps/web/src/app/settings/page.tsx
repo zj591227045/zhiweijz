@@ -314,6 +314,18 @@ export default function SettingsPage() {
             <i className="fas fa-chevron-right"></i>
           </div>
         </Link>
+        <Link href="/settings/shortcuts" className="settings-item">
+          <div className="item-icon">
+            <i className="fas fa-bolt"></i>
+          </div>
+          <div className="item-content">
+            <div className="item-title">快捷记账</div>
+            <div className="item-description">设置iOS快捷指令，轻敲背面快速记账</div>
+          </div>
+          <div className="item-action">
+            <i className="fas fa-chevron-right"></i>
+          </div>
+        </Link>
         <Link href="/settings/theme" className="settings-item">
           <div className="item-icon">
             <i className="fas fa-palette"></i>

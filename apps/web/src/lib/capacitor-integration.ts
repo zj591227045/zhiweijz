@@ -5,6 +5,7 @@
 
 import { navigationManager } from './mobile-navigation';
 import { platformGestureHandler } from './platform-gesture-handler';
+import { handleShortcutsDeepLink } from './shortcuts-deep-link-handler';
 
 // Capacitor插件接口
 interface CapacitorApp {
@@ -120,6 +121,14 @@ export class CapacitorIntegration {
 
         console.log('🔌 [Capacitor] URL打开:', data);
         this.handleUrlOpen(data.url);
+
+        // 处理快捷指令深度链接
+        if (data.url.startsWith('zhiweijz://')) {
+          console.log('🔌 [Capacitor] 检测到快捷指令URL，开始处理');
+          handleShortcutsDeepLink(data.url).catch(error => {
+            console.error('🔌 [Capacitor] 快捷指令处理失败:', error);
+          });
+        }
       });
 
       // 应用恢复监听

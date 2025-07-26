@@ -769,6 +769,18 @@ export class LLMProviderService {
     } catch (error) {
       isSuccess = false;
       errorMessage = error instanceof Error ? error.message : String(error);
+
+      // 记录详细的错误信息
+      if (error instanceof Error) {
+        if (errorMessage.includes('ECONNRESET')) {
+          console.error(`[LLM] 网络连接被重置: ${settings.provider}/${settings.model}`);
+        } else if (errorMessage.includes('ECONNABORTED') || errorMessage.includes('timeout')) {
+          console.error(`[LLM] 请求超时: ${settings.provider}/${settings.model}`);
+        } else if (errorMessage.includes('socket hang up')) {
+          console.error(`[LLM] 连接中断: ${settings.provider}/${settings.model}`);
+        }
+      }
+
       throw error;
     } finally {
       const duration = Date.now() - startTime;

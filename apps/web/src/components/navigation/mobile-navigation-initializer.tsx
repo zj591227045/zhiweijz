@@ -261,6 +261,12 @@ function getPageInfoFromPath(pathname: string): {
       title: 'AI设置',
       canGoBack: true,
     },
+    {
+      pattern: /^\/settings\/shortcuts\/?$/,
+      level: PageLevel.FEATURE,
+      title: '快捷记账',
+      canGoBack: true,
+    },
 
     // 认证页面
     {
