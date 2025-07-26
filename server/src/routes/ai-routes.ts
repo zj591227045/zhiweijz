@@ -164,6 +164,16 @@ router.get(
 );
 
 /**
+ * @route POST /ai/shortcuts/check-token
+ * @desc 检查快捷指令token有效性
+ * @access Public (不需要认证，因为要检查的就是token本身)
+ */
+router.post(
+  '/shortcuts/check-token',
+  aiController.checkShortcutsToken.bind(aiController),
+);
+
+/**
  * @route POST /ai/shortcuts/image-accounting
  * @desc 快捷指令图片记账（通过图片URL）
  * @access Private

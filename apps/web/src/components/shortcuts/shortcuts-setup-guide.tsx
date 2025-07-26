@@ -280,7 +280,6 @@ export function ShortcutsSetupGuide({ className = '' }: ShortcutsSetupGuideProps
           <ul className="text-sm text-green-700 space-y-1">
             <li>✓ 轻敲背面后自动截图</li>
             <li>✓ 自动打开只为记账App</li>
-            <li>✓ 显示"正在处理快捷指令请求"提示</li>
             <li>✓ 成功创建记账记录</li>
           </ul>
         </div>

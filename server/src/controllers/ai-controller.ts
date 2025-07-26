@@ -1859,11 +1859,13 @@ export class AIController {
         return;
       }
 
-      // 生成临时token，包含用户ID和过期时间
+      // 生成长期有效的token，包含用户ID和过期时间（72小时）
+      const expirationTime = Date.now() + 72 * 60 * 60 * 1000; // 72小时过期
       const tempToken = Buffer.from(JSON.stringify({
         userId,
-        exp: Date.now() + 5 * 60 * 1000, // 5分钟过期
-        purpose: 'shortcuts-upload'
+        exp: expirationTime,
+        purpose: 'shortcuts-upload',
+        iat: Date.now() // 签发时间
       })).toString('base64');
 
       // 动态确定API基础URL
@@ -1882,7 +1884,9 @@ export class AIController {
         success: true,
         token: tempToken,
         uploadUrl: `${apiBaseUrl}/api/upload/shortcuts`,
-        expiresIn: 300 // 5分钟
+        checkTokenUrl: `${apiBaseUrl}/api/ai/shortcuts/check-token`,
+        expiresIn: 72 * 60 * 60, // 72小时（秒）
+        expiresAt: expirationTime // 过期时间戳
       });
     } catch (error) {
       console.error('获取快捷指令token错误:', error);
@@ -1890,6 +1894,83 @@ export class AIController {
         error: '获取token失败',
         details: error instanceof Error ? error.message : '未知错误',
       });
+    }
+  }
+
+  /**
+   * 检查快捷指令token有效性
+   * @param req 请求
+   * @param res 响应
+   */
+  async checkShortcutsToken(req: Request, res: Response): Promise<void> {
+    try {
+      const { token } = req.body;
+
+      if (!token) {
+        // 返回快捷指令兼容的词典格式
+        res.json({
+          valid: 'false',
+          error: '缺少token参数'
+        });
+        return;
+      }
+
+      // 验证token
+      const tokenValidation = this.validateShortcutsToken(token);
+
+      if (!tokenValidation.valid) {
+        // 返回快捷指令兼容的词典格式
+        res.json({
+          valid: 'false',
+          message: 'Token已过期或无效'
+        });
+        return;
+      }
+
+      // 计算剩余有效时间
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      const remainingTime = Math.max(0, decoded.exp - Date.now());
+      const remainingHours = Math.floor(remainingTime / (60 * 60 * 1000));
+
+      // 返回快捷指令兼容的词典格式 - 所有值都转为字符串
+      res.json({
+        valid: 'true',
+        remainingTime: remainingTime.toString(),
+        remainingHours: remainingHours.toString(),
+        message: `Token有效，剩余${remainingHours}小时`
+      });
+
+    } catch (error) {
+      console.error('检查快捷指令token错误:', error);
+      // 返回快捷指令兼容的词典格式
+      res.json({
+        valid: 'false',
+        error: '检查token失败',
+        details: error instanceof Error ? error.message : '未知错误'
+      });
+    }
+  }
+
+  /**
+   * 验证快捷指令token的辅助方法
+   * @param token 要验证的token
+   * @returns 验证结果
+   */
+  private validateShortcutsToken(token: string): { valid: boolean; userId?: string } {
+    try {
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+
+      if (decoded.purpose !== 'shortcuts-upload') {
+        return { valid: false };
+      }
+
+      if (decoded.exp < Date.now()) {
+        return { valid: false };
+      }
+
+      return { valid: true, userId: decoded.userId };
+    } catch (error) {
+      return { valid: false };
     }
   }
 

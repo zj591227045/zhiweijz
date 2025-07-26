@@ -65,17 +65,23 @@ const upload = multer({
 function validateShortcutsToken(token: string): { valid: boolean; userId?: string } {
   try {
     const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-    
+
     if (decoded.purpose !== 'shortcuts-upload') {
+      console.log('🔒 Token验证失败: purpose不匹配', decoded.purpose);
       return { valid: false };
     }
-    
+
     if (decoded.exp < Date.now()) {
+      const expiredHours = Math.floor((Date.now() - decoded.exp) / (60 * 60 * 1000));
+      console.log('🔒 Token验证失败: 已过期', { expiredHours });
       return { valid: false };
     }
-    
+
+    const remainingHours = Math.floor((decoded.exp - Date.now()) / (60 * 60 * 1000));
+    console.log('🔒 Token验证成功', { userId: decoded.userId, remainingHours });
     return { valid: true, userId: decoded.userId };
   } catch (error) {
+    console.log('🔒 Token验证失败: 解析错误', error);
     return { valid: false };
   }
 }

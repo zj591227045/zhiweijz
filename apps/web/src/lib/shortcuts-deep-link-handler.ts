@@ -397,11 +397,6 @@ export async function handleShortcutsDeepLink(url: string): Promise<ShortcutsHan
   // 触发处理开始事件
   emitShortcutsEvent('processing');
 
-  // 显示处理中的提示
-  toast.loading('正在处理快捷指令请求...', {
-    id: 'shortcuts-processing'
-  });
-
   try {
     let result: ShortcutsHandleResult;
 
@@ -509,6 +504,7 @@ async function handleGetTokenWithCallback(source?: string): Promise<ShortcutsHan
       const tokenData = {
         token: responseData.token,
         uploadUrl: responseData.uploadUrl,
+        checkTokenUrl: responseData.checkTokenUrl,
         expiresIn: responseData.expiresIn
       };
 
