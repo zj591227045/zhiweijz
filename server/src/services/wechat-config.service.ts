@@ -18,6 +18,18 @@ export interface WechatMenuConfig {
 
 export class WechatConfigService {
   /**
+   * 获取北京时间的今日开始时间
+   */
+  private getBeijingTodayStart(): Date {
+    const now = new Date();
+    // 转换为北京时间 (UTC+8)
+    const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    const today = beijingTime.toISOString().split('T')[0];
+    // 创建表示北京时间0点的UTC时间
+    return new Date(today + 'T00:00:00+08:00');
+  }
+
+  /**
    * 获取微信自定义菜单配置
    */
   getMenuConfig(): WechatMenuConfig {
@@ -97,22 +109,21 @@ export class WechatConfigService {
         where: { is_active: true },
       });
 
-      // 获取今日消息数
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      // 获取今日消息数 - 使用北京时间
+      const beijingTodayStart = this.getBeijingTodayStart();
       const todayMessages = await prisma.wechat_message_logs.count({
         where: {
           created_at: {
-            gte: today,
+            gte: beijingTodayStart,
           },
         },
       });
 
-      // 获取今日成功处理的消息数
+      // 获取今日成功处理的消息数 - 使用北京时间
       const todaySuccessMessages = await prisma.wechat_message_logs.count({
         where: {
           created_at: {
-            gte: today,
+            gte: beijingTodayStart,
           },
           status: 'success',
         },

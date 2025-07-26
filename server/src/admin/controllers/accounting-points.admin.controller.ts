@@ -101,15 +101,14 @@ export class AccountingPointsAdminController {
         }
       });
 
-      // 统计今日消费
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
+      // 统计今日消费 - 使用北京时间0点作为今日开始
+      const beijingTodayStart = AccountingPointsService.getBeijingTodayStart();
+
       const todayConsumption = await prisma.accountingPointsTransactions.aggregate({
         where: {
           operation: 'deduct',
           createdAt: {
-            gte: today
+            gte: beijingTodayStart
           }
         },
         _sum: {
@@ -117,12 +116,12 @@ export class AccountingPointsAdminController {
         }
       });
 
-      // 统计今日新增
+      // 统计今日新增 - 使用北京时间0点作为今日开始
       const todayAddition = await prisma.accountingPointsTransactions.aggregate({
         where: {
           operation: 'add',
           createdAt: {
-            gte: today
+            gte: beijingTodayStart
           }
         },
         _sum: {

@@ -34,6 +34,18 @@ export interface TokenUsageParams {
 
 export class TokenUsageService {
   /**
+   * 获取北京时间的今日开始时间
+   */
+  private getBeijingTodayStart(): Date {
+    const now = new Date();
+    // 转换为北京时间 (UTC+8)
+    const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    const today = beijingTime.toISOString().split('T')[0];
+    // 创建表示北京时间0点的UTC时间
+    return new Date(today + 'T00:00:00+08:00');
+  }
+
+  /**
    * 获取用户TOKEN使用量统计
    */
   async getUserTokenUsage(userId: string, params: TokenUsageParams = {}): Promise<TokenUsageStats> {
@@ -113,13 +125,13 @@ export class TokenUsageService {
   }
 
   /**
-   * 获取今日TOKEN使用量
+   * 获取今日TOKEN使用量 - 使用北京时间
    */
   async getTodayTokenUsage(userId: string): Promise<TodayTokenUsage> {
     try {
-      const today = new Date();
-      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+      // 使用北京时间的今日开始时间
+      const startOfDay = this.getBeijingTodayStart();
+      const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
 
       // 获取今日统计
       const [todayStats, successfulCalls, failedCalls] = await Promise.all([
