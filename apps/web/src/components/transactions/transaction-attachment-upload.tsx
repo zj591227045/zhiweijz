@@ -105,10 +105,10 @@ function CompactFileUpload({
   };
 
   return (
-    <div className="border border-dashed border-gray-300 rounded-lg bg-gray-50/50 p-4">
+    <div className="border border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50/50 dark:bg-gray-800/50 p-4">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         {/* 左侧图标和文字 */}
-        <div className="flex items-center gap-2 text-sm text-gray-600 min-w-0">
+        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 min-w-0">
           <Upload className="w-4 h-4 flex-shrink-0" />
           <span className="whitespace-nowrap">添加附件</span>
           <Tooltip
@@ -121,8 +121,8 @@ function CompactFileUpload({
             }
             side="top"
           >
-            <Button variant="ghost" size="sm" className="h-5 w-5 p-0 hover:bg-gray-200">
-              <Info className="w-3 h-3 text-gray-400" />
+            <Button variant="ghost" size="sm" className="h-5 w-5 p-0 hover:bg-gray-200 dark:hover:bg-gray-700">
+              <Info className="w-3 h-3 text-gray-400 dark:text-gray-500" />
             </Button>
           </Tooltip>
         </div>
@@ -499,7 +499,7 @@ export const TransactionAttachmentUpload = React.forwardRef<
           {/* 已上传的附件列表 - 增强版 */}
           {validAttachmentFiles.length > 0 && (
             <div className="space-y-3">
-              <h4 className="text-sm font-medium">已上传的附件 ({validAttachmentFiles.length})</h4>
+              <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">已上传的附件 ({validAttachmentFiles.length})</h4>
               <EnhancedAttachmentGrid
                 files={validAttachmentFiles}
                 onPreview={handleEnhancedPreview}
@@ -574,7 +574,7 @@ function AttachmentCard({ attachment, onRemove, onPreview, disabled }: Attachmen
   const isPDF = file.mimeType === 'application/pdf';
 
   return (
-    <div className="border rounded-lg p-3 bg-white">
+    <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800">
       <div className="flex items-start gap-3">
         {/* 文件预览 */}
         <div
@@ -587,12 +587,12 @@ function AttachmentCard({ attachment, onRemove, onPreview, disabled }: Attachmen
 
         {/* 文件信息 */}
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate">{file.originalName}</p>
-          <p className="text-xs text-gray-500">
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{file.originalName}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             {formatFileSize(file.size)} • {getAttachmentTypeLabel(attachment.attachmentType)}
           </p>
           {attachment.description && attachment.description !== file.originalName && (
-            <p className="text-xs text-gray-600 mt-1">{attachment.description}</p>
+            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">{attachment.description}</p>
           )}
         </div>
 
@@ -601,7 +601,7 @@ function AttachmentCard({ attachment, onRemove, onPreview, disabled }: Attachmen
           type="button"
           onClick={onRemove}
           disabled={disabled}
-          className="text-gray-400 hover:text-red-500 disabled:opacity-50"
+          className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 disabled:opacity-50"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path

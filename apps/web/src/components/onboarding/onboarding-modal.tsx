@@ -11,6 +11,7 @@ import { AIServiceSetupStep } from './steps/ai-service-setup-step';
 import { FeatureIntroStep } from './steps/feature-intro-step';
 import { SkipConfirmDialog } from './skip-confirm-dialog';
 import { useState } from 'react';
+import { applyPlatformClasses } from '@/lib/platform-detection';
 import './onboarding-modal.css';
 
 export function OnboardingModal() {
@@ -18,9 +19,12 @@ export function OnboardingModal() {
 
   const [showSkipDialog, setShowSkipDialog] = useState(false);
 
-  // 隐藏页面头部和导航
+  // 隐藏页面头部和导航，确保平台类正确应用
   useEffect(() => {
     if (isVisible) {
+      // 确保平台类正确应用
+      applyPlatformClasses();
+
       const appContainer = document.querySelector('.app-container');
       const pageHeader = appContainer?.querySelector('.header');
       // 尝试多种选择器来找到底部导航栏

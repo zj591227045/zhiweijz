@@ -15,6 +15,7 @@ import {
 import { AuthenticatedImage } from '@/components/ui/authenticated-image';
 import { processAvatarUrl, getThumbnailProxyUrl } from '@/lib/image-proxy';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 export interface AttachmentFile {
   id: string;
@@ -337,6 +338,13 @@ export function EnhancedAttachmentPreview({
     if (!currentFile) return;
 
     try {
+      // 检测平台
+      const isCapacitor = !!(typeof window !== 'undefined' && (window as any).Capacitor);
+      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        typeof window !== 'undefined' ? navigator.userAgent : ''
+      );
+      const isImage = currentFile.mimeType.startsWith('image/');
+
       // 获取图片URL
       const imageUrl = processedUrl || currentFile.url;
       if (!imageUrl) {
@@ -344,30 +352,15 @@ export function EnhancedAttachmentPreview({
         return;
       }
 
-      // 创建一个临时的下载链接
-      const link = document.createElement('a');
-      link.href = imageUrl;
-      link.download = currentFile.originalName || `image-${Date.now()}.jpg`;
-      
-      // 对于跨域图片，尝试通过fetch获取blob
-      try {
-        const response = await fetch(imageUrl);
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        link.href = blobUrl;
-      } catch (error) {
-        console.warn('无法通过fetch下载，使用直接链接:', error);
-        // 如果fetch失败，回退到直接链接下载
-      }
-
-      // 触发下载
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // 如果创建了blob URL，记得释放
-      if (link.href.startsWith('blob:')) {
-        URL.revokeObjectURL(link.href);
+      // 移动端且是图片时，尝试保存到相册
+      if (isCapacitor && isImage) {
+        await handleMobileSaveToGallery(imageUrl, currentFile.originalName);
+      } else if (isMobile && isImage) {
+        // Web移动端，提供选择
+        await handleWebMobileSave(imageUrl, currentFile.originalName);
+      } else {
+        // 桌面端或非图片文件，使用传统下载
+        await handleDesktopDownload(imageUrl, currentFile.originalName);
       }
 
       // 如果有外部回调，也调用它
@@ -380,6 +373,122 @@ export function EnhancedAttachmentPreview({
       if (onDownload) {
         onDownload(currentFile);
       }
+    }
+  };
+
+  // Capacitor移动端保存到相册
+  const handleMobileSaveToGallery = async (imageUrl: string, fileName: string) => {
+    try {
+      // 动态导入Capacitor插件
+      const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
+
+      // 下载图片数据
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+
+      // 转换为base64
+      const reader = new FileReader();
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const result = reader.result as string;
+          // 移除data:image/...;base64,前缀
+          const base64 = result.split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      // 保存到Documents目录（iOS）或Downloads目录（Android）
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const directory = isIOS ? Directory.Documents : Directory.ExternalStorage;
+      const folderPath = isIOS ? 'Pictures' : 'Download/ZhiWeiJZ';
+
+      // 创建文件名
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const finalFileName = `zhiweijz_${timestamp}.jpg`;
+      const filePath = `${folderPath}/${finalFileName}`;
+
+      // 保存文件
+      await Filesystem.writeFile({
+        path: filePath,
+        data: base64Data,
+        directory: directory,
+        encoding: Encoding.UTF8
+      });
+
+      // 显示成功提示
+      if (isIOS) {
+        toast.success('图片已保存到文件，请在"文件"应用中查看');
+      } else {
+        toast.success('图片已保存到下载文件夹');
+      }
+    } catch (error) {
+      console.error('保存到相册失败:', error);
+
+      // 尝试使用Share API作为备选方案
+      try {
+        await handleWebMobileSave(imageUrl, fileName);
+      } catch (shareError) {
+        console.error('Share API也失败:', shareError);
+        // 最后回退到传统下载
+        await handleDesktopDownload(imageUrl, fileName);
+      }
+    }
+  };
+
+  // Web移动端保存
+  const handleWebMobileSave = async (imageUrl: string, fileName: string) => {
+    // 检查是否支持Web Share API
+    if (navigator.share && navigator.canShare) {
+      try {
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], fileName, { type: blob.type });
+
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: '保存图片',
+            text: '选择保存位置'
+          });
+          return;
+        }
+      } catch (error) {
+        console.warn('Web Share API失败:', error);
+      }
+    }
+
+    // 回退到传统下载
+    await handleDesktopDownload(imageUrl, fileName);
+  };
+
+  // 桌面端下载
+  const handleDesktopDownload = async (imageUrl: string, fileName: string) => {
+    // 创建一个临时的下载链接
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = fileName || `image-${Date.now()}.jpg`;
+
+    // 对于跨域图片，尝试通过fetch获取blob
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      link.href = blobUrl;
+    } catch (error) {
+      console.warn('无法通过fetch下载，使用直接链接:', error);
+      // 如果fetch失败，回退到直接链接下载
+    }
+
+    // 触发下载
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // 如果创建了blob URL，记得释放
+    if (link.href.startsWith('blob:')) {
+      URL.revokeObjectURL(link.href);
     }
   };
 
@@ -449,17 +558,17 @@ export function EnhancedAttachmentPreview({
               }}
               fallback={
                 <div className="flex flex-col items-center justify-center text-white p-8">
-                  <div className="w-16 h-16 bg-gray-600 rounded-lg flex items-center justify-center mb-4">
+                  <div className="w-16 h-16 bg-gray-600 dark:bg-gray-500 rounded-lg flex items-center justify-center mb-4">
                     <span className="text-lg font-semibold">IMG</span>
                   </div>
                   <p className="text-lg font-medium mb-2">图片加载失败</p>
-                  <p className="text-sm text-gray-300">{currentFile.originalName}</p>
+                  <p className="text-sm text-gray-300 dark:text-gray-400">{currentFile.originalName}</p>
                 </div>
               }
             />
           </div>
         ) : isPDF ? (
-          <div className="w-full h-full max-w-4xl max-h-full bg-white rounded">
+          <div className="w-full h-full max-w-4xl max-h-full bg-white dark:bg-gray-800 rounded">
             <iframe
               src={processedUrl}
               className="w-full h-full border-0 rounded"
@@ -468,11 +577,11 @@ export function EnhancedAttachmentPreview({
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center text-white">
-            <div className="w-16 h-16 bg-gray-600 rounded-lg flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-gray-600 dark:bg-gray-500 rounded-lg flex items-center justify-center mb-4">
               <span className="text-lg font-semibold">FILE</span>
             </div>
             <p className="text-lg font-medium mb-2">{currentFile.originalName}</p>
-            <p className="text-sm text-gray-300">此文件类型不支持预览</p>
+            <p className="text-sm text-gray-300 dark:text-gray-400">此文件类型不支持预览</p>
           </div>
         )}
 
@@ -535,7 +644,7 @@ export function EnhancedAttachmentPreview({
         onClick={() => setShowActionMenu(false)}
       />
       {/* 长按操作菜单 */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl overflow-hidden z-[100001] min-w-[240px]">
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden z-[100001] min-w-[240px]">
         <div className="py-3">
           {onDownload && (
             <button
@@ -543,27 +652,27 @@ export function EnhancedAttachmentPreview({
                 setShowActionMenu(false);
                 handleDownload();
               }}
-              className="flex items-center px-6 py-4 hover:bg-gray-100 transition-colors duration-150 w-full text-left"
+              className="flex items-center px-6 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150 w-full text-left"
             >
-              <Download className="w-6 h-6 mr-4 text-blue-600" />
-              <span className="text-gray-800 text-lg font-medium">保存图片</span>
+              <Download className="w-6 h-6 mr-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-gray-800 dark:text-gray-200 text-lg font-medium">保存图片</span>
             </button>
           )}
           {onDelete && (
             <button
               onClick={handleDelete}
-              className="flex items-center px-6 py-4 hover:bg-gray-100 transition-colors duration-150 w-full text-left"
+              className="flex items-center px-6 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150 w-full text-left"
             >
-              <Trash2 className="w-6 h-6 mr-4 text-red-600" />
-              <span className="text-red-600 text-lg font-medium">删除图片</span>
+              <Trash2 className="w-6 h-6 mr-4 text-red-600 dark:text-red-400" />
+              <span className="text-red-600 dark:text-red-400 text-lg font-medium">删除图片</span>
             </button>
           )}
           <button
             onClick={() => setShowActionMenu(false)}
-            className="flex items-center px-6 py-4 hover:bg-gray-100 transition-colors duration-150 w-full text-left"
+            className="flex items-center px-6 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150 w-full text-left"
           >
-            <X className="w-6 h-6 mr-4 text-gray-600" />
-            <span className="text-gray-700 text-lg font-medium">取消</span>
+            <X className="w-6 h-6 mr-4 text-gray-600 dark:text-gray-400" />
+            <span className="text-gray-700 dark:text-gray-300 text-lg font-medium">取消</span>
           </button>
         </div>
       </div>
@@ -706,7 +815,7 @@ function EnhancedAttachmentCard({
   }, [file.url]);
 
   return (
-    <div className="relative flex-shrink-0 w-48 h-48 bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+    <div className="relative flex-shrink-0 w-48 h-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       {/* 预览区域 */}
       <div
         className="w-full h-36 cursor-pointer hover:opacity-90 transition-opacity"
@@ -718,17 +827,17 @@ function EnhancedAttachmentCard({
             alt={file.originalName}
             className="w-full h-full object-cover"
             fallback={
-              <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                <span className="text-gray-500">图片加载失败</span>
+              <div className="w-full h-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                <span className="text-gray-500 dark:text-gray-400">图片加载失败</span>
               </div>
             }
           />
         ) : (
-          <div className="w-full h-full bg-gray-50 flex flex-col items-center justify-center">
-            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-2">
-              <span className="text-red-600 font-semibold text-sm">{isPDF ? 'PDF' : 'FILE'}</span>
+          <div className="w-full h-full bg-gray-50 dark:bg-gray-700 flex flex-col items-center justify-center">
+            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mb-2">
+              <span className="text-red-600 dark:text-red-400 font-semibold text-sm">{isPDF ? 'PDF' : 'FILE'}</span>
             </div>
-            <span className="text-xs text-gray-500">点击预览</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">点击预览</span>
           </div>
         )}
       </div>
@@ -736,10 +845,10 @@ function EnhancedAttachmentCard({
       {/* 文件信息 */}
       <div className="p-3 h-12 flex items-center">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate" title={file.originalName}>
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title={file.originalName}>
             {file.originalName}
           </p>
-          <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{formatFileSize(file.size)}</p>
         </div>
       </div>
 
@@ -811,7 +920,7 @@ export function AttachmentThumbnail({
 
   return (
     <div
-      className={`${getSizeClass()} bg-gray-100 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity ${className || ''}`}
+      className={`${getSizeClass()} bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity ${className || ''}`}
       onClick={onClick}
       title={file.originalName}
     >
@@ -821,14 +930,14 @@ export function AttachmentThumbnail({
           alt={file.originalName}
           className="w-full h-full object-cover"
           fallback={
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-              <span className="text-xs text-gray-500">IMG</span>
+            <div className="w-full h-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+              <span className="text-xs text-gray-500 dark:text-gray-400">IMG</span>
             </div>
           }
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center">
-          <span className="text-xs font-medium text-gray-600">{isPDF ? 'PDF' : 'FILE'}</span>
+          <span className="text-xs font-medium text-gray-600 dark:text-gray-300">{isPDF ? 'PDF' : 'FILE'}</span>
         </div>
       )}
     </div>

@@ -133,9 +133,9 @@ export function VersionUpdateDialog({
 
           {/* 更新说明 */}
           {latestVersion.releaseNotes && (
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h4 className="text-sm font-medium mb-2">更新内容</h4>
-              <div className="text-sm text-gray-700 whitespace-pre-wrap">
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+              <h4 className="text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">更新内容</h4>
+              <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                 {latestVersion.releaseNotes}
               </div>
             </div>
@@ -162,13 +162,13 @@ export function VersionUpdateDialog({
 
           {/* 平台特定提示 */}
           {platform === 'android' && latestVersion.downloadUrl && (
-            <div className="text-xs text-gray-500 text-center">
+            <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
               下载更新包后，请允许安装未知来源应用
             </div>
           )}
 
           {platform === 'ios' && latestVersion.appStoreUrl && (
-            <div className="text-xs text-gray-500 text-center">将跳转到App Store进行更新</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 text-center">将跳转到App Store进行更新</div>
           )}
         </div>
       </DialogContent>
@@ -191,16 +191,16 @@ export function VersionCheckIndicator({ isChecking, error, onRetry }: VersionChe
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {isChecking && (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 flex items-center gap-2">
-          <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-sm text-gray-600">检查更新中...</span>
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 flex items-center gap-2">
+          <div className="w-4 h-4 border-2 border-blue-500 dark:border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-sm text-gray-600 dark:text-gray-300">检查更新中...</span>
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg shadow-lg p-3 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-red-500" />
-          <span className="text-sm text-red-700">{error}</span>
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg shadow-lg p-3 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-red-500 dark:text-red-400" />
+          <span className="text-sm text-red-700 dark:text-red-200">{error}</span>
           <Button onClick={onRetry} variant="outline" size="sm" className="ml-2">
             重试
           </Button>

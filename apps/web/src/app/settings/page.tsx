@@ -376,24 +376,7 @@ export default function SettingsPage() {
         </button>
       </div>
 
-      {/* 开发者选项 - 在开发环境或移动端构建时显示 */}
-      {(process.env.NODE_ENV === 'development' || process.env.IS_MOBILE_BUILD === 'true') && (
-        <div className="settings-group">
-          <div className="group-title">开发者选项</div>
-          <Link href="/payment-test" className="settings-item">
-            <div className="item-icon">
-              <i className="fas fa-credit-card"></i>
-            </div>
-            <div className="item-content">
-              <div className="item-title">支付测试</div>
-              <div className="item-description">iOS支付功能诊断和测试</div>
-            </div>
-            <div className="item-action">
-              <i className="fas fa-chevron-right"></i>
-            </div>
-          </Link>
-        </div>
-      )}
+
 
       <div className="settings-group">
         <div className="group-title">关于</div>

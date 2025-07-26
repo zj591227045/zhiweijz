@@ -91,36 +91,36 @@ export function VersionUpdate({ className, isAdmin = false }: VersionUpdateProps
   };
 
   return (
-    <div className={`bg-white rounded-lg border p-4 ${className}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 ${className}`}>
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium">版本更新</h3>
-          <div className="mt-1 text-sm text-gray-500">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">版本更新</h3>
+          <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             <div>
               当前版本: {currentVersion} ({currentBuildNumber})
             </div>
-            <div className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-100 mt-1">
+            <div className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 mt-1">
               {getPlatformDisplayName(platform)}
             </div>
             {isAdmin && (
-              <div className="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-100 text-blue-800 mt-1 ml-2">
+              <div className="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 mt-1 ml-2">
                 管理端
               </div>
             )}
           </div>
 
           {hasUpdate && updateInfo?.latestVersion && (
-            <div className="mt-2 p-3 bg-blue-50 rounded-lg">
-              <div className="text-sm font-medium text-blue-900">
+            <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <div className="text-sm font-medium text-blue-900 dark:text-blue-100">
                 发现新版本: {updateInfo.latestVersion.version}
               </div>
               {updateInfo.latestVersion.releaseNotes && (
-                <div className="mt-1 text-xs text-blue-800">
+                <div className="mt-1 text-xs text-blue-800 dark:text-blue-300">
                   {updateInfo.latestVersion.releaseNotes}
                 </div>
               )}
               {updateInfo.latestVersion.isForceUpdate && (
-                <div className="mt-1 text-xs text-red-600 font-medium">⚠️ 强制更新</div>
+                <div className="mt-1 text-xs text-red-600 dark:text-red-400 font-medium">⚠️ 强制更新</div>
               )}
             </div>
           )}
@@ -128,7 +128,7 @@ export function VersionUpdate({ className, isAdmin = false }: VersionUpdateProps
 
         <div className="ml-4">
           {hasUpdate ? (
-            <Button onClick={handleUpdate} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button onClick={handleUpdate} className="bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 text-white">
               立即更新
             </Button>
           ) : (
