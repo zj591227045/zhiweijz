@@ -1958,7 +1958,6 @@ export default function EnhancedSmartAccountingDialog({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  autoFocus={!isProcessingMultimodal}
                   readOnly={isProcessingMultimodal && description.includes('快捷指令')}
                 />
               </div>

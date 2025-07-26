@@ -996,7 +996,6 @@ export function SmartAccountingDialog({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  autoFocus
                 />
               </div>
 
