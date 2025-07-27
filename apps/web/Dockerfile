@@ -11,14 +11,22 @@ WORKDIR /app
 COPY apps/web/package*.json ./
 COPY package*.json ../
 
-# 配置 npm 以提高网络稳定性
+# 缓存破坏器 - 确保使用最新的网络配置
+RUN echo "Build timestamp: $(date)" > /tmp/build-info
+
+# 配置 npm 以提高网络稳定性和容错性
 RUN npm config set fetch-retry-mintimeout 20000 && \
     npm config set fetch-retry-maxtimeout 120000 && \
-    npm config set fetch-retries 5 && \
-    npm config set registry https://registry.npmjs.org/
+    npm config set fetch-retries 10 && \
+    npm config set fetch-timeout 300000 && \
+    npm config set registry https://registry.npmmirror.com/ && \
+    npm config set maxsockets 5
 
 # 安装所有依赖（构建时需要dev依赖）
-RUN npm install --prefer-offline --no-audit
+# 使用更稳定的安装策略
+RUN npm install --no-audit --loglevel=verbose --progress=false || \
+    (echo "First attempt failed, waiting and retrying..." && sleep 15 && npm install --no-audit --loglevel=verbose --progress=false) || \
+    (echo "Second attempt failed, final retry with cache clean..." && npm cache clean --force && sleep 30 && npm install --no-audit --loglevel=verbose --progress=false)
 
 # 构建阶段
 FROM node:20-alpine AS builder
