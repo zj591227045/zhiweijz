@@ -1951,26 +1951,217 @@ export class AIController {
     }
   }
 
+
+
+  /**
+   * Android MacroDroid截图记账（通过文件上传）
+   * @param req 请求
+   * @param res 响应
+   */
+  async androidScreenshotAccounting(req: Request, res: Response): Promise<void> {
+    try {
+      // 验证token认证
+      const token = req.headers.authorization?.replace('Bearer ', '');
+
+      if (!token) {
+        res.status(401).json({
+          success: false,
+          error: '缺少授权token',
+          message: '请在MacroDroid中配置正确的Authorization头部'
+        });
+        return;
+      }
+
+      // 验证快捷指令token
+      const tokenValidation = this.validateShortcutsToken(token);
+      if (!tokenValidation.valid) {
+        res.status(401).json({
+          success: false,
+          error: '无效或过期的token',
+          message: '请重新获取token或检查token是否正确'
+        });
+        return;
+      }
+
+      const userId = tokenValidation.userId!;
+      const { accountBookId } = req.body;
+
+      // 检查是否有上传的文件
+      if (!req.file) {
+        res.status(400).json({
+          success: false,
+          error: '没有上传文件',
+          message: '请确保MacroDroid正确配置了文件上传'
+        });
+        return;
+      }
+
+      // 验证文件类型
+      if (!req.file.mimetype.startsWith('image/')) {
+        res.status(400).json({
+          success: false,
+          error: '文件类型不支持',
+          message: '只支持图片文件'
+        });
+        return;
+      }
+
+      console.log(`🤖 [Android截图记账] 开始处理:`, {
+        userId,
+        accountBookId,
+        fileName: req.file.originalname,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype
+      });
+
+      // 获取默认账本ID（如果没有指定）
+      let targetAccountBookId = accountBookId;
+      if (!targetAccountBookId) {
+        const defaultAccountBook = await this.prisma.accountBook.findFirst({
+          where: {
+            OR: [
+              { userId: userId },
+              {
+                family: {
+                  members: {
+                    some: {
+                      userId: userId,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+          orderBy: { createdAt: 'desc' }
+        });
+
+        if (!defaultAccountBook) {
+          res.status(400).json({
+            success: false,
+            error: '未找到可用的账本',
+            message: '请先在App中创建账本'
+          });
+          return;
+        }
+
+        targetAccountBookId = defaultAccountBook.id;
+        console.log(`🤖 [Android截图记账] 使用默认账本: ${targetAccountBookId}`);
+      }
+
+      // 验证账本权限
+      const accountBook = await this.prisma.accountBook.findFirst({
+        where: {
+          id: targetAccountBookId,
+          OR: [
+            { userId: userId },
+            {
+              family: {
+                members: {
+                  some: {
+                    userId: userId,
+                  },
+                },
+              },
+            },
+          ],
+        },
+      });
+
+      if (!accountBook) {
+        res.status(403).json({
+          success: false,
+          error: '无权访问该账本',
+          message: '请检查账本ID是否正确或您是否有权限访问'
+        });
+        return;
+      }
+
+      // 创建临时文件对象
+      const tempFile = {
+        buffer: req.file.buffer,
+        mimetype: req.file.mimetype,
+        originalname: req.file.originalname || 'android-screenshot.jpg',
+        size: req.file.size
+      } as Express.Multer.File;
+
+      // 调用现有的图片智能记账逻辑
+      const { MultimodalAIController } = await import('./multimodal-ai.controller');
+      const multimodalController = new MultimodalAIController();
+
+      // 创建模拟请求对象
+      const mockReq = {
+        user: { id: userId },
+        file: tempFile,
+        body: { accountBookId: targetAccountBookId }
+      } as any;
+
+      // 创建响应拦截器
+      let visionResult: any = null;
+      let statusCode = 200;
+      const mockRes = {
+        json: (data: any) => { visionResult = data; },
+        status: (code: number) => { statusCode = code; return mockRes; }
+      } as any;
+
+      await multimodalController.smartAccountingVision(mockReq, mockRes);
+
+      if (statusCode === 200 && visionResult?.success) {
+        console.log(`🤖 [Android截图记账] 处理成功:`, {
+          transactionId: visionResult.data?.id,
+          text: visionResult.data?.text?.substring(0, 100) + '...'
+        });
+
+        res.status(201).json({
+          success: true,
+          message: 'Android截图记账成功！',
+          data: {
+            transactionId: visionResult.data?.id,
+            text: visionResult.data?.text,
+            confidence: visionResult.data?.confidence,
+            accountBookId: targetAccountBookId
+          }
+        });
+      } else {
+        console.error(`🤖 [Android截图记账] 处理失败:`, visionResult);
+        res.status(statusCode || 400).json({
+          success: false,
+          error: '图片识别失败',
+          message: visionResult?.error || '无法从图片中提取有效信息'
+        });
+      }
+
+    } catch (error) {
+      console.error('🤖 [Android截图记账] 处理失败:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Android截图记账处理失败',
+        message: error instanceof Error ? error.message : '未知错误'
+      });
+    }
+  }
+
   /**
    * 验证快捷指令token的辅助方法
-   * @param token 要验证的token
-   * @returns 验证结果
    */
-  private validateShortcutsToken(token: string): { valid: boolean; userId?: string } {
+  private validateShortcutsToken(token: string): { valid: boolean; userId?: string; error?: string } {
     try {
       const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
 
-      if (decoded.purpose !== 'shortcuts-upload') {
-        return { valid: false };
+      if (!decoded.userId || !decoded.exp || !decoded.purpose) {
+        return { valid: false, error: 'Token格式无效' };
       }
 
-      if (decoded.exp < Date.now()) {
-        return { valid: false };
+      if (decoded.purpose !== 'shortcuts-upload') {
+        return { valid: false, error: 'Token用途不匹配' };
+      }
+
+      if (Date.now() > decoded.exp) {
+        return { valid: false, error: 'Token已过期' };
       }
 
       return { valid: true, userId: decoded.userId };
     } catch (error) {
-      return { valid: false };
+      return { valid: false, error: 'Token解析失败' };
     }
   }
 

@@ -75,7 +75,7 @@ function handleXCallbackError(callbackUrl: string, errorMessage: string) {
 
 // 深度链接参数接口
 interface ShortcutsDeepLinkParams {
-  type: 'image' | 'get-token'; // 支持图片记账和获取token
+  type: 'image' | 'get-token' | 'android-token'; // 支持图片记账、获取token和Android token
   data?: string;
   imageUrl?: string; // 图片URL（新方案）
   accountId?: string;
@@ -181,8 +181,8 @@ function parseShortcutsUrl(url: string): ShortcutsDeepLinkParams | null {
       return null;
     }
 
-    if (type !== 'image' && type !== 'get-token') {
-      console.error('🔗 [ShortcutsHandler] 无效的类型参数，支持的类型: image, get-token:', type);
+    if (type !== 'image' && type !== 'get-token' && type !== 'android-token') {
+      console.error('🔗 [ShortcutsHandler] 无效的类型参数，支持的类型: image, get-token, android-token:', type);
       return null;
     }
 
@@ -423,6 +423,33 @@ export async function handleShortcutsDeepLink(url: string): Promise<ShortcutsHan
         }
         return result;
       }
+    } else if (params.type === 'android-token') {
+      // 获取Android专用token
+      result = await handleGetAndroidToken(params.source);
+
+      // 显示结果给用户
+      if (result.success && result.data) {
+        toast.success('Android Token获取成功！', {
+          description: '请复制以下信息到MacroDroid中配置',
+          duration: 5000
+        });
+
+        // 显示Android配置信息
+        if (typeof window !== 'undefined') {
+          const event = new CustomEvent('showAndroidTokenDialog', {
+            detail: result.data
+          });
+          window.dispatchEvent(event);
+        }
+
+        return result;
+      } else {
+        toast.error(result.message, {
+          description: 'Android Token获取失败',
+          duration: 5000
+        });
+        return result;
+      }
     } else if (params.type === 'image') {
       // 图片记账 - 打开智能记账模态框并复用UI
       if (params.imageUrl) {
@@ -474,6 +501,98 @@ export async function handleShortcutsDeepLink(url: string): Promise<ShortcutsHan
     return {
       success: false,
       message: '处理失败'
+    };
+  }
+}
+
+/**
+ * 获取Android专用token
+ */
+async function handleGetAndroidToken(source?: string): Promise<ShortcutsHandleResult> {
+  try {
+    console.log('🤖 [AndroidHandler] 开始获取Android token');
+
+    const response = await apiClient.get('/ai/shortcuts/token');
+
+    console.log('🤖 [AndroidHandler] API响应:', {
+      status: response?.status,
+      data: response?.data || response,
+      hasSuccess: !!(response?.data?.success || response?.success),
+      hasToken: !!(response?.data?.token || response?.token)
+    });
+
+    // 检查响应数据
+    const responseData = response?.data || response;
+
+    if (responseData?.success && responseData?.token) {
+      console.log('🤖 [AndroidHandler] 获取token成功');
+
+      // 动态确定API基础URL
+      let apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL;
+      if (!apiBaseUrl) {
+        // 从当前页面URL推断API地址
+        const currentUrl = window.location.origin;
+        if (currentUrl.includes('localhost') || currentUrl.includes('127.0.0.1')) {
+          apiBaseUrl = 'http://localhost:3000';
+        } else if (currentUrl.includes('jz-dev.jacksonz.cn')) {
+          apiBaseUrl = 'https://jz-dev.jacksonz.cn:4443';
+        } else {
+          apiBaseUrl = 'https://app.zhiweijz.cn:1443';
+        }
+      }
+
+      // 返回Android配置信息
+      const androidConfig = {
+        token: responseData.token,
+        uploadUrl: `${apiBaseUrl}/api/ai/android/screenshot-accounting`,
+        checkTokenUrl: `${apiBaseUrl}/api/ai/shortcuts/check-token`,
+        expiresIn: responseData.expiresIn,
+        expiresAt: responseData.expiresAt,
+        // MacroDroid配置说明
+        macrodroidConfig: {
+          httpMethod: 'POST',
+          contentType: 'multipart/form-data',
+          authorizationHeader: `Bearer ${responseData.token}`,
+          fileFieldName: 'image',
+          bodyParameters: {
+            accountBookId: '可选，不填则使用默认账本'
+          }
+        }
+      };
+
+      return {
+        success: true,
+        message: 'Android Token获取成功',
+        data: androidConfig
+      };
+    } else {
+      console.error('🤖 [AndroidHandler] Token获取失败 - 响应格式不正确:', responseData);
+      return {
+        success: false,
+        message: 'Android Token获取失败 - 响应格式不正确'
+      };
+    }
+  } catch (error: any) {
+    console.error('🤖 [AndroidHandler] 获取token失败:', {
+      message: error?.message,
+      status: error?.response?.status,
+      statusText: error?.response?.statusText,
+      data: error?.response?.data,
+      url: error?.config?.url,
+      method: error?.config?.method,
+      fullError: error
+    });
+
+    let errorMessage = 'Android Token获取失败';
+    if (error?.response?.data?.error) {
+      errorMessage = error.response.data.error;
+    } else if (error?.message) {
+      errorMessage = error.message;
+    }
+
+    return {
+      success: false,
+      message: errorMessage
     };
   }
 }

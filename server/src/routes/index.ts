@@ -67,12 +67,21 @@ router.use('/account-books', authenticate, dailyFirstVisitGift, accountBookRoute
 router.use('/families', authenticate, dailyFirstVisitGift, familyRoutes);
 router.use('/statistics', authenticate, dailyFirstVisitGift, statisticsRoutes);
 router.use('/security', authenticate, dailyFirstVisitGift, securityRoutes);
-// AI路由 - 大部分需要认证，但check-token接口除外
+// AI路由 - 大部分需要认证，但某些接口除外
 router.use('/ai', (req, res, next) => {
-  // check-token接口不需要认证
-  if (req.path === '/shortcuts/check-token' && req.method === 'POST') {
+  // 不需要认证的接口列表
+  const publicPaths = [
+    '/shortcuts/check-token',
+    '/android/screenshot-accounting'
+  ];
+
+  // 检查是否是公共接口
+  const isPublicPath = publicPaths.some(path => req.path === path);
+
+  if (isPublicPath) {
     return next();
   }
+
   // 其他AI接口需要认证
   authenticate(req, res, next);
 }, dailyFirstVisitGift, aiRoutes);

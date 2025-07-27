@@ -1,9 +1,26 @@
 import { Router } from 'express';
 import { AIController } from '../controllers/ai-controller';
 import { authenticate } from '../middlewares/auth.middleware';
+import multer from 'multer';
 
 const router = Router();
 const aiController = new AIController();
+
+// 配置multer用于Android文件上传
+const androidUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB限制
+  },
+  fileFilter: (req, file, cb) => {
+    // 只允许图片文件
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('只允许上传图片文件'));
+    }
+  }
+});
 
 /**
  * @route GET /api/ai/providers
@@ -182,6 +199,17 @@ router.post(
   '/shortcuts/image-accounting',
   authenticate,
   aiController.shortcutsImageAccounting.bind(aiController),
+);
+
+/**
+ * @route POST /ai/android/screenshot-accounting
+ * @desc Android MacroDroid截图记账（通过文件上传）
+ * @access Public (使用token认证)
+ */
+router.post(
+  '/android/screenshot-accounting',
+  androidUpload.single('image'),
+  aiController.androidScreenshotAccounting.bind(aiController),
 );
 
 export default router;
