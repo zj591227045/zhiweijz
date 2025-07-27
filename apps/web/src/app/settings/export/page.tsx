@@ -7,6 +7,8 @@ import { useAccountBookStore } from '@/store/account-book-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { exportService } from '@/lib/api-services';
 import { toast } from 'sonner';
+import { useMobileBackHandler } from '@/hooks/use-mobile-back-handler';
+import { PageLevel } from '@/lib/mobile-navigation';
 import './export.css';
 
 export default function ExportPage() {
@@ -15,6 +17,19 @@ export default function ExportPage() {
   const { currentAccountBook } = useAccountBookStore();
   const [isExporting, setIsExporting] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<'csv' | 'json'>('csv');
+
+  // 移动端后退处理
+  useMobileBackHandler({
+    pageId: 'settings-export',
+    pageLevel: PageLevel.MODAL,
+    enableHardwareBack: true,
+    enableBrowserBack: true,
+    onBack: () => {
+      // 数据导出页面后退到设置页面
+      router.push('/settings');
+      return true; // 已处理
+    },
+  });
 
   // 如果未登录，重定向到登录页
   useEffect(() => {

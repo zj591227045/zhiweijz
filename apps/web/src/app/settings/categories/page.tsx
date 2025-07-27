@@ -11,6 +11,8 @@ import CategoryEditModal from '@/components/category-edit-modal';
 import { useCategoryStore } from '@/store/category-store';
 import { toast } from 'sonner';
 import { Category, TransactionType } from '@/types';
+import { useMobileBackHandler } from '@/hooks/use-mobile-back-handler';
+import { PageLevel } from '@/lib/mobile-navigation';
 
 export default function CategoryListPage() {
   const router = useRouter();
@@ -22,6 +24,19 @@ export default function CategoryListPage() {
 
   // 分类编辑模态框状态
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+
+  // 移动端后退处理
+  useMobileBackHandler({
+    pageId: 'settings-categories',
+    pageLevel: PageLevel.MODAL,
+    enableHardwareBack: true,
+    enableBrowserBack: true,
+    onBack: () => {
+      // 分类管理页面后退到设置页面
+      router.push('/settings');
+      return true; // 已处理
+    },
+  });
 
   // 获取分类列表
   useEffect(() => {

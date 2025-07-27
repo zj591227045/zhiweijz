@@ -389,21 +389,40 @@ export class NavigationManager {
       return;
     }
 
+    // 对于模态框页面，推入到模态框栈
+    if (pageInfo.level === PageLevel.MODAL) {
+      // 确保有正确的父页面在页面栈中
+      this.ensureParentPageExists(pageInfo.path);
+
+      store.pushModal(pageInfo);
+      console.log('📱 [NavigationManager] 推入模态框页面:', pageInfo.id);
+      return;
+    }
+
     // 对于功能页面，检查是否应该替换当前页面
     if (pageInfo.level === PageLevel.FEATURE) {
       const currentPage = store.currentPage;
 
-      // 如果当前页面也是功能页面，且不是相同类型，替换而不是推入
+      // 如果当前页面也是功能页面
       if (currentPage && currentPage.level === PageLevel.FEATURE) {
         const currentCategory = this.getPageCategory(currentPage.path);
         const newCategory = this.getPageCategory(pageInfo.path);
 
         // 如果是不同的主要功能区域，替换而不是推入
         if (currentCategory !== newCategory) {
+          // 确保仪表盘页面在栈底
+          this.ensureDashboardInStack();
           this.replacePage(pageInfo);
           console.log('📱 [NavigationManager] 替换功能页面:', pageInfo.id);
           return;
+        } else if (currentPage.path === pageInfo.path) {
+          // 相同页面，不重复推入
+          console.log('📱 [NavigationManager] 相同功能页面，跳过推入:', pageInfo.id);
+          return;
         }
+      } else {
+        // 当前页面不是功能页面，确保仪表盘页面在栈中
+        this.ensureDashboardInStack();
       }
     }
 
@@ -443,6 +462,79 @@ export class NavigationManager {
     if (path.startsWith('/settings')) return 'settings';
     if (path.startsWith('/auth')) return 'auth';
     return 'other';
+  }
+
+  // 确保仪表盘页面在页面栈中
+  private ensureDashboardInStack() {
+    const store = useNavigationStore.getState();
+
+    // 检查是否有仪表盘页面
+    const hasDashboard = store.pageStack.some(page => page.level === PageLevel.DASHBOARD);
+
+    if (!hasDashboard) {
+      // 在栈底添加仪表盘页面
+      const dashboardPage: Omit<PageInfo, 'timestamp'> = {
+        id: 'dashboard',
+        level: PageLevel.DASHBOARD,
+        title: '仪表盘',
+        path: '/dashboard',
+        canGoBack: false,
+      };
+
+      // 将仪表盘页面插入到栈底
+      const timestamp = Date.now();
+      const newDashboardPage: PageInfo = { ...dashboardPage, timestamp };
+
+      useNavigationStore.setState((state) => ({
+        pageStack: [newDashboardPage, ...state.pageStack],
+        canGoBack: true, // 现在有多个页面了
+      }));
+
+      console.log('📱 [NavigationManager] 自动添加仪表盘页面到栈底');
+    }
+  }
+
+  // 确保父页面存在于页面栈中
+  private ensureParentPageExists(modalPath: string) {
+    const store = useNavigationStore.getState();
+
+    // 首先确保仪表盘在栈中
+    this.ensureDashboardInStack();
+
+    // 根据模态框路径推断父页面路径
+    let parentPath = '';
+    let parentTitle = '';
+
+    if (modalPath.startsWith('/settings/')) {
+      parentPath = '/settings';
+      parentTitle = '设置';
+    } else if (modalPath.startsWith('/budgets/')) {
+      parentPath = '/budgets';
+      parentTitle = '预算管理';
+    } else if (modalPath.startsWith('/transactions/')) {
+      parentPath = '/transactions';
+      parentTitle = '记账记录';
+    } else {
+      // 无法推断父页面，跳过
+      return;
+    }
+
+    // 检查父页面是否已在页面栈中
+    const parentExists = store.pageStack.some(page => page.path === parentPath);
+
+    if (!parentExists) {
+      // 推入父页面
+      const parentPageInfo: Omit<PageInfo, 'timestamp'> = {
+        id: parentPath.replace(/^\//, '').replace(/\//g, '_') || 'dashboard',
+        level: PageLevel.FEATURE,
+        title: parentTitle,
+        path: parentPath,
+        canGoBack: true,
+      };
+
+      store.pushPage(parentPageInfo);
+      console.log('📱 [NavigationManager] 自动推入父页面:', parentPageInfo);
+    }
   }
 
   // 处理模态框导航

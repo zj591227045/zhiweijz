@@ -11,6 +11,8 @@ import { useAccountBookStore } from '@/store/account-book-store';
 import { toast } from 'sonner';
 import { fetchApi } from '@/lib/api-client';
 import { AccountBook } from '@/types';
+import { useMobileBackHandler } from '@/hooks/use-mobile-back-handler';
+import { PageLevel } from '@/lib/mobile-navigation';
 import './books.css';
 
 export default function BookListPage() {
@@ -34,6 +36,19 @@ export default function BookListPage() {
   const [bookToReset, setBookToReset] = useState<AccountBook | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [bookToEdit, setBookToEdit] = useState<AccountBook | null>(null);
+
+  // 移动端后退处理
+  useMobileBackHandler({
+    pageId: 'settings-books',
+    pageLevel: PageLevel.MODAL,
+    enableHardwareBack: true,
+    enableBrowserBack: true,
+    onBack: () => {
+      // 账本管理页面后退到设置页面
+      router.push('/settings');
+      return true; // 已处理
+    },
+  });
 
   // 获取账本列表
   useEffect(() => {

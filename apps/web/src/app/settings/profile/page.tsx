@@ -10,6 +10,8 @@ import { userService, UserProfile } from '@/lib/api/user-service';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { PresetAvatar } from '@/data/preset-avatars';
+import { useMobileBackHandler } from '@/hooks/use-mobile-back-handler';
+import { PageLevel } from '@/lib/mobile-navigation';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -18,6 +20,19 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  // 移动端后退处理
+  useMobileBackHandler({
+    pageId: 'settings-profile',
+    pageLevel: PageLevel.MODAL,
+    enableHardwareBack: true,
+    enableBrowserBack: true,
+    onBack: () => {
+      // 个人资料页面后退到设置页面
+      router.push('/settings');
+      return true; // 已处理
+    },
+  });
 
   // 获取用户资料
   useEffect(() => {

@@ -10,6 +10,8 @@ import { useGlobalAIStore } from '@/store/global-ai-store';
 import { useAuthStore } from '@/store/auth-store';
 import { useAccountingPointsStore } from '@/store/accounting-points-store';
 import { useMembershipStore } from '@/store/membership-store';
+import { useMobileBackHandler } from '@/hooks/use-mobile-back-handler';
+import { PageLevel } from '@/lib/mobile-navigation';
 import styles from './ai-services.module.css';
 
 interface AIService {
@@ -55,6 +57,19 @@ export default function AIServicesPage() {
   } = useMembershipStore();
 
   const [showTransactionHistory, setShowTransactionHistory] = useState(false);
+
+  // 移动端后退处理
+  useMobileBackHandler({
+    pageId: 'settings-ai-services',
+    pageLevel: PageLevel.MODAL,
+    enableHardwareBack: true,
+    enableBrowserBack: true,
+    onBack: () => {
+      // AI服务页面后退到设置页面
+      router.push('/settings');
+      return true; // 已处理
+    },
+  });
 
   // 加载AI服务状态和记账点信息
   useEffect(() => {

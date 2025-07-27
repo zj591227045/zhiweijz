@@ -24,6 +24,8 @@ import { useAccountingPointsStore } from '../../../store/accounting-points-store
 import { MobilePaymentModal } from '../../../components/MobilePaymentModal';
 import { SubscriptionUpgradeCard } from '../../../components/SubscriptionUpgradeCard';
 import { MobilePaymentService } from '../../../services/mobile-payment.service';
+import { useMobileBackHandler } from '@/hooks/use-mobile-back-handler';
+import { PageLevel } from '@/lib/mobile-navigation';
 
 export default function MembershipCenter() {
   const router = useRouter();
@@ -42,6 +44,19 @@ export default function MembershipCenter() {
     markNotificationAsRead,
     clearError,
   } = useMembershipStore();
+
+  // 移动端后退处理
+  useMobileBackHandler({
+    pageId: 'settings-membership',
+    pageLevel: PageLevel.MODAL,
+    enableHardwareBack: true,
+    enableBrowserBack: true,
+    onBack: () => {
+      // 会员中心页面后退到设置页面
+      router.push('/settings');
+      return true; // 已处理
+    },
+  });
 
   const {
     balance: accountingBalance,

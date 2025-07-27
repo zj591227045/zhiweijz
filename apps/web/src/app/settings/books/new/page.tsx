@@ -6,12 +6,27 @@ import { PageContainer } from '@/components/layout/page-container';
 import { BookForm, BookFormValues } from '@/components/books/book-form';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { toast } from 'sonner';
+import { useMobileBackHandler } from '@/hooks/use-mobile-back-handler';
+import { PageLevel } from '@/lib/mobile-navigation';
 import '../book-form.css';
 
 export default function CreateBookPage() {
   const router = useRouter();
   const { createAccountBook } = useAccountBookStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 移动端后退处理
+  useMobileBackHandler({
+    pageId: 'settings-books-new',
+    pageLevel: PageLevel.MODAL,
+    enableHardwareBack: true,
+    enableBrowserBack: true,
+    onBack: () => {
+      // 新建账本页面后退到账本管理页面
+      router.push('/settings/books');
+      return true; // 已处理
+    },
+  });
 
   // 提交表单
   const handleSubmit = async (data: BookFormValues) => {

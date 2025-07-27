@@ -31,9 +31,9 @@ interface GestureConfig {
 const DEFAULT_GESTURE_CONFIG: GestureConfig = {
   enabled: true,
   sensitivity: 0.3,
-  minDistance: 50,
-  maxTime: 300,
-  edgeWidth: 20,
+  minDistance: 30, // 降低最小距离，提高灵敏度
+  maxTime: 500,    // 增加最大时间，允许更慢的手势
+  edgeWidth: 30,   // 增加边缘检测区域
 };
 
 // 触摸点信息
@@ -144,6 +144,7 @@ export class PlatformGestureHandler {
   private setupEdgeSwipeGestures() {
     let startTouch: TouchPoint | null = null;
     let isEdgeSwipe = false;
+    let swipeIndicator: HTMLElement | null = null;
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length !== 1) return;
@@ -160,6 +161,9 @@ export class PlatformGestureHandler {
         };
         isEdgeSwipe = true;
 
+        // 创建滑动指示器
+        this.createSwipeIndicator(isLeftEdge ? 'left' : 'right');
+
         console.log('👆 [GestureHandler] 边缘滑动开始:', {
           x: touch.clientX,
           edge: isLeftEdge ? 'left' : 'right',
@@ -175,28 +179,49 @@ export class PlatformGestureHandler {
       const deltaY = touch.clientY - startTouch.y;
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-      // 检查是否为有效的水平滑动
-      if (Math.abs(deltaX) > Math.abs(deltaY) && distance > this.config.minDistance) {
-        const direction = deltaX > 0 ? 'right' : 'left';
+      // 更新滑动指示器
+      this.updateSwipeIndicator(deltaX);
 
-        // 只处理从左边缘向右滑动（后退手势）
-        if (startTouch.x <= this.config.edgeWidth && direction === 'right') {
-          console.log('👆 [GestureHandler] 检测到后退手势');
+      // 检查手势有效性
+      const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY) * 1.5; // 更严格的水平检测
+      const isMinDistance = distance > this.config.minDistance;
+      const isValidTime = Date.now() - startTouch.timestamp < this.config.maxTime;
+      const direction = deltaX > 0 ? 'right' : 'left';
+      const isFromLeftEdge = startTouch.x <= this.config.edgeWidth;
+      const isBackGesture = direction === 'right' && isFromLeftEdge;
 
-          // 阻止默认行为
-          e.preventDefault();
+      // 检查是否为有效的后退手势
+      if (isHorizontalSwipe && isMinDistance && isValidTime && isBackGesture) {
+        console.log('👆 [GestureHandler] 检测到有效后退手势:', {
+          deltaX,
+          deltaY,
+          distance,
+          duration: Date.now() - startTouch.timestamp
+        });
 
-          // 触发后退处理
-          this.handleBackGesture();
+        // 阻止默认行为
+        e.preventDefault();
 
-          // 重置状态
-          startTouch = null;
-          isEdgeSwipe = false;
-        }
+        // 触发后退处理
+        this.handleBackGesture();
+
+        // 重置状态
+        this.cleanupSwipeIndicator();
+        startTouch = null;
+        isEdgeSwipe = false;
+      } else if (isMinDistance && !isHorizontalSwipe) {
+        // 如果不是水平滑动，取消手势
+        console.log('👆 [GestureHandler] 非水平滑动，取消手势');
+        this.cleanupSwipeIndicator();
+        startTouch = null;
+        isEdgeSwipe = false;
       }
     };
 
     const handleTouchEnd = () => {
+      if (isEdgeSwipe) {
+        this.cleanupSwipeIndicator();
+      }
       startTouch = null;
       isEdgeSwipe = false;
     };
@@ -312,25 +337,183 @@ export class PlatformGestureHandler {
   private handleBackGesture() {
     console.log('⬅️ [GestureHandler] 处理后退手势');
 
-    // 使用导航管理器处理后退
+    // 添加触觉反馈
+    this.triggerHapticFeedback();
+
+    // 添加视觉反馈
+    this.triggerVisualFeedback();
+
+    // 优先通知注册的监听器（useMobileBackHandler）
+    for (const listener of this.gestureListeners) {
+      if (listener('left')) {
+        console.log('⬅️ [GestureHandler] 监听器已处理后退手势');
+        return;
+      }
+    }
+
+    // 如果没有监听器处理，使用导航管理器处理后退
     const handled = navigationManager.handleBackAction();
 
     if (!handled) {
-      console.log('⬅️ [GestureHandler] 导航管理器未处理，尝试其他方式');
-
-      // 通知注册的监听器
-      for (const listener of this.gestureListeners) {
-        if (listener('left')) {
-          console.log('⬅️ [GestureHandler] 监听器已处理后退手势');
-          return;
-        }
-      }
+      console.log('⬅️ [GestureHandler] 导航管理器未处理，尝试浏览器历史后退');
 
       // 最后尝试浏览器历史后退
       if (window.history.length > 1) {
         console.log('⬅️ [GestureHandler] 执行浏览器历史后退');
         window.history.back();
       }
+    } else {
+      console.log('⬅️ [GestureHandler] 导航管理器已处理后退');
+    }
+  }
+
+  // 触发触觉反馈
+  private triggerHapticFeedback() {
+    try {
+      // iOS设备的触觉反馈
+      if ('navigator' in window && 'vibrate' in navigator) {
+        // 轻微振动反馈
+        navigator.vibrate(50);
+        console.log('📳 [GestureHandler] 触发触觉反馈');
+      }
+
+      // Capacitor环境的触觉反馈
+      const capacitor = (window as any).Capacitor;
+      if (capacitor?.Plugins?.Haptics) {
+        capacitor.Plugins.Haptics.impact({ style: 'light' });
+        console.log('📳 [GestureHandler] 触发Capacitor触觉反馈');
+      }
+    } catch (error) {
+      console.warn('📳 [GestureHandler] 触觉反馈失败:', error);
+    }
+  }
+
+  // 触发视觉反馈
+  private triggerVisualFeedback() {
+    try {
+      // 创建临时的视觉反馈元素
+      const feedbackElement = document.createElement('div');
+      feedbackElement.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.1);
+        pointer-events: none;
+        z-index: 9999;
+        animation: gestureFlash 0.2s ease-out;
+      `;
+
+      // 添加动画样式
+      if (!document.getElementById('gesture-feedback-styles')) {
+        const style = document.createElement('style');
+        style.id = 'gesture-feedback-styles';
+        style.textContent = `
+          @keyframes gestureFlash {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+          }
+
+          @keyframes swipeIndicator {
+            0% { transform: translateX(-100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+          }
+
+          @keyframes swipeProgress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      document.body.appendChild(feedbackElement);
+
+      // 200ms后移除元素
+      setTimeout(() => {
+        if (feedbackElement.parentNode) {
+          feedbackElement.parentNode.removeChild(feedbackElement);
+        }
+      }, 200);
+
+      console.log('✨ [GestureHandler] 触发视觉反馈');
+    } catch (error) {
+      console.warn('✨ [GestureHandler] 视觉反馈失败:', error);
+    }
+  }
+
+  // 创建滑动指示器
+  private createSwipeIndicator(edge: 'left' | 'right') {
+    try {
+      // 清理可能存在的指示器
+      this.cleanupSwipeIndicator();
+
+      const indicator = document.createElement('div');
+      indicator.id = 'swipe-indicator';
+      indicator.style.cssText = `
+        position: fixed;
+        top: 0;
+        ${edge}: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(to bottom, rgba(0, 122, 255, 0.8), rgba(0, 122, 255, 0.4));
+        pointer-events: none;
+        z-index: 9998;
+        transform: translateX(${edge === 'left' ? '-100%' : '100%'});
+        transition: transform 0.2s ease-out;
+      `;
+
+      document.body.appendChild(indicator);
+
+      // 触发动画
+      requestAnimationFrame(() => {
+        indicator.style.transform = 'translateX(0)';
+      });
+
+      console.log('📍 [GestureHandler] 创建滑动指示器:', edge);
+    } catch (error) {
+      console.warn('📍 [GestureHandler] 创建滑动指示器失败:', error);
+    }
+  }
+
+  // 更新滑动指示器
+  private updateSwipeIndicator(deltaX: number) {
+    try {
+      const indicator = document.getElementById('swipe-indicator');
+      if (!indicator) return;
+
+      // 计算进度（0-1）
+      const progress = Math.min(Math.abs(deltaX) / 100, 1);
+
+      // 更新指示器的透明度和宽度
+      indicator.style.opacity = (0.4 + progress * 0.6).toString();
+      indicator.style.width = (4 + progress * 6) + 'px';
+
+      // 当进度达到阈值时，改变颜色
+      if (progress > 0.7) {
+        indicator.style.background = 'linear-gradient(to bottom, rgba(52, 199, 89, 0.8), rgba(52, 199, 89, 0.4))';
+      }
+    } catch (error) {
+      console.warn('📍 [GestureHandler] 更新滑动指示器失败:', error);
+    }
+  }
+
+  // 清理滑动指示器
+  private cleanupSwipeIndicator() {
+    try {
+      const indicator = document.getElementById('swipe-indicator');
+      if (indicator) {
+        indicator.style.transform = 'translateX(-100%)';
+        setTimeout(() => {
+          if (indicator.parentNode) {
+            indicator.parentNode.removeChild(indicator);
+          }
+        }, 200);
+      }
+    } catch (error) {
+      console.warn('📍 [GestureHandler] 清理滑动指示器失败:', error);
     }
   }
 
@@ -338,6 +521,12 @@ export class PlatformGestureHandler {
   public addGestureListener(listener: (direction: 'left' | 'right') => boolean) {
     this.gestureListeners.add(listener);
     console.log('👂 [GestureHandler] 添加手势监听器');
+  }
+
+  // 移除手势监听器
+  public removeGestureListener(listener: (direction: 'left' | 'right') => boolean) {
+    this.gestureListeners.delete(listener);
+    console.log('👂 [GestureHandler] 移除手势监听器');
   }
 
   // 移除手势监听器

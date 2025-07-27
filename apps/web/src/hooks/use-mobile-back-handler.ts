@@ -6,6 +6,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useNavigationStore, navigationManager, PageLevel } from '@/lib/mobile-navigation';
+import { platformGestureHandler } from '@/lib/platform-gesture-handler';
 
 interface BackHandlerOptions {
   // 是否启用硬件后退按钮处理
@@ -37,20 +38,30 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
   const backHandlerRef = useRef<(() => boolean) | null>(null);
   const isHandlingBackRef = useRef(false);
 
-  // 注册页面到导航管理器
+  // 注册页面到导航管理器（仅在没有自动注册的情况下）
   useEffect(() => {
     if (pageId && typeof window !== 'undefined') {
       const currentPath = window.location.pathname;
 
-      navigationManager.navigateToPage({
-        id: pageId,
-        level: pageLevel,
-        title: document.title || pageId,
-        path: currentPath,
-        canGoBack: pageLevel !== PageLevel.DASHBOARD,
-      });
+      // 检查是否已经有页面注册了
+      const state = navigationManager.getNavigationState();
+      const isAlreadyRegistered =
+        state.currentPage?.path === currentPath ||
+        state.modalStack.some(modal => modal.path === currentPath);
 
-      console.log('📱 [BackHandler] 注册页面:', { pageId, pageLevel, path: currentPath });
+      if (!isAlreadyRegistered) {
+        navigationManager.navigateToPage({
+          id: pageId,
+          level: pageLevel,
+          title: document.title || pageId,
+          path: currentPath,
+          canGoBack: pageLevel !== PageLevel.DASHBOARD,
+        });
+
+        console.log('📱 [BackHandler] 手动注册页面:', { pageId, pageLevel, path: currentPath });
+      } else {
+        console.log('📱 [BackHandler] 页面已注册，跳过:', { pageId, path: currentPath });
+      }
     }
   }, [pageId, pageLevel]);
 
@@ -84,18 +95,39 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
         // 导航管理器成功处理了后退
         const state = navigationManager.getNavigationState();
 
+        console.log('📱 [BackHandler] 导航状态详情:', {
+          modalStackLength: state.modalStack.length,
+          pageStackLength: state.pageStack.length,
+          currentPage: state.currentPage,
+          canGoBack: state.canGoBack
+        });
+
         // 根据当前状态决定路由跳转
         if (state.modalStack.length > 0) {
           // 还有模态框，不需要路由跳转
           console.log('📱 [BackHandler] 关闭模态框，保持当前路由');
         } else if (state.currentPage) {
           // 跳转到当前页面
-          console.log('📱 [BackHandler] 跳转到页面:', state.currentPage.path);
-          router.push(state.currentPage.path);
+          console.log('📱 [BackHandler] 准备跳转到页面:', state.currentPage.path);
+
+          // 检查当前路径是否与目标路径不同
+          const currentPath = window.location.pathname;
+          if (currentPath !== state.currentPage.path) {
+            // 使用replace而不是push，避免历史记录混乱
+            setTimeout(() => {
+              console.log('📱 [BackHandler] 执行路由跳转:', state.currentPage.path);
+              router.replace(state.currentPage.path);
+            }, 50); // 稍微延迟确保状态更新完成
+          } else {
+            console.log('📱 [BackHandler] 已在目标页面，无需跳转');
+          }
         } else {
           // 返回仪表盘
           console.log('📱 [BackHandler] 返回仪表盘');
-          router.push('/dashboard');
+          setTimeout(() => {
+            console.log('📱 [BackHandler] 执行跳转到仪表盘');
+            router.replace('/dashboard');
+          }, 50);
         }
 
         return true;
@@ -252,6 +284,25 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
     };
   }, []); // 移除依赖，只在挂载时创建一次
 
+  // 注册手势监听器
+  useEffect(() => {
+    const gestureListener = (direction: 'left' | 'right') => {
+      if (direction === 'left') {
+        console.log('📱 [BackHandler] 收到手势监听器调用');
+        return handleBack();
+      }
+      return false;
+    };
+
+    platformGestureHandler.addGestureListener(gestureListener);
+    console.log('📱 [BackHandler] 注册手势监听器');
+
+    return () => {
+      platformGestureHandler.removeGestureListener(gestureListener);
+      console.log('📱 [BackHandler] 移除手势监听器');
+    };
+  }, [handleBack]);
+
   // 存储当前的后退处理函数引用
   backHandlerRef.current = handleBack;
 
@@ -289,8 +340,15 @@ export function useGlobalBackHandler() {
 
 // 模态框后退处理器
 export function useModalBackHandler(modalId: string, onClose?: () => void) {
+  const navigationState = useNavigationStore();
+  const isModalOpenRef = useRef(true);
+  const isInitializedRef = useRef(false);
+
   const closeModal = useCallback(() => {
     console.log('📱 [ModalBackHandler] 关闭模态框:', modalId);
+
+    // 标记模态框已关闭
+    isModalOpenRef.current = false;
 
     // 从导航管理器中移除模态框
     const removedModal = navigationManager.closeModal();
@@ -313,14 +371,46 @@ export function useModalBackHandler(modalId: string, onClose?: () => void) {
       canGoBack: true,
     });
 
+    isModalOpenRef.current = true;
     console.log('📱 [ModalBackHandler] 注册模态框:', modalId);
 
+    // 延迟设置初始化标志，确保导航状态更新完成
+    const timeoutId = setTimeout(() => {
+      isInitializedRef.current = true;
+    }, 200);
+
     return () => {
+      clearTimeout(timeoutId);
       // 组件卸载时自动关闭模态框
-      navigationManager.closeModal();
-      console.log('📱 [ModalBackHandler] 自动关闭模态框:', modalId);
+      if (isModalOpenRef.current) {
+        navigationManager.closeModal();
+        console.log('📱 [ModalBackHandler] 自动关闭模态框:', modalId);
+      }
     };
   }, [modalId]);
+
+  // 监听导航状态变化，如果模态框被外部弹出，自动关闭组件
+  useEffect(() => {
+    // 只有在初始化完成后才检查状态变化
+    if (!isInitializedRef.current) {
+      return;
+    }
+
+    const currentModal = navigationState.modalStack.find(modal => modal.id === modalId);
+
+    // 如果模态框不在栈中，但组件认为它应该打开，说明被外部关闭了
+    if (!currentModal && isModalOpenRef.current) {
+      console.log('📱 [ModalBackHandler] 检测到模态框被外部关闭:', modalId);
+      isModalOpenRef.current = false;
+
+      // 延迟执行关闭回调，确保导航状态更新完成
+      setTimeout(() => {
+        if (onClose) {
+          onClose();
+        }
+      }, 0);
+    }
+  }, [navigationState.modalStack, modalId, onClose]);
 
   return useMobileBackHandler({
     enableHardwareBack: true,

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { PageContainer } from '@/components/layout/page-container';
 import {
   Smartphone,
@@ -41,6 +42,7 @@ const getIOSVersion = (): number | null => {
 };
 
 export default function ShortcutsSettingsPage() {
+  const router = useRouter();
   const [platform, setPlatform] = useState<'ios' | 'android' | 'other'>('other');
   const [iosVersion, setIOSVersion] = useState<number | null>(null);
   const [currentStep, setCurrentStep] = useState<'intro' | 'install' | 'configure' | 'test' | 'complete'>('intro');
@@ -48,9 +50,14 @@ export default function ShortcutsSettingsPage() {
   // 移动端后退处理
   useMobileBackHandler({
     pageId: 'shortcuts-settings',
-    pageLevel: PageLevel.FEATURE,
+    pageLevel: PageLevel.MODAL,
     enableHardwareBack: true,
     enableBrowserBack: true,
+    onBack: () => {
+      // 快捷记账页面后退到设置页面
+      router.push('/settings');
+      return true; // 已处理
+    },
   });
 
   useEffect(() => {
