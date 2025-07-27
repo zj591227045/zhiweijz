@@ -341,6 +341,39 @@ export class MembershipService {
     }
   }
 
+  // 获取需要检查的活跃会员列表（用于定时任务）
+  async getActiveMembershipsForCheck() {
+    if (!this.enableMembershipSystem) {
+      return [];
+    }
+
+    return await this.prisma.userMembership.findMany({
+      where: {
+        isActive: true,
+        endDate: {
+          not: null
+        }
+      },
+      select: {
+        userId: true,
+        memberType: true,
+        endDate: true
+      }
+    });
+  }
+
+  // 获取单个会员的状态（用于定时任务检查结果）
+  async getMembershipStatus(userId: string) {
+    if (!this.enableMembershipSystem) {
+      return null;
+    }
+
+    return await this.prisma.userMembership.findUnique({
+      where: { userId },
+      select: { isActive: true }
+    });
+  }
+
   // 月度重置会员积分
   async monthlyResetMemberPoints(userId: string) {
     if (!this.enableMembershipSystem || !this.enableAccountingPointsSystem) {

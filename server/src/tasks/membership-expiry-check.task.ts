@@ -47,19 +47,7 @@ class MembershipExpiryCheckTask {
   }> {
     try {
       // 获取所有需要检查的会员（活跃且有到期时间的会员）
-      const memberships = await this.membershipService.prisma.userMembership.findMany({
-        where: {
-          isActive: true,
-          endDate: {
-            not: null
-          }
-        },
-        select: { 
-          userId: true,
-          memberType: true,
-          endDate: true
-        }
-      });
+      const memberships = await this.membershipService.getActiveMembershipsForCheck();
 
       let checkedCount = 0;
       let expiredCount = 0;
@@ -71,13 +59,10 @@ class MembershipExpiryCheckTask {
           // 检查单个会员的到期状态
           await this.membershipService.checkAndUpdateMembershipStatus(membership.userId);
           checkedCount++;
-          
+
           // 重新检查状态，确认是否已过期
-          const updated = await this.membershipService.prisma.userMembership.findUnique({
-            where: { userId: membership.userId },
-            select: { isActive: true }
-          });
-          
+          const updated = await this.membershipService.getMembershipStatus(membership.userId);
+
           if (updated && !updated.isActive) {
             expiredCount++;
             console.log(`⚠️ [会员到期] 用户 ${membership.userId} 的 ${membership.memberType} 会员已到期`);
