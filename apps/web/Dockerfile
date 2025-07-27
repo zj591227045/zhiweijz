@@ -27,7 +27,7 @@ COPY --from=deps /app/../package*.json ../
 COPY apps/web/src/ ./src/
 COPY apps/web/public/ ./public/
 COPY apps/web/next*.js ./
-COPY apps/web/next-env.d.ts ./
+
 COPY apps/web/tailwind.config.js ./
 COPY apps/web/postcss.config.js ./
 COPY apps/web/tsconfig.json ./
