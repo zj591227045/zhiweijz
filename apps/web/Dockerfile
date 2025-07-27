@@ -1,5 +1,6 @@
 # 多阶段构建 - 依赖安装阶段
-FROM node:18-alpine AS deps
+# 使用 Node.js 20 以满足 @capacitor/cli 等依赖的要求
+FROM node:20-alpine AS deps
 
 # 安装系统依赖
 RUN apk add --no-cache libc6-compat
@@ -10,11 +11,17 @@ WORKDIR /app
 COPY apps/web/package*.json ./
 COPY package*.json ../
 
+# 配置 npm 以提高网络稳定性
+RUN npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm config set fetch-retries 5 && \
+    npm config set registry https://registry.npmjs.org/
+
 # 安装所有依赖（构建时需要dev依赖）
 RUN npm install --prefer-offline --no-audit
 
 # 构建阶段
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -56,7 +63,7 @@ ENV DOCKER_ENV=true
 RUN npm run build
 
 # 生产运行阶段
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 
 # 安装系统依赖
 RUN apk add --no-cache \

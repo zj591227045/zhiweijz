@@ -3,6 +3,10 @@
   "version": "0.7.0",
   "description": "只为记账 Web应用",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "scripts": {
     "dev": "next dev -p 3003",
     "dev:web": "cross-env BUILD_MODE=web next dev -p 3003",
