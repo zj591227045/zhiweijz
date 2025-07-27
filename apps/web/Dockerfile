@@ -23,8 +23,15 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/package*.json ./
 COPY --from=deps /app/../package*.json ../
 
-# 复制源代码
-COPY apps/web/ ./
+# 复制源代码（排除package.json，避免覆盖已安装的依赖）
+COPY apps/web/src/ ./src/
+COPY apps/web/public/ ./public/
+COPY apps/web/next*.js ./
+COPY apps/web/next-env.d.ts ./
+COPY apps/web/tailwind.config.js ./
+COPY apps/web/postcss.config.js ./
+COPY apps/web/tsconfig.json ./
+COPY apps/web/capacitor.config.ts ./
 
 # 复制内部包的源代码（用于类型检查和导入）
 COPY packages/core/ ../packages/core/
