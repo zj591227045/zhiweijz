@@ -87,7 +87,7 @@ export class CrossPlatformSyncService {
     } catch (error) {
       console.error('❌ [CrossPlatformSync] 同步失败:', error);
       result.success = false;
-      result.errors.push(`同步用户${userId}失败: ${error.message}`);
+      result.errors.push(`同步用户${userId}失败: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     return result;
@@ -137,7 +137,7 @@ export class CrossPlatformSyncService {
 
         } catch (error) {
           console.error(`❌ [CrossPlatformSync] 同步用户${membership.userId}失败:`, error);
-          result.errors.push(`用户${membership.userId}: ${error.message}`);
+          result.errors.push(`用户${membership.userId}: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
 
@@ -150,7 +150,7 @@ export class CrossPlatformSyncService {
     } catch (error) {
       console.error('❌ [CrossPlatformSync] 批量同步失败:', error);
       result.success = false;
-      result.errors.push(`批量同步失败: ${error.message}`);
+      result.errors.push(`批量同步失败: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     return result;
@@ -257,7 +257,7 @@ export class CrossPlatformSyncService {
    * 获取会员等级数值（用于排序）
    */
   private getMembershipLevel(memberType: string): number {
-    const levels = {
+    const levels: Record<string, number> = {
       'REGULAR': 0,
       'DONATION_ONE': 1,
       'DONATION_TWO': 2,
