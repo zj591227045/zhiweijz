@@ -307,21 +307,31 @@ export default function MembershipCenter() {
 
                     <div className="text-right">
                     {membership.endDate ? (
-                      <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">到期时间</p>
-                        <p
-                          className={`text-lg font-semibold ${
-                            isExpiringSoon() ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'
-                          }`}
-                        >
-                          {new Date(membership.endDate).toLocaleDateString()}
-                        </p>
-                        {isExpiringSoon() && (
+                      membershipApi.isExpired(membership.endDate) ? (
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">会员状态</p>
+                          <p className="text-lg font-semibold text-red-600 dark:text-red-400">已过期</p>
                           <p className="text-xs text-red-500 dark:text-red-400 mt-1">
-                            还有 {getDaysUntilExpiry()} 天到期
+                            过期时间: {new Date(membership.endDate).toLocaleDateString()}
                           </p>
-                        )}
-                      </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">到期时间</p>
+                          <p
+                            className={`text-lg font-semibold ${
+                              isExpiringSoon() ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'
+                            }`}
+                          >
+                            {new Date(membership.endDate).toLocaleDateString()}
+                          </p>
+                          {isExpiringSoon() && (
+                            <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+                              还有 {getDaysUntilExpiry()} 天到期
+                            </p>
+                          )}
+                        </div>
+                      )
                     ) : (
                       <div>
                         <p className="text-sm text-gray-500 dark:text-gray-400">会员状态</p>

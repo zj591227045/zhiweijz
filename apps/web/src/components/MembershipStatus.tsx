@@ -201,6 +201,9 @@ export function MembershipStatus({
               <p className="text-red-500 text-xs mt-1">
                 过期时间: {expirationInfo.date.toLocaleDateString()}
               </p>
+              <p className="text-red-500 text-xs mt-1">
+                请重新订阅以继续享受会员权益
+              </p>
             </div>
           ) : expirationInfo.isExpiringSoon ? (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
@@ -209,6 +212,9 @@ export function MembershipStatus({
               </p>
               <p className="text-yellow-500 text-xs mt-1">
                 还有 {expirationInfo.daysUntilExpiration} 天到期
+              </p>
+              <p className="text-yellow-500 text-xs mt-1">
+                建议及时续费以免影响使用
               </p>
             </div>
           ) : (

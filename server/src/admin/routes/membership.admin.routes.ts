@@ -859,4 +859,37 @@ router.post('/check-all-status', async (req, res) => {
   }
 });
 
+// 手动触发会员到期检查（使用定时任务）
+router.post('/trigger-expiry-check', async (req, res) => {
+  try {
+    if (!membershipService.isEnabled()) {
+      return res.json({
+        success: true,
+        message: '会员系统未启用，无需检查'
+      });
+    }
+
+    console.log('🔍 [管理员触发] 开始手动执行会员到期检查...');
+
+    // 动态导入定时任务类
+    const { default: MembershipExpiryCheckTask } = await import('../../tasks/membership-expiry-check.task');
+    const expiryTask = new MembershipExpiryCheckTask();
+
+    const result = await expiryTask.executeCheck();
+
+    res.json({
+      success: true,
+      data: result,
+      message: `手动检查完成，共检查 ${result.checkedCount} 个会员，${result.expiredCount} 个已到期`
+    });
+  } catch (error: any) {
+    console.error('手动触发会员到期检查失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '手动触发会员到期检查失败',
+      error: error.message
+    });
+  }
+});
+
 export default router;

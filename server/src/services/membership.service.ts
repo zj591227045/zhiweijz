@@ -51,6 +51,9 @@ export class MembershipService {
       };
     }
 
+    // 在获取会员信息前，先检查是否到期
+    await this.checkAndUpdateMembershipStatus(userId);
+
     let membership = await this.prisma.userMembership.findUnique({
       where: { userId },
       include: {
@@ -317,19 +320,24 @@ export class MembershipService {
 
     const now = new Date();
     if (membership.endDate < now && membership.isActive) {
-      // 会员已到期，降级为普通会员
+      // 会员已到期，降级为普通会员（统一处理所有相关字段）
       await this.prisma.userMembership.update({
         where: { userId },
         data: {
           memberType: 'REGULAR',
           isActive: false,
+          autoRenewal: false,
           monthlyPoints: 0,
-          usedPoints: 0
+          usedPoints: 0,
+          hasCharityAttribution: false,
+          hasPrioritySupport: false
         }
       });
 
       // 发送到期通知
-      await this.createNotification(userId, NotificationType.MEMBERSHIP_EXPIRED, '会员已到期', '您的捐赠会员已到期，已自动降级为普通会员。');
+      await this.createNotification(userId, NotificationType.MEMBERSHIP_EXPIRED, '会员已到期', '您的会员已到期，已自动降级为普通会员。');
+
+      console.log(`✅ [会员到期] 用户 ${userId} 的会员已到期并降级为普通会员`);
     }
   }
 

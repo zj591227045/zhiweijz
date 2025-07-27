@@ -5,6 +5,7 @@ import { connectDatabase, disconnectDatabase } from './config/database';
 import { UserDeletionService } from './services/user-deletion.service';
 import TaskScheduler from './services/task-scheduler.service';
 import WechatMediaCleanupTask from './tasks/wechat-media-cleanup.task';
+import MembershipExpiryCheckTask from './tasks/membership-expiry-check.task';
 import { FileStorageService } from './services/file-storage.service';
 import { AICallLogAdminService } from './admin/services/ai-call-log.admin.service';
 import { performanceMonitoringService } from './services/performance-monitoring.service';
@@ -67,6 +68,10 @@ const server = app.listen(config.port, '0.0.0.0', async () => {
     const wechatCleanupTask = new WechatMediaCleanupTask();
     wechatCleanupTask.start();
   }
+
+  // 启动会员到期检查任务
+  const membershipExpiryTask = new MembershipExpiryCheckTask();
+  membershipExpiryTask.start();
 
   // 启动性能监控服务
   try {
