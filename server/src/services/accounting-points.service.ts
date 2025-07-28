@@ -25,8 +25,11 @@ class AccountingPointsService {
   // 每日赠送点数
   static DAILY_GIFT = 5;
 
+  // 注册赠送点数（默认值，可通过系统配置覆盖）
+  static REGISTRATION_GIFT = 30;
+
   // 赠送余额上限
-  static GIFT_BALANCE_LIMIT = 30;
+  static GIFT_BALANCE_LIMIT = 10000;
 
   /**
    * 检查记账点系统是否启用
@@ -87,19 +90,42 @@ class AccountingPointsService {
   }
 
   /**
+   * 获取注册赠送点数（从系统配置读取，如果没有配置则使用默认值）
+   */
+  static async getRegistrationGiftPoints(): Promise<number> {
+    try {
+      const config = await prisma.systemConfig.findUnique({
+        where: { key: 'registration_gift_points' }
+      });
+
+      if (config && config.value) {
+        const points = parseInt(config.value);
+        return isNaN(points) ? this.REGISTRATION_GIFT : points;
+      }
+
+      return this.REGISTRATION_GIFT;
+    } catch (error) {
+      console.error('获取注册赠送点数配置失败:', error);
+      return this.REGISTRATION_GIFT;
+    }
+  }
+
+  /**
    * 为用户创建记账点账户
    */
   static async createUserPointsAccount(userId: string): Promise<UserAccountingPoints> {
+    const registrationGift = await this.getRegistrationGiftPoints();
+
     const userPoints = await prisma.userAccountingPoints.create({
       data: {
         userId,
-        giftBalance: this.DAILY_GIFT,
+        giftBalance: registrationGift,
         memberBalance: 0
       }
     });
 
     // 记录初始化记录
-    await this.recordTransaction(userId, 'gift', 'add', this.DAILY_GIFT, 'gift', this.DAILY_GIFT, '系统初始化赠送记账点');
+    await this.recordTransaction(userId, 'registration', 'add', registrationGift, 'gift', registrationGift, '注册赠送记账点');
 
     return userPoints;
   }

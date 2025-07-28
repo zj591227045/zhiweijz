@@ -46,6 +46,12 @@ router.post('/batch-add', accountingPointsAdminController.batchAddPoints.bind(ac
 router.get('/config', accountingPointsAdminController.getPointsConfig.bind(accountingPointsAdminController));
 
 /**
+ * 更新注册赠送点数配置
+ * PUT /admin/accounting-points/config/registration-gift
+ */
+router.put('/config/registration-gift', accountingPointsAdminController.updateRegistrationGiftPoints.bind(accountingPointsAdminController));
+
+/**
  * 获取每日活跃用户统计
  * GET /admin/accounting-points/daily-active-stats
  */

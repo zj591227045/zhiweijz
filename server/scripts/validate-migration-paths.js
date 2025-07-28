@@ -24,7 +24,7 @@ const upgradePathsStr = upgradePathsMatch[1];
 const lines = upgradePathsStr.split('\n').filter(line => line.trim() && !line.trim().startsWith('//'));
 
 const UPGRADE_PATHS = {};
-const LATEST_VERSION = '1.8.1';
+const LATEST_VERSION = '1.8.2';
 
 // 解析每一行配置
 lines.forEach(line => {
@@ -79,7 +79,8 @@ let inconsistentPaths = 0;
 versions.forEach(version => {
   const migrations = UPGRADE_PATHS[version];
   const hasPromptUpdate = migrations.includes('update-smart-accounting-prompts-v1.8.1');
-  
+  const hasRegistrationGiftConfig = migrations.includes('add-registration-gift-config');
+
   if (version === LATEST_VERSION) {
     if (migrations.length === 0) {
       console.log(`  ✅ ${version}: 当前最新版本，无需迁移`);
@@ -88,10 +89,22 @@ versions.forEach(version => {
       inconsistentPaths++;
     }
   } else {
-    if (hasPromptUpdate) {
-      console.log(`  ✅ ${version}: 包含提示词更新迁移`);
+    // 检查是否包含必要的迁移
+    const missingMigrations = [];
+
+    // 1.8.1版本已经包含了提示词更新，所以只需要注册赠送配置
+    if (version === '1.8.1') {
+      if (!hasRegistrationGiftConfig) missingMigrations.push('注册赠送配置');
     } else {
-      console.log(`  ❌ ${version}: 缺少提示词更新迁移`);
+      // 其他版本需要包含所有迁移
+      if (!hasPromptUpdate) missingMigrations.push('提示词更新');
+      if (!hasRegistrationGiftConfig) missingMigrations.push('注册赠送配置');
+    }
+
+    if (missingMigrations.length === 0) {
+      console.log(`  ✅ ${version}: 包含所有必要迁移`);
+    } else {
+      console.log(`  ❌ ${version}: 缺少迁移 - ${missingMigrations.join(', ')}`);
       inconsistentPaths++;
     }
   }
@@ -108,7 +121,8 @@ console.log('🆕 检查fresh_install路径:');
 const freshInstallMigrations = UPGRADE_PATHS['fresh_install'] || [];
 const hasAllRequiredMigrations = [
   'base-schema',
-  'update-smart-accounting-prompts-v1.8.1'
+  'update-smart-accounting-prompts-v1.8.1',
+  'add-registration-gift-config'
 ].every(required => freshInstallMigrations.includes(required));
 
 if (hasAllRequiredMigrations) {

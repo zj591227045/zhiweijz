@@ -307,10 +307,13 @@ export class AccountingPointsAdminController {
    */
   async getPointsConfig(req: Request, res: Response) {
     try {
+      const registrationGift = await AccountingPointsService.getRegistrationGiftPoints();
+
       const config = {
         pointCosts: AccountingPointsService.POINT_COSTS,
         checkinReward: AccountingPointsService.CHECKIN_REWARD,
         dailyGift: AccountingPointsService.DAILY_GIFT,
+        registrationGift: registrationGift,
         giftBalanceLimit: AccountingPointsService.GIFT_BALANCE_LIMIT
       };
 
@@ -323,6 +326,50 @@ export class AccountingPointsAdminController {
       res.status(500).json({
         success: false,
         error: '获取记账点配置失败'
+      });
+    }
+  }
+
+  /**
+   * 更新注册赠送点数配置
+   */
+  async updateRegistrationGiftPoints(req: Request, res: Response) {
+    try {
+      const { points } = req.body;
+
+      if (!points || isNaN(parseInt(points)) || parseInt(points) < 0) {
+        res.status(400).json({
+          success: false,
+          error: '请提供有效的点数（非负整数）'
+        });
+        return;
+      }
+
+      // 更新系统配置
+      await prisma.systemConfig.upsert({
+        where: { key: 'registration_gift_points' },
+        update: {
+          value: points.toString(),
+          updatedAt: new Date()
+        },
+        create: {
+          key: 'registration_gift_points',
+          value: points.toString(),
+          description: '新用户注册时赠送的记账点数量',
+          category: 'accounting_points'
+        }
+      });
+
+      res.json({
+        success: true,
+        message: `注册赠送点数已更新为 ${points} 点`,
+        data: { registrationGiftPoints: parseInt(points) }
+      });
+    } catch (error) {
+      console.error('更新注册赠送点数失败:', error);
+      res.status(500).json({
+        success: false,
+        error: '更新注册赠送点数失败'
       });
     }
   }
