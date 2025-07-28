@@ -50,7 +50,6 @@ const navigation = [
   { name: '文件存储', href: '/admin/storage', icon: CloudArrowUpIcon, current: false },
   { name: '版本管理', href: '/admin/version', icon: DevicePhoneMobileIcon, current: false },
   { name: '公告管理', href: '/admin/announcements', icon: SpeakerWaveIcon, current: false },
-  { name: '统计分析', href: '/admin/analytics', icon: ChartBarIcon, current: false },
 ];
 
 export function AdminSidebar({ isOpen, onClose, isMobile }: AdminSidebarProps) {

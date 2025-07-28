@@ -26,14 +26,14 @@ const logger = {
  */
 const MIGRATIONS_CONFIG = {
   // 当前最新版本
-  LATEST_VERSION: '1.8.0',
+  LATEST_VERSION: '1.8.1',
 
   // 迁移文件目录
   MIGRATIONS_DIR: path.join(__dirname, '../migrations/incremental'),
 
   // 版本升级路径
   UPGRADE_PATHS: {
-    '1.0.0': ['fix-missing-account-book-id-fields', '1.0.0-to-1.1.0', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-version-management', 'add-user-id-to-budget-histories'],
+    '1.0.0': ['fix-missing-account-book-id-fields', '1.0.0-to-1.1.0', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-version-management', 'sync-version-0.7.0'],
     '1.1.0': ['fix-missing-account-book-id-fields', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-version-management'],
     '1.2.0': ['fix-missing-account-book-id-fields', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-version-management'],
     '1.2.1': ['fix-missing-account-book-id-fields', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-version-management'],
@@ -67,8 +67,9 @@ const MIGRATIONS_CONFIG = {
     '1.7.16': ['1.8.0-expand-membership-system'], // 升级到1.8.0
     '1.7.17': ['1.8.0-expand-membership-system'], // 升级到1.8.0
     'add-budget-unique-constraint': ['1.8.0-expand-membership-system'], // 升级到1.8.0
-    '1.8.0': [], // 当前最新版本
-    'fresh_install': ['base-schema', 'fix-missing-account-book-id-fields', 'admin-features', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions']
+    '1.8.0': ['sync-version-0.7.0'], // 升级到1.8.1
+    '1.8.1': [], // 当前最新版本
+    'fresh_install': ['base-schema', 'fix-missing-account-book-id-fields', 'admin-features', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', 'sync-version-0.7.0']
   }
 };
 
@@ -80,6 +81,7 @@ function mapMigrationToVersion(migrationName) {
     'add-version-management': '1.7.15',
     'add-detail-url-to-app-versions': '1.7.16',
     '1.8.0-expand-membership-system': '1.8.0',
+    'sync-version-0.7.0': '1.8.1',
     // 可以根据需要添加更多映射
   };
 

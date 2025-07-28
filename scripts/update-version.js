@@ -34,11 +34,19 @@ function updateVersion(newVersion) {
         
         // 4. 更新前端页面中的硬编码版本号
         updateFrontendVersions(newVersion);
-        
+
+        // 5. 创建数据库版本同步脚本
+        createDatabaseSyncScript(newVersion, versionCode);
+
         console.log('✅ 版本号更新完成！');
         console.log(`📱 Android versionCode: ${versionCode}`);
         console.log(`📱 Android versionName: ${newVersion}`);
         console.log(`📦 Package version: ${newVersion}`);
+        console.log('');
+        console.log('📋 后续步骤:');
+        console.log('1. 运行数据库同步脚本: cd server && node scripts/sync-version-to-database.js');
+        console.log('2. 或者运行迁移管理器: cd server && node migrations/migration-manager.js upgrade');
+        console.log('3. 重启开发服务器测试版本更新');
         
     } catch (error) {
         console.error('❌ 更新版本号时出错:', error.message);
@@ -87,9 +95,41 @@ function updateAndroidBuildGradle(filePath, versionName, versionCode) {
     console.log(`✅ ${filePath} 更新完成`);
 }
 
+function updateEnvFile(filePath, version) {
+    console.log(`📝 更新环境变量文件 ${filePath}`);
+
+    if (!fs.existsSync(filePath)) {
+        console.warn(`⚠️  文件不存在: ${filePath}`);
+        return;
+    }
+
+    const [major, minor, patch] = version.split('.').map(Number);
+    const buildNumber = major * 100 + minor * 10 + patch; // 简化的构建号计算
+
+    let content = fs.readFileSync(filePath, 'utf8');
+
+    // 更新版本号
+    content = content.replace(
+        /NEXT_PUBLIC_APP_VERSION=[\d.]+/,
+        `NEXT_PUBLIC_APP_VERSION=${version}`
+    );
+
+    // 更新构建号
+    content = content.replace(
+        /NEXT_PUBLIC_BUILD_NUMBER=\d+/,
+        `NEXT_PUBLIC_BUILD_NUMBER=${buildNumber}`
+    );
+
+    fs.writeFileSync(filePath, content);
+    console.log(`✅ ${filePath} 更新完成`);
+}
+
 function updateFrontendVersions(version) {
     console.log('📝 更新前端页面版本号');
-    
+
+    // 首先更新环境变量文件
+    updateEnvFile('./apps/web/.env.local', version);
+
     const filesToUpdate = [
         {
             path: './apps/web/src/app/settings/page.tsx',
