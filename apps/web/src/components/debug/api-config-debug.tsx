@@ -44,8 +44,7 @@ const getApiBaseUrl = (): string => {
     if (storedConfig) {
       try {
         const parsedConfig = JSON.parse(storedConfig);
-        const apiUrl =
-          parsedConfig?.state?.config?.currentUrl || 'https://app.zhiweijz.cn:1443/api';
+        const apiUrl = parsedConfig?.state?.config?.currentUrl || 'https://app.zhiweijz.cn:1443/api';
         return apiUrl;
       } catch (parseError) {
         console.warn('⚠️ 解析服务器配置失败:', parseError);

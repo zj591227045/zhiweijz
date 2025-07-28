@@ -28,8 +28,7 @@ export const getApiBaseUrl = (): string => {
       const storedConfig = localStorage.getItem('server-config-storage');
       if (storedConfig) {
         const parsedConfig = JSON.parse(storedConfig);
-        const apiUrl =
-          parsedConfig?.state?.config?.currentUrl || 'https://app.zhiweijz.cn:1443/api';
+        const apiUrl = parsedConfig?.state?.config?.currentUrl || 'https://app.zhiweijz.cn:1443/api';
 
         if (isDev) {
           console.log('📡 回退：从LocalStorage获取API基础URL:', apiUrl);

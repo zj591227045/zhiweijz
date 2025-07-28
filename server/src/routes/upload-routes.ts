@@ -124,7 +124,7 @@ router.post('/shortcuts', upload.single('image'), async (req, res) => {
     const originalImageUrl = uploadResult.url;
 
     // 动态确定API基础URL
-    let apiBaseUrl = process.env.API_BASE_URL;
+    let apiBaseUrl = process.env.EXTERNAL_DOMAIN || process.env.API_BASE_URL;
     if (!apiBaseUrl) {
       if (process.env.NODE_ENV === 'development') {
         apiBaseUrl = 'https://jz-dev.jacksonz.cn:4443';

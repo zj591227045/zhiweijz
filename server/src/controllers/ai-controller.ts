@@ -1869,7 +1869,7 @@ export class AIController {
       })).toString('base64');
 
       // 动态确定API基础URL
-      let apiBaseUrl = process.env.API_BASE_URL;
+      let apiBaseUrl = process.env.EXTERNAL_DOMAIN || process.env.API_BASE_URL;
 
       // 如果没有设置环境变量，根据NODE_ENV判断
       if (!apiBaseUrl) {

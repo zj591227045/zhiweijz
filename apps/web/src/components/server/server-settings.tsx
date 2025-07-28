@@ -62,7 +62,12 @@ export default function ServerSettings({ onClose, onSave }: ServerSettingsProps)
     useServerConfigStore();
 
   const [activeTab, setActiveTab] = useState<ServerType>(config.type);
-  const [customUrlInput, setCustomUrlInput] = useState(config.customUrl);
+  // 如果自定义URL为空且有环境变量配置，使用环境变量作为默认值
+  const getDefaultCustomUrl = () => {
+    if (config.customUrl) return config.customUrl;
+    return process.env.NEXT_PUBLIC_EXTERNAL_DOMAIN ? process.env.NEXT_PUBLIC_EXTERNAL_DOMAIN + '/api' : '';
+  };
+  const [customUrlInput, setCustomUrlInput] = useState(getDefaultCustomUrl());
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'success' | 'failed' | null>(null);
 
@@ -259,7 +264,9 @@ export default function ServerSettings({ onClose, onSave }: ServerSettingsProps)
                   <div className="flex items-center space-x-2">
                     <div className="flex-1">
                       <Input
-                        placeholder="示例：https://your-server.com"
+                        placeholder={process.env.NEXT_PUBLIC_EXTERNAL_DOMAIN ?
+                          `默认：${process.env.NEXT_PUBLIC_EXTERNAL_DOMAIN}` :
+                          "示例：https://your-server.com"}
                         value={customUrlInput}
                         onChange={(e) => setCustomUrlInput(e.target.value)}
                         className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
@@ -273,9 +280,16 @@ export default function ServerSettings({ onClose, onSave }: ServerSettingsProps)
                       </div>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    💡 系统会自动添加 "/api" 后缀
-                  </p>
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      💡 系统会自动添加 "/api" 后缀
+                    </p>
+                    {process.env.NEXT_PUBLIC_EXTERNAL_DOMAIN && (
+                      <p className="text-xs text-blue-600 dark:text-blue-400">
+                        🔧 检测到环境变量配置，已自动填入默认值
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

@@ -7,6 +7,7 @@ dotenv.config();
 interface Config {
   env: string;
   port: number;
+  externalDomain?: string;
   database: {
     url: string;
   };
@@ -37,6 +38,7 @@ interface Config {
 const config: Config = {
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '3000', 10),
+  externalDomain: process.env.EXTERNAL_DOMAIN,
   database: {
     url:
       process.env.DATABASE_URL ||

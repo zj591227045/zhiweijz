@@ -31,9 +31,9 @@ interface ServerConfigState {
 // 默认配置
 const DEFAULT_CONFIG: ServerConfig = {
   type: 'official',
-  officialUrl: 'https://app.zhiweijz.cn:1443/api',
-  customUrl: '',
-  currentUrl: 'https://app.zhiweijz.cn:1443/api',
+  officialUrl: 'https://app.zhiweijz.cn:1443/api', // 官方服务器保持固定地址
+  customUrl: process.env.NEXT_PUBLIC_EXTERNAL_DOMAIN ? process.env.NEXT_PUBLIC_EXTERNAL_DOMAIN + '/api' : '', // 自定义服务器优先使用环境变量
+  currentUrl: 'https://app.zhiweijz.cn:1443/api', // 默认使用官方服务器
 };
 
 // 检测是否为Docker环境

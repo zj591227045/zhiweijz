@@ -7,6 +7,7 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:app.zhiweijz.cn</string>
+		<!-- 如果使用自定义域名，请添加: <string>applinks:your-domain.com</string> -->
 	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>
