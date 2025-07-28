@@ -111,17 +111,21 @@ export class UserRepository {
   }
 
   /**
-   * 安全删除数据 - 如果表不存在则跳过
+   * 检查表是否存在
    */
-  private async safeDeleteMany(tx: any, model: string, where: any): Promise<void> {
+  private async checkTableExists(tableName: string): Promise<boolean> {
     try {
-      await tx[model].deleteMany({ where });
-    } catch (error: any) {
-      if (error.code === 'P2021') {
-        console.log(`[UserDeletion] 表 ${model} 不存在，跳过删除`);
-      } else {
-        throw error;
-      }
+      const result = await prisma.$queryRaw`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables
+          WHERE table_schema = 'public'
+          AND table_name = ${tableName}
+        );
+      ` as any[];
+      return result[0]?.exists || false;
+    } catch (error) {
+      console.error(`[UserDeletion] 检查表 ${tableName} 是否存在时出错:`, error);
+      return false;
     }
   }
 
@@ -129,18 +133,67 @@ export class UserRepository {
    * 删除用户的所有数据
    */
   async deleteUserData(userId: string): Promise<void> {
+    // 先检查哪些表存在
+    const tableChecks = await Promise.all([
+      this.checkTableExists('user_version_status'),
+      this.checkTableExists('app_versions'),
+      this.checkTableExists('version_check_logs'),
+      this.checkTableExists('file_storage'),
+      this.checkTableExists('llm_call_logs'),
+      this.checkTableExists('multimodal_ai_call_logs'),
+      this.checkTableExists('tags'),
+      this.checkTableExists('daily_gift_records'),
+      this.checkTableExists('user_memberships'),
+      this.checkTableExists('user_badges'),
+      this.checkTableExists('user_accounting_points'),
+      this.checkTableExists('user_checkins'),
+      this.checkTableExists('user_llm_settings'),
+      this.checkTableExists('user_category_configs'),
+      this.checkTableExists('payment_orders'),
+      this.checkTableExists('subscriptions'),
+      this.checkTableExists('payment_history'),
+    ]);
+
+    const [
+      hasUserVersionStatus,
+      hasAppVersions,
+      hasVersionCheckLogs,
+      hasFileStorage,
+      hasLlmCallLogs,
+      hasMultimodalAiCallLogs,
+      hasTags,
+      hasDailyGiftRecords,
+      hasUserMemberships,
+      hasUserBadges,
+      hasUserAccountingPoints,
+      hasUserCheckins,
+      hasUserLlmSettings,
+      hasUserCategoryConfigs,
+      hasPaymentOrders,
+      hasSubscriptions,
+      hasPaymentHistory,
+    ] = tableChecks;
+
     await prisma.$transaction(async (tx) => {
       // 1. 删除用户的记账记录
-      await this.safeDeleteMany(tx, 'transaction', { userId });
+      await tx.transaction.deleteMany({
+        where: { userId },
+      });
 
       // 2. 删除用户的预算
-      await this.safeDeleteMany(tx, 'budget', { userId });
+      await tx.budget.deleteMany({
+        where: { userId },
+      });
 
       // 3. 删除用户的分类
-      await this.safeDeleteMany(tx, 'category', { userId });
+      await tx.category.deleteMany({
+        where: { userId },
+      });
 
       // 4. 从账本成员中移除用户
-      await this.safeDeleteMany(tx, 'user_account_books', { user_id: userId });
+      await tx.user_account_books.deleteMany({
+        where: { user_id: userId },
+      });
 
       // 5. 处理用户拥有的账本（userId字段）
       const userOwnedBooks = await tx.accountBook.findMany({
@@ -241,76 +294,158 @@ export class UserRepository {
       }
 
       // 7. 删除用户设置
-      await this.safeDeleteMany(tx, 'userSetting', { userId });
+      await tx.userSetting.deleteMany({
+        where: { userId },
+      });
 
       // 8. 删除用户反馈
-      await this.safeDeleteMany(tx, 'userFeedback', { userId });
+      await tx.userFeedback.deleteMany({
+        where: { userId },
+      });
 
       // 9. 删除用户的会话
-      await this.safeDeleteMany(tx, 'session', { userId });
+      await tx.session.deleteMany({
+        where: { userId },
+      });
 
       // 10. 删除用户的安全日志
-      await this.safeDeleteMany(tx, 'securityLog', { userId });
+      await tx.securityLog.deleteMany({
+        where: { userId },
+      });
 
       // 11. 删除用户的验证码
-      await this.safeDeleteMany(tx, 'verificationCode', { userId });
+      await tx.verificationCode.deleteMany({
+        where: { userId },
+      });
 
       // 12. 删除用户的密码重置令牌
-      await this.safeDeleteMany(tx, 'passwordResetToken', { userId });
+      await tx.passwordResetToken.deleteMany({
+        where: { userId },
+      });
 
       // 13. 删除微信绑定
-      await this.safeDeleteMany(tx, 'wechat_user_bindings', { user_id: userId });
+      await tx.wechat_user_bindings.deleteMany({
+        where: { user_id: userId },
+      });
 
-      // 14. 删除用户会员信息
-      await this.safeDeleteMany(tx, 'userMembership', { userId });
+      // 14. 删除用户会员信息（如果表存在）
+      if (hasUserMemberships) {
+        await tx.userMembership.deleteMany({
+          where: { userId },
+        });
+      }
 
-      // 15. 删除用户徽章
-      await this.safeDeleteMany(tx, 'userBadge', { userId });
+      // 15. 删除用户徽章（如果表存在）
+      if (hasUserBadges) {
+        await tx.userBadge.deleteMany({
+          where: { userId },
+        });
+      }
 
-      // 16. 删除用户积分记录
-      await this.safeDeleteMany(tx, 'userAccountingPoints', { userId });
+      // 16. 删除用户积分记录（如果表存在）
+      if (hasUserAccountingPoints) {
+        await tx.userAccountingPoints.deleteMany({
+          where: { userId },
+        });
+      }
 
-      // 17. 删除用户签到记录
-      await this.safeDeleteMany(tx, 'userCheckins', { userId });
+      // 17. 删除用户签到记录（如果表存在）
+      if (hasUserCheckins) {
+        await tx.userCheckins.deleteMany({
+          where: { userId },
+        });
+      }
 
-      // 18. 删除用户LLM设置
-      await this.safeDeleteMany(tx, 'userLLMSetting', { userId });
+      // 18. 删除用户LLM设置（如果表存在）
+      if (hasUserLlmSettings) {
+        await tx.userLLMSetting.deleteMany({
+          where: { userId },
+        });
+      }
 
-      // 19. 删除用户分类配置
-      await this.safeDeleteMany(tx, 'userCategoryConfig', { userId });
+      // 19. 删除用户分类配置（如果表存在）
+      if (hasUserCategoryConfigs) {
+        await tx.userCategoryConfig.deleteMany({
+          where: { userId },
+        });
+      }
 
-      // 20. 删除用户支付订单
-      await this.safeDeleteMany(tx, 'payment_orders', { user_id: userId });
+      // 20. 删除用户支付订单（如果表存在）
+      if (hasPaymentOrders) {
+        await tx.payment_orders.deleteMany({
+          where: { user_id: userId },
+        });
+      }
 
-      // 21. 删除用户订阅
-      await this.safeDeleteMany(tx, 'subscriptions', { user_id: userId });
+      // 21. 删除用户订阅（如果表存在）
+      if (hasSubscriptions) {
+        await tx.subscriptions.deleteMany({
+          where: { user_id: userId },
+        });
+      }
 
-      // 22. 删除用户支付历史
-      await this.safeDeleteMany(tx, 'payment_history', { user_id: userId });
+      // 22. 删除用户支付历史（如果表存在）
+      if (hasPaymentHistory) {
+        await tx.payment_history.deleteMany({
+          where: { user_id: userId },
+        });
+      }
 
-      // 23. 删除用户版本状态
-      await this.safeDeleteMany(tx, 'userVersionStatus', { userId });
+      // 23. 删除用户版本状态（如果表存在）
+      if (hasUserVersionStatus) {
+        await tx.userVersionStatus.deleteMany({
+          where: { userId },
+        });
+      }
 
-      // 24. 删除用户创建的应用版本
-      await this.safeDeleteMany(tx, 'appVersion', { createdBy: userId });
+      // 24. 删除用户创建的应用版本（如果表存在）
+      if (hasAppVersions) {
+        await tx.appVersion.deleteMany({
+          where: { createdBy: userId },
+        });
+      }
 
-      // 25. 删除用户版本检查日志
-      await this.safeDeleteMany(tx, 'versionCheckLog', { userId });
+      // 25. 删除用户版本检查日志（如果表存在）
+      if (hasVersionCheckLogs) {
+        await tx.versionCheckLog.deleteMany({
+          where: { userId },
+        });
+      }
 
-      // 26. 删除用户文件存储
-      await this.safeDeleteMany(tx, 'fileStorage', { uploadedBy: userId });
+      // 26. 删除用户文件存储（如果表存在）
+      if (hasFileStorage) {
+        await tx.fileStorage.deleteMany({
+          where: { uploadedBy: userId },
+        });
+      }
 
-      // 27. 删除用户LLM调用日志
-      await this.safeDeleteMany(tx, 'llmCallLog', { userId });
+      // 27. 删除用户LLM调用日志（如果表存在）
+      if (hasLlmCallLogs) {
+        await tx.llmCallLog.deleteMany({
+          where: { userId },
+        });
+      }
 
-      // 28. 删除用户多模态AI调用日志
-      await this.safeDeleteMany(tx, 'multimodalAiCallLog', { userId });
+      // 28. 删除用户多模态AI调用日志（如果表存在）
+      if (hasMultimodalAiCallLogs) {
+        await tx.multimodalAiCallLog.deleteMany({
+          where: { userId },
+        });
+      }
 
-      // 29. 删除用户标签
-      await this.safeDeleteMany(tx, 'tag', { createdBy: userId });
+      // 29. 删除用户标签（如果表存在）
+      if (hasTags) {
+        await tx.tag.deleteMany({
+          where: { createdBy: userId },
+        });
+      }
 
-      // 30. 删除用户每日礼品记录
-      await this.safeDeleteMany(tx, 'dailyGiftRecords', { userId });
+      // 30. 删除用户每日礼品记录（如果表存在）
+      if (hasDailyGiftRecords) {
+        await tx.dailyGiftRecords.deleteMany({
+          where: { userId },
+        });
+      }
 
       // 31. 处理用户创建的家庭
       const userFamilies = await tx.family.findMany({
