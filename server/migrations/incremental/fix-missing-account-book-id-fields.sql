@@ -42,43 +42,33 @@ END $$;
 CREATE INDEX IF NOT EXISTS idx_categories_account_book_id ON categories(account_book_id);
 CREATE INDEX IF NOT EXISTS idx_budgets_account_book_id ON budgets(account_book_id);
 
--- 为现有数据设置默认的account_book_id
--- 对于每个用户，将其分类和预算关联到其默认账本
-DO $$ 
-DECLARE
-    user_record RECORD;
-    default_book_id TEXT;
-BEGIN
-    -- 遍历所有用户
-    FOR user_record IN SELECT id FROM users LOOP
-        -- 查找用户的默认账本
-        SELECT id INTO default_book_id 
-        FROM account_books 
-        WHERE user_id = user_record.id AND is_default = true 
-        LIMIT 1;
-        
-        -- 如果没有默认账本，查找用户的第一个账本
-        IF default_book_id IS NULL THEN
-            SELECT id INTO default_book_id 
-            FROM account_books 
-            WHERE user_id = user_record.id 
-            ORDER BY created_at ASC 
-            LIMIT 1;
-        END IF;
-        
-        -- 如果找到了账本，更新该用户的分类和预算
-        IF default_book_id IS NOT NULL THEN
-            -- 更新用户的分类
-            UPDATE categories 
-            SET account_book_id = default_book_id 
-            WHERE user_id = user_record.id AND account_book_id IS NULL;
-            
-            -- 更新用户的预算
-            UPDATE budgets 
-            SET account_book_id = default_book_id 
-            WHERE user_id = user_record.id AND account_book_id IS NULL;
-            
-            RAISE NOTICE 'Updated categories and budgets for user % with account book %', user_record.id, default_book_id;
-        END IF;
-    END LOOP;
-END $$;
+-- 为现有数据设置默认的account_book_id - 使用简化的方式
+-- 创建临时表来存储用户和其默认账本的映射
+CREATE TEMP TABLE user_default_books AS
+SELECT DISTINCT
+    u.id as user_id,
+    COALESCE(
+        (SELECT ab1.id FROM account_books ab1 WHERE ab1.user_id = u.id AND ab1.is_default = true LIMIT 1),
+        (SELECT ab2.id FROM account_books ab2 WHERE ab2.user_id = u.id ORDER BY ab2.created_at ASC LIMIT 1)
+    ) as default_book_id
+FROM users u
+WHERE EXISTS (SELECT 1 FROM account_books ab WHERE ab.user_id = u.id);
+
+-- 更新分类表
+UPDATE categories
+SET account_book_id = udb.default_book_id
+FROM user_default_books udb
+WHERE categories.user_id = udb.user_id
+  AND categories.account_book_id IS NULL
+  AND udb.default_book_id IS NOT NULL;
+
+-- 更新预算表
+UPDATE budgets
+SET account_book_id = udb.default_book_id
+FROM user_default_books udb
+WHERE budgets.user_id = udb.user_id
+  AND budgets.account_book_id IS NULL
+  AND udb.default_book_id IS NOT NULL;
+
+-- 清理临时表
+DROP TABLE user_default_books;

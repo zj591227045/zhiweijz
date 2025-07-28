@@ -70,35 +70,26 @@ SET value = '请分析这张图片中的记账信息。
     updated_at = NOW()
 WHERE key = 'smart_accounting_image_analysis_prompt';
 
--- 验证更新结果
-DO $$
-DECLARE
-    smart_accounting_count INTEGER;
-    image_analysis_count INTEGER;
-BEGIN
-    -- 检查智能记账提示词是否更新成功
-    SELECT COUNT(*) INTO smart_accounting_count 
-    FROM system_configs 
-    WHERE key = 'smart_accounting_prompt' 
-    AND description LIKE '%v1.8.1更新%';
-    
-    -- 检查图片分析提示词是否更新成功
-    SELECT COUNT(*) INTO image_analysis_count 
-    FROM system_configs 
-    WHERE key = 'smart_accounting_image_analysis_prompt' 
-    AND description LIKE '%v1.8.1更新%';
-    
-    IF smart_accounting_count = 1 AND image_analysis_count = 1 THEN
-        RAISE NOTICE '✅ 智能记账提示词更新成功 - 版本1.8.1';
-        RAISE NOTICE '   - 智能记账主要分析提示词已更新';
-        RAISE NOTICE '   - 图片分析提示词已更新';
-    ELSE
-        RAISE WARNING '⚠️ 提示词更新可能存在问题:';
-        RAISE WARNING '   - 智能记账提示词更新数量: %', smart_accounting_count;
-        RAISE WARNING '   - 图片分析提示词更新数量: %', image_analysis_count;
-    END IF;
-END
-$$;
+-- 验证更新结果 - 使用简单查询替代DO块
+-- 检查智能记账提示词更新结果
+SELECT
+    CASE
+        WHEN COUNT(*) = 1 THEN '✅ 智能记账主要分析提示词已更新到v1.8.1'
+        ELSE '⚠️ 智能记账主要分析提示词更新失败'
+    END as smart_accounting_status
+FROM system_configs
+WHERE key = 'smart_accounting_prompt'
+AND description LIKE '%v1.8.1更新%';
+
+-- 检查图片分析提示词更新结果
+SELECT
+    CASE
+        WHEN COUNT(*) = 1 THEN '✅ 图片分析提示词已更新到v1.8.1'
+        ELSE '⚠️ 图片分析提示词更新失败'
+    END as image_analysis_status
+FROM system_configs
+WHERE key = 'smart_accounting_image_analysis_prompt'
+AND description LIKE '%v1.8.1更新%';
 
 -- 记录迁移日志
 INSERT INTO system_configs (key, value, description, category, created_at, updated_at)

@@ -213,47 +213,40 @@ CREATE TABLE IF NOT EXISTS "security_logs" (
     CONSTRAINT "security_logs_pkey" PRIMARY KEY ("id")
 );
 
--- 15. 验证表结构
-DO $$
-DECLARE
-    user_column_count INTEGER;
-    budget_column_count INTEGER;
-    missing_tables INTEGER := 0;
-BEGIN
-    -- 验证用户表字段
-    SELECT COUNT(*) INTO user_column_count
-    FROM information_schema.columns
-    WHERE table_name = 'users'
-    AND column_name IN (
-        'is_active',
-        'daily_llm_token_limit',
-        'deletion_requested_at',
-        'deletion_scheduled_at'
-    );
+-- 15. 验证表结构 - 使用简单查询替代复杂DO块
+-- 验证用户表字段
+SELECT
+    COUNT(*) as user_column_count,
+    '用户表字段验证完成' as status
+FROM information_schema.columns
+WHERE table_name = 'users'
+AND column_name IN (
+    'is_active',
+    'daily_llm_token_limit',
+    'deletion_requested_at',
+    'deletion_scheduled_at'
+);
 
-    -- 验证预算表字段
-    SELECT COUNT(*) INTO budget_column_count
-    FROM information_schema.columns
-    WHERE table_name = 'budgets'
-    AND column_name IN (
-        'is_auto_calculated',
-        'enable_category_budget',
-        'rollover_amount',
-        'budget_type',
-        'amount_modified',
-        'last_amount_modified_at',
-        'refresh_day'
-    );
+-- 验证预算表字段
+SELECT
+    COUNT(*) as budget_column_count,
+    '预算表字段验证完成' as status
+FROM information_schema.columns
+WHERE table_name = 'budgets'
+AND column_name IN (
+    'is_auto_calculated',
+    'enable_category_budget',
+    'rollover_amount',
+    'budget_type',
+    'amount_modified',
+    'last_amount_modified_at',
+    'refresh_day'
+);
 
-    -- 检查关键表是否存在
-    SELECT COUNT(*) INTO missing_tables
-    FROM information_schema.tables
-    WHERE table_name IN ('sessions', 'verification_codes', 'security_logs')
-    AND table_schema = 'public';
-
-    RAISE NOTICE '数据库结构修复完成：';
-    RAISE NOTICE '  - 用户表添加了 % 个字段', user_column_count;
-    RAISE NOTICE '  - 预算表添加了 % 个字段', budget_column_count;
-    RAISE NOTICE '  - 确保了 % 个关键表存在', missing_tables;
-END
-$$;
+-- 检查关键表是否存在
+SELECT
+    COUNT(*) as existing_tables_count,
+    '关键表存在性验证完成' as status
+FROM information_schema.tables
+WHERE table_name IN ('sessions', 'verification_codes', 'security_logs')
+AND table_schema = 'public';

@@ -46,40 +46,33 @@ CREATE INDEX IF NOT EXISTS idx_system_performance_type_time_value ON system_perf
 -- 注意：部分索引使用固定时间点，避免IMMUTABLE函数限制
 CREATE INDEX IF NOT EXISTS idx_system_performance_recent ON system_performance_history(metric_type, recorded_at DESC);
 
--- 6. 创建数据清理函数
-DO $$
+-- 6. 创建数据清理函数 - 使用简化的方式避免复杂DO块
+CREATE OR REPLACE FUNCTION cleanup_old_performance_data()
+RETURNS INTEGER AS $func$
+DECLARE
+    deleted_count INTEGER;
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'cleanup_old_performance_data') THEN
-        EXECUTE '
-        CREATE FUNCTION cleanup_old_performance_data()
-        RETURNS INTEGER AS $func$
-        DECLARE
-            deleted_count INTEGER;
-        BEGIN
-            -- 删除超过30天的性能数据
-            DELETE FROM system_performance_history 
-            WHERE recorded_at < NOW() - INTERVAL ''30 days'';
-            
-            GET DIAGNOSTICS deleted_count = ROW_COUNT;
-            
-            -- 记录清理日志
-            INSERT INTO system_configs (key, value, description, category, updated_at)
-            VALUES (
-                ''last_performance_cleanup'', 
-                NOW()::TEXT, 
-                ''最后一次性能数据清理时间'', 
-                ''system'',
-                NOW()
-            ) ON CONFLICT (key) DO UPDATE SET 
-                value = EXCLUDED.value, 
-                updated_at = NOW();
-                
-            RETURN deleted_count;
-        END;
-        $func$ LANGUAGE plpgsql;
-        ';
-    END IF;
-END $$;
+    -- 删除超过30天的性能数据
+    DELETE FROM system_performance_history
+    WHERE recorded_at < NOW() - INTERVAL '30 days';
+
+    GET DIAGNOSTICS deleted_count = ROW_COUNT;
+
+    -- 记录清理日志
+    INSERT INTO system_configs (key, value, description, category, updated_at)
+    VALUES (
+        'last_performance_cleanup',
+        NOW()::TEXT,
+        '最后一次性能数据清理时间',
+        'system',
+        NOW()
+    ) ON CONFLICT (key) DO UPDATE SET
+        value = EXCLUDED.value,
+        updated_at = NOW();
+
+    RETURN deleted_count;
+END;
+$func$ LANGUAGE plpgsql;
 
 -- 7. 创建性能数据聚合视图（用于不同时间范围的查询优化）
 CREATE OR REPLACE VIEW system_performance_hourly AS
@@ -172,22 +165,22 @@ END $$;
 
 -- 10. 插入初始性能数据（可选，用于测试）
 -- 注意：这些是示例数据，实际部署时可以移除
-DO $$
-DECLARE
-    i INTEGER;
-    base_time TIMESTAMP WITH TIME ZONE;
-BEGIN
-    -- 只在开发环境插入测试数据
-    IF EXISTS (SELECT 1 FROM system_configs WHERE key = 'environment' AND value = 'development') THEN
-        base_time := NOW() - INTERVAL '1 hour';
-        
-        -- 插入最近1小时的测试数据
-        FOR i IN 0..60 LOOP
-            INSERT INTO system_performance_history (metric_type, metric_value, recorded_at)
-            VALUES 
-                ('disk', 45.5 + (RANDOM() * 10), base_time + (i || ' minutes')::INTERVAL),
-                ('cpu', 25.0 + (RANDOM() * 30), base_time + (i || ' minutes')::INTERVAL),
-                ('memory', 60.0 + (RANDOM() * 20), base_time + (i || ' minutes')::INTERVAL);
-        END LOOP;
-    END IF;
-END $$;
+-- 简化版本：只在开发环境插入少量测试数据
+INSERT INTO system_performance_history (metric_type, metric_value, recorded_at)
+SELECT
+    metric_type,
+    metric_value,
+    NOW() - (interval_minutes || ' minutes')::INTERVAL as recorded_at
+FROM (
+    VALUES
+        ('disk', 50.0, '60'),
+        ('cpu', 30.0, '60'),
+        ('memory', 70.0, '60'),
+        ('disk', 52.0, '30'),
+        ('cpu', 28.0, '30'),
+        ('memory', 68.0, '30'),
+        ('disk', 48.0, '0'),
+        ('cpu', 32.0, '0'),
+        ('memory', 72.0, '0')
+) AS test_data(metric_type, metric_value, interval_minutes)
+WHERE EXISTS (SELECT 1 FROM system_configs WHERE key = 'environment' AND value = 'development');

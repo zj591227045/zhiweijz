@@ -216,51 +216,62 @@ async function executeMigration(migrationName) {
 function parsePostgreSQLStatements(sql) {
   // 移除META注释块
   sql = sql.replace(/\/\*META[\s\S]*?\*\//, '');
-  
+
   // 移除单行注释
   sql = sql.replace(/^--.*$/gm, '');
-  
-  // 简化的语句分割：按分号分割，然后重新组合特殊块
-  const rawStatements = sql.split(';').map(s => s.trim()).filter(s => s.length > 0);
+
+  // 移除空行
+  sql = sql.replace(/^\s*$/gm, '');
+
   const statements = [];
   let current = '';
-  let inSpecialBlock = false;
-  
-  for (let i = 0; i < rawStatements.length; i++) {
-    const stmt = rawStatements[i];
-    
-    if (current) {
-      current += '; ' + stmt;
-    } else {
-      current = stmt;
-    }
-    
-    // 检查是否进入特殊块（DO $$块或函数定义）
-    if (stmt.includes('DO $$') || stmt.includes('CREATE OR REPLACE FUNCTION') || stmt.includes('RETURNS TRIGGER AS $$')) {
-      inSpecialBlock = true;
+  let inDoBlock = false;
+
+  // 按行处理，更精确地识别DO $$块
+  const lines = sql.split('\n');
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    // 跳过空行
+    if (!line) continue;
+
+    // 检查是否开始DO $$块
+    if (line.match(/DO\s*\$\$/)) {
+      inDoBlock = true;
+      current += (current ? '\n' : '') + line;
       continue;
     }
-    
-    // 检查是否退出特殊块
-    if (inSpecialBlock && (stmt.includes('END $$') || stmt.includes("$$ language"))) {
-      inSpecialBlock = false;
-      statements.push(current + ';');
-      current = '';
+
+    // 如果在DO $$块中
+    if (inDoBlock) {
+      current += '\n' + line;
+
+      // 检查是否结束DO $$块 - 更精确的匹配
+      if (line.match(/END\s*\$\$/)) {
+        inDoBlock = false;
+        // DO $$块作为一个完整语句
+        statements.push(current);
+        current = '';
+      }
       continue;
     }
-    
-    // 如果不在特殊块中，每个分号结束一个语句
-    if (!inSpecialBlock) {
-      statements.push(current + ';');
+
+    // 普通语句处理
+    current += (current ? '\n' : '') + line;
+
+    // 如果行以分号结尾，则认为是一个完整语句
+    if (line.endsWith(';')) {
+      statements.push(current);
       current = '';
     }
   }
-  
+
   // 添加最后一个语句（如果有）
   if (current.trim()) {
-    statements.push(current + ';');
+    statements.push(current);
   }
-  
+
   return statements.filter(stmt => stmt.trim().length > 0);
 }
 
@@ -347,30 +358,27 @@ async function ensureSchemaVersionsTable() {
         applied_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       );
     `);
-    
-    // 如果表已存在，尝试修改version字段长度
-    await prisma.$executeRawUnsafe(`
-      DO $$ BEGIN
+
+    // 如果表已存在，尝试修改version字段长度 - 使用安全的方式
+    try {
+      await prisma.$executeRawUnsafe(`
         ALTER TABLE schema_versions ALTER COLUMN version TYPE VARCHAR(50);
-      EXCEPTION
-        WHEN others THEN 
-          -- 如果修改失败，忽略错误
-          null;
-      END $$;
-    `);
-    
-    // 确保migration_file字段有UNIQUE约束
-    await prisma.$executeRawUnsafe(`
-      DO $$ BEGIN
+      `);
+    } catch (alterError) {
+      // 如果修改失败，忽略错误（可能字段已经是正确类型）
+      logger.warn(`修改version字段类型失败，可能已经是正确类型: ${alterError.message}`);
+    }
+
+    // 确保migration_file字段有UNIQUE约束 - 使用安全的方式
+    try {
+      await prisma.$executeRawUnsafe(`
         ALTER TABLE schema_versions ADD CONSTRAINT schema_versions_migration_file_unique UNIQUE (migration_file);
-      EXCEPTION
-        WHEN duplicate_table THEN null;
-        WHEN others THEN 
-          -- 如果约束已存在或其他错误，忽略
-          null;
-      END $$;
-    `);
-    
+      `);
+    } catch (constraintError) {
+      // 如果约束已存在或其他错误，忽略
+      logger.warn(`添加UNIQUE约束失败，可能约束已存在: ${constraintError.message}`);
+    }
+
   } catch (error) {
     logger.warn(`创建schema_versions表失败: ${error.message}`);
   }
