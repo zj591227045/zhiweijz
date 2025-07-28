@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import AccountingPointsService from '../../services/accounting-points.service';
 
 const prisma = new PrismaClient();
 
@@ -206,6 +207,15 @@ export class UserAdminService {
           updatedAt: true,
         },
       });
+
+      // 为新用户创建记账点账户并赠送注册点数
+      try {
+        await AccountingPointsService.createUserPointsAccount(user.id);
+        console.log('✅ [管理员创建用户] 为新用户创建记账点账户成功，用户ID:', user.id);
+      } catch (pointsError) {
+        console.error('创建记账点账户失败:', pointsError);
+        // 不影响用户创建流程，继续执行
+      }
 
       // 为新用户初始化默认数据（与普通注册流程保持一致）
       await this.initializeUserDefaults(user.id);

@@ -7,6 +7,7 @@ import { emailService } from '../utils/email';
 import { config } from '../config';
 import { AccountBookService } from './account-book.service';
 import { CategoryService } from './category.service';
+import AccountingPointsService from './accounting-points.service';
 
 export class AuthService {
   private userService: UserService;
@@ -93,6 +94,15 @@ export class AuthService {
         }
       } catch (settingError) {
         console.error('初始化用户设置失败:', settingError);
+        // 不影响用户注册流程，继续执行
+      }
+
+      // 为新用户创建记账点账户并赠送注册点数
+      try {
+        await AccountingPointsService.createUserPointsAccount(newUser.id);
+        console.log('✅ 为新用户创建记账点账户成功，用户ID:', newUser.id);
+      } catch (pointsError) {
+        console.error('创建记账点账户失败:', pointsError);
         // 不影响用户注册流程，继续执行
       }
 
