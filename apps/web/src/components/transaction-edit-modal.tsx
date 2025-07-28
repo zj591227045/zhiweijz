@@ -25,7 +25,8 @@ import {
   TransactionAttachmentUploadRef,
 } from './transactions/transaction-attachment-upload';
 import { apiClient } from '@/lib/api-client';
-import { useModalBackHandler } from '@/hooks/use-mobile-back-handler';
+import { useMobileBackHandler } from '@/hooks/use-mobile-back-handler';
+import { PageLevel, navigationManager } from '@/lib/mobile-navigation';
 import { hapticPresets } from '@/lib/haptic-feedback';
 
 interface TransactionEditModalProps {
@@ -520,8 +521,19 @@ export default function TransactionEditModal({
   // 附件相关状态
   const [attachments, setAttachments] = useState<TransactionAttachment[]>([]);
 
-  // 移动端后退处理
-  const { handleBack } = useModalBackHandler('transaction-edit-modal', onClose);
+  // 移动端后退处理 - 直接使用 useMobileBackHandler，因为使用了 createPortal
+  const { handleBack } = useMobileBackHandler({
+    pageId: 'transaction-edit-modal',
+    pageLevel: PageLevel.MODAL,
+    enableHardwareBack: true,
+    enableBrowserBack: true,
+    onBack: () => {
+      console.log('📱 [TransactionEditModal] 处理后退手势');
+      onClose();
+      return true; // 已处理
+    },
+    preventDefault: true,
+  });
 
   // 虚拟键盘相关状态
   const [showNumericKeyboard, setShowNumericKeyboard] = useState(false);
@@ -529,6 +541,23 @@ export default function TransactionEditModal({
 
   // 金额输入框引用
   const amountInputRef = useRef<HTMLInputElement>(null);
+
+  // 注册模态框到导航管理器
+  useEffect(() => {
+    console.log('📱 [TransactionEditModal] 注册模态框到导航管理器');
+    navigationManager.openModal({
+      id: 'transaction-edit-modal',
+      level: PageLevel.MODAL,
+      title: '编辑记账',
+      path: window.location.pathname,
+      canGoBack: true,
+    });
+
+    return () => {
+      console.log('📱 [TransactionEditModal] 从导航管理器移除模态框');
+      navigationManager.closeModal();
+    };
+  }, []);
 
   // 当组件打开时，设置为编辑模式
   useEffect(() => {

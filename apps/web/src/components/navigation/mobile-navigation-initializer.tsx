@@ -48,9 +48,9 @@ export function MobileNavigationInitializer({ children }: MobileNavigationInitia
       edgeWidth: 20,
     });
 
-    // 3. 初始化Capacitor集成
+    // 3. 初始化Capacitor集成 - 禁用硬件后退按钮处理，由useMobileBackHandler统一处理
     initializeCapacitorIntegration({
-      enabled: true,
+      enabled: false, // 禁用CapacitorIntegration的后退按钮处理，避免与useMobileBackHandler冲突
       doubleClickExitInterval: 2000,
       exitConfirmation: false,
     });

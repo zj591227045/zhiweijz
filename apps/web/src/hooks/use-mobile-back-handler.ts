@@ -288,20 +288,20 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
   useEffect(() => {
     const gestureListener = (direction: 'left' | 'right') => {
       if (direction === 'left') {
-        console.log('📱 [BackHandler] 收到手势监听器调用');
+        console.log('📱 [BackHandler] 收到手势监听器调用，页面层级:', pageLevel);
         return handleBack();
       }
       return false;
     };
 
-    platformGestureHandler.addGestureListener(gestureListener);
-    console.log('📱 [BackHandler] 注册手势监听器');
+    platformGestureHandler.addGestureListener(gestureListener, pageLevel);
+    console.log('📱 [BackHandler] 注册手势监听器，页面层级:', pageLevel);
 
     return () => {
       platformGestureHandler.removeGestureListener(gestureListener);
       console.log('📱 [BackHandler] 移除手势监听器');
     };
-  }, [handleBack]);
+  }, [handleBack, pageLevel]);
 
   // 存储当前的后退处理函数引用
   backHandlerRef.current = handleBack;

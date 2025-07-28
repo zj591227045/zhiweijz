@@ -3,7 +3,7 @@
  * 处理Android和iOS的手势后退差异
  */
 
-import { navigationManager } from './mobile-navigation';
+import { navigationManager, PageLevel } from './mobile-navigation';
 
 // 平台类型
 export enum Platform {
@@ -43,12 +43,19 @@ interface TouchPoint {
   timestamp: number;
 }
 
+// 手势监听器信息
+interface GestureListener {
+  handler: (direction: 'left' | 'right') => boolean;
+  priority: number; // 优先级，数字越大优先级越高
+  pageLevel?: PageLevel; // 页面层级
+}
+
 export class PlatformGestureHandler {
   private platform: Platform;
   private config: GestureConfig;
   private startTouch: TouchPoint | null = null;
   private isGestureActive = false;
-  private gestureListeners: Set<(direction: 'left' | 'right') => boolean> = new Set();
+  private gestureListeners: GestureListener[] = [];
 
   constructor(config: Partial<GestureConfig> = {}) {
     this.platform = this.detectPlatform();
@@ -343,10 +350,16 @@ export class PlatformGestureHandler {
     // 添加视觉反馈
     this.triggerVisualFeedback();
 
+    // 按优先级排序监听器（优先级高的先处理）
+    const sortedListeners = [...this.gestureListeners].sort((a, b) => b.priority - a.priority);
+
+    console.log('⬅️ [GestureHandler] 处理手势监听器，数量:', sortedListeners.length);
+
     // 优先通知注册的监听器（useMobileBackHandler）
-    for (const listener of this.gestureListeners) {
-      if (listener('left')) {
-        console.log('⬅️ [GestureHandler] 监听器已处理后退手势');
+    for (const listener of sortedListeners) {
+      console.log('⬅️ [GestureHandler] 尝试监听器，优先级:', listener.priority, '页面层级:', listener.pageLevel);
+      if (listener.handler('left')) {
+        console.log('⬅️ [GestureHandler] 监听器已处理后退手势，优先级:', listener.priority);
         return;
       }
     }
@@ -518,21 +531,41 @@ export class PlatformGestureHandler {
   }
 
   // 添加手势监听器
-  public addGestureListener(listener: (direction: 'left' | 'right') => boolean) {
-    this.gestureListeners.add(listener);
-    console.log('👂 [GestureHandler] 添加手势监听器');
+  public addGestureListener(
+    handler: (direction: 'left' | 'right') => boolean,
+    pageLevel: PageLevel = PageLevel.FEATURE
+  ) {
+    // 根据页面层级设置优先级
+    let priority = 0;
+    switch (pageLevel) {
+      case PageLevel.MODAL:
+        priority = 100; // 模态框最高优先级
+        break;
+      case PageLevel.FEATURE:
+        priority = 50;  // 功能页面中等优先级
+        break;
+      case PageLevel.DASHBOARD:
+        priority = 10;  // 仪表盘最低优先级
+        break;
+    }
+
+    const listener: GestureListener = {
+      handler,
+      priority,
+      pageLevel,
+    };
+
+    this.gestureListeners.push(listener);
+    console.log('👂 [GestureHandler] 添加手势监听器，优先级:', priority, '页面层级:', pageLevel);
   }
 
   // 移除手势监听器
-  public removeGestureListener(listener: (direction: 'left' | 'right') => boolean) {
-    this.gestureListeners.delete(listener);
-    console.log('👂 [GestureHandler] 移除手势监听器');
-  }
-
-  // 移除手势监听器
-  public removeGestureListener(listener: (direction: 'left' | 'right') => boolean) {
-    this.gestureListeners.delete(listener);
-    console.log('👂 [GestureHandler] 移除手势监听器');
+  public removeGestureListener(handler: (direction: 'left' | 'right') => boolean) {
+    const index = this.gestureListeners.findIndex(listener => listener.handler === handler);
+    if (index !== -1) {
+      const removed = this.gestureListeners.splice(index, 1)[0];
+      console.log('👂 [GestureHandler] 移除手势监听器，优先级:', removed.priority);
+    }
   }
 
   // 更新配置
