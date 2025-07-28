@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Smartphone, Download, Settings, CheckCircle, AlertCircle, ExternalLink, Apple, Bot } from 'lucide-react';
+import { Smartphone, Download, Settings, CheckCircle, AlertCircle, Apple, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { handleShortcutsDeepLink } from '@/lib/shortcuts-deep-link-handler';
 
@@ -12,29 +11,24 @@ export default function ShortcutsInstallPage() {
   const [activeTab, setActiveTab] = useState('ios');
 
   const handleInstallImageShortcut = () => {
-    // 使用原始快捷指令文件
-    const shortcutUrl = encodeURIComponent('https://jz-dev.jacksonz.cn:4443/shortcuts/smart-image-accounting.shortcut');
-    const installUrl = `shortcuts://import-shortcut?url=${shortcutUrl}`;
+    // 使用iCloud快捷指令链接
+    const icloudUrl = 'https://www.icloud.com/shortcuts/54101f6b4e5448cf8d20945f2daa1df4';
 
-    // 尝试打开快捷指令App
-    window.location.href = installUrl;
+    // 直接打开iCloud快捷指令链接
+    window.open(icloudUrl, '_blank');
   };
 
   const copyInstallLink = () => {
-    const shortcutUrl = 'https://jz-dev.jacksonz.cn:4443/shortcuts/smart-image-accounting.shortcut';
-    const installUrl = `shortcuts://import-shortcut?url=${encodeURIComponent(shortcutUrl)}`;
+    const icloudUrl = 'https://www.icloud.com/shortcuts/54101f6b4e5448cf8d20945f2daa1df4';
 
-    navigator.clipboard.writeText(installUrl).then(() => {
+    navigator.clipboard.writeText(icloudUrl).then(() => {
       alert('安装链接已复制到剪贴板');
     }).catch(() => {
       alert('复制失败，请手动复制');
     });
   };
 
-  const openDirectDownload = () => {
-    const shortcutUrl = 'https://jz-dev.jacksonz.cn:4443/shortcuts/smart-image-accounting.shortcut';
-    window.open(shortcutUrl, '_blank');
-  };
+
 
   const handleGetAndroidToken = async () => {
     try {
@@ -134,14 +128,10 @@ export default function ShortcutsInstallPage() {
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button onClick={handleInstallImageShortcut} className="flex-1">
                     <Download className="w-4 h-4 mr-2" />
-                    一键安装快捷指令
+                    打开快捷指令
                   </Button>
                   <Button variant="outline" onClick={copyInstallLink} className="flex-1">
                     复制安装链接
-                  </Button>
-                  <Button variant="outline" onClick={openDirectDownload} className="flex-1">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    直接下载
                   </Button>
                 </div>
               </CardContent>

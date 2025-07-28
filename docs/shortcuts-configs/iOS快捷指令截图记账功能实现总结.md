@@ -57,26 +57,30 @@
     ├── iOS快捷指令截图记账实现方案.md              # 技术方案文档
     ├── 快捷指令截图记账用户指南.md                  # 用户使用指南
     ├── iOS快捷指令截图记账功能实现总结.md           # 实现总结
-    └── shortcuts-configs/                          # 快捷指令配置文件
-        ├── shortcuts-image-accounting.json
+    └── shortcuts-configs/                          # 快捷指令配置文档
+        └── iOS快捷指令截图记账功能实现总结.md       # 本文件
         └── shortcuts-text-accounting.json
 ```
 
 ## 快捷指令配置
 
-### 图片记账快捷指令（推荐）
+### 官方快捷指令（推荐）
+**安装链接**: https://www.icloud.com/shortcuts/54101f6b4e5448cf8d20945f2daa1df4
+
+**功能流程**:
 ```
 1. 截取屏幕
-2. 调整图像大小（可选，1080px宽度）
-3. 将图像转换为Base64
-4. 打开URL：zhiweijz://smart-accounting?type=image&data={{Base64数据}}&source=shortcuts
+2. 获取用户认证Token
+3. 上传图片到对象存储
+4. 调用智能记账API
+5. 打开App显示结果：zhiweijz://smart-accounting?type=image&imageUrl={{图片URL}}&source=shortcuts
 ```
 
-### 文字记账快捷指令
+### 自定义快捷指令
+如需自定义，可参考以下URL格式：
 ```
-1. 截取屏幕
-2. 从图像中获取文本
-3. 打开URL：zhiweijz://smart-accounting?type=text&data={{提取文字}}&source=shortcuts
+zhiweijz://smart-accounting?type=image&imageUrl={{图片URL}}&source=shortcuts
+zhiweijz://smart-accounting?type=text&data={{提取文字}}&source=shortcuts
 ```
 
 ## 用户体验设计

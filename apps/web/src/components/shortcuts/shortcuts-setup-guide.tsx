@@ -9,12 +9,9 @@ import React, { useState } from 'react';
 import {
   Smartphone,
   Download,
-  Settings,
   CheckCircle,
   AlertCircle,
-  ExternalLink,
   Copy,
-  Image,
   Zap
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -106,20 +103,18 @@ export function ShortcutsSetupGuide({ className = '' }: ShortcutsSetupGuideProps
   // 渲染安装页面
   const renderInstall = () => {
     const handleInstallShortcut = () => {
-      const shortcutUrl = 'https://jz-dev.jacksonz.cn:4443/shortcuts/smart-image-accounting.shortcut';
-      const installUrl = `shortcuts://import-shortcut?url=${encodeURIComponent(shortcutUrl)}`;
+      const icloudUrl = 'https://www.icloud.com/shortcuts/54101f6b4e5448cf8d20945f2daa1df4';
 
-      // 尝试打开快捷指令安装链接
-      window.location.href = installUrl;
+      // 直接打开iCloud快捷指令链接
+      window.open(icloudUrl, '_blank');
 
       toast.success('正在打开快捷指令安装页面...');
     };
 
     const copyInstallLink = () => {
-      const shortcutUrl = 'https://jz-dev.jacksonz.cn:4443/shortcuts/smart-image-accounting.shortcut';
-      const installUrl = `shortcuts://import-shortcut?url=${encodeURIComponent(shortcutUrl)}`;
+      const icloudUrl = 'https://www.icloud.com/shortcuts/54101f6b4e5448cf8d20945f2daa1df4';
 
-      copyToClipboard(installUrl, '安装链接');
+      copyToClipboard(icloudUrl, '安装链接');
     };
 
     return (
@@ -147,7 +142,7 @@ export function ShortcutsSetupGuide({ className = '' }: ShortcutsSetupGuideProps
               className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
             >
               <Download className="w-5 h-5 mr-2" />
-              一键安装快捷指令
+              打开快捷指令
             </button>
 
             <button
