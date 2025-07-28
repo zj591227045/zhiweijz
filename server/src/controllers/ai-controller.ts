@@ -1224,9 +1224,31 @@ export class AIController {
         const recordsToCreate = isMultipleRecords ? result : [result as SmartAccountingResult];
         
         console.log(`📝 [记账处理] 检测到 ${recordsToCreate.length} 条记录需要创建`);
-        
+
         const createdTransactions = [];
         const now = new Date();
+
+        // 验证附件文件是否存在（如果有的话）
+        let attachmentFileExists = false;
+        if (attachmentFileId) {
+          try {
+            const fileInfo = await this.prisma.fileStorage.findUnique({
+              where: {
+                id: attachmentFileId,
+                uploadedBy: userId, // 确保文件属于当前用户
+              },
+            });
+
+            if (fileInfo) {
+              attachmentFileExists = true;
+              console.log(`📎 [附件验证] 附件文件验证成功: ${attachmentFileId}`);
+            } else {
+              console.warn(`⚠️ [附件验证] 文件不存在或无权访问: ${attachmentFileId}`);
+            }
+          } catch (error) {
+            console.error('验证附件文件失败:', error);
+          }
+        }
 
         // 循环创建每条记录
         for (let i = 0; i < recordsToCreate.length; i++) {
@@ -1339,34 +1361,22 @@ export class AIController {
 
           createdTransactions.push(transaction);
           
-          // 如果有附件文件ID，将其关联到创建的交易记录（只为第一条记录添加附件，避免重复）
-          if (attachmentFileId && i === 0) {
+          // 如果有附件文件ID且文件存在，将其关联到创建的交易记录（为每条记录都添加附件）
+          if (attachmentFileId && attachmentFileExists) {
             try {
               console.log(`📎 [附件关联] 正在为交易记录 ${transaction.id} 关联附件 ${attachmentFileId}`);
-              
-              // 验证文件是否存在
-              const fileInfo = await this.prisma.fileStorage.findUnique({
-                where: { 
-                  id: attachmentFileId,
-                  uploadedBy: userId, // 确保文件属于当前用户
-                },
+
+              // 为每条记录创建附件关联
+              await this.attachmentRepository.create({
+                transactionId: transaction.id,
+                fileId: attachmentFileId,
+                attachmentType: AttachmentType.RECEIPT,
+                description: '智能记账上传图片',
               });
-              
-              if (fileInfo) {
-                // 创建附件关联
-                await this.attachmentRepository.create({
-                  transactionId: transaction.id,
-                  fileId: attachmentFileId,
-                  attachmentType: AttachmentType.RECEIPT,
-                  description: '智能记账上传图片',
-                });
-                
-                console.log(`✅ [附件关联] 附件关联成功`);
-              } else {
-                console.warn(`⚠️ [附件关联] 文件不存在或无权访问: ${attachmentFileId}`);
-              }
+
+              console.log(`✅ [附件关联] 交易记录 ${transaction.id} 附件关联成功`);
             } catch (attachmentError) {
-              console.error('关联附件失败:', attachmentError);
+              console.error(`关联附件失败 (交易记录 ${transaction.id}):`, attachmentError);
               // 附件关联失败不影响记账创建的成功
             }
           }
