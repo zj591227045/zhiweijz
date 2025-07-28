@@ -12,29 +12,73 @@ export IS_DEBUG_BUILD=true
 export NEXT_PUBLIC_BUILD_TYPE=debug
 export NEXT_PUBLIC_IS_DEBUG_BUILD=true
 
-# 1.1. 重新构建前端（使用调试版本配置）
+# 1.1. 临时移动admin和所有debug相关目录
+echo "📁 临时移动admin和debug相关目录..."
+mkdir -p /tmp/zhiweijz-excluded-dirs-apk
+if [ -d "src/app/admin" ]; then
+    mv src/app/admin /tmp/zhiweijz-excluded-dirs-apk/
+    echo "✅ admin目录已移动"
+fi
+
+# 移动所有debug相关目录
+for debug_dir in src/app/*debug*; do
+    if [ -d "$debug_dir" ]; then
+        dir_name=$(basename "$debug_dir")
+        mv "$debug_dir" "/tmp/zhiweijz-excluded-dirs-apk/"
+        echo "✅ $dir_name 目录已移动"
+    fi
+done
+
+# 1.2. 重新构建前端（使用调试版本配置）
 echo "🏗️ 重新构建前端（调试版本配置）..."
+echo "   - 排除admin管理页面和debug页面"
 if BUILD_MODE=mobile NEXT_PUBLIC_IS_MOBILE=true IS_MOBILE_BUILD=true NEXT_PUBLIC_BUILD_TYPE=debug NEXT_PUBLIC_IS_DEBUG_BUILD=true npm run build:mobile; then
     echo "✅ 调试版本前端构建成功"
 else
     echo "❌ 调试版本前端构建失败"
+    # 恢复目录
+    if [ -d "/tmp/zhiweijz-excluded-dirs-apk/admin" ]; then
+        mv /tmp/zhiweijz-excluded-dirs-apk/admin src/app/
+    fi
+    for excluded_dir in /tmp/zhiweijz-excluded-dirs-apk/*debug*; do
+        if [ -d "$excluded_dir" ]; then
+            dir_name=$(basename "$excluded_dir")
+            mv "$excluded_dir" "src/app/"
+        fi
+    done
     exit 1
 fi
 
-# 1.2. 同步项目
+# 1.3. 恢复admin和所有debug相关目录
+echo "🔄 恢复admin和debug相关目录..."
+if [ -d "/tmp/zhiweijz-excluded-dirs-apk/admin" ]; then
+    mv /tmp/zhiweijz-excluded-dirs-apk/admin src/app/
+    echo "✅ admin目录已恢复"
+fi
+
+# 恢复所有debug相关目录
+for excluded_dir in /tmp/zhiweijz-excluded-dirs-apk/*debug*; do
+    if [ -d "$excluded_dir" ]; then
+        dir_name=$(basename "$excluded_dir")
+        mv "$excluded_dir" "src/app/"
+        echo "✅ $dir_name 目录已恢复"
+    fi
+done
+
+# 2. 同步项目
 echo "🔄 同步项目..."
 npx cap sync android
 
-# 2. 进入Android目录
+# 3. 进入Android目录
 cd ../android
 
-# 2.1 修复Kotlin JVM目标版本兼容性问题
+# 3.1 修复Kotlin JVM目标版本兼容性问题
 echo "🔧 修复Kotlin JVM目标版本..."
 sed -i.tmp 's/sourceCompatibility JavaVersion.VERSION_21/sourceCompatibility JavaVersion.VERSION_17/' app/capacitor.build.gradle
 sed -i.tmp 's/targetCompatibility JavaVersion.VERSION_21/targetCompatibility JavaVersion.VERSION_17/' app/capacitor.build.gradle
 rm -f app/capacitor.build.gradle.tmp
 
-# 2.2 修复RevenueCat插件的Kotlin版本问题
+# 3.2 修复RevenueCat插件的Kotlin版本问题
 echo "🔧 修复RevenueCat插件Kotlin版本..."
 REVENUECAT_BUILD_FILE="../node_modules/@revenuecat/purchases-capacitor/android/build.gradle"
 if [ -f "$REVENUECAT_BUILD_FILE" ]; then
@@ -46,7 +90,7 @@ if [ -f "$REVENUECAT_BUILD_FILE" ]; then
     echo "✅ RevenueCat插件配置已修复"
 fi
 
-# 3. 备份原始文件到临时目录
+# 4. 备份原始文件到临时目录
 echo "💾 备份原始配置..."
 BACKUP_DIR="/tmp/apk-build-backup-$$"
 mkdir -p "$BACKUP_DIR"
@@ -55,18 +99,18 @@ cp app/build.gradle "$BACKUP_DIR/build.gradle.backup"
 cp build.gradle "$BACKUP_DIR/root.build.gradle.backup"
 cp gradle.properties "$BACKUP_DIR/gradle.properties.backup"
 
-# 4. 修改应用名称为调试版本
+# 5. 修改应用名称为调试版本
 echo "🔧 设置调试版本应用名称..."
 sed -i.tmp 's/<string name="app_name">只为记账<\/string>/<string name="app_name">只为记账-dev<\/string>/' app/src/main/res/values/strings.xml
 sed -i.tmp 's/<string name="title_activity_main">只为记账<\/string>/<string name="title_activity_main">只为记账-dev<\/string>/' app/src/main/res/values/strings.xml
 rm -f app/src/main/res/values/strings.xml.tmp
 
-# 5. 修改包名为调试版本（只修改applicationId，保持namespace不变）
+# 6. 修改包名为调试版本（只修改applicationId，保持namespace不变）
 echo "🔧 设置调试版本包名..."
 sed -i.tmp 's/applicationId "cn.jacksonz.pwa.twa.zhiweijz"/applicationId "cn.jacksonz.pwa.twa.zhiweijz.debug"/' app/build.gradle
 rm -f app/build.gradle.tmp
 
-# 6. 修改strings.xml中的包名引用
+# 7. 修改strings.xml中的包名引用
 sed -i.tmp 's/<string name="package_name">cn.jacksonz.pwa.twa.zhiweijz<\/string>/<string name="package_name">cn.jacksonz.pwa.twa.zhiweijz.debug<\/string>/' app/src/main/res/values/strings.xml
 sed -i.tmp 's/<string name="custom_url_scheme">cn.jacksonz.pwa.twa.zhiweijz<\/string>/<string name="custom_url_scheme">cn.jacksonz.pwa.twa.zhiweijz.debug<\/string>/' app/src/main/res/values/strings.xml
 rm -f app/src/main/res/values/strings.xml.tmp
@@ -100,12 +144,12 @@ cleanup() {
 # 设置退出时执行清理
 trap cleanup EXIT
 
-# 7. 清理并构建APK
+# 8. 清理并构建APK
 echo "🏗️ 构建APK..."
 ./gradlew clean
 ./gradlew assembleDebug
 
-# 8. 复制APK到web目录
+# 9. 复制APK到web目录
 echo "📁 复制APK文件..."
 cp app/build/outputs/apk/debug/app-debug.apk ../web/app-debug.apk
 

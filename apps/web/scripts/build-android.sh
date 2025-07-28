@@ -9,10 +9,27 @@ echo "🤖 开始构建Android应用..."
 echo "🧹 清理之前的构建产物..."
 rm -rf out .next
 
-# 2. 构建静态文件（使用移动端构建模式）
+# 2. 临时移动admin和所有debug相关目录
+echo "📁 临时移动admin和debug相关目录..."
+mkdir -p /tmp/zhiweijz-excluded-dirs
+if [ -d "src/app/admin" ]; then
+    mv src/app/admin /tmp/zhiweijz-excluded-dirs/
+    echo "✅ admin目录已移动"
+fi
+
+# 移动所有debug相关目录
+for debug_dir in src/app/*debug*; do
+    if [ -d "$debug_dir" ]; then
+        dir_name=$(basename "$debug_dir")
+        mv "$debug_dir" "/tmp/zhiweijz-excluded-dirs/"
+        echo "✅ $dir_name 目录已移动"
+    fi
+done
+
+# 3. 构建静态文件（使用移动端构建模式）
 echo "🏗️ 构建静态文件（移动端模式）..."
 echo "   - 设置 BUILD_MODE=mobile"
-echo "   - 排除admin管理页面"
+echo "   - 排除admin管理页面和debug页面"
 echo "   - 使用静态导出模式"
 
 # 使用正确的环境变量设置
@@ -20,10 +37,36 @@ if BUILD_MODE=mobile NEXT_PUBLIC_IS_MOBILE=true IS_MOBILE_BUILD=true npm run bui
     echo "✅ 静态文件构建成功"
 else
     echo "❌ 静态文件构建失败"
+    # 恢复目录
+    if [ -d "/tmp/zhiweijz-excluded-dirs/admin" ]; then
+        mv /tmp/zhiweijz-excluded-dirs/admin src/app/
+    fi
+    for excluded_dir in /tmp/zhiweijz-excluded-dirs/*debug*; do
+        if [ -d "$excluded_dir" ]; then
+            dir_name=$(basename "$excluded_dir")
+            mv "$excluded_dir" "src/app/"
+        fi
+    done
     exit 1
 fi
 
-# 3. 检查构建结果
+# 4. 恢复admin和所有debug相关目录
+echo "🔄 恢复admin和debug相关目录..."
+if [ -d "/tmp/zhiweijz-excluded-dirs/admin" ]; then
+    mv /tmp/zhiweijz-excluded-dirs/admin src/app/
+    echo "✅ admin目录已恢复"
+fi
+
+# 恢复所有debug相关目录
+for excluded_dir in /tmp/zhiweijz-excluded-dirs/*debug*; do
+    if [ -d "$excluded_dir" ]; then
+        dir_name=$(basename "$excluded_dir")
+        mv "$excluded_dir" "src/app/"
+        echo "✅ $dir_name 目录已恢复"
+    fi
+done
+
+# 5. 检查构建结果
 echo "🔍 检查构建结果..."
 if [ ! -d "out" ]; then
     echo "❌ 构建失败：out目录不存在"

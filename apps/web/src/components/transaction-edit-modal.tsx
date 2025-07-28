@@ -1035,6 +1035,7 @@ export default function TransactionEditModal({
 
   return createPortal(
     <div
+      className="transaction-edit-modal"
       style={{
         position: 'fixed',
         top: 0,
@@ -1088,8 +1089,8 @@ export default function TransactionEditModal({
             overflowY: 'auto',
             // 移动端键盘优化
             WebkitOverflowScrolling: 'touch',
-            // 大幅减少底部padding，移除多余空白
-            paddingBottom: '0', /* 移除底部padding */
+            // 为删除按钮提供足够的底部空间，特别是安卓设备
+            paddingBottom: '80px', /* 为删除按钮和安卓导航栏提供空间 */
             // 防止键盘遮挡内容
             minHeight: 'calc(100vh - 60px)', // 减去头部高度
           }}
@@ -1596,9 +1597,9 @@ export default function TransactionEditModal({
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '10px', /* 减少从12px到10px */
-                    marginTop: '16px', /* 减少间距 */
-                    paddingBottom: '0', /* 移除底部padding，减少空白 */
+                    gap: '12px', /* 增加按钮间距 */
+                    marginTop: '24px', /* 增加顶部间距 */
+                    paddingBottom: '20px', /* 添加底部padding确保按钮可见 */
                   }}
                 >
                   {/* 保存和上一步按钮 */}
@@ -1661,13 +1662,14 @@ export default function TransactionEditModal({
                     }
                     style={{
                       width: '100%',
-                      height: '44px', /* 减少从48px到44px */
-                      borderRadius: '10px', /* 减少从12px到10px */
+                      height: '48px', /* 恢复标准高度确保可点击 */
+                      borderRadius: '12px', /* 恢复标准圆角 */
                       border: '1px solid #ef4444',
                       backgroundColor: 'transparent',
                       color: '#ef4444',
-                      fontSize: '15px', /* 减少从16px到15px */
+                      fontSize: '16px', /* 恢复标准字体大小 */
                       fontWeight: '500',
+                      marginTop: '8px', /* 添加上边距与保存按钮分离 */
                       cursor:
                         isSubmitting ||
                         isDeleting ||

@@ -6,8 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, CheckCircle, Info, RefreshCw } from 'lucide-react';
 import { useEnhancedVersion } from '@/components/version/EnhancedVersionProvider';
+import { withMobileCheck } from '@/components/mobile-not-supported';
 
-export default function VersionModalTestPage() {
+function VersionModalTestPage() {
   const [testResults, setTestResults] = useState<string[]>([]);
   const [isTestRunning, setIsTestRunning] = useState(false);
 
@@ -276,3 +277,6 @@ export default function VersionModalTestPage() {
     </div>
   );
 }
+
+// 使用高阶组件包装页面，添加移动端检查
+export default withMobileCheck(VersionModalTestPage, '版本弹窗测试页面');

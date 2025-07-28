@@ -67,6 +67,12 @@ const mobileConfig = {
       '@zhiweijz/web': path.resolve(__dirname, '../../packages/web/src'),
     };
 
+    // 排除admin和debug页面文件
+    config.module.rules.push({
+      test: /src[\/\\]app[\/\\](admin|debug)/,
+      use: 'null-loader'
+    });
+
     // 确保内部包可以访问前端的依赖
     config.resolve.modules = [
       path.resolve(__dirname, 'node_modules'),

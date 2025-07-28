@@ -93,6 +93,18 @@
   -webkit-backdrop-filter: blur(10px);
 }
 
+/* Android编辑记账模态框特殊适配 */
+.android-app .transaction-edit-modal .main-content {
+  /* 确保编辑记账页面有足够的底部空间 */
+  padding-bottom: 120px !important; /* 为删除按钮和安卓导航栏提供额外空间 */
+}
+
+/* Android编辑记账模态框按钮容器适配 */
+.android-app .transaction-edit-modal .main-content > div {
+  /* 确保按钮容器有足够的底部空间 */
+  padding-bottom: 40px !important;
+}
+
 /* Android底部导航栏适配 */
 .android-app .bottom-nav {
   /* 底部导航栏适配 */
