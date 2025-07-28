@@ -187,10 +187,7 @@ export class PerformanceMonitoringService {
    */
   async collectDiskMetrics() {
     try {
-      console.log('开始收集磁盘性能数据...');
       const diskInfo = await this.getDiskSpaceInfo();
-
-      console.log('获取到的磁盘信息:', diskInfo);
 
       if (diskInfo && diskInfo.total > 0) {
         const metric: PerformanceMetric = {
@@ -204,11 +201,7 @@ export class PerformanceMonitoringService {
           },
         };
 
-        console.log('保存磁盘性能指标:', metric);
         await this.saveMetric(metric);
-        console.log('✅ 磁盘性能数据保存成功');
-      } else {
-        console.warn('⚠️ 未获取到有效的磁盘信息，跳过保存');
       }
     } catch (error) {
       console.error('收集磁盘性能数据失败:', error);
@@ -266,9 +259,7 @@ export class PerformanceMonitoringService {
    */
   private async getDiskSpaceInfo() {
     try {
-      console.log('开始获取磁盘空间信息...');
       const platform = os.platform();
-      console.log(`操作系统平台: ${platform}`);
 
       const diskInfo: any = {
         drives: [],
@@ -284,15 +275,11 @@ export class PerformanceMonitoringService {
         diskInfo.drives = await this.getUnixDiskInfo();
       }
 
-      console.log(`获取到 ${diskInfo.drives.length} 个磁盘驱动器`);
-
       // 计算总计
       diskInfo.total = diskInfo.drives.reduce((sum: number, drive: any) => sum + drive.total, 0);
       diskInfo.used = diskInfo.drives.reduce((sum: number, drive: any) => sum + drive.used, 0);
       diskInfo.free = diskInfo.drives.reduce((sum: number, drive: any) => sum + drive.free, 0);
       diskInfo.usagePercent = diskInfo.total > 0 ? (diskInfo.used / diskInfo.total) * 100 : 0;
-
-      console.log(`磁盘总计: 总计=${diskInfo.total}, 已用=${diskInfo.used}, 可用=${diskInfo.free}, 使用率=${diskInfo.usagePercent.toFixed(2)}%`);
 
       return diskInfo;
     } catch (error) {
@@ -362,16 +349,15 @@ export class PerformanceMonitoringService {
    */
   private async getUnixDiskInfo() {
     const drives = [];
+    const seenFilesystems = new Map(); // 用于去重相同的物理磁盘
 
     try {
       const { stdout } = await execAsync('df -h');
-      console.log('df -h 输出:', stdout);
       const lines = stdout.split('\n').slice(1); // 跳过标题行
 
       for (const line of lines) {
         if (line.trim()) {
           const parts = line.trim().split(/\s+/);
-          console.log(`处理行: "${line}", 分割结果:`, parts);
 
           if (parts.length >= 6) {
             const filesystem = parts[0];
@@ -381,37 +367,43 @@ export class PerformanceMonitoringService {
             const usagePercent = parseFloat(parts[4].replace('%', '')) || 0;
             const mountPoint = parts[5];
 
-            console.log(`解析结果: ${filesystem} -> ${mountPoint}, 总计: ${total}, 已用: ${used}, 可用: ${free}, 使用率: ${usagePercent}%`);
-
-            // 更宽松的过滤条件，包含更多有用的挂载点
+            // 过滤掉临时文件系统和虚拟文件系统
             if (
               total > 0 &&
               !filesystem.startsWith('tmpfs') &&
               !filesystem.startsWith('devtmpfs') &&
               !filesystem.startsWith('overlay') &&
               !filesystem.startsWith('shm') &&
+              !filesystem.startsWith('map') &&
               !mountPoint.startsWith('/dev') &&
               !mountPoint.startsWith('/sys') &&
               !mountPoint.startsWith('/proc') &&
               mountPoint !== '/dev/shm'
             ) {
-              drives.push({
-                drive: mountPoint,
-                total,
-                used,
-                free,
-                usagePercent,
-                filesystem: filesystem.includes('/') ? filesystem.split('/').pop() : filesystem,
-              });
-              console.log(`✅ 添加磁盘: ${mountPoint}`);
-            } else {
-              console.log(`❌ 跳过磁盘: ${mountPoint} (${filesystem})`);
+              // 对于Docker容器环境，只针对完全相同的文件系统设备进行去重
+              // 使用文件系统设备+挂载点+大小作为唯一标识
+              const diskKey = `${filesystem}-${mountPoint}-${total}-${used}`;
+
+              if (!seenFilesystems.has(diskKey)) {
+                // 优先选择根目录，对于Docker容器中的绑定挂载，使用根目录
+                const preferredMountPoint = mountPoint === '/' ? '/' :
+                  (mountPoint.startsWith('/etc/') && filesystem.startsWith('/dev/') ? '/' : mountPoint);
+
+                drives.push({
+                  drive: preferredMountPoint,
+                  total,
+                  used,
+                  free,
+                  usagePercent,
+                  filesystem: filesystem.includes('/') ? filesystem.split('/').pop() : filesystem,
+                });
+
+                seenFilesystems.set(diskKey, true);
+              }
             }
           }
         }
       }
-
-      console.log(`最终获取到 ${drives.length} 个磁盘`);
     } catch (error) {
       console.warn('无法使用 df 获取磁盘信息:', error);
 
@@ -460,12 +452,9 @@ export class PerformanceMonitoringService {
 
       const multiplier = units[unit] || 1;
       const result = Math.round(value * multiplier);
-
-      console.log(`解析大小: "${sizeStr}" -> ${value} * ${multiplier} = ${result}`);
       return result;
     }
 
-    console.warn(`无法解析大小字符串: "${sizeStr}"`);
     return 0;
   }
 
@@ -650,8 +639,8 @@ export class PerformanceMonitoringService {
           COUNT(*)::BIGINT as sample_count
         FROM system_performance_history
         WHERE metric_type = $1
-          AND recorded_at >= NOW() - INTERVAL '${hours} hours'
-      `, metricType) as Array<{
+          AND recorded_at >= NOW() - INTERVAL '$2 hours'
+      `, metricType, hours) as Array<{
         avg_value: number;
         min_value: number;
         max_value: number;

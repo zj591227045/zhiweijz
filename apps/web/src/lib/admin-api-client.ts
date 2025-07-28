@@ -7,15 +7,27 @@ import { getApiBaseUrl } from './server-config';
 
 // 获取管理端API基础URL
 const getAdminApiBaseUrl = (): string => {
-  try {
-    // 使用统一的API配置获取基础URL
-    const baseUrl = getApiBaseUrl();
-    console.log('🔧 管理端API使用配置的地址:', baseUrl);
-    return baseUrl.replace('/api', ''); // 移除/api后缀，因为端点中已经包含了
-  } catch (error) {
-    console.warn('⚠️ 获取管理端API配置失败，使用默认值:', error);
-    return '/api';
+  // 管理端始终连接到本地服务器，不使用外部配置
+  // 这确保管理端功能在生产环境中正常工作
+  if (typeof window === 'undefined') {
+    // 服务端渲染时
+    return '';
   }
+
+  // 客户端始终使用当前域名的API
+  const protocol = window.location.protocol;
+  const hostname = window.location.hostname;
+  const port = window.location.port;
+
+  // 如果是开发环境，使用固定的后端端口
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return `${protocol}//${hostname}:3000`;
+  }
+
+  // 生产环境使用当前域名
+  const baseUrl = port ? `${protocol}//${hostname}:${port}` : `${protocol}//${hostname}`;
+  console.log('🔧 管理端API使用本地地址:', baseUrl);
+  return baseUrl;
 };
 
 // 管理端API端点配置
