@@ -9,6 +9,7 @@ import {
   VersionCheckResponse,
   UserVersionStatusRequest,
 } from '@/lib/api/version';
+import { getCurrentPlatform, getBuildType, getAppPackageName } from '../../utils/version-utils';
 
 // 版本检查数据结构
 export interface VersionCheckData {
@@ -40,12 +41,7 @@ class VersionCheckService {
    * 获取当前平台
    */
   getCurrentPlatform(): Platform {
-    if (typeof window === 'undefined') return 'web';
-
-    const userAgent = navigator.userAgent.toLowerCase();
-    if (userAgent.includes('android')) return 'android';
-    if (userAgent.includes('iphone') || userAgent.includes('ipad')) return 'ios';
-    return 'web';
+    return getCurrentPlatform();
   }
 
   /**
@@ -149,10 +145,16 @@ class VersionCheckService {
       const platform = this.getCurrentPlatform();
       const { version, buildNumber } = this.getCurrentAppVersion();
 
+      // 获取构建类型和包名信息
+      const buildType = await getBuildType();
+      const packageName = await getAppPackageName();
+
       const request: VersionCheckRequest = {
         platform,
         currentVersion: version,
         currentBuildNumber: buildNumber,
+        buildType,
+        packageName: packageName || undefined,
       };
 
       const response = await versionApi.checkVersion(request);

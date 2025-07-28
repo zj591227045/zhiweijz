@@ -58,15 +58,27 @@ export class VersionService {
   }
 
   // 获取最新版本
-  async getLatestVersion(platform: 'web' | 'ios' | 'android'): Promise<AppVersionResponse | null> {
+  async getLatestVersion(platform: 'web' | 'ios' | 'android', buildType?: 'debug' | 'release'): Promise<AppVersionResponse | null> {
+    // 构建查询条件
+    const whereCondition: any = {
+      platform: platform.toUpperCase() as any,
+      isEnabled: true,
+      publishedAt: {
+        not: null
+      }
+    };
+
+    // 如果是调试版本，可以添加特殊的查询条件
+    // 例如：查找标记为调试版本的版本，或者使用不同的版本标识
+    if (buildType === 'debug') {
+      // 可以通过releaseNotes或其他字段来标识调试版本
+      // 或者创建专门的调试版本记录
+      // 这里暂时使用相同的逻辑，但可以根据需要扩展
+      console.log('查询调试版本:', platform, buildType);
+    }
+
     const version = await prisma.appVersion.findFirst({
-      where: {
-        platform: platform.toUpperCase() as any,
-        isEnabled: true,
-        publishedAt: {
-          not: null
-        }
-      },
+      where: whereCondition,
       orderBy: {
         versionCode: 'desc'
       }
@@ -87,7 +99,7 @@ export class VersionService {
       throw new AppError('版本检查功能未启用', 400);
     }
 
-    const latestVersion = await this.getLatestVersion(data.platform);
+    const latestVersion = await this.getLatestVersion(data.platform, data.buildType);
     
     if (!latestVersion) {
       // 记录检查日志

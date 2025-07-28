@@ -42,6 +42,65 @@ export function getCurrentPlatform(): 'web' | 'ios' | 'android' {
 }
 
 /**
+ * 获取当前应用的包名/Bundle ID
+ * 用于区分调试版本和生产版本
+ */
+export async function getAppPackageName(): Promise<string | null> {
+  if (typeof window === 'undefined') return null;
+
+  // 检查是否为 Capacitor 环境
+  if ((window as any).Capacitor) {
+    try {
+      // 尝试使用 Capacitor App 插件获取应用信息
+      const { App } = await import('@capacitor/app');
+      const appInfo = await App.getInfo();
+      return appInfo.id || null;
+    } catch (error) {
+      console.warn('无法获取应用包名:', error);
+    }
+  }
+
+  return null;
+}
+
+/**
+ * 检测当前是否为调试版本
+ * 基于多种方式判断：环境变量、包名、开发环境等
+ */
+export async function isDebugBuild(): Promise<boolean> {
+  // 1. 优先检查构建时设置的环境变量
+  if (process.env.NEXT_PUBLIC_IS_DEBUG_BUILD === 'true') {
+    return true;
+  }
+
+  if (process.env.NEXT_PUBLIC_BUILD_TYPE === 'debug') {
+    return true;
+  }
+
+  // 2. 检查包名（适用于已构建的应用）
+  const packageName = await getAppPackageName();
+  if (packageName && packageName.endsWith('.debug')) {
+    return true;
+  }
+
+  // 3. 如果无法获取包名，在开发环境下默认为调试版本
+  if (!packageName && process.env.NODE_ENV === 'development') {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * 获取版本更新的构建类型
+ * 返回 'debug' 或 'release'
+ */
+export async function getBuildType(): Promise<'debug' | 'release'> {
+  const isDebug = await isDebugBuild();
+  return isDebug ? 'debug' : 'release';
+}
+
+/**
  * 获取平台显示名称
  */
 export function getPlatformDisplayName(platform: string): string {

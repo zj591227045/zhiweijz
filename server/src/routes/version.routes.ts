@@ -7,7 +7,9 @@ const router = Router();
 
 // 公开接口
 router.post('/check', versionController.checkVersion);
+router.post('/check/debug', versionController.checkVersion); // 调试版本检查（使用相同的控制器，通过参数区分）
 router.get('/latest/:platform', versionController.getLatestVersion);
+router.get('/latest/:platform/debug', versionController.getLatestVersion); // 调试版本获取最新版本
 
 // 用户接口（需要登录）
 router.post('/log/update', authenticate, versionController.logUpdate);

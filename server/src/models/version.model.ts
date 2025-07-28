@@ -33,6 +33,8 @@ export interface VersionCheckRequest {
   platform: 'web' | 'ios' | 'android';
   currentVersion?: string;
   currentBuildNumber?: number;
+  buildType?: 'debug' | 'release'; // 新增：构建类型
+  packageName?: string; // 新增：应用包名
 }
 
 export interface VersionCheckResponse {

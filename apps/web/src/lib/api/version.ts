@@ -3,6 +3,8 @@ export interface VersionCheckRequest {
   platform: 'web' | 'ios' | 'android';
   currentVersion?: string;
   currentBuildNumber?: number;
+  buildType?: 'debug' | 'release'; // 新增：构建类型
+  packageName?: string; // 新增：应用包名
 }
 
 export interface VersionCheckResponse {
@@ -52,10 +54,15 @@ export interface UserVersionStatusRequest {
 }
 
 // API基础URL配置
-const getApiBaseUrl = (): string => {
+const getApiBaseUrl = (buildType?: 'debug' | 'release'): string => {
   // 优先使用环境变量配置的URL
   if (process.env.NEXT_PUBLIC_API_BASE_URL) {
     return process.env.NEXT_PUBLIC_API_BASE_URL;
+  }
+
+  // 如果是调试版本，可以使用特殊的调试API端点
+  if (buildType === 'debug' && process.env.NEXT_PUBLIC_DEBUG_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_DEBUG_API_BASE_URL;
   }
 
   // 如果没有配置环境变量，智能检测环境
@@ -86,8 +93,17 @@ const getApiBaseUrl = (): string => {
 export const versionApi = {
   // 检查版本更新
   async checkVersion(data: VersionCheckRequest): Promise<VersionCheckResponse> {
-    const baseUrl = getApiBaseUrl();
-    const url = `${baseUrl}/api/version/check`;
+    const baseUrl = getApiBaseUrl(data.buildType);
+
+    // 根据构建类型选择不同的API端点
+    let url: string;
+    if (data.buildType === 'debug') {
+      // 调试版本使用专门的调试API端点
+      url = `${baseUrl}/api/version/check/debug`;
+    } else {
+      // 生产版本使用标准API端点
+      url = `${baseUrl}/api/version/check`;
+    }
 
     const response = await fetch(url, {
       method: 'POST',
@@ -106,9 +122,16 @@ export const versionApi = {
   },
 
   // 获取最新版本信息（公开接口）
-  async getLatestVersion(platform: 'web' | 'ios' | 'android') {
-    const baseUrl = getApiBaseUrl();
-    const url = `${baseUrl}/api/version/latest/${platform}`;
+  async getLatestVersion(platform: 'web' | 'ios' | 'android', buildType?: 'debug' | 'release') {
+    const baseUrl = getApiBaseUrl(buildType);
+
+    // 根据构建类型选择不同的API端点
+    let url: string;
+    if (buildType === 'debug') {
+      url = `${baseUrl}/api/version/latest/${platform}/debug`;
+    } else {
+      url = `${baseUrl}/api/version/latest/${platform}`;
+    }
 
     const response = await fetch(url);
 
@@ -121,8 +144,8 @@ export const versionApi = {
   },
 
   // 记录更新操作
-  async logUpdate(data: VersionUpdateLogRequest, token: string) {
-    const baseUrl = getApiBaseUrl();
+  async logUpdate(data: VersionUpdateLogRequest, token: string, buildType?: 'debug' | 'release') {
+    const baseUrl = getApiBaseUrl(buildType);
     const url = `${baseUrl}/api/version/log/update`;
 
     const response = await fetch(url, {
@@ -142,8 +165,8 @@ export const versionApi = {
   },
 
   // 记录跳过更新操作
-  async logSkip(data: VersionUpdateLogRequest, token: string) {
-    const baseUrl = getApiBaseUrl();
+  async logSkip(data: VersionUpdateLogRequest, token: string, buildType?: 'debug' | 'release') {
+    const baseUrl = getApiBaseUrl(buildType);
     const url = `${baseUrl}/api/version/log/skip`;
 
     const response = await fetch(url, {

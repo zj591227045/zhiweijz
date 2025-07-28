@@ -24,7 +24,7 @@ export class VersionController {
         return;
       }
 
-      const { platform, currentVersion, currentBuildNumber } = req.body as VersionCheckRequest;
+      const { platform, currentVersion, currentBuildNumber, buildType, packageName } = req.body as VersionCheckRequest;
       
       if (!platform || !['web', 'ios', 'android'].includes(platform)) {
         throw new AppError('平台参数无效', 400);
@@ -35,7 +35,7 @@ export class VersionController {
       const userAgent = req.get('User-Agent');
 
       const result = await versionService.checkVersion(
-        { platform, currentVersion, currentBuildNumber },
+        { platform, currentVersion, currentBuildNumber, buildType, packageName },
         userId,
         ipAddress,
         userAgent
@@ -64,12 +64,16 @@ export class VersionController {
   async getLatestVersion(req: Request, res: Response): Promise<void> {
     try {
       const { platform } = req.params;
-      
+
       if (!platform || !['web', 'ios', 'android'].includes(platform)) {
         throw new AppError('平台参数无效', 400);
       }
 
-      const version = await versionService.getLatestVersion(platform as any);
+      // 检查是否是调试版本请求（通过路径判断）
+      const isDebugRequest = req.path.includes('/debug');
+      const buildType = isDebugRequest ? 'debug' : 'release';
+
+      const version = await versionService.getLatestVersion(platform as any, buildType);
       
       if (!version) {
         res.status(404).json({

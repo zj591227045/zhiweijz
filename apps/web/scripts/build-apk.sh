@@ -5,7 +5,23 @@ set -e
 
 echo "📦 生成Android APK..."
 
-# 1. 同步项目
+# 1. 设置调试版本环境变量
+echo "🔧 设置调试版本环境变量..."
+export BUILD_TYPE=debug
+export IS_DEBUG_BUILD=true
+export NEXT_PUBLIC_BUILD_TYPE=debug
+export NEXT_PUBLIC_IS_DEBUG_BUILD=true
+
+# 1.1. 重新构建前端（使用调试版本配置）
+echo "🏗️ 重新构建前端（调试版本配置）..."
+if BUILD_MODE=mobile NEXT_PUBLIC_IS_MOBILE=true IS_MOBILE_BUILD=true NEXT_PUBLIC_BUILD_TYPE=debug NEXT_PUBLIC_IS_DEBUG_BUILD=true npm run build:mobile; then
+    echo "✅ 调试版本前端构建成功"
+else
+    echo "❌ 调试版本前端构建失败"
+    exit 1
+fi
+
+# 1.2. 同步项目
 echo "🔄 同步项目..."
 npx cap sync android
 
@@ -100,5 +116,11 @@ echo "📦 包名: cn.jacksonz.pwa.twa.zhiweijz.debug"
 echo "🎯 现在调试版与正式版可以共存安装！"
 echo "⚠️  注意：只修改了applicationId，保持了原始的类路径结构"
 echo ""
+echo "🔧 调试版本特性："
+echo "   - 使用独立的包名和应用名称"
+echo "   - 支持独立的版本更新源配置"
+echo "   - 可以与生产版本同时安装"
+echo "   - 构建时自动设置调试版本标识"
+echo ""
 echo "📋 安装APK到设备："
-echo "adb install app-debug.apk" 
+echo "adb install app-debug.apk"
