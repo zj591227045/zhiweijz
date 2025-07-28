@@ -266,12 +266,47 @@ export class PlatformPermissions {
    */
   showPermissionDialog(type: 'camera' | 'photos', result: PermissionResult): void {
     if (result.status === 'denied') {
-      const message =
-        type === 'camera'
-          ? '需要相机权限才能拍照。请在设置中允许应用访问相机。'
-          : '需要相册权限才能选择图片。请在设置中允许应用访问相册。';
+      const isIOS = this.isCapacitor && (window as any).Capacitor?.getPlatform?.() === 'ios';
 
-      alert(message);
+      let message: string;
+      let settingsPath: string;
+
+      if (type === 'camera') {
+        message = '需要相机权限才能拍照。';
+        settingsPath = isIOS ? '设置 → 只为记账 → 相机' : '设置 → 应用权限 → 只为记账 → 相机';
+      } else {
+        message = '需要相册权限才能选择图片。';
+        settingsPath = isIOS ? '设置 → 只为记账 → 照片' : '设置 → 应用权限 → 只为记账 → 存储';
+      }
+
+      const fullMessage = `${message}\n\n请在手机设置中开启权限：\n${settingsPath}`;
+
+      // 使用更友好的提示方式
+      if (typeof window !== 'undefined' && window.confirm) {
+        const shouldOpenSettings = window.confirm(`${fullMessage}\n\n是否现在前往设置？`);
+        if (shouldOpenSettings && this.isCapacitor) {
+          // 尝试打开应用设置页面
+          this.openAppSettings();
+        }
+      } else {
+        alert(fullMessage);
+      }
+    }
+  }
+
+  /**
+   * 打开应用设置页面
+   */
+  private async openAppSettings(): Promise<void> {
+    try {
+      if (this.isCapacitor) {
+        const { App } = await import('@capacitor/app');
+        if (App && typeof App.openSettings === 'function') {
+          await App.openSettings();
+        }
+      }
+    } catch (error) {
+      console.error('🔐 [OpenSettings] 无法打开设置页面:', error);
     }
   }
 }

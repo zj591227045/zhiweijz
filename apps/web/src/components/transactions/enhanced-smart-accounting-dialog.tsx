@@ -1180,8 +1180,16 @@ export default function EnhancedSmartAccountingDialog({
 
       let errorMessage = '相册功能不可用';
       if (error instanceof Error) {
-        if (error.message.includes('权限')) {
-          errorMessage = '需要相册权限才能选择图片，请在设置中允许访问相册';
+        if (error.message.includes('权限') || error.message.includes('denied')) {
+          // 检测平台类型以提供更准确的指导
+          const isIOS = typeof window !== 'undefined' &&
+                       (window as any).Capacitor?.getPlatform?.() === 'ios';
+
+          if (isIOS) {
+            errorMessage = '需要相册权限才能选择图片\n\n请前往：设置 → 只为记账 → 照片\n开启"读取和写入"权限';
+          } else {
+            errorMessage = '需要相册权限才能选择图片\n\n请前往：设置 → 应用权限 → 只为记账 → 存储\n开启相关权限';
+          }
         } else if (error.message.includes('不支持')) {
           errorMessage = '当前设备不支持相册功能';
         } else {
@@ -1228,8 +1236,16 @@ export default function EnhancedSmartAccountingDialog({
 
       let errorMessage = '相机功能不可用';
       if (error instanceof Error) {
-        if (error.message.includes('权限')) {
-          errorMessage = '需要相机权限才能拍照，请在设置中允许访问相机';
+        if (error.message.includes('权限') || error.message.includes('denied')) {
+          // 检测平台类型以提供更准确的指导
+          const isIOS = typeof window !== 'undefined' &&
+                       (window as any).Capacitor?.getPlatform?.() === 'ios';
+
+          if (isIOS) {
+            errorMessage = '需要相机权限才能拍照\n\n请前往：设置 → 只为记账 → 相机\n开启相机权限';
+          } else {
+            errorMessage = '需要相机权限才能拍照\n\n请前往：设置 → 应用权限 → 只为记账 → 相机\n开启相机权限';
+          }
         } else if (error.message.includes('不支持')) {
           errorMessage = '当前设备不支持相机功能';
         } else {

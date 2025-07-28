@@ -56,5 +56,13 @@
 			</array>
 		</dict>
 	</array>
+
+	<!-- Camera and Photo Library Permissions -->
+	<key>NSCameraUsageDescription</key>
+	<string>需要访问相机来拍摄小票和账单，帮助您快速记账</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>需要访问相册来选择小票和账单图片，帮助您快速记账</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>需要访问相册来保存拍摄的小票和账单图片</string>
 </dict>
 </plist>
