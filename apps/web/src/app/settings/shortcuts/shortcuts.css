@@ -1,0 +1,615 @@
+/* 快捷指令页面样式 */
+.shortcuts-page {
+  /* 确保使用项目的CSS变量 */
+  --primary: var(--primary-color, #3b82f6);
+  --primary-foreground: #ffffff;
+  --secondary: var(--skeleton-background, #f3f4f6);
+  --secondary-foreground: var(--text-primary, #1f2937);
+  --muted: var(--skeleton-background, #f3f4f6);
+  --muted-foreground: var(--text-secondary, #6b7280);
+  --card: var(--card-background, #ffffff);
+  --card-foreground: var(--text-primary, #1f2937);
+  --border: var(--border-color, #e5e7eb);
+  --background: var(--background-color, #f9fafb);
+  --foreground: var(--text-primary, #1f2937);
+  --destructive: var(--error-color, #ef4444);
+  --destructive-foreground: #ffffff;
+}
+
+/* 步骤指示器 */
+.shortcuts-page .step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  padding: 0 0.5rem;
+}
+
+.shortcuts-page .step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.shortcuts-page .step-number.active {
+  background-color: var(--primary-color, #3b82f6) !important;
+  color: white !important;
+}
+
+.shortcuts-page .step-number.inactive {
+  background-color: #f3f4f6 !important;
+  color: #6b7280 !important;
+}
+
+.shortcuts-page .step-line {
+  width: 1.5rem;
+  height: 2px;
+  margin: 0 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.shortcuts-page .step-line.active {
+  background-color: var(--primary-color, #3b82f6) !important;
+}
+
+.shortcuts-page .step-line.inactive {
+  background-color: #f3f4f6 !important;
+}
+
+/* 卡片样式 */
+.shortcuts-page .card {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.shortcuts-page .card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.shortcuts-page .card-header .icon {
+  color: var(--primary-color);
+  margin-right: 0.5rem;
+}
+
+/* 功能特性卡片 */
+.shortcuts-page .feature-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background-color: var(--skeleton-background, #f3f4f6);
+  transition: all 0.2s ease;
+}
+
+.shortcuts-page .feature-icon {
+  color: #22c55e;
+  margin-right: 0.75rem;
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+.shortcuts-page .feature-title {
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.shortcuts-page .feature-description {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+/* 系统要求 */
+.shortcuts-page .requirement-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  background-color: var(--skeleton-background, #f3f4f6);
+  transition: all 0.2s ease;
+}
+
+.shortcuts-page .requirement-icon {
+  color: #22c55e;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.shortcuts-page .requirement-text {
+  color: var(--text-primary);
+}
+
+/* 安装卡片 */
+.shortcuts-page .install-card {
+  background-color: var(--primary-color-light);
+  border: 1px solid var(--primary-color);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.shortcuts-page .install-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.shortcuts-page .install-icon {
+  color: var(--primary-color);
+  margin-right: 0.5rem;
+}
+
+.shortcuts-page .install-title {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.shortcuts-page .install-description {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+/* 按钮样式 */
+.shortcuts-page .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  border: none;
+}
+
+.shortcuts-page .btn:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.shortcuts-page .btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.shortcuts-page .btn-primary:hover {
+  background-color: var(--primary-color-dark);
+}
+
+.shortcuts-page .btn-secondary {
+  background-color: var(--skeleton-background, #f3f4f6);
+  color: var(--text-primary, #1f2937);
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.shortcuts-page .btn-secondary:hover {
+  background-color: var(--skeleton-highlight, #e5e7eb);
+}
+
+/* 步骤说明 */
+.shortcuts-page .steps-container {
+  background-color: var(--skeleton-background, #f3f4f6);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.shortcuts-page .steps-title {
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+.shortcuts-page .step-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  background-color: var(--card-background);
+  transition: all 0.2s ease;
+  margin-bottom: 0.5rem;
+}
+
+.shortcuts-page .step-item:last-child {
+  margin-bottom: 0;
+}
+
+.shortcuts-page .step-number-small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background-color: var(--primary-color-light);
+  color: var(--primary-color);
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-right: 0.75rem;
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+.shortcuts-page .step-text {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+/* 配置步骤 */
+.shortcuts-page .config-step {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background-color: var(--skeleton-background, #f3f4f6);
+  transition: all 0.2s ease;
+  margin-bottom: 0.75rem;
+}
+
+.shortcuts-page .config-step:last-child {
+  margin-bottom: 0;
+}
+
+.shortcuts-page .config-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
+  color: var(--primary-color, #3b82f6);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-right: 1rem;
+  margin-top: 0.25rem;
+  flex-shrink: 0;
+}
+
+.shortcuts-page .config-title {
+  font-weight: 500;
+  color: var(--text-primary, #1f2937);
+  margin-bottom: 0.25rem;
+}
+
+.shortcuts-page .config-description {
+  color: var(--text-secondary, #6b7280);
+}
+
+.shortcuts-page .config-content h4 {
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.shortcuts-page .config-content p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+/* 测试功能 */
+.shortcuts-page .test-section {
+  background-color: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.shortcuts-page .test-title {
+  color: #16a34a;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.shortcuts-page .test-step {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  background-color: rgba(255, 255, 255, 0.5);
+  transition: all 0.2s ease;
+  margin-bottom: 0.5rem;
+}
+
+.shortcuts-page .test-step:last-child {
+  margin-bottom: 0;
+}
+
+.shortcuts-page .test-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-right: 0.75rem;
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+.shortcuts-page .test-text {
+  color: #15803d;
+  font-size: 0.875rem;
+}
+
+/* 支持场景 */
+.shortcuts-page .scenarios-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .shortcuts-page .scenarios-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.shortcuts-page .scenario-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  background-color: rgba(255, 255, 255, 0.5);
+  transition: all 0.2s ease;
+}
+
+.shortcuts-page .scenario-icon {
+  color: var(--primary-color);
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.shortcuts-page .scenario-text {
+  color: var(--primary-color);
+  font-size: 0.875rem;
+}
+
+/* 警告和提示 */
+.shortcuts-page .alert {
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.shortcuts-page .alert-warning {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.shortcuts-page .alert-info {
+  background-color: var(--primary-color-light);
+  border: 1px solid var(--primary-color);
+}
+
+.shortcuts-page .alert-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.shortcuts-page .alert-icon {
+  margin-right: 0.5rem;
+}
+
+.shortcuts-page .alert-title {
+  font-weight: 500;
+}
+
+.shortcuts-page .alert-warning .alert-icon,
+.shortcuts-page .alert-warning .alert-title {
+  color: #dc2626;
+}
+
+.shortcuts-page .alert-warning .alert-text {
+  color: rgba(220, 38, 38, 0.8);
+}
+
+.shortcuts-page .alert-info .alert-icon,
+.shortcuts-page .alert-info .alert-title {
+  color: var(--primary-color);
+}
+
+.shortcuts-page .alert-info .alert-text {
+  color: var(--primary-color);
+}
+
+/* 完成页面 */
+.shortcuts-page .complete-section {
+  text-align: center;
+}
+
+.shortcuts-page .complete-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background-color: rgba(34, 197, 94, 0.1);
+  margin-bottom: 1rem;
+}
+
+.shortcuts-page .complete-title {
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.shortcuts-page .complete-description {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+/* 暗色模式支持 */
+.dark .shortcuts-page .step-number.inactive {
+  background-color: #374151 !important;
+  color: #9ca3af !important;
+}
+
+.dark .shortcuts-page .step-line.inactive {
+  background-color: #374151 !important;
+}
+
+.dark .shortcuts-page .feature-item,
+.dark .shortcuts-page .requirement-item,
+.dark .shortcuts-page .config-step,
+.dark .shortcuts-page .steps-container {
+  background-color: #374151 !important;
+}
+
+.dark .shortcuts-page .btn-secondary {
+  background-color: #374151 !important;
+  color: #f3f4f6 !important;
+  border-color: #4b5563 !important;
+}
+
+.dark .shortcuts-page .btn-secondary:hover {
+  background-color: #4b5563 !important;
+}
+
+/* 响应式设计 */
+@media (min-width: 640px) {
+  .shortcuts-page .step-number {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.875rem;
+  }
+
+  .shortcuts-page .step-line {
+    width: 2rem;
+    margin: 0 0.5rem;
+  }
+
+  .shortcuts-page .card {
+    padding: 1.5rem;
+  }
+
+  .shortcuts-page .card-header {
+    font-size: 1.125rem;
+  }
+}
+
+/* 警告框样式 */
+.shortcuts-page .alert {
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+  border: 1px solid;
+}
+
+.shortcuts-page .alert-warning {
+  background-color: var(--warning-background, rgba(245, 158, 11, 0.1));
+  border-color: var(--warning-color, #f59e0b);
+  color: var(--warning-color, #f59e0b);
+}
+
+.shortcuts-page .alert-success {
+  background-color: var(--success-background, rgba(34, 197, 94, 0.1));
+  border-color: var(--success-color, #22c55e);
+  color: var(--success-color, #22c55e);
+}
+
+.shortcuts-page .alert-info {
+  background-color: var(--primary-color-light, rgba(59, 130, 246, 0.1));
+  border-color: var(--primary-color, #3b82f6);
+  color: var(--primary-color, #3b82f6);
+}
+
+.shortcuts-page .alert-error {
+  background-color: var(--error-background, rgba(239, 68, 68, 0.1));
+  border-color: var(--error-color, #ef4444);
+  color: var(--error-color, #ef4444);
+}
+
+.shortcuts-page .alert-title {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.shortcuts-page .alert-description {
+  opacity: 0.8;
+}
+
+.shortcuts-page .alert-icon {
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* 测试步骤样式 */
+.shortcuts-page .test-step {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  background-color: var(--skeleton-background, #f3f4f6);
+  transition: all 0.2s ease;
+  margin-bottom: 0.5rem;
+}
+
+.shortcuts-page .step-number-small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-right: 0.5rem;
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+/* 支持场景样式 */
+.shortcuts-page .supported-scenario {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  background-color: var(--skeleton-background, #f3f4f6);
+  transition: all 0.2s ease;
+}
+
+.shortcuts-page .scenario-icon {
+  color: var(--primary-color, #3b82f6);
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* 成功按钮样式 */
+.shortcuts-page .btn-success {
+  background-color: #22c55e;
+  color: white;
+  border: 1px solid #22c55e;
+}
+
+.shortcuts-page .btn-success:hover {
+  background-color: #16a34a;
+  border-color: #16a34a;
+}

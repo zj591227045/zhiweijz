@@ -18,6 +18,7 @@ import {
 import { toast } from 'sonner';
 import { useMobileBackHandler } from '@/hooks/use-mobile-back-handler';
 import { PageLevel } from '@/lib/mobile-navigation';
+import './shortcuts.css';
 
 // 检测平台类型
 const detectPlatform = (): 'ios' | 'android' | 'other' => {
@@ -79,21 +80,19 @@ export default function ShortcutsSettingsPage() {
 
   // 安装快捷指令
   const installShortcut = () => {
-    const shortcutUrl = 'https://jz-dev.jacksonz.cn:4443/shortcuts/smart-image-accounting.shortcut';
-    const installUrl = `shortcuts://import-shortcut?url=${encodeURIComponent(shortcutUrl)}`;
+    const icloudUrl = 'https://www.icloud.com/shortcuts/54101f6b4e5448cf8d20945f2daa1df4';
 
-    // 尝试打开快捷指令安装链接
-    window.location.href = installUrl;
+    // 直接打开iCloud快捷指令链接
+    window.open(icloudUrl, '_blank');
 
     toast.success('正在打开快捷指令安装页面...');
   };
 
   // 复制安装链接
   const copyInstallLink = () => {
-    const shortcutUrl = 'https://jz-dev.jacksonz.cn:4443/shortcuts/smart-image-accounting.shortcut';
-    const installUrl = `shortcuts://import-shortcut?url=${encodeURIComponent(shortcutUrl)}`;
+    const icloudUrl = 'https://www.icloud.com/shortcuts/54101f6b4e5448cf8d20945f2daa1df4';
 
-    copyToClipboard(installUrl, '安装链接');
+    copyToClipboard(icloudUrl, '安装链接');
   };
 
   // 渲染步骤指示器
@@ -109,20 +108,14 @@ export default function ShortcutsSettingsPage() {
     const currentIndex = steps.findIndex(step => step.key === currentStep);
 
     return (
-      <div className="flex items-center justify-center mb-6 px-2">
+      <div className="step-indicator">
         {steps.map((step, index) => (
           <React.Fragment key={step.key}>
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors ${
-              index <= currentIndex
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground'
-            }`}>
+            <div className={`step-number ${index <= currentIndex ? 'active' : 'inactive'}`}>
               {index + 1}
             </div>
             {index < steps.length - 1 && (
-              <div className={`w-8 sm:w-12 h-0.5 mx-1 sm:mx-2 transition-colors ${
-                index < currentIndex ? 'bg-primary' : 'bg-muted'
-              }`} />
+              <div className={`step-line ${index < currentIndex ? 'active' : 'inactive'}`} />
             )}
           </React.Fragment>
         ))}
@@ -157,65 +150,65 @@ export default function ShortcutsSettingsPage() {
         return (
           <div className="space-y-4 sm:space-y-6">
             {/* 功能介绍 */}
-            <div className="bg-card rounded-lg shadow-sm border p-4 sm:p-6">
+            <div className="card">
               <div className="text-center mb-4 sm:mb-6">
-                <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full mb-3 sm:mb-4">
-                  <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+                <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full mb-3 sm:mb-4" style={{ backgroundColor: 'var(--primary-color-light)' }}>
+                  <Zap className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: 'var(--primary-color)' }} />
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">iOS快捷记账</h2>
-                <p className="text-muted-foreground text-sm sm:text-base">轻敲iPhone背面，自动截图并智能记账</p>
+                <h2 className="text-xl sm:text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>iOS快捷记账</h2>
+                <p className="text-sm sm:text-base" style={{ color: 'var(--text-secondary)' }}>轻敲iPhone背面，自动截图并智能记账</p>
               </div>
 
               <div className="space-y-3 sm:space-y-4">
-                <div className="flex items-start">
-                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" />
+                <div className="feature-item">
+                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 feature-icon" />
                   <div>
-                    <h4 className="font-medium text-foreground text-sm sm:text-base">AI图片识别</h4>
-                    <p className="text-xs sm:text-sm text-muted-foreground">使用先进的AI技术识别支付记录、订单详情等</p>
+                    <h4 className="feature-title text-sm sm:text-base">AI图片识别</h4>
+                    <p className="feature-description text-xs sm:text-sm">使用先进的AI技术识别支付记录、订单详情等</p>
                   </div>
                 </div>
-                <div className="flex items-start">
-                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" />
+                <div className="feature-item">
+                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 feature-icon" />
                   <div>
-                    <h4 className="font-medium text-foreground text-sm sm:text-base">一键触发</h4>
-                    <p className="text-xs sm:text-sm text-muted-foreground">轻敲iPhone背面即可快速截图记账</p>
+                    <h4 className="feature-title text-sm sm:text-base">一键触发</h4>
+                    <p className="feature-description text-xs sm:text-sm">轻敲iPhone背面即可快速截图记账</p>
                   </div>
                 </div>
-                <div className="flex items-start">
-                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" />
+                <div className="feature-item">
+                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 feature-icon" />
                   <div>
-                    <h4 className="font-medium text-foreground text-sm sm:text-base">支持多平台</h4>
-                    <p className="text-xs sm:text-sm text-muted-foreground">微信、支付宝、淘宝、美团等主流平台</p>
+                    <h4 className="feature-title text-sm sm:text-base">支持多平台</h4>
+                    <p className="feature-description text-xs sm:text-sm">微信、支付宝、淘宝、美团等主流平台</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* 系统要求 */}
-            <div className="bg-card rounded-lg shadow-sm border p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4 flex items-center">
-                <Smartphone className="w-4 h-4 sm:w-5 sm:h-5 text-primary mr-2" />
+            <div className="card">
+              <h3 className="card-header">
+                <Smartphone className="w-4 h-4 sm:w-5 sm:h-5 icon" />
                 系统要求
               </h3>
               <div className="space-y-2 sm:space-y-3">
-                <div className="flex items-center">
-                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 mr-2 sm:mr-3 flex-shrink-0" />
-                  <span className="text-foreground text-sm sm:text-base">iOS 14.0 或更高版本</span>
+                <div className="requirement-item">
+                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 requirement-icon" />
+                  <span className="requirement-text text-sm sm:text-base">iOS 14.0 或更高版本</span>
                 </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 mr-2 sm:mr-3 flex-shrink-0" />
-                  <span className="text-foreground text-sm sm:text-base">iPhone 8 或更新机型</span>
+                <div className="requirement-item">
+                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 requirement-icon" />
+                  <span className="requirement-text text-sm sm:text-base">iPhone 8 或更新机型</span>
                 </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 mr-2 sm:mr-3 flex-shrink-0" />
-                  <span className="text-foreground text-sm sm:text-base">已安装"只为记账"App</span>
+                <div className="requirement-item">
+                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 requirement-icon" />
+                  <span className="requirement-text text-sm sm:text-base">已安装"只为记账"App</span>
                 </div>
               </div>
             </div>
 
             <button
               onClick={() => setCurrentStep('install')}
-              className="w-full bg-primary text-primary-foreground py-3 sm:py-4 px-4 sm:px-6 rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center justify-center text-sm sm:text-base"
+              className="btn btn-primary text-sm sm:text-base"
             >
               开始设置
               <ExternalLink className="w-4 h-4 ml-2" />
@@ -226,32 +219,83 @@ export default function ShortcutsSettingsPage() {
       case 'install':
         return (
           <div className="space-y-4 sm:space-y-6">
-            <div className="bg-card rounded-lg shadow-sm border p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4 flex items-center">
-                <Download className="w-4 h-4 sm:w-5 sm:h-5 text-primary mr-2" />
+            <div
+              className="rounded-lg shadow-sm border p-4 sm:p-6 transition-colors"
+              style={{
+                backgroundColor: 'var(--card-background)',
+                borderColor: 'var(--border-color)',
+              }}
+            >
+              <h3
+                className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                <Download
+                  className="w-4 h-4 sm:w-5 sm:h-5 mr-2"
+                  style={{ color: 'var(--primary-color)' }}
+                />
                 安装快捷指令
               </h3>
 
               <div className="space-y-4 mb-4 sm:mb-6">
-                <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 sm:p-4">
+                <div
+                  className="border rounded-lg p-3 sm:p-4 transition-colors"
+                  style={{
+                    backgroundColor: 'var(--primary-color-light)',
+                    borderColor: 'var(--primary-color)',
+                    borderWidth: '1px',
+                  }}
+                >
                   <div className="flex items-center mb-2">
-                    <Image className="w-4 h-4 sm:w-5 sm:h-5 text-primary mr-2" />
-                    <span className="font-medium text-foreground text-sm sm:text-base">智能图片记账快捷指令</span>
+                    <Apple
+                      className="w-4 h-4 sm:w-5 sm:h-5 mr-2"
+                      style={{ color: 'var(--primary-color)' }}
+                    />
+                    <span
+                      className="font-medium text-sm sm:text-base"
+                      style={{ color: 'var(--text-primary)' }}
+                    >
+                      智能图片记账快捷指令
+                    </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-3">
-                    对象存储版本 - 支持完整质量图片，AI智能识别，无URL长度限制
+                  <p
+                    className="text-xs sm:text-sm mb-3"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    通过iCloud快捷指令分享 - 支持完整质量图片，AI智能识别，无URL长度限制
                   </p>
                   <div className="space-y-2">
                     <button
                       onClick={installShortcut}
-                      className="w-full bg-primary text-primary-foreground py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center justify-center text-sm sm:text-base"
+                      className="w-full py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center text-sm sm:text-base shadow-sm hover:shadow-md"
+                      style={{
+                        backgroundColor: 'var(--primary-color)',
+                        color: 'white',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--primary-color-dark)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--primary-color)';
+                      }}
                     >
                       <Download className="w-4 h-4 mr-2" />
                       一键安装快捷指令
                     </button>
                     <button
                       onClick={copyInstallLink}
-                      className="w-full bg-secondary text-secondary-foreground py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium hover:bg-secondary/80 transition-colors flex items-center justify-center text-xs sm:text-sm"
+                      className="w-full py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center text-xs sm:text-sm shadow-sm hover:shadow-md"
+                      style={{
+                        backgroundColor: 'var(--hover-background)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--border-color)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--background-hover)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--hover-background)';
+                      }}
                     >
                       <Copy className="w-3 h-3 mr-2" />
                       复制安装链接
@@ -260,24 +304,84 @@ export default function ShortcutsSettingsPage() {
                 </div>
               </div>
 
-              <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-muted-foreground">
-                <p className="font-medium text-foreground text-sm sm:text-base">安装步骤：</p>
-                <div className="space-y-2">
-                  <div className="flex items-start">
-                    <span className="inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 bg-primary/10 text-primary rounded-full text-xs font-medium mr-2 sm:mr-3 mt-0.5 flex-shrink-0">1</span>
-                    <span>点击"一键安装快捷指令"按钮</span>
+              <div
+                className="rounded-lg p-3 sm:p-4 transition-colors"
+                style={{ backgroundColor: 'var(--hover-background)' }}
+              >
+                <p
+                  className="font-medium text-sm sm:text-base mb-3"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  安装步骤：
+                </p>
+                <div className="space-y-2 text-xs sm:text-sm">
+                  <div
+                    className="flex items-start p-2 rounded-md transition-colors"
+                    style={{ backgroundColor: 'var(--card-background)' }}
+                  >
+                    <span
+                      className="inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full text-xs font-medium mr-2 sm:mr-3 mt-0.5 flex-shrink-0"
+                      style={{
+                        backgroundColor: 'var(--primary-color-light)',
+                        color: 'var(--primary-color)',
+                      }}
+                    >
+                      1
+                    </span>
+                    <span style={{ color: 'var(--text-secondary)' }}>
+                      点击"一键安装快捷指令"按钮
+                    </span>
                   </div>
-                  <div className="flex items-start">
-                    <span className="inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 bg-primary/10 text-primary rounded-full text-xs font-medium mr-2 sm:mr-3 mt-0.5 flex-shrink-0">2</span>
-                    <span>在弹出的页面中选择"获取快捷指令"</span>
+                  <div
+                    className="flex items-start p-2 rounded-md transition-colors"
+                    style={{ backgroundColor: 'var(--card-background)' }}
+                  >
+                    <span
+                      className="inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full text-xs font-medium mr-2 sm:mr-3 mt-0.5 flex-shrink-0"
+                      style={{
+                        backgroundColor: 'var(--primary-color-light)',
+                        color: 'var(--primary-color)',
+                      }}
+                    >
+                      2
+                    </span>
+                    <span style={{ color: 'var(--text-secondary)' }}>
+                      在Safari中打开iCloud快捷指令页面
+                    </span>
                   </div>
-                  <div className="flex items-start">
-                    <span className="inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 bg-primary/10 text-primary rounded-full text-xs font-medium mr-2 sm:mr-3 mt-0.5 flex-shrink-0">3</span>
-                    <span>点击"添加快捷指令"完成安装</span>
+                  <div
+                    className="flex items-start p-2 rounded-md transition-colors"
+                    style={{ backgroundColor: 'var(--card-background)' }}
+                  >
+                    <span
+                      className="inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full text-xs font-medium mr-2 sm:mr-3 mt-0.5 flex-shrink-0"
+                      style={{
+                        backgroundColor: 'var(--primary-color-light)',
+                        color: 'var(--primary-color)',
+                      }}
+                    >
+                      3
+                    </span>
+                    <span style={{ color: 'var(--text-secondary)' }}>
+                      点击"获取快捷指令"按钮
+                    </span>
                   </div>
-                  <div className="flex items-start">
-                    <span className="inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 bg-primary/10 text-primary rounded-full text-xs font-medium mr-2 sm:mr-3 mt-0.5 flex-shrink-0">4</span>
-                    <span>快捷指令将自动命名为"智能图片记账"</span>
+                  <div
+                    className="flex items-start p-2 rounded-md transition-colors"
+                    style={{ backgroundColor: 'var(--card-background)' }}
+                  >
+                    <span
+                      className="inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full text-xs font-medium mr-2 sm:mr-3 mt-0.5 flex-shrink-0"
+                      style={{
+                        backgroundColor: 'var(--primary-color-light)',
+                        color: 'var(--primary-color)',
+                      }}
+                    >
+                      4
+                    </span>
+                    <span style={{ color: 'var(--text-secondary)' }}>
+                      在快捷指令App中点击"添加快捷指令"
+                    </span>
                   </div>
                 </div>
               </div>
@@ -286,13 +390,34 @@ export default function ShortcutsSettingsPage() {
             <div className="flex gap-2 sm:gap-3">
               <button
                 onClick={() => setCurrentStep('intro')}
-                className="flex-1 bg-secondary text-secondary-foreground py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg font-medium hover:bg-secondary/80 transition-colors text-sm sm:text-base"
+                className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg font-medium transition-all duration-200 text-sm sm:text-base shadow-sm hover:shadow-md"
+                style={{
+                  backgroundColor: 'var(--hover-background)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-color)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--background-hover)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--hover-background)';
+                }}
               >
                 上一步
               </button>
               <button
                 onClick={() => setCurrentStep('configure')}
-                className="flex-1 bg-primary text-primary-foreground py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg font-medium hover:bg-primary/90 transition-colors text-sm sm:text-base"
+                className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg font-medium transition-all duration-200 text-sm sm:text-base shadow-sm hover:shadow-md"
+                style={{
+                  backgroundColor: 'var(--primary-color)',
+                  color: 'white',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--primary-color-dark)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--primary-color)';
+                }}
               >
                 下一步
               </button>
@@ -302,76 +427,76 @@ export default function ShortcutsSettingsPage() {
 
       case 'configure':
         return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Settings className="w-5 h-5 text-blue-500 mr-2" />
+          <div className="space-y-4 sm:space-y-6">
+            <div className="card">
+              <h3 className="card-header">
+                <Settings className="w-4 h-4 sm:w-5 sm:h-5 icon" />
                 配置轻点背面
               </h3>
-              
-              <div className="space-y-4">
-                <div className="flex items-start">
-                  <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full text-sm font-medium mr-4 mt-1">1</span>
+
+              <div className="space-y-3 sm:space-y-4">
+                <div className="config-step">
+                  <span className="config-number">1</span>
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-1">打开设置</h4>
-                    <p className="text-sm text-gray-600">在iPhone上打开"设置"应用</p>
+                    <h4 className="config-title text-sm sm:text-base">打开设置</h4>
+                    <p className="config-description text-xs sm:text-sm">在iPhone上打开"设置"应用</p>
                   </div>
                 </div>
-                
-                <div className="flex items-start">
-                  <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full text-sm font-medium mr-4 mt-1">2</span>
+
+                <div className="config-step">
+                  <span className="config-number">2</span>
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-1">进入辅助功能</h4>
-                    <p className="text-sm text-gray-600">设置 → 辅助功能</p>
+                    <h4 className="config-title text-sm sm:text-base">进入辅助功能</h4>
+                    <p className="config-description text-xs sm:text-sm">设置 → 辅助功能</p>
                   </div>
                 </div>
-                
-                <div className="flex items-start">
-                  <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full text-sm font-medium mr-4 mt-1">3</span>
+
+                <div className="config-step">
+                  <span className="config-number">3</span>
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-1">找到触控设置</h4>
-                    <p className="text-sm text-gray-600">辅助功能 → 触控</p>
+                    <h4 className="config-title text-sm sm:text-base">找到触控设置</h4>
+                    <p className="config-description text-xs sm:text-sm">辅助功能 → 触控</p>
                   </div>
                 </div>
-                
-                <div className="flex items-start">
-                  <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full text-sm font-medium mr-4 mt-1">4</span>
+
+                <div className="config-step">
+                  <span className="config-number">4</span>
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-1">配置轻点背面</h4>
-                    <p className="text-sm text-gray-600">触控 → 轻点背面 → 轻点两下</p>
+                    <h4 className="config-title text-sm sm:text-base">配置轻点背面</h4>
+                    <p className="config-description text-xs sm:text-sm">触控 → 轻点背面 → 轻点两下</p>
                   </div>
                 </div>
-                
-                <div className="flex items-start">
-                  <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full text-sm font-medium mr-4 mt-1">5</span>
+
+                <div className="config-step">
+                  <span className="config-number">5</span>
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-1">选择快捷指令</h4>
-                    <p className="text-sm text-gray-600">在快捷指令列表中选择"只为记账-图片记账"</p>
+                    <h4 className="config-title text-sm sm:text-base">选择快捷指令</h4>
+                    <p className="config-description text-xs sm:text-sm">在快捷指令列表中选择"只为记账-截图记账"</p>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="alert alert-warning">
                 <div className="flex items-center mb-2">
-                  <AlertCircle className="w-4 h-4 text-amber-600 mr-2" />
-                  <span className="font-medium text-amber-800">注意事项</span>
+                  <AlertCircle className="w-4 h-4 alert-icon" />
+                  <span className="alert-title text-sm sm:text-base">注意事项</span>
                 </div>
-                <p className="text-sm text-amber-700">
-                  如果在快捷指令列表中找不到"只为记账-图片记账"，请确保已正确安装快捷指令。
+                <p className="alert-description text-xs sm:text-sm">
+                  如果在快捷指令列表中找不到"智能图片记账"，请确保已正确安装快捷指令。
                 </p>
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3">
               <button
                 onClick={() => setCurrentStep('install')}
-                className="flex-1 bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                className="btn btn-secondary flex-1 text-sm sm:text-base"
               >
                 上一步
               </button>
               <button
                 onClick={() => setCurrentStep('test')}
-                className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                className="btn btn-primary flex-1 text-sm sm:text-base"
               >
                 下一步
               </button>
@@ -381,74 +506,74 @@ export default function ShortcutsSettingsPage() {
 
       case 'test':
         return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+          <div className="space-y-4 sm:space-y-6">
+            <div className="card">
+              <h3 className="card-header">
+                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 icon" />
                 测试功能
               </h3>
-              
-              <div className="space-y-4 mb-6">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h4 className="font-medium text-green-800 mb-2">测试步骤</h4>
-                  <div className="space-y-2 text-sm text-green-700">
-                    <div className="flex items-start">
-                      <span className="inline-flex items-center justify-center w-5 h-5 bg-green-100 text-green-600 rounded-full text-xs font-medium mr-3 mt-0.5">1</span>
+
+              <div className="space-y-4 mb-4 sm:mb-6">
+                <div className="alert alert-success">
+                  <h4 className="alert-title text-sm sm:text-base">测试步骤</h4>
+                  <div className="space-y-2 text-xs sm:text-sm">
+                    <div className="test-step">
+                      <span className="step-number-small">1</span>
                       <span>确保已在只为记账App中选择了账本</span>
                     </div>
-                    <div className="flex items-start">
-                      <span className="inline-flex items-center justify-center w-5 h-5 bg-green-100 text-green-600 rounded-full text-xs font-medium mr-3 mt-0.5">2</span>
+                    <div className="test-step">
+                      <span className="step-number-small">2</span>
                       <span>打开微信支付记录或支付宝账单页面</span>
                     </div>
-                    <div className="flex items-start">
-                      <span className="inline-flex items-center justify-center w-5 h-5 bg-green-100 text-green-600 rounded-full text-xs font-medium mr-3 mt-0.5">3</span>
+                    <div className="test-step">
+                      <span className="step-number-small">3</span>
                       <span>轻敲iPhone背面两次</span>
                     </div>
-                    <div className="flex items-start">
-                      <span className="inline-flex items-center justify-center w-5 h-5 bg-green-100 text-green-600 rounded-full text-xs font-medium mr-3 mt-0.5">4</span>
+                    <div className="test-step">
+                      <span className="step-number-small">4</span>
                       <span>等待自动截图和AI识别处理</span>
                     </div>
-                    <div className="flex items-start">
-                      <span className="inline-flex items-center justify-center w-5 h-5 bg-green-100 text-green-600 rounded-full text-xs font-medium mr-3 mt-0.5">5</span>
+                    <div className="test-step">
+                      <span className="step-number-small">5</span>
                       <span>查看记账结果</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-medium text-blue-800 mb-2">支持的场景</h4>
-                  <div className="grid grid-cols-2 gap-2 text-sm text-blue-700">
-                    <div className="flex items-center">
-                      <CheckCircle className="w-3 h-3 text-blue-600 mr-2" />
+                <div className="alert alert-info">
+                  <h4 className="alert-title text-sm sm:text-base">支持的场景</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
+                    <div className="supported-scenario">
+                      <CheckCircle className="w-3 h-3 scenario-icon" />
                       <span>微信支付记录</span>
                     </div>
-                    <div className="flex items-center">
-                      <CheckCircle className="w-3 h-3 text-blue-600 mr-2" />
+                    <div className="supported-scenario">
+                      <CheckCircle className="w-3 h-3 scenario-icon" />
                       <span>支付宝付款页面</span>
                     </div>
-                    <div className="flex items-center">
-                      <CheckCircle className="w-3 h-3 text-blue-600 mr-2" />
+                    <div className="supported-scenario">
+                      <CheckCircle className="w-3 h-3 scenario-icon" />
                       <span>淘宝订单详情</span>
                     </div>
-                    <div className="flex items-center">
-                      <CheckCircle className="w-3 h-3 text-blue-600 mr-2" />
+                    <div className="supported-scenario">
+                      <CheckCircle className="w-3 h-3 scenario-icon" />
                       <span>美团外卖订单</span>
                     </div>
-                    <div className="flex items-center">
-                      <CheckCircle className="w-3 h-3 text-blue-600 mr-2" />
+                    <div className="supported-scenario">
+                      <CheckCircle className="w-3 h-3 scenario-icon" />
                       <span>银行转账记录</span>
                     </div>
-                    <div className="flex items-center">
-                      <CheckCircle className="w-3 h-3 text-blue-600 mr-2" />
+                    <div className="supported-scenario">
+                      <CheckCircle className="w-3 h-3 scenario-icon" />
                       <span>发票和收据</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                <h4 className="font-medium text-amber-800 mb-2">故障排除</h4>
-                <div className="space-y-1 text-sm text-amber-700">
+              <div className="alert alert-error">
+                <h4 className="alert-title text-sm sm:text-base">故障排除</h4>
+                <div className="space-y-1 text-xs sm:text-sm">
                   <p>• 如果轻敲背面没有反应，请检查轻点背面设置</p>
                   <p>• 如果识别不准确，确保截图内容清晰完整</p>
                   <p>• 如果记账失败，检查网络连接和账本选择</p>
@@ -456,16 +581,16 @@ export default function ShortcutsSettingsPage() {
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3">
               <button
                 onClick={() => setCurrentStep('configure')}
-                className="flex-1 bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                className="btn btn-secondary flex-1 text-sm sm:text-base"
               >
                 上一步
               </button>
               <button
                 onClick={() => setCurrentStep('complete')}
-                className="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                className="btn btn-success flex-1 text-sm sm:text-base"
               >
                 测试完成
               </button>
@@ -475,19 +600,19 @@ export default function ShortcutsSettingsPage() {
 
       case 'complete':
         return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                <CheckCircle className="w-8 h-8 text-green-600" />
+          <div className="space-y-4 sm:space-y-6">
+            <div className="card text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full mb-3 sm:mb-4" style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)' }}>
+                <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">设置完成！</h2>
-              <p className="text-gray-600 mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>设置完成！</h2>
+              <p className="text-sm sm:text-base mb-4 sm:mb-6" style={{ color: 'var(--text-secondary)' }}>
                 您已成功设置iOS快捷记账功能，现在可以轻敲iPhone背面快速记账了。
               </p>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <h4 className="font-medium text-blue-800 mb-2">使用提示</h4>
-                <div className="space-y-1 text-sm text-blue-700 text-left">
+              <div className="alert alert-info text-left">
+                <h4 className="alert-title text-sm sm:text-base">使用提示</h4>
+                <div className="space-y-1 text-xs sm:text-sm">
                   <p>• 选择信息完整的页面进行截图</p>
                   <p>• 避免截图时有弹窗遮挡</p>
                   <p>• 确保金额和商家信息清晰可见</p>
@@ -497,7 +622,7 @@ export default function ShortcutsSettingsPage() {
 
               <button
                 onClick={() => setCurrentStep('intro')}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                className="btn btn-primary text-sm sm:text-base"
               >
                 重新查看设置
               </button>
@@ -513,16 +638,45 @@ export default function ShortcutsSettingsPage() {
   // 渲染Android内容
   const renderAndroidContent = () => {
     return (
-      <div className="bg-card rounded-lg shadow-sm border p-4 sm:p-6 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-muted rounded-full mb-3 sm:mb-4">
-          <Smartphone className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
+      <div
+        className="rounded-lg shadow-sm border p-4 sm:p-6 text-center transition-colors"
+        style={{
+          backgroundColor: 'var(--card-background)',
+          borderColor: 'var(--border-color)',
+        }}
+      >
+        <div
+          className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full mb-3 sm:mb-4 transition-colors"
+          style={{ backgroundColor: 'var(--hover-background)' }}
+        >
+          <Smartphone
+            className="w-6 h-6 sm:w-8 sm:h-8"
+            style={{ color: 'var(--text-secondary)' }}
+          />
         </div>
-        <h2 className="text-lg sm:text-xl font-bold text-foreground mb-2">Android版本开发中</h2>
-        <p className="text-muted-foreground text-sm sm:text-base mb-4">
+        <h2
+          className="text-lg sm:text-xl font-bold mb-2"
+          style={{ color: 'var(--text-primary)' }}
+        >
+          Android版本开发中
+        </h2>
+        <p
+          className="text-sm sm:text-base mb-4"
+          style={{ color: 'var(--text-secondary)' }}
+        >
           Android平台的快捷记账功能正在开发中，敬请期待。
         </p>
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 sm:p-4">
-          <p className="text-xs sm:text-sm text-muted-foreground">
+        <div
+          className="border rounded-lg p-3 sm:p-4 transition-colors"
+          style={{
+            backgroundColor: 'var(--primary-color-light)',
+            borderColor: 'var(--primary-color)',
+          }}
+        >
+          <p
+            className="text-xs sm:text-sm"
+            style={{ color: 'var(--primary-color)' }}
+          >
             您可以继续使用App内的智能记账功能，支持拍照和语音记账。
           </p>
         </div>
@@ -533,16 +687,45 @@ export default function ShortcutsSettingsPage() {
   // 渲染其他平台内容
   const renderOtherPlatformContent = () => {
     return (
-      <div className="bg-card rounded-lg shadow-sm border p-4 sm:p-6 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-muted rounded-full mb-3 sm:mb-4">
-          <Smartphone className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
+      <div
+        className="rounded-lg shadow-sm border p-4 sm:p-6 text-center transition-colors"
+        style={{
+          backgroundColor: 'var(--card-background)',
+          borderColor: 'var(--border-color)',
+        }}
+      >
+        <div
+          className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full mb-3 sm:mb-4 transition-colors"
+          style={{ backgroundColor: 'var(--hover-background)' }}
+        >
+          <Smartphone
+            className="w-6 h-6 sm:w-8 sm:h-8"
+            style={{ color: 'var(--text-secondary)' }}
+          />
         </div>
-        <h2 className="text-lg sm:text-xl font-bold text-foreground mb-2">仅支持移动设备</h2>
-        <p className="text-muted-foreground text-sm sm:text-base mb-4">
+        <h2
+          className="text-lg sm:text-xl font-bold mb-2"
+          style={{ color: 'var(--text-primary)' }}
+        >
+          仅支持移动设备
+        </h2>
+        <p
+          className="text-sm sm:text-base mb-4"
+          style={{ color: 'var(--text-secondary)' }}
+        >
           快捷记账功能仅在iOS和Android移动设备上可用。
         </p>
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 sm:p-4">
-          <p className="text-xs sm:text-sm text-muted-foreground">
+        <div
+          className="border rounded-lg p-3 sm:p-4 transition-colors"
+          style={{
+            backgroundColor: 'var(--primary-color-light)',
+            borderColor: 'var(--primary-color)',
+          }}
+        >
+          <p
+            className="text-xs sm:text-sm"
+            style={{ color: 'var(--primary-color)' }}
+          >
             请在iPhone或Android手机上访问此页面来设置快捷记账功能。
           </p>
         </div>
@@ -556,7 +739,7 @@ export default function ShortcutsSettingsPage() {
       showBackButton={true}
       activeNavItem="profile"
     >
-      <div className="w-full max-w-2xl mx-auto px-4 pb-safe">
+      <div className="shortcuts-page w-full max-w-2xl mx-auto px-4 pb-safe">
         {/* 平台检测和步骤指示器 */}
         {platform === 'ios' && renderStepIndicator()}
 

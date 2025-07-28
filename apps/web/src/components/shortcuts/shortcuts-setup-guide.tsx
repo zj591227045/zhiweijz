@@ -166,7 +166,7 @@ export function ShortcutsSetupGuide({ className = '' }: ShortcutsSetupGuideProps
               <li>点击"一键安装快捷指令"按钮</li>
               <li>在弹出的页面中选择"获取快捷指令"</li>
               <li>点击"添加快捷指令"完成安装</li>
-              <li>快捷指令将自动命名为"智能图片记账"</li>
+              <li>快捷指令将自动命名为"只为记账-截图记账"</li>
             </ol>
           </div>
 

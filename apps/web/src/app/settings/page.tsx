@@ -320,7 +320,7 @@ export default function SettingsPage() {
           </div>
           <div className="item-content">
             <div className="item-title">快捷记账</div>
-            <div className="item-description">设置iOS快捷指令，轻敲背面快速记账</div>
+            <div className="item-description">设置快捷指令，实现快速记账</div>
           </div>
           <div className="item-action">
             <i className="fas fa-chevron-right"></i>
