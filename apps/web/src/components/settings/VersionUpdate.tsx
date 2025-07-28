@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { ExternalLink } from 'lucide-react';
 import {
   getCurrentAppVersion,
   getCurrentPlatform,
@@ -52,6 +53,7 @@ export function VersionUpdate({ className, isAdmin = false }: VersionUpdateProps
         platform: platform,
         currentVersion: currentVersion,
         currentBuildNumber: currentBuildNumber,
+        buildType: 'release', // 添加 buildType 参数
       });
 
       setUpdateInfo(result);
@@ -121,6 +123,21 @@ export function VersionUpdate({ className, isAdmin = false }: VersionUpdateProps
               )}
               {updateInfo.latestVersion.isForceUpdate && (
                 <div className="mt-1 text-xs text-red-600 dark:text-red-400 font-medium">⚠️ 强制更新</div>
+              )}
+
+              {/* 详细更新情况链接 */}
+              {updateInfo.latestVersion.detailUrl && (
+                <div className="mt-2">
+                  <Button
+                    onClick={() => window.open(updateInfo.latestVersion.detailUrl, '_blank')}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                  >
+                    <ExternalLink className="w-3 h-3 mr-1" />
+                    查看详细更新情况
+                  </Button>
+                </div>
               )}
             </div>
           )}

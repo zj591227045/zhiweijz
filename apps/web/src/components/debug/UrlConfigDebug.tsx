@@ -12,21 +12,34 @@ import { Button } from '@/components/ui/button';
 export function UrlConfigDebug() {
   const [config, setConfig] = useState<any>({});
   const [testResults, setTestResults] = useState<any>({});
+  const [buildInfo, setBuildInfo] = useState<any>(null);
 
   useEffect(() => {
     // 获取当前配置
     const currentConfig = {
       NODE_ENV: process.env.NODE_ENV,
       NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+      NEXT_PUBLIC_DEBUG_API_BASE_URL: process.env.NEXT_PUBLIC_DEBUG_API_BASE_URL,
       NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
       NEXT_PUBLIC_BUILD_NUMBER: process.env.NEXT_PUBLIC_BUILD_NUMBER,
+      NEXT_PUBLIC_BUILD_TYPE: process.env.NEXT_PUBLIC_BUILD_TYPE,
+      NEXT_PUBLIC_IS_DEBUG_BUILD: process.env.NEXT_PUBLIC_IS_DEBUG_BUILD,
       windowOrigin: typeof window !== 'undefined' ? window.location.origin : 'N/A',
       currentUrl: typeof window !== 'undefined' ? window.location.href : 'N/A',
     };
     setConfig(currentConfig);
+
+    // 获取构建信息
+    detectBuildInfo().then(setBuildInfo);
   }, []);
 
-  const getApiBaseUrl = (): string => {
+  const getApiBaseUrl = (buildType?: 'debug' | 'release'): string => {
+    // 如果是调试版本，优先使用调试API端点
+    if (buildType === 'debug' && process.env.NEXT_PUBLIC_DEBUG_API_BASE_URL) {
+      return process.env.NEXT_PUBLIC_DEBUG_API_BASE_URL;
+    }
+
+    // 然后使用通用的API基础URL
     if (process.env.NEXT_PUBLIC_API_BASE_URL) {
       return process.env.NEXT_PUBLIC_API_BASE_URL;
     }
@@ -78,12 +91,32 @@ export function UrlConfigDebug() {
     return '服务端渲染';
   };
 
+  // 检测构建类型和调试状态
+  const detectBuildInfo = async () => {
+    const { isDebugBuild, getBuildType, getAppPackageName } = await import('@/utils/version-utils');
+    const isDebug = await isDebugBuild();
+    const buildType = await getBuildType();
+    const packageName = await getAppPackageName();
+
+    return {
+      isDebug,
+      buildType,
+      packageName,
+      nodeEnv: process.env.NODE_ENV,
+      isDebugBuildEnv: process.env.NEXT_PUBLIC_IS_DEBUG_BUILD,
+      buildTypeEnv: process.env.NEXT_PUBLIC_BUILD_TYPE,
+    };
+  };
+
   const testApiEndpoint = async (endpoint: string) => {
     try {
-      const baseUrl = getApiBaseUrl();
+      // 确定是否为调试端点
+      const isDebugEndpoint = endpoint.includes('/debug');
+      const buildType = isDebugEndpoint ? 'debug' : 'release';
+      const baseUrl = getApiBaseUrl(buildType);
       const fullUrl = `${baseUrl}${endpoint}`;
 
-      console.log(`测试API端点: ${fullUrl}`);
+      console.log(`测试API端点: ${fullUrl} (构建类型: ${buildType})`);
 
       const response = await fetch(fullUrl, {
         method: endpoint.includes('/check') ? 'POST' : 'GET',
@@ -93,8 +126,9 @@ export function UrlConfigDebug() {
         body: endpoint.includes('/check')
           ? JSON.stringify({
               platform: 'web',
-              currentVersion: '0.5.1',
-              currentBuildNumber: 501,
+              currentVersion: config.NEXT_PUBLIC_APP_VERSION || '0.7.0',
+              currentBuildNumber: parseInt(config.NEXT_PUBLIC_BUILD_NUMBER || '700'),
+              buildType,
             })
           : undefined,
       });
@@ -132,9 +166,13 @@ export function UrlConfigDebug() {
 
   const endpoints = [
     '/api/version/check',
+    '/api/version/check/debug',
     '/api/version/latest/web',
+    '/api/version/latest/web/debug',
     '/api/version/latest/ios',
+    '/api/version/latest/ios/debug',
     '/api/version/latest/android',
+    '/api/version/latest/android/debug',
   ];
 
   return (
@@ -169,9 +207,23 @@ export function UrlConfigDebug() {
             </div>
 
             <div>
-              <strong>实际使用的API基础URL:</strong>
+              <strong>配置的调试API基础URL:</strong>
+              <code className="ml-2 px-2 py-1 bg-yellow-100 rounded">
+                {config.NEXT_PUBLIC_DEBUG_API_BASE_URL || '(空)'}
+              </code>
+            </div>
+
+            <div>
+              <strong>实际使用的API基础URL (release):</strong>
               <code className="ml-2 px-2 py-1 bg-blue-100 rounded">
-                {getApiBaseUrl() || '(相对路径)'}
+                {getApiBaseUrl('release') || '(相对路径)'}
+              </code>
+            </div>
+
+            <div>
+              <strong>实际使用的API基础URL (debug):</strong>
+              <code className="ml-2 px-2 py-1 bg-orange-100 rounded">
+                {getApiBaseUrl('debug') || '(相对路径)'}
               </code>
             </div>
 
@@ -179,6 +231,38 @@ export function UrlConfigDebug() {
               <strong>应用版本:</strong> {config.NEXT_PUBLIC_APP_VERSION} (
               {config.NEXT_PUBLIC_BUILD_NUMBER})
             </div>
+
+            {buildInfo && (
+              <div className="mt-4 p-3 bg-gray-50 rounded">
+                <strong>构建信息:</strong>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2 text-sm">
+                  <div>
+                    <strong>是否调试版本:</strong>
+                    <Badge variant={buildInfo.isDebug ? 'destructive' : 'default'}>
+                      {buildInfo.isDebug ? '是' : '否'}
+                    </Badge>
+                  </div>
+                  <div>
+                    <strong>构建类型:</strong>
+                    <Badge variant={buildInfo.buildType === 'debug' ? 'destructive' : 'default'}>
+                      {buildInfo.buildType}
+                    </Badge>
+                  </div>
+                  <div>
+                    <strong>包名:</strong> {buildInfo.packageName || '(无法获取)'}
+                  </div>
+                  <div>
+                    <strong>Node环境:</strong> {buildInfo.nodeEnv}
+                  </div>
+                  <div>
+                    <strong>调试构建环境变量:</strong> {buildInfo.isDebugBuildEnv || '(未设置)'}
+                  </div>
+                  <div>
+                    <strong>构建类型环境变量:</strong> {buildInfo.buildTypeEnv || '(未设置)'}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

@@ -20,6 +20,7 @@ interface VersionUpdateModalProps {
     releaseNotes?: string;
     downloadUrl?: string;
     appStoreUrl?: string;
+    detailUrl?: string;
     isForceUpdate: boolean;
     platform: 'WEB' | 'IOS' | 'ANDROID';
   };
@@ -143,6 +144,21 @@ export function VersionUpdateModal({
               <div className="text-sm text-blue-800 whitespace-pre-wrap">
                 {version.releaseNotes}
               </div>
+
+              {/* 详细更新情况链接 */}
+              {version.detailUrl && (
+                <div className="mt-3 pt-3 border-t border-blue-200">
+                  <Button
+                    onClick={() => window.open(version.detailUrl, '_blank')}
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
+                  >
+                    <ExternalLink className="w-3 h-3 mr-1" />
+                    查看详细更新情况
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 

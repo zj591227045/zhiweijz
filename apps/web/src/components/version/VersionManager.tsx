@@ -49,6 +49,7 @@ export function VersionManager({
       platform,
       currentVersion,
       currentBuildNumber,
+      buildType: 'release', // 添加 buildType 参数
     });
   };
 
@@ -190,6 +191,7 @@ export function ManualVersionCheck({
       platform,
       currentVersion,
       currentBuildNumber,
+      buildType: 'release', // 添加 buildType 参数
     });
 
     if (hasUpdate && latestVersion) {

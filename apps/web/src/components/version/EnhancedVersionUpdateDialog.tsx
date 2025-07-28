@@ -61,10 +61,8 @@ export function EnhancedVersionUpdateDialog({
     try {
       await onUserAction(action);
 
-      // 如果不是更新操作，关闭对话框
-      if (action !== 'update') {
-        onClose();
-      }
+      // 注意：不需要手动调用 onClose()，因为 onUserAction 内部已经处理了状态更新
+      // 对于非更新操作，useEnhancedVersionCheck 会自动设置 showUpdateDialog 为 false
     } catch (error) {
       console.error('Action failed:', error);
       // 这里可以显示错误提示

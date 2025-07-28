@@ -51,41 +51,41 @@ export const useAccountBookStore = create<AccountBookState>()(
 
           const response = await apiClient.get('/account-books');
           console.log('📚 [AccountBookStore] 账本API响应:', {
-            status: response.status,
-            data: response.data,
-            dataType: typeof response.data,
-            isObject: response.data && typeof response.data === 'object',
+            data: response,
+            dataType: typeof response,
+            isObject: response && typeof response === 'object',
             hasDataProperty:
-              response.data && typeof response.data === 'object' && 'data' in response.data,
+              response && typeof response === 'object' && 'data' in response,
             dataPropertyIsArray:
-              response.data &&
-              typeof response.data === 'object' &&
-              Array.isArray(response.data.data),
-            isDirectArray: Array.isArray(response.data),
+              response &&
+              typeof response === 'object' &&
+              Array.isArray(response.data),
+            isDirectArray: Array.isArray(response),
           });
 
           // 处理后端分页响应格式
+          // API 客户端已经在响应拦截器中返回了 response.data，所以这里直接使用 response
           let accountBooks: AccountBook[] = [];
-          if (response.data && typeof response.data === 'object') {
+          if (response && typeof response === 'object') {
             // 如果响应是分页格式 {data: [...], total: number, ...}
-            if (Array.isArray(response.data.data)) {
-              accountBooks = response.data.data;
+            if (Array.isArray(response.data)) {
+              accountBooks = response.data;
               console.log('📚 [AccountBookStore] 使用分页格式，账本数量:', accountBooks.length);
               console.log('📚 [AccountBookStore] 分页信息:', {
-                total: response.data.total,
-                page: response.data.page,
-                limit: response.data.limit,
+                total: response.total,
+                page: response.page,
+                limit: response.limit,
               });
             }
             // 如果响应直接是数组（兼容旧格式）
-            else if (Array.isArray(response.data)) {
-              accountBooks = response.data;
+            else if (Array.isArray(response)) {
+              accountBooks = response;
               console.log('📚 [AccountBookStore] 使用数组格式，账本数量:', accountBooks.length);
             } else {
-              console.warn('📚 [AccountBookStore] 未知的响应格式:', response.data);
+              console.warn('📚 [AccountBookStore] 未知的响应格式:', response);
             }
           } else {
-            console.warn('📚 [AccountBookStore] 响应数据不是对象:', response.data);
+            console.warn('📚 [AccountBookStore] 响应数据不是对象:', response);
           }
 
           console.log('📚 [AccountBookStore] 处理后的账本列表:', accountBooks);
@@ -211,8 +211,15 @@ export const useAccountBookStore = create<AccountBookState>()(
         try {
           set({ isLoading: true, error: null });
 
-          const response = await apiClient.post('/account-books', data);
-          const newAccountBook = response.data;
+          // 确保传递 type 字段，默认为个人账本
+          const createData = {
+            ...data,
+            type: data.type || AccountBookType.PERSONAL,
+          };
+
+          const response = await apiClient.post('/account-books', createData);
+          // API 客户端已经在响应拦截器中返回了 response.data，所以这里直接使用 response
+          const newAccountBook = response;
 
           set((state) => ({
             accountBooks: [...state.accountBooks, newAccountBook],

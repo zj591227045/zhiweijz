@@ -10,7 +10,6 @@ import { RouteGuard } from '@/components/auth/route-guard';
 import { TokenMonitorProvider } from '@/components/auth/token-monitor-provider';
 import { OnboardingProvider } from '@/components/onboarding/onboarding-provider';
 import { EnhancedVersionProvider } from '@/components/version/EnhancedVersionProvider';
-import { AutoVersionChecker } from '@/components/version/AutoVersionChecker';
 import { initializeAndroidPlatform } from '@/lib/android-platform';
 import { ModalNavigationProvider } from '@/components/navigation/modal-navigation-provider';
 import { MobileNavigationInitializer } from '@/components/navigation/mobile-navigation-initializer';
@@ -101,17 +100,6 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
                   <OnboardingProvider />
                   {/* Android Token管理器 */}
                   <AndroidTokenManager />
-                  {/* 自动版本检查器 */}
-                  <AutoVersionChecker
-                    checkOnMount={true}
-                    checkOnLogin={true}
-                    checkOnFocus={true}
-                    checkOnVisibilityChange={true}
-                    checkOnNetworkReconnect={true}
-                    checkInterval={24 * 60 * 60 * 1000} // 24小时
-                    minCheckInterval={5 * 60 * 1000} // 5分钟最小间隔
-                    debug={process.env.NODE_ENV === 'development'}
-                  />
                 </TokenMonitorProvider>
               </AuthInitializer>
             </ModalNavigationProvider>

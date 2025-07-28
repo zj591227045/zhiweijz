@@ -212,7 +212,14 @@ export class VersionController {
   async createVersion(req: Request, res: Response): Promise<void> {
     try {
       const data = req.body as CreateVersionRequest;
-      const createdBy = req.user?.id;
+      // 管理员创建的版本，createdBy 设置为 undefined，因为管理员表和用户表是分离的
+      const createdBy = undefined;
+
+      console.log('🔍 [版本控制器] 创建版本请求:', {
+        adminId: req.admin?.id,
+        createdBy,
+        data: { ...data, releaseNotes: data.releaseNotes?.substring(0, 50) + '...' }
+      });
 
       const version = await versionService.createVersion(data, createdBy);
 

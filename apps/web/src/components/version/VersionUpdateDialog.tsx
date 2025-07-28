@@ -64,7 +64,7 @@ export function VersionUpdateDialog({
 
   const handleSkip = async () => {
     await onSkip();
-    onClose();
+    // 注意：不需要手动调用 onClose()，因为 onSkip 内部已经处理了状态更新
   };
 
   const getUpdateButtonText = () => {
@@ -138,6 +138,21 @@ export function VersionUpdateDialog({
               <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                 {latestVersion.releaseNotes}
               </div>
+
+              {/* 详细更新情况链接 */}
+              {latestVersion.detailUrl && (
+                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <Button
+                    onClick={() => window.open(latestVersion.detailUrl, '_blank')}
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                  >
+                    <ExternalLink className="w-3 h-3 mr-1" />
+                    查看详细更新情况
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 

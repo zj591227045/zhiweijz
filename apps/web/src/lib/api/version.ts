@@ -55,14 +55,14 @@ export interface UserVersionStatusRequest {
 
 // API基础URL配置
 const getApiBaseUrl = (buildType?: 'debug' | 'release'): string => {
-  // 优先使用环境变量配置的URL
-  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
-    return process.env.NEXT_PUBLIC_API_BASE_URL;
-  }
-
-  // 如果是调试版本，可以使用特殊的调试API端点
+  // 如果是调试版本，优先使用调试API端点
   if (buildType === 'debug' && process.env.NEXT_PUBLIC_DEBUG_API_BASE_URL) {
     return process.env.NEXT_PUBLIC_DEBUG_API_BASE_URL;
+  }
+
+  // 然后使用通用的API基础URL
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
   }
 
   // 如果没有配置环境变量，智能检测环境
@@ -78,7 +78,8 @@ const getApiBaseUrl = (buildType?: 'debug' | 'release'): string => {
       hostname.startsWith('10.') ||
       hostname.startsWith('172.')
     ) {
-      return ''; // 使用相对路径
+      // 开发环境下，前端运行在3001端口，后端运行在3000端口
+      return 'http://localhost:3000';
     }
 
     // 生产环境使用当前域名

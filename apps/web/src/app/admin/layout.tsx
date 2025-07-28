@@ -7,7 +7,6 @@ import { AdminHeader } from '@/components/admin/AdminHeader';
 import { useAdminAuth } from '@/store/admin/useAdminAuth';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 import { EnhancedVersionProvider } from '@/components/version/EnhancedVersionProvider';
-import { AutoVersionChecker } from '@/components/version/AutoVersionChecker';
 import MobileNotSupported from '@/components/admin/MobileNotSupported';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -81,22 +80,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           )}
         </div>
 
-        {/* 管理端版本检查器 */}
-        <AutoVersionChecker
-          checkOnMount={true}
-          checkOnLogin={true}
-          checkOnFocus={true}
-          checkOnVisibilityChange={true}
-          checkOnNetworkReconnect={true}
-          checkInterval={12 * 60 * 60 * 1000} // 12小时
-          minCheckInterval={10 * 60 * 1000} // 10分钟最小间隔
-          debug={process.env.NODE_ENV === 'development'}
-          onCheckTriggered={(reason) => {
-            if (process.env.NODE_ENV === 'development') {
-              console.log('[Admin] 版本检查触发:', reason);
-            }
-          }}
-        />
+
       </EnhancedVersionProvider>
     </AdminAuthGuard>
   );

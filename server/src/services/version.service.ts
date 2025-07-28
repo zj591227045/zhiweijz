@@ -180,6 +180,7 @@ export class VersionService {
 
   // 创建版本
   async createVersion(data: CreateVersionRequest, createdBy?: string): Promise<AppVersionResponse> {
+    console.log('🔍 [版本服务] 创建版本，createdBy:', createdBy, 'type:', typeof createdBy);
     // 检查版本是否已存在
     const existingVersion = await prisma.appVersion.findUnique({
       where: {
@@ -208,20 +209,30 @@ export class VersionService {
       throw new AppError('该版本码已存在', 400);
     }
 
+    // 构建数据对象，只有当 createdBy 有值时才包含该字段
+    const createData: any = {
+      platform: data.platform.toUpperCase() as any,
+      version: data.version,
+      buildNumber: data.buildNumber,
+      versionCode: data.versionCode,
+      releaseNotes: data.releaseNotes,
+      downloadUrl: data.downloadUrl,
+      appStoreUrl: data.appStoreUrl,
+      detailUrl: data.detailUrl,
+      isForceUpdate: data.isForceUpdate || false,
+      isEnabled: data.isEnabled !== false,
+      publishedAt: data.publishNow ? new Date() : null,
+    };
+
+    // 暂时完全不设置 createdBy 字段，避免外键约束问题
+    // if (createdBy) {
+    //   createData.createdBy = createdBy;
+    // }
+
+    console.log('🔍 [版本服务] 最终创建数据:', JSON.stringify(createData, null, 2));
+
     const version = await prisma.appVersion.create({
-      data: {
-        platform: data.platform.toUpperCase() as any,
-        version: data.version,
-        buildNumber: data.buildNumber,
-        versionCode: data.versionCode,
-        releaseNotes: data.releaseNotes,
-        downloadUrl: data.downloadUrl,
-        appStoreUrl: data.appStoreUrl,
-        isForceUpdate: data.isForceUpdate || false,
-        isEnabled: data.isEnabled !== false,
-        publishedAt: data.publishNow ? new Date() : null,
-        createdBy: createdBy
-      }
+      data: createData
     });
 
     return version as AppVersionResponse;

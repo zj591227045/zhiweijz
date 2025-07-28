@@ -26,7 +26,10 @@ export function BookList({
   const safeBooks = Array.isArray(books) ? books : [];
 
   // 分类账本：个人账本和家庭账本
-  const personalBooks = safeBooks.filter((book) => book.type === AccountBookType.PERSONAL);
+  // 添加安全检查，确保 type 字段存在，如果不存在则默认为个人账本
+  const personalBooks = safeBooks.filter((book) =>
+    (book.type === AccountBookType.PERSONAL) || (!book.type)
+  );
   const familyBooks = safeBooks.filter((book) => book.type === AccountBookType.FAMILY);
 
   return (

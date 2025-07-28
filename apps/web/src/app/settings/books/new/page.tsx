@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { PageContainer } from '@/components/layout/page-container';
 import { BookForm, BookFormValues } from '@/components/books/book-form';
 import { useAccountBookStore } from '@/store/account-book-store';
+import { AccountBookType } from '@/types';
 import { toast } from 'sonner';
 import { useMobileBackHandler } from '@/hooks/use-mobile-back-handler';
 import { PageLevel } from '@/lib/mobile-navigation';
@@ -36,7 +37,7 @@ export default function CreateBookPage() {
       await createAccountBook({
         name: data.name,
         description: data.description,
-        isDefault: data.isDefault,
+        type: AccountBookType.PERSONAL, // 明确指定为个人账本
       });
 
       toast.success('账本创建成功');
