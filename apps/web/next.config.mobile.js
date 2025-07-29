@@ -38,25 +38,47 @@ const nextConfig = {
 
   // 页面扩展名配置
   pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+
+
   
   // 自定义webpack配置
   webpack: (config, { dev, isServer }) => {
     // 确保mobile-stub.js文件存在的路径别名
     const stubPath = path.resolve(__dirname, 'src/lib/mobile-stub.js');
 
-    // 添加别名，将admin相关导入重定向到空模块
+    // 添加别名，将admin和debug相关导入重定向到空模块
     config.resolve.alias = {
       ...config.resolve.alias,
       '@/components/admin': stubPath,
       '@/store/admin': stubPath,
       '@/lib/admin-api-client': stubPath,
+      '@/components/debug': stubPath,
     };
 
-    // 排除admin和debug页面文件 - 使用更精确的匹配
+    // 排除admin、debug和test页面文件 - 使用更精确的匹配
     config.module.rules.push({
-      test: /src[\/\\]app[\/\\](admin|debug)/,
+      test: /src[\/\\]app[\/\\](admin|debug|test.*)/,
       use: 'null-loader'
     });
+
+    // 排除debug组件
+    config.module.rules.push({
+      test: /src[\/\\]components[\/\\]debug/,
+      use: 'null-loader'
+    });
+
+    // 添加忽略插件，完全排除admin、debug和test相关文件
+    config.plugins.push(
+      new (require('webpack')).IgnorePlugin({
+        resourceRegExp: /src[\/\\]app[\/\\](admin|debug|test.*)/,
+      })
+    );
+
+    config.plugins.push(
+      new (require('webpack')).IgnorePlugin({
+        resourceRegExp: /src[\/\\]components[\/\\]debug/,
+      })
+    );
 
     // 定义全局变量
     config.plugins.push(
