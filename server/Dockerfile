@@ -75,7 +75,6 @@ COPY --from=builder /app/public ./public
 
 # 只复制必要的运行时文件
 COPY --from=builder /app/scripts/deployment/ ./scripts/deployment/
-COPY --from=builder /app/migrations/migration-manager.js ./migrations/
 COPY --from=builder /app/prisma/schema.prisma ./prisma/
 COPY --from=builder /app/migrations/ ./migrations/
 
@@ -86,7 +85,9 @@ COPY --from=builder /app/../docker/config/init.sql ./docker/init.sql
 RUN mkdir -p uploads && \
     chown -R nodejs:nodejs /app && \
     chmod +x scripts/deployment/*.sh && \
-    chmod +x migrations/migration-manager.js
+    chmod +x migrations/migration-manager.js && \
+    chmod +x migrations/data-integrity-check.js && \
+    chmod +x migrations/migration-status.js
 
 # 切换到非root用户
 USER nodejs

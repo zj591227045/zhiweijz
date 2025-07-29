@@ -21,27 +21,6 @@ EXCEPTION
         RAISE NOTICE 'Column account_book_id already exists in budgets table';
 END $$;
 
--- 添加外键约束
-DO $$ BEGIN
-    ALTER TABLE categories ADD CONSTRAINT categories_account_book_id_fkey 
-    FOREIGN KEY (account_book_id) REFERENCES account_books(id) ON DELETE SET NULL ON UPDATE CASCADE;
-EXCEPTION
-    WHEN duplicate_object THEN 
-        RAISE NOTICE 'Foreign key constraint categories_account_book_id_fkey already exists';
-END $$;
-
-DO $$ BEGIN
-    ALTER TABLE budgets ADD CONSTRAINT budgets_account_book_id_fkey 
-    FOREIGN KEY (account_book_id) REFERENCES account_books(id) ON DELETE SET NULL ON UPDATE CASCADE;
-EXCEPTION
-    WHEN duplicate_object THEN 
-        RAISE NOTICE 'Foreign key constraint budgets_account_book_id_fkey already exists';
-END $$;
-
--- 创建索引
-CREATE INDEX IF NOT EXISTS idx_categories_account_book_id ON categories(account_book_id);
-CREATE INDEX IF NOT EXISTS idx_budgets_account_book_id ON budgets(account_book_id);
-
 -- 为现有数据设置默认的account_book_id - 使用简化的方式
 -- 创建临时表来存储用户和其默认账本的映射
 CREATE TEMP TABLE user_default_books AS
@@ -72,3 +51,33 @@ WHERE budgets.user_id = udb.user_id
 
 -- 清理临时表
 DROP TABLE user_default_books;
+
+-- 清理无效数据：删除没有对应account_book的记录
+DELETE FROM categories
+WHERE account_book_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM account_books WHERE id = categories.account_book_id);
+
+DELETE FROM budgets
+WHERE account_book_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM account_books WHERE id = budgets.account_book_id);
+
+-- 添加外键约束（在数据清理之后）
+DO $$ BEGIN
+    ALTER TABLE categories ADD CONSTRAINT categories_account_book_id_fkey
+    FOREIGN KEY (account_book_id) REFERENCES account_books(id) ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN
+        RAISE NOTICE 'Foreign key constraint categories_account_book_id_fkey already exists';
+END $$;
+
+DO $$ BEGIN
+    ALTER TABLE budgets ADD CONSTRAINT budgets_account_book_id_fkey
+    FOREIGN KEY (account_book_id) REFERENCES account_books(id) ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN
+        RAISE NOTICE 'Foreign key constraint budgets_account_book_id_fkey already exists';
+END $$;
+
+-- 创建索引
+CREATE INDEX IF NOT EXISTS idx_categories_account_book_id ON categories(account_book_id);
+CREATE INDEX IF NOT EXISTS idx_budgets_account_book_id ON budgets(account_book_id);

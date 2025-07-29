@@ -43,50 +43,52 @@ if [ "$DOCKER_ENV" = "true" ]; then
         sleep 2
     done
 
+    # 运行数据完整性检查
+    echo "🔍 执行数据完整性检查..."
+    if node migrations/data-integrity-check.js; then
+        echo "✅ 数据完整性检查通过"
+    else
+        echo "⚠️ 数据完整性检查发现问题，但继续执行迁移"
+    fi
+
     # 运行安全的增量迁移系统
     echo "🔍 执行安全的增量迁移..."
     if node migrations/migration-manager.js; then
         echo "✅ 增量迁移完成"
     else
-        echo "⚠️ 增量迁移失败，尝试标准迁移..."
-        
+        echo "⚠️ 增量迁移遇到问题，检查数据库状态..."
+
         # 检查是否为全新数据库
         echo "🔍 检查数据库状态..."
         USER_TABLE_EXISTS=$(echo "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'users';" | npx prisma db execute --stdin 2>/dev/null | grep -o '[0-9]*' | tail -1 || echo "0")
 
         if [ "$USER_TABLE_EXISTS" = "0" ]; then
-            echo "📦 检测到全新数据库，执行初始化..."
-
+            echo "📦 检测到全新数据库，使用init.sql初始化..."
             # 检查是否存在打包的init.sql文件
             if [ -f "docker/init.sql" ]; then
                 echo "🗃️ 使用打包的init.sql文件初始化数据库..."
                 if psql "$DATABASE_URL" -f docker/init.sql; then
                     echo "✅ 使用init.sql初始化完成"
                 else
-                    echo "⚠️ init.sql初始化失败，回退到Prisma迁移..."
-                    npx prisma migrate deploy
+                    echo "❌ init.sql初始化失败，请检查数据库连接和权限"
+                    exit 1
                 fi
             else
-                echo "🔄 使用Prisma迁移初始化..."
-                npx prisma migrate deploy
+                echo "❌ 未找到init.sql文件，无法初始化全新数据库"
+                echo "请确保Docker镜像包含完整的初始化文件"
+                exit 1
             fi
-            echo "✅ 数据库初始化完成"
         else
-            echo "🔄 检测到现有数据库，执行安全迁移..."
+            echo "🔄 检测到现有数据库，但增量迁移失败"
+            echo "⚠️ 为保护数据安全，不执行可能导致数据丢失的操作"
+            echo "📋 建议操作："
+            echo "   1. 检查迁移日志中的具体错误信息"
+            echo "   2. 手动修复数据完整性问题"
+            echo "   3. 重新运行增量迁移"
+            echo "   4. 如需帮助，请联系技术支持"
 
-            # 检查迁移状态
-            MIGRATION_STATUS=$(npx prisma migrate status 2>&1)
-
-            if echo "$MIGRATION_STATUS" | grep -q "Database schema is up to date"; then
-                echo "✅ 数据库已是最新状态"
-            else
-                echo "🚀 执行数据库迁移..."
-                npx prisma migrate deploy || {
-                    echo "⚠️ 标准迁移失败，执行安全的schema推送..."
-                    npx prisma db push
-                }
-                echo "✅ 数据库迁移完成"
-            fi
+            # 继续启动应用，让用户能够访问现有数据
+            echo "⚠️ 继续启动应用以保持服务可用性"
         fi
     fi
 

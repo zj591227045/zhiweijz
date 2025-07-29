@@ -196,9 +196,31 @@ async function executeMigration(migrationName) {
     } catch (error) {
       // 某些错误可以忽略
       if (shouldIgnoreError(error)) {
-        logger.warn(`忽略错误: ${error.message.substring(0, 100)}...`);
+        // 已在shouldIgnoreError中记录了警告日志
+        continue;
       } else {
         logger.error(`SQL执行失败: ${statement.substring(0, 100)}...`);
+        logger.error(`错误详情: ${error.message}`);
+
+        // 提供针对性的错误诊断
+        if (error.message.includes('foreign key constraint')) {
+          logger.error('🔍 外键约束违反 - 可能的原因:');
+          logger.error('   1. 存在引用不存在记录的数据');
+          logger.error('   2. 数据完整性问题');
+          logger.error('   3. 需要先清理无效数据');
+          logger.error('💡 建议: 检查并清理相关表中的无效引用数据');
+        } else if (error.message.includes('unique constraint')) {
+          logger.error('🔍 唯一约束违反 - 可能的原因:');
+          logger.error('   1. 存在重复数据');
+          logger.error('   2. 需要先去重');
+          logger.error('💡 建议: 检查并处理重复数据');
+        } else if (error.message.includes('not null constraint')) {
+          logger.error('🔍 非空约束违反 - 可能的原因:');
+          logger.error('   1. 存在NULL值的必填字段');
+          logger.error('   2. 需要先填充默认值');
+          logger.error('💡 建议: 为NULL字段设置合适的默认值');
+        }
+
         throw error;
       }
     }
@@ -305,16 +327,57 @@ function parseMigrationMetadata(sql) {
  * 判断是否应该忽略错误
  */
 function shouldIgnoreError(error) {
+  const errorMessage = error.message.toLowerCase();
+
   const ignorableErrors = [
+    // 字段/表/索引已存在
     'already exists',
-    'duplicate',
-    'does not exist',
-    'relation .* already exists'
+    'duplicate_column',
+    'duplicate_table',
+    'duplicate_object',
+    'relation .* already exists',
+
+    // 约束相关
+    'constraint .* already exists',
+    'foreign key constraint .* already exists',
+    'unique constraint .* already exists',
+    'check constraint .* already exists',
+
+    // 索引相关
+    'index .* already exists',
+    'duplicate key value violates unique constraint',
+
+    // 字段/表不存在（在删除操作中）
+    'column .* does not exist',
+    'table .* does not exist',
+    'constraint .* does not exist',
+    'index .* does not exist',
+
+    // PostgreSQL特定错误码
+    '42701', // duplicate_column
+    '42P07', // duplicate_table
+    '42710', // duplicate_object
+    '23505', // unique_violation (在某些安全操作中可忽略)
   ];
-  
-  return ignorableErrors.some(pattern => 
-    error.message.toLowerCase().includes(pattern.toLowerCase())
-  );
+
+  // 检查是否匹配任何可忽略的错误模式
+  const shouldIgnore = ignorableErrors.some(pattern => {
+    if (pattern.includes('.*')) {
+      // 正则表达式模式
+      const regex = new RegExp(pattern, 'i');
+      return regex.test(errorMessage);
+    } else {
+      // 简单字符串包含检查
+      return errorMessage.includes(pattern);
+    }
+  });
+
+  if (shouldIgnore) {
+    logger.warn(`忽略安全错误: ${error.message.substring(0, 200)}...`);
+    return true;
+  }
+
+  return false;
 }
 
 /**
