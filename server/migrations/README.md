@@ -135,14 +135,14 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- ❌ 错误：缺少分号和语言声明
+-- ❌ 错误：语法错误
 CREATE OR REPLACE FUNCTION function_name()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END
-$$ language 'plpgsql';
+$$ language 'plpgsql';  -- ❌ 应该是 LANGUAGE plpgsql
 ```
 
 #### 3.3 避免的危险操作
@@ -154,12 +154,24 @@ ALTER TABLE table_name DROP COLUMN old_field;
 UPDATE table_name SET field = 'value';  -- 没有WHERE条件
 
 -- ❌ 避免：复杂的DO块（容易出语法错误）
-DO $$ 
+DO $$
 DECLARE
     -- 复杂逻辑
 BEGIN
     -- 多层嵌套
 END $$;
+
+-- ❌ 避免：嵌套EXECUTE语句（容易导致多命令错误）
+DO $$
+BEGIN
+    EXECUTE '
+        CREATE FUNCTION ...
+        $func$ LANGUAGE plpgsql;
+        ';  -- ❌ 容易导致语法错误
+END $$;
+
+-- ❌ 避免：在一个语句中包含多个命令
+INSERT INTO table1 VALUES (1); INSERT INTO table2 VALUES (2);  -- ❌ 多命令
 ```
 
 #### 3.4 推荐的安全模式
@@ -184,15 +196,117 @@ FROM table_name
 WHERE new_field IS NOT NULL;
 ```
 
-### 4. 测试和验证
+## 4. 常见语法错误及修复
 
-#### 4.1 运行测试
+### 4.1 PostgreSQL函数定义错误
+
+**问题**：使用错误的LANGUAGE语法
+```sql
+-- ❌ 错误写法
+$$ language 'plpgsql';
+
+-- ✅ 正确写法
+$$ LANGUAGE plpgsql;
+```
+
+**修复方法**：
+1. 移除language周围的引号
+2. 使用大写的LANGUAGE关键字
+
+### 4.2 嵌套EXECUTE语句错误
+
+**问题**：在DO块中使用嵌套EXECUTE创建函数
+```sql
+-- ❌ 错误写法
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'func_name') THEN
+        EXECUTE '
+        CREATE FUNCTION func_name()
+        RETURNS TRIGGER AS $func$
+        BEGIN
+            RETURN NEW;
+        END;
+        $func$ LANGUAGE plpgsql;
+        ';
+    END IF;
+END $$;
+```
+
+**修复方法**：直接使用CREATE OR REPLACE FUNCTION
+```sql
+-- ✅ 正确写法
+CREATE OR REPLACE FUNCTION func_name()
+RETURNS TRIGGER AS $$
+BEGIN
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 4.3 多命令语句错误
+
+**问题**：在一个SQL语句中包含多个命令
+```sql
+-- ❌ 错误：分号后还有其他语句
+INSERT INTO table1 VALUES (1); COMMENT ON TABLE table1 IS 'comment';
+```
+
+**修复方法**：分割为独立的语句
+```sql
+-- ✅ 正确写法
+INSERT INTO table1 VALUES (1);
+
+COMMENT ON TABLE table1 IS 'comment';
+```
+
+### 4.4 Dollar Quote标签支持
+
+**支持的标签格式**：
+- `$$` - 标准格式
+- `$func$` - 函数标签
+- `$body$` - 函数体标签
+- `$tag$` - 自定义标签
+
+**示例**：
+```sql
+CREATE OR REPLACE FUNCTION example()
+RETURNS TEXT AS $func$
+BEGIN
+    RETURN 'Hello World';
+END;
+$func$ LANGUAGE plpgsql;
+```
+
+## 5. 测试和验证
+
+#### 5.1 运行测试
 ```bash
 # 在项目根目录执行
 node server/migrations/review-migration-system.js
 ```
 
-#### 4.2 检查迁移路径
+#### 5.2 真实数据库测试
+
+**完整测试脚本**：
+```bash
+# 测试全新安装和所有升级路径
+node server/migrations/test-real-database.js
+```
+
+**单文件测试**：
+```bash
+# 测试特定迁移文件
+node server/migrations/test-single-file.js filename
+```
+
+**测试覆盖范围**：
+- ✅ 全新安装（32个迁移文件）
+- ✅ 从0.2.5升级到0.7.0（1.6.0 → 1.8.2，20个迁移）
+- ✅ 从0.5.1升级到0.7.0（1.7.12 → 1.8.2，6个迁移）
+- ✅ 从0.6.0升级到0.7.0（1.7.16 → 1.8.2，3个迁移）
+
+#### 5.3 检查迁移路径
 ```bash
 # 检查特定版本的迁移路径
 node server/migrations/migration-manager.js status

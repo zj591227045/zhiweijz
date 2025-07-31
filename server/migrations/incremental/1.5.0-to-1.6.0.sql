@@ -131,37 +131,30 @@ ON CONFLICT (key) DO UPDATE SET
     updated_at = NOW();
 
 -- 9. 创建性能数据统计函数
-DO $$
+CREATE OR REPLACE FUNCTION get_performance_stats(
+    p_metric_type VARCHAR(20),
+    p_start_time TIMESTAMP WITH TIME ZONE,
+    p_end_time TIMESTAMP WITH TIME ZONE
+)
+RETURNS TABLE(
+    avg_value DECIMAL(5,2),
+    min_value DECIMAL(5,2),
+    max_value DECIMAL(5,2),
+    sample_count BIGINT
+) AS $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'get_performance_stats') THEN
-        EXECUTE '
-        CREATE FUNCTION get_performance_stats(
-            p_metric_type VARCHAR(20),
-            p_start_time TIMESTAMP WITH TIME ZONE,
-            p_end_time TIMESTAMP WITH TIME ZONE
-        )
-        RETURNS TABLE(
-            avg_value DECIMAL(5,2),
-            min_value DECIMAL(5,2),
-            max_value DECIMAL(5,2),
-            sample_count BIGINT
-        ) AS $func$
-        BEGIN
-            RETURN QUERY
-            SELECT
-                AVG(sph.metric_value)::DECIMAL(5,2) as avg_value,
-                MIN(sph.metric_value)::DECIMAL(5,2) as min_value,
-                MAX(sph.metric_value)::DECIMAL(5,2) as max_value,
-                COUNT(*)::BIGINT as sample_count
-            FROM system_performance_history sph
-            WHERE sph.metric_type = p_metric_type
-              AND sph.recorded_at >= p_start_time
-              AND sph.recorded_at <= p_end_time;
-        END;
-        $func$ LANGUAGE plpgsql;
-        ';
-    END IF;
-END $$;
+    RETURN QUERY
+    SELECT
+        AVG(sph.metric_value)::DECIMAL(5,2) as avg_value,
+        MIN(sph.metric_value)::DECIMAL(5,2) as min_value,
+        MAX(sph.metric_value)::DECIMAL(5,2) as max_value,
+        COUNT(*)::BIGINT as sample_count
+    FROM system_performance_history sph
+    WHERE sph.metric_type = p_metric_type
+      AND sph.recorded_at >= p_start_time
+      AND sph.recorded_at <= p_end_time;
+END;
+$$ LANGUAGE plpgsql;
 
 -- 10. 插入初始性能数据（可选，用于测试）
 -- 注意：这些是示例数据，实际部署时可以移除

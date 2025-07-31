@@ -197,7 +197,7 @@ BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
 -- 为相关表添加更新时间触发器
 DROP TRIGGER IF EXISTS trigger_update_updated_at ON admins;

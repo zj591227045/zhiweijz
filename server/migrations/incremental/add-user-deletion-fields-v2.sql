@@ -53,7 +53,7 @@ BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trigger_update_user_deletion_logs_updated_at ON user_deletion_logs;
 CREATE TRIGGER trigger_update_user_deletion_logs_updated_at 

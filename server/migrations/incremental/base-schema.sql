@@ -9,31 +9,36 @@ AUTHOR: zhiweijz-team
 -- =======================================
 
 -- 创建枚举类型
-DO $$ BEGIN
+DO $$
+BEGIN
     CREATE TYPE "TransactionType" AS ENUM ('INCOME', 'EXPENSE');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
-DO $$ BEGIN
+DO $$
+BEGIN
     CREATE TYPE "BudgetPeriod" AS ENUM ('MONTHLY', 'YEARLY');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
-DO $$ BEGIN
+DO $$
+BEGIN
     CREATE TYPE "Role" AS ENUM ('ADMIN', 'MEMBER');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
-DO $$ BEGIN
+DO $$
+BEGIN
     CREATE TYPE "AccountBookType" AS ENUM ('PERSONAL', 'FAMILY');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
-DO $$ BEGIN
+DO $$
+BEGIN
     CREATE TYPE "BudgetType" AS ENUM ('PERSONAL', 'GENERAL');
 EXCEPTION
     WHEN duplicate_object THEN null;

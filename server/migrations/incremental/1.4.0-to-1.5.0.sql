@@ -115,50 +115,36 @@ CREATE INDEX IF NOT EXISTS idx_tags_active_name ON tags(name) WHERE is_active = 
 CREATE INDEX IF NOT EXISTS idx_tags_active_usage ON tags(usage_count DESC) WHERE is_active = true;
 
 -- 8. 创建触发器函数：更新标签使用次数
-DO $$
+CREATE OR REPLACE FUNCTION update_tag_usage_count()
+RETURNS TRIGGER AS $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'update_tag_usage_count') THEN
-        EXECUTE '
-        CREATE FUNCTION update_tag_usage_count()
-        RETURNS TRIGGER AS $func$
-        BEGIN
-            IF TG_OP = ''INSERT'' THEN
-                -- 增加使用次数
-                UPDATE tags SET
-                    usage_count = usage_count + 1,
-                    updated_at = NOW()
-                WHERE id = NEW.tag_id;
-                RETURN NEW;
-            ELSIF TG_OP = ''DELETE'' THEN
-                -- 减少使用次数
-                UPDATE tags SET
-                    usage_count = GREATEST(usage_count - 1, 0),
-                    updated_at = NOW()
-                WHERE id = OLD.tag_id;
-                RETURN OLD;
-            END IF;
-            RETURN NULL;
-        END;
-        $func$ LANGUAGE plpgsql;
-        ';
+    IF TG_OP = 'INSERT' THEN
+        -- 增加使用次数
+        UPDATE tags SET
+            usage_count = usage_count + 1,
+            updated_at = NOW()
+        WHERE id = NEW.tag_id;
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        -- 减少使用次数
+        UPDATE tags SET
+            usage_count = GREATEST(usage_count - 1, 0),
+            updated_at = NOW()
+        WHERE id = OLD.tag_id;
+        RETURN OLD;
     END IF;
-END $$;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
 
 -- 9. 创建触发器函数：自动更新updated_at字段
-DO $$
+CREATE OR REPLACE FUNCTION update_tags_updated_at()
+RETURNS TRIGGER AS $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'update_tags_updated_at') THEN
-        EXECUTE '
-        CREATE FUNCTION update_tags_updated_at()
-        RETURNS TRIGGER AS $func$
-        BEGIN
-            NEW.updated_at = NOW();
-            RETURN NEW;
-        END;
-        $func$ LANGUAGE plpgsql;
-        ';
-    END IF;
-END $$;
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
 -- 10. 创建触发器
 DROP TRIGGER IF EXISTS trigger_update_tag_usage_count ON transaction_tags;

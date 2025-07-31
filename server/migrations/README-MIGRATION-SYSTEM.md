@@ -46,7 +46,7 @@
 - 基于版本历史计算需要的迁移文件
 - 验证迁移文件完整性
 
-### `server/migrations/test-migration-system.js`
+### `server/migrations/review-migration-system.js`
 - 迁移系统测试脚本
 - 验证迁移路径正确性
 - 生成迁移报告
@@ -68,7 +68,9 @@ node migrations/migration-manager.js version
 ### 测试迁移系统
 ```bash
 # 运行完整测试
-node migrations/test-migration-system.js
+
+
+
 
 # 检查数据完整性
 node migrations/data-integrity-check.js
@@ -151,6 +153,6 @@ docker exec zhiweijz-backend bash docker/scripts/diagnose-migration.sh
 ## 技术支持
 
 如遇到迁移问题，请：
-1. 运行 `node migrations/test-migration-system.js` 生成诊断报告
+1. 运行 `node migrations/review-migration-system.js` 生成诊断报告
 2. 检查 `migration-test-report.json` 文件
 3. 提供详细的错误日志和环境信息

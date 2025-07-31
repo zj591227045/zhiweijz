@@ -101,7 +101,7 @@ BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trigger_update_wechat_user_bindings_updated_at ON wechat_user_bindings;
 CREATE TRIGGER trigger_update_wechat_user_bindings_updated_at 

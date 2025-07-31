@@ -219,7 +219,7 @@ BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
 -- 为相关表添加 updated_at 触发器
 CREATE TRIGGER update_payment_orders_updated_at BEFORE UPDATE ON "payment_orders"
