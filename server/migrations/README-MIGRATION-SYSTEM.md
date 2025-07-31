@@ -19,8 +19,9 @@
 - 基于实际发布的应用版本重新设计迁移路径
 - 当前支持的版本映射：
   - 应用版本 0.2.5 → 数据库版本 1.6.0
-  - 应用版本 0.5.1 → 数据库版本 1.7.12  
-  - 应用版本 0.6.0 → 数据库版本 1.7.16（当前最新）
+  - 应用版本 0.5.1 → 数据库版本 1.7.12
+  - 应用版本 0.6.0 → 数据库版本 1.7.16
+  - 应用版本 0.7.0 → 数据库版本 1.8.2（当前最新）
 
 ### 3. 数据完整性检查优化
 - 在检查表数据前先验证表是否存在
@@ -84,19 +85,29 @@ docker exec zhiweijz-backend bash docker/scripts/diagnose-migration.sh
 
 ## 迁移路径示例
 
-### 从应用版本0.2.5升级到0.6.0
-数据库版本：1.6.0 → 1.7.16
-需要执行17个迁移文件
+### 从应用版本0.2.5升级到0.7.0
+数据库版本：1.6.0 → 1.8.2
+需要执行20个迁移文件
 
-### 从应用版本0.5.1升级到0.6.0  
-数据库版本：1.7.12 → 1.7.16
-需要执行3个迁移文件：
+### 从应用版本0.5.1升级到0.7.0
+数据库版本：1.7.12 → 1.8.2
+需要执行6个迁移文件：
 - add-budget-unique-constraint
-- add-version-management  
+- add-version-management
 - add-detail-url-to-app-versions
+- 1.8.0-expand-membership-system
+- update-smart-accounting-prompts-v1.8.1
+- add-registration-gift-config
+
+### 从应用版本0.6.0升级到0.7.0
+数据库版本：1.7.16 → 1.8.2
+需要执行3个迁移文件：
+- 1.8.0-expand-membership-system
+- update-smart-accounting-prompts-v1.8.1
+- add-registration-gift-config
 
 ### 全新安装
-需要执行29个迁移文件，包含完整的数据库结构
+需要执行32个迁移文件，包含完整的数据库结构
 
 ## 最佳实践
 

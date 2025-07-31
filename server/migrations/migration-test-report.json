@@ -1,6 +1,6 @@
 {
-  "timestamp": "2025-07-31T09:16:39.025Z",
-  "latestVersion": "1.7.16",
+  "timestamp": "2025-07-31T09:43:04.474Z",
+  "latestVersion": "1.8.2",
   "releaseVersions": {
     "0.2.5": "1.6.0",
     "0.5.1": "1.7.12",
@@ -8,7 +8,7 @@
   },
   "migrationPaths": {
     "1.6.0": {
-      "migrationsCount": 17,
+      "migrationsCount": 20,
       "migrations": [
         "add-multimodal-ai-configs",
         "fix-webm-audio-format",
@@ -26,23 +26,33 @@
         "fix-invitations-table",
         "add-budget-unique-constraint",
         "add-version-management",
-        "add-detail-url-to-app-versions"
+        "add-detail-url-to-app-versions",
+        "1.8.0-expand-membership-system",
+        "update-smart-accounting-prompts-v1.8.1",
+        "add-registration-gift-config"
       ]
     },
     "1.7.12": {
-      "migrationsCount": 3,
+      "migrationsCount": 6,
       "migrations": [
         "add-budget-unique-constraint",
         "add-version-management",
-        "add-detail-url-to-app-versions"
+        "add-detail-url-to-app-versions",
+        "1.8.0-expand-membership-system",
+        "update-smart-accounting-prompts-v1.8.1",
+        "add-registration-gift-config"
       ]
     },
     "1.7.16": {
-      "migrationsCount": 0,
-      "migrations": []
+      "migrationsCount": 3,
+      "migrations": [
+        "1.8.0-expand-membership-system",
+        "update-smart-accounting-prompts-v1.8.1",
+        "add-registration-gift-config"
+      ]
     },
     "fresh_install": {
-      "migrationsCount": 29,
+      "migrationsCount": 32,
       "migrations": [
         "base-schema",
         "fix-missing-account-book-id-fields",
@@ -72,7 +82,10 @@
         "fix-invitations-table",
         "add-budget-unique-constraint",
         "add-version-management",
-        "add-detail-url-to-app-versions"
+        "add-detail-url-to-app-versions",
+        "1.8.0-expand-membership-system",
+        "update-smart-accounting-prompts-v1.8.1",
+        "add-registration-gift-config"
       ]
     }
   }

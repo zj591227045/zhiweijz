@@ -128,36 +128,36 @@ CREATE UNIQUE INDEX "badges_name_unique" ON "badges"("name");
 CREATE UNIQUE INDEX "user_badges_user_badge_unique" ON "user_badges"("user_id", "badge_id");
 
 -- 用户会员信息表索引
-CREATE INDEX "idx_user_membership_user_id" ON "user_memberships"("user_id");
-CREATE INDEX "idx_user_membership_type" ON "user_memberships"("member_type");
-CREATE INDEX "idx_user_membership_end_date" ON "user_memberships"("end_date");
-CREATE INDEX "idx_user_membership_active" ON "user_memberships"("is_active");
-CREATE INDEX "idx_user_membership_auto_renewal" ON "user_memberships"("auto_renewal", "end_date");
+CREATE INDEX IF NOT EXISTS "idx_user_membership_user_id" ON "user_memberships"("user_id");
+CREATE INDEX IF NOT EXISTS "idx_user_membership_type" ON "user_memberships"("member_type");
+CREATE INDEX IF NOT EXISTS "idx_user_membership_end_date" ON "user_memberships"("end_date");
+CREATE INDEX IF NOT EXISTS "idx_user_membership_active" ON "user_memberships"("is_active");
+CREATE INDEX IF NOT EXISTS "idx_user_membership_auto_renewal" ON "user_memberships"("auto_renewal", "end_date");
 
 -- 会员续费历史表索引
-CREATE INDEX "idx_membership_renewal_membership_id" ON "membership_renewals"("membership_id");
-CREATE INDEX "idx_membership_renewal_status" ON "membership_renewals"("status");
-CREATE INDEX "idx_membership_renewal_type" ON "membership_renewals"("renewal_type");
-CREATE INDEX "idx_membership_renewal_created_at" ON "membership_renewals"("created_at" DESC);
+CREATE INDEX IF NOT EXISTS "idx_membership_renewal_membership_id" ON "membership_renewals"("membership_id");
+CREATE INDEX IF NOT EXISTS "idx_membership_renewal_status" ON "membership_renewals"("status");
+CREATE INDEX IF NOT EXISTS "idx_membership_renewal_type" ON "membership_renewals"("renewal_type");
+CREATE INDEX IF NOT EXISTS "idx_membership_renewal_created_at" ON "membership_renewals"("created_at" DESC);
 
 -- 徽章表索引
-CREATE INDEX "idx_badges_category" ON "badges"("category");
-CREATE INDEX "idx_badges_rarity" ON "badges"("rarity");
-CREATE INDEX "idx_badges_active" ON "badges"("is_active");
-CREATE INDEX "idx_badges_sort_order" ON "badges"("sort_order");
+CREATE INDEX IF NOT EXISTS "idx_badges_category" ON "badges"("category");
+CREATE INDEX IF NOT EXISTS "idx_badges_rarity" ON "badges"("rarity");
+CREATE INDEX IF NOT EXISTS "idx_badges_active" ON "badges"("is_active");
+CREATE INDEX IF NOT EXISTS "idx_badges_sort_order" ON "badges"("sort_order");
 
 -- 用户徽章表索引
-CREATE INDEX "idx_user_badges_user_id" ON "user_badges"("user_id");
-CREATE INDEX "idx_user_badges_badge_id" ON "user_badges"("badge_id");
-CREATE INDEX "idx_user_badges_awarded_at" ON "user_badges"("awarded_at" DESC);
-CREATE INDEX "idx_user_badges_displayed" ON "user_badges"("is_displayed");
+CREATE INDEX IF NOT EXISTS "idx_user_badges_user_id" ON "user_badges"("user_id");
+CREATE INDEX IF NOT EXISTS "idx_user_badges_badge_id" ON "user_badges"("badge_id");
+CREATE INDEX IF NOT EXISTS "idx_user_badges_awarded_at" ON "user_badges"("awarded_at" DESC);
+CREATE INDEX IF NOT EXISTS "idx_user_badges_displayed" ON "user_badges"("is_displayed");
 
 -- 会员通知表索引
-CREATE INDEX "idx_membership_notifications_user_id" ON "membership_notifications"("user_id");
-CREATE INDEX "idx_membership_notifications_type" ON "membership_notifications"("notification_type");
-CREATE INDEX "idx_membership_notifications_read" ON "membership_notifications"("is_read");
-CREATE INDEX "idx_membership_notifications_scheduled" ON "membership_notifications"("scheduled_at");
-CREATE INDEX "idx_membership_notifications_created_at" ON "membership_notifications"("created_at" DESC);
+CREATE INDEX IF NOT EXISTS "idx_membership_notifications_user_id" ON "membership_notifications"("user_id");
+CREATE INDEX IF NOT EXISTS "idx_membership_notifications_type" ON "membership_notifications"("notification_type");
+CREATE INDEX IF NOT EXISTS "idx_membership_notifications_read" ON "membership_notifications"("is_read");
+CREATE INDEX IF NOT EXISTS "idx_membership_notifications_scheduled" ON "membership_notifications"("scheduled_at");
+CREATE INDEX IF NOT EXISTS "idx_membership_notifications_created_at" ON "membership_notifications"("created_at" DESC);
 
 -- 添加外键约束
 ALTER TABLE "user_memberships" ADD CONSTRAINT "user_memberships_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

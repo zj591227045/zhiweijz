@@ -143,45 +143,45 @@ CREATE TABLE "refunds" (
 -- 创建索引
 
 -- 支付订单表索引
-CREATE INDEX "idx_payment_orders_user_id" ON "payment_orders"("user_id");
-CREATE INDEX "idx_payment_orders_status" ON "payment_orders"("status");
-CREATE INDEX "idx_payment_orders_payment_method" ON "payment_orders"("payment_method");
-CREATE INDEX "idx_payment_orders_created_at" ON "payment_orders"("created_at" DESC);
-CREATE INDEX "idx_payment_orders_external_order_id" ON "payment_orders"("external_order_id");
-CREATE INDEX "idx_payment_orders_expires_at" ON "payment_orders"("expires_at");
+CREATE INDEX IF NOT EXISTS "idx_payment_orders_user_id" ON "payment_orders"("user_id");
+CREATE INDEX IF NOT EXISTS "idx_payment_orders_status" ON "payment_orders"("status");
+CREATE INDEX IF NOT EXISTS "idx_payment_orders_payment_method" ON "payment_orders"("payment_method");
+CREATE INDEX IF NOT EXISTS "idx_payment_orders_created_at" ON "payment_orders"("created_at" DESC);
+CREATE INDEX IF NOT EXISTS "idx_payment_orders_external_order_id" ON "payment_orders"("external_order_id");
+CREATE INDEX IF NOT EXISTS "idx_payment_orders_expires_at" ON "payment_orders"("expires_at");
 
 -- 订阅管理表索引
-CREATE INDEX "idx_subscriptions_user_id" ON "subscriptions"("user_id");
-CREATE INDEX "idx_subscriptions_status" ON "subscriptions"("status");
-CREATE INDEX "idx_subscriptions_external_id" ON "subscriptions"("external_subscription_id");
-CREATE INDEX "idx_subscriptions_platform" ON "subscriptions"("platform");
-CREATE INDEX "idx_subscriptions_next_billing" ON "subscriptions"("next_billing_date");
-CREATE INDEX "idx_subscriptions_current_period" ON "subscriptions"("current_period_start", "current_period_end");
+CREATE INDEX IF NOT EXISTS "idx_subscriptions_user_id" ON "subscriptions"("user_id");
+CREATE INDEX IF NOT EXISTS "idx_subscriptions_status" ON "subscriptions"("status");
+CREATE INDEX IF NOT EXISTS "idx_subscriptions_external_id" ON "subscriptions"("external_subscription_id");
+CREATE INDEX IF NOT EXISTS "idx_subscriptions_platform" ON "subscriptions"("platform");
+CREATE INDEX IF NOT EXISTS "idx_subscriptions_next_billing" ON "subscriptions"("next_billing_date");
+CREATE INDEX IF NOT EXISTS "idx_subscriptions_current_period" ON "subscriptions"("current_period_start", "current_period_end");
 
 -- 支付历史表索引
-CREATE INDEX "idx_payment_history_user_id" ON "payment_history"("user_id");
-CREATE INDEX "idx_payment_history_order_id" ON "payment_history"("order_id");
-CREATE INDEX "idx_payment_history_subscription_id" ON "payment_history"("subscription_id");
-CREATE INDEX "idx_payment_history_created_at" ON "payment_history"("created_at" DESC);
-CREATE INDEX "idx_payment_history_transaction_type" ON "payment_history"("transaction_type");
-CREATE INDEX "idx_payment_history_status" ON "payment_history"("status");
+CREATE INDEX IF NOT EXISTS "idx_payment_history_user_id" ON "payment_history"("user_id");
+CREATE INDEX IF NOT EXISTS "idx_payment_history_order_id" ON "payment_history"("order_id");
+CREATE INDEX IF NOT EXISTS "idx_payment_history_subscription_id" ON "payment_history"("subscription_id");
+CREATE INDEX IF NOT EXISTS "idx_payment_history_created_at" ON "payment_history"("created_at" DESC);
+CREATE INDEX IF NOT EXISTS "idx_payment_history_transaction_type" ON "payment_history"("transaction_type");
+CREATE INDEX IF NOT EXISTS "idx_payment_history_status" ON "payment_history"("status");
 
 -- 支付配置表索引
-CREATE INDEX "idx_payment_configs_provider" ON "payment_configs"("provider");
-CREATE INDEX "idx_payment_configs_enabled" ON "payment_configs"("is_enabled");
+CREATE INDEX IF NOT EXISTS "idx_payment_configs_provider" ON "payment_configs"("provider");
+CREATE INDEX IF NOT EXISTS "idx_payment_configs_enabled" ON "payment_configs"("is_enabled");
 
 -- Webhook日志表索引
-CREATE INDEX "idx_webhook_logs_provider" ON "webhook_logs"("provider");
-CREATE INDEX "idx_webhook_logs_event_type" ON "webhook_logs"("event_type");
-CREATE INDEX "idx_webhook_logs_processed" ON "webhook_logs"("processed");
-CREATE INDEX "idx_webhook_logs_created_at" ON "webhook_logs"("created_at" DESC);
-CREATE INDEX "idx_webhook_logs_event_id" ON "webhook_logs"("event_id");
+CREATE INDEX IF NOT EXISTS "idx_webhook_logs_provider" ON "webhook_logs"("provider");
+CREATE INDEX IF NOT EXISTS "idx_webhook_logs_event_type" ON "webhook_logs"("event_type");
+CREATE INDEX IF NOT EXISTS "idx_webhook_logs_processed" ON "webhook_logs"("processed");
+CREATE INDEX IF NOT EXISTS "idx_webhook_logs_created_at" ON "webhook_logs"("created_at" DESC);
+CREATE INDEX IF NOT EXISTS "idx_webhook_logs_event_id" ON "webhook_logs"("event_id");
 
 -- 退款记录表索引
-CREATE INDEX "idx_refunds_order_id" ON "refunds"("order_id");
-CREATE INDEX "idx_refunds_status" ON "refunds"("status");
-CREATE INDEX "idx_refunds_created_at" ON "refunds"("created_at" DESC);
-CREATE INDEX "idx_refunds_external_refund_id" ON "refunds"("external_refund_id");
+CREATE INDEX IF NOT EXISTS "idx_refunds_order_id" ON "refunds"("order_id");
+CREATE INDEX IF NOT EXISTS "idx_refunds_status" ON "refunds"("status");
+CREATE INDEX IF NOT EXISTS "idx_refunds_created_at" ON "refunds"("created_at" DESC);
+CREATE INDEX IF NOT EXISTS "idx_refunds_external_refund_id" ON "refunds"("external_refund_id");
 
 -- 添加外键约束
 ALTER TABLE "payment_orders" ADD CONSTRAINT "payment_orders_user_id_fkey" 
