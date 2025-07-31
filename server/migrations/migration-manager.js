@@ -11,6 +11,8 @@ require('dotenv').config();
 const { PrismaClient } = require('@prisma/client');
 const fs = require('fs');
 const path = require('path');
+const { getLatestDbVersion, MIGRATION_TO_VERSION_MAP } = require('./version-config');
+const { generateMigrationPath } = require('./migration-path-generator');
 
 const prisma = new PrismaClient();
 
@@ -25,52 +27,45 @@ const logger = {
  * 迁移配置
  */
 const MIGRATIONS_CONFIG = {
-  // 当前最新版本
-  LATEST_VERSION: '1.8.2',
+  // 当前最新版本 - 使用动态获取
+  get LATEST_VERSION() {
+    return getLatestDbVersion();
+  },
 
   // 迁移文件目录
-  MIGRATIONS_DIR: path.join(__dirname, '../migrations/incremental'),
+  MIGRATIONS_DIR: path.join(__dirname, 'incremental'),
 
-  // 版本升级路径
-  UPGRADE_PATHS: {
-    '1.0.0': ['fix-missing-account-book-id-fields', '1.0.0-to-1.1.0', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.1.0': ['fix-missing-account-book-id-fields', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.2.0': ['fix-missing-account-book-id-fields', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.2.1': ['fix-missing-account-book-id-fields', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.2.2': ['fix-missing-account-book-id-fields', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.2.3': ['fix-missing-account-book-id-fields', '1.2.2-to-1.3.0', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.3.0': ['fix-missing-account-book-id-fields', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.3.1': ['fix-missing-account-book-id-fields', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.3.2': ['fix-missing-account-book-id-fields', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.4.0': ['fix-missing-account-book-id-fields', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.5.0': ['fix-missing-account-book-id-fields', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.6.0': ['fix-missing-account-book-id-fields', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.0': ['fix-missing-account-book-id-fields', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.1': ['fix-missing-account-book-id-fields', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.2': ['fix-missing-account-book-id-fields', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.3': ['fix-missing-account-book-id-fields', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.4': ['fix-missing-account-book-id-fields', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.5': ['fix-missing-account-book-id-fields', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.6': ['fix-missing-account-book-id-fields', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.7': ['fix-missing-account-book-id-fields', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.8': ['fix-missing-account-book-id-fields', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    'add-image-compression-configs': ['fix-missing-account-book-id-fields', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    'add-compression-stats-table': ['fix-missing-account-book-id-fields', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    'ai-service-management-restructure': ['fix-missing-account-book-id-fields', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.9': ['fix-missing-account-book-id-fields', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.10': ['fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.11': ['add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.12': ['fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.13': ['add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.14': ['add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.15': ['add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.16': ['1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.7.17': ['1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    'add-budget-unique-constraint': ['1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.8.0': ['update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config'], // 升级到1.8.2
-    '1.8.1': ['add-registration-gift-config'], // 升级到1.8.2
-    '1.8.2': [], // 当前最新版本
-    'fresh_install': ['base-schema', 'fix-missing-account-book-id-fields', 'admin-features', '1.1.0-to-1.2.0', '1.2.2-to-1.3.0', 'add-service-type-to-llm-call-logs', 'add-transaction-metadata', 'add-wechat-integration', 'add-user-deletion-fields-v2', '1.4.0-to-1.5.0', '1.5.0-to-1.6.0', 'add-file-storage', 'add-multimodal-ai-configs', 'fix-webm-audio-format', 'add-smart-accounting-prompts', 'add-accounting-points-system', 'add-last-daily-gift-date', 'add-membership-system', 'add-payment-system', 'add-image-compression-configs', 'add-compression-stats-table', 'ai-service-management-restructure', 'fix-daily-gift-concurrency', 'fix-budget-schema', 'add-family-member-custodial-fields', 'fix-invitations-table', 'add-budget-unique-constraint', 'add-version-management', 'add-detail-url-to-app-versions', '1.8.0-expand-membership-system', 'update-smart-accounting-prompts-v1.8.1', 'add-registration-gift-config']
+  // 版本升级路径 - 使用动态生成
+  get UPGRADE_PATHS() {
+    return this._cachedUpgradePaths || (this._cachedUpgradePaths = this._generateUpgradePaths());
+  },
+
+  // 生成升级路径的内部方法
+  _generateUpgradePaths() {
+    const paths = {};
+
+    // 主要发布版本的升级路径
+    const mainVersions = ['1.6.0', '1.7.12', '1.7.16'];
+
+    for (const version of mainVersions) {
+      paths[version] = generateMigrationPath(version);
+    }
+
+    // 全新安装路径
+    paths['fresh_install'] = generateMigrationPath('fresh_install');
+
+    // 为了兼容性，添加一些历史版本
+    const historicalVersions = ['1.0.0', '1.1.0', '1.2.0', '1.3.0', '1.4.0', '1.5.0'];
+    for (const version of historicalVersions) {
+      paths[version] = generateMigrationPath(version);
+    }
+
+    return paths;
+  },
+
+  // 清除缓存的方法
+  clearCache() {
+    this._cachedUpgradePaths = null;
   }
 };
 
@@ -78,14 +73,7 @@ const MIGRATIONS_CONFIG = {
  * 将迁移名称映射到版本号
  */
 function mapMigrationToVersion(migrationName) {
-  const migrationToVersionMap = {
-    'add-version-management': '1.7.15',
-    'add-detail-url-to-app-versions': '1.7.16',
-    '1.8.0-expand-membership-system': '1.8.0',
-    // 可以根据需要添加更多映射
-  };
-
-  return migrationToVersionMap[migrationName] || migrationName;
+  return MIGRATION_TO_VERSION_MAP[migrationName] || migrationName;
 }
 
 /**

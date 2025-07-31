@@ -18,12 +18,37 @@ const logger = {
 };
 
 /**
+ * 检查表是否存在
+ */
+async function tableExists(tableName) {
+  try {
+    const result = await prisma.$queryRaw`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public'
+        AND table_name = ${tableName}
+      );
+    `;
+    return result[0].exists;
+  } catch (error) {
+    logger.warn(`检查表 ${tableName} 是否存在时出错: ${error.message}`);
+    return false;
+  }
+}
+
+/**
  * 检查并修复budgets表的数据完整性
  */
 async function checkAndFixBudgetsIntegrity() {
   logger.info('检查budgets表数据完整性...');
-  
+
   try {
+    // 首先检查budgets表是否存在
+    if (!(await tableExists('budgets'))) {
+      logger.info('budgets表不存在，跳过完整性检查');
+      return;
+    }
+
     // 1. 检查account_book_id字段
     const budgetsWithNullAccountBook = await prisma.$queryRaw`
       SELECT COUNT(*) as count FROM budgets WHERE account_book_id IS NULL
@@ -83,8 +108,14 @@ async function checkAndFixBudgetsIntegrity() {
  */
 async function checkAndFixCategoriesIntegrity() {
   logger.info('检查categories表数据完整性...');
-  
+
   try {
+    // 首先检查categories表是否存在
+    if (!(await tableExists('categories'))) {
+      logger.info('categories表不存在，跳过完整性检查');
+      return;
+    }
+
     // 1. 检查account_book_id字段
     const categoriesWithNullAccountBook = await prisma.$queryRaw`
       SELECT COUNT(*) as count FROM categories WHERE account_book_id IS NULL
@@ -144,12 +175,18 @@ async function checkAndFixCategoriesIntegrity() {
  */
 async function checkDuplicateConstraints() {
   logger.info('检查重复的唯一约束数据...');
-  
+
   try {
+    // 首先检查budgets表是否存在
+    if (!(await tableExists('budgets'))) {
+      logger.info('budgets表不存在，跳过重复约束检查');
+      return;
+    }
+
     // 检查budgets表的唯一约束重复
     const duplicateBudgets = await prisma.$queryRaw`
       SELECT user_id, account_book_id, budget_type, period, start_date, family_member_id, COUNT(*) as count
-      FROM budgets 
+      FROM budgets
       WHERE user_id IS NOT NULL AND account_book_id IS NOT NULL
       GROUP BY user_id, account_book_id, budget_type, period, start_date, family_member_id
       HAVING COUNT(*) > 1
