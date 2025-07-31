@@ -35,9 +35,6 @@ function updateVersion(newVersion) {
         // 4. 更新前端页面中的硬编码版本号
         updateFrontendVersions(newVersion);
 
-        // 5. 创建数据库版本同步脚本
-        createDatabaseSyncScript(newVersion, versionCode);
-
         console.log('✅ 版本号更新完成！');
         console.log(`📱 Android versionCode: ${versionCode}`);
         console.log(`📱 Android versionName: ${newVersion}`);
