@@ -221,7 +221,8 @@ async function executeMigration(migrationName) {
 }
 
 /**
- * 解析PostgreSQL语句，正确处理DO $$块
+ * 解析PostgreSQL语句，正确处理所有类型的$$块
+ * 支持：DO $$块、CREATE FUNCTION $$块、自定义标签如$func$等
  */
 function parsePostgreSQLStatements(sql) {
   // 移除META注释块
@@ -235,9 +236,10 @@ function parsePostgreSQLStatements(sql) {
 
   const statements = [];
   let current = '';
-  let inDoBlock = false;
+  let inDollarBlock = false;
+  let dollarTag = null; // 存储当前的dollar标签，如$$、$func$等
 
-  // 按行处理，更精确地识别DO $$块
+  // 按行处理，正确识别所有类型的$$块
   const lines = sql.split('\n');
 
   for (let i = 0; i < lines.length; i++) {
@@ -246,23 +248,45 @@ function parsePostgreSQLStatements(sql) {
     // 跳过空行
     if (!line) continue;
 
-    // 检查是否开始DO $$块
-    if (line.match(/DO\s*\$\$/)) {
-      inDoBlock = true;
-      current += (current ? '\n' : '') + line;
-      continue;
+    // 如果不在dollar块中，检查是否开始新的dollar块
+    if (!inDollarBlock) {
+      // 匹配各种dollar标签：$$、$func$、$body$、$tag$等
+      const dollarMatch = line.match(/\$([a-zA-Z0-9_]*)\$/);
+      if (dollarMatch) {
+        inDollarBlock = true;
+        dollarTag = dollarMatch[0]; // 保存完整标签，如$$或$func$
+        current += (current ? '\n' : '') + line;
+
+        // 检查是否在同一行结束（单行dollar块）
+        const endIndex = line.indexOf(dollarTag, line.indexOf(dollarTag) + dollarTag.length);
+        if (endIndex !== -1) {
+          // 同一行开始和结束
+          inDollarBlock = false;
+          dollarTag = null;
+          // 检查是否以分号结尾
+          if (line.endsWith(';')) {
+            statements.push(current);
+            current = '';
+          }
+        }
+        continue;
+      }
     }
 
-    // 如果在DO $$块中
-    if (inDoBlock) {
+    // 如果在dollar块中
+    if (inDollarBlock) {
       current += '\n' + line;
 
-      // 检查是否结束DO $$块 - 更精确的匹配
-      if (line.match(/END\s*\$\$/)) {
-        inDoBlock = false;
-        // DO $$块作为一个完整语句
-        statements.push(current);
-        current = '';
+      // 检查是否结束当前dollar块
+      if (line.includes(dollarTag)) {
+        inDollarBlock = false;
+        dollarTag = null;
+
+        // 检查是否以分号结尾（函数定义通常以分号结尾）
+        if (line.endsWith(';')) {
+          statements.push(current);
+          current = '';
+        }
       }
       continue;
     }
