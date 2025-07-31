@@ -44,21 +44,22 @@ const MIGRATIONS_CONFIG = {
   _generateUpgradePaths() {
     const paths = {};
 
-    // 主要发布版本的升级路径
-    const mainVersions = ['1.6.0', '1.7.12', '1.7.16'];
+    // 为所有版本生成升级路径，确保任何版本都可以作为起始点
+    // 这样即使中间版本升级失败，修复后也能继续升级
+    const { DB_VERSION_HISTORY } = require('./version-config');
 
-    for (const version of mainVersions) {
-      paths[version] = generateMigrationPath(version);
+    for (const version of DB_VERSION_HISTORY) {
+      try {
+        paths[version] = generateMigrationPath(version);
+      } catch (error) {
+        // 如果某个版本无法生成路径，记录警告但继续处理其他版本
+        console.warn(`警告：无法为版本 ${version} 生成升级路径: ${error.message}`);
+        paths[version] = [];
+      }
     }
 
     // 全新安装路径
     paths['fresh_install'] = generateMigrationPath('fresh_install');
-
-    // 为了兼容性，添加一些历史版本
-    const historicalVersions = ['1.0.0', '1.1.0', '1.2.0', '1.3.0', '1.4.0', '1.5.0'];
-    for (const version of historicalVersions) {
-      paths[version] = generateMigrationPath(version);
-    }
 
     return paths;
   },
