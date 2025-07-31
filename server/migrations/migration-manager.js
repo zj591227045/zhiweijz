@@ -221,92 +221,63 @@ async function executeMigration(migrationName) {
 }
 
 /**
- * 解析PostgreSQL语句，正确处理所有类型的$$块
- * 支持：DO $$块、CREATE FUNCTION $$块、自定义标签如$func$等
+ * 解析PostgreSQL语句，使用与test-real-database.js相同的已验证逻辑
+ * 正确处理函数定义和DO块
  */
 function parsePostgreSQLStatements(sql) {
   // 移除META注释块
   sql = sql.replace(/\/\*META[\s\S]*?\*\//, '');
 
-  // 移除单行注释
-  sql = sql.replace(/^--.*$/gm, '');
-
-  // 移除空行
-  sql = sql.replace(/^\s*$/gm, '');
-
   const statements = [];
-  let current = '';
-  let inDollarBlock = false;
-  let dollarTag = null; // 存储当前的dollar标签，如$$、$func$等
+  let currentStatement = '';
+  let inFunction = false;
+  let dollarQuoteCount = 0;
 
-  // 按行处理，正确识别所有类型的$$块
   const lines = sql.split('\n');
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
+  for (let lineNum = 0; lineNum < lines.length; lineNum++) {
+    const line = lines[lineNum];
+    const trimmedLine = line.trim();
 
-    // 跳过空行
-    if (!line) continue;
-
-    // 如果不在dollar块中，检查是否开始新的dollar块
-    if (!inDollarBlock) {
-      // 匹配各种dollar标签：$$、$func$、$body$、$tag$等
-      const dollarMatch = line.match(/\$([a-zA-Z0-9_]*)\$/);
-      if (dollarMatch) {
-        inDollarBlock = true;
-        dollarTag = dollarMatch[0]; // 保存完整标签，如$$或$func$
-        current += (current ? '\n' : '') + line;
-
-        // 检查是否在同一行结束（单行dollar块）
-        const endIndex = line.indexOf(dollarTag, line.indexOf(dollarTag) + dollarTag.length);
-        if (endIndex !== -1) {
-          // 同一行开始和结束
-          inDollarBlock = false;
-          dollarTag = null;
-          // 检查是否以分号结尾
-          if (line.endsWith(';')) {
-            statements.push(current);
-            current = '';
-          }
-        }
-        continue;
-      }
-    }
-
-    // 如果在dollar块中
-    if (inDollarBlock) {
-      current += '\n' + line;
-
-      // 检查是否结束当前dollar块
-      if (line.includes(dollarTag)) {
-        inDollarBlock = false;
-        dollarTag = null;
-
-        // 检查是否以分号结尾（函数定义通常以分号结尾）
-        if (line.endsWith(';')) {
-          statements.push(current);
-          current = '';
-        }
-      }
+    // 跳过注释和空行
+    if (trimmedLine.startsWith('--') || trimmedLine.length === 0) {
       continue;
     }
 
-    // 普通语句处理
-    current += (current ? '\n' : '') + line;
+    currentStatement += line + '\n';
 
-    // 如果行以分号结尾，则认为是一个完整语句
-    if (line.endsWith(';')) {
-      statements.push(current);
-      current = '';
+    // 检测函数开始
+    if (trimmedLine.includes('CREATE OR REPLACE FUNCTION') ||
+        trimmedLine.includes('DO $$')) {
+      inFunction = true;
+      // 匹配所有dollar quote标签，包括 $$, $func$, $body$ 等
+      dollarQuoteCount = (trimmedLine.match(/\$[^$]*\$/g) || []).length;
+    } else if (inFunction) {
+      dollarQuoteCount += (trimmedLine.match(/\$[^$]*\$/g) || []).length;
+    }
+
+    // 检测函数结束
+    if (inFunction && dollarQuoteCount >= 2 && dollarQuoteCount % 2 === 0) {
+      inFunction = false;
+      statements.push(currentStatement.trim());
+      currentStatement = '';
+      dollarQuoteCount = 0;
+      continue;
+    }
+
+    // 普通语句以分号结束
+    if (!inFunction && trimmedLine.includes(';')) {
+      statements.push(currentStatement.trim());
+      currentStatement = '';
     }
   }
 
-  // 添加最后一个语句（如果有）
-  if (current.trim()) {
-    statements.push(current);
+  // 添加最后一个语句
+  if (currentStatement.trim()) {
+    statements.push(currentStatement.trim());
   }
 
-  return statements.filter(stmt => stmt.trim().length > 0);
+  return statements.filter(stmt => stmt.length > 0);
 }
 
 /**
