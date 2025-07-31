@@ -29,7 +29,8 @@ COPY docker/config/ ../docker/config/
 # 删除可能存在的.env文件，确保使用Docker环境变量
 RUN rm -f .env .env.local .env.production .env.development 2>/dev/null || true
 
-# 生成Prisma客户端
+# 生成Prisma客户端 - 忽略校验和检查避免网络问题
+ENV PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
 RUN npx prisma generate
 
 # 构建TypeScript代码
