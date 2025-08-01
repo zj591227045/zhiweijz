@@ -100,7 +100,8 @@ async function manualBudgetRollover(
         user: {
           select: {
             id: true,
-            email: true
+            email: true,
+            name: true
           }
         },
         familyMember: {
@@ -118,7 +119,7 @@ async function manualBudgetRollover(
     const budgetService = new BudgetService();
 
     for (const budget of july2025Budgets) {
-      const userInfo = budget.user?.email || budget.familyMember?.name || 'Unknown';
+      const userInfo = budget.user?.name || budget.user?.email || budget.familyMember?.name || 'Unknown';
       console.log(`\n📝 处理预算: ${budget.name} (用户: ${userInfo})`);
 
       try {

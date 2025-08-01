@@ -82,7 +82,8 @@ async function manualBudgetRollover(enableRollover = false, dryRun = false) {
                 user: {
                     select: {
                         id: true,
-                        email: true
+                        email: true,
+                        name: true
                     }
                 },
                 familyMember: {
@@ -97,7 +98,7 @@ async function manualBudgetRollover(enableRollover = false, dryRun = false) {
         stats.totalProcessed = july2025Budgets.length;
         const budgetService = new budget_service_1.BudgetService();
         for (const budget of july2025Budgets) {
-            const userInfo = budget.user?.email || budget.familyMember?.name || 'Unknown';
+            const userInfo = budget.user?.name || budget.user?.email || budget.familyMember?.name || 'Unknown';
             console.log(`\n📝 处理预算: ${budget.name} (用户: ${userInfo})`);
             try {
                 // 如果需要启用结转功能
