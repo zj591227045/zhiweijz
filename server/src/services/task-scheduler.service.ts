@@ -1,5 +1,6 @@
 import * as cron from 'node-cron';
 import AccountingPointsService from '../services/accounting-points.service';
+import { BudgetSchedulerService } from '../services/budget-scheduler.service';
 
 /**
  * 定时任务调度器
@@ -25,7 +26,21 @@ class TaskScheduler {
     //   timezone: 'Asia/Shanghai' // 使用北京时间
     // });
 
-    console.log('[定时任务] 定时任务调度器启动完成（原定时赠送已禁用，改为基于用户首次访问）');
+    // 每月1号凌晨2点执行预算结转和创建任务
+    cron.schedule('0 2 1 * *', async () => {
+      console.log('[定时任务] 开始执行预算结转和创建任务...');
+      try {
+        const budgetScheduler = new BudgetSchedulerService();
+        await budgetScheduler.runAllScheduledTasks();
+        console.log('[定时任务] 预算结转和创建任务完成');
+      } catch (error) {
+        console.error('[定时任务] 预算结转和创建任务失败:', error);
+      }
+    }, {
+      timezone: 'Asia/Shanghai' // 使用北京时间
+    });
+
+    console.log('[定时任务] 定时任务调度器启动完成（已启用预算结转定时任务）');
   }
 
   /**
@@ -38,6 +53,21 @@ class TaskScheduler {
       console.log('[手动任务] 每日记账点赠送完成');
     } catch (error) {
       console.error('[手动任务] 每日记账点赠送失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 手动执行预算结转任务（用于测试和修复）
+   */
+  static async runBudgetRolloverTasks(): Promise<void> {
+    console.log('[手动任务] 开始执行预算结转任务...');
+    try {
+      const budgetScheduler = new BudgetSchedulerService();
+      await budgetScheduler.runAllScheduledTasks();
+      console.log('[手动任务] 预算结转任务完成');
+    } catch (error) {
+      console.error('[手动任务] 预算结转任务失败:', error);
       throw error;
     }
   }
