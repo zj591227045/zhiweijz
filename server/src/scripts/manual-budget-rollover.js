@@ -1,5 +1,5 @@
 /**
- * 手动执行预算结转脚本
+ * 手动执行预算结转脚本 (编译后的JavaScript版本)
  * 
  * 功能：
  * 1. 手动执行2025年7月到8月的个人预算结转
@@ -7,26 +7,17 @@
  * 3. 处理缺失的预算结转
  * 
  * 使用方法：
- * npx ts-node src/scripts/manual-budget-rollover.ts [--dry-run] [--enable-rollover]
+ * node manual-budget-rollover.js [--dry-run] [--enable-rollover]
  */
 
-import { PrismaClient, BudgetType, BudgetPeriod } from '@prisma/client';
-import { BudgetService } from '../services/budget.service';
+const { PrismaClient, BudgetType, BudgetPeriod } = require('@prisma/client');
 
 const prisma = new PrismaClient();
-
-interface RolloverStats {
-  totalProcessed: number;
-  successfulRollovers: number;
-  skippedBudgets: number;
-  errorsCount: number;
-  budgetsEnabled: number;
-}
 
 /**
  * 启用指定用户的预算结转功能
  */
-async function enableBudgetRollover(userId: string, accountBookId: string, dryRun: boolean = false): Promise<boolean> {
+async function enableBudgetRollover(userId, accountBookId, dryRun = false) {
   try {
     if (dryRun) {
       console.log(`[试运行] 将为用户 ${userId} 在账本 ${accountBookId} 中启用预算结转`);
@@ -71,11 +62,8 @@ async function enableBudgetRollover(userId: string, accountBookId: string, dryRu
 /**
  * 手动执行预算结转
  */
-async function manualBudgetRollover(
-  enableRollover: boolean = false,
-  dryRun: boolean = false
-): Promise<RolloverStats> {
-  const stats: RolloverStats = {
+async function manualBudgetRollover(enableRollover = false, dryRun = false) {
+  const stats = {
     totalProcessed: 0,
     successfulRollovers: 0,
     skippedBudgets: 0,
@@ -100,7 +88,7 @@ async function manualBudgetRollover(
         user: {
           select: {
             id: true,
-            email: true
+            username: true
           }
         },
         familyMember: {
@@ -115,10 +103,15 @@ async function manualBudgetRollover(
     console.log(`📊 找到 ${july2025Budgets.length} 个2025年7月的个人预算`);
     stats.totalProcessed = july2025Budgets.length;
 
+    // 动态导入服务类
+    const { BudgetService } = require('../services/budget.service');
+    const { BudgetSchedulerService } = require('../services/budget-scheduler.service');
+    
     const budgetService = new BudgetService();
+    const budgetScheduler = new BudgetSchedulerService();
 
     for (const budget of july2025Budgets) {
-      const userInfo = budget.user?.email || budget.familyMember?.name || 'Unknown';
+      const userInfo = budget.user?.username || budget.familyMember?.name || 'Unknown';
       console.log(`\n📝 处理预算: ${budget.name} (用户: ${userInfo})`);
 
       try {
@@ -126,7 +119,7 @@ async function manualBudgetRollover(
         if (enableRollover && !budget.rollover) {
           const userId = budget.userId || budget.familyMemberId;
           if (userId) {
-            const enabled = await enableBudgetRollover(userId, budget.accountBookId || '', dryRun);
+            const enabled = await enableBudgetRollover(userId, budget.accountBookId, dryRun);
             if (enabled) {
               stats.budgetsEnabled++;
             }
@@ -181,7 +174,7 @@ async function manualBudgetRollover(
         console.log(`📅 创建8月份预算...`);
         await budgetService.autoCreateMissingBudgets(
           budget.userId || budget.familyMemberId || '',
-          budget.accountBookId || ''
+          budget.accountBookId
         );
 
         stats.successfulRollovers++;
@@ -250,3 +243,9 @@ if (require.main === module) {
     process.exit(1);
   });
 }
+
+module.exports = {
+  enableBudgetRollover,
+  manualBudgetRollover,
+  main
+};
