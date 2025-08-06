@@ -22,6 +22,7 @@ server/scripts/
 | `create-default-account-book.js` | 创建默认账本 | `node database/create-default-account-book.js` |
 | `create-test-data.js` | 创建测试数据 | `node database/create-test-data.js` |
 | `generate-token.js` | 生成JWT令牌 | `node database/generate-token.js` |
+| `fix-custodial-budgets.js` | 修复托管成员预算 | `docker exec -it zhiweijz-server-1 node /app/scripts/fix-custodial-budgets.js [--dry-run]` |
 
 ## 🔄 migration/ - 数据库迁移脚本
 
@@ -134,7 +135,33 @@ npx ts-node utilities/create-budget-for-user.ts
 
 4. **执行顺序**: 某些脚本有依赖关系，请按正确顺序执行
 
-## 🔗 相关文档
+## � 托管成员预算修复
+
+### 问题描述
+托管成员在跨月时没有自动生成新月份的预算。
+
+### 解决方案
+使用 `fix-custodial-budgets.js` 脚本检查所有托管成员，为缺失当前月份预算的成员创建预算。
+
+### 使用方法
+
+#### 1. 预览模式（推荐先执行）
+```bash
+docker exec -it zhiweijz-server-1 node /app/scripts/fix-custodial-budgets.js --dry-run
+```
+
+#### 2. 修复模式（实际修改数据）
+```bash
+docker exec -it zhiweijz-server-1 node /app/scripts/fix-custodial-budgets.js
+```
+
+### 脚本特点
+- 自动检查避免重复创建
+- 正确处理预算结转逻辑
+- 支持预览模式，安全可靠
+- 执行后自动验证结果
+
+## �🔗 相关文档
 
 - [数据库迁移规范](../../docs/DATABASE_MIGRATION_STANDARDS.md)
 - [版本冲突解决方案](../../docs/VERSION_CONFLICT_RESOLUTION.md)

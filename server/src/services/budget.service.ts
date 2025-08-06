@@ -582,7 +582,7 @@ export class BudgetService {
   }
 
   /**
-   * 获取预算结转历史（基于用户ID查询）
+   * 获取预算结转历史（基于预算ID查询，不依赖userId字段）
    */
   async getBudgetRolloverHistoryByBudgetId(budgetId: string, userId: string): Promise<any[]> {
     // 检查预算是否存在
@@ -599,26 +599,40 @@ export class BudgetService {
 
     console.log(`获取预算结转历史，预算ID: ${budgetId}, 用户ID: ${userId}`);
 
-    // 获取预算对应的用户ID（可能是托管用户）
-    const targetUserId = budget.userId || budget.familyMemberId;
-    if (!targetUserId) {
-      console.log('预算没有关联的用户ID，返回空历史');
-      return [];
-    }
-
-    console.log(`查询用户 ${targetUserId} 的预算结转历史`);
-
-    // 使用原生SQL查询，通过用户ID查询该用户的所有预算结转历史
+    // 通过预算关联查询该用户的所有相关预算的结转历史
     try {
+      // 首先获取该用户在同一账本中的所有个人预算
+      const userBudgets = await prisma.budget.findMany({
+        where: {
+          OR: [
+            { userId: budget.userId },
+            { familyMemberId: budget.familyMemberId }
+          ],
+          accountBookId: budget.accountBookId,
+          budgetType: budget.budgetType,
+        },
+        select: { id: true }
+      });
+
+      const budgetIds = userBudgets.map(b => b.id);
+
+      if (budgetIds.length === 0) {
+        console.log('没有找到相关预算，返回空历史');
+        return [];
+      }
+
+      console.log(`查询 ${budgetIds.length} 个相关预算的结转历史`);
+
+      // 使用原生SQL查询，通过预算ID列表查询结转历史
       const histories = await prisma.$queryRaw`
         SELECT
-          bh.id, bh.budget_id as "budgetId", bh.user_id as "userId",
+          bh.id, bh.budget_id as "budgetId",
           bh.period, bh.amount, bh.type,
           bh.description, bh.created_at as "createdAt", bh.updated_at as "updatedAt",
           bh.budget_amount as "budgetAmount", bh.spent_amount as "spentAmount",
           bh.previous_rollover as "previousRollover"
         FROM budget_histories bh
-        WHERE bh.user_id = ${targetUserId}
+        WHERE bh.budget_id = ANY(${budgetIds})
         ORDER BY bh.period DESC, bh.created_at DESC
       `;
 
@@ -628,7 +642,7 @@ export class BudgetService {
       if ((histories as any[]).length > 0) {
         console.log('原始结转历史数据（前3条）:');
         (histories as any[]).slice(0, 3).forEach((h: any, index: number) => {
-          console.log(`  ${index + 1}. period: ${h.period}, createdAt: ${h.createdAt}, amount: ${h.amount}, type: ${h.type}, userId: ${h.userId}`);
+          console.log(`  ${index + 1}. period: ${h.period}, createdAt: ${h.createdAt}, amount: ${h.amount}, type: ${h.type}, budgetId: ${h.budgetId}`);
         });
       }
 
@@ -636,7 +650,6 @@ export class BudgetService {
       const rolloverHistory = (histories as any[]).map((history: any) => ({
         id: history.id,
         budgetId: history.budgetId,
-        userId: history.userId,
         period: history.period,
         amount: Number(history.amount),
         type: history.type,
@@ -862,7 +875,7 @@ export class BudgetService {
       // 生成详细的描述信息
       const description = `${rolloverDescription}: 基础预算${budget.amount}, 上期结转${currentRolloverAmount}, 实际支出${spent}, 结转金额${rolloverAmount}`;
 
-      // 保存到数据库历史记录表
+      // 保存到数据库历史记录表（不依赖userId字段）
       const historyRecord = await prisma.budgetHistory.create({
         data: {
           budgetId: budget.id,
@@ -873,7 +886,6 @@ export class BudgetService {
           budgetAmount: budget.amount,
           spentAmount: spent,
           previousRollover: currentRolloverAmount,
-
         },
       });
 
@@ -1085,7 +1097,6 @@ export class BudgetService {
           budgetAmount: budget.amount,
           spentAmount: null,
           previousRollover: budget.rolloverAmount || 0,
-
         },
       });
 
@@ -1110,7 +1121,6 @@ export class BudgetService {
           budgetAmount: budget.amount,
           spentAmount: null,
           previousRollover: budget.rolloverAmount || 0,
-
         },
       });
 
@@ -1135,7 +1145,6 @@ export class BudgetService {
           budgetAmount: budget.amount,
           spentAmount: null,
           previousRollover: budget.rolloverAmount || 0,
-
         },
       });
 
@@ -1295,7 +1304,6 @@ export class BudgetService {
     const rolloverType = remaining >= 0 ? 'SURPLUS' : 'DEFICIT';
     const historyData = {
       budgetId: budget.id,
-      userId: budget.userId || budget.familyMemberId || null, // 添加用户ID
       period: period,
       amount: remaining,
       type: rolloverType as any,
@@ -1320,7 +1328,6 @@ export class BudgetService {
           data: {
             id: `history-${budget.id}-${period}`,
             budgetId: budget.id,
-            userId: budget.userId || budget.familyMemberId || null, // 添加用户ID，允许为null
             period: period,
             amount: remaining,
             type: rolloverType as any,
@@ -1330,7 +1337,7 @@ export class BudgetService {
             previousRollover: previousRollover,
           },
         });
-        console.log(`创建历史记录: ${period}, 结转金额: ${remaining}, 用户ID: ${budget.userId || budget.familyMemberId}`);
+        console.log(`创建历史记录: ${period}, 结转金额: ${remaining}, 预算ID: ${budget.id}`);
       }
     }
   }
@@ -1762,6 +1769,9 @@ export class BudgetService {
     try {
       console.log(`开始为用户 ${userId} 在账本 ${accountBookId} 中自动创建缺失预算`);
 
+      // 1. 处理用户个人预算
+      console.log(`开始为用户 ${userId} 创建缺失的个人预算`);
+
       // 首先检查当前月份是否已有个人预算，避免重复创建
       const currentDate = new Date();
       const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -1773,55 +1783,53 @@ export class BudgetService {
       );
 
       if (existingCurrentBudget) {
-        console.log(`用户 ${userId} 在账本 ${accountBookId} 中已存在当前月份的个人预算: ${existingCurrentBudget.id}，跳过自动创建`);
-        return;
-      }
-
-      // 1. 处理用户个人预算
-      console.log(`开始为用户 ${userId} 创建缺失的个人预算`);
-      const latestPersonalBudget = await this.findLatestPersonalBudget(userId, accountBookId);
-
-      if (latestPersonalBudget) {
-        const refreshDay = (latestPersonalBudget as any).refreshDay || 1;
-        console.log(
-          `找到最近的个人预算: ${latestPersonalBudget.name}, 结束日期: ${latestPersonalBudget.endDate}, 刷新日期: ${refreshDay}`,
-        );
-
-        const currentDate = new Date();
-        const latestEndDate = new Date(latestPersonalBudget.endDate);
-
-        if (latestEndDate < currentDate) {
-          const periodsToCreate = BudgetDateUtils.calculateMissingPeriods(
-            latestEndDate,
-            currentDate,
-            refreshDay,
-          );
-          console.log(`需要创建 ${periodsToCreate.length} 个个人预算周期`);
-
-          let previousBudgetId = latestPersonalBudget.id;
-          for (const period of periodsToCreate) {
-            console.log(`创建个人预算周期: ${BudgetDateUtils.formatPeriod(period)}`);
-
-            // 处理上个预算的结转（如果启用了结转）
-            let rolloverAmount = 0;
-            if (latestPersonalBudget.rollover) {
-              rolloverAmount = await this.processBudgetRollover(previousBudgetId);
-            }
-
-            // 创建新预算周期的预算（包含结转金额）
-            const newBudget = await this.createBudgetForPeriod(
-              latestPersonalBudget,
-              period,
-              rolloverAmount,
-            );
-            previousBudgetId = newBudget.id;
-
-            console.log(`成功创建个人预算: ${newBudget.name} (${newBudget.id})`);
-          }
-        }
+        console.log(`用户 ${userId} 在账本 ${accountBookId} 中已存在当前月份的个人预算: ${existingCurrentBudget.id}，跳过个人预算创建`);
       } else {
-        console.log('未找到历史个人预算，创建当月默认预算');
-        await this.createDefaultPersonalBudget(userId, accountBookId);
+        // 查找该用户最近的个人预算
+        const latestPersonalBudget = await this.findLatestPersonalBudget(userId, accountBookId);
+
+        if (latestPersonalBudget) {
+          const refreshDay = (latestPersonalBudget as any).refreshDay || 1;
+          console.log(
+            `找到最近的个人预算: ${latestPersonalBudget.name}, 结束日期: ${latestPersonalBudget.endDate}, 刷新日期: ${refreshDay}`,
+          );
+
+          const currentDate = new Date();
+          const latestEndDate = new Date(latestPersonalBudget.endDate);
+
+          if (latestEndDate < currentDate) {
+            const periodsToCreate = BudgetDateUtils.calculateMissingPeriods(
+              latestEndDate,
+              currentDate,
+              refreshDay,
+            );
+            console.log(`需要创建 ${periodsToCreate.length} 个个人预算周期`);
+
+            let previousBudgetId = latestPersonalBudget.id;
+            for (const period of periodsToCreate) {
+              console.log(`创建个人预算周期: ${BudgetDateUtils.formatPeriod(period)}`);
+
+              // 处理上个预算的结转（如果启用了结转）
+              let rolloverAmount = 0;
+              if (latestPersonalBudget.rollover) {
+                rolloverAmount = await this.processBudgetRollover(previousBudgetId);
+              }
+
+              // 创建新预算周期的预算（包含结转金额）
+              const newBudget = await this.createBudgetForPeriod(
+                latestPersonalBudget,
+                period,
+                rolloverAmount,
+              );
+              previousBudgetId = newBudget.id;
+
+              console.log(`成功创建个人预算: ${newBudget.name} (${newBudget.id})`);
+            }
+          }
+        } else {
+          console.log('未找到历史个人预算，创建当月默认预算');
+          await this.createDefaultPersonalBudget(userId, accountBookId);
+        }
       }
 
       // 2. 处理托管成员预算
@@ -2105,6 +2113,13 @@ export class BudgetService {
       const rolloverType = rolloverAmount >= 0 ? '余额结转' : '债务结转';
       console.log(`新预算 ${newBudget.id} 设置${rolloverType}: ${rolloverAmount}`);
 
+      // 为模板预算创建结转历史记录（如果模板预算已过期且没有历史记录）
+      try {
+        await this.createRolloverHistoryIfNeeded(templateBudget, rolloverAmount);
+      } catch (error) {
+        console.error('创建结转历史记录失败:', error);
+      }
+
       // 重新获取更新后的预算信息
       const updatedBudget = await this.budgetRepository.findById(newBudget.id);
       if (updatedBudget) {
@@ -2113,6 +2128,55 @@ export class BudgetService {
     }
 
     return newBudget;
+  }
+
+  /**
+   * 为预算创建结转历史记录（如果需要）
+   */
+  private async createRolloverHistoryIfNeeded(templateBudget: any, rolloverAmount: number): Promise<void> {
+    // 只为已过期的预算创建历史记录
+    const currentDate = new Date();
+    if (templateBudget.endDate >= currentDate) {
+      return;
+    }
+
+    const period = `${templateBudget.endDate.getFullYear()}-${templateBudget.endDate.getMonth() + 1}`;
+
+    // 检查是否已存在结转历史记录
+    const existingHistory = await prisma.budgetHistory.findFirst({
+      where: {
+        budgetId: templateBudget.id,
+        period,
+        type: { in: ['SURPLUS', 'DEFICIT'] }
+      }
+    });
+
+    if (existingHistory) {
+      console.log(`预算 ${templateBudget.id} 已存在结转历史记录，跳过创建`);
+      return;
+    }
+
+    // 计算已支出金额
+    const spentAmount = await this.budgetRepository.calculateSpentAmount(templateBudget.id);
+
+    // 创建结转历史记录
+    const rolloverType = rolloverAmount >= 0 ? 'SURPLUS' : 'DEFICIT';
+    const rolloverDescription = rolloverAmount >= 0 ? '余额结转' : '债务结转';
+
+    const historyData = {
+      budgetId: templateBudget.id,
+      userId: templateBudget.userId || templateBudget.familyMemberId, // 对于托管成员使用familyMemberId
+      period,
+      amount: Math.abs(rolloverAmount),
+      type: rolloverType as any,
+      description: `${rolloverDescription}: 基础预算${templateBudget.amount}, 上期结转${templateBudget.rolloverAmount || 0}, 实际支出${spentAmount}, 结转金额${rolloverAmount}`,
+      budgetAmount: templateBudget.amount,
+      spentAmount,
+      previousRollover: templateBudget.rolloverAmount || 0,
+    };
+
+    await prisma.budgetHistory.create({ data: historyData });
+    console.log(`✅ 创建结转历史记录: 预算 ${templateBudget.id}, ${rolloverDescription} ${Math.abs(rolloverAmount)}`);
   }
 
   /**
