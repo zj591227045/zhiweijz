@@ -503,17 +503,19 @@ export class SmartAccounting {
 
       // 如果没有识别出预算名称或根据名称未找到，则使用默认逻辑
       // 优先级：
-      // 1. 请求发起人在当前账本的个人预算（优先级最高）
-      // 2. 请求发起人的个人预算（按分类匹配）
-      // 3. 当前账本+分类+日期范围匹配的预算
+      // 1. 请求发起人在当前账本的个人预算（排除托管成员预算，优先级最高）
+      // 2. 当前账本的通用预算（按分类匹配）
+      // 3. 当前账本的通用预算（不限分类）
 
       console.log(`🔍 [预算匹配] 查找用户 ${state.userId} 在账本 ${state.accountId} 的个人预算`);
 
-      // 首先尝试找到请求发起人的个人预算
+      // 首先尝试找到请求发起人的个人预算（排除托管成员预算）
       budget = await prisma.budget.findFirst({
         where: {
           userId: state.userId,
           accountBookId: state.accountId,
+          budgetType: 'PERSONAL', // 明确指定个人预算类型
+          familyMemberId: null, // 排除托管成员预算，只匹配记账人自己的个人预算
           startDate: { lte: state.analyzedTransaction.date },
           endDate: { gte: state.analyzedTransaction.date },
         },
@@ -971,15 +973,17 @@ export class SmartAccounting {
       }
 
       // 优先级：
-      // 1. 请求发起人在当前账本的个人预算（优先级最高）
-      // 2. 请求发起人的个人预算（按分类匹配）
-      // 3. 当前账本+分类+日期范围匹配的预算
+      // 1. 请求发起人在当前账本的个人预算（排除托管成员预算，优先级最高）
+      // 2. 当前账本的通用预算（按分类匹配）
+      // 3. 当前账本的通用预算（不限分类）
 
-      // 首先尝试找到请求发起人的个人预算
+      // 首先尝试找到请求发起人的个人预算（排除托管成员预算）
       budget = await prisma.budget.findFirst({
         where: {
           userId: userId,
           accountBookId: accountId,
+          budgetType: 'PERSONAL', // 明确指定个人预算类型
+          familyMemberId: null, // 排除托管成员预算，只匹配记账人自己的个人预算
           startDate: { lte: transaction.date },
           endDate: { gte: transaction.date },
         },
