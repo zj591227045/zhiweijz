@@ -117,7 +117,7 @@ export class AIController {
         const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.text);
         if (!canUsePoints) {
           return res.status(402).json({
-            error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+            error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员，每天登录App以及签到总计可获得10点赠送记账点',
             type: 'INSUFFICIENT_POINTS',
             required: AccountingPointsService.POINT_COSTS.text
           });
@@ -959,7 +959,7 @@ export class AIController {
         const canUsePoints = await AccountingPointsService.canUsePoints(requestUserId, AccountingPointsService.POINT_COSTS.text);
         if (!canUsePoints) {
           return res.status(402).json({
-            error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+            error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员，每天登录App以及签到总计可获得10点赠送记账点',
             type: 'INSUFFICIENT_POINTS',
             required: AccountingPointsService.POINT_COSTS.text
           });
@@ -1185,7 +1185,7 @@ export class AIController {
         const canUsePoints = await AccountingPointsService.canUsePoints(userId, AccountingPointsService.POINT_COSTS.text);
         if (!canUsePoints) {
           return res.status(402).json({
-            error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+            error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员，每天登录App以及签到总计可获得10点赠送记账点',
             type: 'INSUFFICIENT_POINTS',
             required: AccountingPointsService.POINT_COSTS.text
           });

@@ -36,7 +36,7 @@ export class VisionRecognitionService {
       if (!canUsePoints) {
         return {
           success: false,
-          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员，每天登录App以及签到总计可获得10点赠送记账点',
           usage: { duration: 0 },
         };
       }
@@ -71,7 +71,7 @@ export class VisionRecognitionService {
       if (!canUsePoints) {
         return {
           success: false,
-          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+          error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员，每天登录App以及签到总计可获得10点赠送记账点',
           usage: { duration: 0 },
         };
       }
