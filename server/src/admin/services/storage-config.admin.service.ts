@@ -223,25 +223,27 @@ export class StorageConfigAdminService {
         );
       }
 
-      // 批量更新配置
-      for (const update of updates) {
-        await prisma.systemConfig.upsert({
-          where: { key: update.key },
-          update: {
-            value: update.value,
-            updatedBy,
-            updatedAt: new Date(),
-          },
-          create: {
-            key: update.key,
-            value: update.value,
-            category: 'storage',
-            description: this.getConfigDescription(update.key),
-            createdBy: updatedBy,
-            updatedBy: updatedBy,
-          },
-        });
-      }
+      // 批量更新配置 - 使用事务减少连接数
+      await prisma.$transaction(async (tx) => {
+        for (const update of updates) {
+          await tx.systemConfig.upsert({
+            where: { key: update.key },
+            update: {
+              value: update.value,
+              updatedBy,
+              updatedAt: new Date(),
+            },
+            create: {
+              key: update.key,
+              value: update.value,
+              category: 'storage',
+              description: this.getConfigDescription(update.key),
+              createdBy: updatedBy,
+              updatedBy: updatedBy,
+            },
+          });
+        }
+      });
 
       // 刷新图片压缩服务配置
       try {
@@ -251,6 +253,16 @@ export class StorageConfigAdminService {
         console.log('图片压缩服务配置已刷新');
       } catch (error) {
         console.warn('刷新图片压缩服务配置失败:', error);
+      }
+
+      // 刷新文件存储服务配置
+      try {
+        const { FileStorageService } = await import('../../services/file-storage.service');
+        const storageService = FileStorageService.getInstance();
+        await storageService.reloadConfig();
+        console.log('文件存储服务配置已刷新');
+      } catch (error) {
+        console.warn('刷新文件存储服务配置失败:', error);
       }
 
       console.log('存储配置更新成功');
