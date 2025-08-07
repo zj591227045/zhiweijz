@@ -29,11 +29,16 @@ export function VersionUpdate({ className, isAdmin = false }: VersionUpdateProps
       const detectedPlatform = getCurrentPlatform();
       setPlatform(detectedPlatform);
 
-      if (window.Capacitor && window.Capacitor.Plugins?.App) {
+      if (window.Capacitor && window.Capacitor.Plugins?.App && window.Capacitor.isNativePlatform()) {
         // Capacitor 环境，获取真实的应用版本信息
         window.Capacitor.Plugins.App.getInfo().then((info: any) => {
           setCurrentVersion(info.version);
           setCurrentBuildNumber(parseInt(info.build || '1'));
+        }).catch(() => {
+          // 如果获取失败，使用默认值
+          const { version, buildNumber } = getCurrentAppVersion();
+          setCurrentVersion(version);
+          setCurrentBuildNumber(buildNumber);
         });
       } else {
         // 网页环境，使用环境变量中的版本信息

@@ -390,7 +390,7 @@ export default function MembershipCenter() {
                               {accountingBalance ? accountingBalance.giftBalance : 0}
                             </p>
                             <p className="text-xs text-green-700 dark:text-green-300">
-                              签到获得，每日最多5点
+                              签到以及登录App获得，每日最多10点
                             </p>
                           </div>
                         </div>

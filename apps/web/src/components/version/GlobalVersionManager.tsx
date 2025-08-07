@@ -32,7 +32,7 @@ export function GlobalVersionManager({
       setCurrentBuildNumber(buildNumber);
 
       // 如果是Capacitor环境，尝试获取原生应用信息
-      if (window.Capacitor?.Plugins?.App) {
+      if (window.Capacitor?.Plugins?.App && window.Capacitor.isNativePlatform()) {
         window.Capacitor.Plugins.App.getInfo()
           .then((info: any) => {
             setCurrentVersion(info.version);

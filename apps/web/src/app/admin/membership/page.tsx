@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
+import { adminApi } from '@/lib/admin-api-client';
 import {
   UsersIcon,
   TrophyIcon,
@@ -19,6 +20,9 @@ interface MembershipStats {
   totalMembers: number;
   regularMembers: number;
   donorMembers: number;
+  donationOneMembers: number;
+  donationTwoMembers: number;
+  donationThreeMembers: number;
   lifetimeMembers: number;
   activeMembers: number;
   expiringInWeek: number;
@@ -27,7 +31,7 @@ interface MembershipStats {
 interface Membership {
   id: string;
   userId: string;
-  memberType: 'REGULAR' | 'DONOR' | 'LIFETIME';
+  memberType: 'REGULAR' | 'DONATION_ONE' | 'DONATION_TWO' | 'DONATION_THREE' | 'LIFETIME';
   startDate: string;
   endDate: string | null;
   isActive: boolean;
@@ -64,13 +68,15 @@ export default function MembershipManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showDowngradeModal, setShowDowngradeModal] = useState(false);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [selectedMembership, setSelectedMembership] = useState<Membership | null>(null);
 
   // 获取统计数据
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/admin/membership/stats');
+      const response = await adminApi.get('/api/admin/membership/stats');
       const data = await response.json();
       if (data.success) {
         setStats(data.data);
@@ -91,7 +97,7 @@ export default function MembershipManagement() {
         ...(filterType && { memberType: filterType }),
       });
 
-      const response = await fetch(`/api/admin/membership/list?${params}`);
+      const response = await adminApi.get(`/api/admin/membership/list?${params}`);
       const data = await response.json();
       if (data.success) {
         setMemberships(data.data.memberships);
@@ -142,18 +148,20 @@ export default function MembershipManagement() {
     duration: number,
     reason: string,
   ) => {
+    console.log('🔍 [前端] 添加会员参数:', {
+      email,
+      memberType,
+      duration,
+      reason,
+      durationType: typeof duration
+    });
+
     try {
-      const response = await fetch('/api/admin/membership/add-membership', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          memberType,
-          duration,
-          reason,
-        }),
+      const response = await adminApi.post('/api/admin/membership/add-membership', {
+        email,
+        memberType,
+        duration,
+        reason,
       });
 
       const data = await response.json();
@@ -174,22 +182,17 @@ export default function MembershipManagement() {
   // 升级会员
   const handleUpgradeMember = async (userId: string, memberType: string, duration: number) => {
     try {
-      const response = await fetch(`/api/admin/membership/upgrade/${userId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          memberType,
-          duration,
-          reason: '管理员手动升级',
-        }),
+      const response = await adminApi.post(`/api/admin/membership/upgrade/${userId}`, {
+        memberType,
+        duration,
+        reason: '管理员手动升级',
       });
 
       const data = await response.json();
       if (data.success) {
         alert('会员升级成功');
         fetchMemberships();
+        fetchStats();
         setShowUpgradeModal(false);
       } else {
         alert(data.message || '升级失败');
@@ -200,12 +203,42 @@ export default function MembershipManagement() {
     }
   };
 
+  // 降级会员
+  const handleDowngradeMember = async (
+    userId: string,
+    action: 'reduce_time' | 'downgrade_type' | 'to_regular',
+    params: {
+      memberType?: string;
+      reduceMonths?: number;
+      reason?: string;
+    }
+  ) => {
+    try {
+      const response = await adminApi.post(`/api/admin/membership/downgrade/${userId}`, {
+        action,
+        ...params,
+        reason: params.reason || '管理员手动降级',
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert('会员降级成功');
+        fetchMemberships();
+        fetchStats();
+        setShowDowngradeModal(false);
+      } else {
+        alert(data.message || '降级失败');
+      }
+    } catch (error) {
+      console.error('降级会员失败:', error);
+      alert('降级失败');
+    }
+  };
+
   // 批量检查会员状态
   const handleBatchCheck = async () => {
     try {
-      const response = await fetch('/api/admin/membership/check-all-status', {
-        method: 'POST',
-      });
+      const response = await adminApi.post('/api/admin/membership/check-all-status');
       const data = await response.json();
       if (data.success) {
         alert(data.message);
@@ -221,10 +254,17 @@ export default function MembershipManagement() {
     switch (type) {
       case 'REGULAR':
         return '普通会员';
-      case 'DONOR':
-        return '捐赠会员';
+      case 'DONATION_ONE':
+        return '捐赠会员（壹）';
+      case 'DONATION_TWO':
+        return '捐赠会员（贰）';
+      case 'DONATION_THREE':
+        return '捐赠会员（叁）';
       case 'LIFETIME':
         return '永久会员';
+      // 兼容旧的DONOR类型
+      case 'DONOR':
+        return '捐赠会员';
       default:
         return type;
     }
@@ -234,10 +274,17 @@ export default function MembershipManagement() {
     switch (type) {
       case 'REGULAR':
         return 'bg-gray-100 text-gray-800';
-      case 'DONOR':
+      case 'DONATION_ONE':
         return 'bg-yellow-100 text-yellow-800';
+      case 'DONATION_TWO':
+        return 'bg-orange-100 text-orange-800';
+      case 'DONATION_THREE':
+        return 'bg-red-100 text-red-800';
       case 'LIFETIME':
         return 'bg-purple-100 text-purple-800';
+      // 兼容旧的DONOR类型
+      case 'DONOR':
+        return 'bg-yellow-100 text-yellow-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -255,7 +302,7 @@ export default function MembershipManagement() {
 
       {/* 统计卡片 */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4">
           <div className="bg-white p-4 rounded-lg border border-gray-200">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
@@ -286,8 +333,32 @@ export default function MembershipManagement() {
                 <TrophyIcon className="h-6 w-6 text-yellow-600" />
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">捐赠会员</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.donorMembers}</p>
+                <p className="text-sm font-medium text-gray-500">捐赠会员（壹）</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.donationOneMembers}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <TrophyIcon className="h-6 w-6 text-orange-600" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">捐赠会员（贰）</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.donationTwoMembers}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <TrophyIcon className="h-6 w-6 text-red-600" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">捐赠会员（叁）</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.donationThreeMembers}</p>
               </div>
             </div>
           </div>
@@ -318,8 +389,8 @@ export default function MembershipManagement() {
 
           <div className="bg-white p-4 rounded-lg border border-gray-200">
             <div className="flex items-center">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
+              <div className="p-2 bg-amber-100 rounded-lg">
+                <ExclamationTriangleIcon className="h-6 w-6 text-amber-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-500">7天内到期</p>
@@ -355,7 +426,9 @@ export default function MembershipManagement() {
               onChange={(e) => setFilterType(e.target.value)}
             >
               <option value="">所有增值会员</option>
-              <option value="DONOR">捐赠会员</option>
+              <option value="DONATION_ONE">捐赠会员（壹）</option>
+              <option value="DONATION_TWO">捐赠会员（贰）</option>
+              <option value="DONATION_THREE">捐赠会员（叁）</option>
               <option value="LIFETIME">永久会员</option>
             </select>
           </div>
@@ -494,6 +567,16 @@ export default function MembershipManagement() {
                           >
                             升级
                           </button>
+                          <button
+                            onClick={() => {
+                              setSelectedUser(membership.userId);
+                              setSelectedMembership(membership);
+                              setShowDowngradeModal(true);
+                            }}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            降级
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -577,7 +660,9 @@ export default function MembershipManagement() {
                           id="memberType"
                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         >
-                          <option value="DONOR">捐赠会员</option>
+                          <option value="DONATION_ONE">捐赠会员（壹）</option>
+                          <option value="DONATION_TWO">捐赠会员（贰）</option>
+                          <option value="DONATION_THREE">捐赠会员（叁）</option>
                           <option value="LIFETIME">永久会员</option>
                         </select>
                       </div>
@@ -626,6 +711,170 @@ export default function MembershipManagement() {
         </div>
       )}
 
+      {/* 降级会员模态框 */}
+      {showDowngradeModal && selectedUser && selectedMembership && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+              onClick={() => setShowDowngradeModal(false)}
+            ></div>
+
+            <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+              <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                <div className="sm:flex sm:items-start">
+                  <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
+                  </div>
+                  <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                    <h3 className="text-base font-semibold leading-6 text-gray-900">降级会员</h3>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-500">
+                        当前会员：{getMemberTypeLabel(selectedMembership.memberType)}
+                        {selectedMembership.endDate && (
+                          <span>，到期时间：{new Date(selectedMembership.endDate).toLocaleDateString()}</span>
+                        )}
+                      </p>
+                    </div>
+                    <div className="mt-4 space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">降级操作</label>
+                        <select
+                          id="downgradeAction"
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
+                          onChange={(e) => {
+                            const action = e.target.value;
+                            const reduceTimeDiv = document.getElementById('reduceTimeDiv');
+                            const downgradeLevelDiv = document.getElementById('downgradeLevelDiv');
+
+                            if (reduceTimeDiv && downgradeLevelDiv) {
+                              reduceTimeDiv.style.display = action === 'reduce_time' ? 'block' : 'none';
+                              downgradeLevelDiv.style.display = action === 'downgrade_type' ? 'block' : 'none';
+                            }
+                          }}
+                        >
+                          <option value="">请选择降级操作</option>
+                          {selectedMembership.endDate && (
+                            <option value="reduce_time">减少有效期</option>
+                          )}
+                          {selectedMembership.memberType !== 'REGULAR' && (
+                            <option value="downgrade_type">降级会员等级</option>
+                          )}
+                          <option value="to_regular">降级为普通会员</option>
+                        </select>
+                      </div>
+
+                      {/* 减少有效期选项 */}
+                      <div id="reduceTimeDiv" style={{ display: 'none' }}>
+                        <label className="block text-sm font-medium text-gray-700">
+                          减少月数
+                        </label>
+                        <input
+                          type="number"
+                          id="reduceMonths"
+                          defaultValue={1}
+                          min={1}
+                          max={60}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">
+                          将从当前到期时间减少指定月数
+                        </p>
+                      </div>
+
+                      {/* 降级等级选项 */}
+                      <div id="downgradeLevelDiv" style={{ display: 'none' }}>
+                        <label className="block text-sm font-medium text-gray-700">降级到</label>
+                        <select
+                          id="downgradeMemberType"
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
+                        >
+                          {selectedMembership.memberType === 'DONATION_THREE' && (
+                            <>
+                              <option value="DONATION_TWO">捐赠会员（贰）</option>
+                              <option value="DONATION_ONE">捐赠会员（壹）</option>
+                            </>
+                          )}
+                          {selectedMembership.memberType === 'DONATION_TWO' && (
+                            <option value="DONATION_ONE">捐赠会员（壹）</option>
+                          )}
+                          {selectedMembership.memberType === 'LIFETIME' && (
+                            <>
+                              <option value="DONATION_THREE">捐赠会员（叁）</option>
+                              <option value="DONATION_TWO">捐赠会员（贰）</option>
+                              <option value="DONATION_ONE">捐赠会员（壹）</option>
+                            </>
+                          )}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">降级原因</label>
+                        <input
+                          type="text"
+                          id="downgradeReason"
+                          placeholder="请输入降级原因"
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                <button
+                  type="button"
+                  className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
+                  onClick={() => {
+                    const action = (document.getElementById('downgradeAction') as HTMLSelectElement).value;
+                    const reason = (document.getElementById('downgradeReason') as HTMLInputElement).value;
+
+                    if (!action) {
+                      alert('请选择降级操作');
+                      return;
+                    }
+
+                    if (!reason.trim()) {
+                      alert('请输入降级原因');
+                      return;
+                    }
+
+                    let params: any = { reason };
+
+                    if (action === 'reduce_time') {
+                      const reduceMonths = parseInt((document.getElementById('reduceMonths') as HTMLInputElement).value);
+                      if (isNaN(reduceMonths) || reduceMonths < 1) {
+                        alert('请输入有效的减少月数');
+                        return;
+                      }
+                      params.reduceMonths = reduceMonths;
+                    } else if (action === 'downgrade_type') {
+                      const memberType = (document.getElementById('downgradeMemberType') as HTMLSelectElement).value;
+                      if (!memberType) {
+                        alert('请选择降级后的会员类型');
+                        return;
+                      }
+                      params.memberType = memberType;
+                    }
+
+                    handleDowngradeMember(selectedUser, action as any, params);
+                  }}
+                >
+                  确认降级
+                </button>
+                <button
+                  type="button"
+                  className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                  onClick={() => setShowDowngradeModal(false)}
+                >
+                  取消
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 添加会员模态框 */}
       {showAddMemberModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -661,7 +910,9 @@ export default function MembershipManagement() {
                           id="addMemberType"
                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         >
-                          <option value="DONOR">捐赠会员</option>
+                          <option value="DONATION_ONE">捐赠会员（壹）</option>
+                          <option value="DONATION_TWO">捐赠会员（贰）</option>
+                          <option value="DONATION_THREE">捐赠会员（叁）</option>
                           <option value="LIFETIME">永久会员</option>
                         </select>
                       </div>
@@ -701,10 +952,18 @@ export default function MembershipManagement() {
                     const memberType = (
                       document.getElementById('addMemberType') as HTMLSelectElement
                     ).value;
-                    const duration = parseInt(
-                      (document.getElementById('addDuration') as HTMLInputElement).value,
-                    );
+                    const durationInput = document.getElementById('addDuration') as HTMLInputElement;
+                    const duration = parseInt(durationInput.value);
                     const reason = (document.getElementById('addReason') as HTMLInputElement).value;
+
+                    console.log('🔍 [前端] 按钮点击获取的值:', {
+                      email,
+                      memberType,
+                      durationInputValue: durationInput.value,
+                      duration,
+                      reason,
+                      isNaN: isNaN(duration)
+                    });
 
                     if (!email.trim()) {
                       alert('请输入用户邮箱或用户名');

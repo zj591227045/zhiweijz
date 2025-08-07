@@ -1338,6 +1338,7 @@ model UserVersionStatus {
 
 enum MemberType {
   REGULAR           // 普通会员
+  DONOR             // 捐赠会员（旧版本，保持兼容性）
   DONATION_ONE      // 捐赠会员（壹）
   DONATION_TWO      // 捐赠会员（贰）
   DONATION_THREE    // 捐赠会员（叁）
@@ -1349,6 +1350,7 @@ enum RenewalType {
   AUTO
   ADMIN
   UPGRADE
+  DOWNGRADE
   REVENUECAT_PURCHASE
 }
 
@@ -1375,6 +1377,7 @@ enum NotificationType {
   RENEWAL_FAILED
   MEMBERSHIP_EXPIRED
   MEMBERSHIP_RENEWED
+  MEMBERSHIP_DOWNGRADED
   BADGE_AWARDED
   POINTS_RESET
 }

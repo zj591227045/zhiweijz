@@ -27,6 +27,11 @@ export class MembershipService {
     return this.enableAccountingPointsSystem;
   }
 
+  // 获取会员月度积分
+  getMembershipMonthlyPoints(): number {
+    return this.membershipMonthlyPoints;
+  }
+
   // 获取用户会员信息
   async getUserMembership(userId: string) {
     if (!this.enableMembershipSystem) {
@@ -693,6 +698,9 @@ export class MembershipService {
         totalMembers: 0,
         regularMembers: 0,
         donorMembers: 0,
+        donationOneMembers: 0,
+        donationTwoMembers: 0,
+        donationThreeMembers: 0,
         lifetimeMembers: 0,
         activeMembers: 0,
         expiringInWeek: 0
@@ -704,7 +712,9 @@ export class MembershipService {
 
     const [
       totalMembers,
-      donorMembers,
+      donationOneMembers,
+      donationTwoMembers,
+      donationThreeMembers,
       lifetimeMembers,
       activeMembers,
       expiringInWeek
@@ -718,11 +728,13 @@ export class MembershipService {
         }
       }),
       this.prisma.userMembership.count({
-        where: {
-          memberType: {
-            in: ['DONATION_ONE', 'DONATION_TWO', 'DONATION_THREE']
-          }
-        }
+        where: { memberType: 'DONATION_ONE' }
+      }),
+      this.prisma.userMembership.count({
+        where: { memberType: 'DONATION_TWO' }
+      }),
+      this.prisma.userMembership.count({
+        where: { memberType: 'DONATION_THREE' }
       }),
       this.prisma.userMembership.count({ where: { memberType: 'LIFETIME' } }),
       this.prisma.userMembership.count({
@@ -750,11 +762,15 @@ export class MembershipService {
     // 获取所有用户数量作为"普通会员"数量
     const totalUsers = await this.prisma.user.count();
     const regularMembers = totalUsers - totalMembers; // 总用户数减去增值会员数
+    const donorMembers = donationOneMembers + donationTwoMembers + donationThreeMembers; // 总捐赠会员数
 
     return {
       totalMembers: totalUsers, // 所有用户都是会员
       regularMembers, // 虚拟的普通会员数量
-      donorMembers,
+      donorMembers, // 总捐赠会员数（兼容性）
+      donationOneMembers,
+      donationTwoMembers,
+      donationThreeMembers,
       lifetimeMembers,
       activeMembers,
       expiringInWeek

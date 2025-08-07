@@ -49,7 +49,7 @@ export async function getAppPackageName(): Promise<string | null> {
   if (typeof window === 'undefined') return null;
 
   // 检查是否为 Capacitor 环境
-  if ((window as any).Capacitor) {
+  if ((window as any).Capacitor && (window as any).Capacitor.isNativePlatform()) {
     try {
       // 尝试使用 Capacitor App 插件获取应用信息
       const { App } = await import('@capacitor/app');

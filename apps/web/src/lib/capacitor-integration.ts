@@ -351,7 +351,7 @@ export class CapacitorIntegration {
 
   // 获取应用信息
   public async getAppInfo() {
-    if (!this.capacitor?.Plugins?.App) {
+    if (!this.capacitor?.Plugins?.App || !this.capacitor.isNativePlatform()) {
       return null;
     }
 
@@ -367,7 +367,7 @@ export class CapacitorIntegration {
 
   // 获取应用状态
   public async getAppState() {
-    if (!this.capacitor?.Plugins?.App) {
+    if (!this.capacitor?.Plugins?.App || !this.capacitor.isNativePlatform()) {
       return null;
     }
 
