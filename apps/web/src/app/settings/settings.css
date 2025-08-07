@@ -137,6 +137,16 @@
   background-color: rgba(59, 130, 246, 0.05);
 }
 
+.checkin-button.checked-in {
+  border-color: #10b981;
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.05);
+}
+
+.checkin-button.checked-in:hover {
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
 .membership-button {
   border-color: #f59e0b;
   color: #f59e0b;

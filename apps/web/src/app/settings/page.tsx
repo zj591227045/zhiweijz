@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
 import { useOnboardingStore } from '@/store/onboarding-store';
 import { useAccountBookStore } from '@/store/account-book-store';
+import { useAccountingPointsStore } from '@/store/accounting-points-store';
 import { PageContainer } from '@/components/layout/page-container';
 import { useThemeStore } from '@/store/theme-store';
 import { AvatarDisplay } from '@/components/ui/avatar-display';
@@ -22,6 +23,7 @@ export default function SettingsPage() {
   const { theme, setTheme } = useThemeStore();
   const { resetOnboarding, startOnboarding, setAccountType, setCurrentStep } = useOnboardingStore();
   const { currentAccountBook } = useAccountBookStore();
+  const { checkinStatus, fetchCheckinStatus } = useAccountingPointsStore();
   const { config } = useSystemConfig();
   const [currentLanguage, setCurrentLanguage] = useState('简体中文');
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
@@ -75,6 +77,13 @@ export default function SettingsPage() {
       router.push('/auth/login');
     }
   }, [isAuthenticated, router]);
+
+  // 获取签到状态
+  useEffect(() => {
+    if (config.accountingPointsEnabled && isAuthenticated) {
+      fetchCheckinStatus();
+    }
+  }, [config.accountingPointsEnabled, isAuthenticated, fetchCheckinStatus]);
 
   // 加载本地设置
   useEffect(() => {
@@ -169,9 +178,21 @@ export default function SettingsPage() {
           {/* 快捷操作按钮 */}
           <div className="user-actions">
             {config.accountingPointsEnabled && (
-              <Link href="/settings/checkin" className="action-button checkin-button">
-                <i className="fas fa-calendar-check"></i>
-                <span>每日签到</span>
+              <Link
+                href="/settings/checkin"
+                className={`action-button checkin-button ${checkinStatus?.hasCheckedIn ? 'checked-in' : ''}`}
+              >
+                {checkinStatus?.hasCheckedIn ? (
+                  <>
+                    <i className="fas fa-check-circle" style={{ color: '#10b981' }}></i>
+                    <span>今日已签到</span>
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-calendar-check"></i>
+                    <span>每日签到</span>
+                  </>
+                )}
               </Link>
             )}
             {config.membershipEnabled && (
