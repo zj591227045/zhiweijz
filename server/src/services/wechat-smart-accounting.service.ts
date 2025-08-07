@@ -4,6 +4,8 @@ import { AIController } from '../controllers/ai-controller';
 import { SmartAccountingResult, SmartAccountingError } from '../types/smart-accounting';
 import AccountingPointsService from './accounting-points.service';
 import { MembershipService } from './membership.service';
+import { TransactionDuplicateDetectionService } from './transaction-duplicate-detection.service';
+
 
 export interface WechatSmartAccountingResult {
   success: boolean;
@@ -29,6 +31,7 @@ export class WechatSmartAccountingService {
     accountBookId: string,
     description: string,
     createTransaction: boolean = false,
+    isFromImageRecognition: boolean = false,
   ): Promise<WechatSmartAccountingResult> {
     try {
       // 设置LLM请求上下文为微信来源
@@ -108,16 +111,55 @@ export class WechatSmartAccountingService {
         // 检查是否为数组格式（多条记录）
         const isMultipleRecords = Array.isArray(analysisResult);
         const recordsToCreate = isMultipleRecords ? analysisResult : [analysisResult];
-        
+
         console.log(`📝 [微信记账] 检测到 ${recordsToCreate.length} 条记录需要创建`);
-        
+
+        // 微信图片记账进行重复检测（检测到重复则不创建记录）
+        let duplicateResults: any[] = [];
+        let recordsToActuallyCreate = recordsToCreate;
+        let skippedDuplicates: string[] = [];
+
+        if (isFromImageRecognition) {
+          try {
+            console.log('🔍 [微信重复检测] 开始智能账本匹配和重复检测');
+            duplicateResults = await TransactionDuplicateDetectionService.detectBatchDuplicatesWithSmartAccountBook(
+              userId,
+              accountBookId, // 作为默认账本
+              recordsToCreate
+            );
+
+            // 过滤掉重复的记录，只保留不重复的记录
+            recordsToActuallyCreate = [];
+            recordsToCreate.forEach((record, index) => {
+              const duplicateResult = duplicateResults[index];
+              if (duplicateResult && duplicateResult.isDuplicate && duplicateResult.confidence > 0.5) {
+                // 记录重复，跳过创建
+                skippedDuplicates.push(
+                  `记录${index + 1}(${record.amount}元 ${record.note || '无描述'})已存在，跳过创建`
+                );
+                console.log(`⚠️ [微信重复检测] 跳过重复记录: ${record.amount}元 ${record.note || '无描述'}`);
+              } else {
+                // 记录不重复，添加到创建列表
+                recordsToActuallyCreate.push(record);
+                console.log(`✅ [微信重复检测] 记录不重复，将创建: ${record.amount}元 ${record.note || '无描述'}`);
+              }
+            });
+
+            console.log(`📊 [微信重复检测] 原始记录数: ${recordsToCreate.length}, 跳过重复: ${skippedDuplicates.length}, 将创建: ${recordsToActuallyCreate.length}`);
+          } catch (duplicateError) {
+            console.error('微信图片记账重复检测失败:', duplicateError);
+            // 重复检测失败时，创建所有记录（保持原有行为）
+            recordsToActuallyCreate = recordsToCreate;
+          }
+        }
+
         const createdTransactions = [];
-        
-        // 循环创建每条记录
-        for (let i = 0; i < recordsToCreate.length; i++) {
-          const record = recordsToCreate[i];
+
+        // 循环创建过滤后的记录（不重复的记录）
+        for (let i = 0; i < recordsToActuallyCreate.length; i++) {
+          const record = recordsToActuallyCreate[i];
           const transaction = await this.createTransactionRecord(record, userId);
-          
+
           if (transaction) {
             createdTransactions.push(transaction);
             console.log(`✅ [微信记账] 第 ${i + 1} 条记账记录创建成功: ${transaction.id}`);
@@ -125,18 +167,46 @@ export class WechatSmartAccountingService {
             console.error(`❌ [微信记账] 第 ${i + 1} 条记账记录创建失败`);
           }
         }
-        
-        if (createdTransactions.length > 0) {
+
+        // 处理结果消息
+        if (createdTransactions.length > 0 || skippedDuplicates.length > 0) {
+          let resultMessage = '';
+
+          // 如果有成功创建的记录
+          if (createdTransactions.length > 0) {
+            resultMessage = this.formatSuccessMessage(analysisResult, true, createdTransactions.length);
+          }
+
+          // 如果是图片记账且有跳过的重复记录，添加说明
+          if (isFromImageRecognition && skippedDuplicates.length > 0) {
+            if (createdTransactions.length > 0) {
+              resultMessage += '\n\n📋 重复记录处理:\n' + skippedDuplicates.join('\n');
+            } else {
+              // 所有记录都是重复的情况
+              resultMessage = `识别到 ${recordsToCreate.length} 条记录，但均为重复记录，已跳过创建：\n\n` + skippedDuplicates.join('\n');
+            }
+          }
+
           return {
             success: true,
-            message: this.formatSuccessMessage(analysisResult, true, createdTransactions.length),
+            message: resultMessage,
             transaction: isMultipleRecords ? createdTransactions : createdTransactions[0],
           };
         } else {
-          return {
-            success: false,
-            message: '记账分析成功，但创建记账记录失败。',
-          };
+          // 没有创建任何记录的情况
+          if (isFromImageRecognition && skippedDuplicates.length > 0) {
+            // 所有记录都是重复的，这是正常情况
+            return {
+              success: true,
+              message: `识别到 ${recordsToCreate.length} 条记录，但均为重复记录，已跳过创建：\n\n` + skippedDuplicates.join('\n'),
+            };
+          } else {
+            // 其他原因导致的创建失败
+            return {
+              success: false,
+              message: '记账分析成功，但创建记账记录失败。',
+            };
+          }
         }
       }
 

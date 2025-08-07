@@ -601,13 +601,7 @@ export class LLMProviderService {
     accountId?: string,
     accountType?: 'personal' | 'family',
   ): Promise<string> {
-    // 💡 Token限制检查 - 预估prompt的token数量
-    const estimatedPromptTokens = this.estimateTokens(prompt);
-    const tokenCheck = await this.tokenLimitService.canUseTokens(userId, estimatedPromptTokens);
-
-    if (!tokenCheck.canUse) {
-      throw new Error(`Token使用受限: ${tokenCheck.reason}`);
-    }
+    // 💡 Token限制检查已移除 - 不再限制Token使用量
 
     const settings = await this.getLLMSettings(userId, accountId, accountType);
 
@@ -698,14 +692,7 @@ export class LLMProviderService {
     accountId?: string,
     accountType?: 'personal' | 'family',
   ): Promise<string> {
-    // 💡 Token限制检查 - 预估所有消息的token数量
-    const allMessagesText = messages.map((m) => m.content).join('\n');
-    const estimatedPromptTokens = this.estimateTokens(allMessagesText);
-    const tokenCheck = await this.tokenLimitService.canUseTokens(userId, estimatedPromptTokens);
-
-    if (!tokenCheck.canUse) {
-      throw new Error(`Token使用受限: ${tokenCheck.reason}`);
-    }
+    // 💡 Token限制检查已移除 - 不再限制Token使用量
 
     const settings = await this.getLLMSettings(userId, accountId, accountType);
 

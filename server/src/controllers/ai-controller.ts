@@ -7,6 +7,7 @@ import AccountingPointsService from '../services/accounting-points.service';
 import { SourceDetectionUtil } from '../utils/source-detection.util';
 import { TransactionService } from '../services/transaction.service';
 import { MembershipService } from '../services/membership.service';
+import { TransactionDuplicateDetectionService } from '../services/transaction-duplicate-detection.service';
 import { TransactionAttachmentRepository } from '../repositories/file-storage.repository';
 import { AttachmentType } from '../models/file-storage.model';
 
@@ -57,7 +58,7 @@ export class AIController {
    */
   public async handleSmartAccounting(req: Request, res: Response) {
     try {
-      const { description } = req.body;
+      const { description, source: requestSource, isFromImageRecognition } = req.body;
       const { accountId } = req.params;
       const userId = req.user?.id;
 
@@ -136,15 +137,8 @@ export class AIController {
         return res.status(500).json({ error: '智能记账处理失败' });
       }
 
-      // 检查是否有错误信息（如内容与记账无关或Token限额）
+      // 检查是否有错误信息（如内容与记账无关）
       if ('error' in result) {
-        // 检查是否是Token限额错误
-        if (result.error.includes('Token使用受限')) {
-          return res.status(429).json({
-            error: result.error,
-            type: 'TOKEN_LIMIT_EXCEEDED',
-          });
-        }
         // 检查是否是网络连接错误
         if (result.error.includes('ECONNRESET') || result.error.includes('socket hang up')) {
           return res.status(503).json({
@@ -154,6 +148,63 @@ export class AIController {
         }
         // 其他错误（如内容与记账无关）
         return res.status(400).json({ info: result.error });
+      }
+
+      // 检查是否来自图片识别且有多条记录
+      const isMultipleRecords = Array.isArray(result);
+      const recordsToCheck = isMultipleRecords ? result : [result];
+
+      if (isFromImageRecognition && recordsToCheck.length > 1) {
+        // 来自图片识别且有多条记录，进行重复检测并返回记录列表供用户选择
+        console.log(`📝 [智能记账] 检测到来自图片识别的${recordsToCheck.length}条记录，进行重复检测`);
+
+        try {
+          // 进行重复检测
+          const duplicateResults = await TransactionDuplicateDetectionService.detectBatchDuplicates(
+            userId,
+            accountId,
+            recordsToCheck
+          );
+
+          // 将重复检测结果附加到记录中
+          const recordsWithDuplicateInfo = recordsToCheck.map((record, index) => {
+            const duplicateInfo = duplicateResults.find(r => r.recordIndex === index);
+            return {
+              ...record,
+              duplicateDetection: duplicateInfo || {
+                isDuplicate: false,
+                confidence: 0,
+                matchedTransactions: [],
+              },
+            };
+          });
+
+          // 返回记录列表供用户选择，不扣除记账点
+          return res.json({
+            success: true,
+            requiresUserSelection: true,
+            records: recordsWithDuplicateInfo,
+            message: '检测到多条记账记录，请选择需要导入的记录',
+          });
+        } catch (duplicateError) {
+          console.error('重复检测失败:', duplicateError);
+          // 重复检测失败时，仍然返回记录列表，但不包含重复信息
+          const recordsWithoutDuplicateInfo = recordsToCheck.map(record => ({
+            ...record,
+            duplicateDetection: {
+              isDuplicate: false,
+              confidence: 0,
+              matchedTransactions: [],
+            },
+          }));
+
+          return res.json({
+            success: true,
+            requiresUserSelection: true,
+            records: recordsWithoutDuplicateInfo,
+            message: '检测到多条记账记录，请选择需要导入的记录',
+          });
+        }
       }
 
       // 智能记账成功，扣除记账点（仅在记账点系统启用时）
@@ -170,6 +221,161 @@ export class AIController {
     } catch (error) {
       console.error('智能记账错误:', error);
       res.status(500).json({ error: '处理请求时出错' });
+    }
+  }
+
+  /**
+   * 创建用户选择的记账记录
+   * @param req 请求
+   * @param res 响应
+   */
+  public async createSelectedTransactions(req: Request, res: Response) {
+    try {
+      const { selectedRecords, imageFileInfo } = req.body;
+      const { accountId } = req.params;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ error: '未授权' });
+      }
+
+      if (!accountId) {
+        return res.status(400).json({ error: '账本ID不能为空' });
+      }
+
+      if (!selectedRecords || !Array.isArray(selectedRecords) || selectedRecords.length === 0) {
+        return res.status(400).json({ error: '请选择至少一条记录' });
+      }
+
+      // 检查账本权限
+      const accountBook = await this.prisma.accountBook.findFirst({
+        where: {
+          id: accountId,
+          OR: [
+            { userId },
+            {
+              type: 'FAMILY',
+              familyId: { not: null },
+              family: {
+                members: { some: { userId } },
+              },
+            },
+          ],
+        },
+      });
+
+      if (!accountBook) {
+        return res.status(404).json({ error: '账本不存在或无权访问' });
+      }
+
+      // 扣除记账点（仅在记账点系统启用时）
+      if (this.membershipService.isAccountingPointsEnabled()) {
+        try {
+          await AccountingPointsService.deductPoints(userId, 'text', AccountingPointsService.POINT_COSTS.text);
+        } catch (pointsError) {
+          console.error('扣除记账点失败:', pointsError);
+          return res.status(402).json({
+            error: '记账点余额不足，请进行签到获取记账点或开通捐赠会员',
+            type: 'INSUFFICIENT_POINTS',
+          });
+        }
+      }
+
+      // 创建选中的记账记录
+      const createdTransactions = [];
+      const errors = [];
+
+      for (let i = 0; i < selectedRecords.length; i++) {
+        const record = selectedRecords[i];
+        try {
+          const transaction = await this.transactionService.createTransaction(userId, {
+            amount: record.amount,
+            type: record.type,
+            description: record.note || record.description,
+            date: new Date(record.date),
+            categoryId: record.categoryId,
+            accountBookId: accountId,
+            budgetId: record.budgetId || null,
+          });
+
+          // 如果有图片文件信息，关联图片附件
+          if (imageFileInfo && imageFileInfo.id) {
+            try {
+              await this.linkImageToTransaction(transaction.id, imageFileInfo.id, userId);
+              console.log(`✅ [选择记账] 第 ${i + 1} 条记账记录图片附件关联成功: ${transaction.id}`);
+            } catch (attachmentError) {
+              console.error(`⚠️ [选择记账] 第 ${i + 1} 条记账记录图片附件关联失败:`, attachmentError);
+              // 附件关联失败不影响记账记录创建
+            }
+          }
+
+          createdTransactions.push(transaction);
+          console.log(`✅ [选择记账] 第 ${i + 1} 条记账记录创建成功: ${transaction.id}`);
+        } catch (error) {
+          console.error(`❌ [选择记账] 第 ${i + 1} 条记账记录创建失败:`, error);
+          errors.push({
+            index: i,
+            record: record,
+            error: error instanceof Error ? error.message : '创建失败',
+          });
+        }
+      }
+
+      if (createdTransactions.length > 0) {
+        res.status(201).json({
+          success: true,
+          transactions: createdTransactions,
+          count: createdTransactions.length,
+          errors: errors.length > 0 ? errors : undefined,
+          message: `成功创建 ${createdTransactions.length} 条记账记录${errors.length > 0 ? `，${errors.length} 条失败` : ''}`,
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: '所有记账记录创建失败',
+          errors,
+        });
+      }
+    } catch (error) {
+      console.error('创建选择记账记录错误:', error);
+      res.status(500).json({ error: '处理请求时出错' });
+    }
+  }
+
+  /**
+   * 关联图片文件到记账记录
+   * @param transactionId 记账记录ID
+   * @param fileId 文件ID
+   * @param userId 用户ID
+   */
+  private async linkImageToTransaction(transactionId: string, fileId: string, userId: string): Promise<void> {
+    try {
+      // 验证文件是否存在且属于当前用户
+      const file = await this.prisma.fileStorage.findFirst({
+        where: {
+          id: fileId,
+          uploadedBy: userId,
+        },
+      });
+
+      if (!file) {
+        throw new Error('文件不存在或无权限访问');
+      }
+
+      // 创建附件关联
+      await this.prisma.transactionAttachment.create({
+        data: {
+          transactionId,
+          fileId,
+          attachmentType: 'RECEIPT', // 图片记账的附件类型为收据
+          description: '智能记账上传图片',
+        },
+      });
+
+      console.log(`图片附件关联成功: 记账ID=${transactionId}, 文件ID=${fileId}`);
+    } catch (error) {
+      console.error('关联图片附件失败:', error);
+      throw error;
     }
   }
 
@@ -979,15 +1185,8 @@ export class AIController {
         return res.status(500).json({ error: '智能记账处理失败' });
       }
 
-      // 检查是否有错误信息（如内容与记账无关或Token限额）
+      // 检查是否有错误信息（如内容与记账无关）
       if ('error' in smartResult) {
-        // 检查是否是Token限额错误
-        if (smartResult.error.includes('Token使用受限')) {
-          return res.status(429).json({
-            error: smartResult.error,
-            type: 'TOKEN_LIMIT_EXCEEDED',
-          });
-        }
         // 其他错误（如内容与记账无关）
         return res.status(400).json({ info: smartResult.error });
       }
@@ -1125,7 +1324,7 @@ export class AIController {
    */
   public async handleSmartAccountingDirect(req: Request, res: Response) {
     try {
-      const { description, attachmentFileId } = req.body; // 添加附件文件ID参数
+      const { description, attachmentFileId, source: requestSource, isFromImageRecognition } = req.body;
       const { accountId } = req.params;
       const userId = req.user?.id;
 
@@ -1204,15 +1403,8 @@ export class AIController {
         return res.status(500).json({ error: '智能记账处理失败' });
       }
 
-      // 检查是否有错误信息（如内容与记账无关或Token限额）
+      // 检查是否有错误信息（如内容与记账无关）
       if ('error' in result) {
-        // 检查是否是Token限额错误
-        if (result.error.includes('Token使用受限')) {
-          return res.status(429).json({
-            error: result.error,
-            type: 'TOKEN_LIMIT_EXCEEDED',
-          });
-        }
         // 其他错误（如内容与记账无关）
         return res.status(400).json({ info: result.error });
       }
@@ -1224,6 +1416,60 @@ export class AIController {
         const recordsToCreate = isMultipleRecords ? result : [result as SmartAccountingResult];
         
         console.log(`📝 [记账处理] 检测到 ${recordsToCreate.length} 条记录需要创建`);
+
+        // 检查是否来自图片识别且有多条记录
+        if (isFromImageRecognition && recordsToCreate.length > 1) {
+          // 来自图片识别且有多条记录，进行重复检测并返回记录列表供用户选择
+          console.log(`📝 [直接记账] 检测到来自图片识别的${recordsToCreate.length}条记录，进行重复检测`);
+
+          try {
+            // 进行重复检测
+            const duplicateResults = await TransactionDuplicateDetectionService.detectBatchDuplicates(
+              userId,
+              accountId,
+              recordsToCreate
+            );
+
+            // 将重复检测结果附加到记录中
+            const recordsWithDuplicateInfo = recordsToCreate.map((record, index) => {
+              const duplicateInfo = duplicateResults.find(r => r.recordIndex === index);
+              return {
+                ...record,
+                duplicateDetection: duplicateInfo || {
+                  isDuplicate: false,
+                  confidence: 0,
+                  matchedTransactions: [],
+                },
+              };
+            });
+
+            // 返回记录列表供用户选择，不扣除记账点
+            return res.json({
+              success: true,
+              requiresUserSelection: true,
+              records: recordsWithDuplicateInfo,
+              message: '检测到多条记账记录，请选择需要导入的记录',
+            });
+          } catch (duplicateError) {
+            console.error('重复检测失败:', duplicateError);
+            // 重复检测失败时，仍然返回记录列表，但不包含重复信息
+            const recordsWithoutDuplicateInfo = recordsToCreate.map(record => ({
+              ...record,
+              duplicateDetection: {
+                isDuplicate: false,
+                confidence: 0,
+                matchedTransactions: [],
+              },
+            }));
+
+            return res.json({
+              success: true,
+              requiresUserSelection: true,
+              records: recordsWithoutDuplicateInfo,
+              message: '检测到多条记账记录，请选择需要导入的记录',
+            });
+          }
+        }
 
         const createdTransactions = [];
         const now = new Date();

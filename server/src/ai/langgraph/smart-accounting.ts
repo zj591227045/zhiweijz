@@ -378,7 +378,7 @@ export class SmartAccounting {
         // 处理每个交易记录
         for (let i = 0; i < transactions.length; i++) {
           const analyzedTransaction = transactions[i];
-          
+
           // 处理日期
           if (analyzedTransaction.date) {
             analyzedTransaction.date = new Date(analyzedTransaction.date);
@@ -386,10 +386,32 @@ export class SmartAccounting {
             analyzedTransaction.date = new Date();
           }
 
+          // 处理分类映射：如果有category字段但没有categoryId，则根据category名称查找categoryId
+          if (analyzedTransaction.category && !analyzedTransaction.categoryId) {
+            const matchedCategory = categories.find((c: any) =>
+              c.name === analyzedTransaction.category ||
+              c.name.includes(analyzedTransaction.category) ||
+              analyzedTransaction.category.includes(c.name)
+            );
+            if (matchedCategory) {
+              analyzedTransaction.categoryId = matchedCategory.id;
+              analyzedTransaction.categoryName = matchedCategory.name;
+            } else {
+              // 如果找不到匹配的分类，使用默认分类
+              const defaultCategory = categories.find((c: any) => c.name === '其他') || categories[0];
+              analyzedTransaction.categoryId = defaultCategory.id;
+              analyzedTransaction.categoryName = defaultCategory.name;
+            }
+          }
+
           // 验证分类ID是否有效
           const validCategory = categories.find((c: any) => c.id === analyzedTransaction.categoryId);
           if (!validCategory) {
-            throw new Error(`第 ${i + 1} 条记录的分类ID无效: ${analyzedTransaction.categoryId}`);
+            // 如果分类ID无效，使用默认分类
+            const defaultCategory = categories.find((c: any) => c.name === '其他') || categories[0];
+            analyzedTransaction.categoryId = defaultCategory.id;
+            analyzedTransaction.categoryName = defaultCategory.name;
+            console.warn(`第 ${i + 1} 条记录的分类ID无效，使用默认分类: ${defaultCategory.name}`);
           }
 
           // 为每条记录进行简单的预算匹配
@@ -430,15 +452,7 @@ export class SmartAccounting {
     } catch (error) {
       console.error('智能分析错误:', error);
 
-      // 检查是否是Token限额错误
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('Token使用受限')) {
-        console.log('Token限额错误，返回错误状态');
-        return {
-          ...state,
-          error: errorMessage,
-        };
-      }
+      // Token限额检查已移除，不再特殊处理Token限额错误
 
       // 对于其他错误，回退到默认分类
       const defaultCategory =

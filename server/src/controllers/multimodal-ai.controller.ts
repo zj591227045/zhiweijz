@@ -240,7 +240,12 @@ export class MultimodalAIController {
       if (result.success) {
         res.json({
           success: true,
-          data: result.data,
+          data: {
+            ...result.data,
+            // 添加图片识别来源标识
+            source: 'image_recognition',
+            isFromImageRecognition: true,
+          },
           usage: result.usage,
         });
       } else {
@@ -517,6 +522,9 @@ export class MultimodalAIController {
           text: visionResult.data?.text || '',
           confidence: visionResult.data?.confidence || 0,
           type: 'vision',
+          // 添加图片识别来源标识
+          source: 'image_recognition',
+          isFromImageRecognition: true,
           // 如果成功保存到永久存储，则返回文件信息
           fileInfo: permanentFileInfo,
         },

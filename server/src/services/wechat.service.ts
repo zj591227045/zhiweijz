@@ -1996,7 +1996,8 @@ export class WechatService {
             binding.userId,
             binding.defaultAccountBookId,
             recognizedText,
-            true // 创建记账记录
+            true, // 创建记账记录
+            true  // 来自图片识别
           );
 
           console.log(`✅ 智能记账API调用完成:`, accountingResult);

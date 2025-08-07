@@ -1,0 +1,166 @@
+/* 记账记录选择模态框样式 */
+
+.transaction-selection-modal {
+  /* 确保模态框使用主题变量 */
+  background-color: var(--card-background, #ffffff) !important;
+  color: var(--text-primary, #1f2937) !important;
+  border: 1px solid var(--border-color, #e5e7eb) !important;
+}
+
+.transaction-selection-content {
+  /* 确保滚动区域正常工作 */
+  overflow-y: auto !important;
+  touch-action: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+}
+
+/* 全选控制区域 */
+.transaction-selection-modal .select-all-control {
+  background-color: var(--muted, #f3f4f6) !important;
+  border: 1px solid var(--border-color, #e5e7eb) !important;
+  color: var(--text-primary, #1f2937) !important;
+}
+
+.transaction-selection-modal .select-all-control .text-secondary {
+  color: var(--text-secondary, #6b7280) !important;
+}
+
+/* 记录卡片样式 */
+.transaction-selection-modal .record-card {
+  background-color: var(--card-background, #ffffff) !important;
+  border: 1px solid var(--border-color, #e5e7eb) !important;
+  transition: all 0.2s ease !important;
+}
+
+.transaction-selection-modal .record-card.selected {
+  border-color: var(--primary-color, #3b82f6) !important;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb, 59, 130, 246), 0.2) !important;
+}
+
+.transaction-selection-modal .record-card.duplicate {
+  background-color: var(--warning-background, rgba(245, 158, 11, 0.1)) !important;
+  border-color: var(--warning-color, #f59e0b) !important;
+}
+
+/* 重复检测警告 */
+.transaction-selection-modal .duplicate-warning {
+  background-color: var(--warning-background, rgba(245, 158, 11, 0.1)) !important;
+  border: 1px solid var(--warning-color, #f59e0b) !important;
+  color: var(--warning-foreground, #92400e) !important;
+}
+
+.transaction-selection-modal .duplicate-warning .warning-icon {
+  color: var(--warning-color, #f59e0b) !important;
+}
+
+/* 底部操作按钮 */
+.transaction-selection-modal .action-buttons {
+  border-top: 1px solid var(--border-color, #e5e7eb) !important;
+}
+
+.transaction-selection-modal .btn-cancel {
+  background-color: transparent !important;
+  border: 1px solid var(--border-color, #e5e7eb) !important;
+  color: var(--text-secondary, #6b7280) !important;
+}
+
+.transaction-selection-modal .btn-cancel:hover {
+  background-color: var(--muted, #f3f4f6) !important;
+}
+
+.transaction-selection-modal .btn-primary {
+  background-color: var(--primary-color, #3b82f6) !important;
+  border: 1px solid var(--primary-color, #3b82f6) !important;
+  color: white !important;
+}
+
+.transaction-selection-modal .btn-primary:hover {
+  background-color: var(--primary-hover, #2563eb) !important;
+  border-color: var(--primary-hover, #2563eb) !important;
+}
+
+.transaction-selection-modal .btn-primary:disabled {
+  background-color: var(--muted, #f3f4f6) !important;
+  border-color: var(--border-color, #e5e7eb) !important;
+  color: var(--text-secondary, #6b7280) !important;
+  cursor: not-allowed !important;
+}
+
+/* 标题和图标 */
+.transaction-selection-modal .dialog-title {
+  color: var(--text-primary, #1f2937) !important;
+}
+
+.transaction-selection-modal .primary-icon {
+  color: var(--primary-color, #3b82f6) !important;
+}
+
+.transaction-selection-modal .warning-text {
+  color: var(--warning-color, #f59e0b) !important;
+}
+
+/* 夜间模式适配 */
+.dark .transaction-selection-modal {
+  background-color: var(--card-background, #1f2937) !important;
+  color: var(--text-primary, #f9fafb) !important;
+  border-color: var(--border-color, #374151) !important;
+}
+
+.dark .transaction-selection-modal .record-card {
+  background-color: var(--card-background, #1f2937) !important;
+  border-color: var(--border-color, #374151) !important;
+}
+
+.dark .transaction-selection-modal .select-all-control {
+  background-color: var(--muted, #374151) !important;
+  border-color: var(--border-color, #4b5563) !important;
+}
+
+/* 确保滚动在移动设备上正常工作 */
+@media (max-width: 768px) {
+  .transaction-selection-content {
+    -webkit-overflow-scrolling: touch !important;
+    overflow-y: auto !important;
+    touch-action: pan-y !important;
+    /* 阻止手势监听器干扰 */
+    pointer-events: auto !important;
+  }
+
+  .transaction-selection-modal {
+    max-height: 90vh !important;
+  }
+}
+
+/* iOS特殊处理 */
+@supports (-webkit-touch-callout: none) {
+  .transaction-selection-content {
+    -webkit-overflow-scrolling: touch !important;
+    overflow-y: auto !important;
+    touch-action: pan-y !important;
+    /* 阻止手势监听器干扰 */
+    pointer-events: auto !important;
+  }
+}
+
+/* 强制滚动样式 - 确保在所有情况下都能滚动 */
+.transaction-selection-content {
+  /* 强制启用滚动 */
+  overflow-y: scroll !important;
+  /* 确保触摸事件正常工作 */
+  touch-action: pan-y !important;
+  /* 阻止手势监听器干扰 */
+  pointer-events: auto !important;
+  /* iOS滚动优化 */
+  -webkit-overflow-scrolling: touch !important;
+  /* 防止过度滚动 */
+  overscroll-behavior: contain !important;
+}
+
+/* 确保Dialog组件不阻止滚动 */
+.transaction-selection-modal .dialog-content {
+  /* 允许内部滚动 */
+  overflow: visible !important;
+  /* 确保触摸事件传递 */
+  pointer-events: auto !important;
+}

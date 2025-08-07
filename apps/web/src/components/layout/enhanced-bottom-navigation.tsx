@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { useGlobalAIStore } from '@/store/global-ai-store';
 import EnhancedSmartAccountingDialog from '../transactions/enhanced-smart-accounting-dialog';
+import { GlobalTransactionSelectionModal } from '../transactions/global-transaction-selection-modal';
 import { toast } from 'sonner';
 import { hapticPresets } from '@/lib/haptic-feedback';
 import '@/styles/smart-accounting-dialog.css';
@@ -243,6 +244,9 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
         onClose={handleDialogClose}
         accountBookId={currentAccountBook?.id}
       />
+
+      {/* 全局记录选择模态框 */}
+      <GlobalTransactionSelectionModal />
     </>
   );
 

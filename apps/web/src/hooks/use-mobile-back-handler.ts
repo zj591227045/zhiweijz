@@ -170,12 +170,12 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
     const capacitor = (window as any).Capacitor;
     if (!capacitor?.Plugins?.App) return;
 
-    let backButtonListener: { remove: () => void } | null = null;
+    let backButtonListener: any = null;
     let isComponentMounted = true;
 
-    const setupListener = () => {
+    const setupListener = async () => {
       try {
-        backButtonListener = capacitor.Plugins.App.addListener('backButton', (data: any) => {
+        backButtonListener = await capacitor.Plugins.App.addListener('backButton', (data: any) => {
           if (!isComponentMounted) return; // 检查组件是否还挂载
 
           console.log('📱 [BackHandler] 硬件后退按钮触发:', data);
@@ -207,7 +207,15 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
 
       if (backButtonListener) {
         try {
-          backButtonListener.remove();
+          // 检查监听器对象是否有remove方法
+          if (typeof backButtonListener.remove === 'function') {
+            backButtonListener.remove();
+          } else if (typeof backButtonListener === 'function') {
+            // 如果监听器本身就是一个移除函数
+            backButtonListener();
+          } else {
+            console.warn('📱 [BackHandler] 监听器对象没有remove方法:', backButtonListener);
+          }
         } catch (error) {
           console.error('📱 [BackHandler] 移除硬件后退监听器失败:', error);
         }

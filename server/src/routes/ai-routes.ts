@@ -62,6 +62,17 @@ router.post(
   aiController.handleSmartAccountingDirectWithBody.bind(aiController),
 );
 
+/**
+ * @route POST /ai/account/:accountId/smart-accounting/create-selected
+ * @desc 创建用户选择的记账记录
+ * @access Private
+ */
+router.post(
+  '/account/:accountId/smart-accounting/create-selected',
+  authenticate,
+  aiController.createSelectedTransactions.bind(aiController),
+);
+
 
 
 /**

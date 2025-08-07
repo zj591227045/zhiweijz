@@ -40,6 +40,7 @@ import {
   convertAudioToWav,
 } from '@/lib/audio-conversion';
 import { platformFilePicker } from '@/lib/platform-file-picker';
+import { useTransactionSelectionStore } from '@/store/transaction-selection-store';
 import {
   MicrophoneIcon,
   EyeIcon,
@@ -105,6 +106,7 @@ export default function EnhancedSmartAccountingDialog({
   const { refreshDashboardData } = useDashboardStore();
   const { balance, fetchBalance } = useAccountingPointsStore();
   const { config, loading: configLoading } = useSystemConfig();
+  const { showSelectionModal: showGlobalSelectionModal } = useTransactionSelectionStore();
 
   const [description, setDescription] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -146,6 +148,8 @@ export default function EnhancedSmartAccountingDialog({
   const [isAnalyzing, setIsAnalyzing] = useState(false); // 新增：独立的分析状态
   const isAnalyzingRef = useRef(false); // 新增：用于立即检查的ref
   const isRecordingRef = useRef(false); // 添加录音状态的ref
+
+  // 移除本地记录选择状态，使用全局状态管理
 
   // 移动端后退处理
   const { handleBack } = useModalBackHandler('smart-accounting-dialog', onClose);
@@ -1512,7 +1516,13 @@ export default function EnhancedSmartAccountingDialog({
 
       if (response && response.data && response.data.text) {
         const recognizedText = response.data.text;
-        console.log('🖼️ [ImageRecognition] 图片识别成功，开始直接记账');
+        const imageFileInfo = response.data.fileInfo; // 获取图片文件信息
+        console.log('🖼️ [ImageRecognition] 图片识别成功，开始直接记账', {
+          hasFileInfo: !!imageFileInfo
+        });
+
+        // 设置识别的文本到描述框
+        setDescription(recognizedText);
 
         // 生成唯一进度ID
         const progressId = `image-direct-add-${Date.now()}`;
@@ -1520,32 +1530,69 @@ export default function EnhancedSmartAccountingDialog({
         // 获取智能记账进度管理器实例
         const progressManager = SmartAccountingProgressManager.getInstance();
 
-        // 显示进度通知并立即关闭模态框
-        progressManager.showProgress(progressId, '正在启动智能记账...');
-        onClose(); // 立即关闭模态框
+        // 立即关闭智能记账模态框，显示进度通知
+        onClose();
+        progressManager.showProgress(progressId, '正在分析图片记账信息...');
 
-        // 设置识别的文本到描述框（为了保持一致性）
-        setDescription(recognizedText);
-
-        // 调用直接添加记账API（与语音记账相同的逻辑）
+        // 调用直接添加记账API（带图片识别标识）
         try {
-          const requestBody: any = { description: recognizedText };
-          
+          const requestBody: any = {
+            description: recognizedText,
+            source: 'image_recognition',
+            isFromImageRecognition: true
+          };
+
           // 如果有文件信息，添加附件文件ID
           if (response.data?.fileInfo?.id) {
             requestBody.attachmentFileId = response.data.fileInfo.id;
             console.log('🖼️ [ImageRecognition] 添加附件文件ID:', response.data.fileInfo.id);
           }
-          
+
           const directAddResponse = await apiClient.post(
             `/ai/account/${accountBookId}/smart-accounting/direct`,
             requestBody,
             { timeout: 60000 },
           );
 
-          if (directAddResponse && (directAddResponse.id || (directAddResponse.transactions && directAddResponse.count > 0))) {
-            const successMessage = directAddResponse.id 
-              ? '记账成功' 
+          if (directAddResponse && directAddResponse.requiresUserSelection && directAddResponse.records) {
+            // 需要用户选择记录
+            console.log('📝 [图片记账] 需要用户选择记录:', directAddResponse.records.length);
+            progressManager.updateProgress(progressId, '检测到多条记账记录，请选择需要导入的记录');
+
+            // 延迟一下再显示选择模态框，确保智能记账模态框已经完全关闭
+            setTimeout(() => {
+              progressManager.hideProgress(progressId);
+              if (accountBookId) {
+                showGlobalSelectionModal(directAddResponse.records, accountBookId, async (selectedRecords, imageFileInfo) => {
+                  // 自定义的记录创建逻辑
+                  const response = await apiClient.post(
+                    `/ai/account/${accountBookId}/smart-accounting/create-selected`,
+                    {
+                      selectedRecords,
+                      imageFileInfo // 传递图片文件信息
+                    },
+                    { timeout: 60000 }
+                  );
+
+                  if (response && response.success) {
+                    toast.success(`成功创建 ${response.count} 条记账记录`);
+
+                    // 刷新仪表盘数据和记账点余额
+                    try {
+                      await refreshDashboardData(accountBookId);
+                      await fetchBalance();
+                    } catch (refreshError) {
+                      console.error('刷新数据失败:', refreshError);
+                    }
+                  } else {
+                    throw new Error('创建记账记录失败');
+                  }
+                }, imageFileInfo); // 传递图片文件信息
+              }
+            }, 500);
+          } else if (directAddResponse && (directAddResponse.id || (directAddResponse.transactions && directAddResponse.count > 0))) {
+            const successMessage = directAddResponse.id
+              ? '记账成功'
               : `记账成功，已创建${directAddResponse.count}条记录`;
             progressManager.showProgress(progressId, successMessage, 'success');
 
@@ -1560,8 +1607,9 @@ export default function EnhancedSmartAccountingDialog({
               }
             }
 
-            // 清空描述
+            // 清空描述并关闭模态框
             setDescription('');
+            onClose();
           } else {
             progressManager.showProgress(progressId, '记账失败，请手动填写', 'error');
           }
@@ -1595,20 +1643,141 @@ export default function EnhancedSmartAccountingDialog({
     }
   };
 
+  // 移除本地的handleSelectedTransactions方法，使用全局状态管理
+
   // 使用识别的文本进行智能记账
-  const handleSmartAccountingWithText = async (text: string) => {
+  const handleSmartAccountingWithText = async (text: string, isFromImageRecognition = false) => {
     try {
+      // 如果是图片识别，使用toast通知并关闭模态框
+      if (isFromImageRecognition) {
+        // 生成唯一进度ID
+        const progressId = `image-smart-accounting-${Date.now()}`;
+        const progressManager = SmartAccountingProgressManager.getInstance();
+
+        // 立即关闭模态框并显示进度通知
+        onClose();
+        progressManager.showProgress(progressId, '正在分析图片记账信息...');
+
+        const response = await apiClient.post(
+          `/ai/account/${accountBookId}/smart-accounting`,
+          {
+            description: text,
+            source: 'image_recognition',
+            isFromImageRecognition: true
+          },
+          { timeout: 60000 },
+        );
+
+        if (response) {
+          // 检查是否需要用户选择记录
+          if (response.requiresUserSelection && response.records) {
+            console.log('📝 [智能记账] 需要用户选择记录:', response.records.length);
+            progressManager.updateProgress(progressId, '检测到多条记账记录，请选择需要导入的记录');
+
+            // 延迟一下再显示选择模态框，确保智能记账模态框已经完全关闭
+            setTimeout(() => {
+              progressManager.hideProgress(progressId);
+              if (accountBookId) {
+                showGlobalSelectionModal(response.records, accountBookId, async (selectedRecords, imageFileInfo) => {
+                  // 自定义的记录创建逻辑
+                  const response = await apiClient.post(
+                    `/ai/account/${accountBookId}/smart-accounting/create-selected`,
+                    {
+                      selectedRecords,
+                      imageFileInfo // 传递图片文件信息
+                    },
+                    { timeout: 60000 }
+                  );
+
+                  if (response && response.success) {
+                    toast.success(`成功创建 ${response.count} 条记账记录`);
+
+                    // 刷新仪表盘数据和记账点余额
+                    try {
+                      await refreshDashboardData(accountBookId);
+                      await fetchBalance();
+                    } catch (refreshError) {
+                      console.error('刷新数据失败:', refreshError);
+                    }
+                  } else {
+                    throw new Error('创建记账记录失败');
+                  }
+                }, undefined); // 对于文本输入，没有图片文件信息
+              }
+            }, 500);
+            return;
+          }
+
+          // 正常的单条记录处理
+          sessionStorage.setItem('smartAccountingResult', JSON.stringify(response));
+          progressManager.showProgress(progressId, '图片智能识别成功', 'success');
+
+          // 刷新记账点余额
+          try {
+            await fetchBalance();
+          } catch (balanceError) {
+            console.error('刷新记账点余额失败:', balanceError);
+          }
+
+          router.push('/transactions/new');
+        } else {
+          progressManager.showProgress(progressId, '图片智能识别失败，请重试', 'error');
+        }
+        return;
+      }
+
+      // 非图片识别的常规处理逻辑（保持原有模态框处理）
       setIsProcessing(true);
       setProcessingStep('正在分析记账信息...');
 
       const response = await apiClient.post(
         `/ai/account/${accountBookId}/smart-accounting`,
-        { description: text },
+        {
+          description: text,
+          source: 'text_input'
+        },
         { timeout: 60000 },
       );
 
       if (response) {
-        // 将结果存储到sessionStorage，供添加记账页面使用
+        // 检查是否需要用户选择记录
+        if (response.requiresUserSelection && response.records) {
+          console.log('📝 [智能记账] 需要用户选择记录:', response.records.length);
+
+          // 对于文本输入的记录选择，先关闭当前模态框
+          onClose();
+
+          // 延迟显示全局记录选择模态框
+          setTimeout(() => {
+            if (accountBookId) {
+              showGlobalSelectionModal(response.records, accountBookId, async (selectedRecords) => {
+                // 自定义的记录创建逻辑
+                const response = await apiClient.post(
+                  `/ai/account/${accountBookId}/smart-accounting/create-selected`,
+                  { selectedRecords },
+                  { timeout: 60000 }
+                );
+
+                if (response && response.success) {
+                  toast.success(`成功创建 ${response.count} 条记账记录`);
+
+                  // 刷新仪表盘数据和记账点余额
+                  try {
+                    await refreshDashboardData(accountBookId);
+                    await fetchBalance();
+                  } catch (refreshError) {
+                    console.error('刷新数据失败:', refreshError);
+                  }
+                } else {
+                  throw new Error('创建记账记录失败');
+                }
+              });
+            }
+          }, 300);
+          return;
+        }
+
+        // 正常的单条记录处理
         sessionStorage.setItem('smartAccountingResult', JSON.stringify(response));
         showSuccess('智能识别成功');
 
@@ -1627,14 +1796,29 @@ export default function EnhancedSmartAccountingDialog({
     } catch (error: any) {
       console.error('智能记账失败:', error);
 
-      if (error.response?.data?.info && error.response.data.info.includes('记账无关')) {
-        showInfo('您的描述似乎与记账无关，请尝试描述具体的消费或收入情况');
+      if (isFromImageRecognition) {
+        // 图片识别的错误处理
+        const progressId = `image-smart-accounting-${Date.now()}`;
+        const progressManager = SmartAccountingProgressManager.getInstance();
+
+        if (error.response?.data?.info && error.response.data.info.includes('记账无关')) {
+          progressManager.showProgress(progressId, '图片内容与记账无关，请重试', 'error');
+        } else {
+          progressManager.showProgress(progressId, '图片智能识别失败，请重试', 'error');
+        }
       } else {
-        showError(error);
+        // 文本输入的错误处理
+        if (error.response?.data?.info && error.response.data.info.includes('记账无关')) {
+          showInfo('您的描述似乎与记账无关，请尝试描述具体的消费或收入情况');
+        } else {
+          showError(error);
+        }
       }
     } finally {
-      setIsProcessing(false);
-      setProcessingStep('');
+      if (!isFromImageRecognition) {
+        setIsProcessing(false);
+        setProcessingStep('');
+      }
     }
   };
 
@@ -2398,6 +2582,8 @@ export default function EnhancedSmartAccountingDialog({
           </>
         )}
       </div>
+
+      {/* 记录选择模态框已移至全局状态管理 */}
     </div>
   );
 }

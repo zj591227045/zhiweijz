@@ -19,6 +19,7 @@ interface DialogHeaderProps {
 interface DialogTitleProps {
   children: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 interface DialogDescriptionProps {
@@ -53,9 +54,16 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-2 py-4">
-      <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => onOpenChange?.(false)} />
-      <div className="relative z-50 w-full max-w-lg">{children}</div>
+    <div className="fixed inset-0 z-[250] flex items-center justify-center px-2 py-4">
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70"
+        onClick={() => onOpenChange?.(false)}
+        style={{
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)'
+        }}
+      />
+      <div className="relative z-[260] w-full max-w-lg">{children}</div>
     </div>
   );
 }
@@ -63,7 +71,25 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
 export function DialogContent({ className = '', children }: DialogContentProps) {
   return (
     <div
-      className={`bg-white rounded-lg shadow-lg p-6 w-full max-h-[85vh] overflow-y-auto ${className}`}
+      className={`rounded-lg shadow-lg p-6 w-full max-h-[85vh] overflow-y-auto ${className}`}
+      style={{
+        // 使用CSS变量支持主题
+        backgroundColor: 'var(--card-background, #ffffff)',
+        color: 'var(--text-primary, #1f2937)',
+        borderColor: 'var(--border-color, #e5e7eb)',
+        // 确保滚动区域可以正常工作
+        touchAction: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        overscrollBehavior: 'contain'
+      }}
+      onTouchStart={(e) => {
+        // 阻止手势监听器处理模态框内的触摸事件
+        e.stopPropagation();
+      }}
+      onTouchMove={(e) => {
+        // 阻止手势监听器处理模态框内的滑动事件
+        e.stopPropagation();
+      }}
     >
       {children}
     </div>
@@ -74,8 +100,8 @@ export function DialogHeader({ children, className = '' }: DialogHeaderProps) {
   return <div className={`mb-4 ${className}`}>{children}</div>;
 }
 
-export function DialogTitle({ children, className = '' }: DialogTitleProps) {
-  return <h2 className={`text-lg font-semibold mb-2 ${className}`}>{children}</h2>;
+export function DialogTitle({ children, className = '', style }: DialogTitleProps) {
+  return <h2 className={`text-lg font-semibold mb-2 ${className}`} style={style}>{children}</h2>;
 }
 
 export function DialogDescription({ children, className = '' }: DialogDescriptionProps) {
