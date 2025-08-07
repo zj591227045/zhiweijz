@@ -32,9 +32,17 @@ interface DailyActiveStats {
   totalPointsGiven: number;
 }
 
+interface UniqueActiveStats {
+  uniqueActiveUsers: number;
+  totalPointsGiven: number;
+  periodDays: number;
+}
+
 interface DailyActiveStatsCardProps {
   data: DailyActiveStats[] | null;
+  uniqueStats: UniqueActiveStats | null;
   isLoading: boolean;
+  isLoadingUnique: boolean;
   onPeriodChange?: (days: number) => void;
   selectedDays?: number;
 }
@@ -47,7 +55,9 @@ const PERIOD_OPTIONS = [
 
 export function DailyActiveStatsCard({
   data,
+  uniqueStats,
   isLoading,
+  isLoadingUnique,
   onPeriodChange,
   selectedDays = 7,
 }: DailyActiveStatsCardProps) {
@@ -175,9 +185,10 @@ export function DailyActiveStatsCard({
       return null;
     }
 
-    const totalActiveUsers = data.reduce((sum, item) => sum + item.activeUsers, 0);
-    const totalPointsGiven = data.reduce((sum, item) => sum + item.totalPointsGiven, 0);
-    const avgActiveUsers = Math.round(totalActiveUsers / data.length);
+    // 使用去重的统计数据，如果没有则回退到简单相加（但会显示警告）
+    const uniqueActiveUsers = uniqueStats?.uniqueActiveUsers ?? 0;
+    const totalPointsGiven = uniqueStats?.totalPointsGiven ?? data.reduce((sum, item) => sum + item.totalPointsGiven, 0);
+    const avgActiveUsers = Math.round(data.reduce((sum, item) => sum + item.activeUsers, 0) / data.length);
     const maxActiveUsers = Math.max(...data.map((item) => item.activeUsers));
 
     // 计算趋势（最后3天vs前面的平均）
@@ -201,7 +212,7 @@ export function DailyActiveStatsCard({
     }
 
     return {
-      totalActiveUsers,
+      uniqueActiveUsers,
       totalPointsGiven,
       avgActiveUsers,
       maxActiveUsers,
@@ -286,8 +297,19 @@ export function DailyActiveStatsCard({
               </div>
 
               <div className="bg-purple-50 rounded-lg p-4">
-                <p className="text-sm font-medium text-purple-600">总活跃用户</p>
-                <p className="text-2xl font-bold text-purple-900">{stats.totalActiveUsers}</p>
+                <p className="text-sm font-medium text-purple-600">去重活跃用户</p>
+                <p className="text-2xl font-bold text-purple-900">
+                  {isLoadingUnique ? (
+                    <div className="animate-pulse">
+                      <div className="h-8 bg-purple-200 rounded w-16"></div>
+                    </div>
+                  ) : (
+                    stats.uniqueActiveUsers
+                  )}
+                </p>
+                {!uniqueStats && !isLoadingUnique && (
+                  <p className="text-xs text-purple-500 mt-1">数据加载中...</p>
+                )}
               </div>
 
               <div className="bg-orange-50 rounded-lg p-4">

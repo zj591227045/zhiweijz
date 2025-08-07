@@ -57,4 +57,10 @@ router.put('/config/registration-gift', accountingPointsAdminController.updateRe
  */
 router.get('/daily-active-stats', accountingPointsAdminController.getDailyActiveStats.bind(accountingPointsAdminController));
 
+/**
+ * 获取去重的活跃用户统计
+ * GET /admin/accounting-points/unique-active-stats
+ */
+router.get('/unique-active-stats', accountingPointsAdminController.getUniqueActiveStats.bind(accountingPointsAdminController));
+
 export default router;

@@ -405,4 +405,25 @@ export class AccountingPointsAdminController {
       });
     }
   }
+
+  /**
+   * 获取去重的活跃用户统计
+   */
+  async getUniqueActiveStats(req: Request, res: Response) {
+    try {
+      const days = parseInt(req.query.days as string) || 7;
+      const stats = await AccountingPointsService.getUniqueActiveUsersStats(days);
+
+      res.json({
+        success: true,
+        data: stats
+      });
+    } catch (error) {
+      console.error('获取去重活跃统计失败:', error);
+      res.status(500).json({
+        success: false,
+        error: '获取去重活跃统计失败'
+      });
+    }
+  }
 }

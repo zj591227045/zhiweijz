@@ -31,10 +31,12 @@ export function AdminDashboard() {
     transactionStats,
     systemResources,
     dailyActiveStats,
+    uniqueActiveStats,
     isLoading,
     fetchUserStats,
     fetchTransactionStats,
     fetchDailyActiveStats,
+    fetchUniqueActiveStats,
   } = useAdminDashboard();
 
   const [selectedPeriod, setSelectedPeriod] = useState('7d');
@@ -58,11 +60,12 @@ export function AdminDashboard() {
     }
   };
 
-  // 初始化时获取日活跃统计和会员统计
+  // 初始化时获取日活跃统计、去重统计和会员统计
   useEffect(() => {
     fetchDailyActiveStats(selectedDays);
+    fetchUniqueActiveStats(selectedDays);
     fetchMembershipStats();
-  }, [fetchDailyActiveStats]);
+  }, [fetchDailyActiveStats, fetchUniqueActiveStats]);
 
   const handlePeriodChange = async (period: string) => {
     setSelectedPeriod(period);
@@ -71,7 +74,10 @@ export function AdminDashboard() {
 
   const handleDaysChange = async (days: number) => {
     setSelectedDays(days);
-    await fetchDailyActiveStats(days);
+    await Promise.all([
+      fetchDailyActiveStats(days),
+      fetchUniqueActiveStats(days)
+    ]);
   };
 
   // 格式化数字
@@ -258,7 +264,9 @@ export function AdminDashboard() {
       {/* 日活跃用户统计 */}
       <DailyActiveStatsCard
         data={dailyActiveStats}
+        uniqueStats={uniqueActiveStats}
         isLoading={isLoading.dailyActiveStats}
+        isLoadingUnique={isLoading.uniqueActiveStats}
         onPeriodChange={handleDaysChange}
         selectedDays={selectedDays}
       />

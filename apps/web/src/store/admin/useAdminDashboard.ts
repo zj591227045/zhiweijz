@@ -90,18 +90,26 @@ interface DailyActiveStats {
   totalPointsGiven: number;
 }
 
+interface UniqueActiveStats {
+  uniqueActiveUsers: number;
+  totalPointsGiven: number;
+  periodDays: number;
+}
+
 interface AdminDashboardState {
   overview: OverviewStats | null;
   userStats: UserStats | null;
   transactionStats: TransactionStats | null;
   systemResources: SystemResources | null;
   dailyActiveStats: DailyActiveStats[] | null;
+  uniqueActiveStats: UniqueActiveStats | null;
   isLoading: {
     overview: boolean;
     userStats: boolean;
     transactionStats: boolean;
     systemResources: boolean;
     dailyActiveStats: boolean;
+    uniqueActiveStats: boolean;
   };
   error: string | null;
 
@@ -111,6 +119,7 @@ interface AdminDashboardState {
   fetchTransactionStats: (period: string) => Promise<void>;
   fetchSystemResources: () => Promise<void>;
   fetchDailyActiveStats: (days?: number) => Promise<void>;
+  fetchUniqueActiveStats: (days?: number) => Promise<void>;
   clearError: () => void;
 }
 
@@ -120,12 +129,14 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
   transactionStats: null,
   systemResources: null,
   dailyActiveStats: null,
+  uniqueActiveStats: null,
   isLoading: {
     overview: false,
     userStats: false,
     transactionStats: false,
     systemResources: false,
     dailyActiveStats: false,
+    uniqueActiveStats: false,
   },
   error: null,
 
@@ -267,6 +278,36 @@ export const useAdminDashboard = create<AdminDashboardState>((set, get) => ({
       set((state) => ({
         isLoading: { ...state.isLoading, dailyActiveStats: false },
         error: error instanceof Error ? error.message : '获取日活跃统计失败',
+      }));
+    }
+  },
+
+  fetchUniqueActiveStats: async (days: number = 7) => {
+    set((state) => ({
+      isLoading: { ...state.isLoading, uniqueActiveStats: true },
+      error: null,
+    }));
+
+    try {
+      const response = await adminApi.getWithParams(
+        ADMIN_API_ENDPOINTS.ACCOUNTING_POINTS_UNIQUE_ACTIVE,
+        { days },
+      );
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || '获取去重活跃统计失败');
+      }
+
+      set((state) => ({
+        uniqueActiveStats: data.data,
+        isLoading: { ...state.isLoading, uniqueActiveStats: false },
+        error: null,
+      }));
+    } catch (error) {
+      set((state) => ({
+        isLoading: { ...state.isLoading, uniqueActiveStats: false },
+        error: error instanceof Error ? error.message : '获取去重活跃统计失败',
       }));
     }
   },

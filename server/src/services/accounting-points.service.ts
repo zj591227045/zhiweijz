@@ -727,17 +727,55 @@ class AccountingPointsService {
     totalPointsGiven: number;
   }>> {
     const results = [];
-    
+
     for (let i = 0; i < days; i++) {
       const date = new Date();
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
-      
+
       const stats = await this.getDailyActiveUsersStats(dateStr);
       results.push(stats);
     }
-    
+
     return results.reverse(); // 返回按日期正序排列的结果
+  }
+
+  /**
+   * 获取去重的活跃用户统计
+   * @param days 获取最近多少天的数据，默认7天
+   */
+  static async getUniqueActiveUsersStats(days: number = 7): Promise<{
+    uniqueActiveUsers: number;
+    totalPointsGiven: number;
+    periodDays: number;
+  }> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    const endDate = new Date();
+
+    // 使用聚合查询获取去重的活跃用户数和总点数
+    const result = await prisma.accountingPointsTransactions.groupBy({
+      by: ['userId'],
+      where: {
+        type: 'daily_first_visit',
+        createdAt: {
+          gte: startDate,
+          lt: endDate
+        }
+      },
+      _sum: {
+        points: true
+      }
+    });
+
+    const uniqueActiveUsers = result.length;
+    const totalPointsGiven = result.reduce((sum, user) => sum + (user._sum.points || 0), 0);
+
+    return {
+      uniqueActiveUsers,
+      totalPointsGiven,
+      periodDays: days
+    };
   }
   /**
    * 获取类型描述

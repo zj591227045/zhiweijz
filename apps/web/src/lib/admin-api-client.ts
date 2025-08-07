@@ -102,6 +102,7 @@ export const ADMIN_API_ENDPOINTS = {
   ACCOUNTING_POINTS_BATCH_ADD: '/api/admin/accounting-points/batch-add',
   ACCOUNTING_POINTS_CONFIG: '/api/admin/accounting-points/config',
   ACCOUNTING_POINTS_DAILY_ACTIVE: '/api/admin/accounting-points/daily-active-stats',
+  ACCOUNTING_POINTS_UNIQUE_ACTIVE: '/api/admin/accounting-points/unique-active-stats',
 
   // 版本管理
   VERSION_MANAGEMENT: '/api/admin/version',
