@@ -164,8 +164,14 @@ export default function StoragePage() {
       const response = await adminApiClient.put(ADMIN_API_ENDPOINTS.STORAGE_CONFIG, newConfig);
 
       if (response.ok) {
-        await loadData(); // 重新加载数据
         alert('配置保存成功！');
+
+        // 等待后端服务完全重新加载配置，然后强制刷新状态
+        console.log('配置保存成功，等待后端配置重新加载...');
+        setTimeout(async () => {
+          console.log('开始强制刷新存储状态...');
+          await loadData(); // 重新加载数据以显示新配置
+        }, 1500); // 等待1.5秒确保后端配置完全重新加载
       } else {
         throw new Error('保存失败');
       }

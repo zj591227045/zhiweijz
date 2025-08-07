@@ -257,9 +257,8 @@ export class StorageConfigAdminService {
 
       // 刷新文件存储服务配置
       try {
-        const { FileStorageService } = await import('../../services/file-storage.service');
-        const storageService = FileStorageService.getInstance();
-        await storageService.reloadConfig();
+        const { reloadGlobalFileStorageConfig } = await import('../../services/file-storage.service');
+        await reloadGlobalFileStorageConfig();
         console.log('文件存储服务配置已刷新');
       } catch (error) {
         console.warn('刷新文件存储服务配置失败:', error);
