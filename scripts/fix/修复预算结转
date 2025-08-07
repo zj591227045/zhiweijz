@@ -1,0 +1,125 @@
+-- 检查预算结转链条的正确性
+WITH budget_chain AS (
+    SELECT 
+        b1.id as current_budget_id,
+        b1.name as current_budget_name,
+        b1.end_date as current_end_date,
+        b1.amount as current_amount,
+        b1.rollover_amount as current_rollover_amount,
+        COALESCE(spent.total_spent, 0) as current_spent,
+        (b1.amount + COALESCE(b1.rollover_amount, 0) - COALESCE(spent.total_spent, 0)) as calculated_rollover,
+        b2.id as next_budget_id,
+        b2.name as next_budget_name,
+        b2.start_date as next_start_date,
+        b2.rollover_amount as next_rollover_amount,
+        u.name as user_name
+    FROM budgets b1
+    JOIN users u ON b1.user_id = u.id
+    LEFT JOIN (
+        SELECT budget_id, SUM(amount) as total_spent 
+        FROM transactions 
+        WHERE type = 'EXPENSE' 
+        GROUP BY budget_id
+    ) spent ON b1.id = spent.budget_id
+    LEFT JOIN budgets b2 ON (
+        b2.user_id = b1.user_id 
+        AND b2.account_book_id = b1.account_book_id
+        AND b2.budget_type = 'PERSONAL'
+        AND b2.period = 'MONTHLY'
+        AND b2.rollover = true
+        AND b2.start_date > b1.end_date
+        AND b2.start_date = (
+            SELECT MIN(start_date) 
+            FROM budgets b3 
+            WHERE b3.user_id = b1.user_id 
+              AND b3.account_book_id = b1.account_book_id
+              AND b3.budget_type = 'PERSONAL'
+              AND b3.period = 'MONTHLY'
+              AND b3.rollover = true
+              AND b3.start_date > b1.end_date
+        )
+    )
+    WHERE b1.rollover = true
+      AND b1.budget_type = 'PERSONAL'
+      AND b1.period = 'MONTHLY'
+      AND b1.end_date < CURRENT_DATE
+)
+SELECT 
+    user_name,
+    current_budget_name,
+    current_end_date,
+    current_amount,
+    current_spent,
+    calculated_rollover,
+    next_budget_name,
+    next_start_date,
+    next_rollover_amount,
+    CASE 
+        WHEN next_budget_id IS NULL THEN '无下一个预算'
+        WHEN ABS(calculated_rollover - COALESCE(next_rollover_amount, 0)) > 0.01 THEN '结转金额不正确'
+        ELSE '结转金额正确'
+    END as status
+FROM budget_chain
+ORDER BY user_name, current_end_date;
+
+
+
+
+
+
+
+
+
+-- 更新预算结转金额
+BEGIN;
+
+WITH rollover_updates AS (
+    SELECT 
+        b2.id as next_budget_id,
+        (b1.amount + COALESCE(b1.rollover_amount, 0) - COALESCE(spent.total_spent, 0)) as correct_rollover
+    FROM budgets b1
+    LEFT JOIN (
+        SELECT budget_id, SUM(amount) as total_spent 
+        FROM transactions 
+        WHERE type = 'EXPENSE' 
+        GROUP BY budget_id
+    ) spent ON b1.id = spent.budget_id
+    JOIN budgets b2 ON (
+        b2.user_id = b1.user_id 
+        AND b2.account_book_id = b1.account_book_id
+        AND b2.budget_type = 'PERSONAL'
+        AND b2.period = 'MONTHLY'
+        AND b2.rollover = true
+        AND b2.start_date > b1.end_date
+        AND b2.start_date = (
+            SELECT MIN(start_date) 
+            FROM budgets b3 
+            WHERE b3.user_id = b1.user_id 
+              AND b3.account_book_id = b1.account_book_id
+              AND b3.budget_type = 'PERSONAL'
+              AND b3.period = 'MONTHLY'
+              AND b3.rollover = true
+              AND b3.start_date > b1.end_date
+        )
+    )
+    WHERE b1.rollover = true
+      AND b1.budget_type = 'PERSONAL'
+      AND b1.period = 'MONTHLY'
+      AND b1.end_date < CURRENT_DATE
+      AND ABS((b1.amount + COALESCE(b1.rollover_amount, 0) - COALESCE(spent.total_spent, 0)) - COALESCE(b2.rollover_amount, 0)) > 0.01
+)
+UPDATE budgets 
+SET 
+    rollover_amount = rollover_updates.correct_rollover,
+    updated_at = CURRENT_TIMESTAMP
+FROM rollover_updates
+WHERE budgets.id = rollover_updates.next_budget_id;
+
+-- 显示更新结果
+SELECT 
+    '更新的预算数量' as 结果,
+    COUNT(*) as 数量
+FROM budgets 
+WHERE updated_at >= CURRENT_TIMESTAMP - INTERVAL '1 minute';
+
+COMMIT;

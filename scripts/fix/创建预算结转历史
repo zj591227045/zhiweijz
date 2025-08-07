@@ -1,0 +1,95 @@
+-- 修正版预算结转历史修复
+BEGIN;
+
+-- 为缺失历史记录的预算创建结转历史
+INSERT INTO budget_histories (
+    id,
+    budget_id,
+    period,
+    amount,
+    type,
+    description,
+    budget_amount,
+    spent_amount,
+    previous_rollover,
+    created_at,
+    updated_at
+)
+SELECT 
+    gen_random_uuid()::TEXT as id,
+    b.id as budget_id,
+    EXTRACT(YEAR FROM b.end_date) || '-' || EXTRACT(MONTH FROM b.end_date) as period,
+    ABS(
+        b.amount + COALESCE(b.rollover_amount, 0) - 
+        COALESCE(spent.total_spent, 0)
+    ) as amount,
+    CASE 
+        WHEN (b.amount + COALESCE(b.rollover_amount, 0) - COALESCE(spent.total_spent, 0)) >= 0 
+        THEN 'SURPLUS'::"RolloverType"
+        ELSE 'DEFICIT'::"RolloverType"
+    END as type,
+    CASE 
+        WHEN (b.amount + COALESCE(b.rollover_amount, 0) - COALESCE(spent.total_spent, 0)) >= 0 
+        THEN '余额结转: ' 
+        ELSE '债务结转: ' 
+    END || '基础预算' || b.amount || 
+    ', 上期结转' || COALESCE(b.rollover_amount, 0) || 
+    ', 实际支出' || COALESCE(spent.total_spent, 0) ||
+    ', 结转金额' || (b.amount + COALESCE(b.rollover_amount, 0) - COALESCE(spent.total_spent, 0)) as description,
+    b.amount as budget_amount,
+    COALESCE(spent.total_spent, 0) as spent_amount,
+    COALESCE(b.rollover_amount, 0) as previous_rollover,
+    CURRENT_TIMESTAMP as created_at,
+    CURRENT_TIMESTAMP as updated_at
+FROM budgets b
+LEFT JOIN (
+    SELECT 
+        budget_id, 
+        SUM(amount) as total_spent 
+    FROM transactions 
+    WHERE type = 'EXPENSE' 
+    GROUP BY budget_id
+) spent ON b.id = spent.budget_id
+WHERE b.rollover = true
+  AND b.budget_type = 'PERSONAL'
+  AND b.period = 'MONTHLY'
+  AND b.end_date < CURRENT_DATE
+  AND NOT EXISTS (
+      SELECT 1 FROM budget_histories bh 
+      WHERE bh.budget_id = b.id 
+        AND bh.period = EXTRACT(YEAR FROM b.end_date) || '-' || EXTRACT(MONTH FROM b.end_date)
+        AND bh.type IN ('SURPLUS', 'DEFICIT')
+  );
+
+-- 显示创建结果
+SELECT 
+    '本次创建的历史记录数' as 结果,
+    COUNT(*) as 数量
+FROM budget_histories 
+WHERE created_at >= CURRENT_TIMESTAMP - INTERVAL '1 minute'
+  AND type IN ('SURPLUS', 'DEFICIT');
+
+COMMIT;
+
+-- 最终验证（在事务外执行）
+SELECT 
+    '修复后-已过期结转预算总数' as 描述,
+    COUNT(*) as 数量
+FROM budgets
+WHERE rollover = true
+  AND budget_type = 'PERSONAL'
+  AND period = 'MONTHLY'
+  AND end_date < CURRENT_DATE
+
+UNION ALL
+
+SELECT 
+    '修复后-有结转历史记录的预算数' as 描述,
+    COUNT(DISTINCT bh.budget_id) as 数量
+FROM budget_histories bh
+JOIN budgets b ON bh.budget_id = b.id
+WHERE b.rollover = true
+  AND b.budget_type = 'PERSONAL'
+  AND b.period = 'MONTHLY'
+  AND b.end_date < CURRENT_DATE
+  AND bh.type IN ('SURPLUS', 'DEFICIT');
