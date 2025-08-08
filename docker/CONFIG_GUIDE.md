@@ -30,12 +30,12 @@ cp .env.example .env
 # 2. 编辑配置文件（必需）
 nano .env
 
-# 3. 启动服务
-docker-compose up -d
+# 3. 验证配置
+chmod +x scripts/check-env-config.sh
+./scripts/check-env-config.sh
 
-# 4. 验证配置
-chmod +x verify-env-config.sh
-./verify-env-config.sh
+# 4. 启动服务
+docker-compose up -d
 ```
 
 ### 2. 必需修改的配置项
@@ -45,6 +45,20 @@ chmod +x verify-env-config.sh
 ```bash
 # 数据库密码（生产环境必须修改）
 DB_PASSWORD=your_secure_password
+
+# JWT密钥（生产环境必须修改）
+JWT_SECRET=your_super_secret_jwt_key_change_in_production
+
+# 外部访问域名（必须修改为实际域名）
+EXTERNAL_DOMAIN=https://your-domain.com
+
+# RevenueCat支付配置（如使用支付功能）
+NEXT_PUBLIC_REVENUECAT_API_KEY=your_production_sdk_api_key
+REVENUECAT_REST_API_KEY=your_production_rest_api_key
+
+# 应用版本信息（建议更新）
+NEXT_PUBLIC_APP_VERSION=0.7.2
+NEXT_PUBLIC_BUILD_NUMBER=72
 
 # JWT密钥（生产环境必须修改）
 JWT_SECRET=your_super_secret_jwt_key_change_in_production

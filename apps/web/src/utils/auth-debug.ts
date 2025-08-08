@@ -213,7 +213,11 @@ export const authDebugger = new AuthDebugger();
 // 在开发环境下将调试工具添加到window对象
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   (window as any).authDebugger = authDebugger;
-  console.log('🔧 认证调试工具已加载，使用 window.authDebugger 访问');
+
+  // 延迟输出，确保日志管理器已初始化
+  setTimeout(() => {
+    console.log('🔧 认证调试工具已加载，使用 window.authDebugger 访问');
+  }, 100);
 
   // 自动开始监控
   authDebugger.startMonitoring();

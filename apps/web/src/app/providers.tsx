@@ -37,7 +37,9 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
 
   // 在客户端挂载后应用主题和平台适配
   useEffect(() => {
+
     const applyTheme = async () => {
+
       // 获取存储的主题配置
       const themeConfig = useThemeStore.getState();
 
