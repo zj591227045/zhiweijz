@@ -298,7 +298,7 @@ export function DailyActiveStatsCard({
 
               <div className="bg-purple-50 rounded-lg p-4">
                 <p className="text-sm font-medium text-purple-600">去重活跃用户</p>
-                <p className="text-2xl font-bold text-purple-900">
+                <div className="text-2xl font-bold text-purple-900">
                   {isLoadingUnique ? (
                     <div className="animate-pulse">
                       <div className="h-8 bg-purple-200 rounded w-16"></div>
@@ -306,7 +306,7 @@ export function DailyActiveStatsCard({
                   ) : (
                     stats.uniqueActiveUsers
                   )}
-                </p>
+                </div>
                 {!uniqueStats && !isLoadingUnique && (
                   <p className="text-xs text-purple-500 mt-1">数据加载中...</p>
                 )}
