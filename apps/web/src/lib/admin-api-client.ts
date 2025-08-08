@@ -104,6 +104,9 @@ export const ADMIN_API_ENDPOINTS = {
   ACCOUNTING_POINTS_DAILY_ACTIVE: '/api/admin/accounting-points/daily-active-stats',
   ACCOUNTING_POINTS_UNIQUE_ACTIVE: '/api/admin/accounting-points/unique-active-stats',
 
+  // 会员管理
+  MEMBERSHIP_STATS: '/api/admin/membership/stats',
+
   // 版本管理
   VERSION_MANAGEMENT: '/api/admin/version',
   VERSION_MANAGEMENT_STATS: '/api/admin/version/stats',

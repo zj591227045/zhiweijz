@@ -6,7 +6,7 @@ interface StatsCardProps {
   title: string;
   value: string;
   icon: ComponentType<{ className?: string }>;
-  color: 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'gray' | 'yellow';
+  color: 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'gray' | 'yellow' | 'amber';
   change?: string;
   changeType: 'positive' | 'negative' | 'neutral' | 'warning';
   isLoading?: boolean;
@@ -47,6 +47,11 @@ const colorClasses = {
     bg: 'bg-yellow-50',
     icon: 'bg-yellow-500 text-white',
     text: 'text-yellow-600',
+  },
+  amber: {
+    bg: 'bg-amber-50',
+    icon: 'bg-amber-500 text-white',
+    text: 'text-amber-600',
   },
 };
 
