@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuthStore } from '@/store/auth-store';
+import { fetchApi } from '@/lib/api-client';
 
 interface AuthenticatedImageProps {
   src: string;
@@ -98,10 +99,8 @@ export function AuthenticatedImage({
 
         console.log('🖼️ 开始加载认证图片:', src, '有token:', !!token);
 
-        const response = await fetch(src, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        // 使用动态API客户端的fetchApi而不是原生fetch
+        const response = await fetchApi(src, {
           signal,
         });
 
@@ -132,14 +131,11 @@ export function AuthenticatedImage({
         if (signal.aborted) return; // 忽略取消的请求
 
         const error = err instanceof Error ? err : new Error('图片加载失败');
-        console.error('❌ 认证图片加载失败:', src, error);
-
+        console.error('🖼️ 认证图片加载失败:', src, error);
         setError(error);
         stableOnError(error);
       } finally {
-        if (!signal.aborted) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
     };
 
@@ -261,11 +257,8 @@ export function useAuthenticatedImage(src: string) {
           throw new Error('未找到认证token');
         }
 
-        const response = await fetch(src, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        // 使用动态API客户端的fetchApi而不是原生fetch
+        const response = await fetchApi(src, {});
 
         if (!response.ok) {
           throw new Error(`图片加载失败: ${response.status}`);

@@ -26,7 +26,15 @@ for debug_dir in src/app/*debug*; do
     fi
 done
 
-# 3. 构建静态文件（使用移动端构建模式）
+# 3. 备份并应用移动端配置
+echo "🔧 应用移动端配置..."
+if [ -f "next.config.js.backup" ]; then
+    rm next.config.js.backup
+fi
+cp next.config.js next.config.js.backup
+cp next.config.mobile.js next.config.js
+
+# 4. 构建静态文件（使用移动端构建模式）
 echo "🏗️ 构建静态文件（移动端模式）..."
 echo "   - 设置 BUILD_MODE=mobile"
 echo "   - 排除admin管理页面和debug页面"
@@ -37,6 +45,9 @@ if BUILD_MODE=mobile NEXT_PUBLIC_IS_MOBILE=true IS_MOBILE_BUILD=true npm run bui
     echo "✅ 静态文件构建成功"
 else
     echo "❌ 静态文件构建失败"
+    # 恢复配置
+    cp next.config.js.backup next.config.js
+    rm next.config.js.backup
     # 恢复目录
     if [ -d "/tmp/zhiweijz-excluded-dirs/admin" ]; then
         mv /tmp/zhiweijz-excluded-dirs/admin src/app/
@@ -50,7 +61,11 @@ else
     exit 1
 fi
 
-# 4. 恢复admin和所有debug相关目录
+# 4. 恢复配置和目录
+echo "🔄 恢复原始配置..."
+cp next.config.js.backup next.config.js
+rm next.config.js.backup
+
 echo "🔄 恢复admin和debug相关目录..."
 if [ -d "/tmp/zhiweijz-excluded-dirs/admin" ]; then
     mv /tmp/zhiweijz-excluded-dirs/admin src/app/
@@ -82,7 +97,7 @@ else
     echo "⚠️ admin页面可能未完全排除，但不影响移动端功能"
 fi
 
-# 4. 检查Android平台状态
+# 6. 检查Android平台状态
 if [ ! -d "../android" ]; then
     echo "📱 添加Android平台..."
     npx cap add android
@@ -96,7 +111,7 @@ else
     fi
 fi
 
-# 5. 同步到Capacitor Android项目
+# 7. 同步到Capacitor Android项目
 echo "📱 同步到Android项目..."
 if npx cap sync android; then
     echo "✅ 同步成功"
@@ -116,7 +131,7 @@ else
     fi
 fi
 
-# 6. 验证同步结果
+# 8. 验证同步结果
 if [ -d "../android/app/src/main/assets/public" ]; then
     echo "✅ 文件同步验证成功"
     echo "📊 同步文件数量: $(find ../android/app/src/main/assets/public -type f | wc -l)"
@@ -125,7 +140,7 @@ else
     exit 1
 fi
 
-# 7. 打开Android Studio
+# 9. 打开Android Studio
 echo "🚀 打开Android Studio..."
 npx cap open android
 

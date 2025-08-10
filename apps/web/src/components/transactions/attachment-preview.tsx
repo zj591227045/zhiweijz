@@ -12,7 +12,7 @@ import {
   ChevronRight,
   Trash2,
 } from 'lucide-react';
-import { AuthenticatedImage } from '@/components/ui/authenticated-image';
+import { EnhancedAuthenticatedImage } from '@/components/ui/enhanced-authenticated-image';
 import { processAvatarUrl, getThumbnailProxyUrl } from '@/lib/image-proxy';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -525,7 +525,7 @@ export function EnhancedAttachmentPreview({
               transition: 'transform 0.2s ease-in-out',
             }}
           >
-            <AuthenticatedImage
+            <EnhancedAuthenticatedImage
               src={processedUrl}
               alt={currentFile.originalName}
               className="select-none"
@@ -536,6 +536,8 @@ export function EnhancedAttachmentPreview({
                 height: 'auto',
                 objectFit: 'contain',
               }}
+              retryCount={3}
+              timeout={15000}
               onLoad={(img) => {
                 if (img) {
                   console.log('Image loaded:', {
@@ -822,10 +824,12 @@ function EnhancedAttachmentCard({
         onClick={onPreview}
       >
         {isImage ? (
-          <AuthenticatedImage
+          <EnhancedAuthenticatedImage
             src={processedUrl}
             alt={file.originalName}
             className="w-full h-full object-cover"
+            retryCount={2}
+            timeout={8000}
             fallback={
               <div className="w-full h-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                 <span className="text-gray-500 dark:text-gray-400">图片加载失败</span>
@@ -925,10 +929,12 @@ export function AttachmentThumbnail({
       title={file.originalName}
     >
       {isImage ? (
-        <AuthenticatedImage
+        <EnhancedAuthenticatedImage
           src={processedUrl}
           alt={file.originalName}
           className="w-full h-full object-cover"
+          retryCount={2}
+          timeout={6000}
           fallback={
             <div className="w-full h-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
               <span className="text-xs text-gray-500 dark:text-gray-400">IMG</span>

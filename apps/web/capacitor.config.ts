@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
   appName: '只为记账',
   webDir: 'out',
   server: {
-    androidScheme: 'https'
+    // 移除androidScheme配置，使用默认的http scheme
+    // androidScheme: 'https' // 这可能导致网络请求问题
   },
   plugins: {
         SplashScreen: {
@@ -63,7 +64,7 @@ const config: CapacitorConfig = {
       releaseType: 'APK'
     },
     webContentsDebuggingEnabled: false,
-    allowMixedContent: false,
+    allowMixedContent: true, // 允许混合内容，解决HTTPS/HTTP混合问题
     captureInput: true,
     webViewAssetLoader: true,
     loggingBehavior: 'none',

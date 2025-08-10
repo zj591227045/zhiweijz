@@ -30,7 +30,7 @@ import {
   getOptimalDimensions,
 } from '@/lib/performance-utils';
 import { processAvatarUrl, handleImageError } from '@/lib/image-proxy';
-import { AuthenticatedImage } from '@/components/ui/authenticated-image';
+import { EnhancedAuthenticatedImage } from '@/components/ui/enhanced-authenticated-image';
 
 interface AvatarUploaderProps {
   currentAvatar?: string; // 现在存储头像ID而不是URL
@@ -669,10 +669,12 @@ export function AvatarUploader({
         // 处理URL格式的头像（包括S3 URL转代理URL）
         const processedUrl = processAvatarUrl(currentAvatar);
         return (
-          <AuthenticatedImage
+          <EnhancedAuthenticatedImage
             src={processedUrl}
             alt="当前头像"
             className="avatar-image"
+            retryCount={2}
+            timeout={8000}
             fallback={<div className="avatar-placeholder">当前头像</div>}
           />
         );

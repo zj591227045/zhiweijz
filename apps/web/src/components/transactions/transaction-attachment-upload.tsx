@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { FileUpload, FileUploadItem } from '@/components/ui/file-upload';
-import { AuthenticatedImage } from '@/components/ui/authenticated-image';
+import { EnhancedAuthenticatedImage } from '@/components/ui/enhanced-authenticated-image';
 import {
   AttachmentThumbnail,
   EnhancedAttachmentGrid,

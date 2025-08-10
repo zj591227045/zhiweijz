@@ -119,8 +119,22 @@ class ApiClient {
 
 // 通用的fetch函数，用于替换原生fetch调用
 export const fetchApi = async (url: string, options: RequestInit = {}): Promise<Response> => {
-  const baseURL = getApiBaseUrl();
-  const fullUrl = url.startsWith('/api') ? baseURL + url.replace('/api', '') : baseURL + url;
+  let fullUrl: string;
+  
+  // 如果URL已经是完整的HTTP/HTTPS URL，直接使用
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    fullUrl = url;
+  } else {
+    // 否则需要拼接基础URL
+    const baseURL = getApiBaseUrl();
+    if (url.startsWith('/api')) {
+      // 如果URL以/api开头，需要替换掉/api部分，因为baseURL已经包含了/api
+      fullUrl = baseURL + url.replace('/api', '');
+    } else {
+      // 直接拼接
+      fullUrl = baseURL + url;
+    }
+  }
 
   // 自动添加认证token
   let token = null;
@@ -141,9 +155,25 @@ export const fetchApi = async (url: string, options: RequestInit = {}): Promise<
       }
     }
   }
+  
+  // 准备请求头
+  const defaultHeaders: Record<string, string> = {};
+  
+  // 判断是否是图片请求 - 使用URL路径判断
+  const isImageRequest = url.includes('/image-proxy/') || url.includes('/avatar/') || url.includes('/attachment/');
+  
+  // 对于非图片请求，添加Content-Type
+  if (!isImageRequest) {
+    defaultHeaders['Content-Type'] = 'application/json';
+  }
+  
+  // 添加认证token
+  if (token) {
+    defaultHeaders['Authorization'] = `Bearer ${token}`;
+  }
+  
   const headers = {
-    'Content-Type': 'application/json',
-    ...(token && { Authorization: `Bearer ${token}` }),
+    ...defaultHeaders,
     ...options.headers,
   };
 

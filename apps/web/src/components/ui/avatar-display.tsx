@@ -2,7 +2,7 @@
 
 import { getAvatarUrlById } from '@/data/preset-avatars';
 import { processAvatarUrl, handleImageError } from '@/lib/image-proxy';
-import { AuthenticatedImage } from './authenticated-image';
+import { EnhancedAuthenticatedImage } from './enhanced-authenticated-image';
 import { useAuthStore } from '@/store/auth-store';
 import { useEffect, useState } from 'react';
 
@@ -155,10 +155,12 @@ export function AvatarDisplay({
         // 处理URL格式的头像（包括S3 URL转代理URL）
         const processedUrl = processAvatarUrl(displayAvatar, userId);
         return (
-          <AuthenticatedImage
+          <EnhancedAuthenticatedImage
             src={processedUrl}
             alt={alt}
             className="w-full h-full object-cover rounded-full"
+            retryCount={2}
+            timeout={8000}
             fallback={
               <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-full text-gray-600">
                 {username?.charAt(0) || '用'}
