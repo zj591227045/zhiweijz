@@ -79,7 +79,7 @@ export const CheckinButton: React.FC<CheckinButtonProps> = ({
         ) : hasCheckedIn ? (
           <span className="checked-in-text">
             <i className="fas fa-check-circle"></i>
-            今日已签到
+            已签到
           </span>
         ) : (
           <span className="checkin-text">

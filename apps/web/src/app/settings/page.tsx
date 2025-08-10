@@ -185,7 +185,7 @@ export default function SettingsPage() {
                 {checkinStatus?.hasCheckedIn ? (
                   <>
                     <i className="fas fa-check-circle" style={{ color: '#10b981' }}></i>
-                    <span>今日已签到</span>
+                    <span>已签到</span>
                   </>
                 ) : (
                   <>

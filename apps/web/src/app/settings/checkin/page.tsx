@@ -239,7 +239,7 @@ export default function CheckinPage() {
               ) : hasCheckedIn ? (
                 <div className="flex items-center justify-center gap-2">
                   <CheckCircleSolidIcon className="h-5 w-5" />
-                  <span>今日已签到</span>
+                  <span>已签到</span>
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-2">
