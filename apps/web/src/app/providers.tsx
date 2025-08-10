@@ -10,6 +10,7 @@ import { RouteGuard } from '@/components/auth/route-guard';
 import { TokenMonitorProvider } from '@/components/auth/token-monitor-provider';
 import { OnboardingProvider } from '@/components/onboarding/onboarding-provider';
 import { EnhancedVersionProvider } from '@/components/version/EnhancedVersionProvider';
+import { ShareImageHandler } from '@/components/share/share-image-handler';
 import { initializeAndroidPlatform } from '@/lib/android-platform';
 import { ModalNavigationProvider } from '@/components/navigation/modal-navigation-provider';
 import { MobileNavigationInitializer } from '@/components/navigation/mobile-navigation-initializer';
@@ -100,6 +101,8 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
                 <TokenMonitorProvider>
                   <RouteGuard>{children}</RouteGuard>
                   <OnboardingProvider />
+                  {/* 分享图片处理器 */}
+                  <ShareImageHandler />
                   {/* Android Token管理器 */}
                   <AndroidTokenManager />
                 </TokenMonitorProvider>
@@ -107,7 +110,14 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
             </ModalNavigationProvider>
           </MobileNavigationInitializer>
         </EnhancedVersionProvider>
-        <Toaster position="top-center" />
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            style: {
+              marginTop: 'max(24px, env(safe-area-inset-top, 0px))'
+            }
+          }}
+        />
       </ThemeProvider>
     </QueryClientProvider>
   );

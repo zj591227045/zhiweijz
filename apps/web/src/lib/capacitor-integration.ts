@@ -57,6 +57,7 @@ export class CapacitorIntegration {
   private appStateListener: { remove: () => void } | null = null;
   private urlOpenListener: { remove: () => void } | null = null;
   private appRestoredListener: { remove: () => void } | null = null;
+  private sharedImageListener: { remove: () => void } | null = null;
   private config: BackButtonConfig;
   private lastBackPress = 0;
   private exitToast: any = null;
@@ -91,6 +92,7 @@ export class CapacitorIntegration {
     this.setupBackButtonHandler();
     this.setupStatusBar();
     this.setupKeyboard();
+    this.setupSharedImageListener();
   }
 
   // 设置应用监听器
@@ -313,6 +315,104 @@ export class CapacitorIntegration {
     }
   }
 
+  // 设置分享图片监听器
+  private setupSharedImageListener() {
+    if (typeof window === 'undefined') return;
+
+    try {
+      // 监听来自Android的分享图片事件
+      window.addEventListener('sharedImageReceived', (event: any) => {
+        console.log('📷 [Capacitor] 接收到分享图片事件:', event.detail);
+
+        // 同时输出到Android logcat
+        if (typeof window !== 'undefined' && (window as any).Capacitor?.Plugins?.LogBridge) {
+          (window as any).Capacitor.Plugins.LogBridge.logInfo({
+            message: '📷 [Capacitor] 接收到分享图片事件: ' + JSON.stringify(event.detail),
+            tag: 'CapacitorIntegration'
+          });
+        }
+
+        this.handleSharedImage(event.detail);
+      });
+
+      console.log('🔌 [Capacitor] 分享图片监听器已设置');
+
+      // 同时输出到Android logcat
+      if (typeof window !== 'undefined' && (window as any).Capacitor?.Plugins?.LogBridge) {
+        (window as any).Capacitor.Plugins.LogBridge.logInfo({
+          message: '🔌 [Capacitor] 分享图片监听器已设置',
+          tag: 'CapacitorIntegration'
+        });
+      }
+    } catch (error) {
+      console.error('🔌 [Capacitor] 分享图片监听器设置失败:', error);
+
+      // 同时输出到Android logcat
+      if (typeof window !== 'undefined' && (window as any).Capacitor?.Plugins?.LogBridge) {
+        (window as any).Capacitor.Plugins.LogBridge.logError({
+          message: '🔌 [Capacitor] 分享图片监听器设置失败: ' + error.message,
+          tag: 'CapacitorIntegration'
+        });
+      }
+    }
+  }
+
+  // 处理分享的图片
+  private async handleSharedImage(data: any) {
+    try {
+      console.log('📷 [Capacitor] 开始处理分享图片:', data);
+
+      if (!data.imageUri) {
+        console.error('📷 [Capacitor] 分享图片数据无效');
+        return;
+      }
+
+      // 调用ShareTarget插件获取图片数据
+      const shareTargetPlugin = (window as any).Capacitor?.Plugins?.ShareTarget;
+      if (!shareTargetPlugin) {
+        console.error('📷 [Capacitor] ShareTarget插件不可用');
+        console.log('📷 [Capacitor] 可用插件列表:', Object.keys((window as any).Capacitor?.Plugins || {}));
+
+        // 尝试直接调用插件
+        try {
+          console.log('📷 [Capacitor] 尝试直接调用ShareTarget插件...');
+          const result = await (window as any).Capacitor.PluginRegistry.ShareTarget.getSharedImage();
+          console.log('📷 [Capacitor] 直接调用成功:', result);
+        } catch (error) {
+          console.error('📷 [Capacitor] 直接调用失败:', error);
+        }
+        return;
+      }
+
+      const imageData = await shareTargetPlugin.getSharedImage({ imageUri: data.imageUri });
+      console.log('📷 [Capacitor] 获取图片数据成功:', {
+        fileName: imageData.fileName,
+        mimeType: imageData.mimeType,
+        fileSize: imageData.fileSize,
+      });
+
+      // 将Base64数据转换为File对象
+      const base64Data = imageData.base64Data;
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const file = new File([byteArray], imageData.fileName, { type: imageData.mimeType });
+
+      // 触发图片识别事件，让Web层处理
+      window.dispatchEvent(new CustomEvent('shareImageRecognition', {
+        detail: { file, source: 'share' }
+      }));
+
+      console.log('📷 [Capacitor] 分享图片处理完成，已触发识别事件');
+
+    } catch (error) {
+      console.error('📷 [Capacitor] 处理分享图片失败:', error);
+    }
+  }
+
   // 应用激活处理
   private onAppActivated() {
     console.log('🔌 [Capacitor] 应用已激活');
@@ -415,6 +515,11 @@ export class CapacitorIntegration {
       if (this.appRestoredListener) {
         this.appRestoredListener.remove();
         this.appRestoredListener = null;
+      }
+
+      if (this.sharedImageListener) {
+        this.sharedImageListener.remove();
+        this.sharedImageListener = null;
       }
 
       // 清理其他状态

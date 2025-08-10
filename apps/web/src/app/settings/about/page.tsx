@@ -9,12 +9,25 @@ import { PrivacyPolicyModal } from '@/components/modals/privacy-policy-modal';
 import { TermsOfServiceModal } from '@/components/modals/terms-of-service-modal';
 import '@/styles/settings-pages.css';
 
+// 声明全局日志管理器接口
+declare global {
+  interface Window {
+    enableLogs: (level?: string) => void;
+    disableLogs: () => void;
+    getLogConfig: () => { enabled: boolean; level: string };
+    clearLogConfig: () => void;
+    testLogs: () => void;
+  }
+}
+
 export default function AboutPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const [showDeletionModal, setShowDeletionModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [logConfig, setLogConfig] = useState<{ enabled: boolean; level: string } | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -22,6 +35,21 @@ export default function AboutPage() {
       router.push('/auth/login');
     }
   }, [isAuthenticated, router]);
+
+  // 初始化日志配置
+  useEffect(() => {
+    setMounted(true);
+    if (typeof window !== 'undefined' && window.getLogConfig) {
+      setLogConfig(window.getLogConfig());
+    }
+  }, []);
+
+  // 更新日志配置
+  const updateLogConfig = () => {
+    if (typeof window !== 'undefined' && window.getLogConfig) {
+      setLogConfig(window.getLogConfig());
+    }
+  };
 
   // 处理官方网站点击
   const handleOfficialWebsite = () => {
@@ -36,6 +64,41 @@ export default function AboutPage() {
   // 处理服务条款点击
   const handleTermsOfService = () => {
     setShowTermsModal(true);
+  };
+
+  // 处理调试日志开关
+  const handleToggleDebugLogs = () => {
+    if (!mounted || typeof window === 'undefined') {
+      alert('页面未完全加载，请稍后重试');
+      return;
+    }
+
+    // 检查日志管理器是否可用
+    if (!window.enableLogs || !window.disableLogs || !window.getLogConfig) {
+      alert('日志管理器不可用，请刷新页面后重试');
+      return;
+    }
+
+    try {
+      if (logConfig?.enabled) {
+        // 当前已启用，禁用日志
+        window.disableLogs();
+        alert('调试日志已禁用');
+      } else {
+        // 当前已禁用，启用日志
+        window.enableLogs('debug');
+        alert('调试日志已启用，现在可以在开发者工具中看到详细日志');
+      }
+
+      // 延迟更新配置，确保localStorage已更新
+      setTimeout(() => {
+        updateLogConfig();
+      }, 100);
+
+    } catch (error) {
+      console.error('切换调试日志失败:', error);
+      alert('切换调试日志失败: ' + error.message);
+    }
   };
 
   if (!isAuthenticated) {
@@ -116,6 +179,26 @@ export default function AboutPage() {
               <span className="info-label">发布日期</span>
               <span className="info-value">2024年12月</span>
             </div>
+            {mounted && (
+              <div className="info-item">
+                <span className="info-label">调试日志</span>
+                <div className="info-value">
+                  <button
+                    className={`debug-toggle-button ${logConfig?.enabled ? 'enabled' : 'disabled'}`}
+                    onClick={handleToggleDebugLogs}
+                    title={logConfig?.enabled ? '点击禁用调试日志' : '点击启用调试日志'}
+                  >
+                    <i className={`fas ${logConfig?.enabled ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
+                    <span className="toggle-text">
+                      {logConfig?.enabled ? '已启用' : '已禁用'}
+                    </span>
+                    {logConfig?.enabled && (
+                      <span className="log-level">({logConfig.level})</span>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="about-links">

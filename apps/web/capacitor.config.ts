@@ -37,6 +37,12 @@ const config: CapacitorConfig = {
     },
     App: {
       launchUrl: 'https://localhost'
+    },
+    ShareTarget: {
+      // 分享目标插件配置
+    },
+    LogBridge: {
+      // 日志桥接插件配置
     }
   },
   webView: {

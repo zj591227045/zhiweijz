@@ -154,7 +154,7 @@ class SmartAccountingProgressManager {
     this.progressContainer.id = 'smart-accounting-progress-container';
     this.progressContainer.style.cssText = `
       position: fixed;
-      top: 0;
+      top: max(24px, env(safe-area-inset-top, 0px));
       left: 0;
       right: 0;
       z-index: 10000;

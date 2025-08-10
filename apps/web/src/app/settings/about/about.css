@@ -1,0 +1,256 @@
+/* 关于应用页面样式 */
+
+.about-page-content {
+  padding: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.about-app-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  color: white;
+}
+
+.about-app-icon {
+  font-size: 3rem;
+  margin-right: 1rem;
+}
+
+.about-app-info h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.about-app-info .version {
+  margin: 0.25rem 0 0 0;
+  opacity: 0.9;
+  font-size: 0.9rem;
+}
+
+.about-content {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.about-description {
+  margin-bottom: 2rem;
+  color: #666;
+  line-height: 1.6;
+}
+
+.about-features h4,
+.about-info h4 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.about-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.feature-icon {
+  font-size: 1.2rem;
+  color: #667eea;
+  margin-right: 0.75rem;
+  width: 24px;
+  text-align: center;
+}
+
+.feature-text {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.about-info {
+  margin-bottom: 2rem;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 500;
+  color: #555;
+}
+
+.info-value {
+  color: #333;
+  display: flex;
+  align-items: center;
+}
+
+/* 调试日志开关样式 */
+.debug-toggle-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+}
+
+.debug-toggle-button:hover {
+  background: #f8f9fa;
+  border-color: #ccc;
+}
+
+.debug-toggle-button.enabled {
+  background: #e8f5e8;
+  border-color: #28a745;
+  color: #155724;
+}
+
+.debug-toggle-button.enabled:hover {
+  background: #d4edda;
+}
+
+.debug-toggle-button.disabled {
+  background: #fff5f5;
+  border-color: #dc3545;
+  color: #721c24;
+}
+
+.debug-toggle-button.disabled:hover {
+  background: #f8d7da;
+}
+
+.debug-toggle-button i {
+  font-size: 1rem;
+}
+
+.debug-toggle-button.enabled i {
+  color: #28a745;
+}
+
+.debug-toggle-button.disabled i {
+  color: #dc3545;
+}
+
+.toggle-text {
+  font-weight: 500;
+}
+
+.log-level {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  font-weight: normal;
+}
+
+.about-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.link-button {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  color: #333;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.link-button:hover {
+  background: #f8f9fa;
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.link-button i {
+  margin-right: 0.75rem;
+  width: 16px;
+  text-align: center;
+}
+
+.delete-account-button {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+
+.delete-account-button:hover {
+  background: #f8d7da;
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.about-footer {
+  text-align: center;
+  color: #999;
+  font-size: 0.8rem;
+  margin-top: 1rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .about-page-content {
+    padding: 0.5rem;
+  }
+  
+  .about-app-header {
+    padding: 1rem;
+  }
+  
+  .about-app-icon {
+    font-size: 2.5rem;
+  }
+  
+  .about-content {
+    padding: 1rem;
+  }
+  
+  .about-features-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .debug-toggle-button {
+    align-self: flex-start;
+  }
+}
