@@ -665,7 +665,104 @@ async function handleGetTokenWithCallback(source?: string): Promise<ShortcutsHan
 }
 
 /**
- * 通过图片URL进行记账，复用智能记账模态框UI
+ * 检查App是否已完全初始化
+ */
+function isAppFullyInitialized(): boolean {
+  // 检查关键组件是否已加载
+  const hasBottomNav = document.querySelector('.enhanced-bottom-navigation') !== null;
+  const hasProviders = document.querySelector('[data-providers-loaded]') !== null;
+
+  // 检查事件监听器是否已注册（通过检查是否有相关的DOM元素）
+  const hasEventListeners = typeof window !== 'undefined' &&
+    window.addEventListener &&
+    document.readyState === 'complete';
+
+  console.log('🔍 [ShortcutsHandler] App初始化状态检查:', {
+    hasBottomNav,
+    hasProviders,
+    hasEventListeners,
+    readyState: document.readyState
+  });
+
+  return hasBottomNav && hasEventListeners;
+}
+
+/**
+ * 等待App完全初始化
+ */
+async function waitForAppInitialization(maxWaitTime = 10000): Promise<boolean> {
+  const startTime = Date.now();
+  const checkInterval = 200; // 每200ms检查一次
+
+  while (Date.now() - startTime < maxWaitTime) {
+    if (isAppFullyInitialized()) {
+      console.log('✅ [ShortcutsHandler] App已完全初始化');
+      return true;
+    }
+
+    console.log('⏳ [ShortcutsHandler] 等待App初始化...');
+    await new Promise(resolve => setTimeout(resolve, checkInterval));
+  }
+
+  console.warn('⚠️ [ShortcutsHandler] App初始化等待超时');
+  return false;
+}
+
+/**
+ * 带重试机制的智能记账模态框触发
+ */
+async function triggerSmartAccountingDialogWithRetry(shortcutData: any, maxRetries = 3): Promise<ShortcutsHandleResult> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    console.log(`🔄 [ShortcutsHandler] 尝试触发智能记账模态框 (第${attempt}次)`);
+
+    try {
+      // 触发打开智能记账模态框的事件
+      if (typeof window !== 'undefined') {
+        const event = new CustomEvent('openSmartAccountingDialog', {
+          detail: {
+            type: 'shortcut-image',
+            imageUrl: shortcutData.imageUrl,
+            accountBookId: shortcutData.accountBookId
+          }
+        });
+        window.dispatchEvent(event);
+        console.log('📡 [ShortcutsHandler] 事件已触发');
+      }
+
+      // 等待一段时间，检查是否成功
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // 检查sessionStorage中的数据是否被消费（表示模态框已处理）
+      const remainingData = sessionStorage.getItem('shortcutImageData');
+      if (!remainingData) {
+        console.log('✅ [ShortcutsHandler] 快捷指令数据已被处理，模态框成功打开');
+        return {
+          success: true,
+          message: '正在打开智能记账界面...'
+        };
+      }
+
+      console.log(`⏳ [ShortcutsHandler] 第${attempt}次尝试未成功，等待重试...`);
+
+      if (attempt < maxRetries) {
+        // 等待更长时间再重试
+        await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+      }
+
+    } catch (error) {
+      console.error(`❌ [ShortcutsHandler] 第${attempt}次尝试失败:`, error);
+    }
+  }
+
+  console.warn('⚠️ [ShortcutsHandler] 所有重试都失败，但数据已保存，用户打开App时会自动处理');
+  return {
+    success: true,
+    message: '快捷指令数据已保存，请打开App查看'
+  };
+}
+
+/**
+ * 通过图片URL进行记账，复用智能记账模态框UI（带重试机制）
  */
 async function handleImageAccountingWithUI(
   imageUrl: string,
@@ -694,25 +791,28 @@ async function handleImageAccountingWithUI(
       };
     }
 
-    // 触发打开智能记账模态框的事件
-    console.log('🖼️ [ShortcutsHandler] 触发打开智能记账模态框');
+    // 等待App完全初始化
+    console.log('🖼️ [ShortcutsHandler] 等待App完全初始化...');
+    const isInitialized = await waitForAppInitialization();
 
-    // 通过自定义事件通知App打开智能记账模态框
-    if (typeof window !== 'undefined') {
-      const event = new CustomEvent('openSmartAccountingDialog', {
-        detail: {
-          type: 'shortcut-image',
-          imageUrl,
-          accountBookId: currentAccountId
-        }
-      });
-      window.dispatchEvent(event);
+    if (!isInitialized) {
+      console.warn('⚠️ [ShortcutsHandler] App初始化超时，尝试继续处理');
     }
 
-    return {
-      success: true,
-      message: '正在打开智能记账界面...'
+    // 将快捷指令数据保存到sessionStorage（持久化存储）
+    const shortcutData = {
+      type: 'shortcut-image',
+      imageUrl,
+      accountBookId: currentAccountId,
+      timestamp: Date.now()
     };
+
+    sessionStorage.setItem('shortcutImageData', JSON.stringify(shortcutData));
+    console.log('💾 [ShortcutsHandler] 快捷指令数据已保存到sessionStorage');
+
+    // 尝试触发事件，带重试机制
+    return await triggerSmartAccountingDialogWithRetry(shortcutData, 3);
+
   } catch (error: any) {
     console.error('🖼️ [ShortcutsHandler] 打开智能记账界面失败:', error);
 

@@ -99,12 +99,14 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
             <ModalNavigationProvider>
               <AuthInitializer>
                 <TokenMonitorProvider>
-                  <RouteGuard>{children}</RouteGuard>
-                  <OnboardingProvider />
-                  {/* 分享图片处理器 */}
-                  <ShareImageHandler />
-                  {/* Android Token管理器 */}
-                  <AndroidTokenManager />
+                  <div data-providers-loaded="true">
+                    <RouteGuard>{children}</RouteGuard>
+                    <OnboardingProvider />
+                    {/* 分享图片处理器 */}
+                    <ShareImageHandler />
+                    {/* Android Token管理器 */}
+                    <AndroidTokenManager />
+                  </div>
                 </TokenMonitorProvider>
               </AuthInitializer>
             </ModalNavigationProvider>

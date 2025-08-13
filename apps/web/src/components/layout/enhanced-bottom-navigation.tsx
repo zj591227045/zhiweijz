@@ -78,14 +78,14 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
     fetchGlobalConfig();
   }, [fetchGlobalConfig]);
 
-  // 监听快捷指令打开智能记账模态框的事件
+  // 监听快捷指令和分享图片打开智能记账模态框的事件
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const handleOpenSmartAccountingDialog = (event: CustomEvent) => {
-      console.log('🖼️ [BottomNav] 收到快捷指令打开智能记账模态框事件:', event.detail);
+      console.log('🖼️ [BottomNav] 收到打开智能记账模态框事件:', event.detail);
 
-      const { type, imageUrl, accountBookId } = event.detail;
+      const { source, type, imageUrl, accountBookId } = event.detail;
 
       if (type === 'shortcut-image' && imageUrl && accountBookId) {
         console.log('🖼️ [BottomNav] 打开智能记账模态框，准备处理快捷指令图片');
@@ -100,6 +100,14 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
           accountBookId,
           timestamp: Date.now()
         }));
+      } else if (source === 'share-image') {
+        console.log('📷 [BottomNav] 打开智能记账模态框，准备处理分享图片');
+
+        // 打开智能记账模态框
+        setIsSmartAccountingOpen(true);
+
+        // 分享图片数据已经在ShareImageHandler中保存到sessionStorage了
+        // 这里只需要打开模态框即可
       }
     };
 
@@ -174,7 +182,7 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
   const navigationContent = (
     <>
       <nav
-        className="bottom-nav"
+        className="bottom-nav enhanced-bottom-navigation"
         style={{
           position: 'fixed',
           bottom: '0',

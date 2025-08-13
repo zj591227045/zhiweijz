@@ -20,13 +20,16 @@ export function AppInitializer({ children }: AppInitializerProps) {
         console.log('🚀 [AppInitializer] 开始初始化应用...');
         await initializeApp();
         console.log('🚀 [AppInitializer] 应用初始化完成');
-        
+
         // 输出系统状态（仅开发环境）
         if (process.env.NODE_ENV === 'development') {
           const status = getPaymentSystemStatus();
           console.log('🚀 [AppInitializer] 系统状态:', status);
         }
-        
+
+        // 检查是否有未处理的快捷指令数据
+        checkPendingShortcutData();
+
       } catch (error) {
         console.error('🚀 [AppInitializer] 初始化失败:', error);
         setInitError(error instanceof Error ? error.message : '初始化失败');
@@ -37,6 +40,40 @@ export function AppInitializer({ children }: AppInitializerProps) {
 
     init();
   }, []);
+
+  // 检查未处理的快捷指令数据
+  const checkPendingShortcutData = () => {
+    try {
+      const shortcutDataStr = sessionStorage.getItem('shortcutImageData');
+      if (shortcutDataStr) {
+        const shortcutData = JSON.parse(shortcutDataStr);
+        const dataAge = Date.now() - shortcutData.timestamp;
+
+        console.log('🔍 [AppInitializer] 发现未处理的快捷指令数据:', { dataAge });
+
+        // 如果数据在30秒内，尝试触发处理
+        if (dataAge <= 30000) {
+          console.log('📡 [AppInitializer] 触发快捷指令数据处理');
+
+          // 延迟一段时间确保所有组件都已加载
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('openSmartAccountingDialog', {
+              detail: {
+                type: 'shortcut-image',
+                imageUrl: shortcutData.imageUrl,
+                accountBookId: shortcutData.accountBookId
+              }
+            }));
+          }, 1000);
+        } else {
+          console.log('🗑️ [AppInitializer] 快捷指令数据已过期，清除');
+          sessionStorage.removeItem('shortcutImageData');
+        }
+      }
+    } catch (error) {
+      console.error('🔍 [AppInitializer] 检查快捷指令数据失败:', error);
+    }
+  };
 
   // 显示初始化加载状态
   if (isInitializing) {

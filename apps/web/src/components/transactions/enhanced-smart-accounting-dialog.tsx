@@ -409,12 +409,15 @@ export default function EnhancedSmartAccountingDialog({
       const shortcutData = JSON.parse(shortcutDataStr);
       console.log('🖼️ [SmartAccountingDialog] 检测到快捷指令图片数据:', shortcutData);
 
-      // 检查数据是否是最近5秒内的（避免处理过期数据）
-      if (Date.now() - shortcutData.timestamp > 5000) {
-        console.log('🖼️ [SmartAccountingDialog] 快捷指令数据已过期，清除');
+      // 检查数据是否是最近30秒内的（增加容错时间，避免处理过期数据）
+      const dataAge = Date.now() - shortcutData.timestamp;
+      if (dataAge > 30000) {
+        console.log('🖼️ [SmartAccountingDialog] 快捷指令数据已过期，清除', { dataAge });
         sessionStorage.removeItem('shortcutImageData');
         return;
       }
+
+      console.log('🖼️ [SmartAccountingDialog] 快捷指令数据有效', { dataAge });
 
       // 检查是否是快捷指令图片类型
       if (shortcutData.type === 'shortcut-image' && shortcutData.imageUrl && shortcutData.accountBookId === accountBookId) {
@@ -433,6 +436,40 @@ export default function EnhancedSmartAccountingDialog({
     } catch (error) {
       console.error('🖼️ [SmartAccountingDialog] 处理快捷指令图片数据失败:', error);
       sessionStorage.removeItem('shortcutImageData');
+    }
+  };
+
+  // 检查并处理分享图片数据
+  const checkShareImageData = async () => {
+    try {
+      const shareImageDataStr = sessionStorage.getItem('shareImageData');
+      if (!shareImageDataStr) return;
+
+      const shareImageData = JSON.parse(shareImageDataStr);
+      console.log('📷 [SmartAccountingDialog] 检测到分享图片数据:', shareImageData);
+
+      // 检查是否是分享图片类型
+      if (shareImageData.type === 'share-image' && shareImageData.fileData && shareImageData.accountBookId === accountBookId) {
+        console.log('📷 [SmartAccountingDialog] 开始处理分享图片');
+
+        // 清除数据，避免重复处理
+        sessionStorage.removeItem('shareImageData');
+
+        // 设置UI状态：图片识别中
+        setIsProcessingMultimodal(true);
+        setDescription('正在识别分享的图片...');
+
+        // 将base64数据转换回File对象
+        const response = await fetch(shareImageData.fileData);
+        const blob = await response.blob();
+        const file = new File([blob], shareImageData.fileName, { type: shareImageData.fileType });
+
+        // 开始处理分享图片
+        await handleImageRecognition(file);
+      }
+    } catch (error) {
+      console.error('📷 [SmartAccountingDialog] 处理分享图片数据失败:', error);
+      sessionStorage.removeItem('shareImageData');
     }
   };
 
@@ -1965,6 +2002,10 @@ export default function EnhancedSmartAccountingDialog({
       const shortcutDataStr = sessionStorage.getItem('shortcutImageData');
       const hasShortcutData = shortcutDataStr && JSON.parse(shortcutDataStr).type === 'shortcut-image';
 
+      // 检查是否有分享图片数据
+      const shareImageDataStr = sessionStorage.getItem('shareImageData');
+      const hasShareImageData = shareImageDataStr && JSON.parse(shareImageDataStr).type === 'share-image';
+
       // 如果记账点系统启用，获取记账点余额
       if (config.accountingPointsEnabled) {
         fetchBalance()
@@ -1978,8 +2019,8 @@ export default function EnhancedSmartAccountingDialog({
         console.log('💰 记账点系统未启用，跳过余额获取');
       }
 
-      // 重置所有状态（快捷指令模式下保留某些状态）
-      if (!hasShortcutData) {
+      // 重置所有状态（快捷指令模式和分享图片模式下保留某些状态）
+      if (!hasShortcutData && !hasShareImageData) {
         setDescription('');
         setIsProcessingMultimodal(false);
       }
@@ -1994,6 +2035,11 @@ export default function EnhancedSmartAccountingDialog({
       // 检查并处理快捷指令图片数据（在状态重置之后）
       if (hasShortcutData) {
         checkShortcutImageData();
+      }
+
+      // 检查并处理分享图片数据（在状态重置之后）
+      if (hasShareImageData) {
+        checkShareImageData();
       }
 
       // 重置相机按钮状态
