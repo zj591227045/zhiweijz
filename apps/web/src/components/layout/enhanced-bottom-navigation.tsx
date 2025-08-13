@@ -7,10 +7,13 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { useGlobalAIStore } from '@/store/global-ai-store';
+import { useTransactionSelectionStore } from '@/store/transaction-selection-store';
+import { useDashboardStore } from '@/store/dashboard-store';
 import EnhancedSmartAccountingDialog from '../transactions/enhanced-smart-accounting-dialog';
 import { GlobalTransactionSelectionModal } from '../transactions/global-transaction-selection-modal';
 import { toast } from 'sonner';
 import { hapticPresets } from '@/lib/haptic-feedback';
+import { apiClient } from '@/lib/api-client';
 import '@/styles/smart-accounting-dialog.css';
 
 interface EnhancedBottomNavigationProps {
@@ -111,12 +114,52 @@ export function EnhancedBottomNavigation({ currentPath }: EnhancedBottomNavigati
       }
     };
 
+    const handlePendingTransactionRecords = (event: CustomEvent) => {
+      console.log('📝 [BottomNav] 收到待处理记录事件:', event.detail);
+
+      const { records, accountBookId, source } = event.detail;
+
+      if (records && accountBookId) {
+        console.log(`📝 [BottomNav] 显示${records.length}条待处理记录选择模态框`);
+
+        // 使用全局记录选择模态框
+        const { showGlobalSelectionModal } = useTransactionSelectionStore.getState();
+        showGlobalSelectionModal(records, accountBookId, async (selectedRecords, imageFileInfo) => {
+          // 创建选择的记录
+          const response = await apiClient.post(
+            `/ai/account/${accountBookId}/smart-accounting/create-selected`,
+            {
+              selectedRecords,
+              imageFileInfo
+            },
+            { timeout: 60000 }
+          );
+
+          if (response && response.success) {
+            toast.success(`成功创建 ${response.count} 条记账记录`);
+
+            // 刷新仪表盘数据
+            try {
+              const dashboardStore = useDashboardStore.getState();
+              await dashboardStore.refreshDashboardData(accountBookId);
+            } catch (refreshError) {
+              console.error('刷新数据失败:', refreshError);
+            }
+          } else {
+            throw new Error('创建记账记录失败');
+          }
+        });
+      }
+    };
+
     // 添加事件监听器
     window.addEventListener('openSmartAccountingDialog', handleOpenSmartAccountingDialog as EventListener);
+    window.addEventListener('pendingTransactionRecords', handlePendingTransactionRecords as EventListener);
 
     return () => {
       // 清理事件监听器
       window.removeEventListener('openSmartAccountingDialog', handleOpenSmartAccountingDialog as EventListener);
+      window.removeEventListener('pendingTransactionRecords', handlePendingTransactionRecords as EventListener);
     };
   }, []);
 

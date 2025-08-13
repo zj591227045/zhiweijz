@@ -941,7 +941,11 @@ async function handleImageAccountingByUrl(
       try {
         smartAccountingResponse = await apiClient.post(
           `/ai/account/${currentAccountId}/smart-accounting/direct`,
-          { description: recognizedText },
+          {
+            description: recognizedText,
+            source: 'image_recognition',
+            isFromImageRecognition: true // 关键：设置图片识别标识，确保多条记录时触发选择模态框
+          },
           { timeout: 60000 }
         );
         break; // 成功则跳出循环
@@ -966,7 +970,47 @@ async function handleImageAccountingByUrl(
       }
     }
 
-    console.log('🖼️ [ShortcutsHandler] 智能记账成功:', smartAccountingResponse.data);
+    console.log('🖼️ [ShortcutsHandler] 智能记账响应:', smartAccountingResponse.data);
+
+    // 检查是否需要用户选择记录
+    if (smartAccountingResponse.data?.requiresUserSelection && smartAccountingResponse.data?.records) {
+      console.log('📝 [ShortcutsHandler] 检测到多条记录，需要用户选择:', smartAccountingResponse.data.records.length);
+
+      // 显示提示信息，引导用户到App中选择记录
+      toast.info(`检测到${smartAccountingResponse.data.records.length}条记账记录，请在App中选择需要导入的记录`, {
+        duration: 6000
+      });
+
+      // 将记录数据保存到sessionStorage，供前端使用
+      sessionStorage.setItem('pendingTransactionRecords', JSON.stringify({
+        records: smartAccountingResponse.data.records,
+        accountBookId: currentAccountId,
+        source: 'shortcuts',
+        timestamp: Date.now()
+      }));
+
+      // 触发事件通知前端有待处理的记录
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('pendingTransactionRecords', {
+          detail: {
+            records: smartAccountingResponse.data.records,
+            accountBookId: currentAccountId,
+            source: 'shortcuts'
+          }
+        }));
+      }
+
+      return {
+        success: true,
+        message: `检测到${smartAccountingResponse.data.records.length}条记账记录，请在App中选择`,
+        requiresUserSelection: true,
+        data: {
+          visionResult: visionResponse.data,
+          records: smartAccountingResponse.data.records,
+          accountBookId: currentAccountId
+        }
+      };
+    }
 
     // 第三步：刷新仪表盘数据（复用前端模态框逻辑）
     try {

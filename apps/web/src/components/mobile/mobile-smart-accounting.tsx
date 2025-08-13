@@ -89,14 +89,13 @@ export function MobileSmartAccounting({
         }));
       }, 2000);
 
-      // 调用快捷指令API
+      // 调用智能记账直接添加API
       const response = await apiClient.post(
-        '/ai/smart-accounting/shortcuts',
+        `/ai/account/${data.accountId || currentAccountBook?.id}/smart-accounting/direct`,
         {
-          type: data.type,
-          data: data.data,
-          accountBookId: data.accountId || currentAccountBook?.id,
-          source: 'shortcuts-mobile'
+          description: data.data,
+          source: 'shortcuts-mobile',
+          isFromImageRecognition: data.type === 'image' // 如果是图片类型，设置图片识别标识
         },
         { timeout: 120000 }
       );

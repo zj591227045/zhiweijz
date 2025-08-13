@@ -1474,7 +1474,11 @@ export default function EnhancedSmartAccountingDialog({
 
         // 调用直接添加记账API（与相册图片记账相同的逻辑）
         try {
-          const requestBody: any = { description: recognizedText };
+          const requestBody: any = {
+            description: recognizedText,
+            source: 'image_recognition',
+            isFromImageRecognition: true // 关键：设置图片识别标识，确保多条记录时触发选择模态框
+          };
 
           // 如果有文件信息，添加附件文件ID
           if (response.data?.fileInfo?.id) {
@@ -1491,24 +1495,70 @@ export default function EnhancedSmartAccountingDialog({
             { timeout: 60000 }
           );
 
-          console.log('🖼️ [ShortcutImageRecognition] 直接记账成功:', directResponse.data);
+          if (directResponse && directResponse.requiresUserSelection && directResponse.records) {
+            // 需要用户选择记录
+            console.log('📝 [快捷指令图片记账] 需要用户选择记录:', directResponse.records.length);
+            progressManager.updateProgress(progressId, '检测到多条记账记录，请选择需要导入的记录');
 
-          // 刷新仪表盘数据
-          if (accountBookId) {
-            try {
-              console.log('🖼️ [ShortcutImageRecognition] 开始刷新仪表盘数据...');
-              await refreshDashboardData(accountBookId);
-              console.log('🖼️ [ShortcutImageRecognition] 仪表盘数据刷新完成');
-            } catch (refreshError) {
-              console.error('🖼️ [ShortcutImageRecognition] 刷新仪表盘数据失败:', refreshError);
+            // 延迟一下再显示选择模态框，确保智能记账模态框已经完全关闭
+            setTimeout(() => {
+              progressManager.hideProgress(progressId);
+              if (accountBookId) {
+                showGlobalSelectionModal(directResponse.records, accountBookId, async (selectedRecords, imageFileInfo) => {
+                  // 自定义的记录创建逻辑
+                  const response = await apiClient.post(
+                    `/ai/account/${accountBookId}/smart-accounting/create-selected`,
+                    {
+                      selectedRecords,
+                      imageFileInfo // 传递图片文件信息
+                    },
+                    { timeout: 60000 }
+                  );
+
+                  if (response && response.success) {
+                    toast.success(`成功创建 ${response.count} 条记账记录`);
+
+                    // 刷新仪表盘数据和记账点余额
+                    try {
+                      await refreshDashboardData(accountBookId);
+                      await fetchBalance();
+                    } catch (refreshError) {
+                      console.error('刷新数据失败:', refreshError);
+                    }
+                  } else {
+                    throw new Error('创建记账记录失败');
+                  }
+                }, response.data?.fileInfo); // 传递图片文件信息
+              }
+            }, 500);
+          } else if (directResponse && (directResponse.id || (directResponse.transactions && directResponse.count > 0))) {
+            const successMessage = directResponse.id
+              ? '快捷指令图片识别完成，记账成功'
+              : `快捷指令图片识别完成，已创建${directResponse.count}条记录`;
+            progressManager.showProgress(progressId, successMessage, 'success');
+
+            // 刷新仪表盘数据
+            if (accountBookId) {
+              try {
+                await refreshDashboardData(accountBookId);
+                // 刷新记账点余额
+                await fetchBalance();
+              } catch (refreshError) {
+                console.error('刷新仪表盘数据失败:', refreshError);
+              }
             }
-          }
 
-          // 完成请求，显示成功消息
-          const successMessage = directResponse.data?.id
-            ? '快捷指令图片识别完成，记账成功'
-            : `快捷指令图片识别完成，已创建${directResponse.data?.count || 1}条记录`;
-          progressManager.completeRequest(progressId, true, successMessage);
+            // 清空描述并关闭模态框
+            setDescription('');
+            onClose();
+          } else {
+            console.error('🖼️ [快捷指令图片记账] 直接记账失败，响应格式异常:', directResponse);
+            progressManager.completeRequest(
+              progressId,
+              false,
+              '快捷指令记账失败，请重试'
+            );
+          }
 
         } catch (directError) {
           console.error('🖼️ [ShortcutImageRecognition] 直接记账失败:', directError);
