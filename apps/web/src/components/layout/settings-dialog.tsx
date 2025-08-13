@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AccountBookSelector } from './account-book-selector';
 import { ThemeSwitcherPanel } from './theme-switcher-panel';
+import { DisplaySettingsPanel } from './display-settings-panel';
 
 interface SettingsDialogProps {
   isOpen: boolean;
@@ -46,11 +47,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
       case 'theme':
         return <ThemeSwitcherPanel onClose={onClose} />;
       case 'display':
-        return (
-          <div className="p-4 text-center text-gray-500">
-            <p>显示设置功能即将推出</p>
-          </div>
-        );
+        return <DisplaySettingsPanel onClose={onClose} />;
       default:
         return null;
     }

@@ -1,0 +1,1732 @@
+/* 紧凑布局样式 - 基于CSS变量的动态布局 */
+
+/* 紧凑布局的全局样式调整 */
+.layout-compact {
+  /* 全局字体大小调整 */
+  --font-size-xs: 10px;
+  --font-size-sm: 11px;
+  --font-size-base: 13px;
+  --font-size-lg: 14px;
+  --font-size-xl: 16px;
+  --font-size-2xl: 18px;
+  
+  /* 间距调整 */
+  --spacing-xs: 2px;
+  --spacing-sm: 4px;
+  --spacing-base: 6px;
+  --spacing-lg: 8px;
+  --spacing-xl: 10px;
+  --spacing-2xl: 12px;
+  
+  /* 组件尺寸调整 */
+  --button-height: 36px;
+  --input-height: 36px;
+  --card-border-radius: 8px;
+}
+
+/* 页面容器紧凑化 */
+.layout-compact .main-content {
+  padding: var(--spacing-lg) !important;
+  gap: var(--spacing-sm) !important;
+  padding-bottom: 16px !important;
+}
+
+.layout-compact .main-content.dashboard-content {
+  gap: var(--spacing-sm) !important;
+  padding-bottom: 16px !important;
+}
+
+.layout-compact .main-content.no-bottom-nav {
+  padding-bottom: 16px !important;
+}
+
+/* 应用容器紧凑化 */
+.layout-compact .app-container {
+  max-width: 480px !important;
+}
+
+/* 页面容器紧凑化 */
+.layout-compact .page-container {
+  padding-bottom: 56px !important;
+}
+
+.layout-compact .container {
+  padding: var(--spacing-lg) !important;
+}
+
+/* 头部导航栏紧凑化 */
+.layout-compact .header {
+  height: var(--header-height) !important;
+  padding: 0 12px !important;
+}
+
+.layout-compact .header-title {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .icon-button {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 16px !important;
+}
+
+/* 底部导航栏紧凑化 */
+.layout-compact .bottom-nav {
+  height: var(--bottom-nav-height) !important;
+}
+
+.layout-compact .nav-item {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .nav-item i {
+  font-size: var(--nav-icon-size) !important;
+  margin-bottom: 2px !important;
+}
+
+.layout-compact .add-icon {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+.layout-compact .add-icon i {
+  font-size: 18px !important;
+}
+
+/* 卡片组件紧凑化 */
+.layout-compact .balance-card,
+.layout-compact .budget-progress,
+.layout-compact .recent-transactions,
+.layout-compact .dashboard-budget-section {
+  padding: var(--card-padding) !important;
+  margin-bottom: var(--card-margin) !important;
+  border-radius: var(--card-border-radius) !important;
+}
+
+/* 月度概览紧凑化 */
+.layout-compact .balance-header {
+  margin-bottom: 10px !important;
+}
+
+.layout-compact .balance-header h2 {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .balance-header .date {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .balance-item .label {
+  font-size: var(--font-size-small) !important;
+  margin-bottom: 2px !important;
+}
+
+.layout-compact .balance-item .amount {
+  font-size: var(--font-size-lg) !important;
+}
+
+.layout-compact .balance-divider {
+  height: 24px !important;
+}
+
+/* 区块标题紧凑化 */
+.layout-compact .section-header {
+  margin-bottom: var(--section-spacing) !important;
+}
+
+.layout-compact .section-header h2 {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .view-all {
+  font-size: var(--font-size-body) !important;
+}
+
+/* 预算进度紧凑化 */
+.layout-compact .dashboard-budget-card {
+  gap: 4px !important;
+}
+
+.layout-compact .dashboard-budget-card .budget-info {
+  margin-bottom: 6px !important;
+}
+
+.layout-compact .dashboard-category-icon {
+  width: var(--icon-size) !important;
+  height: var(--icon-size) !important;
+  font-size: 12px !important;
+}
+
+.layout-compact .dashboard-category-name {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .dashboard-budget-amount .percentage-display {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .dashboard-budget-amount .amount-display {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .dashboard-progress-bar-custom {
+  height: 6px !important;
+}
+
+/* 交易列表紧凑化 */
+.layout-compact .transaction-group {
+  margin-bottom: var(--spacing-lg) !important;
+}
+
+.layout-compact .transaction-date {
+  font-size: var(--font-size-body) !important;
+  margin-bottom: 4px !important;
+  padding-bottom: 2px !important;
+}
+
+.layout-compact .transaction-list {
+  gap: var(--spacing-sm) !important;
+}
+
+.layout-compact .transaction-item {
+  gap: var(--spacing-lg) !important;
+  padding: 4px 0 !important;
+}
+
+.layout-compact .transaction-icon {
+  width: var(--transaction-icon-size) !important;
+  height: var(--transaction-icon-size) !important;
+  font-size: 12px !important;
+}
+
+.layout-compact .transaction-info .transaction-title {
+  font-size: var(--font-size-body) !important;
+  margin-bottom: 1px !important;
+}
+
+.layout-compact .transaction-info .transaction-category {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .transaction-amount {
+  font-size: var(--font-size-body) !important;
+}
+
+/* 表单元素紧凑化 */
+.layout-compact .form-input,
+.layout-compact .form-textarea,
+.layout-compact .form-select {
+  height: var(--input-height) !important;
+  padding: 8px 12px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .form-label {
+  font-size: var(--font-size-body) !important;
+  margin-bottom: 4px !important;
+}
+
+/* 按钮紧凑化 */
+.layout-compact .btn,
+.layout-compact .primary-button,
+.layout-compact .secondary-button {
+  height: var(--button-height) !important;
+  padding: 0 16px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+/* 设置页面紧凑化 */
+.layout-compact .settings-item {
+  padding: 10px 16px !important;
+}
+
+.layout-compact .item-title {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .item-description {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .item-icon {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.layout-compact .item-icon i {
+  font-size: 16px !important;
+}
+
+/* 统计页面紧凑化 */
+.layout-compact .stat-card {
+  padding: var(--card-padding) !important;
+}
+
+.layout-compact .stat-title {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .stat-value {
+  font-size: var(--font-size-xl) !important;
+}
+
+/* 模态框和弹窗紧凑化 */
+.layout-compact .modal-header {
+  padding: 12px 16px !important;
+}
+
+.layout-compact .modal-title {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .modal-body {
+  padding: 12px 16px !important;
+}
+
+/* iOS安全区域适配 */
+.layout-compact.ios-app .header {
+  margin-top: calc(env(safe-area-inset-top, 44px) - 12px) !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  min-height: var(--header-height) !important;
+}
+
+.layout-compact.ios-app .bottom-nav {
+  height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 6px) !important;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6px) !important;
+  padding-top: 6px !important;
+}
+
+/* Android适配 */
+.layout-compact.android-app .bottom-nav {
+  padding-bottom: 6px !important;
+}
+
+/* 记账列表紧凑化 */
+.layout-compact .unified-transaction-list .transaction-group {
+  margin-bottom: var(--spacing-sm) !important;
+}
+
+.layout-compact .unified-transaction-list .transaction-date {
+  font-size: var(--font-size-body) !important;
+  margin-bottom: 3px !important;
+  padding-bottom: 2px !important;
+}
+
+.layout-compact .unified-transaction-list .transaction-list {
+  gap: 2px !important;
+}
+
+.layout-compact .unified-transaction-list .transaction-item {
+  gap: var(--spacing-lg) !important;
+  padding: 3px 0 !important;
+}
+
+.layout-compact .unified-transaction-list .transaction-icon {
+  width: var(--transaction-icon-size) !important;
+  height: var(--transaction-icon-size) !important;
+  font-size: 11px !important;
+}
+
+.layout-compact .unified-transaction-list .transaction-title {
+  font-size: var(--font-size-body) !important;
+  margin-bottom: 0 !important;
+}
+
+.layout-compact .unified-transaction-list .transaction-category {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .unified-transaction-list .transaction-amount {
+  font-size: var(--font-size-body) !important;
+}
+
+/* 页面级记账列表紧凑化 */
+.layout-compact .transactions-page .unified-transaction-list .transaction-date {
+  padding: 6px 12px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .transactions-page .unified-transaction-list .transaction-item {
+  padding: 10px !important;
+  gap: var(--spacing-lg) !important;
+}
+
+/* 模态框中的记账列表紧凑化 */
+.layout-compact .modal-content .unified-transaction-list .transaction-date {
+  padding: 8px 16px 6px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .modal-content .unified-transaction-list .transaction-item {
+  padding: 10px 16px !important;
+  gap: var(--spacing-lg) !important;
+}
+
+/* 滑动记账项紧凑化 */
+.layout-compact .swipeable-transaction-item .transaction-content {
+  padding: 8px 12px !important;
+  gap: var(--spacing-lg) !important;
+}
+
+.layout-compact .swipeable-transaction-item .transaction-icon {
+  width: var(--transaction-icon-size) !important;
+  height: var(--transaction-icon-size) !important;
+}
+
+.layout-compact .swipeable-transaction-item .transaction-details {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .swipeable-transaction-item .transaction-details > div:first-child {
+  margin-bottom: 1px !important;
+}
+
+.layout-compact .swipeable-transaction-item .transaction-details > div:first-child span {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .swipeable-transaction-item .transaction-details > div:nth-child(2) {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .swipeable-transaction-item .transaction-amount {
+  font-size: var(--font-size-body) !important;
+}
+
+/* 统计页面紧凑化 */
+.layout-compact .statistics-analysis-page .summary-card {
+  padding: 12px !important;
+  margin-bottom: 10px !important;
+}
+
+.layout-compact .statistics-analysis-page .summary-header {
+  font-size: var(--font-size-title) !important;
+  margin-bottom: 10px !important;
+}
+
+.layout-compact .statistics-analysis-page .summary-item .summary-label {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .statistics-analysis-page .summary-item .summary-value {
+  font-size: var(--font-size-lg) !important;
+}
+
+.layout-compact .statistics-analysis-page .chart-card {
+  padding: 12px !important;
+  margin-bottom: 10px !important;
+}
+
+.layout-compact .statistics-analysis-page .chart-header {
+  margin-bottom: 10px !important;
+}
+
+.layout-compact .statistics-analysis-page .chart-title {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .statistics-analysis-page .chart-container {
+  height: 180px !important;
+  margin-bottom: 10px !important;
+}
+
+.layout-compact .statistics-analysis-page .filters-container {
+  margin-bottom: 10px !important;
+}
+
+.layout-compact .statistics-analysis-page .stats-nav-button {
+  padding: 12px !important;
+  gap: 6px !important;
+}
+
+.layout-compact .statistics-analysis-page .stats-nav-icon {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 16px !important;
+}
+
+/* 分类分布组件紧凑化 */
+.layout-compact .statistics-analysis-page .legend-container {
+  padding: 10px !important;
+  margin-top: 10px !important;
+}
+
+.layout-compact .statistics-analysis-page .legend-item {
+  padding: 6px 0 !important;
+}
+
+.layout-compact .statistics-analysis-page .legend-color {
+  width: 10px !important;
+  height: 10px !important;
+}
+
+.layout-compact .statistics-analysis-page .empty-chart {
+  padding: 20px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+/* 趋势图表紧凑化 */
+.layout-compact .statistics-analysis-page .trend-chart-container {
+  height: 160px !important;
+}
+
+/* 筛选器按钮紧凑化 */
+.layout-compact .statistics-analysis-page .chart-action {
+  padding: 4px 8px !important;
+  font-size: var(--font-size-body) !important;
+  min-width: 40px !important;
+}
+
+.layout-compact .statistics-analysis-page .chart-actions {
+  gap: 6px !important;
+  margin-bottom: 10px !important;
+}
+
+/* 日期范围选择器紧凑化 */
+.layout-compact .statistics-analysis-page .filters-container {
+  margin-bottom: 8px !important;
+}
+
+.layout-compact .statistics-analysis-page .date-display {
+  font-size: var(--font-size-lg) !important;
+}
+
+/* 筛选器容器紧凑化 */
+.layout-compact .filter-container {
+  margin-bottom: 10px !important;
+}
+
+.layout-compact .filter-container-header {
+  padding: 8px 12px !important;
+  min-height: 40px !important;
+}
+
+.layout-compact .filter-container-title h3 {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .filter-container-content {
+  padding: 8px 12px !important;
+}
+
+.layout-compact .filter-row {
+  gap: 6px !important;
+  margin-bottom: 8px !important;
+}
+
+.layout-compact .filter-group {
+  margin-bottom: 8px !important;
+}
+
+.layout-compact .filter-label {
+  font-size: var(--font-size-body) !important;
+  margin-bottom: 4px !important;
+}
+
+.layout-compact .filter-select,
+.layout-compact .filter-input {
+  height: 32px !important;
+  padding: 4px 8px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .filter-button {
+  height: 32px !important;
+  padding: 0 12px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+/* 标签显示组件紧凑化 */
+.layout-compact .tag-display {
+  gap: 2px !important;
+}
+
+.layout-compact .tag-display .px-2 {
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+}
+
+.layout-compact .tag-display .py-1 {
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+}
+
+.layout-compact .tag-display .px-3 {
+  padding-left: 6px !important;
+  padding-right: 6px !important;
+}
+
+.layout-compact .tag-display .py-1\.5 {
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
+}
+
+.layout-compact .tag-display .text-xs {
+  font-size: 10px !important;
+}
+
+.layout-compact .tag-display .max-w-20 {
+  max-width: 60px !important;
+}
+
+/* 标签列表项紧凑化 */
+.layout-compact .tag-list-item {
+  padding: 8px 12px !important;
+}
+
+.layout-compact .tag-list-item-name {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .tag-list-item-count {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .tag-list-item-description {
+  font-size: var(--font-size-small) !important;
+  margin-top: 2px !important;
+}
+
+/* 标签选择器紧凑化 */
+.layout-compact .tag-selector .min-h-10 {
+  min-height: 32px !important;
+}
+
+.layout-compact .tag-selector .px-3 {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+.layout-compact .tag-selector .py-2 {
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+/* 二级页面紧凑化 */
+
+/* 记账编辑页面紧凑化 */
+.layout-compact .transaction-edit-container {
+  gap: 16px !important;
+  padding-bottom: 100px !important;
+}
+
+.layout-compact .transaction-edit-container .form-section {
+  margin-bottom: 12px !important;
+}
+
+.layout-compact .transaction-edit-container .form-group {
+  margin-bottom: 10px !important;
+}
+
+.layout-compact .transaction-edit-container .form-label {
+  font-size: var(--font-size-body) !important;
+  margin-bottom: 4px !important;
+}
+
+.layout-compact .transaction-edit-container .amount-input-container {
+  margin-bottom: 16px !important;
+}
+
+.layout-compact .transaction-edit-container .amount-input {
+  font-size: 28px !important;
+}
+
+.layout-compact .transaction-edit-container .currency-symbol {
+  font-size: 20px !important;
+}
+
+.layout-compact .transaction-edit-container .category-selector {
+  padding: 8px 12px !important;
+}
+
+.layout-compact .transaction-edit-container .category-item {
+  padding: 8px !important;
+  gap: 8px !important;
+}
+
+.layout-compact .transaction-edit-container .category-icon {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 12px !important;
+}
+
+.layout-compact .transaction-edit-container .category-name {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .transaction-edit-container .action-buttons {
+  gap: 8px !important;
+  padding: 12px !important;
+}
+
+.layout-compact .transaction-edit-container .save-button,
+.layout-compact .transaction-edit-container .back-button {
+  padding: 10px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+/* 数字键盘紧凑化 */
+.layout-compact .numeric-keyboard {
+  padding: 8px 6px 6px !important;
+}
+
+.layout-compact .numeric-keyboard .keyboard-row {
+  gap: 4px !important;
+  margin-bottom: 4px !important;
+}
+
+.layout-compact .numeric-keyboard .keyboard-key {
+  height: 44px !important;
+  font-size: var(--font-size-lg) !important;
+}
+
+/* 分类管理页面紧凑化 */
+.layout-compact .category-type-toggle {
+  margin-bottom: 10px !important;
+}
+
+.layout-compact .category-type-toggle .type-button {
+  padding: 8px 16px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .category-grid {
+  gap: 6px !important;
+}
+
+.layout-compact .category-grid .category-item {
+  padding: 8px !important;
+  gap: 6px !important;
+}
+
+.layout-compact .category-grid .category-icon {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 12px !important;
+}
+
+.layout-compact .category-grid .category-name {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .category-list .category-item {
+  padding: 10px 12px !important;
+  gap: 10px !important;
+}
+
+.layout-compact .category-list .category-icon {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 14px !important;
+}
+
+.layout-compact .category-list .category-name {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .category-list .category-actions {
+  gap: 6px !important;
+}
+
+.layout-compact .category-list .action-button {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 12px !important;
+}
+
+/* 预算管理页面紧凑化 */
+.layout-compact .budget-list-page .budget-item {
+  padding: 12px !important;
+  margin-bottom: 8px !important;
+}
+
+.layout-compact .budget-list-page .budget-header {
+  margin-bottom: 8px !important;
+}
+
+.layout-compact .budget-list-page .budget-name {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .budget-list-page .budget-period {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .budget-list-page .budget-amount {
+  font-size: var(--font-size-lg) !important;
+}
+
+.layout-compact .budget-list-page .budget-progress {
+  margin-top: 8px !important;
+}
+
+.layout-compact .budget-list-page .progress-bar {
+  height: 6px !important;
+}
+
+.layout-compact .budget-list-page .budget-actions {
+  gap: 6px !important;
+}
+
+.layout-compact .budget-list-page .action-button {
+  padding: 6px 10px !important;
+  font-size: var(--font-size-small) !important;
+}
+
+/* 设置页面紧凑化 */
+.layout-compact .settings-page .settings-section {
+  margin-bottom: 16px !important;
+}
+
+.layout-compact .settings-page .section-title {
+  font-size: var(--font-size-title) !important;
+  margin-bottom: 8px !important;
+}
+
+.layout-compact .settings-page .settings-item {
+  padding: 10px 12px !important;
+}
+
+.layout-compact .settings-page .item-icon {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.layout-compact .settings-page .item-icon i {
+  font-size: 14px !important;
+}
+
+.layout-compact .settings-page .item-content {
+  gap: 6px !important;
+}
+
+.layout-compact .settings-page .item-title {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .settings-page .item-description {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .settings-page .item-action {
+  font-size: var(--font-size-body) !important;
+}
+
+/* 模态框紧凑化 */
+
+/* 通用模态框紧凑化 */
+.layout-compact .modal-overlay {
+  /* 保持全屏覆盖 */
+}
+
+.layout-compact .modal-container {
+  /* 保持容器尺寸 */
+}
+
+.layout-compact .modal-content {
+  /* 保持内容区域 */
+}
+
+.layout-compact .modal-header {
+  padding: 12px 16px !important;
+  min-height: 44px !important;
+}
+
+.layout-compact .modal-title {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .modal-close {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 14px !important;
+}
+
+.layout-compact .modal-body {
+  padding: 12px 16px !important;
+}
+
+/* 分类编辑模态框紧凑化 */
+.layout-compact .category-edit-modal__header {
+  padding: 12px 20px !important;
+  min-height: 48px !important;
+}
+
+.layout-compact .category-edit-modal__title {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .category-edit-modal__back-button {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 16px !important;
+}
+
+.layout-compact .category-edit-modal__content {
+  padding: 16px 20px !important;
+}
+
+.layout-compact .category-edit-modal .form-section {
+  margin-bottom: 16px !important;
+}
+
+.layout-compact .category-edit-modal .form-group {
+  margin-bottom: 12px !important;
+}
+
+.layout-compact .category-edit-modal .form-label {
+  font-size: var(--font-size-body) !important;
+  margin-bottom: 6px !important;
+}
+
+.layout-compact .category-edit-modal .form-input {
+  height: 36px !important;
+  padding: 8px 12px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .category-edit-modal .type-selector {
+  gap: 8px !important;
+}
+
+.layout-compact .category-edit-modal .type-button {
+  padding: 8px 16px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .category-edit-modal .icon-grid {
+  gap: 8px !important;
+}
+
+.layout-compact .category-edit-modal .icon-item {
+  width: 36px !important;
+  height: 36px !important;
+  font-size: 14px !important;
+}
+
+.layout-compact .category-edit-modal .color-grid {
+  gap: 6px !important;
+}
+
+.layout-compact .category-edit-modal .color-item {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.layout-compact .category-edit-modal .action-buttons {
+  gap: 8px !important;
+  padding: 12px 20px !important;
+}
+
+.layout-compact .category-edit-modal .action-button {
+  padding: 10px 16px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+/* 预算编辑模态框紧凑化 */
+.layout-compact .budget-edit-modal .header {
+  height: var(--header-height) !important;
+  padding: 0 12px !important;
+}
+
+.layout-compact .budget-edit-modal .header-title {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .budget-edit-modal .icon-button {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 16px !important;
+}
+
+.layout-compact .budget-edit-modal .main-content {
+  padding: 16px !important;
+}
+
+.layout-compact .budget-edit-modal .budget-form {
+  gap: 16px !important;
+}
+
+.layout-compact .budget-edit-modal .form-section {
+  padding: 12px !important;
+  margin-bottom: 10px !important;
+}
+
+.layout-compact .budget-edit-modal .section-title {
+  font-size: var(--font-size-title) !important;
+  margin-bottom: 10px !important;
+}
+
+.layout-compact .budget-edit-modal .form-group {
+  margin-bottom: 10px !important;
+}
+
+.layout-compact .budget-edit-modal .form-label {
+  font-size: var(--font-size-body) !important;
+  margin-bottom: 4px !important;
+}
+
+.layout-compact .budget-edit-modal .form-input,
+.layout-compact .budget-edit-modal .form-select {
+  height: 36px !important;
+  padding: 8px 12px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .budget-edit-modal .budget-type-card {
+  padding: 10px !important;
+}
+
+.layout-compact .budget-edit-modal .budget-type-title {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .budget-edit-modal .budget-type-description {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .budget-edit-modal .category-budget-item {
+  padding: 8px 12px !important;
+  gap: 8px !important;
+}
+
+.layout-compact .budget-edit-modal .category-budget-icon {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 12px !important;
+}
+
+.layout-compact .budget-edit-modal .category-budget-name {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .budget-edit-modal .category-budget-amount {
+  font-size: var(--font-size-body) !important;
+}
+
+/* 确认对话框紧凑化 */
+.layout-compact .confirm-dialog {
+  /* 保持对话框尺寸 */
+}
+
+.layout-compact .confirm-dialog .dialog-header {
+  padding: 16px 20px 12px !important;
+}
+
+.layout-compact .confirm-dialog .dialog-title {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .confirm-dialog .dialog-icon {
+  width: 36px !important;
+  height: 36px !important;
+  font-size: 18px !important;
+}
+
+.layout-compact .confirm-dialog .dialog-body {
+  padding: 0 20px 16px !important;
+}
+
+.layout-compact .confirm-dialog .dialog-message {
+  font-size: var(--font-size-body) !important;
+  line-height: 1.4 !important;
+}
+
+.layout-compact .confirm-dialog .dialog-actions {
+  padding: 12px 20px 16px !important;
+  gap: 8px !important;
+}
+
+.layout-compact .confirm-dialog .dialog-button {
+  padding: 8px 16px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+/* 删除确认对话框紧凑化 */
+.layout-compact .delete-confirmation-dialog .dialog-content {
+  padding: 16px 20px !important;
+}
+
+.layout-compact .delete-confirmation-dialog .dialog-title {
+  font-size: var(--font-size-title) !important;
+  margin-bottom: 8px !important;
+}
+
+.layout-compact .delete-confirmation-dialog .dialog-message {
+  font-size: var(--font-size-body) !important;
+  margin-bottom: 12px !important;
+}
+
+.layout-compact .delete-confirmation-dialog .item-info {
+  padding: 8px 12px !important;
+  margin: 8px 0 !important;
+}
+
+.layout-compact .delete-confirmation-dialog .item-name {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .delete-confirmation-dialog .item-amount {
+  font-size: var(--font-size-lg) !important;
+}
+
+.layout-compact .delete-confirmation-dialog .dialog-actions {
+  gap: 8px !important;
+  margin-top: 16px !important;
+}
+
+.layout-compact .delete-confirmation-dialog .dialog-button {
+  padding: 8px 16px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+/* 其他二级页面紧凑化 */
+
+/* 账本管理页面紧凑化 */
+.layout-compact .account-books-page .account-book-item {
+  padding: 12px !important;
+  margin-bottom: 8px !important;
+}
+
+.layout-compact .account-books-page .account-book-header {
+  margin-bottom: 6px !important;
+}
+
+.layout-compact .account-books-page .account-book-name {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .account-books-page .account-book-description {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .account-books-page .account-book-stats {
+  gap: 12px !important;
+  margin-top: 8px !important;
+}
+
+.layout-compact .account-books-page .stat-item {
+  gap: 4px !important;
+}
+
+.layout-compact .account-books-page .stat-label {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .account-books-page .stat-value {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .account-books-page .account-book-actions {
+  gap: 6px !important;
+}
+
+.layout-compact .account-books-page .action-button {
+  padding: 6px 10px !important;
+  font-size: var(--font-size-small) !important;
+}
+
+/* 备份恢复页面紧凑化 */
+.layout-compact .backup-page .backup-section {
+  margin-bottom: 16px !important;
+}
+
+.layout-compact .backup-page .section-title {
+  font-size: var(--font-size-title) !important;
+  margin-bottom: 8px !important;
+}
+
+.layout-compact .backup-page .section-description {
+  font-size: var(--font-size-small) !important;
+  margin-bottom: 10px !important;
+}
+
+.layout-compact .backup-page .backup-item {
+  padding: 12px !important;
+  margin-bottom: 8px !important;
+}
+
+.layout-compact .backup-page .backup-info {
+  gap: 6px !important;
+}
+
+.layout-compact .backup-page .backup-name {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .backup-page .backup-date {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .backup-page .backup-size {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .backup-page .backup-actions {
+  gap: 6px !important;
+}
+
+.layout-compact .backup-page .backup-button {
+  padding: 8px 12px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+/* 主题设置页面紧凑化 */
+.layout-compact .theme-page .theme-option {
+  padding: 12px !important;
+  margin-bottom: 8px !important;
+}
+
+.layout-compact .theme-page .theme-preview {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+.layout-compact .theme-page .theme-info {
+  gap: 4px !important;
+}
+
+.layout-compact .theme-page .theme-name {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .theme-page .theme-description {
+  font-size: var(--font-size-small) !important;
+}
+
+/* AI设置页面紧凑化 */
+.layout-compact .ai-settings-page .ai-section {
+  margin-bottom: 16px !important;
+}
+
+.layout-compact .ai-settings-page .ai-feature-item {
+  padding: 12px !important;
+  margin-bottom: 8px !important;
+}
+
+.layout-compact .ai-settings-page .feature-icon {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 14px !important;
+}
+
+.layout-compact .ai-settings-page .feature-info {
+  gap: 4px !important;
+}
+
+.layout-compact .ai-settings-page .feature-name {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .ai-settings-page .feature-description {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .ai-settings-page .feature-toggle {
+  /* 保持开关尺寸 */
+}
+
+/* 快捷记账页面紧凑化 */
+.layout-compact .shortcuts-page .shortcut-item {
+  padding: 12px !important;
+  margin-bottom: 8px !important;
+}
+
+.layout-compact .shortcuts-page .shortcut-icon {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 14px !important;
+}
+
+.layout-compact .shortcuts-page .shortcut-info {
+  gap: 4px !important;
+}
+
+.layout-compact .shortcuts-page .shortcut-name {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .shortcuts-page .shortcut-description {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .shortcuts-page .shortcut-amount {
+  font-size: var(--font-size-lg) !important;
+}
+
+.layout-compact .shortcuts-page .shortcut-actions {
+  gap: 6px !important;
+}
+
+.layout-compact .shortcuts-page .shortcut-button {
+  padding: 6px 10px !important;
+  font-size: var(--font-size-small) !important;
+}
+
+/* 会员中心页面紧凑化 */
+.layout-compact .membership-page .membership-card {
+  padding: 16px !important;
+  margin-bottom: 12px !important;
+}
+
+.layout-compact .membership-page .membership-header {
+  margin-bottom: 10px !important;
+}
+
+.layout-compact .membership-page .membership-title {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .membership-page .membership-status {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .membership-page .membership-features {
+  gap: 6px !important;
+  margin-top: 10px !important;
+}
+
+.layout-compact .membership-page .feature-item {
+  padding: 6px 0 !important;
+}
+
+.layout-compact .membership-page .feature-text {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .membership-page .membership-actions {
+  gap: 8px !important;
+  margin-top: 12px !important;
+}
+
+.layout-compact .membership-page .membership-button {
+  padding: 8px 16px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+/* 个人资料页面紧凑化 */
+.layout-compact .profile-page .profile-section {
+  margin-bottom: 16px !important;
+}
+
+.layout-compact .profile-page .profile-avatar {
+  width: 60px !important;
+  height: 60px !important;
+}
+
+.layout-compact .profile-page .profile-info {
+  gap: 4px !important;
+}
+
+.layout-compact .profile-page .profile-name {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .profile-page .profile-email {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .profile-page .profile-stats {
+  gap: 12px !important;
+  margin-top: 10px !important;
+}
+
+.layout-compact .profile-page .stat-item {
+  gap: 4px !important;
+}
+
+.layout-compact .profile-page .stat-label {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .profile-page .stat-value {
+  font-size: var(--font-size-lg) !important;
+}
+
+/* 特殊组件紧凑化 */
+
+/* 智能记账对话框紧凑化 */
+.layout-compact .smart-accounting-dialog .dialog-header {
+  padding: 12px 16px !important;
+  min-height: 44px !important;
+}
+
+.layout-compact .smart-accounting-dialog .dialog-title {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .smart-accounting-dialog .dialog-content {
+  padding: 12px 16px !important;
+}
+
+.layout-compact .smart-accounting-dialog .input-section {
+  margin-bottom: 12px !important;
+}
+
+.layout-compact .smart-accounting-dialog .input-label {
+  font-size: var(--font-size-body) !important;
+  margin-bottom: 4px !important;
+}
+
+.layout-compact .smart-accounting-dialog .input-field {
+  height: 36px !important;
+  padding: 8px 12px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .smart-accounting-dialog .suggestion-item {
+  padding: 8px 12px !important;
+  gap: 8px !important;
+}
+
+.layout-compact .smart-accounting-dialog .suggestion-icon {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 12px !important;
+}
+
+.layout-compact .smart-accounting-dialog .suggestion-text {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .smart-accounting-dialog .dialog-actions {
+  padding: 12px 16px !important;
+  gap: 8px !important;
+}
+
+.layout-compact .smart-accounting-dialog .dialog-button {
+  padding: 8px 16px !important;
+  font-size: var(--font-size-body) !important;
+}
+
+/* 家庭成员管理模态框紧凑化 */
+.layout-compact .family-members-modal .modal-header {
+  padding: 12px 16px !important;
+  min-height: 44px !important;
+}
+
+.layout-compact .family-members-modal .modal-title {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .family-members-modal .modal-content {
+  padding: 12px 16px !important;
+}
+
+.layout-compact .family-members-modal .member-item {
+  padding: 10px 12px !important;
+  margin-bottom: 8px !important;
+}
+
+.layout-compact .family-members-modal .member-avatar {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.layout-compact .family-members-modal .member-info {
+  gap: 4px !important;
+}
+
+.layout-compact .family-members-modal .member-name {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .family-members-modal .member-role {
+  font-size: var(--font-size-small) !important;
+}
+
+.layout-compact .family-members-modal .member-actions {
+  gap: 6px !important;
+}
+
+.layout-compact .family-members-modal .member-button {
+  padding: 4px 8px !important;
+  font-size: var(--font-size-small) !important;
+}
+
+/* 内容模态框紧凑化 */
+.layout-compact .content-info-modal .modal-header {
+  padding: 12px 16px !important;
+  min-height: 44px !important;
+}
+
+.layout-compact .content-info-modal .modal-title {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .content-info-modal .modal-content {
+  padding: 12px 16px !important;
+}
+
+.layout-compact .content-info-modal .content-section {
+  margin-bottom: 12px !important;
+}
+
+.layout-compact .content-info-modal .content-title {
+  font-size: var(--font-size-body) !important;
+  margin-bottom: 6px !important;
+}
+
+.layout-compact .content-info-modal .content-text {
+  font-size: var(--font-size-body) !important;
+  line-height: 1.4 !important;
+}
+
+/* 通知和提示组件紧凑化 */
+.layout-compact .notification-toast {
+  padding: 8px 12px !important;
+}
+
+.layout-compact .notification-toast .toast-icon {
+  width: 20px !important;
+  height: 20px !important;
+  font-size: 12px !important;
+}
+
+.layout-compact .notification-toast .toast-message {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .error-banner {
+  padding: 8px 12px !important;
+}
+
+.layout-compact .error-banner .error-icon {
+  width: 20px !important;
+  height: 20px !important;
+  font-size: 12px !important;
+}
+
+.layout-compact .error-banner .error-message {
+  font-size: var(--font-size-body) !important;
+}
+
+/* 加载状态紧凑化 */
+.layout-compact .loading-overlay {
+  /* 保持覆盖层 */
+}
+
+.layout-compact .loading-spinner {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.layout-compact .loading-text {
+  font-size: var(--font-size-body) !important;
+  margin-top: 8px !important;
+}
+
+/* 预算统计页面紧凑化 */
+.layout-compact .budget-statistics-page .overview-card {
+  padding: 16px !important;
+  margin-bottom: 12px !important;
+}
+
+.layout-compact .budget-statistics-page .budget-name {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .budget-statistics-container .budget-period {
+  font-size: var(--font-size-body) !important;
+}
+
+.layout-compact .budget-statistics-container .budget-amount {
+  font-size: 20px !important;
+}
+
+.layout-compact .budget-statistics-container .budget-card {
+  padding: 8px 12px !important;
+  min-width: 100px !important;
+}
+
+.layout-compact .budget-statistics-page .budget-trends {
+  padding: 12px !important;
+  margin-bottom: 12px !important;
+}
+
+.layout-compact .budget-statistics-page .category-budgets {
+  padding: 12px !important;
+  margin-bottom: 12px !important;
+}
+
+.layout-compact .budget-statistics-container .section-header {
+  margin-bottom: 12px !important;
+}
+
+.layout-compact .budget-statistics-container .section-header h2 {
+  font-size: var(--font-size-title) !important;
+}
+
+.layout-compact .budget-statistics-page .chart-container {
+  height: 180px !important;
+}
+
+/* 响应式调整 - 大屏设备保持适当间距 */
+@media (min-width: 640px) {
+  .layout-compact .main-content {
+    padding: 12px !important;
+    gap: var(--spacing-base) !important;
+    padding-bottom: 20px !important;
+  }
+
+  .layout-compact .balance-card,
+  .layout-compact .budget-progress,
+  .layout-compact .recent-transactions,
+  .layout-compact .dashboard-budget-section {
+    padding: 12px !important;
+    margin-bottom: var(--spacing-base) !important;
+  }
+
+  .layout-compact .section-header {
+    margin-bottom: var(--spacing-lg) !important;
+  }
+
+  .layout-compact .transaction-group {
+    margin-bottom: var(--spacing-xl) !important;
+  }
+
+  .layout-compact .transaction-item {
+    gap: var(--spacing-xl) !important;
+    padding: 6px 0 !important;
+  }
+
+  /* 大屏设备记账列表调整 */
+  .layout-compact .unified-transaction-list .transaction-item {
+    padding: 4px 0 !important;
+  }
+
+  .layout-compact .transactions-page .unified-transaction-list .transaction-item {
+    padding: 12px !important;
+  }
+
+  .layout-compact .modal-content .unified-transaction-list .transaction-item {
+    padding: 12px 16px !important;
+  }
+
+  /* 大屏设备统计页面调整 */
+  .layout-compact .statistics-analysis-page .summary-card,
+  .layout-compact .statistics-analysis-page .chart-card {
+    padding: 14px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .layout-compact .statistics-analysis-page .chart-container {
+    height: 200px !important;
+  }
+
+  /* 大屏设备预算统计页面调整 */
+  .layout-compact .budget-statistics-page .overview-card,
+  .layout-compact .budget-statistics-page .budget-trends,
+  .layout-compact .budget-statistics-page .category-budgets {
+    padding: 16px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .layout-compact .budget-statistics-page .chart-container {
+    height: 200px !important;
+  }
+
+  /* 大屏设备标签组件调整 */
+  .layout-compact .tag-list-item {
+    padding: 10px 16px !important;
+  }
+
+  .layout-compact .tag-selector .min-h-10 {
+    min-height: 36px !important;
+  }
+
+  .layout-compact .tag-selector .px-3 {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .layout-compact .tag-selector .py-2 {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+
+  /* 大屏设备滑动记账项调整 */
+  .layout-compact .swipeable-transaction-item .transaction-content {
+    padding: 10px 14px !important;
+  }
+
+  /* 大屏设备二级页面调整 */
+  .layout-compact .transaction-edit-container {
+    gap: 18px !important;
+    padding-bottom: 110px !important;
+  }
+
+  .layout-compact .transaction-edit-container .form-section {
+    margin-bottom: 14px !important;
+  }
+
+  .layout-compact .transaction-edit-container .amount-input {
+    font-size: 30px !important;
+  }
+
+  .layout-compact .category-grid {
+    gap: 8px !important;
+  }
+
+  .layout-compact .category-list .category-item {
+    padding: 12px 14px !important;
+  }
+
+  .layout-compact .budget-list-page .budget-item {
+    padding: 14px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .layout-compact .settings-page .settings-item {
+    padding: 12px 14px !important;
+  }
+
+  /* 大屏设备模态框调整 */
+  .layout-compact .modal-header {
+    padding: 14px 18px !important;
+    min-height: 48px !important;
+  }
+
+  .layout-compact .modal-body {
+    padding: 14px 18px !important;
+  }
+
+  .layout-compact .category-edit-modal__header {
+    padding: 14px 22px !important;
+    min-height: 52px !important;
+  }
+
+  .layout-compact .category-edit-modal__content {
+    padding: 18px 22px !important;
+  }
+
+  .layout-compact .budget-edit-modal .main-content {
+    padding: 18px !important;
+  }
+
+  .layout-compact .budget-edit-modal .form-section {
+    padding: 14px !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* 大屏设备其他页面调整 */
+  .layout-compact .account-books-page .account-book-item,
+  .layout-compact .backup-page .backup-item,
+  .layout-compact .theme-page .theme-option,
+  .layout-compact .ai-settings-page .ai-feature-item,
+  .layout-compact .shortcuts-page .shortcut-item {
+    padding: 14px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .layout-compact .membership-page .membership-card {
+    padding: 18px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .layout-compact .profile-page .profile-avatar {
+    width: 70px !important;
+    height: 70px !important;
+  }
+}
