@@ -80,9 +80,26 @@ if [ -z "$TEST_BACKUP_PATHS" ]; then
     echo "⚠️ 没有找到test开头的目录"
 fi
 
-# 4. 构建静态文件
+# 4. 检查移动端环境变量文件
+if [ ! -f ".env.mobile" ]; then
+    echo "❌ 移动端环境变量文件 .env.mobile 不存在"
+    echo "请先创建 .env.mobile 文件并配置生产环境的RevenueCat API密钥"
+    exit 1
+fi
+
+# 4.1. 备份当前环境变量文件
+if [ -f ".env.local" ]; then
+    cp .env.local .env.local.backup
+    echo "📦 已备份 .env.local 文件"
+fi
+
+# 4.2. 使用移动端环境变量文件
+cp .env.mobile .env.local
+echo "🔧 已应用移动端环境变量配置"
+
+# 4.3. 构建静态文件
 echo "🏗️ 构建静态文件（移动端模式）..."
-if NEXT_PUBLIC_IS_MOBILE=true NEXT_BUILD_MODE=export npm run build; then
+if npm run build; then
     echo "✅ 静态文件构建成功"
     echo "📊 构建统计: $(find out -type f | wc -l) 个文件"
     # 验证admin、debug和test页面是否被排除
@@ -127,6 +144,12 @@ else
     done
     # 恢复配置
     cp next.config.js.backup next.config.js
+    # 恢复环境变量文件
+    if [ -f ".env.local.backup" ]; then
+        cp .env.local.backup .env.local
+        rm .env.local.backup
+        echo "🔄 已恢复原始环境变量文件"
+    fi
     exit 1
 fi
 
@@ -172,6 +195,15 @@ echo "📊 构建统计: $(find out -type f | wc -l) 个文件"
 echo "🔄 恢复原始配置..."
 cp next.config.js.backup next.config.js
 rm next.config.js.backup
+
+# 6.1. 恢复环境变量文件
+if [ -f ".env.local.backup" ]; then
+    cp .env.local.backup .env.local
+    rm .env.local.backup
+    echo "🔄 已恢复原始环境变量文件"
+else
+    echo "⚠️ 未找到环境变量备份文件，保持当前配置"
+fi
 
 # 7. 检查iOS项目目录
 if [ ! -d "../ios" ]; then
