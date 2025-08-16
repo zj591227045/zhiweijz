@@ -44,6 +44,7 @@ const VERSION_TO_MIGRATIONS = {
   '1.8.0': ['1.8.0-expand-membership-system'],
   '1.8.1': ['update-smart-accounting-prompts-v1.8.1'],
   '1.8.2': ['add-registration-gift-config'],
+  '1.8.3': ['add-multi-budget-allocation'],
 };
 
 // 全新安装需要的所有迁移
@@ -79,7 +80,8 @@ const FRESH_INSTALL_MIGRATIONS = [
   'add-detail-url-to-app-versions',
   '1.8.0-expand-membership-system',
   'update-smart-accounting-prompts-v1.8.1',
-  'add-registration-gift-config'
+  'add-registration-gift-config',
+  'add-multi-budget-allocation'
 ];
 
 /**

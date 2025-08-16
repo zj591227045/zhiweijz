@@ -16,6 +16,16 @@ export interface TransactionAttachment {
   };
 }
 
+// 多人预算分摊项
+export interface BudgetAllocationItem {
+  budgetId: string;
+  budgetName: string;
+  memberName: string;
+  memberId?: string;
+  amount: number;
+  isSelected: boolean;
+}
+
 interface TransactionFormState {
   // 当前步骤
   currentStep: number;
@@ -32,6 +42,10 @@ interface TransactionFormState {
   budgetId?: string;
   tagIds: string[];
   attachments: TransactionAttachment[];
+
+  // 多人预算分摊相关
+  isMultiBudget: boolean;
+  budgetAllocation: BudgetAllocationItem[];
 
   // 编辑模式标识
   isEditMode: boolean;
@@ -51,6 +65,14 @@ interface TransactionFormState {
   setAttachments: (attachments: TransactionAttachment[]) => void;
   setIsEditMode: (isEditMode: boolean) => void;
   setShowKeyboardInitially: (show: boolean) => void;
+
+  // 多人预算分摊相关方法
+  setIsMultiBudget: (isMulti: boolean) => void;
+  setBudgetAllocation: (allocation: BudgetAllocationItem[]) => void;
+  updateBudgetAllocationItem: (index: number, item: Partial<BudgetAllocationItem>) => void;
+  addBudgetAllocationItem: (item: BudgetAllocationItem) => void;
+  removeBudgetAllocationItem: (index: number) => void;
+
   goToStep: (step: number) => void;
   resetForm: () => void;
   fillSmartAccountingResult: (result: any) => void;
@@ -84,6 +106,8 @@ const initialState = {
   budgetId: '',
   tagIds: [],
   attachments: [],
+  isMultiBudget: false,
+  budgetAllocation: [],
   isEditMode: false,
   showKeyboardInitially: false,
 };
@@ -125,6 +149,31 @@ export const useTransactionFormStore = create<TransactionFormState>((set) => ({
   setIsEditMode: (isEditMode) => set({ isEditMode }),
 
   setShowKeyboardInitially: (show) => set({ showKeyboardInitially: show }),
+
+  // 多人预算分摊相关方法
+  setIsMultiBudget: (isMulti) => set((state) => ({
+    isMultiBudget: isMulti,
+    // 切换到单人模式时清空分摊数据
+    budgetAllocation: isMulti ? state.budgetAllocation : [],
+    // 切换到多人模式时清空单人预算选择
+    budgetId: isMulti ? '' : state.budgetId,
+  })),
+
+  setBudgetAllocation: (allocation) => set({ budgetAllocation: allocation }),
+
+  updateBudgetAllocationItem: (index, item) => set((state) => ({
+    budgetAllocation: state.budgetAllocation.map((alloc, i) =>
+      i === index ? { ...alloc, ...item } : alloc
+    ),
+  })),
+
+  addBudgetAllocationItem: (item) => set((state) => ({
+    budgetAllocation: [...state.budgetAllocation, item],
+  })),
+
+  removeBudgetAllocationItem: (index) => set((state) => ({
+    budgetAllocation: state.budgetAllocation.filter((_, i) => i !== index),
+  })),
 
   goToStep: (step) => set({ currentStep: step }),
 

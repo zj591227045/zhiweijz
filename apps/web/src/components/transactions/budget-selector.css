@@ -103,6 +103,38 @@
   position: relative;
 }
 
+/* 预算模式标签页 */
+.budget-mode-tabs {
+  display: flex;
+  background-color: var(--background-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0;
+}
+
+.mode-tab {
+  flex: 1;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.mode-tab.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+  background-color: var(--card-background);
+}
+
+.mode-tab:hover:not(.active) {
+  color: var(--text-primary);
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
 .budget-selector-header h3 {
   font-size: 16px;
   font-weight: 600;
@@ -357,4 +389,211 @@ body.ios-app.budget-selector-open,
   .budget-selector-content {
     max-height: calc(80vh - 60px) !important;
   }
+}
+
+/* 多人预算模式样式 */
+.multi-budget-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px;
+  text-align: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 16px;
+  margin: 16px 0;
+  border: 2px solid #e2e8f0;
+}
+
+.multi-budget-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.multi-budget-hint i {
+  font-size: 56px;
+  color: var(--primary-color);
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.multi-budget-hint span {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+}
+
+.multi-budget-hint p {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+  max-width: 280px;
+}
+
+.open-multi-budget-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  min-width: 200px;
+  margin-bottom: 16px;
+}
+
+.open-multi-budget-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.open-multi-budget-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.open-multi-budget-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.open-multi-budget-button i {
+  font-size: 18px;
+}
+
+/* 当前分摊方案显示 */
+.current-allocation {
+  width: 100%;
+  background-color: var(--background-color);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  margin-top: 16px;
+}
+
+.allocation-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.allocation-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.allocation-title i {
+  color: var(--primary-color);
+}
+
+.allocation-total {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.allocation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.allocation-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background-color: var(--card-background);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.member-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.member-avatar-small {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.member-details-small {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.member-details-small .member-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.member-details-small .budget-name {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.allocation-item .amount {
+  font-weight: 600;
+  color: var(--primary-color);
+  font-size: 14px;
+}
+
+.edit-allocation-button {
+  width: 100%;
+  padding: 8px 12px;
+  background-color: transparent;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.edit-allocation-button:hover {
+  background-color: var(--primary-color);
+  color: white;
 }

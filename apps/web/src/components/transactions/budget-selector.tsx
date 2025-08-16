@@ -3,11 +3,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
-import { useTransactionFormStore } from '@/store/transaction-form-store';
+import { useTransactionFormStore, BudgetAllocationItem } from '@/store/transaction-form-store';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { useBudgetStore } from '@/store/budget-store';
 import { useAuthStore } from '@/store/auth-store';
 import { budgetService } from '@/lib/api-services';
+import { MultiBudgetInlineSelector } from './multi-budget-inline-selector';
 import './budget-selector.css';
 
 // 预算类型定义
@@ -36,7 +37,17 @@ interface Budget {
 }
 
 export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean }) {
-  const { budgetId, setBudgetId, date, isEditMode: storeIsEditMode } = useTransactionFormStore();
+  const {
+    budgetId,
+    setBudgetId,
+    date,
+    amount,
+    isMultiBudget,
+    budgetAllocation,
+    setIsMultiBudget,
+    setBudgetAllocation,
+    isEditMode: storeIsEditMode
+  } = useTransactionFormStore();
 
   const { currentAccountBook } = useAccountBookStore();
   const { user: currentUser } = useAuthStore();
@@ -45,6 +56,78 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
   const [hasInitialized, setHasInitialized] = useState(false);
   const [dateBudgets, setDateBudgets] = useState<Budget[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [budgetMode, setBudgetMode] = useState<'single' | 'multi'>('single');
+
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  // 初始化预算模式
+  useEffect(() => {
+    console.log('预算模式初始化 useEffect 触发:', { isMultiBudget, budgetAllocationLength: budgetAllocation.length, currentBudgetMode: budgetMode });
+    if (isMultiBudget && budgetAllocation.length > 0) {
+      console.log('设置为多人模式');
+      setBudgetMode('multi');
+    } else {
+      console.log('设置为单人模式');
+      setBudgetMode('single');
+    }
+  }, [isMultiBudget, budgetAllocation]);
+
+  // 处理模式切换
+  const handleModeChange = (mode: 'single' | 'multi') => {
+    console.log('切换预算模式:', mode);
+    setBudgetMode(mode);
+    if (mode === 'single') {
+      // 切换到单人模式，清空多人分摊数据
+      setIsMultiBudget(false);
+      setBudgetAllocation([]);
+      setSelectedBudget(null); // 清空选中的预算
+    } else {
+      // 切换到多人模式，清空单人预算选择
+      setIsMultiBudget(true);
+      setBudgetId('');
+      setSelectedBudget(null); // 清空选中的预算
+    }
+  };
+
+  // 键盘检测和处理
+  useEffect(() => {
+    if (!isBudgetSelectorOpen) return;
+
+    const handleResize = () => {
+      // 检测视口高度变化来判断键盘是否显示
+      const viewportHeight = window.visualViewport?.height || window.innerHeight;
+      const windowHeight = window.screen.height;
+      const heightDiff = windowHeight - viewportHeight;
+
+      // 如果高度差超过150px，认为键盘已显示
+      if (heightDiff > 150) {
+        setKeyboardHeight(heightDiff);
+        setIsKeyboardVisible(true);
+      } else {
+        setKeyboardHeight(0);
+        setIsKeyboardVisible(false);
+      }
+    };
+
+    // 监听视口变化
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+    } else {
+      window.addEventListener('resize', handleResize);
+    }
+
+    // 初始检测
+    handleResize();
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+      } else {
+        window.removeEventListener('resize', handleResize);
+      }
+    };
+  }, [isBudgetSelectorOpen]);
 
   // 处理页面滚动锁定
   useEffect(() => {
@@ -370,7 +453,18 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
           <i className="fas fa-wallet"></i>
         </div>
         <div className="budget-selector-info">
-          {selectedBudget ? (
+          {isMultiBudget && budgetAllocation.length > 0 ? (
+            // 多人预算模式显示
+            <>
+              <div className="budget-name">
+                多人预算分摊 ({budgetAllocation.length}人)
+              </div>
+              <div className="budget-details">
+                <span>总金额: {formatAmount(parseFloat(amount) || 0)}</span>
+              </div>
+            </>
+          ) : selectedBudget ? (
+            // 单人预算模式显示
             <>
               <div className="budget-name">
                 {getBudgetDisplayName(selectedBudget)}
@@ -395,25 +489,57 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
       {/* 预算选择器弹窗 - 使用Portal渲染到body */}
       {isBudgetSelectorOpen && typeof window !== 'undefined' && createPortal(
         <div className="budget-selector-overlay" onClick={() => setIsBudgetSelectorOpen(false)}>
-          <div className="budget-selector-drawer" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="budget-selector-drawer"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              transform: isKeyboardVisible ? `translateY(-${Math.min(keyboardHeight * 0.6, 200)}px)` : 'translateY(0)',
+              transition: 'transform 0.3s ease',
+            }}
+          >
             <div className="budget-selector-header">
               <h3>选择预算</h3>
               <button className="close-button" onClick={() => setIsBudgetSelectorOpen(false)}>
                 <i className="fas fa-times"></i>
               </button>
             </div>
+
+            {/* 预算模式标签页 */}
+            <div className="budget-mode-tabs">
+              <button
+                className={cn('mode-tab', budgetMode === 'single' && 'active')}
+                onClick={() => {
+                  console.log('点击单人模式按钮');
+                  handleModeChange('single');
+                }}
+              >
+                单人
+              </button>
+              <button
+                className={cn('mode-tab', budgetMode === 'multi' && 'active')}
+                onClick={() => {
+                  console.log('点击多人模式按钮');
+                  handleModeChange('multi');
+                }}
+              >
+                多人
+              </button>
+            </div>
+
             <div className="budget-selector-content">
-              {isLoading ? (
-                <div className="loading-state">加载中...</div>
-              ) : formattedBudgets.length === 0 ? (
-                <div className="no-budgets-message">
-                  <i className="fas fa-info-circle"></i>
-                  <span>{date ? `${date} 日期范围内没有可用的预算` : '没有可用的预算'}</span>
-                  <div style={{ fontSize: '12px', marginTop: '8px', color: '#666' }}>
-                    {date ? '请检查该日期是否在任何预算周期内' : '请先选择记账日期'}
+              {budgetMode === 'single' ? (
+                // 单人预算模式
+                isLoading ? (
+                  <div className="loading-state">加载中...</div>
+                ) : formattedBudgets.length === 0 ? (
+                  <div className="no-budgets-message">
+                    <i className="fas fa-info-circle"></i>
+                    <span>{date ? `${date} 日期范围内没有可用的预算` : '没有可用的预算'}</span>
+                    <div style={{ fontSize: '12px', marginTop: '8px', color: '#666' }}>
+                      {date ? '请检查该日期是否在任何预算周期内' : '请先选择记账日期'}
+                    </div>
                   </div>
-                </div>
-              ) : (
+                ) : (
                 <div className="budget-list">
                   {/* 不使用预算选项 */}
                   <div
@@ -532,12 +658,29 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
                     </>
                   )}
                 </div>
+                )
+              ) : (
+                // 多人预算模式 - 直接显示预算列表
+                <MultiBudgetInlineSelector
+                  totalAmount={parseFloat(amount) || 0}
+                  selectedAllocations={budgetAllocation}
+                  onAllocationsChange={(allocations: BudgetAllocationItem[]) => {
+                    setBudgetAllocation(allocations);
+                    setIsMultiBudget(allocations.length > 0);
+                  }}
+                  onConfirm={() => {
+                    console.log('确认分摊，关闭预算选择器');
+                    setIsBudgetSelectorOpen(false);
+                  }}
+                />
               )}
             </div>
           </div>
         </div>,
         document.body
       )}
+
+
     </div>
   );
 }

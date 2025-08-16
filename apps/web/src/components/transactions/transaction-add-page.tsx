@@ -36,6 +36,8 @@ export function TransactionAddPage() {
     budgetId,
     tagIds,
     attachments,
+    isMultiBudget,
+    budgetAllocation,
     goToStep,
     resetForm,
     fillSmartAccountingResult,
@@ -151,10 +153,21 @@ export function TransactionAddPage() {
         date: transactionDate.toISOString(),
         accountBookId: currentAccountBook.id,
         budgetId: budgetId || undefined,
+        // 多人预算分摊相关数据
+        isMultiBudget,
+        budgetAllocation: isMultiBudget ? budgetAllocation : undefined,
       };
+
+      console.log('准备提交交易数据:', {
+        ...transactionData,
+        isMultiBudget,
+        budgetAllocationLength: budgetAllocation?.length || 0,
+        budgetAllocation: budgetAllocation
+      });
 
       // 提交数据
       const createdTransaction = await createTransaction(transactionData);
+      console.log('createTransaction 返回结果:', createdTransaction);
 
       // 提交成功
       if (createdTransaction) {
@@ -205,10 +218,20 @@ export function TransactionAddPage() {
       } else {
         throw new Error('创建记账失败，服务器未返回有效响应');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('创建记账失败:', error);
-      setSubmitError('创建记账失败，请重试');
-      toast.error('创建记账失败，请重试');
+
+      // 提取详细的错误信息
+      let errorMessage = '创建记账失败，请重试';
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      console.error('详细错误信息:', errorMessage);
+      setSubmitError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
     }

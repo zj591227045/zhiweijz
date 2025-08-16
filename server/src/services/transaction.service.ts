@@ -184,14 +184,28 @@ export class TransactionService {
     userId: string,
     transactionData: CreateTransactionDto,
   ): Promise<TransactionResponseDto> {
+    console.log('TransactionService.createTransaction 开始:', {
+      userId,
+      transactionData: {
+        ...transactionData,
+        isMultiBudget: transactionData.isMultiBudget,
+        budgetAllocation: transactionData.budgetAllocation
+      }
+    });
+
     // 验证分类是否存在
     const category = await this.categoryRepository.findById(transactionData.categoryId);
     if (!category) {
+      console.error('分类不存在:', transactionData.categoryId);
       throw new Error('分类不存在');
     }
 
     // 验证记账类型与分类类型是否匹配
     if (category.type !== transactionData.type) {
+      console.error('记账类型与分类类型不匹配:', {
+        categoryType: category.type,
+        transactionType: transactionData.type
+      });
       throw new Error('记账类型与分类类型不匹配');
     }
 
@@ -302,13 +316,43 @@ export class TransactionService {
 
     // 更新预算
     if (transactionData.accountBookId && transactionData.type === 'EXPENSE') {
-      await this.budgetTransactionService.recordTransaction(
-        transactionData.accountBookId,
-        transactionData.categoryId,
-        transactionData.amount,
-        transactionData.type,
-        transactionData.date,
-      );
+      console.log('开始更新预算:', {
+        accountBookId: transactionData.accountBookId,
+        isMultiBudget: transactionData.isMultiBudget,
+        budgetAllocation: transactionData.budgetAllocation
+      });
+
+      // 如果是多人预算分摊，需要分别更新每个预算
+      if (transactionData.isMultiBudget && transactionData.budgetAllocation) {
+        console.log(`处理多人预算分摊，共 ${transactionData.budgetAllocation.length} 项分摊`);
+
+        for (const allocation of transactionData.budgetAllocation) {
+          try {
+            console.log(`处理分摊项:`, allocation);
+
+            // 为每个分摊项单独记录预算交易
+            await this.budgetTransactionService.recordTransaction(
+              transactionData.accountBookId,
+              transactionData.categoryId,
+              allocation.amount,
+              transactionData.type,
+              transactionData.date,
+            );
+            console.log(`多人预算分摊：已更新预算 ${allocation.budgetId}，金额 ${allocation.amount}`);
+          } catch (error) {
+            console.error(`更新多人预算分摊失败 - 预算ID: ${allocation.budgetId}`, error);
+          }
+        }
+      } else {
+        // 单人预算模式，使用原有逻辑
+        await this.budgetTransactionService.recordTransaction(
+          transactionData.accountBookId,
+          transactionData.categoryId,
+          transactionData.amount,
+          transactionData.type,
+          transactionData.date,
+        );
+      }
 
       // 如果是历史记账，查找受影响的预算并重新计算结转
       if (isHistorical) {

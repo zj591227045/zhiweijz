@@ -34,14 +34,24 @@ export class TransactionController {
         return;
       }
 
+      console.log('收到创建交易请求:', {
+        userId,
+        body: req.body,
+        isMultiBudget: req.body.isMultiBudget,
+        budgetAllocation: req.body.budgetAllocation
+      });
+
       const transactionData: CreateTransactionDto = {
         ...req.body,
         date: new Date(req.body.date),
       };
 
+      console.log('处理后的交易数据:', transactionData);
+
       const transaction = await this.transactionService.createTransaction(userId, transactionData);
       res.status(201).json(transaction);
     } catch (error) {
+      console.error('创建交易失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {

@@ -31,6 +31,8 @@ export class TransactionRepository {
       familyMemberId: transactionData.familyMemberId,
       accountBookId: transactionData.accountBookId,
       budgetId: transactionData.budgetId, // 添加预算ID
+      isMultiBudget: transactionData.isMultiBudget || false,
+      budgetAllocation: transactionData.budgetAllocation as any || null,
     };
 
     // 如果提供了元数据，添加到数据中
@@ -199,6 +201,10 @@ export class TransactionRepository {
       ...(transactionData.date && { date: transactionData.date }),
       ...(transactionData.familyMemberId && { familyMemberId: transactionData.familyMemberId }),
       ...(transactionData.budgetId && { budgetId: transactionData.budgetId }),
+      ...(transactionData.isMultiBudget !== undefined && { isMultiBudget: transactionData.isMultiBudget }),
+      ...(transactionData.budgetAllocation !== undefined && {
+        budgetAllocation: transactionData.budgetAllocation as any || null
+      }),
     };
 
     // 如果提供了元数据，添加到数据中

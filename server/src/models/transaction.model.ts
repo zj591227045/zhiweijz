@@ -3,6 +3,17 @@ import { CategoryResponseDto } from './category.model';
 import { TransactionAttachmentResponseDto } from './file-storage.model';
 
 /**
+ * 多人预算分摊项
+ */
+export interface BudgetAllocationItem {
+  budgetId: string;
+  budgetName: string;
+  memberName: string;
+  memberId?: string;
+  amount: number;
+}
+
+/**
  * 记账记录创建DTO
  */
 export interface CreateTransactionDto {
@@ -15,6 +26,8 @@ export interface CreateTransactionDto {
   familyMemberId?: string;
   accountBookId?: string;
   budgetId?: string;
+  isMultiBudget?: boolean;
+  budgetAllocation?: BudgetAllocationItem[];
 }
 
 /**
@@ -27,6 +40,8 @@ export interface UpdateTransactionDto {
   date?: Date;
   familyMemberId?: string;
   budgetId?: string;
+  isMultiBudget?: boolean;
+  budgetAllocation?: BudgetAllocationItem[];
 }
 
 /**
@@ -102,6 +117,8 @@ export interface TransactionResponseDto {
   familyMemberId?: string;
   accountBookId?: string;
   budgetId?: string;
+  isMultiBudget?: boolean;
+  budgetAllocation?: BudgetAllocationItem[];
   createdAt: Date;
   updatedAt: Date;
   metadata?: any; // 记账元数据，如历史记账标记
@@ -127,6 +144,20 @@ export function toTransactionResponseDto(
   category?: CategoryResponseDto,
   attachments?: TransactionAttachmentResponseDto[],
 ): TransactionResponseDto {
+  // 解析多人预算分摊数据
+  let budgetAllocation: BudgetAllocationItem[] | undefined;
+  try {
+    const allocationData = (transaction as any).budgetAllocation;
+    if (allocationData && typeof allocationData === 'string') {
+      budgetAllocation = JSON.parse(allocationData);
+    } else if (allocationData && typeof allocationData === 'object') {
+      budgetAllocation = allocationData;
+    }
+  } catch (error) {
+    console.error('解析预算分摊数据失败:', error);
+    budgetAllocation = undefined;
+  }
+
   return {
     id: transaction.id,
     amount: Number(transaction.amount),
@@ -140,6 +171,8 @@ export function toTransactionResponseDto(
     familyMemberId: transaction.familyMemberId || undefined,
     accountBookId: transaction.accountBookId || undefined,
     budgetId: (transaction as any).budgetId || undefined, // 临时类型转换，等待Prisma客户端更新
+    isMultiBudget: (transaction as any).isMultiBudget || false,
+    budgetAllocation,
     createdAt: transaction.createdAt,
     updatedAt: transaction.updatedAt,
     metadata: (transaction as any).metadata || undefined, // 添加元数据字段

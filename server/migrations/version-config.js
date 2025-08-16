@@ -9,6 +9,7 @@ const APP_TO_DB_VERSION_MAP = {
   '0.5.1': '1.7.12',  // 中期版本
   '0.6.0': '1.7.16',  // 稳定版本
   '0.7.0': '1.8.2',   // 最新版本，包含会员系统扩展和提示词更新
+  '0.8.0': '1.8.3',   // 多人预算分摊功能版本
 };
 
 // 数据库版本的发布历史（按时间顺序）
@@ -18,11 +19,11 @@ const DB_VERSION_HISTORY = [
   '1.7.0', '1.7.1', '1.7.2', '1.7.3', '1.7.4', '1.7.5',
   '1.7.6', '1.7.7', '1.7.8', '1.7.9', '1.7.10', '1.7.11',
   '1.7.12', '1.7.13', '1.7.14', '1.7.15', '1.7.16', '1.8.0',
-  '1.8.1', '1.8.2'
+  '1.8.1', '1.8.2', '1.8.3'
 ];
 
 // 当前最新的数据库版本
-const LATEST_DB_VERSION = '1.8.2';
+const LATEST_DB_VERSION = '1.8.3';
 
 // 迁移文件与版本的映射
 const MIGRATION_TO_VERSION_MAP = {
@@ -31,6 +32,7 @@ const MIGRATION_TO_VERSION_MAP = {
   '1.8.0-expand-membership-system': '1.8.0',
   'update-smart-accounting-prompts-v1.8.1': '1.8.1',
   'add-registration-gift-config': '1.8.2',
+  'add-multi-budget-allocation': '1.8.3',
 };
 
 /**

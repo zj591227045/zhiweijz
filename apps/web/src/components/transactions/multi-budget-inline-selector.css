@@ -1,0 +1,331 @@
+/* 内联多人预算选择器样式 */
+
+.multi-budget-inline-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+/* 加载和提示状态 */
+.multi-budget-inline-loading,
+.multi-budget-inline-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  background-color: var(--background-color);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.multi-budget-inline-hint {
+  color: var(--primary-color);
+}
+
+/* 金额汇总 */
+.inline-amount-summary {
+  background-color: var(--background-color);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+}
+
+.inline-amount-summary .total-amount {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 16px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.inline-amount-summary .allocation-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.inline-amount-summary .allocated-amount {
+  color: var(--primary-color);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.inline-amount-summary .status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.inline-amount-summary .status-match {
+  color: var(--success-color, #10b981);
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.inline-amount-summary .status-mismatch {
+  color: var(--warning-color, #f59e0b);
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 快捷操作 */
+.inline-quick-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.inline-action-button {
+  padding: 8px 16px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inline-action-button:hover {
+  background-color: var(--primary-color-dark);
+  transform: translateY(-1px);
+}
+
+/* 成员列表 */
+.inline-members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.inline-member-card {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  padding: 16px;
+  border: 2px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.inline-member-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+.inline-member-card.selected {
+  border-color: var(--primary-color);
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.inline-member-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.inline-member-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.inline-member-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.inline-member-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+.inline-no-budget-hint {
+  font-size: 12px;
+  color: var(--error-color);
+  font-style: italic;
+}
+
+.inline-budget-info {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.inline-amount-display {
+  font-weight: 600;
+  color: var(--primary-color);
+  font-size: 16px;
+  min-width: 60px;
+  text-align: right;
+  margin-right: 8px;
+}
+
+.inline-member-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.inline-member-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.inline-member-checkbox input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--primary-color);
+  cursor: pointer;
+}
+
+/* 分摊详情 */
+.inline-allocation-details {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.inline-budget-select {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inline-budget-select label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.inline-budget-select select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: var(--card-background);
+  color: var(--text-primary);
+}
+
+.inline-budget-select select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.inline-amount-input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inline-amount-input-section label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.inline-amount-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inline-currency-symbol {
+  position: absolute;
+  left: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  z-index: 1;
+}
+
+.inline-amount-input-wrapper input {
+  width: 100%;
+  padding: 12px 12px 12px 28px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  background-color: var(--card-background);
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.inline-amount-input-wrapper input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.inline-amount-input-wrapper input::placeholder {
+  color: var(--text-secondary);
+  font-weight: normal;
+}
+
+/* 无成员状态 */
+.inline-no-members {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  background-color: var(--background-color);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.inline-no-members i {
+  font-size: 24px;
+  color: var(--text-secondary);
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .inline-amount-summary .allocation-status {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .inline-member-info {
+    gap: 8px;
+  }
+  
+  .inline-member-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  
+  .inline-member-name {
+    font-size: 14px;
+  }
+}

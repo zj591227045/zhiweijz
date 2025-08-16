@@ -19,18 +19,19 @@ model User {
   bio                     String?
   birthDate               DateTime?                      @map("birth_date")
   passwordChangedAt       DateTime?                      @map("password_changed_at")
+  isCustodial             Boolean?                       @default(false) @map("is_custodial")
   isActive                Boolean                        @default(true) @map("is_active")
   dailyLlmTokenLimit      Int?                           @map("daily_llm_token_limit")
   deletionRequestedAt     DateTime?                      @map("deletion_requested_at") @db.Timestamptz(6)
   deletionScheduledAt     DateTime?                      @map("deletion_scheduled_at") @db.Timestamptz(6)
-  isCustodial             Boolean?                       @default(false) @map("is_custodial")
   access_logs             AccessLog[]
   accountBooks            AccountBook[]
   pointsTransactions      AccountingPointsTransactions[]
   announcement_reads      AnnouncementRead[]
   api_call_logs           ApiCallLog[]
-  budgets                 Budget[]
+  createdVersions         AppVersion[]
   budgetHistories         BudgetHistory[]
+  budgets                 Budget[]
   categories              Category[]
   compressionStats        CompressionStats[]
   dailyGiftRecords        DailyGiftRecords[]
@@ -55,11 +56,10 @@ model User {
   llmSettings             UserLLMSetting[]
   membership              UserMembership?
   settings                UserSetting[]
-  verificationCodes       VerificationCode[]
-  wechat_user_bindings    wechat_user_bindings[]
-  createdVersions         AppVersion[]
-  versionCheckLogs        VersionCheckLog[]
   versionStatus           UserVersionStatus[]
+  verificationCodes       VerificationCode[]
+  versionCheckLogs        VersionCheckLog[]
+  wechat_user_bindings    wechat_user_bindings[]
 
   @@index([isActive], map: "idx_users_is_active")
   @@index([deletionRequestedAt], map: "idx_users_deletion_requested_at")
@@ -143,31 +143,37 @@ model Category {
 }
 
 model Transaction {
-  id              String                  @id @default(uuid())
-  amount          Decimal                 @db.Decimal(10, 2)
-  type            TransactionType
-  categoryId      String                  @map("category_id")
-  description     String?
-  date            DateTime
-  userId          String                  @map("user_id")
-  familyId        String?                 @map("family_id")
-  familyMemberId  String?                 @map("family_member_id")
-  createdAt       DateTime                @default(now()) @map("created_at")
-  updatedAt       DateTime                @updatedAt @map("updated_at")
-  accountBookId   String?                 @map("account_book_id")
-  budgetId        String?                 @map("budget_id")
-  metadata        Json?                   @map("metadata")
-  attachments     TransactionAttachment[]
-  transactionTags TransactionTag[]
-  accountBook     AccountBook?            @relation(fields: [accountBookId], references: [id])
-  budget          Budget?                 @relation(fields: [budgetId], references: [id])
-  category        Category                @relation(fields: [categoryId], references: [id])
-  family          Family?                 @relation(fields: [familyId], references: [id])
-  familyMember    FamilyMember?           @relation(fields: [familyMemberId], references: [id])
-  user            User                    @relation(fields: [userId], references: [id])
-  feedback        UserFeedback[]
+  id                 String                  @id @default(uuid())
+  amount             Decimal                 @db.Decimal(10, 2)
+  type               TransactionType
+  categoryId         String                  @map("category_id")
+  description        String?
+  date               DateTime
+  userId             String                  @map("user_id")
+  familyId           String?                 @map("family_id")
+  familyMemberId     String?                 @map("family_member_id")
+  createdAt          DateTime                @default(now()) @map("created_at")
+  updatedAt          DateTime                @updatedAt @map("updated_at")
+  accountBookId      String?                 @map("account_book_id")
+  budgetId           String?                 @map("budget_id")
+  metadata           Json?                   @map("metadata")
+  isMultiBudget      Boolean                 @default(false) @map("is_multi_budget")
+  budgetAllocation   Json?                   @map("budget_allocation")
+  primary_budget_id  String?                 @db.VarChar(255)
+  attachments        TransactionAttachment[]
+  transactionTags    TransactionTag[]
+  accountBook        AccountBook?            @relation(fields: [accountBookId], references: [id])
+  budget             Budget?                 @relation(fields: [budgetId], references: [id])
+  category           Category                @relation(fields: [categoryId], references: [id])
+  family             Family?                 @relation(fields: [familyId], references: [id])
+  familyMember       FamilyMember?           @relation(fields: [familyMemberId], references: [id])
+  user               User                    @relation(fields: [userId], references: [id])
+  feedback           UserFeedback[]
 
   @@index([metadata], map: "idx_transactions_metadata_gin", type: Gin)
+  @@index([isMultiBudget], map: "idx_transactions_is_multi_budget")
+  @@index([budgetAllocation], map: "idx_transactions_budget_allocation_gin", type: Gin)
+  @@index([primary_budget_id], map: "idx_transactions_primary_budget_id")
   @@map("transactions")
 }
 
@@ -202,8 +208,8 @@ model Budget {
   categoryBudgets      CategoryBudget[]
   transactions         Transaction[]
 
-  @@index([accountBookId], map: "idx_budgets_account_book_id")
   @@unique([userId, accountBookId, budgetType, period, startDate, familyMemberId], name: "unique_user_budget_period")
+  @@index([accountBookId], map: "idx_budgets_account_book_id")
   @@map("budgets")
 }
 
@@ -389,7 +395,6 @@ model user_account_books {
 model BudgetHistory {
   id               String       @id @default(uuid())
   budgetId         String       @map("budget_id")
-  userId           String?      @map("user_id")
   period           String
   amount           Decimal      @db.Decimal(10, 2)
   type             RolloverType
@@ -399,6 +404,7 @@ model BudgetHistory {
   budgetAmount     Decimal?     @map("budget_amount") @db.Decimal(10, 2)
   spentAmount      Decimal?     @map("spent_amount") @db.Decimal(10, 2)
   previousRollover Decimal?     @map("previous_rollover") @db.Decimal(10, 2)
+  userId           String?      @map("user_id")
   budget           Budget       @relation(fields: [budgetId], references: [id], onDelete: Cascade)
   user             User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -759,6 +765,7 @@ model FileStorage {
   @@index([status], map: "idx_file_storage_status")
   @@index([createdAt(sort: Desc)], map: "idx_file_storage_created_at")
   @@index([expiresAt], map: "idx_file_storage_expires_at")
+  @@index([uploadedBy], map: "idx_file_storage_user_id")
   @@map("file_storage")
 }
 
@@ -777,6 +784,8 @@ model TransactionAttachment {
   @@index([fileId], map: "idx_transaction_attachments_file_id")
   @@index([attachmentType], map: "idx_transaction_attachments_type")
   @@index([createdAt(sort: Desc)], map: "idx_transaction_attachments_created_at")
+  @@index([fileId], map: "idx_transaction_attachment_file_id")
+  @@index([transactionId], map: "idx_transaction_attachment_transaction_id")
   @@map("transaction_attachments")
 }
 
@@ -863,34 +872,29 @@ model UserCheckins {
 }
 
 model UserMembership {
-  id               String              @id @default(uuid())
-  userId           String              @unique @map("user_id")
-  memberType       MemberType          @default(REGULAR) @map("member_type")
-  startDate        DateTime            @map("start_date")
-  endDate          DateTime?           @map("end_date")
-  isActive         Boolean             @default(true) @map("is_active")
-  autoRenewal      Boolean             @default(false) @map("auto_renewal")
-  activationMethod String              @default("registration") @map("activation_method")
-  monthlyPoints    Int                 @default(0) @map("monthly_points")
-  usedPoints       Int                 @default(0) @map("used_points")
-  lastPointsReset  DateTime?           @map("last_points_reset") @db.Date
-  selectedBadge    String?             @map("selected_badge")
-
-  // RevenueCat集成字段
-  revenueCatUserId String?             @map("revenuecat_user_id")
-  platform         String?             @map("platform") // ios, android, web
-  externalProductId String?            @map("external_product_id")
-  externalTransactionId String?        @map("external_transaction_id")
-  billingPeriod    String?             @map("billing_period") // monthly, yearly
-
-  // 权益相关字段
-  hasCharityAttribution Boolean         @default(false) @map("has_charity_attribution")
-  hasPrioritySupport   Boolean         @default(false) @map("has_priority_support")
-
-  createdAt        DateTime            @default(now()) @map("created_at")
-  updatedAt        DateTime            @updatedAt @map("updated_at")
-  renewalHistory   MembershipRenewal[]
-  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                    String              @id @default(uuid())
+  userId                String              @unique @map("user_id")
+  memberType            MemberType          @default(REGULAR) @map("member_type")
+  startDate             DateTime            @map("start_date")
+  endDate               DateTime?           @map("end_date")
+  isActive              Boolean             @default(true) @map("is_active")
+  autoRenewal           Boolean             @default(false) @map("auto_renewal")
+  activationMethod      String              @default("registration") @map("activation_method")
+  monthlyPoints         Int                 @default(0) @map("monthly_points")
+  usedPoints            Int                 @default(0) @map("used_points")
+  lastPointsReset       DateTime?           @map("last_points_reset") @db.Date
+  selectedBadge         String?             @map("selected_badge")
+  createdAt             DateTime            @default(now()) @map("created_at")
+  updatedAt             DateTime            @updatedAt @map("updated_at")
+  revenueCatUserId      String?             @map("revenuecat_user_id")
+  platform              String?             @map("platform")
+  externalProductId     String?             @map("external_product_id")
+  externalTransactionId String?             @map("external_transaction_id")
+  billingPeriod         String?             @map("billing_period")
+  hasCharityAttribution Boolean             @default(false) @map("has_charity_attribution")
+  hasPrioritySupport    Boolean             @default(false) @map("has_priority_support")
+  renewalHistory        MembershipRenewal[]
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId], map: "idx_user_membership_user_id")
   @@index([memberType], map: "idx_user_membership_type")
@@ -902,12 +906,11 @@ model UserMembership {
   @@map("user_memberships")
 }
 
-// 会员权益配置表
 model MembershipEntitlements {
   id               String     @id @default(uuid())
   memberType       MemberType @map("member_type")
   entitlementKey   String     @map("entitlement_key") @db.VarChar(100)
-  entitlementValue String?    @map("entitlement_value") @db.Text
+  entitlementValue String?    @map("entitlement_value")
   isActive         Boolean    @default(true) @map("is_active")
   createdAt        DateTime   @default(now()) @map("created_at")
   updatedAt        DateTime   @updatedAt @map("updated_at")
@@ -1164,6 +1167,113 @@ model webhook_logs {
   @@index([provider], map: "idx_webhook_logs_provider")
 }
 
+model AppVersion {
+  id                String              @id @default(uuid())
+  platform          Platform
+  version           String              @db.VarChar(50)
+  buildNumber       Int                 @map("build_number")
+  versionCode       Int                 @map("version_code")
+  releaseNotes      String?             @map("release_notes")
+  downloadUrl       String?             @map("download_url")
+  appStoreUrl       String?             @map("app_store_url")
+  isForceUpdate     Boolean             @default(false) @map("is_force_update")
+  isEnabled         Boolean             @default(true) @map("is_enabled")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+  publishedAt       DateTime?           @map("published_at")
+  createdBy         String?             @map("created_by")
+  detailUrl         String?             @map("detail_url")
+  creator           User?               @relation(fields: [createdBy], references: [id])
+  userVersionStatus UserVersionStatus[]
+
+  @@unique([platform, version])
+  @@unique([platform, versionCode])
+  @@index([platform])
+  @@index([isEnabled])
+  @@index([publishedAt])
+  @@map("app_versions")
+}
+
+model VersionConfig {
+  id          String   @id @default(uuid())
+  key         String   @unique @db.VarChar(100)
+  value       String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("version_configs")
+}
+
+model VersionCheckLog {
+  id                 String        @id @default(uuid())
+  userId             String?       @map("user_id")
+  platform           Platform
+  currentVersion     String?       @map("current_version") @db.VarChar(50)
+  currentBuildNumber Int?          @map("current_build_number")
+  latestVersion      String?       @map("latest_version") @db.VarChar(50)
+  latestBuildNumber  Int?          @map("latest_build_number")
+  action             VersionAction
+  ipAddress          String?       @map("ip_address") @db.Inet
+  userAgent          String?       @map("user_agent")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  user               User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([platform])
+  @@index([createdAt])
+  @@map("version_check_logs")
+}
+
+model UserVersionStatus {
+  id             String              @id @default(uuid())
+  userId         String              @map("user_id")
+  platform       Platform
+  appVersionId   String              @map("app_version_id")
+  version        String              @db.VarChar(50)
+  versionCode    Int                 @map("version_code")
+  status         VersionUpdateStatus @default(PENDING)
+  postponedUntil DateTime?           @map("postponed_until")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+  appVersion     AppVersion          @relation(fields: [appVersionId], references: [id], onDelete: Cascade)
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform, appVersionId])
+  @@index([userId])
+  @@index([platform])
+  @@index([userId, platform])
+  @@index([appVersionId])
+  @@index([status])
+  @@index([postponedUntil])
+  @@map("user_version_status")
+}
+
+model PendingMembershipPurchase {
+  id               String     @id @default(uuid())
+  revenueCatUserId String     @map("revenuecat_user_id") @db.VarChar(255)
+  memberType       MemberType @map("member_type")
+  duration         Int        @map("duration")
+  productId        String     @map("product_id") @db.VarChar(255)
+  transactionId    String     @map("transaction_id") @db.VarChar(255)
+  platform         String     @map("platform") @db.VarChar(50)
+  purchasedAt      DateTime   @map("purchased_at")
+  expiresAt        DateTime?  @map("expires_at")
+  eventType        String     @map("event_type") @db.VarChar(100)
+  eventData        String     @map("event_data")
+  status           String     @default("PENDING") @map("status") @db.VarChar(50)
+  processedAt      DateTime?  @map("processed_at")
+  associatedUserId String?    @map("associated_user_id")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  @@index([revenueCatUserId], map: "idx_pending_membership_revenuecat_user")
+  @@index([status], map: "idx_pending_membership_status")
+  @@index([createdAt], map: "idx_pending_membership_created_at")
+  @@index([associatedUserId], map: "idx_pending_membership_associated_user")
+  @@map("pending_membership_purchases")
+}
+
 enum TransactionType {
   INCOME
   EXPENSE
@@ -1254,95 +1364,13 @@ enum VersionUpdateStatus {
   UPDATED
 }
 
-model AppVersion {
-  id            String    @id @default(uuid())
-  platform      Platform
-  version       String    @db.VarChar(50)
-  buildNumber   Int       @map("build_number")
-  versionCode   Int       @map("version_code")
-  releaseNotes  String?   @map("release_notes") @db.Text
-  downloadUrl   String?   @map("download_url") @db.Text
-  appStoreUrl   String?   @map("app_store_url") @db.Text
-  detailUrl     String?   @map("detail_url") @db.Text
-  isForceUpdate Boolean   @default(false) @map("is_force_update")
-  isEnabled     Boolean   @default(true) @map("is_enabled")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-  publishedAt   DateTime? @map("published_at")
-  createdBy     String?   @map("created_by")
-  creator       User?     @relation(fields: [createdBy], references: [id], onDelete: SetNull)
-  userVersionStatus UserVersionStatus[]
-
-  @@unique([platform, version])
-  @@unique([platform, versionCode])
-  @@index([platform])
-  @@index([isEnabled])
-  @@index([publishedAt])
-  @@map("app_versions")
-}
-
-model VersionConfig {
-  id          String   @id @default(uuid())
-  key         String   @unique @db.VarChar(100)
-  value       String   @db.Text
-  description String?  @db.Text
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  @@map("version_configs")
-}
-
-model VersionCheckLog {
-  id                  String        @id @default(uuid())
-  userId              String?       @map("user_id")
-  platform            Platform
-  currentVersion      String?       @map("current_version") @db.VarChar(50)
-  currentBuildNumber  Int?          @map("current_build_number")
-  latestVersion       String?       @map("latest_version") @db.VarChar(50)
-  latestBuildNumber   Int?          @map("latest_build_number")
-  action              VersionAction
-  ipAddress           String?       @map("ip_address") @db.Inet
-  userAgent           String?       @map("user_agent") @db.Text
-  createdAt           DateTime      @default(now()) @map("created_at")
-  user                User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([platform])
-  @@index([createdAt])
-  @@map("version_check_logs")
-}
-
-model UserVersionStatus {
-  id              String      @id @default(uuid())
-  userId          String      @map("user_id")
-  platform        Platform
-  appVersionId    String      @map("app_version_id")
-  version         String      @db.VarChar(50)
-  versionCode     Int         @map("version_code")
-  status          VersionUpdateStatus @default(PENDING)
-  postponedUntil  DateTime?   @map("postponed_until")
-  createdAt       DateTime    @default(now()) @map("created_at")
-  updatedAt       DateTime    @updatedAt @map("updated_at")
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  appVersion      AppVersion  @relation(fields: [appVersionId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, platform, appVersionId])
-  @@index([userId])
-  @@index([platform])
-  @@index([userId, platform])
-  @@index([appVersionId])
-  @@index([status])
-  @@index([postponedUntil])
-  @@map("user_version_status")
-}
-
 enum MemberType {
-  REGULAR           // 普通会员
-  DONOR             // 捐赠会员（旧版本，保持兼容性）
-  DONATION_ONE      // 捐赠会员（壹）
-  DONATION_TWO      // 捐赠会员（贰）
-  DONATION_THREE    // 捐赠会员（叁）
-  LIFETIME          // 永久会员
+  REGULAR
+  DONOR
+  LIFETIME
+  DONATION_ONE
+  DONATION_TWO
+  DONATION_THREE
 }
 
 enum RenewalType {
@@ -1377,9 +1405,9 @@ enum NotificationType {
   RENEWAL_FAILED
   MEMBERSHIP_EXPIRED
   MEMBERSHIP_RENEWED
-  MEMBERSHIP_DOWNGRADED
   BADGE_AWARDED
   POINTS_RESET
+  MEMBERSHIP_DOWNGRADED
 }
 
 enum PaymentMethod {
@@ -1413,30 +1441,4 @@ enum SubscriptionStatus {
   expired
   paused
   past_due
-}
-
-// 待关联的会员购买记录（用于处理匿名用户购买）
-model PendingMembershipPurchase {
-  id               String     @id @default(uuid())
-  revenueCatUserId String     @map("revenuecat_user_id") @db.VarChar(255)
-  memberType       MemberType @map("member_type")
-  duration         Int        @map("duration") // 月数
-  productId        String     @map("product_id") @db.VarChar(255)
-  transactionId    String     @map("transaction_id") @db.VarChar(255)
-  platform         String     @map("platform") @db.VarChar(50)
-  purchasedAt      DateTime   @map("purchased_at")
-  expiresAt        DateTime?  @map("expires_at")
-  eventType        String     @map("event_type") @db.VarChar(100)
-  eventData        String     @map("event_data") @db.Text
-  status           String     @default("PENDING") @map("status") @db.VarChar(50) // PENDING, PROCESSED, EXPIRED
-  processedAt      DateTime?  @map("processed_at")
-  associatedUserId String?    @map("associated_user_id")
-  createdAt        DateTime   @default(now()) @map("created_at")
-  updatedAt        DateTime   @updatedAt @map("updated_at")
-
-  @@index([revenueCatUserId], map: "idx_pending_membership_revenuecat_user")
-  @@index([status], map: "idx_pending_membership_status")
-  @@index([createdAt], map: "idx_pending_membership_created_at")
-  @@index([associatedUserId], map: "idx_pending_membership_associated_user")
-  @@map("pending_membership_purchases")
 }

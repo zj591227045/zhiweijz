@@ -124,6 +124,7 @@ export interface Category {
  */
 export interface Budget {
   id: string;
+  name: string; // 预算名称
   amount: number;
   categoryId: string;
   category?: Category;
@@ -133,6 +134,9 @@ export interface Budget {
   accountBookId: string;
   createdAt: string;
   updatedAt: string;
+  familyMemberName?: string; // 成员名称
+  familyMemberId?: string; // 成员ID
+  budgetType?: string; // 预算类型
 }
 
 /**
