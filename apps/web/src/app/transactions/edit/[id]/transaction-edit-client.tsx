@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { PageContainer } from '@/components/layout/page-container';
@@ -47,6 +48,36 @@ function BudgetSelector({
   const { user: currentUser } = useAuthStore();
   const [isBudgetSelectorOpen, setIsBudgetSelectorOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<BudgetDisplay | null>(null);
+
+  // 处理页面滚动锁定
+  useEffect(() => {
+    if (isBudgetSelectorOpen) {
+      // 禁用页面滚动 - 使用更高的特异性覆盖iOS样式
+      document.body.style.setProperty('overflow', 'hidden', 'important');
+      document.body.style.setProperty('position', 'fixed', 'important');
+      document.body.style.setProperty('width', '100%', 'important');
+      document.body.style.setProperty('height', '100%', 'important');
+      // 添加类名标记
+      document.body.classList.add('budget-selector-open');
+    } else {
+      // 恢复页面滚动
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('position');
+      document.body.style.removeProperty('width');
+      document.body.style.removeProperty('height');
+      // 移除类名标记
+      document.body.classList.remove('budget-selector-open');
+    }
+
+    // 清理函数：组件卸载时恢复滚动
+    return () => {
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('position');
+      document.body.style.removeProperty('width');
+      document.body.style.removeProperty('height');
+      document.body.classList.remove('budget-selector-open');
+    };
+  }, [isBudgetSelectorOpen]);
 
   // 获取活跃预算数据
   useEffect(() => {
@@ -154,8 +185,8 @@ function BudgetSelector({
         </div>
       </div>
 
-      {/* 预算选择器弹窗 */}
-      {isBudgetSelectorOpen && (
+      {/* 预算选择器弹窗 - 使用Portal渲染到body */}
+      {isBudgetSelectorOpen && typeof window !== 'undefined' && createPortal(
         <div className="budget-selector-overlay" onClick={() => setIsBudgetSelectorOpen(false)}>
           <div className="budget-selector-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="budget-selector-header">
@@ -248,7 +279,8 @@ function BudgetSelector({
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

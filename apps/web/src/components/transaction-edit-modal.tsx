@@ -79,6 +79,36 @@ function BudgetSelector({
   const [isLoading, setIsLoading] = useState(false);
   const [originalBudgetId, setOriginalBudgetId] = useState<string>('');
 
+  // 处理页面滚动锁定
+  useEffect(() => {
+    if (isBudgetSelectorOpen) {
+      // 禁用页面滚动 - 使用更高的特异性覆盖iOS样式
+      document.body.style.setProperty('overflow', 'hidden', 'important');
+      document.body.style.setProperty('position', 'fixed', 'important');
+      document.body.style.setProperty('width', '100%', 'important');
+      document.body.style.setProperty('height', '100%', 'important');
+      // 添加类名标记
+      document.body.classList.add('budget-selector-open');
+    } else {
+      // 恢复页面滚动
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('position');
+      document.body.style.removeProperty('width');
+      document.body.style.removeProperty('height');
+      // 移除类名标记
+      document.body.classList.remove('budget-selector-open');
+    }
+
+    // 清理函数：组件卸载时恢复滚动
+    return () => {
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('position');
+      document.body.style.removeProperty('width');
+      document.body.style.removeProperty('height');
+      document.body.classList.remove('budget-selector-open');
+    };
+  }, [isBudgetSelectorOpen]);
+
   // 根据日期获取预算数据 - 使用与添加记账页面相同的API
   const fetchBudgetsByDate = useCallback(async (transactionDate: string, accountBookId: string) => {
     try {
@@ -317,8 +347,8 @@ function BudgetSelector({
         </div>
       </div>
 
-      {/* 预算选择器弹窗 - 恢复原始样式 */}
-      {isBudgetSelectorOpen && (
+      {/* 预算选择器弹窗 - 使用Portal渲染到body */}
+      {isBudgetSelectorOpen && typeof window !== 'undefined' && createPortal(
         <div className="budget-selector-overlay" onClick={() => setIsBudgetSelectorOpen(false)}>
           <div className="budget-selector-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="budget-selector-header">
@@ -381,18 +411,18 @@ function BudgetSelector({
                                   {isRecommended && (
                                     <span className="recommended-badge-small">推荐</span>
                                   )}
+                                  <span
+                                    className="budget-status-badge"
+                                    style={{ backgroundColor: budgetStatus.color }}
+                                  >
+                                    {budgetStatus.text}
+                                  </span>
                                 </div>
                                 <div className="budget-item-details">
                                   <span>余额: {formatAmount(calculateBudgetBalance(budget))}</span>
                                   <span className="budget-period-small">
                                     ({getBudgetPeriod(budget)})
                                   </span>
-                                </div>
-                                <div
-                                  className="budget-item-status"
-                                  style={{ color: budgetStatus.color }}
-                                >
-                                  {budgetStatus.text}
                                 </div>
                               </div>
                               {selectedBudget?.id === budget.id && (
@@ -428,18 +458,18 @@ function BudgetSelector({
                                   {isRecommended && (
                                     <span className="recommended-badge-small">推荐</span>
                                   )}
+                                  <span
+                                    className="budget-status-badge"
+                                    style={{ backgroundColor: budgetStatus.color }}
+                                  >
+                                    {budgetStatus.text}
+                                  </span>
                                 </div>
                                 <div className="budget-item-details">
                                   <span>余额: {formatAmount(calculateBudgetBalance(budget))}</span>
                                   <span className="budget-period-small">
                                     ({getBudgetPeriod(budget)})
                                   </span>
-                                </div>
-                                <div
-                                  className="budget-item-status"
-                                  style={{ color: budgetStatus.color }}
-                                >
-                                  {budgetStatus.text}
                                 </div>
                               </div>
                               {selectedBudget?.id === budget.id && (
@@ -456,7 +486,8 @@ function BudgetSelector({
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

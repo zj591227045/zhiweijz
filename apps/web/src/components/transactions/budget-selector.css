@@ -59,28 +59,39 @@
 
 /* 预算选择器弹窗 */
 .budget-selector-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  animation: fadeIn 0.2s ease;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+  animation: fadeIn 0.2s ease !important;
+  /* 确保在所有容器之上 */
+  pointer-events: auto !important;
 }
 
 .budget-selector-drawer {
-  background-color: var(--card-background);
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-  width: 100%;
-  max-height: 50vh;
-  display: flex;
-  flex-direction: column;
-  animation: slideUp 0.3s ease;
+  background-color: var(--card-background) !important;
+  border-top-left-radius: 16px !important;
+  border-top-right-radius: 16px !important;
+  width: 100% !important;
+  max-width: 100vw !important;
+  /* 自动调整高度，最高70%屏幕高度 */
+  height: auto !important;
+  max-height: 80vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  animation: slideUp 0.3s ease !important;
+  /* 确保抽屉样式正确 */
+  position: relative !important;
+  margin: 0 !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15) !important;
+  /* 确保内容能够完全显示 */
+  overflow: hidden !important;
 }
 
 .budget-selector-header {
@@ -114,7 +125,15 @@
 .budget-selector-content {
   padding: 16px;
   overflow-y: auto;
-  max-height: calc(50vh - 60px);
+  /* 自动调整内容高度，减去头部高度 */
+  flex: 1;
+  max-height: calc(70vh - 60px);
+  /* 确保内容可以滚动 */
+  -webkit-overflow-scrolling: touch;
+  /* 优化滚动性能 */
+  overscroll-behavior: contain;
+  /* 确保内容区域能够正确计算高度 */
+  min-height: 0;
 }
 
 .no-budgets-message {
@@ -207,6 +226,17 @@
   font-weight: 500;
 }
 
+/* 预算状态标签样式 */
+.budget-status-badge {
+  color: white;
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-left: 6px;
+  font-weight: 500;
+  display: inline-block;
+}
+
 /* 预算详情样式 */
 .budget-details {
   display: flex;
@@ -285,5 +315,46 @@
   }
   to {
     transform: translateY(0);
+  }
+}
+
+/* 预算选择器打开时的页面滚动锁定 */
+body.budget-selector-open {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* iOS特殊处理 - 使用更高特异性覆盖iOS样式 */
+html.ios-app body.budget-selector-open,
+body.ios-app.budget-selector-open,
+.ios-app body.budget-selector-open {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 响应式优化 */
+@media (max-height: 600px) {
+  /* 小屏幕设备，减少最大高度 */
+  .budget-selector-drawer {
+    max-height: 80vh !important;
+  }
+
+  .budget-selector-content {
+    max-height: calc(80vh - 60px) !important;
+  }
+}
+
+@media (min-height: 800px) {
+  /* 大屏幕设备，可以显示更多内容 */
+  .budget-selector-drawer {
+    max-height: 80ch !important;
+  }
+
+  .budget-selector-content {
+    max-height: calc(80vh - 60px) !important;
   }
 }
