@@ -89,14 +89,16 @@
 .budget-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .budget-info {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   flex: 1;
+  min-width: 0;
 }
 
 .budget-avatar {
@@ -111,41 +113,81 @@
   font-weight: 600;
   font-size: 16px;
   flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 2px;
 }
 
 .budget-details {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start !important;
+  text-align: left !important;
 }
 
 .budget-name {
   font-size: 16px;
   font-weight: 500;
-  color: #333;
-  margin-bottom: 2px;
+  color: var(--text-primary);
+  line-height: 1.2;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  text-align: left !important;
 }
 
 .budget-balance {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
+  line-height: 1.2;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  text-align: left !important;
+}
+
+/* 更具体的选择器确保样式生效 */
+.multi-budget-inline-selector .budget-name,
+.budget-selector-content .budget-name {
+  text-align: left !important;
+}
+
+.multi-budget-inline-selector .budget-balance,
+.budget-selector-content .budget-balance {
+  text-align: left !important;
 }
 
 .budget-actions {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
+  flex-shrink: 0;
+  min-width: 0;
 }
 
 .amount-input {
-  width: 80px;
+  min-width: 60px;
+  max-width: 120px;
+  width: auto;
   padding: 8px 12px;
   border: 2px solid var(--border-color);
   border-radius: 8px;
   font-size: 16px !important;
   font-weight: 600;
-  text-align: right;
+  text-align: left !important;
   background: white !important;
   color: var(--text-primary) !important;
   transition: all 0.2s ease;
+  flex-shrink: 1;
+  /* 支持字体自动缩小 */
+  font-size-adjust: auto;
+  overflow: hidden;
+}
+
+/* 更具体的选择器确保金额输入框左对齐 */
+.multi-budget-inline-selector .amount-input,
+.budget-selector-content .amount-input {
+  text-align: left !important;
 }
 
 /* 夜间模式兼容 */
@@ -164,19 +206,81 @@
 /* 覆盖移动端的字体大小强制样式 */
 @media (max-width: 480px) {
   .compact-budget-item .amount-input {
-    font-size: 16px !important;
-    min-width: 80px !important;
+    font-size: 14px !important;
+    min-width: 50px !important;
+    max-width: 100px !important;
+  }
+
+  .budget-name {
+    font-size: 14px;
+  }
+
+  .budget-balance {
+    font-size: 11px;
+  }
+}
+
+/* 在更小的屏幕上进一步缩小 */
+@media (max-width: 360px) {
+  .compact-budget-item .amount-input {
+    font-size: 12px !important;
+    min-width: 45px !important;
     max-width: 80px !important;
+  }
+
+  .budget-name {
+    font-size: 13px;
+  }
+
+  .budget-balance {
+    font-size: 10px;
   }
 }
 
 .amount-placeholder {
-  width: 80px;
+  min-width: 60px;
+  max-width: 120px;
+  width: auto;
   padding: 6px 8px;
   font-size: 16px;
   font-weight: 600;
-  text-align: right;
-  color: #ccc;
+  text-align: left !important;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-shrink: 1;
+}
+
+/* 更具体的选择器确保金额占位符左对齐 */
+.multi-budget-inline-selector .amount-placeholder,
+.budget-selector-content .amount-placeholder {
+  text-align: left !important;
+  justify-content: flex-start !important;
+}
+
+/* 强制左对齐 - 最高优先级 */
+.compact-budget-item .budget-details,
+.compact-budget-item .budget-details * {
+  text-align: left !important;
+  align-items: flex-start !important;
+}
+
+.compact-budget-item .budget-name,
+.compact-budget-item .budget-balance {
+  text-align: left !important;
+  align-self: flex-start !important;
+}
+
+/* 覆盖任何可能的居中样式 */
+.multi-budget-inline-selector * {
+  text-align: left !important;
+}
+
+.multi-budget-inline-selector .budget-info,
+.multi-budget-inline-selector .budget-details {
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
 }
 
 .budget-checkbox {

@@ -60,6 +60,26 @@ export function MultiBudgetInlineSelector({
     return `预算 ${budget.id.slice(-4)}`;
   };
 
+  // 计算预算余额（预算总金额 + 结转金额 - 已用金额）
+  const calculateBudgetBalance = (budget: Budget): number => {
+    const totalAmount = budget.amount + (budget.rolloverAmount || 0);
+    return totalAmount - (budget.spent || 0);
+  };
+
+  // 获取预算状态
+  const getBudgetStatus = (budget: Budget) => {
+    const balance = calculateBudgetBalance(budget);
+    const totalAmount = budget.amount + (budget.rolloverAmount || 0);
+
+    if (balance < 0) {
+      return { status: 'over', text: '超支', color: '#ef4444' };
+    } else if (totalAmount > 0 && balance / totalAmount < 0.2) {
+      return { status: 'low', text: '余额不足', color: '#f59e0b' };
+    } else {
+      return { status: 'good', text: '正常', color: '#10b981' };
+    }
+  };
+
   // 获取已分摊总金额
   const getTotalAllocatedAmount = (): number => {
     return localAllocations.reduce((sum, item) => sum + item.amount, 0);
@@ -149,31 +169,6 @@ export function MultiBudgetInlineSelector({
 
   return (
     <div className="multi-budget-inline-selector">
-      {/* 紧凑的金额汇总 */}
-      <div className="compact-amount-summary">
-        <div className="amount-row">
-          <span className="amount-label">总金额:</span>
-          <span className="amount-value">{formatAmount(totalAmount)}</span>
-        </div>
-        <div className="status-row">
-          <span className="status-text">已分摊: {formatAmount(getTotalAllocatedAmount())}</span>
-          {isAmountMatched() ? (
-            <span className="status-match">
-              <i className="fas fa-check"></i>
-              金额匹配
-            </span>
-          ) : localAllocations.length > 0 ? (
-            <span className="status-error">
-              <i className="fas fa-exclamation-triangle"></i>
-              差额: {formatAmount(totalAmount - getTotalAllocatedAmount())}
-            </span>
-          ) : (
-            <span className="status-text">
-              请选择预算
-            </span>
-          )}
-        </div>
-      </div>
 
 
 
@@ -191,8 +186,26 @@ export function MultiBudgetInlineSelector({
                     {getBudgetDisplayName(budget).charAt(0)}
                   </div>
                   <div className="budget-details">
-                    <div className="budget-name">{getBudgetDisplayName(budget)}</div>
-                    <div className="budget-balance">余额: {formatAmount(budget.amount)}</div>
+                    <div className="budget-name">
+                      {getBudgetDisplayName(budget)}
+                      <span
+                        className="budget-status-badge"
+                        style={{
+                          backgroundColor: getBudgetStatus(budget).color,
+                          color: 'white',
+                          fontSize: '10px',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          marginLeft: '8px',
+                          fontWeight: '500'
+                        }}
+                      >
+                        {getBudgetStatus(budget).text}
+                      </span>
+                    </div>
+                    <div className="budget-balance" style={{ color: getBudgetStatus(budget).color }}>
+                      余额: {formatAmount(calculateBudgetBalance(budget))}
+                    </div>
                   </div>
                 </div>
                 <div className="budget-actions">

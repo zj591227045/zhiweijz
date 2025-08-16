@@ -7,6 +7,7 @@ import { useTransactionStore } from '@/store/transaction-store';
 import { useCategoryStore } from '@/store/category-store';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { useBudgetStore } from '@/store/budget-store';
+import { useTransactionFormStore, BudgetAllocationItem } from '@/store/transaction-form-store';
 import { triggerTransactionChange } from '@/store/dashboard-store';
 import { formatDateForInput, getIconClass } from '@/lib/utils';
 import { TransactionType, UpdateTransactionData } from '@/types';
@@ -19,6 +20,7 @@ import './transactions/budget-selector.css';
 import { MobileTagSection } from './tags/mobile-tag-section';
 import { tagApi } from '@/lib/api/tag-api';
 import { TagResponseDto } from '@/lib/api/types/tag.types';
+import { MultiBudgetInlineSelector } from './transactions/multi-budget-inline-selector';
 import {
   TransactionAttachmentUpload,
   TransactionAttachment,
@@ -64,11 +66,21 @@ function BudgetSelector({
   setBudgetId,
   transactionDate,
   isEditMode = false,
+  amount,
+  isMultiBudget,
+  setIsMultiBudget,
+  budgetAllocation,
+  setBudgetAllocation,
 }: {
   budgetId: string;
   setBudgetId: (id: string) => void;
   transactionDate: string;
   isEditMode?: boolean;
+  amount: string;
+  isMultiBudget: boolean;
+  setIsMultiBudget: (value: boolean) => void;
+  budgetAllocation: BudgetAllocationItem[];
+  setBudgetAllocation: (allocations: BudgetAllocationItem[]) => void;
 }) {
   const { currentAccountBook } = useAccountBookStore();
   const { user: currentUser } = useAuthStore();
@@ -78,6 +90,19 @@ function BudgetSelector({
   const [dateBudgets, setDateBudgets] = useState<BudgetDisplay[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [originalBudgetId, setOriginalBudgetId] = useState<string>('');
+  const [budgetMode, setBudgetMode] = useState<'single' | 'multi'>('single');
+
+  // 初始化预算模式
+  useEffect(() => {
+    console.log('🔍 [BudgetSelector] 预算模式初始化:', { isMultiBudget, budgetAllocationLength: budgetAllocation.length });
+    if (isMultiBudget && budgetAllocation.length > 0) {
+      console.log('🔍 [BudgetSelector] 设置为多人模式');
+      setBudgetMode('multi');
+    } else {
+      console.log('🔍 [BudgetSelector] 设置为单人模式');
+      setBudgetMode('single');
+    }
+  }, [isMultiBudget, budgetAllocation]);
 
   // 处理页面滚动锁定
   useEffect(() => {
@@ -323,7 +348,18 @@ function BudgetSelector({
           <i className="fas fa-wallet"></i>
         </div>
         <div className="budget-selector-info">
-          {selectedBudget ? (
+          {isMultiBudget && budgetAllocation.length > 0 ? (
+            // 多人预算模式显示
+            <>
+              <div className="budget-name">
+                多人预算分摊 ({budgetAllocation.length}人)
+              </div>
+              <div className="budget-details">
+                <span>总金额: {formatAmount(parseFloat(amount) || 0)}</span>
+              </div>
+            </>
+          ) : selectedBudget ? (
+            // 单人预算模式显示
             <>
               <div className="budget-name">
                 {getBudgetDisplayName(selectedBudget)}
@@ -358,9 +394,35 @@ function BudgetSelector({
               </button>
             </div>
             <div className="budget-selector-content">
-              {isLoading ? (
-                <div className="loading-state">加载中...</div>
-              ) : formattedBudgets.length === 0 ? (
+              {/* 预算模式切换 */}
+              <div className="budget-mode-tabs">
+                <button
+                  className={`mode-tab ${budgetMode === 'single' ? 'active' : ''}`}
+                  onClick={() => {
+                    setBudgetMode('single');
+                    setIsMultiBudget(false);
+                    setBudgetAllocation([]);
+                  }}
+                >
+                  单人
+                </button>
+                <button
+                  className={`mode-tab ${budgetMode === 'multi' ? 'active' : ''}`}
+                  onClick={() => {
+                    setBudgetMode('multi');
+                    setIsMultiBudget(true);
+                    setBudgetId('');
+                  }}
+                >
+                  多人
+                </button>
+              </div>
+
+              {budgetMode === 'single' ? (
+                // 单人预算模式
+                isLoading ? (
+                  <div className="loading-state">加载中...</div>
+                ) : formattedBudgets.length === 0 ? (
                 <div className="no-budgets-message">
                   <i className="fas fa-info-circle"></i>
                   <span>
@@ -483,6 +545,20 @@ function BudgetSelector({
                     </>
                   )}
                 </div>
+              )
+              ) : (
+                // 多人预算模式
+                <MultiBudgetInlineSelector
+                  totalAmount={parseFloat(amount) || 0}
+                  selectedAllocations={budgetAllocation}
+                  onAllocationsChange={(allocations: BudgetAllocationItem[]) => {
+                    setBudgetAllocation(allocations);
+                    setIsMultiBudget(allocations.length > 0);
+                  }}
+                  onConfirm={() => {
+                    setIsBudgetSelectorOpen(false);
+                  }}
+                />
               )}
             </div>
           </div>
@@ -533,6 +609,11 @@ export default function TransactionEditModal({
   const [budgetId, setBudgetId] = useState('');
   const [time, setTime] = useState('12:00');
   const [currentStep, setCurrentStep] = useState(2); // 默认进入第二步，与原有逻辑一致
+
+  // 多人预算分摊相关状态
+  const [isMultiBudget, setIsMultiBudget] = useState(false);
+  const [budgetAllocation, setBudgetAllocation] = useState<BudgetAllocationItem[]>([]);
+  const [budgetMode, setBudgetMode] = useState<'single' | 'multi'>('single');
 
   // 带有振动反馈的关闭处理函数
   const handleCloseWithHaptic = () => {
@@ -655,6 +736,25 @@ export default function TransactionEditModal({
       setTime(`${hours}:${minutes}`);
       setCurrentStep(2); // 直接进入详情步骤
 
+      // 初始化多人预算分摊数据
+      console.log('🔍 [TransactionEditModal] 检查多人预算分摊数据:', {
+        isMultiBudget: dataToUse.isMultiBudget,
+        budgetAllocation: dataToUse.budgetAllocation,
+        budgetAllocationLength: dataToUse.budgetAllocation?.length || 0
+      });
+
+      if (dataToUse.isMultiBudget && dataToUse.budgetAllocation && Array.isArray(dataToUse.budgetAllocation) && dataToUse.budgetAllocation.length > 0) {
+        console.log('🔍 [TransactionEditModal] 设置为多人预算模式');
+        setIsMultiBudget(true);
+        setBudgetAllocation(dataToUse.budgetAllocation);
+        setBudgetMode('multi');
+      } else {
+        console.log('🔍 [TransactionEditModal] 设置为单人预算模式');
+        setIsMultiBudget(false);
+        setBudgetAllocation([]);
+        setBudgetMode('single');
+      }
+
       // 获取记账的标签和附件
       if (transactionId && transactionId !== 'placeholder') {
         // 获取标签
@@ -740,6 +840,9 @@ export default function TransactionEditModal({
         amount,
         date: transactionDate.toISOString(),
         budgetId: budgetId || undefined,
+        // 多人预算分摊相关数据
+        isMultiBudget,
+        budgetAllocation: isMultiBudget ? budgetAllocation : undefined,
       };
 
       const success = await updateTransaction(transactionId!, updateData);
@@ -1558,6 +1661,11 @@ export default function TransactionEditModal({
                         setBudgetId={setBudgetId}
                         transactionDate={formData.date || ''}
                         isEditMode={true}
+                        amount={(formData.amount || 0).toString()}
+                        isMultiBudget={isMultiBudget}
+                        setIsMultiBudget={setIsMultiBudget}
+                        budgetAllocation={budgetAllocation}
+                        setBudgetAllocation={setBudgetAllocation}
                       />
                     </div>
                   )}

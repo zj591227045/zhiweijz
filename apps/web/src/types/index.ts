@@ -60,6 +60,16 @@ export enum TransactionType {
   INCOME = 'INCOME',
 }
 
+// 多人预算分摊项
+export interface BudgetAllocationItem {
+  budgetId: string;
+  budgetName: string;
+  memberName: string;
+  memberId?: string;
+  amount: number;
+  isSelected?: boolean;
+}
+
 export interface Transaction {
   id: string;
   amount: number;
@@ -79,6 +89,8 @@ export interface Transaction {
   };
   familyId?: string;
   familyMemberId?: string;
+  isMultiBudget?: boolean;
+  budgetAllocation?: BudgetAllocationItem[];
   createdAt: string;
   updatedAt: string;
 }
@@ -100,6 +112,9 @@ export interface UpdateTransactionData {
   categoryId?: string;
   description?: string;
   date?: string;
+  budgetId?: string;
+  isMultiBudget?: boolean;
+  budgetAllocation?: BudgetAllocationItem[];
 }
 
 /**
@@ -137,6 +152,10 @@ export interface Budget {
   familyMemberName?: string; // 成员名称
   familyMemberId?: string; // 成员ID
   budgetType?: string; // 预算类型
+  rolloverAmount?: number; // 结转金额
+  spent?: number; // 已用金额
+  remaining?: number; // 剩余金额
+  adjustedRemaining?: number; // 考虑结转后的剩余金额
 }
 
 /**
