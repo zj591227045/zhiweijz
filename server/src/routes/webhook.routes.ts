@@ -157,17 +157,15 @@ async function verifyWebhookSignature(req: Request): Promise<boolean> {
         Buffer.from(expectedSignature, 'hex')
       );
 
+      if (!isValid) {
+        console.error('🔒 [WebhookSignature] 签名不匹配');
+      }
+
       return isValid;
     } catch (error) {
       console.error('🔒 [WebhookSignature] 签名验证计算失败:', error);
       return false;
     }
-
-    if (!isValid) {
-      console.error('🔒 [WebhookSignature] 签名不匹配');
-    }
-
-    return isValid;
 
   } catch (error) {
     console.error('🔒 [WebhookSignature] 验证异常:', error);
