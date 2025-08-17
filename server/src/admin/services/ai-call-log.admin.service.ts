@@ -39,9 +39,16 @@ export class AICallLogAdminService {
    */
   private async ensureUnifiedViewExists() {
     try {
-      console.log('🔍 [统一视图] 强制重新创建统一视图...');
+      // 首先检查视图是否已存在
+      try {
+        await prisma.$queryRaw`SELECT 1 FROM ai_call_logs_unified LIMIT 1;`;
+        console.log('✅ [统一视图] 统一视图已存在，跳过创建');
+        return;
+      } catch (error) {
+        console.log('🔍 [统一视图] 统一视图不存在，开始创建...');
+      }
 
-      // 先删除现有视图
+      // 先删除现有视图（如果存在）
       await prisma.$executeRaw`DROP VIEW IF EXISTS ai_call_logs_unified;`;
       console.log('🗑️ [统一视图] 已删除现有视图');
 
@@ -75,7 +82,7 @@ export class AICallLogAdminService {
             -- 多模态AI字段设为NULL
             NULL::INTEGER as input_size,
             NULL::VARCHAR(20) as input_format,
-            NULL::TEXT as output_text,
+            NULL::TEXT as multimodal_output_text,
             NULL::DECIMAL(5,4) as confidence_score,
             'llm' as log_type
         FROM llm_call_logs l
@@ -110,7 +117,7 @@ export class AICallLogAdminService {
             -- 多模态AI特有字段
             m.input_size,
             m.input_format,
-            m.output_text,
+            m.output_text as multimodal_output_text,
             m.confidence_score,
             'multimodal' as log_type
         FROM multimodal_ai_call_logs m
@@ -309,7 +316,7 @@ export class AICallLogAdminService {
         // 多模态AI特有字段
         inputSize: log.input_size,
         inputFormat: log.input_format,
-        outputText: log.output_text,
+        outputText: log.multimodal_output_text,
         confidenceScore: log.confidence_score ? Number(log.confidence_score) : null,
         logType: log.log_type,
       }));
@@ -386,7 +393,7 @@ export class AICallLogAdminService {
 
       // 按AI服务类型统计
       const serviceTypeStats = await Promise.all([
-        prisma.llmCallLog.count({ where: { ...where, aiServiceType: 'llm' } }),
+        prisma.llmCallLog.count({ where }),
         prisma.multimodalAiCallLog.count({ where: { ...where, aiServiceType: 'speech' } }),
         prisma.multimodalAiCallLog.count({ where: { ...where, aiServiceType: 'vision' } }),
       ]);

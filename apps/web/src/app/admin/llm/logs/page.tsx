@@ -124,7 +124,7 @@ export default function LLMLogsPage() {
   });
 
   // 时间范围筛选状态
-  const [timeRange, setTimeRange] = useState('7d'); // '1d', '7d', '30d', 'custom'
+  const [timeRange, setTimeRange] = useState('7d'); // 'all', '1d', '7d', '30d', 'custom'
 
   // 处理时间范围变化
   const handleTimeRangeChange = (range: string) => {
@@ -140,6 +140,15 @@ export default function LLMLogsPage() {
     let startDate = '';
 
     switch (range) {
+      case 'all':
+        // 全部时间，不设置时间限制
+        startDate = '';
+        setFilters(prev => ({
+          ...prev,
+          startDate: '',
+          endDate: '',
+        }));
+        return;
       case '1d':
         startDate = endDate; // 今天
         break;
@@ -297,6 +306,8 @@ export default function LLMLogsPage() {
   // 初始化默认时间范围
   useEffect(() => {
     handleTimeRangeChange('7d');
+    // 标记初始化完成
+    setIsInitialized(true);
   }, []);
 
   useEffect(() => {
@@ -313,13 +324,15 @@ export default function LLMLogsPage() {
     }
   }, [isAuthenticated, token]);
 
-  // 当筛选条件变化时重新加载数据
+  // 当筛选条件变化时重新加载数据（排除初始化时的变化）
+  const [isInitialized, setIsInitialized] = useState(false);
+
   useEffect(() => {
-    if (isAuthenticated && token) {
+    if (isAuthenticated && token && isInitialized) {
       loadLogs();
       loadStatistics();
     }
-  }, [filters]);
+  }, [filters, isAuthenticated, token, isInitialized]);
 
   // 如果未认证，显示加载状态
   if (!isAuthenticated || !token) {
@@ -456,6 +469,13 @@ export default function LLMLogsPage() {
           <div className="space-y-2">
             <Label>时间范围</Label>
             <div className="flex flex-wrap gap-2">
+              <Button
+                variant={timeRange === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleTimeRangeChange('all')}
+              >
+                全部
+              </Button>
               <Button
                 variant={timeRange === '1d' ? 'default' : 'outline'}
                 size="sm"
