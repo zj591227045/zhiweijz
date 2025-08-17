@@ -3,6 +3,7 @@ import { OpenAIProvider } from './openai-provider';
 import { SiliconFlowProvider } from './siliconflow-provider';
 import { DeepseekProvider } from './deepseek-provider';
 import { CustomProvider } from './custom-provider';
+import { VolcengineProvider } from './volcengine-provider';
 import {
   LLMProviderInstance,
   MultiProviderLLMConfig,
@@ -36,6 +37,7 @@ export class MultiProviderLLMService {
     this.providers.set('openai', new OpenAIProvider());
     this.providers.set('siliconflow', new SiliconFlowProvider());
     this.providers.set('deepseek', new DeepseekProvider());
+    this.providers.set('volcengine', new VolcengineProvider());
     this.providers.set('custom', new CustomProvider());
   }
 
@@ -385,6 +387,7 @@ export class MultiProviderLLMService {
 
         console.log(
           `提供商 ${providerInstance.name} 健康检查: ${healthStatus.healthy ? '✓' : '✗'}`,
+          healthStatus.error ? `错误: ${healthStatus.error}` : '',
         );
       } catch (error) {
         console.error(`提供商 ${providerInstance.name} 健康检查失败:`, error);
@@ -398,10 +401,17 @@ export class MultiProviderLLMService {
 
     // 更新数据库中的健康状态
     if (config) {
-      config.providers = Array.from(this.providerInstances.values()).filter((p) =>
-        config.providers.some((cp) => cp.id === p.id),
-      );
+      // 正确更新每个提供商的健康状态
+      config.providers.forEach((provider) => {
+        const updatedProvider = this.providerInstances.get(provider.id);
+        if (updatedProvider) {
+          provider.healthy = updatedProvider.healthy;
+          provider.lastHealthCheck = updatedProvider.lastHealthCheck;
+        }
+      });
+
       await this.saveMultiProviderConfig(config);
+      console.log('健康检查完成，状态已保存到数据库');
     }
   }
 
@@ -414,18 +424,43 @@ export class MultiProviderLLMService {
     const startTime = Date.now();
 
     try {
-      const modelsUrl = this.getModelsUrl(providerInstance);
-      if (!modelsUrl) {
-        throw new Error('无法构建models API URL');
+      const healthCheckUrl = this.getModelsUrl(providerInstance);
+      if (!healthCheckUrl) {
+        throw new Error('无法构建健康检查 API URL');
       }
 
-      const response = await axios.get(modelsUrl, {
-        headers: {
-          Authorization: `Bearer ${providerInstance.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        timeout: 10000, // 10秒超时
-      });
+      let response;
+
+      // 火山方舟使用chat/completions进行健康检查
+      if (providerInstance.provider.toLowerCase() === 'volcengine') {
+        // 直接使用chat/completions进行健康检查，这是最可靠的方式
+        const baseUrl = providerInstance.baseUrl || 'https://ark.cn-beijing.volces.com/api/v3';
+        const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+        const chatUrl = `${cleanBaseUrl}/chat/completions`;
+
+        response = await axios.post(chatUrl, {
+          model: providerInstance.model,
+          messages: [{ role: 'user', content: 'ping' }],
+          max_tokens: 1, // 最小token消耗
+          temperature: 0.0, // 最低温度，确保一致性
+          stream: false, // 确保不使用流式响应
+        }, {
+          headers: {
+            Authorization: `Bearer ${providerInstance.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 15000, // 15秒超时
+        });
+      } else {
+        // 其他提供商使用标准的models端点
+        response = await axios.get(healthCheckUrl, {
+          headers: {
+            Authorization: `Bearer ${providerInstance.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 10000, // 10秒超时
+        });
+      }
 
       const responseTime = Date.now() - startTime;
 
@@ -437,12 +472,43 @@ export class MultiProviderLLMService {
       };
     } catch (error) {
       const responseTime = Date.now() - startTime;
+      let errorMessage = '未知错误';
+
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const statusText = error.response?.statusText;
+        const responseData = error.response?.data;
+
+        if (status === 401) {
+          errorMessage = 'API密钥无效或过期';
+        } else if (status === 404) {
+          errorMessage = '模型不存在或接入点ID无效';
+        } else if (status === 429) {
+          errorMessage = 'API调用频率限制';
+        } else if (error.code === 'ECONNABORTED') {
+          errorMessage = '请求超时';
+        } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+          errorMessage = '网络连接失败';
+        } else {
+          errorMessage = `HTTP ${status}: ${statusText || error.message}`;
+          if (responseData && typeof responseData === 'object') {
+            const errorDetail = responseData.error?.message || responseData.message;
+            if (errorDetail) {
+              errorMessage += ` - ${errorDetail}`;
+            }
+          }
+        }
+      } else {
+        errorMessage = error instanceof Error ? error.message : String(error);
+      }
+
+      console.error(`提供商 ${providerInstance.name} 健康检查失败:`, errorMessage);
 
       return {
         providerId: providerInstance.id,
         healthy: false,
         responseTime,
-        error: error instanceof Error ? error.message : String(error),
+        error: errorMessage,
         checkedAt: new Date(),
       };
     }
@@ -466,6 +532,9 @@ export class MultiProviderLLMService {
         case 'deepseek':
           baseUrl = 'https://api.deepseek.com/v1';
           break;
+        case 'volcengine':
+          baseUrl = 'https://ark.cn-beijing.volces.com/api/v3';
+          break;
         default:
           return null;
       }
@@ -473,6 +542,12 @@ export class MultiProviderLLMService {
 
     // 确保URL格式正确
     const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+
+    // 火山方舟使用chat/completions端点进行健康检查
+    if (providerInstance.provider.toLowerCase() === 'volcengine') {
+      return `${cleanBaseUrl}/chat/completions`;
+    }
+
     return `${cleanBaseUrl}/models`;
   }
 

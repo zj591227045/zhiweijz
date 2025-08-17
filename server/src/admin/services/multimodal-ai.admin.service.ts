@@ -192,6 +192,11 @@ export class MultimodalAIAdminService {
         baseUrl: 'https://api.siliconflow.cn/v1',
       },
       {
+        id: 'volcengine',
+        name: '火山方舟',
+        baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
+      },
+      {
         id: 'baidu',
         name: '百度智能云',
         baseUrl: 'https://vop.baidu.com/server_api',

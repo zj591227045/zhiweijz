@@ -3,6 +3,7 @@ import { OpenAIProvider } from './openai-provider';
 import { SiliconFlowProvider } from './siliconflow-provider';
 import { DeepseekProvider } from './deepseek-provider';
 import { CustomProvider } from './custom-provider';
+import { VolcengineProvider } from './volcengine-provider';
 import { LLMSettings, Message, LLMResponse } from '../types/llm-types';
 import { TokenLimitService } from '../../services/token-limit.service';
 import { MultiProviderLLMService } from './multi-provider-service';
@@ -210,6 +211,9 @@ export class LLMProviderService {
 
     // 注册Deepseek提供商
     this.registerProvider(new DeepseekProvider());
+
+    // 注册火山方舟提供商
+    this.registerProvider(new VolcengineProvider());
 
     // 注册自定义提供商
     this.registerProvider(new CustomProvider());

@@ -10,18 +10,21 @@ import {
 import { MultimodalAIConfigService } from './multimodal-ai-config.service';
 import AccountingPointsService from './accounting-points.service';
 import { MembershipService } from './membership.service';
+import { VisionProviderManager } from '../ai/vision/vision-provider-manager';
 
 /**
  * 视觉识别服务
- * 基于硅基流动视觉模型API实现图片识别功能
+ * 支持多个视觉识别提供商，包括硅基流动、火山方舟等
  */
 export class VisionRecognitionService {
   private configService: MultimodalAIConfigService;
   private membershipService: MembershipService;
+  private providerManager: VisionProviderManager;
 
   constructor() {
     this.configService = new MultimodalAIConfigService();
     this.membershipService = new MembershipService();
+    this.providerManager = new VisionProviderManager();
   }
 
   /**
@@ -117,8 +120,8 @@ export class VisionRecognitionService {
       // 验证输入
       this.validateRequest(request, config);
 
-      // 调用硅基流动API
-      const result = await this.callSiliconFlowAPI(request, config);
+      // 调用视觉识别API
+      const result = await this.callVisionAPI(request, config);
 
       const duration = Date.now() - startTime;
 
@@ -154,7 +157,7 @@ export class VisionRecognitionService {
    */
   async testConnection(config?: Partial<VisionRecognitionConfig>): Promise<boolean> {
     try {
-      const visionConfig = config 
+      const visionConfig = config
         ? { ...await this.configService.getVisionConfig(), ...config }
         : await this.configService.getVisionConfig();
 
@@ -162,16 +165,8 @@ export class VisionRecognitionService {
         return false;
       }
 
-      // 测试API连接 - 调用模型列表接口
-      const response = await axios.get(`${visionConfig.baseUrl}/models`, {
-        headers: {
-          'Authorization': `Bearer ${visionConfig.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        timeout: 10000,
-      });
-
-      return response.status === 200;
+      // 使用提供商管理器测试连接
+      return await this.providerManager.testProviderConnection(visionConfig);
     } catch (error) {
       console.error('测试视觉识别连接失败:', error);
       return false;
@@ -179,127 +174,31 @@ export class VisionRecognitionService {
   }
 
   /**
-   * 调用硅基流动视觉模型API
+   * 调用视觉识别API进行图片识别
    */
-  private async callSiliconFlowAPI(
+  private async callVisionAPI(
     request: VisionRecognitionRequest,
     config: VisionRecognitionConfig
   ): Promise<VisionRecognitionResponse> {
     try {
-      // 准备图片数据
-      let imageContent: string;
-      
-      if (request.imageFile) {
-        // 文件上传方式
-        const base64 = request.imageFile.buffer.toString('base64');
-        imageContent = `data:${request.imageFile.mimetype};base64,${base64}`;
-      } else if (request.imageBase64) {
-        // Base64方式
-        imageContent = request.imageBase64.startsWith('data:') 
-          ? request.imageBase64 
-          : `data:image/jpeg;base64,${request.imageBase64}`;
-      } else if (request.imageUrl) {
-        // URL方式
-        imageContent = request.imageUrl;
-      } else {
-        throw new MultimodalAIError(
-          MultimodalAIErrorType.PROCESSING_ERROR,
-          '未提供有效的图片数据'
-        );
-      }
-
-      // 构建消息内容
-      const messages = [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image_url',
-              image_url: {
-                url: imageContent,
-                detail: request.detailLevel || config.detailLevel,
-              },
-            },
-            {
-              type: 'text',
-              text: request.prompt || '请详细描述这张图片的内容，包括其中的文字、物品、场景等信息。',
-            },
-          ],
-        },
-      ];
-
-      // 调用API
-      const response = await axios.post(
-        `${config.baseUrl}/chat/completions`,
-        {
-          model: config.model,
-          messages,
-          max_tokens: 1000,
-          temperature: 0.1,
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${config.apiKey}`,
-            'Content-Type': 'application/json',
-          },
-          timeout: config.timeout * 1000,
-        }
-      );
-
-      // 解析响应
-      const data = response.data;
-      
-      if (!data || !data.choices || data.choices.length === 0) {
-        throw new MultimodalAIError(
-          MultimodalAIErrorType.API_ERROR,
-          'API返回的响应格式不正确'
-        );
-      }
-
-      const content = data.choices[0].message?.content;
-      if (!content) {
-        throw new MultimodalAIError(
-          MultimodalAIErrorType.API_ERROR,
-          'API未返回识别结果'
-        );
-      }
-
-      return {
-        text: content,
-        confidence: 0.9, // 硅基流动API暂不返回置信度，使用默认值
-      };
+      // 使用提供商管理器进行识别
+      return await this.providerManager.recognizeImage(request, config);
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.code === 'ECONNABORTED') {
-          throw new MultimodalAIError(
-            MultimodalAIErrorType.TIMEOUT,
-            '图片识别请求超时'
-          );
-        }
-        
-        if (error.response?.status === 429) {
-          throw new MultimodalAIError(
-            MultimodalAIErrorType.QUOTA_EXCEEDED,
-            'API调用频率限制'
-          );
-        }
-
-        if (error.response?.status === 413) {
-          throw new MultimodalAIError(
-            MultimodalAIErrorType.FILE_TOO_LARGE,
-            '图片文件过大'
-          );
-        }
-
-        throw new MultimodalAIError(
-          MultimodalAIErrorType.API_ERROR,
-          `API调用失败: ${error.response?.data?.message || error.message}`
-        );
+      // 如果是已知的多模态AI错误，直接抛出
+      if (error instanceof MultimodalAIError) {
+        throw error;
       }
 
-      throw error;
+      // 其他错误转换为多模态AI错误
+      console.error('视觉识别API调用失败:', error);
+      throw new MultimodalAIError(
+        MultimodalAIErrorType.API_ERROR,
+        `视觉识别失败: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
+
+
 
   /**
    * 验证配置

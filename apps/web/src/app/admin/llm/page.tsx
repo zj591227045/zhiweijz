@@ -80,6 +80,26 @@ export default function LLMConfigPage() {
       defaultBaseUrl: 'https://api.siliconflow.cn/v1',
     },
     {
+      id: 'deepseek',
+      name: 'Deepseek',
+      models: ['deepseek-chat', 'deepseek-coder'],
+      defaultBaseUrl: 'https://api.deepseek.com/v1',
+    },
+    {
+      id: 'volcengine',
+      name: '火山方舟',
+      models: [
+        'doubao-1-5-lite-32k-250115', // 豆包-lite-32k
+        'ep-20250112212411-2kbkh', // 用户实际模型
+        'ep-20241217-xxxxx', // 豆包-pro-4k (示例接入点ID)
+        'ep-20241217-yyyyy', // 豆包-pro-32k (示例接入点ID)
+        'ep-20241217-zzzzz', // 豆包-lite-4k (示例接入点ID)
+        'ep-20241217-aaaaa', // 豆包-lite-32k (示例接入点ID)
+        'ep-20241217-bbbbb', // 豆包-pro-128k (示例接入点ID)
+      ],
+      defaultBaseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
+    },
+    {
       id: 'custom',
       name: '自定义',
       models: [],

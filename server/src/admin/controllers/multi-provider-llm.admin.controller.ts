@@ -346,15 +346,36 @@ export class MultiProviderLLMAdminController {
       // 执行健康检查
       const healthStatus = await this.multiProviderService.checkProviderHealth(provider);
 
-      res.json({
-        success: true,
-        data: healthStatus,
-      });
+      // 提供更详细的响应信息
+      const response = {
+        success: healthStatus.healthy,
+        data: {
+          ...healthStatus,
+          provider: {
+            id: provider.id,
+            name: provider.name,
+            provider: provider.provider,
+            model: provider.model,
+            baseUrl: provider.baseUrl,
+          },
+        },
+        message: healthStatus.healthy
+          ? '提供商连接测试成功'
+          : `提供商连接测试失败: ${healthStatus.error || '未知错误'}`,
+      };
+
+      // 如果健康检查失败，返回400状态码但仍然包含详细信息
+      if (!healthStatus.healthy) {
+        res.status(400).json(response);
+      } else {
+        res.json(response);
+      }
     } catch (error) {
       console.error('测试提供商实例连接失败:', error);
       res.status(500).json({
         success: false,
         message: '测试提供商实例连接失败',
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -428,6 +449,25 @@ export class MultiProviderLLMAdminController {
           defaultBaseUrl: 'https://api.deepseek.com/v1',
           defaultTemperature: 0.7,
           defaultMaxTokens: 1000,
+        },
+        {
+          provider: 'volcengine',
+          name: '火山方舟',
+          defaultModels: [
+            'doubao-1-5-lite-32k-250115', // 豆包-lite-32k
+            'ep-20250112212411-2kbkh', // 用户实际模型
+            'ep-20241217-xxxxx', // 豆包-pro-4k (示例接入点ID)
+            'ep-20241217-yyyyy', // 豆包-pro-32k (示例接入点ID)
+            'ep-20241217-zzzzz', // 豆包-lite-4k (示例接入点ID)
+            'ep-20241217-aaaaa', // 豆包-lite-32k (示例接入点ID)
+            'ep-20241217-bbbbb', // 豆包-pro-128k (示例接入点ID)
+          ],
+          defaultBaseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
+          defaultTemperature: 0.7,
+          defaultMaxTokens: 1000,
+          description: '火山方舟大模型服务平台，支持豆包系列模型。支持任何有效的接入点ID或模型名称',
+          features: ['文本生成', '对话聊天', '视觉识别'],
+          healthCheckType: 'chat_completions', // 特殊标记，表示使用chat/completions进行健康检查
         },
         {
           provider: 'custom',
