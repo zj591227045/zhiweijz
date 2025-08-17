@@ -66,6 +66,7 @@ export function StatisticsPage() {
 
   // 预算筛选状态
   const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(null);
+  const [budgetIds, setBudgetIds] = useState<string[]>([]);
 
   // 筛选器显示状态
   const [showFilters, setShowFilters] = useState(false);
@@ -118,6 +119,7 @@ export function StatisticsPage() {
         selectedTagIds,
         rangeType,
         selectedBudgetId,
+        budgetIds,
       );
     }
   };
@@ -125,6 +127,7 @@ export function StatisticsPage() {
   // 处理预算筛选变化
   const handleBudgetChange = (budgetId: string | null, budgetIds?: string[]) => {
     setSelectedBudgetId(budgetId);
+    setBudgetIds(budgetIds || []);
 
     if (currentAccountBook?.id && dateRange.startDate && dateRange.endDate) {
       fetchStatisticsData(
@@ -453,6 +456,7 @@ export function StatisticsPage() {
                       tagIds,
                       timeRangeType,
                       selectedBudgetId,
+                      budgetIds,
                     );
                   }
                 }}
@@ -500,6 +504,9 @@ export function StatisticsPage() {
             <CategoryDistribution
               expenseCategories={statisticsData.expenseByCategory}
               incomeCategories={statisticsData.incomeByCategory}
+              selectedBudgetId={selectedBudgetId}
+              budgetIds={budgetIds}
+              selectedTagIds={selectedTagIds}
               onTransactionEdit={handleTransactionEdit}
             />
 

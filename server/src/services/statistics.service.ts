@@ -150,6 +150,9 @@ export class StatisticsService {
     groupBy: 'day' | 'week' | 'month' | 'category' = 'day',
     familyId?: string,
     accountBookId?: string,
+    budgetId?: string,
+    budgetIds?: string[],
+    tagIds?: string[],
   ): Promise<ExpenseStatisticsResponseDto> {
     // 验证用户是否为家庭成员
     if (familyId) {
@@ -168,19 +171,79 @@ export class StatisticsService {
       familyId,
       accountBookId,
       false, // 设置excludeFamilyMember为false，统计该账本的所有记账记录
+      budgetId,
+      undefined, // categoryIds
+      tagIds,
+      budgetIds,
     );
 
     // 获取分类信息
     const categories = await this.getCategoriesMap(userId, familyId);
 
-    // 计算总支出
-    const total = transactions.reduce((sum: number, t: any) => sum + Number(t.amount), 0);
+    // 确定用于预算分摊计算的预算ID列表
+    let targetBudgetIds: string[] = [];
+
+    if (budgetIds && budgetIds.length > 0) {
+      // 如果有指定的预算ID列表，使用指定的预算ID
+      targetBudgetIds = budgetIds;
+      console.log(`支出统计使用指定的预算ID列表:`, targetBudgetIds);
+    } else if (budgetId && budgetId !== 'NO_BUDGET') {
+      // 如果有单个预算ID，使用单个预算ID
+      targetBudgetIds = [budgetId];
+      console.log(`支出统计使用单个预算ID:`, targetBudgetIds);
+    } else {
+      // 如果没有指定预算筛选，获取用户的所有预算ID
+      try {
+        const { budgets: userBudgets } = await this.budgetRepository.findAll(userId, {
+          page: 1,
+          limit: 1000, // 获取所有预算
+        });
+        targetBudgetIds = userBudgets.map((budget: any) => budget.id);
+        console.log(`支出统计使用用户的所有预算ID列表:`, targetBudgetIds);
+      } catch (error) {
+        console.error('获取用户预算ID失败:', error);
+      }
+    }
+
+    // 计算总支出（考虑多人预算分摊）
+    const total = transactions.reduce((sum: number, t: any) => {
+      let actualAmount = Number(t.amount);
+
+      if (t.isMultiBudget && t.budgetAllocation && targetBudgetIds.length > 0) {
+        try {
+          let budgetAllocation;
+          const allocationData = t.budgetAllocation;
+
+          if (typeof allocationData === 'string') {
+            budgetAllocation = JSON.parse(allocationData);
+          } else if (typeof allocationData === 'object') {
+            budgetAllocation = allocationData;
+          }
+
+          if (Array.isArray(budgetAllocation)) {
+            const targetAllocation = budgetAllocation.find(allocation =>
+              targetBudgetIds.includes(allocation.budgetId)
+            );
+
+            if (targetAllocation) {
+              actualAmount = Number(targetAllocation.amount);
+            } else {
+              actualAmount = 0;
+            }
+          }
+        } catch (error) {
+          console.error('计算总支出时解析预算分摊数据失败:', error);
+        }
+      }
+
+      return sum + actualAmount;
+    }, 0);
 
     // 按日期分组
     const dataByDate = this.groupTransactionsByDate(transactions, groupBy);
 
     // 按分类分组
-    const dataByCategory = this.groupTransactionsByCategory(transactions, categories, total);
+    const dataByCategory = await this.groupTransactionsByCategory(transactions, categories, total, userId, targetBudgetIds);
 
     return {
       total,
@@ -199,6 +262,9 @@ export class StatisticsService {
     groupBy: 'day' | 'week' | 'month' | 'category' = 'day',
     familyId?: string,
     accountBookId?: string,
+    budgetId?: string,
+    budgetIds?: string[],
+    tagIds?: string[],
   ): Promise<IncomeStatisticsResponseDto> {
     // 验证用户是否为家庭成员
     if (familyId) {
@@ -217,19 +283,79 @@ export class StatisticsService {
       familyId,
       accountBookId,
       false, // 设置excludeFamilyMember为false，统计该账本的所有记账记录
+      budgetId,
+      undefined, // categoryIds
+      tagIds,
+      budgetIds,
     );
 
     // 获取分类信息
     const categories = await this.getCategoriesMap(userId, familyId);
 
-    // 计算总收入
-    const total = transactions.reduce((sum: number, t: any) => sum + Number(t.amount), 0);
+    // 确定用于预算分摊计算的预算ID列表
+    let targetBudgetIds: string[] = [];
+
+    if (budgetIds && budgetIds.length > 0) {
+      // 如果有指定的预算ID列表，使用指定的预算ID
+      targetBudgetIds = budgetIds;
+      console.log(`收入统计使用指定的预算ID列表:`, targetBudgetIds);
+    } else if (budgetId && budgetId !== 'NO_BUDGET') {
+      // 如果有单个预算ID，使用单个预算ID
+      targetBudgetIds = [budgetId];
+      console.log(`收入统计使用单个预算ID:`, targetBudgetIds);
+    } else {
+      // 如果没有指定预算筛选，获取用户的所有预算ID
+      try {
+        const { budgets: userBudgets } = await this.budgetRepository.findAll(userId, {
+          page: 1,
+          limit: 1000, // 获取所有预算
+        });
+        targetBudgetIds = userBudgets.map((budget: any) => budget.id);
+        console.log(`收入统计使用用户的所有预算ID列表:`, targetBudgetIds);
+      } catch (error) {
+        console.error('获取用户预算ID失败:', error);
+      }
+    }
+
+    // 计算总收入（考虑多人预算分摊）
+    const total = transactions.reduce((sum: number, t: any) => {
+      let actualAmount = Number(t.amount);
+
+      if (t.isMultiBudget && t.budgetAllocation && targetBudgetIds.length > 0) {
+        try {
+          let budgetAllocation;
+          const allocationData = t.budgetAllocation;
+
+          if (typeof allocationData === 'string') {
+            budgetAllocation = JSON.parse(allocationData);
+          } else if (typeof allocationData === 'object') {
+            budgetAllocation = allocationData;
+          }
+
+          if (Array.isArray(budgetAllocation)) {
+            const targetAllocation = budgetAllocation.find(allocation =>
+              targetBudgetIds.includes(allocation.budgetId)
+            );
+
+            if (targetAllocation) {
+              actualAmount = Number(targetAllocation.amount);
+            } else {
+              actualAmount = 0;
+            }
+          }
+        } catch (error) {
+          console.error('计算总收入时解析预算分摊数据失败:', error);
+        }
+      }
+
+      return sum + actualAmount;
+    }, 0);
 
     // 按日期分组
     const dataByDate = this.groupTransactionsByDate(transactions, groupBy);
 
     // 按分类分组
-    const dataByCategory = this.groupTransactionsByCategory(transactions, categories, total);
+    const dataByCategory = await this.groupTransactionsByCategory(transactions, categories, total, userId, targetBudgetIds);
 
     return {
       total,
@@ -645,22 +771,175 @@ export class StatisticsService {
     // 获取分类信息
     const categories = await this.getCategoriesMap(userId, familyId);
 
-    // 计算总收入和总支出
-    const income = incomeTransactions.reduce((sum: number, t: any) => sum + Number(t.amount), 0);
-    const expense = expenseTransactions.reduce((sum: number, t: any) => sum + Number(t.amount), 0);
+    // 确定用于预算分摊计算的预算ID列表
+    let targetBudgetIds: string[] = [];
+
+    if (actualBudgetIds && actualBudgetIds.length > 0) {
+      // 如果有指定的预算ID列表，使用指定的预算ID
+      targetBudgetIds = actualBudgetIds;
+      console.log(`使用指定的预算ID列表进行分摊计算:`, targetBudgetIds);
+    } else if (actualBudgetId && actualBudgetId !== 'NO_BUDGET') {
+      // 如果有单个预算ID，使用单个预算ID
+      targetBudgetIds = [actualBudgetId];
+      console.log(`使用单个预算ID进行分摊计算:`, targetBudgetIds);
+    } else {
+      // 如果没有指定预算筛选，获取用户的所有预算ID
+      try {
+        const { budgets: userBudgets } = await this.budgetRepository.findAll(userId, {
+          page: 1,
+          limit: 1000, // 获取所有预算
+        });
+        targetBudgetIds = userBudgets.map((budget: any) => budget.id);
+        console.log(`用户 ${userId} 的所有预算ID列表:`, targetBudgetIds);
+      } catch (error) {
+        console.error('获取用户预算ID失败:', error);
+      }
+    }
+
+    // 计算总收入和总支出（考虑多人预算分摊）
+    const income = incomeTransactions.reduce((sum: number, t: any) => {
+      let actualAmount = Number(t.amount);
+
+      if (t.isMultiBudget && t.budgetAllocation && targetBudgetIds.length > 0) {
+        try {
+          let budgetAllocation;
+          const allocationData = t.budgetAllocation;
+
+          if (typeof allocationData === 'string') {
+            budgetAllocation = JSON.parse(allocationData);
+          } else if (typeof allocationData === 'object') {
+            budgetAllocation = allocationData;
+          }
+
+          if (Array.isArray(budgetAllocation)) {
+            const userAllocation = budgetAllocation.find(allocation =>
+              targetBudgetIds.includes(allocation.budgetId)
+            );
+
+            if (userAllocation) {
+              actualAmount = Number(userAllocation.amount);
+            } else {
+              actualAmount = 0;
+            }
+          }
+        } catch (error) {
+          console.error('计算总收入时解析预算分摊数据失败:', error);
+        }
+      }
+
+      return sum + actualAmount;
+    }, 0);
+
+    const expense = expenseTransactions.reduce((sum: number, t: any) => {
+      let actualAmount = Number(t.amount);
+
+      if (t.isMultiBudget && t.budgetAllocation && targetBudgetIds.length > 0) {
+        try {
+          let budgetAllocation;
+          const allocationData = t.budgetAllocation;
+
+          if (typeof allocationData === 'string') {
+            budgetAllocation = JSON.parse(allocationData);
+          } else if (typeof allocationData === 'object') {
+            budgetAllocation = allocationData;
+          }
+
+          if (Array.isArray(budgetAllocation)) {
+            const userAllocation = budgetAllocation.find(allocation =>
+              targetBudgetIds.includes(allocation.budgetId)
+            );
+
+            if (userAllocation) {
+              actualAmount = Number(userAllocation.amount);
+            } else {
+              actualAmount = 0;
+            }
+          }
+        } catch (error) {
+          console.error('计算总支出时解析预算分摊数据失败:', error);
+        }
+      }
+
+      return sum + actualAmount;
+    }, 0);
+
     const netIncome = income - expense;
 
     // 按分类分组收入和支出
     const incomeByCategoryMap = new Map<string, number>();
     for (const t of incomeTransactions) {
       const current = incomeByCategoryMap.get(t.categoryId) || 0;
-      incomeByCategoryMap.set(t.categoryId, current + Number(t.amount));
+
+      // 计算实际金额：对于多人预算分摊记录，使用用户的分摊金额
+      let actualAmount = Number(t.amount);
+
+      if (t.isMultiBudget && t.budgetAllocation && targetBudgetIds.length > 0) {
+        try {
+          let budgetAllocation;
+          const allocationData = t.budgetAllocation;
+
+          if (typeof allocationData === 'string') {
+            budgetAllocation = JSON.parse(allocationData);
+          } else if (typeof allocationData === 'object') {
+            budgetAllocation = allocationData;
+          }
+
+          if (Array.isArray(budgetAllocation)) {
+            // 查找目标预算的分摊金额（通过预算ID匹配）
+            const targetAllocation = budgetAllocation.find(allocation =>
+              targetBudgetIds.includes(allocation.budgetId)
+            );
+
+            if (targetAllocation) {
+              actualAmount = Number(targetAllocation.amount);
+            } else {
+              actualAmount = 0;
+            }
+          }
+        } catch (error) {
+          console.error('解析收入预算分摊数据失败:', error);
+        }
+      }
+
+      incomeByCategoryMap.set(t.categoryId, current + actualAmount);
     }
 
     const expenseByCategoryMap = new Map<string, number>();
     for (const t of expenseTransactions) {
       const current = expenseByCategoryMap.get(t.categoryId) || 0;
-      expenseByCategoryMap.set(t.categoryId, current + Number(t.amount));
+
+      // 计算实际金额：对于多人预算分摊记录，使用用户的分摊金额
+      let actualAmount = Number(t.amount);
+
+      if (t.isMultiBudget && t.budgetAllocation && targetBudgetIds.length > 0) {
+        try {
+          let budgetAllocation;
+          const allocationData = t.budgetAllocation;
+
+          if (typeof allocationData === 'string') {
+            budgetAllocation = JSON.parse(allocationData);
+          } else if (typeof allocationData === 'object') {
+            budgetAllocation = allocationData;
+          }
+
+          if (Array.isArray(budgetAllocation)) {
+            // 查找目标预算的分摊金额（通过预算ID匹配）
+            const targetAllocation = budgetAllocation.find(allocation =>
+              targetBudgetIds.includes(allocation.budgetId)
+            );
+
+            if (targetAllocation) {
+              actualAmount = Number(targetAllocation.amount);
+            } else {
+              actualAmount = 0;
+            }
+          }
+        } catch (error) {
+          console.error('解析支出预算分摊数据失败:', error);
+        }
+      }
+
+      expenseByCategoryMap.set(t.categoryId, current + actualAmount);
     }
 
     // 获取收入分类排名
@@ -842,21 +1121,80 @@ export class StatisticsService {
   /**
    * 按分类分组记账
    */
-  private groupTransactionsByCategory(
+  private async groupTransactionsByCategory(
     transactions: any[],
     categories: Map<string, any>,
     total: number,
-  ): Array<{
+    userId?: string,
+    targetBudgetIds?: string[],
+  ): Promise<Array<{
     category: { id: string; name: string; icon?: string };
     amount: number;
     percentage: number;
-  }> {
+  }>> {
     const groupedData = new Map<string, number>();
+
+    // 确定用于预算分摊计算的预算ID列表
+    let budgetIdsForCalculation: string[] = [];
+
+    if (targetBudgetIds && targetBudgetIds.length > 0) {
+      // 如果传入了目标预算ID列表，使用传入的列表
+      budgetIdsForCalculation = targetBudgetIds;
+      console.log(`分类统计使用指定的预算ID列表:`, budgetIdsForCalculation);
+    } else if (userId) {
+      // 如果没有指定目标预算ID，获取用户的所有预算ID
+      try {
+        const { budgets: userBudgets } = await this.budgetRepository.findAll(userId, {
+          page: 1,
+          limit: 1000, // 获取所有预算
+        });
+        budgetIdsForCalculation = userBudgets.map((budget: any) => budget.id);
+        console.log(`分类统计使用用户的所有预算ID列表:`, budgetIdsForCalculation);
+      } catch (error) {
+        console.error('获取用户预算ID失败:', error);
+      }
+    }
 
     for (const transaction of transactions) {
       const categoryId = transaction.categoryId;
       const currentAmount = groupedData.get(categoryId) || 0;
-      groupedData.set(categoryId, currentAmount + Number(transaction.amount));
+
+      // 计算实际金额：对于多人预算分摊记录，使用用户的分摊金额
+      let actualAmount = Number(transaction.amount);
+
+      if (transaction.isMultiBudget && transaction.budgetAllocation && budgetIdsForCalculation.length > 0) {
+        try {
+          let budgetAllocation;
+          const allocationData = transaction.budgetAllocation;
+
+          if (typeof allocationData === 'string') {
+            budgetAllocation = JSON.parse(allocationData);
+          } else if (typeof allocationData === 'object') {
+            budgetAllocation = allocationData;
+          }
+
+          if (Array.isArray(budgetAllocation)) {
+            // 查找目标预算的分摊金额（通过预算ID匹配）
+            const targetAllocation = budgetAllocation.find(allocation =>
+              budgetIdsForCalculation.includes(allocation.budgetId)
+            );
+
+            if (targetAllocation) {
+              actualAmount = Number(targetAllocation.amount);
+              console.log(`分类统计-多人预算分摊记录 ${transaction.id}：总金额 ${transaction.amount}，目标分摊 ${actualAmount}（预算ID: ${targetAllocation.budgetId}）`);
+            } else {
+              // 如果找不到目标预算的分摊信息，使用0（该记录不属于当前筛选的预算）
+              actualAmount = 0;
+              console.log(`分类统计-多人预算分摊记录 ${transaction.id}：未找到目标预算的分摊信息`);
+            }
+          }
+        } catch (error) {
+          console.error('分类统计-解析预算分摊数据失败:', error);
+          // 解析失败时使用原始金额
+        }
+      }
+
+      groupedData.set(categoryId, currentAmount + actualAmount);
     }
 
     // 转换为数组并排序
@@ -886,16 +1224,27 @@ export class StatisticsService {
     familyId?: string,
     accountBookId?: string,
   ): Promise<boolean> {
-    // 验证用户是否为家庭成员
-    if (familyId) {
-      const isMember = await this.isUserFamilyMember(userId, familyId);
-      if (!isMember) {
-        throw new Error('无权访问此家庭数据');
-      }
-    }
+    try {
+      console.log('检查无预算记账 - 参数:', {
+        userId,
+        startDate,
+        endDate,
+        familyId,
+        accountBookId
+      });
 
+      // 验证用户是否为家庭成员
+      if (familyId) {
+        const isMember = await this.isUserFamilyMember(userId, familyId);
+        if (!isMember) {
+          throw new Error('无权访问此家庭数据');
+        }
+      }
+
+    // 简化查询逻辑：查找既没有单人预算也没有多人预算分摊的记账
     const whereConditions: any = {
-      budgetId: null, // 查找无预算的记账
+      budgetId: null, // 没有单人预算
+      isMultiBudget: false, // 且不是多人预算分摊
       date: {
         gte: startDate,
         lte: endDate,
@@ -907,36 +1256,44 @@ export class StatisticsService {
     if (accountBookId) {
       whereConditions.accountBookId = accountBookId;
 
-      // 验证用户是否有权限查看该账本
-      const accountBook = await prisma.accountBook.findFirst({
-        where: {
-          id: accountBookId,
-          OR: [
-            { userId: userId }, // 个人账本
-            {
-              family: {
-                members: {
-                  some: { userId: userId }, // 家庭账本成员
-                },
-              },
-            },
-          ],
+      // 简化权限检查：直接在查询中添加权限过滤
+      whereConditions.OR = [
+        {
+          accountBook: {
+            userId: userId // 个人账本
+          }
         },
-      });
-
-      if (!accountBook) {
-        throw new Error('无权限查看该账本的记账记录');
-      }
+        {
+          accountBook: {
+            family: {
+              members: {
+                some: { userId: userId } // 家庭账本成员
+              }
+            }
+          }
+        },
+      ];
     } else {
       // 如果没有指定账本ID，则只查询用户自己的记账记录
       whereConditions.userId = userId;
     }
 
-    const count = await prisma.transaction.count({
-      where: whereConditions,
-    });
+      console.log('无预算记账查询条件:', JSON.stringify(whereConditions, null, 2));
 
-    return count > 0;
+      const count = await prisma.transaction.count({
+        where: whereConditions,
+      });
+
+      console.log('无预算记账数量:', count);
+      return count > 0;
+    } catch (error) {
+      console.error('检查无预算记账失败:', error);
+      // 如果是数据库连接问题，抛出更具体的错误
+      if (error instanceof Error && error.message.includes('too many clients')) {
+        throw new Error('数据库连接繁忙，请稍后重试');
+      }
+      throw error;
+    }
   }
 
   /**

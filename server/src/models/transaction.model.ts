@@ -57,6 +57,8 @@ export interface TransactionQueryParams {
   familyMemberId?: string;
   accountBookId?: string;
   budgetId?: string;
+  budgetIds?: string[]; // 支持多个预算ID
+  tagIds?: string[]; // 支持标签筛选
   search?: string; // 添加搜索参数，用于搜索记账描述
   page?: number;
   limit?: number;

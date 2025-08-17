@@ -38,6 +38,13 @@ export class StatisticsController {
       const groupBy = (value.groupBy || 'day') as 'day' | 'week' | 'month' | 'category';
       const familyId = value.familyId;
       const accountBookId = value.accountBookId;
+      const budgetId = req.query.budgetId as string | undefined;
+      const budgetIds = req.query.budgetIds
+        ? (req.query.budgetIds as string).split(',')
+        : undefined;
+      const tagIds = req.query.tagIds
+        ? (req.query.tagIds as string).split(',')
+        : undefined;
 
       // 获取支出统计
       try {
@@ -48,6 +55,9 @@ export class StatisticsController {
           groupBy,
           familyId,
           accountBookId,
+          budgetId,
+          budgetIds,
+          tagIds,
         );
         res.status(200).json(statistics);
       } catch (error) {
@@ -89,6 +99,13 @@ export class StatisticsController {
       const groupBy = (value.groupBy || 'day') as 'day' | 'week' | 'month' | 'category';
       const familyId = value.familyId;
       const accountBookId = value.accountBookId;
+      const budgetId = req.query.budgetId as string | undefined;
+      const budgetIds = req.query.budgetIds
+        ? (req.query.budgetIds as string).split(',')
+        : undefined;
+      const tagIds = req.query.tagIds
+        ? (req.query.tagIds as string).split(',')
+        : undefined;
 
       // 获取收入统计
       try {
@@ -99,6 +116,9 @@ export class StatisticsController {
           groupBy,
           familyId,
           accountBookId,
+          budgetId,
+          budgetIds,
+          tagIds,
         );
         res.status(200).json(statistics);
       } catch (error) {

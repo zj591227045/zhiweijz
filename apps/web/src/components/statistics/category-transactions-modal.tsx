@@ -34,6 +34,9 @@ interface CategoryTransactionsModalProps {
     endDate: string;
     accountBookId?: string;
     transactionType: 'EXPENSE' | 'INCOME';
+    budgetId?: string | null;
+    budgetIds?: string[]; // 用于聚合预算
+    tagIds?: string[]; // 标签筛选
   };
   onTransactionEdit?: (transactionId: string, transactionData?: any) => void;
 }
@@ -90,6 +93,25 @@ export function CategoryTransactionsModal({
 
       if (categoryId) {
         queryParams.categoryIds = categoryId;
+      }
+
+      // 添加预算筛选
+      if (filters.budgetId) {
+        if (filters.budgetId === 'NO_BUDGET') {
+          // 无预算筛选：既没有单人预算也没有多人预算分摊
+          queryParams.budgetId = 'NO_BUDGET';
+        } else if (filters.budgetIds && filters.budgetIds.length > 0) {
+          // 聚合预算：使用实际的预算ID数组
+          queryParams.budgetIds = filters.budgetIds.join(',');
+        } else {
+          // 单个预算
+          queryParams.budgetId = filters.budgetId;
+        }
+      }
+
+      // 添加标签筛选
+      if (filters.tagIds && filters.tagIds.length > 0) {
+        queryParams.tagIds = filters.tagIds.join(',');
       }
 
       console.log('API请求参数:', queryParams);
@@ -189,6 +211,9 @@ export function CategoryTransactionsModal({
     filters.endDate,
     filters.accountBookId,
     filters.transactionType,
+    filters.budgetId,
+    filters.budgetIds,
+    filters.tagIds,
   ]);
 
   // 管理body滚动

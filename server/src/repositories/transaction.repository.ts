@@ -89,6 +89,9 @@ export class TransactionRepository {
       categoryIds,
       familyId,
       familyMemberId,
+      budgetId,
+      budgetIds,
+      tagIds,
       search, // 添加搜索参数
       page = 1,
       limit = 20,
@@ -103,6 +106,40 @@ export class TransactionRepository {
       ...(familyId && { familyId }),
       ...(familyMemberId && { familyMemberId }),
     };
+
+    // 处理预算筛选
+    if (budgetId === 'NO_BUDGET') {
+      // 无预算筛选：既没有单人预算也没有多人预算分摊
+      where.budgetId = null;
+      where.isMultiBudget = false;
+    } else if (budgetIds && budgetIds.length > 0) {
+      // 多个预算ID筛选：需要同时查询单人预算和多人预算分摊
+      where.OR = [
+        // 单人预算：budgetId在指定列表中
+        { budgetId: { in: budgetIds } },
+        // 多人预算分摊：查询所有多人预算分摊记录，在应用层过滤
+        { isMultiBudget: true }
+      ];
+    } else if (budgetId && budgetId !== 'NO_BUDGET') {
+      // 单个预算ID筛选：需要同时查询单人预算和多人预算分摊
+      where.OR = [
+        // 单人预算：budgetId等于指定值
+        { budgetId: budgetId },
+        // 多人预算分摊：查询所有多人预算分摊记录，在应用层过滤
+        { isMultiBudget: true }
+      ];
+    }
+
+    // 处理标签筛选
+    if (tagIds && tagIds.length > 0) {
+      where.transactionTags = {
+        some: {
+          tagId: {
+            in: tagIds,
+          },
+        },
+      };
+    }
 
     // 处理日期范围过滤
     if (startDate || endDate) {
@@ -166,6 +203,8 @@ export class TransactionRepository {
       { createdAt: sortOrder },
     ];
 
+    console.log('TransactionRepository.findAll 查询条件:', JSON.stringify(where, null, 2));
+
     // 查询总数
     const total = await prisma.transaction.count({ where });
 
@@ -180,7 +219,86 @@ export class TransactionRepository {
       },
     });
 
-    return { transactions, total };
+    // 在应用层过滤多人预算分摊记录并调整金额
+    let filteredTransactions = transactions;
+
+    if ((budgetId && budgetId !== 'NO_BUDGET') || (budgetIds && budgetIds.length > 0)) {
+      const targetBudgetIds = budgetIds && budgetIds.length > 0 ? budgetIds : [budgetId];
+
+      filteredTransactions = transactions.filter(transaction => {
+        // 单人预算记录直接通过
+        if (transaction.budgetId && targetBudgetIds.includes(transaction.budgetId)) {
+          return true;
+        }
+
+        // 多人预算分摊记录需要检查budgetAllocation
+        if ((transaction as any).isMultiBudget && (transaction as any).budgetAllocation) {
+          try {
+            let budgetAllocation;
+            const allocationData = (transaction as any).budgetAllocation;
+
+            if (typeof allocationData === 'string') {
+              budgetAllocation = JSON.parse(allocationData);
+            } else if (typeof allocationData === 'object') {
+              budgetAllocation = allocationData;
+            }
+
+            if (Array.isArray(budgetAllocation)) {
+              return budgetAllocation.some(allocation =>
+                targetBudgetIds.includes(allocation.budgetId)
+              );
+            }
+          } catch (error) {
+            console.error('解析预算分摊数据失败:', error);
+          }
+        }
+
+        return false;
+      }).map(transaction => {
+        // 对于多人预算分摊记录，需要调整显示的金额为分摊金额
+        if ((transaction as any).isMultiBudget && (transaction as any).budgetAllocation) {
+          try {
+            let budgetAllocation;
+            const allocationData = (transaction as any).budgetAllocation;
+
+            if (typeof allocationData === 'string') {
+              budgetAllocation = JSON.parse(allocationData);
+            } else if (typeof allocationData === 'object') {
+              budgetAllocation = allocationData;
+            }
+
+            if (Array.isArray(budgetAllocation)) {
+              // 查找当前用户预算的分摊金额
+              const userAllocation = budgetAllocation.find(allocation =>
+                targetBudgetIds.includes(allocation.budgetId)
+              );
+
+              if (userAllocation) {
+                // 创建一个新的transaction对象，修改amount为分摊金额
+                const modifiedTransaction = {
+                  ...transaction,
+                  amount: new Prisma.Decimal(userAllocation.amount),
+                  // 添加原始金额信息用于调试
+                  originalAmount: transaction.amount,
+                  allocationAmount: userAllocation.amount,
+                };
+                console.log(`多人预算分摊记录 ${transaction.id}：原始金额 ${transaction.amount}，分摊金额 ${userAllocation.amount}`);
+                return modifiedTransaction;
+              }
+            }
+          } catch (error) {
+            console.error('处理预算分摊金额失败:', error);
+          }
+        }
+
+        // 单人预算记录或处理失败的记录保持原样
+        return transaction;
+      });
+
+      console.log(`预算筛选结果: 原始${transactions.length}条，过滤后${filteredTransactions.length}条`);
+    }
+
+    return { transactions: filteredTransactions, total };
   }
 
   /**
@@ -353,16 +471,27 @@ export class TransactionRepository {
       ...(excludeFamilyMember && { familyMemberId: null }),
     };
 
-    // 处理预算ID过滤
+    // 处理预算ID过滤 - 与findAll方法保持一致
     if (budgetId === 'NO_BUDGET') {
-      // 无预算筛选：只查询budgetId为null的记账
+      // 无预算筛选：既没有单人预算也没有多人预算分摊
       whereConditions.budgetId = null;
+      whereConditions.isMultiBudget = false;
     } else if (budgetIds && budgetIds.length > 0) {
-      // 多个预算ID筛选
-      whereConditions.budgetId = { in: budgetIds };
+      // 多个预算ID筛选：需要同时查询单人预算和多人预算分摊
+      whereConditions.OR = [
+        // 单人预算：budgetId在指定列表中
+        { budgetId: { in: budgetIds } },
+        // 多人预算分摊：查询所有多人预算分摊记录，在应用层过滤
+        { isMultiBudget: true }
+      ];
     } else if (budgetId && budgetId !== 'NO_BUDGET') {
-      // 单个预算ID筛选
-      whereConditions.budgetId = budgetId;
+      // 单个预算ID筛选：需要同时查询单人预算和多人预算分摊
+      whereConditions.OR = [
+        // 单人预算：budgetId等于指定值
+        { budgetId: budgetId },
+        // 多人预算分摊：查询所有多人预算分摊记录，在应用层过滤
+        { isMultiBudget: true }
+      ];
     }
     // 如果budgetId为null或undefined，则不添加预算筛选条件（查询所有记账）
 
@@ -441,7 +570,86 @@ export class TransactionRepository {
       );
     }
 
-    return transactions;
+    // 在应用层过滤多人预算分摊记录并调整金额 - 与findAll方法保持一致
+    let filteredTransactions = transactions;
+
+    if ((budgetId && budgetId !== 'NO_BUDGET') || (budgetIds && budgetIds.length > 0)) {
+      const targetBudgetIds = budgetIds && budgetIds.length > 0 ? budgetIds : [budgetId];
+
+      filteredTransactions = transactions.filter(transaction => {
+        // 单人预算记录直接通过
+        if (transaction.budgetId && targetBudgetIds.includes(transaction.budgetId)) {
+          return true;
+        }
+
+        // 多人预算分摊记录需要检查budgetAllocation
+        if ((transaction as any).isMultiBudget && (transaction as any).budgetAllocation) {
+          try {
+            let budgetAllocation;
+            const allocationData = (transaction as any).budgetAllocation;
+
+            if (typeof allocationData === 'string') {
+              budgetAllocation = JSON.parse(allocationData);
+            } else if (typeof allocationData === 'object') {
+              budgetAllocation = allocationData;
+            }
+
+            if (Array.isArray(budgetAllocation)) {
+              return budgetAllocation.some(allocation =>
+                targetBudgetIds.includes(allocation.budgetId)
+              );
+            }
+          } catch (error) {
+            console.error('解析预算分摊数据失败:', error);
+          }
+        }
+
+        return false;
+      }).map(transaction => {
+        // 对于多人预算分摊记录，需要调整显示的金额为分摊金额
+        if ((transaction as any).isMultiBudget && (transaction as any).budgetAllocation) {
+          try {
+            let budgetAllocation;
+            const allocationData = (transaction as any).budgetAllocation;
+
+            if (typeof allocationData === 'string') {
+              budgetAllocation = JSON.parse(allocationData);
+            } else if (typeof allocationData === 'object') {
+              budgetAllocation = allocationData;
+            }
+
+            if (Array.isArray(budgetAllocation)) {
+              // 查找当前用户预算的分摊金额
+              const userAllocation = budgetAllocation.find(allocation =>
+                targetBudgetIds.includes(allocation.budgetId)
+              );
+
+              if (userAllocation) {
+                // 创建一个新的transaction对象，修改amount为分摊金额
+                const modifiedTransaction = {
+                  ...transaction,
+                  amount: new Prisma.Decimal(userAllocation.amount),
+                  // 添加原始金额信息用于调试
+                  originalAmount: transaction.amount,
+                  allocationAmount: userAllocation.amount,
+                };
+                console.log(`findByDateRange-多人预算分摊记录 ${transaction.id}：原始金额 ${transaction.amount}，分摊金额 ${userAllocation.amount}`);
+                return modifiedTransaction;
+              }
+            }
+          } catch (error) {
+            console.error('findByDateRange-处理预算分摊金额失败:', error);
+          }
+        }
+
+        // 单人预算记录或处理失败的记录保持原样
+        return transaction;
+      });
+
+      console.log(`findByDateRange预算筛选结果: 原始${transactions.length}条，过滤后${filteredTransactions.length}条`);
+    }
+
+    return filteredTransactions;
   }
 
   /**

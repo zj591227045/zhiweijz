@@ -24,12 +24,18 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 interface CategoryDistributionProps {
   expenseCategories: CategoryStatistics[];
   incomeCategories: CategoryStatistics[];
+  selectedBudgetId?: string | null;
+  budgetIds?: string[];
+  selectedTagIds?: string[];
   onTransactionEdit?: (transactionId: string, transactionData?: any) => void;
 }
 
 export function CategoryDistribution({
   expenseCategories,
   incomeCategories,
+  selectedBudgetId,
+  budgetIds,
+  selectedTagIds,
   onTransactionEdit,
 }: CategoryDistributionProps) {
   const {
@@ -279,6 +285,9 @@ export function CategoryDistribution({
             endDate: dateRange.endDate,
             accountBookId: currentAccountBook?.id,
             transactionType: selectedCategoryType === 'expense' ? 'EXPENSE' : 'INCOME',
+            budgetId: selectedBudgetId,
+            budgetIds: budgetIds,
+            tagIds: selectedTagIds,
           }}
           onTransactionEdit={onTransactionEdit}
         />

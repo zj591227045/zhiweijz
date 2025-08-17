@@ -98,6 +98,12 @@ export class TransactionController {
         familyMemberId: req.query.familyMemberId as string | undefined,
         accountBookId: req.query.accountBookId as string | undefined,
         budgetId: req.query.budgetId as string | undefined,
+        budgetIds: req.query.budgetIds
+          ? (req.query.budgetIds as string).split(',')
+          : undefined,
+        tagIds: req.query.tagIds
+          ? (req.query.tagIds as string).split(',')
+          : undefined,
         search: req.query.search as string | undefined, // 添加搜索参数解析
         page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
         limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 20,
@@ -255,6 +261,12 @@ export class TransactionController {
         familyMemberId: req.query.familyMemberId as string | undefined,
         accountBookId: req.query.accountBookId as string | undefined,
         budgetId: req.query.budgetId as string | undefined,
+        budgetIds: req.query.budgetIds
+          ? (req.query.budgetIds as string).split(',')
+          : undefined,
+        tagIds: req.query.tagIds
+          ? (req.query.tagIds as string).split(',')
+          : undefined,
         page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
         limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 1000, // 分组查询使用较大的限制
         sortBy: req.query.sortBy as string | undefined,
@@ -361,6 +373,12 @@ export class TransactionController {
         familyMemberId: req.query.familyMemberId as string | undefined,
         accountBookId: req.query.accountBookId as string | undefined,
         budgetId: req.query.budgetId as string | undefined,
+        budgetIds: req.query.budgetIds
+          ? (req.query.budgetIds as string).split(',')
+          : undefined,
+        tagIds: req.query.tagIds
+          ? (req.query.tagIds as string).split(',')
+          : undefined,
         page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
         limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 20,
         sortBy: req.query.sortBy as string | undefined,

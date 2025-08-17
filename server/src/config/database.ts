@@ -17,9 +17,11 @@ const getDatabaseUrl = (): string => {
 
   // 添加连接池参数
   const url = new URL(baseUrl);
-  url.searchParams.set('connection_limit', '20'); // 最大连接数
-  url.searchParams.set('pool_timeout', '10'); // 连接池超时时间（秒）
+  url.searchParams.set('connection_limit', '10'); // 减少最大连接数
+  url.searchParams.set('pool_timeout', '20'); // 增加连接池超时时间（秒）
   url.searchParams.set('connect_timeout', '10'); // 连接超时时间（秒）
+  url.searchParams.set('statement_timeout', '30000'); // SQL语句超时时间（毫秒）
+  url.searchParams.set('query_timeout', '30000'); // 查询超时时间（毫秒）
 
   return url.toString();
 };
