@@ -48,13 +48,19 @@ export async function initializeApp(): Promise<void> {
  */
 async function initializePaymentSystem(): Promise<void> {
   try {
-    const apiKey = process.env.NEXT_PUBLIC_REVENUECAT_API_KEY || 'appl_mZpkfekTpXxlxbtlJAMmdXJLoRc';
-    
+    // 导入RevenueCat配置
+    const { REVENUECAT_CONFIG } = await import('./payment-config');
+
+    // 获取当前平台的API密钥
+    const apiKey = REVENUECAT_CONFIG.getCurrentPlatformApiKey();
+
     if (!apiKey) {
       throw new Error('RevenueCat API密钥未配置');
     }
 
     console.log('💰 [PaymentInit] 开始初始化RevenueCat...');
+    console.log('💰 [PaymentInit] 使用API密钥前缀:', apiKey.substring(0, 5) + '...');
+
     await mobilePaymentService.initialize(apiKey);
     console.log('💰 [PaymentInit] RevenueCat初始化成功');
 

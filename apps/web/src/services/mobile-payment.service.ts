@@ -125,6 +125,21 @@ export class MobilePaymentService {
       // 如果是真实的RevenueCat实例，进行配置
       if (isMobileEnvironment()) {
         try {
+          // 验证API密钥格式
+          if (!apiKey) {
+            throw new Error('API密钥不能为空');
+          }
+
+          // 检查API密钥格式（iOS: appl_, Android: goog_, Web: web_）
+          const validPrefixes = ['appl_', 'goog_', 'web_'];
+          const hasValidPrefix = validPrefixes.some(prefix => apiKey.startsWith(prefix));
+
+          if (!hasValidPrefix) {
+            console.warn('⚠️ [MobilePayment] API密钥格式可能不正确，期望前缀: appl_/goog_/web_');
+          }
+
+          console.log('💰 [MobilePayment] 配置RevenueCat，API密钥前缀:', apiKey.substring(0, 5) + '...');
+
           // 配置RevenueCat
           await this.Purchases.configure({
             apiKey,
@@ -135,8 +150,11 @@ export class MobilePaymentService {
           if (process.env.NODE_ENV === 'development') {
             await this.Purchases.setLogLevel({ level: 'DEBUG' });
           }
+
+          console.log('💰 [MobilePayment] RevenueCat配置成功');
         } catch (error) {
-          console.warn('💰 [MobilePayment] RevenueCat配置失败:', error);
+          console.error('💰 [MobilePayment] RevenueCat配置失败:', error);
+          throw error; // 重新抛出错误，让调用者知道配置失败
         }
       }
 

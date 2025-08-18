@@ -56,10 +56,22 @@ export async function initializeMobilePayment(userId?: string): Promise<{ succes
       return { success: false, error: 'RevenueCat加载失败' };
     }
 
-    // 获取API密钥
-    const apiKey = Platform.OS === 'ios' 
-      ? process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY || 'appl_your_ios_key'
-      : process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY || 'goog_your_android_key';
+    // 检查平台支持
+    if (Platform.OS !== 'ios') {
+      throw new Error(`RevenueCat仅支持iOS平台，当前平台: ${Platform.OS}。Android使用单独的第三方支付。`);
+    }
+
+    // 获取iOS API密钥
+    const apiKey = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY || process.env.NEXT_PUBLIC_REVENUECAT_IOS_API_KEY || '';
+
+    // 验证API密钥格式
+    if (!apiKey) {
+      throw new Error('RevenueCat iOS API密钥未配置');
+    }
+
+    if (!apiKey.startsWith('appl_')) {
+      console.warn(`⚠️ [MobilePayment] iOS API密钥格式可能不正确，期望前缀: appl_, 实际: ${apiKey.substring(0, 5)}...`);
+    }
 
     // 配置RevenueCat
     await Purchases.configure({

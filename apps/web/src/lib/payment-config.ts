@@ -181,11 +181,40 @@ export const APP_STORE_PRODUCTS: AppStoreProduct[] = [
   },
 ];
 
-// RevenueCat配置
+// RevenueCat配置（仅iOS使用）
 export const REVENUECAT_CONFIG = {
-  apiKey: process.env.NEXT_PUBLIC_REVENUECAT_API_KEY || '',
+  // iOS API密钥
+  iosApiKey: process.env.NEXT_PUBLIC_REVENUECAT_IOS_API_KEY || '',
+
+  // 向后兼容的通用API密钥（与iOS密钥相同）
+  apiKey: process.env.NEXT_PUBLIC_REVENUECAT_API_KEY ||
+           process.env.NEXT_PUBLIC_REVENUECAT_IOS_API_KEY || '',
+
   enableDebugLogs: process.env.NODE_ENV === 'development',
   shouldShowInAppMessagesAutomatically: true,
+
+  // 获取当前平台的API密钥
+  getCurrentPlatformApiKey(): string {
+    // 仅支持iOS，Android使用单独的第三方支付
+    if (typeof window !== 'undefined') {
+      // 检测是否为iOS环境
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+      if (isIOS && this.iosApiKey) {
+        return this.iosApiKey;
+      }
+
+      // Android环境不使用RevenueCat
+      const isAndroid = /Android/.test(navigator.userAgent);
+      if (isAndroid) {
+        console.warn('Android平台使用单独的第三方支付，不使用RevenueCat');
+        return '';
+      }
+    }
+
+    // 回退到通用API密钥（主要用于iOS）
+    return this.apiKey;
+  }
 };
 
 // 工具函数

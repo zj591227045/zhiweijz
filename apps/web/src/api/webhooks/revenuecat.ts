@@ -120,15 +120,34 @@ async function verifyWebhookSignature(req: NextApiRequest): Promise<boolean> {
     const signature = req.headers['authorization'];
     const webhookSecret = process.env.REVENUECAT_WEBHOOK_SECRET;
 
+    // 记录请求信息用于调试
+    console.log('🔒 [WebhookSignature] 验证请求:', {
+      hasSignature: !!signature,
+      hasSecret: !!webhookSecret,
+      userAgent: req.headers['user-agent'],
+      environment: process.env.NODE_ENV
+    });
+
     if (!signature || !webhookSecret) {
       console.warn('🔒 [WebhookSignature] 缺少签名或密钥');
 
-      // 如果没有配置webhook secret，但请求来自RevenueCat，允许通过
-      // 这种情况下依赖其他安全措施（如IP白名单、请求格式验证等）
-      if (!webhookSecret && req.headers['user-agent'] === 'RevenueCat') {
-        console.warn('🔒 [WebhookSignature] 未配置webhook secret，但请求来自RevenueCat，允许通过');
-        console.warn('🔒 [WebhookSignature] 建议配置webhook secret以增强安全性');
+      // 在开发环境中，如果没有配置密钥，跳过验证
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('🔒 [WebhookSignature] 开发环境，跳过签名验证');
         return true;
+      }
+
+      // 生产环境下的安全策略
+      if (!webhookSecret) {
+        // 检查请求是否来自RevenueCat的已知User-Agent
+        const userAgent = req.headers['user-agent'] || '';
+        const isRevenueCatRequest = userAgent.includes('RevenueCat') || userAgent.includes('revenuecat');
+
+        if (isRevenueCatRequest) {
+          console.warn('🔒 [WebhookSignature] 未配置webhook secret，但请求来自RevenueCat，允许通过');
+          console.warn('🔒 [WebhookSignature] 强烈建议配置webhook secret以增强安全性');
+          return true;
+        }
       }
 
       return false;

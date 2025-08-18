@@ -50,7 +50,15 @@ export async function initializeMobilePayment(userId?: string): Promise<Initiali
 
     // 初始化RevenueCat
     console.log('🔄 [MobilePaymentInit] 开始初始化RevenueCat...');
-    await mobilePaymentService.initialize(REVENUECAT_CONFIG.apiKey, userId);
+
+    // 获取当前平台的API密钥
+    const apiKey = REVENUECAT_CONFIG.getCurrentPlatformApiKey();
+    if (!apiKey) {
+      throw new Error('RevenueCat API密钥未配置');
+    }
+
+    console.log('🔄 [MobilePaymentInit] 使用API密钥前缀:', apiKey.substring(0, 5) + '...');
+    await mobilePaymentService.initialize(apiKey, userId);
 
     // 检查初始化状态
     if (!mobilePaymentService.isReady()) {

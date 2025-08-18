@@ -366,7 +366,7 @@ export default function CheckinPage() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
-                <span>每日首次访问自动获得 5 个记账点</span>
+                <span>每日首次访问自动获得 5 个记账点，加上签到每日共获得10个记账点</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
@@ -374,7 +374,7 @@ export default function CheckinPage() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
-                <span>赠送记账点上限为 30 点</span>
+                <span>赠送记账点上限为 10000 点</span>
               </div>
               {membership?.memberType !== 'DONOR' && config.membershipEnabled && (
                 <div className="flex items-center gap-2">

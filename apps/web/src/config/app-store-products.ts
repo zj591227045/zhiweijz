@@ -302,22 +302,49 @@ export function getPopularProducts(): AppStoreProduct[] {
   );
 }
 
-// RevenueCat配置
+// RevenueCat配置（仅iOS使用）
 export const REVENUECAT_CONFIG = {
-  // API密钥（从环境变量获取）
-  apiKey: process.env.NEXT_PUBLIC_REVENUECAT_API_KEY || '',
-  
+  // iOS API密钥（从环境变量获取）
+  iosApiKey: process.env.NEXT_PUBLIC_REVENUECAT_IOS_API_KEY || '',
+
+  // 向后兼容的通用API密钥（与iOS密钥相同）
+  apiKey: process.env.NEXT_PUBLIC_REVENUECAT_API_KEY ||
+           process.env.NEXT_PUBLIC_REVENUECAT_IOS_API_KEY || '',
+
   // 环境配置
   environment: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox',
-  
+
   // 用户ID前缀
   userIdPrefix: 'zhiweijz_user_',
-  
+
   // 默认Offering ID
   defaultOfferingId: 'default',
-  
+
   // 调试模式
-  debugMode: process.env.NODE_ENV === 'development'
+  debugMode: process.env.NODE_ENV === 'development',
+
+  // 获取当前平台的API密钥
+  getCurrentPlatformApiKey(): string {
+    // 仅支持iOS，Android使用单独的第三方支付
+    if (typeof window !== 'undefined') {
+      // 检测是否为iOS环境
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+      if (isIOS && this.iosApiKey) {
+        return this.iosApiKey;
+      }
+
+      // Android环境不使用RevenueCat
+      const isAndroid = /Android/.test(navigator.userAgent);
+      if (isAndroid) {
+        console.warn('Android平台使用单独的第三方支付，不使用RevenueCat');
+        return '';
+      }
+    }
+
+    // 回退到通用API密钥（主要用于iOS）
+    return this.apiKey;
+  }
 };
 
 // 验证配置
