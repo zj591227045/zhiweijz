@@ -14,7 +14,7 @@ export class TransactionAttachmentController {
 
   constructor() {
     this.attachmentRepository = new TransactionAttachmentRepository();
-    this.fileStorageService = new FileStorageService();
+    this.fileStorageService = FileStorageService.getInstance();
   }
 
   /**

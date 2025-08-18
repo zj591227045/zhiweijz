@@ -18,16 +18,28 @@ import prisma from '../../config/database';
 /**
  * 多提供商LLM服务
  * 支持优先级、故障转移和负载均衡
+ * 使用单例模式确保全局只有一个实例
  */
 export class MultiProviderLLMService {
+  private static instance: MultiProviderLLMService | null = null;
   private providers: Map<string, LLMProvider> = new Map();
   private providerInstances: Map<string, LLMProviderInstance> = new Map();
   private loadBalancingCounters: Map<number, number> = new Map(); // priority -> counter
   private healthCheckInterval: NodeJS.Timeout | null = null;
 
-  constructor() {
+  private constructor() {
     this.registerProviders();
     this.initializeHealthCheck();
+  }
+
+  /**
+   * 获取单例实例
+   */
+  public static getInstance(): MultiProviderLLMService {
+    if (!MultiProviderLLMService.instance) {
+      MultiProviderLLMService.instance = new MultiProviderLLMService();
+    }
+    return MultiProviderLLMService.instance;
   }
 
   /**
@@ -570,6 +582,19 @@ export class MultiProviderLLMService {
    */
   public async triggerHealthCheck(): Promise<void> {
     await this.performHealthCheck();
+  }
+
+  /**
+   * 销毁服务实例（清理定时器）
+   */
+  public static destroy(): void {
+    if (MultiProviderLLMService.instance) {
+      if (MultiProviderLLMService.instance.healthCheckInterval) {
+        clearInterval(MultiProviderLLMService.instance.healthCheckInterval);
+        MultiProviderLLMService.instance.healthCheckInterval = null;
+      }
+      MultiProviderLLMService.instance = null;
+    }
   }
 
   /**

@@ -30,7 +30,7 @@ export class MultimodalAIController {
     this.speechService = new SpeechRecognitionService();
     this.visionService = new VisionRecognitionService();
     this.configService = new MultimodalAIConfigService();
-    this.fileStorageService = new FileStorageService();
+    this.fileStorageService = FileStorageService.getInstance();
     this.membershipService = new MembershipService();
   }
 

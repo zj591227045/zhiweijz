@@ -2488,15 +2488,9 @@ export class AIController {
 
         console.log('🔄 [快捷指令图片记账] S3参数:', { bucket, key });
 
-        // 直接从S3下载 - 使用全局实例避免重复初始化
-        const { getGlobalFileStorageService, FileStorageService } = await import('../services/file-storage.service');
-        let fileStorageService = getGlobalFileStorageService();
-
-        // 如果全局实例不存在，创建新实例
-        if (!fileStorageService) {
-          console.log('🔄 [快捷指令图片记账] 全局存储服务不存在，创建新实例...');
-          fileStorageService = new FileStorageService();
-        }
+        // 直接从S3下载 - 使用单例实例
+        const { FileStorageService } = await import('../services/file-storage.service');
+        const fileStorageService = FileStorageService.getInstance();
 
         // 确保存储服务已初始化
         if (!fileStorageService.isStorageAvailable()) {

@@ -22,17 +22,23 @@ import path from 'path';
 
 const prisma = new PrismaClient();
 
-// 全局文件存储服务实例
-let globalFileStorageService: FileStorageService | null = null;
-
 export class FileStorageService {
+  private static instance: FileStorageService | null = null;
   private s3Service: S3StorageService | null = null;
   private config: FileStorageConfigDto | null = null;
 
-  constructor() {
+  private constructor() {
     this.initializeStorage();
-    // 设置全局实例
-    globalFileStorageService = this;
+  }
+
+  /**
+   * 获取单例实例
+   */
+  public static getInstance(): FileStorageService {
+    if (!FileStorageService.instance) {
+      FileStorageService.instance = new FileStorageService();
+    }
+    return FileStorageService.instance;
   }
 
   /**
@@ -593,16 +599,23 @@ export class FileStorageService {
 
 /**
  * 获取全局文件存储服务实例
+ * @deprecated 使用 FileStorageService.getInstance() 代替
  */
 export function getGlobalFileStorageService(): FileStorageService | null {
-  return globalFileStorageService;
+  return FileStorageService.getInstance();
+}
+
+/**
+ * 销毁服务实例
+ */
+export function destroyFileStorageService(): void {
+  (FileStorageService as any).instance = null;
 }
 
 /**
  * 重新加载全局文件存储服务配置
  */
 export async function reloadGlobalFileStorageConfig(): Promise<void> {
-  if (globalFileStorageService) {
-    await globalFileStorageService.reloadConfig();
-  }
+  const instance = FileStorageService.getInstance();
+  await instance.reloadConfig();
 }

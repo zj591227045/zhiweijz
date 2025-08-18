@@ -40,7 +40,7 @@ function convertS3UrlToProxy(s3Url: string, apiBaseUrl: string): string {
 }
 
 const router = express.Router();
-const fileStorageService = new FileStorageService();
+const fileStorageService = FileStorageService.getInstance();
 
 // 配置multer用于文件上传
 const storage = multer.memoryStorage();

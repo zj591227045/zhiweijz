@@ -9,6 +9,7 @@ import MembershipExpiryCheckTask from './tasks/membership-expiry-check.task';
 import { FileStorageService } from './services/file-storage.service';
 import { AICallLogAdminService } from './admin/services/ai-call-log.admin.service';
 import { performanceMonitoringService } from './services/performance-monitoring.service';
+import { MultiProviderLLMService } from './ai/llm/multi-provider-service';
 
 // 连接数据库
 connectDatabase();
@@ -17,15 +18,15 @@ connectDatabase();
 const initializeFileStorageService = async () => {
   try {
     console.log('初始化文件存储服务...');
-    const fileStorageService = new FileStorageService();
-    
+    const fileStorageService = FileStorageService.getInstance();
+
     // 等待初始化完成
     let retryCount = 0;
     while (!fileStorageService.isStorageAvailable() && retryCount < 20) {
       await new Promise(resolve => setTimeout(resolve, 500));
       retryCount++;
     }
-    
+
     if (fileStorageService.isStorageAvailable()) {
       console.log('✅ 文件存储服务初始化成功');
     } else {
@@ -92,6 +93,14 @@ const gracefulShutdown = async () => {
     console.log('✅ 性能监控服务已停止');
   } catch (error) {
     console.error('❌ 停止性能监控服务失败:', error);
+  }
+
+  // 清理多提供商LLM服务
+  try {
+    MultiProviderLLMService.destroy();
+    console.log('✅ 多提供商LLM服务已清理');
+  } catch (error) {
+    console.error('❌ 清理多提供商LLM服务失败:', error);
   }
 
   server.close(async () => {

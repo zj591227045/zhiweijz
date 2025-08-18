@@ -60,7 +60,7 @@ export class ImageRecognitionService {
   private provider: IImageRecognitionProvider | null = null;
 
   constructor() {
-    this.fileStorageService = new FileStorageService();
+    this.fileStorageService = FileStorageService.getInstance();
     this.transactionService = new TransactionService();
     // this.categoryService = new CategoryService();
   }

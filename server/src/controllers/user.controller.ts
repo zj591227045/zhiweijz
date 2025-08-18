@@ -18,7 +18,7 @@ export class UserController {
   constructor() {
     this.userService = new UserService();
     this.userSettingService = new UserSettingService();
-    this.fileStorageService = new FileStorageService();
+    this.fileStorageService = FileStorageService.getInstance();
   }
 
   /**

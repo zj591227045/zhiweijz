@@ -10,7 +10,7 @@ export class StorageConfigAdminController {
 
   constructor() {
     this.storageConfigService = new StorageConfigAdminService();
-    this.fileStorageService = new FileStorageService();
+    this.fileStorageService = FileStorageService.getInstance();
   }
 
   /**

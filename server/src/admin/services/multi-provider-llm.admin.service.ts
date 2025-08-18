@@ -5,7 +5,7 @@ export class MultiProviderLLMAdminService {
   private multiProviderService: MultiProviderLLMService;
 
   constructor() {
-    this.multiProviderService = new MultiProviderLLMService();
+    this.multiProviderService = MultiProviderLLMService.getInstance();
   }
 
   /**

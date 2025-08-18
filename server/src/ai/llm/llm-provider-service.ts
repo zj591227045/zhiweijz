@@ -19,7 +19,7 @@ export class LLMProviderService {
   /** Token限制服务 */
   private tokenLimitService: TokenLimitService = new TokenLimitService();
   /** 多提供商服务 */
-  public multiProviderService: MultiProviderLLMService = new MultiProviderLLMService();
+  public multiProviderService: MultiProviderLLMService = MultiProviderLLMService.getInstance();
   /** 默认设置 */
   private defaultSettings: LLMSettings = {
     provider: '',

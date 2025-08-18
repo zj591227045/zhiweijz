@@ -11,7 +11,7 @@ export class FileStorageController {
   private fileStorageService: FileStorageService;
 
   constructor() {
-    this.fileStorageService = new FileStorageService();
+    this.fileStorageService = FileStorageService.getInstance();
   }
 
   /**
