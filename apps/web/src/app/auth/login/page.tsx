@@ -11,6 +11,7 @@ import { SimpleSlidingCaptcha } from '@/components/captcha/simple-sliding-captch
 import ServerSettings from '@/components/server/server-settings';
 import AnimatedBackground from '@/components/background/animated-background';
 import { adminApiClient } from '@/lib/admin-api-client';
+import { fetchApi } from '@/lib/api-client';
 
 interface SystemInfo {
   registrationEnabled: boolean;
@@ -48,8 +49,9 @@ export default function LoginPage() {
       }
 
       try {
-        // 使用普通的fetch请求公共API，不需要认证
-        const response = await fetch('/api/system/registration-status');
+        console.log('🔍 登录页面检查注册状态');
+        // 使用fetchApi函数，它会正确处理API基础URL
+        const response = await fetchApi('/system/registration-status');
         const data = await response.json();
 
         if (data.success) {

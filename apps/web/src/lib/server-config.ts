@@ -13,10 +13,18 @@ export const getApiBaseUrl = (): string => {
   try {
     // 使用服务器配置存储的方法
     const store = useServerConfigStore.getState();
+    const config = store.config;
     const apiUrl = store.getCurrentApiUrl();
 
     if (isDev) {
-      console.log('📡 从服务器配置存储获取API基础URL:', apiUrl);
+      console.log('📡 服务器配置详情:', {
+        type: config.type,
+        officialUrl: config.officialUrl,
+        customUrl: config.customUrl,
+        currentUrl: config.currentUrl,
+        finalApiUrl: apiUrl,
+        hostname: window.location.hostname
+      });
     }
 
     return apiUrl;

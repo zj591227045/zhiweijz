@@ -136,7 +136,20 @@ export const useServerConfigStore = create<ServerConfigState>()(
           return '/api';
         }
 
-        return config.currentUrl || DEFAULT_CONFIG.officialUrl;
+        // 在开发环境中，确保返回完整的URL
+        const currentUrl = config.currentUrl || DEFAULT_CONFIG.officialUrl;
+
+        // 如果是相对路径，转换为绝对路径
+        if (currentUrl.startsWith('/')) {
+          // 在开发环境中，默认使用3000端口的后端服务器
+          const isDev = process.env.NODE_ENV === 'development';
+          if (isDev) {
+            return `http://localhost:3000${currentUrl}`;
+          }
+          return currentUrl;
+        }
+
+        return currentUrl;
       },
 
       // 测试连接

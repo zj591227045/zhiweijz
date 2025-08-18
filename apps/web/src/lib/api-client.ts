@@ -22,7 +22,14 @@ class ApiClient {
       (config) => {
         // 动态获取API基础URL
         const baseURL = getApiBaseUrl();
-        if (isDev) console.log('API基础URL:', baseURL);
+        if (isDev) {
+          console.log('🚀 API请求详情:', {
+            url: config.url,
+            baseURL: baseURL,
+            fullUrl: baseURL + config.url,
+            method: config.method?.toUpperCase()
+          });
+        }
         config.baseURL = baseURL;
 
         // 自动添加认证token

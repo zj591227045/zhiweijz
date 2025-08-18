@@ -115,7 +115,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
               name="name"
               render={({ field: { onChange, value } }) => (
                 <TextInput
-                  label="姓名"
+                  label="姓名 *"
                   value={value}
                   onChangeText={onChange}
                   mode="outlined"
@@ -139,7 +139,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
               name="email"
               render={({ field: { onChange, value } }) => (
                 <TextInput
-                  label="邮箱"
+                  label="邮箱 *"
                   value={value}
                   onChangeText={onChange}
                   mode="outlined"
@@ -164,7 +164,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
               name="password"
               render={({ field: { onChange, value } }) => (
                 <TextInput
-                  label="密码"
+                  label="密码 *"
                   value={value}
                   onChangeText={onChange}
                   mode="outlined"
@@ -194,7 +194,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
               name="confirmPassword"
               render={({ field: { onChange, value } }) => (
                 <TextInput
-                  label="确认密码"
+                  label="确认密码 *"
                   value={value}
                   onChangeText={onChange}
                   mode="outlined"

@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { useServerConfigStore } from '@/store/server-config-store';
 import { toast } from 'sonner';
 import { SimpleSlidingCaptcha } from '@/components/captcha/simple-sliding-captcha';
-import { adminApiClient } from '@/lib/admin-api-client';
+import { apiClient } from '@/lib/api-client';
 
 interface SystemInfo {
   registrationEnabled: boolean;
@@ -33,8 +33,14 @@ export default function RegisterPage() {
   // 检查注册状态
   useEffect(() => {
     const checkRegistrationStatus = async () => {
+      console.log('🔍 注册页面检查状态开始');
+      console.log('🔍 当前配置:', config);
+      console.log('🔍 当前window.location:', window.location.href);
+      console.log('🔍 process.env.NODE_ENV:', process.env.NODE_ENV);
+
       // 如果是官方服务器，直接设置为允许注册，不进行API检查
       if (config.type === 'official') {
+        console.log('🔍 官方服务器，跳过API检查');
         setSystemInfo({
           registrationEnabled: true,
           isSelfHosted: false,
@@ -43,8 +49,9 @@ export default function RegisterPage() {
         return;
       }
 
+      console.log('🔍 自托管服务器，开始API检查');
       try {
-        const data = await adminApiClient.get('/api/system/registration-status');
+        const data = await apiClient.get('/system/registration-status');
 
         if (data.success) {
           setSystemInfo({
@@ -264,7 +271,7 @@ export default function RegisterPage() {
 
         <div className="form-group">
           <label htmlFor="name" className="form-label">
-            姓名
+            姓名 <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -279,7 +286,7 @@ export default function RegisterPage() {
 
         <div className="form-group">
           <label htmlFor="email" className="form-label">
-            邮箱
+            邮箱 <span className="text-red-500">*</span>
           </label>
           <input
             type="email"
@@ -294,7 +301,7 @@ export default function RegisterPage() {
 
         <div className="form-group">
           <label htmlFor="password" className="form-label">
-            密码
+            密码 <span className="text-red-500">*</span>
           </label>
           <div className="password-input-wrapper">
             <input
@@ -318,7 +325,7 @@ export default function RegisterPage() {
 
         <div className="form-group">
           <label htmlFor="confirmPassword" className="form-label">
-            确认密码
+            确认密码 <span className="text-red-500">*</span>
           </label>
           <div className="password-input-wrapper">
             <input
