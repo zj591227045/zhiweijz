@@ -427,6 +427,7 @@ export class DashboardService {
    */
   private async getUnixDiskInfo() {
     const drives = [];
+    const seenFilesystems = new Map(); // 用于去重相同的物理磁盘
 
     try {
       // 使用 df 命令获取磁盘信息
@@ -436,13 +437,11 @@ export class DashboardService {
 
       try {
         const { stdout } = await execAsync('df -h');
-        console.log('df -h 输出:', stdout);
         const lines = stdout.split('\n').slice(1); // 跳过标题行
 
         for (const line of lines) {
           if (line.trim()) {
             const parts = line.trim().split(/\s+/);
-            console.log(`处理行: "${line}", 分割结果:`, parts);
 
             if (parts.length >= 6) {
               const filesystem = parts[0];
@@ -452,31 +451,45 @@ export class DashboardService {
               const usagePercent = parseFloat(parts[4].replace('%', '')) || 0;
               const mountPoint = parts[5];
 
-              console.log(`解析结果: ${filesystem} -> ${mountPoint}, 总计: ${total}, 已用: ${used}, 可用: ${free}, 使用率: ${usagePercent}%`);
-
-              // 更宽松的过滤条件，包含更多有用的挂载点
+              // 过滤掉临时文件系统和虚拟文件系统
               if (
                 total > 0 &&
                 !filesystem.startsWith('tmpfs') &&
                 !filesystem.startsWith('devtmpfs') &&
                 !filesystem.startsWith('overlay') &&
                 !filesystem.startsWith('shm') &&
+                !filesystem.startsWith('map') &&
                 !mountPoint.startsWith('/dev') &&
                 !mountPoint.startsWith('/sys') &&
                 !mountPoint.startsWith('/proc') &&
                 mountPoint !== '/dev/shm'
               ) {
-                drives.push({
-                  drive: mountPoint,
-                  total,
-                  used,
-                  free,
-                  usagePercent,
-                  filesystem: filesystem.includes('/') ? filesystem.split('/').pop() : filesystem,
-                });
-                console.log(`✅ 添加磁盘: ${mountPoint}`);
-              } else {
-                console.log(`❌ 跳过磁盘: ${mountPoint} (${filesystem})`);
+                // 对于相同的物理磁盘进行去重
+                // 使用总大小+已用空间+可用空间作为唯一标识（更精确的去重）
+                const diskKey = `${total}-${used}-${free}`;
+
+                if (!seenFilesystems.has(diskKey)) {
+                  // 优先选择根目录，对于Docker容器中的绑定挂载，统一使用根目录
+                  let preferredMountPoint = mountPoint;
+
+                  // Docker容器中的特殊处理
+                  if (mountPoint === '/' ||
+                      mountPoint.startsWith('/etc/') ||
+                      mountPoint.startsWith('/System/Volumes/Data')) {
+                    preferredMountPoint = '/';
+                  }
+
+                  drives.push({
+                    drive: preferredMountPoint,
+                    total,
+                    used,
+                    free,
+                    usagePercent,
+                    filesystem: filesystem.includes('/') ? filesystem.split('/').pop() : filesystem,
+                  });
+
+                  seenFilesystems.set(diskKey, true);
+                }
               }
             }
           }
@@ -512,10 +525,13 @@ export class DashboardService {
   }
 
   /**
-   * 解析磁盘大小字符串 (如 "10G", "500M", "1.5T")
+   * 解析磁盘大小字符串 (如 "10G", "500M", "1.5T", "460Gi", "10Ki")
    */
   private parseSize(sizeStr: string): number {
     if (!sizeStr || sizeStr === '-' || sizeStr === '0') return 0;
+
+    // 如果是纯数字字符串，直接返回0（可能是inode数量等）
+    if (/^\d+$/.test(sizeStr)) return 0;
 
     const units: { [key: string]: number } = {
       B: 1,
@@ -526,27 +542,27 @@ export class DashboardService {
       P: 1024 * 1024 * 1024 * 1024 * 1024,
     };
 
-    // 支持更多格式：10G, 10Gi, 10GB, 1.5T, 500M 等
+    // 支持更多格式：10G, 10Gi, 10GB, 1.5T, 500M, 460Gi, 10Ki 等
     const match = sizeStr.match(/^([\d.]+)([BKMGTPE]?i?B?)$/i);
     if (match) {
       const value = parseFloat(match[1]);
       let unit = match[2].toUpperCase();
 
       // 处理不同的单位格式
-      if (unit.endsWith('IB') || unit.endsWith('I')) {
-        unit = unit.charAt(0); // 移除 'iB' 或 'i' 后缀
+      if (unit.endsWith('IB')) {
+        unit = unit.charAt(0); // 移除 'iB' 后缀，如 "GiB" -> "G"
+      } else if (unit.endsWith('I')) {
+        unit = unit.charAt(0); // 移除 'i' 后缀，如 "Gi" -> "G"
       } else if (unit.endsWith('B')) {
-        unit = unit.charAt(0); // 移除 'B' 后缀
+        unit = unit.charAt(0); // 移除 'B' 后缀，如 "GB" -> "G"
       }
 
       const multiplier = units[unit] || 1;
       const result = Math.round(value * multiplier);
 
-      console.log(`解析大小: "${sizeStr}" -> ${value} * ${multiplier} = ${result}`);
       return result;
     }
 
-    console.warn(`无法解析大小字符串: "${sizeStr}"`);
     return 0;
   }
 

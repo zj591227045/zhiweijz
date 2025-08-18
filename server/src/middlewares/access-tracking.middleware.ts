@@ -224,7 +224,7 @@ async function recordApiCall(req: Request, res: Response, duration: number): Pro
     //   }
     // });
 
-    console.log(`API调用跟踪: ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
+    // API调用跟踪日志已移除，避免日志过多
   } catch (error) {
     console.error('记录API调用数据失败:', error);
   }
