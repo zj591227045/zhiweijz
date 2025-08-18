@@ -1,0 +1,102 @@
+/* Toast修复样式 - 确保sonner toast能够正确显示 */
+
+/* 自定义Toaster容器样式 */
+.custom-toaster {
+  z-index: 99999 !important;
+  position: fixed !important;
+  pointer-events: none !important;
+}
+
+/* 确保toast容器在最顶层 */
+[data-sonner-toaster] {
+  z-index: 99999 !important;
+  position: fixed !important;
+  pointer-events: none !important;
+}
+
+/* 确保单个toast可以接收事件 */
+[data-sonner-toast] {
+  pointer-events: auto !important;
+  z-index: 99999 !important;
+  position: relative !important;
+}
+
+/* 自定义toast样式 */
+.custom-toast {
+  z-index: 99999 !important;
+  position: relative !important;
+  pointer-events: auto !important;
+}
+
+/* 强制覆盖任何可能的样式冲突 */
+[data-sonner-toaster][data-theme] {
+  z-index: 99999 !important;
+}
+
+[data-sonner-toaster][data-theme] [data-sonner-toast] {
+  z-index: 99999 !important;
+  pointer-events: auto !important;
+}
+
+/* 确保toast在模态框之上 */
+[data-sonner-toaster] {
+  z-index: 99999 !important;
+}
+
+/* 调试样式 - 可以临时启用来检查toast是否渲染 */
+/*
+[data-sonner-toast] {
+  border: 2px solid red !important;
+  background: yellow !important;
+  color: black !important;
+}
+*/
+
+/* 确保toast动画正常工作 */
+[data-sonner-toast][data-mounted="true"] {
+  animation: toast-in 0.2s ease-out !important;
+}
+
+[data-sonner-toast][data-removed="true"] {
+  animation: toast-out 0.2s ease-in !important;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+
+/* 确保toast在所有设备上都能正确显示 */
+@media (max-width: 768px) {
+  [data-sonner-toaster] {
+    left: 16px !important;
+    right: 16px !important;
+    width: auto !important;
+  }
+}
+
+/* 确保在iOS设备上正确显示 */
+@supports (-webkit-touch-callout: none) {
+  [data-sonner-toaster] {
+    z-index: 99999 !important;
+    -webkit-transform: translateZ(0) !important;
+    transform: translateZ(0) !important;
+  }
+}

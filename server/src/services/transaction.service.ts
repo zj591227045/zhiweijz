@@ -455,7 +455,9 @@ export class TransactionService {
       }
 
       // 验证记账类型与分类类型是否匹配
-      if (category.type !== transaction.type) {
+      // 使用更新后的类型，如果没有更新类型则使用原始类型
+      const transactionType = transactionData.type || transaction.type;
+      if (category.type !== transactionType) {
         throw new Error('记账类型与分类类型不匹配');
       }
     }
@@ -545,16 +547,21 @@ export class TransactionService {
       transactionMetadata,
     );
 
-    // 如果金额、分类或日期发生变化，更新预算
+    // 如果金额、分类、日期或类型发生变化，更新预算
     const hasRelevantChanges =
       (transactionData.amount !== undefined &&
         Number(oldTransaction.amount) !== transactionData.amount) ||
       (transactionData.categoryId !== undefined &&
         oldTransaction.categoryId !== transactionData.categoryId) ||
       (transactionData.date !== undefined &&
-        oldTransaction.date.getTime() !== transactionData.date.getTime());
+        oldTransaction.date.getTime() !== transactionData.date.getTime()) ||
+      (transactionData.type !== undefined &&
+        oldTransaction.type !== transactionData.type);
 
-    if (hasRelevantChanges && oldTransaction.type === 'EXPENSE') {
+    // 获取最终的交易类型（更新后的类型或原始类型）
+    const finalTransactionType = transactionData.type || oldTransaction.type;
+
+    if (hasRelevantChanges && finalTransactionType === 'EXPENSE') {
       // 如果有账本ID，更新预算
       const accountBookId = oldTransaction.accountBookId;
       if (accountBookId) {
@@ -563,7 +570,7 @@ export class TransactionService {
           accountBookId,
           transactionData.categoryId || oldTransaction.categoryId,
           transactionData.amount || Number(oldTransaction.amount),
-          oldTransaction.type,
+          finalTransactionType,
           transactionData.date || oldTransaction.date,
         );
 

@@ -290,6 +290,7 @@ i.fas, i.far, i.fab, i.fal, i.fad {
 @import url('../styles/portal-dropdown.css');
 @import url('../styles/display-settings.css');
 @import url('../styles/compact-layout.css');
+@import url('../styles/toast-fix.css');
 
 @layer base {
   :root {

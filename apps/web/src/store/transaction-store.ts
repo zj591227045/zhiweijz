@@ -164,7 +164,6 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
 
       set({ isLoading: false });
 
-      toast.success('记账创建成功');
       return response.data || response;
     } catch (error) {
       console.error('创建记账失败:', error);
@@ -172,7 +171,6 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
         isLoading: false,
         error: error instanceof Error ? error.message : '创建记账失败',
       });
-      toast.error('创建记账失败');
       return null;
     }
   },
@@ -186,7 +184,6 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
 
       set({ isLoading: false });
 
-      toast.success('记账更新成功');
       return true;
     } catch (error) {
       console.error(`更新记账 ${id} 失败:`, error);
@@ -194,7 +191,6 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
         isLoading: false,
         error: error instanceof Error ? error.message : `更新记账 ${id} 失败`,
       });
-      toast.error('更新记账失败');
       return false;
     }
   },
@@ -208,7 +204,6 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
 
       set({ isLoading: false });
 
-      toast.success('记账删除成功');
       return true;
     } catch (error) {
       console.error(`删除记账 ${id} 失败:`, error);
@@ -216,7 +211,6 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
         isLoading: false,
         error: error instanceof Error ? error.message : `删除记账 ${id} 失败`,
       });
-      toast.error('删除记账失败');
       return false;
     }
   },

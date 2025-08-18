@@ -312,6 +312,7 @@ export class TransactionRepository {
       ...(transactionData.amount !== undefined && {
         amount: new Prisma.Decimal(transactionData.amount),
       }),
+      ...(transactionData.type && { type: transactionData.type }),
       ...(transactionData.categoryId && { categoryId: transactionData.categoryId }),
       ...(transactionData.description !== undefined && {
         description: transactionData.description,

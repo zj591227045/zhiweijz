@@ -13,16 +13,15 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "types": ["node"],
+    "types": ["node", "jest"],
     "typeRoots": ["./node_modules/@types", "../node_modules/@types"],
     "lib": ["es2016"]
   },
   "include": ["src/**/*"],
   "exclude": [
-    "node_modules", 
-    "**/*.test.ts",
+    "node_modules",
     "../apps/ios/**/*",
-    "../apps/android/**/*", 
+    "../apps/android/**/*",
     "../packages/mobile/**/*",
     "../packages/web/**/*",
     "../packages/core/**/*"

@@ -891,9 +891,13 @@ export default function TransactionEditModal({
         }
 
         onSave();
+      } else {
+        toast.error('更新记账失败，请重试');
+        setFormError('更新记账失败，请重试');
       }
     } catch (error) {
       console.error('更新记账失败:', error);
+      toast.error('更新记账失败，请重试');
       setFormError('更新记账失败，请重试');
     } finally {
       setIsSubmitting(false);
@@ -1095,7 +1099,11 @@ export default function TransactionEditModal({
     try {
       const success = await deleteTransaction(transactionId);
       if (success) {
-        toast.success('记账删除成功');
+        // 显示删除成功toast
+        toast.success('记账删除成功', {
+          duration: 3000,
+          dismissible: true
+        });
 
         // 触发记账变化事件，让仪表盘自动刷新
         if (currentAccountBook?.id) {
@@ -1105,9 +1113,13 @@ export default function TransactionEditModal({
         // 关闭确认对话框并关闭模态框
         setShowDeleteConfirm(false);
         onSave(); // 调用 onSave 来刷新数据并关闭模态框
+      } else {
+        toast.error('删除记账失败，请重试');
+        setFormError('删除记账失败，请重试');
       }
     } catch (error) {
       console.error('删除记账失败:', error);
+      toast.error('删除记账失败，请重试');
       setFormError('删除记账失败，请重试');
     } finally {
       setIsDeleting(false);

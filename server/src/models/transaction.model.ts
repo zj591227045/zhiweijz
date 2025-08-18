@@ -35,6 +35,7 @@ export interface CreateTransactionDto {
  */
 export interface UpdateTransactionDto {
   amount?: number;
+  type?: TransactionType;
   categoryId?: string;
   description?: string;
   date?: Date;

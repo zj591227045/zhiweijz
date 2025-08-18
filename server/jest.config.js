@@ -1,7 +1,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['<rootDir>/__tests__', '<rootDir>/src/__tests__'],
+  roots: ['<rootDir>/src/__tests__'],
   testMatch: ['**/*.test.ts'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
@@ -19,5 +19,4 @@ module.exports = {
   coverageReporters: ['text', 'lcov'],
   testPathIgnorePatterns: ['/node_modules/'],
   verbose: true,
-  setupFilesAfterEnv: ['<rootDir>/__tests__/setup.ts'],
 };

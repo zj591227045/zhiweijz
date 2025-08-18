@@ -77,7 +77,15 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
-          <Toaster position="top-center" />
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              duration: 3000,
+              style: {
+                zIndex: 9999
+              }
+            }}
+          />
         </ThemeProvider>
       </QueryClientProvider>
     );
@@ -114,10 +122,14 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
         </EnhancedVersionProvider>
         <Toaster
           position="top-center"
+          className="custom-toaster"
           toastOptions={{
             style: {
-              marginTop: 'max(24px, env(safe-area-inset-top, 0px))'
-            }
+              marginTop: 'max(24px, env(safe-area-inset-top, 0px))',
+              zIndex: 9999
+            },
+            duration: 3000,
+            className: 'custom-toast'
           }}
         />
       </ThemeProvider>

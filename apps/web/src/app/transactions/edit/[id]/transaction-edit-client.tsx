@@ -429,9 +429,13 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
         }
 
         router.push('/transactions');
+      } else {
+        toast.error('更新记账失败，请重试');
+        setFormError('更新记账失败，请重试');
       }
     } catch (error) {
       console.error('更新记账失败:', error);
+      toast.error('更新记账失败，请重试');
       setFormError('更新记账失败，请重试');
     } finally {
       setIsSubmitting(false);
