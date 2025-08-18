@@ -135,40 +135,58 @@ export default function LLMLogsPage() {
       return;
     }
 
+    if (range === 'all') {
+      // 全部时间，不设置时间限制
+      setFilters(prev => ({
+        ...prev,
+        startDate: '',
+        endDate: '',
+      }));
+      return;
+    }
+
+    // 获取本地时间的日期字符串，避免时区问题
     const now = new Date();
-    const endDate = now.toISOString().split('T')[0];
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const todayStr = `${year}-${month}-${day}`;
+
     let startDate = '';
+    let endDate = todayStr;
 
     switch (range) {
-      case 'all':
-        // 全部时间，不设置时间限制
-        startDate = '';
-        setFilters(prev => ({
-          ...prev,
-          startDate: '',
-          endDate: '',
-        }));
-        return;
       case '1d':
-        startDate = endDate; // 今天
+        // 今天：开始和结束都是今天
+        startDate = todayStr;
+        endDate = todayStr;
         break;
       case '7d':
-        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        startDate = sevenDaysAgo.toISOString().split('T')[0];
+        // 最近7天：从7天前到今天
+        const sevenDaysAgo = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000); // 6天前，包含今天共7天
+        const sevenYear = sevenDaysAgo.getFullYear();
+        const sevenMonth = String(sevenDaysAgo.getMonth() + 1).padStart(2, '0');
+        const sevenDay = String(sevenDaysAgo.getDate()).padStart(2, '0');
+        startDate = `${sevenYear}-${sevenMonth}-${sevenDay}`;
         break;
       case '30d':
-        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        startDate = thirtyDaysAgo.toISOString().split('T')[0];
+        // 最近30天：从30天前到今天
+        const thirtyDaysAgo = new Date(now.getTime() - 29 * 24 * 60 * 60 * 1000); // 29天前，包含今天共30天
+        const thirtyYear = thirtyDaysAgo.getFullYear();
+        const thirtyMonth = String(thirtyDaysAgo.getMonth() + 1).padStart(2, '0');
+        const thirtyDay = String(thirtyDaysAgo.getDate()).padStart(2, '0');
+        startDate = `${thirtyYear}-${thirtyMonth}-${thirtyDay}`;
         break;
       default:
         startDate = '';
+        endDate = '';
         break;
     }
 
     setFilters(prev => ({
       ...prev,
       startDate,
-      endDate: range === 'all' ? '' : endDate,
+      endDate,
     }));
   };
 

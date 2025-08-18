@@ -89,17 +89,28 @@ export class LLMLogAdminService {
       }
 
       if (startDate && endDate) {
+        // 处理日期范围查询，确保包含整天的数据
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0); // 设置为当天开始时间
+
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999); // 设置为当天结束时间
+
         where.createdAt = {
-          gte: new Date(startDate),
-          lte: new Date(endDate),
+          gte: start,
+          lte: end,
         };
       } else if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
         where.createdAt = {
-          gte: new Date(startDate),
+          gte: start,
         };
       } else if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
         where.createdAt = {
-          lte: new Date(endDate),
+          lte: end,
         };
       }
 
@@ -200,17 +211,28 @@ export class LLMLogAdminService {
       // 构建时间过滤条件
       const dateFilter: any = {};
       if (startDate && endDate) {
+        // 处理日期范围查询，确保包含整天的数据
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0); // 设置为当天开始时间
+
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999); // 设置为当天结束时间
+
         dateFilter.createdAt = {
-          gte: new Date(startDate),
-          lte: new Date(endDate),
+          gte: start,
+          lte: end,
         };
       } else if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
         dateFilter.createdAt = {
-          gte: new Date(startDate),
+          gte: start,
         };
       } else if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
         dateFilter.createdAt = {
-          lte: new Date(endDate),
+          lte: end,
         };
       }
 
@@ -453,14 +475,25 @@ export class LLMLogAdminService {
       if (accountBookId) where.accountBookId = accountBookId;
 
       if (startDate && endDate) {
+        // 处理日期范围查询，确保包含整天的数据
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0); // 设置为当天开始时间
+
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999); // 设置为当天结束时间
+
         where.createdAt = {
-          gte: new Date(startDate),
-          lte: new Date(endDate),
+          gte: start,
+          lte: end,
         };
       } else if (startDate) {
-        where.createdAt = { gte: new Date(startDate) };
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        where.createdAt = { gte: start };
       } else if (endDate) {
-        where.createdAt = { lte: new Date(endDate) };
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        where.createdAt = { lte: end };
       }
 
       if (search) {

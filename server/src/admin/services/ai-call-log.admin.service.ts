@@ -194,9 +194,16 @@ export class AICallLogAdminService {
       }
 
       if (startDate && endDate) {
+        // 处理日期范围查询，确保包含整天的数据
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0); // 设置为当天开始时间
+
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999); // 设置为当天结束时间
+
         where.createdAt = {
-          gte: new Date(startDate),
-          lte: new Date(endDate),
+          gte: start,
+          lte: end,
         };
       }
 
@@ -245,9 +252,16 @@ export class AICallLogAdminService {
       }
 
       if (startDate && endDate) {
+        // 处理日期范围查询，确保包含整天的数据
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0); // 设置为当天开始时间
+
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999); // 设置为当天结束时间
+
         whereConditions += ` AND created_at BETWEEN $${paramIndex}::timestamp AND $${paramIndex + 1}::timestamp`;
-        queryParams.push(startDate, endDate);
-        countParams.push(startDate, endDate);
+        queryParams.push(start.toISOString(), end.toISOString());
+        countParams.push(start.toISOString(), end.toISOString());
         paramIndex += 2;
       }
 
@@ -347,9 +361,16 @@ export class AICallLogAdminService {
 
       const where: any = {};
       if (startDate && endDate) {
+        // 处理日期范围查询，确保包含整天的数据
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0); // 设置为当天开始时间
+
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999); // 设置为当天结束时间
+
         where.createdAt = {
-          gte: new Date(startDate),
-          lte: new Date(endDate),
+          gte: start,
+          lte: end,
         };
       }
 
