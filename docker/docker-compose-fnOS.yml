@@ -40,7 +40,7 @@ services:
 
   # 后端服务
   backend:
-    image: zj591227045/zhiweijz-backend:0.7.0
+    image: zj591227045/zhiweijz-backend:0.8.0
     container_name: zhiweijz-backend
     restart: unless-stopped
     environment:
@@ -91,7 +91,7 @@ services:
 
   # 前端服务
   frontend:
-    image: zj591227045/zhiweijz-frontend:0.7.0
+    image: zj591227045/zhiweijz-frontend:0.8.0
     container_name: zhiweijz-frontend
     restart: unless-stopped
     environment:
@@ -138,7 +138,7 @@ services:
 
   # Nginx 反向代理
   nginx:
-    image: zj591227045/zhiweijz-nginx:0.7.0
+    image: zj591227045/zhiweijz-nginx:0.8.0
     container_name: zhiweijz-nginx
     restart: unless-stopped
     environment:
