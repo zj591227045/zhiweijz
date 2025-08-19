@@ -174,8 +174,8 @@ async function checkDataIntegrityIssues() {
     // 检查重复的唯一约束
     const duplicateBudgets = await prisma.$queryRaw`
       SELECT COUNT(*) as count FROM (
-        SELECT user_id, account_book_id, budget_type, period, start_date, family_member_id
-        FROM budgets 
+        SELECT user_id, account_book_id, budget_type::text, period, start_date, family_member_id
+        FROM budgets
         WHERE user_id IS NOT NULL AND account_book_id IS NOT NULL
         GROUP BY user_id, account_book_id, budget_type, period, start_date, family_member_id
         HAVING COUNT(*) > 1

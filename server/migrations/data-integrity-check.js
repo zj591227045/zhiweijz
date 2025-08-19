@@ -185,7 +185,7 @@ async function checkDuplicateConstraints() {
 
     // 检查budgets表的唯一约束重复
     const duplicateBudgets = await prisma.$queryRaw`
-      SELECT user_id, account_book_id, budget_type, period, start_date, family_member_id, COUNT(*) as count
+      SELECT user_id, account_book_id, budget_type::text, period, start_date, family_member_id, COUNT(*) as count
       FROM budgets
       WHERE user_id IS NOT NULL AND account_book_id IS NOT NULL
       GROUP BY user_id, account_book_id, budget_type, period, start_date, family_member_id
@@ -198,22 +198,22 @@ async function checkDuplicateConstraints() {
       // 对于每组重复记录，保留最新的，删除其他的
       for (const duplicate of duplicateBudgets) {
         await prisma.$executeRaw`
-          DELETE FROM budgets 
+          DELETE FROM budgets
           WHERE user_id = ${duplicate.user_id}
             AND account_book_id = ${duplicate.account_book_id}
-            AND budget_type = ${duplicate.budget_type}
+            AND budget_type::text = ${duplicate.budget_type}
             AND period = ${duplicate.period}
             AND start_date = ${duplicate.start_date}
             AND (family_member_id = ${duplicate.family_member_id} OR (family_member_id IS NULL AND ${duplicate.family_member_id} IS NULL))
             AND id NOT IN (
-              SELECT id FROM budgets 
+              SELECT id FROM budgets
               WHERE user_id = ${duplicate.user_id}
                 AND account_book_id = ${duplicate.account_book_id}
-                AND budget_type = ${duplicate.budget_type}
+                AND budget_type::text = ${duplicate.budget_type}
                 AND period = ${duplicate.period}
                 AND start_date = ${duplicate.start_date}
                 AND (family_member_id = ${duplicate.family_member_id} OR (family_member_id IS NULL AND ${duplicate.family_member_id} IS NULL))
-              ORDER BY updated_at DESC, created_at DESC 
+              ORDER BY updated_at DESC, created_at DESC
               LIMIT 1
             )
         `;
