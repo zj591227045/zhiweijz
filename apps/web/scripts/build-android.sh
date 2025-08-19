@@ -9,22 +9,47 @@ echo "🤖 开始构建Android应用..."
 echo "🧹 清理之前的构建产物..."
 rm -rf out .next
 
-# 2. 临时移动admin和所有debug相关目录
-echo "📁 临时移动admin和debug相关目录..."
-mkdir -p /tmp/zhiweijz-excluded-dirs
+# 2. 临时移动admin、debug和test相关目录
+echo "📁 临时移动admin、debug和test相关目录..."
+# 创建临时目录
+TEMP_DIR="/tmp/zhiweijz-excluded-dirs-$$"
+mkdir -p "$TEMP_DIR"
+
+# 移动admin目录
 if [ -d "src/app/admin" ]; then
-    mv src/app/admin /tmp/zhiweijz-excluded-dirs/
-    echo "✅ admin目录已移动"
+    mv src/app/admin "$TEMP_DIR/"
+    echo "✅ admin目录已移动到 $TEMP_DIR/admin"
+    ADMIN_BACKUP_PATH="$TEMP_DIR/admin"
+else
+    echo "⚠️ admin目录不存在，跳过移动"
+    ADMIN_BACKUP_PATH=""
 fi
 
 # 移动所有debug相关目录
+DEBUG_BACKUP_PATHS=""
 for debug_dir in src/app/*debug*; do
     if [ -d "$debug_dir" ]; then
         dir_name=$(basename "$debug_dir")
-        mv "$debug_dir" "/tmp/zhiweijz-excluded-dirs/"
-        echo "✅ $dir_name 目录已移动"
+        mv "$debug_dir" "$TEMP_DIR/"
+        echo "✅ $dir_name 目录已移动到 $TEMP_DIR/$dir_name"
+        DEBUG_BACKUP_PATHS="$DEBUG_BACKUP_PATHS $TEMP_DIR/$dir_name"
     fi
 done
+
+# 移动所有test开头的目录
+TEST_BACKUP_PATHS=""
+for test_dir in src/app/test*; do
+    if [ -d "$test_dir" ]; then
+        dir_name=$(basename "$test_dir")
+        mv "$test_dir" "$TEMP_DIR/"
+        echo "✅ $dir_name 目录已移动到 $TEMP_DIR/$dir_name"
+        TEST_BACKUP_PATHS="$TEST_BACKUP_PATHS $TEMP_DIR/$dir_name"
+    fi
+done
+
+if [ -z "$TEST_BACKUP_PATHS" ]; then
+    echo "⚠️ 没有找到test开头的目录"
+fi
 
 # 3. 备份并应用移动端配置
 echo "🔧 应用移动端配置..."
@@ -48,14 +73,25 @@ else
     # 恢复配置
     cp next.config.js.backup next.config.js
     rm next.config.js.backup
-    # 恢复目录
-    if [ -d "/tmp/zhiweijz-excluded-dirs/admin" ]; then
-        mv /tmp/zhiweijz-excluded-dirs/admin src/app/
+    # 恢复所有目录
+    if [ -n "$ADMIN_BACKUP_PATH" ] && [ -d "$ADMIN_BACKUP_PATH" ]; then
+        mv "$ADMIN_BACKUP_PATH" src/app/admin
+        echo "🔄 admin目录已恢复"
     fi
-    for excluded_dir in /tmp/zhiweijz-excluded-dirs/*debug*; do
-        if [ -d "$excluded_dir" ]; then
-            dir_name=$(basename "$excluded_dir")
-            mv "$excluded_dir" "src/app/"
+    # 恢复debug目录
+    for debug_path in $DEBUG_BACKUP_PATHS; do
+        if [ -d "$debug_path" ]; then
+            dir_name=$(basename "$debug_path")
+            mv "$debug_path" "src/app/$dir_name"
+            echo "🔄 $dir_name 目录已恢复"
+        fi
+    done
+    # 恢复test目录
+    for test_path in $TEST_BACKUP_PATHS; do
+        if [ -d "$test_path" ]; then
+            dir_name=$(basename "$test_path")
+            mv "$test_path" "src/app/$dir_name"
+            echo "🔄 $dir_name 目录已恢复"
         fi
     done
     exit 1
@@ -66,20 +102,35 @@ echo "🔄 恢复原始配置..."
 cp next.config.js.backup next.config.js
 rm next.config.js.backup
 
-echo "🔄 恢复admin和debug相关目录..."
-if [ -d "/tmp/zhiweijz-excluded-dirs/admin" ]; then
-    mv /tmp/zhiweijz-excluded-dirs/admin src/app/
+echo "🔄 恢复admin、debug和test相关目录..."
+if [ -n "$ADMIN_BACKUP_PATH" ] && [ -d "$ADMIN_BACKUP_PATH" ]; then
+    mv "$ADMIN_BACKUP_PATH" src/app/admin
     echo "✅ admin目录已恢复"
+else
+    echo "⚠️ admin备份目录不存在，跳过恢复"
 fi
 
-# 恢复所有debug相关目录
-for excluded_dir in /tmp/zhiweijz-excluded-dirs/*debug*; do
-    if [ -d "$excluded_dir" ]; then
-        dir_name=$(basename "$excluded_dir")
-        mv "$excluded_dir" "src/app/"
+# 恢复debug目录
+for debug_path in $DEBUG_BACKUP_PATHS; do
+    if [ -d "$debug_path" ]; then
+        dir_name=$(basename "$debug_path")
+        mv "$debug_path" "src/app/$dir_name"
         echo "✅ $dir_name 目录已恢复"
     fi
 done
+
+# 恢复test目录
+for test_path in $TEST_BACKUP_PATHS; do
+    if [ -d "$test_path" ]; then
+        dir_name=$(basename "$test_path")
+        mv "$test_path" "src/app/$dir_name"
+        echo "✅ $dir_name 目录已恢复"
+    fi
+done
+
+if [ -z "$TEST_BACKUP_PATHS" ]; then
+    echo "⚠️ 没有test目录需要恢复"
+fi
 
 # 5. 检查构建结果
 echo "🔍 检查构建结果..."
@@ -90,11 +141,26 @@ fi
 
 echo "✅ 静态文件构建成功，文件数量: $(find out -type f | wc -l)"
 
-# 验证admin页面是否被排除
-if [ ! -d "out/admin" ]; then
-    echo "✅ admin页面已成功排除"
-else
-    echo "⚠️ admin页面可能未完全排除，但不影响移动端功能"
+# 验证admin、debug和test页面是否被排除
+EXCLUDED_FOUND=false
+if [ -d "out/admin" ]; then
+    echo "⚠️ admin页面可能未完全排除"
+    EXCLUDED_FOUND=true
+fi
+if [ -d "out/debug" ]; then
+    echo "⚠️ debug页面可能未完全排除"
+    EXCLUDED_FOUND=true
+fi
+# 检查test开头的目录
+for test_out in out/test*; do
+    if [ -d "$test_out" ]; then
+        echo "⚠️ $(basename "$test_out") 页面可能未完全排除"
+        EXCLUDED_FOUND=true
+    fi
+done
+
+if [ "$EXCLUDED_FOUND" = false ]; then
+    echo "✅ admin、debug和test页面已成功排除"
 fi
 
 # 6. 检查Android平台状态
