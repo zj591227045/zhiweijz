@@ -63,17 +63,27 @@ WHERE is_multi_budget IS NULL;
 CREATE OR REPLACE FUNCTION validate_budget_allocation(allocation JSONB)
 RETURNS BOOLEAN AS $$
 BEGIN
+    -- 如果为NULL，直接返回true（NULL值由约束单独处理）
+    IF allocation IS NULL THEN
+        RETURN TRUE;
+    END IF;
+
     -- 检查是否为数组
     IF jsonb_typeof(allocation) != 'array' THEN
         RETURN FALSE;
     END IF;
-    
+
+    -- 如果是空数组，返回true
+    IF jsonb_array_length(allocation) = 0 THEN
+        RETURN TRUE;
+    END IF;
+
     -- 检查数组中每个元素的结构
     -- 每个元素应包含：budgetId, amount, memberName等字段
     IF NOT (
         SELECT bool_and(
-            item ? 'budgetId' AND 
-            item ? 'amount' AND 
+            item ? 'budgetId' AND
+            item ? 'amount' AND
             item ? 'memberName' AND
             jsonb_typeof(item->'amount') = 'number'
         )
@@ -81,7 +91,7 @@ BEGIN
     ) THEN
         RETURN FALSE;
     END IF;
-    
+
     RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql;
