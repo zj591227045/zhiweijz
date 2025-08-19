@@ -40,17 +40,12 @@ COMMENT ON COLUMN transactions.is_multi_budget IS '是否为多人预算分摊�
 COMMENT ON COLUMN transactions.budget_allocation IS '预算分摊详情：存储多人预算分摊信息(JSON格式)，包含每个人的预算ID、分摊金额等';
 COMMENT ON COLUMN transactions.primary_budget_id IS '主预算ID：用于标识交易的主要预算关联';
 
--- 6. 创建检查约束确保数据一致性
--- 当is_multi_budget为true时，budget_allocation不能为空
--- 当is_multi_budget为false时，budget_allocation应该为空
+-- 6. 删除可能存在的旧约束（触发器会处理数据一致性）
 DO $$ BEGIN
-    ALTER TABLE transactions ADD CONSTRAINT chk_multi_budget_consistency 
-    CHECK (
-        (is_multi_budget = true AND budget_allocation IS NOT NULL) OR
-        (is_multi_budget = false AND budget_allocation IS NULL)
-    );
+    ALTER TABLE transactions DROP CONSTRAINT IF EXISTS chk_multi_budget_consistency;
+    ALTER TABLE transactions DROP CONSTRAINT IF EXISTS chk_budget_allocation_structure;
 EXCEPTION
-    WHEN duplicate_object THEN null;
+    WHEN OTHERS THEN null;
 END $$;
 
 -- 7. 为现有数据设置默认值
@@ -59,52 +54,36 @@ UPDATE transactions
 SET is_multi_budget = false, budget_allocation = NULL 
 WHERE is_multi_budget IS NULL;
 
--- 8. 创建用于验证budget_allocation JSON结构的函数
-CREATE OR REPLACE FUNCTION validate_budget_allocation(allocation JSONB)
-RETURNS BOOLEAN AS $$
+-- 8. 创建用于验证budget_allocation的触发器函数
+CREATE OR REPLACE FUNCTION validate_budget_allocation()
+RETURNS TRIGGER AS $$
 BEGIN
-    -- 如果为NULL，直接返回true（NULL值由约束单独处理）
-    IF allocation IS NULL THEN
-        RETURN TRUE;
+    IF NEW.is_multi_budget = TRUE THEN
+        IF NEW.budget_allocation IS NULL OR jsonb_array_length(NEW.budget_allocation) = 0 THEN
+            RAISE EXCEPTION '多人预算模式下budget_allocation不能为空';
+        END IF;
+        IF ABS((
+            SELECT SUM((allocation->>'amount')::DECIMAL)
+            FROM jsonb_array_elements(NEW.budget_allocation) AS allocation
+        ) - NEW.amount) > 0.01 THEN
+            RAISE EXCEPTION '预算分摊金额总和必须等于交易金额';
+        END IF;
+    ELSE
+        NEW.budget_allocation := NULL;
     END IF;
-
-    -- 检查是否为数组
-    IF jsonb_typeof(allocation) != 'array' THEN
-        RETURN FALSE;
-    END IF;
-
-    -- 如果是空数组，返回true
-    IF jsonb_array_length(allocation) = 0 THEN
-        RETURN TRUE;
-    END IF;
-
-    -- 检查数组中每个元素的结构
-    -- 每个元素应包含：budgetId, amount, memberName等字段
-    IF NOT (
-        SELECT bool_and(
-            item ? 'budgetId' AND
-            item ? 'amount' AND
-            item ? 'memberName' AND
-            jsonb_typeof(item->'amount') = 'number'
-        )
-        FROM jsonb_array_elements(allocation) AS item
-    ) THEN
-        RETURN FALSE;
-    END IF;
-
-    RETURN TRUE;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- 9. 添加JSON结构验证约束
+-- 9. 创建触发器
 DO $$ BEGIN
-    ALTER TABLE transactions ADD CONSTRAINT chk_budget_allocation_structure
-    CHECK (
-        budget_allocation IS NULL OR 
-        validate_budget_allocation(budget_allocation)
-    );
+    DROP TRIGGER IF EXISTS trigger_validate_budget_allocation ON transactions;
+    CREATE TRIGGER trigger_validate_budget_allocation
+        BEFORE INSERT OR UPDATE ON transactions
+        FOR EACH ROW
+        EXECUTE FUNCTION validate_budget_allocation();
 EXCEPTION
-    WHEN duplicate_object THEN null;
+    WHEN OTHERS THEN null;
 END $$;
 
 -- 10. 创建用于查询多人预算分摊记录的视图
