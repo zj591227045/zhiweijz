@@ -183,3 +183,6 @@ apps/android/src/screens/StorageTestScreen.tsx
 
 
 !docs/wechat_integration/test-wechat-development-guide.md
+
+# User documentation (independent project)
+user-docs/
