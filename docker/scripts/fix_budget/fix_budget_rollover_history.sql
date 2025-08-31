@@ -114,7 +114,6 @@ BEGIN
             INSERT INTO budget_histories (
                 id,
                 budget_id,
-                user_id,
                 period,
                 amount,
                 type,
@@ -127,12 +126,11 @@ BEGIN
             ) VALUES (
                 temp_generate_uuid(),
                 budget_record.id,
-                COALESCE(budget_record.user_id, budget_record.family_member_id),
                 period_str,
                 ABS(rollover_amount),
                 rollover_type::"RolloverType",
-                rollover_description || ': 基础预算' || budget_record.amount || 
-                ', 上期结转' || COALESCE(budget_record.rollover_amount, 0) || 
+                rollover_description || ': 基础预算' || budget_record.amount ||
+                ', 上期结转' || COALESCE(budget_record.rollover_amount, 0) ||
                 ', 实际支出' || spent_amount || ', 结转金额' || rollover_amount,
                 budget_record.amount,
                 spent_amount,

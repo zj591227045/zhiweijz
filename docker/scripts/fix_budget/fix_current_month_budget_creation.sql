@@ -195,7 +195,6 @@ BEGIN
                     INSERT INTO budget_histories (
                         id,
                         budget_id,
-                        user_id,
                         period,
                         amount,
                         type,
@@ -208,14 +207,13 @@ BEGIN
                     ) VALUES (
                         temp_generate_uuid(),
                         latest_budget.id,
-                        user_record.user_id,
                         previous_period_str,
                         ABS(rollover_amount),
                         CASE WHEN rollover_amount >= 0 THEN 'SURPLUS'::"RolloverType" ELSE 'DEFICIT'::"RolloverType" END,
-                        CASE WHEN rollover_amount >= 0 THEN '余额结转: ' ELSE '债务结转: ' END || 
-                        '基础预算' || latest_budget.amount || 
-                        ', 上期结转' || COALESCE(latest_budget.rollover_amount, 0) || 
-                        ', 实际支出' || spent_amount || 
+                        CASE WHEN rollover_amount >= 0 THEN '余额结转: ' ELSE '债务结转: ' END ||
+                        '基础预算' || latest_budget.amount ||
+                        ', 上期结转' || COALESCE(latest_budget.rollover_amount, 0) ||
+                        ', 实际支出' || spent_amount ||
                         ', 结转金额' || rollover_amount,
                         latest_budget.amount,
                         spent_amount,
@@ -499,7 +497,6 @@ BEGIN
                     INSERT INTO budget_histories (
                         id,
                         budget_id,
-                        user_id,
                         period,
                         amount,
                         type,
@@ -512,7 +509,6 @@ BEGIN
                     ) VALUES (
                         temp_generate_uuid(),
                         latest_budget.id,
-                        user_record.member_id,  -- 对于托管成员使用member_id
                         previous_period_str,
                         ABS(rollover_amount),
                         CASE WHEN rollover_amount >= 0 THEN 'SURPLUS'::"RolloverType" ELSE 'DEFICIT'::"RolloverType" END,
