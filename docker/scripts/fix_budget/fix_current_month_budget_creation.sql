@@ -59,14 +59,13 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- 定义目标月份的时间范围（可通过变量设置）
-\set target_year_default `date +%Y`
-\set target_month_default `date +%-m`
-
 DO $$
 DECLARE
-    -- 目标年月（可以通过psql变量传入，默认为当前月份）
-    target_year INTEGER := COALESCE(:'target_year', :'target_year_default')::INTEGER;
-    target_month INTEGER := COALESCE(:'target_month', :'target_month_default')::INTEGER;
+    -- 目标年月（从环境变量或默认为当前月份）
+    target_year_text TEXT := current_setting('app.target_year', true);
+    target_month_text TEXT := current_setting('app.target_month', true);
+    target_year INTEGER;
+    target_month INTEGER;
     
     -- 计算目标月份和上个月的时间范围
     target_start DATE;
@@ -88,6 +87,19 @@ DECLARE
     created_histories INTEGER := 0;
     
 BEGIN
+    -- 设置默认值（如果没有传入参数）
+    IF target_year_text IS NULL OR target_year_text = '' THEN
+        target_year := EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER;
+    ELSE
+        target_year := target_year_text::INTEGER;
+    END IF;
+
+    IF target_month_text IS NULL OR target_month_text = '' THEN
+        target_month := EXTRACT(MONTH FROM CURRENT_DATE)::INTEGER;
+    ELSE
+        target_month := target_month_text::INTEGER;
+    END IF;
+
     -- 计算目标月份的开始和结束日期
     target_start := DATE(target_year || '-' || LPAD(target_month::TEXT, 2, '0') || '-01');
     target_end := (target_start + INTERVAL '1 month - 1 day')::DATE;
@@ -589,15 +601,31 @@ DROP FUNCTION IF EXISTS temp_has_rollover_history(TEXT, TEXT);
 -- 显示最终统计
 DO $$
 DECLARE
-    target_year INTEGER := COALESCE(:'target_year', :'target_year_default')::INTEGER;
-    target_month INTEGER := COALESCE(:'target_month', :'target_month_default')::INTEGER;
-    target_start DATE := DATE(target_year || '-' || LPAD(target_month::TEXT, 2, '0') || '-01');
+    target_year_text TEXT := current_setting('app.target_year', true);
+    target_month_text TEXT := current_setting('app.target_month', true);
+    target_year INTEGER;
+    target_month INTEGER;
+    target_start DATE;
 
     total_target_budgets INTEGER;
     total_users INTEGER;
     total_custodial_users INTEGER;
     total_custodial_members INTEGER;
 BEGIN
+    -- 设置默认值（如果没有传入参数）
+    IF target_year_text IS NULL OR target_year_text = '' THEN
+        target_year := EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER;
+    ELSE
+        target_year := target_year_text::INTEGER;
+    END IF;
+
+    IF target_month_text IS NULL OR target_month_text = '' THEN
+        target_month := EXTRACT(MONTH FROM CURRENT_DATE)::INTEGER;
+    ELSE
+        target_month := target_month_text::INTEGER;
+    END IF;
+
+    target_start := DATE(target_year || '-' || LPAD(target_month::TEXT, 2, '0') || '-01');
     -- 统计目标月份预算总数
     SELECT COUNT(*) INTO total_target_budgets
     FROM budgets
