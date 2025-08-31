@@ -222,8 +222,8 @@ fi
 
 # 执行SQL脚本
 if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$FINAL_DB_HOST" -p "$FINAL_DB_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
-    -v target_year="$TARGET_YEAR" \
-    -v target_month="$TARGET_MONTH" \
+    --set=target_year="$TARGET_YEAR" \
+    --set=target_month="$TARGET_MONTH" \
     -f "$MAIN_SCRIPT"; then
     
     echo ""

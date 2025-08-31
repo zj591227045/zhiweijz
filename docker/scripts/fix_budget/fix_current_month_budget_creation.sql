@@ -59,11 +59,14 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- 定义目标月份的时间范围（可通过变量设置）
+\set target_year_default `date +%Y`
+\set target_month_default `date +%-m`
+
 DO $$
 DECLARE
     -- 目标年月（可以通过psql变量传入，默认为当前月份）
-    target_year INTEGER := COALESCE(:'target_year'::INTEGER, EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER);
-    target_month INTEGER := COALESCE(:'target_month'::INTEGER, EXTRACT(MONTH FROM CURRENT_DATE)::INTEGER);
+    target_year INTEGER := COALESCE(:'target_year', :'target_year_default')::INTEGER;
+    target_month INTEGER := COALESCE(:'target_month', :'target_month_default')::INTEGER;
     
     -- 计算目标月份和上个月的时间范围
     target_start DATE;
@@ -586,8 +589,8 @@ DROP FUNCTION IF EXISTS temp_has_rollover_history(TEXT, TEXT);
 -- 显示最终统计
 DO $$
 DECLARE
-    target_year INTEGER := COALESCE(:'target_year'::INTEGER, EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER);
-    target_month INTEGER := COALESCE(:'target_month'::INTEGER, EXTRACT(MONTH FROM CURRENT_DATE)::INTEGER);
+    target_year INTEGER := COALESCE(:'target_year', :'target_year_default')::INTEGER;
+    target_month INTEGER := COALESCE(:'target_month', :'target_month_default')::INTEGER;
     target_start DATE := DATE(target_year || '-' || LPAD(target_month::TEXT, 2, '0') || '-01');
 
     total_target_budgets INTEGER;
