@@ -3,8 +3,8 @@
 -- =====================================================
 -- 
 -- 功能：
--- 1. 为所有用户创建缺失的当月个人预算
--- 2. 为所有托管用户创建缺失的当月个人预算  
+-- 1. 为所有注册用户创建缺失的当月个人预算
+-- 2. 为所有家庭成员（非托管）创建缺失的当月个人预算
 -- 3. 为所有托管成员创建缺失的当月个人预算
 -- 4. 正确处理预算结转逻辑
 -- 5. 创建相应的预算结转历史记录
@@ -121,7 +121,7 @@ BEGIN
     RAISE NOTICE '';
     
     -- =====================================================
-    -- 第一部分：处理注册用户的个人预算
+    -- 第一部分：处理注册用户的个人预算（包括家庭创建者）
     -- =====================================================
     RAISE NOTICE '开始处理注册用户的个人预算...';
     
@@ -289,23 +289,28 @@ BEGIN
     skipped_budgets := 0;
 
     -- =====================================================
-    -- 第二部分：处理托管用户的个人预算
+    -- 第二部分：处理家庭成员的个人预算（非托管成员）
     -- =====================================================
-    RAISE NOTICE '开始处理托管用户的个人预算...';
+    RAISE NOTICE '开始处理家庭成员的个人预算...';
 
     FOR user_record IN
         SELECT DISTINCT
-            u.id as user_id,
-            u.name as user_name,
-            u.email as user_email,
+            fm.id as member_id,
+            fm.name as member_name,
+            fm.user_id,
+            fm.family_id,
             ab.id as account_book_id,
-            ab.name as account_book_name
-        FROM users u
-        JOIN account_books ab ON u.id = ab.user_id
-        WHERE u.is_custodial = true  -- 只处理托管用户
-        ORDER BY u.name
+            ab.name as account_book_name,
+            ab.user_id as main_user_id
+        FROM family_members fm
+        JOIN families f ON fm.family_id = f.id
+        JOIN account_books ab ON f.id = ab.family_id
+        WHERE fm.is_custodial = false  -- 只处理非托管家庭成员
+          AND fm.user_id IS NOT NULL   -- 必须有关联的用户ID
+          AND ab.type = 'FAMILY'       -- 只处理家庭账本
+        ORDER BY fm.name, ab.name
     LOOP
-        RAISE NOTICE '检查托管用户: % (%) - 账本: %', user_record.user_name, user_record.user_id, user_record.account_book_name;
+        RAISE NOTICE '检查家庭成员: % (%) - 账本: %', user_record.member_name, user_record.member_id, user_record.account_book_name;
         processed_users := processed_users + 1;
 
         -- 检查是否已存在目标月份的个人预算
@@ -394,7 +399,7 @@ BEGIN
             COALESCE(latest_budget.refresh_day, 1),
             user_record.user_id,
             user_record.account_book_id,
-            latest_budget.family_id,
+            user_record.family_id,
             COALESCE(latest_budget.is_auto_calculated, false),
             COALESCE(latest_budget.enable_category_budget, false),
             COALESCE(latest_budget.amount_modified, false),
@@ -411,7 +416,7 @@ BEGIN
 
     END LOOP;
 
-    RAISE NOTICE '托管用户预算处理完成: 处理%个用户，创建%个预算，跳过%个', processed_users, created_budgets, skipped_budgets;
+    RAISE NOTICE '家庭成员预算处理完成: 处理%个成员，创建%个预算，跳过%个', processed_users, created_budgets, skipped_budgets;
     RAISE NOTICE '';
 
     -- 重置计数器，准备处理托管成员
@@ -635,10 +640,10 @@ BEGIN
     FROM users
     WHERE is_custodial = false;
 
-    -- 统计托管用户总数
+    -- 统计家庭成员总数（非托管）
     SELECT COUNT(*) INTO total_custodial_users
-    FROM users
-    WHERE is_custodial = true;
+    FROM family_members
+    WHERE is_custodial = false AND user_id IS NOT NULL;
 
     -- 统计托管成员总数
     SELECT COUNT(*) INTO total_custodial_members
@@ -648,7 +653,7 @@ BEGIN
     RAISE NOTICE '';
     RAISE NOTICE '=== 最终统计结果 ===';
     RAISE NOTICE '注册用户总数: %', total_users;
-    RAISE NOTICE '托管用户总数: %', total_custodial_users;
+    RAISE NOTICE '家庭成员总数（非托管）: %', total_custodial_users;
     RAISE NOTICE '托管成员总数: %', total_custodial_members;
     RAISE NOTICE '%年%月个人预算总数: %', target_year, target_month, total_target_budgets;
     RAISE NOTICE '';
