@@ -80,8 +80,15 @@ if [ -z "$POSTGRES_DB" ] || [ -z "$POSTGRES_USER" ] || [ -z "$POSTGRES_PASSWORD"
 fi
 
 # 设置数据库连接参数
-DB_HOST="${DB_HOST:-localhost}"
-DB_PORT="${DB_PORT:-5432}"
+# 优先使用环境变量，然后是.env文件中的值，最后是默认值
+FINAL_DB_HOST="${DB_HOST:-localhost}"
+FINAL_DB_PORT="${DB_PORT:-5432}"
+
+# 如果是在Docker环境中，且DB_HOST是默认值，尝试使用容器名
+if [ "$FINAL_DB_HOST" = "localhost" ] && [ -n "$DOCKER_ENV" ]; then
+    log_warning "检测到Docker环境，尝试使用容器名连接数据库"
+    FINAL_DB_HOST="zhiweijz-postgres"
+fi
 
 # 解析命令行参数
 TARGET_YEAR=""
@@ -123,8 +130,8 @@ fi
 # 显示配置信息
 echo ""
 log_info "=== 配置信息 ==="
-log_info "数据库主机: $DB_HOST"
-log_info "数据库端口: $DB_PORT"
+log_info "数据库主机: $FINAL_DB_HOST"
+log_info "数据库端口: $FINAL_DB_PORT"
 log_info "数据库名称: $POSTGRES_DB"
 log_info "数据库用户: $POSTGRES_USER"
 log_info "目标年月: ${TARGET_YEAR}年${TARGET_MONTH}月"
@@ -139,18 +146,61 @@ fi
 
 # 测试数据库连接
 log_info "测试数据库连接..."
-if ! PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;" &> /dev/null; then
+log_info "尝试连接: $POSTGRES_USER@$FINAL_DB_HOST:$FINAL_DB_PORT/$POSTGRES_DB"
+
+# 尝试多种连接方式
+CONNECTION_SUCCESS=false
+
+# 方式1：使用配置的主机
+if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$FINAL_DB_HOST" -p "$FINAL_DB_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;" &> /dev/null; then
+    CONNECTION_SUCCESS=true
+    log_success "数据库连接测试成功 (使用主机: $FINAL_DB_HOST)"
+else
+    log_warning "无法连接到 $FINAL_DB_HOST，尝试其他连接方式..."
+
+    # 方式2：尝试容器名
+    if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "zhiweijz-postgres" -p "$FINAL_DB_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;" &> /dev/null; then
+        CONNECTION_SUCCESS=true
+        FINAL_DB_HOST="zhiweijz-postgres"
+        log_success "数据库连接测试成功 (使用容器名: zhiweijz-postgres)"
+    else
+        # 方式3：尝试localhost
+        if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "localhost" -p "$FINAL_DB_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;" &> /dev/null; then
+            CONNECTION_SUCCESS=true
+            FINAL_DB_HOST="localhost"
+            log_success "数据库连接测试成功 (使用localhost)"
+        else
+            # 方式4：尝试127.0.0.1
+            if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "127.0.0.1" -p "$FINAL_DB_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;" &> /dev/null; then
+                CONNECTION_SUCCESS=true
+                FINAL_DB_HOST="127.0.0.1"
+                log_success "数据库连接测试成功 (使用127.0.0.1)"
+            fi
+        fi
+    fi
+fi
+
+if [ "$CONNECTION_SUCCESS" = false ]; then
     log_error "无法连接到数据库"
-    log_error "请检查数据库配置和网络连接"
+    log_error "已尝试的连接方式："
+    log_error "  1. $FINAL_DB_HOST:$FINAL_DB_PORT"
+    log_error "  2. zhiweijz-postgres:$FINAL_DB_PORT"
+    log_error "  3. localhost:$FINAL_DB_PORT"
+    log_error "  4. 127.0.0.1:$FINAL_DB_PORT"
+    log_error ""
+    log_error "请检查："
+    log_error "  1. 数据库容器是否正在运行: docker ps | grep postgres"
+    log_error "  2. 端口是否正确暴露: docker port zhiweijz-postgres"
+    log_error "  3. 防火墙设置"
+    log_error "  4. 数据库用户权限"
     exit 1
 fi
-log_success "数据库连接测试成功"
 
 # 确认执行
 echo ""
 log_warning "即将执行预算修复操作"
 log_warning "目标: 为${TARGET_YEAR}年${TARGET_MONTH}月创建缺失的个人预算"
-log_warning "数据库: $POSTGRES_DB@$DB_HOST:$DB_PORT"
+log_warning "数据库: $POSTGRES_DB@$FINAL_DB_HOST:$FINAL_DB_PORT"
 echo ""
 read -p "确认执行吗? (y/N): " -n 1 -r
 echo ""
@@ -171,7 +221,7 @@ if [ ! -f "$MAIN_SCRIPT" ]; then
 fi
 
 # 执行SQL脚本
-if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$FINAL_DB_HOST" -p "$FINAL_DB_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
     -v target_year="$TARGET_YEAR" \
     -v target_month="$TARGET_MONTH" \
     -f "$MAIN_SCRIPT"; then
@@ -190,7 +240,7 @@ if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$POSTGRE
         HISTORY_SCRIPT="$SCRIPT_DIR/fix_budget_rollover_history.sql"
         if [ -f "$HISTORY_SCRIPT" ]; then
             log_info "执行结转历史修复脚本..."
-            if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+            if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$FINAL_DB_HOST" -p "$FINAL_DB_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
                 -f "$HISTORY_SCRIPT"; then
                 log_success "结转历史修复脚本执行完成"
             else
