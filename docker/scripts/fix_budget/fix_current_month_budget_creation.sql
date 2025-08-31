@@ -1,17 +1,19 @@
 -- =====================================================
--- 9月份个人预算创建和结转修复脚本
+-- 当月个人预算创建和结转修复脚本
 -- =====================================================
 -- 
 -- 功能：
--- 1. 为所有用户创建缺失的2025年9月个人预算
--- 2. 为所有托管用户创建缺失的2025年9月个人预算  
--- 3. 正确处理预算结转逻辑
--- 4. 创建相应的预算结转历史记录
+-- 1. 为所有用户创建缺失的当月个人预算
+-- 2. 为所有托管用户创建缺失的当月个人预算  
+-- 3. 为所有托管成员创建缺失的当月个人预算
+-- 4. 正确处理预算结转逻辑
+-- 5. 创建相应的预算结转历史记录
 --
 -- 使用方法：
--- psql -h 数据库地址 -U 用户名 -d 数据库名 < fix_september_budget_creation.sql
+-- 1. 设置目标年月：\set target_year 2025 \set target_month 9
+-- 2. 执行脚本：psql -h 数据库地址 -U 用户名 -d 数据库名 < fix_current_month_budget_creation.sql
 -- 
--- 注意：此脚本基于docker-compose.yml中的数据库配置
+-- 注意：此脚本基于docker/.env中的数据库配置
 -- =====================================================
 
 -- 开始事务
@@ -56,13 +58,18 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 定义9月份的时间范围
+-- 定义目标月份的时间范围（可通过变量设置）
 DO $$
 DECLARE
-    september_start DATE := '2025-09-01';
-    september_end DATE := '2025-09-30';
-    august_start DATE := '2025-08-01';
-    august_end DATE := '2025-08-31';
+    -- 目标年月（可以通过psql变量传入，默认为当前月份）
+    target_year INTEGER := COALESCE(:'target_year'::INTEGER, EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER);
+    target_month INTEGER := COALESCE(:'target_month'::INTEGER, EXTRACT(MONTH FROM CURRENT_DATE)::INTEGER);
+    
+    -- 计算目标月份和上个月的时间范围
+    target_start DATE;
+    target_end DATE;
+    previous_start DATE;
+    previous_end DATE;
     
     user_record RECORD;
     latest_budget RECORD;
@@ -70,6 +77,7 @@ DECLARE
     rollover_amount DECIMAL(10,2);
     spent_amount DECIMAL(10,2);
     total_available DECIMAL(10,2);
+    previous_period_str TEXT;
     
     processed_users INTEGER := 0;
     created_budgets INTEGER := 0;
@@ -77,8 +85,24 @@ DECLARE
     created_histories INTEGER := 0;
     
 BEGIN
-    RAISE NOTICE '=== 9月份个人预算创建和结转修复脚本 ===';
-    RAISE NOTICE '目标月份: % 到 %', september_start, september_end;
+    -- 计算目标月份的开始和结束日期
+    target_start := DATE(target_year || '-' || LPAD(target_month::TEXT, 2, '0') || '-01');
+    target_end := (target_start + INTERVAL '1 month - 1 day')::DATE;
+    
+    -- 计算上个月的开始和结束日期
+    IF target_month = 1 THEN
+        previous_start := DATE((target_year - 1) || '-12-01');
+        previous_end := DATE((target_year - 1) || '-12-31');
+        previous_period_str := (target_year - 1) || '-12';
+    ELSE
+        previous_start := DATE(target_year || '-' || LPAD((target_month - 1)::TEXT, 2, '0') || '-01');
+        previous_end := (previous_start + INTERVAL '1 month - 1 day')::DATE;
+        previous_period_str := target_year || '-' || (target_month - 1);
+    END IF;
+    
+    RAISE NOTICE '=== 当月个人预算创建和结转修复脚本 ===';
+    RAISE NOTICE '目标月份: %年%月 (% 到 %)', target_year, target_month, target_start, target_end;
+    RAISE NOTICE '上个月份: % (% 到 %)', previous_period_str, previous_start, previous_end;
     RAISE NOTICE '';
     
     -- =====================================================
@@ -101,17 +125,17 @@ BEGIN
         RAISE NOTICE '检查用户: % (%) - 账本: %', user_record.user_name, user_record.user_id, user_record.account_book_name;
         processed_users := processed_users + 1;
         
-        -- 检查是否已存在9月份的个人预算
+        -- 检查是否已存在目标月份的个人预算
         IF EXISTS (
             SELECT 1 FROM budgets 
             WHERE user_id = user_record.user_id
               AND account_book_id = user_record.account_book_id
               AND budget_type = 'PERSONAL'
               AND period = 'MONTHLY'
-              AND start_date >= september_start
-              AND start_date <= september_start
+              AND start_date >= target_start
+              AND start_date <= target_start
         ) THEN
-            RAISE NOTICE '  ✅ 已存在9月份预算，跳过';
+            RAISE NOTICE '  ✅ 已存在%年%月预算，跳过', target_year, target_month;
             skipped_budgets := skipped_budgets + 1;
             CONTINUE;
         END IF;
@@ -150,9 +174,9 @@ BEGIN
                 spent_amount, 
                 rollover_amount;
                 
-            -- 为8月份预算创建结转历史记录（如果需要）
-            IF latest_budget.end_date >= august_start AND latest_budget.end_date <= august_end THEN
-                IF NOT temp_has_rollover_history(latest_budget.id, '2025-8') THEN
+            -- 为上个月预算创建结转历史记录（如果需要）
+            IF latest_budget.end_date >= previous_start AND latest_budget.end_date <= previous_end THEN
+                IF NOT temp_has_rollover_history(latest_budget.id, previous_period_str) THEN
                     INSERT INTO budget_histories (
                         id,
                         budget_id,
@@ -170,7 +194,7 @@ BEGIN
                         temp_generate_uuid(),
                         latest_budget.id,
                         user_record.user_id,
-                        '2025-8',
+                        previous_period_str,
                         ABS(rollover_amount),
                         CASE WHEN rollover_amount >= 0 THEN 'SURPLUS'::"RolloverType" ELSE 'DEFICIT'::"RolloverType" END,
                         CASE WHEN rollover_amount >= 0 THEN '余额结转: ' ELSE '债务结转: ' END || 
@@ -185,7 +209,7 @@ BEGIN
                         CURRENT_TIMESTAMP
                     );
                     created_histories := created_histories + 1;
-                    RAISE NOTICE '    📝 创建8月结转历史记录';
+                    RAISE NOTICE '    📝 创建%结转历史记录', previous_period_str;
                 END IF;
             END IF;
         END IF;
@@ -193,7 +217,7 @@ BEGIN
         -- 生成新预算ID
         new_budget_id := temp_generate_uuid();
         
-        -- 创建9月份预算
+        -- 创建目标月份预算
         INSERT INTO budgets (
             id,
             name,
@@ -218,8 +242,8 @@ BEGIN
             latest_budget.name,
             latest_budget.amount,
             'MONTHLY',
-            september_start,
-            september_end,
+            target_start,
+            target_end,
             'PERSONAL',
             latest_budget.rollover,
             CASE WHEN latest_budget.rollover THEN rollover_amount ELSE NULL END,
@@ -234,7 +258,7 @@ BEGIN
             CURRENT_TIMESTAMP
         );
         
-        RAISE NOTICE '  ✅ 成功创建9月预算: % (ID: %)', latest_budget.name, new_budget_id;
+        RAISE NOTICE '  ✅ 成功创建%年%月预算: % (ID: %)', target_year, target_month, latest_budget.name, new_budget_id;
         RAISE NOTICE '      金额: %, 结转: %', latest_budget.amount, 
             CASE WHEN latest_budget.rollover THEN rollover_amount ELSE 0 END;
         RAISE NOTICE '';
@@ -250,13 +274,13 @@ BEGIN
     processed_users := 0;
     created_budgets := 0;
     skipped_budgets := 0;
-    
+
     -- =====================================================
     -- 第二部分：处理托管用户的个人预算
     -- =====================================================
     RAISE NOTICE '开始处理托管用户的个人预算...';
-    
-    FOR user_record IN 
+
+    FOR user_record IN
         SELECT DISTINCT
             u.id as user_id,
             u.name as user_name,
@@ -270,61 +294,61 @@ BEGIN
     LOOP
         RAISE NOTICE '检查托管用户: % (%) - 账本: %', user_record.user_name, user_record.user_id, user_record.account_book_name;
         processed_users := processed_users + 1;
-        
-        -- 检查是否已存在9月份的个人预算
+
+        -- 检查是否已存在目标月份的个人预算
         IF EXISTS (
-            SELECT 1 FROM budgets 
+            SELECT 1 FROM budgets
             WHERE user_id = user_record.user_id
               AND account_book_id = user_record.account_book_id
               AND budget_type = 'PERSONAL'
               AND period = 'MONTHLY'
-              AND start_date >= september_start
-              AND start_date <= september_start
+              AND start_date >= target_start
+              AND start_date <= target_start
         ) THEN
-            RAISE NOTICE '  ✅ 已存在9月份预算，跳过';
+            RAISE NOTICE '  ✅ 已存在%年%月预算，跳过', target_year, target_month;
             skipped_budgets := skipped_budgets + 1;
             CONTINUE;
         END IF;
-        
+
         -- 查找最新的个人预算作为模板
         SELECT * INTO latest_budget
-        FROM budgets 
+        FROM budgets
         WHERE user_id = user_record.user_id
           AND account_book_id = user_record.account_book_id
           AND budget_type = 'PERSONAL'
           AND period = 'MONTHLY'
         ORDER BY end_date DESC
         LIMIT 1;
-        
+
         IF latest_budget IS NULL THEN
             RAISE NOTICE '  ⚠️  没有找到历史预算，无法创建';
             skipped_budgets := skipped_budgets + 1;
             CONTINUE;
         END IF;
-        
+
         RAISE NOTICE '  📋 基于预算: % (结束日期: %)', latest_budget.name, latest_budget.end_date;
-        
+
         -- 计算结转金额（如果启用了结转）
         rollover_amount := 0;
         IF latest_budget.rollover THEN
             -- 计算上个预算的已支出金额
             spent_amount := temp_calculate_spent_amount(latest_budget.id);
-            
+
             -- 计算结转金额：预算金额 + 上次结转金额 - 已支出金额
             total_available := latest_budget.amount + COALESCE(latest_budget.rollover_amount, 0);
             rollover_amount := total_available - spent_amount;
-            
-            RAISE NOTICE '    💰 结转计算: 预算% + 上次结转% - 已支出% = 结转%', 
-                latest_budget.amount, 
-                COALESCE(latest_budget.rollover_amount, 0), 
-                spent_amount, 
+
+            RAISE NOTICE '    💰 结转计算: 预算% + 上次结转% - 已支出% = 结转%',
+                latest_budget.amount,
+                COALESCE(latest_budget.rollover_amount, 0),
+                spent_amount,
                 rollover_amount;
         END IF;
-        
+
         -- 生成新预算ID
         new_budget_id := temp_generate_uuid();
-        
-        -- 创建9月份预算
+
+        -- 创建目标月份预算
         INSERT INTO budgets (
             id,
             name,
@@ -349,8 +373,8 @@ BEGIN
             latest_budget.name,
             latest_budget.amount,
             'MONTHLY',
-            september_start,
-            september_end,
+            target_start,
+            target_end,
             'PERSONAL',
             latest_budget.rollover,
             CASE WHEN latest_budget.rollover THEN rollover_amount ELSE NULL END,
@@ -364,68 +388,18 @@ BEGIN
             CURRENT_TIMESTAMP,
             CURRENT_TIMESTAMP
         );
-        
-        RAISE NOTICE '  ✅ 成功创建9月预算: % (ID: %)', latest_budget.name, new_budget_id;
-        RAISE NOTICE '      金额: %, 结转: %', latest_budget.amount, 
+
+        RAISE NOTICE '  ✅ 成功创建%年%月预算: % (ID: %)', target_year, target_month, latest_budget.name, new_budget_id;
+        RAISE NOTICE '      金额: %, 结转: %', latest_budget.amount,
             CASE WHEN latest_budget.rollover THEN rollover_amount ELSE 0 END;
         RAISE NOTICE '';
-        
+
         created_budgets := created_budgets + 1;
-        
+
     END LOOP;
-    
+
     RAISE NOTICE '托管用户预算处理完成: 处理%个用户，创建%个预算，跳过%个', processed_users, created_budgets, skipped_budgets;
     RAISE NOTICE '';
-    
-END $$;
-
--- 清理临时函数
-DROP FUNCTION IF EXISTS temp_generate_uuid();
-DROP FUNCTION IF EXISTS temp_calculate_spent_amount(TEXT);
-DROP FUNCTION IF EXISTS temp_has_rollover_history(TEXT, TEXT);
-
--- 显示最终统计
-DO $$
-DECLARE
-    total_september_budgets INTEGER;
-    total_users INTEGER;
-    total_custodial_users INTEGER;
-BEGIN
-    -- 统计9月份预算总数
-    SELECT COUNT(*) INTO total_september_budgets
-    FROM budgets
-    WHERE start_date >= '2025-09-01'
-      AND start_date <= '2025-09-01'
-      AND budget_type = 'PERSONAL'
-      AND period = 'MONTHLY';
-    
-    -- 统计用户总数
-    SELECT COUNT(*) INTO total_users
-    FROM users
-    WHERE is_custodial = false;
-    
-    -- 统计托管用户总数
-    SELECT COUNT(*) INTO total_custodial_users
-    FROM users
-    WHERE is_custodial = true;
-    
-    RAISE NOTICE '';
-    RAISE NOTICE '=== 最终统计结果 ===';
-    RAISE NOTICE '注册用户总数: %', total_users;
-    RAISE NOTICE '托管用户总数: %', total_custodial_users;
-    RAISE NOTICE '9月份个人预算总数: %', total_september_budgets;
-    RAISE NOTICE '';
-    
-    IF total_september_budgets > 0 THEN
-        RAISE NOTICE '🎉 9月份预算创建修复完成！';
-    ELSE
-        RAISE NOTICE '⚠️  没有创建任何9月份预算，请检查数据';
-    END IF;
-    
-END $$;
-
--- 提交事务
-COMMIT;
 
     -- 重置计数器，准备处理托管成员
     processed_users := 0;
@@ -455,17 +429,17 @@ COMMIT;
         RAISE NOTICE '检查托管成员: % (%) - 账本: %', user_record.member_name, user_record.member_id, user_record.account_book_name;
         processed_users := processed_users + 1;
 
-        -- 检查是否已存在9月份的个人预算
+        -- 检查是否已存在目标月份的个人预算
         IF EXISTS (
             SELECT 1 FROM budgets
             WHERE family_member_id = user_record.member_id
               AND account_book_id = user_record.account_book_id
               AND budget_type = 'PERSONAL'
               AND period = 'MONTHLY'
-              AND start_date >= september_start
-              AND start_date <= september_start
+              AND start_date >= target_start
+              AND start_date <= target_start
         ) THEN
-            RAISE NOTICE '  ✅ 已存在9月份预算，跳过';
+            RAISE NOTICE '  ✅ 已存在%年%月预算，跳过', target_year, target_month;
             skipped_budgets := skipped_budgets + 1;
             CONTINUE;
         END IF;
@@ -504,9 +478,9 @@ COMMIT;
                 spent_amount,
                 rollover_amount;
 
-            -- 为8月份预算创建结转历史记录（如果需要）
-            IF latest_budget.end_date >= august_start AND latest_budget.end_date <= august_end THEN
-                IF NOT temp_has_rollover_history(latest_budget.id, '2025-8') THEN
+            -- 为上个月预算创建结转历史记录（如果需要）
+            IF latest_budget.end_date >= previous_start AND latest_budget.end_date <= previous_end THEN
+                IF NOT temp_has_rollover_history(latest_budget.id, previous_period_str) THEN
                     INSERT INTO budget_histories (
                         id,
                         budget_id,
@@ -524,7 +498,7 @@ COMMIT;
                         temp_generate_uuid(),
                         latest_budget.id,
                         user_record.member_id,  -- 对于托管成员使用member_id
-                        '2025-8',
+                        previous_period_str,
                         ABS(rollover_amount),
                         CASE WHEN rollover_amount >= 0 THEN 'SURPLUS'::"RolloverType" ELSE 'DEFICIT'::"RolloverType" END,
                         CASE WHEN rollover_amount >= 0 THEN '余额结转: ' ELSE '债务结转: ' END ||
@@ -539,7 +513,7 @@ COMMIT;
                         CURRENT_TIMESTAMP
                     );
                     created_histories := created_histories + 1;
-                    RAISE NOTICE '    📝 创建8月结转历史记录';
+                    RAISE NOTICE '    📝 创建%结转历史记录', previous_period_str;
                 END IF;
             END IF;
         END IF;
@@ -547,7 +521,7 @@ COMMIT;
         -- 生成新预算ID
         new_budget_id := temp_generate_uuid();
 
-        -- 创建9月份预算
+        -- 创建目标月份预算
         INSERT INTO budgets (
             id,
             name,
@@ -573,8 +547,8 @@ COMMIT;
             latest_budget.name,
             latest_budget.amount,
             'MONTHLY',
-            september_start,
-            september_end,
+            target_start,
+            target_end,
             'PERSONAL',
             latest_budget.rollover,
             CASE WHEN latest_budget.rollover THEN rollover_amount ELSE NULL END,
@@ -590,7 +564,7 @@ COMMIT;
             CURRENT_TIMESTAMP
         );
 
-        RAISE NOTICE '  ✅ 成功创建9月预算: % (ID: %)', latest_budget.name, new_budget_id;
+        RAISE NOTICE '  ✅ 成功创建%年%月预算: % (ID: %)', target_year, target_month, latest_budget.name, new_budget_id;
         RAISE NOTICE '      金额: %, 结转: %', latest_budget.amount,
             CASE WHEN latest_budget.rollover THEN rollover_amount ELSE 0 END;
         RAISE NOTICE '';
@@ -612,16 +586,20 @@ DROP FUNCTION IF EXISTS temp_has_rollover_history(TEXT, TEXT);
 -- 显示最终统计
 DO $$
 DECLARE
-    total_september_budgets INTEGER;
+    target_year INTEGER := COALESCE(:'target_year'::INTEGER, EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER);
+    target_month INTEGER := COALESCE(:'target_month'::INTEGER, EXTRACT(MONTH FROM CURRENT_DATE)::INTEGER);
+    target_start DATE := DATE(target_year || '-' || LPAD(target_month::TEXT, 2, '0') || '-01');
+
+    total_target_budgets INTEGER;
     total_users INTEGER;
     total_custodial_users INTEGER;
     total_custodial_members INTEGER;
 BEGIN
-    -- 统计9月份预算总数
-    SELECT COUNT(*) INTO total_september_budgets
+    -- 统计目标月份预算总数
+    SELECT COUNT(*) INTO total_target_budgets
     FROM budgets
-    WHERE start_date >= '2025-09-01'
-      AND start_date <= '2025-09-01'
+    WHERE start_date >= target_start
+      AND start_date <= target_start
       AND budget_type = 'PERSONAL'
       AND period = 'MONTHLY';
 
@@ -645,72 +623,16 @@ BEGIN
     RAISE NOTICE '注册用户总数: %', total_users;
     RAISE NOTICE '托管用户总数: %', total_custodial_users;
     RAISE NOTICE '托管成员总数: %', total_custodial_members;
-    RAISE NOTICE '9月份个人预算总数: %', total_september_budgets;
+    RAISE NOTICE '%年%月个人预算总数: %', target_year, target_month, total_target_budgets;
     RAISE NOTICE '';
 
-    IF total_september_budgets > 0 THEN
-        RAISE NOTICE '🎉 9月份预算创建修复完成！';
+    IF total_target_budgets > 0 THEN
+        RAISE NOTICE '🎉 %年%月预算创建修复完成！', target_year, target_month;
     ELSE
-        RAISE NOTICE '⚠️  没有创建任何9月份预算，请检查数据';
+        RAISE NOTICE '⚠️  没有创建任何%年%月预算，请检查数据', target_year, target_month;
     END IF;
 
 END $$;
 
 -- 提交事务
 COMMIT;
-
--- 显示验证查询建议
-\echo ''
-\echo '=== 验证查询建议 ==='
-\echo '1. 检查9月份用户预算创建情况：'
-\echo ''
-\echo 'SELECT '
-\echo '  u.name as 用户名,'
-\echo '  u.is_custodial as 是否托管,'
-\echo '  ab.name as 账本名称,'
-\echo '  b.name as 预算名称,'
-\echo '  b.amount as 预算金额,'
-\echo '  b.rollover_amount as 结转金额,'
-\echo '  b.start_date as 开始日期,'
-\echo '  b.end_date as 结束日期'
-\echo 'FROM budgets b'
-\echo 'JOIN users u ON b.user_id = u.id'
-\echo 'JOIN account_books ab ON b.account_book_id = ab.id'
-\echo 'WHERE b.start_date >= ''2025-09-01'''
-\echo '  AND b.start_date <= ''2025-09-01'''
-\echo '  AND b.budget_type = ''PERSONAL'''
-\echo '  AND b.period = ''MONTHLY'''
-\echo 'ORDER BY u.is_custodial, u.name;'
-\echo ''
-\echo '2. 检查9月份托管成员预算创建情况：'
-\echo ''
-\echo 'SELECT '
-\echo '  fm.name as 托管成员名,'
-\echo '  ab.name as 账本名称,'
-\echo '  b.name as 预算名称,'
-\echo '  b.amount as 预算金额,'
-\echo '  b.rollover_amount as 结转金额,'
-\echo '  b.start_date as 开始日期,'
-\echo '  b.end_date as 结束日期'
-\echo 'FROM budgets b'
-\echo 'JOIN family_members fm ON b.family_member_id = fm.id'
-\echo 'JOIN account_books ab ON b.account_book_id = ab.id'
-\echo 'WHERE b.start_date >= ''2025-09-01'''
-\echo '  AND b.start_date <= ''2025-09-01'''
-\echo '  AND b.budget_type = ''PERSONAL'''
-\echo '  AND b.period = ''MONTHLY'''
-\echo '  AND fm.is_custodial = true'
-\echo 'ORDER BY fm.name;'
-\echo ''
-\echo '3. 检查结转历史记录：'
-\echo ''
-\echo 'SELECT '
-\echo '  bh.period as 期间,'
-\echo '  bh.type as 类型,'
-\echo '  bh.amount as 结转金额,'
-\echo '  bh.description as 描述,'
-\echo '  bh.created_at as 创建时间'
-\echo 'FROM budget_histories bh'
-\echo 'WHERE bh.period = ''2025-8'''
-\echo '  AND bh.type IN (''SURPLUS'', ''DEFICIT'')'
-\echo 'ORDER BY bh.created_at DESC;'
