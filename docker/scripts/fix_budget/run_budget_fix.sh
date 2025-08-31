@@ -60,10 +60,22 @@ fi
 log_info "读取配置文件: $ENV_FILE"
 source "$ENV_FILE"
 
+# 兼容不同的环境变量命名
+# 优先使用POSTGRES_*变量，如果不存在则使用DB_*变量
+POSTGRES_DB="${POSTGRES_DB:-$DB_NAME}"
+POSTGRES_USER="${POSTGRES_USER:-$DB_USER}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-$DB_PASSWORD}"
+
 # 检查必需的环境变量
 if [ -z "$POSTGRES_DB" ] || [ -z "$POSTGRES_USER" ] || [ -z "$POSTGRES_PASSWORD" ]; then
     log_error "缺少必需的数据库配置变量"
-    log_error "请检查.env文件中的POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD"
+    log_error "请检查.env文件中的以下变量之一："
+    log_error "  POSTGRES_DB/DB_NAME, POSTGRES_USER/DB_USER, POSTGRES_PASSWORD/DB_PASSWORD"
+    log_error ""
+    log_error "当前读取到的值："
+    log_error "  POSTGRES_DB/DB_NAME: ${POSTGRES_DB:-未设置}"
+    log_error "  POSTGRES_USER/DB_USER: ${POSTGRES_USER:-未设置}"
+    log_error "  POSTGRES_PASSWORD/DB_PASSWORD: ${POSTGRES_PASSWORD:+已设置}"
     exit 1
 fi
 
@@ -116,6 +128,7 @@ log_info "数据库端口: $DB_PORT"
 log_info "数据库名称: $POSTGRES_DB"
 log_info "数据库用户: $POSTGRES_USER"
 log_info "目标年月: ${TARGET_YEAR}年${TARGET_MONTH}月"
+log_info "配置文件: $ENV_FILE"
 echo ""
 
 # 检查psql是否可用

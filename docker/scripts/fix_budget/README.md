@@ -67,15 +67,24 @@ cd docker/scripts/fix_budget
 ### 方法二：手动执行SQL脚本
 
 #### 数据库连接信息
-根据 `docker/.env` 配置：
+根据 `docker/.env` 配置，脚本支持两种变量命名方式：
 ```bash
-# 从.env文件读取配置
+# 方式1：使用POSTGRES_*变量（docker-compose.yml标准）
 POSTGRES_DB=zhiweijz
 POSTGRES_USER=zhiweijz
 POSTGRES_PASSWORD=zhiweijz123
-DB_HOST=localhost  # 或实际的数据库主机
-DB_PORT=5432       # 或实际的数据库端口
+
+# 方式2：使用DB_*变量（项目自定义）
+DB_NAME=zhiweijz
+DB_USER=zhiweijz
+DB_PASSWORD=zhiweijz123
+
+# 连接配置
+DB_HOST=localhost  # 或实际的数据库主机（默认localhost）
+DB_PORT=5432       # 或实际的数据库端口（默认5432）
 ```
+
+**注意**：脚本会自动兼容两种命名方式，优先使用`POSTGRES_*`变量，如果不存在则使用`DB_*`变量。
 
 #### 执行步骤
 
