@@ -54,6 +54,9 @@ router.post('/:id/recalculate-rollover-chain', (req, res) =>
 // 获取预算相关记账
 router.get('/:id/transactions', (req, res) => budgetController.getBudgetTransactions(req, res));
 
+// 获取家庭成员的预算支出金额
+router.get('/:id/member/:memberId/spent', (req, res) => budgetController.getBudgetMemberSpent(req, res));
+
 // 获取家庭预算汇总
 router.get('/:id/family-summary', (req, res) => budgetController.getFamilyBudgetSummary(req, res));
 

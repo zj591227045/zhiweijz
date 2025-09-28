@@ -92,11 +92,33 @@ export class BudgetRepository {
 
     // 根据成员类型添加过滤条件
     if (isCustodial) {
-      // 如果是托管成员，使用familyMemberId过滤
+      // 如果是托管成员，查询familyMemberId等于该成员ID的记账记录
       where.familyMemberId = memberId;
     } else {
-      // 如果是普通成员，使用userId过滤
-      where.userId = memberId;
+      // 如果是普通成员，查询归属于该用户的记账记录
+      // 这包括：1) familyMemberId对应该用户的记账，2) 没有familyMemberId但userId是该用户的记账
+
+      // 首先获取该用户的所有家庭成员ID
+      const userFamilyMembers = await prisma.familyMember.findMany({
+        where: { userId: memberId },
+        select: { id: true }
+      });
+
+      const familyMemberIds = userFamilyMembers.map(fm => fm.id);
+
+      if (familyMemberIds.length > 0) {
+        where.OR = [
+          { familyMemberId: { in: familyMemberIds } },
+          {
+            familyMemberId: null,
+            userId: memberId
+          }
+        ];
+      } else {
+        // 如果用户没有家庭成员记录，只查询userId匹配且没有familyMemberId的记账
+        where.userId = memberId;
+        where.familyMemberId = null;
+      }
     }
 
     // 查询该成员在该预算期间的所有支出记账

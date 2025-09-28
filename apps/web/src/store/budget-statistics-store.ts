@@ -412,23 +412,37 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
         try {
           const budgetDetails = await budgetService.getBudget(budgetId);
           if (budgetDetails) {
+            // 如果有家庭成员ID，需要重新计算该成员的实际支出
+            let actualSpent = Number(budgetDetails.spent || 0);
+
+            if (familyMemberId) {
+              // 调用API获取特定家庭成员的支出金额
+              try {
+                const memberSpentResponse = await budgetService.getBudgetMemberSpent(budgetId, familyMemberId);
+                actualSpent = Number(memberSpentResponse.spent || 0);
+                console.log(`家庭成员 ${familyMemberId} 的实际支出: ${actualSpent}`);
+              } catch (error) {
+                console.error('获取家庭成员支出失败，使用预算总支出:', error);
+                // 如果获取失败，保持使用预算的总支出
+              }
+            }
+
             // 构建overview对象
             const totalAmount =
               Number(budgetDetails.amount) + Number(budgetDetails.rolloverAmount || 0);
-            const spent = Number(budgetDetails.spent || 0);
-            const remaining = totalAmount - spent;
+            const remaining = totalAmount - actualSpent;
 
             const overview = {
               id: budgetDetails.id,
               name: budgetDetails.name,
               period: `${new Date(budgetDetails.startDate).toLocaleDateString()} - ${new Date(budgetDetails.endDate).toLocaleDateString()}`,
               amount: Number(budgetDetails.amount),
-              spent: spent,
+              spent: actualSpent, // 使用实际计算的支出金额
               remaining: remaining,
-              percentage: totalAmount > 0 ? (spent / totalAmount) * 100 : 0,
+              percentage: totalAmount > 0 ? (actualSpent / totalAmount) * 100 : 0,
               rollover: Number(budgetDetails.rolloverAmount || 0),
               daysRemaining: calculateDaysRemaining(budgetDetails.endDate),
-              dailySpent: calculateDailySpent(spent, budgetDetails.startDate),
+              dailySpent: calculateDailySpent(actualSpent, budgetDetails.startDate),
               dailyAvailable: calculateDailyAvailable(remaining, budgetDetails.endDate),
             };
 

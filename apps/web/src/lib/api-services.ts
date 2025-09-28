@@ -254,6 +254,11 @@ export const budgetService = {
     return apiClient.get(`/budgets/${budgetId}/trends`, { params });
   },
 
+  // 获取家庭成员的预算支出金额
+  getBudgetMemberSpent: (budgetId: string, familyMemberId: string) => {
+    return apiClient.get(`/budgets/${budgetId}/member/${familyMemberId}/spent`);
+  },
+
   // 获取预算记账记录
   getBudgetTransactions: (budgetId: string, params?: any) => {
     return apiClient.get(`/budgets/${budgetId}/transactions`, { params });

@@ -1616,8 +1616,8 @@ export class BudgetService {
 
         // 处理用户/家庭成员过滤逻辑
         if (familyMemberId) {
-          // 如果传入了家庭成员ID，需要查询该家庭成员的记账记录
-          console.log(`查询家庭成员 ${familyMemberId} 的记账记录`);
+          // 如果传入了家庭成员ID，查询归属于该家庭成员的记账记录
+          console.log(`查询归属于家庭成员 ${familyMemberId} 的记账记录`);
 
           // 检查是否为托管成员ID
           const familyMember = await prisma.familyMember.findUnique({
@@ -1627,13 +1627,20 @@ export class BudgetService {
 
           if (familyMember) {
             if (familyMember.isCustodial) {
-              // 如果是托管成员，使用familyMemberId查询
+              // 如果是托管成员，查询familyMemberId等于该成员ID的记账记录
               whereCondition.familyMemberId = familyMemberId;
-              console.log(`使用托管成员ID查询: ${familyMemberId}`);
+              console.log(`查询托管成员的记账记录，familyMemberId: ${familyMemberId}`);
             } else if (familyMember.userId) {
-              // 如果是普通家庭成员，使用userId查询
-              whereCondition.userId = familyMember.userId;
-              console.log(`使用用户ID查询: ${familyMember.userId}`);
+              // 如果是普通家庭成员，查询归属于该用户的记账记录
+              // 这包括：1) familyMemberId等于该成员ID的记账，2) 没有familyMemberId但userId是该用户的记账
+              whereCondition.OR = [
+                { familyMemberId: familyMemberId },
+                {
+                  familyMemberId: null,
+                  userId: familyMember.userId
+                }
+              ];
+              console.log(`查询普通家庭成员的记账记录，用户ID: ${familyMember.userId}, 成员ID: ${familyMemberId}`);
             } else {
               // 如果家庭成员没有关联用户，查询不到记账记录
               console.log(`家庭成员 ${familyMemberId} 没有关联用户，跳过查询`);
@@ -1647,13 +1654,34 @@ export class BudgetService {
         } else {
           // 如果没有传入家庭成员ID，使用预算本身的关联关系
           if (budget.familyMemberId) {
-            // 如果预算本身关联了托管成员，使用预算的familyMemberId查询
+            // 如果预算关联了托管成员，查询归属于该托管成员的记账记录
             whereCondition.familyMemberId = budget.familyMemberId;
-            console.log(`使用预算关联的托管成员ID查询: ${budget.familyMemberId}`);
+            console.log(`查询预算关联的托管成员记账记录，familyMemberId: ${budget.familyMemberId}`);
           } else if (budget.userId) {
-            // 如果预算关联了用户，使用预算的userId查询
-            whereCondition.userId = budget.userId;
-            console.log(`使用预算关联的用户ID查询: ${budget.userId}`);
+            // 如果预算关联了用户，查询归属于该用户的记账记录
+            // 这包括：1) familyMemberId对应该用户的记账，2) 没有familyMemberId但userId是该用户的记账
+            const userFamilyMembers = await prisma.familyMember.findMany({
+              where: { userId: budget.userId },
+              select: { id: true }
+            });
+
+            const familyMemberIds = userFamilyMembers.map(fm => fm.id);
+
+            if (familyMemberIds.length > 0) {
+              whereCondition.OR = [
+                { familyMemberId: { in: familyMemberIds } },
+                {
+                  familyMemberId: null,
+                  userId: budget.userId
+                }
+              ];
+              console.log(`查询预算关联用户的记账记录，用户ID: ${budget.userId}, 家庭成员IDs: ${familyMemberIds.join(', ')}`);
+            } else {
+              // 如果用户没有家庭成员记录，只查询userId匹配的记账
+              whereCondition.userId = budget.userId;
+              whereCondition.familyMemberId = null;
+              console.log(`查询预算关联用户的记账记录（无家庭成员），用户ID: ${budget.userId}`);
+            }
           } else {
             // 如果预算既没有关联用户也没有关联托管成员，跳过查询
             console.log(`预算 ${budgetId} 没有关联用户或托管成员，跳过查询`);
@@ -1773,7 +1801,7 @@ export class BudgetService {
 
           // 处理用户/家庭成员过滤逻辑
           if (familyMemberId) {
-            // 如果传入了家庭成员ID，需要查询该家庭成员的记账记录
+            // 如果传入了家庭成员ID，查询归属于该家庭成员的记账记录
             const familyMember = await prisma.familyMember.findUnique({
               where: { id: familyMemberId },
               select: { id: true, userId: true, isCustodial: true },
@@ -1781,11 +1809,17 @@ export class BudgetService {
 
             if (familyMember) {
               if (familyMember.isCustodial) {
-                // 如果是托管成员，使用familyMemberId查询
+                // 如果是托管成员，查询familyMemberId等于该成员ID的记账记录
                 whereCondition.familyMemberId = familyMemberId;
               } else if (familyMember.userId) {
-                // 如果是普通家庭成员，使用userId查询
-                whereCondition.userId = familyMember.userId;
+                // 如果是普通家庭成员，查询归属于该用户的记账记录
+                whereCondition.OR = [
+                  { familyMemberId: familyMemberId },
+                  {
+                    familyMemberId: null,
+                    userId: familyMember.userId
+                  }
+                ];
               } else {
                 // 如果家庭成员没有关联用户，跳过这个预算
                 continue;
@@ -1797,9 +1831,30 @@ export class BudgetService {
           } else {
             // 如果没有传入家庭成员ID，使用预算本身的关联关系
             if (budget.familyMemberId) {
+              // 如果预算关联了托管成员，查询归属于该托管成员的记账记录
               whereCondition.familyMemberId = budget.familyMemberId;
             } else if (budget.userId) {
-              whereCondition.userId = budget.userId;
+              // 如果预算关联了用户，查询归属于该用户的记账记录
+              const userFamilyMembers = await prisma.familyMember.findMany({
+                where: { userId: budget.userId },
+                select: { id: true }
+              });
+
+              const familyMemberIds = userFamilyMembers.map(fm => fm.id);
+
+              if (familyMemberIds.length > 0) {
+                whereCondition.OR = [
+                  { familyMemberId: { in: familyMemberIds } },
+                  {
+                    familyMemberId: null,
+                    userId: budget.userId
+                  }
+                ];
+              } else {
+                // 如果用户没有家庭成员记录，只查询userId匹配的记账
+                whereCondition.userId = budget.userId;
+                whereCondition.familyMemberId = null;
+              }
             } else {
               // 如果预算既没有关联用户也没有关联托管成员，跳过这个预算
               continue;

@@ -132,6 +132,28 @@ export class BudgetService {
   }
 
   /**
+   * 获取家庭成员的预算支出金额
+   */
+  async getBudgetMemberSpent(budgetId: string, familyMemberId: string): Promise<any> {
+    try {
+      if (this.debug) {
+        console.log(`获取家庭成员预算支出, 预算ID: ${budgetId}, 成员ID: ${familyMemberId}`);
+      }
+
+      const response = await this.apiClient.get(`/budgets/${budgetId}/member/${familyMemberId}/spent`);
+
+      if (this.debug) {
+        console.log('家庭成员支出响应:', response);
+      }
+
+      return response;
+    } catch (error) {
+      console.error('获取家庭成员预算支出失败:', error);
+      throw error;
+    }
+  }
+
+  /**
    * 获取预算趋势数据
    */
   async getBudgetTrends(

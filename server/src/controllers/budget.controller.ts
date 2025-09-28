@@ -1,22 +1,27 @@
 import { Request, Response } from 'express';
-import { BudgetPeriod, BudgetType } from '@prisma/client';
+import { BudgetPeriod, BudgetType, PrismaClient } from '@prisma/client';
 import { BudgetService } from '../services/budget.service';
 import { CategoryBudgetService } from '../services/category-budget.service';
 import { TransactionService } from '../services/transaction.service';
 import { FamilyBudgetService } from '../services/family-budget.service';
+import { BudgetRepository } from '../repositories/budget.repository';
 import { CreateBudgetDto, UpdateBudgetDto, BudgetQueryParams } from '../models/budget.model';
+
+const prisma = new PrismaClient();
 
 export class BudgetController {
   private budgetService: BudgetService;
   private categoryBudgetService: CategoryBudgetService;
   private transactionService: TransactionService;
   private familyBudgetService: FamilyBudgetService;
+  private budgetRepository: BudgetRepository;
 
   constructor() {
     this.budgetService = new BudgetService();
     this.categoryBudgetService = new CategoryBudgetService();
     this.transactionService = new TransactionService();
     this.familyBudgetService = new FamilyBudgetService();
+    this.budgetRepository = new BudgetRepository();
   }
 
   /**
@@ -549,6 +554,85 @@ export class BudgetController {
         res.status(400).json({ message: error.message });
       } else {
         res.status(500).json({ message: '重新计算预算结转链条时发生错误' });
+      }
+    }
+  }
+
+  /**
+   * 获取家庭成员的预算支出金额
+   */
+  async getBudgetMemberSpent(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: '未授权' });
+        return;
+      }
+
+      const budgetId = req.params.id;
+      const familyMemberId = req.params.memberId;
+
+      if (!familyMemberId) {
+        res.status(400).json({ message: '家庭成员ID不能为空' });
+        return;
+      }
+
+      console.log(`获取家庭成员预算支出，预算ID: ${budgetId}, 成员ID: ${familyMemberId}`);
+
+      // 验证预算是否存在并且用户有权限访问
+      const budget = await this.budgetService.getBudgetById(budgetId, userId);
+      if (!budget) {
+        res.status(404).json({ message: '预算不存在' });
+        return;
+      }
+
+      // 查询家庭成员信息
+      const familyMember = await prisma.familyMember.findUnique({
+        where: { id: familyMemberId },
+        select: { id: true, userId: true, isCustodial: true, name: true },
+      });
+
+      if (!familyMember) {
+        res.status(404).json({ message: '家庭成员不存在' });
+        return;
+      }
+
+      // 计算该家庭成员的支出金额
+      let spent = 0;
+      if (familyMember.isCustodial) {
+        // 托管成员，使用familyMemberId
+        spent = await this.budgetRepository.calculateMemberSpentAmount(
+          budgetId,
+          familyMemberId,
+          budget.startDate,
+          budget.endDate,
+          true,
+        );
+      } else if (familyMember.userId) {
+        // 普通成员，使用userId
+        spent = await this.budgetRepository.calculateMemberSpentAmount(
+          budgetId,
+          familyMember.userId,
+          budget.startDate,
+          budget.endDate,
+          false,
+        );
+      }
+
+      console.log(`家庭成员 ${familyMember.name} 的支出金额: ${spent}`);
+
+      res.status(200).json({
+        memberId: familyMemberId,
+        memberName: familyMember.name,
+        spent: spent,
+        isCustodial: familyMember.isCustodial,
+      });
+    } catch (error) {
+      console.error('获取家庭成员预算支出失败:', error);
+      if (error instanceof Error) {
+        res.status(404).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: '获取家庭成员预算支出时发生错误' });
       }
     }
   }
