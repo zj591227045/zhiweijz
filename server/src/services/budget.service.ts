@@ -1784,7 +1784,7 @@ export class BudgetService {
   /**
    * 自动创建缺失的月份预算
    * 查找用户最近的预算，并创建从上个月结束到当前月份的所有缺失预算
-   * 包括用户个人预算和托管成员预算
+   * 包括：1. 调用用户的个人预算 2. 家庭成员的个人预算 3. 托管成员的个人预算
    */
   async autoCreateMissingBudgets(userId: string, accountBookId: string): Promise<void> {
     try {
@@ -1853,8 +1853,8 @@ export class BudgetService {
         }
       }
 
-      // 2. 处理托管成员预算
-      console.log(`开始为用户 ${userId} 创建缺失的托管成员预算`);
+      // 2. 处理家庭成员预算（非托管成员）
+      console.log(`开始为家庭成员创建缺失的个人预算`);
 
       // 查找该账本对应的家庭ID
       const accountBook = await prisma.accountBook.findUnique({
@@ -1863,6 +1863,104 @@ export class BudgetService {
       });
 
       if (accountBook?.familyId) {
+        // 查找该家庭的所有非托管成员（有userId的成员）
+        const familyMembers = await prisma.familyMember.findMany({
+          where: {
+            familyId: accountBook.familyId,
+            isCustodial: false,
+            userId: { not: null },
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        });
+
+        console.log(`找到 ${familyMembers.length} 个家庭成员`);
+
+        // 为每个家庭成员创建缺失的预算
+        for (const member of familyMembers) {
+          if (!member.userId) continue; // 跳过没有用户ID的成员
+
+          console.log(`开始为家庭成员 ${member.name} (${member.userId}) 创建缺失预算`);
+
+          // 检查当前月份是否已有该成员的个人预算
+          const currentDate = new Date();
+          const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+          const existingMemberBudget = await this.checkExistingPersonalBudgetInAccountBook(
+            member.userId,
+            accountBookId,
+            BudgetPeriod.MONTHLY,
+            startDate
+          );
+
+          if (!existingMemberBudget) {
+            // 查找该成员最近的预算
+            const latestMemberBudget = await this.findLatestPersonalBudget(
+              member.userId,
+              accountBookId,
+            );
+
+            if (latestMemberBudget) {
+              const refreshDay = (latestMemberBudget as any).refreshDay || 1;
+              console.log(
+                `家庭成员 ${member.name} 最新预算结束日期: ${latestMemberBudget.endDate}, 结转日: ${refreshDay}`,
+              );
+
+              const currentDate = new Date();
+              const latestEndDate = new Date(latestMemberBudget.endDate);
+
+              if (latestEndDate < currentDate) {
+                const periodsToCreate = BudgetDateUtils.calculateMissingPeriods(
+                  latestEndDate,
+                  currentDate,
+                  refreshDay,
+                );
+                console.log(
+                  `需要为家庭成员 ${member.name} 创建 ${periodsToCreate.length} 个预算周期`,
+                );
+
+                let previousBudgetId = latestMemberBudget.id;
+                for (const period of periodsToCreate) {
+                  console.log(
+                    `为家庭成员 ${member.name} 创建预算周期: ${BudgetDateUtils.formatPeriod(period)}`,
+                  );
+
+                  // 处理上个预算的结转（如果启用了结转）
+                  let rolloverAmount = 0;
+                  if (latestMemberBudget.rollover) {
+                    rolloverAmount = await this.processBudgetRollover(previousBudgetId);
+                  }
+
+                  // 创建新预算周期的预算（包含结转金额）
+                  const newBudget = await this.createBudgetForPeriod(
+                    latestMemberBudget,
+                    period,
+                    rolloverAmount,
+                  );
+                  previousBudgetId = newBudget.id;
+
+                  console.log(
+                    `成功为家庭成员 ${member.name} 创建预算: ${newBudget.name} (${newBudget.id})`,
+                  );
+                }
+              }
+            } else {
+              console.log(`家庭成员 ${member.name} 没有历史预算，创建默认预算`);
+              await this.createDefaultPersonalBudget(member.userId, accountBookId);
+            }
+          } else {
+            console.log(`家庭成员 ${member.name} 当前月份已有预算，跳过创建`);
+          }
+        }
+
+        // 3. 处理托管成员预算
+        console.log(`开始为托管成员创建缺失的个人预算`);
+
         // 查找该家庭的所有托管成员
         const custodialMembers = await prisma.familyMember.findMany({
           where: {
