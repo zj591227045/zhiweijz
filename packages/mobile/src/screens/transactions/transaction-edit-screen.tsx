@@ -79,6 +79,7 @@ const TransactionEditScreen: React.FC<TransactionEditScreenProps> = ({ navigatio
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedBudgetId, setSelectedBudgetId] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [justSwitchedType, setJustSwitchedType] = useState(false);
 
   const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
@@ -329,11 +330,29 @@ const TransactionEditScreen: React.FC<TransactionEditScreenProps> = ({ navigatio
             render={({ field: { value, onChange } }) => (
               <SegmentedButtons
                 value={value}
-                onValueChange={(newType) => {
+                onValueChange={async (newType) => {
                   onChange(newType);
                   // 切换类型时清空分类选择
                   setValue('categoryId', '');
                   setCurrentStep(1);
+
+                  // 设置刚切换类型的状态
+                  setJustSwitchedType(true);
+
+                  // 切换类型后重新获取对应类型的分类数据
+                  if (currentAccountBook?.id) {
+                    try {
+                      await fetchCategories(newType, currentAccountBook.id);
+                      console.log(`切换到${newType === TransactionType.EXPENSE ? '支出' : '收入'}类型，重新获取分类数据`);
+                    } catch (error) {
+                      console.error('获取分类数据失败:', error);
+                    }
+                  }
+
+                  // 3秒后清除提示状态
+                  setTimeout(() => {
+                    setJustSwitchedType(false);
+                  }, 3000);
                 }}
                 buttons={[
                   {
@@ -416,6 +435,14 @@ const TransactionEditScreen: React.FC<TransactionEditScreenProps> = ({ navigatio
             <Text style={[styles.stepTitle, { color: theme.colors.onSurface }]}>
               选择分类
             </Text>
+            {justSwitchedType && (
+              <View style={[styles.typeSwitchHint, { backgroundColor: theme.colors.primaryContainer }]}>
+                <Icon source="information" size={16} iconColor={theme.colors.primary} />
+                <Text style={[styles.typeSwitchHintText, { color: theme.colors.onSurface }]}>
+                  已切换到{watchedType === TransactionType.EXPENSE ? '支出' : '收入'}类型，请重新选择分类
+                </Text>
+              </View>
+            )}
             <View style={styles.categoryGrid}>
               {filteredCategories.map((category) => (
                 <TouchableOpacity
@@ -723,6 +750,21 @@ const createStyles = (theme: any) =>
     },
     submitButtonContent: {
       paddingVertical: 8,
+    },
+    typeSwitchHint: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      padding: 12,
+      marginBottom: 16,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: 'rgba(59, 130, 246, 0.2)',
+    },
+    typeSwitchHintText: {
+      flex: 1,
+      fontSize: 14,
+      fontWeight: '500',
     },
   });
 

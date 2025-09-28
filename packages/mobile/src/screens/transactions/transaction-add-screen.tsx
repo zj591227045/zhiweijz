@@ -249,7 +249,22 @@ const TransactionAddScreen: React.FC<TransactionAddScreenProps> = ({ navigation 
             render={({ field: { value, onChange } }) => (
               <SegmentedButtons
                 value={value}
-                onValueChange={onChange}
+                onValueChange={async (newType) => {
+                  onChange(newType);
+                  // 切换类型时清空分类选择
+                  setValue('categoryId', '');
+                  setCurrentStep(1);
+
+                  // 切换类型后重新获取对应类型的分类数据
+                  if (currentAccountBook?.id) {
+                    try {
+                      await fetchCategories(newType, currentAccountBook.id);
+                      console.log(`切换到${newType === TransactionType.EXPENSE ? '支出' : '收入'}类型，重新获取分类数据`);
+                    } catch (error) {
+                      console.error('获取分类数据失败:', error);
+                    }
+                  }
+                }}
                 buttons={[
                   {
                     value: TransactionType.EXPENSE,

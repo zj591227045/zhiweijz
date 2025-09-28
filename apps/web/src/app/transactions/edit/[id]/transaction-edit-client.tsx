@@ -309,6 +309,7 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
   const [currentStep, setCurrentStep] = useState(2); // 默认进入第二步
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
+  const [justSwitchedType, setJustSwitchedType] = useState(false);
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -452,12 +453,35 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
   };
 
   // 处理记账类型变化
-  const handleTypeChange = (type: TransactionType) => {
+  const handleTypeChange = async (type: TransactionType) => {
     setFormData((prev) => ({
       ...prev,
       type,
       categoryId: '', // 重置分类选择
     }));
+
+    // 设置刚切换类型的状态
+    setJustSwitchedType(true);
+
+    // 切换类型后跳转到第一步，让用户重新选择分类
+    setCurrentStep(1);
+
+    // 切换类型后重新获取对应类型的分类数据
+    if (currentAccountBook?.id) {
+      try {
+        await fetchCategories(type, currentAccountBook.id);
+        console.log(`切换到${type === TransactionType.EXPENSE ? '支出' : '收入'}类型，重新获取分类数据`);
+      } catch (error) {
+        console.error('获取分类数据失败:', error);
+      }
+    }
+
+    console.log(`已切换到${type === TransactionType.EXPENSE ? '支出' : '收入'}类型，请重新选择分类`);
+
+    // 6秒后清除提示状态，给用户足够时间阅读提示信息
+    setTimeout(() => {
+      setJustSwitchedType(false);
+    }, 6000);
   };
 
   // 处理分类选择
@@ -564,6 +588,19 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
           {currentStep === 1 && (
             <div className="step-content">
               <h3 className="step-title">选择分类</h3>
+              {justSwitchedType && (
+                <div className="type-switch-hint">
+                  <i className="fas fa-info-circle"></i>
+                  <span>已切换到{formData.type === TransactionType.EXPENSE ? '支出' : '收入'}类型，请重新选择分类</span>
+                  <button
+                    className="hint-close-button"
+                    onClick={() => setJustSwitchedType(false)}
+                    aria-label="关闭提示"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+              )}
               <div className="category-grid">
                 {filteredCategories.map((category) => (
                   <div

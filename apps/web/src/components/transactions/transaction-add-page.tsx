@@ -52,6 +52,22 @@ export function TransactionAddPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  // 处理记账类型变化
+  const handleTypeChange = async (newType: TransactionType) => {
+    // 更新 store 中的类型
+    useTransactionFormStore.getState().setType(newType);
+
+    // 重新获取对应类型的分类数据
+    if (currentAccountBook?.id) {
+      try {
+        await fetchCategories(newType, currentAccountBook.id);
+        console.log(`切换到${newType === TransactionType.EXPENSE ? '支出' : '收入'}类型，重新获取分类数据`);
+      } catch (error) {
+        console.error('获取分类数据失败:', error);
+      }
+    }
+  };
+
   // 获取数据
   useEffect(() => {
     fetchAccountBooks();
@@ -256,7 +272,7 @@ export function TransactionAddPage() {
           }}
         >
           <button
-            onClick={() => useTransactionFormStore.getState().setType('EXPENSE')}
+            onClick={() => handleTypeChange(TransactionType.EXPENSE)}
             disabled={submitting}
             style={{
               flex: 1,
@@ -275,7 +291,7 @@ export function TransactionAddPage() {
             支出
           </button>
           <button
-            onClick={() => useTransactionFormStore.getState().setType('INCOME')}
+            onClick={() => handleTypeChange(TransactionType.INCOME)}
             disabled={submitting}
             style={{
               flex: 1,
