@@ -96,10 +96,11 @@ model FamilyMember {
   birthDate    DateTime?     @map("birth_date")
   gender       String?       @map("gender")
   isCustodial  Boolean       @default(false) @map("is_custodial")
-  budgets      Budget[]
-  family       Family        @relation(fields: [familyId], references: [id])
-  user         User?         @relation(fields: [userId], references: [id])
-  transactions Transaction[]
+  budgets        Budget[]
+  budgetHistories BudgetHistory[]
+  family         Family        @relation(fields: [familyId], references: [id])
+  user           User?         @relation(fields: [userId], references: [id])
+  transactions   Transaction[]
 
   @@map("family_members")
 }
@@ -405,8 +406,10 @@ model BudgetHistory {
   spentAmount      Decimal?     @map("spent_amount") @db.Decimal(10, 2)
   previousRollover Decimal?     @map("previous_rollover") @db.Decimal(10, 2)
   userId           String?      @map("user_id")
+  familyMemberId   String?      @map("family_member_id")
   budget           Budget       @relation(fields: [budgetId], references: [id], onDelete: Cascade)
   user             User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  familyMember     FamilyMember? @relation(fields: [familyMemberId], references: [id], onDelete: Cascade)
 
   @@index([userId], map: "idx_budget_histories_user_id")
   @@index([userId, period], map: "idx_budget_histories_user_period")

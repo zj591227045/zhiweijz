@@ -45,6 +45,7 @@ const VERSION_TO_MIGRATIONS = {
   '1.8.1': ['update-smart-accounting-prompts-v1.8.1'],
   '1.8.2': ['add-registration-gift-config'],
   '1.8.3': ['add-multi-budget-allocation'],
+  '1.8.4': ['add-family-member-id-to-budget-histories'],
 };
 
 // 全新安装需要的所有迁移

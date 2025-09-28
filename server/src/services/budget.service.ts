@@ -730,7 +730,7 @@ export class BudgetService {
     await this.validateRolloverCalculation(budget, spent, remaining);
 
     // 记录结转历史和详细信息
-    await this.recordBudgetRolloverHistory(budget, spent, currentRolloverAmount, remaining);
+    await this.ensureRolloverHistory(budget, remaining, spent);
 
     // 返回结转金额（包括负数）
     return remaining;
@@ -859,47 +859,68 @@ export class BudgetService {
   }
 
   /**
-   * 记录预算结转历史
-   * 详细记录结转过程，便于审计和问题排查
+   * 统一的结转记录创建方法
+   * 消除重复逻辑，确保记录的一致性
    */
-  private async recordBudgetRolloverHistory(
+  private async ensureRolloverHistory(
     budget: any,
-    spent: number,
-    currentRolloverAmount: number,
     rolloverAmount: number,
+    spentAmount?: number,
   ): Promise<void> {
     try {
-      const rolloverType = rolloverAmount >= 0 ? 'SURPLUS' : 'DEFICIT';
-      const rolloverDescription = rolloverAmount >= 0 ? '余额结转' : '债务结转';
+      // 只为已过期的预算创建历史记录
+      const currentDate = new Date();
+      if (budget.endDate >= currentDate) {
+        console.log(`预算 ${budget.id} 尚未过期，跳过结转记录创建`);
+        return;
+      }
 
-      // 生成详细的描述信息
-      const description = `${rolloverDescription}: 基础预算${budget.amount}, 上期结转${currentRolloverAmount}, 实际支出${spent}, 结转金额${rolloverAmount}`;
+      const period = `${budget.endDate.getFullYear()}-${budget.endDate.getMonth() + 1}`;
 
-      // 保存到数据库历史记录表（不依赖userId字段）
-      const historyRecord = await prisma.budgetHistory.create({
-        data: {
+      // 检查是否已存在结转历史记录
+      const existingHistory = await prisma.budgetHistory.findFirst({
+        where: {
           budgetId: budget.id,
-          period: `${budget.endDate.getFullYear()}-${budget.endDate.getMonth() + 1}`,
-          amount: rolloverAmount,
-          type: rolloverType,
-          description: description,
-          budgetAmount: budget.amount,
-          spentAmount: spent,
-          previousRollover: currentRolloverAmount,
-        },
+          period,
+          type: { in: ['SURPLUS', 'DEFICIT'] }
+        }
       });
 
-      console.log(`✅ 记录预算结转历史成功:`);
-      console.log(`  历史记录ID: ${historyRecord.id}`);
-      console.log(`  预算ID: ${budget.id}`);
-      console.log(`  预算名称: ${budget.name}`);
-      console.log(`  结转类型: ${rolloverDescription}`);
-      console.log(`  基础金额: ${budget.amount}`);
-      console.log(`  上期结转: ${currentRolloverAmount}`);
-      console.log(`  实际支出: ${spent}`);
-      console.log(`  结转金额: ${rolloverAmount}`);
+      if (existingHistory) {
+        console.log(`预算 ${budget.id} 已存在结转历史记录，跳过创建`);
+        return;
+      }
+
+      // 计算已支出金额（如果未提供）
+      const spent = spentAmount ?? await this.budgetRepository.calculateSpentAmount(budget.id);
+      const currentRolloverAmount = Number(budget.rolloverAmount || 0);
+
+      // 确定结转类型和描述
+      const rolloverType = rolloverAmount >= 0 ? 'SURPLUS' : 'DEFICIT';
+      const rolloverDescription = rolloverAmount >= 0 ? '余额结转' : '债务结转';
+      const description = `${rolloverDescription}: 基础预算${budget.amount}, 上期结转${currentRolloverAmount}, 实际支出${spent}, 结转金额${rolloverAmount}`;
+
+      // 创建结转历史记录
+      const historyData = {
+        budgetId: budget.id,
+        userId: budget.userId, // 始终使用真实用户ID
+        familyMemberId: budget.familyMemberId || undefined, // 托管成员ID（如果有）
+        period,
+        amount: Math.abs(rolloverAmount), // 存储绝对值
+        type: rolloverType as any,
+        description,
+        budgetAmount: budget.amount,
+        spentAmount: spent,
+        previousRollover: currentRolloverAmount,
+      };
+
+      const historyRecord = await prisma.budgetHistory.create({
+        data: historyData,
+      });
+
+      console.log(`✅ 创建结转历史记录: ${historyRecord.id}, 类型: ${rolloverType}, 金额: ${rolloverAmount}`);
     } catch (error) {
-      console.error('记录结转历史失败:', error);
+      console.error('创建结转历史记录失败:', error);
       // 不抛出错误，避免影响主流程
     }
   }
@@ -2115,7 +2136,7 @@ export class BudgetService {
 
       // 为模板预算创建结转历史记录（如果模板预算已过期且没有历史记录）
       try {
-        await this.createRolloverHistoryIfNeeded(templateBudget, rolloverAmount);
+        await this.ensureRolloverHistory(templateBudget, rolloverAmount);
       } catch (error) {
         console.error('创建结转历史记录失败:', error);
       }
@@ -2130,54 +2151,7 @@ export class BudgetService {
     return newBudget;
   }
 
-  /**
-   * 为预算创建结转历史记录（如果需要）
-   */
-  private async createRolloverHistoryIfNeeded(templateBudget: any, rolloverAmount: number): Promise<void> {
-    // 只为已过期的预算创建历史记录
-    const currentDate = new Date();
-    if (templateBudget.endDate >= currentDate) {
-      return;
-    }
 
-    const period = `${templateBudget.endDate.getFullYear()}-${templateBudget.endDate.getMonth() + 1}`;
-
-    // 检查是否已存在结转历史记录
-    const existingHistory = await prisma.budgetHistory.findFirst({
-      where: {
-        budgetId: templateBudget.id,
-        period,
-        type: { in: ['SURPLUS', 'DEFICIT'] }
-      }
-    });
-
-    if (existingHistory) {
-      console.log(`预算 ${templateBudget.id} 已存在结转历史记录，跳过创建`);
-      return;
-    }
-
-    // 计算已支出金额
-    const spentAmount = await this.budgetRepository.calculateSpentAmount(templateBudget.id);
-
-    // 创建结转历史记录
-    const rolloverType = rolloverAmount >= 0 ? 'SURPLUS' : 'DEFICIT';
-    const rolloverDescription = rolloverAmount >= 0 ? '余额结转' : '债务结转';
-
-    const historyData = {
-      budgetId: templateBudget.id,
-      userId: templateBudget.userId || templateBudget.familyMemberId, // 对于托管成员使用familyMemberId
-      period,
-      amount: Math.abs(rolloverAmount),
-      type: rolloverType as any,
-      description: `${rolloverDescription}: 基础预算${templateBudget.amount}, 上期结转${templateBudget.rolloverAmount || 0}, 实际支出${spentAmount}, 结转金额${rolloverAmount}`,
-      budgetAmount: templateBudget.amount,
-      spentAmount,
-      previousRollover: templateBudget.rolloverAmount || 0,
-    };
-
-    await prisma.budgetHistory.create({ data: historyData });
-    console.log(`✅ 创建结转历史记录: 预算 ${templateBudget.id}, ${rolloverDescription} ${Math.abs(rolloverAmount)}`);
-  }
 
   /**
    * 创建下一个周期的预算
