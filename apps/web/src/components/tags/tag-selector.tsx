@@ -353,7 +353,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
   disabled = false,
   position = 'bottom', // 默认底部弹出
 }) => {
-  //console.log('MobileTagSelector 渲染，isOpen:', isOpen, 'position:', position);
+  console.log('MobileTagSelector 渲染，isOpen:', isOpen, 'position:', position);
   const [isClosing, setIsClosing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [tags, setTags] = useState<TagResponseDto[]>([]);
@@ -462,11 +462,14 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
     }, 300); // 动画持续时间
   };
 
-  if (!isOpen && !isClosing) return null;
+  if (!isOpen && !isClosing) {
+    console.log('MobileTagSelector 返回null，因为 isOpen:', isOpen, 'isClosing:', isClosing);
+    return null;
+  }
 
   // 使用Portal渲染到body，避免父容器的层级限制
   const modalContent = (
-    <div className="tag-selector-container fixed inset-0" style={{ zIndex: 200 }}>
+    <div className="tag-selector-container fixed inset-0" style={{ zIndex: 9999 }}>
       {/* 背景遮罩 - 增强模糊效果和视觉区分 */}
       <div
         className="tag-selector-backdrop transition-all duration-300"
@@ -476,7 +479,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
           left: 0,
           right: 0,
           bottom: 0,
-          zIndex: 200,
+          zIndex: 9999,
           backgroundColor: 'rgba(0, 0, 0, 0.5)',
           backdropFilter: 'blur(4px)',
           WebkitBackdropFilter: 'blur(4px)',
@@ -524,7 +527,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
                      0 -4px 6px -2px rgba(0, 0, 0, 0.05),
                      0 0 0 1px var(--primary-color),
                      0 0 20px rgba(var(--primary-rgb), 0.15)`,
-          zIndex: 210, // 模态框标准层级
+          zIndex: 9999, // 标签选择器层级，必须高于编辑记账模态框(250)
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',

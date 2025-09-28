@@ -77,7 +77,7 @@
   left: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
-  z-index: 200 !important;
+  z-index: 9999 !important;
   /* 确保支持backdrop-filter的浏览器 */
   will-change: backdrop-filter !important;
   /* 确保覆盖所有内容 */
@@ -93,7 +93,7 @@
 
 /* 标签选择器容器 */
 .tag-selector-container {
-  z-index: 200 !important;
+  z-index: 9999 !important;
   position: fixed !important;
 }
 

@@ -81,7 +81,9 @@ export const MobileTagSection: React.FC<MobileTagSectionProps> = ({
   // 打开完整标签选择器
   const openFullSelector = () => {
     console.log('打开标签选择器');
+    console.log('当前 showFullSelector 状态:', showFullSelector);
     setShowFullSelector(true);
+    console.log('设置 showFullSelector 为 true');
   };
 
   // 关闭标签选择器并自动保存
