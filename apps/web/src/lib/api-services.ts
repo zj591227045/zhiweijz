@@ -259,9 +259,10 @@ export const budgetService = {
     return apiClient.get(`/budgets/${budgetId}/transactions`, { params });
   },
 
-  // 获取预算结转历史（兼容旧版本）
-  getBudgetRolloverHistory: (budgetId: string) => {
-    return apiClient.get(`/budgets/${budgetId}/rollover-history`);
+  // 获取预算结转历史（支持按家庭成员过滤）
+  getBudgetRolloverHistory: (budgetId: string, familyMemberId?: string) => {
+    const params = familyMemberId ? { familyMemberId } : undefined;
+    return apiClient.get(`/budgets/${budgetId}/rollover-history`, { params });
   },
 
   // 根据日期获取预算列表

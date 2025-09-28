@@ -69,6 +69,12 @@ export interface RolloverRecord {
   amount: number;
   type: 'SURPLUS' | 'DEFICIT';
   createdAt: string;
+  description?: string;
+  budgetAmount?: number;
+  spentAmount?: number;
+  previousRollover?: number;
+  budgetName?: string;
+  memberName?: string;
 }
 
 // 预算统计状态类型
@@ -144,7 +150,7 @@ interface BudgetStatisticsState {
     timeRange?: '6months' | '12months',
     familyMemberId?: string,
   ) => Promise<void>;
-  fetchRolloverHistory: (budgetId: string) => Promise<void>;
+  fetchRolloverHistory: (budgetId: string, familyMemberId?: string) => Promise<void>;
   resetState: () => void;
 }
 
@@ -239,11 +245,11 @@ export const useBudgetStatisticsStore = create<BudgetStatisticsState>()(
     // 设置分类预算筛选选项
     setCategoryFilter: (filter) => set({ categoryFilter: filter }),
 
-    // 获取预算结转历史（兼容旧版本）
-    fetchRolloverHistory: async (budgetId) => {
+    // 获取预算结转历史（支持按家庭成员过滤）
+    fetchRolloverHistory: async (budgetId, familyMemberId) => {
       try {
-        console.log(`获取预算结转历史，预算ID: ${budgetId}`);
-        const response = await budgetService.getBudgetRolloverHistory(budgetId);
+        console.log(`获取预算结转历史，预算ID: ${budgetId}, 家庭成员ID: ${familyMemberId || '无'}`);
+        const response = await budgetService.getBudgetRolloverHistory(budgetId, familyMemberId);
         console.log('获取到结转历史:', response);
         set({ rolloverHistory: response || [] });
         return response;

@@ -795,9 +795,6 @@
 }
 
 .rollover-history-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 16px;
   background-color: var(--background-color, #f8fafc);
   border-radius: 12px;
@@ -810,37 +807,25 @@
   border-color: var(--primary-color, #3b82f6);
 }
 
-.rollover-history-item .item-left {
+.rollover-history-item .item-header {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
 
 .rollover-history-item .item-period {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-color, #1f2937);
-}
-
-.rollover-history-item .item-date {
-  font-size: 14px;
-  color: var(--text-color-secondary, #64748b);
-}
-
-.rollover-history-item .item-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
 }
 
 .rollover-history-item .item-type {
   font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 12px;
   font-weight: 500;
-  text-align: center;
-  min-width: 40px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  display: inline-block;
 }
 
 .rollover-history-item .item-type.surplus {
@@ -853,9 +838,42 @@
   color: #dc2626;
 }
 
-.rollover-history-item .item-amount {
+.rollover-history-item .item-details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.rollover-history-item .item-date {
+  font-size: 14px;
+  color: var(--text-color-secondary, #64748b);
+}
+
+.rollover-history-item .item-member {
+  font-size: 14px;
+  color: var(--text-color-secondary, #64748b);
+  background-color: var(--card-bg, #ffffff);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.rollover-history-item .item-amounts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rollover-history-item .item-amount-main {
   font-size: 16px;
   font-weight: 600;
+  /* 移除固定颜色，让Tailwind类控制颜色 */
+}
+
+.rollover-history-item .item-amount-detail {
+  font-size: 14px;
+  color: var(--text-color-secondary, #64748b);
 }
 
 /* 根据类型设置金额颜色 */

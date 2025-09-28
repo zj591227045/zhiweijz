@@ -582,9 +582,9 @@ export class BudgetService {
   }
 
   /**
-   * 获取预算结转历史（基于预算ID查询，不依赖userId字段）
+   * 获取预算结转历史（基于预算ID查询，支持按家庭成员过滤）
    */
-  async getBudgetRolloverHistoryByBudgetId(budgetId: string, userId: string): Promise<any[]> {
+  async getBudgetRolloverHistoryByBudgetId(budgetId: string, userId: string, familyMemberId?: string): Promise<any[]> {
     // 检查预算是否存在
     const budget = await this.budgetRepository.findById(budgetId);
     if (!budget) {
@@ -597,31 +597,44 @@ export class BudgetService {
       throw new Error('无权访问此预算');
     }
 
-    console.log(`获取预算结转历史，预算ID: ${budgetId}, 用户ID: ${userId}`);
+    console.log(`获取预算结转历史，预算ID: ${budgetId}, 用户ID: ${userId}, 家庭成员ID: ${familyMemberId || '无'}`);
 
-    // 通过预算关联查询该用户的所有相关预算的结转历史
+    // 通过预算关联查询结转历史
     try {
-      // 首先获取该用户在同一账本中的所有个人预算
-      const userBudgets = await prisma.budget.findMany({
-        where: {
-          OR: [
-            { userId: budget.userId },
-            { familyMemberId: budget.familyMemberId }
-          ],
-          accountBookId: budget.accountBookId,
-          budgetType: budget.budgetType,
-        },
-        select: { id: true }
-      });
+      let budgetIds: string[] = [];
 
-      const budgetIds = userBudgets.map(b => b.id);
+      if (familyMemberId) {
+        // 如果指定了家庭成员ID，需要先获取该家庭成员对应的userId
+        const familyMember = await prisma.familyMember.findUnique({
+          where: { id: familyMemberId },
+          select: { userId: true }
+        });
+
+        if (familyMember?.userId) {
+          // 查询该用户在同一账本中的所有预算
+          const memberBudgets = await prisma.budget.findMany({
+            where: {
+              userId: familyMember.userId,
+              accountBookId: budget.accountBookId,
+            },
+            select: { id: true }
+          });
+          budgetIds = memberBudgets.map(b => b.id);
+          console.log(`查询家庭成员 ${familyMemberId} (用户ID: ${familyMember.userId}) 的 ${budgetIds.length} 个预算的结转历史`);
+        } else {
+          console.log(`家庭成员 ${familyMemberId} 不存在或没有关联用户`);
+          budgetIds = [];
+        }
+      } else {
+        // 如果没有指定家庭成员ID，查询当前预算的结转历史
+        budgetIds = [budgetId];
+        console.log(`查询单个预算 ${budgetId} 的结转历史`);
+      }
 
       if (budgetIds.length === 0) {
         console.log('没有找到相关预算，返回空历史');
         return [];
       }
-
-      console.log(`查询 ${budgetIds.length} 个相关预算的结转历史`);
 
       // 使用原生SQL查询，通过预算ID列表查询结转历史
       const histories = await prisma.$queryRaw`
@@ -630,8 +643,13 @@ export class BudgetService {
           bh.period, bh.amount, bh.type,
           bh.description, bh.created_at as "createdAt", bh.updated_at as "updatedAt",
           bh.budget_amount as "budgetAmount", bh.spent_amount as "spentAmount",
-          bh.previous_rollover as "previousRollover"
+          bh.previous_rollover as "previousRollover",
+          b.name as "budgetName",
+          COALESCE(fm.name, u.name) as "memberName"
         FROM budget_histories bh
+        LEFT JOIN budgets b ON bh.budget_id = b.id
+        LEFT JOIN family_members fm ON b.family_member_id = fm.id
+        LEFT JOIN users u ON b.user_id = u.id
         WHERE bh.budget_id = ANY(${budgetIds})
         ORDER BY bh.period DESC, bh.created_at DESC
       `;
@@ -642,11 +660,11 @@ export class BudgetService {
       if ((histories as any[]).length > 0) {
         console.log('原始结转历史数据（前3条）:');
         (histories as any[]).slice(0, 3).forEach((h: any, index: number) => {
-          console.log(`  ${index + 1}. period: ${h.period}, createdAt: ${h.createdAt}, amount: ${h.amount}, type: ${h.type}, budgetId: ${h.budgetId}`);
+          console.log(`  ${index + 1}. period: ${h.period}, createdAt: ${h.createdAt}, amount: ${h.amount}, type: ${h.type}, budgetId: ${h.budgetId}, memberName: ${h.memberName}`);
         });
       }
 
-      // 转换为前端需要的格式
+      // 转换为前端需要的格式，增加详细信息
       const rolloverHistory = (histories as any[]).map((history: any) => ({
         id: history.id,
         budgetId: history.budgetId,
@@ -658,6 +676,9 @@ export class BudgetService {
         budgetAmount: history.budgetAmount ? Number(history.budgetAmount) : undefined,
         spentAmount: history.spentAmount ? Number(history.spentAmount) : undefined,
         previousRollover: history.previousRollover ? Number(history.previousRollover) : undefined,
+        // 新增字段：预算名称和成员名称
+        budgetName: history.budgetName || '未知预算',
+        memberName: history.memberName || '未知成员',
       }));
 
       // 在前端格式化后再次排序，确保按期间降序排列
@@ -1593,8 +1614,11 @@ export class BudgetService {
           ...(budget.categoryId && { categoryId: budget.categoryId }),
         };
 
-        // 处理家庭成员ID
+        // 处理用户/家庭成员过滤逻辑
         if (familyMemberId) {
+          // 如果传入了家庭成员ID，需要查询该家庭成员的记账记录
+          console.log(`查询家庭成员 ${familyMemberId} 的记账记录`);
+
           // 检查是否为托管成员ID
           const familyMember = await prisma.familyMember.findUnique({
             where: { id: familyMemberId },
@@ -1605,23 +1629,36 @@ export class BudgetService {
             if (familyMember.isCustodial) {
               // 如果是托管成员，使用familyMemberId查询
               whereCondition.familyMemberId = familyMemberId;
+              console.log(`使用托管成员ID查询: ${familyMemberId}`);
             } else if (familyMember.userId) {
               // 如果是普通家庭成员，使用userId查询
               whereCondition.userId = familyMember.userId;
+              console.log(`使用用户ID查询: ${familyMember.userId}`);
+            } else {
+              // 如果家庭成员没有关联用户，查询不到记账记录
+              console.log(`家庭成员 ${familyMemberId} 没有关联用户，跳过查询`);
+              continue; // 跳过这个月份的查询
             }
-            // 如果familyMember.userId为null，不添加userId条件
           } else {
-            // 如果找不到家庭成员，且familyMemberId不为空，默认使用userId查询
-            if (familyMemberId) {
-              whereCondition.userId = familyMemberId;
-            }
+            // 如果找不到家庭成员记录，跳过查询
+            console.log(`找不到家庭成员 ${familyMemberId}，跳过查询`);
+            continue; // 跳过这个月份的查询
           }
-        } else if (budget.familyMemberId) {
-          // 如果预算本身关联了托管成员，使用预算的familyMemberId查询
-          whereCondition.familyMemberId = budget.familyMemberId;
-        } else if (budget.userId) {
-          // 如果预算关联了用户，使用预算的userId查询
-          whereCondition.userId = budget.userId;
+        } else {
+          // 如果没有传入家庭成员ID，使用预算本身的关联关系
+          if (budget.familyMemberId) {
+            // 如果预算本身关联了托管成员，使用预算的familyMemberId查询
+            whereCondition.familyMemberId = budget.familyMemberId;
+            console.log(`使用预算关联的托管成员ID查询: ${budget.familyMemberId}`);
+          } else if (budget.userId) {
+            // 如果预算关联了用户，使用预算的userId查询
+            whereCondition.userId = budget.userId;
+            console.log(`使用预算关联的用户ID查询: ${budget.userId}`);
+          } else {
+            // 如果预算既没有关联用户也没有关联托管成员，跳过查询
+            console.log(`预算 ${budgetId} 没有关联用户或托管成员，跳过查询`);
+            continue; // 跳过这个月份的查询
+          }
         }
 
         // 查询该月的记账总额
@@ -1734,13 +1771,39 @@ export class BudgetService {
             ...(budget.categoryId && { categoryId: budget.categoryId }),
           };
 
-          // 处理家庭成员ID或用户ID
+          // 处理用户/家庭成员过滤逻辑
           if (familyMemberId) {
-            whereCondition.familyMemberId = familyMemberId;
-          } else if (budget.familyMemberId) {
-            whereCondition.familyMemberId = budget.familyMemberId;
+            // 如果传入了家庭成员ID，需要查询该家庭成员的记账记录
+            const familyMember = await prisma.familyMember.findUnique({
+              where: { id: familyMemberId },
+              select: { id: true, userId: true, isCustodial: true },
+            });
+
+            if (familyMember) {
+              if (familyMember.isCustodial) {
+                // 如果是托管成员，使用familyMemberId查询
+                whereCondition.familyMemberId = familyMemberId;
+              } else if (familyMember.userId) {
+                // 如果是普通家庭成员，使用userId查询
+                whereCondition.userId = familyMember.userId;
+              } else {
+                // 如果家庭成员没有关联用户，跳过这个预算
+                continue;
+              }
+            } else {
+              // 如果找不到家庭成员记录，跳过这个预算
+              continue;
+            }
           } else {
-            whereCondition.userId = budget.userId;
+            // 如果没有传入家庭成员ID，使用预算本身的关联关系
+            if (budget.familyMemberId) {
+              whereCondition.familyMemberId = budget.familyMemberId;
+            } else if (budget.userId) {
+              whereCondition.userId = budget.userId;
+            } else {
+              // 如果预算既没有关联用户也没有关联托管成员，跳过这个预算
+              continue;
+            }
           }
 
           // 查询该预算的记账记录

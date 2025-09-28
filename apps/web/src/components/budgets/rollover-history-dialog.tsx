@@ -54,6 +54,12 @@ export function RolloverHistoryDialog({ history, onClose }: RolloverHistoryDialo
     return new Date(dateString).toLocaleDateString('zh-CN');
   };
 
+  // 格式化期间为"XXXX年X月"
+  const formatPeriod = (period: string) => {
+    const [year, month] = period.split('-');
+    return `${year}年${parseInt(month)}月`;
+  };
+
   // 获取类型显示文本
   const getTypeText = (type: string) => {
     return type === 'SURPLUS' ? '结余' : '透支';
@@ -62,6 +68,18 @@ export function RolloverHistoryDialog({ history, onClose }: RolloverHistoryDialo
   // 获取类型样式类
   const getTypeClass = (type: string) => {
     return type === 'SURPLUS' ? 'surplus' : 'deficit';
+  };
+
+  // 获取结转金额的颜色样式（根据类型而不是金额正负）
+  const getAmountColorClass = (type: string) => {
+    return type === 'SURPLUS' ? 'text-green-600' : 'text-red-600';
+  };
+
+  // 格式化结转金额显示（根据类型决定符号）
+  const formatRolloverAmount = (amount: number, type: string) => {
+    const absAmount = Math.abs(amount);
+    const sign = type === 'SURPLUS' ? '+ ' : '- ';
+    return `${sign}${formatAmount(absAmount)}`;
   };
 
   // 使用Portal确保模态框渲染在body下，避免被其他元素遮挡
@@ -91,15 +109,22 @@ export function RolloverHistoryDialog({ history, onClose }: RolloverHistoryDialo
             <div className="rollover-history-list">
               {history.map((record) => (
                 <div key={record.id} className="rollover-history-item">
-                  <div className="item-left">
-                    <div className="item-period">{record.period}</div>
-                    <div className="item-date">{formatDate(record.createdAt)}</div>
-                  </div>
-                  <div className="item-right">
+                  <div className="item-header">
+                    <div className="item-period">{formatPeriod(record.period)}</div>
                     <div className={`item-type ${record.type.toLowerCase()}`}>
                       {getTypeText(record.type)}
                     </div>
-                    <div className="item-amount">{formatAmount(record.amount)}</div>
+                  </div>
+                  <div className="item-details">
+                    <div className="item-date">{formatDate(record.createdAt)}</div>
+                    {record.memberName && (
+                      <div className="item-member">成员: {record.memberName}</div>
+                    )}
+                  </div>
+                  <div className="item-amounts">
+                    <div className={`item-amount-main ${getAmountColorClass(record.type)}`}>
+                      结转金额: {formatRolloverAmount(record.amount, record.type)}
+                    </div>
                   </div>
                 </div>
               ))}

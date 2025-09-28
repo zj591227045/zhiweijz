@@ -24,6 +24,8 @@ interface BudgetOverviewProps {
 export function BudgetOverview({ overview }: BudgetOverviewProps) {
   const {
     budgetType,
+    familyMembers,
+    selectedBudgetId,
     rolloverHistory,
     isRolloverHistoryOpen,
     toggleRolloverHistory,
@@ -37,7 +39,13 @@ export function BudgetOverview({ overview }: BudgetOverviewProps) {
   const handleRolloverHistoryClick = async () => {
     try {
       console.log('获取预算结转历史，预算ID:', overview.id);
-      await fetchRolloverHistory(overview.id);
+
+      // 查找选中的家庭成员
+      const selectedMember = familyMembers.find((member) => member.budgetId === selectedBudgetId);
+      const familyMemberId = selectedMember?.id;
+
+      console.log('选中的家庭成员ID:', familyMemberId || '无');
+      await fetchRolloverHistory(overview.id, familyMemberId);
       toggleRolloverHistory();
     } catch (error) {
       console.error('获取结转历史失败:', error);

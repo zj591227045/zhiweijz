@@ -308,7 +308,7 @@ export class BudgetController {
   }
 
   /**
-   * 获取预算结转历史（兼容旧版本）
+   * 获取预算结转历史（支持按家庭成员过滤）
    */
   async getRolloverHistory(req: Request, res: Response): Promise<void> {
     try {
@@ -319,12 +319,14 @@ export class BudgetController {
       }
 
       const budgetId = req.params.id;
-      console.log(`获取预算结转历史，预算ID: ${budgetId}`);
+      const familyMemberId = req.query.familyMemberId as string;
+      console.log(`获取预算结转历史，预算ID: ${budgetId}, 家庭成员ID: ${familyMemberId || '无'}`);
 
       // 获取真实的预算结转历史
       const rolloverHistory = await this.budgetService.getBudgetRolloverHistoryByBudgetId(
         budgetId,
         userId,
+        familyMemberId,
       );
       console.log(`获取到预算结转历史: ${rolloverHistory.length} 条记录`);
 
