@@ -90,19 +90,8 @@ function BudgetSelector({
   const [dateBudgets, setDateBudgets] = useState<BudgetDisplay[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [originalBudgetId, setOriginalBudgetId] = useState<string>('');
-  const [budgetMode, setBudgetMode] = useState<'single' | 'multi'>('single');
-
-  // 初始化预算模式
-  useEffect(() => {
-    console.log('🔍 [BudgetSelector] 预算模式初始化:', { isMultiBudget, budgetAllocationLength: budgetAllocation.length });
-    if (isMultiBudget && budgetAllocation.length > 0) {
-      console.log('🔍 [BudgetSelector] 设置为多人模式');
-      setBudgetMode('multi');
-    } else {
-      console.log('🔍 [BudgetSelector] 设置为单人模式');
-      setBudgetMode('single');
-    }
-  }, [isMultiBudget, budgetAllocation]);
+  // 直接从全局状态计算当前模式，消除本地状态
+  const budgetMode = isMultiBudget ? 'multi' : 'single';
 
   // 处理页面滚动锁定
   useEffect(() => {
@@ -399,9 +388,10 @@ function BudgetSelector({
                 <button
                   className={`mode-tab ${budgetMode === 'single' ? 'active' : ''}`}
                   onClick={() => {
-                    setBudgetMode('single');
+                    console.log('🔍 [BudgetSelector] 点击单人模式按钮');
                     setIsMultiBudget(false);
                     setBudgetAllocation([]);
+                    setSelectedBudget(null);
                   }}
                 >
                   单人
@@ -409,9 +399,10 @@ function BudgetSelector({
                 <button
                   className={`mode-tab ${budgetMode === 'multi' ? 'active' : ''}`}
                   onClick={() => {
-                    setBudgetMode('multi');
+                    console.log('🔍 [BudgetSelector] 点击多人模式按钮');
                     setIsMultiBudget(true);
                     setBudgetId('');
+                    setSelectedBudget(null);
                   }}
                 >
                   多人

@@ -56,27 +56,15 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
   const [hasInitialized, setHasInitialized] = useState(false);
   const [dateBudgets, setDateBudgets] = useState<Budget[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [budgetMode, setBudgetMode] = useState<'single' | 'multi'>('single');
-
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
-  // 初始化预算模式
-  useEffect(() => {
-    console.log('预算模式初始化 useEffect 触发:', { isMultiBudget, budgetAllocationLength: budgetAllocation.length, currentBudgetMode: budgetMode });
-    if (isMultiBudget && budgetAllocation.length > 0) {
-      console.log('设置为多人模式');
-      setBudgetMode('multi');
-    } else {
-      console.log('设置为单人模式');
-      setBudgetMode('single');
-    }
-  }, [isMultiBudget, budgetAllocation]);
+  // 直接从全局状态计算当前模式，消除本地状态
+  const budgetMode = isMultiBudget ? 'multi' : 'single';
 
   // 处理模式切换
   const handleModeChange = (mode: 'single' | 'multi') => {
     console.log('切换预算模式:', mode);
-    setBudgetMode(mode);
     if (mode === 'single') {
       // 切换到单人模式，清空多人分摊数据
       setIsMultiBudget(false);
@@ -90,9 +78,20 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
     }
   };
 
-  // 键盘检测和处理
+  // 键盘检测和处理 - 仅在移动设备上启用
   useEffect(() => {
     if (!isBudgetSelectorOpen) return;
+
+    // 检测是否为移动设备
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                     window.innerWidth <= 768;
+
+    if (!isMobile) {
+      // 桌面环境不需要键盘检测，确保drawer显示在底部
+      setKeyboardHeight(0);
+      setIsKeyboardVisible(false);
+      return;
+    }
 
     const handleResize = () => {
       // 检测视口高度变化来判断键盘是否显示
