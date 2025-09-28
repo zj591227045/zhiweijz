@@ -45,9 +45,9 @@
   flex-direction: column;
   gap: 6px; /* 与主样式保持一致 */
   padding: 0; /* 移除内边距，避免与外层容器冲突 */
-  background: transparent; /* 透明背景，避免重复背景 */
-  border: none; /* 移除边框 */
-  box-shadow: none; /* 移除阴影 */
+  background: transparent !important; /* 强制透明背景，避免被其他页面样式影响 */
+  border: none !important; /* 强制移除边框 */
+  box-shadow: none !important; /* 强制移除阴影 */
 }
 
 .dashboard-budget-card .budget-info {
@@ -55,6 +55,10 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  background: transparent !important; /* 强制移除渐变背景，避免被transactions页面样式影响 */
+  background-image: none !important; /* 强制移除背景图片 */
+  border: none !important; /* 强制移除边框 */
+  padding: 0 !important; /* 强制移除内边距 */
 }
 
 .dashboard-budget-category {
@@ -259,4 +263,40 @@
 
 .dashboard-budget-section .section-header .flex h2 {
   margin-right: 8px !important;
+}
+
+/* 强制确保仪表盘预算卡片样式不被其他页面影响 */
+.dashboard-budget-section .dashboard-budget-card {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* 确保全局的budget-card样式不会影响仪表盘组件 */
+.dashboard-budget-section .budget-card {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* 强制覆盖transactions页面的budget-info渐变背景样式 */
+.dashboard-budget-section .budget-info,
+.dashboard-budget-card .budget-info {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  padding: 0 !important;
+  position: static !important;
+  overflow: visible !important;
+}
+
+/* 移除transactions页面budget-info的伪元素 */
+.dashboard-budget-section .budget-info::before,
+.dashboard-budget-card .budget-info::before {
+  display: none !important;
 }
