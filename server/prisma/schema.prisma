@@ -38,6 +38,7 @@ model User {
   families                Family[]                       @relation("FamilyCreator")
   familyMembers           FamilyMember[]
   uploadedFiles           FileStorage[]
+  h5PaymentOrders         H5PaymentOrder[]
   llmCallLogs             LlmCallLog[]
   multimodal_ai_call_logs MultimodalAiCallLog[]
   passwordResetTokens     PasswordResetToken[]
@@ -1444,4 +1445,26 @@ enum SubscriptionStatus {
   expired
   paused
   past_due
+}
+
+model H5PaymentOrder {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @map("user_id")
+  productId   String    @map("product_id")
+  outTradeNo  String    @unique @map("out_trade_no")
+  tradeNo     String?   @map("trade_no")
+  amount      Int       // 金额，单位：分
+  payType     String    @map("pay_type") // wechat, alipay
+  description String
+  attach      String?   // 附加数据
+  status      String    @default("PENDING") // PENDING, PAID, FAILED, EXPIRED
+  expireTime  DateTime? @map("expire_time")
+  paidAt      DateTime? @map("paid_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // 关联关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("h5_payment_orders")
 }

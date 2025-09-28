@@ -22,10 +22,12 @@ import { BadgeDisplay } from '../../../components/ui/badge-display';
 import { PageContainer } from '../../../components/layout/page-container';
 import { useAccountingPointsStore } from '../../../store/accounting-points-store';
 import { MobilePaymentModal } from '../../../components/MobilePaymentModal';
+import { AndroidH5PaymentModal } from '../../../components/AndroidH5PaymentModal';
 import { SubscriptionUpgradeCard } from '../../../components/SubscriptionUpgradeCard';
 import { MobilePaymentService } from '../../../services/mobile-payment.service';
 import { useMobileBackHandler } from '@/hooks/use-mobile-back-handler';
 import { PageLevel } from '@/lib/mobile-navigation';
+import { Capacitor } from '@capacitor/core';
 
 export default function MembershipCenter() {
   const router = useRouter();
@@ -67,9 +69,14 @@ export default function MembershipCenter() {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedBadgeId, setSelectedBadgeId] = useState<string | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showAndroidH5PaymentModal, setShowAndroidH5PaymentModal] = useState(false);
   const [showSubscriptionInfo, setShowSubscriptionInfo] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+
+  // 检测平台
+  const isAndroid = Capacitor.getPlatform() === 'android';
+  const isIOS = Capacitor.getPlatform() === 'ios';
 
   // 处理模态框背景滚动锁定
   useEffect(() => {
@@ -406,7 +413,13 @@ export default function MembershipCenter() {
               <div className="mb-6">
                 <SubscriptionUpgradeCard
                   currentMemberType={membership.memberType}
-                  onUpgradeClick={() => setShowPaymentModal(true)}
+                  onUpgradeClick={() => {
+                    if (isAndroid) {
+                      setShowAndroidH5PaymentModal(true);
+                    } else {
+                      setShowPaymentModal(true);
+                    }
+                  }}
                   onInfoClick={() => setShowSubscriptionInfo(true)}
                 />
               </div>
@@ -640,13 +653,25 @@ export default function MembershipCenter() {
           </>
         )}
 
-      {/* 支付模态框 */}
+      {/* iOS支付模态框 */}
       {showPaymentModal && (
         <MobilePaymentModal
           isOpen={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
           onSuccess={() => {
             setShowPaymentModal(false);
+            fetchMembershipInfo(); // 刷新会员信息
+          }}
+        />
+      )}
+
+      {/* Android H5支付模态框 */}
+      {showAndroidH5PaymentModal && (
+        <AndroidH5PaymentModal
+          isOpen={showAndroidH5PaymentModal}
+          onClose={() => setShowAndroidH5PaymentModal(false)}
+          onSuccess={() => {
+            setShowAndroidH5PaymentModal(false);
             fetchMembershipInfo(); // 刷新会员信息
           }}
         />
@@ -794,7 +819,11 @@ export default function MembershipCenter() {
                   <button
                     onClick={() => {
                       setShowSubscriptionInfo(false);
-                      setShowPaymentModal(true);
+                      if (isAndroid) {
+                        setShowAndroidH5PaymentModal(true);
+                      } else {
+                        setShowPaymentModal(true);
+                      }
                     }}
                     className="flex-1 bg-blue-600 dark:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors min-h-[44px]"
                   >
