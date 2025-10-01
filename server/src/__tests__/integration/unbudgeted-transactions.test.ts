@@ -1,6 +1,6 @@
 import request from 'supertest';
-import { app } from '../../app';
-import { prisma } from '../../lib/prisma';
+import app from '../../app';
+import prisma from '../../config/database';
 import { generateTestToken } from '../helpers/auth-helper';
 
 describe('无预算记账功能集成测试', () => {

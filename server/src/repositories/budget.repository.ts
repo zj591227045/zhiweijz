@@ -121,7 +121,10 @@ export class BudgetRepository {
       }
     }
 
-    // 查询该成员在该预算期间的所有支出记账
+    // 查询该成员在该预算期间的所有支出记账（单人预算记录）
+    // 排除多人预算分摊记录，因为这些记录会在后面单独处理
+    where.isMultiBudget = false;
+
     const transactions = await prisma.transaction.findMany({
       where,
       select: {
@@ -129,12 +132,95 @@ export class BudgetRepository {
       },
     });
 
-    // 计算总支出
-    const totalSpent = transactions.reduce(
+    // 计算总支出（单人预算记录）
+    let totalSpent = transactions.reduce(
       (sum, transaction) => sum + Number(transaction.amount),
       0,
     );
 
+    // 查询多人预算分摊记录
+    const multibudgetWhere: Prisma.TransactionWhereInput = {
+      accountBookId: budget.accountBookId,
+      familyId: budget.familyId,
+      date: {
+        gte: startDate,
+        lte: endDate,
+      },
+      type: 'EXPENSE',
+      isMultiBudget: true,
+      budgetAllocation: {
+        not: Prisma.DbNull,
+      },
+    };
+
+    // 根据成员类型添加过滤条件
+    if (isCustodial) {
+      multibudgetWhere.familyMemberId = memberId;
+    } else {
+      // 对于普通成员，查询归属于该用户的记账记录
+      const userFamilyMembers = await prisma.familyMember.findMany({
+        where: { userId: memberId },
+        select: { id: true }
+      });
+
+      const familyMemberIds = userFamilyMembers.map(fm => fm.id);
+
+      if (familyMemberIds.length > 0) {
+        multibudgetWhere.OR = [
+          { familyMemberId: { in: familyMemberIds } },
+          {
+            familyMemberId: null,
+            userId: memberId
+          }
+        ];
+      } else {
+        multibudgetWhere.userId = memberId;
+        multibudgetWhere.familyMemberId = null;
+      }
+    }
+
+    const multibudgetTransactions = await prisma.transaction.findMany({
+      where: multibudgetWhere,
+      select: {
+        id: true,
+        amount: true,
+        budgetAllocation: true,
+      },
+    });
+
+    console.log(`成员 ${memberId} 找到 ${multibudgetTransactions.length} 条多人预算分摊记录`);
+
+    // 计算多人预算分摊金额
+    for (const transaction of multibudgetTransactions) {
+      try {
+        let budgetAllocation;
+        const allocationData = transaction.budgetAllocation;
+
+        if (typeof allocationData === 'string') {
+          budgetAllocation = JSON.parse(allocationData);
+        } else if (typeof allocationData === 'object') {
+          budgetAllocation = allocationData;
+        }
+
+        if (Array.isArray(budgetAllocation)) {
+          const targetAllocation = budgetAllocation.find(
+            (allocation: any) => allocation.budgetId === budgetId
+          );
+
+          if (targetAllocation) {
+            const allocationAmount = Number(targetAllocation.amount);
+            totalSpent += allocationAmount;
+            console.log(
+              `成员 ${memberId} 多人预算分摊记录 ${transaction.id}：总金额 ${transaction.amount}，分摊金额 ${allocationAmount}`
+            );
+          }
+        }
+      } catch (error) {
+        console.error('解析预算分摊数据失败:', error);
+      }
+    }
+
+    console.log(`成员 ${memberId} 在预算 ${budgetId} 的总支出: ${totalSpent}`);
     return totalSpent;
   }
   /**
@@ -401,7 +487,7 @@ export class BudgetRepository {
       endDate: budget.endDate,
     });
 
-    // 计算总支出
+    // 计算总支出（单人预算记录）
     const result = await prisma.transaction.aggregate({
       where,
       _sum: {
@@ -409,7 +495,69 @@ export class BudgetRepository {
       },
     });
 
-    return result._sum.amount ? Number(result._sum.amount) : 0;
+    let totalSpent = result._sum.amount ? Number(result._sum.amount) : 0;
+
+    // 查询多人预算分摊记录
+    const multibudgetWhere: Prisma.TransactionWhereInput = {
+      type: 'EXPENSE',
+      date: {
+        gte: budget.startDate,
+        ...(budget.endDate && { lte: budget.endDate }),
+      },
+      isMultiBudget: true,
+      budgetAllocation: {
+        not: Prisma.DbNull,
+      },
+    };
+
+    // 如果有账本ID，添加账本过滤
+    if (budget.accountBookId) {
+      multibudgetWhere.accountBookId = budget.accountBookId;
+    }
+
+    const multibudgetTransactions = await prisma.transaction.findMany({
+      where: multibudgetWhere,
+      select: {
+        id: true,
+        amount: true,
+        budgetAllocation: true,
+      },
+    });
+
+    console.log(`找到 ${multibudgetTransactions.length} 条多人预算分摊记录`);
+
+    // 计算多人预算分摊金额
+    for (const transaction of multibudgetTransactions) {
+      try {
+        let budgetAllocation;
+        const allocationData = transaction.budgetAllocation;
+
+        if (typeof allocationData === 'string') {
+          budgetAllocation = JSON.parse(allocationData);
+        } else if (typeof allocationData === 'object') {
+          budgetAllocation = allocationData;
+        }
+
+        if (Array.isArray(budgetAllocation)) {
+          const targetAllocation = budgetAllocation.find(
+            (allocation: any) => allocation.budgetId === budgetId
+          );
+
+          if (targetAllocation) {
+            const allocationAmount = Number(targetAllocation.amount);
+            totalSpent += allocationAmount;
+            console.log(
+              `多人预算分摊记录 ${transaction.id}：总金额 ${transaction.amount}，分摊金额 ${allocationAmount}`
+            );
+          }
+        }
+      } catch (error) {
+        console.error('解析预算分摊数据失败:', error);
+      }
+    }
+
+    console.log(`预算 ${budgetId} 总支出: ${totalSpent}`);
+    return totalSpent;
   }
 
   /**

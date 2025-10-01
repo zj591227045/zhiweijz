@@ -45,6 +45,15 @@ describe('FamilyService', () => {
         passwordHash: 'hash',
         createdAt: new Date(),
         updatedAt: new Date(),
+        avatar: null,
+        bio: null,
+        birthDate: null,
+        passwordChangedAt: null,
+        isCustodial: false,
+        isActive: true,
+        dailyLlmTokenLimit: null,
+        deletionRequestedAt: null,
+        deletionScheduledAt: null,
       };
 
       // 模拟家庭
@@ -66,6 +75,9 @@ describe('FamilyService', () => {
         isRegistered: true,
         createdAt: new Date(),
         updatedAt: new Date(),
+        birthDate: null,
+        gender: null,
+        isCustodial: false,
       };
 
       // 设置模拟返回值
@@ -116,6 +128,9 @@ describe('FamilyService', () => {
         isRegistered: true,
         createdAt: new Date(),
         updatedAt: new Date(),
+        birthDate: null,
+        gender: null,
+        isCustodial: false,
       };
 
       familyRepository.findFamilyMemberByUserAndFamily.mockResolvedValue(mockFamilyMember);

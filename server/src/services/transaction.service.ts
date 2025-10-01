@@ -815,8 +815,8 @@ export class TransactionService {
         throw new Error('预算不存在');
       }
 
-      // 构建查询条件 - 直接使用budgetId过滤
-      const where: any = {
+      // 1. 查询单人预算记录
+      const singleBudgetWhere: any = {
         budgetId: budgetId, // 直接使用预算ID过滤
         date: {
           gte: budget.startDate,
@@ -833,43 +833,116 @@ export class TransactionService {
 
       // 如果是分类预算，添加分类过滤
       if (budget.categoryId) {
-        where.categoryId = budget.categoryId;
+        singleBudgetWhere.categoryId = budget.categoryId;
       }
 
       // 处理成员过滤 - 统一使用familyMemberId
       if (familyMemberId) {
         // 统一使用familyMemberId过滤，无论是托管成员还是普通成员
         // 因为记账记录的familyMemberId字段已经正确设置了归属关系
-        where.familyMemberId = familyMemberId;
+        singleBudgetWhere.familyMemberId = familyMemberId;
       }
       // 如果预算本身关联了托管成员，使用预算的familyMemberId查询
       else if (budget.familyMemberId) {
-        where.familyMemberId = budget.familyMemberId;
+        singleBudgetWhere.familyMemberId = budget.familyMemberId;
       }
       // 如果预算关联了用户且不是家庭预算，使用预算的userId查询
       else if (budget.userId && !budget.familyId) {
-        where.userId = budget.userId;
+        singleBudgetWhere.userId = budget.userId;
       }
       // 如果是家庭预算，不添加额外过滤，已经通过accountBookId过滤了
 
-      // 查询记账记录
-      const transactions = await prisma.transaction.findMany({
-        where,
+      // 查询单人预算记录
+      const singleBudgetTransactions = await prisma.transaction.findMany({
+        where: singleBudgetWhere,
         include: {
           category: true,
         },
         orderBy: {
           date: 'desc',
         },
-        skip: (page - 1) * limit,
-        take: limit,
       });
 
-      // 查询总数
-      const total = await prisma.transaction.count({ where });
+      console.log(`找到 ${singleBudgetTransactions.length} 条单人预算记录`);
+
+      // 2. 查询多人预算分摊记录
+      const multiBudgetWhere: any = {
+        date: {
+          gte: budget.startDate,
+          lte: budget.endDate,
+        },
+        type: 'EXPENSE',
+        isMultiBudget: true,
+        budgetAllocation: {
+          not: null,
+        },
+      };
+
+      // 如果有账本ID，添加账本过滤
+      if (budget.accountBookId) {
+        multiBudgetWhere.accountBookId = budget.accountBookId;
+      }
+
+      // 如果是分类预算，添加分类过滤
+      if (budget.categoryId) {
+        multiBudgetWhere.categoryId = budget.categoryId;
+      }
+
+      // 处理成员过滤
+      if (familyMemberId) {
+        multiBudgetWhere.familyMemberId = familyMemberId;
+      } else if (budget.familyMemberId) {
+        multiBudgetWhere.familyMemberId = budget.familyMemberId;
+      } else if (budget.userId && !budget.familyId) {
+        multiBudgetWhere.userId = budget.userId;
+      }
+
+      const multiBudgetTransactions = await prisma.transaction.findMany({
+        where: multiBudgetWhere,
+        include: {
+          category: true,
+        },
+        orderBy: {
+          date: 'desc',
+        },
+      });
+
+      console.log(`找到 ${multiBudgetTransactions.length} 条多人预算分摊记录`);
+
+      // 3. 过滤多人预算分摊记录，只保留包含当前预算的记录
+      const filteredMultiBudgetTransactions = multiBudgetTransactions.filter((transaction) => {
+        try {
+          let budgetAllocation;
+          const allocationData = (transaction as any).budgetAllocation;
+
+          if (typeof allocationData === 'string') {
+            budgetAllocation = JSON.parse(allocationData);
+          } else if (typeof allocationData === 'object') {
+            budgetAllocation = allocationData;
+          }
+
+          if (Array.isArray(budgetAllocation)) {
+            return budgetAllocation.some((allocation: any) => allocation.budgetId === budgetId);
+          }
+        } catch (error) {
+          console.error('解析预算分摊数据失败:', error);
+        }
+        return false;
+      });
+
+      console.log(`过滤后的多人预算分摊记录: ${filteredMultiBudgetTransactions.length} 条`);
+
+      // 4. 合并两种记录并排序
+      const allTransactions = [...singleBudgetTransactions, ...filteredMultiBudgetTransactions].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      );
+
+      // 5. 分页
+      const total = allTransactions.length;
+      const paginatedTransactions = allTransactions.slice((page - 1) * limit, page * limit);
 
       // 转换为响应格式
-      const data = transactions.map((transaction) =>
+      const data = paginatedTransactions.map((transaction) =>
         toTransactionResponseDto(
           transaction,
           transaction.category ? toCategoryResponseDto(transaction.category) : undefined,

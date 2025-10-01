@@ -395,7 +395,7 @@ describe('StatisticsService', () => {
       ];
 
       // 设置模拟行为
-      mockFamilyRepository.isUserFamilyMember = jest.fn().mockResolvedValue(true);
+      mockFamilyRepository.isFamilyMember = jest.fn().mockResolvedValue(true);
       mockTransactionRepository.findByDateRange = jest.fn().mockResolvedValue(mockTransactions);
       mockCategoryRepository.findByUserId = jest.fn().mockResolvedValue(mockCategories);
 
@@ -594,7 +594,7 @@ describe('StatisticsService', () => {
 
       // 调用被测试的方法并验证异常
       await expect(
-        statisticsService.getFinancialOverview(userId, startDate, endDate, familyId),
+        statisticsService.getFinancialOverview(userId, startDate, endDate, 'day', familyId),
       ).rejects.toThrow('无权访问此家庭数据');
       expect((statisticsService as any).isUserFamilyMember).toHaveBeenCalledWith(userId, familyId);
       expect(mockTransactionRepository.findByDateRange).not.toHaveBeenCalled();

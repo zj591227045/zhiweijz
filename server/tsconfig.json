@@ -24,6 +24,10 @@
     "../apps/android/**/*",
     "../packages/mobile/**/*",
     "../packages/web/**/*",
-    "../packages/core/**/*"
+    "../packages/core/**/*",
+    "src/__tests__/integration/family.integration.test.ts",
+    "src/__tests__/integration/unbudgeted-transactions.test.ts",
+    "src/__tests__/services/statistics-unbudgeted.test.ts",
+    "src/tests/budget-multibudget-fix.test.ts"
   ]
 }

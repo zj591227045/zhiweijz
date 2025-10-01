@@ -23,6 +23,10 @@ describe('AccountBookService', () => {
     isDefault: false,
     createdAt: new Date(),
     updatedAt: new Date(),
+    createdBy: null,
+    familyId: null,
+    type: 'PERSONAL' as const,
+    userLLMSettingId: null,
   };
   const mockAccountLLMSetting = {
     id: 'setting-123',

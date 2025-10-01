@@ -1,10 +1,11 @@
 import { StatisticsService } from '../../services/statistics.service';
 import { TransactionRepository } from '../../repositories/transaction.repository';
-import { prisma } from '../../lib/prisma';
+import prisma from '../../config/database';
 
 // Mock dependencies
-jest.mock('../../lib/prisma', () => ({
-  prisma: {
+jest.mock('../../config/database', () => ({
+  __esModule: true,
+  default: {
     transaction: {
       count: jest.fn(),
     },
