@@ -3,19 +3,28 @@
 # =====================================================
 # 预算修复脚本执行器
 # =====================================================
-# 
+#
 # 功能：
-# 1. 自动读取docker/.env配置
-# 2. 连接数据库并执行预算修复脚本
-# 3. 支持指定年月或使用当前月份
+# 1. 创建缺失的指定月份个人预算
+# 2. 修复预算结转历史记录
+# 3. 修复已创建预算的结转金额
 #
 # 使用方法：
-# ./run_budget_fix.sh [年份] [月份]
-# 
+# ./run_budget_fix.sh [选项] [年份] [月份]
+#
+# 选项：
+# -a, --all              执行所有修复操作
+# -c, --create           仅创建缺失的预算
+# -h, --history          仅修复结转历史记录
+# -r, --rollover         仅修复结转金额
+# -i, --interactive      交互式选择（默认）
+#
 # 示例：
-# ./run_budget_fix.sh                    # 修复当前月份
-# ./run_budget_fix.sh 2025 9            # 修复2025年9月
-# ./run_budget_fix.sh 2025 10           # 修复2025年10月
+# ./run_budget_fix.sh                    # 交互式菜单
+# ./run_budget_fix.sh -c 2025 9         # 仅创建2025年9月预算
+# ./run_budget_fix.sh -h                # 仅修复结转历史
+# ./run_budget_fix.sh -r                # 仅修复结转金额
+# ./run_budget_fix.sh -a 2025 10        # 执行所有操作（2025年10月）
 # =====================================================
 
 set -e  # 遇到错误立即退出
@@ -91,39 +100,94 @@ if [ "$FINAL_DB_HOST" = "localhost" ] && [ -n "$DOCKER_ENV" ]; then
 fi
 
 # 解析命令行参数
+MODE="interactive"  # 默认交互模式
 TARGET_YEAR=""
 TARGET_MONTH=""
 
-if [ $# -eq 0 ]; then
-    # 没有参数，使用当前年月
-    TARGET_YEAR=$(date +%Y)
-    TARGET_MONTH=$(date +%m | sed 's/^0//')  # 去掉前导零
-    log_info "未指定年月，使用当前月份: ${TARGET_YEAR}年${TARGET_MONTH}月"
-elif [ $# -eq 2 ]; then
-    # 指定了年月
-    TARGET_YEAR="$1"
-    TARGET_MONTH="$2"
-    
-    # 验证年份
-    if ! [[ "$TARGET_YEAR" =~ ^[0-9]{4}$ ]] || [ "$TARGET_YEAR" -lt 2020 ] || [ "$TARGET_YEAR" -gt 2030 ]; then
-        log_error "无效的年份: $TARGET_YEAR (应该是2020-2030之间的四位数字)"
-        exit 1
-    fi
-    
-    # 验证月份
-    if ! [[ "$TARGET_MONTH" =~ ^[0-9]{1,2}$ ]] || [ "$TARGET_MONTH" -lt 1 ] || [ "$TARGET_MONTH" -gt 12 ]; then
-        log_error "无效的月份: $TARGET_MONTH (应该是1-12之间的数字)"
-        exit 1
-    fi
-    
-    log_info "指定目标月份: ${TARGET_YEAR}年${TARGET_MONTH}月"
-else
-    log_error "参数错误"
-    echo "使用方法: $0 [年份] [月份]"
+# 显示帮助信息
+show_help() {
+    echo "预算修复脚本执行器"
+    echo ""
+    echo "使用方法: $0 [选项] [年份] [月份]"
+    echo ""
+    echo "选项:"
+    echo "  -a, --all              执行所有修复操作"
+    echo "  -c, --create           仅创建缺失的预算"
+    echo "  -h, --history          仅修复结转历史记录"
+    echo "  -r, --rollover         仅修复结转金额"
+    echo "  -i, --interactive      交互式选择（默认）"
+    echo "  --help                 显示此帮助信息"
+    echo ""
     echo "示例:"
-    echo "  $0                    # 修复当前月份"
-    echo "  $0 2025 9            # 修复2025年9月"
-    echo "  $0 2025 10           # 修复2025年10月"
+    echo "  $0                     # 交互式菜单"
+    echo "  $0 -c 2025 9          # 仅创建2025年9月预算"
+    echo "  $0 -h                 # 仅修复结转历史"
+    echo "  $0 -r                 # 仅修复结转金额"
+    echo "  $0 -a 2025 10         # 执行所有操作（2025年10月）"
+    exit 0
+}
+
+# 解析选项
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -a|--all)
+            MODE="all"
+            shift
+            ;;
+        -c|--create)
+            MODE="create"
+            shift
+            ;;
+        -h|--history)
+            MODE="history"
+            shift
+            ;;
+        -r|--rollover)
+            MODE="rollover"
+            shift
+            ;;
+        -i|--interactive)
+            MODE="interactive"
+            shift
+            ;;
+        --help)
+            show_help
+            ;;
+        [0-9][0-9][0-9][0-9])
+            # 年份参数
+            TARGET_YEAR="$1"
+            shift
+            ;;
+        [0-9]|[0-9][0-9])
+            # 月份参数
+            TARGET_MONTH="$1"
+            shift
+            ;;
+        *)
+            log_error "未知选项: $1"
+            show_help
+            ;;
+    esac
+done
+
+# 如果没有指定年月，使用当前年月
+if [ -z "$TARGET_YEAR" ]; then
+    TARGET_YEAR=$(date +%Y)
+fi
+
+if [ -z "$TARGET_MONTH" ]; then
+    TARGET_MONTH=$(date +%m | sed 's/^0//')  # 去掉前导零
+fi
+
+# 验证年份
+if ! [[ "$TARGET_YEAR" =~ ^[0-9]{4}$ ]] || [ "$TARGET_YEAR" -lt 2020 ] || [ "$TARGET_YEAR" -gt 2030 ]; then
+    log_error "无效的年份: $TARGET_YEAR (应该是2020-2030之间的四位数字)"
+    exit 1
+fi
+
+# 验证月份
+if ! [[ "$TARGET_MONTH" =~ ^[0-9]{1,2}$ ]] || [ "$TARGET_MONTH" -lt 1 ] || [ "$TARGET_MONTH" -gt 12 ]; then
+    log_error "无效的月份: $TARGET_MONTH (应该是1-12之间的数字)"
     exit 1
 fi
 
@@ -135,6 +199,7 @@ log_info "数据库端口: $FINAL_DB_PORT"
 log_info "数据库名称: $POSTGRES_DB"
 log_info "数据库用户: $POSTGRES_USER"
 log_info "目标年月: ${TARGET_YEAR}年${TARGET_MONTH}月"
+log_info "执行模式: $MODE"
 log_info "配置文件: $ENV_FILE"
 echo ""
 
@@ -196,73 +261,206 @@ if [ "$CONNECTION_SUCCESS" = false ]; then
     exit 1
 fi
 
-# 确认执行
-echo ""
-log_warning "即将执行预算修复操作"
-log_warning "目标: 为${TARGET_YEAR}年${TARGET_MONTH}月创建缺失的个人预算"
-log_warning "数据库: $POSTGRES_DB@$FINAL_DB_HOST:$FINAL_DB_PORT"
-echo ""
-read -p "确认执行吗? (y/N): " -n 1 -r
-echo ""
-
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    log_info "操作已取消"
-    exit 0
-fi
-
-# 执行主修复脚本
-log_info "开始执行预算修复脚本..."
-echo ""
-
-MAIN_SCRIPT="$SCRIPT_DIR/fix_current_month_budget_creation.sql"
-if [ ! -f "$MAIN_SCRIPT" ]; then
-    log_error "修复脚本不存在: $MAIN_SCRIPT"
-    exit 1
-fi
-
-# 执行SQL脚本
-if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$FINAL_DB_HOST" -p "$FINAL_DB_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
-    -c "SET app.target_year = '$TARGET_YEAR'; SET app.target_month = '$TARGET_MONTH';" \
-    -f "$MAIN_SCRIPT"; then
-    
+# 定义执行函数
+execute_create_budget() {
+    log_info "=== 执行: 创建缺失的预算 ==="
+    log_info "目标: 为${TARGET_YEAR}年${TARGET_MONTH}月创建缺失的个人预算"
     echo ""
-    log_success "预算修复脚本执行完成"
-    
-    # 询问是否执行结转历史修复
-    echo ""
-    log_info "是否需要执行结转历史修复脚本?"
-    log_info "此脚本会修复所有历史预算的结转记录"
-    read -p "执行结转历史修复? (y/N): " -n 1 -r
-    echo ""
-    
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        HISTORY_SCRIPT="$SCRIPT_DIR/fix_budget_rollover_history.sql"
-        if [ -f "$HISTORY_SCRIPT" ]; then
-            log_info "执行结转历史修复脚本..."
-            if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$FINAL_DB_HOST" -p "$FINAL_DB_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
-                -f "$HISTORY_SCRIPT"; then
-                log_success "结转历史修复脚本执行完成"
-            else
-                log_error "结转历史修复脚本执行失败"
-                exit 1
-            fi
-        else
-            log_warning "结转历史修复脚本不存在: $HISTORY_SCRIPT"
-        fi
+
+    MAIN_SCRIPT="$SCRIPT_DIR/fix_current_month_budget_creation.sql"
+    if [ ! -f "$MAIN_SCRIPT" ]; then
+        log_error "修复脚本不存在: $MAIN_SCRIPT"
+        return 1
     fi
-    
+
+    if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$FINAL_DB_HOST" -p "$FINAL_DB_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+        -c "SET app.target_year = '$TARGET_YEAR'; SET app.target_month = '$TARGET_MONTH';" \
+        -f "$MAIN_SCRIPT"; then
+        log_success "预算创建脚本执行完成"
+        return 0
+    else
+        log_error "预算创建脚本执行失败"
+        return 1
+    fi
+}
+
+execute_fix_history() {
+    log_info "=== 执行: 修复结转历史记录 ==="
+    log_info "此脚本会修复所有历史预算的结转记录"
     echo ""
-    log_success "所有修复操作完成!"
+
+    HISTORY_SCRIPT="$SCRIPT_DIR/fix_budget_rollover_history.sql"
+    if [ ! -f "$HISTORY_SCRIPT" ]; then
+        log_error "结转历史修复脚本不存在: $HISTORY_SCRIPT"
+        return 1
+    fi
+
+    if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$FINAL_DB_HOST" -p "$FINAL_DB_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+        -f "$HISTORY_SCRIPT"; then
+        log_success "结转历史修复脚本执行完成"
+        return 0
+    else
+        log_error "结转历史修复脚本执行失败"
+        return 1
+    fi
+}
+
+execute_fix_rollover() {
+    log_info "=== 执行: 修复已创建预算的结转金额 ==="
+    log_info "此脚本会对比并修复所有已创建预算的结转金额"
     echo ""
-    log_info "建议执行以下验证查询来检查结果:"
+
+    ROLLOVER_AMOUNT_SCRIPT="$SCRIPT_DIR/fix_existing_budget_rollover_amount.sql"
+    if [ ! -f "$ROLLOVER_AMOUNT_SCRIPT" ]; then
+        log_error "结转金额修复脚本不存在: $ROLLOVER_AMOUNT_SCRIPT"
+        return 1
+    fi
+
+    if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$FINAL_DB_HOST" -p "$FINAL_DB_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+        -f "$ROLLOVER_AMOUNT_SCRIPT"; then
+        log_success "结转金额修复脚本执行完成"
+        return 0
+    else
+        log_error "结转金额修复脚本执行失败"
+        return 1
+    fi
+}
+
+# 交互式菜单
+show_menu() {
     echo ""
-    echo "1. 检查${TARGET_YEAR}年${TARGET_MONTH}月预算创建情况:"
-    echo "   SELECT COUNT(*) FROM budgets WHERE start_date >= '${TARGET_YEAR}-$(printf "%02d" $TARGET_MONTH)-01' AND start_date <= '${TARGET_YEAR}-$(printf "%02d" $TARGET_MONTH)-01' AND budget_type = 'PERSONAL';"
+    echo "=========================================="
+    echo "       预算修复脚本 - 交互式菜单"
+    echo "=========================================="
     echo ""
-    echo "2. 查看详细预算信息:"
-    echo "   SELECT u.name, b.name, b.amount, b.rollover_amount FROM budgets b JOIN users u ON b.user_id = u.id WHERE b.start_date >= '${TARGET_YEAR}-$(printf "%02d" $TARGET_MONTH)-01' AND b.start_date <= '${TARGET_YEAR}-$(printf "%02d" $TARGET_MONTH)-01';"
-    
-else
-    log_error "预算修复脚本执行失败"
-    exit 1
-fi
+    echo "请选择要执行的操作:"
+    echo ""
+    echo "  1) 创建缺失的${TARGET_YEAR}年${TARGET_MONTH}月个人预算"
+    echo "  2) 修复预算结转历史记录"
+    echo "  3) 修复已创建预算的结转金额"
+    echo "  4) 执行所有操作 (1+2+3)"
+    echo "  0) 退出"
+    echo ""
+    echo "=========================================="
+    echo ""
+}
+
+# 交互式模式
+interactive_mode() {
+    while true; do
+        show_menu
+        read -p "请输入选项 [0-4]: " choice
+        echo ""
+
+        case $choice in
+            1)
+                read -p "确认创建${TARGET_YEAR}年${TARGET_MONTH}月预算? (y/N): " -n 1 -r
+                echo ""
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    execute_create_budget
+                    echo ""
+                    read -p "按回车键继续..."
+                fi
+                ;;
+            2)
+                read -p "确认修复结转历史记录? (y/N): " -n 1 -r
+                echo ""
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    execute_fix_history
+                    echo ""
+                    read -p "按回车键继续..."
+                fi
+                ;;
+            3)
+                read -p "确认修复已创建预算的结转金额? (y/N): " -n 1 -r
+                echo ""
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    execute_fix_rollover
+                    echo ""
+                    read -p "按回车键继续..."
+                fi
+                ;;
+            4)
+                read -p "确认执行所有操作? (y/N): " -n 1 -r
+                echo ""
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    execute_create_budget && \
+                    execute_fix_history && \
+                    execute_fix_rollover
+                    echo ""
+                    log_success "所有操作执行完成!"
+                    read -p "按回车键继续..."
+                fi
+                ;;
+            0)
+                log_info "退出程序"
+                exit 0
+                ;;
+            *)
+                log_error "无效的选项: $choice"
+                read -p "按回车键继续..."
+                ;;
+        esac
+    done
+}
+
+# 根据模式执行
+case $MODE in
+    interactive)
+        interactive_mode
+        ;;
+    create)
+        log_warning "即将创建${TARGET_YEAR}年${TARGET_MONTH}月缺失的个人预算"
+        log_warning "数据库: $POSTGRES_DB@$FINAL_DB_HOST:$FINAL_DB_PORT"
+        echo ""
+        read -p "确认执行吗? (y/N): " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            execute_create_budget
+        else
+            log_info "操作已取消"
+        fi
+        ;;
+    history)
+        log_warning "即将修复所有历史预算的结转记录"
+        log_warning "数据库: $POSTGRES_DB@$FINAL_DB_HOST:$FINAL_DB_PORT"
+        echo ""
+        read -p "确认执行吗? (y/N): " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            execute_fix_history
+        else
+            log_info "操作已取消"
+        fi
+        ;;
+    rollover)
+        log_warning "即将修复所有已创建预算的结转金额"
+        log_warning "数据库: $POSTGRES_DB@$FINAL_DB_HOST:$FINAL_DB_PORT"
+        echo ""
+        read -p "确认执行吗? (y/N): " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            execute_fix_rollover
+        else
+            log_info "操作已取消"
+        fi
+        ;;
+    all)
+        log_warning "即将执行所有修复操作"
+        log_warning "1. 创建${TARGET_YEAR}年${TARGET_MONTH}月缺失的个人预算"
+        log_warning "2. 修复预算结转历史记录"
+        log_warning "3. 修复已创建预算的结转金额"
+        log_warning "数据库: $POSTGRES_DB@$FINAL_DB_HOST:$FINAL_DB_PORT"
+        echo ""
+        read -p "确认执行吗? (y/N): " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            execute_create_budget && \
+            execute_fix_history && \
+            execute_fix_rollover && \
+            log_success "所有操作执行完成!"
+        else
+            log_info "操作已取消"
+        fi
+        ;;
+esac

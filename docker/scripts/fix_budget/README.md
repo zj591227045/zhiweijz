@@ -30,15 +30,33 @@
 - 修正不正确的预算结转金额
 - 确保预算结转链条的正确性
 
-### 3. run_budget_fix.sh
+### 3. fix_existing_budget_rollover_amount.sql
+**已创建预算结转金额修复脚本** - 修复已创建预算的结转金额
+
+**功能：**
+- 对比所有已创建预算的结转金额是否正确
+- 修复所有结转金额错误的个人预算
+- 确保预算结转链条的完整性和正确性
+
+**使用场景：**
+- 当交易数据发生变化后，需要重新计算结转金额
+- 当上期预算的结转金额被修正后，需要更新下期预算
+- 定期检查和修复预算结转金额的准确性
+
+### 4. run_budget_fix.sh
 **自动化执行脚本** - 简化修复操作
 
 **功能：**
 - 自动读取 `docker/.env` 配置文件
 - 自动连接数据库并执行修复脚本
 - 支持指定年月或使用当前月份
-- 提供交互式确认和错误处理
-- 支持执行结转历史修复
+- 提供交互式菜单，可独立选择执行功能
+- 支持命令行参数直接执行特定功能
+- 提供详细的错误处理和日志输出
+
+**执行模式：**
+- **交互式模式**（默认）：显示菜单，可选择执行单个或多个功能
+- **命令行模式**：通过参数直接执行特定功能，无需交互
 
 ## 使用方法
 
@@ -49,20 +67,50 @@
 2. 安装PostgreSQL客户端（psql命令）
 3. 确保数据库可访问
 
-#### 执行步骤
+#### 交互式模式（默认）
 ```bash
 # 进入脚本目录
 cd docker/scripts/fix_budget
 
-# 修复当前月份
+# 启动交互式菜单（使用当前月份）
 ./run_budget_fix.sh
 
-# 修复指定月份（例如2025年9月）
+# 启动交互式菜单（指定年月）
 ./run_budget_fix.sh 2025 9
-
-# 修复指定月份（例如2025年10月）
-./run_budget_fix.sh 2025 10
 ```
+
+交互式菜单提供以下选项：
+1. 创建缺失的指定月份个人预算
+2. 修复预算结转历史记录
+3. 修复已创建预算的结转金额
+4. 执行所有操作
+0. 退出
+
+#### 命令行模式（直接执行）
+```bash
+# 仅创建缺失的预算
+./run_budget_fix.sh -c 2025 9
+
+# 仅修复结转历史记录
+./run_budget_fix.sh -h
+
+# 仅修复结转金额
+./run_budget_fix.sh -r
+
+# 执行所有操作
+./run_budget_fix.sh -a 2025 10
+
+# 显示帮助信息
+./run_budget_fix.sh --help
+```
+
+**命令行选项说明：**
+- `-a, --all`: 执行所有修复操作
+- `-c, --create`: 仅创建缺失的预算
+- `-h, --history`: 仅修复结转历史记录
+- `-r, --rollover`: 仅修复结转金额
+- `-i, --interactive`: 交互式选择（默认）
+- `--help`: 显示帮助信息
 
 ### 方法二：手动执行SQL脚本
 
@@ -104,6 +152,12 @@ psql -h $DB_HOST -p $DB_PORT -U $POSTGRES_USER -d $POSTGRES_DB \
 ```bash
 # 修复历史结转记录
 psql -h $DB_HOST -p $DB_PORT -U $POSTGRES_USER -d $POSTGRES_DB < fix_budget_rollover_history.sql
+```
+
+**步骤3：执行已创建预算结转金额修复脚本（可选）**
+```bash
+# 修复已创建预算的结转金额
+psql -h $DB_HOST -p $DB_PORT -U $POSTGRES_USER -d $POSTGRES_DB < fix_existing_budget_rollover_amount.sql
 ```
 
 ### 验证结果
@@ -257,30 +311,59 @@ WHERE period = 'YYYY-M'
 
 ## 使用示例
 
-### 示例1：修复2025年9月预算
+### 示例1：交互式菜单（推荐新手使用）
 ```bash
-# 使用自动化脚本
-./run_budget_fix.sh 2025 9
+# 启动交互式菜单
+cd docker/scripts/fix_budget
+./run_budget_fix.sh
 
-# 或手动执行
+# 或指定年月后启动菜单
+./run_budget_fix.sh 2025 9
+```
+
+### 示例2：仅创建缺失的预算
+```bash
+# 创建2025年9月的缺失预算
+./run_budget_fix.sh -c 2025 9
+
+# 创建当前月份的缺失预算
+./run_budget_fix.sh -c
+```
+
+### 示例3：仅修复结转历史
+```bash
+# 修复所有历史预算的结转记录
+./run_budget_fix.sh -h
+```
+
+### 示例4：仅修复结转金额
+```bash
+# 修复所有已创建预算的结转金额
+./run_budget_fix.sh -r
+```
+
+### 示例5：执行所有操作
+```bash
+# 一次性执行所有修复操作（2025年10月）
+./run_budget_fix.sh -a 2025 10
+
+# 一次性执行所有操作（当前月份）
+./run_budget_fix.sh -a
+```
+
+### 示例6：手动执行SQL脚本
+```bash
+# 仅创建预算
 psql -h localhost -p 5432 -U zhiweijz -d zhiweijz \
   -v target_year=2025 \
   -v target_month=9 \
   < fix_current_month_budget_creation.sql
-```
 
-### 示例2：修复当前月份预算
-```bash
-# 使用自动化脚本（推荐）
-./run_budget_fix.sh
-
-# 或手动执行
-psql -h localhost -p 5432 -U zhiweijz -d zhiweijz < fix_current_month_budget_creation.sql
-```
-
-### 示例3：只修复结转历史
-```bash
+# 仅修复结转历史
 psql -h localhost -p 5432 -U zhiweijz -d zhiweijz < fix_budget_rollover_history.sql
+
+# 仅修复结转金额
+psql -h localhost -p 5432 -U zhiweijz -d zhiweijz < fix_existing_budget_rollover_amount.sql
 ```
 
 ## 联系支持
@@ -288,7 +371,20 @@ psql -h localhost -p 5432 -U zhiweijz -d zhiweijz < fix_budget_rollover_history.
 
 ## 更新日志
 
-### v2.0 (当前版本)
+### v2.2 (当前版本)
+- ✅ 重构 `run_budget_fix.sh` 为模块化设计
+- ✅ 新增交互式菜单模式，可独立选择执行功能
+- ✅ 支持命令行参数直接执行特定功能
+- ✅ 改进用户体验和错误处理
+- ✅ 更新文档和使用示例
+
+### v2.1
+- ✅ 新增 `fix_existing_budget_rollover_amount.sql` 脚本
+- ✅ 支持对比和修复所有已创建预算的结转金额
+- ✅ 集成到 `run_budget_fix.sh` 自动化脚本中
+- ✅ 提供详细的验证和错误报告
+
+### v2.0
 - ✅ 升级为通用工具，支持任意月份修复
 - ✅ 添加自动化执行脚本 `run_budget_fix.sh`
 - ✅ 改进错误处理和用户交互
