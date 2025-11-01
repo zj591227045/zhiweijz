@@ -82,13 +82,18 @@ COPY --from=builder /app/migrations/ ./migrations/
 # 复制数据库初始化脚本到容器中
 COPY --from=builder /app/../docker/config/init.sql ./docker/init.sql
 
+# 复制计划任务脚本到容器内
+COPY docker/scripts/ ./scripts/scheduled/
+
 # 创建必要目录并设置权限
 RUN mkdir -p uploads && \
+    mkdir -p scripts/custom && \
     chown -R nodejs:nodejs /app && \
     chmod +x scripts/deployment/*.sh && \
     chmod +x migrations/migration-manager.js && \
     chmod +x migrations/data-integrity-check.js && \
-    chmod +x migrations/migration-status.js
+    chmod +x migrations/migration-status.js && \
+    find scripts/scheduled -type f -name "*.sh" -exec chmod +x {} \;
 
 # 切换到非root用户
 USER nodejs

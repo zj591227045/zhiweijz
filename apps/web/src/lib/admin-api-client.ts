@@ -115,6 +115,14 @@ export const ADMIN_API_ENDPOINTS = {
   VERSION_MANAGEMENT_UNPUBLISH: (id: string) => `/api/admin/version/${id}/unpublish`,
   VERSION_MANAGEMENT_CONFIG: '/api/admin/version/config',
   VERSION_MANAGEMENT_CONFIG_DETAIL: (key: string) => `/api/admin/version/config/${key}`,
+
+  // 计划任务管理
+  SCHEDULED_TASKS: '/api/admin/scheduled-tasks',
+  SCHEDULED_TASK_DETAIL: (id: string) => `/api/admin/scheduled-tasks/${id}`,
+  SCHEDULED_TASK_EXECUTE: (id: string) => `/api/admin/scheduled-tasks/${id}/execute`,
+  SCHEDULED_TASK_TOGGLE: (id: string) => `/api/admin/scheduled-tasks/${id}/toggle`,
+  SCHEDULED_TASK_LOGS: '/api/admin/scheduled-tasks/logs/list',
+  SCHEDULED_TASK_LOG_DETAIL: (id: string) => `/api/admin/scheduled-tasks/logs/${id}`,
 } as const;
 
 /**

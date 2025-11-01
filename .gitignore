@@ -15,6 +15,7 @@ test-reports
 data/
 scripts/db_backup/backups/
 scripts/database/db_backup/backups
+server/migrations/upgrade-simulation-report.json
 
 # Environment variables
 .env

@@ -58,51 +58,82 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# 检查.env文件是否存在
-if [ ! -f "$ENV_FILE" ]; then
-    log_error ".env文件不存在: $ENV_FILE"
-    log_error "请确保在docker目录下有.env配置文件"
-    exit 1
+# 辅助函数：从.env文件读取变量（不覆盖已有环境变量）
+read_env_var() {
+    local var_name="$1"
+    local current_value="${!var_name}"
+
+    # 如果环境变量已设置，直接返回
+    if [ -n "$current_value" ]; then
+        echo "$current_value"
+        return
+    fi
+
+    # 从.env文件读取
+    if [ -f "$ENV_FILE" ]; then
+        local file_value=$(grep "^${var_name}=" "$ENV_FILE" | cut -d '=' -f2- | tr -d '"' | tr -d "'")
+        echo "$file_value"
+    fi
+}
+
+# 读取数据库配置（优先使用环境变量）
+POSTGRES_DB="${POSTGRES_DB:-$(read_env_var POSTGRES_DB)}"
+POSTGRES_DB="${POSTGRES_DB:-$(read_env_var DB_NAME)}"
+
+POSTGRES_USER="${POSTGRES_USER:-$(read_env_var POSTGRES_USER)}"
+POSTGRES_USER="${POSTGRES_USER:-$(read_env_var DB_USER)}"
+
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-$(read_env_var POSTGRES_PASSWORD)}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-$(read_env_var DB_PASSWORD)}"
+
+# 读取DATABASE_URL（如果需要）
+if [ -z "$DATABASE_URL" ]; then
+    DATABASE_URL=$(read_env_var DATABASE_URL)
 fi
-
-# 读取.env文件
-log_info "读取配置文件: $ENV_FILE"
-source "$ENV_FILE"
-
-# 兼容不同的环境变量命名
-# 优先使用POSTGRES_*变量，如果不存在则使用DB_*变量
-POSTGRES_DB="${POSTGRES_DB:-$DB_NAME}"
-POSTGRES_USER="${POSTGRES_USER:-$DB_USER}"
-POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-$DB_PASSWORD}"
 
 # 检查必需的环境变量
 if [ -z "$POSTGRES_DB" ] || [ -z "$POSTGRES_USER" ] || [ -z "$POSTGRES_PASSWORD" ]; then
     log_error "缺少必需的数据库配置变量"
-    log_error "请检查.env文件中的以下变量之一："
+    log_error "请通过环境变量或.env文件提供以下变量之一："
     log_error "  POSTGRES_DB/DB_NAME, POSTGRES_USER/DB_USER, POSTGRES_PASSWORD/DB_PASSWORD"
     log_error ""
     log_error "当前读取到的值："
-    log_error "  POSTGRES_DB/DB_NAME: ${POSTGRES_DB:-未设置}"
-    log_error "  POSTGRES_USER/DB_USER: ${POSTGRES_USER:-未设置}"
-    log_error "  POSTGRES_PASSWORD/DB_PASSWORD: ${POSTGRES_PASSWORD:+已设置}"
+    log_error "  POSTGRES_DB: ${POSTGRES_DB:-未设置}"
+    log_error "  POSTGRES_USER: ${POSTGRES_USER:-未设置}"
+    log_error "  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:+已设置}"
+    log_error "  DATABASE_URL: ${DATABASE_URL:+已设置}"
     exit 1
 fi
 
+log_info "数据库配置已加载 (来源: ${DATABASE_URL:+环境变量}${DATABASE_URL:-配置文件})"
+
 # 设置数据库连接参数
-# 优先使用环境变量，然后是.env文件中的值，最后是默认值
-FINAL_DB_HOST="${DB_HOST:-localhost}"
+# 优先级：DB_HOST环境变量 > DATABASE_URL中的主机 > 默认值
+FINAL_DB_HOST="${DB_HOST}"
 FINAL_DB_PORT="${DB_PORT:-5432}"
 
-# 如果是在Docker环境中，且DB_HOST是默认值，尝试使用容器名
-if [ "$FINAL_DB_HOST" = "localhost" ] && [ -n "$DOCKER_ENV" ]; then
-    log_warning "检测到Docker环境，尝试使用容器名连接数据库"
-    FINAL_DB_HOST="zhiweijz-postgres"
+# 如果DB_HOST未设置，尝试从DATABASE_URL中提取
+if [ -z "$FINAL_DB_HOST" ] && [ -n "$DATABASE_URL" ]; then
+    # 从DATABASE_URL中提取主机名
+    # 格式: postgresql://user:pass@host:port/db
+    EXTRACTED_HOST=$(echo "$DATABASE_URL" | sed -n 's|.*@\([^:]*\):.*|\1|p')
+    if [ -n "$EXTRACTED_HOST" ]; then
+        FINAL_DB_HOST="$EXTRACTED_HOST"
+        log_info "从DATABASE_URL中提取主机: $FINAL_DB_HOST"
+    fi
+fi
+
+# 如果仍然未设置，使用默认值
+if [ -z "$FINAL_DB_HOST" ]; then
+    FINAL_DB_HOST="localhost"
+    log_warning "使用默认数据库主机: localhost"
 fi
 
 # 解析命令行参数
 MODE="interactive"  # 默认交互模式
 TARGET_YEAR=""
 TARGET_MONTH=""
+AUTO_YES=false  # 自动确认标志
 
 # 显示帮助信息
 show_help() {
@@ -148,6 +179,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -i|--interactive)
             MODE="interactive"
+            shift
+            ;;
+        -y|--yes)
+            AUTO_YES=true
             shift
             ;;
         --help)
@@ -452,15 +487,22 @@ case $MODE in
         log_warning "3. 修复已创建预算的结转金额"
         log_warning "数据库: $POSTGRES_DB@$FINAL_DB_HOST:$FINAL_DB_PORT"
         echo ""
-        read -p "确认执行吗? (y/N): " -n 1 -r
-        echo ""
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
+        if [ "$AUTO_YES" = true ]; then
             execute_create_budget && \
             execute_fix_history && \
             execute_fix_rollover && \
             log_success "所有操作执行完成!"
         else
-            log_info "操作已取消"
+            read -p "确认执行吗? (y/N): " -n 1 -r
+            echo ""
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                execute_create_budget && \
+                execute_fix_history && \
+                execute_fix_rollover && \
+                log_success "所有操作执行完成!"
+            else
+                log_info "操作已取消"
+            fi
         fi
         ;;
 esac

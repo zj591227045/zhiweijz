@@ -85,6 +85,9 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
+    volumes:
+      # 挂载自定义脚本目录（可选，用于添加自定义计划任务脚本）
+      - ./scripts/custom:/app/scripts/custom:ro
     networks:
       - zhiweijz-network
     depends_on:

@@ -98,7 +98,9 @@ router.post('/create-order', authenticate, async (req: Request, res: Response) =
         }
       });
     } else {
-      throw new AppError(result.msg || '创建支付订单失败', result.code || 500);
+      // H5支付API返回的错误码不是HTTP状态码，统一使用400
+      const httpStatusCode = 400;
+      throw new AppError(result.msg || '创建支付订单失败', httpStatusCode);
     }
 
   } catch (error: any) {

@@ -13,6 +13,7 @@ import {
   EyeIcon,
   StarIcon,
   DevicePhoneMobileIcon,
+  ClockIcon,
 } from '@heroicons/react/24/outline';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
 
@@ -49,6 +50,7 @@ const navigation = [
   },
   { name: '文件存储', href: '/admin/storage', icon: CloudArrowUpIcon, current: false },
   { name: '版本管理', href: '/admin/version', icon: DevicePhoneMobileIcon, current: false },
+  { name: '计划任务', href: '/admin/scheduled-tasks', icon: ClockIcon, current: false },
   { name: '公告管理', href: '/admin/announcements', icon: SpeakerWaveIcon, current: false },
 ];
 

@@ -13,6 +13,7 @@ import multimodalAIAdminRoutes from './multimodal-ai.admin.routes';
 import accountingPointsAdminRoutes from './accounting-points.admin.routes';
 import membershipAdminRoutes from './membership.admin.routes';
 import versionAdminRoutes from './version.admin.routes';
+import scheduledTaskAdminRoutes from './scheduled-task.admin.routes';
 
 const router = Router();
 
@@ -31,5 +32,6 @@ router.use('/multimodal-ai', multimodalAIAdminRoutes);
 router.use('/accounting-points', accountingPointsAdminRoutes);
 router.use('/membership', membershipAdminRoutes);
 router.use('/version', versionAdminRoutes);
+router.use('/scheduled-tasks', scheduledTaskAdminRoutes);
 
 export default router;

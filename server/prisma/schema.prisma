@@ -1468,3 +1468,46 @@ model H5PaymentOrder {
 
   @@map("h5_payment_orders")
 }
+
+// 计划任务表
+model ScheduledTask {
+  id          String   @id @default(uuid())
+  name        String   // 任务名称
+  description String?  // 任务描述
+  scriptType  String   @map("script_type") // 脚本类型: shell, sql, node
+  scriptPath  String   @map("script_path") // 脚本路径（相对于项目根目录）
+  cronExpression String @map("cron_expression") // Cron表达式
+  isEnabled   Boolean  @default(true) @map("is_enabled") // 是否启用
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdBy   String?  @map("created_by") // 创建者ID（管理员）
+
+  // 关联关系
+  executionLogs TaskExecutionLog[]
+
+  @@map("scheduled_tasks")
+}
+
+// 任务执行日志表
+model TaskExecutionLog {
+  id          String   @id @default(uuid())
+  taskId      String   @map("task_id")
+  status      String   // 执行状态: pending, running, success, failed
+  startTime   DateTime @map("start_time")
+  endTime     DateTime? @map("end_time")
+  duration    Int?     // 执行时长（毫秒）
+  output      String?  @db.Text // 标准输出
+  error       String?  @db.Text // 错误输出
+  exitCode    Int?     @map("exit_code") // 退出码
+  triggeredBy String   @map("triggered_by") // 触发方式: cron, manual
+  triggeredByUser String? @map("triggered_by_user") // 手动触发的用户ID
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // 关联关系
+  task ScheduledTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([status])
+  @@index([startTime])
+  @@map("task_execution_logs")
+}

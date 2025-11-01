@@ -10,6 +10,7 @@ import { FileStorageService } from './services/file-storage.service';
 import { AICallLogAdminService } from './admin/services/ai-call-log.admin.service';
 import { performanceMonitoringService } from './services/performance-monitoring.service';
 import { MultiProviderLLMService } from './ai/llm/multi-provider-service';
+import { ScheduledTaskAdminService } from './admin/services/scheduled-task.admin.service';
 
 // 连接数据库
 connectDatabase();
@@ -74,6 +75,15 @@ const server = app.listen(config.port, '0.0.0.0', async () => {
   const membershipExpiryTask = new MembershipExpiryCheckTask();
   membershipExpiryTask.start();
 
+  // 启动计划任务服务
+  try {
+    scheduledTaskServiceInstance = new ScheduledTaskAdminService();
+    await scheduledTaskServiceInstance.initializeScheduledTasks();
+    console.log('✅ 计划任务服务启动成功');
+  } catch (error) {
+    console.error('❌ 计划任务服务启动失败:', error);
+  }
+
   // 启动性能监控服务
   try {
     await performanceMonitoringService.startMonitoring();
@@ -84,8 +94,20 @@ const server = app.listen(config.port, '0.0.0.0', async () => {
 });
 
 // 处理进程终止信号
+let scheduledTaskServiceInstance: ScheduledTaskAdminService | null = null;
+
 const gracefulShutdown = async () => {
   console.log('正在关闭服务器...');
+
+  // 停止计划任务服务
+  try {
+    if (scheduledTaskServiceInstance) {
+      scheduledTaskServiceInstance.stopAllTasks();
+      console.log('✅ 计划任务服务已停止');
+    }
+  } catch (error) {
+    console.error('❌ 停止计划任务服务失败:', error);
+  }
 
   // 停止性能监控服务
   try {
