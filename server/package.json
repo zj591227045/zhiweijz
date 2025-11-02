@@ -72,6 +72,7 @@
     "sharp": "^0.34.3",
     "typescript": "^5.1.6",
     "uuid": "^11.1.0",
+    "webdav": "^5.8.0",
     "xml2js": "^0.6.2"
   },
   "devDependencies": {

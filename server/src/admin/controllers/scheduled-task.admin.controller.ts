@@ -286,6 +286,82 @@ export class ScheduledTaskAdminController {
       });
     }
   }
+
+  /**
+   * 获取任务配置
+   */
+  async getTaskConfig(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const config = await this.scheduledTaskService.getTaskConfig(id);
+
+      res.json({
+        success: true,
+        data: config
+      });
+    } catch (error) {
+      console.error('[计划任务控制器] 获取任务配置失败:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '获取任务配置失败'
+      });
+    }
+  }
+
+  /**
+   * 更新任务配置
+   */
+  async updateTaskConfig(req: AdminRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const config = req.body;
+
+      const task = await this.scheduledTaskService.updateTaskConfig(id, config);
+
+      res.json({
+        success: true,
+        data: task,
+        message: '配置更新成功'
+      });
+    } catch (error) {
+      console.error('[计划任务控制器] 更新任务配置失败:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '更新任务配置失败'
+      });
+    }
+  }
+
+  /**
+   * 测试WebDAV连接
+   */
+  async testWebDAVConnection(req: Request, res: Response): Promise<void> {
+    try {
+      const webdavConfig = req.body;
+
+      if (!webdavConfig || !webdavConfig.url || !webdavConfig.username || !webdavConfig.password) {
+        res.status(400).json({
+          success: false,
+          message: '缺少必需的WebDAV配置参数'
+        });
+        return;
+      }
+
+      const result = await this.scheduledTaskService.testWebDAVConnection(webdavConfig);
+
+      res.json({
+        success: true,
+        data: result,
+        message: result.success ? 'WebDAV连接测试成功' : 'WebDAV连接测试失败'
+      });
+    } catch (error) {
+      console.error('[计划任务控制器] 测试WebDAV连接失败:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '测试WebDAV连接失败'
+      });
+    }
+  }
 }
 
 export default ScheduledTaskAdminController;

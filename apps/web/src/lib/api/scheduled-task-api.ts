@@ -180,6 +180,30 @@ export const scheduledTaskApi = {
     const response = await adminApi.get(`/api/admin/scheduled-tasks/logs/${id}`);
     return response.json();
   },
+
+  /**
+   * 获取任务配置
+   */
+  async getTaskConfig(id: string): Promise<{ success: boolean; data: any }> {
+    const response = await adminApi.get(`/api/admin/scheduled-tasks/${id}/config`);
+    return response.json();
+  },
+
+  /**
+   * 更新任务配置
+   */
+  async updateTaskConfig(id: string, config: any): Promise<{ success: boolean; data: ScheduledTask; message: string }> {
+    const response = await adminApi.put(`/api/admin/scheduled-tasks/${id}/config`, config);
+    return response.json();
+  },
+
+  /**
+   * 测试WebDAV连接
+   */
+  async testWebDAVConnection(config: any): Promise<{ success: boolean; data: { success: boolean; message: string }; message: string }> {
+    const response = await adminApi.post('/api/admin/scheduled-tasks/test-webdav', config);
+    return response.json();
+  },
 };
 
 export default scheduledTaskApi;

@@ -36,6 +36,15 @@ export interface LLMConfigData {
   maxTokens?: number;
 }
 
+export interface WebDAVBackupConfigData {
+  enabled: boolean;
+  url: string;
+  username: string;
+  password: string;
+  basePath: string;
+  description?: string;
+}
+
 export interface LLMTestConfig {
   provider: string;
   model: string;

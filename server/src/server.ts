@@ -11,6 +11,7 @@ import { AICallLogAdminService } from './admin/services/ai-call-log.admin.servic
 import { performanceMonitoringService } from './services/performance-monitoring.service';
 import { MultiProviderLLMService } from './ai/llm/multi-provider-service';
 import { ScheduledTaskAdminService } from './admin/services/scheduled-task.admin.service';
+import { registerAllInternalTasks } from './admin/services/register-internal-tasks';
 
 // 连接数据库
 connectDatabase();
@@ -55,33 +56,70 @@ const server = app.listen(config.port, '0.0.0.0', async () => {
     console.error('❌ AI调用日志服务初始化失败:', error);
   }
 
-  // 启动数据聚合服务
-  startAggregationService().catch(console.error);
+  // 检查是否使用统一调度器
+  const useUnifiedScheduler = process.env.USE_UNIFIED_SCHEDULER === 'true';
 
-  // 启动用户注销定时任务
-  const userDeletionService = new UserDeletionService();
-  userDeletionService.startScheduledDeletion();
+  if (useUnifiedScheduler) {
+    console.log('🔄 使用统一计划任务调度器模式');
 
-  // 启动任务调度器
-  TaskScheduler.start();
+    // 注册所有内部任务
+    try {
+      registerAllInternalTasks();
+      console.log('✅ 内部任务注册成功');
+    } catch (error) {
+      console.error('❌ 内部任务注册失败:', error);
+    }
 
-  // 启动微信媒体文件清理任务
-  if (config.wechat) {
-    const wechatCleanupTask = new WechatMediaCleanupTask();
-    wechatCleanupTask.start();
-  }
+    // 启动计划任务服务（统一调度所有任务）
+    try {
+      scheduledTaskServiceInstance = new ScheduledTaskAdminService();
+      await scheduledTaskServiceInstance.initializeScheduledTasks();
+      console.log('✅ 计划任务服务启动成功');
+    } catch (error) {
+      console.error('❌ 计划任务服务启动失败:', error);
+    }
 
-  // 启动会员到期检查任务
-  const membershipExpiryTask = new MembershipExpiryCheckTask();
-  membershipExpiryTask.start();
+    // 注意：预算结转任务仍然通过TaskScheduler启动（因为它已经在计划任务中）
+    TaskScheduler.start();
+  } else {
+    console.log('🔄 使用传统独立任务调度器模式');
 
-  // 启动计划任务服务
-  try {
-    scheduledTaskServiceInstance = new ScheduledTaskAdminService();
-    await scheduledTaskServiceInstance.initializeScheduledTasks();
-    console.log('✅ 计划任务服务启动成功');
-  } catch (error) {
-    console.error('❌ 计划任务服务启动失败:', error);
+    // 启动数据聚合服务
+    startAggregationService().catch(console.error);
+
+    // 启动用户注销定时任务
+    const userDeletionService = new UserDeletionService();
+    userDeletionService.startScheduledDeletion();
+
+    // 启动任务调度器（包含预算结转）
+    TaskScheduler.start();
+
+    // 启动微信媒体文件清理任务
+    if (config.wechat) {
+      const wechatCleanupTask = new WechatMediaCleanupTask();
+      wechatCleanupTask.start();
+    }
+
+    // 启动会员到期检查任务
+    const membershipExpiryTask = new MembershipExpiryCheckTask();
+    membershipExpiryTask.start();
+
+    // 注册内部任务（即使不使用统一调度器，也注册以便手动执行）
+    try {
+      registerAllInternalTasks();
+      console.log('✅ 内部任务注册成功（可用于手动执行）');
+    } catch (error) {
+      console.error('❌ 内部任务注册失败:', error);
+    }
+
+    // 启动计划任务服务（用于管理其他脚本任务）
+    try {
+      scheduledTaskServiceInstance = new ScheduledTaskAdminService();
+      await scheduledTaskServiceInstance.initializeScheduledTasks();
+      console.log('✅ 计划任务服务启动成功');
+    } catch (error) {
+      console.error('❌ 计划任务服务启动失败:', error);
+    }
   }
 
   // 启动性能监控服务

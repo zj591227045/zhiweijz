@@ -3,13 +3,15 @@ import * as cron from 'node-cron';
 import { spawn } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
+import { internalTaskRegistry } from './internal-task-registry';
+import { WebDAVClientService } from '../../services/webdav-client.service';
 
 const prisma = new PrismaClient();
 
 interface CreateScheduledTaskDto {
   name: string;
   description?: string;
-  scriptType: 'shell' | 'sql' | 'node';
+  scriptType: 'shell' | 'sql' | 'node' | 'internal';
   scriptPath: string;
   cronExpression: string;
   isEnabled?: boolean;
@@ -18,7 +20,7 @@ interface CreateScheduledTaskDto {
 interface UpdateScheduledTaskDto {
   name?: string;
   description?: string;
-  scriptType?: 'shell' | 'sql' | 'node';
+  scriptType?: 'shell' | 'sql' | 'node' | 'internal';
   scriptPath?: string;
   cronExpression?: string;
   isEnabled?: boolean;
@@ -174,8 +176,48 @@ export class ScheduledTaskAdminService {
     let exitCode: number | null = null;
 
     try {
+      // 处理内部任务类型
+      if (task.scriptType === 'internal') {
+        console.log(`[计划任务服务] 执行内部任务: ${task.scriptPath}`);
+
+        try {
+          // 传递任务配置给内部任务
+          const taskConfig = task.config ? (typeof task.config === 'string' ? JSON.parse(task.config) : task.config) : undefined;
+          await internalTaskRegistry.execute(task.scriptPath, taskConfig);
+
+          // 更新执行日志为成功
+          const duration = Date.now() - startTime;
+          await prisma.taskExecutionLog.update({
+            where: { id: logId },
+            data: {
+              status: 'success',
+              endTime: new Date(),
+              duration,
+              output: `内部任务执行成功`,
+              exitCode: 0
+            }
+          });
+        } catch (internalError) {
+          // 更新执行日志为失败
+          const duration = Date.now() - startTime;
+          await prisma.taskExecutionLog.update({
+            where: { id: logId },
+            data: {
+              status: 'failed',
+              endTime: new Date(),
+              duration,
+              error: internalError instanceof Error ? internalError.message : String(internalError),
+              exitCode: 1
+            }
+          });
+          throw internalError;
+        }
+        return;
+      }
+
+      // 处理外部脚本任务
       const scriptFullPath = path.resolve(this.projectRoot, task.scriptPath);
-      
+
       // 检查脚本文件是否存在
       if (!fs.existsSync(scriptFullPath)) {
         throw new Error(`脚本文件不存在: ${scriptFullPath}`);
@@ -358,10 +400,18 @@ export class ScheduledTaskAdminService {
       throw new Error(`无效的Cron表达式: ${data.cronExpression}`);
     }
 
-    // 验证脚本路径
-    const scriptFullPath = path.resolve(this.projectRoot, data.scriptPath);
-    if (!fs.existsSync(scriptFullPath)) {
-      throw new Error(`脚本文件不存在: ${data.scriptPath}`);
+    // 验证脚本路径或内部任务key
+    if (data.scriptType === 'internal') {
+      // 对于内部任务，验证任务是否已注册
+      if (!internalTaskRegistry.hasTask(data.scriptPath)) {
+        throw new Error(`内部任务不存在: ${data.scriptPath}`);
+      }
+    } else {
+      // 对于外部脚本，验证文件是否存在
+      const scriptFullPath = path.resolve(this.projectRoot, data.scriptPath);
+      if (!fs.existsSync(scriptFullPath)) {
+        throw new Error(`脚本文件不存在: ${data.scriptPath}`);
+      }
     }
 
     const task = await prisma.scheduledTask.create({
@@ -502,6 +552,69 @@ export class ScheduledTaskAdminService {
       console.log(`[计划任务服务] 已停止任务: ${taskId}`);
     });
     this.cronJobs.clear();
+  }
+
+  /**
+   * 获取任务配置
+   */
+  async getTaskConfig(taskId: string): Promise<any> {
+    const task = await prisma.scheduledTask.findUnique({
+      where: { id: taskId },
+      select: { config: true }
+    });
+
+    if (!task) {
+      throw new Error(`任务不存在: ${taskId}`);
+    }
+
+    return task.config || {};
+  }
+
+  /**
+   * 更新任务配置
+   */
+  async updateTaskConfig(taskId: string, config: any) {
+    const task = await prisma.scheduledTask.update({
+      where: { id: taskId },
+      data: { config: config }
+    });
+
+    return task;
+  }
+
+  /**
+   * 测试WebDAV连接
+   */
+  async testWebDAVConnection(webdavConfig: any): Promise<{ success: boolean; message: string }> {
+    try {
+      // 创建一个新的WebDAV客户端实例用于测试
+      const testClient = new WebDAVClientService();
+
+      // 初始化WebDAV客户端
+      await testClient.initialize({
+        url: webdavConfig.url,
+        username: webdavConfig.username,
+        password: webdavConfig.password,
+        basePath: webdavConfig.basePath || '/zhiweijz-backups',
+      });
+
+      // 尝试列出根目录
+      await testClient.listFiles({
+        remotePath: '/',
+        deep: false,
+      });
+
+      return {
+        success: true,
+        message: 'WebDAV连接成功'
+      };
+    } catch (error) {
+      console.error('[计划任务服务] 测试WebDAV连接失败:', error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : '连接失败'
+      };
+    }
   }
 }
 

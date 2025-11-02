@@ -53,6 +53,8 @@ const VERSION_TO_MIGRATIONS = {
   '1.8.4': ['add-family-member-id-to-budget-histories'],
   '1.8.5': ['h5-payment-orders'],
   '1.8.6': ['scheduled-tasks'],
+  '1.8.7': ['add-internal-scheduled-tasks'],
+  '1.8.8': ['add-scheduled-task-config'],
 };
 
 // 基础迁移文件（不属于版本化迁移的基础设施）

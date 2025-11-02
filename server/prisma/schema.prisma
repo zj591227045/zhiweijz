@@ -1474,10 +1474,11 @@ model ScheduledTask {
   id          String   @id @default(uuid())
   name        String   // 任务名称
   description String?  // 任务描述
-  scriptType  String   @map("script_type") // 脚本类型: shell, sql, node
-  scriptPath  String   @map("script_path") // 脚本路径（相对于项目根目录）
+  scriptType  String   @map("script_type") // 脚本类型: shell, sql, node, internal
+  scriptPath  String   @map("script_path") // 脚本路径（相对于项目根目录）或内部任务key
   cronExpression String @map("cron_expression") // Cron表达式
   isEnabled   Boolean  @default(true) @map("is_enabled") // 是否启用
+  config      Json?    // 任务专属配置（JSON格式），如WebDAV备份配置
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
   createdBy   String?  @map("created_by") // 创建者ID（管理员）

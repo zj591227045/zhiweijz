@@ -19,10 +19,12 @@ import {
   DocumentTextIcon,
   MagnifyingGlassIcon,
   ArrowPathIcon,
+  Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 import { scheduledTaskApi, type ScheduledTask, type TaskExecutionLog } from '@/lib/api/scheduled-task-api';
 import TaskFormDialog from './components/TaskFormDialog';
 import ExecutionLogsDialog from './components/ExecutionLogsDialog';
+import WebDAVConfigDialog from './components/WebDAVConfigDialog';
 import { toast } from 'sonner';
 
 export default function ScheduledTasksPage() {
@@ -37,9 +39,11 @@ export default function ScheduledTasksPage() {
   const [showTaskDialog, setShowTaskDialog] = useState(false);
   const [showLogsDialog, setShowLogsDialog] = useState(false);
   const [showLogDetailDialog, setShowLogDetailDialog] = useState(false);
+  const [showWebDAVConfigDialog, setShowWebDAVConfigDialog] = useState(false);
   const [editingTask, setEditingTask] = useState<ScheduledTask | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [selectedLog, setSelectedLog] = useState<TaskExecutionLog | null>(null);
+  const [configTask, setConfigTask] = useState<{ id: string; name: string; type: 'database-backup' | 's3-backup' } | null>(null);
   const [activeTab, setActiveTab] = useState('tasks');
 
   const pageSize = 10;
@@ -164,6 +168,29 @@ export default function ScheduledTasksPage() {
   const handleTaskSaved = () => {
     setShowTaskDialog(false);
     fetchTasks();
+  };
+
+  // 打开WebDAV配置对话框
+  const handleConfigWebDAV = (task: ScheduledTask) => {
+    const taskType = task.scriptPath as 'database-backup' | 's3-backup';
+    setConfigTask({
+      id: task.id,
+      name: task.name,
+      type: taskType,
+    });
+    setShowWebDAVConfigDialog(true);
+  };
+
+  // WebDAV配置保存成功回调
+  const handleWebDAVConfigSaved = () => {
+    setShowWebDAVConfigDialog(false);
+    setConfigTask(null);
+    toast.success('WebDAV配置已保存');
+  };
+
+  // 判断是否是备份任务
+  const isBackupTask = (task: ScheduledTask) => {
+    return task.scriptPath === 'database-backup' || task.scriptPath === 's3-backup';
   };
 
   // 格式化时间
@@ -322,6 +349,7 @@ export default function ScheduledTasksPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleExecuteTask(task.id)}
+                          title="执行任务"
                         >
                           <PlayIcon className="h-4 w-4" />
                         </Button>
@@ -329,13 +357,25 @@ export default function ScheduledTasksPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleViewLogs(task.id)}
+                          title="查看日志"
                         >
                           <DocumentTextIcon className="h-4 w-4" />
                         </Button>
+                        {isBackupTask(task) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleConfigWebDAV(task)}
+                            title="WebDAV配置"
+                          >
+                            <Cog6ToothIcon className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleEditTask(task)}
+                          title="编辑任务"
                         >
                           <PencilIcon className="h-4 w-4" />
                         </Button>
@@ -343,6 +383,7 @@ export default function ScheduledTasksPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleDeleteTask(task.id)}
+                          title="删除任务"
                         >
                           <TrashIcon className="h-4 w-4" />
                         </Button>
@@ -626,6 +667,20 @@ export default function ScheduledTasksPage() {
             </div>
           </DialogContent>
         </Dialog>
+      )}
+
+      {/* WebDAV配置对话框 */}
+      {showWebDAVConfigDialog && configTask && (
+        <WebDAVConfigDialog
+          taskId={configTask.id}
+          taskName={configTask.name}
+          taskType={configTask.type}
+          onClose={() => {
+            setShowWebDAVConfigDialog(false);
+            setConfigTask(null);
+          }}
+          onSaved={handleWebDAVConfigSaved}
+        />
       )}
     </div>
   );

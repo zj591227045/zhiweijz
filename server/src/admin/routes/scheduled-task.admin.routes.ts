@@ -32,6 +32,14 @@ router.get('/logs/list', (req, res) => scheduledTaskController.getExecutionLogs(
 router.get('/logs/:id', (req, res) => scheduledTaskController.getExecutionLogById(req, res));
 
 /**
+ * @route POST /api/admin/scheduled-tasks/test-webdav
+ * @desc 测试WebDAV连接
+ * @access Admin
+ * 注意：这个路由必须在 /:id 之前，否则会被 /:id 匹配
+ */
+router.post('/test-webdav', (req, res) => scheduledTaskController.testWebDAVConnection(req, res));
+
+/**
  * @route GET /api/admin/scheduled-tasks/:id
  * @desc 获取计划任务详情
  * @access Admin
@@ -72,6 +80,20 @@ router.post('/:id/execute', (req, res) => scheduledTaskController.executeTask(re
  * @access Admin
  */
 router.patch('/:id/toggle', (req, res) => scheduledTaskController.toggleTask(req, res));
+
+/**
+ * @route GET /api/admin/scheduled-tasks/:id/config
+ * @desc 获取任务配置
+ * @access Admin
+ */
+router.get('/:id/config', (req, res) => scheduledTaskController.getTaskConfig(req, res));
+
+/**
+ * @route PUT /api/admin/scheduled-tasks/:id/config
+ * @desc 更新任务配置
+ * @access Admin
+ */
+router.put('/:id/config', (req, res) => scheduledTaskController.updateTaskConfig(req, res));
 
 export default router;
 
