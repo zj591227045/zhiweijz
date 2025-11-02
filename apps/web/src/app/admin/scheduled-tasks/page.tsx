@@ -15,7 +15,6 @@ import {
   PencilIcon,
   TrashIcon,
   PlayIcon,
-  ClockIcon,
   DocumentTextIcon,
   MagnifyingGlassIcon,
   ArrowPathIcon,
@@ -25,6 +24,7 @@ import { scheduledTaskApi, type ScheduledTask, type TaskExecutionLog } from '@/l
 import TaskFormDialog from './components/TaskFormDialog';
 import ExecutionLogsDialog from './components/ExecutionLogsDialog';
 import WebDAVConfigDialog from './components/WebDAVConfigDialog';
+import { CustomDateRangePicker } from '@/components/statistics/custom-date-range-picker';
 import { toast } from 'sonner';
 
 export default function ScheduledTasksPage() {
@@ -36,6 +36,32 @@ export default function ScheduledTasksPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalTasks, setTotalTasks] = useState(0);
   const [totalLogs, setTotalLogs] = useState(0);
+
+  // 日志筛选相关状态
+  const [logTaskFilter, setLogTaskFilter] = useState('');
+  const [logStatusFilter, setLogStatusFilter] = useState('');
+  const [logStartDate, setLogStartDate] = useState('');
+  const [logEndDate, setLogEndDate] = useState('');
+  const [allTasks, setAllTasks] = useState<ScheduledTask[]>([]);
+
+  // 清空日志筛选条件
+  const clearLogFilters = () => {
+    setLogTaskFilter('');
+    setLogStatusFilter('');
+    setLogStartDate('');
+    setLogEndDate('');
+    setCurrentPage(1);
+  };
+
+  // 处理日期范围变化
+  const handleDateRangeChange = (dateRange: { startDate: string; endDate: string }) => {
+    // 将日期格式转换为datetime格式 (YYYY-MM-DD -> YYYY-MM-DDT00:00:00)
+    const startDateTime = dateRange.startDate ? `${dateRange.startDate}T00:00:00` : '';
+    const endDateTime = dateRange.endDate ? `${dateRange.endDate}T23:59:59` : '';
+    setLogStartDate(startDateTime);
+    setLogEndDate(endDateTime);
+    setCurrentPage(1);
+  };
   const [showTaskDialog, setShowTaskDialog] = useState(false);
   const [showLogsDialog, setShowLogsDialog] = useState(false);
   const [showLogDetailDialog, setShowLogDetailDialog] = useState(false);
@@ -47,6 +73,19 @@ export default function ScheduledTasksPage() {
   const [activeTab, setActiveTab] = useState('tasks');
 
   const pageSize = 10;
+
+  // 获取所有任务列表（用于筛选下拉菜单）
+  const fetchAllTasks = async () => {
+    try {
+      const response = await scheduledTaskApi.getTaskList({
+        page: 1,
+        limit: 1000, // 获取足够多的任务用于筛选
+      });
+      setAllTasks(response.data || []);
+    } catch (error) {
+      console.error('获取所有任务列表失败:', error);
+    }
+  };
 
   // 获取任务列表
   const fetchTasks = async () => {
@@ -77,6 +116,10 @@ export default function ScheduledTasksPage() {
       const response = await scheduledTaskApi.getExecutionLogs({
         page: currentPage,
         limit: pageSize,
+        taskId: logTaskFilter || undefined,
+        status: logStatusFilter || undefined,
+        startDate: logStartDate || undefined,
+        endDate: logEndDate || undefined,
       });
       setLogs(response.data || []);
       setTotalLogs(response.total || 0);
@@ -96,7 +139,12 @@ export default function ScheduledTasksPage() {
     } else {
       fetchLogs();
     }
-  }, [currentPage, searchTerm, filterEnabled, activeTab]);
+  }, [currentPage, searchTerm, filterEnabled, activeTab, logTaskFilter, logStatusFilter, logStartDate, logEndDate]);
+
+  // 初始化时获取所有任务列表
+  useEffect(() => {
+    fetchAllTasks();
+  }, []);
 
   // 创建任务
   const handleCreateTask = () => {
@@ -120,6 +168,7 @@ export default function ScheduledTasksPage() {
       await scheduledTaskApi.deleteTask(id);
       toast.success('任务删除成功');
       fetchTasks();
+      fetchAllTasks(); // 同时更新任务下拉列表
     } catch (error) {
       console.error('删除任务失败:', error);
       toast.error('删除任务失败');
@@ -141,7 +190,7 @@ export default function ScheduledTasksPage() {
   // 手动执行任务
   const handleExecuteTask = async (id: string) => {
     try {
-      const response = await scheduledTaskApi.executeTask(id);
+      await scheduledTaskApi.executeTask(id);
       toast.success('任务已开始执行');
       // 切换到日志标签页
       setActiveTab('logs');
@@ -168,6 +217,7 @@ export default function ScheduledTasksPage() {
   const handleTaskSaved = () => {
     setShowTaskDialog(false);
     fetchTasks();
+    fetchAllTasks(); // 同时更新任务下拉列表
   };
 
   // 打开WebDAV配置对话框
@@ -447,10 +497,67 @@ export default function ScheduledTasksPage() {
           {/* 筛选和刷新 */}
           <Card>
             <CardContent className="pt-6">
-              <div className="flex gap-4 justify-end">
-                <Button variant="outline" onClick={fetchLogs}>
-                  <ArrowPathIcon className="h-5 w-5" />
-                </Button>
+              <div className="space-y-6">
+                {/* 第一行：任务筛选和状态筛选 */}
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">任务筛选</label>
+                    <select
+                      value={logTaskFilter || ''}
+                      onChange={(e) => {
+                        setLogTaskFilter(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">全部任务</option>
+                      {allTasks.map((task) => (
+                        <option key={task.id} value={task.id}>
+                          {task.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="min-w-32">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">状态筛选</label>
+                    <select
+                      value={logStatusFilter || ''}
+                      onChange={(e) => {
+                        setLogStatusFilter(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">全部状态</option>
+                      <option value="success">成功</option>
+                      <option value="failed">失败</option>
+                      <option value="running">运行中</option>
+                      <option value="pending">等待中</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* 第二行：时间筛选 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">执行时间范围</label>
+                  <CustomDateRangePicker
+                    startDate={logStartDate}
+                    endDate={logEndDate}
+                    onChange={handleDateRangeChange}
+                    className="w-full"
+                  />
+                </div>
+
+                {/* 第三行：操作按钮 */}
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" onClick={clearLogFilters}>
+                    清空筛选
+                  </Button>
+                  <Button variant="outline" onClick={fetchLogs}>
+                    <ArrowPathIcon className="h-5 w-5 mr-2" />
+                    刷新
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

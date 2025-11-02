@@ -35,6 +35,7 @@ interface TaskListQuery {
 
 interface ExecutionLogQuery {
   taskId?: string;
+  taskName?: string;
   status?: string;
   page?: number;
   limit?: number;
@@ -486,11 +487,11 @@ export class ScheduledTaskAdminService {
    * 获取执行日志列表
    */
   async getExecutionLogs(query: ExecutionLogQuery) {
-    const { taskId, status, page = 1, limit = 50, startDate, endDate } = query;
+    const { taskId, taskName, status, page = 1, limit = 50, startDate, endDate } = query;
     const skip = (page - 1) * limit;
 
     const where: any = {};
-    
+
     if (taskId) {
       where.taskId = taskId;
     }
@@ -511,7 +512,15 @@ export class ScheduledTaskAdminService {
 
     const [logs, total] = await Promise.all([
       prisma.taskExecutionLog.findMany({
-        where,
+        where: taskName ? {
+          ...where,
+          task: {
+            name: {
+              contains: taskName,
+              mode: 'insensitive'
+            }
+          }
+        } : where,
         skip,
         take: limit,
         orderBy: { startTime: 'desc' },
@@ -524,7 +533,17 @@ export class ScheduledTaskAdminService {
           }
         }
       }),
-      prisma.taskExecutionLog.count({ where })
+      taskName ? prisma.taskExecutionLog.count({
+        where: {
+          ...where,
+          task: {
+            name: {
+              contains: taskName,
+              mode: 'insensitive'
+            }
+          }
+        }
+      }) : prisma.taskExecutionLog.count({ where })
     ]);
 
     return { logs, total, page, limit };

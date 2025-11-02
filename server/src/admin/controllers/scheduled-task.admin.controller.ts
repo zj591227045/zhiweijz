@@ -231,10 +231,11 @@ export class ScheduledTaskAdminController {
    */
   async getExecutionLogs(req: Request, res: Response): Promise<void> {
     try {
-      const { taskId, status, page, limit, startDate, endDate } = req.query;
+      const { taskId, taskName, status, page, limit, startDate, endDate } = req.query;
 
       const result = await this.scheduledTaskService.getExecutionLogs({
         taskId: taskId as string,
+        taskName: taskName as string,
         status: status as string,
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,

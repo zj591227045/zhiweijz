@@ -62,6 +62,7 @@ export interface TaskListQuery {
 
 export interface ExecutionLogQuery {
   taskId?: string;
+  taskName?: string;
   status?: string;
   page?: number;
   limit?: number;
@@ -160,6 +161,7 @@ export const scheduledTaskApi = {
   async getExecutionLogs(query?: ExecutionLogQuery): Promise<ExecutionLogListResponse> {
     const params = new URLSearchParams();
     if (query?.taskId) params.append('taskId', query.taskId);
+    if (query?.taskName) params.append('taskName', query.taskName);
     if (query?.status) params.append('status', query.status);
     if (query?.page) params.append('page', query.page.toString());
     if (query?.limit) params.append('limit', query.limit.toString());
