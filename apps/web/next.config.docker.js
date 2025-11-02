@@ -4,18 +4,16 @@ const path = require('path');
 
 const nextConfig = {
   reactStrictMode: true,
-  
+
   // Docker环境使用standalone模式
   output: 'standalone',
-  
+
+  // 明确禁用pages目录，仅使用app router
+  pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+
   // 图片优化配置
   images: {
     unoptimized: true
-  },
-  
-  // 实验性功能
-  experimental: {
-    missingSuspenseWithCSRBailout: false,
   },
   
   // skipTrailingSlashRedirect 已经从 experimental 中移出
@@ -72,6 +70,19 @@ const nextConfig = {
       config.externals.push({
         'utf-8-validate': 'commonjs utf-8-validate',
         'bufferutil': 'commonjs bufferutil',
+        // Capacitor包在服务端渲染时排除
+        '@capacitor/core': 'commonjs @capacitor/core',
+        '@capacitor/browser': 'commonjs @capacitor/browser',
+        '@capacitor/app': 'commonjs @capacitor/app',
+        '@capacitor/camera': 'commonjs @capacitor/camera',
+        '@capacitor/filesystem': 'commonjs @capacitor/filesystem',
+        '@capacitor/haptics': 'commonjs @capacitor/haptics',
+        '@capacitor/keyboard': 'commonjs @capacitor/keyboard',
+        '@capacitor/splash-screen': 'commonjs @capacitor/splash-screen',
+        '@capacitor/status-bar': 'commonjs @capacitor/status-bar',
+        '@capacitor/android': 'commonjs @capacitor/android',
+        '@capacitor/ios': 'commonjs @capacitor/ios',
+        '@revenuecat/purchases-capacitor': 'commonjs @revenuecat/purchases-capacitor',
       });
     }
     

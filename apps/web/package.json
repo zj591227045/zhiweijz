@@ -32,6 +32,7 @@
   "dependencies": {
     "@capacitor/android": "^7.3.0",
     "@capacitor/app": "^7.0.1",
+    "@capacitor/browser": "^7.0.2",
     "@capacitor/camera": "^7.0.1",
     "@capacitor/cli": "^7.3.0",
     "@capacitor/core": "^7.3.0",

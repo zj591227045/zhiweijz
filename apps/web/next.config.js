@@ -1,17 +1,24 @@
 /** @type {import('next').NextConfig} */
+const webpack = require('webpack');
+const path = require('path');
+
 const nextConfig = {
   reactStrictMode: true,
+
+  // Docker环境使用standalone模式
+  output: 'standalone',
+
+  // 明确禁用pages目录，仅使用app router
+  pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
 
   // 图片优化配置
   images: {
     unoptimized: true
   },
-
-  // 实验性功能
-  experimental: {
-    missingSuspenseWithCSRBailout: false,
-  },
-
+  
+  // skipTrailingSlashRedirect 已经从 experimental 中移出
+  skipTrailingSlashRedirect: true,
+  
   // 忽略构建错误
   typescript: {
     ignoreBuildErrors: true,
@@ -19,41 +26,68 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-
-  // 环境变量 - Web端构建
+  
+  // 环境变量
   env: {
-    IS_MOBILE_BUILD: 'false',
-    NEXT_PUBLIC_IS_MOBILE: 'false',
+    DOCKER_ENV: process.env.DOCKER_ENV || 'true',
+    IS_MOBILE_BUILD: 'false', // Docker环境不是移动端构建
   },
-
-  // 页面扩展名配置
-  pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
-
+  
   // Webpack配置 - 处理内部包路径和依赖
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@zhiweijz/core': require('path').resolve(__dirname, '../../packages/core/src'),
-      '@zhiweijz/web': require('path').resolve(__dirname, '../../packages/web/src'),
-    };
-
-    // 确保内部包可以访问前端的依赖
-    config.resolve.modules = [
-      require('path').resolve(__dirname, 'node_modules'),
-      require('path').resolve(__dirname, '../../node_modules'),
-      'node_modules'
-    ];
-
-    // 定义全局变量
+  webpack: (config, { isServer }) => {
+    // 定义环境变量
     config.plugins.push(
-      new (require('webpack')).DefinePlugin({
+      new webpack.DefinePlugin({
         'process.env.IS_MOBILE_BUILD': JSON.stringify('false'),
-        'process.env.NEXT_PUBLIC_IS_MOBILE': JSON.stringify('false'),
+        'process.env.DOCKER_ENV': JSON.stringify('true'),
       })
     );
-
+    
+    
+    // 处理路径别名 - 确保 @ 别名正确指向 src 目录
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname, 'src'),
+      '@/data': path.resolve(__dirname, 'src/data'),
+      '@/components': path.resolve(__dirname, 'src/components'),
+      '@/lib': path.resolve(__dirname, 'src/lib'),
+      '@/store': path.resolve(__dirname, 'src/store'),
+      '@/styles': path.resolve(__dirname, 'src/styles'),
+      '@/utils': path.resolve(__dirname, 'src/utils'),
+      '@/types': path.resolve(__dirname, 'src/types'),
+    };
+    
+    // 确保模块解析路径正确
+    config.resolve.modules = [
+      path.resolve(__dirname, 'src'),
+      path.resolve(__dirname, 'node_modules'),
+      'node_modules'
+    ];
+    
+    // 处理外部依赖
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push({
+        'utf-8-validate': 'commonjs utf-8-validate',
+        'bufferutil': 'commonjs bufferutil',
+        // Capacitor包在服务端渲染时排除
+        '@capacitor/core': 'commonjs @capacitor/core',
+        '@capacitor/browser': 'commonjs @capacitor/browser',
+        '@capacitor/app': 'commonjs @capacitor/app',
+        '@capacitor/camera': 'commonjs @capacitor/camera',
+        '@capacitor/filesystem': 'commonjs @capacitor/filesystem',
+        '@capacitor/haptics': 'commonjs @capacitor/haptics',
+        '@capacitor/keyboard': 'commonjs @capacitor/keyboard',
+        '@capacitor/splash-screen': 'commonjs @capacitor/splash-screen',
+        '@capacitor/status-bar': 'commonjs @capacitor/status-bar',
+        '@capacitor/android': 'commonjs @capacitor/android',
+        '@capacitor/ios': 'commonjs @capacitor/ios',
+        '@revenuecat/purchases-capacitor': 'commonjs @revenuecat/purchases-capacitor',
+      });
+    }
+    
     return config;
   },
 };
 
-module.exports = nextConfig;
+module.exports = nextConfig; 

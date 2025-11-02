@@ -4,8 +4,6 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Capacitor } from '@capacitor/core';
-import { Browser } from '@capacitor/browser';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 
@@ -64,9 +62,24 @@ export function AndroidH5PaymentModal({
   const [currentOrder, setCurrentOrder] = useState<PaymentOrder | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [isAndroid, setIsAndroid] = useState(false);
 
   // 检查是否在Android环境
-  const isAndroid = Capacitor.getPlatform() === 'android';
+  useEffect(() => {
+    const checkPlatform = async () => {
+      try {
+        if (typeof window !== 'undefined') {
+          const { Capacitor } = await import('@capacitor/core');
+          setIsAndroid(Capacitor.getPlatform() === 'android');
+        }
+      } catch (error) {
+        console.warn('无法加载Capacitor，假设为非Android环境:', error);
+        setIsAndroid(false);
+      }
+    };
+
+    checkPlatform();
+  }, []);
 
   // 获取产品列表
   useEffect(() => {
@@ -146,7 +159,10 @@ export function AndroidH5PaymentModal({
   const openPaymentWebView = async (jumpUrl: string) => {
     try {
       setShowWebView(true);
-      
+
+      // 动态导入Browser
+      const { Browser } = await import('@capacitor/browser');
+
       await Browser.open({
         url: jumpUrl,
         windowName: '_blank',
