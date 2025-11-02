@@ -22,25 +22,21 @@ RUN apk update && apk add --no-cache \
 # 复制package文件
 COPY server/package*.json ./
 
-# 配置npm以使用更稳定的镜像和更长的超时时间
-RUN npm config set registry https://registry.npmmirror.com && \
-    npm config set fetch-timeout 600000 && \
-    npm config set fetch-retry-mintimeout 20000 && \
-    npm config set fetch-retry-maxtimeout 120000 && \
-    npm config set fetch-retry 5 && \
-    npm config set strict-ssl false
+# 配置npm使用国内镜像源，提高下载速度
+RUN npm config set registry https://registry.npmmirror.com
 
-# 创建.npm目录确保权限正确
-RUN mkdir -p ~/.npm && \
-    chown -R nodejs:nodejs ~/.npm
-
-# 安装所有依赖（包括devDependencies用于构建），增加重试机制和备用镜像
-RUN npm install --legacy-peer-deps --verbose || ( \
+# 安装所有依赖（包括devDependencies用于构建），使用重试机制
+RUN echo "开始安装npm依赖..." && \
+    npm install --legacy-peer-deps --timeout=600000 || ( \
+        echo "第一次安装失败，切换到官方源重试..." && \
         npm config set registry https://registry.npmjs.org && \
-        npm install --legacy-peer-deps --verbose ) || ( \
+        npm install --legacy-peer-deps --timeout=600000 ) || ( \
+        echo "第二次安装失败，切换到腾讯云镜像源重试..." && \
         npm config set registry https://mirrors.cloud.tencent.com/npm/ && \
-        npm install --legacy-peer-deps --verbose ) || \
-    npm install --legacy-peer-deps --verbose
+        npm install --legacy-peer-deps --timeout=600000 ) || ( \
+        echo "第三次安装失败，回到默认设置做最后尝试..." && \
+        npm config set registry https://registry.npmjs.org && \
+        npm install --legacy-peer-deps --timeout=600000 )
 
 # 复制源代码（排除.env文件以避免覆盖Docker环境变量）
 COPY server/ .
