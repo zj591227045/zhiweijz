@@ -4,6 +4,9 @@ FROM node:18-alpine AS builder
 # 设置工作目录
 WORKDIR /app
 
+# 设置构建时环境变量，优化网络性能
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
 # 安装构建所需的系统依赖
 RUN apk update && apk add --no-cache \
     python3 \
@@ -19,8 +22,25 @@ RUN apk update && apk add --no-cache \
 # 复制package文件
 COPY server/package*.json ./
 
-# 安装所有依赖（包括devDependencies用于构建）
-RUN npm install --legacy-peer-deps
+# 配置npm以使用更稳定的镜像和更长的超时时间
+RUN npm config set registry https://registry.npmmirror.com && \
+    npm config set fetch-timeout 600000 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm config set fetch-retry 5 && \
+    npm config set strict-ssl false
+
+# 创建.npm目录确保权限正确
+RUN mkdir -p ~/.npm && \
+    chown -R nodejs:nodejs ~/.npm
+
+# 安装所有依赖（包括devDependencies用于构建），增加重试机制和备用镜像
+RUN npm install --legacy-peer-deps --verbose || ( \
+        npm config set registry https://registry.npmjs.org && \
+        npm install --legacy-peer-deps --verbose ) || ( \
+        npm config set registry https://mirrors.cloud.tencent.com/npm/ && \
+        npm install --legacy-peer-deps --verbose ) || \
+    npm install --legacy-peer-deps --verbose
 
 # 复制源代码（排除.env文件以避免覆盖Docker环境变量）
 COPY server/ .
@@ -31,16 +51,21 @@ RUN rm -f .env .env.local .env.production .env.development 2>/dev/null || true
 
 # 生成Prisma客户端 - 忽略校验和检查避免网络问题
 ENV PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
-RUN npx prisma generate
+RUN npx prisma generate || \
+    npx prisma generate || \
+    npx prisma generate
 
-# 构建TypeScript代码
-RUN npm run build
+# 构建TypeScript代码，增加重试机制
+RUN npm run build || \
+    npm run build || \
+    npm run build
 
 # 清理开发依赖，只保留生产依赖
-RUN npm prune --production --legacy-peer-deps
+RUN npm prune --production --legacy-peer-deps || \
+    npm prune --production --legacy-peer-deps
 
 # 清理npm缓存
-RUN npm cache clean --force
+RUN npm cache clean --force || true
 
 # 生产阶段
 FROM node:18-alpine AS production
