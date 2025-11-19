@@ -3,7 +3,12 @@
 
 set -e
 
+# 切换到脚本所在目录的上一级（apps/web）
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/.."
+
 echo "🍎 开始构建iOS应用..."
+echo "📂 工作目录: $(pwd)"
 
 # 检查必要的工具
 echo "🔍 检查构建环境..."
