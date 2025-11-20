@@ -57,6 +57,16 @@ export class MultiProviderLLMService {
    * 初始化健康检查
    */
   private initializeHealthCheck() {
+    // 检查是否使用统一调度器
+    const useUnifiedScheduler = process.env.USE_UNIFIED_SCHEDULER === 'true';
+
+    if (useUnifiedScheduler) {
+      // 使用统一调度器时，不启动独立的健康检查
+      console.log('统一调度器模式 - LLM健康检查由计划任务管理');
+      return;
+    }
+
+    // 传统模式：启动独立健康检查
     // 每5分钟执行一次健康检查
     this.healthCheckInterval = setInterval(() => {
       this.performHealthCheck();
