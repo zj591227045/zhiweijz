@@ -26,28 +26,30 @@
 
 /* Android状态栏适配 */
 .android-app body {
-  /* Android状态栏高度适配 */
-  padding-top: 24px; /* 标准状态栏高度 */
+  /* Android状态栏高度适配 - 移除padding，由各个组件自行处理 */
+  padding-top: 0;
   min-height: 100vh;
   min-height: 100dvh; /* 动态视口高度 */
 }
 
 /* Android状态栏安全区域 */
 .android-app .main-content {
-  /* 确保主要内容不被状态栏遮挡 */
-  padding-top: 8px;
-  min-height: calc(100vh - 24px);
-  min-height: calc(100dvh - 24px);
+  /* 主要内容区域保持原有样式，不需要额外的顶部间距 */
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* Android顶部工具栏适配 */
 .android-app .top-toolbar,
 .android-app .header,
 .android-app .app-header {
-  /* 顶部工具栏避让状态栏 */
-  margin-top: 24px;
-  position: relative;
+  /* 顶部工具栏避让状态栏 - 使用padding而不是margin，避免顶部空白 */
+  padding-top: calc(24px + 12px); /* 状态栏高度 + 内边距 */
+  position: sticky;
+  top: 0;
   z-index: 1000;
+  /* 确保背景延伸到状态栏区域 */
+  margin-top: 0;
 }
 
 /* Android页面头部适配 */
@@ -68,10 +70,10 @@
 }
 
 .android-app .modal-content {
-  /* 模态框内容避让状态栏 */
-  margin-top: 24px;
-  max-height: calc(100vh - 24px);
-  max-height: calc(100dvh - 24px);
+  /* 模态框内容避让状态栏 - 使用padding而不是margin */
+  padding-top: 24px;
+  max-height: 100vh;
+  max-height: 100dvh;
 }
 
 /* Android全屏模态框 */
@@ -129,8 +131,8 @@
 /* Android滚动容器适配 */
 .android-app .scroll-container {
   /* 滚动容器适配 */
-  height: calc(100vh - 24px);
-  height: calc(100dvh - 24px);
+  height: 100vh;
+  height: 100dvh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -240,13 +242,13 @@
 /* Android横屏适配 */
 @media screen and (orientation: landscape) {
   .android-app body {
-    /* 横屏时状态栏可能不同 */
-    padding-top: 24px;
+    /* 横屏时状态栏保持一致 */
+    padding-top: 0;
   }
   
   .android-app .main-content {
-    /* 横屏主要内容适配 */
-    padding-top: 8px;
+    /* 横屏主要内容保持一致 */
+    padding-top: 0;
   }
 }
 
