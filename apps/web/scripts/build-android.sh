@@ -5,6 +5,12 @@ set -e
 
 echo "🤖 开始构建Android应用..."
 
+# 确保在正确的目录运行
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/.."
+
+echo "📂 工作目录: $(pwd)"
+
 # 1. 清理之前的构建产物
 echo "🧹 清理之前的构建产物..."
 rm -rf out .next
