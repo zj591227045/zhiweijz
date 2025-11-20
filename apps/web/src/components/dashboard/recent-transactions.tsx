@@ -76,7 +76,7 @@ export const RecentTransactions = memo(
       // 添加交易点击的振动反馈
       hapticPresets.transactionTap();
 
-      console.log('🔄 [RecentTransactions] 记账点击，ID:', transactionId);
+
 
       // 设置 localStorage 标记来触发模态框
       localStorage.setItem('showTransactionEditModal', 'true');
@@ -136,11 +136,7 @@ export const RecentTransactions = memo(
 
     // 手动加载更多记录
     const handleLoadMore = async () => {
-      console.log('🔄 [RecentTransactions] 点击加载更多按钮', {
-        accountBookId: currentAccountBook?.id,
-        hasMoreTransactions,
-        isLoadingMore
-      });
+
       if (currentAccountBook?.id) {
         await loadMoreTransactions(currentAccountBook.id);
       } else {
@@ -155,47 +151,26 @@ export const RecentTransactions = memo(
 
     // 无限滚动逻辑
     useEffect(() => {
-      if (!isAutoLoadEnabled) {
-        console.log('⏸️ [RecentTransactions] 自动加载已禁用');
-        return;
-      }
-
-      if (!loadMoreTriggerRef.current) {
-        console.log('⏸️ [RecentTransactions] 加载触发元素未找到');
+      if (!isAutoLoadEnabled || !loadMoreTriggerRef.current) {
         return;
       }
 
       // 延迟查找滚动容器，确保 DOM 已经渲染
       const timer = setTimeout(() => {
         const scrollContainer = document.querySelector('.main-content') as HTMLElement;
-        if (!scrollContainer) {
-          console.warn('⚠️ [RecentTransactions] 未找到滚动容器 .main-content');
-          return;
-        }
-
-        console.log('✅ [RecentTransactions] 找到滚动容器，设置 Intersection Observer');
+        if (!scrollContainer) return;
 
         // 使用 Intersection Observer 检测加载触发元素是否可见
         const observer = new IntersectionObserver(
           (entries) => {
             entries.forEach((entry) => {
-              console.log('👁️ [RecentTransactions] Intersection 变化:', {
-                isIntersecting: entry.isIntersecting,
-                intersectionRatio: entry.intersectionRatio,
-                hasMoreTransactions,
-                isLoadingRef: isLoadingRef.current,
-                accountBookId: currentAccountBook?.id
-              });
-
-              // 只有当元素进入视口且满足加载条件时才触发
               if (
                 entry.isIntersecting && 
                 hasMoreTransactions && 
-                !isLoadingRef.current && // 使用 ref 检查，避免闭包问题
+                !isLoadingRef.current &&
                 currentAccountBook?.id
               ) {
-                console.log('🔄 [RecentTransactions] 触发自动加载更多交易记录');
-                isLoadingRef.current = true; // 立即标记为加载中
+                isLoadingRef.current = true;
                 loadMoreTransactions(currentAccountBook.id);
               }
             });
@@ -209,12 +184,9 @@ export const RecentTransactions = memo(
 
         if (loadMoreTriggerRef.current) {
           observer.observe(loadMoreTriggerRef.current);
-          console.log('✅ [RecentTransactions] 开始观察加载触发元素');
         }
 
-        // 清理函数
         return () => {
-          console.log('🧹 [RecentTransactions] 清理 Intersection Observer');
           observer.disconnect();
         };
       }, 100);
