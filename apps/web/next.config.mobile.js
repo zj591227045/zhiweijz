@@ -6,7 +6,6 @@ const nextConfig = {
   
   // Capacitor静态导出配置
   output: 'export',
-  distDir: 'out',
   trailingSlash: true,
   
   // 图片优化配置
