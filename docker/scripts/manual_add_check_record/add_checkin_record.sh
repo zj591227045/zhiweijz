@@ -211,8 +211,7 @@ fi
 
 # 执行SQL脚本
 if PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$FINAL_DB_HOST" -p "$FINAL_DB_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
-    -v user_id="'$USER_ID'" \
-    -v checkin_date="'$CHECKIN_DATE'" \
+    -c "SET app.user_id = '$USER_ID'; SET app.checkin_date = '$CHECKIN_DATE';" \
     -f "$SQL_SCRIPT"; then
     echo ""
     log_success "签到记录添加完成！"

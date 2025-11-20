@@ -19,6 +19,10 @@ BEGIN;
 \echo '=========================================='
 \echo ''
 
+-- 创建临时表存储用户ID
+CREATE TEMP TABLE IF NOT EXISTS temp_user_info (user_id UUID);
+DELETE FROM temp_user_info;
+
 -- 1. 验证用户是否存在并获取用户ID
 \echo '1. 验证用户是否存在...'
 DO $$
@@ -27,7 +31,7 @@ DECLARE
     v_user_name TEXT;
     v_user_email TEXT;
     v_actual_user_id UUID;
-    v_input_user_id TEXT := :user_id;
+    v_input_user_id TEXT := current_setting('app.user_id');
 BEGIN
     -- 尝试作为UUID查询
     BEGIN
@@ -38,8 +42,6 @@ BEGIN
         IF FOUND THEN
             RAISE NOTICE '✓ 用户存在: % (%) [ID: %]', v_user_name, v_user_email, v_actual_user_id;
             -- 将实际的UUID存储到临时表中供后续使用
-            CREATE TEMP TABLE IF NOT EXISTS temp_user_info (user_id UUID);
-            DELETE FROM temp_user_info;
             INSERT INTO temp_user_info VALUES (v_actual_user_id);
             RETURN;
         END IF;
@@ -57,8 +59,6 @@ BEGIN
     IF FOUND THEN
         RAISE NOTICE '✓ 用户存在: % (%) [ID: %]', v_user_name, v_user_email, v_actual_user_id;
         -- 将实际的UUID存储到临时表中供后续使用
-        CREATE TEMP TABLE IF NOT EXISTS temp_user_info (user_id UUID);
-        DELETE FROM temp_user_info;
         INSERT INTO temp_user_info VALUES (v_actual_user_id);
         RETURN;
     END IF;
@@ -77,23 +77,24 @@ DECLARE
     v_existing_id UUID;
     v_existing_points INT;
     v_actual_user_id UUID;
+    v_checkin_date DATE := current_setting('app.checkin_date')::date;
 BEGIN
     -- 从临时表获取实际的用户ID
     SELECT user_id INTO v_actual_user_id FROM temp_user_info;
     
     SELECT 
-        EXISTS(SELECT 1 FROM user_checkins WHERE user_id = v_actual_user_id AND checkin_date = :checkin_date::date),
+        EXISTS(SELECT 1 FROM user_checkins WHERE user_id = v_actual_user_id AND checkin_date = v_checkin_date),
         id,
         points_awarded
     INTO v_checkin_exists, v_existing_id, v_existing_points
     FROM user_checkins 
-    WHERE user_id = v_actual_user_id AND checkin_date = :checkin_date::date;
+    WHERE user_id = v_actual_user_id AND checkin_date = v_checkin_date;
     
     IF v_checkin_exists THEN
         RAISE NOTICE '⚠ 该日期已有签到记录:';
         RAISE NOTICE '  - 记录ID: %', v_existing_id;
         RAISE NOTICE '  - 奖励点数: %', v_existing_points;
-        RAISE NOTICE '  - 日期: %', :checkin_date;
+        RAISE NOTICE '  - 日期: %', v_checkin_date;
         RAISE EXCEPTION '签到记录已存在，无法重复添加';
     ELSE
         RAISE NOTICE '✓ 该日期无签到记录，可以添加';
@@ -142,6 +143,7 @@ DECLARE
     v_checkin_id UUID;
     v_points_awarded INT := 5; -- 签到奖励点数
     v_actual_user_id UUID;
+    v_checkin_date DATE := current_setting('app.checkin_date')::date;
 BEGIN
     -- 从临时表获取实际的用户ID
     SELECT user_id INTO v_actual_user_id FROM temp_user_info;
@@ -153,7 +155,7 @@ BEGIN
         created_at
     ) VALUES (
         v_actual_user_id,
-        :checkin_date::date,
+        v_checkin_date,
         v_points_awarded,
         NOW()
     )
@@ -161,7 +163,7 @@ BEGIN
     
     RAISE NOTICE '✓ 签到记录已创建:';
     RAISE NOTICE '  - 记录ID: %', v_checkin_id;
-    RAISE NOTICE '  - 签到日期: %', :checkin_date;
+    RAISE NOTICE '  - 签到日期: %', v_checkin_date;
     RAISE NOTICE '  - 奖励点数: %', v_points_awarded;
 END $$;
 
@@ -276,6 +278,7 @@ DECLARE
     v_member_balance INT;
     v_total_checkins BIGINT;
     v_actual_user_id UUID;
+    v_checkin_date DATE := current_setting('app.checkin_date')::date;
 BEGIN
     -- 从临时表获取实际的用户ID
     SELECT user_id INTO v_actual_user_id FROM temp_user_info;
@@ -304,7 +307,7 @@ BEGIN
     RAISE NOTICE '  - 用户ID: %', v_actual_user_id;
     RAISE NOTICE '';
     RAISE NOTICE '签到信息:';
-    RAISE NOTICE '  - 签到日期: %', :checkin_date;
+    RAISE NOTICE '  - 签到日期: %', v_checkin_date;
     RAISE NOTICE '  - 奖励点数: 5';
     RAISE NOTICE '  - 累计签到: % 次', v_total_checkins;
     RAISE NOTICE '';
