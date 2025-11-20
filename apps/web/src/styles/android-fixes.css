@@ -43,13 +43,20 @@
 .android-app .top-toolbar,
 .android-app .header,
 .android-app .app-header {
-  /* 顶部工具栏避让状态栏 - 使用padding而不是margin，避免顶部空白 */
-  padding-top: calc(24px + 12px); /* 状态栏高度 + 内边距 */
+  /* 顶部工具栏避让状态栏 - 使用padding-top让内容避让，同时背景延伸到状态栏下方 */
+  /* Android标准状态栏高度为24px，加上原有的内边距 */
+  padding-top: calc(24px + 12px) !important; /* 状态栏高度 + 原有内边距 */
+  padding-bottom: 12px !important; /* 保持底部内边距 */
   position: sticky;
   top: 0;
   z-index: 1000;
-  /* 确保背景延伸到状态栏区域 */
-  margin-top: 0;
+  /* 确保背景延伸到状态栏区域，不产生空白 */
+  margin-top: 0 !important;
+  /* 移除固定高度，使用最小高度以适应状态栏 */
+  height: auto !important;
+  min-height: calc(56px + 24px) !important;
+  /* 确保header从屏幕顶部开始，背景覆盖状态栏 */
+  box-sizing: border-box;
 }
 
 /* Android页面头部适配 */
@@ -89,10 +96,14 @@
 
 .android-app .fullscreen-modal .modal-header {
   /* 全屏模态框头部适配 */
-  padding-top: calc(24px + 12px);
+  padding-top: calc(24px + 12px) !important;
+  padding-bottom: 12px !important;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  height: auto !important;
+  min-height: calc(56px + 24px) !important;
+  box-sizing: border-box;
 }
 
 /* Android编辑记账模态框特殊适配 */
