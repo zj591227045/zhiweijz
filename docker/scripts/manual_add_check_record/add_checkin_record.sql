@@ -104,10 +104,9 @@ BEGIN
     SELECT user_id INTO v_actual_user_id FROM temp_user_info;
     
     SELECT 
-        COALESCE(total_balance, 0),
         COALESCE(gift_balance, 0),
         COALESCE(member_balance, 0)
-    INTO v_current_balance, v_gift_balance, v_member_balance
+    INTO v_gift_balance, v_member_balance
     FROM user_accounting_points
     WHERE user_id = v_actual_user_id;
     
@@ -117,6 +116,7 @@ BEGIN
         v_gift_balance := 0;
         v_member_balance := 0;
     ELSE
+        v_current_balance := v_gift_balance + v_member_balance;
         RAISE NOTICE '✓ 当前余额: % (赠送: %, 会员: %)', 
             v_current_balance, v_gift_balance, v_member_balance;
     END IF;
@@ -166,7 +166,6 @@ BEGIN
     
     INSERT INTO user_accounting_points (
         user_id,
-        total_balance,
         gift_balance,
         member_balance,
         created_at,
@@ -174,7 +173,6 @@ BEGIN
     )
     VALUES (
         v_actual_user_id,
-        0,
         0,
         0,
         NOW(),
@@ -210,7 +208,7 @@ BEGIN
         'checkin',
         'gift',
         '每日签到奖励',
-        COALESCE(uap.total_balance, 0) + v_points_awarded,
+        COALESCE(uap.gift_balance, 0) + COALESCE(uap.member_balance, 0) + v_points_awarded,
         NOW()
     FROM user_accounting_points uap
     WHERE uap.user_id = v_actual_user_id
@@ -232,21 +230,24 @@ DECLARE
     v_points_awarded INT := 5;
     v_new_total_balance INT;
     v_new_gift_balance INT;
+    v_new_member_balance INT;
     v_actual_user_id TEXT;
 BEGIN
     SELECT user_id INTO v_actual_user_id FROM temp_user_info;
     
     UPDATE user_accounting_points
     SET 
-        total_balance = total_balance + v_points_awarded,
         gift_balance = gift_balance + v_points_awarded,
         updated_at = NOW()
     WHERE user_id = v_actual_user_id
-    RETURNING total_balance, gift_balance INTO v_new_total_balance, v_new_gift_balance;
+    RETURNING gift_balance, member_balance INTO v_new_gift_balance, v_new_member_balance;
+    
+    v_new_total_balance := v_new_gift_balance + v_new_member_balance;
     
     RAISE NOTICE '✓ 余额已更新:';
     RAISE NOTICE '  - 新总余额: %', v_new_total_balance;
     RAISE NOTICE '  - 新赠送余额: %', v_new_gift_balance;
+    RAISE NOTICE '  - 新会员余额: %', v_new_member_balance;
 END $$;
 
 \echo ''
@@ -269,16 +270,16 @@ BEGIN
     SELECT 
         u.name,
         u.email,
-        uap.total_balance,
-        uap.gift_balance,
-        uap.member_balance,
+        COALESCE(uap.gift_balance, 0) + COALESCE(uap.member_balance, 0),
+        COALESCE(uap.gift_balance, 0),
+        COALESCE(uap.member_balance, 0),
         COUNT(uc.id)
     INTO v_user_name, v_user_email, v_total_balance, v_gift_balance, v_member_balance, v_total_checkins
     FROM users u
     LEFT JOIN user_accounting_points uap ON u.id = uap.user_id
     LEFT JOIN user_checkins uc ON u.id = uc.user_id
     WHERE u.id = v_actual_user_id
-    GROUP BY u.name, u.email, uap.total_balance, uap.gift_balance, uap.member_balance;
+    GROUP BY u.name, u.email, uap.gift_balance, uap.member_balance;
     
     RAISE NOTICE '';
     RAISE NOTICE '========================================';
