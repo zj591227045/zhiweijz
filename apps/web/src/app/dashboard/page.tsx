@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
@@ -25,6 +25,7 @@ import { useNotificationStore } from '@/store/notification-store';
 import { NotificationModal } from '@/components/notifications/NotificationModal';
 import { useMobileBackHandler } from '@/hooks/use-mobile-back-handler';
 import { PageLevel, navigationManager } from '@/lib/mobile-navigation';
+import './dashboard.css';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -42,6 +43,8 @@ export default function DashboardPage() {
     refreshDashboardData,
     setupTransactionListener,
     cleanupTransactionListener,
+    showBackToTop,
+    setShowBackToTop,
   } = useDashboardStore();
 
   const { unreadCount, isModalOpen, openModal, closeModal, checkUnreadOnLogin } =
@@ -54,6 +57,37 @@ export default function DashboardPage() {
 
   // 视图切换状态
   const [currentView, setCurrentView] = useState<'dashboard' | 'calendar'>('dashboard');
+
+  // 返回顶部函数
+  const scrollToTop = () => {
+    const mainContent = document.querySelector('.main-content') as HTMLElement;
+    if (mainContent) {
+      mainContent.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // 监听滚动事件，控制返回顶部按钮的显示
+  useEffect(() => {
+    const mainContent = document.querySelector('.main-content') as HTMLElement;
+    if (!mainContent) return;
+
+    const handleScroll = () => {
+      const isScrolledDown = mainContent.scrollTop > 200; // 滚动超过200px时
+
+      // 只有在满足自动刷新次数且滚动超过一定距离时才显示返回顶部按钮
+      if (isScrolledDown && showBackToTop) {
+        setShowBackToTop(true);
+      } else if (!isScrolledDown) {
+        setShowBackToTop(false);
+      }
+    };
+
+    mainContent.addEventListener('scroll', handleScroll);
+    return () => mainContent.removeEventListener('scroll', handleScroll);
+  }, [showBackToTop, setShowBackToTop]);
 
   // 移动端后退处理 - 完全禁用仪表盘的硬件后退处理，避免与模态框冲突
   // 这样可以让模态框的后退处理器独占硬件后退按钮
@@ -357,7 +391,7 @@ export default function DashboardPage() {
             </div>
           ) : error ? (
             <div
-              className="px-4 py-3 rounded mb-4"
+              className="px-4 py-3 rounded mb-4 mx-4"
               style={{
                 backgroundColor: 'rgba(var(--error-color), 0.1)',
                 borderColor: 'var(--error-color)',
@@ -368,27 +402,36 @@ export default function DashboardPage() {
               {error}
             </div>
           ) : (
-            <>
+            <div className="dashboard-content-wrapper">
               {/* 月度概览 */}
-              <MonthlyOverview
-                income={monthlyStats.income}
-                expense={monthlyStats.expense}
-                balance={monthlyStats.balance}
-                month={monthlyStats.month}
-              />
+              <div className="dashboard-section">
+                <MonthlyOverview
+                  income={monthlyStats.income}
+                  expense={monthlyStats.expense}
+                  balance={monthlyStats.balance}
+                  month={monthlyStats.month}
+                />
+              </div>
 
               {/* 预算执行情况 */}
-              <BudgetProgress categories={budgetCategories} totalBudget={totalBudget} />
+              <div className="dashboard-section">
+                <BudgetProgress categories={budgetCategories} totalBudget={totalBudget} />
+              </div>
 
-              {/* 最近记账 */}
-              <RecentTransactions
-                groupedTransactions={groupedTransactions}
-                onTransactionDeleted={() => {
-                  // 删除成功后重新获取数据
-                  fetchDashboardData();
-                }}
-              />
-            </>
+              {/* 最近记账 - 占据剩余空间 */}
+              <div className="dashboard-section flex-grow">
+                <RecentTransactions
+                  groupedTransactions={groupedTransactions}
+                  onTransactionDeleted={() => {
+                    // 删除成功后重新获取数据
+                    fetchDashboardData();
+                  }}
+                />
+              </div>
+
+              {/* 底部安全区域，确保内容不被遮挡 */}
+              <div style={{ height: '80px' }}></div>
+            </div>
           )}
         </>
       )}
@@ -417,6 +460,15 @@ export default function DashboardPage() {
 
       {/* 通知模态框 */}
       <NotificationModal isOpen={isModalOpen} onClose={closeModal} />
+
+      {/* 返回顶部按钮 */}
+      <button
+        onClick={scrollToTop}
+        className={`back-to-top-button ${showBackToTop ? 'visible' : ''}`}
+        title="返回顶部"
+      >
+        <i className="fas fa-arrow-up"></i>
+      </button>
     </PageContainer>
   );
 }

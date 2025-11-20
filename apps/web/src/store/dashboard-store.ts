@@ -21,6 +21,14 @@ interface DashboardState {
   isLoading: boolean;
   error: string | null;
 
+  // 分页加载相关状态
+  isLoadingMore: boolean;
+  hasMoreTransactions: boolean;
+  currentPage: number;
+  totalTransactionsCount: number;
+  autoRefreshCount: number; // 自动刷新计数
+  showBackToTop: boolean; // 是否显示返回顶部按钮
+
   // 操作方法
   fetchDashboardData: (accountBookId: string) => Promise<void>;
   refreshDashboardData: (accountBookId: string) => Promise<void>;
@@ -28,6 +36,12 @@ interface DashboardState {
   // 新增：监听记账变化的方法
   setupTransactionListener: () => void;
   cleanupTransactionListener: () => void;
+
+  // 新增：分页加载方法
+  loadMoreTransactions: (accountBookId: string) => Promise<void>;
+  resetTransactionPagination: () => void;
+  incrementAutoRefreshCount: () => void;
+  setShowBackToTop: (show: boolean) => void;
 }
 
 // 获取月度统计的辅助函数
@@ -90,10 +104,19 @@ const fetchBudgetStatistics = async (accountBookId: string) => {
 };
 
 // 获取最近记账的辅助函数
-const fetchRecentTransactions = async (accountBookId: string) => {
-  console.log('开始获取最近记账数据...');
+const fetchRecentTransactions = async (accountBookId: string, page: number = 1, limit: number = 20) => {
+  console.log(`开始获取最近记账数据，页码: ${page}, 每页: ${limit}...`);
 
-  const transactionsResponse = await transactionService.getRecentTransactions(accountBookId, 10);
+  // 使用通用的transactions接口，支持分页
+  const transactionsResponse = await apiClient.get('/transactions', {
+    params: {
+      accountBookId,
+      page,
+      limit,
+      sort: 'date:desc',
+      includeAttachments: true,
+    },
+  });
   console.log('最近记账数据响应:', transactionsResponse);
 
   if (transactionsResponse?.data && Array.isArray(transactionsResponse.data)) {
@@ -120,6 +143,8 @@ const fetchRecentTransactions = async (accountBookId: string) => {
             categoryIcon: tx.category?.icon || 'other',
             description: tx.description || '',
             date: tx.date,
+            category: tx.category,
+            tags: tx.tags,
             attachments: tx.attachments || [], // 保留附件信息
             attachmentCount: tx.attachmentCount || 0, // 保留附件数量
           })),
@@ -127,10 +152,24 @@ const fetchRecentTransactions = async (accountBookId: string) => {
       });
 
     console.log('格式化后的记账数据:', formattedTransactions);
-    return formattedTransactions;
+
+    // 返回格式化后的数据和分页信息
+    return {
+      transactions: formattedTransactions,
+      hasMore: transactionsResponse.data.length === limit &&
+                page * limit < (transactionsResponse.total || 0),
+      total: transactionsResponse.total || 0,
+      currentPage: page,
+    };
   }
 
-  return [];
+  // 返回空数据和分页信息
+  return {
+    transactions: [],
+    hasMore: false,
+    total: 0,
+    currentPage: page,
+  };
 };
 
 // 创建仪表盘状态管理
@@ -152,23 +191,34 @@ export const useDashboardStore = create<DashboardState>((set, get) => {
     isLoading: false,
     error: null,
 
+    // 分页加载相关状态
+    isLoadingMore: false,
+    hasMoreTransactions: true,
+    currentPage: 1,
+    totalTransactionsCount: 0,
+    autoRefreshCount: 0,
+    showBackToTop: false,
+
     // 获取仪表盘数据
     fetchDashboardData: async (accountBookId: string) => {
       try {
-        set({ isLoading: true, error: null });
+        set({ isLoading: true, error: null, currentPage: 1 });
 
         // 并行请求数据
-        const [monthlyStats, budgetData, transactions] = await Promise.all([
+        const [monthlyStats, budgetData, transactionData] = await Promise.all([
           fetchMonthlyStatistics(accountBookId),
           fetchBudgetStatistics(accountBookId),
-          fetchRecentTransactions(accountBookId),
+          fetchRecentTransactions(accountBookId, 1, 20),
         ]);
 
         set({
           monthlyStats,
           budgetCategories: budgetData.categories,
           totalBudget: budgetData.totalBudget,
-          groupedTransactions: transactions,
+          groupedTransactions: transactionData.transactions,
+          hasMoreTransactions: transactionData.hasMore,
+          totalTransactionsCount: transactionData.total,
+          currentPage: transactionData.currentPage,
           isLoading: false,
         });
       } catch (error) {
@@ -183,17 +233,17 @@ export const useDashboardStore = create<DashboardState>((set, get) => {
     // 刷新仪表盘数据（不显示加载状态）
     refreshDashboardData: async (accountBookId: string) => {
       try {
-        set({ error: null });
+        set({ error: null, currentPage: 1 });
         console.log(`开始刷新仪表盘数据，账本ID: ${accountBookId}`);
 
         // 注意：当前使用的apiClient不支持缓存，所以总是获取最新数据
         console.log('开始获取最新数据...');
 
         // 并行请求数据
-        const [monthlyStats, budgetData, transactions] = await Promise.all([
+        const [monthlyStats, budgetData, transactionData] = await Promise.all([
           fetchMonthlyStatistics(accountBookId),
           fetchBudgetStatistics(accountBookId),
-          fetchRecentTransactions(accountBookId),
+          fetchRecentTransactions(accountBookId, 1, 20),
         ]);
 
         console.log('所有数据获取完成，更新状态...');
@@ -201,7 +251,10 @@ export const useDashboardStore = create<DashboardState>((set, get) => {
           monthlyStats,
           budgetCategories: budgetData.categories,
           totalBudget: budgetData.totalBudget,
-          groupedTransactions: transactions,
+          groupedTransactions: transactionData.transactions,
+          hasMoreTransactions: transactionData.hasMore,
+          totalTransactionsCount: transactionData.total,
+          currentPage: transactionData.currentPage,
         });
         console.log('仪表盘状态更新完成');
       } catch (error) {
@@ -226,7 +279,97 @@ export const useDashboardStore = create<DashboardState>((set, get) => {
         groupedTransactions: [],
         isLoading: false,
         error: null,
+
+        // 重置分页状态
+        isLoadingMore: false,
+        hasMoreTransactions: true,
+        currentPage: 1,
+        totalTransactionsCount: 0,
+        autoRefreshCount: 0,
+        showBackToTop: false,
       });
+    },
+
+    // 加载更多交易记录
+    loadMoreTransactions: async (accountBookId: string) => {
+      const currentState = get();
+
+      // 如果正在加载或没有更多数据，直接返回
+      if (currentState.isLoadingMore || !currentState.hasMoreTransactions || currentState.isLoading) {
+        return;
+      }
+
+      try {
+        console.log(`加载更多交易记录，当前页: ${currentState.currentPage}`);
+
+        set({ isLoadingMore: true });
+
+        const nextPage = currentState.currentPage + 1;
+        const transactionData = await fetchRecentTransactions(accountBookId, nextPage, 20);
+
+        // 合并新旧交易记录
+        const updatedTransactions = [...currentState.groupedTransactions, ...transactionData.transactions];
+
+        set({
+          groupedTransactions: updatedTransactions,
+          hasMoreTransactions: transactionData.hasMore,
+          totalTransactionsCount: transactionData.total,
+          currentPage: transactionData.currentPage,
+          isLoadingMore: false,
+        });
+
+        console.log(`成功加载更多交易记录，新记录数: ${transactionData.transactions.length}`);
+
+        // 每次加载更多记录后增加自动刷新计数
+        const updatedState = get(); // 重新获取最新状态
+        const newCount = updatedState.autoRefreshCount + 1;
+
+        // 在2次自动刷新后显示返回顶部按钮
+        if (newCount >= 2) {
+          set({
+            autoRefreshCount: newCount,
+            showBackToTop: true
+          });
+        } else {
+          set({ autoRefreshCount: newCount });
+        }
+      } catch (error) {
+        console.error('加载更多交易记录失败:', error);
+        set({ isLoadingMore: false });
+      }
+    },
+
+    // 重置交易分页状态
+    resetTransactionPagination: () => {
+      set({
+        isLoadingMore: false,
+        hasMoreTransactions: true,
+        currentPage: 1,
+        totalTransactionsCount: 0,
+        autoRefreshCount: 0,
+        showBackToTop: false,
+      });
+    },
+
+    // 增加自动刷新计数
+    incrementAutoRefreshCount: () => {
+      const currentState = get();
+      const newCount = currentState.autoRefreshCount + 1;
+
+      // 在2次自动刷新后显示返回顶部按钮
+      if (newCount >= 2) {
+        set({
+          autoRefreshCount: newCount,
+          showBackToTop: true
+        });
+      } else {
+        set({ autoRefreshCount: newCount });
+      }
+    },
+
+    // 设置是否显示返回顶部按钮
+    setShowBackToTop: (show: boolean) => {
+      set({ showBackToTop: show });
     },
 
     // 设置记账变化监听器

@@ -2,12 +2,15 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { memo, useState } from 'react';
+import { memo, useState, useEffect, useRef } from 'react';
 import { UnifiedTransactionList, TransactionType } from '../common/unified-transaction-list';
 import { DeleteConfirmationDialog } from '../ui/delete-confirmation-dialog';
 import { apiClient } from '@/lib/api-client';
 import { hapticPresets } from '@/lib/haptic-feedback';
+import { useDashboardStore } from '@/store/dashboard-store';
+import { useAccountBookStore } from '@/store/account-book-store';
 import '../common/unified-transaction-list.css';
+import '../../app/dashboard/dashboard.css';
 
 interface Transaction {
   id: string;
@@ -50,9 +53,22 @@ export const RecentTransactions = memo(
     onTransactionDeleted,
   }: RecentTransactionsProps) {
     const router = useRouter();
+    const { currentAccountBook } = useAccountBookStore();
+    const {
+      isLoadingMore,
+      hasMoreTransactions,
+      totalTransactionsCount,
+      loadMoreTransactions,
+    } = useDashboardStore();
+
     const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
+
+    // 无限滚动相关状态
+    const [isAutoLoadEnabled, setIsAutoLoadEnabled] = useState(true);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
 
     // 处理记账项点击 - 触发模态框编辑
     const handleTransactionClick = (transactionId: string) => {
@@ -117,6 +133,53 @@ export const RecentTransactions = memo(
       setTransactionToDelete(null);
     };
 
+    // 手动加载更多记录
+    const handleLoadMore = async () => {
+      console.log('🔄 [RecentTransactions] 点击加载更多按钮', {
+        accountBookId: currentAccountBook?.id,
+        hasMoreTransactions,
+        isLoadingMore
+      });
+      if (currentAccountBook?.id) {
+        await loadMoreTransactions(currentAccountBook.id);
+      } else {
+        console.error('❌ [RecentTransactions] 没有找到账本ID');
+      }
+    };
+
+    // 无限滚动逻辑
+    useEffect(() => {
+      if (!isAutoLoadEnabled || !loadMoreTriggerRef.current) return;
+
+      // 使用 Intersection Observer 检测加载触发元素是否可见
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting && hasMoreTransactions && !isLoadingMore && currentAccountBook?.id) {
+              console.log('触发自动加载更多交易记录');
+              loadMoreTransactions(currentAccountBook.id);
+            }
+          });
+        },
+        {
+          threshold: 0.1, // 10% 的元素可见时触发
+          rootMargin: '100px', // 提前100px 开始加载
+          root: document.querySelector('.main-content.dashboard-content') || null, // 使用仪表盘的main-content滚动容器
+        }
+      );
+
+      if (loadMoreTriggerRef.current) {
+        observer.observe(loadMoreTriggerRef.current);
+      }
+
+      return () => {
+        if (loadMoreTriggerRef.current) {
+          observer.unobserve(loadMoreTriggerRef.current);
+        }
+        observer.disconnect();
+      };
+    }, [isAutoLoadEnabled, hasMoreTransactions, isLoadingMore, currentAccountBook?.id, loadMoreTransactions]);
+
     return (
       <section className="recent-transactions">
         <div className="section-header">
@@ -126,16 +189,47 @@ export const RecentTransactions = memo(
           </Link>
         </div>
 
-        <UnifiedTransactionList
-          groupedTransactions={groupedTransactions}
-          onTransactionClick={handleTransactionClick}
-          showDateHeaders={true}
-          emptyMessage="暂无记账记录"
-          enableSwipeActions={true}
-          onAttachmentClick={handleAttachmentClick}
-          onDeleteClick={handleDeleteClick}
-          onDataRefresh={onTransactionDeleted}
-        />
+        <div className="recent-transactions-content">
+          <UnifiedTransactionList
+            groupedTransactions={groupedTransactions}
+            onTransactionClick={handleTransactionClick}
+            showDateHeaders={true}
+            emptyMessage="暂无记账记录"
+            enableSwipeActions={true}
+            onAttachmentClick={handleAttachmentClick}
+            onDeleteClick={handleDeleteClick}
+            onDataRefresh={onTransactionDeleted}
+            isLoadingMore={isLoadingMore}
+            hasMore={hasMoreTransactions}
+            totalCount={totalTransactionsCount}
+          />
+
+          {/* 加载更多触发元素和手动加载按钮 */}
+          {hasMoreTransactions && (
+            <div ref={loadMoreTriggerRef} className="load-more-container">
+              {isLoadingMore ? (
+                <div className="loading-more">
+                  <div className="loading-spinner"></div>
+                  <span>加载中...</span>
+                </div>
+              ) : (
+                <button
+                  onClick={handleLoadMore}
+                  className="load-more-button"
+                >
+                  加载更多记录
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* 没有更多数据提示 */}
+          {!hasMoreTransactions && totalTransactionsCount > 0 && (
+            <div className="no-more-data">
+              已加载全部 {totalTransactionsCount} 条记录
+            </div>
+          )}
+        </div>
 
         {/* 删除确认对话框 */}
         <DeleteConfirmationDialog

@@ -1,0 +1,169 @@
+/* 仪表盘页面样式 */
+
+/* 为仪表盘页面的main-content添加滚动功能 */
+.main-content.dashboard-content {
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  /* 移动端优化 */
+  -webkit-overflow-scrolling: touch;
+  /* 隐藏滚动条但保持滚动功能 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+/* 隐藏滚动条但保持滚动功能 */
+.main-content.dashboard-content::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+/* 仪表盘内容包装器 - 修复布局问题 */
+.dashboard-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 160px); /* 减去页面头部和底部空间 */
+}
+
+/* 仪表盘各个部分 */
+.dashboard-section {
+  flex-shrink: 0;
+}
+
+.dashboard-section.flex-grow {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 确保最近记账组件可以占据剩余空间 */
+.dashboard-section .recent-transactions {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.recent-transactions {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.recent-transactions-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.load-more-container {
+  text-align: center;
+  padding: 16px;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .main-content.dashboard-content {
+    /* 移动端滚动容器样式，通过继承main-content的高度来实现 */
+  }
+
+  .dashboard-content-wrapper {
+    min-height: calc(100vh - 180px);
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+  }
+}
+
+/* 加载更多按钮样式 */
+.load-more-button {
+  padding: 8px 16px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.load-more-button:hover {
+  background-color: var(--primary-hover-color);
+}
+
+/* 加载状态指示器 */
+.loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  color: #666;
+  font-size: 14px;
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 没有更多数据提示 */
+.no-more-data {
+  text-align: center;
+  padding: 16px;
+  color: #666;
+  font-size: 14px;
+}
+
+/* 返回顶部按钮 */
+.back-to-top-button {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  transition: all 0.3s ease;
+  transform-origin: center;
+  opacity: 0;
+  transform: scale(0) translateY(20px);
+  pointer-events: none;
+}
+
+.back-to-top-button.visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+
+.back-to-top-button:hover {
+  background-color: var(--primary-hover-color);
+  transform: scale(1.1);
+}
+
+.back-to-top-button:active {
+  transform: scale(0.95);
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .back-to-top-button {
+    bottom: 100px; /* 移动端留出更多空间给底部导航 */
+    right: 16px;
+    width: 48px;
+    height: 48px;
+  }
+}
