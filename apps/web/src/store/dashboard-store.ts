@@ -296,12 +296,18 @@ export const useDashboardStore = create<DashboardState>((set, get) => {
 
       // 如果正在加载或没有更多数据，直接返回
       if (currentState.isLoadingMore || !currentState.hasMoreTransactions || currentState.isLoading) {
+        console.log('⏸️ [Dashboard Store] 跳过加载更多：', {
+          isLoadingMore: currentState.isLoadingMore,
+          hasMoreTransactions: currentState.hasMoreTransactions,
+          isLoading: currentState.isLoading
+        });
         return;
       }
 
       try {
-        console.log(`加载更多交易记录，当前页: ${currentState.currentPage}`);
+        console.log(`🔄 [Dashboard Store] 加载更多交易记录，当前页: ${currentState.currentPage}, 当前加载次数: ${currentState.autoRefreshCount}`);
 
+        // 立即设置加载状态，防止重复触发
         set({ isLoadingMore: true });
 
         const nextPage = currentState.currentPage + 1;
@@ -310,31 +316,21 @@ export const useDashboardStore = create<DashboardState>((set, get) => {
         // 合并新旧交易记录
         const updatedTransactions = [...currentState.groupedTransactions, ...transactionData.transactions];
 
+        // 增加加载计数
+        const newAutoRefreshCount = currentState.autoRefreshCount + 1;
+
         set({
           groupedTransactions: updatedTransactions,
           hasMoreTransactions: transactionData.hasMore,
           totalTransactionsCount: transactionData.total,
           currentPage: transactionData.currentPage,
           isLoadingMore: false,
+          autoRefreshCount: newAutoRefreshCount, // 更新加载计数
         });
 
-        console.log(`成功加载更多交易记录，新记录数: ${transactionData.transactions.length}`);
-
-        // 每次加载更多记录后增加自动刷新计数
-        const updatedState = get(); // 重新获取最新状态
-        const newCount = updatedState.autoRefreshCount + 1;
-
-        // 在2次自动刷新后显示返回顶部按钮
-        if (newCount >= 2) {
-          set({
-            autoRefreshCount: newCount,
-            showBackToTop: true
-          });
-        } else {
-          set({ autoRefreshCount: newCount });
-        }
+        console.log(`✅ [Dashboard Store] 成功加载更多交易记录，新记录数: ${transactionData.transactions.length}，还有更多: ${transactionData.hasMore}，加载次数: ${newAutoRefreshCount}`);
       } catch (error) {
-        console.error('加载更多交易记录失败:', error);
+        console.error('❌ [Dashboard Store] 加载更多交易记录失败:', error);
         set({ isLoadingMore: false });
       }
     },
@@ -355,16 +351,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => {
     incrementAutoRefreshCount: () => {
       const currentState = get();
       const newCount = currentState.autoRefreshCount + 1;
-
-      // 在2次自动刷新后显示返回顶部按钮
-      if (newCount >= 2) {
-        set({
-          autoRefreshCount: newCount,
-          showBackToTop: true
-        });
-      } else {
-        set({ autoRefreshCount: newCount });
-      }
+      set({ autoRefreshCount: newCount });
     },
 
     // 设置是否显示返回顶部按钮

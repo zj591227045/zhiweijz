@@ -2,8 +2,11 @@
 
 /* 为仪表盘页面的main-content添加滚动功能 */
 .main-content.dashboard-content {
-  overflow-y: auto;
-  scroll-behavior: smooth;
+  overflow-y: auto !important;
+  scroll-behavior: smooth !important;
+  /* 设置固定高度，使内容可以滚动 */
+  height: 100% !important;
+  max-height: 100vh !important;
   /* 移动端优化 */
   -webkit-overflow-scrolling: touch;
   /* 隐藏滚动条但保持滚动功能 */
@@ -127,8 +130,8 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background-color: var(--primary-color);
-  color: white;
+  background-color: var(--primary-color) !important;
+  color: white !important;
   border: none;
   cursor: pointer;
   display: flex;
@@ -136,26 +139,30 @@
   justify-content: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 1000;
-  transition: all 0.3s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s, background-color 0.2s ease;
   transform-origin: center;
   opacity: 0;
   transform: scale(0) translateY(20px);
   pointer-events: none;
+  visibility: hidden;
 }
 
 .back-to-top-button.visible {
-  opacity: 1;
-  transform: scale(1) translateY(0);
-  pointer-events: auto;
+  opacity: 1 !important;
+  transform: scale(1) translateY(0) !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+  background-color: var(--primary-color) !important;
 }
 
-.back-to-top-button:hover {
-  background-color: var(--primary-hover-color);
-  transform: scale(1.1);
+.back-to-top-button.visible:hover {
+  background-color: var(--primary-hover-color, var(--primary-color-dark, #2563eb));
+  transform: scale(1.1) translateY(0) !important;
 }
 
-.back-to-top-button:active {
-  transform: scale(0.95);
+.back-to-top-button.visible:active {
+  background-color: var(--primary-active, var(--primary-color-dark, #1d4ed8));
+  transform: scale(0.95) translateY(0) !important;
 }
 
 /* 移动端优化 */

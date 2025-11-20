@@ -69,6 +69,7 @@ export const RecentTransactions = memo(
     const [isAutoLoadEnabled, setIsAutoLoadEnabled] = useState(true);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
+    const isLoadingRef = useRef(false); // 用于防止重复触发
 
     // 处理记账项点击 - 触发模态框编辑
     const handleTransactionClick = (transactionId: string) => {
@@ -147,38 +148,79 @@ export const RecentTransactions = memo(
       }
     };
 
+    // 同步 isLoadingMore 状态到 ref
+    useEffect(() => {
+      isLoadingRef.current = isLoadingMore;
+    }, [isLoadingMore]);
+
     // 无限滚动逻辑
     useEffect(() => {
-      if (!isAutoLoadEnabled || !loadMoreTriggerRef.current) return;
-
-      // 使用 Intersection Observer 检测加载触发元素是否可见
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting && hasMoreTransactions && !isLoadingMore && currentAccountBook?.id) {
-              console.log('触发自动加载更多交易记录');
-              loadMoreTransactions(currentAccountBook.id);
-            }
-          });
-        },
-        {
-          threshold: 0.1, // 10% 的元素可见时触发
-          rootMargin: '100px', // 提前100px 开始加载
-          root: document.querySelector('.main-content.dashboard-content') || null, // 使用仪表盘的main-content滚动容器
-        }
-      );
-
-      if (loadMoreTriggerRef.current) {
-        observer.observe(loadMoreTriggerRef.current);
+      if (!isAutoLoadEnabled) {
+        console.log('⏸️ [RecentTransactions] 自动加载已禁用');
+        return;
       }
 
-      return () => {
-        if (loadMoreTriggerRef.current) {
-          observer.unobserve(loadMoreTriggerRef.current);
+      if (!loadMoreTriggerRef.current) {
+        console.log('⏸️ [RecentTransactions] 加载触发元素未找到');
+        return;
+      }
+
+      // 延迟查找滚动容器，确保 DOM 已经渲染
+      const timer = setTimeout(() => {
+        const scrollContainer = document.querySelector('.main-content') as HTMLElement;
+        if (!scrollContainer) {
+          console.warn('⚠️ [RecentTransactions] 未找到滚动容器 .main-content');
+          return;
         }
-        observer.disconnect();
-      };
-    }, [isAutoLoadEnabled, hasMoreTransactions, isLoadingMore, currentAccountBook?.id, loadMoreTransactions]);
+
+        console.log('✅ [RecentTransactions] 找到滚动容器，设置 Intersection Observer');
+
+        // 使用 Intersection Observer 检测加载触发元素是否可见
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              console.log('👁️ [RecentTransactions] Intersection 变化:', {
+                isIntersecting: entry.isIntersecting,
+                intersectionRatio: entry.intersectionRatio,
+                hasMoreTransactions,
+                isLoadingRef: isLoadingRef.current,
+                accountBookId: currentAccountBook?.id
+              });
+
+              // 只有当元素进入视口且满足加载条件时才触发
+              if (
+                entry.isIntersecting && 
+                hasMoreTransactions && 
+                !isLoadingRef.current && // 使用 ref 检查，避免闭包问题
+                currentAccountBook?.id
+              ) {
+                console.log('🔄 [RecentTransactions] 触发自动加载更多交易记录');
+                isLoadingRef.current = true; // 立即标记为加载中
+                loadMoreTransactions(currentAccountBook.id);
+              }
+            });
+          },
+          {
+            root: scrollContainer, // 使用仪表盘的main-content滚动容器
+            rootMargin: '100px', // 提前100px开始加载，改善用户体验
+            threshold: 0.1, // 10% 的元素可见时触发
+          }
+        );
+
+        if (loadMoreTriggerRef.current) {
+          observer.observe(loadMoreTriggerRef.current);
+          console.log('✅ [RecentTransactions] 开始观察加载触发元素');
+        }
+
+        // 清理函数
+        return () => {
+          console.log('🧹 [RecentTransactions] 清理 Intersection Observer');
+          observer.disconnect();
+        };
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }, [isAutoLoadEnabled, hasMoreTransactions, currentAccountBook?.id, loadMoreTransactions]);
 
     return (
       <section className="recent-transactions">

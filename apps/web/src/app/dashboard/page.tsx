@@ -18,7 +18,7 @@ import {
   transactionService,
 } from '@/lib/api-services';
 import dayjs from 'dayjs';
-import { TransactionType } from '@/components/dashboard/recent-transactions';
+
 import { useDashboardStore } from '@/store/dashboard-store';
 import TransactionEditModal from '@/components/transaction-edit-modal';
 import { useNotificationStore } from '@/store/notification-store';
@@ -60,34 +60,86 @@ export default function DashboardPage() {
 
   // 返回顶部函数
   const scrollToTop = () => {
+    console.log('🔝 [Dashboard] 点击返回顶部按钮');
     const mainContent = document.querySelector('.main-content') as HTMLElement;
     if (mainContent) {
+      console.log('✅ [Dashboard] 找到滚动容器，执行滚动', {
+        currentScrollTop: mainContent.scrollTop,
+        showBackToTop
+      });
+      
       mainContent.scrollTo({
         top: 0,
         behavior: 'smooth'
       });
+      
+      // 不立即隐藏按钮，让滚动事件自然触发状态更新
+      // 这样可以避免 CSS 状态混乱
+    } else {
+      console.warn('⚠️ [Dashboard] 未找到滚动容器');
     }
   };
 
-  // 监听滚动事件，控制返回顶部按钮的显示
+  // 从 store 获取 autoRefreshCount
+  const { autoRefreshCount } = useDashboardStore();
+
+  // 本地状态：是否滚动到底部
+  const [isScrolledDown, setIsScrolledDown] = useState(false);
+
+  // 监听滚动事件
   useEffect(() => {
-    const mainContent = document.querySelector('.main-content') as HTMLElement;
-    if (!mainContent) return;
-
-    const handleScroll = () => {
-      const isScrolledDown = mainContent.scrollTop > 200; // 滚动超过200px时
-
-      // 只有在满足自动刷新次数且滚动超过一定距离时才显示返回顶部按钮
-      if (isScrolledDown && showBackToTop) {
-        setShowBackToTop(true);
-      } else if (!isScrolledDown) {
-        setShowBackToTop(false);
+    // 延迟查找元素，确保 DOM 已经渲染
+    const timer = setTimeout(() => {
+      const mainContent = document.querySelector('.main-content') as HTMLElement;
+      if (!mainContent) {
+        console.warn('⚠️ [Dashboard] 未找到 .main-content 元素');
+        return;
       }
-    };
 
-    mainContent.addEventListener('scroll', handleScroll);
-    return () => mainContent.removeEventListener('scroll', handleScroll);
-  }, [showBackToTop, setShowBackToTop]);
+      const handleScroll = (e: Event) => {
+        const target = e.target as HTMLElement;
+        const scrolledDown = target.scrollTop > 200; // 滚动超过200px时
+        
+        
+        setIsScrolledDown(scrolledDown);
+      };
+
+      // 同时监听 scroll 和 touchmove 事件（移动端）
+      mainContent.addEventListener('scroll', handleScroll, { passive: true });
+      
+      // 初始检查一次滚动位置
+      const initialScrolledDown = mainContent.scrollTop > 200;
+      console.log('🔍 [Dashboard] 初始滚动位置:', {
+        scrollTop: mainContent.scrollTop,
+        initialScrolledDown
+      });
+      setIsScrolledDown(initialScrolledDown);
+      
+      // 清理函数
+      return () => {
+        console.log('🧹 [Dashboard] 清理滚动监听');
+        mainContent.removeEventListener('scroll', handleScroll);
+      };
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [autoRefreshCount, isScrolledDown]);
+
+  // 根据条件计算是否显示返回顶部按钮
+  useEffect(() => {
+    // 条件1: 不在页面顶部（滚动超过200px）
+    // 条件2: 加载次数大于2
+    const shouldShow = isScrolledDown && autoRefreshCount > 2;
+    
+    console.log('🔝 [Dashboard] 更新返回顶部按钮状态:', {
+      isScrolledDown,
+      autoRefreshCount,
+      shouldShow,
+      currentShowBackToTop: showBackToTop
+    });
+    
+    setShowBackToTop(shouldShow);
+  }, [isScrolledDown, autoRefreshCount, setShowBackToTop, showBackToTop]);
 
   // 移动端后退处理 - 完全禁用仪表盘的硬件后退处理，避免与模态框冲突
   // 这样可以让模态框的后退处理器独占硬件后退按钮
@@ -424,7 +476,9 @@ export default function DashboardPage() {
                   groupedTransactions={groupedTransactions}
                   onTransactionDeleted={() => {
                     // 删除成功后重新获取数据
-                    fetchDashboardData();
+                    if (currentAccountBook?.id) {
+                      fetchDashboardData(currentAccountBook.id);
+                    }
                   }}
                 />
               </div>
@@ -462,13 +516,40 @@ export default function DashboardPage() {
       <NotificationModal isOpen={isModalOpen} onClose={closeModal} />
 
       {/* 返回顶部按钮 */}
+      {console.log('🎨 [Dashboard] 渲染返回顶部按钮:', { showBackToTop, className: `back-to-top-button ${showBackToTop ? 'visible' : ''}` })}
       <button
         onClick={scrollToTop}
         className={`back-to-top-button ${showBackToTop ? 'visible' : ''}`}
         title="返回顶部"
+        style={{
+          // 临时调试：强制显示按钮以测试功能（取消注释以测试）
+          // opacity: 1,
+          // transform: 'scale(1) translateY(0)',
+          // pointerEvents: 'auto'
+        }}
       >
         <i className="fas fa-arrow-up"></i>
       </button>
+      
+      {/* 临时调试信息 */}
+      {process.env.NODE_ENV === 'development' && (
+        <div style={{
+          position: 'fixed',
+          bottom: '140px',
+          right: '20px',
+          background: 'rgba(0,0,0,0.8)',
+          color: 'white',
+          padding: '8px',
+          borderRadius: '4px',
+          fontSize: '12px',
+          zIndex: 9999,
+          lineHeight: '1.5'
+        }}>
+          <div>加载次数: {autoRefreshCount} {autoRefreshCount > 2 ? '✅' : '❌'}</div>
+          <div>滚动状态: {isScrolledDown ? '✅ 已滚动' : '❌ 顶部'}</div>
+          <div>按钮状态: {showBackToTop ? '✅ 显示' : '❌ 隐藏'}</div>
+        </div>
+      )}
     </PageContainer>
   );
 }
