@@ -119,6 +119,7 @@ class VersionCheckService {
 
   /**
    * 比较版本号
+   * @returns -1: current < latest, 0: current === latest, 1: current > latest
    */
   private compareVersions(current: string, latest: string): number {
     const currentParts = current.split('.').map(Number);
@@ -135,6 +136,42 @@ class VersionCheckService {
     }
 
     return 0;
+  }
+
+  /**
+   * 清理当前版本及更低版本的跳过和推迟记录
+   * 当用户更新到新版本后，应该清理旧版本的记录
+   */
+  private cleanupOldVersionRecords(currentVersion: string): void {
+    const data = this.getVersionCheckData();
+    let hasChanges = false;
+
+    // 清理跳过列表中小于等于当前版本的记录
+    const filteredSkippedVersions = data.skippedVersions.filter((skippedVersion) => {
+      const comparison = this.compareVersions(currentVersion, skippedVersion);
+      // 只保留大于当前版本的跳过记录
+      return comparison < 0;
+    });
+
+    if (filteredSkippedVersions.length !== data.skippedVersions.length) {
+      data.skippedVersions = filteredSkippedVersions;
+      hasChanges = true;
+    }
+
+    // 清理推迟记录（如果推迟的版本小于等于当前版本）
+    if (data.postponedVersion) {
+      const comparison = this.compareVersions(currentVersion, data.postponedVersion);
+      if (comparison >= 0) {
+        delete data.postponedVersion;
+        delete data.postponedUntil;
+        hasChanges = true;
+      }
+    }
+
+    if (hasChanges) {
+      this.saveVersionCheckData(data);
+      console.log('已清理旧版本记录，当前版本:', currentVersion);
+    }
   }
 
   /**
@@ -162,6 +199,10 @@ class VersionCheckService {
       // 更新最后检查时间
       const data = this.getVersionCheckData();
       data.lastCheckTime = new Date().toISOString();
+      
+      // 清理当前版本及更低版本的跳过和推迟记录
+      this.cleanupOldVersionRecords(version);
+      
       this.saveVersionCheckData(data);
 
       // 如果没有更新

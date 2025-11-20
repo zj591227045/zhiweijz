@@ -120,11 +120,25 @@ export class VersionService {
       };
     }
 
-    // 比较版本
-    const hasUpdate = data.currentBuildNumber ? 
-      latestVersion.versionCode > data.currentBuildNumber : true;
+    // 比较版本 - 优先使用 versionCode 进行比较
+    let hasUpdate = false;
+    if (data.currentBuildNumber !== undefined) {
+      // 使用 buildNumber 比较（更精确）
+      hasUpdate = latestVersion.versionCode > data.currentBuildNumber;
+    } else if (data.currentVersion) {
+      // 如果没有 buildNumber，使用版本号字符串比较
+      hasUpdate = this.compareVersionStrings(data.currentVersion, latestVersion.version) < 0;
+    } else {
+      // 如果都没有，默认认为需要更新
+      hasUpdate = true;
+    }
 
-    // 获取用户版本状态（如果用户已登录）
+    // 如果当前版本已经是最新版本或更高，清理该用户对此版本的状态记录
+    if (!hasUpdate && userId) {
+      await this.cleanupUserVersionStatus(userId, data.platform, latestVersion.id);
+    }
+
+    // 获取用户版本状态（如果用户已登录且有更新）
     let userStatus: UserVersionStatusResponse | undefined;
     if (userId && hasUpdate) {
       userStatus = (await this.getUserVersionStatus(userId, data.platform, latestVersion.id)) || undefined;
@@ -176,6 +190,43 @@ export class VersionService {
         '您已使用最新版本',
       userStatus
     };
+  }
+
+  // 比较版本号字符串
+  private compareVersionStrings(current: string, latest: string): number {
+    const currentParts = current.split('.').map(Number);
+    const latestParts = latest.split('.').map(Number);
+    const maxLength = Math.max(currentParts.length, latestParts.length);
+
+    for (let i = 0; i < maxLength; i++) {
+      const currentPart = currentParts[i] || 0;
+      const latestPart = latestParts[i] || 0;
+
+      if (currentPart < latestPart) return -1;
+      if (currentPart > latestPart) return 1;
+    }
+
+    return 0;
+  }
+
+  // 清理用户版本状态（当用户已更新到该版本或更高版本时）
+  private async cleanupUserVersionStatus(
+    userId: string,
+    platform: 'web' | 'ios' | 'android',
+    appVersionId: string
+  ): Promise<void> {
+    try {
+      await prisma.userVersionStatus.deleteMany({
+        where: {
+          userId,
+          platform: platform.toUpperCase() as any,
+          appVersionId
+        }
+      });
+    } catch (error) {
+      // 忽略清理错误，不影响主流程
+      console.error('清理用户版本状态失败:', error);
+    }
   }
 
   // 创建版本
