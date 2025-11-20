@@ -5,6 +5,16 @@ set -e
 
 echo "📦 生成Android APK..."
 
+# 确保在正确的目录运行
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/.."
+
+echo "📂 工作目录: $(pwd)"
+
+# 设置备份目录（提前定义）
+BACKUP_DIR="/tmp/apk-build-backup-$$"
+mkdir -p "$BACKUP_DIR"
+
 # 1. 设置调试版本环境变量
 echo "🔧 设置调试版本环境变量..."
 export BUILD_TYPE=debug
@@ -72,32 +82,53 @@ npx cap sync android
 # 3. 进入Android目录
 cd ../android
 
-# 3.1 修复Kotlin JVM目标版本兼容性问题
-echo "🔧 修复Kotlin JVM目标版本..."
-sed -i.tmp 's/sourceCompatibility JavaVersion.VERSION_21/sourceCompatibility JavaVersion.VERSION_17/' app/capacitor.build.gradle
-sed -i.tmp 's/targetCompatibility JavaVersion.VERSION_21/targetCompatibility JavaVersion.VERSION_17/' app/capacitor.build.gradle
-rm -f app/capacitor.build.gradle.tmp
+# 3.1 修复所有 Capacitor 插件的 Java 版本兼容性问题
+echo "🔧 修复 Java 版本兼容性..."
+
+# 修复 capacitor-android 核心库
+CAPACITOR_CORE_BUILD="../../node_modules/@capacitor/android/capacitor/build.gradle"
+if [ -f "$CAPACITOR_CORE_BUILD" ]; then
+    sed -i.tmp 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' "$CAPACITOR_CORE_BUILD"
+    rm -f "$CAPACITOR_CORE_BUILD.tmp"
+    echo "✅ Capacitor 核心库已修复"
+fi
+
+# 修复所有 Capacitor 插件
+for plugin_build in ../../node_modules/@capacitor/*/android/build.gradle; do
+    if [ -f "$plugin_build" ]; then
+        sed -i.tmp 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' "$plugin_build"
+        rm -f "$plugin_build.tmp"
+    fi
+done
+echo "✅ Capacitor 插件已修复"
 
 # 3.2 修复RevenueCat插件的Kotlin版本问题
 echo "🔧 修复RevenueCat插件Kotlin版本..."
-REVENUECAT_BUILD_FILE="../node_modules/@revenuecat/purchases-capacitor/android/build.gradle"
+REVENUECAT_BUILD_FILE="../../node_modules/@revenuecat/purchases-capacitor/android/build.gradle"
 if [ -f "$REVENUECAT_BUILD_FILE" ]; then
     # 备份原文件
     cp "$REVENUECAT_BUILD_FILE" "$BACKUP_DIR/revenuecat.build.gradle.backup"
     # 修改Kotlin版本和JVM target
     sed -i.tmp 's/org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.20/org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.10/' "$REVENUECAT_BUILD_FILE"
+    sed -i.tmp 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' "$REVENUECAT_BUILD_FILE"
     rm -f "$REVENUECAT_BUILD_FILE.tmp"
     echo "✅ RevenueCat插件配置已修复"
 fi
 
-# 4. 备份原始文件到临时目录
+# 4. 备份原始配置文件
 echo "💾 备份原始配置..."
-BACKUP_DIR="/tmp/apk-build-backup-$$"
-mkdir -p "$BACKUP_DIR"
-cp app/src/main/res/values/strings.xml "$BACKUP_DIR/strings.xml.backup"
-cp app/build.gradle "$BACKUP_DIR/build.gradle.backup"
-cp build.gradle "$BACKUP_DIR/root.build.gradle.backup"
-cp gradle.properties "$BACKUP_DIR/gradle.properties.backup"
+if [ -f "app/src/main/res/values/strings.xml" ]; then
+    cp app/src/main/res/values/strings.xml "$BACKUP_DIR/strings.xml.backup"
+fi
+if [ -f "app/build.gradle" ]; then
+    cp app/build.gradle "$BACKUP_DIR/build.gradle.backup"
+fi
+if [ -f "build.gradle" ]; then
+    cp build.gradle "$BACKUP_DIR/root.build.gradle.backup"
+fi
+if [ -f "gradle.properties" ]; then
+    cp gradle.properties "$BACKUP_DIR/gradle.properties.backup"
+fi
 
 # 5. 修改应用名称为调试版本
 echo "🔧 设置调试版本应用名称..."
@@ -135,7 +166,7 @@ cleanup() {
         echo "✅ gradle.properties 已恢复"
     fi
     if [ -f "$BACKUP_DIR/revenuecat.build.gradle.backup" ]; then
-        cp "$BACKUP_DIR/revenuecat.build.gradle.backup" "../node_modules/@revenuecat/purchases-capacitor/android/build.gradle"
+        cp "$BACKUP_DIR/revenuecat.build.gradle.backup" "../../node_modules/@revenuecat/purchases-capacitor/android/build.gradle"
         echo "✅ RevenueCat build.gradle 已恢复"
     fi
     rm -rf "$BACKUP_DIR"
