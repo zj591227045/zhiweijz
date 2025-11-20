@@ -195,20 +195,22 @@ BEGIN
     
     INSERT INTO accounting_points_transactions (
         user_id,
-        amount,
         type,
-        source,
-        description,
+        operation,
+        points,
+        balance_type,
         balance_after,
+        description,
         created_at
     )
     SELECT
         v_actual_user_id,
-        v_points_awarded,
         'checkin',
+        'add',
+        v_points_awarded,
         'gift',
+        COALESCE(uap.gift_balance, 0) + v_points_awarded,
         '每日签到奖励',
-        COALESCE(uap.gift_balance, 0) + COALESCE(uap.member_balance, 0) + v_points_awarded,
         NOW()
     FROM user_accounting_points uap
     WHERE uap.user_id = v_actual_user_id
@@ -216,9 +218,10 @@ BEGIN
     
     RAISE NOTICE '✓ 交易记录已创建:';
     RAISE NOTICE '  - 交易ID: %', v_transaction_id;
-    RAISE NOTICE '  - 金额: +%', v_points_awarded;
+    RAISE NOTICE '  - 点数: +%', v_points_awarded;
     RAISE NOTICE '  - 类型: 签到';
-    RAISE NOTICE '  - 来源: 赠送';
+    RAISE NOTICE '  - 操作: 增加';
+    RAISE NOTICE '  - 余额类型: 赠送';
 END $$;
 
 \echo ''
