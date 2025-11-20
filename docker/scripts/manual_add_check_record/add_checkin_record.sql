@@ -5,8 +5,8 @@
 -- 功能：为指定用户添加指定日期的签到记录
 -- 
 -- 参数：
---   :user_id - 用户ID (UUID)
---   :checkin_date - 签到日期 (YYYY-MM-DD)
+--   app.user_id - 用户ID或邮箱
+--   app.checkin_date - 签到日期 (YYYY-MM-DD)
 -- =====================================================
 
 \set ON_ERROR_STOP on
@@ -20,36 +20,28 @@ BEGIN;
 \echo ''
 
 -- 创建临时表存储用户ID
-CREATE TEMP TABLE IF NOT EXISTS temp_user_info (user_id UUID);
+CREATE TEMP TABLE IF NOT EXISTS temp_user_info (user_id TEXT);
 DELETE FROM temp_user_info;
 
 -- 1. 验证用户是否存在并获取用户ID
 \echo '1. 验证用户是否存在...'
 DO $$
 DECLARE
-    v_user_exists BOOLEAN;
     v_user_name TEXT;
     v_user_email TEXT;
-    v_actual_user_id UUID;
+    v_actual_user_id TEXT;
     v_input_user_id TEXT := current_setting('app.user_id');
 BEGIN
-    -- 尝试作为UUID查询
-    BEGIN
-        SELECT id, name, email INTO v_actual_user_id, v_user_name, v_user_email
-        FROM users 
-        WHERE id = v_input_user_id::uuid;
-        
-        IF FOUND THEN
-            RAISE NOTICE '✓ 用户存在: % (%) [ID: %]', v_user_name, v_user_email, v_actual_user_id;
-            -- 将实际的UUID存储到临时表中供后续使用
-            INSERT INTO temp_user_info VALUES (v_actual_user_id);
-            RETURN;
-        END IF;
-    EXCEPTION
-        WHEN invalid_text_representation THEN
-            -- 不是有效的UUID，尝试作为邮箱查询
-            NULL;
-    END;
+    -- 尝试作为ID查询（users表的id字段是text类型）
+    SELECT id, name, email INTO v_actual_user_id, v_user_name, v_user_email
+    FROM users 
+    WHERE id = v_input_user_id;
+    
+    IF FOUND THEN
+        RAISE NOTICE '✓ 用户存在: % (%) [ID: %]', v_user_name, v_user_email, v_actual_user_id;
+        INSERT INTO temp_user_info VALUES (v_actual_user_id);
+        RETURN;
+    END IF;
     
     -- 尝试作为邮箱查询
     SELECT id, name, email INTO v_actual_user_id, v_user_name, v_user_email
@@ -58,7 +50,6 @@ BEGIN
     
     IF FOUND THEN
         RAISE NOTICE '✓ 用户存在: % (%) [ID: %]', v_user_name, v_user_email, v_actual_user_id;
-        -- 将实际的UUID存储到临时表中供后续使用
         INSERT INTO temp_user_info VALUES (v_actual_user_id);
         RETURN;
     END IF;
@@ -74,23 +65,21 @@ END $$;
 DO $$
 DECLARE
     v_checkin_exists BOOLEAN;
-    v_existing_id UUID;
+    v_existing_id TEXT;
     v_existing_points INT;
-    v_actual_user_id UUID;
+    v_actual_user_id TEXT;
     v_checkin_date DATE := current_setting('app.checkin_date')::date;
 BEGIN
-    -- 从临时表获取实际的用户ID
     SELECT user_id INTO v_actual_user_id FROM temp_user_info;
     
     SELECT 
-        EXISTS(SELECT 1 FROM user_checkins WHERE user_id = v_actual_user_id AND checkin_date = v_checkin_date),
         id,
         points_awarded
-    INTO v_checkin_exists, v_existing_id, v_existing_points
+    INTO v_existing_id, v_existing_points
     FROM user_checkins 
     WHERE user_id = v_actual_user_id AND checkin_date = v_checkin_date;
     
-    IF v_checkin_exists THEN
+    IF FOUND THEN
         RAISE NOTICE '⚠ 该日期已有签到记录:';
         RAISE NOTICE '  - 记录ID: %', v_existing_id;
         RAISE NOTICE '  - 奖励点数: %', v_existing_points;
@@ -110,9 +99,8 @@ DECLARE
     v_current_balance INT;
     v_gift_balance INT;
     v_member_balance INT;
-    v_actual_user_id UUID;
+    v_actual_user_id TEXT;
 BEGIN
-    -- 从临时表获取实际的用户ID
     SELECT user_id INTO v_actual_user_id FROM temp_user_info;
     
     SELECT 
@@ -140,12 +128,11 @@ END $$;
 \echo '4. 添加签到记录...'
 DO $$
 DECLARE
-    v_checkin_id UUID;
-    v_points_awarded INT := 5; -- 签到奖励点数
-    v_actual_user_id UUID;
+    v_checkin_id TEXT;
+    v_points_awarded INT := 5;
+    v_actual_user_id TEXT;
     v_checkin_date DATE := current_setting('app.checkin_date')::date;
 BEGIN
-    -- 从临时表获取实际的用户ID
     SELECT user_id INTO v_actual_user_id FROM temp_user_info;
     
     INSERT INTO user_checkins (
@@ -173,9 +160,8 @@ END $$;
 \echo '5. 确保用户有记账点账户...'
 DO $$
 DECLARE
-    v_actual_user_id UUID;
+    v_actual_user_id TEXT;
 BEGIN
-    -- 从临时表获取实际的用户ID
     SELECT user_id INTO v_actual_user_id FROM temp_user_info;
     
     INSERT INTO user_accounting_points (
@@ -203,11 +189,10 @@ END $$;
 \echo '6. 添加记账点交易记录...'
 DO $$
 DECLARE
-    v_transaction_id UUID;
+    v_transaction_id TEXT;
     v_points_awarded INT := 5;
-    v_actual_user_id UUID;
+    v_actual_user_id TEXT;
 BEGIN
-    -- 从临时表获取实际的用户ID
     SELECT user_id INTO v_actual_user_id FROM temp_user_info;
     
     INSERT INTO accounting_points_transactions (
@@ -247,9 +232,8 @@ DECLARE
     v_points_awarded INT := 5;
     v_new_total_balance INT;
     v_new_gift_balance INT;
-    v_actual_user_id UUID;
+    v_actual_user_id TEXT;
 BEGIN
-    -- 从临时表获取实际的用户ID
     SELECT user_id INTO v_actual_user_id FROM temp_user_info;
     
     UPDATE user_accounting_points
@@ -277,10 +261,9 @@ DECLARE
     v_gift_balance INT;
     v_member_balance INT;
     v_total_checkins BIGINT;
-    v_actual_user_id UUID;
+    v_actual_user_id TEXT;
     v_checkin_date DATE := current_setting('app.checkin_date')::date;
 BEGIN
-    -- 从临时表获取实际的用户ID
     SELECT user_id INTO v_actual_user_id FROM temp_user_info;
     
     SELECT 
