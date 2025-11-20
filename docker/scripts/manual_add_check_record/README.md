@@ -64,19 +64,25 @@
 
 ### 参数说明
 
-- `用户ID`: 必填，用户的UUID（可从数据库 `users` 表查询）
+- `用户ID`: 必填，可以是用户的UUID或邮箱地址
 - `日期`: 可选，格式为 `YYYY-MM-DD`，默认为今天
 
 ### 使用示例
 
 ```bash
-# 示例1：为用户添加今天的签到
+# 示例1：通过UUID为用户添加今天的签到
 ./add_checkin_record.sh abc123-def4-5678-90ab-cdef12345678
 
-# 示例2：为用户添加2024年11月20日的签到
+# 示例2：通过邮箱为用户添加今天的签到
+./add_checkin_record.sh user@example.com
+
+# 示例3：为用户添加2024年11月20日的签到
 ./add_checkin_record.sh abc123-def4-5678-90ab-cdef12345678 2024-11-20
 
-# 示例3：查看帮助信息
+# 示例4：通过邮箱添加指定日期的签到
+./add_checkin_record.sh user@example.com 2024-11-20
+
+# 示例5：查看帮助信息
 ./add_checkin_record.sh --help
 ```
 
@@ -195,9 +201,9 @@ NOTICE:  ========================================
 [SUCCESS] 签到记录添加完成！
 ```
 
-## 查询用户ID
+## 查询用户信息
 
-如果不知道用户ID，可以通过以下SQL查询：
+脚本支持直接使用邮箱地址，无需查询UUID。如果需要查询用户信息，可以使用以下SQL：
 
 ```sql
 -- 通过用户名查询
@@ -208,6 +214,18 @@ SELECT id, name, email FROM users WHERE email = 'zhangsan@example.com';
 
 -- 查看所有用户
 SELECT id, name, email, created_at FROM users ORDER BY created_at DESC LIMIT 10;
+```
+
+或者使用psql命令：
+
+```bash
+# 通过邮箱查询
+PGPASSWORD=zhiweijz123 psql -h localhost -p 5432 -U zhiweijz -d zhiweijz \
+  -c "SELECT id, name, email FROM users WHERE email = 'user@example.com';"
+
+# 查看最近注册的用户
+PGPASSWORD=zhiweijz123 psql -h localhost -p 5432 -U zhiweijz -d zhiweijz \
+  -c "SELECT id, name, email, created_at FROM users ORDER BY created_at DESC LIMIT 10;"
 ```
 
 ## 故障排查

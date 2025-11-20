@@ -45,7 +45,7 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# 辅助函数：从.env文件读取变量
+# 辅助函数：从.env文件读取变量（不覆盖已有环境变量）
 read_env_var() {
     local var_name="$1"
     local current_value="${!var_name}"
@@ -70,12 +70,13 @@ show_help() {
     echo "使用方法: $0 [用户ID] [日期]"
     echo ""
     echo "参数:"
-    echo "  用户ID    必填，用户的UUID"
+    echo "  用户ID    必填，用户的UUID或邮箱"
     echo "  日期      可选，格式为 YYYY-MM-DD，默认为今天"
     echo ""
     echo "示例:"
     echo "  $0 abc123 2024-11-20        # 为用户abc123添加2024-11-20的签到"
     echo "  $0 abc123                   # 为用户abc123添加今天的签到"
+    echo "  $0 user@example.com         # 通过邮箱添加今天的签到"
     echo ""
     exit 0
 }
@@ -95,7 +96,7 @@ fi
 
 # 验证用户ID
 if [ -z "$USER_ID" ]; then
-    log_error "请提供用户ID"
+    log_error "请提供用户ID或邮箱"
     echo ""
     show_help
 fi
@@ -106,22 +107,59 @@ if ! [[ "$CHECKIN_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
     exit 1
 fi
 
-# 读取数据库配置
+# 读取数据库配置（优先使用环境变量）
 POSTGRES_DB="${POSTGRES_DB:-$(read_env_var POSTGRES_DB)}"
+POSTGRES_DB="${POSTGRES_DB:-$(read_env_var DB_NAME)}"
+
 POSTGRES_USER="${POSTGRES_USER:-$(read_env_var POSTGRES_USER)}"
+POSTGRES_USER="${POSTGRES_USER:-$(read_env_var DB_USER)}"
+
 POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-$(read_env_var POSTGRES_PASSWORD)}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-$(read_env_var DB_PASSWORD)}"
+
+# 读取DATABASE_URL（如果需要）
+if [ -z "$DATABASE_URL" ]; then
+    DATABASE_URL=$(read_env_var DATABASE_URL)
+fi
 
 # 检查必需的环境变量
 if [ -z "$POSTGRES_DB" ] || [ -z "$POSTGRES_USER" ] || [ -z "$POSTGRES_PASSWORD" ]; then
     log_error "缺少必需的数据库配置变量"
-    log_error "请确保 docker/.env 文件包含以下变量："
-    log_error "  POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD"
+    log_error "请通过环境变量或.env文件提供以下变量之一："
+    log_error "  POSTGRES_DB/DB_NAME, POSTGRES_USER/DB_USER, POSTGRES_PASSWORD/DB_PASSWORD"
+    log_error ""
+    log_error "当前读取到的值："
+    log_error "  POSTGRES_DB: ${POSTGRES_DB:-未设置}"
+    log_error "  POSTGRES_USER: ${POSTGRES_USER:-未设置}"
+    log_error "  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:+已设置}"
+    log_error "  DATABASE_URL: ${DATABASE_URL:+已设置}"
+    log_error "  ENV_FILE: $ENV_FILE"
     exit 1
 fi
 
+log_info "数据库配置已加载 (来源: ${DATABASE_URL:+环境变量}${DATABASE_URL:-配置文件})"
+
 # 设置数据库连接参数
-FINAL_DB_HOST="${DB_HOST:-localhost}"
+# 优先级：DB_HOST环境变量 > DATABASE_URL中的主机 > 默认值
+FINAL_DB_HOST="${DB_HOST}"
 FINAL_DB_PORT="${DB_PORT:-5432}"
+
+# 如果DB_HOST未设置，尝试从DATABASE_URL中提取
+if [ -z "$FINAL_DB_HOST" ] && [ -n "$DATABASE_URL" ]; then
+    # 从DATABASE_URL中提取主机名
+    # 格式: postgresql://user:pass@host:port/db
+    EXTRACTED_HOST=$(echo "$DATABASE_URL" | sed -n 's|.*@\([^:]*\):.*|\1|p')
+    if [ -n "$EXTRACTED_HOST" ]; then
+        FINAL_DB_HOST="$EXTRACTED_HOST"
+        log_info "从DATABASE_URL中提取主机: $FINAL_DB_HOST"
+    fi
+fi
+
+# 如果仍然未设置，使用默认值
+if [ -z "$FINAL_DB_HOST" ]; then
+    FINAL_DB_HOST="localhost"
+    log_warning "使用默认数据库主机: localhost"
+fi
 
 log_info "=== 配置信息 ==="
 log_info "数据库主机: $FINAL_DB_HOST"
