@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request } from 'express';
 
 export type CallSource = 'App' | 'WeChat' | 'API';
@@ -17,7 +18,7 @@ export class SourceDetectionUtil {
     const isExpressRequest = typeof req.get === 'function';
 
     // 添加调试日志
-    console.log('🔍 [来源检测] 开始检测请求来源:', {
+    logger.info('🔍 [来源检测] 开始检测请求来源:', {
       isExpressRequest,
       path: req.path,
       method: req.method,
@@ -31,24 +32,24 @@ export class SourceDetectionUtil {
 
     // 特殊处理：如果不是Express请求对象，但有用户ID，很可能是微信模拟请求
     if (!isExpressRequest && req.user?.id) {
-      console.log('🔍 [来源检测] 识别为微信模拟请求');
+      logger.info('🔍 [来源检测] 识别为微信模拟请求');
       return 'WeChat';
     }
 
     // 1. 检查是否来自微信服务号
     if (this.isWeChatSource(req)) {
-      console.log('🔍 [来源检测] 识别为微信来源');
+      logger.info('🔍 [来源检测] 识别为微信来源');
       return 'WeChat';
     }
 
     // 2. 检查是否为直接API调用
     if (this.isDirectAPICall(req)) {
-      console.log('🔍 [来源检测] 识别为API调用');
+      logger.info('🔍 [来源检测] 识别为API调用');
       return 'API';
     }
 
     // 3. 默认为App调用（包括Web应用和移动应用）
-    console.log('🔍 [来源检测] 识别为App调用');
+    logger.info('🔍 [来源检测] 识别为App调用');
     return 'App';
   }
 
@@ -78,7 +79,7 @@ export class SourceDetectionUtil {
       req.body?.MsgType
     );
 
-    console.log('🔍 [微信检测] 详细信息:', {
+    logger.info('🔍 [微信检测] 详细信息:', {
       isWeChatPath,
       isWeChatUserAgent,
       hasWeChatHeaders,
@@ -198,7 +199,7 @@ export class SourceDetectionUtil {
    */
   static logSourceDetection(req: Request, detectedSource: CallSource): void {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[Source Detection]', {
+      logger.info('[Source Detection]', {
         path: req.path,
         method: req.method,
         detectedSource,

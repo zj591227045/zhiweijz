@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response, NextFunction } from 'express';
 import { SourceDetectionUtil } from '../utils/source-detection.util';
 
@@ -22,7 +23,7 @@ export function sourceDetectionMiddleware(req: Request, res: Response, next: Nex
     
     next();
   } catch (error) {
-    console.error('来源检测中间件错误:', error);
+    logger.error('来源检测中间件错误:', error);
     // 即使检测失败，也不应该阻止请求继续处理
     // 设置默认来源为App
     (req as any).source = 'App';

@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { Request, Response } from 'express';
 import { MultimodalAIAdminService } from '../services/multimodal-ai.admin.service';
 
@@ -17,10 +18,10 @@ export class MultimodalAIAdminController {
    */
   async getConfig(req: Request, res: Response): Promise<void> {
     try {
-      console.log('📝 [管理端] 获取多模态AI配置请求');
+      logger.info('📝 [管理端] 获取多模态AI配置请求');
       const config = await this.multimodalAIAdminService.getFullConfig();
       
-      console.log('📝 [管理端] 返回的配置概览:', {
+      logger.info('📝 [管理端] 返回的配置概览:', {
         speechEnabled: config.speech.enabled,
         visionEnabled: config.vision.enabled,
         smartAccountingConfigLength: {
@@ -36,7 +37,7 @@ export class MultimodalAIAdminController {
         data: config,
       });
     } catch (error) {
-      console.error('获取多模态AI配置失败:', error);
+      logger.error('获取多模态AI配置失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '获取配置失败',
@@ -59,7 +60,7 @@ export class MultimodalAIAdminController {
         message: '语音识别配置更新成功',
       });
     } catch (error) {
-      console.error('更新语音识别配置失败:', error);
+      logger.error('更新语音识别配置失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '更新配置失败',
@@ -82,7 +83,7 @@ export class MultimodalAIAdminController {
         message: '视觉识别配置更新成功',
       });
     } catch (error) {
-      console.error('更新视觉识别配置失败:', error);
+      logger.error('更新视觉识别配置失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '更新配置失败',
@@ -105,7 +106,7 @@ export class MultimodalAIAdminController {
         data: result,
       });
     } catch (error) {
-      console.error('测试语音识别配置失败:', error);
+      logger.error('测试语音识别配置失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '测试配置失败',
@@ -128,7 +129,7 @@ export class MultimodalAIAdminController {
         data: result,
       });
     } catch (error) {
-      console.error('测试视觉识别配置失败:', error);
+      logger.error('测试视觉识别配置失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '测试配置失败',
@@ -151,7 +152,7 @@ export class MultimodalAIAdminController {
         },
       });
     } catch (error) {
-      console.error('获取提供商列表失败:', error);
+      logger.error('获取提供商列表失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '获取提供商列表失败',
@@ -172,7 +173,7 @@ export class MultimodalAIAdminController {
         data: status,
       });
     } catch (error) {
-      console.error('获取配置状态失败:', error);
+      logger.error('获取配置状态失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '获取配置状态失败',
@@ -195,7 +196,7 @@ export class MultimodalAIAdminController {
         message: '多模态AI配置更新成功',
       });
     } catch (error) {
-      console.error('批量更新配置失败:', error);
+      logger.error('批量更新配置失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '批量更新配置失败',

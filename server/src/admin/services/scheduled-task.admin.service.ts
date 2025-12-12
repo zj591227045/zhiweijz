@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { PrismaClient } from '@prisma/client';
 import * as cron from 'node-cron';
 import { spawn } from 'child_process';
@@ -53,7 +54,7 @@ export class ScheduledTaskAdminService {
   constructor() {
     // 获取项目根目录
     this.projectRoot = path.resolve(__dirname, '../../../..');
-    console.log('[计划任务服务] 项目根目录:', this.projectRoot);
+    logger.info('[计划任务服务] 项目根目录:', this.projectRoot);
   }
 
   /**
@@ -61,21 +62,21 @@ export class ScheduledTaskAdminService {
    */
   async initializeScheduledTasks(): Promise<void> {
     try {
-      console.log('[计划任务服务] 开始初始化计划任务...');
+      logger.info('[计划任务服务] 开始初始化计划任务...');
       
       const enabledTasks = await prisma.scheduledTask.findMany({
         where: { isEnabled: true }
       });
 
-      console.log(`[计划任务服务] 找到 ${enabledTasks.length} 个启用的任务`);
+      logger.info(`[计划任务服务] 找到 ${enabledTasks.length} 个启用的任务`);
 
       for (const task of enabledTasks) {
         await this.scheduleTask(task.id);
       }
 
-      console.log('[计划任务服务] 计划任务初始化完成');
+      logger.info('[计划任务服务] 计划任务初始化完成');
     } catch (error) {
-      console.error('[计划任务服务] 初始化失败:', error);
+      logger.error('[计划任务服务] 初始化失败:', error);
       throw error;
     }
   }
@@ -94,7 +95,7 @@ export class ScheduledTaskAdminService {
       }
 
       if (!task.isEnabled) {
-        console.log(`[计划任务服务] 任务已禁用，跳过调度: ${task.name}`);
+        logger.info(`[计划任务服务] 任务已禁用，跳过调度: ${task.name}`);
         return;
       }
 
@@ -108,16 +109,16 @@ export class ScheduledTaskAdminService {
 
       // 创建新的定时任务
       const cronJob = cron.schedule(task.cronExpression, async () => {
-        console.log(`[计划任务服务] 定时触发任务: ${task.name}`);
+        logger.info(`[计划任务服务] 定时触发任务: ${task.name}`);
         await this.executeTask(taskId, 'cron');
       }, {
         timezone: 'Asia/Shanghai'
       });
 
       this.cronJobs.set(taskId, cronJob);
-      console.log(`[计划任务服务] 任务已调度: ${task.name} (${task.cronExpression})`);
+      logger.info(`[计划任务服务] 任务已调度: ${task.name} (${task.cronExpression})`);
     } catch (error) {
-      console.error(`[计划任务服务] 调度任务失败 (${taskId}):`, error);
+      logger.error(`[计划任务服务] 调度任务失败 (${taskId}):`, error);
       throw error;
     }
   }
@@ -130,7 +131,7 @@ export class ScheduledTaskAdminService {
     if (cronJob) {
       cronJob.stop();
       this.cronJobs.delete(taskId);
-      console.log(`[计划任务服务] 任务已取消调度: ${taskId}`);
+      logger.info(`[计划任务服务] 任务已取消调度: ${taskId}`);
     }
   }
 
@@ -157,11 +158,11 @@ export class ScheduledTaskAdminService {
       }
     });
 
-    console.log(`[计划任务服务] 开始执行任务: ${task.name} (日志ID: ${log.id})`);
+    logger.info(`[计划任务服务] 开始执行任务: ${task.name} (日志ID: ${log.id})`);
 
     // 异步执行脚本
     this.runScript(task, log.id).catch(error => {
-      console.error(`[计划任务服务] 任务执行异常: ${task.name}`, error);
+      logger.error(`[计划任务服务] 任务执行异常: ${task.name}`, error);
     });
 
     return log.id;
@@ -179,7 +180,7 @@ export class ScheduledTaskAdminService {
     try {
       // 处理内部任务类型
       if (task.scriptType === 'internal') {
-        console.log(`[计划任务服务] 执行内部任务: ${task.scriptPath}`);
+        logger.info(`[计划任务服务] 执行内部任务: ${task.scriptPath}`);
 
         try {
           // 传递任务配置给内部任务
@@ -224,7 +225,7 @@ export class ScheduledTaskAdminService {
         throw new Error(`脚本文件不存在: ${scriptFullPath}`);
       }
 
-      console.log(`[计划任务服务] 执行脚本: ${scriptFullPath}`);
+      logger.info(`[计划任务服务] 执行脚本: ${scriptFullPath}`);
 
       // 根据脚本类型选择执行方式
       let command: string;
@@ -266,7 +267,7 @@ export class ScheduledTaskAdminService {
           dbHost = match[3];
           dbPort = match[4];
           dbName = match[5];
-          console.log(`[计划任务服务] 从DATABASE_URL解析: ${dbUser}@${dbHost}:${dbPort}/${dbName}`);
+          logger.info(`[计划任务服务] 从DATABASE_URL解析: ${dbUser}@${dbHost}:${dbPort}/${dbName}`);
         }
       }
 
@@ -285,7 +286,7 @@ export class ScheduledTaskAdminService {
         PGPASSWORD: dbPassword || process.env.POSTGRES_PASSWORD || process.env.DB_PASSWORD || ''
       };
 
-      console.log(`[计划任务服务] 传递环境变量: POSTGRES_DB=${taskEnv.POSTGRES_DB}, DB_HOST=${taskEnv.DB_HOST}`);
+      logger.info(`[计划任务服务] 传递环境变量: POSTGRES_DB=${taskEnv.POSTGRES_DB}, DB_HOST=${taskEnv.DB_HOST}`);
 
       // 执行脚本
       const child = spawn(command, args, {
@@ -297,14 +298,14 @@ export class ScheduledTaskAdminService {
       child.stdout.on('data', (data) => {
         const text = data.toString();
         output += text;
-        console.log(`[任务输出] ${text.trim()}`);
+        logger.info(`[任务输出] ${text.trim()}`);
       });
 
       // 捕获错误输出
       child.stderr.on('data', (data) => {
         const text = data.toString();
         error += text;
-        console.error(`[任务错误] ${text.trim()}`);
+        logger.error(`[任务错误] ${text.trim()}`);
       });
 
       // 等待执行完成
@@ -337,7 +338,7 @@ export class ScheduledTaskAdminService {
         }
       });
 
-      console.log(`[计划任务服务] 任务执行成功: ${task.name} (耗时: ${duration}ms)`);
+      logger.info(`[计划任务服务] 任务执行成功: ${task.name} (耗时: ${duration}ms)`);
     } catch (err) {
       // 更新执行日志 - 失败
       const duration = Date.now() - startTime;
@@ -355,7 +356,7 @@ export class ScheduledTaskAdminService {
         }
       });
 
-      console.error(`[计划任务服务] 任务执行失败: ${task.name}`, err);
+      logger.error(`[计划任务服务] 任务执行失败: ${task.name}`, err);
     }
   }
 
@@ -565,10 +566,10 @@ export class ScheduledTaskAdminService {
    * 停止所有定时任务
    */
   stopAllTasks(): void {
-    console.log('[计划任务服务] 停止所有定时任务...');
+    logger.info('[计划任务服务] 停止所有定时任务...');
     this.cronJobs.forEach((job, taskId) => {
       job.stop();
-      console.log(`[计划任务服务] 已停止任务: ${taskId}`);
+      logger.info(`[计划任务服务] 已停止任务: ${taskId}`);
     });
     this.cronJobs.clear();
   }
@@ -628,7 +629,7 @@ export class ScheduledTaskAdminService {
         message: 'WebDAV连接成功'
       };
     } catch (error) {
-      console.error('[计划任务服务] 测试WebDAV连接失败:', error);
+      logger.error('[计划任务服务] 测试WebDAV连接失败:', error);
       return {
         success: false,
         message: error instanceof Error ? error.message : '连接失败'

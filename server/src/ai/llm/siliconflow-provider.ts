@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { ChatOpenAI } from '@langchain/openai';
 import { LLMProvider } from './llm-provider';
 import { LLMProviderOptions, Message, LLMResponse, TokenUsage } from '../types/llm-types';
@@ -55,16 +56,16 @@ export class SiliconFlowProvider implements LLMProvider {
       const response = await model.invoke(prompt);
       return response.content.toString();
     } catch (error) {
-      console.error(`[SiliconFlow] 使用模型 ${options.model} 生成文本时出错:`, error);
+      logger.error(`[SiliconFlow] 使用模型 ${options.model} 生成文本时出错:`, error);
 
       // 检查是否是网络连接错误
       if (axios.isAxiosError(error)) {
         if (error.code === 'ECONNRESET') {
-          console.error(`[SiliconFlow] 网络连接被重置，模型: ${options.model}`);
+          logger.error(`[SiliconFlow] 网络连接被重置，模型: ${options.model}`);
         } else if (error.code === 'ECONNABORTED') {
-          console.error(`[SiliconFlow] 请求超时，模型: ${options.model}`);
+          logger.error(`[SiliconFlow] 请求超时，模型: ${options.model}`);
         } else if (error.response?.status === 429) {
-          console.error(`[SiliconFlow] API调用频率限制，模型: ${options.model}`);
+          logger.error(`[SiliconFlow] API调用频率限制，模型: ${options.model}`);
         }
       }
 
@@ -73,7 +74,7 @@ export class SiliconFlowProvider implements LLMProvider {
         const currentIndex = this.modelPriority.indexOf(options.model);
         if (currentIndex < this.modelPriority.length - 1) {
           const nextModel = this.modelPriority[currentIndex + 1];
-          console.log(`[SiliconFlow] 尝试使用下一个模型: ${nextModel}`);
+          logger.info(`[SiliconFlow] 尝试使用下一个模型: ${nextModel}`);
 
           return this.generateText(prompt, {
             ...options,
@@ -122,16 +123,16 @@ export class SiliconFlowProvider implements LLMProvider {
       const response = await model.invoke(langchainMessages);
       return response.content.toString();
     } catch (error) {
-      console.error(`[SiliconFlow] 使用模型 ${options.model} 生成聊天响应时出错:`, error);
+      logger.error(`[SiliconFlow] 使用模型 ${options.model} 生成聊天响应时出错:`, error);
 
       // 检查是否是网络连接错误
       if (axios.isAxiosError(error)) {
         if (error.code === 'ECONNRESET') {
-          console.error(`[SiliconFlow] 网络连接被重置，模型: ${options.model}`);
+          logger.error(`[SiliconFlow] 网络连接被重置，模型: ${options.model}`);
         } else if (error.code === 'ECONNABORTED') {
-          console.error(`[SiliconFlow] 请求超时，模型: ${options.model}`);
+          logger.error(`[SiliconFlow] 请求超时，模型: ${options.model}`);
         } else if (error.response?.status === 429) {
-          console.error(`[SiliconFlow] API调用频率限制，模型: ${options.model}`);
+          logger.error(`[SiliconFlow] API调用频率限制，模型: ${options.model}`);
         }
       }
 
@@ -140,7 +141,7 @@ export class SiliconFlowProvider implements LLMProvider {
         const currentIndex = this.modelPriority.indexOf(options.model);
         if (currentIndex < this.modelPriority.length - 1) {
           const nextModel = this.modelPriority[currentIndex + 1];
-          console.log(`[SiliconFlow] 尝试使用下一个模型: ${nextModel}`);
+          logger.info(`[SiliconFlow] 尝试使用下一个模型: ${nextModel}`);
 
           return this.generateChat(messages, {
             ...options,
@@ -247,16 +248,16 @@ export class SiliconFlowProvider implements LLMProvider {
         usage,
       };
     } catch (error) {
-      console.error(`[SiliconFlow] 使用模型 ${options.model} 生成聊天响应时出错:`, error);
+      logger.error(`[SiliconFlow] 使用模型 ${options.model} 生成聊天响应时出错:`, error);
 
       // 检查是否是网络连接错误
       if (axios.isAxiosError(error)) {
         if (error.code === 'ECONNRESET') {
-          console.error(`[SiliconFlow] 网络连接被重置，模型: ${options.model}`);
+          logger.error(`[SiliconFlow] 网络连接被重置，模型: ${options.model}`);
         } else if (error.code === 'ECONNABORTED') {
-          console.error(`[SiliconFlow] 请求超时，模型: ${options.model}`);
+          logger.error(`[SiliconFlow] 请求超时，模型: ${options.model}`);
         } else if (error.response?.status === 429) {
-          console.error(`[SiliconFlow] API调用频率限制，模型: ${options.model}`);
+          logger.error(`[SiliconFlow] API调用频率限制，模型: ${options.model}`);
         }
       }
 
@@ -265,7 +266,7 @@ export class SiliconFlowProvider implements LLMProvider {
         const currentIndex = this.modelPriority.indexOf(options.model);
         if (currentIndex < this.modelPriority.length - 1) {
           const nextModel = this.modelPriority[currentIndex + 1];
-          console.log(`[SiliconFlow] 尝试使用下一个模型: ${nextModel}`);
+          logger.info(`[SiliconFlow] 尝试使用下一个模型: ${nextModel}`);
 
           return this.generateChatWithUsage(messages, {
             ...options,

@@ -3,6 +3,7 @@
  * 将现有的独立定时任务统一注册到内部任务注册表
  */
 
+import { logger } from '../../utils/logger';
 import { internalTaskRegistry } from './internal-task-registry';
 import { UserDeletionService } from '../../services/user-deletion.service';
 import MembershipExpiryCheckTask from '../../tasks/membership-expiry-check.task';
@@ -18,7 +19,7 @@ import { MultiProviderLLMService } from '../../ai/llm/multi-provider-service';
  * 注册所有内部任务
  */
 export function registerAllInternalTasks(): void {
-  console.log('[内部任务注册] 开始注册所有内部任务...');
+  logger.info('[内部任务注册] 开始注册所有内部任务...');
 
   // 1. 用户注销请求处理任务
   internalTaskRegistry.register({
@@ -54,13 +55,13 @@ export function registerAllInternalTasks(): void {
       const wechatMediaService = new WechatMediaService();
       
       if (!wechatMediaService.isServiceEnabled()) {
-        console.log('🔒 微信服务未启用，跳过媒体文件清理');
+        logger.info('🔒 微信服务未启用，跳过媒体文件清理');
         return;
       }
 
-      console.log('🗑️ 开始清理微信媒体临时文件...');
+      logger.info('🗑️ 开始清理微信媒体临时文件...');
       await wechatMediaService.cleanupExpiredFiles();
-      console.log('✅ 微信媒体临时文件清理完成');
+      logger.info('✅ 微信媒体临时文件清理完成');
     }
   });
 
@@ -85,13 +86,13 @@ export function registerAllInternalTasks(): void {
       const fileStorageService = FileStorageService.getInstance();
       
       if (!fileStorageService.isStorageAvailable()) {
-        console.log('🔒 对象存储服务不可用，跳过临时文件清理');
+        logger.info('🔒 对象存储服务不可用，跳过临时文件清理');
         return;
       }
 
-      console.log('🗑️ 开始清理对象存储临时文件...');
+      logger.info('🗑️ 开始清理对象存储临时文件...');
       const deletedCount = await fileStorageService.cleanupExpiredFiles();
-      console.log(`✅ 对象存储临时文件清理完成，已清理 ${deletedCount} 个文件`);
+      logger.info(`✅ 对象存储临时文件清理完成，已清理 ${deletedCount} 个文件`);
     }
   });
 
@@ -102,10 +103,10 @@ export function registerAllInternalTasks(): void {
     description: '处理过期预算结转，创建新月份预算，清理过期历史记录',
     suggestedCron: '0 2 1 * *', // 每月1号凌晨2点执行
     execute: async () => {
-      console.log('💰 开始执行预算结转和创建任务...');
+      logger.info('💰 开始执行预算结转和创建任务...');
       const budgetScheduler = new BudgetSchedulerService();
       await budgetScheduler.runAllScheduledTasks();
-      console.log('✅ 预算结转和创建任务完成');
+      logger.info('✅ 预算结转和创建任务完成');
     }
   });
 
@@ -116,7 +117,7 @@ export function registerAllInternalTasks(): void {
     description: '备份PostgreSQL数据库到WebDAV服务器',
     suggestedCron: '0 3 * * *', // 每天凌晨3点执行
     execute: async (config?: any) => {
-      console.log('💾 开始执行数据库备份任务...');
+      logger.info('💾 开始执行数据库备份任务...');
 
       // 从任务配置中获取WebDAV配置
       const webdavConfig = config?.webdav;
@@ -131,9 +132,9 @@ export function registerAllInternalTasks(): void {
       });
 
       if (result.success) {
-        console.log(`✅ 数据库备份成功: ${result.fileName} (${result.fileSize} bytes)`);
+        logger.info(`✅ 数据库备份成功: ${result.fileName} (${result.fileSize} bytes)`);
       } else {
-        console.error(`❌ 数据库备份失败: ${result.error}`);
+        logger.error(`❌ 数据库备份失败: ${result.error}`);
         throw new Error(result.error);
       }
     }
@@ -146,7 +147,7 @@ export function registerAllInternalTasks(): void {
     description: '备份S3对象存储文件到WebDAV服务器（支持增量备份，每周自动全备）',
     suggestedCron: '0 4 * * *', // 每天凌晨4点执行
     execute: async (config?: any) => {
-      console.log('📦 开始执行S3对象存储备份任务...');
+      logger.info('📦 开始执行S3对象存储备份任务...');
 
       // 从任务配置中获取WebDAV配置
       const webdavConfig = config?.webdav;
@@ -162,9 +163,9 @@ export function registerAllInternalTasks(): void {
       });
 
       if (result.success) {
-        console.log(`✅ S3备份成功: 处理 ${result.progress.processedFiles}/${result.progress.totalFiles} 个文件`);
+        logger.info(`✅ S3备份成功: 处理 ${result.progress.processedFiles}/${result.progress.totalFiles} 个文件`);
       } else {
-        console.error(`❌ S3备份失败: ${result.error}`);
+        logger.error(`❌ S3备份失败: ${result.error}`);
         throw new Error(result.error);
       }
     }
@@ -177,10 +178,10 @@ export function registerAllInternalTasks(): void {
     description: '检查所有LLM提供商的健康状态，更新可用性信息',
     suggestedCron: '*/5 * * * *', // 每5分钟执行一次
     execute: async () => {
-      console.log('🔍 开始执行LLM提供商健康检查...');
+      logger.info('🔍 开始执行LLM提供商健康检查...');
       const multiProviderService = MultiProviderLLMService.getInstance();
       await multiProviderService.triggerHealthCheck();
-      console.log('✅ LLM提供商健康检查完成');
+      logger.info('✅ LLM提供商健康检查完成');
     }
   });
 
@@ -191,15 +192,15 @@ export function registerAllInternalTasks(): void {
     description: '清理30天之前的性能历史数据，释放数据库空间',
     suggestedCron: '0 1 * * *', // 每天凌晨1点执行
     execute: async () => {
-      console.log('🗑️ 开始清理性能历史记录...');
+      logger.info('🗑️ 开始清理性能历史记录...');
       const { performanceMonitoringService } = await import('../../services/performance-monitoring.service');
       const deletedCount = await performanceMonitoringService.cleanupOldData();
-      console.log(`✅ 性能历史记录清理完成，已删除 ${deletedCount} 条记录`);
+      logger.info(`✅ 性能历史记录清理完成，已删除 ${deletedCount} 条记录`);
     }
   });
 
   const registeredCount = internalTaskRegistry.size;
-  console.log(`[内部任务注册] 成功注册 ${registeredCount} 个内部任务`);
+  logger.info(`[内部任务注册] 成功注册 ${registeredCount} 个内部任务`);
 }
 
 /**

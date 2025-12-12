@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import cron from 'node-cron';
 import { MembershipService } from '../services/membership.service';
 
@@ -18,24 +19,24 @@ class MembershipExpiryCheckTask {
   start(): void {
     // 如果会员系统未启用，不启动任务
     if (!this.membershipService.isEnabled()) {
-      console.log('🔒 会员系统未启用，跳过会员到期检查定时任务');
+      logger.info('🔒 会员系统未启用，跳过会员到期检查定时任务');
       return;
     }
 
     // 每小时的第30分钟执行检查任务（避免与其他任务冲突）
     cron.schedule('30 * * * *', async () => {
       try {
-        console.log('⏰ 开始执行会员到期检查...');
+        logger.info('⏰ 开始执行会员到期检查...');
         await this.checkAllMemberships();
-        console.log('✅ 会员到期检查完成');
+        logger.info('✅ 会员到期检查完成');
       } catch (error) {
-        console.error('❌ 会员到期检查失败:', error);
+        logger.error('❌ 会员到期检查失败:', error);
       }
     }, {
       timezone: 'Asia/Shanghai' // 使用北京时间
     });
 
-    console.log('🕐 会员到期检查定时任务已启动 (每小时第30分钟执行一次)');
+    logger.info('🕐 会员到期检查定时任务已启动 (每小时第30分钟执行一次)');
   }
 
   /**
@@ -52,7 +53,7 @@ class MembershipExpiryCheckTask {
       let checkedCount = 0;
       let expiredCount = 0;
 
-      console.log(`📊 [会员到期检查] 找到 ${memberships.length} 个需要检查的活跃会员`);
+      logger.info(`📊 [会员到期检查] 找到 ${memberships.length} 个需要检查的活跃会员`);
 
       for (const membership of memberships) {
         try {
@@ -65,21 +66,21 @@ class MembershipExpiryCheckTask {
 
           if (updated && !updated.isActive) {
             expiredCount++;
-            console.log(`⚠️ [会员到期] 用户 ${membership.userId} 的 ${membership.memberType} 会员已到期`);
+            logger.info(`⚠️ [会员到期] 用户 ${membership.userId} 的 ${membership.memberType} 会员已到期`);
           }
         } catch (error) {
-          console.error(`❌ [会员到期检查] 检查用户 ${membership.userId} 失败:`, error);
+          logger.error(`❌ [会员到期检查] 检查用户 ${membership.userId} 失败:`, error);
         }
       }
 
-      console.log(`📈 [会员到期检查] 检查完成: 检查了 ${checkedCount} 个会员，其中 ${expiredCount} 个已到期`);
+      logger.info(`📈 [会员到期检查] 检查完成: 检查了 ${checkedCount} 个会员，其中 ${expiredCount} 个已到期`);
 
       return {
         checkedCount,
         expiredCount
       };
     } catch (error) {
-      console.error('❌ [会员到期检查] 批量检查失败:', error);
+      logger.error('❌ [会员到期检查] 批量检查失败:', error);
       throw error;
     }
   }
@@ -92,12 +93,12 @@ class MembershipExpiryCheckTask {
     expiredCount: number;
   }> {
     try {
-      console.log('🔍 手动执行会员到期检查...');
+      logger.info('🔍 手动执行会员到期检查...');
       const result = await this.checkAllMemberships();
-      console.log('✅ 手动检查完成');
+      logger.info('✅ 手动检查完成');
       return result;
     } catch (error) {
-      console.error('❌ 手动检查失败:', error);
+      logger.error('❌ 手动检查失败:', error);
       throw error;
     }
   }

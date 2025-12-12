@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { PrismaClient, MemberType, NotificationType } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -342,7 +343,7 @@ export class MembershipService {
       // 发送到期通知
       await this.createNotification(userId, NotificationType.MEMBERSHIP_EXPIRED, '会员已到期', '您的会员已到期，已自动降级为普通会员。');
 
-      console.log(`✅ [会员到期] 用户 ${userId} 的会员已到期并降级为普通会员`);
+      logger.info(`✅ [会员到期] 用户 ${userId} 的会员已到期并降级为普通会员`);
     }
   }
 

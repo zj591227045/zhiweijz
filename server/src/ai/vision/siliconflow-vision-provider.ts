@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import axios from 'axios';
 import {
   VisionProvider,
@@ -191,7 +192,7 @@ export class SiliconFlowVisionProvider implements VisionProvider {
 
     // 移除严格的模型名称限制，允许用户使用任何模型
     // 只记录使用的模型名称，不强制验证
-    console.log(`硅基流动视觉识别使用模型: ${config.model}`);
+    logger.info(`硅基流动视觉识别使用模型: ${config.model}`);
 
     return true;
   }

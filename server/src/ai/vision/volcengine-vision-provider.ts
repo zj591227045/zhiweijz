@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import axios from 'axios';
 import {
   VisionProvider,
@@ -67,7 +68,7 @@ export class VolcengineVisionProvider implements VisionProvider {
       const cleanBaseUrl = options.baseUrl.endsWith('/') ? options.baseUrl.slice(0, -1) : options.baseUrl;
       const apiUrl = `${cleanBaseUrl}/chat/completions`;
 
-      console.log(`火山方舟API调用详情:`, {
+      logger.info(`火山方舟API调用详情:`, {
         url: apiUrl,
         model: options.model,
         hasApiKey: !!options.apiKey,
@@ -119,7 +120,7 @@ export class VolcengineVisionProvider implements VisionProvider {
       };
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error('火山方舟API调用失败详情:', {
+        logger.error('火山方舟API调用失败详情:', {
           status: error.response?.status,
           statusText: error.response?.statusText,
           data: error.response?.data,
@@ -220,17 +221,17 @@ export class VolcengineVisionProvider implements VisionProvider {
    */
   public validateConfig(config: VisionRecognitionConfig): boolean {
     if (!config.apiKey || config.apiKey.trim() === '') {
-      console.error('火山方舟配置验证失败: API密钥为空');
+      logger.error('火山方舟配置验证失败: API密钥为空');
       return false;
     }
 
     if (!config.model || config.model.trim() === '') {
-      console.error('火山方舟配置验证失败: 模型ID为空');
+      logger.error('火山方舟配置验证失败: 模型ID为空');
       return false;
     }
 
     if (!config.baseUrl || config.baseUrl.trim() === '') {
-      console.error('火山方舟配置验证失败: 基础URL为空');
+      logger.error('火山方舟配置验证失败: 基础URL为空');
       return false;
     }
 
@@ -238,18 +239,18 @@ export class VolcengineVisionProvider implements VisionProvider {
     try {
       new URL(config.baseUrl);
     } catch (error) {
-      console.error('火山方舟配置验证失败: 基础URL格式无效', config.baseUrl);
+      logger.error('火山方舟配置验证失败: 基础URL格式无效', config.baseUrl);
       return false;
     }
 
     // 验证模型ID格式（火山方舟的接入点ID通常以ep-开头）
     if (!config.model.startsWith('ep-')) {
-      console.warn(`火山方舟模型ID格式可能不正确: ${config.model}，通常应以 'ep-' 开头`);
+      logger.warn(`火山方舟模型ID格式可能不正确: ${config.model}，通常应以 'ep-' 开头`);
     }
 
     // 移除模型名称限制，允许任何有效的接入点ID
     // 火山方舟的模型名称是动态的接入点ID，不需要预设限制
-    console.log(`火山方舟视觉识别使用模型: ${config.model}`);
+    logger.info(`火山方舟视觉识别使用模型: ${config.model}`);
 
     return true;
   }

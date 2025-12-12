@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { Request, Response } from 'express';
 import { ScheduledTaskAdminService } from '../services/scheduled-task.admin.service';
 
@@ -41,7 +42,7 @@ export class ScheduledTaskAdminController {
         limit: result.limit
       });
     } catch (error) {
-      console.error('[计划任务控制器] 获取任务列表失败:', error);
+      logger.error('[计划任务控制器] 获取任务列表失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '获取任务列表失败'
@@ -70,7 +71,7 @@ export class ScheduledTaskAdminController {
         data: task
       });
     } catch (error) {
-      console.error('[计划任务控制器] 获取任务详情失败:', error);
+      logger.error('[计划任务控制器] 获取任务详情失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '获取任务详情失败'
@@ -108,7 +109,7 @@ export class ScheduledTaskAdminController {
         message: '任务创建成功'
       });
     } catch (error) {
-      console.error('[计划任务控制器] 创建任务失败:', error);
+      logger.error('[计划任务控制器] 创建任务失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '创建任务失败'
@@ -139,7 +140,7 @@ export class ScheduledTaskAdminController {
         message: '任务更新成功'
       });
     } catch (error) {
-      console.error('[计划任务控制器] 更新任务失败:', error);
+      logger.error('[计划任务控制器] 更新任务失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '更新任务失败'
@@ -160,7 +161,7 @@ export class ScheduledTaskAdminController {
         message: '任务删除成功'
       });
     } catch (error) {
-      console.error('[计划任务控制器] 删除任务失败:', error);
+      logger.error('[计划任务控制器] 删除任务失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '删除任务失败'
@@ -186,7 +187,7 @@ export class ScheduledTaskAdminController {
         message: '任务已开始执行'
       });
     } catch (error) {
-      console.error('[计划任务控制器] 执行任务失败:', error);
+      logger.error('[计划任务控制器] 执行任务失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '执行任务失败'
@@ -218,7 +219,7 @@ export class ScheduledTaskAdminController {
         message: isEnabled ? '任务已启用' : '任务已禁用'
       });
     } catch (error) {
-      console.error('[计划任务控制器] 切换任务状态失败:', error);
+      logger.error('[计划任务控制器] 切换任务状态失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '切换任务状态失败'
@@ -251,7 +252,7 @@ export class ScheduledTaskAdminController {
         limit: result.limit
       });
     } catch (error) {
-      console.error('[计划任务控制器] 获取执行日志失败:', error);
+      logger.error('[计划任务控制器] 获取执行日志失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '获取执行日志失败'
@@ -280,7 +281,7 @@ export class ScheduledTaskAdminController {
         data: log
       });
     } catch (error) {
-      console.error('[计划任务控制器] 获取执行日志详情失败:', error);
+      logger.error('[计划任务控制器] 获取执行日志详情失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '获取执行日志详情失败'
@@ -301,7 +302,7 @@ export class ScheduledTaskAdminController {
         data: config
       });
     } catch (error) {
-      console.error('[计划任务控制器] 获取任务配置失败:', error);
+      logger.error('[计划任务控制器] 获取任务配置失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '获取任务配置失败'
@@ -325,7 +326,7 @@ export class ScheduledTaskAdminController {
         message: '配置更新成功'
       });
     } catch (error) {
-      console.error('[计划任务控制器] 更新任务配置失败:', error);
+      logger.error('[计划任务控制器] 更新任务配置失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '更新任务配置失败'
@@ -356,7 +357,7 @@ export class ScheduledTaskAdminController {
         message: result.success ? 'WebDAV连接测试成功' : 'WebDAV连接测试失败'
       });
     } catch (error) {
-      console.error('[计划任务控制器] 测试WebDAV连接失败:', error);
+      logger.error('[计划任务控制器] 测试WebDAV连接失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '测试WebDAV连接失败'

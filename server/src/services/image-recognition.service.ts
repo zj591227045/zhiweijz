@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { PrismaClient } from '@prisma/client';
 import {
   ImageRecognitionRequestDto,
@@ -131,7 +132,7 @@ export class ImageRecognitionService {
 
       return result;
     } catch (error) {
-      console.error('图片识别失败:', error);
+      logger.error('图片识别失败:', error);
       throw new Error(`图片识别失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
@@ -166,7 +167,7 @@ export class ImageRecognitionService {
         }
       } catch (error) {
         failedCount++;
-        console.error(`批量识别文件 ${fileId} 失败:`, error);
+        logger.error(`批量识别文件 ${fileId} 失败:`, error);
       }
     }
 
@@ -197,7 +198,7 @@ export class ImageRecognitionService {
       // 更新识别记录的准确性标记
       await this.updateRecognitionAccuracy(validation.recognitionId, validation.isAccurate);
     } catch (error) {
-      console.error('保存验证结果失败:', error);
+      logger.error('保存验证结果失败:', error);
       throw error;
     }
   }
@@ -242,7 +243,7 @@ export class ImageRecognitionService {
         ],
       };
     } catch (error) {
-      console.error('获取识别统计失败:', error);
+      logger.error('获取识别统计失败:', error);
       throw error;
     }
   }
@@ -286,7 +287,7 @@ export class ImageRecognitionService {
         timeoutSeconds: parseInt(configMap.timeout_seconds || '30'),
       };
     } catch (error) {
-      console.error('获取识别配置失败:', error);
+      logger.error('获取识别配置失败:', error);
       throw error;
     }
   }
@@ -323,7 +324,7 @@ export class ImageRecognitionService {
         });
       }
     } catch (error) {
-      console.error('更新识别配置失败:', error);
+      logger.error('更新识别配置失败:', error);
       throw error;
     }
   }
@@ -344,7 +345,7 @@ export class ImageRecognitionService {
     status: ImageRecognitionStatus
   ): Promise<void> {
     // 更新识别状态
-    console.log(`更新识别状态: ${recognitionId} -> ${status}`);
+    logger.info(`更新识别状态: ${recognitionId} -> ${status}`);
   }
 
   private async updateRecognitionResult(
@@ -458,7 +459,7 @@ export class ImageRecognitionService {
     recognitionId: string
   ): Promise<void> {
     // 自动创建记账记录
-    console.log('自动创建记账记录:', suggestedTransaction);
+    logger.info('自动创建记账记录:', suggestedTransaction);
   }
 
   private async saveValidationData(
@@ -466,7 +467,7 @@ export class ImageRecognitionService {
     userId: string
   ): Promise<void> {
     // 保存验证数据用于机器学习
-    console.log('保存验证数据:', validation);
+    logger.info('保存验证数据:', validation);
   }
 
   private async updateRecognitionAccuracy(
@@ -474,7 +475,7 @@ export class ImageRecognitionService {
     isAccurate: boolean
   ): Promise<void> {
     // 更新识别准确性
-    console.log(`更新识别准确性: ${recognitionId} -> ${isAccurate}`);
+    logger.info(`更新识别准确性: ${recognitionId} -> ${isAccurate}`);
   }
 
   private generateBatchId(): string {

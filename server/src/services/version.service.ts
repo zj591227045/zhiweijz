@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import prisma from '../config/database';
 import { 
   AppVersionRequest, 
@@ -74,7 +75,7 @@ export class VersionService {
       // 可以通过releaseNotes或其他字段来标识调试版本
       // 或者创建专门的调试版本记录
       // 这里暂时使用相同的逻辑，但可以根据需要扩展
-      console.log('查询调试版本:', platform, buildType);
+      logger.info('查询调试版本:', platform, buildType);
     }
 
     const version = await prisma.appVersion.findFirst({
@@ -225,13 +226,13 @@ export class VersionService {
       });
     } catch (error) {
       // 忽略清理错误，不影响主流程
-      console.error('清理用户版本状态失败:', error);
+      logger.error('清理用户版本状态失败:', error);
     }
   }
 
   // 创建版本
   async createVersion(data: CreateVersionRequest, createdBy?: string): Promise<AppVersionResponse> {
-    console.log('🔍 [版本服务] 创建版本，createdBy:', createdBy, 'type:', typeof createdBy);
+    logger.info('🔍 [版本服务] 创建版本，createdBy:', createdBy, 'type:', typeof createdBy);
     // 检查版本是否已存在
     const existingVersion = await prisma.appVersion.findUnique({
       where: {
@@ -280,7 +281,7 @@ export class VersionService {
     //   createData.createdBy = createdBy;
     // }
 
-    console.log('🔍 [版本服务] 最终创建数据:', JSON.stringify(createData, null, 2));
+    logger.info('🔍 [版本服务] 最终创建数据:', JSON.stringify(createData, null, 2));
 
     const version = await prisma.appVersion.create({
       data: createData
@@ -388,7 +389,7 @@ export class VersionService {
     total: number;
   }> {
     try {
-      console.log('🔍 [版本服务] 开始获取版本列表，查询参数:', query);
+      logger.info('🔍 [版本服务] 开始获取版本列表，查询参数:', query);
       
       const where: any = {};
 
@@ -400,7 +401,7 @@ export class VersionService {
         where.isEnabled = query.isEnabled;
       }
 
-      console.log('🔍 [版本服务] 查询条件:', where);
+      logger.info('🔍 [版本服务] 查询条件:', where);
 
       const [versions, total] = await Promise.all([
         prisma.appVersion.findMany({
@@ -414,11 +415,11 @@ export class VersionService {
         prisma.appVersion.count({ where })
       ]);
 
-      console.log('🔍 [版本服务] 查询结果:', { versionsCount: versions.length, total });
+      logger.info('🔍 [版本服务] 查询结果:', { versionsCount: versions.length, total });
 
       return { versions: versions as AppVersionResponse[], total };
     } catch (error) {
-      console.error('❌ [版本服务] 获取版本列表失败:', error);
+      logger.error('❌ [版本服务] 获取版本列表失败:', error);
       throw new AppError('获取版本列表失败: ' + (error instanceof Error ? error.message : '未知错误'), 500);
     }
   }

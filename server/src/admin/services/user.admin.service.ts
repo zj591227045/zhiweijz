@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import AccountingPointsService from '../../services/accounting-points.service';
@@ -108,7 +109,7 @@ export class UserAdminService {
         },
       };
     } catch (error) {
-      console.error('获取用户列表错误:', error);
+      logger.error('获取用户列表错误:', error);
       throw new Error('获取用户列表失败');
     }
   }
@@ -166,7 +167,7 @@ export class UserAdminService {
         transactions: undefined,
       };
     } catch (error) {
-      console.error('获取用户详情错误:', error);
+      logger.error('获取用户详情错误:', error);
       throw new Error('获取用户详情失败');
     }
   }
@@ -211,9 +212,9 @@ export class UserAdminService {
       // 为新用户创建记账点账户并赠送注册点数
       try {
         await AccountingPointsService.createUserPointsAccount(user.id);
-        console.log('✅ [管理员创建用户] 为新用户创建记账点账户成功，用户ID:', user.id);
+        logger.info('✅ [管理员创建用户] 为新用户创建记账点账户成功，用户ID:', user.id);
       } catch (pointsError) {
-        console.error('创建记账点账户失败:', pointsError);
+        logger.error('创建记账点账户失败:', pointsError);
         // 不影响用户创建流程，继续执行
       }
 
@@ -222,7 +223,7 @@ export class UserAdminService {
 
       return user;
     } catch (error) {
-      console.error('创建用户错误:', error);
+      logger.error('创建用户错误:', error);
       if (error instanceof Error && error.message.includes('已存在')) {
         throw error;
       }
@@ -242,7 +243,7 @@ export class UserAdminService {
       const accountBookService = new AccountBookService();
       defaultAccountBook = await accountBookService.createDefaultAccountBook(userId);
     } catch (accountBookError) {
-      console.error('创建默认账本失败:', accountBookError);
+      logger.error('创建默认账本失败:', accountBookError);
       // 不影响用户创建流程，继续执行
     }
 
@@ -252,7 +253,7 @@ export class UserAdminService {
       const categoryService = new CategoryService();
       await categoryService.initializeDefaultCategories();
     } catch (categoryError) {
-      console.error('初始化默认分类失败:', categoryError);
+      logger.error('初始化默认分类失败:', categoryError);
       // 不影响用户创建流程，继续执行
     }
 
@@ -273,7 +274,7 @@ export class UserAdminService {
         });
       }
     } catch (settingError) {
-      console.error('初始化用户设置失败:', settingError);
+      logger.error('初始化用户设置失败:', settingError);
       // 不影响用户创建流程，继续执行
     }
   }
@@ -329,7 +330,7 @@ export class UserAdminService {
 
       return user;
     } catch (error) {
-      console.error('更新用户错误:', error);
+      logger.error('更新用户错误:', error);
       if (
         error instanceof Error &&
         (error.message.includes('不存在') || error.message.includes('已被使用'))
@@ -364,7 +365,7 @@ export class UserAdminService {
 
       return true;
     } catch (error) {
-      console.error('删除用户错误:', error);
+      logger.error('删除用户错误:', error);
       if (error instanceof Error && error.message.includes('不存在')) {
         throw error;
       }
@@ -397,7 +398,7 @@ export class UserAdminService {
 
       return true;
     } catch (error) {
-      console.error('重置密码错误:', error);
+      logger.error('重置密码错误:', error);
       if (error instanceof Error && error.message.includes('不存在')) {
         throw error;
       }
@@ -435,7 +436,7 @@ export class UserAdminService {
 
       return user;
     } catch (error) {
-      console.error('切换用户状态错误:', error);
+      logger.error('切换用户状态错误:', error);
       if (error instanceof Error && error.message.includes('不存在')) {
         throw error;
       }
@@ -472,7 +473,7 @@ export class UserAdminService {
         operation,
       };
     } catch (error) {
-      console.error('批量操作错误:', error);
+      logger.error('批量操作错误:', error);
       throw new Error('批量操作失败');
     }
   }
@@ -500,7 +501,7 @@ export class UserAdminService {
 
       return config.value === 'true';
     } catch (error) {
-      console.error('获取注册开关状态错误:', error);
+      logger.error('获取注册开关状态错误:', error);
       throw new Error('获取注册开关状态失败');
     }
   }
@@ -525,7 +526,7 @@ export class UserAdminService {
 
       return true;
     } catch (error) {
-      console.error('切换注册开关错误:', error);
+      logger.error('切换注册开关错误:', error);
       throw new Error('切换注册开关失败');
     }
   }

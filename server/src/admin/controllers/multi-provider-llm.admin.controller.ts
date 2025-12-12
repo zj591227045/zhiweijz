@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { Request, Response } from 'express';
 import { MultiProviderLLMService } from '../../ai/llm/multi-provider-service';
 import {
@@ -45,7 +46,7 @@ export class MultiProviderLLMAdminController {
         },
       });
     } catch (error) {
-      console.error('获取多提供商配置失败:', error);
+      logger.error('获取多提供商配置失败:', error);
       res.status(500).json({
         success: false,
         message: '获取多提供商配置失败',
@@ -106,7 +107,7 @@ export class MultiProviderLLMAdminController {
         });
       }
     } catch (error) {
-      console.error('更新多提供商配置失败:', error);
+      logger.error('更新多提供商配置失败:', error);
       res.status(500).json({
         success: false,
         message: '更新多提供商配置失败',
@@ -186,7 +187,7 @@ export class MultiProviderLLMAdminController {
         });
       }
     } catch (error) {
-      console.error('添加提供商实例失败:', error);
+      logger.error('添加提供商实例失败:', error);
       res.status(500).json({
         success: false,
         message: '添加提供商实例失败',
@@ -250,7 +251,7 @@ export class MultiProviderLLMAdminController {
         });
       }
     } catch (error) {
-      console.error('更新提供商实例失败:', error);
+      logger.error('更新提供商实例失败:', error);
       res.status(500).json({
         success: false,
         message: '更新提供商实例失败',
@@ -306,7 +307,7 @@ export class MultiProviderLLMAdminController {
         });
       }
     } catch (error) {
-      console.error('删除提供商实例失败:', error);
+      logger.error('删除提供商实例失败:', error);
       res.status(500).json({
         success: false,
         message: '删除提供商实例失败',
@@ -371,7 +372,7 @@ export class MultiProviderLLMAdminController {
         res.json(response);
       }
     } catch (error) {
-      console.error('测试提供商实例连接失败:', error);
+      logger.error('测试提供商实例连接失败:', error);
       res.status(500).json({
         success: false,
         message: '测试提供商实例连接失败',
@@ -392,7 +393,7 @@ export class MultiProviderLLMAdminController {
         data: healthStatuses,
       });
     } catch (error) {
-      console.error('获取提供商健康状态失败:', error);
+      logger.error('获取提供商健康状态失败:', error);
       res.status(500).json({
         success: false,
         message: '获取提供商健康状态失败',
@@ -412,7 +413,7 @@ export class MultiProviderLLMAdminController {
         message: '健康检查已触发',
       });
     } catch (error) {
-      console.error('触发健康检查失败:', error);
+      logger.error('触发健康检查失败:', error);
       res.status(500).json({
         success: false,
         message: '触发健康检查失败',
@@ -484,7 +485,7 @@ export class MultiProviderLLMAdminController {
         data: templates,
       });
     } catch (error) {
-      console.error('获取提供商模板失败:', error);
+      logger.error('获取提供商模板失败:', error);
       res.status(500).json({
         success: false,
         message: '获取提供商模板失败',
@@ -504,7 +505,7 @@ export class MultiProviderLLMAdminController {
         data: priorityInfo,
       });
     } catch (error) {
-      console.error('获取配置优先级信息失败:', error);
+      logger.error('获取配置优先级信息失败:', error);
       res.status(500).json({
         success: false,
         message: '获取配置优先级信息失败',

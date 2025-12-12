@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { getPlaceholderDescriptions } from '../utils/prompt-utils';
 
@@ -19,7 +20,7 @@ export class PromptUtilsController {
         data: descriptions,
       });
     } catch (error) {
-      console.error('获取占位符说明错误:', error);
+      logger.error('获取占位符说明错误:', error);
       res.status(500).json({
         success: false,
         error: '获取占位符说明失败',
@@ -73,7 +74,7 @@ export class PromptUtilsController {
         },
       });
     } catch (error) {
-      console.error('验证提示词模板错误:', error);
+      logger.error('验证提示词模板错误:', error);
       res.status(500).json({
         success: false,
         error: '验证提示词模板失败',

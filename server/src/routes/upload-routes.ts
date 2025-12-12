@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import express from 'express';
 import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
@@ -20,7 +21,7 @@ function convertS3UrlToProxy(s3Url: string, apiBaseUrl: string): string {
     const pathParts = url.pathname.split('/').filter((part) => part.length > 0);
 
     if (pathParts.length < 2) {
-      console.warn('无效的S3 URL格式:', s3Url);
+      logger.warn('无效的S3 URL格式:', s3Url);
       return s3Url;
     }
 
@@ -30,11 +31,11 @@ function convertS3UrlToProxy(s3Url: string, apiBaseUrl: string): string {
     // 构建代理API URL
     const proxyUrl = `${apiBaseUrl}/api/image-proxy/s3/${bucket}/${key}`;
 
-    console.log('🔄 S3 URL转换为代理URL:', { original: s3Url, proxy: proxyUrl });
+    logger.info('🔄 S3 URL转换为代理URL:', { original: s3Url, proxy: proxyUrl });
 
     return proxyUrl;
   } catch (error) {
-    console.error('S3 URL转换失败:', error, s3Url);
+    logger.error('S3 URL转换失败:', error, s3Url);
     return s3Url; // 转换失败时返回原URL
   }
 }
@@ -67,21 +68,21 @@ function validateShortcutsToken(token: string): { valid: boolean; userId?: strin
     const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
 
     if (decoded.purpose !== 'shortcuts-upload') {
-      console.log('🔒 Token验证失败: purpose不匹配', decoded.purpose);
+      logger.info('🔒 Token验证失败: purpose不匹配', decoded.purpose);
       return { valid: false };
     }
 
     if (decoded.exp < Date.now()) {
       const expiredHours = Math.floor((Date.now() - decoded.exp) / (60 * 60 * 1000));
-      console.log('🔒 Token验证失败: 已过期', { expiredHours });
+      logger.info('🔒 Token验证失败: 已过期', { expiredHours });
       return { valid: false };
     }
 
     const remainingHours = Math.floor((decoded.exp - Date.now()) / (60 * 60 * 1000));
-    console.log('🔒 Token验证成功', { userId: decoded.userId, remainingHours });
+    logger.info('🔒 Token验证成功', { userId: decoded.userId, remainingHours });
     return { valid: true, userId: decoded.userId };
   } catch (error) {
-    console.log('🔒 Token验证失败: 解析错误', error);
+    logger.info('🔒 Token验证失败: 解析错误', error);
     return { valid: false };
   }
 }
@@ -136,7 +137,7 @@ router.post('/shortcuts', upload.single('image'), async (req, res) => {
     // 转换为代理URL
     const imageUrl = convertS3UrlToProxy(originalImageUrl, apiBaseUrl);
 
-    console.log('🚀 [快捷指令上传] 文件上传成功:', {
+    logger.info('🚀 [快捷指令上传] 文件上传成功:', {
       userId: tokenValidation.userId,
       fileName: uploadResult.filename,
       size: uploadResult.size,
@@ -152,7 +153,7 @@ router.post('/shortcuts', upload.single('image'), async (req, res) => {
     });
     
   } catch (error) {
-    console.error('快捷指令文件上传错误:', error);
+    logger.error('快捷指令文件上传错误:', error);
     res.status(500).json({
       error: '文件上传失败',
       details: error instanceof Error ? error.message : '未知错误'

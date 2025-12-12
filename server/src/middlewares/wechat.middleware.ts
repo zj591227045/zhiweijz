@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response, NextFunction } from 'express';
 import { parseString } from 'xml2js';
 import { promisify } from 'util';
@@ -25,40 +26,40 @@ export const parseWechatXML = async (req: Request, res: Response, next: NextFunc
       try {
         if (xmlData) {
           // 记录原始XML数据用于调试
-          console.log('🔍 [微信XML调试] 收到原始XML数据:');
-          console.log('='.repeat(50));
-          console.log(xmlData);
-          console.log('='.repeat(50));
+          logger.info('🔍 [微信XML调试] 收到原始XML数据:');
+          logger.info('='.repeat(50));
+          logger.info(xmlData);
+          logger.info('='.repeat(50));
 
           // 解析XML
           const result = (await parseXML(xmlData)) as any;
 
           // 记录解析后的结果
-          console.log('🔍 [微信XML调试] 解析后的结果:');
-          console.log(JSON.stringify(result, null, 2));
+          logger.info('🔍 [微信XML调试] 解析后的结果:');
+          logger.info(JSON.stringify(result, null, 2));
 
           // 将解析后的数据添加到请求对象
           req.body = result.xml || {};
           req.rawBody = xmlData;
 
           // 记录最终的req.body
-          console.log('🔍 [微信XML调试] 最终的req.body:');
-          console.log(JSON.stringify(req.body, null, 2));
+          logger.info('🔍 [微信XML调试] 最终的req.body:');
+          logger.info(JSON.stringify(req.body, null, 2));
         }
         next();
       } catch (error) {
-        console.error('XML解析失败:', error);
-        console.error('失败的XML数据:', xmlData);
+        logger.error('XML解析失败:', error);
+        logger.error('失败的XML数据:', xmlData);
         res.status(400).send('Invalid XML format');
       }
     });
 
     req.on('error', (error) => {
-      console.error('请求数据读取失败:', error);
+      logger.error('请求数据读取失败:', error);
       res.status(400).send('Request data error');
     });
   } catch (error) {
-    console.error('微信XML中间件错误:', error);
+    logger.error('微信XML中间件错误:', error);
     res.status(500).send('Internal server error');
   }
 };
@@ -71,7 +72,7 @@ export const verifyWechatSignature = (req: Request, res: Response, next: NextFun
     const { signature, timestamp, nonce } = req.query;
 
     // 记录请求详情用于调试
-    console.log('微信请求参数:', {
+    logger.info('微信请求参数:', {
       method: req.method,
       path: req.path,
       query: req.query,
@@ -82,7 +83,7 @@ export const verifyWechatSignature = (req: Request, res: Response, next: NextFun
     });
 
     if (!signature || !timestamp || !nonce) {
-      console.log('缺少必需的微信验证参数:', { signature, timestamp, nonce });
+      logger.info('缺少必需的微信验证参数:', { signature, timestamp, nonce });
       // 对于微信回调，返回简单的错误信息而不是JSON
       return res.status(400).send('Missing required parameters');
     }
@@ -97,7 +98,7 @@ export const verifyWechatSignature = (req: Request, res: Response, next: NextFun
 
     next();
   } catch (error) {
-    console.error('微信签名验证中间件错误:', error);
+    logger.error('微信签名验证中间件错误:', error);
     res.status(500).send('Internal server error');
   }
 };
@@ -106,7 +107,7 @@ export const verifyWechatSignature = (req: Request, res: Response, next: NextFun
  * 微信错误处理中间件
  */
 export const wechatErrorHandler = (error: any, req: Request, res: Response, next: NextFunction) => {
-  console.error('微信服务错误:', {
+  logger.error('微信服务错误:', {
     error: error.message,
     stack: error.stack,
     url: req.url,
@@ -134,7 +135,7 @@ export const wechatLogger = (req: Request, res: Response, next: NextFunction) =>
   const startTime = Date.now();
 
   // 记录请求开始
-  console.log(`[微信请求] ${req.method} ${req.path}`, {
+  logger.info(`[微信请求] ${req.method} ${req.path}`, {
     query: req.query,
     userAgent: req.get('User-Agent'),
     ip: req.ip,
@@ -144,7 +145,7 @@ export const wechatLogger = (req: Request, res: Response, next: NextFunction) =>
   // 监听响应结束
   res.on('finish', () => {
     const duration = Date.now() - startTime;
-    console.log(`[微信响应] ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
+    logger.info(`[微信响应] ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
   });
 
   next();

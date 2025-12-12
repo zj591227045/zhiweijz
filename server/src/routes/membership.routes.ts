@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Router, Request, Response } from 'express';
 import { MembershipService } from '../services/membership.service';
 import { authenticate } from '../middlewares/auth.middleware';
@@ -16,7 +17,7 @@ router.get('/me', authenticate, async (req: Request, res: Response) => {
       pointsEnabled: membershipService.isAccountingPointsEnabled()
     });
   } catch (error: any) {
-    console.error('获取会员信息失败:', error);
+    logger.error('获取会员信息失败:', error);
     res.status(500).json({
       success: false,
       message: '获取会员信息失败',
@@ -36,7 +37,7 @@ router.post('/reset-points', authenticate, async (req: Request, res: Response) =
       message: '积分重置成功'
     });
   } catch (error: any) {
-    console.error('重置积分失败:', error);
+    logger.error('重置积分失败:', error);
     res.status(500).json({
       success: false,
       message: '重置积分失败',
@@ -55,7 +56,7 @@ router.post('/badge/select', authenticate, async (req: Request, res: Response) =
       message: '徽章设置成功'
     });
   } catch (error: any) {
-    console.error('设置徽章失败:', error);
+    logger.error('设置徽章失败:', error);
     res.status(400).json({
       success: false,
       message: error.message
@@ -72,7 +73,7 @@ router.get('/badges', authenticate, async (req: Request, res: Response) => {
       data: badges
     });
   } catch (error: any) {
-    console.error('获取徽章列表失败:', error);
+    logger.error('获取徽章列表失败:', error);
     res.status(500).json({
       success: false,
       message: '获取徽章列表失败',
@@ -92,7 +93,7 @@ router.get('/notifications', authenticate, async (req: Request, res: Response) =
       data: notifications
     });
   } catch (error: any) {
-    console.error('获取通知失败:', error);
+    logger.error('获取通知失败:', error);
     res.status(500).json({
       success: false,
       message: '获取通知失败',
@@ -111,7 +112,7 @@ router.put('/notifications/:id/read', authenticate, async (req: Request, res: Re
       message: '通知已标记为已读'
     });
   } catch (error: any) {
-    console.error('标记通知失败:', error);
+    logger.error('标记通知失败:', error);
     res.status(500).json({
       success: false,
       message: '标记通知失败',
@@ -146,7 +147,7 @@ router.post('/points/use', authenticate, async (req: Request, res: Response) => 
       });
     }
   } catch (error: any) {
-    console.error('使用积分失败:', error);
+    logger.error('使用积分失败:', error);
     res.status(500).json({
       success: false,
       message: '使用积分失败',
@@ -174,7 +175,7 @@ router.post('/upgrade', authenticate, async (req: Request, res: Response) => {
       message: '会员升级成功'
     });
   } catch (error: any) {
-    console.error('升级会员失败:', error);
+    logger.error('升级会员失败:', error);
     res.status(500).json({
       success: false,
       message: '升级会员失败',

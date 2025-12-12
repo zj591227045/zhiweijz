@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { UserRepository } from '../repositories/user.repository';
 import { UserService } from './user.service';
 
@@ -15,36 +16,36 @@ export class UserDeletionService {
    */
   async processExpiredDeletions(): Promise<void> {
     try {
-      console.log('[UserDeletion] 开始检查过期的注销请求...');
+      logger.info('[UserDeletion] 开始检查过期的注销请求...');
 
       // 获取需要删除的用户列表
       const usersToDelete = await this.userRepository.getUsersToDelete();
 
       if (usersToDelete.length === 0) {
-        console.log('[UserDeletion] 没有需要删除的用户');
+        logger.info('[UserDeletion] 没有需要删除的用户');
         return;
       }
 
-      console.log(`[UserDeletion] 找到 ${usersToDelete.length} 个需要删除的用户`);
+      logger.info(`[UserDeletion] 找到 ${usersToDelete.length} 个需要删除的用户`);
 
       // 逐个处理用户删除
       for (const user of usersToDelete) {
         try {
-          console.log(`[UserDeletion] 开始删除用户: ${user.email} (${user.id})`);
+          logger.info(`[UserDeletion] 开始删除用户: ${user.email} (${user.id})`);
 
           // 执行用户数据删除
           await this.userService.executeUserDeletion(user.id);
 
-          console.log(`[UserDeletion] 用户删除成功: ${user.email}`);
+          logger.info(`[UserDeletion] 用户删除成功: ${user.email}`);
         } catch (error) {
-          console.error(`[UserDeletion] 删除用户失败: ${user.email}`, error);
+          logger.error(`[UserDeletion] 删除用户失败: ${user.email}`, error);
           // 继续处理其他用户，不因为一个用户失败而停止
         }
       }
 
-      console.log('[UserDeletion] 过期注销请求处理完成');
+      logger.info('[UserDeletion] 过期注销请求处理完成');
     } catch (error) {
-      console.error('[UserDeletion] 处理过期注销请求时发生错误:', error);
+      logger.error('[UserDeletion] 处理过期注销请求时发生错误:', error);
     }
   }
 
@@ -55,7 +56,7 @@ export class UserDeletionService {
     // 每小时检查一次
     const intervalMs = 60 * 60 * 1000; // 1小时
 
-    console.log('[UserDeletion] 启动用户注销定时任务，检查间隔: 1小时');
+    logger.info('[UserDeletion] 启动用户注销定时任务，检查间隔: 1小时');
 
     // 立即执行一次
     this.processExpiredDeletions();
@@ -81,7 +82,7 @@ export class UserDeletionService {
         totalProcessed: 0, // 这里可以从日志或统计表中获取
       };
     } catch (error) {
-      console.error('[UserDeletion] 获取注销统计信息失败:', error);
+      logger.error('[UserDeletion] 获取注销统计信息失败:', error);
       return {
         pendingDeletions: 0,
         totalProcessed: 0,

@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
@@ -25,7 +26,7 @@ export class WechatMediaService {
     this.isEnabled = !!(config.wechat?.appId && config.wechat?.appSecret);
     
     if (!this.isEnabled) {
-      console.warn('⚠️ 微信配置未设置，媒体文件下载功能将被禁用');
+      logger.warn('⚠️ 微信配置未设置，媒体文件下载功能将被禁用');
       this.appId = '';
       this.appSecret = '';
     } else {
@@ -71,7 +72,7 @@ export class WechatMediaService {
 
       return response.data.access_token;
     } catch (error) {
-      console.error('获取微信access_token失败:', error);
+      logger.error('获取微信access_token失败:', error);
       throw error;
     }
   }
@@ -90,7 +91,7 @@ export class WechatMediaService {
     }
 
     try {
-      console.log(`🔄 开始下载微信媒体文件: ${mediaId}, 类型: ${mediaType}`);
+      logger.info(`🔄 开始下载微信媒体文件: ${mediaId}, 类型: ${mediaType}`);
 
       // 获取访问令牌
       const accessToken = await this.getAccessToken();
@@ -128,7 +129,7 @@ export class WechatMediaService {
 
       return new Promise((resolve) => {
         writer.on('finish', () => {
-          console.log(`✅ 媒体文件下载完成: ${fileName}`);
+          logger.info(`✅ 媒体文件下载完成: ${fileName}`);
           resolve({
             success: true,
             filePath,
@@ -137,7 +138,7 @@ export class WechatMediaService {
         });
 
         writer.on('error', (error) => {
-          console.error(`❌ 保存媒体文件失败:`, error);
+          logger.error(`❌ 保存媒体文件失败:`, error);
           resolve({
             success: false,
             error: `保存文件失败: ${error.message}`,
@@ -145,7 +146,7 @@ export class WechatMediaService {
         });
       });
     } catch (error) {
-      console.error('下载微信媒体文件失败:', error);
+      logger.error('下载微信媒体文件失败:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : '下载失败',
@@ -207,10 +208,10 @@ export class WechatMediaService {
     try {
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
-        console.log(`🗑️ 清理临时文件: ${path.basename(filePath)}`);
+        logger.info(`🗑️ 清理临时文件: ${path.basename(filePath)}`);
       }
     } catch (error) {
-      console.error('清理临时文件失败:', error);
+      logger.error('清理临时文件失败:', error);
     }
   }
 
@@ -228,11 +229,11 @@ export class WechatMediaService {
         
         if (stats.mtime.getTime() < oneHourAgo) {
           fs.unlinkSync(filePath);
-          console.log(`🗑️ 清理过期文件: ${file}`);
+          logger.info(`🗑️ 清理过期文件: ${file}`);
         }
       }
     } catch (error) {
-      console.error('清理过期文件失败:', error);
+      logger.error('清理过期文件失败:', error);
     }
   }
 

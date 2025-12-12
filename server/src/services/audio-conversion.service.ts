@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { spawn, exec } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -36,11 +37,11 @@ export class AudioConversionService {
       // 使用Windows的where命令查找FFmpeg
       exec('where ffmpeg', (error, stdout, stderr) => {
         if (error) {
-          console.log(`🔍 [音频转换] where命令失败: ${error.message}`);
+          logger.info(`🔍 [音频转换] where命令失败: ${error.message}`);
           resolve(null);
         } else {
           const ffmpegPath = stdout.trim().split('\n')[0]; // 取第一个结果
-          console.log(`🔍 [音频转换] 找到FFmpeg路径: ${ffmpegPath}`);
+          logger.info(`🔍 [音频转换] 找到FFmpeg路径: ${ffmpegPath}`);
           resolve(ffmpegPath);
         }
       });
@@ -60,7 +61,7 @@ export class AudioConversionService {
   private detectFFmpegPath(): string {
     // 优先使用环境变量
     if (process.env.FFMPEG_PATH) {
-      console.log(`🔍 [音频转换] 使用环境变量FFMPEG_PATH: ${process.env.FFMPEG_PATH}`);
+      logger.info(`🔍 [音频转换] 使用环境变量FFMPEG_PATH: ${process.env.FFMPEG_PATH}`);
       return process.env.FFMPEG_PATH;
     }
 
@@ -75,8 +76,8 @@ export class AudioConversionService {
       '/usr/local/bin/ffmpeg', // macOS Homebrew路径
     ];
 
-    console.log(`🔍 [音频转换] 检测FFmpeg路径，可能的路径:`, possiblePaths);
-    console.log(`🔍 [音频转换] 当前PATH环境变量:`, process.env.PATH);
+    logger.info(`🔍 [音频转换] 检测FFmpeg路径，可能的路径:`, possiblePaths);
+    logger.info(`🔍 [音频转换] 当前PATH环境变量:`, process.env.PATH);
 
     // 返回默认路径，让系统自动查找
     return 'ffmpeg';
@@ -94,13 +95,13 @@ export class AudioConversionService {
 
     // 如果默认路径不可用，在Windows上尝试查找实际路径
     if (process.platform === 'win32') {
-      console.log(`🔍 [音频转换] 默认路径不可用，尝试查找FFmpeg实际路径...`);
+      logger.info(`🔍 [音频转换] 默认路径不可用，尝试查找FFmpeg实际路径...`);
       const actualPath = await this.findFFmpegOnWindows();
       if (actualPath) {
         this.ffmpegPath = actualPath;
         const actualAvailable = await this.testFFmpegPath(actualPath);
         if (actualAvailable) {
-          console.log(`✅ [音频转换] 使用找到的FFmpeg路径: ${actualPath}`);
+          logger.info(`✅ [音频转换] 使用找到的FFmpeg路径: ${actualPath}`);
           return true;
         }
       }
@@ -114,7 +115,7 @@ export class AudioConversionService {
    */
   private async testFFmpegPath(ffmpegPath: string): Promise<boolean> {
     return new Promise((resolve) => {
-      console.log(`🔍 [音频转换] 测试FFmpeg路径: ${ffmpegPath}`);
+      logger.info(`🔍 [音频转换] 测试FFmpeg路径: ${ffmpegPath}`);
 
       const ffmpeg = spawn(ffmpegPath, ['-version']);
       let output = '';
@@ -129,24 +130,24 @@ export class AudioConversionService {
       });
 
       ffmpeg.on('error', (error) => {
-        console.error(`❌ [音频转换] FFmpeg启动失败 (${ffmpegPath}):`, error.message);
+        logger.error(`❌ [音频转换] FFmpeg启动失败 (${ffmpegPath}):`, error.message);
         resolve(false);
       });
 
       ffmpeg.on('close', (code) => {
         if (code === 0) {
-          console.log(`✅ [音频转换] FFmpeg可用 (${ffmpegPath})，版本:`, output.split('\n')[0]);
+          logger.info(`✅ [音频转换] FFmpeg可用 (${ffmpegPath})，版本:`, output.split('\n')[0]);
           resolve(true);
         } else {
-          console.error(`❌ [音频转换] FFmpeg退出码: ${code} (${ffmpegPath})`);
-          console.error(`❌ [音频转换] 错误输出:`, errorOutput);
+          logger.error(`❌ [音频转换] FFmpeg退出码: ${code} (${ffmpegPath})`);
+          logger.error(`❌ [音频转换] 错误输出:`, errorOutput);
           resolve(false);
         }
       });
 
       // 设置超时
       setTimeout(() => {
-        console.error(`❌ [音频转换] FFmpeg检查超时 (${ffmpegPath})`);
+        logger.error(`❌ [音频转换] FFmpeg检查超时 (${ffmpegPath})`);
         ffmpeg.kill();
         resolve(false);
       }, 5000);
@@ -182,7 +183,7 @@ export class AudioConversionService {
       const originalStats = fs.statSync(inputPath);
       const originalSize = originalStats.size;
 
-      console.log(`🔄 [音频转换] 开始转换: ${inputPath} → ${outputPath}`);
+      logger.info(`🔄 [音频转换] 开始转换: ${inputPath} → ${outputPath}`);
 
       // 检查FFmpeg是否可用
       const ffmpegAvailable = await this.checkFFmpegAvailable();
@@ -205,7 +206,7 @@ export class AudioConversionService {
       const convertedSize = convertedStats.size;
       const duration = Date.now() - startTime;
 
-      console.log(`✅ [音频转换] 转换完成: ${originalSize}字节 → ${convertedSize}字节 (${duration}ms)`);
+      logger.info(`✅ [音频转换] 转换完成: ${originalSize}字节 → ${convertedSize}字节 (${duration}ms)`);
 
       return {
         success: true,
@@ -217,7 +218,7 @@ export class AudioConversionService {
 
     } catch (error) {
       const duration = Date.now() - startTime;
-      console.error(`❌ [音频转换] 转换失败:`, error);
+      logger.error(`❌ [音频转换] 转换失败:`, error);
       
       return {
         success: false,
@@ -247,7 +248,7 @@ export class AudioConversionService {
         outputPath
       ];
 
-      console.log(`🔄 [音频转换] 执行命令: ${this.ffmpegPath} ${args.join(' ')}`);
+      logger.info(`🔄 [音频转换] 执行命令: ${this.ffmpegPath} ${args.join(' ')}`);
 
       const ffmpeg = spawn(this.ffmpegPath, args);
       let errorOutput = '';
@@ -265,8 +266,8 @@ export class AudioConversionService {
             outputPath,
           });
         } else {
-          console.error(`❌ [音频转换] FFmpeg退出码: ${code}`);
-          console.error(`❌ [音频转换] 错误输出:`, errorOutput);
+          logger.error(`❌ [音频转换] FFmpeg退出码: ${code}`);
+          logger.error(`❌ [音频转换] 错误输出:`, errorOutput);
           
           resolve({
             success: false,
@@ -277,7 +278,7 @@ export class AudioConversionService {
 
       // 处理进程错误
       ffmpeg.on('error', (error) => {
-        console.error(`❌ [音频转换] FFmpeg进程错误:`, error);
+        logger.error(`❌ [音频转换] FFmpeg进程错误:`, error);
         resolve({
           success: false,
           error: `FFmpeg进程启动失败: ${error.message}`,
@@ -302,10 +303,10 @@ export class AudioConversionService {
     try {
       if (await fsExists(filePath)) {
         await fsUnlink(filePath);
-        console.log(`🗑️ [音频转换] 清理临时文件: ${filePath}`);
+        logger.info(`🗑️ [音频转换] 清理临时文件: ${filePath}`);
       }
     } catch (error) {
-      console.error(`⚠️ [音频转换] 清理文件失败: ${filePath}`, error);
+      logger.error(`⚠️ [音频转换] 清理文件失败: ${filePath}`, error);
     }
   }
 

@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
@@ -84,7 +85,7 @@ export class WechatBindingService {
         },
       };
     } catch (error) {
-      console.error('绑定用户账号失败:', error);
+      logger.error('绑定用户账号失败:', error);
       return {
         success: false,
         message: '绑定失败，请稍后重试',
@@ -158,7 +159,7 @@ export class WechatBindingService {
         },
       };
     } catch (error) {
-      console.error('设置默认账本失败:', error);
+      logger.error('设置默认账本失败:', error);
       return {
         success: false,
         message: '设置失败，请稍后重试',
@@ -199,7 +200,7 @@ export class WechatBindingService {
         familyName: book.family?.name,
       }));
     } catch (error) {
-      console.error('获取账本列表失败:', error);
+      logger.error('获取账本列表失败:', error);
       return [];
     }
   }
@@ -241,7 +242,7 @@ export class WechatBindingService {
         createdAt: binding.created_at,
       };
     } catch (error) {
-      console.error('获取绑定信息失败:', error);
+      logger.error('获取绑定信息失败:', error);
       return null;
     }
   }
@@ -275,7 +276,7 @@ export class WechatBindingService {
         message: '已成功解除绑定',
       };
     } catch (error) {
-      console.error('解除绑定失败:', error);
+      logger.error('解除绑定失败:', error);
       return {
         success: false,
         message: '解除绑定失败，请稍后重试',

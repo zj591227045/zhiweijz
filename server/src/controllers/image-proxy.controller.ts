@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { FileStorageService } from '../services/file-storage.service';
 import { S3StorageService } from '../services/s3-storage.service';
@@ -24,7 +25,7 @@ export class ImageProxyController {
       // 对于路由 /s3/:bucket/*，通配符部分在 req.params[0] 中
       const keyPath = req.params[0]; // 获取完整的key路径
 
-      console.log('🖼️ 图片代理请求:', {
+      logger.info('🖼️ 图片代理请求:', {
         bucket,
         keyPath,
         originalUrl: req.originalUrl,
@@ -64,7 +65,7 @@ export class ImageProxyController {
       fileStream.pipe(res);
 
       fileStream.on('error', (error) => {
-        console.error('文件流错误:', error);
+        logger.error('文件流错误:', error);
         if (!res.headersSent) {
           res.status(500).json({
             success: false,
@@ -74,7 +75,7 @@ export class ImageProxyController {
       });
 
     } catch (error) {
-      console.error('图片代理失败:', error);
+      logger.error('图片代理失败:', error);
       
       if (!res.headersSent) {
         res.status(404).json({
@@ -94,7 +95,7 @@ export class ImageProxyController {
       const { userId } = req.params;
       const requestUserId = req.user?.id;
 
-      console.log('👤 用户头像代理请求:', { userId, requestUserId });
+      logger.info('👤 用户头像代理请求:', { userId, requestUserId });
 
       // 查找用户信息
       const user = await prisma.user.findUnique({
@@ -164,7 +165,7 @@ export class ImageProxyController {
       fileStream.pipe(res);
 
       fileStream.on('error', (error) => {
-        console.error('头像文件流错误:', error);
+        logger.error('头像文件流错误:', error);
         if (!res.headersSent) {
           res.status(500).json({
             success: false,
@@ -174,7 +175,7 @@ export class ImageProxyController {
       });
 
     } catch (error) {
-      console.error('用户头像代理失败:', error);
+      logger.error('用户头像代理失败:', error);
       
       if (!res.headersSent) {
         res.status(404).json({
@@ -232,7 +233,7 @@ export class ImageProxyController {
       const quality = Math.min(Math.max(parseInt(req.query.quality as string) || 80, 1), 100);
       const format = (req.query.format as string) || 'jpeg';
 
-      console.log('🖼️ 缩略图请求:', {
+      logger.debug('🖼️ 缩略图请求:', {
         bucket,
         keyPath,
         width,
@@ -322,7 +323,7 @@ export class ImageProxyController {
       fileStream.pipe(transformer).pipe(res);
 
       fileStream.on('error', (error) => {
-        console.error('文件流错误:', error);
+        logger.error('文件流错误:', error);
         if (!res.headersSent) {
           res.status(500).json({
             success: false,
@@ -332,7 +333,7 @@ export class ImageProxyController {
       });
 
       transformer.on('error', (error) => {
-        console.error('图片处理错误:', error);
+        logger.error('图片处理错误:', error);
         if (!res.headersSent) {
           res.status(500).json({
             success: false,
@@ -342,7 +343,7 @@ export class ImageProxyController {
       });
 
     } catch (error) {
-      console.error('缩略图生成失败:', error);
+      logger.error('缩略图生成失败:', error);
       
       if (!res.headersSent) {
         res.status(500).json({
@@ -357,7 +358,7 @@ export class ImageProxyController {
       const { bucket } = req.params;
       const keyPath = req.params[0];
 
-      console.log('ℹ️ 图片信息请求:', { bucket, keyPath });
+      logger.info('ℹ️ 图片信息请求:', { bucket, keyPath });
 
       // 检查存储服务是否可用
       if (!this.fileStorageService.isStorageAvailable()) {
@@ -396,7 +397,7 @@ export class ImageProxyController {
       });
 
     } catch (error) {
-      console.error('获取图片信息失败:', error);
+      logger.error('获取图片信息失败:', error);
       res.status(404).json({
         success: false,
         message: error instanceof Error ? error.message : '图片信息获取失败',

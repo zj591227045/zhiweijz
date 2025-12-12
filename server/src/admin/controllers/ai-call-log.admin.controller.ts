@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { Request, Response } from 'express';
 import { AICallLogAdminService, AICallLogListParams } from '../services/ai-call-log.admin.service';
 import { PrismaClient } from '@prisma/client';
@@ -16,7 +17,7 @@ export class AICallLogAdminController {
    */
   async getAICallLogs(req: Request, res: Response): Promise<void> {
     try {
-      console.log('🔍 [AI调用日志控制器] 收到请求，查询参数:', JSON.stringify(req.query, null, 2));
+      logger.info('🔍 [AI调用日志控制器] 收到请求，查询参数:', JSON.stringify(req.query, null, 2));
 
       const {
         page,
@@ -50,7 +51,7 @@ export class AICallLogAdminController {
 
       const result = await this.aiCallLogAdminService.getAICallLogs(params);
 
-      console.log('🔍 [AI调用日志控制器] 服务返回结果:', {
+      logger.info('🔍 [AI调用日志控制器] 服务返回结果:', {
         logsCount: Array.isArray(result.logs) ? result.logs.length : 0,
         pagination: result.pagination,
         firstLogSample: Array.isArray(result.logs) && result.logs.length > 0 ? {
@@ -67,7 +68,7 @@ export class AICallLogAdminController {
         data: result,
       });
     } catch (error) {
-      console.error('获取AI调用日志列表错误:', error);
+      logger.error('获取AI调用日志列表错误:', error);
       res.status(500).json({
         success: false,
         message: '获取AI调用日志列表失败',
@@ -92,7 +93,7 @@ export class AICallLogAdminController {
         data: { statistics },
       });
     } catch (error) {
-      console.error('获取AI调用统计错误:', error);
+      logger.error('获取AI调用统计错误:', error);
       res.status(500).json({
         success: false,
         message: '获取AI调用统计失败',
@@ -131,7 +132,7 @@ export class AICallLogAdminController {
         data: { log },
       });
     } catch (error) {
-      console.error('获取AI调用日志详情错误:', error);
+      logger.error('获取AI调用日志详情错误:', error);
       res.status(500).json({
         success: false,
         message: '获取AI调用日志详情失败',
@@ -179,7 +180,7 @@ export class AICallLogAdminController {
         },
       });
     } catch (error) {
-      console.error('导出AI调用日志错误:', error);
+      logger.error('导出AI调用日志错误:', error);
       res.status(500).json({
         success: false,
         message: '导出AI调用日志失败',
@@ -223,7 +224,7 @@ export class AICallLogAdminController {
         },
       });
     } catch (error) {
-      console.error('清理AI调用日志错误:', error);
+      logger.error('清理AI调用日志错误:', error);
       res.status(500).json({
         success: false,
         message: '清理AI调用日志失败',

@@ -4,6 +4,7 @@
  * 用于Android客户端的订阅会员购买
  */
 
+import { logger } from '../utils/logger';
 import crypto from 'crypto';
 import axios from 'axios';
 import { PrismaClient } from '@prisma/client';
@@ -66,7 +67,7 @@ export class H5PaymentService {
    */
   async createPaymentOrder(request: H5PaymentRequest): Promise<H5PaymentResponse> {
     try {
-      console.log('💰 [H5Payment] 创建支付订单:', request);
+      logger.info('💰 [H5Payment] 创建支付订单:', request);
 
       // 生成签名
       const signData = {
@@ -87,7 +88,7 @@ export class H5PaymentService {
         sign
       };
 
-      console.log('💰 [H5Payment] 请求数据:', {
+      logger.info('💰 [H5Payment] 请求数据:', {
         ...requestData,
         sign: sign.substring(0, 8) + '...'
       });
@@ -105,7 +106,7 @@ export class H5PaymentService {
         }
       );
 
-      console.log('💰 [H5Payment] API响应:', response.data);
+      logger.info('💰 [H5Payment] API响应:', response.data);
 
       if (response.data.code === 200) {
         // 保存订单记录
@@ -127,7 +128,7 @@ export class H5PaymentService {
       }
 
     } catch (error) {
-      console.error('💰 [H5Payment] 创建订单失败:', error);
+      logger.error('💰 [H5Payment] 创建订单失败:', error);
       
       return {
         success: false,
@@ -143,7 +144,7 @@ export class H5PaymentService {
    */
   async queryPaymentStatus(outTradeNo: string): Promise<H5PaymentResponse> {
     try {
-      console.log('🔍 [H5Payment] 查询支付状态:', outTradeNo);
+      logger.info('🔍 [H5Payment] 查询支付状态:', outTradeNo);
 
       // 从数据库查询订单状态
       const order = await prisma.h5PaymentOrder.findUnique({
@@ -170,7 +171,7 @@ export class H5PaymentService {
       };
 
     } catch (error) {
-      console.error('🔍 [H5Payment] 查询状态失败:', error);
+      logger.error('🔍 [H5Payment] 查询状态失败:', error);
       
       return {
         success: false,
@@ -186,14 +187,14 @@ export class H5PaymentService {
    */
   async handlePaymentNotification(notification: H5PaymentNotification): Promise<boolean> {
     try {
-      console.log('📞 [H5Payment] 处理支付回调:', {
+      logger.info('📞 [H5Payment] 处理支付回调:', {
         ...notification,
         sign: notification.sign.substring(0, 8) + '...'
       });
 
       // 验证签名
       if (!this.verifyNotificationSign(notification)) {
-        console.error('📞 [H5Payment] 签名验证失败');
+        logger.error('📞 [H5Payment] 签名验证失败');
         return false;
       }
 
@@ -203,13 +204,13 @@ export class H5PaymentService {
       });
 
       if (!order) {
-        console.error('📞 [H5Payment] 订单不存在:', notification.outTradeNo);
+        logger.error('📞 [H5Payment] 订单不存在:', notification.outTradeNo);
         return false;
       }
 
       // 检查订单状态
       if (order.status === 'PAID') {
-        console.log('📞 [H5Payment] 订单已处理，跳过重复处理');
+        logger.info('📞 [H5Payment] 订单已处理，跳过重复处理');
         return true;
       }
 
@@ -227,11 +228,11 @@ export class H5PaymentService {
       // 处理会员升级
       await this.processMembershipUpgrade(order);
 
-      console.log('📞 [H5Payment] 支付回调处理成功');
+      logger.info('📞 [H5Payment] 支付回调处理成功');
       return true;
 
     } catch (error) {
-      console.error('📞 [H5Payment] 处理回调失败:', error);
+      logger.error('📞 [H5Payment] 处理回调失败:', error);
       return false;
     }
   }
@@ -247,7 +248,7 @@ export class H5PaymentService {
       .map(key => `${key}=${data[key]}`)
       .join('&') + `&key=${this.config.appSecret}`;
 
-    console.log('🔐 [H5Payment] 签名字符串:', signString.replace(this.config.appSecret, '***'));
+    logger.info('🔐 [H5Payment] 签名字符串:', signString.replace(this.config.appSecret, '***'));
 
     return crypto.createHash('md5').update(signString).digest('hex').toUpperCase();
   }
@@ -296,7 +297,7 @@ export class H5PaymentService {
       const { memberType, duration } = this.mapProductToMembership(order.productId);
 
       if (!memberType) {
-        console.warn('💰 [H5Payment] 未知的产品ID:', order.productId);
+        logger.warn('💰 [H5Payment] 未知的产品ID:', order.productId);
         return;
       }
 
@@ -323,7 +324,7 @@ export class H5PaymentService {
         h5PaymentData
       );
 
-      console.log('💰 [H5Payment] 会员升级成功:', {
+      logger.info('💰 [H5Payment] 会员升级成功:', {
         userId: order.userId,
         memberType,
         duration,
@@ -332,7 +333,7 @@ export class H5PaymentService {
       });
 
     } catch (error) {
-      console.error('💰 [H5Payment] 会员升级失败:', error);
+      logger.error('💰 [H5Payment] 会员升级失败:', error);
       throw error;
     }
   }
@@ -346,7 +347,7 @@ export class H5PaymentService {
     const product = getAndroidH5ProductById(productId);
 
     if (!product) {
-      console.warn('💰 [H5Payment] 未找到产品配置:', productId);
+      logger.warn('💰 [H5Payment] 未找到产品配置:', productId);
       return { memberType: null, duration: 1 };
     }
 

@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { Request, Response } from 'express';
 import { UserAdminService } from '../services/user.admin.service';
 import {
@@ -41,7 +42,7 @@ export class UserAdminController {
         data: result,
       });
     } catch (error) {
-      console.error('获取用户列表错误:', error);
+      logger.error('获取用户列表错误:', error);
       res.status(500).json({
         success: false,
         message: '获取用户列表失败',
@@ -70,7 +71,7 @@ export class UserAdminController {
         data: { user },
       });
     } catch (error) {
-      console.error('获取用户详情错误:', error);
+      logger.error('获取用户详情错误:', error);
       res.status(500).json({
         success: false,
         message: '获取用户详情失败',
@@ -101,7 +102,7 @@ export class UserAdminController {
         message: '用户创建成功',
       });
     } catch (error) {
-      console.error('创建用户错误:', error);
+      logger.error('创建用户错误:', error);
       if (error instanceof Error && error.message.includes('已存在')) {
         res.status(409).json({
           success: false,
@@ -141,7 +142,7 @@ export class UserAdminController {
         message: '用户更新成功',
       });
     } catch (error) {
-      console.error('更新用户错误:', error);
+      logger.error('更新用户错误:', error);
       if (error instanceof Error && error.message.includes('不存在')) {
         res.status(404).json({
           success: false,
@@ -169,7 +170,7 @@ export class UserAdminController {
         message: '用户删除成功',
       });
     } catch (error) {
-      console.error('删除用户错误:', error);
+      logger.error('删除用户错误:', error);
       if (error instanceof Error && error.message.includes('不存在')) {
         res.status(404).json({
           success: false,
@@ -208,7 +209,7 @@ export class UserAdminController {
         message: '密码重置成功',
       });
     } catch (error) {
-      console.error('重置密码错误:', error);
+      logger.error('重置密码错误:', error);
       if (error instanceof Error && error.message.includes('不存在')) {
         res.status(404).json({
           success: false,
@@ -237,7 +238,7 @@ export class UserAdminController {
         message: `用户${user.isActive ? '启用' : '禁用'}成功`,
       });
     } catch (error) {
-      console.error('切换用户状态错误:', error);
+      logger.error('切换用户状态错误:', error);
       if (error instanceof Error && error.message.includes('不存在')) {
         res.status(404).json({
           success: false,
@@ -285,7 +286,7 @@ export class UserAdminController {
         }成功`,
       });
     } catch (error) {
-      console.error('批量操作错误:', error);
+      logger.error('批量操作错误:', error);
       res.status(500).json({
         success: false,
         message: '批量操作失败',
@@ -305,7 +306,7 @@ export class UserAdminController {
         data: { isEnabled },
       });
     } catch (error) {
-      console.error('获取注册开关状态错误:', error);
+      logger.error('获取注册开关状态错误:', error);
       res.status(500).json({
         success: false,
         message: '获取注册开关状态失败',
@@ -335,7 +336,7 @@ export class UserAdminController {
         message: `用户注册已${enabled ? '开启' : '关闭'}`,
       });
     } catch (error) {
-      console.error('切换注册开关错误:', error);
+      logger.error('切换注册开关错误:', error);
       res.status(500).json({
         success: false,
         message: '切换注册开关失败',

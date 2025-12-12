@@ -3,6 +3,7 @@
  * 处理匿名用户购买后的延迟关联逻辑
  */
 
+import { logger } from '../utils/logger';
 import { PrismaClient, MemberType } from '@prisma/client';
 import { MembershipService } from './membership.service';
 import { RevenueCatMappingService } from './revenuecat-mapping.service';
@@ -34,7 +35,7 @@ export class PendingMembershipService {
    */
   async createPendingPurchase(data: PendingPurchaseData): Promise<string> {
     try {
-      console.log('📝 [PendingMembership] 创建待关联购买记录:', {
+      logger.info('📝 [PendingMembership] 创建待关联购买记录:', {
         revenueCatUserId: data.revenueCatUserId,
         memberType: data.memberType,
         productId: data.productId
@@ -55,11 +56,11 @@ export class PendingMembershipService {
         }
       });
 
-      console.log('✅ [PendingMembership] 待关联购买记录创建成功:', pendingPurchase.id);
+      logger.info('✅ [PendingMembership] 待关联购买记录创建成功:', pendingPurchase.id);
       return pendingPurchase.id;
 
     } catch (error) {
-      console.error('❌ [PendingMembership] 创建待关联购买记录失败:', error);
+      logger.error('❌ [PendingMembership] 创建待关联购买记录失败:', error);
       throw error;
     }
   }
@@ -79,7 +80,7 @@ export class PendingMembershipService {
         }
       });
 
-      console.log('🔍 [PendingMembership] 找到待关联购买记录:', {
+      logger.info('🔍 [PendingMembership] 找到待关联购买记录:', {
         revenueCatUserId,
         count: pendingPurchases.length
       });
@@ -87,7 +88,7 @@ export class PendingMembershipService {
       return pendingPurchases;
 
     } catch (error) {
-      console.error('❌ [PendingMembership] 查找待关联购买记录失败:', error);
+      logger.error('❌ [PendingMembership] 查找待关联购买记录失败:', error);
       throw error;
     }
   }
@@ -97,7 +98,7 @@ export class PendingMembershipService {
    */
   async processPendingPurchasesForUser(userId: string, revenueCatUserId: string): Promise<boolean> {
     try {
-      console.log('🔄 [PendingMembership] 开始处理用户待关联购买:', {
+      logger.info('🔄 [PendingMembership] 开始处理用户待关联购买:', {
         userId,
         revenueCatUserId
       });
@@ -106,7 +107,7 @@ export class PendingMembershipService {
       const pendingPurchases = await this.findPendingPurchasesByRevenueCatUserId(revenueCatUserId);
 
       if (pendingPurchases.length === 0) {
-        console.log('📝 [PendingMembership] 没有找到待关联的购买记录');
+        logger.info('📝 [PendingMembership] 没有找到待关联的购买记录');
         return true;
       }
 
@@ -115,7 +116,7 @@ export class PendingMembershipService {
         try {
           await this.activatePendingPurchase(userId, purchase);
         } catch (error) {
-          console.error('❌ [PendingMembership] 激活待关联购买失败:', {
+          logger.error('❌ [PendingMembership] 激活待关联购买失败:', {
             purchaseId: purchase.id,
             error
           });
@@ -123,11 +124,11 @@ export class PendingMembershipService {
         }
       }
 
-      console.log('✅ [PendingMembership] 用户待关联购买处理完成');
+      logger.info('✅ [PendingMembership] 用户待关联购买处理完成');
       return true;
 
     } catch (error) {
-      console.error('❌ [PendingMembership] 处理用户待关联购买失败:', error);
+      logger.error('❌ [PendingMembership] 处理用户待关联购买失败:', error);
       return false;
     }
   }
@@ -137,7 +138,7 @@ export class PendingMembershipService {
    */
   private async activatePendingPurchase(userId: string, purchase: any): Promise<void> {
     try {
-      console.log('🎯 [PendingMembership] 激活待关联购买:', {
+      logger.info('🎯 [PendingMembership] 激活待关联购买:', {
         userId,
         purchaseId: purchase.id,
         memberType: purchase.memberType
@@ -174,14 +175,14 @@ export class PendingMembershipService {
         }
       });
 
-      console.log('✅ [PendingMembership] 待关联购买激活成功:', {
+      logger.info('✅ [PendingMembership] 待关联购买激活成功:', {
         purchaseId: purchase.id,
         userId,
         memberType: purchase.memberType
       });
 
     } catch (error) {
-      console.error('❌ [PendingMembership] 激活待关联购买失败:', error);
+      logger.error('❌ [PendingMembership] 激活待关联购买失败:', error);
       throw error;
     }
   }
@@ -191,7 +192,7 @@ export class PendingMembershipService {
    */
   async cleanupExpiredPendingPurchases(): Promise<number> {
     try {
-      console.log('🧹 [PendingMembership] 开始清理过期的待关联购买记录');
+      logger.info('🧹 [PendingMembership] 开始清理过期的待关联购买记录');
 
       // 删除30天前的未处理记录
       const thirtyDaysAgo = new Date();
@@ -206,11 +207,11 @@ export class PendingMembershipService {
         }
       });
 
-      console.log('✅ [PendingMembership] 清理完成，删除记录数:', result.count);
+      logger.info('✅ [PendingMembership] 清理完成，删除记录数:', result.count);
       return result.count;
 
     } catch (error) {
-      console.error('❌ [PendingMembership] 清理过期记录失败:', error);
+      logger.error('❌ [PendingMembership] 清理过期记录失败:', error);
       throw error;
     }
   }
@@ -248,7 +249,7 @@ export class PendingMembershipService {
       };
 
     } catch (error) {
-      console.error('❌ [PendingMembership] 获取统计信息失败:', error);
+      logger.error('❌ [PendingMembership] 获取统计信息失败:', error);
       throw error;
     }
   }

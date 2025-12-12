@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -58,7 +59,7 @@ export const announcementService = {
 
       return result;
     } catch (error) {
-      console.error('获取用户公告失败:', error);
+      logger.error('获取用户公告失败:', error);
       throw error;
     }
   },
@@ -117,7 +118,7 @@ export const announcementService = {
           });
         } catch (error) {
           // 如果创建失败（可能是并发问题），忽略错误，不影响主要功能
-          console.warn('自动标记已读失败:', error);
+          logger.warn('自动标记已读失败:', error);
         }
       }
 
@@ -131,7 +132,7 @@ export const announcementService = {
         isRead: true, // 查看详情后即为已读
       };
     } catch (error) {
-      console.error('获取公告详情失败:', error);
+      logger.error('获取公告详情失败:', error);
       throw error;
     }
   },
@@ -175,7 +176,7 @@ export const announcementService = {
 
       return true;
     } catch (error) {
-      console.error('标记已读失败:', error);
+      logger.error('标记已读失败:', error);
       throw error;
     }
   },
@@ -237,7 +238,7 @@ export const announcementService = {
 
       return unreadAnnouncements.length;
     } catch (error) {
-      console.error('标记全部已读失败:', error);
+      logger.error('标记全部已读失败:', error);
       throw error;
     }
   },

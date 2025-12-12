@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import nodemailer from 'nodemailer';
 import { config } from '../config';
 
@@ -62,7 +63,7 @@ export class EmailService {
       await this.transporter.sendMail(mailOptions);
       return true;
     } catch (error) {
-      console.error('发送邮件失败:', error);
+      logger.error('发送邮件失败:', error);
       return false;
     }
   }

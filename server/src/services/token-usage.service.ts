@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -119,7 +120,7 @@ export class TokenUsageService {
         dailyUsage,
       };
     } catch (error) {
-      console.error('获取用户TOKEN使用量错误:', error);
+      logger.error('获取用户TOKEN使用量错误:', error);
       throw new Error('获取用户TOKEN使用量失败');
     }
   }
@@ -193,7 +194,7 @@ export class TokenUsageService {
         usagePercentage,
       };
     } catch (error) {
-      console.error('获取今日TOKEN使用量错误:', error);
+      logger.error('获取今日TOKEN使用量错误:', error);
       throw new Error('获取今日TOKEN使用量失败');
     }
   }
@@ -249,7 +250,7 @@ export class TokenUsageService {
         calls: Number(stat.calls),
       }));
     } catch (error) {
-      console.error('获取每日TOKEN使用量错误:', error);
+      logger.error('获取每日TOKEN使用量错误:', error);
       return [];
     }
   }

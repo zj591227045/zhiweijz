@@ -59,6 +59,9 @@ export default function DashboardPage() {
   // 视图切换状态
   const [currentView, setCurrentView] = useState<'dashboard' | 'calendar'>('dashboard');
 
+  // 初始化标记 - 防止重复调用数据获取
+  const hasInitialized = useRef(false);
+
   // 返回顶部函数
   const scrollToTop = () => {
     // 触发振动反馈
@@ -161,6 +164,7 @@ export default function DashboardPage() {
     if (isAuthenticated && currentAccountBook?.id) {
       console.log('🏠 [Dashboard] 当前账本存在，获取仪表盘数据:', currentAccountBook);
       fetchDashboardData(currentAccountBook.id);
+      hasInitialized.current = true; // ✅ 标记已初始化
     } else {
       console.log('🏠 [Dashboard] 条件不满足，不获取仪表盘数据:', {
         isAuthenticated,
@@ -176,7 +180,7 @@ export default function DashboardPage() {
       console.log('🏠 [Dashboard] 用户已登录，检查未读通知');
       checkUnreadOnLogin();
     }
-  }, [isAuthenticated, user, checkUnreadOnLogin]);
+  }, [isAuthenticated, user]); // ✅ 移除函数依赖，避免不必要的重新执行
 
   // 设置记账变化监听器
   useEffect(() => {
@@ -191,92 +195,116 @@ export default function DashboardPage() {
 
   // 监听页面可见性变化，当页面重新获得焦点时刷新数据
   useEffect(() => {
+    // 使用防抖避免visibilitychange和focus事件同时触发
+    let refreshTimeout: NodeJS.Timeout | null = null;
+
+    const scheduleRefresh = (source: string) => {
+      if (!currentAccountBook?.id) return;
+
+      // 清除之前的定时器
+      if (refreshTimeout) {
+        clearTimeout(refreshTimeout);
+      }
+
+      // 延迟100ms执行，合并多个事件
+      refreshTimeout = setTimeout(() => {
+        console.log(`🏠 [Dashboard] ${source}触发刷新`);
+        refreshDashboardData(currentAccountBook.id);
+        refreshTimeout = null;
+      }, 100);
+    };
+
     const handleVisibilityChange = () => {
       if (!document.hidden && currentAccountBook?.id) {
-        console.log('页面重新获得焦点，刷新仪表盘数据');
-        refreshDashboardData(currentAccountBook.id);
+        scheduleRefresh('页面可见性变化');
       }
     };
 
-    const handleFocus = () => {
-      if (currentAccountBook?.id) {
-        console.log('窗口重新获得焦点，刷新仪表盘数据');
-        refreshDashboardData(currentAccountBook.id);
-      }
-    };
+    // ✅ 移除focus监听，只使用visibilitychange（更可靠）
+    // focus事件在某些情况下会与visibilitychange重复触发
 
     // 监听localStorage变化（用于跨标签页同步）
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'dashboard_refresh_signal' && e.newValue && currentAccountBook?.id) {
         try {
           const signal = JSON.parse(e.newValue);
-          console.log('监听到localStorage刷新信号:', signal);
+          console.log('🏠 [Dashboard] 监听到localStorage刷新信号:', signal);
 
           // 检查信号是否是最近5秒内的
           if (
             Date.now() - signal.timestamp < 5000 &&
             signal.accountBookId === currentAccountBook.id
           ) {
-            console.log('根据storage事件刷新仪表盘数据');
-            refreshDashboardData(signal.accountBookId);
+            scheduleRefresh('storage事件');
           }
         } catch (error) {
-          console.error('处理storage事件失败:', error);
+          console.error('🏠 [Dashboard] 处理storage事件失败:', error);
         }
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
     window.addEventListener('storage', handleStorageChange);
 
     return () => {
+      // 清理定时器
+      if (refreshTimeout) {
+        clearTimeout(refreshTimeout);
+      }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [currentAccountBook?.id]); // 只依赖账本ID
 
   // 监听路由变化，当进入仪表盘页面时处理刷新信号
   useEffect(() => {
+    // ✅ 只在已初始化后才处理路由变化，避免重复调用
+    if (!hasInitialized.current) {
+      console.log('🏠 [Dashboard] 尚未初始化，跳过路由监听');
+      return;
+    }
+
     if (pathname === '/dashboard' && currentAccountBook?.id) {
-      console.log('进入仪表盘页面，检查刷新信号');
+      console.log('🏠 [Dashboard] 进入仪表盘页面，检查刷新信号');
 
       // 检查localStorage中的刷新信号
       const checkRefreshSignal = () => {
         try {
           const signalStr = localStorage.getItem('dashboard_refresh_signal');
-          if (signalStr) {
-            const signal = JSON.parse(signalStr);
-            console.log('检测到仪表盘刷新信号:', signal);
+          
+          // ✅ 没有信号时直接返回，不执行任何操作
+          if (!signalStr) {
+            console.log('🏠 [Dashboard] 没有刷新信号，跳过');
+            return false;
+          }
 
-            // 检查信号是否是最近5秒内的（避免处理过期信号）
-            if (Date.now() - signal.timestamp < 5000) {
-              console.log('处理仪表盘刷新信号，账本ID:', signal.accountBookId);
+          const signal = JSON.parse(signalStr);
+          console.log('🏠 [Dashboard] 检测到刷新信号:', signal);
 
-              // 清除信号
-              localStorage.removeItem('dashboard_refresh_signal');
+          // 检查信号是否是最近5秒内的（避免处理过期信号）
+          if (Date.now() - signal.timestamp > 5000) {
+            localStorage.removeItem('dashboard_refresh_signal');
+            console.log('🏠 [Dashboard] 刷新信号已过期，清除');
+            return false;
+          }
 
-              // 刷新数据
-              if (signal.accountBookId && currentAccountBook?.id === signal.accountBookId) {
-                console.log('根据localStorage信号刷新仪表盘数据');
-                refreshDashboardData(signal.accountBookId);
-                return true; // 表示已处理刷新信号
-              }
-            } else {
-              // 清除过期信号
-              localStorage.removeItem('dashboard_refresh_signal');
-              console.log('清除过期的仪表盘刷新信号');
-            }
+          // 清除信号
+          localStorage.removeItem('dashboard_refresh_signal');
+
+          // ✅ 只在信号有效且账本匹配时才刷新
+          if (signal.accountBookId && currentAccountBook?.id === signal.accountBookId) {
+            console.log('🏠 [Dashboard] 根据刷新信号刷新数据');
+            refreshDashboardData(signal.accountBookId);
+            return true;
           }
         } catch (error) {
-          console.error('处理仪表盘刷新信号失败:', error);
+          console.error('🏠 [Dashboard] 处理刷新信号失败:', error);
           localStorage.removeItem('dashboard_refresh_signal');
         }
         return false;
       };
 
-      // 检查刷新信号，如果没有信号则不执行额外刷新
+      // 检查刷新信号
       checkRefreshSignal();
     }
   }, [pathname, currentAccountBook?.id]); // 移除函数依赖
@@ -323,50 +351,43 @@ export default function DashboardPage() {
     };
   }, [pathname]); // 当路径变化时检查
 
-  // 获取记账详情
+  // 获取记账详情 - 使用apiClient调用后端API
   const fetchTransactionData = async (transactionId: string) => {
     try {
-      console.log('🏠 [Dashboard] 开始获取记账详情:', transactionId);
-
-      // 从当前的记账列表中查找记账详情（避免 API 调用）
+      console.log('🏠 [Dashboard] 从API获取记账详情:', transactionId);
+      
+      // 🔍 调试：显示当前所有记账ID
       const allTransactions = groupedTransactions.flatMap((group) => group.transactions);
-      const transaction = allTransactions.find((t) => t.id === transactionId);
-
-      if (transaction) {
-        console.log('🏠 [Dashboard] 从本地数据找到记账详情:', transaction);
-
-        // 确保数据格式正确
-        const formattedTransaction = {
-          id: transaction.id,
-          description: transaction.description || '',
-          amount: transaction.amount || 0,
-          type: transaction.type || 'EXPENSE',
-          date: transaction.date || new Date().toISOString(),
-          categoryId: transaction.categoryId || '',
-          budgetId: transaction.budgetId || '',
-          category: transaction.category || { name: '未分类' },
-        };
-
-        console.log('🏠 [Dashboard] 格式化后的记账数据:', formattedTransaction);
-        setTransactionData(formattedTransaction);
+      console.log('🏠 [Dashboard] 当前记账列表中的所有ID:', allTransactions.map(t => t.id));
+      console.log('🏠 [Dashboard] 要查找的ID:', transactionId);
+      console.log('🏠 [Dashboard] ID是否存在于列表中:', allTransactions.some(t => t.id === transactionId));
+      
+      // ✅ 使用apiClient而不是fetch，确保请求发送到正确的后端服务器
+      const { apiClient } = await import('@/lib/api-client');
+      const data = await apiClient.get(`/transactions/${transactionId}`, {
+        params: { includeAttachments: true }
+      });
+      
+      console.log('🏠 [Dashboard] API返回数据:', data);
+      
+      // ✅ 后端直接返回transaction对象
+      if (data && data.id) {
+        console.log('🏠 [Dashboard] 获取记账详情成功');
+        setTransactionData(data);
       } else {
-        // 如果本地没有，创建一个模拟的记账对象
-        console.log('🏠 [Dashboard] 本地未找到记账，创建模拟数据');
-        const mockTransaction = {
-          id: transactionId,
-          description: '记账记录',
-          amount: 0,
-          type: 'EXPENSE',
-          date: new Date().toISOString(),
-          categoryId: '',
-          budgetId: '',
-          category: { name: '未分类' },
-        };
-        setTransactionData(mockTransaction);
+        throw new Error('记账数据格式错误');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('🏠 [Dashboard] 获取记账详情失败:', error);
-      alert('获取记账详情失败，请重试');
+      
+      if (error.response?.status === 404) {
+        alert('该记账不存在或已被删除，请刷新页面');
+        if (currentAccountBook?.id) {
+          refreshDashboardData(currentAccountBook.id);
+        }
+      } else {
+        alert('获取记账详情失败，请重试');
+      }
       setShowTransactionEditModal(false);
     }
   };

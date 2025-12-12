@@ -3,6 +3,7 @@
  * 提供日期合理性校验和修正建议
  */
 
+import { logger } from '../utils/logger';
 import { DateValidationLogger } from './date-validation-logger.service';
 import { dateValidationConfig } from '../config/date-validation.config';
 
@@ -61,7 +62,7 @@ export class DateValidationService {
       currentDate = this.getCurrentDate();
     } catch (error) {
       // 时区转换错误 - 回退到系统时区
-      console.error('[日期校验] 北京时区转换失败,使用系统时区:', error);
+      logger.error('[日期校验] 北京时区转换失败,使用系统时区:', error);
       currentDate = new Date();
     }
     
@@ -102,7 +103,7 @@ export class DateValidationService {
       }
     } catch (error) {
       // 日期解析失败 - 使用当前日期作为默认值
-      console.warn('[日期校验] 日期解析失败,使用当前日期:', error);
+      logger.warn('[日期校验] 日期解析失败,使用当前日期:', error);
       
       const result = {
         isValid: false,
@@ -246,7 +247,7 @@ export class DateValidationService {
       return new Date(utc + beijingOffset * 60000);
     } catch (error) {
       // 时区转换失败,回退到系统时区
-      console.error('[日期校验] 时区转换失败:', error);
+      logger.error('[日期校验] 时区转换失败:', error);
       return new Date();
     }
   }

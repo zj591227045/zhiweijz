@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { MultiProviderLLMService } from '../../ai/llm/multi-provider-service';
 import { MultiProviderLLMConfig } from '../../ai/types/llm-types';
 
@@ -15,7 +16,7 @@ export class MultiProviderLLMAdminService {
     try {
       return await this.multiProviderService.loadMultiProviderConfig();
     } catch (error) {
-      console.error('获取多提供商配置失败:', error);
+      logger.error('获取多提供商配置失败:', error);
       throw new Error('获取多提供商配置失败');
     }
   }
@@ -28,7 +29,7 @@ export class MultiProviderLLMAdminService {
     try {
       // 如果启用多提供商模式，需要检查是否与全局LLM配置冲突
       if (config.enabled) {
-        console.log('启用多提供商模式，系统将优先使用多提供商配置');
+        logger.info('启用多提供商模式，系统将优先使用多提供商配置');
 
         // 可选：自动禁用全局LLM配置以避免混淆
         // 这是一个可选的业务逻辑，可以根据需要启用
@@ -41,7 +42,7 @@ export class MultiProviderLLMAdminService {
 
       await this.multiProviderService.saveMultiProviderConfig(updatedConfig);
     } catch (error) {
-      console.error('更新多提供商配置失败:', error);
+      logger.error('更新多提供商配置失败:', error);
       throw new Error('更新多提供商配置失败');
     }
   }
@@ -69,7 +70,7 @@ export class MultiProviderLLMAdminService {
         };
       }
     } catch (error) {
-      console.error('获取配置优先级信息失败:', error);
+      logger.error('获取配置优先级信息失败:', error);
       throw new Error('获取配置优先级信息失败');
     }
   }
@@ -81,9 +82,9 @@ export class MultiProviderLLMAdminService {
     try {
       // 这里可以调用系统配置服务来禁用全局LLM
       // 但通常不推荐自动禁用，让用户手动选择更好
-      console.log('建议用户在启用多提供商模式时禁用全局LLM配置以避免混淆');
+      logger.info('建议用户在启用多提供商模式时禁用全局LLM配置以避免混淆');
     } catch (error) {
-      console.error('禁用全局LLM配置失败:', error);
+      logger.error('禁用全局LLM配置失败:', error);
     }
   }
 }

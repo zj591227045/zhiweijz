@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -52,7 +53,7 @@ export class LLMLoggingService {
         },
       });
     } catch (error) {
-      console.error('记录LLM调用日志失败:', error);
+      logger.error('记录LLM调用日志失败:', error);
       // 不抛出错误，避免影响主要业务流程
     }
   }
@@ -83,7 +84,7 @@ export class LLMLoggingService {
         })),
       });
     } catch (error) {
-      console.error('批量记录LLM调用日志失败:', error);
+      logger.error('批量记录LLM调用日志失败:', error);
       // 不抛出错误，避免影响主要业务流程
     }
   }
@@ -105,10 +106,10 @@ export class LLMLoggingService {
         },
       });
 
-      console.log(`清理了 ${result.count} 条过期的LLM调用日志`);
+      logger.info(`清理了 ${result.count} 条过期的LLM调用日志`);
       return result.count;
     } catch (error) {
-      console.error('清理过期LLM调用日志失败:', error);
+      logger.error('清理过期LLM调用日志失败:', error);
       return 0;
     }
   }

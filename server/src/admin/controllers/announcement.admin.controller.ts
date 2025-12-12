@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { Request, Response } from 'express';
 import {
   AnnouncementAdminService,
@@ -35,7 +36,7 @@ export class AnnouncementAdminController {
         data: result,
       });
     } catch (error) {
-      console.error('获取公告列表错误:', error);
+      logger.error('获取公告列表错误:', error);
       res.status(500).json({
         success: false,
         message: '获取公告列表失败',
@@ -65,7 +66,7 @@ export class AnnouncementAdminController {
         data: { announcement },
       });
     } catch (error) {
-      console.error('获取公告详情错误:', error);
+      logger.error('获取公告详情错误:', error);
       res.status(500).json({
         success: false,
         message: '获取公告详情失败',
@@ -106,7 +107,7 @@ export class AnnouncementAdminController {
         data: { announcement },
       });
     } catch (error) {
-      console.error('创建公告错误:', error);
+      logger.error('创建公告错误:', error);
       res.status(500).json({
         success: false,
         message: '创建公告失败',
@@ -152,7 +153,7 @@ export class AnnouncementAdminController {
         data: { announcement },
       });
     } catch (error) {
-      console.error('更新公告错误:', error);
+      logger.error('更新公告错误:', error);
       res.status(500).json({
         success: false,
         message: '更新公告失败',
@@ -193,7 +194,7 @@ export class AnnouncementAdminController {
         },
       });
     } catch (error) {
-      console.error('发布公告错误:', error);
+      logger.error('发布公告错误:', error);
       res.status(500).json({
         success: false,
         message: '发布公告失败',
@@ -225,7 +226,7 @@ export class AnnouncementAdminController {
         data: { announcement },
       });
     } catch (error) {
-      console.error('撤回公告错误:', error);
+      logger.error('撤回公告错误:', error);
       res.status(500).json({
         success: false,
         message: '撤回公告失败',
@@ -257,7 +258,7 @@ export class AnnouncementAdminController {
         data: { announcement },
       });
     } catch (error) {
-      console.error('归档公告错误:', error);
+      logger.error('归档公告错误:', error);
       res.status(500).json({
         success: false,
         message: '归档公告失败',
@@ -287,7 +288,7 @@ export class AnnouncementAdminController {
         message: '公告删除成功',
       });
     } catch (error) {
-      console.error('删除公告错误:', error);
+      logger.error('删除公告错误:', error);
       res.status(500).json({
         success: false,
         message: '删除公告失败',
@@ -307,7 +308,7 @@ export class AnnouncementAdminController {
         data: stats,
       });
     } catch (error) {
-      console.error('获取公告统计错误:', error);
+      logger.error('获取公告统计错误:', error);
       res.status(500).json({
         success: false,
         message: '获取公告统计失败',
@@ -329,7 +330,7 @@ export class AnnouncementAdminController {
         data: stats,
       });
     } catch (error) {
-      console.error('获取公告阅读统计错误:', error);
+      logger.error('获取公告阅读统计错误:', error);
       res.status(500).json({
         success: false,
         message: '获取公告阅读统计失败',
@@ -369,7 +370,7 @@ export class AnnouncementAdminController {
         data: results,
       });
     } catch (error) {
-      console.error('批量操作公告错误:', error);
+      logger.error('批量操作公告错误:', error);
       res.status(500).json({
         success: false,
         message: '批量操作失败',

@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { TransactionType } from '@prisma/client';
 import { TransactionService } from '../services/transaction.service';
@@ -34,7 +35,7 @@ export class TransactionController {
         return;
       }
 
-      console.log('收到创建交易请求:', {
+      logger.info('收到创建交易请求:', {
         userId,
         body: req.body,
         isMultiBudget: req.body.isMultiBudget,
@@ -46,12 +47,12 @@ export class TransactionController {
         date: new Date(req.body.date),
       };
 
-      console.log('处理后的交易数据:', transactionData);
+      logger.info('处理后的交易数据:', transactionData);
 
       const transaction = await this.transactionService.createTransaction(userId, transactionData);
       res.status(201).json(transaction);
     } catch (error) {
-      console.error('创建交易失败:', error);
+      logger.error('创建交易失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -314,7 +315,7 @@ export class TransactionController {
         groupBy: groupBy
       });
     } catch (error) {
-      console.error('获取分组记账记录失败:', error);
+      logger.error('获取分组记账记录失败:', error);
       res.status(500).json({ message: '获取分组记账记录时发生错误' });
     }
   }
@@ -417,7 +418,7 @@ export class TransactionController {
 
       res.status(200).json(result);
     } catch (error) {
-      console.error('获取记账列表和统计信息时发生错误:', error);
+      logger.error('获取记账列表和统计信息时发生错误:', error);
       res.status(500).json({ message: '获取记账列表和统计信息时发生错误' });
     }
   }

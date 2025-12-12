@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { FamilyService } from '../services/family.service';
 import {
@@ -41,7 +42,7 @@ export class FamilyController {
       const family = await this.familyService.createFamily(userId, value);
       res.status(201).json(family);
     } catch (error) {
-      console.error('创建家庭失败:', error);
+      logger.error('创建家庭失败:', error);
       res.status(500).json({ message: '创建家庭失败' });
     }
   }
@@ -61,7 +62,7 @@ export class FamilyController {
       const families = await this.familyService.getFamiliesByUserId(userId);
       res.status(200).json(families);
     } catch (error) {
-      console.error('获取家庭列表失败:', error);
+      logger.error('获取家庭列表失败:', error);
       res.status(500).json({ message: '获取家庭列表失败' });
     }
   }
@@ -97,7 +98,7 @@ export class FamilyController {
         }
       }
     } catch (error) {
-      console.error('获取家庭详情失败:', error);
+      logger.error('获取家庭详情失败:', error);
       res.status(500).json({ message: '获取家庭详情失败' });
     }
   }
@@ -140,7 +141,7 @@ export class FamilyController {
         }
       }
     } catch (error) {
-      console.error('更新家庭失败:', error);
+      logger.error('更新家庭失败:', error);
       res.status(500).json({ message: '更新家庭失败' });
     }
   }
@@ -176,7 +177,7 @@ export class FamilyController {
         }
       }
     } catch (error) {
-      console.error('删除家庭失败:', error);
+      logger.error('删除家庭失败:', error);
       res.status(500).json({ message: '删除家庭失败' });
     }
   }
@@ -223,7 +224,7 @@ export class FamilyController {
         }
       }
     } catch (error) {
-      console.error('添加家庭成员失败:', error);
+      logger.error('添加家庭成员失败:', error);
       res.status(500).json({ message: '添加家庭成员失败' });
     }
   }
@@ -273,7 +274,7 @@ export class FamilyController {
         }
       }
     } catch (error) {
-      console.error('创建邀请链接失败:', error);
+      logger.error('创建邀请链接失败:', error);
       res.status(500).json({ message: '创建邀请链接失败' });
     }
   }
@@ -314,7 +315,7 @@ export class FamilyController {
         }
       }
     } catch (error) {
-      console.error('接受邀请失败:', error);
+      logger.error('接受邀请失败:', error);
       res.status(500).json({ message: '接受邀请失败' });
     }
   }
@@ -356,7 +357,7 @@ export class FamilyController {
         }
       }
     } catch (error) {
-      console.error('获取家庭邀请列表失败:', error);
+      logger.error('获取家庭邀请列表失败:', error);
       res.status(500).json({ message: '获取家庭邀请列表失败' });
     }
   }
@@ -392,7 +393,7 @@ export class FamilyController {
         }
       }
     } catch (error) {
-      console.error('获取家庭成员列表失败:', error);
+      logger.error('获取家庭成员列表失败:', error);
       res.status(500).json({ message: '获取家庭成员列表失败' });
     }
   }
@@ -435,7 +436,7 @@ export class FamilyController {
         }
       }
     } catch (error) {
-      console.error('获取家庭统计数据失败:', error);
+      logger.error('获取家庭统计数据失败:', error);
       res.status(500).json({ message: '获取家庭统计数据失败' });
     }
   }
@@ -473,7 +474,7 @@ export class FamilyController {
         }
       }
     } catch (error) {
-      console.error('退出家庭失败:', error);
+      logger.error('退出家庭失败:', error);
       res.status(500).json({ message: '退出家庭失败' });
     }
   }
@@ -518,7 +519,7 @@ export class FamilyController {
         }
       }
     } catch (error) {
-      console.error('更新成员角色失败:', error);
+      logger.error('更新成员角色失败:', error);
       res.status(500).json({ message: '更新成员角色失败' });
     }
   }
@@ -557,7 +558,7 @@ export class FamilyController {
         }
       }
     } catch (error) {
-      console.error('删除家庭成员失败:', error);
+      logger.error('删除家庭成员失败:', error);
       res.status(500).json({ message: '删除家庭成员失败' });
     }
   }
@@ -600,7 +601,7 @@ export class FamilyController {
         }
       }
     } catch (error) {
-      console.error('获取成员统计失败:', error);
+      logger.error('获取成员统计失败:', error);
       res.status(500).json({ message: '获取成员统计失败' });
     }
   }
@@ -648,7 +649,7 @@ export class FamilyController {
         }
       }
     } catch (error) {
-      console.error('添加托管成员失败:', error);
+      logger.error('添加托管成员失败:', error);
       res.status(500).json({ message: '添加托管成员失败' });
     }
   }
@@ -699,7 +700,7 @@ export class FamilyController {
         }
       }
     } catch (error) {
-      console.error('更新托管成员失败:', error);
+      logger.error('更新托管成员失败:', error);
       res.status(500).json({ message: '更新托管成员失败' });
     }
   }
@@ -738,7 +739,7 @@ export class FamilyController {
         }
       }
     } catch (error) {
-      console.error('删除托管成员失败:', error);
+      logger.error('删除托管成员失败:', error);
       res.status(500).json({ message: '删除托管成员失败' });
     }
   }
@@ -774,7 +775,7 @@ export class FamilyController {
         }
       }
     } catch (error) {
-      console.error('获取托管成员列表失败:', error);
+      logger.error('获取托管成员列表失败:', error);
       res.status(500).json({ message: '获取托管成员列表失败' });
     }
   }

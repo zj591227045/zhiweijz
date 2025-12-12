@@ -1,5 +1,6 @@
 import { PrismaClient, Budget, BudgetPeriod, BudgetType, Prisma, Category } from '@prisma/client';
 import { CreateBudgetDto, UpdateBudgetDto, BudgetQueryParams } from '../models/budget.model';
+import { logger } from '../utils/logger';
 
 // 扩展Budget类型，包含category、accountBook、user和categoryBudgets关联
 export type BudgetWithCategory = Budget & {
@@ -188,7 +189,7 @@ export class BudgetRepository {
       },
     });
 
-    console.log(`成员 ${memberId} 找到 ${multibudgetTransactions.length} 条多人预算分摊记录`);
+    logger.debug(`成员 ${memberId} 找到 ${multibudgetTransactions.length} 条多人预算分摊记录`);
 
     // 计算多人预算分摊金额
     for (const transaction of multibudgetTransactions) {
@@ -220,7 +221,7 @@ export class BudgetRepository {
       }
     }
 
-    console.log(`成员 ${memberId} 在预算 ${budgetId} 的总支出: ${totalSpent}`);
+    logger.debug(`成员 ${memberId} 在预算 ${budgetId} 的总支出: ${totalSpent}`);
     return totalSpent;
   }
   /**
@@ -299,7 +300,7 @@ export class BudgetRepository {
       sortOrder = 'desc',
     } = params;
 
-    console.log('BudgetRepository.findAll 参数:', {
+    logger.debug('BudgetRepository.findAll 参数:', {
       userId,
       params,
     });
@@ -359,7 +360,7 @@ export class BudgetRepository {
       }
     }
 
-    console.log('BudgetRepository.findAll 查询条件:', JSON.stringify(where, null, 2));
+    logger.debug('BudgetRepository.findAll 查询条件:', JSON.stringify(where, null, 2));
 
     // 构建排序条件
     const orderBy: Prisma.BudgetOrderByWithRelationInput = {
@@ -461,7 +462,7 @@ export class BudgetRepository {
       throw new Error('预算不存在');
     }
 
-    console.log('计算预算已使用金额 - 预算信息:', {
+    logger.debug('计算预算已使用金额 - 预算信息:', {
       budgetId,
       userId: budget.userId,
       familyMemberId: (budget as any).familyMemberId,
@@ -481,7 +482,7 @@ export class BudgetRepository {
       budgetId: budgetId, // 直接使用预算ID过滤
     };
 
-    console.log('使用预算ID过滤记账记录:', {
+    logger.debug('使用预算ID过滤记账记录:', {
       budgetId,
       startDate: budget.startDate,
       endDate: budget.endDate,
@@ -524,7 +525,7 @@ export class BudgetRepository {
       },
     });
 
-    console.log(`找到 ${multibudgetTransactions.length} 条多人预算分摊记录`);
+    logger.debug(`找到 ${multibudgetTransactions.length} 条多人预算分摊记录`);
 
     // 计算多人预算分摊金额
     for (const transaction of multibudgetTransactions) {
@@ -556,7 +557,7 @@ export class BudgetRepository {
       }
     }
 
-    console.log(`预算 ${budgetId} 总支出: ${totalSpent}`);
+    logger.debug(`预算 ${budgetId} 总支出: ${totalSpent}`);
     return totalSpent;
   }
 
@@ -600,7 +601,7 @@ export class BudgetRepository {
         endDate: { gte: date },
       };
 
-      console.log('查询指定账本的活跃预算，条件:', JSON.stringify(where, null, 2));
+      logger.debug('查询指定账本的活跃预算，条件:', JSON.stringify(where, null, 2));
 
       return prisma.budget.findMany({
         where,
@@ -745,7 +746,7 @@ export class BudgetRepository {
     accountBookId?: string,
     excludeFamilyMember: boolean = true,
   ): Promise<BudgetWithCategory[]> {
-    console.log('BudgetRepository.findByPeriodAndDate 参数:', {
+    logger.debug('BudgetRepository.findByPeriodAndDate 参数:', {
       userId,
       period,
       startDate,

@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response, NextFunction } from 'express';
 import AccountingPointsService from '../services/accounting-points.service';
 
@@ -32,7 +33,7 @@ export async function dailyFirstVisitGift(
     next();
   } catch (error) {
     // 记账点赠送失败不应该影响正常的API调用，只记录错误
-    console.error('每日首次访问记账点赠送失败:', error);
+    logger.error('每日首次访问记账点赠送失败:', error);
     next();
   }
 }

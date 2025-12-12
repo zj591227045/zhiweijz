@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { PrismaClient } from '@prisma/client';
 import { LLMProviderService } from '../ai/llm/llm-provider-service';
 
@@ -38,11 +39,11 @@ export class SystemConfigService {
       // 获取更新后的配置
       const updatedConfig = await this.getGlobalAIConfig();
 
-      console.log('更新全局AI配置:', updatedConfig);
+      logger.info('更新全局AI配置:', updatedConfig);
 
       return updatedConfig;
     } catch (error) {
-      console.error('更新全局AI配置失败:', error);
+      logger.error('更新全局AI配置失败:', error);
       throw new Error('更新全局AI配置失败');
     }
   }
@@ -69,7 +70,7 @@ export class SystemConfigService {
         ],
       };
     } catch (error) {
-      console.error('获取TOKEN使用量统计失败:', error);
+      logger.error('获取TOKEN使用量统计失败:', error);
       throw new Error('获取TOKEN使用量统计失败');
     }
   }
@@ -96,7 +97,7 @@ export class SystemConfigService {
         usagePercentage,
       };
     } catch (error) {
-      console.error('获取今日TOKEN使用量失败:', error);
+      logger.error('获取今日TOKEN使用量失败:', error);
       throw new Error('获取今日TOKEN使用量失败');
     }
   }
@@ -111,14 +112,14 @@ export class SystemConfigService {
     accountId?: string,
   ): Promise<{ success: boolean; message: string }> {
     try {
-      console.log(
+      logger.info(
         `用户 ${userId} 切换AI服务类型到 ${serviceType}`,
         serviceId ? `服务ID: ${serviceId}` : '',
       );
 
       if (serviceType === 'official') {
         // 切换到官方服务
-        console.log('切换到官方AI服务');
+        logger.info('切换到官方AI服务');
 
         // 🔥 修改：存储为用户级别的配置，而不是系统级别
         await this.setUserAIServiceType(userId, 'official');
@@ -138,7 +139,7 @@ export class SystemConfigService {
           throw new Error('切换到自定义服务时必须提供服务ID');
         }
 
-        console.log(`切换到自定义AI服务: ${serviceId}`);
+        logger.info(`切换到自定义AI服务: ${serviceId}`);
 
         // 验证服务ID是否存在并属于该用户
         const isValidService = await this.validateUserLLMSettingOwnership(userId, serviceId);
@@ -160,7 +161,7 @@ export class SystemConfigService {
         };
       }
     } catch (error) {
-      console.error('切换AI服务类型失败:', error);
+      logger.error('切换AI服务类型失败:', error);
       return {
         success: false,
         message: error instanceof Error ? error.message : '切换AI服务类型失败',
@@ -177,12 +178,12 @@ export class SystemConfigService {
     serviceId?: string,
   ): Promise<{ success: boolean; message: string }> {
     try {
-      console.log(`测试AI服务连接: ${serviceType}`, serviceId ? `服务ID: ${serviceId}` : '');
+      logger.info(`测试AI服务连接: ${serviceType}`, serviceId ? `服务ID: ${serviceId}` : '');
 
       if (serviceType === 'official') {
         // 测试官方服务连接
         // 这里应该实际测试官方AI服务的连接
-        console.log('测试官方AI服务连接');
+        logger.info('测试官方AI服务连接');
 
         // 模拟连接测试
         await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -197,7 +198,7 @@ export class SystemConfigService {
           throw new Error('测试自定义服务时必须提供服务ID');
         }
 
-        console.log(`测试自定义AI服务连接: ${serviceId}`);
+        logger.info(`测试自定义AI服务连接: ${serviceId}`);
 
         // 这里应该获取自定义服务的配置并测试连接
         // 使用LLMProviderService来测试连接
@@ -211,7 +212,7 @@ export class SystemConfigService {
         };
       }
     } catch (error) {
-      console.error('测试AI服务连接失败:', error);
+      logger.error('测试AI服务连接失败:', error);
       return {
         success: false,
         message: error instanceof Error ? error.message : '测试AI服务连接失败',
@@ -251,7 +252,7 @@ export class SystemConfigService {
         dailyTokenLimit: parseInt(configMap['llm_daily_token_limit'] || '50000'),
       };
     } catch (error) {
-      console.error('获取全局AI配置错误:', error);
+      logger.error('获取全局AI配置错误:', error);
       throw new Error('获取全局AI配置失败');
     }
   }
@@ -322,7 +323,7 @@ export class SystemConfigService {
         };
       }
     } catch (error) {
-      console.error('获取AI服务状态错误:', error);
+      logger.error('获取AI服务状态错误:', error);
       return {
         isOnline: false,
         lastChecked: new Date().toISOString(),
@@ -362,7 +363,7 @@ export class SystemConfigService {
       });
       return config?.value || '';
     } catch (error) {
-      console.error(`获取系统配置 ${key} 错误:`, error);
+      logger.error(`获取系统配置 ${key} 错误:`, error);
       return '';
     }
   }
@@ -375,7 +376,7 @@ export class SystemConfigService {
       const config = await this.getGlobalAIConfig();
       return config.enabled;
     } catch (error) {
-      console.error('检查全局AI服务状态错误:', error);
+      logger.error('检查全局AI服务状态错误:', error);
       return false;
     }
   }
@@ -412,7 +413,7 @@ export class SystemConfigService {
         maxTokens: config.maxTokens || 1000,
       };
     } catch (error) {
-      console.error('获取全局AI服务配置错误:', error);
+      logger.error('获取全局AI服务配置错误:', error);
       return null;
     }
   }
@@ -451,9 +452,9 @@ export class SystemConfigService {
       }
 
       await Promise.all(updates);
-      console.log('全局AI配置已更新到数据库');
+      logger.info('全局AI配置已更新到数据库');
     } catch (error) {
-      console.error('更新全局AI配置到数据库失败:', error);
+      logger.error('更新全局AI配置到数据库失败:', error);
       throw error;
     }
   }
@@ -489,11 +490,11 @@ export class SystemConfigService {
       });
 
       const serviceType = userServiceTypeSetting?.value || 'official';
-      console.log(`获取用户 ${userId} 的AI服务类型: ${serviceType}`);
+      logger.info(`获取用户 ${userId} 的AI服务类型: ${serviceType}`);
 
       return serviceType as 'official' | 'custom';
     } catch (error) {
-      console.error('获取用户AI服务类型失败:', error);
+      logger.error('获取用户AI服务类型失败:', error);
       return 'official'; // 默认返回官方服务
     }
   }
@@ -513,11 +514,11 @@ export class SystemConfigService {
       });
 
       const enabled = userAIEnabledSetting?.value === 'true';
-      console.log(`获取用户 ${userId} 的AI服务启用状态: ${enabled}`);
+      logger.info(`获取用户 ${userId} 的AI服务启用状态: ${enabled}`);
 
       return enabled;
     } catch (error) {
-      console.error('获取用户AI服务启用状态失败:', error);
+      logger.error('获取用户AI服务启用状态失败:', error);
       return false; // 默认返回禁用
     }
   }
@@ -544,9 +545,9 @@ export class SystemConfigService {
           value: enabled.toString(),
         },
       });
-      console.log(`已设置用户 ${userId} 的AI服务启用状态为 ${enabled}`);
+      logger.info(`已设置用户 ${userId} 的AI服务启用状态为 ${enabled}`);
     } catch (error) {
-      console.error('设置用户AI服务启用状态失败:', error);
+      logger.error('设置用户AI服务启用状态失败:', error);
       throw error;
     }
   }
@@ -576,9 +577,9 @@ export class SystemConfigService {
           value: serviceType,
         },
       });
-      console.log(`已存储用户 ${userId} 的AI服务类型为 ${serviceType}`);
+      logger.info(`已存储用户 ${userId} 的AI服务类型为 ${serviceType}`);
     } catch (error) {
-      console.error('存储用户级别的AI服务类型失败:', error);
+      logger.error('存储用户级别的AI服务类型失败:', error);
       throw error;
     }
   }
@@ -603,7 +604,7 @@ export class SystemConfigService {
       // 只有设置的所有者才能使用该设置
       return llmSetting.userId === userId;
     } catch (error) {
-      console.error('验证用户LLM设置所有权错误:', error);
+      logger.error('验证用户LLM设置所有权错误:', error);
       return false;
     }
   }
@@ -617,9 +618,9 @@ export class SystemConfigService {
         where: { id: accountId },
         data: { userLLMSettingId: null },
       });
-      console.log(`已清除账本 ${accountId} 的LLM设置绑定`);
+      logger.info(`已清除账本 ${accountId} 的LLM设置绑定`);
     } catch (error) {
-      console.error('清除账本LLM设置绑定错误:', error);
+      logger.error('清除账本LLM设置绑定错误:', error);
       throw error;
     }
   }
@@ -633,9 +634,9 @@ export class SystemConfigService {
         where: { id: accountId },
         data: { userLLMSettingId: serviceId },
       });
-      console.log(`已绑定账本 ${accountId} 到LLM设置 ${serviceId}`);
+      logger.info(`已绑定账本 ${accountId} 到LLM设置 ${serviceId}`);
     } catch (error) {
-      console.error('绑定账本到LLM设置错误:', error);
+      logger.error('绑定账本到LLM设置错误:', error);
       throw error;
     }
   }

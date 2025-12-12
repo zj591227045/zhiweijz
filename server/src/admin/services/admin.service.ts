@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { PrismaClient, Admin, admin_role } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -12,7 +13,7 @@ export class AdminService {
         where: { username },
       });
     } catch (error) {
-      console.error('查找管理员错误:', error);
+      logger.error('查找管理员错误:', error);
       throw new Error('查找管理员失败');
     }
   }
@@ -26,7 +27,7 @@ export class AdminService {
         where: { id },
       });
     } catch (error) {
-      console.error('查找管理员错误:', error);
+      logger.error('查找管理员错误:', error);
       throw new Error('查找管理员失败');
     }
   }
@@ -40,7 +41,7 @@ export class AdminService {
         where: { email },
       });
     } catch (error) {
-      console.error('查找管理员错误:', error);
+      logger.error('查找管理员错误:', error);
       throw new Error('查找管理员失败');
     }
   }
@@ -64,7 +65,7 @@ export class AdminService {
         },
       });
     } catch (error) {
-      console.error('创建管理员错误:', error);
+      logger.error('创建管理员错误:', error);
       throw new Error('创建管理员失败');
     }
   }
@@ -81,7 +82,7 @@ export class AdminService {
         },
       });
     } catch (error) {
-      console.error('更新最后登录时间错误:', error);
+      logger.error('更新最后登录时间错误:', error);
       throw new Error('更新最后登录时间失败');
     }
   }
@@ -96,7 +97,7 @@ export class AdminService {
         data: { passwordHash },
       });
     } catch (error) {
-      console.error('更新管理员密码错误:', error);
+      logger.error('更新管理员密码错误:', error);
       throw new Error('更新管理员密码失败');
     }
   }
@@ -110,7 +111,7 @@ export class AdminService {
         orderBy: { createdAt: 'desc' },
       });
     } catch (error) {
-      console.error('获取管理员列表错误:', error);
+      logger.error('获取管理员列表错误:', error);
       throw new Error('获取管理员列表失败');
     }
   }
@@ -124,7 +125,7 @@ export class AdminService {
         where: { id },
       });
     } catch (error) {
-      console.error('删除管理员错误:', error);
+      logger.error('删除管理员错误:', error);
       throw new Error('删除管理员失败');
     }
   }

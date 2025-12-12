@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Router } from 'express';
 import { WechatController } from '../controllers/wechat.controller';
 import { authenticate } from '../middlewares/auth.middleware';
@@ -106,7 +107,7 @@ router.use('/admin', adminRoutes);
 
 // 创建一个独立的微信绑定页面路由，不经过任何微信中间件
 router.get('/wechat-binding', (req, res) => {
-  console.log('🔍 独立绑定页面被访问:', {
+  logger.info('🔍 独立绑定页面被访问:', {
     method: req.method,
     path: req.path,
     userAgent: req.get('User-Agent'),

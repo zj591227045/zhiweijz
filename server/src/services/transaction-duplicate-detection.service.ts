@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import prisma from '../config/database';
 import { SmartAccountingResult } from '../types/smart-accounting';
 
@@ -57,23 +58,23 @@ export class TransactionDuplicateDetectionService {
         ORDER BY count DESC, "latestDate" DESC
       `;
 
-      console.log(`📊 [智能账本匹配] 用户 ${userId} 最近${analysisWindowDays}天的账本使用统计:`);
+      logger.info(`📊 [智能账本匹配] 用户 ${userId} 最近${analysisWindowDays}天的账本使用统计:`);
       accountBookStats.forEach((stat, index) => {
-        console.log(`  ${index + 1}. ${stat.accountBookName} (${stat.accountBookId}): ${stat.count}条记录, 最新: ${stat.latestDate.toISOString().split('T')[0]}`);
+        logger.info(`  ${index + 1}. ${stat.accountBookName} (${stat.accountBookId}): ${stat.count}条记录, 最新: ${stat.latestDate.toISOString().split('T')[0]}`);
       });
 
       // 如果有统计数据，选择最活跃的账本
       if (accountBookStats.length > 0) {
         const bestAccountBook = accountBookStats[0];
-        console.log(`✅ [智能账本匹配] 选择最活跃账本: ${bestAccountBook.accountBookName} (${bestAccountBook.count}条记录)`);
+        logger.info(`✅ [智能账本匹配] 选择最活跃账本: ${bestAccountBook.accountBookName} (${bestAccountBook.count}条记录)`);
         return bestAccountBook.accountBookId;
       }
 
       // 如果没有最近的记账记录，使用默认账本
-      console.log(`📝 [智能账本匹配] 没有最近记录，使用默认账本: ${defaultAccountBookId}`);
+      logger.info(`📝 [智能账本匹配] 没有最近记录，使用默认账本: ${defaultAccountBookId}`);
       return defaultAccountBookId;
     } catch (error) {
-      console.error('智能账本选择失败:', error);
+      logger.error('智能账本选择失败:', error);
       // 出错时使用默认账本
       return defaultAccountBookId;
     }
@@ -163,7 +164,7 @@ export class TransactionDuplicateDetectionService {
         reason: isDuplicate ? this.generateDuplicateReason(record, matches[0]) : undefined,
       };
     } catch (error) {
-      console.error('重复检测失败:', error);
+      logger.error('重复检测失败:', error);
       return {
         isDuplicate: false,
         confidence: 0,

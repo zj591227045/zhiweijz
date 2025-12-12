@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { LLMProvider } from './llm-provider';
 import { OpenAIProvider } from './openai-provider';
 import { SiliconFlowProvider } from './siliconflow-provider';
@@ -82,7 +83,7 @@ export class LLMProviderService {
           return 'official';
         }
       } catch (error) {
-        console.error('获取用户AI服务类型失败:', error);
+        logger.error('获取用户AI服务类型失败:', error);
       }
     }
 
@@ -119,7 +120,7 @@ export class LLMProviderService {
   ): Promise<string | null> {
     // 🚀 检查是否使用多提供商模式
     if ((settings as any).isMultiProvider) {
-      console.log(`使用多提供商服务处理${isChat ? '聊天' : '文本生成'}请求`);
+      logger.info(`使用多提供商服务处理${isChat ? '聊天' : '文本生成'}请求`);
 
       const startTime = Date.now();
       let result: any;
@@ -284,7 +285,7 @@ export class LLMProviderService {
     accountType?: 'personal' | 'family',
   ): Promise<LLMSettings> {
     try {
-      console.log(
+      logger.debug(
         `🔍 [调试] getLLMSettings调用 - userId: ${userId}, accountId: ${accountId}, accountType: ${accountType}`,
       );
 
@@ -299,7 +300,7 @@ export class LLMProviderService {
       });
 
       const serviceType = userServiceTypeSetting?.value || 'official';
-      console.log(
+      logger.debug(
         `🔍 [调试] 用户 ${userId} 的AI服务类型: ${serviceType} (数据库记录: ${JSON.stringify(
           userServiceTypeSetting,
         )})`,
@@ -307,14 +308,14 @@ export class LLMProviderService {
 
       // 🚀 如果用户选择了官方服务，直接使用官方服务配置
       if (serviceType === 'official') {
-        console.log('用户选择了官方AI服务，跳过自定义设置检查');
+        logger.info('用户选择了官方AI服务，跳过自定义设置检查');
 
         // 🚀 优先级1: 检查多提供商配置（官方AI服务）
         const multiProviderConfig = await this.multiProviderService.loadMultiProviderConfig();
         if (multiProviderConfig?.enabled && multiProviderConfig.providers.length > 0) {
           const activeProviders = multiProviderConfig.providers.filter((p) => p.enabled);
           if (activeProviders.length > 0) {
-            console.log('✅ 使用多提供商LLM配置（官方AI服务）');
+            logger.info('✅ 使用多提供商LLM配置（官方AI服务）');
             return {
               provider: 'multi-provider',
               model: 'multi-provider',
@@ -327,16 +328,16 @@ export class LLMProviderService {
         }
 
         // 🚀 优先级2: 使用全局LLM配置（官方AI服务）
-        console.log('使用全局LLM配置（官方AI服务）');
+        logger.info('使用全局LLM配置（官方AI服务）');
         const globalConfig = await this.getFullGlobalLLMConfig();
 
         if (globalConfig) {
-          console.log(`✅ 使用全局LLM配置: ${globalConfig.provider}/${globalConfig.model}`);
+          logger.info(`✅ 使用全局LLM配置: ${globalConfig.provider}/${globalConfig.model}`);
           return globalConfig;
         }
 
         // 如果没有全局配置，使用默认设置
-        console.log(`使用默认LLM设置`);
+        logger.info(`使用默认LLM设置`);
         return {
           ...this.defaultSettings,
           apiKey: '',
@@ -344,7 +345,7 @@ export class LLMProviderService {
       }
 
       // 🚀 如果用户选择了自定义服务，则检查用户的自定义设置（仅限该用户创建的设置）
-      console.log('用户选择了自定义AI服务，检查用户自己的自定义设置');
+      logger.info('用户选择了自定义AI服务，检查用户自己的自定义设置');
 
       // 如果提供了账本信息，优先使用账本绑定的UserLLMSetting（但必须属于该用户）
       if (accountId) {
@@ -359,7 +360,7 @@ export class LLMProviderService {
           if (accountBook && accountBook.userLLMSetting) {
             // 🔥 权限检查：确保LLM设置属于当前用户
             if (accountBook.userLLMSetting.userId === userId) {
-              console.log(`✅ 使用账本绑定的用户自定义LLM设置: ${accountBook.userLLMSetting.id}`);
+              logger.info(`✅ 使用账本绑定的用户自定义LLM设置: ${accountBook.userLLMSetting.id}`);
               return {
                 provider: accountBook.userLLMSetting.provider || this.defaultSettings.provider,
                 model: accountBook.userLLMSetting.model || this.defaultSettings.model,
@@ -370,11 +371,11 @@ export class LLMProviderService {
                 baseUrl: accountBook.userLLMSetting.baseUrl || undefined,
               };
             } else {
-              console.log(`⚠️ 账本绑定的LLM设置不属于当前用户，跳过`);
+              logger.info(`⚠️ 账本绑定的LLM设置不属于当前用户，跳过`);
             }
           }
         } catch (error) {
-          console.error('获取账本绑定的LLM设置错误:', error);
+          logger.error('获取账本绑定的LLM设置错误:', error);
         }
       }
 
@@ -385,7 +386,7 @@ export class LLMProviderService {
         });
 
         if (userLLMSetting) {
-          console.log(`✅ 使用用户默认自定义LLM设置: ${userLLMSetting.id}`);
+          logger.info(`✅ 使用用户默认自定义LLM设置: ${userLLMSetting.id}`);
           return {
             provider: userLLMSetting.provider || this.defaultSettings.provider,
             model: userLLMSetting.model || this.defaultSettings.model,
@@ -396,18 +397,18 @@ export class LLMProviderService {
           };
         }
       } catch (error) {
-        console.error('获取用户默认LLM设置错误:', error);
+        logger.error('获取用户默认LLM设置错误:', error);
       }
 
       // 如果没有找到自定义设置，回退到官方服务
-      console.log('未找到用户的自定义LLM设置，回退到官方服务');
+      logger.info('未找到用户的自定义LLM设置，回退到官方服务');
 
       // 🚀 回退：检查多提供商配置（官方AI服务）
       const multiProviderConfig = await this.multiProviderService.loadMultiProviderConfig();
       if (multiProviderConfig?.enabled && multiProviderConfig.providers.length > 0) {
         const activeProviders = multiProviderConfig.providers.filter((p) => p.enabled);
         if (activeProviders.length > 0) {
-          console.log('✅ 回退到多提供商LLM配置（官方AI服务）');
+          logger.info('✅ 回退到多提供商LLM配置（官方AI服务）');
           return {
             provider: 'multi-provider',
             model: 'multi-provider',
@@ -420,32 +421,32 @@ export class LLMProviderService {
       }
 
       // 🚀 回退：使用全局LLM配置（官方AI服务）
-      console.log('回退到全局LLM配置（官方AI服务）');
+      logger.info('回退到全局LLM配置（官方AI服务）');
       const globalConfig = await this.getFullGlobalLLMConfig();
 
       if (globalConfig) {
-        console.log(`✅ 回退到全局LLM配置: ${globalConfig.provider}/${globalConfig.model}`);
+        logger.info(`✅ 回退到全局LLM配置: ${globalConfig.provider}/${globalConfig.model}`);
         return globalConfig;
       }
 
       // 如果没有全局配置，使用默认设置
-      console.log(`使用默认LLM设置`);
+      logger.info(`使用默认LLM设置`);
       return {
         ...this.defaultSettings,
         apiKey: '',
       };
     } catch (error) {
-      console.error('获取LLM设置错误:', error);
+      logger.error('获取LLM设置错误:', error);
 
       // 即使出错，也尝试使用全局配置
       try {
         const globalConfig = await this.getFullGlobalLLMConfig();
         if (globalConfig) {
-          console.log(`回退到全局LLM配置: ${globalConfig.provider}/${globalConfig.model}`);
+          logger.info(`回退到全局LLM配置: ${globalConfig.provider}/${globalConfig.model}`);
           return globalConfig;
         }
       } catch (globalError) {
-        console.error('获取全局LLM配置错误:', globalError);
+        logger.error('获取全局LLM配置错误:', globalError);
       }
 
       return {
@@ -500,7 +501,7 @@ export class LLMProviderService {
         });
       }
     } catch (error) {
-      console.error('更新用户LLM设置错误:', error);
+      logger.error('更新用户LLM设置错误:', error);
       throw error;
     }
   }
@@ -544,9 +545,9 @@ export class LLMProviderService {
         WHERE "id" = ${accountId}
       `;
 
-      console.log(`账本 ${accountId} 已绑定到LLM设置 ${userLLMSettingId}`);
+      logger.info(`账本 ${accountId} 已绑定到LLM设置 ${userLLMSettingId}`);
     } catch (error) {
-      console.error('更新账本LLM设置错误:', error);
+      logger.error('更新账本LLM设置错误:', error);
       throw error;
     }
   }
@@ -571,7 +572,7 @@ export class LLMProviderService {
     },
   ): Promise<string> {
     try {
-      console.log('开始创建用户LLM设置:', { userId, settings });
+      logger.info('开始创建用户LLM设置:', { userId, settings });
 
       // 使用Prisma ORM方法创建记录，这样更安全可靠
       const createdSetting = await prisma.userLLMSetting.create({
@@ -591,10 +592,10 @@ export class LLMProviderService {
         },
       });
 
-      console.log('成功创建用户LLM设置:', createdSetting.id);
+      logger.info('成功创建用户LLM设置:', createdSetting.id);
       return createdSetting.id;
     } catch (error) {
-      console.error('创建用户LLM设置错误:', error);
+      logger.error('创建用户LLM设置错误:', error);
       throw error;
     }
   }
@@ -772,11 +773,11 @@ export class LLMProviderService {
       // 记录详细的错误信息
       if (error instanceof Error) {
         if (errorMessage.includes('ECONNRESET')) {
-          console.error(`[LLM] 网络连接被重置: ${settings.provider}/${settings.model}`);
+          logger.error(`[LLM] 网络连接被重置: ${settings.provider}/${settings.model}`);
         } else if (errorMessage.includes('ECONNABORTED') || errorMessage.includes('timeout')) {
-          console.error(`[LLM] 请求超时: ${settings.provider}/${settings.model}`);
+          logger.error(`[LLM] 请求超时: ${settings.provider}/${settings.model}`);
         } else if (errorMessage.includes('socket hang up')) {
-          console.error(`[LLM] 连接中断: ${settings.provider}/${settings.model}`);
+          logger.error(`[LLM] 连接中断: ${settings.provider}/${settings.model}`);
         }
       }
 
@@ -856,7 +857,7 @@ export class LLMProviderService {
           message: `连接测试成功: ${response.substring(0, 50)}${response.length > 50 ? '...' : ''}`,
         };
       } catch (apiError) {
-        console.error('API调用错误:', apiError);
+        logger.error('API调用错误:', apiError);
         return {
           success: false,
           message: `连接测试失败: ${
@@ -865,7 +866,7 @@ export class LLMProviderService {
         };
       }
     } catch (error) {
-      console.error('测试连接错误:', error);
+      logger.error('测试连接错误:', error);
       return {
         success: false,
         message: `测试过程中发生错误: ${error instanceof Error ? error.message : String(error)}`,
@@ -911,7 +912,7 @@ export class LLMProviderService {
 
       return configObj;
     } catch (error) {
-      console.error('获取全局LLM配置错误:', error);
+      logger.error('获取全局LLM配置错误:', error);
       return { enabled: false };
     }
   }
@@ -962,7 +963,7 @@ export class LLMProviderService {
 
       return null;
     } catch (error) {
-      console.error('获取完整全局LLM配置错误:', error);
+      logger.error('获取完整全局LLM配置错误:', error);
       return null;
     }
   }
@@ -1048,7 +1049,7 @@ export class LLMProviderService {
             }
           }
         } catch (error) {
-          console.error('确定服务类型失败:', error);
+          logger.error('确定服务类型失败:', error);
           // 兜底逻辑：检查全局配置
           const globalConfig = await this.getGlobalLLMConfig();
           if (globalConfig.enabled) {
@@ -1084,11 +1085,11 @@ export class LLMProviderService {
         },
       });
 
-      console.log(
+      logger.info(
         `LLM调用日志已记录: ${logData.provider}/${logData.model}, tokens: ${totalTokens}, duration: ${logData.duration}ms, serviceType: ${serviceType}`,
       );
     } catch (error) {
-      console.error('记录LLM调用日志失败:', error);
+      logger.error('记录LLM调用日志失败:', error);
       // 不抛出错误，避免影响主要功能
     }
   }
@@ -1157,7 +1158,7 @@ export class LLMProviderService {
       });
 
       if (userLLMSetting) {
-        console.log(`✅ 找到用户 ${userId} 的默认LLM设置: ${userLLMSetting.name}`);
+        logger.info(`✅ 找到用户 ${userId} 的默认LLM设置: ${userLLMSetting.name}`);
         return {
           id: userLLMSetting.id,
           name: userLLMSetting.name,
@@ -1169,10 +1170,10 @@ export class LLMProviderService {
         };
       }
 
-      console.log(`❌ 未找到用户 ${userId} 的LLM设置`);
+      logger.info(`❌ 未找到用户 ${userId} 的LLM设置`);
       return null;
     } catch (error) {
-      console.error('获取用户默认LLM设置错误:', error);
+      logger.error('获取用户默认LLM设置错误:', error);
       return null;
     }
   }

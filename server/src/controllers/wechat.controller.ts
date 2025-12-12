@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { WechatService, WechatMessage } from '../services/wechat.service';
 import { WechatConfigService } from '../services/wechat-config.service';
@@ -27,7 +28,7 @@ export class WechatController {
     try {
       // 检查微信服务是否启用
       if (!this.wechatService.isWechatEnabled()) {
-        console.log('微信服务未启用');
+        logger.info('微信服务未启用');
         return res.status(503).send('Wechat service not configured');
       }
 
@@ -45,14 +46,14 @@ export class WechatController {
       );
 
       if (isValid && wechatParams.echostr) {
-        console.log('微信服务器验证成功');
+        logger.info('微信服务器验证成功');
         return res.send(wechatParams.echostr);
       } else {
-        console.log('微信服务器验证失败');
+        logger.info('微信服务器验证失败');
         return res.status(403).send('Verification failed');
       }
     } catch (error) {
-      console.error('微信验证错误:', error);
+      logger.error('微信验证错误:', error);
       return res.status(500).send('Internal server error');
     }
   }
@@ -64,7 +65,7 @@ export class WechatController {
     try {
       // 检查微信服务是否启用
       if (!this.wechatService.isWechatEnabled()) {
-        console.log('微信服务未启用');
+        logger.info('微信服务未启用');
         return res.send('success'); // 返回success避免微信重试
       }
 
@@ -82,7 +83,7 @@ export class WechatController {
           wechatParams.nonce,
         )
       ) {
-        console.log('微信消息签名验证失败');
+        logger.info('微信消息签名验证失败');
         return res.send('success'); // 返回success避免微信重试
       }
 
@@ -90,8 +91,8 @@ export class WechatController {
       const rawMessage = req.body as any;
 
       // 记录原始消息数据用于调试
-      console.log('🔍 [微信消息调试] 原始消息数据 (rawMessage):');
-      console.log(JSON.stringify(rawMessage, null, 2));
+      logger.info('🔍 [微信消息调试] 原始消息数据 (rawMessage):');
+      logger.info(JSON.stringify(rawMessage, null, 2));
 
       // 转换微信XML解析后的数组格式为字符串
       const message: WechatMessage = {
@@ -118,11 +119,11 @@ export class WechatController {
       };
 
       // 记录转换后的消息数据用于调试
-      console.log('🔍 [微信消息调试] 转换后的消息数据 (message):');
-      console.log(JSON.stringify(message, null, 2));
+      logger.info('🔍 [微信消息调试] 转换后的消息数据 (message):');
+      logger.info(JSON.stringify(message, null, 2));
 
       if (!message || !message.FromUserName) {
-        console.log('微信消息数据无效');
+        logger.info('微信消息数据无效');
         return res.send('success');
       }
 
@@ -132,13 +133,13 @@ export class WechatController {
         : `${message.FromUserName}_${message.CreateTime}`;
 
       if (this.processedMessages.has(messageId)) {
-        console.log('重复消息，忽略处理:', messageId);
+        logger.info('重复消息，忽略处理:', messageId);
         return res.send('success');
       }
 
       this.processedMessages.add(messageId);
 
-      console.log('收到微信消息:', {
+      logger.info('收到微信消息:', {
         fromUser: message.FromUserName,
         msgType: message.MsgType,
         content: message.Content || message.Event,
@@ -182,11 +183,11 @@ export class WechatController {
           return res.send('success');
         }
       } catch (timeoutError) {
-        console.log('消息处理超时，返回success避免微信重试');
+        logger.info('消息处理超时，返回success避免微信重试');
         return res.send('success');
       }
     } catch (error) {
-      console.error('处理微信消息错误:', error);
+      logger.error('处理微信消息错误:', error);
       return res.send('success'); // 微信要求返回success避免重试
     }
   }
@@ -230,7 +231,7 @@ export class WechatController {
       // 用于后续的主动消息发送等功能
       res.json({ message: '获取访问令牌功能待实现' });
     } catch (error) {
-      console.error('获取访问令牌错误:', error);
+      logger.error('获取访问令牌错误:', error);
       res.status(500).json({ error: '获取访问令牌失败' });
     }
   }
@@ -264,7 +265,7 @@ export class WechatController {
         });
       }
     } catch (error) {
-      console.error('设置菜单错误:', error);
+      logger.error('设置菜单错误:', error);
       res.status(500).json({
         success: false,
         error: '设置菜单失败',
@@ -284,7 +285,7 @@ export class WechatController {
         data: status,
       });
     } catch (error) {
-      console.error('获取服务状态错误:', error);
+      logger.error('获取服务状态错误:', error);
       res.status(500).json({
         success: false,
         error: '获取服务状态失败',
@@ -305,7 +306,7 @@ export class WechatController {
         data: errorStats,
       });
     } catch (error) {
-      console.error('获取错误统计错误:', error);
+      logger.error('获取错误统计错误:', error);
       res.status(500).json({
         success: false,
         error: '获取错误统计失败',
@@ -327,7 +328,7 @@ export class WechatController {
         deletedCount,
       });
     } catch (error) {
-      console.error('清理日志错误:', error);
+      logger.error('清理日志错误:', error);
       res.status(500).json({
         success: false,
         error: '清理日志失败',
@@ -357,9 +358,9 @@ export class WechatController {
     try {
       const { email, password, openid } = req.body;
 
-      console.log('🎯 WechatController.loginAndGetBooks 被调用');
-      console.log('📝 收到登录请求:', { email, openid, hasPassword: !!password });
-      console.log('📋 完整请求体:', req.body);
+      logger.info('🎯 WechatController.loginAndGetBooks 被调用');
+      logger.info('📝 收到登录请求:', { email, openid, hasPassword: !!password });
+      logger.info('📋 完整请求体:', req.body);
 
       if (!email || !password) {
         return this.renderErrorPage(res, '请填写完整的登录信息');
@@ -383,7 +384,7 @@ export class WechatController {
         return this.renderErrorPage(res, result.message || '登录失败');
       }
     } catch (error) {
-      console.error('登录获取账本错误:', error);
+      logger.error('登录获取账本错误:', error);
       return this.renderErrorPage(res, '服务器内部错误');
     }
   }
@@ -511,7 +512,7 @@ export class WechatController {
     try {
       const { openid, userId, accountBookId } = req.body;
 
-      console.log('📝 收到绑定请求:', { openid, userId, accountBookId });
+      logger.info('📝 收到绑定请求:', { openid, userId, accountBookId });
 
       if (!openid || !userId || !accountBookId) {
         return this.renderErrorPage(res, '缺少必要参数');
@@ -525,7 +526,7 @@ export class WechatController {
         return this.renderErrorPage(res, result.message);
       }
     } catch (error) {
-      console.error('绑定账号错误:', error);
+      logger.error('绑定账号错误:', error);
       return this.renderErrorPage(res, '服务器内部错误');
     }
   }
@@ -537,7 +538,7 @@ export class WechatController {
     try {
       const { openid } = req.body;
 
-      console.log('📝 收到解绑请求:', { openid });
+      logger.info('📝 收到解绑请求:', { openid });
 
       if (!openid) {
         return this.renderErrorPage(res, '缺少必要参数');
@@ -551,7 +552,7 @@ export class WechatController {
         return this.renderErrorPage(res, result.message);
       }
     } catch (error) {
-      console.error('解绑账号错误:', error);
+      logger.error('解绑账号错误:', error);
       return this.renderErrorPage(res, '服务器内部错误');
     }
   }
@@ -740,9 +741,9 @@ export class WechatController {
    * 提供微信绑定页面
    */
   public async getBindingPage(req: Request, res: Response) {
-    console.log('🔍 getBindingPage 被调用了！');
-    console.log('请求头:', req.headers);
-    console.log('查询参数:', req.query);
+    logger.info('🔍 getBindingPage 被调用了！');
+    logger.info('请求头:', req.headers);
+    logger.info('查询参数:', req.query);
 
     try {
       // 检查是否在微信环境中
@@ -788,7 +789,7 @@ export class WechatController {
         try {
           openid = await this.wechatService.getOpenIdFromCode(code);
         } catch (error) {
-          console.error('获取OpenID失败:', error);
+          logger.error('获取OpenID失败:', error);
           return res.status(400).send(`
             <!DOCTYPE html>
             <html lang="zh-CN">
@@ -818,7 +819,7 @@ export class WechatController {
         }
       } else {
         // 没有code参数，生成一个测试openid
-        console.log('⚠️ 没有授权code，使用测试openid');
+        logger.info('⚠️ 没有授权code，使用测试openid');
         openid = 'test_openid_' + Date.now();
       }
 
@@ -826,7 +827,7 @@ export class WechatController {
       const existingBinding = await this.bindingService.getBindingInfo(openid);
 
       if (existingBinding && existingBinding.isActive) {
-        console.log('🔄 用户已绑定，显示账本重选页面');
+        logger.info('🔄 用户已绑定，显示账本重选页面');
         // 获取用户的所有账本
         const accountBooksResult = await this.wechatService.getUserAccountBooks(
           existingBinding.userId,
@@ -864,7 +865,7 @@ export class WechatController {
       res.setHeader('X-Content-Type-Options', 'nosniff');
       res.send(htmlContent);
     } catch (error) {
-      console.error('获取绑定页面错误:', error);
+      logger.error('获取绑定页面错误:', error);
       res.status(500).json({
         success: false,
         message: '服务器内部错误',

@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { VisionProvider } from './vision-provider';
 import { VolcengineVisionProvider } from './volcengine-vision-provider';
 import { SiliconFlowVisionProvider } from './siliconflow-vision-provider';
@@ -114,7 +115,7 @@ export class VisionProviderManager {
       await provider.recognizeImage(testRequest, options);
       return true;
     } catch (error) {
-      console.error(`测试提供商 ${config.provider} 连接失败:`, error);
+      logger.error(`测试提供商 ${config.provider} 连接失败:`, error);
       return false;
     }
   }

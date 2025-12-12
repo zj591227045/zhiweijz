@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { UserService } from '../services/user.service';
 import { CreateUserDto, UpdateUserDto, UpdateProfileDto } from '../models/user.model';
@@ -51,7 +52,7 @@ export class UserController {
 
       res.status(200).json(profile);
     } catch (error) {
-      console.error('获取用户资料失败:', error);
+      logger.error('获取用户资料失败:', error);
       res.status(500).json({ message: '获取用户资料失败' });
     }
   }
@@ -67,7 +68,7 @@ export class UserController {
         return;
       }
 
-      console.log('更新用户资料请求数据:', req.body);
+      logger.info('更新用户资料请求数据:', req.body);
       const profileData: UpdateProfileDto = req.body;
 
       // 验证必要字段
@@ -83,7 +84,7 @@ export class UserController {
         birthDate: profileData.birthDate ? new Date(profileData.birthDate) : undefined,
       };
 
-      console.log('转换后的更新数据:', updateData);
+      logger.info('转换后的更新数据:', updateData);
 
       // 更新用户信息
       const updatedUser = await this.userService.updateUser(userId, updateData);
@@ -99,10 +100,10 @@ export class UserController {
         createdAt: updatedUser.createdAt,
       };
 
-      console.log('更新用户资料成功:', profile);
+      logger.info('更新用户资料成功:', profile);
       res.status(200).json(profile);
     } catch (error) {
-      console.error('更新用户资料失败:', error);
+      logger.error('更新用户资料失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -162,7 +163,7 @@ export class UserController {
         message: '头像上传成功',
       });
     } catch (error) {
-      console.error('上传头像失败:', error);
+      logger.error('上传头像失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -188,7 +189,7 @@ export class UserController {
         return;
       }
 
-      console.log('更新用户头像ID:', { userId, avatarId });
+      logger.info('更新用户头像ID:', { userId, avatarId });
 
       // 更新用户头像ID
       const updateData: UpdateUserDto = {
@@ -200,7 +201,7 @@ export class UserController {
       // 返回头像ID
       res.status(200).json({ avatar: avatarId });
     } catch (error) {
-      console.error('更新头像ID失败:', error);
+      logger.error('更新头像ID失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -283,11 +284,11 @@ export class UserController {
         }
       }
 
-      console.log('🔧 更新用户信息:', { targetUserId, currentUserId, userData });
+      logger.info('🔧 更新用户信息:', { targetUserId, currentUserId, userData });
       const updatedUser = await this.userService.updateUser(targetUserId, userData);
       res.status(200).json(updatedUser);
     } catch (error) {
-      console.error('更新用户信息失败:', error);
+      logger.error('更新用户信息失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -326,7 +327,7 @@ export class UserController {
         member.family.members.length > 0
       );
     } catch (error) {
-      console.error('检查托管用户权限失败:', error);
+      logger.error('检查托管用户权限失败:', error);
       return false;
     }
   }
@@ -411,7 +412,7 @@ export class UserController {
         deletionScheduledAt: result.deletionScheduledAt,
       });
     } catch (error) {
-      console.error('发起注销请求失败:', error);
+      logger.error('发起注销请求失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -435,7 +436,7 @@ export class UserController {
 
       res.status(200).json({ message: '注销请求已取消' });
     } catch (error) {
-      console.error('取消注销请求失败:', error);
+      logger.error('取消注销请求失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -459,7 +460,7 @@ export class UserController {
 
       res.status(200).json(status);
     } catch (error) {
-      console.error('查询注销状态失败:', error);
+      logger.error('查询注销状态失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -496,7 +497,7 @@ export class UserController {
 
       res.status(200).json({ message: '密码验证成功' });
     } catch (error) {
-      console.error('密码验证失败:', error);
+      logger.error('密码验证失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -521,14 +522,14 @@ export class UserController {
       for (const avatar of previousAvatars.files) {
         try {
           await this.fileStorageService.deleteFile(avatar.id, userId);
-          console.log(`已删除用户 ${userId} 的旧头像文件: ${avatar.id}`);
+          logger.info(`已删除用户 ${userId} 的旧头像文件: ${avatar.id}`);
         } catch (error) {
-          console.error(`删除旧头像文件失败: ${avatar.id}`, error);
+          logger.error(`删除旧头像文件失败: ${avatar.id}`, error);
           // 继续删除其他文件，不中断流程
         }
       }
     } catch (error) {
-      console.error('删除用户旧头像失败:', error);
+      logger.error('删除用户旧头像失败:', error);
       // 不抛出错误，允许继续上传新头像
     }
   }

@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { ImageRecognitionService } from '../services/image-recognition.service';
 import {
@@ -48,7 +49,7 @@ export class ImageRecognitionController {
         message: '图片识别完成',
       });
     } catch (error) {
-      console.error('图片识别失败:', error);
+      logger.error('图片识别失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '图片识别失败',
@@ -98,7 +99,7 @@ export class ImageRecognitionController {
         message: '批量图片识别完成',
       });
     } catch (error) {
-      console.error('批量图片识别失败:', error);
+      logger.error('批量图片识别失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '批量图片识别失败',
@@ -141,7 +142,7 @@ export class ImageRecognitionController {
         message: '识别结果验证成功',
       });
     } catch (error) {
-      console.error('验证识别结果失败:', error);
+      logger.error('验证识别结果失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '验证识别结果失败',
@@ -167,7 +168,7 @@ export class ImageRecognitionController {
         data: stats,
       });
     } catch (error) {
-      console.error('获取识别统计失败:', error);
+      logger.error('获取识别统计失败:', error);
       res.status(500).json({
         success: false,
         message: '获取识别统计失败',
@@ -187,7 +188,7 @@ export class ImageRecognitionController {
         data: config,
       });
     } catch (error) {
-      console.error('获取识别配置失败:', error);
+      logger.error('获取识别配置失败:', error);
       res.status(500).json({
         success: false,
         message: '获取识别配置失败',
@@ -221,7 +222,7 @@ export class ImageRecognitionController {
         message: '识别配置更新成功',
       });
     } catch (error) {
-      console.error('更新识别配置失败:', error);
+      logger.error('更新识别配置失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '更新识别配置失败',
@@ -272,7 +273,7 @@ export class ImageRecognitionController {
         data: types,
       });
     } catch (error) {
-      console.error('获取支持的识别类型失败:', error);
+      logger.error('获取支持的识别类型失败:', error);
       res.status(500).json({
         success: false,
         message: '获取支持的识别类型失败',
@@ -300,7 +301,7 @@ export class ImageRecognitionController {
         },
       });
     } catch (error) {
-      console.error('测试识别服务失败:', error);
+      logger.error('测试识别服务失败:', error);
       res.status(500).json({
         success: false,
         message: '测试识别服务失败',

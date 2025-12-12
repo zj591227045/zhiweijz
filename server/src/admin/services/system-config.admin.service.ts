@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { PrismaClient } from '@prisma/client';
 import { LLMProviderService } from '../../ai/llm/llm-provider-service';
 
@@ -101,7 +102,7 @@ export class SystemConfigAdminService {
         total: configs.length,
       };
     } catch (error) {
-      console.error('获取系统配置列表错误:', error);
+      logger.error('获取系统配置列表错误:', error);
       throw new Error('获取系统配置列表失败');
     }
   }
@@ -118,7 +119,7 @@ export class SystemConfigAdminService {
 
       return config;
     } catch (error) {
-      console.error('获取系统配置错误:', error);
+      logger.error('获取系统配置错误:', error);
       throw new Error('获取系统配置失败');
     }
   }
@@ -134,7 +135,7 @@ export class SystemConfigAdminService {
 
       return config;
     } catch (error) {
-      console.error('获取系统配置错误:', error);
+      logger.error('获取系统配置错误:', error);
       throw new Error('获取系统配置失败');
     }
   }
@@ -167,7 +168,7 @@ export class SystemConfigAdminService {
 
       return config;
     } catch (error) {
-      console.error('创建系统配置错误:', error);
+      logger.error('创建系统配置错误:', error);
       if (error instanceof Error && error.message.includes('已存在')) {
         throw error;
       }
@@ -203,7 +204,7 @@ export class SystemConfigAdminService {
 
       return config;
     } catch (error) {
-      console.error('更新系统配置错误:', error);
+      logger.error('更新系统配置错误:', error);
       if (error instanceof Error && error.message.includes('不存在')) {
         throw error;
       }
@@ -231,7 +232,7 @@ export class SystemConfigAdminService {
 
       return true;
     } catch (error) {
-      console.error('删除系统配置错误:', error);
+      logger.error('删除系统配置错误:', error);
       if (error instanceof Error && error.message.includes('不存在')) {
         throw error;
       }
@@ -284,7 +285,7 @@ export class SystemConfigAdminService {
         totalCount: results.length,
       };
     } catch (error) {
-      console.error('批量更新系统配置错误:', error);
+      logger.error('批量更新系统配置错误:', error);
       throw new Error('批量更新系统配置失败');
     }
   }
@@ -318,7 +319,7 @@ export class SystemConfigAdminService {
 
       return configObj;
     } catch (error) {
-      console.error('获取LLM配置错误:', error);
+      logger.error('获取LLM配置错误:', error);
       throw new Error('获取LLM配置失败');
     }
   }
@@ -401,7 +402,7 @@ export class SystemConfigAdminService {
 
       return true;
     } catch (error) {
-      console.error('更新LLM配置错误:', error);
+      logger.error('更新LLM配置错误:', error);
       throw new Error('更新LLM配置失败');
     }
   }
@@ -413,7 +414,7 @@ export class SystemConfigAdminService {
     const startTime = Date.now();
 
     try {
-      console.log('开始测试LLM连接:', config);
+      logger.info('开始测试LLM连接:', config);
 
       // 使用LLMProviderService进行真实的连接测试
       const testResult = await this.llmProviderService.testConnection({
@@ -437,7 +438,7 @@ export class SystemConfigAdminService {
         },
       };
     } catch (error) {
-      console.error('测试LLM连接错误:', error);
+      logger.error('测试LLM连接错误:', error);
       const responseTime = Date.now() - startTime;
 
       return {
@@ -483,7 +484,7 @@ export class SystemConfigAdminService {
       // 默认允许注册
       return config ? config.value === 'true' : true;
     } catch (error) {
-      console.error('获取注册状态错误:', error);
+      logger.error('获取注册状态错误:', error);
       throw new Error('获取注册状态失败');
     }
   }
@@ -512,7 +513,7 @@ export class SystemConfigAdminService {
 
       return config;
     } catch (error) {
-      console.error('切换注册状态错误:', error);
+      logger.error('切换注册状态错误:', error);
       throw new Error('切换注册状态失败');
     }
   }

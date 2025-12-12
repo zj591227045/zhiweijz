@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { MultimodalAIConfigService } from '../../services/multimodal-ai-config.service';
 import { SpeechRecognitionService } from '../../services/speech-recognition.service';
 import { VisionRecognitionService } from '../../services/vision-recognition.service';
@@ -30,7 +31,7 @@ export class MultimodalAIAdminService {
     try {
       return await this.configService.getFullConfig();
     } catch (error) {
-      console.error('获取多模态AI配置失败:', error);
+      logger.error('获取多模态AI配置失败:', error);
       throw new Error('获取多模态AI配置失败');
     }
   }
@@ -42,7 +43,7 @@ export class MultimodalAIAdminService {
     try {
       await this.configService.updateSpeechConfig(config);
     } catch (error) {
-      console.error('更新语音识别配置失败:', error);
+      logger.error('更新语音识别配置失败:', error);
       throw new Error('更新语音识别配置失败');
     }
   }
@@ -54,7 +55,7 @@ export class MultimodalAIAdminService {
     try {
       await this.configService.updateVisionConfig(config);
     } catch (error) {
-      console.error('更新视觉识别配置失败:', error);
+      logger.error('更新视觉识别配置失败:', error);
       throw new Error('更新视觉识别配置失败');
     }
   }
@@ -79,7 +80,7 @@ export class MultimodalAIAdminService {
         },
       };
     } catch (error) {
-      console.error('测试语音识别配置失败:', error);
+      logger.error('测试语音识别配置失败:', error);
       return {
         success: false,
         message: `测试失败: ${error instanceof Error ? error.message : '未知错误'}`,
@@ -107,7 +108,7 @@ export class MultimodalAIAdminService {
         },
       };
     } catch (error) {
-      console.error('测试视觉识别配置失败:', error);
+      logger.error('测试视觉识别配置失败:', error);
       return {
         success: false,
         message: `测试失败: ${error instanceof Error ? error.message : '未知错误'}`,
@@ -259,7 +260,7 @@ export class MultimodalAIAdminService {
         },
       };
     } catch (error) {
-      console.error('获取配置状态失败:', error);
+      logger.error('获取配置状态失败:', error);
       throw new Error('获取配置状态失败');
     }
   }
@@ -289,7 +290,7 @@ export class MultimodalAIAdminService {
 
       await Promise.all(updates);
     } catch (error) {
-      console.error('批量更新配置失败:', error);
+      logger.error('批量更新配置失败:', error);
       throw new Error('批量更新配置失败');
     }
   }

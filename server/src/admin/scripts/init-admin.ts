@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { PrismaClient, admin_role } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
@@ -8,7 +9,7 @@ const prisma = new PrismaClient();
  */
 async function initDefaultAdmin() {
   try {
-    console.log('正在初始化默认管理员账号...');
+    logger.info('正在初始化默认管理员账号...');
 
     const defaultUsername = 'admin';
     const defaultPassword = 'zhiweijz2025';
@@ -20,7 +21,7 @@ async function initDefaultAdmin() {
     });
 
     if (existingAdmin) {
-      console.log('默认管理员账号已存在，跳过初始化');
+      logger.info('默认管理员账号已存在，跳过初始化');
       return;
     }
 
@@ -38,15 +39,15 @@ async function initDefaultAdmin() {
       },
     });
 
-    console.log('默认管理员账号创建成功：');
-    console.log(`- 用户名：${admin.username}`);
-    console.log(`- 密码：${defaultPassword}`);
-    console.log(`- 邮箱：${admin.email}`);
-    console.log(`- 角色：${admin.role}`);
-    console.log('');
-    console.log('⚠️  请在生产环境中及时修改默认密码！');
+    logger.info('默认管理员账号创建成功：');
+    logger.info(`- 用户名：${admin.username}`);
+    logger.info(`- 密码：${defaultPassword}`);
+    logger.info(`- 邮箱：${admin.email}`);
+    logger.info(`- 角色：${admin.role}`);
+    logger.info('');
+    logger.info('⚠️  请在生产环境中及时修改默认密码！');
   } catch (error) {
-    console.error('初始化默认管理员账号失败：', error);
+    logger.error('初始化默认管理员账号失败：', error);
     throw error;
   } finally {
     await prisma.$disconnect();
@@ -57,11 +58,11 @@ async function initDefaultAdmin() {
 if (require.main === module) {
   initDefaultAdmin()
     .then(() => {
-      console.log('初始化完成');
+      logger.info('初始化完成');
       process.exit(0);
     })
     .catch((error) => {
-      console.error('初始化失败：', error);
+      logger.error('初始化失败：', error);
       process.exit(1);
     });
 }

@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Router, Request, Response } from 'express';
 import { SystemConfigAdminService } from '../admin/services/system-config.admin.service';
 
@@ -21,7 +22,7 @@ router.get('/registration-status', async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error('获取注册状态错误:', error);
+    logger.error('获取注册状态错误:', error);
     res.status(500).json({
       success: false,
       message: '获取注册状态失败',
@@ -48,7 +49,7 @@ router.get('/info', async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error('获取系统信息错误:', error);
+    logger.error('获取系统信息错误:', error);
     res.status(500).json({
       success: false,
       message: '获取系统信息失败',

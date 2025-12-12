@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { Request, Response } from 'express';
 import { DashboardService } from '../services/dashboard.service';
 
@@ -20,7 +21,7 @@ export class AdminDashboardController {
         data: overview,
       });
     } catch (error) {
-      console.error('获取仪表盘概览数据错误:', error);
+      logger.error('获取仪表盘概览数据错误:', error);
       res.status(500).json({
         success: false,
         message: '获取仪表盘数据失败',
@@ -41,7 +42,7 @@ export class AdminDashboardController {
         data: userStats,
       });
     } catch (error) {
-      console.error('获取用户统计数据错误:', error);
+      logger.error('获取用户统计数据错误:', error);
       res.status(500).json({
         success: false,
         message: '获取用户统计数据失败',
@@ -62,7 +63,7 @@ export class AdminDashboardController {
         data: transactionStats,
       });
     } catch (error) {
-      console.error('获取记账统计数据错误:', error);
+      logger.error('获取记账统计数据错误:', error);
       res.status(500).json({
         success: false,
         message: '获取记账统计数据失败',
@@ -82,7 +83,7 @@ export class AdminDashboardController {
         data: resources,
       });
     } catch (error) {
-      console.error('获取系统资源数据错误:', error);
+      logger.error('获取系统资源数据错误:', error);
       res.status(500).json({
         success: false,
         message: '获取系统资源数据失败',
@@ -124,7 +125,7 @@ export class AdminDashboardController {
         data,
       });
     } catch (error) {
-      console.error('获取性能历史数据错误:', error);
+      logger.error('获取性能历史数据错误:', error);
       res.status(500).json({
         success: false,
         message: '获取性能历史数据失败',
@@ -156,7 +157,7 @@ export class AdminDashboardController {
         data,
       });
     } catch (error) {
-      console.error('获取所有性能历史数据错误:', error);
+      logger.error('获取所有性能历史数据错误:', error);
       res.status(500).json({
         success: false,
         message: '获取所有性能历史数据失败',
@@ -198,7 +199,7 @@ export class AdminDashboardController {
         data,
       });
     } catch (error) {
-      console.error('获取性能统计信息错误:', error);
+      logger.error('获取性能统计信息错误:', error);
       res.status(500).json({
         success: false,
         message: '获取性能统计信息失败',
@@ -246,7 +247,7 @@ export class AdminDashboardController {
         data: chartData,
       });
     } catch (error) {
-      console.error('获取图表数据错误:', error);
+      logger.error('获取图表数据错误:', error);
       res.status(500).json({
         success: false,
         message: '获取图表数据失败',

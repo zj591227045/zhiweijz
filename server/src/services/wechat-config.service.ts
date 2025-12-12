@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import prisma from '../config/database';
 import config from '../config/config';
 
@@ -78,7 +79,7 @@ export class WechatConfigService {
         ...stats,
       };
     } catch (error) {
-      console.error('获取微信服务状态失败:', error);
+      logger.error('获取微信服务状态失败:', error);
       return {
         configured: false,
         databaseConnected: false,
@@ -158,7 +159,7 @@ export class WechatConfigService {
         successRate: `${successRate}%`,
       };
     } catch (error) {
-      console.error('获取服务统计失败:', error);
+      logger.error('获取服务统计失败:', error);
       return {
         totalBindings: 0,
         todayMessages: 0,
@@ -186,10 +187,10 @@ export class WechatConfigService {
         },
       });
 
-      console.log(`清理了 ${result.count} 条过期的微信消息日志`);
+      logger.info(`清理了 ${result.count} 条过期的微信消息日志`);
       return result.count;
     } catch (error) {
-      console.error('清理过期日志失败:', error);
+      logger.error('清理过期日志失败:', error);
       return 0;
     }
   }
@@ -232,7 +233,7 @@ export class WechatConfigService {
         recentErrors: errorLogs.slice(0, 10),
       };
     } catch (error) {
-      console.error('获取错误统计失败:', error);
+      logger.error('获取错误统计失败:', error);
       return {
         totalErrors: 0,
         errorTypes: {},
@@ -297,7 +298,7 @@ export class WechatConfigService {
         avgMessagesPerUser,
       };
     } catch (error) {
-      console.error('获取活跃用户统计失败:', error);
+      logger.error('获取活跃用户统计失败:', error);
       return {
         totalActiveUsers: 0,
         totalMessages: 0,

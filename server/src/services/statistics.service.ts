@@ -10,6 +10,7 @@ enum BudgetPeriod {
   MONTHLY = 'MONTHLY',
   YEARLY = 'YEARLY',
 }
+import { logger } from '../utils/logger';
 import { PrismaClient } from '@prisma/client';
 import { TransactionRepository } from '../repositories/transaction.repository';
 import { CategoryRepository } from '../repositories/category.repository';
@@ -186,11 +187,11 @@ export class StatisticsService {
     if (budgetIds && budgetIds.length > 0) {
       // 如果有指定的预算ID列表，使用指定的预算ID
       targetBudgetIds = budgetIds;
-      console.log(`支出统计使用指定的预算ID列表:`, targetBudgetIds);
+      logger.debug(`支出统计使用指定的预算ID列表:`, targetBudgetIds);
     } else if (budgetId && budgetId !== 'NO_BUDGET') {
       // 如果有单个预算ID，使用单个预算ID
       targetBudgetIds = [budgetId];
-      console.log(`支出统计使用单个预算ID:`, targetBudgetIds);
+      logger.debug(`支出统计使用单个预算ID:`, targetBudgetIds);
     } else {
       // 如果没有指定预算筛选，获取用户的所有预算ID
       try {
@@ -199,9 +200,9 @@ export class StatisticsService {
           limit: 1000, // 获取所有预算
         });
         targetBudgetIds = userBudgets.map((budget: any) => budget.id);
-        console.log(`支出统计使用用户的所有预算ID列表:`, targetBudgetIds);
+        logger.debug(`支出统计使用用户的所有预算ID列表:`, targetBudgetIds);
       } catch (error) {
-        console.error('获取用户预算ID失败:', error);
+        logger.error('获取用户预算ID失败:', error);
       }
     }
 
@@ -232,7 +233,7 @@ export class StatisticsService {
             }
           }
         } catch (error) {
-          console.error('计算总支出时解析预算分摊数据失败:', error);
+          logger.error('计算总支出时解析预算分摊数据失败:', error);
         }
       }
 
@@ -298,11 +299,11 @@ export class StatisticsService {
     if (budgetIds && budgetIds.length > 0) {
       // 如果有指定的预算ID列表，使用指定的预算ID
       targetBudgetIds = budgetIds;
-      console.log(`收入统计使用指定的预算ID列表:`, targetBudgetIds);
+      logger.debug(`收入统计使用指定的预算ID列表:`, targetBudgetIds);
     } else if (budgetId && budgetId !== 'NO_BUDGET') {
       // 如果有单个预算ID，使用单个预算ID
       targetBudgetIds = [budgetId];
-      console.log(`收入统计使用单个预算ID:`, targetBudgetIds);
+      logger.debug(`收入统计使用单个预算ID:`, targetBudgetIds);
     } else {
       // 如果没有指定预算筛选，获取用户的所有预算ID
       try {
@@ -311,9 +312,9 @@ export class StatisticsService {
           limit: 1000, // 获取所有预算
         });
         targetBudgetIds = userBudgets.map((budget: any) => budget.id);
-        console.log(`收入统计使用用户的所有预算ID列表:`, targetBudgetIds);
+        logger.debug(`收入统计使用用户的所有预算ID列表:`, targetBudgetIds);
       } catch (error) {
-        console.error('获取用户预算ID失败:', error);
+        logger.error('获取用户预算ID失败:', error);
       }
     }
 
@@ -344,7 +345,7 @@ export class StatisticsService {
             }
           }
         } catch (error) {
-          console.error('计算总收入时解析预算分摊数据失败:', error);
+          logger.error('计算总收入时解析预算分摊数据失败:', error);
         }
       }
 
@@ -375,7 +376,7 @@ export class StatisticsService {
     budgetType?: 'PERSONAL' | 'GENERAL',
   ): Promise<any> {
     // 修改返回类型为any，以便返回扩展的数据
-    console.log('StatisticsService.getBudgetStatistics 参数:', {
+    logger.debug('StatisticsService.getBudgetStatistics 参数:', {
       userId,
       month,
       familyId,
@@ -401,7 +402,7 @@ export class StatisticsService {
 
         // 查找账本
         accountBook = await accountBookRepository.findById(accountBookId);
-        console.log('查找账本结果:', accountBook);
+        logger.debug('查找账本结果:', accountBook);
 
         if (!accountBook) {
           throw new Error('账本不存在');
@@ -411,7 +412,7 @@ export class StatisticsService {
         if (accountBook.type === 'PERSONAL') {
           // 个人账本只能被创建者访问
           if (accountBook.userId !== userId) {
-            console.error('个人账本权限验证失败:', {
+            logger.error('个人账本权限验证失败:', {
               accountBookUserId: accountBook.userId,
               requestUserId: userId,
             });
@@ -425,7 +426,7 @@ export class StatisticsService {
 
           const isMember = await this.isUserFamilyMember(userId, accountBook.familyId);
           if (!isMember) {
-            console.error('家庭账本权限验证失败:', {
+            logger.error('家庭账本权限验证失败:', {
               familyId: accountBook.familyId,
               requestUserId: userId,
             });
@@ -433,7 +434,7 @@ export class StatisticsService {
           }
         }
       } catch (error) {
-        console.error('验证账本权限时出错:', error);
+        logger.error('验证账本权限时出错:', error);
         throw error;
       }
     }
@@ -448,7 +449,7 @@ export class StatisticsService {
     const startDate = new Date(year, monthNum - 1, 1);
     const endDate = new Date(year, monthNum, 0, 23, 59, 59, 999);
 
-    console.log('查询预算的日期范围:', {
+    logger.debug('查询预算的日期范围:', {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
     });
@@ -460,7 +461,7 @@ export class StatisticsService {
         const budgetService = new BudgetService();
         await budgetService.ensureCurrentMonthBudget(userId, accountBookId);
       } catch (error) {
-        console.error('预算统计时确保当前月份预算失败:', error);
+        logger.error('预算统计时确保当前月份预算失败:', error);
         // 不影响统计查询流程，继续执行
       }
     }
@@ -476,7 +477,7 @@ export class StatisticsService {
       false, // 设置excludeFamilyMember为false，查询用户的个人预算
     );
 
-    console.log(`找到 ${budgets.length} 个当前用户的预算`);
+    logger.debug(`找到 ${budgets.length} 个当前用户的预算`);
 
     // 获取分类信息
     const categories = await this.getCategoriesMap(userId, familyId);
@@ -495,7 +496,7 @@ export class StatisticsService {
     // 总可用预算 = 本月预算 + 上月结转
     const totalAvailableBudget = totalBudget + totalRolloverAmount;
 
-    console.log('预算金额计算:', {
+    logger.debug('预算金额计算:', {
       totalBudget,
       totalRolloverAmount,
       totalAvailableBudget,
@@ -512,7 +513,7 @@ export class StatisticsService {
       false, // 设置excludeFamilyMember为false，查询用户的记账记录
     );
 
-    console.log(`找到 ${transactions.length} 条当前用户的记账记录`);
+    logger.debug(`找到 ${transactions.length} 条当前用户的记账记录`);
 
     // 使用预算仓库的calculateSpentAmount方法来计算总支出
     const { BudgetRepository } = require('../repositories/budget.repository');
@@ -524,7 +525,7 @@ export class StatisticsService {
       totalSpent += spent;
     }
 
-    console.log('支出金额计算:', {
+    logger.debug('支出金额计算:', {
       totalSpent,
     });
 
@@ -563,7 +564,7 @@ export class StatisticsService {
       ? allActiveBudgets.filter((budget: any) => budget.budgetType === budgetType)
       : allActiveBudgets;
 
-    console.log(`过滤后的活跃预算数量: ${activeBudgets.length}, 预算类型: ${budgetType || '全部'}`);
+    logger.debug(`过滤后的活跃预算数量: ${activeBudgets.length}, 预算类型: ${budgetType || '全部'}`);
 
     // 处理活跃预算，转换为预算卡片格式
     const budgetCards = activeBudgets.map((budget: any) => ({
@@ -724,15 +725,15 @@ export class StatisticsService {
 
     // 如果有budgetIds参数，优先使用budgetIds
     if (budgetIds && budgetIds.length > 0) {
-      console.log('使用多个预算ID进行查询:', budgetIds);
+      logger.debug('使用多个预算ID进行查询:', budgetIds);
       actualBudgetId = undefined; // 使用budgetIds时，不使用单个budgetId
     } else if (budgetId === 'NO_BUDGET') {
-      console.log('检测到无预算筛选，查询budgetId为null的记账');
+      logger.debug('检测到无预算筛选，查询budgetId为null的记账');
       // 无预算筛选，保持budgetId为'NO_BUDGET'传递给记账查询
       actualBudgetId = 'NO_BUDGET';
       actualBudgetIds = undefined;
     } else if (budgetId && budgetId.startsWith('aggregated_')) {
-      console.log('检测到聚合预算ID，将忽略budgetId参数进行聚合查询');
+      logger.debug('检测到聚合预算ID，将忽略budgetId参数进行聚合查询');
       // 对于聚合预算，不传递budgetId给记账查询，让它查询所有相关记账
       actualBudgetId = undefined;
       actualBudgetIds = undefined;
@@ -777,11 +778,11 @@ export class StatisticsService {
     if (actualBudgetIds && actualBudgetIds.length > 0) {
       // 如果有指定的预算ID列表，使用指定的预算ID
       targetBudgetIds = actualBudgetIds;
-      console.log(`使用指定的预算ID列表进行分摊计算:`, targetBudgetIds);
+      logger.debug(`使用指定的预算ID列表进行分摊计算:`, targetBudgetIds);
     } else if (actualBudgetId && actualBudgetId !== 'NO_BUDGET') {
       // 如果有单个预算ID，使用单个预算ID
       targetBudgetIds = [actualBudgetId];
-      console.log(`使用单个预算ID进行分摊计算:`, targetBudgetIds);
+      logger.debug(`使用单个预算ID进行分摊计算:`, targetBudgetIds);
     } else {
       // 如果没有指定预算筛选，获取用户的所有预算ID
       try {
@@ -790,9 +791,9 @@ export class StatisticsService {
           limit: 1000, // 获取所有预算
         });
         targetBudgetIds = userBudgets.map((budget: any) => budget.id);
-        console.log(`用户 ${userId} 的所有预算ID列表:`, targetBudgetIds);
+        logger.debug(`用户 ${userId} 的所有预算ID列表:`, targetBudgetIds);
       } catch (error) {
-        console.error('获取用户预算ID失败:', error);
+        logger.error('获取用户预算ID失败:', error);
       }
     }
 
@@ -823,7 +824,7 @@ export class StatisticsService {
             }
           }
         } catch (error) {
-          console.error('计算总收入时解析预算分摊数据失败:', error);
+          logger.error('计算总收入时解析预算分摊数据失败:', error);
         }
       }
 
@@ -856,7 +857,7 @@ export class StatisticsService {
             }
           }
         } catch (error) {
-          console.error('计算总支出时解析预算分摊数据失败:', error);
+          logger.error('计算总支出时解析预算分摊数据失败:', error);
         }
       }
 
@@ -897,7 +898,7 @@ export class StatisticsService {
             }
           }
         } catch (error) {
-          console.error('解析收入预算分摊数据失败:', error);
+          logger.error('解析收入预算分摊数据失败:', error);
         }
       }
 
@@ -935,7 +936,7 @@ export class StatisticsService {
             }
           }
         } catch (error) {
-          console.error('解析支出预算分摊数据失败:', error);
+          logger.error('解析支出预算分摊数据失败:', error);
         }
       }
 
@@ -952,7 +953,7 @@ export class StatisticsService {
       .slice(0, 5)
       .map(({ categoryId, amount }) => {
         const category = categories.get(categoryId);
-        console.log(`收入分类 ${categoryId} 的信息:`, category);
+        logger.info(`收入分类 ${categoryId} 的信息:`, category);
         return {
           category: {
             id: categoryId,
@@ -974,7 +975,7 @@ export class StatisticsService {
       .slice(0, 5)
       .map(({ categoryId, amount }) => {
         const category = categories.get(categoryId);
-        console.log(`支出分类 ${categoryId} 的信息:`, category);
+        logger.debug(`支出分类 ${categoryId} 的信息:`, category);
         return {
           category: {
             id: categoryId,
@@ -1140,7 +1141,7 @@ export class StatisticsService {
     if (targetBudgetIds && targetBudgetIds.length > 0) {
       // 如果传入了目标预算ID列表，使用传入的列表
       budgetIdsForCalculation = targetBudgetIds;
-      console.log(`分类统计使用指定的预算ID列表:`, budgetIdsForCalculation);
+      logger.debug(`分类统计使用指定的预算ID列表:`, budgetIdsForCalculation);
     } else if (userId) {
       // 如果没有指定目标预算ID，获取用户的所有预算ID
       try {
@@ -1149,9 +1150,9 @@ export class StatisticsService {
           limit: 1000, // 获取所有预算
         });
         budgetIdsForCalculation = userBudgets.map((budget: any) => budget.id);
-        console.log(`分类统计使用用户的所有预算ID列表:`, budgetIdsForCalculation);
+        logger.debug(`分类统计使用用户的所有预算ID列表:`, budgetIdsForCalculation);
       } catch (error) {
-        console.error('获取用户预算ID失败:', error);
+        logger.error('获取用户预算ID失败:', error);
       }
     }
 
@@ -1181,15 +1182,15 @@ export class StatisticsService {
 
             if (targetAllocation) {
               actualAmount = Number(targetAllocation.amount);
-              console.log(`分类统计-多人预算分摊记录 ${transaction.id}：总金额 ${transaction.amount}，目标分摊 ${actualAmount}（预算ID: ${targetAllocation.budgetId}）`);
+              logger.info(`分类统计-多人预算分摊记录 ${transaction.id}：总金额 ${transaction.amount}，目标分摊 ${actualAmount}（预算ID: ${targetAllocation.budgetId}）`);
             } else {
               // 如果找不到目标预算的分摊信息，使用0（该记录不属于当前筛选的预算）
               actualAmount = 0;
-              console.log(`分类统计-多人预算分摊记录 ${transaction.id}：未找到目标预算的分摊信息`);
+              logger.info(`分类统计-多人预算分摊记录 ${transaction.id}：未找到目标预算的分摊信息`);
             }
           }
         } catch (error) {
-          console.error('分类统计-解析预算分摊数据失败:', error);
+          logger.error('分类统计-解析预算分摊数据失败:', error);
           // 解析失败时使用原始金额
         }
       }
@@ -1225,7 +1226,7 @@ export class StatisticsService {
     accountBookId?: string,
   ): Promise<boolean> {
     try {
-      console.log('检查无预算记账 - 参数:', {
+      logger.debug('检查无预算记账 - 参数:', {
         userId,
         startDate,
         endDate,
@@ -1278,16 +1279,16 @@ export class StatisticsService {
       whereConditions.userId = userId;
     }
 
-      console.log('无预算记账查询条件:', JSON.stringify(whereConditions, null, 2));
+      logger.debug('无预算记账查询条件:', JSON.stringify(whereConditions, null, 2));
 
       const count = await prisma.transaction.count({
         where: whereConditions,
       });
 
-      console.log('无预算记账数量:', count);
+      logger.info('无预算记账数量:', count);
       return count > 0;
     } catch (error) {
-      console.error('检查无预算记账失败:', error);
+      logger.error('检查无预算记账失败:', error);
       // 如果是数据库连接问题，抛出更具体的错误
       if (error instanceof Error && error.message.includes('too many clients')) {
         throw new Error('数据库连接繁忙，请稍后重试');
@@ -1383,7 +1384,7 @@ export class StatisticsService {
     // 合并所有分类
     const allCategories = [...defaultCategories, ...userCategories];
 
-    console.log(
+    logger.debug(
       `获取到 ${defaultCategories.length} 个默认分类和 ${userCategories.length} 个用户/家庭分类`,
     );
 
@@ -1392,7 +1393,7 @@ export class StatisticsService {
       categoriesMap.set(category.id, category);
     }
 
-    console.log(`分类映射包含 ${categoriesMap.size} 个分类`);
+    logger.debug(`分类映射包含 ${categoriesMap.size} 个分类`);
 
     return categoriesMap;
   }

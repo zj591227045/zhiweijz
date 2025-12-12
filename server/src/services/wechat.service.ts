@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import crypto from 'crypto';
 import axios from 'axios';
 import bcrypt from 'bcrypt';
@@ -54,7 +55,7 @@ export class WechatService {
     this.isEnabled = !!(config.wechat?.appId && config.wechat?.appSecret && config.wechat?.token);
 
     if (!this.isEnabled) {
-      console.warn('⚠️ 微信配置未设置，微信功能将被禁用');
+      logger.warn('⚠️ 微信配置未设置，微信功能将被禁用');
       // 设置默认值以避免运行时错误
       this.appId = '';
       this.appSecret = '';
@@ -65,7 +66,7 @@ export class WechatService {
       this.appSecret = config.wechat!.appSecret;
       this.token = config.wechat!.token;
       this.encodingAESKey = config.wechat!.encodingAESKey;
-      console.log('✅ 微信服务已启用');
+      logger.info('✅ 微信服务已启用');
     }
 
     this.aiController = new AIController();
@@ -107,7 +108,7 @@ export class WechatService {
 
       return response.data.access_token;
     } catch (error) {
-      console.error('获取微信access_token失败:', error);
+      logger.error('获取微信access_token失败:', error);
       throw error;
     }
   }
@@ -156,20 +157,20 @@ export class WechatService {
       );
 
       if (response.data.errcode === 0) {
-        console.log('微信菜单创建成功');
+        logger.info('微信菜单创建成功');
         return {
           success: true,
           data: response.data,
         };
       } else {
-        console.error('微信菜单创建失败:', response.data);
+        logger.error('微信菜单创建失败:', response.data);
         return {
           success: false,
           error: `创建失败: ${response.data.errmsg}`,
         };
       }
     } catch (error) {
-      console.error('创建微信菜单异常:', error);
+      logger.error('创建微信菜单异常:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : '未知错误',
@@ -182,7 +183,7 @@ export class WechatService {
    */
   verifySignature(signature: string, timestamp: string, nonce: string, echostr?: string): boolean {
     if (!this.isEnabled) {
-      console.warn('微信服务未启用，签名验证失败');
+      logger.warn('微信服务未启用，签名验证失败');
       return false;
     }
 
@@ -193,7 +194,7 @@ export class WechatService {
     const isValid = sha1 === signature;
 
     if (!isValid) {
-      console.log('微信签名验证失败');
+      logger.info('微信签名验证失败');
     }
 
     return isValid;
@@ -272,7 +273,7 @@ export class WechatService {
         errorMessage,
       );
 
-      console.error('处理微信消息失败:', {
+      logger.error('处理微信消息失败:', {
         error: errorMessage,
         openid,
         messageType: message.MsgType,
@@ -453,7 +454,7 @@ export class WechatService {
       const email = parts[1];
       const password = parts.slice(2).join(' '); // 支持密码中包含空格
 
-      console.log(`🔗 处理文字绑定: openid=${openid}, email=${email}`);
+      logger.info(`🔗 处理文字绑定: openid=${openid}, email=${email}`);
 
       // 验证邮箱格式
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -495,7 +496,7 @@ export class WechatService {
 
       return message;
     } catch (error) {
-      console.error('处理文字绑定失败:', error);
+      logger.error('处理文字绑定失败:', error);
       return '绑定过程中出现错误，请稍后重试。\n\n如需帮助，请发送"帮助"。';
     }
   }
@@ -526,7 +527,7 @@ export class WechatService {
         }
       }, 5 * 60 * 1000);
     } catch (error) {
-      console.error('存储临时用户数据失败:', error);
+      logger.error('存储临时用户数据失败:', error);
     }
   }
 
@@ -586,7 +587,7 @@ export class WechatService {
         return `绑定失败：${bindResult.message}\n\n请重新发送"绑定 邮箱 密码"进行绑定。`;
       }
     } catch (error) {
-      console.error('处理账本选择失败:', error);
+      logger.error('处理账本选择失败:', error);
       
       // 清理临时数据
       if ((global as any).tempBindingData) {
@@ -603,7 +604,7 @@ export class WechatService {
   private async handleEventMessage(openid: string, message: any): Promise<string> {
     const event = message.Event;
 
-    console.log('处理微信事件:', {
+    logger.info('处理微信事件:', {
       openid,
       event,
       eventKey: message.EventKey,
@@ -638,7 +639,7 @@ export class WechatService {
         return '收到您的位置信息，但暂不支持基于位置的记账功能。\n\n请发送文字消息进行记账。';
 
       default:
-        console.log('未处理的微信事件:', event);
+        logger.info('未处理的微信事件:', event);
         return '感谢您的操作！\n\n如需记账，请发送消息，或发送"帮助"查看使用说明。';
     }
   }
@@ -665,7 +666,7 @@ export class WechatService {
       const message = result.success ? result.message : result.message;
       await this.sendCustomMessage(openid, message);
     } catch (error) {
-      console.error('异步智能记账处理失败:', error);
+      logger.error('异步智能记账处理失败:', error);
       // 发送错误消息给用户
       await this.sendCustomMessage(openid, '记账处理失败，请稍后重试。');
     }
@@ -690,7 +691,7 @@ export class WechatService {
 
       return result.success ? result.message : result.message;
     } catch (error) {
-      console.error('智能记账处理失败:', error);
+      logger.error('智能记账处理失败:', error);
       return '记账处理失败，请稍后重试。';
     }
   }
@@ -740,7 +741,7 @@ export class WechatService {
         return `❌ ${result.message}`;
       }
     } catch (error) {
-      console.error('处理账号绑定失败:', error);
+      logger.error('处理账号绑定失败:', error);
       return '绑定失败，请稍后重试。';
     }
   }
@@ -773,7 +774,7 @@ export class WechatService {
 
       return result.success ? `✅ ${result.message}` : `❌ ${result.message}`;
     } catch (error) {
-      console.error('处理账本选择失败:', error);
+      logger.error('处理账本选择失败:', error);
       return '设置失败，请稍后重试。';
     }
   }
@@ -786,7 +787,7 @@ export class WechatService {
       const result = await this.bindingService.unbindAccount(openid);
       return result.success ? `✅ ${result.message}` : `❌ ${result.message}`;
     } catch (error) {
-      console.error('处理解除绑定失败:', error);
+      logger.error('处理解除绑定失败:', error);
       return '解除绑定失败，请稍后重试。';
     }
   }
@@ -811,7 +812,7 @@ export class WechatService {
 
       return message;
     } catch (error) {
-      console.error('获取绑定信息失败:', error);
+      logger.error('获取绑定信息失败:', error);
       return '获取绑定信息失败，请稍后重试。';
     }
   }
@@ -854,7 +855,7 @@ export class WechatService {
 
       return message;
     } catch (error) {
-      console.error('获取账本列表失败:', error);
+      logger.error('获取账本列表失败:', error);
       return '获取账本列表失败，请稍后重试。';
     }
   }
@@ -866,7 +867,7 @@ export class WechatService {
     try {
       return await this.smartAccountingService.getAccountBookStats(userId, accountBookId);
     } catch (error) {
-      console.error('余额查询失败:', error);
+      logger.error('余额查询失败:', error);
       return '余额查询失败，请稍后重试。';
     }
   }
@@ -878,7 +879,7 @@ export class WechatService {
     try {
       return await this.smartAccountingService.getCategoryStats(userId, accountBookId);
     } catch (error) {
-      console.error('分类统计查询失败:', error);
+      logger.error('分类统计查询失败:', error);
       return '分类统计查询失败，请稍后重试。';
     }
   }
@@ -890,7 +891,7 @@ export class WechatService {
     try {
       return await this.smartAccountingService.getBudgetStatus(userId, accountBookId);
     } catch (error) {
-      console.error('获取预算状态失败:', error);
+      logger.error('获取预算状态失败:', error);
       return '获取预算状态失败，请稍后重试。';
     }
   }
@@ -906,7 +907,7 @@ export class WechatService {
     try {
       return await this.smartAccountingService.getRecentTransactions(userId, accountBookId, limit);
     } catch (error) {
-      console.error('获取最近记账失败:', error);
+      logger.error('获取最近记账失败:', error);
       return '获取最近记账失败，请稍后重试。';
     }
   }
@@ -930,7 +931,7 @@ export class WechatService {
         period,
       );
     } catch (error) {
-      console.error('获取时间范围统计失败:', error);
+      logger.error('获取时间范围统计失败:', error);
       return '获取时间范围统计失败，请稍后重试。';
     }
   }
@@ -1021,7 +1022,7 @@ export class WechatService {
         },
       });
     } catch (error) {
-      console.error('记录用户事件失败:', error);
+      logger.error('记录用户事件失败:', error);
     }
   }
 
@@ -1040,7 +1041,7 @@ export class WechatService {
         },
       });
     } catch (error) {
-      console.error('记录消息日志失败:', error);
+      logger.error('记录消息日志失败:', error);
     }
   }
 
@@ -1073,7 +1074,7 @@ export class WechatService {
         });
       }
     } catch (error) {
-      console.error('更新消息日志失败:', error);
+      logger.error('更新消息日志失败:', error);
     }
   }
 
@@ -1295,7 +1296,7 @@ export class WechatService {
         },
       };
     } catch (error) {
-      console.error('登录获取账本失败:', error);
+      logger.error('登录获取账本失败:', error);
       return {
         success: false,
         message: '登录失败，请稍后重试',
@@ -1328,7 +1329,7 @@ export class WechatService {
 
       return response.data.openid;
     } catch (error) {
-      console.error('获取OpenID失败:', error);
+      logger.error('获取OpenID失败:', error);
       throw error;
     }
   }
@@ -1441,7 +1442,7 @@ export class WechatService {
 
       // 异步发送消息，不影响绑定流程
       this.sendCustomMessage(openid, welcomeMessage).catch((error) => {
-        console.error('发送绑定成功消息失败:', error);
+        logger.error('发送绑定成功消息失败:', error);
       });
 
       return {
@@ -1453,7 +1454,7 @@ export class WechatService {
         },
       };
     } catch (error) {
-      console.error('绑定微信账号失败:', error);
+      logger.error('绑定微信账号失败:', error);
       return {
         success: false,
         message: '绑定失败，请稍后重试',
@@ -1491,7 +1492,7 @@ export class WechatService {
         message: '解绑成功',
       };
     } catch (error) {
-      console.error('解绑微信账号失败:', error);
+      logger.error('解绑微信账号失败:', error);
       return {
         success: false,
         message: '解绑失败，请稍后重试',
@@ -1511,7 +1512,7 @@ export class WechatService {
   }> {
     try {
       if (!this.isEnabled) {
-        console.log('微信服务未启用，跳过发送消息');
+        logger.info('微信服务未启用，跳过发送消息');
         return {
           success: false,
           message: '微信服务未启用',
@@ -1534,20 +1535,20 @@ export class WechatService {
       );
 
       if (response.data.errcode === 0) {
-        console.log('✅ 客服消息发送成功:', { openid, content: content.substring(0, 50) + '...' });
+        logger.info('✅ 客服消息发送成功:', { openid, content: content.substring(0, 50) + '...' });
         return {
           success: true,
           message: '消息发送成功',
         };
       } else {
-        console.error('❌ 客服消息发送失败:', response.data);
+        logger.error('❌ 客服消息发送失败:', response.data);
         return {
           success: false,
           message: `发送失败: ${response.data.errmsg}`,
         };
       }
     } catch (error) {
-      console.error('发送客服消息失败:', error);
+      logger.error('发送客服消息失败:', error);
       return {
         success: false,
         message: '发送消息失败，请稍后重试',
@@ -1614,7 +1615,7 @@ export class WechatService {
         data: allBooks,
       };
     } catch (error) {
-      console.error('获取用户账本失败:', error);
+      logger.error('获取用户账本失败:', error);
       return {
         success: false,
         message: '获取账本失败，请稍后重试',
@@ -1627,7 +1628,7 @@ export class WechatService {
    */
   private async handleVoiceMessage(openid: string, message: WechatMessage): Promise<string> {
     try {
-      console.log(`🎤 处理语音消息: openid=${openid}, mediaId=${message.MediaId}`);
+      logger.info(`🎤 处理语音消息: openid=${openid}, mediaId=${message.MediaId}`);
 
       // 检查用户绑定状态
       const binding = await this.bindingService.getBindingInfo(openid);
@@ -1640,15 +1641,15 @@ export class WechatService {
       }
 
       // 微信官方已停止语音转文字API服务，直接使用自定义语音识别服务
-      console.log(`🎵 使用自定义语音识别服务处理语音消息...`);
+      logger.info(`🎵 使用自定义语音识别服务处理语音消息...`);
 
       // 下载语音文件
-      console.log(`📥 开始下载语音文件: ${message.MediaId}`);
+      logger.info(`📥 开始下载语音文件: ${message.MediaId}`);
       const downloadResult = await this.mediaService.downloadMedia(message.MediaId, 'voice');
-      console.log(`📥 语音下载结果:`, downloadResult);
+      logger.info(`📥 语音下载结果:`, downloadResult);
 
       if (!downloadResult.success || !downloadResult.filePath) {
-        console.error('下载语音文件失败:', downloadResult.error);
+        logger.error('下载语音文件失败:', downloadResult.error);
         return '语音文件下载失败，请稍后重试。\n\n您也可以发送文字进行记账。';
       }
 
@@ -1656,25 +1657,25 @@ export class WechatService {
       let processedFilePath = downloadResult.filePath;
 
       try {
-        console.log(`🎵 开始处理语音文件: ${downloadResult.filePath}`);
+        logger.info(`🎵 开始处理语音文件: ${downloadResult.filePath}`);
 
         // 创建模拟的multipart文件对象
         const fs = require('fs');
 
         if (!fs.existsSync(downloadResult.filePath)) {
-          console.log(`❌ 语音文件不存在: ${downloadResult.filePath}`);
+          logger.info(`❌ 语音文件不存在: ${downloadResult.filePath}`);
           return '语音文件不存在，请重新发送语音。';
         }
 
         const stats = fs.statSync(downloadResult.filePath);
-        console.log(`📊 语音文件信息: 大小=${stats.size}字节, 格式=${downloadResult.fileName}`);
+        logger.info(`📊 语音文件信息: 大小=${stats.size}字节, 格式=${downloadResult.fileName}`);
 
         // 直接使用AMR格式文件，百度语音识别API支持AMR格式
         processedFilePath = downloadResult.filePath;
         let processedFileName = downloadResult.fileName || 'voice.amr';
         let processedMimeType = 'audio/amr';
 
-        console.log(`📁 直接使用AMR格式文件: ${processedFileName}`);
+        logger.info(`📁 直接使用AMR格式文件: ${processedFileName}`);
 
         // 读取处理后的文件
         const processedStats = fs.statSync(processedFilePath);
@@ -1707,7 +1708,7 @@ export class WechatService {
           },
         };
 
-        console.log(`📋 语音请求对象:`, {
+        logger.info(`📋 语音请求对象:`, {
           userId: mockReq.user.id,
           accountBookId: mockReq.body.accountBookId,
           fileName: mockFile.originalname,
@@ -1720,24 +1721,24 @@ export class WechatService {
         const mockRes = {
           status: (code: number) => {
             statusCode = code;
-            console.log(`📊 语音API响应状态码: ${code}`);
+            logger.info(`📊 语音API响应状态码: ${code}`);
             return mockRes;
           },
           json: (data: any) => {
             responseData = data;
-            console.log(`📊 语音API响应数据:`, data);
+            logger.info(`📊 语音API响应数据:`, data);
           },
         };
 
-        console.log(`🚀 开始调用语音识别API（第一步：识别）...`);
+        logger.info(`🚀 开始调用语音识别API（第一步：识别）...`);
 
         // 第一步：调用语音识别API
         await this.multimodalController.speechToText(mockReq as any, mockRes as any);
         
-        console.log(`✅ 语音识别API调用完成，状态码: ${statusCode}, 响应数据:`, responseData);
+        logger.info(`✅ 语音识别API调用完成，状态码: ${statusCode}, 响应数据:`, responseData);
 
         // 清理临时文件
-        console.log(`🗑️ 清理语音临时文件: ${downloadResult.filePath}`);
+        logger.info(`🗑️ 清理语音临时文件: ${downloadResult.filePath}`);
         await this.mediaService.cleanupTempFile(downloadResult.filePath);
 
 
@@ -1745,14 +1746,14 @@ export class WechatService {
         // 处理语音识别响应
         if (statusCode === 200 && responseData?.success) {
           const recognizedText = responseData.data?.text;
-          console.log(`🔍 语音识别结果: ${recognizedText}`);
+          logger.info(`🔍 语音识别结果: ${recognizedText}`);
           
           if (!recognizedText) {
             return '语音识别成功，但未能提取到有效的记账信息。\n\n请重新录制语音，说明清楚金额和用途。';
           }
 
           // 第二步：将识别结果传递给智能记账API
-          console.log(`🚀 开始调用智能记账API（第二步：记账）...`);
+          logger.info(`🚀 开始调用智能记账API（第二步：记账）...`);
           
           try {
             // 确保有默认账本ID
@@ -1767,7 +1768,7 @@ export class WechatService {
               true // 创建记账记录
             );
 
-            console.log(`✅ 智能记账API调用完成:`, accountingResult);
+            logger.info(`✅ 智能记账API调用完成:`, accountingResult);
 
             if (accountingResult.success) {
               if (accountingResult.transaction) {
@@ -1787,22 +1788,22 @@ export class WechatService {
               return `语音识别成功：${recognizedText}\n\n但智能记账失败：${accountingResult.message || '未知错误'}\n\n您可以手动输入记账信息。`;
             }
           } catch (accountingError) {
-            console.error('智能记账API调用失败:', accountingError);
+            logger.error('智能记账API调用失败:', accountingError);
             return `语音识别成功：${recognizedText}\n\n但智能记账服务暂时不可用，请稍后重试或手动输入记账信息。`;
           }
         } else {
           const errorMsg = responseData?.error || '语音识别失败';
-          console.error('语音识别API调用失败:', responseData);
+          logger.error('语音识别API调用失败:', responseData);
           return `语音识别失败：${errorMsg}\n\n请重新录制语音或发送文字进行记账。`;
         }
       } catch (apiError) {
-        console.error('语音记账API调用异常:', apiError);
+        logger.error('语音记账API调用异常:', apiError);
         // 确保清理临时文件
         await this.mediaService.cleanupTempFile(downloadResult.filePath);
         return '语音记账服务暂时不可用，请稍后重试。\n\n您也可以发送文字进行记账。';
       }
     } catch (error) {
-      console.error('处理语音消息失败:', error);
+      logger.error('处理语音消息失败:', error);
       return '处理语音消息时出现错误，请稍后重试。\n\n您也可以发送文字进行记账。';
     }
   }
@@ -1812,7 +1813,7 @@ export class WechatService {
    */
   private async handleImageMessage(openid: string, message: WechatMessage): Promise<string> {
     try {
-      console.log(`📷 处理图片消息: openid=${openid}, mediaId=${message.MediaId}, picUrl=${message.PicUrl}`);
+      logger.info(`📷 处理图片消息: openid=${openid}, mediaId=${message.MediaId}, picUrl=${message.PicUrl}`);
 
       // 检查用户绑定状态
       const binding = await this.bindingService.getBindingInfo(openid);
@@ -1829,7 +1830,7 @@ export class WechatService {
       
       return ''; // 返回空字符串，通过客服消息API异步发送结果
     } catch (error) {
-      console.error('处理图片消息失败:', error);
+      logger.error('处理图片消息失败:', error);
       return '处理图片消息时出现错误，请稍后重试。\n\n您也可以发送文字进行记账。';
     }
   }
@@ -1846,37 +1847,37 @@ export class WechatService {
     let shouldCleanup = false;
 
     try {
-      console.log(`🔍 开始处理图片识别...`);
+      logger.info(`🔍 开始处理图片识别...`);
       
       // 优先使用MediaId下载图片（高清），fallback到PicUrl
       if (message.MediaId) {
-        console.log(`📥 尝试使用MediaId下载图片: ${message.MediaId}`);
+        logger.info(`📥 尝试使用MediaId下载图片: ${message.MediaId}`);
         const downloadResult = await this.mediaService.downloadMedia(message.MediaId, 'image');
-        console.log(`📥 下载结果:`, downloadResult);
+        logger.info(`📥 下载结果:`, downloadResult);
         
         if (downloadResult.success && downloadResult.filePath) {
           imagePath = downloadResult.filePath;
           shouldCleanup = true;
-          console.log(`✅ 图片下载成功，路径: ${imagePath}`);
+          logger.info(`✅ 图片下载成功，路径: ${imagePath}`);
         } else {
-          console.log(`❌ MediaId下载失败: ${downloadResult.error}`);
+          logger.info(`❌ MediaId下载失败: ${downloadResult.error}`);
         }
       }
 
       // 如果MediaId下载失败，使用PicUrl
       if (!imagePath && message.PicUrl) {
-        console.log(`🌐 使用PicUrl作为图片源: ${message.PicUrl}`);
+        logger.info(`🌐 使用PicUrl作为图片源: ${message.PicUrl}`);
         imagePath = message.PicUrl;
         shouldCleanup = false;
       }
 
       if (!imagePath) {
-        console.log(`❌ 图片路径为空，无法继续处理`);
+        logger.info(`❌ 图片路径为空，无法继续处理`);
         await this.sendCustomMessage(openid, '图片获取失败，请重新发送图片。');
         return;
       }
 
-      console.log(`🎯 准备调用图片识别API，图片路径: ${imagePath}, shouldCleanup: ${shouldCleanup}`);
+      logger.info(`🎯 准备调用图片识别API，图片路径: ${imagePath}, shouldCleanup: ${shouldCleanup}`);
 
       // 获取完整的用户信息
       const userInfo = await prisma.user.findUnique({
@@ -1899,7 +1900,7 @@ export class WechatService {
         },
       };
 
-      console.log(`📋 请求对象:`, {
+      logger.info(`📋 请求对象:`, {
         userId: mockReq.user.id,
         accountBookId: mockReq.body.accountBookId,
         imageUrl: mockReq.body.imageUrl,
@@ -1908,17 +1909,17 @@ export class WechatService {
 
       // 如果是本地文件，添加文件对象
       if (shouldCleanup && imagePath) {
-        console.log(`📁 添加本地文件对象...`);
+        logger.info(`📁 添加本地文件对象...`);
         const fs = require('fs');
         
         if (!fs.existsSync(imagePath)) {
-          console.log(`❌ 本地文件不存在: ${imagePath}`);
+          logger.info(`❌ 本地文件不存在: ${imagePath}`);
           await this.sendCustomMessage(openid, '图片文件不存在，请重新发送图片。');
           return;
         }
         
         const stats = fs.statSync(imagePath);
-        console.log(`📊 文件信息: 大小=${stats.size}字节`);
+        logger.info(`📊 文件信息: 大小=${stats.size}字节`);
         
         const mockFile = {
           buffer: fs.readFileSync(imagePath),
@@ -1928,7 +1929,7 @@ export class WechatService {
           path: imagePath,
         };
         (mockReq as any).file = mockFile;
-        console.log(`✅ 文件对象添加完成`);
+        logger.info(`✅ 文件对象添加完成`);
       }
 
       // 创建模拟的响应对象
@@ -1937,26 +1938,26 @@ export class WechatService {
       const mockRes = {
         status: (code: number) => {
           statusCode = code;
-          console.log(`📊 API响应状态码: ${code}`);
+          logger.info(`📊 API响应状态码: ${code}`);
           return mockRes;
         },
         json: (data: any) => {
           responseData = data;
-          console.log(`📊 API响应数据:`, data);
+          logger.info(`📊 API响应数据:`, data);
         },
       };
 
-      console.log(`🚀 开始调用图片识别API（第一步：识别）...`);
+      logger.info(`🚀 开始调用图片识别API（第一步：识别）...`);
       
       // 第一步：调用图片识别API
       await this.multimodalController.imageRecognition(mockReq as any, mockRes as any);
       
-      console.log(`✅ 图片识别API调用完成，状态码: ${statusCode}, 响应数据:`, responseData);
+      logger.info(`✅ 图片识别API调用完成，状态码: ${statusCode}, 响应数据:`, responseData);
 
       // 处理图片识别响应
       if (statusCode === 200 && responseData?.success) {
         let recognizedText = responseData.data?.text;
-        console.log(`🔍 图片识别原始结果: ${recognizedText}`);
+        logger.info(`🔍 图片识别原始结果: ${recognizedText}`);
         
         // 如果返回的是JSON格式的文本，尝试解析
         if (recognizedText && recognizedText.includes('```json')) {
@@ -1967,10 +1968,10 @@ export class WechatService {
               const parsedData = JSON.parse(jsonMatch[1]);
               // 构造记账描述文本
               recognizedText = `${parsedData.amount || '未知金额'} ${parsedData.category || '购物'} ${parsedData.description || ''}`.trim();
-              console.log(`🔍 解析后的记账文本: ${recognizedText}`);
+              logger.info(`🔍 解析后的记账文本: ${recognizedText}`);
             }
           } catch (parseError) {
-            console.log(`⚠️ JSON解析失败，使用原始文本: ${parseError}`);
+            logger.info(`⚠️ JSON解析失败，使用原始文本: ${parseError}`);
             // 如果解析失败，提取关键信息
             const amountMatch = recognizedText.match(/"amount"\s*:\s*"([^"]+)"/);
             const categoryMatch = recognizedText.match(/"category"\s*:\s*"([^"]+)"/);
@@ -1978,7 +1979,7 @@ export class WechatService {
             
             if (amountMatch) {
               recognizedText = `${amountMatch[1]} ${categoryMatch?.[1] || '购物'} ${descMatch?.[1] || ''}`.trim();
-              console.log(`🔍 正则提取的记账文本: ${recognizedText}`);
+              logger.info(`🔍 正则提取的记账文本: ${recognizedText}`);
             }
           }
         }
@@ -1989,7 +1990,7 @@ export class WechatService {
         }
 
         // 第二步：将识别结果传递给智能记账API
-        console.log(`🚀 开始调用智能记账API（第二步：记账）...`);
+        logger.info(`🚀 开始调用智能记账API（第二步：记账）...`);
         
         try {
           const accountingResult = await this.smartAccountingService.processWechatAccounting(
@@ -2000,7 +2001,7 @@ export class WechatService {
             true  // 来自图片识别
           );
 
-          console.log(`✅ 智能记账API调用完成:`, accountingResult);
+          logger.info(`✅ 智能记账API调用完成:`, accountingResult);
 
           if (accountingResult.success && accountingResult.transaction) {
             // 第三步：保存图片作为记账附件
@@ -2009,21 +2010,21 @@ export class WechatService {
                 // 检查是否是多条记录
                 if (Array.isArray(accountingResult.transaction)) {
                   // 多条记录，为每条记录都保存图片附件
-                  console.log(`💾 开始为 ${accountingResult.transaction.length} 条记录保存图片附件`);
+                  logger.info(`💾 开始为 ${accountingResult.transaction.length} 条记录保存图片附件`);
                   for (let i = 0; i < accountingResult.transaction.length; i++) {
                     const transaction = accountingResult.transaction[i];
-                    console.log(`💾 保存图片附件到第 ${i + 1} 条记录: ${transaction.id}`);
+                    logger.info(`💾 保存图片附件到第 ${i + 1} 条记录: ${transaction.id}`);
                     await this.saveImageAttachment(transaction.id, imagePath, binding.userId);
                   }
-                  console.log(`✅ 所有图片附件保存成功`);
+                  logger.info(`✅ 所有图片附件保存成功`);
                 } else {
                   // 单条记录
-                  console.log(`💾 开始保存图片附件到记账记录: ${accountingResult.transaction.id}`);
+                  logger.info(`💾 开始保存图片附件到记账记录: ${accountingResult.transaction.id}`);
                   await this.saveImageAttachment(accountingResult.transaction.id, imagePath, binding.userId);
-                  console.log(`✅ 图片附件保存成功`);
+                  logger.info(`✅ 图片附件保存成功`);
                 }
               } catch (attachmentError) {
-                console.error('保存图片附件失败:', attachmentError);
+                logger.error('保存图片附件失败:', attachmentError);
                 // 附件保存失败不影响记账结果
               }
             }
@@ -2037,21 +2038,21 @@ export class WechatService {
             await this.sendCustomMessage(openid, `图片识别成功，但智能记账失败：${accountingResult.message || '未知错误'}\n\n您可以手动输入记账信息。`);
           }
         } catch (accountingError) {
-          console.error('智能记账API调用失败:', accountingError);
+          logger.error('智能记账API调用失败:', accountingError);
           await this.sendCustomMessage(openid, `图片识别成功：${recognizedText}\n\n但智能记账服务暂时不可用，请稍后重试或手动输入记账信息。`);
         }
       } else {
         const errorMsg = responseData?.error || '图片识别失败';
-        console.error('图片识别API调用失败:', responseData);
+        logger.error('图片识别API调用失败:', responseData);
         await this.sendCustomMessage(openid, `图片识别失败：${errorMsg}\n\n请确保图片清晰且包含价格信息，或发送文字进行记账。`);
       }
     } catch (apiError) {
-      console.error('图片记账API调用异常:', apiError);
+      logger.error('图片记账API调用异常:', apiError);
       await this.sendCustomMessage(openid, '图片记账服务暂时不可用，请稍后重试。\n\n您也可以发送文字进行记账。');
     } finally {
       // 清理临时文件
       if (shouldCleanup && imagePath) {
-        console.log(`🗑️ 清理临时文件: ${imagePath}`);
+        logger.info(`🗑️ 清理临时文件: ${imagePath}`);
         await this.mediaService.cleanupTempFile(imagePath);
       }
     }
@@ -2065,7 +2066,7 @@ export class WechatService {
       const fs = require('fs');
       
       if (!fs.existsSync(imagePath)) {
-        console.error('图片文件不存在:', imagePath);
+        logger.error('图片文件不存在:', imagePath);
         return;
       }
 
@@ -2093,7 +2094,7 @@ export class WechatService {
       const fileStorageService = getGlobalFileStorageService();
       
       if (!fileStorageService || !fileStorageService.isStorageAvailable()) {
-        console.warn('⚠️ 文件存储服务不可用，跳过附件保存');
+        logger.warn('⚠️ 文件存储服务不可用，跳过附件保存');
         return;
       }
       
@@ -2126,9 +2127,9 @@ export class WechatService {
         },
       });
 
-      console.log(`✅ 图片附件已保存到S3: ${uploadResult.filename}, URL: ${uploadResult.url}`);
+      logger.info(`✅ 图片附件已保存到S3: ${uploadResult.filename}, URL: ${uploadResult.url}`);
     } catch (error) {
-      console.error('保存图片附件失败:', error);
+      logger.error('保存图片附件失败:', error);
       // 附件保存失败不影响记账流程，只记录错误
     }
   }

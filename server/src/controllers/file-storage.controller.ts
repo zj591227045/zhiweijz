@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { FileStorageService } from '../services/file-storage.service';
 import {
@@ -25,7 +26,7 @@ export class FileStorageController {
         data: status,
       });
     } catch (error) {
-      console.error('获取存储状态失败:', error);
+      logger.error('获取存储状态失败:', error);
       res.status(500).json({
         success: false,
         message: '获取存储状态失败',
@@ -80,7 +81,7 @@ export class FileStorageController {
         message: '文件上传成功',
       });
     } catch (error) {
-      console.error('文件上传失败:', error);
+      logger.error('文件上传失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '文件上传失败',
@@ -109,7 +110,7 @@ export class FileStorageController {
         data: file,
       });
     } catch (error) {
-      console.error('获取文件信息失败:', error);
+      logger.error('获取文件信息失败:', error);
       res.status(500).json({
         success: false,
         message: '获取文件信息失败',
@@ -154,7 +155,7 @@ export class FileStorageController {
       // 流式传输文件
       fileStream.pipe(res);
     } catch (error) {
-      console.error('下载文件失败:', error);
+      logger.error('下载文件失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '下载文件失败',
@@ -181,7 +182,7 @@ export class FileStorageController {
         message: '文件删除成功',
       });
     } catch (error) {
-      console.error('删除文件失败:', error);
+      logger.error('删除文件失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '删除文件失败',
@@ -219,7 +220,7 @@ export class FileStorageController {
         data: result,
       });
     } catch (error) {
-      console.error('获取文件列表失败:', error);
+      logger.error('获取文件列表失败:', error);
       res.status(500).json({
         success: false,
         message: '获取文件列表失败',
@@ -256,7 +257,7 @@ export class FileStorageController {
         data: result,
       });
     } catch (error) {
-      console.error('生成预签名URL失败:', error);
+      logger.error('生成预签名URL失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '生成预签名URL失败',
@@ -279,7 +280,7 @@ export class FileStorageController {
         },
       });
     } catch (error) {
-      console.error('测试存储连接失败:', error);
+      logger.error('测试存储连接失败:', error);
       res.status(500).json({
         success: false,
         message: '测试存储连接失败',
@@ -321,7 +322,7 @@ export class FileStorageController {
         message: '头像上传成功',
       });
     } catch (error) {
-      console.error('头像上传失败:', error);
+      logger.error('头像上传失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '头像上传失败',
@@ -367,7 +368,7 @@ export class FileStorageController {
         message: '附件上传成功',
       });
     } catch (error) {
-      console.error('附件上传失败:', error);
+      logger.error('附件上传失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '附件上传失败',
@@ -390,7 +391,7 @@ export class FileStorageController {
         },
       });
     } catch (error) {
-      console.error('清理过期文件失败:', error);
+      logger.error('清理过期文件失败:', error);
       res.status(500).json({
         success: false,
         message: '清理过期文件失败',

@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { TagService } from '../services/tag.service';
 import { TransactionTagService } from '../services/transaction-tag.service';
@@ -43,7 +44,7 @@ export class TagController {
       const result = await this.tagService.getTagsByAccountBook(params);
       res.status(200).json(result);
     } catch (error) {
-      console.error('获取标签列表失败:', error);
+      logger.error('获取标签列表失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '获取标签列表失败',
@@ -66,7 +67,7 @@ export class TagController {
       const result = await this.tagService.getTagById(tagId);
       res.status(200).json(result);
     } catch (error) {
-      console.error('获取标签详情失败:', error);
+      logger.error('获取标签详情失败:', error);
       const statusCode = error instanceof Error && error.message.includes('不存在') ? 404 : 500;
       res.status(statusCode).json({
         success: false,
@@ -101,7 +102,7 @@ export class TagController {
         message: '标签创建成功',
       });
     } catch (error) {
-      console.error('创建标签失败:', error);
+      logger.error('创建标签失败:', error);
       const statusCode = error instanceof Error && error.message.includes('已存在') ? 409 : 400;
       res.status(statusCode).json({
         success: false,
@@ -131,7 +132,7 @@ export class TagController {
         message: '标签更新成功',
       });
     } catch (error) {
-      console.error('更新标签失败:', error);
+      logger.error('更新标签失败:', error);
       let statusCode = 400;
       if (error instanceof Error) {
         if (error.message.includes('不存在')) statusCode = 404;
@@ -163,7 +164,7 @@ export class TagController {
         message: '标签删除成功',
       });
     } catch (error) {
-      console.error('删除标签失败:', error);
+      logger.error('删除标签失败:', error);
       let statusCode = 400;
       if (error instanceof Error) {
         if (error.message.includes('不存在')) statusCode = 404;
@@ -195,7 +196,7 @@ export class TagController {
         data: tags,
       });
     } catch (error) {
-      console.error('获取记账标签失败:', error);
+      logger.error('获取记账标签失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '获取记账标签失败',
@@ -233,7 +234,7 @@ export class TagController {
         message: '标签添加成功',
       });
     } catch (error) {
-      console.error('添加记账标签失败:', error);
+      logger.error('添加记账标签失败:', error);
       const statusCode = error instanceof Error && error.message.includes('不存在') ? 404 : 400;
       res.status(statusCode).json({
         success: false,
@@ -260,7 +261,7 @@ export class TagController {
         message: '标签移除成功',
       });
     } catch (error) {
-      console.error('移除记账标签失败:', error);
+      logger.error('移除记账标签失败:', error);
       const statusCode = error instanceof Error && error.message.includes('不存在') ? 404 : 400;
       res.status(statusCode).json({
         success: false,
@@ -295,7 +296,7 @@ export class TagController {
       const result = await this.transactionTagService.batchOperateTransactionTags(userId, data);
       res.status(200).json(result);
     } catch (error) {
-      console.error('批量操作记账标签失败:', error);
+      logger.error('批量操作记账标签失败:', error);
       res.status(422).json({
         success: false,
         message: error instanceof Error ? error.message : '批量操作记账标签失败',
@@ -330,7 +331,7 @@ export class TagController {
       const result = await this.tagService.getTagSuggestions(userId, params);
       res.status(200).json(result);
     } catch (error) {
-      console.error('获取标签建议失败:', error);
+      logger.error('获取标签建议失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '获取标签建议失败',

@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -104,7 +105,7 @@ export const announcementService = {
         },
       };
     } catch (error) {
-      console.error('获取公告列表失败:', error);
+      logger.error('获取公告列表失败:', error);
       throw error;
     }
   },
@@ -147,7 +148,7 @@ export const announcementService = {
         readCount: announcement._count.readings,
       };
     } catch (error) {
-      console.error('获取公告详情失败:', error);
+      logger.error('获取公告详情失败:', error);
       throw error;
     }
   },
@@ -187,7 +188,7 @@ export const announcementService = {
         creator: announcement.creator.username,
       };
     } catch (error) {
-      console.error('创建公告失败:', error);
+      logger.error('创建公告失败:', error);
       throw error;
     }
   },
@@ -242,7 +243,7 @@ export const announcementService = {
         updater: announcement.updater?.username || null,
       };
     } catch (error) {
-      console.error('更新公告失败:', error);
+      logger.error('更新公告失败:', error);
       throw error;
     }
   },
@@ -266,7 +267,7 @@ export const announcementService = {
 
       return true;
     } catch (error) {
-      console.error('删除公告失败:', error);
+      logger.error('删除公告失败:', error);
       throw error;
     }
   },
@@ -307,7 +308,7 @@ export const announcementService = {
         updater: announcement.updater?.username || null,
       };
     } catch (error) {
-      console.error('发布公告失败:', error);
+      logger.error('发布公告失败:', error);
       throw error;
     }
   },
@@ -347,7 +348,7 @@ export const announcementService = {
         updater: announcement.updater?.username || null,
       };
     } catch (error) {
-      console.error('撤回公告失败:', error);
+      logger.error('撤回公告失败:', error);
       throw error;
     }
   },
@@ -439,7 +440,7 @@ export const announcementService = {
         })),
       };
     } catch (error) {
-      console.error('获取公告统计失败:', error);
+      logger.error('获取公告统计失败:', error);
       throw error;
     }
   },

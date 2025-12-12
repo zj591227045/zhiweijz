@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { PrismaClient } from '@prisma/client';
 import {
   TagResponseDto,
@@ -39,7 +40,7 @@ export class TransactionTagService {
 
       return transactionTags.map((tt) => this.formatTagResponse(tt.tag));
     } catch (error) {
-      console.error('获取记账标签失败:', error);
+      logger.error('获取记账标签失败:', error);
       throw new Error('获取记账标签失败');
     }
   }
@@ -115,7 +116,7 @@ export class TransactionTagService {
         skippedTags: existingTagIds,
       };
     } catch (error) {
-      console.error('添加记账标签失败:', error);
+      logger.error('添加记账标签失败:', error);
       throw new Error('添加记账标签失败');
     }
   }
@@ -135,7 +136,7 @@ export class TransactionTagService {
         },
       });
     } catch (error) {
-      console.error('移除记账标签失败:', error);
+      logger.error('移除记账标签失败:', error);
       throw new Error('移除记账标签失败');
     }
   }
@@ -191,7 +192,7 @@ export class TransactionTagService {
           }
           processedTransactions++;
         } catch (error) {
-          console.error(`处理记账 ${transactionId} 失败:`, error);
+          logger.error(`处理记账 ${transactionId} 失败:`, error);
           failedTransactions.push(transactionId);
         }
       }
@@ -210,7 +211,7 @@ export class TransactionTagService {
         message: `成功处理 ${processedTransactions} 条记账记录`,
       };
     } catch (error) {
-      console.error('批量操作记账标签失败:', error);
+      logger.error('批量操作记账标签失败:', error);
       throw new Error('批量操作记账标签失败');
     }
   }

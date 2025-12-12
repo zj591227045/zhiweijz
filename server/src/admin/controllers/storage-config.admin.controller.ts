@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { Request, Response } from 'express';
 import { StorageConfigAdminService, StorageConfigData } from '../services/storage-config.admin.service';
 import { FileStorageType } from '../../models/file-storage.model';
@@ -25,7 +26,7 @@ export class StorageConfigAdminController {
         data: config,
       });
     } catch (error) {
-      console.error('获取存储配置失败:', error);
+      logger.error('获取存储配置失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '获取存储配置失败',
@@ -80,7 +81,7 @@ export class StorageConfigAdminController {
         message: '存储配置更新成功',
       });
     } catch (error) {
-      console.error('更新存储配置失败:', error);
+      logger.error('更新存储配置失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '更新存储配置失败',
@@ -120,7 +121,7 @@ export class StorageConfigAdminController {
         data: result,
       });
     } catch (error) {
-      console.error('测试存储连接失败:', error);
+      logger.error('测试存储连接失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '测试存储连接失败',
@@ -140,7 +141,7 @@ export class StorageConfigAdminController {
         data: stats,
       });
     } catch (error) {
-      console.error('获取存储统计失败:', error);
+      logger.error('获取存储统计失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '获取存储统计失败',
@@ -191,7 +192,7 @@ export class StorageConfigAdminController {
         data: defaultConfig,
       });
     } catch (error) {
-      console.error('重置存储配置失败:', error);
+      logger.error('重置存储配置失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '重置存储配置失败',
@@ -282,7 +283,7 @@ export class StorageConfigAdminController {
         data: templates,
       });
     } catch (error) {
-      console.error('获取存储配置模板失败:', error);
+      logger.error('获取存储配置模板失败:', error);
       res.status(500).json({
         success: false,
         message: '获取存储配置模板失败',
@@ -302,7 +303,7 @@ export class StorageConfigAdminController {
         data: status,
       });
     } catch (error) {
-      console.error('获取存储状态失败:', error);
+      logger.error('获取存储状态失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '获取存储状态失败',
@@ -414,7 +415,7 @@ export class StorageConfigAdminController {
         data: diagnosis,
       });
     } catch (error) {
-      console.error('存储诊断失败:', error);
+      logger.error('存储诊断失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '存储诊断失败',
@@ -481,7 +482,7 @@ export class StorageConfigAdminController {
         });
       }
     } catch (error) {
-      console.error('MinIO初始化失败:', error);
+      logger.error('MinIO初始化失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : 'MinIO初始化失败',

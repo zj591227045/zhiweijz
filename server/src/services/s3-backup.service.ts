@@ -3,6 +3,7 @@
  * 备份S3对象存储中的文件到WebDAV，支持增量备份
  */
 
+import { logger } from '../utils/logger';
 import { FileStorageService } from './file-storage.service';
 import { webdavClientService } from './webdav-client.service';
 import { SystemConfigAdminService } from '../admin/services/system-config.admin.service';
@@ -66,7 +67,7 @@ export class S3BackupService {
   async backup(options: S3BackupOptions = {}): Promise<S3BackupResult> {
     const startTime = Date.now();
 
-    console.log('[S3备份] 开始备份...');
+    logger.info('[S3备份] 开始备份...');
 
     try {
       // 初始化WebDAV客户端（需要先初始化以获取配置）
@@ -79,16 +80,16 @@ export class S3BackupService {
       const shouldFullBackup = this.shouldPerformFullBackup(webdavConfig, options.forceFullBackup);
       const isIncremental = !shouldFullBackup && (options.incremental !== false);
 
-      console.log(`[S3备份] 备份类型: ${shouldFullBackup ? '全量备份' : '增量备份'}`);
+      logger.info(`[S3备份] 备份类型: ${shouldFullBackup ? '全量备份' : '增量备份'}`);
 
       // 生成备份目录名（带时间戳）
       const backupDirName = this.generateBackupDirName(shouldFullBackup);
-      console.log(`[S3备份] 备份目录: ${backupDirName}`);
+      logger.info(`[S3备份] 备份目录: ${backupDirName}`);
 
       // 获取要备份的存储桶列表
       const buckets = options.buckets || await this.getAllBuckets();
 
-      console.log(`[S3备份] 将备份以下存储桶: ${buckets.join(', ')}`);
+      logger.info(`[S3备份] 将备份以下存储桶: ${buckets.join(', ')}`);
 
       // 初始化进度
       const progress: BackupProgress = {
@@ -101,13 +102,13 @@ export class S3BackupService {
       };
 
       // 加载上次备份清单（用于去重和增量备份）
-      console.log('[S3备份] 准备加载上次备份清单...');
+      logger.info('[S3备份] 准备加载上次备份清单...');
       const lastManifest = await this.loadManifest();
 
       if (lastManifest) {
-        console.log('[S3备份] 成功加载上次备份清单');
+        logger.info('[S3备份] 成功加载上次备份清单');
       } else {
-        console.log('[S3备份] 没有上次备份清单，将执行完整备份');
+        logger.info('[S3备份] 没有上次备份清单，将执行完整备份');
       }
 
       // 当前快照（文件路径 -> hash 映射）
@@ -115,7 +116,7 @@ export class S3BackupService {
 
       // 备份每个存储桶
       for (const bucket of buckets) {
-        console.log(`[S3备份] 正在备份存储桶: ${bucket}`);
+        logger.info(`[S3备份] 正在备份存储桶: ${bucket}`);
         await this.backupBucket(bucket, backupDirName, options, progress, lastManifest, currentSnapshot);
       }
 
@@ -129,14 +130,14 @@ export class S3BackupService {
 
       const duration = Date.now() - startTime;
 
-      console.log(`[S3备份] 备份完成`);
-      console.log(`  - 备份目录: ${backupDirName}`);
-      console.log(`  - 总文件数: ${progress.totalFiles}`);
-      console.log(`  - 已处理: ${progress.processedFiles}`);
-      console.log(`  - 已跳过: ${progress.skippedFiles}`);
-      console.log(`  - 失败: ${progress.failedFiles}`);
-      console.log(`  - 总大小: ${this.formatFileSize(progress.totalSize)}`);
-      console.log(`  - 耗时: ${duration}ms`);
+      logger.info(`[S3备份] 备份完成`);
+      logger.info(`  - 备份目录: ${backupDirName}`);
+      logger.info(`  - 总文件数: ${progress.totalFiles}`);
+      logger.info(`  - 已处理: ${progress.processedFiles}`);
+      logger.info(`  - 已跳过: ${progress.skippedFiles}`);
+      logger.info(`  - 失败: ${progress.failedFiles}`);
+      logger.info(`  - 总大小: ${this.formatFileSize(progress.totalSize)}`);
+      logger.info(`  - 耗时: ${duration}ms`);
 
       return {
         success: true,
@@ -146,7 +147,7 @@ export class S3BackupService {
       };
     } catch (error) {
       const duration = Date.now() - startTime;
-      console.error('[S3备份] 备份失败:', error);
+      logger.error('[S3备份] 备份失败:', error);
 
       return {
         success: false,
@@ -197,7 +198,7 @@ export class S3BackupService {
           if (options.skipLargeFiles && file.Size) {
             const maxSize = options.maxFileSize || 100 * 1024 * 1024; // 默认100MB
             if (file.Size > maxSize) {
-              console.log(`[S3备份] 跳过大文件: ${file.Key} (${this.formatFileSize(file.Size)})`);
+              logger.info(`[S3备份] 跳过大文件: ${file.Key} (${this.formatFileSize(file.Size)})`);
               progress.skippedFiles++;
               continue;
             }
@@ -215,7 +216,7 @@ export class S3BackupService {
             // 如果 ETag 未变化，可以复用上次的 hash（不需要重新下载和计算）
             if (lastBackup.etag === file.ETag && lastBackup.hash) {
               fileHash = lastBackup.hash;
-              console.log(`[S3备份] 文件未变化，复用hash: ${fileKey} -> ${fileHash.substring(0, 8)}...`);
+              logger.info(`[S3备份] 文件未变化，复用hash: ${fileKey} -> ${fileHash.substring(0, 8)}...`);
             } else {
               // ETag 变化，需要重新下载和计算 hash
               tempFilePath = path.join(this.tempDir, bucket, file.Key!);
@@ -249,10 +250,10 @@ export class S3BackupService {
               overwrite: false,
             });
 
-            console.log(`[S3备份] 新文件已存储: ${fileKey} -> ${fileHash.substring(0, 8)}...`);
+            logger.info(`[S3备份] 新文件已存储: ${fileKey} -> ${fileHash.substring(0, 8)}...`);
             progress.processedFiles++;
           } else {
-            console.log(`[S3备份] 文件已存在，去重: ${fileKey} -> ${fileHash.substring(0, 8)}...`);
+            logger.info(`[S3备份] 文件已存在，去重: ${fileKey} -> ${fileHash.substring(0, 8)}...`);
             progress.skippedFiles++;
           }
 
@@ -272,14 +273,14 @@ export class S3BackupService {
           progress.processedSize += file.Size || 0;
           progress.totalSize += file.Size || 0;
 
-          console.log(`[S3备份] 已备份: ${bucket}/${file.Key}`);
+          logger.info(`[S3备份] 已备份: ${bucket}/${file.Key}`);
         } catch (error) {
-          console.error(`[S3备份] 备份文件失败: ${bucket}/${file.Key}`, error);
+          logger.error(`[S3备份] 备份文件失败: ${bucket}/${file.Key}`, error);
           progress.failedFiles++;
         }
       }
     } catch (error) {
-      console.error(`[S3备份] 备份存储桶失败: ${bucket}`, error);
+      logger.error(`[S3备份] 备份存储桶失败: ${bucket}`, error);
       throw error;
     }
   }
@@ -333,10 +334,10 @@ export class S3BackupService {
       throw new Error('WebDAV备份未启用');
     }
 
-    console.log('[WebDAV] 客户端已初始化');
-    console.log(`[WebDAV] - URL: ${webdavConfig.url}`);
-    console.log(`[WebDAV] - 用户名: ${webdavConfig.username}`);
-    console.log(`[WebDAV] - 基础路径: ${webdavConfig.basePath}`);
+    logger.info('[WebDAV] 客户端已初始化');
+    logger.info(`[WebDAV] - URL: ${webdavConfig.url}`);
+    logger.info(`[WebDAV] - 用户名: ${webdavConfig.username}`);
+    logger.info(`[WebDAV] - 基础路径: ${webdavConfig.basePath}`);
 
     await webdavClientService.initialize({
       url: webdavConfig.url,
@@ -405,10 +406,10 @@ export class S3BackupService {
   private async checkObjectExists(objectPath: string): Promise<boolean> {
     try {
       const exists = await webdavClientService.exists(objectPath);
-      console.log(`[S3备份] 检查对象: ${objectPath} -> ${exists ? '存在' : '不存在'}`);
+      logger.info(`[S3备份] 检查对象: ${objectPath} -> ${exists ? '存在' : '不存在'}`);
       return exists;
     } catch (error) {
-      console.log(`[S3备份] 检查对象失败: ${objectPath}`, error);
+      logger.info(`[S3备份] 检查对象失败: ${objectPath}`, error);
       return false;
     }
   }
@@ -423,7 +424,7 @@ export class S3BackupService {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
 
-      console.log(`[S3备份] 清理 ${retentionDays} 天前的备份（${cutoffDate.toISOString()}之前）`);
+      logger.info(`[S3备份] 清理 ${retentionDays} 天前的备份（${cutoffDate.toISOString()}之前）`);
 
       // 列出所有快照文件
       let snapshots;
@@ -439,14 +440,14 @@ export class S3BackupService {
         );
       } catch (error: any) {
         if (error.status === 403 || error.status === 404) {
-          console.log('[S3备份] 快照目录不存在或无权访问，跳过清理');
+          logger.info('[S3备份] 快照目录不存在或无权访问，跳过清理');
           return;
         }
         throw error;
       }
 
       if (snapshots.length === 0) {
-        console.log('[S3备份] 没有找到快照文件');
+        logger.info('[S3备份] 没有找到快照文件');
         return;
       }
 
@@ -457,13 +458,13 @@ export class S3BackupService {
       });
 
       if (expiredSnapshots.length === 0) {
-        console.log('[S3备份] 没有需要清理的过期快照');
+        logger.info('[S3备份] 没有需要清理的过期快照');
         // 即使没有过期快照，也执行垃圾回收
         await this.garbageCollectObjects(snapshots);
         return;
       }
 
-      console.log(`[S3备份] 发现 ${expiredSnapshots.length} 个过期快照`);
+      logger.info(`[S3备份] 发现 ${expiredSnapshots.length} 个过期快照`);
 
       // 删除过期快照
       let deletedCount = 0;
@@ -471,14 +472,14 @@ export class S3BackupService {
         try {
           const snapshotPath = path.posix.join('snapshots', snapshot.basename);
           await webdavClientService.deleteFile(snapshotPath);
-          console.log(`[S3备份] 已删除过期快照: ${snapshot.basename}`);
+          logger.info(`[S3备份] 已删除过期快照: ${snapshot.basename}`);
           deletedCount++;
         } catch (error) {
-          console.error(`[S3备份] 删除快照失败: ${snapshot.basename}`, error);
+          logger.error(`[S3备份] 删除快照失败: ${snapshot.basename}`, error);
         }
       }
 
-      console.log(`[S3备份] 清理完成，共删除 ${deletedCount} 个快照`);
+      logger.info(`[S3备份] 清理完成，共删除 ${deletedCount} 个快照`);
 
       // 执行垃圾回收，清理孤立对象
       const remainingSnapshots = snapshots.filter(s =>
@@ -487,7 +488,7 @@ export class S3BackupService {
       await this.garbageCollectObjects(remainingSnapshots);
 
     } catch (error) {
-      console.error('[S3备份] 清理过期备份失败:', error);
+      logger.error('[S3备份] 清理过期备份失败:', error);
       // 清理失败不影响备份成功
     }
   }
@@ -497,7 +498,7 @@ export class S3BackupService {
    */
   private async garbageCollectObjects(snapshots: any[]): Promise<void> {
     try {
-      console.log('[S3备份] 开始垃圾回收...');
+      logger.info('[S3备份] 开始垃圾回收...');
 
       // 收集所有快照引用的 hash
       const referencedHashes = new Set<string>();
@@ -534,11 +535,11 @@ export class S3BackupService {
           // 删除临时文件
           fs.unlinkSync(tempSnapshotPath);
         } catch (error) {
-          console.error(`[S3备份] 读取快照失败: ${snapshot.basename}`, error);
+          logger.error(`[S3备份] 读取快照失败: ${snapshot.basename}`, error);
         }
       }
 
-      console.log(`[S3备份] 发现 ${referencedHashes.size} 个被引用的对象`);
+      logger.info(`[S3备份] 发现 ${referencedHashes.size} 个被引用的对象`);
 
       // 列出对象池中的所有对象
       let objects;
@@ -549,11 +550,11 @@ export class S3BackupService {
         });
       } catch (error: any) {
         if (error.status === 403 || error.status === 404) {
-          console.log('[S3备份] 对象池不存在或无权访问，跳过垃圾回收');
-          console.log('[S3备份] 提示：这可能是首次备份，对象池将在下次备份时创建');
+          logger.info('[S3备份] 对象池不存在或无权访问，跳过垃圾回收');
+          logger.info('[S3备份] 提示：这可能是首次备份，对象池将在下次备份时创建');
           return;
         }
-        console.error('[S3备份] 列出对象池失败:', error);
+        logger.error('[S3备份] 列出对象池失败:', error);
         return; // 不抛出错误，避免崩溃
       }
 
@@ -563,11 +564,11 @@ export class S3BackupService {
       );
 
       if (orphanedObjects.length === 0) {
-        console.log('[S3备份] 没有孤立对象需要清理');
+        logger.info('[S3备份] 没有孤立对象需要清理');
         return;
       }
 
-      console.log(`[S3备份] 发现 ${orphanedObjects.length} 个孤立对象`);
+      logger.info(`[S3备份] 发现 ${orphanedObjects.length} 个孤立对象`);
 
       // 删除孤立对象
       let deletedCount = 0;
@@ -575,16 +576,16 @@ export class S3BackupService {
         try {
           const objectPath = path.posix.join('objects', obj.basename);
           await webdavClientService.deleteFile(objectPath);
-          console.log(`[S3备份] 已删除孤立对象: ${obj.basename.substring(0, 8)}...`);
+          logger.info(`[S3备份] 已删除孤立对象: ${obj.basename.substring(0, 8)}...`);
           deletedCount++;
         } catch (error) {
-          console.error(`[S3备份] 删除对象失败: ${obj.basename}`, error);
+          logger.error(`[S3备份] 删除对象失败: ${obj.basename}`, error);
         }
       }
 
-      console.log(`[S3备份] 垃圾回收完成，共删除 ${deletedCount} 个孤立对象`);
+      logger.info(`[S3备份] 垃圾回收完成，共删除 ${deletedCount} 个孤立对象`);
     } catch (error) {
-      console.error('[S3备份] 垃圾回收失败:', error);
+      logger.error('[S3备份] 垃圾回收失败:', error);
     }
   }
 
@@ -593,7 +594,7 @@ export class S3BackupService {
    */
   private async loadManifest(): Promise<any> {
     try {
-      console.log('[S3备份] 正在从 WebDAV 加载最新快照...');
+      logger.info('[S3备份] 正在从 WebDAV 加载最新快照...');
 
       // 列出所有快照文件
       let snapshots;
@@ -604,7 +605,7 @@ export class S3BackupService {
         });
       } catch (error: any) {
         if (error.status === 403 || error.status === 404) {
-          console.log('[S3备份] 快照目录不存在，这是首次备份');
+          logger.info('[S3备份] 快照目录不存在，这是首次备份');
           return null;
         }
         throw error;
@@ -620,7 +621,7 @@ export class S3BackupService {
         .sort((a, b) => new Date(b.lastmod).getTime() - new Date(a.lastmod).getTime());
 
       if (snapshotFiles.length === 0) {
-        console.log('[S3备份] 没有找到快照文件，这是首次备份');
+        logger.info('[S3备份] 没有找到快照文件，这是首次备份');
         return null;
       }
 
@@ -629,7 +630,7 @@ export class S3BackupService {
       const snapshotPath = path.posix.join('snapshots', latestSnapshot.basename);
       const localSnapshotPath = path.join(this.tempDir, latestSnapshot.basename);
 
-      console.log(`[S3备份] 下载最新快照: ${latestSnapshot.basename}`);
+      logger.info(`[S3备份] 下载最新快照: ${latestSnapshot.basename}`);
 
       await webdavClientService.downloadFile({
         remotePath: snapshotPath,
@@ -640,17 +641,17 @@ export class S3BackupService {
       const content = fs.readFileSync(localSnapshotPath, 'utf-8');
       const manifest = JSON.parse(content);
 
-      console.log(`[S3备份] 已加载快照: ${latestSnapshot.basename}`);
-      console.log(`[S3备份] - 备份类型: ${manifest.backupType}`);
-      console.log(`[S3备份] - 备份时间: ${manifest.backupTime}`);
-      console.log(`[S3备份] - 文件数量: ${Object.keys(manifest.files || {}).length}`);
+      logger.info(`[S3备份] 已加载快照: ${latestSnapshot.basename}`);
+      logger.info(`[S3备份] - 备份类型: ${manifest.backupType}`);
+      logger.info(`[S3备份] - 备份时间: ${manifest.backupTime}`);
+      logger.info(`[S3备份] - 文件数量: ${Object.keys(manifest.files || {}).length}`);
 
       // 删除临时文件
       fs.unlinkSync(localSnapshotPath);
 
       return manifest;
     } catch (error) {
-      console.error('[S3备份] 加载备份清单失败:', error);
+      logger.error('[S3备份] 加载备份清单失败:', error);
       return null;
     }
   }
@@ -678,7 +679,7 @@ export class S3BackupService {
       const localSnapshotPath = path.join(this.tempDir, snapshotFileName);
 
       fs.writeFileSync(localSnapshotPath, JSON.stringify(snapshotData, null, 2));
-      console.log('[S3备份] 快照已生成');
+      logger.info('[S3备份] 快照已生成');
 
       // 上传快照到 WebDAV
       const snapshotPath = path.posix.join('snapshots', snapshotFileName);
@@ -689,12 +690,12 @@ export class S3BackupService {
         overwrite: true,
       });
 
-      console.log(`[S3备份] 快照已上传: ${snapshotPath}`);
+      logger.info(`[S3备份] 快照已上传: ${snapshotPath}`);
 
       // 删除临时文件
       fs.unlinkSync(localSnapshotPath);
     } catch (error) {
-      console.error('[S3备份] 保存备份快照失败:', error);
+      logger.error('[S3备份] 保存备份快照失败:', error);
     }
   }
 

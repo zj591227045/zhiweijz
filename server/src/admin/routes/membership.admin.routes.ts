@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { Router } from 'express';
 import { authenticateAdmin, requireAdmin } from '../middleware/auth.admin.middleware';
 import { MembershipService } from '../../services/membership.service';
@@ -19,7 +20,7 @@ router.get('/stats', async (req, res) => {
       data: stats
     });
   } catch (error: any) {
-    console.error('获取会员统计失败:', error);
+    logger.error('获取会员统计失败:', error);
     res.status(500).json({
       success: false,
       message: '获取会员统计失败',
@@ -124,7 +125,7 @@ router.get('/list', async (req, res) => {
       }
     });
   } catch (error: any) {
-    console.error('获取会员列表失败:', error);
+    logger.error('获取会员列表失败:', error);
     res.status(500).json({
       success: false,
       message: '获取会员列表失败',
@@ -166,7 +167,7 @@ router.post('/upgrade/:userId', async (req, res) => {
       message: '会员升级成功'
     });
   } catch (error: any) {
-    console.error('升级会员失败:', error);
+    logger.error('升级会员失败:', error);
     res.status(500).json({
       success: false,
       message: '升级会员失败',
@@ -180,7 +181,7 @@ router.post('/add-membership', async (req, res) => {
   try {
     const { email, memberType, duration = 12, reason } = req.body;
     
-    console.log('🔍 [添加会员] 接收到的请求参数:', {
+    logger.info('🔍 [添加会员] 接收到的请求参数:', {
       email,
       memberType,
       duration,
@@ -220,7 +221,7 @@ router.post('/add-membership', async (req, res) => {
     }
 
     // 添加会员
-    console.log('🔍 [添加会员] 调用upgradeMembership:', {
+    logger.info('🔍 [添加会员] 调用upgradeMembership:', {
       userId: user.id,
       memberType,
       duration,
@@ -247,7 +248,7 @@ router.post('/add-membership', async (req, res) => {
       message: '会员添加成功'
     });
   } catch (error: any) {
-    console.error('添加会员失败:', error);
+    logger.error('添加会员失败:', error);
     res.status(500).json({
       success: false,
       message: '添加会员失败',
@@ -277,7 +278,7 @@ router.post('/points/add/:userId', async (req, res) => {
       message: '积分添加成功'
     });
   } catch (error: any) {
-    console.error('添加积分失败:', error);
+    logger.error('添加积分失败:', error);
     res.status(500).json({
       success: false,
       message: '添加积分失败',
@@ -300,7 +301,7 @@ router.post('/badge/award/:userId', async (req, res) => {
       message: '徽章颁发成功'
     });
   } catch (error: any) {
-    console.error('颁发徽章失败:', error);
+    logger.error('颁发徽章失败:', error);
     res.status(500).json({
       success: false,
       message: '颁发徽章失败',
@@ -315,7 +316,7 @@ router.post('/downgrade/:userId', async (req, res) => {
     const { userId } = req.params;
     const { action, memberType, reduceMonths, reason } = req.body;
 
-    console.log('🔍 [降级会员] 接收到的请求参数:', {
+    logger.info('🔍 [降级会员] 接收到的请求参数:', {
       userId,
       action,
       memberType,
@@ -472,7 +473,7 @@ router.post('/downgrade/:userId', async (req, res) => {
       message: '会员降级成功'
     });
   } catch (error: any) {
-    console.error('降级会员失败:', error);
+    logger.error('降级会员失败:', error);
     res.status(500).json({
       success: false,
       message: '降级会员失败',
@@ -523,7 +524,7 @@ router.post('/check-all-status', async (req, res) => {
       message: `批量检查完成，共检查 ${checkedCount} 个会员，其中 ${expiredCount} 个已到期`
     });
   } catch (error: any) {
-    console.error('批量检查会员状态失败:', error);
+    logger.error('批量检查会员状态失败:', error);
     res.status(500).json({
       success: false,
       message: '批量检查会员状态失败',

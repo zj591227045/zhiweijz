@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { CategoryBudgetService } from '../services/category-budget.service';
 import {
@@ -27,7 +28,7 @@ export class CategoryBudgetController {
       const categoryBudget = await this.categoryBudgetService.createCategoryBudget(data);
       res.status(201).json(categoryBudget);
     } catch (error: any) {
-      console.error('创建分类预算失败:', error);
+      logger.error('创建分类预算失败:', error);
       res.status(400).json({ message: error.message || '创建分类预算失败' });
     }
   }
@@ -49,7 +50,7 @@ export class CategoryBudgetController {
       const categoryBudgets = await this.categoryBudgetService.getCategoryBudgets(params);
       res.status(200).json(categoryBudgets);
     } catch (error: any) {
-      console.error('获取分类预算列表失败:', error);
+      logger.error('获取分类预算列表失败:', error);
       res.status(400).json({ message: error.message || '获取分类预算列表失败' });
     }
   }
@@ -65,7 +66,7 @@ export class CategoryBudgetController {
       );
       res.status(200).json(categoryBudgets);
     } catch (error: any) {
-      console.error('获取分类预算列表失败:', error);
+      logger.error('获取分类预算列表失败:', error);
       res.status(400).json({ message: error.message || '获取分类预算列表失败' });
     }
   }
@@ -79,7 +80,7 @@ export class CategoryBudgetController {
       const categoryBudget = await this.categoryBudgetService.getCategoryBudget(id);
       res.status(200).json(categoryBudget);
     } catch (error: any) {
-      console.error('获取分类预算详情失败:', error);
+      logger.error('获取分类预算详情失败:', error);
       res.status(400).json({ message: error.message || '获取分类预算详情失败' });
     }
   }
@@ -98,7 +99,7 @@ export class CategoryBudgetController {
       const categoryBudget = await this.categoryBudgetService.updateCategoryBudget(id, data);
       res.status(200).json(categoryBudget);
     } catch (error: any) {
-      console.error('更新分类预算失败:', error);
+      logger.error('更新分类预算失败:', error);
       res.status(400).json({ message: error.message || '更新分类预算失败' });
     }
   }
@@ -112,7 +113,7 @@ export class CategoryBudgetController {
       await this.categoryBudgetService.deleteCategoryBudget(id);
       res.status(204).send();
     } catch (error: any) {
-      console.error('删除分类预算失败:', error);
+      logger.error('删除分类预算失败:', error);
       res.status(400).json({ message: error.message || '删除分类预算失败' });
     }
   }

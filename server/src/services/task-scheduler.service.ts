@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import * as cron from 'node-cron';
 import AccountingPointsService from '../services/accounting-points.service';
 import { BudgetSchedulerService } from '../services/budget-scheduler.service';
@@ -10,17 +11,17 @@ class TaskScheduler {
    * 启动所有定时任务
    */
   static start(): void {
-    console.log('[定时任务] 启动定时任务调度器...');
+    logger.info('[定时任务] 启动定时任务调度器...');
 
     // 注释掉原有的定时赠送逻辑，改为基于用户首次访问的赠送
     // 每天0点执行每日记账点赠送
     // cron.schedule('0 0 * * *', async () => {
-    //   console.log('[定时任务] 开始执行每日记账点赠送...');
+    //   logger.info('[定时任务] 开始执行每日记账点赠送...');
     //   try {
     //     await AccountingPointsService.dailyGiftPoints();
-    //     console.log('[定时任务] 每日记账点赠送完成');
+    //     logger.info('[定时任务] 每日记账点赠送完成');
     //   } catch (error) {
-    //     console.error('[定时任务] 每日记账点赠送失败:', error);
+    //     logger.error('[定时任务] 每日记账点赠送失败:', error);
     //   }
     // }, {
     //   timezone: 'Asia/Shanghai' // 使用北京时间
@@ -28,31 +29,31 @@ class TaskScheduler {
 
     // 每月1号凌晨2点执行预算结转和创建任务
     cron.schedule('0 2 1 * *', async () => {
-      console.log('[定时任务] 开始执行预算结转和创建任务...');
+      logger.info('[定时任务] 开始执行预算结转和创建任务...');
       try {
         const budgetScheduler = new BudgetSchedulerService();
         await budgetScheduler.runAllScheduledTasks();
-        console.log('[定时任务] 预算结转和创建任务完成');
+        logger.info('[定时任务] 预算结转和创建任务完成');
       } catch (error) {
-        console.error('[定时任务] 预算结转和创建任务失败:', error);
+        logger.error('[定时任务] 预算结转和创建任务失败:', error);
       }
     }, {
       timezone: 'Asia/Shanghai' // 使用北京时间
     });
 
-    console.log('[定时任务] 定时任务调度器启动完成（已启用预算结转定时任务）');
+    logger.info('[定时任务] 定时任务调度器启动完成（已启用预算结转定时任务）');
   }
 
   /**
    * 手动执行每日记账点赠送（用于测试）
    */
   static async runDailyGiftPoints(): Promise<void> {
-    console.log('[手动任务] 开始执行每日记账点赠送...');
+    logger.info('[手动任务] 开始执行每日记账点赠送...');
     try {
       await AccountingPointsService.dailyGiftPoints();
-      console.log('[手动任务] 每日记账点赠送完成');
+      logger.info('[手动任务] 每日记账点赠送完成');
     } catch (error) {
-      console.error('[手动任务] 每日记账点赠送失败:', error);
+      logger.error('[手动任务] 每日记账点赠送失败:', error);
       throw error;
     }
   }
@@ -61,13 +62,13 @@ class TaskScheduler {
    * 手动执行预算结转任务（用于测试和修复）
    */
   static async runBudgetRolloverTasks(): Promise<void> {
-    console.log('[手动任务] 开始执行预算结转任务...');
+    logger.info('[手动任务] 开始执行预算结转任务...');
     try {
       const budgetScheduler = new BudgetSchedulerService();
       await budgetScheduler.runAllScheduledTasks();
-      console.log('[手动任务] 预算结转任务完成');
+      logger.info('[手动任务] 预算结转任务完成');
     } catch (error) {
-      console.error('[手动任务] 预算结转任务失败:', error);
+      logger.error('[手动任务] 预算结转任务失败:', error);
       throw error;
     }
   }

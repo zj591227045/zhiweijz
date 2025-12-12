@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import {
   S3Client,
   PutObjectCommand,
@@ -91,7 +92,7 @@ export class S3StorageService {
         try {
           decoded[key] = Buffer.from(value, 'base64').toString('utf8');
         } catch (error) {
-          console.warn(`解码metadata失败: ${key}`, error);
+          logger.warn(`解码metadata失败: ${key}`, error);
           decoded[key] = value; // 解码失败时使用原值
         }
       } else {
@@ -138,7 +139,7 @@ export class S3StorageService {
 
       if (shouldCompress) {
         try {
-          console.log(`开始压缩图片，策略: ${options.compressionStrategy}, 原始大小: ${fileBuffer.length} bytes`);
+          logger.info(`开始压缩图片，策略: ${options.compressionStrategy}, 原始大小: ${fileBuffer.length} bytes`);
 
           const compressionResult = await this.compressionService.compressImage(fileBuffer, {
             strategy: options.compressionStrategy!,
@@ -163,9 +164,9 @@ export class S3StorageService {
             finalContentType = 'image/png';
           }
 
-          console.log(`图片压缩完成，压缩后大小: ${compressionResult.compressedSize} bytes, 压缩比: ${compressionResult.compressionRatio.toFixed(2)}`);
+          logger.info(`图片压缩完成，压缩后大小: ${compressionResult.compressedSize} bytes, 压缩比: ${compressionResult.compressionRatio.toFixed(2)}`);
         } catch (compressionError) {
-          console.warn('图片压缩失败，使用原始文件:', compressionError);
+          logger.warn('图片压缩失败，使用原始文件:', compressionError);
           // 压缩失败时使用原始文件
         }
       }
@@ -213,7 +214,7 @@ export class S3StorageService {
         compressionInfo,
       };
     } catch (error) {
-      console.error('S3 upload error:', error);
+      logger.error('S3 upload error:', error);
       throw new Error(`文件上传失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
@@ -236,7 +237,7 @@ export class S3StorageService {
 
       return result.Body as Readable;
     } catch (error) {
-      console.error('S3 download error:', error);
+      logger.error('S3 download error:', error);
       throw new Error(`文件下载失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
@@ -267,7 +268,7 @@ export class S3StorageService {
 
       return result;
     } catch (error) {
-      console.error('S3 get metadata error:', error);
+      logger.error('S3 get metadata error:', error);
       throw new Error(`获取文件元数据失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
@@ -284,7 +285,7 @@ export class S3StorageService {
 
       await this.s3Client.send(command);
     } catch (error) {
-      console.error('S3 delete error:', error);
+      logger.error('S3 delete error:', error);
       throw new Error(`文件删除失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
@@ -329,7 +330,7 @@ export class S3StorageService {
         metadata: result.Metadata ? this.decodeMetadata(result.Metadata) : undefined,
       };
     } catch (error) {
-      console.error('S3 get file info error:', error);
+      logger.error('S3 get file info error:', error);
       throw new Error(`获取文件信息失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
@@ -353,7 +354,7 @@ export class S3StorageService {
         nextContinuationToken: result.NextContinuationToken,
       };
     } catch (error) {
-      console.error('S3 list files error:', error);
+      logger.error('S3 list files error:', error);
       throw new Error(`列出文件失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
@@ -392,7 +393,7 @@ export class S3StorageService {
 
       return await getSignedUrl(this.s3Client, command, { expiresIn });
     } catch (error) {
-      console.error('Generate presigned URL error:', error);
+      logger.error('Generate presigned URL error:', error);
       throw new Error(`生成预签名URL失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
@@ -406,7 +407,7 @@ export class S3StorageService {
       try {
         const headCommand = new HeadBucketCommand({ Bucket: bucket });
         await this.s3Client.send(headCommand);
-        console.log(`存储桶 ${bucket} 已存在`);
+        logger.info(`存储桶 ${bucket} 已存在`);
         return;
       } catch (error: any) {
         if (error.name !== 'NotFound' && error.$metadata?.httpStatusCode !== 404) {
@@ -417,9 +418,9 @@ export class S3StorageService {
       // 创建存储桶
       const command = new CreateBucketCommand({ Bucket: bucket });
       await this.s3Client.send(command);
-      console.log(`存储桶 ${bucket} 创建成功`);
+      logger.info(`存储桶 ${bucket} 创建成功`);
     } catch (error) {
-      console.error('Create bucket error:', error);
+      logger.error('Create bucket error:', error);
       throw new Error(`创建存储桶失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
@@ -429,17 +430,17 @@ export class S3StorageService {
    */
   async testConnection(): Promise<boolean> {
     try {
-      console.log('🔗 测试S3连接，端点:', this.config.endpoint);
+      logger.info('🔗 测试S3连接，端点:', this.config.endpoint);
 
       // 方法1: 尝试列出存储桶（最通用的方法）
       try {
         const { ListBucketsCommand } = await import('@aws-sdk/client-s3');
         const command = new ListBucketsCommand({});
         await this.s3Client.send(command);
-        console.log('✅ S3连接测试成功（通过列出存储桶）');
+        logger.info('✅ S3连接测试成功（通过列出存储桶）');
         return true;
       } catch (listError: any) {
-        console.log('⚠️ 列出存储桶失败，尝试其他方法:', listError.message);
+        logger.info('⚠️ 列出存储桶失败，尝试其他方法:', listError.message);
 
         // 方法2: 如果没有列出存储桶的权限，尝试访问一个测试桶
         try {
@@ -449,7 +450,7 @@ export class S3StorageService {
           });
 
           await this.s3Client.send(command);
-          console.log('✅ S3连接测试成功（通过访问测试桶）');
+          logger.info('✅ S3连接测试成功（通过访问测试桶）');
           return true;
         } catch (bucketError: any) {
           // 如果是因为桶不存在、权限不足等预期错误，说明连接是正常的
@@ -460,17 +461,17 @@ export class S3StorageService {
             bucketError.$metadata?.httpStatusCode === 404 ||
             bucketError.$metadata?.httpStatusCode === 403
           ) {
-            console.log('✅ S3连接测试成功（通过预期错误确认）');
+            logger.info('✅ S3连接测试成功（通过预期错误确认）');
             return true;
           }
 
           // 其他错误说明连接有问题
-          console.error('❌ S3连接测试失败:', bucketError);
+          logger.error('❌ S3连接测试失败:', bucketError);
           return false;
         }
       }
     } catch (error: any) {
-      console.error('❌ S3连接测试异常:', error);
+      logger.error('❌ S3连接测试异常:', error);
       return false;
     }
   }

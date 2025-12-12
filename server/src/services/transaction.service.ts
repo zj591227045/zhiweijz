@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { TransactionType, PrismaClient, Category } from '@prisma/client';
 import { TransactionRepository } from '../repositories/transaction.repository';
 import { CategoryRepository } from '../repositories/category.repository';
@@ -124,7 +125,7 @@ export class TransactionService {
           transactionCycleYear !== currentCycleYear ||
           transactionCycleMonth !== currentCycleMonth
         ) {
-          console.log(
+          logger.info(
             `检测到历史记账: 记账周期=${transactionCycleYear}年${
               transactionCycleMonth + 1
             }月, 当前周期=${currentCycleYear}年${currentCycleMonth + 1}月`,
@@ -136,7 +137,7 @@ export class TransactionService {
       // 如果所有预算都在当前计算周期内，则不是历史记账
       return false;
     } catch (error) {
-      console.error('检查历史记账失败:', error);
+      logger.error('检查历史记账失败:', error);
       // 出错时使用默认规则
       const daysDifference = Math.floor(
         (now.getTime() - transactionDate.getTime()) / (1000 * 60 * 60 * 24),
@@ -172,7 +173,7 @@ export class TransactionService {
 
       return budgets.map((budget) => budget.id);
     } catch (error) {
-      console.error('查找受影响的预算失败:', error);
+      logger.error('查找受影响的预算失败:', error);
       return [];
     }
   }
@@ -184,7 +185,7 @@ export class TransactionService {
     userId: string,
     transactionData: CreateTransactionDto,
   ): Promise<TransactionResponseDto> {
-    console.log('TransactionService.createTransaction 开始:', {
+    logger.info('TransactionService.createTransaction 开始:', {
       userId,
       transactionData: {
         ...transactionData,
@@ -196,13 +197,13 @@ export class TransactionService {
     // 验证分类是否存在
     const category = await this.categoryRepository.findById(transactionData.categoryId);
     if (!category) {
-      console.error('分类不存在:', transactionData.categoryId);
+      logger.error('分类不存在:', transactionData.categoryId);
       throw new Error('分类不存在');
     }
 
     // 验证记账类型与分类类型是否匹配
     if (category.type !== transactionData.type) {
-      console.error('记账类型与分类类型不匹配:', {
+      logger.error('记账类型与分类类型不匹配:', {
         categoryType: category.type,
         transactionType: transactionData.type
       });
@@ -302,7 +303,7 @@ export class TransactionService {
       try {
         await this.budgetService.ensureCurrentMonthBudget(userId, transactionData.accountBookId);
       } catch (error) {
-        console.error('确保当前月份预算失败:', error);
+        logger.error('确保当前月份预算失败:', error);
         // 不影响记账创建流程，继续执行
       }
     }
@@ -316,7 +317,7 @@ export class TransactionService {
 
     // 更新预算
     if (transactionData.accountBookId && transactionData.type === 'EXPENSE') {
-      console.log('开始更新预算:', {
+      logger.info('开始更新预算:', {
         accountBookId: transactionData.accountBookId,
         isMultiBudget: transactionData.isMultiBudget,
         budgetAllocation: transactionData.budgetAllocation
@@ -324,11 +325,11 @@ export class TransactionService {
 
       // 如果是多人预算分摊，需要分别更新每个预算
       if (transactionData.isMultiBudget && transactionData.budgetAllocation) {
-        console.log(`处理多人预算分摊，共 ${transactionData.budgetAllocation.length} 项分摊`);
+        logger.info(`处理多人预算分摊，共 ${transactionData.budgetAllocation.length} 项分摊`);
 
         for (const allocation of transactionData.budgetAllocation) {
           try {
-            console.log(`处理分摊项:`, allocation);
+            logger.info(`处理分摊项:`, allocation);
 
             // 为每个分摊项单独记录预算交易
             await this.budgetTransactionService.recordTransaction(
@@ -338,9 +339,9 @@ export class TransactionService {
               transactionData.type,
               transactionData.date,
             );
-            console.log(`多人预算分摊：已更新预算 ${allocation.budgetId}，金额 ${allocation.amount}`);
+            logger.info(`多人预算分摊：已更新预算 ${allocation.budgetId}，金额 ${allocation.amount}`);
           } catch (error) {
-            console.error(`更新多人预算分摊失败 - 预算ID: ${allocation.budgetId}`, error);
+            logger.error(`更新多人预算分摊失败 - 预算ID: ${allocation.budgetId}`, error);
           }
         }
       } else {
@@ -356,7 +357,7 @@ export class TransactionService {
 
       // 如果是历史记账，查找受影响的预算并重新计算结转
       if (isHistorical) {
-        console.log(
+        logger.info(
           `检测到历史记账（日期: ${transactionData.date.toISOString()}），准备重新计算相关预算结转`,
         );
 
@@ -367,19 +368,19 @@ export class TransactionService {
         );
 
         if (affectedBudgets.length > 0) {
-          console.log(`找到 ${affectedBudgets.length} 个受影响的预算，准备重新计算结转`);
+          logger.info(`找到 ${affectedBudgets.length} 个受影响的预算，准备重新计算结转`);
 
           // 对每个受影响的预算重新计算结转
           for (const budgetId of affectedBudgets) {
             try {
               await this.budgetService.recalculateBudgetRollover(budgetId);
-              console.log(`预算 ${budgetId} 结转重新计算完成`);
+              logger.info(`预算 ${budgetId} 结转重新计算完成`);
             } catch (error) {
-              console.error(`预算 ${budgetId} 结转重新计算失败:`, error);
+              logger.error(`预算 ${budgetId} 结转重新计算失败:`, error);
             }
           }
         } else {
-          console.log('未找到受影响的预算，无需重新计算结转');
+          logger.info('未找到受影响的预算，无需重新计算结转');
         }
       }
     }
@@ -579,7 +580,7 @@ export class TransactionService {
           isHistoricalChange ||
           (await this.isHistoricalTransaction(oldTransaction.date, accountBookId))
         ) {
-          console.log(`检测到历史记账变更，准备重新计算相关预算结转`);
+          logger.info(`检测到历史记账变更，准备重新计算相关预算结转`);
 
           // 查找受影响的预算（包括原日期和新日期）
           const oldDateBudgets = await this.findAffectedBudgets(accountBookId, oldTransaction.date);
@@ -592,19 +593,19 @@ export class TransactionService {
           const affectedBudgets = [...new Set([...oldDateBudgets, ...newDateBudgets])];
 
           if (affectedBudgets.length > 0) {
-            console.log(`找到 ${affectedBudgets.length} 个受影响的预算，准备重新计算结转`);
+            logger.info(`找到 ${affectedBudgets.length} 个受影响的预算，准备重新计算结转`);
 
             // 对每个受影响的预算重新计算结转
             for (const budgetId of affectedBudgets) {
               try {
                 await this.budgetService.recalculateBudgetRollover(budgetId);
-                console.log(`预算 ${budgetId} 结转重新计算完成`);
+                logger.info(`预算 ${budgetId} 结转重新计算完成`);
               } catch (error) {
-                console.error(`预算 ${budgetId} 结转重新计算失败:`, error);
+                logger.error(`预算 ${budgetId} 结转重新计算失败:`, error);
               }
             }
           } else {
-            console.log('未找到受影响的预算，无需重新计算结转');
+            logger.info('未找到受影响的预算，无需重新计算结转');
           }
         }
       }
@@ -825,7 +826,7 @@ export class TransactionService {
         type: 'EXPENSE',
       };
 
-      console.log('使用预算ID过滤记账记录:', {
+      logger.debug('使用预算ID过滤记账记录:', {
         budgetId,
         startDate: budget.startDate,
         endDate: budget.endDate,
@@ -863,7 +864,7 @@ export class TransactionService {
         },
       });
 
-      console.log(`找到 ${singleBudgetTransactions.length} 条单人预算记录`);
+      logger.debug(`找到 ${singleBudgetTransactions.length} 条单人预算记录`);
 
       // 2. 查询多人预算分摊记录
       const multiBudgetWhere: any = {
@@ -907,7 +908,7 @@ export class TransactionService {
         },
       });
 
-      console.log(`找到 ${multiBudgetTransactions.length} 条多人预算分摊记录`);
+      logger.debug(`找到 ${multiBudgetTransactions.length} 条多人预算分摊记录`);
 
       // 3. 过滤多人预算分摊记录，只保留包含当前预算的记录
       const filteredMultiBudgetTransactions = multiBudgetTransactions.filter((transaction) => {
@@ -925,12 +926,12 @@ export class TransactionService {
             return budgetAllocation.some((allocation: any) => allocation.budgetId === budgetId);
           }
         } catch (error) {
-          console.error('解析预算分摊数据失败:', error);
+          logger.error('解析预算分摊数据失败:', error);
         }
         return false;
       });
 
-      console.log(`过滤后的多人预算分摊记录: ${filteredMultiBudgetTransactions.length} 条`);
+      logger.debug(`过滤后的多人预算分摊记录: ${filteredMultiBudgetTransactions.length} 条`);
 
       // 4. 合并两种记录并排序
       const allTransactions = [...singleBudgetTransactions, ...filteredMultiBudgetTransactions].sort(
@@ -958,7 +959,7 @@ export class TransactionService {
         nextPage: page * limit < total ? page + 1 : null,
       };
     } catch (error) {
-      console.error('获取预算相关记账失败:', error);
+      logger.error('获取预算相关记账失败:', error);
       throw error;
     }
   }
@@ -982,7 +983,7 @@ export class TransactionService {
 
       return attachments;
     } catch (error) {
-      console.error('获取记账附件失败:', error);
+      logger.error('获取记账附件失败:', error);
       throw error;
     }
   }
@@ -995,7 +996,7 @@ export class TransactionService {
       const stats = await this.attachmentRepository.getAttachmentStats(userId);
       return stats;
     } catch (error) {
-      console.error('获取用户附件统计失败:', error);
+      logger.error('获取用户附件统计失败:', error);
       throw error;
     }
   }
@@ -1020,7 +1021,7 @@ export class TransactionService {
 
       return { success: true, message: '附件删除成功' };
     } catch (error) {
-      console.error('删除记账附件失败:', error);
+      logger.error('删除记账附件失败:', error);
       throw error;
     }
   }

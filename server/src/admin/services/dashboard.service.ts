@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { PrismaClient } from '@prisma/client';
 import os from 'os';
 import * as fs from 'fs';
@@ -97,7 +98,7 @@ export class DashboardService {
         activeFamilies,
       };
     } catch (error) {
-      console.error('获取概览统计数据错误:', error);
+      logger.error('获取概览统计数据错误:', error);
       throw new Error('获取概览统计数据失败');
     }
   }
@@ -157,7 +158,7 @@ export class DashboardService {
         activeUsers,
       };
     } catch (error) {
-      console.error('获取用户统计数据错误:', error);
+      logger.error('获取用户统计数据错误:', error);
       throw new Error('获取用户统计数据失败');
     }
   }
@@ -235,7 +236,7 @@ export class DashboardService {
         })),
       };
     } catch (error) {
-      console.error('获取记账统计数据错误:', error);
+      logger.error('获取记账统计数据错误:', error);
       throw new Error('获取记账统计数据失败');
     }
   }
@@ -293,7 +294,7 @@ export class DashboardService {
         nodeVersion: process.version,
       };
     } catch (error) {
-      console.error('获取系统资源数据错误:', error);
+      logger.error('获取系统资源数据错误:', error);
       throw new Error('获取系统资源数据失败');
     }
   }
@@ -328,7 +329,7 @@ export class DashboardService {
 
       return diskInfo;
     } catch (error) {
-      console.error('获取磁盘空间信息错误:', error);
+      logger.error('获取磁盘空间信息错误:', error);
       return {
         drives: [],
         total: 0,
@@ -379,7 +380,7 @@ export class DashboardService {
           }
         }
       } catch (wmicError) {
-        console.warn('无法使用 wmic 获取磁盘信息:', wmicError);
+        logger.warn('无法使用 wmic 获取磁盘信息:', wmicError);
 
         // 备用方法：检查常见驱动器
         const driveLetters = ['C:', 'D:', 'E:', 'F:'];
@@ -402,7 +403,7 @@ export class DashboardService {
         }
       }
     } catch (error) {
-      console.error('获取 Windows 磁盘信息错误:', error);
+      logger.error('获取 Windows 磁盘信息错误:', error);
     }
 
     // 如果没有获取到任何驱动器信息，返回当前工作目录的信息
@@ -495,7 +496,7 @@ export class DashboardService {
           }
         }
       } catch (dfError) {
-        console.warn('无法使用 df 命令获取磁盘信息:', dfError);
+        logger.warn('无法使用 df 命令获取磁盘信息:', dfError);
 
         // 备用方法：返回基本的根目录信息
         drives.push({
@@ -509,7 +510,7 @@ export class DashboardService {
         });
       }
     } catch (error) {
-      console.error('获取 Unix 磁盘信息错误:', error);
+      logger.error('获取 Unix 磁盘信息错误:', error);
       drives.push({
         drive: '/',
         total: 0,
@@ -598,7 +599,7 @@ export class DashboardService {
         })),
       };
     } catch (error) {
-      console.error('获取性能历史数据错误:', error);
+      logger.error('获取性能历史数据错误:', error);
       throw new Error('获取性能历史数据失败');
     }
   }
@@ -619,7 +620,7 @@ export class DashboardService {
         sampleCount: Number(stats.sample_count || 0),
       };
     } catch (error) {
-      console.error('获取性能统计信息错误:', error);
+      logger.error('获取性能统计信息错误:', error);
       throw new Error('获取性能统计信息失败');
     }
   }
@@ -642,7 +643,7 @@ export class DashboardService {
         memory: memoryHistory,
       };
     } catch (error) {
-      console.error('获取所有性能历史数据错误:', error);
+      logger.error('获取所有性能历史数据错误:', error);
       throw new Error('获取所有性能历史数据失败');
     }
   }

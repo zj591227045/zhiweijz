@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { SpeechRecognitionService } from '../services/speech-recognition.service';
 import { VisionRecognitionService } from '../services/vision-recognition.service';
@@ -58,7 +59,7 @@ export class MultimodalAIController {
         name: defaultAccountBook?.name
       };
     } catch (error) {
-      console.warn('获取默认账本信息失败:', error);
+      logger.warn('获取默认账本信息失败:', error);
       return {};
     }
   }
@@ -91,7 +92,7 @@ export class MultimodalAIController {
       try {
         speechConfig = await this.configService.getSpeechConfig();
       } catch (configError) {
-        console.warn('获取语音识别配置失败:', configError);
+        logger.warn('获取语音识别配置失败:', configError);
       }
 
       // 检测请求来源
@@ -131,7 +132,7 @@ export class MultimodalAIController {
     } catch (error) {
       isSuccess = false;
       errorMessage = error instanceof Error ? error.message : '语音识别服务暂时不可用';
-      console.error('语音转文本API错误:', error);
+      logger.error('语音转文本API错误:', error);
       res.status(500).json({
         success: false,
         error: '语音识别服务暂时不可用',
@@ -187,7 +188,7 @@ export class MultimodalAIController {
       try {
         visionConfig = await this.configService.getVisionConfig();
       } catch (configError) {
-        console.warn('获取视觉识别配置失败:', configError);
+        logger.warn('获取视觉识别配置失败:', configError);
       }
 
       // 如果有文件上传，先保存到S3（带压缩）
@@ -204,9 +205,9 @@ export class MultimodalAIController {
             },
             userId
           );
-          console.log(`图片已保存到S3: ${uploadResult.url}, 文件大小: ${uploadResult.size} bytes`);
+          logger.info(`图片已保存到S3: ${uploadResult.url}, 文件大小: ${uploadResult.size} bytes`);
         } catch (uploadError) {
-          console.warn('保存图片到S3失败，使用原始文件进行识别:', uploadError);
+          logger.warn('保存图片到S3失败，使用原始文件进行识别:', uploadError);
           // 上传失败不影响识别流程，继续使用原始文件
         }
       }
@@ -258,7 +259,7 @@ export class MultimodalAIController {
     } catch (error) {
       isSuccess = false;
       errorMessage = error instanceof Error ? error.message : '图片识别服务暂时不可用';
-      console.error('图片识别API错误:', error);
+      logger.error('图片识别API错误:', error);
       res.status(500).json({
         success: false,
         error: '图片识别服务暂时不可用',
@@ -356,7 +357,7 @@ export class MultimodalAIController {
     } catch (error) {
       isSuccess = false;
       errorMessage = error instanceof Error ? error.message : '智能记账语音识别服务暂时不可用';
-      console.error('智能记账语音识别API错误:', error);
+      logger.error('智能记账语音识别API错误:', error);
       res.status(500).json({
         success: false,
         error: '智能记账语音识别服务暂时不可用',
@@ -381,7 +382,7 @@ export class MultimodalAIController {
             await prisma.$disconnect();
           }
         } catch (error) {
-          console.warn('获取账本信息失败:', error);
+          logger.warn('获取账本信息失败:', error);
         }
 
         await MultimodalAILoggingService.logMultimodalAICall({
@@ -438,7 +439,7 @@ export class MultimodalAIController {
       try {
         visionConfig = await this.configService.getVisionConfig();
       } catch (configError) {
-        console.warn('获取视觉识别配置失败:', configError);
+        logger.warn('获取视觉识别配置失败:', configError);
       }
 
       // 2. 先保存图片到S3（带压缩）- 保存到永久存储桶以备附件使用
@@ -465,9 +466,9 @@ export class MultimodalAIController {
           mimeType: permanentUploadResult.mimeType,
         };
         
-        console.log(`图片已保存到永久存储: ${permanentUploadResult.url}, 文件大小: ${permanentUploadResult.size} bytes`);
+        logger.info(`图片已保存到永久存储: ${permanentUploadResult.url}, 文件大小: ${permanentUploadResult.size} bytes`);
       } catch (uploadError) {
-        console.warn('保存图片到永久存储失败，使用临时存储进行识别:', uploadError);
+        logger.warn('保存图片到永久存储失败，使用临时存储进行识别:', uploadError);
         
         // 备用方案：保存到临时存储桶
         try {
@@ -481,9 +482,9 @@ export class MultimodalAIController {
             },
             userId
           );
-          console.log(`图片已保存到临时存储: ${tempUploadResult.url}, 文件大小: ${tempUploadResult.size} bytes`);
+          logger.info(`图片已保存到临时存储: ${tempUploadResult.url}, 文件大小: ${tempUploadResult.size} bytes`);
         } catch (tempUploadError) {
-          console.warn('保存图片到临时存储也失败，使用原始文件进行识别:', tempUploadError);
+          logger.warn('保存图片到临时存储也失败，使用原始文件进行识别:', tempUploadError);
         }
       }
 
@@ -533,7 +534,7 @@ export class MultimodalAIController {
     } catch (error) {
       isSuccess = false;
       errorMessage = error instanceof Error ? error.message : '智能记账图片识别服务暂时不可用';
-      console.error('智能记账图片识别API错误:', error);
+      logger.error('智能记账图片识别API错误:', error);
       res.status(500).json({
         success: false,
         error: '智能记账图片识别服务暂时不可用',
@@ -558,7 +559,7 @@ export class MultimodalAIController {
             await prisma.$disconnect();
           }
         } catch (error) {
-          console.warn('获取账本信息失败:', error);
+          logger.warn('获取账本信息失败:', error);
         }
 
         await MultimodalAILoggingService.logMultimodalAICall({
@@ -609,7 +610,7 @@ export class MultimodalAIController {
         },
       });
     } catch (error) {
-      console.error('获取多模态AI状态错误:', error);
+      logger.error('获取多模态AI状态错误:', error);
       res.status(500).json({
         success: false,
         error: '获取状态失败',
@@ -647,7 +648,7 @@ export class MultimodalAIController {
         },
       });
     } catch (error) {
-      console.error('测试连接错误:', error);
+      logger.error('测试连接错误:', error);
       res.status(500).json({
         success: false,
         error: '测试连接失败',

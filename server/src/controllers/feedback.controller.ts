@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { FeedbackService } from '../services/feedback.service';
 import { CreateFeedbackDto, FeedbackType } from '../models/feedback.model';
@@ -42,7 +43,7 @@ export class FeedbackController {
       const feedback = await this.feedbackService.createFeedback(userId, feedbackData);
       res.status(201).json(feedback);
     } catch (error) {
-      console.error('创建反馈失败:', error);
+      logger.error('创建反馈失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -65,7 +66,7 @@ export class FeedbackController {
       const feedbacks = await this.feedbackService.getUserFeedbacks(userId);
       res.status(200).json(feedbacks);
     } catch (error) {
-      console.error('获取反馈列表失败:', error);
+      logger.error('获取反馈列表失败:', error);
       res.status(500).json({ message: '获取反馈列表时发生错误' });
     }
   }
@@ -78,7 +79,7 @@ export class FeedbackController {
       const feedbacks = await this.feedbackService.getAllFeedbacks();
       res.status(200).json(feedbacks);
     } catch (error) {
-      console.error('获取所有反馈失败:', error);
+      logger.error('获取所有反馈失败:', error);
       res.status(500).json({ message: '获取所有反馈时发生错误' });
     }
   }

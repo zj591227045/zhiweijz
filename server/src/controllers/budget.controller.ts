@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { BudgetPeriod, BudgetType, PrismaClient } from '@prisma/client';
 import { BudgetService } from '../services/budget.service';
@@ -73,7 +74,7 @@ export class BudgetController {
         sortOrder: 'desc',
       };
 
-      console.log('BudgetController.getBudgets 请求参数:', {
+      logger.debug('BudgetController.getBudgets 请求参数:', {
         userId,
         accountBookId: params.accountBookId,
         budgetType: params.budgetType,
@@ -109,7 +110,7 @@ export class BudgetController {
         return;
       }
 
-      console.log('BudgetController.getBudgetsByDate 请求参数:', {
+      logger.debug('BudgetController.getBudgetsByDate 请求参数:', {
         userId,
         date,
         accountBookId,
@@ -123,7 +124,7 @@ export class BudgetController {
 
       res.status(200).json(budgets);
     } catch (error) {
-      console.error('获取日期预算列表时发生错误:', error);
+      logger.error('获取日期预算列表时发生错误:', error);
       res.status(500).json({ message: '获取日期预算列表时发生错误' });
     }
   }
@@ -143,7 +144,7 @@ export class BudgetController {
 
       // 检查是否为聚合预算ID
       if (budgetId.startsWith('aggregated_')) {
-        console.log('检测到聚合预算ID，返回聚合预算信息');
+        logger.info('检测到聚合预算ID，返回聚合预算信息');
         // 对于聚合预算，返回基本信息（实际上前端不应该调用这个API获取聚合预算详情）
         res.status(200).json({
           id: budgetId,
@@ -281,7 +282,7 @@ export class BudgetController {
       const viewMode = (req.query.viewMode as 'daily' | 'weekly' | 'monthly') || 'monthly';
       const familyMemberId = (req.query.familyMemberId as string) || undefined;
 
-      console.log(
+      logger.info(
         `获取预算趋势，预算ID: ${budgetId}, 视图模式: ${viewMode}, 家庭成员ID: ${
           familyMemberId || '无'
         }`,
@@ -300,10 +301,10 @@ export class BudgetController {
         viewMode,
         familyMemberId,
       );
-      console.log(`获取到预算趋势数据: ${trendData.length} 条记录`);
+      logger.debug(`获取到预算趋势数据: ${trendData.length} 条记录`);
       res.status(200).json(trendData);
     } catch (error) {
-      console.error('获取预算趋势数据失败:', error);
+      logger.error('获取预算趋势数据失败:', error);
       if (error instanceof Error) {
         res.status(404).json({ message: error.message });
       } else {
@@ -325,7 +326,7 @@ export class BudgetController {
 
       const budgetId = req.params.id;
       const familyMemberId = req.query.familyMemberId as string;
-      console.log(`获取预算结转历史，预算ID: ${budgetId}, 家庭成员ID: ${familyMemberId || '无'}`);
+      logger.info(`获取预算结转历史，预算ID: ${budgetId}, 家庭成员ID: ${familyMemberId || '无'}`);
 
       // 获取真实的预算结转历史
       const rolloverHistory = await this.budgetService.getBudgetRolloverHistoryByBudgetId(
@@ -333,12 +334,12 @@ export class BudgetController {
         userId,
         familyMemberId,
       );
-      console.log(`获取到预算结转历史: ${rolloverHistory.length} 条记录`);
+      logger.debug(`获取到预算结转历史: ${rolloverHistory.length} 条记录`);
 
       // 如果没有真实的结转历史，返回空数组而不是模拟数据
       res.status(200).json(rolloverHistory || []);
     } catch (error) {
-      console.error('获取预算结转历史失败:', error);
+      logger.error('获取预算结转历史失败:', error);
       if (error instanceof Error) {
         res.status(404).json({ message: error.message });
       } else {
@@ -366,7 +367,7 @@ export class BudgetController {
 
       // 检查是否为聚合预算ID
       if (budgetId.startsWith('aggregated_')) {
-        console.log('检测到聚合预算ID，使用聚合预算记账逻辑');
+        logger.info('检测到聚合预算ID，使用聚合预算记账逻辑');
         // 对于聚合预算，返回空的记账记录（因为聚合预算是虚拟的）
         res.status(200).json({
           data: [],
@@ -408,7 +409,7 @@ export class BudgetController {
         }
       }
 
-      console.log(
+      logger.info(
         `获取预算相关记账，预算ID: ${budgetId}, 家庭成员ID: ${familyMemberId || '无'}, 包含附件: ${includeAttachments}, 找到 ${
           transactions.data?.length || 0
         } 条记录`,
@@ -476,7 +477,7 @@ export class BudgetController {
       const budgetId = req.params.id;
       const recalculateChain = req.query.recalculateChain !== 'false'; // 默认true
 
-      console.log(`重新计算预算结转，预算ID: ${budgetId}, 重新计算链条: ${recalculateChain}`);
+      logger.info(`重新计算预算结转，预算ID: ${budgetId}, 重新计算链条: ${recalculateChain}`);
 
       // 验证预算是否存在并且用户有权限访问
       const budget = await this.budgetService.getBudgetById(budgetId, userId);
@@ -503,7 +504,7 @@ export class BudgetController {
         rolloverHistory,
       });
     } catch (error) {
-      console.error('重新计算预算结转失败:', error);
+      logger.error('重新计算预算结转失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -525,7 +526,7 @@ export class BudgetController {
 
       const budgetId = req.params.id;
 
-      console.log(`重新计算预算结转链条，起始预算ID: ${budgetId}`);
+      logger.info(`重新计算预算结转链条，起始预算ID: ${budgetId}`);
 
       // 验证预算是否存在并且用户有权限访问
       const budget = await this.budgetService.getBudgetById(budgetId, userId);
@@ -549,7 +550,7 @@ export class BudgetController {
         recalculatedFrom: budgetId,
       });
     } catch (error) {
-      console.error('重新计算预算结转链条失败:', error);
+      logger.error('重新计算预算结转链条失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -577,7 +578,7 @@ export class BudgetController {
         return;
       }
 
-      console.log(`获取家庭成员预算支出，预算ID: ${budgetId}, 成员ID: ${familyMemberId}`);
+      logger.info(`获取家庭成员预算支出，预算ID: ${budgetId}, 成员ID: ${familyMemberId}`);
 
       // 验证预算是否存在并且用户有权限访问
       const budget = await this.budgetService.getBudgetById(budgetId, userId);
@@ -619,7 +620,7 @@ export class BudgetController {
         );
       }
 
-      console.log(`家庭成员 ${familyMember.name} 的支出金额: ${spent}`);
+      logger.info(`家庭成员 ${familyMember.name} 的支出金额: ${spent}`);
 
       res.status(200).json({
         memberId: familyMemberId,
@@ -628,7 +629,7 @@ export class BudgetController {
         isCustodial: familyMember.isCustodial,
       });
     } catch (error) {
-      console.error('获取家庭成员预算支出失败:', error);
+      logger.error('获取家庭成员预算支出失败:', error);
       if (error instanceof Error) {
         res.status(404).json({ message: error.message });
       } else {

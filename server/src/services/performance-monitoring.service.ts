@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { PrismaClient } from '@prisma/client';
 import * as os from 'os';
 import { promisify } from 'util';
@@ -59,9 +60,9 @@ export class PerformanceMonitoringService {
         }
       });
 
-      console.log(`性能监控配置加载完成 - 启用: ${this.isEnabled}, 数据保留: ${this.dataRetentionDays}天`);
+      logger.info(`性能监控配置加载完成 - 启用: ${this.isEnabled}, 数据保留: ${this.dataRetentionDays}天`);
     } catch (error) {
-      console.warn('加载性能监控配置失败，使用默认配置:', error);
+      logger.warn('加载性能监控配置失败，使用默认配置:', error);
     }
   }
 
@@ -109,7 +110,7 @@ export class PerformanceMonitoringService {
           },
         });
       } catch (error) {
-        console.warn(`创建默认配置 ${config.key} 失败:`, error);
+        logger.warn(`创建默认配置 ${config.key} 失败:`, error);
       }
     }
   }
@@ -119,18 +120,18 @@ export class PerformanceMonitoringService {
    */
   async startMonitoring() {
     if (!this.isEnabled) {
-      console.log('性能监控已禁用');
+      logger.info('性能监控已禁用');
       return;
     }
 
-    console.log('启动系统性能监控...');
+    logger.info('启动系统性能监控...');
 
     // 启动磁盘监控（每分钟）
     this.diskIntervalId = setInterval(async () => {
       try {
         await this.collectDiskMetrics();
       } catch (error) {
-        console.error('收集磁盘性能数据失败:', error);
+        logger.error('收集磁盘性能数据失败:', error);
       }
     }, this.diskMonitoringInterval);
 
@@ -140,14 +141,14 @@ export class PerformanceMonitoringService {
         await this.collectCpuMetrics();
         await this.collectMemoryMetrics();
       } catch (error) {
-        console.error('收集CPU/内存性能数据失败:', error);
+        logger.error('收集CPU/内存性能数据失败:', error);
       }
     }, this.cpuMemoryMonitoringInterval);
 
     // 立即收集一次数据
     await this.collectAllMetrics();
 
-    console.log(
+    logger.info(
       `性能监控已启动 - 磁盘监控间隔: ${this.diskMonitoringInterval / 1000}秒, CPU/内存监控间隔: ${
         this.cpuMemoryMonitoringInterval / 1000
       }秒`,
@@ -168,7 +169,7 @@ export class PerformanceMonitoringService {
       this.cpuMemoryIntervalId = undefined;
     }
 
-    console.log('性能监控已停止');
+    logger.info('性能监控已停止');
   }
 
   /**
@@ -204,7 +205,7 @@ export class PerformanceMonitoringService {
         await this.saveMetric(metric);
       }
     } catch (error) {
-      console.error('收集磁盘性能数据失败:', error);
+      logger.error('收集磁盘性能数据失败:', error);
     }
   }
 
@@ -226,7 +227,7 @@ export class PerformanceMonitoringService {
 
       await this.saveMetric(metric);
     } catch (error) {
-      console.error('收集CPU性能数据失败:', error);
+      logger.error('收集CPU性能数据失败:', error);
     }
   }
 
@@ -250,7 +251,7 @@ export class PerformanceMonitoringService {
 
       await this.saveMetric(metric);
     } catch (error) {
-      console.error('收集内存性能数据失败:', error);
+      logger.error('收集内存性能数据失败:', error);
     }
   }
 
@@ -283,7 +284,7 @@ export class PerformanceMonitoringService {
 
       return diskInfo;
     } catch (error) {
-      console.error('获取磁盘空间信息错误:', error);
+      logger.error('获取磁盘空间信息错误:', error);
       return {
         drives: [],
         total: 0,
@@ -328,7 +329,7 @@ export class PerformanceMonitoringService {
         }
       }
     } catch (error) {
-      console.warn('无法使用 wmic 获取磁盘信息:', error);
+      logger.warn('无法使用 wmic 获取磁盘信息:', error);
       // 返回默认驱动器信息
       drives.push({
         drive: 'C:',
@@ -405,7 +406,7 @@ export class PerformanceMonitoringService {
         }
       }
     } catch (error) {
-      console.warn('无法使用 df 获取磁盘信息:', error);
+      logger.warn('无法使用 df 获取磁盘信息:', error);
 
       // 备用方案：添加根目录
       drives.push({
@@ -551,7 +552,7 @@ export class PerformanceMonitoringService {
         )
       `;
     } catch (error) {
-      console.error('保存性能指标失败:', error);
+      logger.error('保存性能指标失败:', error);
     }
   }
 
@@ -566,19 +567,19 @@ export class PerformanceMonitoringService {
         WHERE recorded_at < NOW() - INTERVAL '${this.dataRetentionDays} days'
       `;
 
-      console.log(`清理了 ${result} 条过期性能数据`);
+      logger.info(`清理了 ${result} 条过期性能数据`);
 
       // 执行 VACUUM 回收空间
       try {
         await prisma.$executeRaw`VACUUM ANALYZE system_performance_history`;
-        console.log('已执行 VACUUM，回收表空间');
+        logger.info('已执行 VACUUM，回收表空间');
       } catch (vacuumError) {
-        console.warn('VACUUM 执行失败（可能在事务中）:', vacuumError);
+        logger.warn('VACUUM 执行失败（可能在事务中）:', vacuumError);
       }
 
       return result;
     } catch (error) {
-      console.error('清理过期性能数据失败:', error);
+      logger.error('清理过期性能数据失败:', error);
       return 0;
     }
   }
@@ -631,7 +632,7 @@ export class PerformanceMonitoringService {
       const result = await prisma.$queryRawUnsafe(query, metricType, limit);
       return result;
     } catch (error) {
-      console.error('获取性能历史数据失败:', error);
+      logger.error('获取性能历史数据失败:', error);
       return [];
     }
   }
@@ -666,7 +667,7 @@ export class PerformanceMonitoringService {
         }
       );
     } catch (error) {
-      console.error('获取性能统计信息失败:', error);
+      logger.error('获取性能统计信息失败:', error);
       return {
         avg_value: 0,
         min_value: 0,

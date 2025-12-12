@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { SecurityService } from '../services/security.service';
 import {
@@ -28,7 +29,7 @@ export class SecurityController {
       const securitySettings = await this.securityService.getUserSecurity(userId);
       res.status(200).json(securitySettings);
     } catch (error) {
-      console.error('获取用户安全设置失败:', error);
+      logger.error('获取用户安全设置失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -52,7 +53,7 @@ export class SecurityController {
       await this.securityService.changePassword(userId, passwordData);
       res.status(200).json({ message: '密码修改成功' });
     } catch (error) {
-      console.error('修改密码失败:', error);
+      logger.error('修改密码失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -76,7 +77,7 @@ export class SecurityController {
       await this.securityService.sendEmailVerificationCode(userId, codeData);
       res.status(200).json({ message: '验证码已发送' });
     } catch (error) {
-      console.error('发送验证码失败:', error);
+      logger.error('发送验证码失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -100,7 +101,7 @@ export class SecurityController {
       await this.securityService.changeEmail(userId, emailData);
       res.status(200).json({ message: '邮箱修改成功' });
     } catch (error) {
-      console.error('修改邮箱失败:', error);
+      logger.error('修改邮箱失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -123,7 +124,7 @@ export class SecurityController {
       const sessions = await this.securityService.getUserSessions(userId);
       res.status(200).json({ sessions });
     } catch (error) {
-      console.error('获取登录会话失败:', error);
+      logger.error('获取登录会话失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -147,7 +148,7 @@ export class SecurityController {
       await this.securityService.logoutSession(userId, sessionId);
       res.status(200).json({ message: '设备已登出' });
     } catch (error) {
-      console.error('登出会话失败:', error);
+      logger.error('登出会话失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {
@@ -179,7 +180,7 @@ export class SecurityController {
       const result = await this.securityService.getSecurityLogs(userId, params);
       res.status(200).json(result);
     } catch (error) {
-      console.error('获取安全日志失败:', error);
+      logger.error('获取安全日志失败:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {

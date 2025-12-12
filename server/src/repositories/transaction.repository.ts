@@ -4,6 +4,7 @@ import {
   UpdateTransactionDto,
   TransactionQueryParams,
 } from '../models/transaction.model';
+import { logger } from '../utils/logger';
 
 const prisma = new PrismaClient();
 
@@ -203,7 +204,7 @@ export class TransactionRepository {
       { createdAt: sortOrder },
     ];
 
-    console.log('TransactionRepository.findAll 查询条件:', JSON.stringify(where, null, 2));
+    //console.log('TransactionRepository.findAll 查询条件:', JSON.stringify(where, null, 2));
 
     // 查询总数
     const total = await prisma.transaction.count({ where });
@@ -446,7 +447,7 @@ export class TransactionRepository {
     tagIds?: string[],
     budgetIds?: string[],
   ): Promise<any[]> {
-    console.log('TransactionRepository.findByDateRange 参数:', {
+    logger.debug('TransactionRepository.findByDateRange 参数:', {
       userId,
       type,
       startDate,
@@ -555,7 +556,7 @@ export class TransactionRepository {
       },
     });
 
-    console.log(
+    logger.debug(
       `找到 ${transactions.length} 条记账记录，其中 ${
         transactions.filter((t) => t.category).length
       } 条有关联的分类信息`,
@@ -564,8 +565,8 @@ export class TransactionRepository {
     // 检查是否有记账没有关联到分类
     const transactionsWithoutCategory = transactions.filter((t) => !t.category);
     if (transactionsWithoutCategory.length > 0) {
-      console.log(`警告: ${transactionsWithoutCategory.length} 条记账没有关联到分类`);
-      console.log(
+      logger.info(`警告: ${transactionsWithoutCategory.length} 条记账没有关联到分类`);
+      logger.info(
         '没有分类的记账ID:',
         transactionsWithoutCategory.map((t) => t.id),
       );

@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { StatisticsService } from '../services/statistics.service';
 import { validateDateRangeQuery, validateMonthQuery } from '../validators/statistics.validator';
@@ -68,7 +69,7 @@ export class StatisticsController {
         }
       }
     } catch (error) {
-      console.error('获取支出统计失败:', error);
+      logger.error('获取支出统计失败:', error);
       res.status(500).json({ message: '获取支出统计失败' });
     }
   }
@@ -129,7 +130,7 @@ export class StatisticsController {
         }
       }
     } catch (error) {
-      console.error('获取收入统计失败:', error);
+      logger.error('获取收入统计失败:', error);
       res.status(500).json({ message: '获取收入统计失败' });
     }
   }
@@ -145,7 +146,7 @@ export class StatisticsController {
         return;
       }
 
-      console.log('预算统计请求参数:', {
+      logger.debug('预算统计请求参数:', {
         userId,
         query: req.query,
         headers: req.headers,
@@ -154,7 +155,7 @@ export class StatisticsController {
       // 验证查询参数
       const { error, value } = validateMonthQuery(req.query);
       if (error) {
-        console.error('预算统计参数验证失败:', error.details[0].message);
+        logger.error('预算统计参数验证失败:', error.details[0].message);
         res.status(400).json({ message: error.details[0].message });
         return;
       }
@@ -167,7 +168,7 @@ export class StatisticsController {
       const accountBookId = value.accountBookId;
       const budgetType = value.budgetType as 'PERSONAL' | 'GENERAL' | undefined;
 
-      console.log('预算统计处理参数:', {
+      logger.debug('预算统计处理参数:', {
         userId,
         month,
         familyId,
@@ -184,25 +185,25 @@ export class StatisticsController {
           accountBookId,
           budgetType,
         );
-        console.log('预算统计成功返回');
+        logger.debug('预算统计成功返回');
         res.status(200).json(statistics);
       } catch (error) {
         if (error instanceof Error && error.message === '无权访问此家庭数据') {
-          console.error('预算统计权限错误:', error.message);
+          logger.error('预算统计权限错误:', error.message);
           res.status(403).json({ message: error.message });
         } else if (error instanceof Error && error.message === '无权访问此账本') {
-          console.error('预算统计账本权限错误:', error.message);
+          logger.error('预算统计账本权限错误:', error.message);
           res.status(403).json({ message: error.message });
         } else if (error instanceof Error && error.message.includes('无效的月份格式')) {
-          console.error('预算统计月份格式错误:', error.message);
+          logger.error('预算统计月份格式错误:', error.message);
           res.status(400).json({ message: error.message });
         } else {
-          console.error('预算统计未处理错误:', error);
+          logger.error('预算统计未处理错误:', error);
           throw error;
         }
       }
     } catch (error) {
-      console.error('获取预算执行情况失败:', error);
+      logger.error('获取预算执行情况失败:', error);
       res.status(500).json({ message: '获取预算执行情况失败' });
     }
   }
@@ -271,7 +272,7 @@ export class StatisticsController {
         }
       }
     } catch (error) {
-      console.error('获取财务概览失败:', error);
+      logger.error('获取财务概览失败:', error);
       res.status(500).json({ message: '获取财务概览失败' });
     }
   }
@@ -333,7 +334,7 @@ export class StatisticsController {
         }
       }
     } catch (error) {
-      console.error('获取标签统计失败:', error);
+      logger.error('获取标签统计失败:', error);
       res.status(500).json({ message: '获取标签统计失败' });
     }
   }
@@ -382,7 +383,7 @@ export class StatisticsController {
         }
       }
     } catch (error) {
-      console.error('检查无预算记账失败:', error);
+      logger.error('检查无预算记账失败:', error);
       res.status(500).json({ message: '检查无预算记账失败' });
     }
   }

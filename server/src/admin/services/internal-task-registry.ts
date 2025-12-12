@@ -6,6 +6,8 @@
 /**
  * 内部任务接口
  */
+import { logger } from '../../utils/logger';
+
 export interface InternalTask {
   /** 任务唯一标识 */
   key: string;
@@ -28,7 +30,7 @@ class InternalTaskRegistry {
   private tasks: Map<string, InternalTask> = new Map();
 
   private constructor() {
-    console.log('[内部任务注册表] 初始化');
+    logger.info('[内部任务注册表] 初始化');
   }
 
   /**
@@ -46,10 +48,10 @@ class InternalTaskRegistry {
    */
   register(task: InternalTask): void {
     if (this.tasks.has(task.key)) {
-      console.warn(`[内部任务注册表] 任务已存在，将被覆盖: ${task.key}`);
+      logger.warn(`[内部任务注册表] 任务已存在，将被覆盖: ${task.key}`);
     }
     this.tasks.set(task.key, task);
-    console.log(`[内部任务注册表] 注册任务: ${task.key} - ${task.name}`);
+    logger.info(`[内部任务注册表] 注册任务: ${task.key} - ${task.name}`);
   }
 
   /**
@@ -70,16 +72,16 @@ class InternalTaskRegistry {
       throw new Error(`[内部任务注册表] 任务不存在: ${key}`);
     }
 
-    console.log(`[内部任务注册表] 开始执行任务: ${task.name} (${key})`);
+    logger.info(`[内部任务注册表] 开始执行任务: ${task.name} (${key})`);
     const startTime = Date.now();
 
     try {
       await task.execute(config);
       const duration = Date.now() - startTime;
-      console.log(`[内部任务注册表] 任务执行成功: ${task.name} (耗时: ${duration}ms)`);
+      logger.info(`[内部任务注册表] 任务执行成功: ${task.name} (耗时: ${duration}ms)`);
     } catch (error) {
       const duration = Date.now() - startTime;
-      console.error(`[内部任务注册表] 任务执行失败: ${task.name} (耗时: ${duration}ms)`, error);
+      logger.error(`[内部任务注册表] 任务执行失败: ${task.name} (耗时: ${duration}ms)`, error);
       throw error;
     }
   }
@@ -111,7 +113,7 @@ class InternalTaskRegistry {
   unregister(key: string): boolean {
     const result = this.tasks.delete(key);
     if (result) {
-      console.log(`[内部任务注册表] 取消注册任务: ${key}`);
+      logger.info(`[内部任务注册表] 取消注册任务: ${key}`);
     }
     return result;
   }
@@ -121,7 +123,7 @@ class InternalTaskRegistry {
    */
   clear(): void {
     this.tasks.clear();
-    console.log('[内部任务注册表] 已清空所有任务');
+    logger.info('[内部任务注册表] 已清空所有任务');
   }
 
   /**

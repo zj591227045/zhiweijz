@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { Request, Response } from 'express';
 import { announcementService } from '../../services/user/announcement.service';
 
@@ -20,7 +21,7 @@ export const announcementController = {
         data: announcements,
       });
     } catch (error) {
-      console.error('获取用户公告失败:', error);
+      logger.error('获取用户公告失败:', error);
       res.status(500).json({
         success: false,
         message: '获取公告失败',
@@ -62,7 +63,7 @@ export const announcementController = {
         data: announcement,
       });
     } catch (error) {
-      console.error('获取公告详情失败:', error);
+      logger.error('获取公告详情失败:', error);
       res.status(500).json({
         success: false,
         message: '获取公告详情失败',
@@ -97,7 +98,7 @@ export const announcementController = {
         message: '标记已读成功',
       });
     } catch (error) {
-      console.error('标记已读失败:', error);
+      logger.error('标记已读失败:', error);
       res.status(500).json({
         success: false,
         message: '标记已读失败',
@@ -123,7 +124,7 @@ export const announcementController = {
         message: `已标记 ${count} 条公告为已读`,
       });
     } catch (error) {
-      console.error('标记全部已读失败:', error);
+      logger.error('标记全部已读失败:', error);
       res.status(500).json({
         success: false,
         message: '标记全部已读失败',

@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { AccountBookRepository } from '../repositories/account-book.repository';
 import { AccountLLMSettingRepository } from '../repositories/account-llm-setting.repository';
 import { BudgetRepository } from '../repositories/budget.repository';
@@ -63,7 +64,7 @@ export class AccountBookService {
    */
   private async createDefaultMonthlyBudget(userId: string, accountBookId: string): Promise<void> {
     // 此方法已废弃，不再自动创建预算
-    console.log(`不再为账本 ${accountBookId} 自动创建预算`);
+    logger.info(`不再为账本 ${accountBookId} 自动创建预算`);
     return;
   }
 
@@ -315,7 +316,7 @@ export class AccountBookService {
             UserSettingKey.DEFAULT_ACCOUNT_BOOK_ID,
           );
         } catch (error) {
-          console.error('删除默认账本设置失败:', error);
+          logger.error('删除默认账本设置失败:', error);
           // 继续删除账本，不影响主流程
         }
       }
@@ -415,7 +416,7 @@ export class AccountBookService {
     try {
       await this.createDefaultPersonalBudget(userId, accountBook.id);
     } catch (error) {
-      console.error('创建默认个人预算失败:', error);
+      logger.error('创建默认个人预算失败:', error);
       // 不影响账本创建流程，继续执行
     }
 

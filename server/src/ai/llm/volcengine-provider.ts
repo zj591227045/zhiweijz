@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { ChatOpenAI } from '@langchain/openai';
 import { LLMProvider } from './llm-provider';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
@@ -60,7 +61,7 @@ export class VolcengineProvider implements LLMProvider {
       const response = await model.invoke(prompt);
       return response.content;
     } catch (error) {
-      console.error('火山方舟文本生成失败:', error);
+      logger.error('火山方舟文本生成失败:', error);
       throw new Error(`火山方舟文本生成失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -92,7 +93,7 @@ export class VolcengineProvider implements LLMProvider {
       const response = await model.invoke(langchainMessages);
       return response.content;
     } catch (error) {
-      console.error('火山方舟聊天生成失败:', error);
+      logger.error('火山方舟聊天生成失败:', error);
       throw new Error(`火山方舟聊天生成失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -124,7 +125,7 @@ export class VolcengineProvider implements LLMProvider {
         },
       };
     } catch (error) {
-      console.error('火山方舟文本生成（带使用量）失败:', error);
+      logger.error('火山方舟文本生成（带使用量）失败:', error);
       throw new Error(`火山方舟文本生成失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -171,7 +172,7 @@ export class VolcengineProvider implements LLMProvider {
         },
       };
     } catch (error) {
-      console.error('火山方舟聊天生成（带使用量）失败:', error);
+      logger.error('火山方舟聊天生成（带使用量）失败:', error);
       throw new Error(`火山方舟聊天生成失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }

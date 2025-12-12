@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -82,9 +83,9 @@ export class CompressionStatsService {
         },
       });
 
-      console.log(`压缩统计已记录: ${data.strategy}, 原始: ${data.originalSize}B, 压缩后: ${data.compressedSize}B, 比率: ${data.compressionRatio.toFixed(2)}`);
+      logger.info(`压缩统计已记录: ${data.strategy}, 原始: ${data.originalSize}B, 压缩后: ${data.compressedSize}B, 比率: ${data.compressionRatio.toFixed(2)}`);
     } catch (error) {
-      console.error('记录压缩统计失败:', error);
+      logger.error('记录压缩统计失败:', error);
       // 统计记录失败不应该影响主流程
     }
   }
@@ -119,7 +120,7 @@ export class CompressionStatsService {
 
       return this.aggregateStats(stats);
     } catch (error) {
-      console.error('获取压缩统计失败:', error);
+      logger.error('获取压缩统计失败:', error);
       return this.getEmptyStats();
     }
   }
@@ -158,10 +159,10 @@ export class CompressionStatsService {
         },
       });
 
-      console.log(`清理了 ${result.count} 条过期压缩统计记录`);
+      logger.info(`清理了 ${result.count} 条过期压缩统计记录`);
       return result.count;
     } catch (error) {
-      console.error('清理过期统计数据失败:', error);
+      logger.error('清理过期统计数据失败:', error);
       return 0;
     }
   }
@@ -199,7 +200,7 @@ export class CompressionStatsService {
         spaceSaved: bestSpaceSaved,
       } : null;
     } catch (error) {
-      console.error('获取最佳压缩策略失败:', error);
+      logger.error('获取最佳压缩策略失败:', error);
       return null;
     }
   }
@@ -301,7 +302,7 @@ export class CompressionStatsService {
       });
       return config?.value === 'true';
     } catch (error) {
-      console.error('检查统计配置失败:', error);
+      logger.error('检查统计配置失败:', error);
       return true; // 默认启用
     }
   }
@@ -316,7 +317,7 @@ export class CompressionStatsService {
       });
       return parseInt(config?.value || '30');
     } catch (error) {
-      console.error('获取统计保留配置失败:', error);
+      logger.error('获取统计保留配置失败:', error);
       return 30; // 默认30天
     }
   }

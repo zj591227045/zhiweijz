@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { TransactionType } from '@prisma/client';
 import { BudgetRepository } from '../repositories/budget.repository';
 import { CategoryBudgetRepository } from '../repositories/category-budget.repository';
@@ -63,7 +64,7 @@ export class BudgetTransactionService {
         }
       }
     } catch (error) {
-      console.error('更新预算失败:', error);
+      logger.error('更新预算失败:', error);
     }
   }
 
@@ -80,7 +81,7 @@ export class BudgetTransactionService {
       // 查找"其他"分类
       const otherCategory = await this.categoryRepository.findByName('其他');
       if (!otherCategory) {
-        console.error('未找到"其他"分类');
+        logger.error('未找到"其他"分类');
         return;
       }
 
@@ -93,7 +94,7 @@ export class BudgetTransactionService {
       // 获取预算信息
       const budget = await this.budgetRepository.findById(budgetId);
       if (!budget) {
-        console.error('未找到预算');
+        logger.error('未找到预算');
         return;
       }
 
@@ -130,7 +131,7 @@ export class BudgetTransactionService {
         await this.categoryBudgetRepository.updateSpent(otherBudget.id, newSpent);
       }
     } catch (error) {
-      console.error('获取或创建"其他"分类预算失败:', error);
+      logger.error('获取或创建"其他"分类预算失败:', error);
     }
   }
 }

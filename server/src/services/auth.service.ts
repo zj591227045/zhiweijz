@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { UserService } from './user.service';
 import { CreateUserDto } from '../models/user.model';
 import { LoginResponseDto } from '../models/auth.model';
@@ -63,7 +64,7 @@ export class AuthService {
       try {
         defaultAccountBook = await this.accountBookService.createDefaultAccountBook(newUser.id);
       } catch (accountBookError) {
-        console.error('创建默认账本失败:', accountBookError);
+        logger.error('创建默认账本失败:', accountBookError);
         // 不影响用户注册流程，继续执行
       }
 
@@ -72,7 +73,7 @@ export class AuthService {
         const categoryService = new CategoryService();
         await categoryService.initializeDefaultCategories();
       } catch (categoryError) {
-        console.error('初始化默认分类失败:', categoryError);
+        logger.error('初始化默认分类失败:', categoryError);
         // 不影响用户注册流程，继续执行
       }
 
@@ -93,16 +94,16 @@ export class AuthService {
           });
         }
       } catch (settingError) {
-        console.error('初始化用户设置失败:', settingError);
+        logger.error('初始化用户设置失败:', settingError);
         // 不影响用户注册流程，继续执行
       }
 
       // 为新用户创建记账点账户并赠送注册点数
       try {
         await AccountingPointsService.createUserPointsAccount(newUser.id);
-        console.log('✅ 为新用户创建记账点账户成功，用户ID:', newUser.id);
+        logger.info('✅ 为新用户创建记账点账户成功，用户ID:', newUser.id);
       } catch (pointsError) {
-        console.error('创建记账点账户失败:', pointsError);
+        logger.error('创建记账点账户失败:', pointsError);
         // 不影响用户注册流程，继续执行
       }
 
@@ -163,7 +164,7 @@ export class AuthService {
         throw new Error('发送密码重置邮件失败');
       }
     } catch (error) {
-      console.error('密码重置邮件发送失败:', error);
+      logger.error('密码重置邮件发送失败:', error);
       throw new Error('发送密码重置邮件时发生错误');
     }
   }
@@ -197,7 +198,7 @@ export class AuthService {
       // 标记令牌为已使用
       await this.passwordResetTokenRepository.markAsUsed(resetToken.id);
     } catch (error) {
-      console.error('密码重置失败:', error);
+      logger.error('密码重置失败:', error);
       throw error;
     }
   }
@@ -233,7 +234,7 @@ export class AuthService {
         },
       };
     } catch (error) {
-      console.error('刷新token失败:', error);
+      logger.error('刷新token失败:', error);
       throw error;
     }
   }

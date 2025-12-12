@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import axios from 'axios';
 import FormData from 'form-data';
 import { Readable } from 'stream';
@@ -55,7 +56,7 @@ export class SpeechRecognitionService {
       try {
         await AccountingPointsService.deductPoints(userId, 'voice', AccountingPointsService.POINT_COSTS.voice);
       } catch (pointsError) {
-        console.error('扣除记账点失败:', pointsError);
+        logger.error('扣除记账点失败:', pointsError);
         // 记账点扣除失败不影响返回结果，但需要记录日志
       }
     }
@@ -90,7 +91,7 @@ export class SpeechRecognitionService {
       try {
         await AccountingPointsService.deductPoints(userId, 'voice', AccountingPointsService.POINT_COSTS.voice);
       } catch (pointsError) {
-        console.error('扣除记账点失败:', pointsError);
+        logger.error('扣除记账点失败:', pointsError);
         // 记账点扣除失败不影响返回结果，但需要记录日志
       }
     }
@@ -147,7 +148,7 @@ export class SpeechRecognitionService {
         };
       }
 
-      console.error('语音识别失败:', error);
+      logger.error('语音识别失败:', error);
       return {
         success: false,
         error: '语音识别服务暂时不可用',
@@ -178,7 +179,7 @@ export class SpeechRecognitionService {
           return await this.testSiliconFlowConnection(speechConfig);
       }
     } catch (error) {
-      console.error('测试语音识别连接失败:', error);
+      logger.error('测试语音识别连接失败:', error);
       return false;
     }
   }
@@ -203,7 +204,7 @@ export class SpeechRecognitionService {
 
       return response.status === 200;
     } catch (error) {
-      console.error('测试硅基流动连接失败:', error);
+      logger.error('测试硅基流动连接失败:', error);
       return false;
     }
   }

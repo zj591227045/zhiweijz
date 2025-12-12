@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { UserCategoryConfigService } from '../services/user-category-config.service';
 import { UpdateUserCategoryConfigDto } from '../models/user-category-config.model';
@@ -24,7 +25,7 @@ export class UserCategoryConfigController {
       const configs = await this.userCategoryConfigService.getUserCategoryConfigs(userId);
       res.json(configs);
     } catch (error) {
-      console.error('获取用户分类配置失败:', error);
+      logger.error('获取用户分类配置失败:', error);
       res.status(500).json({ message: '获取用户分类配置失败' });
     }
   }
@@ -67,7 +68,7 @@ export class UserCategoryConfigController {
 
       res.json(result);
     } catch (error) {
-      console.error('更新用户分类配置失败:', error);
+      logger.error('更新用户分类配置失败:', error);
       res.status(500).json({ message: '更新用户分类配置失败' });
     }
   }
@@ -117,7 +118,7 @@ export class UserCategoryConfigController {
 
       res.json(results);
     } catch (error) {
-      console.error('批量更新用户分类配置失败:', error);
+      logger.error('批量更新用户分类配置失败:', error);
       res.status(500).json({ message: '批量更新用户分类配置失败' });
     }
   }

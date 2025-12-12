@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { LLMProvider } from './llm-provider';
 import { OpenAIProvider } from './openai-provider';
 import { SiliconFlowProvider } from './siliconflow-provider';
@@ -62,12 +63,12 @@ export class MultiProviderLLMService {
 
     if (useUnifiedScheduler) {
       // 使用统一调度器时，不启动独立的健康检查
-      console.log('[MultiProviderLLM] 统一调度器模式 - 健康检查由计划任务管理');
+      logger.info('[MultiProviderLLM] 统一调度器模式 - 健康检查由计划任务管理');
       return;
     }
 
     // 传统模式：启动独立健康检查
-    console.log('[MultiProviderLLM] 传统模式 - 启动独立健康检查定时器');
+    logger.info('[MultiProviderLLM] 传统模式 - 启动独立健康检查定时器');
     
     // 每5分钟执行一次健康检查
     this.healthCheckInterval = setInterval(() => {
@@ -103,7 +104,7 @@ export class MultiProviderLLMService {
 
       return multiProviderConfig;
     } catch (error) {
-      console.error('加载多提供商配置失败:', error);
+      logger.error('加载多提供商配置失败:', error);
       return null;
     }
   }
@@ -135,7 +136,7 @@ export class MultiProviderLLMService {
 
       return true;
     } catch (error) {
-      console.error('保存多提供商配置失败:', error);
+      logger.error('保存多提供商配置失败:', error);
       return false;
     }
   }
@@ -251,7 +252,7 @@ export class MultiProviderLLMService {
           responseTime: Date.now() - startTime,
         };
       } catch (error) {
-        console.error(`提供商 ${selectedProvider.name} 调用失败:`, error);
+        logger.error(`提供商 ${selectedProvider.name} 调用失败:`, error);
 
         // 标记该提供商为不健康
         selectedProvider.healthy = false;
@@ -331,7 +332,7 @@ export class MultiProviderLLMService {
           responseTime: Date.now() - startTime,
         };
       } catch (error) {
-        console.error(`提供商 ${selectedProvider.name} 调用失败:`, error);
+        logger.error(`提供商 ${selectedProvider.name} 调用失败:`, error);
 
         // 标记该提供商为不健康
         selectedProvider.healthy = false;
@@ -395,11 +396,11 @@ export class MultiProviderLLMService {
   private async performHealthCheck(): Promise<void> {
     const config = await this.loadMultiProviderConfig();
     if (!config || !config.enabled) {
-      console.log('[LLM健康检查] 多提供商配置未启用，跳过检查');
+      logger.info('[LLM健康检查] 多提供商配置未启用，跳过检查');
       return;
     }
 
-    console.log('[LLM健康检查] 开始检查所有提供商...');
+    logger.info('[LLM健康检查] 开始检查所有提供商...');
 
     const healthCheckPromises = config.providers.map(async (providerInstance) => {
       if (!providerInstance.enabled) return;
@@ -414,12 +415,12 @@ export class MultiProviderLLMService {
 
         const statusIcon = healthStatus.healthy ? '✓' : '✗';
         const statusText = healthStatus.healthy ? '健康' : '异常';
-        console.log(
+        logger.info(
           `[LLM健康检查] ${providerInstance.name}: ${statusIcon} ${statusText}`,
           healthStatus.error ? `- ${healthStatus.error}` : '',
         );
       } catch (error) {
-        console.error(`[LLM健康检查] ${providerInstance.name}: ✗ 检查失败 -`, error);
+        logger.error(`[LLM健康检查] ${providerInstance.name}: ✗ 检查失败 -`, error);
         providerInstance.healthy = false;
         providerInstance.lastHealthCheck = new Date();
         this.providerInstances.set(providerInstance.id, providerInstance);
@@ -443,7 +444,7 @@ export class MultiProviderLLMService {
       
       const healthyCount = config.providers.filter(p => p.healthy && p.enabled).length;
       const totalEnabled = config.providers.filter(p => p.enabled).length;
-      console.log(`[LLM健康检查] 完成 - ${healthyCount}/${totalEnabled} 个提供商健康`);
+      logger.info(`[LLM健康检查] 完成 - ${healthyCount}/${totalEnabled} 个提供商健康`);
     }
   }
 
@@ -641,7 +642,7 @@ export class MultiProviderLLMService {
         };
       }
     } catch (error) {
-      console.error('获取配置优先级信息失败:', error);
+      logger.error('获取配置优先级信息失败:', error);
       throw new Error('获取配置优先级信息失败');
     }
   }

@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { Request, Response } from 'express';
 import { SystemConfigAdminService } from '../services/system-config.admin.service';
 import {
@@ -29,7 +30,7 @@ export class SystemConfigAdminController {
         data: result,
       });
     } catch (error) {
-      console.error('获取系统配置列表错误:', error);
+      logger.error('获取系统配置列表错误:', error);
       res.status(500).json({
         success: false,
         message: '获取系统配置列表失败',
@@ -58,7 +59,7 @@ export class SystemConfigAdminController {
         data: { config },
       });
     } catch (error) {
-      console.error('获取系统配置错误:', error);
+      logger.error('获取系统配置错误:', error);
       res.status(500).json({
         success: false,
         message: '获取系统配置失败',
@@ -92,7 +93,7 @@ export class SystemConfigAdminController {
         message: '系统配置创建成功',
       });
     } catch (error) {
-      console.error('创建系统配置错误:', error);
+      logger.error('创建系统配置错误:', error);
       if (error instanceof Error && error.message.includes('已存在')) {
         res.status(409).json({
           success: false,
@@ -136,7 +137,7 @@ export class SystemConfigAdminController {
         message: '系统配置更新成功',
       });
     } catch (error) {
-      console.error('更新系统配置错误:', error);
+      logger.error('更新系统配置错误:', error);
       if (error instanceof Error && error.message.includes('不存在')) {
         res.status(404).json({
           success: false,
@@ -164,7 +165,7 @@ export class SystemConfigAdminController {
         message: '系统配置删除成功',
       });
     } catch (error) {
-      console.error('删除系统配置错误:', error);
+      logger.error('删除系统配置错误:', error);
       if (error instanceof Error && error.message.includes('不存在')) {
         res.status(404).json({
           success: false,
@@ -205,7 +206,7 @@ export class SystemConfigAdminController {
         message: '批量更新系统配置成功',
       });
     } catch (error) {
-      console.error('批量更新系统配置错误:', error);
+      logger.error('批量更新系统配置错误:', error);
       res.status(500).json({
         success: false,
         message: '批量更新系统配置失败',
@@ -225,7 +226,7 @@ export class SystemConfigAdminController {
         data: { configs },
       });
     } catch (error) {
-      console.error('获取LLM配置错误:', error);
+      logger.error('获取LLM配置错误:', error);
       res.status(500).json({
         success: false,
         message: '获取LLM配置失败',
@@ -258,7 +259,7 @@ export class SystemConfigAdminController {
         message: 'LLM配置更新成功',
       });
     } catch (error) {
-      console.error('更新LLM配置错误:', error);
+      logger.error('更新LLM配置错误:', error);
       res.status(500).json({
         success: false,
         message: '更新LLM配置失败',
@@ -286,7 +287,7 @@ export class SystemConfigAdminController {
         message: 'LLM连接测试完成',
       });
     } catch (error) {
-      console.error('测试LLM连接错误:', error);
+      logger.error('测试LLM连接错误:', error);
       res.status(500).json({
         success: false,
         message: '测试LLM连接失败',
@@ -306,7 +307,7 @@ export class SystemConfigAdminController {
         data: { enabled },
       });
     } catch (error) {
-      console.error('获取注册状态错误:', error);
+      logger.error('获取注册状态错误:', error);
       res.status(500).json({
         success: false,
         message: '获取注册状态失败',
@@ -337,7 +338,7 @@ export class SystemConfigAdminController {
         message: `用户注册已${enabled ? '开放' : '关闭'}`,
       });
     } catch (error) {
-      console.error('切换注册状态错误:', error);
+      logger.error('切换注册状态错误:', error);
       res.status(500).json({
         success: false,
         message: '切换注册状态失败',
@@ -357,7 +358,7 @@ export class SystemConfigAdminController {
         data: configs,
       });
     } catch (error) {
-      console.error('获取全局AI配置错误:', error);
+      logger.error('获取全局AI配置错误:', error);
       res.status(500).json({
         success: false,
         message: '获取全局AI配置失败',
@@ -390,7 +391,7 @@ export class SystemConfigAdminController {
         message: '全局AI配置更新成功',
       });
     } catch (error) {
-      console.error('更新全局AI配置错误:', error);
+      logger.error('更新全局AI配置错误:', error);
       res.status(500).json({
         success: false,
         message: '更新全局AI配置失败',

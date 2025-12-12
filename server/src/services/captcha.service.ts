@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import {
   CaptchaTokenData,
   CaptchaVerifyRequest,
@@ -56,7 +57,7 @@ export class CaptchaService {
         message: '验证成功',
       };
     } catch (error) {
-      console.error('验证码验证失败:', error);
+      logger.error('验证码验证失败:', error);
       return {
         success: false,
         message: '验证失败',
@@ -84,7 +85,7 @@ export class CaptchaService {
 
       return null;
     } catch (error) {
-      console.error('解码验证码token失败:', error);
+      logger.error('解码验证码token失败:', error);
       return null;
     }
   }

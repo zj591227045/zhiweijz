@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { CaptchaService } from '../services/captcha.service';
 import { CaptchaVerifyRequest } from '../models/captcha.model';
@@ -40,7 +41,7 @@ export class CaptchaController {
         res.status(400).json(result);
       }
     } catch (error) {
-      console.error('验证码验证失败:', error);
+      logger.error('验证码验证失败:', error);
       res.status(500).json({
         success: false,
         message: '服务器错误',
@@ -70,7 +71,7 @@ export class CaptchaController {
         message: '测试验证码生成成功',
       });
     } catch (error) {
-      console.error('生成测试验证码失败:', error);
+      logger.error('生成测试验证码失败:', error);
       res.status(500).json({
         success: false,
         message: '服务器错误',

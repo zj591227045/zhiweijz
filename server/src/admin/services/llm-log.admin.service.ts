@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -194,7 +195,7 @@ export class LLMLogAdminService {
         },
       };
     } catch (error) {
-      console.error('获取LLM调用日志列表错误:', error);
+      logger.error('获取LLM调用日志列表错误:', error);
       throw new Error('获取LLM调用日志列表失败');
     }
   }
@@ -359,7 +360,7 @@ export class LLMLogAdminService {
           })),
       };
     } catch (error) {
-      console.error('获取LLM调用统计错误:', error);
+      logger.error('获取LLM调用统计错误:', error);
       throw new Error('获取LLM调用统计失败');
     }
   }
@@ -376,7 +377,7 @@ export class LLMLogAdminService {
 
       return log;
     } catch (error) {
-      console.error('获取LLM调用日志详情错误:', error);
+      logger.error('获取LLM调用日志详情错误:', error);
       throw new Error('获取LLM调用日志详情失败');
     }
   }
@@ -400,7 +401,7 @@ export class LLMLogAdminService {
 
       return true;
     } catch (error) {
-      console.error('删除LLM调用日志错误:', error);
+      logger.error('删除LLM调用日志错误:', error);
       if (error instanceof Error && error.message.includes('不存在')) {
         throw error;
       }
@@ -426,7 +427,7 @@ export class LLMLogAdminService {
         totalCount: ids.length,
       };
     } catch (error) {
-      console.error('批量删除LLM调用日志错误:', error);
+      logger.error('批量删除LLM调用日志错误:', error);
       throw new Error('批量删除LLM调用日志失败');
     }
   }
@@ -452,7 +453,7 @@ export class LLMLogAdminService {
         cutoffDate,
       };
     } catch (error) {
-      console.error('清理过期LLM调用日志错误:', error);
+      logger.error('清理过期LLM调用日志错误:', error);
       throw new Error('清理过期LLM调用日志失败');
     }
   }
@@ -533,7 +534,7 @@ export class LLMLogAdminService {
 
       return logs;
     } catch (error) {
-      console.error('导出LLM调用日志错误:', error);
+      logger.error('导出LLM调用日志错误:', error);
       throw new Error('导出LLM调用日志失败');
     }
   }

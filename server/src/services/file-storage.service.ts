@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { PrismaClient } from '@prisma/client';
 import { S3StorageService, S3Config } from './s3-storage.service';
 import {
@@ -50,7 +51,7 @@ export class FileStorageService {
       this.s3Service = null;
       this.config = await this.getStorageConfig();
 
-      console.log('🔄 重新初始化存储服务，配置:', {
+      logger.info('🔄 重新初始化存储服务，配置:', {
         enabled: this.config.enabled,
         endpoint: this.config.endpoint,
         accessKeyId: this.config.accessKeyId ? `${this.config.accessKeyId.substring(0, 4)}...` : 'null',
@@ -59,7 +60,7 @@ export class FileStorageService {
       if (this.config.enabled && this.config.storageType === FileStorageType.S3) {
         // 检查必要的配置是否存在
         if (!this.config.endpoint || !this.config.accessKeyId || !this.config.secretAccessKey) {
-          console.warn('S3存储已启用但配置不完整，跳过初始化');
+          logger.warn('S3存储已启用但配置不完整，跳过初始化');
           return;
         }
 
@@ -74,7 +75,7 @@ export class FileStorageService {
           forcePathStyle: needsPathStyle,
         };
 
-        console.log('🔧 S3配置详情:', {
+        logger.info('🔧 S3配置详情:', {
           endpoint: s3Config.endpoint,
           region: s3Config.region,
           forcePathStyle: s3Config.forcePathStyle,
@@ -84,12 +85,12 @@ export class FileStorageService {
 
         // 确保所有必要的存储桶存在
         await this.ensureBucketsExist();
-        console.log('✅ S3存储服务初始化成功');
+        logger.info('✅ S3存储服务初始化成功');
       } else {
-        console.log('⚠️ S3存储未启用，跳过初始化');
+        logger.info('⚠️ S3存储未启用，跳过初始化');
       }
     } catch (error) {
-      console.error('❌ 存储服务初始化失败:', error);
+      logger.error('❌ 存储服务初始化失败:', error);
       this.s3Service = null; // 确保在失败时重置服务
     }
   }
@@ -112,7 +113,7 @@ export class FileStorageService {
    * 重新加载存储配置
    */
   async reloadConfig(): Promise<void> {
-    console.log('重新加载存储配置...');
+    logger.info('重新加载存储配置...');
     await this.initializeStorage();
   }
 
@@ -137,36 +138,36 @@ export class FileStorageService {
         lowerEndpoint.includes('172.2') ||
         lowerEndpoint.includes('172.30.') ||
         lowerEndpoint.includes('172.31.')) {
-      console.log('🔧 检测到MinIO或本地服务，使用路径样式');
+      logger.info('🔧 检测到MinIO或本地服务，使用路径样式');
       return true;
     }
 
     // AWS S3官方服务不需要路径样式（除非是特定区域）
     if (lowerEndpoint.includes('amazonaws.com')) {
-      console.log('🔧 检测到AWS S3，使用虚拟主机样式');
+      logger.info('🔧 检测到AWS S3，使用虚拟主机样式');
       return false;
     }
 
     // 腾讯云COS不需要路径样式
     if (lowerEndpoint.includes('myqcloud.com')) {
-      console.log('🔧 检测到腾讯云COS，使用虚拟主机样式');
+      logger.info('🔧 检测到腾讯云COS，使用虚拟主机样式');
       return false;
     }
 
     // 阿里云OSS不需要路径样式
     if (lowerEndpoint.includes('aliyuncs.com')) {
-      console.log('🔧 检测到阿里云OSS，使用虚拟主机样式');
+      logger.info('🔧 检测到阿里云OSS，使用虚拟主机样式');
       return false;
     }
 
     // 华为云OBS不需要路径样式
     if (lowerEndpoint.includes('myhuaweicloud.com')) {
-      console.log('🔧 检测到华为云OBS，使用虚拟主机样式');
+      logger.info('🔧 检测到华为云OBS，使用虚拟主机样式');
       return false;
     }
 
     // 默认情况下，对于未知的服务，使用路径样式（更兼容）
-    console.log('🔧 未知S3服务，默认使用路径样式');
+    logger.info('🔧 未知S3服务，默认使用路径样式');
     return true;
   }
 
@@ -174,10 +175,10 @@ export class FileStorageService {
    * 获取存储服务状态
    */
   async getStorageStatus(): Promise<{ enabled: boolean; configured: boolean; healthy: boolean; message: string }> {
-    console.log('🔍 检查存储服务状态...');
+    logger.info('🔍 检查存储服务状态...');
 
     if (!this.config) {
-      console.log('❌ 存储配置未加载');
+      logger.info('❌ 存储配置未加载');
       return {
         enabled: false,
         configured: false,
@@ -186,14 +187,14 @@ export class FileStorageService {
       };
     }
 
-    console.log('📋 当前存储配置:', {
+    logger.info('📋 当前存储配置:', {
       enabled: this.config.enabled,
       endpoint: this.config.endpoint,
       accessKeyId: this.config.accessKeyId ? `${this.config.accessKeyId.substring(0, 4)}...` : 'null',
     });
 
     if (!this.config.enabled) {
-      console.log('⚠️ S3存储未启用');
+      logger.info('⚠️ S3存储未启用');
       return {
         enabled: false,
         configured: false,
@@ -203,7 +204,7 @@ export class FileStorageService {
     }
 
     if (!this.s3Service) {
-      console.log('❌ S3服务实例不存在，配置可能不完整');
+      logger.info('❌ S3服务实例不存在，配置可能不完整');
       return {
         enabled: true,
         configured: false,
@@ -214,7 +215,7 @@ export class FileStorageService {
 
     // 测试连接健康状态
     try {
-      console.log('🔗 测试S3连接...');
+      logger.info('🔗 测试S3连接...');
       const isHealthy = await this.s3Service.testConnection();
       const status = {
         enabled: true,
@@ -222,10 +223,10 @@ export class FileStorageService {
         healthy: isHealthy,
         message: isHealthy ? 'S3存储服务正常' : 'S3存储连接异常',
       };
-      console.log('📊 存储状态检查结果:', status);
+      logger.info('📊 存储状态检查结果:', status);
       return status;
     } catch (error) {
-      console.error('❌ S3连接测试失败:', error);
+      logger.error('❌ S3连接测试失败:', error);
       return {
         enabled: true,
         configured: true,
@@ -388,7 +389,7 @@ export class FileStorageService {
       try {
         await this.s3Service.deleteFile(fileStorage.bucket, fileStorage.key);
       } catch (error) {
-        console.error('Failed to delete file from S3:', error);
+        logger.error('Failed to delete file from S3:', error);
         // 继续执行数据库删除，即使S3删除失败
       }
     }
@@ -530,7 +531,7 @@ export class FileStorageService {
       try {
         await this.s3Service.createBucket(bucket);
       } catch (error) {
-        console.error(`Failed to create bucket ${bucket}:`, error);
+        logger.error(`Failed to create bucket ${bucket}:`, error);
       }
     }
   }
@@ -589,7 +590,7 @@ export class FileStorageService {
 
         deletedCount++;
       } catch (error) {
-        console.error(`Failed to cleanup expired file ${file.id}:`, error);
+        logger.error(`Failed to cleanup expired file ${file.id}:`, error);
       }
     }
 

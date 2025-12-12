@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt';
 import prisma from '../config/database';
@@ -66,7 +67,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
       // 如果是注销相关的请求，允许通过
       const allowedPaths = ['/me/deletion-status', '/me/cancel-deletion', '/me/request-deletion'];
 
-      console.log('🔍 [Auth Middleware] 冷静期检查:', {
+      logger.info('🔍 [Auth Middleware] 冷静期检查:', {
         path: req.path,
         isAllowed: allowedPaths.includes(req.path),
         allowedPaths,
@@ -85,7 +86,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
       }
 
       // 如果是允许的路径，继续执行，但记录日志
-      console.log('✅ [Auth Middleware] 允许冷静期用户访问:', req.path);
+      logger.info('✅ [Auth Middleware] 允许冷静期用户访问:', req.path);
     }
 
     // 将用户信息添加到请求对象中
@@ -95,7 +96,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
       name: user.name,
     };
 
-    console.log('✅ [Auth Middleware] 用户认证成功:', {
+    logger.debug('✅ [Auth Middleware] 用户认证成功:', {
       userId: decoded.id,
       email: decoded.email,
       path: req.path

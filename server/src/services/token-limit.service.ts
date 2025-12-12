@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import prisma from '../config/database';
 
 /**
@@ -31,7 +32,7 @@ export class TokenLimitService {
       const globalLimit = await this.getGlobalDailyTokenLimit();
       return globalLimit;
     } catch (error) {
-      console.error('获取用户每日Token限额失败:', error);
+      logger.error('获取用户每日Token限额失败:', error);
       // 出错时返回默认限额
       return 50000;
     }
@@ -48,7 +49,7 @@ export class TokenLimitService {
 
       return config ? parseInt(config.value || '50000') : 50000;
     } catch (error) {
-      console.error('获取全局Token限额失败:', error);
+      logger.error('获取全局Token限额失败:', error);
       return 50000;
     }
   }
@@ -64,7 +65,7 @@ export class TokenLimitService {
 
       return config ? config.value === 'true' : true;
     } catch (error) {
-      console.error('检查Token限制功能状态失败:', error);
+      logger.error('检查Token限制功能状态失败:', error);
       return true; // 默认启用
     }
   }
@@ -80,7 +81,7 @@ export class TokenLimitService {
 
       return config ? config.value === 'true' : true;
     } catch (error) {
-      console.error('检查Token限制强制执行状态失败:', error);
+      logger.error('检查Token限制强制执行状态失败:', error);
       return true; // 默认强制执行
     }
   }
@@ -110,7 +111,7 @@ export class TokenLimitService {
 
       return Number(result._sum.totalTokens) || 0;
     } catch (error) {
-      console.error('获取今日已使用Token数量失败:', error);
+      logger.error('获取今日已使用Token数量失败:', error);
       return 0;
     }
   }
@@ -168,7 +169,7 @@ export class TokenLimitService {
         remainingTokens,
       };
     } catch (error) {
-      console.error('检查Token使用权限失败:', error);
+      logger.error('检查Token使用权限失败:', error);
       // 出错时允许使用，但记录错误
       return {
         canUse: true,
@@ -190,7 +191,7 @@ export class TokenLimitService {
         data: { dailyLlmTokenLimit: dailyLimit },
       });
     } catch (error) {
-      console.error('设置用户Token限额失败:', error);
+      logger.error('设置用户Token限额失败:', error);
       throw new Error('设置用户Token限额失败');
     }
   }
@@ -214,7 +215,7 @@ export class TokenLimitService {
         },
       });
     } catch (error) {
-      console.error('设置全局Token限额失败:', error);
+      logger.error('设置全局Token限额失败:', error);
       throw new Error('设置全局Token限额失败');
     }
   }
@@ -250,7 +251,7 @@ export class TokenLimitService {
         isPersonalLimit,
       };
     } catch (error) {
-      console.error('获取用户Token统计失败:', error);
+      logger.error('获取用户Token统计失败:', error);
       throw new Error('获取用户Token统计失败');
     }
   }
@@ -283,7 +284,7 @@ export class TokenLimitService {
         },
       });
     } catch (error) {
-      console.error('设置Token限制功能开关失败:', error);
+      logger.error('设置Token限制功能开关失败:', error);
       throw new Error('设置Token限制功能开关失败');
     }
   }
@@ -369,7 +370,7 @@ export class TokenLimitService {
         },
       };
     } catch (error) {
-      console.error('获取用户Token限额列表失败:', error);
+      logger.error('获取用户Token限额列表失败:', error);
       throw new Error('获取用户Token限额列表失败');
     }
   }
@@ -386,7 +387,7 @@ export class TokenLimitService {
 
       return { count: result.count };
     } catch (error) {
-      console.error('批量设置用户Token限额失败:', error);
+      logger.error('批量设置用户Token限额失败:', error);
       throw new Error('批量设置用户Token限额失败');
     }
   }
@@ -462,7 +463,7 @@ export class TokenLimitService {
         },
       };
     } catch (error) {
-      console.error('获取Token使用量趋势失败:', error);
+      logger.error('获取Token使用量趋势失败:', error);
       throw new Error('获取Token使用量趋势失败');
     }
   }

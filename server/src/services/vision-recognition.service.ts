@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import axios from 'axios';
 import {
   VisionRecognitionRequest,
@@ -53,7 +54,7 @@ export class VisionRecognitionService {
       try {
         await AccountingPointsService.deductPoints(userId, 'image', AccountingPointsService.POINT_COSTS.image);
       } catch (pointsError) {
-        console.error('扣除记账点失败:', pointsError);
+        logger.error('扣除记账点失败:', pointsError);
         // 记账点扣除失败不影响返回结果，但需要记录日志
       }
     }
@@ -88,7 +89,7 @@ export class VisionRecognitionService {
       try {
         await AccountingPointsService.deductPoints(userId, 'image', AccountingPointsService.POINT_COSTS.image);
       } catch (pointsError) {
-        console.error('扣除记账点失败:', pointsError);
+        logger.error('扣除记账点失败:', pointsError);
         // 记账点扣除失败不影响返回结果，但需要记录日志
       }
     }
@@ -143,7 +144,7 @@ export class VisionRecognitionService {
         };
       }
 
-      console.error('图片识别失败:', error);
+      logger.error('图片识别失败:', error);
       return {
         success: false,
         error: '图片识别服务暂时不可用',
@@ -168,7 +169,7 @@ export class VisionRecognitionService {
       // 使用提供商管理器测试连接
       return await this.providerManager.testProviderConnection(visionConfig);
     } catch (error) {
-      console.error('测试视觉识别连接失败:', error);
+      logger.error('测试视觉识别连接失败:', error);
       return false;
     }
   }
@@ -190,7 +191,7 @@ export class VisionRecognitionService {
       }
 
       // 其他错误转换为多模态AI错误
-      console.error('视觉识别API调用失败:', error);
+      logger.error('视觉识别API调用失败:', error);
       throw new MultimodalAIError(
         MultimodalAIErrorType.API_ERROR,
         `视觉识别失败: ${error instanceof Error ? error.message : String(error)}`

@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
 
@@ -51,7 +52,7 @@ export function trackAccess(req: Request, res: Response, next: NextFunction): vo
       try {
         await recordAccess(req, res, duration);
       } catch (error) {
-        console.error('记录访问日志失败:', error);
+        logger.error('记录访问日志失败:', error);
       }
     });
 
@@ -108,7 +109,7 @@ async function recordAccess(req: Request, res: Response, duration: number): Prom
       });
     }
   } catch (error) {
-    console.error('记录访问数据失败:', error);
+    logger.error('记录访问数据失败:', error);
     // 不抛出错误，避免影响正常请求
   }
 }
@@ -186,7 +187,7 @@ export function trackApiCall(req: Request, res: Response, next: NextFunction): v
       try {
         await recordApiCall(req, res, duration);
       } catch (error) {
-        console.error('记录API调用日志失败:', error);
+        logger.error('记录API调用日志失败:', error);
       }
     });
 
@@ -226,6 +227,6 @@ async function recordApiCall(req: Request, res: Response, duration: number): Pro
 
     // API调用跟踪日志已移除，避免日志过多
   } catch (error) {
-    console.error('记录API调用数据失败:', error);
+    logger.error('记录API调用数据失败:', error);
   }
 }

@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { PrismaClient } from '@prisma/client';
 import {
   FullMultimodalAIConfig,
@@ -34,15 +35,15 @@ export class MultimodalAIConfigService {
         },
       });
 
-      console.log('🔍 [配置服务] 从数据库获取到的配置数量:', configs.length);
-      console.log('🔍 [配置服务] 获取到的配置键名:', configs.map(c => c.key));
+      logger.info('🔍 [配置服务] 从数据库获取到的配置数量:', configs.length);
+      logger.info('🔍 [配置服务] 获取到的配置键名:', configs.map(c => c.key));
       
       const configMap = configs.reduce((acc, config) => {
         acc[config.key] = config.value || '';
         return acc;
       }, {} as Record<string, string>);
       
-      console.log('🔍 [配置服务] 智能记账相关配置键:', {
+      logger.info('🔍 [配置服务] 智能记账相关配置键:', {
         hasRelevanceCheck: !!configMap.smart_accounting_relevance_check_prompt,
         hasSmartAccounting: !!configMap.smart_accounting_prompt,
         hasImageAnalysis: !!configMap.smart_accounting_image_analysis_prompt,
@@ -55,7 +56,7 @@ export class MultimodalAIConfigService {
         smartAccounting: this.parseSmartAccountingConfig(configMap),
       };
       
-      console.log('🔍 [配置服务] 最终返回的智能记账配置长度:', {
+      logger.info('🔍 [配置服务] 最终返回的智能记账配置长度:', {
         relevanceCheck: result.smartAccounting.relevanceCheckPrompt.length,
         smartAccounting: result.smartAccounting.smartAccountingPrompt.length,
         imageAnalysis: result.smartAccounting.imageAnalysisPrompt.length,
@@ -64,7 +65,7 @@ export class MultimodalAIConfigService {
       
       return result;
     } catch (error) {
-      console.error('获取多模态AI配置失败:', error);
+      logger.error('获取多模态AI配置失败:', error);
       return DEFAULT_MULTIMODAL_CONFIG;
     }
   }
@@ -180,7 +181,7 @@ export class MultimodalAIConfigService {
       // 暂时返回基本的配置验证结果
       return !!(speechConfig.provider && speechConfig.model && speechConfig.baseUrl);
     } catch (error) {
-      console.error('测试语音识别配置失败:', error);
+      logger.error('测试语音识别配置失败:', error);
       return false;
     }
   }
@@ -200,7 +201,7 @@ export class MultimodalAIConfigService {
       // 暂时返回基本的配置验证结果
       return !!(visionConfig.provider && visionConfig.model && visionConfig.baseUrl);
     } catch (error) {
-      console.error('测试视觉识别配置失败:', error);
+      logger.error('测试视觉识别配置失败:', error);
       return false;
     }
   }
@@ -272,7 +273,7 @@ export class MultimodalAIConfigService {
    * 解析智能记账配置
    */
   private parseSmartAccountingConfig(configMap: Record<string, string>): SmartAccountingMultimodalConfig {
-    console.log('🔍 [解析配置] 数据库原始配置值:', {
+    logger.info('🔍 [解析配置] 数据库原始配置值:', {
       multimodal: configMap.smart_accounting_multimodal_prompt?.length || 0,
       relevance: configMap.smart_accounting_relevance_check_prompt?.length || 0,
       smartAccounting: configMap.smart_accounting_prompt?.length || 0,
@@ -321,7 +322,7 @@ export class MultimodalAIConfigService {
         await Promise.all(updatePromises);
       });
     } catch (error) {
-      console.error('批量更新配置失败:', error);
+      logger.error('批量更新配置失败:', error);
       throw new Error('批量更新配置失败');
     }
   }

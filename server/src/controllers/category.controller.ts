@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { TransactionType, PrismaClient } from '@prisma/client';
 import { CategoryService } from '../services/category.service';
@@ -20,7 +21,7 @@ export class CategoryController {
       const count = await this.categoryService.initializeDefaultCategories();
       res.status(200).json({ message: `成功初始化 ${count} 个默认分类` });
     } catch (error) {
-      console.error('初始化默认分类时发生错误:', error);
+      logger.error('初始化默认分类时发生错误:', error);
       if (error instanceof Error) {
         res.status(500).json({ message: `初始化默认分类时发生错误: ${error.message}` });
       } else {
@@ -68,7 +69,7 @@ export class CategoryController {
       const accountBookId = req.query.accountBookId as string | undefined;
       const includeHidden = req.query.includeHidden === 'true';
 
-      console.log('CategoryController.getCategories 参数:', {
+      logger.debug('CategoryController.getCategories 参数:', {
         userId,
         type,
         familyId,
@@ -102,7 +103,7 @@ export class CategoryController {
 
         if (accountBook && accountBook.familyId) {
           effectiveFamilyId = accountBook.familyId;
-          console.log(`从账本 ${accountBookId} 获取到家庭ID: ${effectiveFamilyId}`);
+          logger.info(`从账本 ${accountBookId} 获取到家庭ID: ${effectiveFamilyId}`);
         }
       }
 
@@ -114,7 +115,7 @@ export class CategoryController {
       );
       res.status(200).json(categories);
     } catch (error) {
-      console.error('获取分类列表失败:', error);
+      logger.error('获取分类列表失败:', error);
       res.status(500).json({ message: '获取分类列表时发生错误' });
     }
   }
@@ -195,33 +196,33 @@ export class CategoryController {
         return;
       }
 
-      console.log('收到分类排序请求，请求体:', JSON.stringify(req.body));
+      logger.info('收到分类排序请求，请求体:', JSON.stringify(req.body));
 
       const { categoryIds, type } = req.body;
 
       if (!categoryIds || !Array.isArray(categoryIds) || categoryIds.length === 0) {
-        console.log('分类ID列表不能为空:', categoryIds);
+        logger.info('分类ID列表不能为空:', categoryIds);
         res.status(400).json({ message: '分类ID列表不能为空' });
         return;
       }
 
       if (!type || !['EXPENSE', 'INCOME'].includes(type)) {
-        console.log('分类类型必须为EXPENSE或INCOME:', type);
+        logger.info('分类类型必须为EXPENSE或INCOME:', type);
         res.status(400).json({ message: '分类类型必须为EXPENSE或INCOME' });
         return;
       }
 
-      console.log(
+      logger.info(
         `开始更新分类排序，用户ID: ${userId}, 分类类型: ${type}, 分类IDs: ${categoryIds.join(
           ', ',
         )}`,
       );
 
       await this.categoryService.updateCategoryOrder(userId, categoryIds, type);
-      console.log('分类排序更新成功');
+      logger.info('分类排序更新成功');
       res.status(200).json({ message: '分类排序更新成功' });
     } catch (error) {
-      console.error('更新分类排序时发生错误:', error);
+      logger.error('更新分类排序时发生错误:', error);
       if (error instanceof Error) {
         res.status(400).json({ message: error.message });
       } else {

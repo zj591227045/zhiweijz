@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { SystemConfigService } from '../services/system-config.service';
 import { LLMProviderService } from '../ai/llm/llm-provider-service';
@@ -29,10 +30,10 @@ export class SystemConfigController {
       if (userId) {
         // 🔥🔥 最高优先级：检查用户级别的AI服务启用状态
         const userAIEnabled = await this.systemConfigService.getUserAIServiceEnabled(userId);
-        console.log(`🔍 [getGlobalAIConfig] 用户 ${userId} 的AI服务启用状态: ${userAIEnabled}`);
+        logger.info(`🔍 [getGlobalAIConfig] 用户 ${userId} 的AI服务启用状态: ${userAIEnabled}`);
 
         if (!userAIEnabled) {
-          console.log(`❌ [getGlobalAIConfig] 用户已禁用AI服务，返回禁用状态`);
+          logger.info(`❌ [getGlobalAIConfig] 用户已禁用AI服务，返回禁用状态`);
           res.json({
             success: true,
             data: {
@@ -51,17 +52,17 @@ export class SystemConfigController {
 
         // 🔥 其次获取用户的AI服务类型选择
         const userServiceType = await this.systemConfigService.getUserAIServiceType(userId);
-        console.log(`🔍 [getGlobalAIConfig] 用户 ${userId} 的AI服务类型: ${userServiceType}`);
+        logger.info(`🔍 [getGlobalAIConfig] 用户 ${userId} 的AI服务类型: ${userServiceType}`);
 
         if (userServiceType === 'custom') {
           // 🔥 用户选择了自定义服务，返回自定义服务信息
-          console.log(`🔍 [getGlobalAIConfig] 用户选择了自定义服务，获取自定义配置`);
+          logger.info(`🔍 [getGlobalAIConfig] 用户选择了自定义服务，获取自定义配置`);
 
           // 获取用户的自定义LLM设置
           const userLLMSetting = await this.llmProviderService.getUserDefaultLLMSetting(userId);
 
           if (userLLMSetting) {
-            console.log(`✅ [getGlobalAIConfig] 返回用户自定义LLM配置: ${userLLMSetting.name}`);
+            logger.info(`✅ [getGlobalAIConfig] 返回用户自定义LLM配置: ${userLLMSetting.name}`);
             res.json({
               success: true,
               data: {
@@ -79,10 +80,10 @@ export class SystemConfigController {
             });
             return;
           } else {
-            console.log(`⚠️ [getGlobalAIConfig] 用户选择了自定义服务但没有找到配置，检查全局服务`);
+            logger.info(`⚠️ [getGlobalAIConfig] 用户选择了自定义服务但没有找到配置，检查全局服务`);
             // 没有找到自定义配置，检查全局服务是否启用
             if (!globalConfig.enabled) {
-              console.log(`❌ [getGlobalAIConfig] 全局AI服务未启用，返回禁用状态`);
+              logger.info(`❌ [getGlobalAIConfig] 全局AI服务未启用，返回禁用状态`);
               res.json({
                 success: true,
                 data: {
@@ -103,7 +104,7 @@ export class SystemConfigController {
 
         // 🔥 用户选择了官方服务，或者自定义服务回退，检查全局服务状态
         if (!globalConfig.enabled) {
-          console.log(`❌ [getGlobalAIConfig] 全局AI服务未启用，返回禁用状态`);
+          logger.info(`❌ [getGlobalAIConfig] 全局AI服务未启用，返回禁用状态`);
           res.json({
             success: true,
             data: {
@@ -120,7 +121,7 @@ export class SystemConfigController {
           return;
         }
 
-        console.log(`🔍 [getGlobalAIConfig] 使用官方AI服务逻辑`);
+        logger.info(`🔍 [getGlobalAIConfig] 使用官方AI服务逻辑`);
         const settings = await this.llmProviderService.getLLMSettings(userId);
 
         // 如果是多提供商模式，返回多提供商配置信息
@@ -178,7 +179,7 @@ export class SystemConfigController {
         },
       });
     } catch (error) {
-      console.error('获取全局AI配置错误:', error);
+      logger.error('获取全局AI配置错误:', error);
       res.status(500).json({
         success: false,
         message: '获取全局AI配置失败',
@@ -198,7 +199,7 @@ export class SystemConfigController {
         data: status,
       });
     } catch (error) {
-      console.error('获取AI服务状态错误:', error);
+      logger.error('获取AI服务状态错误:', error);
       res.status(500).json({
         success: false,
         message: '获取AI服务状态失败',
@@ -231,7 +232,7 @@ export class SystemConfigController {
         data: usage,
       });
     } catch (error) {
-      console.error('获取TOKEN使用量错误:', error);
+      logger.error('获取TOKEN使用量错误:', error);
       res.status(500).json({
         success: false,
         message: '获取TOKEN使用量失败',
@@ -260,7 +261,7 @@ export class SystemConfigController {
         data: usage,
       });
     } catch (error) {
-      console.error('获取今日TOKEN使用量错误:', error);
+      logger.error('获取今日TOKEN使用量错误:', error);
       res.status(500).json({
         success: false,
         message: '获取今日TOKEN使用量失败',
@@ -302,7 +303,7 @@ export class SystemConfigController {
         },
       });
     } catch (error) {
-      console.error('获取用户AI服务类型错误:', error);
+      logger.error('获取用户AI服务类型错误:', error);
       res.status(500).json({
         success: false,
         message: '获取用户AI服务类型失败',
@@ -338,7 +339,7 @@ export class SystemConfigController {
         message: result.message,
       });
     } catch (error) {
-      console.error('切换AI服务类型错误:', error);
+      logger.error('切换AI服务类型错误:', error);
       res.status(500).json({
         success: false,
         message: '切换AI服务类型失败',
@@ -368,7 +369,7 @@ export class SystemConfigController {
         data: { enabled },
       });
     } catch (error) {
-      console.error('获取用户AI服务状态错误:', error);
+      logger.error('获取用户AI服务状态错误:', error);
       res.status(500).json({
         success: false,
         message: '获取用户AI服务状态失败',
@@ -399,7 +400,7 @@ export class SystemConfigController {
         message: enabled ? 'AI服务已启用' : 'AI服务已禁用',
       });
     } catch (error) {
-      console.error('切换用户AI服务状态错误:', error);
+      logger.error('切换用户AI服务状态错误:', error);
       res.status(500).json({
         success: false,
         message: '切换AI服务状态失败',
@@ -437,7 +438,7 @@ export class SystemConfigController {
         responseTime,
       });
     } catch (error) {
-      console.error('测试AI服务连接错误:', error);
+      logger.error('测试AI服务连接错误:', error);
       res.status(500).json({
         success: false,
         message: '测试AI服务连接失败',

@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import express from 'express';
 import AccountingPointsService from '../services/accounting-points.service';
 import { authenticate } from '../middlewares/auth.middleware';
@@ -12,10 +13,10 @@ const router = express.Router();
 router.get('/balance', authenticate, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
-    console.log('🔍 [BalanceAPI] 开始获取记账点余额，用户ID:', userId);
+    logger.info('🔍 [BalanceAPI] 开始获取记账点余额，用户ID:', userId);
     
     const userPoints = await AccountingPointsService.getUserPoints(userId);
-    console.log('📊 [BalanceAPI] 获取到用户记账点:', userPoints);
+    logger.info('📊 [BalanceAPI] 获取到用户记账点:', userPoints);
     
     const responseData = {
       giftBalance: userPoints.giftBalance,
@@ -23,14 +24,14 @@ router.get('/balance', authenticate, async (req: Request, res: Response) => {
       totalBalance: userPoints.giftBalance + userPoints.memberBalance
     };
     
-    console.log('✅ [BalanceAPI] 返回响应数据:', responseData);
+    logger.info('✅ [BalanceAPI] 返回响应数据:', responseData);
     
     res.json({
       success: true,
       data: responseData
     });
   } catch (error) {
-    console.error('❌ [BalanceAPI] 获取记账点余额失败:', error);
+    logger.error('❌ [BalanceAPI] 获取记账点余额失败:', error);
     res.status(500).json({ 
       success: false, 
       error: '获取记账点余额失败' 
@@ -58,7 +59,7 @@ router.get('/transactions', authenticate, async (req: Request, res: Response) =>
       data: transactions
     });
   } catch (error) {
-    console.error('获取记账点消费记录失败:', error);
+    logger.error('获取记账点消费记录失败:', error);
     res.status(500).json({ 
       success: false, 
       error: '获取记账点消费记录失败' 
@@ -94,7 +95,7 @@ router.post('/checkin', authenticate, async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('签到失败:', error);
+    logger.error('签到失败:', error);
     res.status(500).json({ 
       success: false, 
       error: error instanceof Error ? error.message : '签到失败' 
@@ -118,7 +119,7 @@ router.get('/checkin-status', authenticate, async (req: Request, res: Response) 
       }
     });
   } catch (error) {
-    console.error('检查签到状态失败:', error);
+    logger.error('检查签到状态失败:', error);
     res.status(500).json({ 
       success: false, 
       error: '检查签到状态失败' 
@@ -148,7 +149,7 @@ router.get('/checkin-history', authenticate, async (req: Request, res: Response)
       }
     });
   } catch (error) {
-    console.error('获取签到历史失败:', error);
+    logger.error('获取签到历史失败:', error);
     res.status(500).json({ 
       success: false, 
       error: '获取签到历史失败' 

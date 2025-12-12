@@ -678,32 +678,48 @@ export default function TransactionEditModal({
     }
   }, [transactionId]);
 
-  // 初始化数据
+  // 初始化数据 - 只在数据缺失时才获取，避免重复请求
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchCategories();
-      fetchAccountBooks();
-    }
-  }, [isAuthenticated, fetchCategories, fetchAccountBooks]);
+    if (!isAuthenticated) return;
+    
+    // ✅ 检查store中是否已有数据，只在缺失时才获取
+    const initializeData = async () => {
+      const promises = [];
+      
+      // 只在分类列表为空时才获取
+      if (categories.length === 0) {
+        console.log('🔄 [TransactionEditModal] 分类列表为空，获取分类数据');
+        promises.push(fetchCategories());
+      } else {
+        console.log('🔄 [TransactionEditModal] 分类列表已存在，跳过获取');
+      }
+      
+      // 只在账本列表为空时才获取
+      if (!currentAccountBook) {
+        console.log('🔄 [TransactionEditModal] 账本数据为空，获取账本数据');
+        promises.push(fetchAccountBooks());
+      } else {
+        console.log('🔄 [TransactionEditModal] 账本数据已存在，跳过获取');
+      }
+      
+      // 等待所有必要的数据获取完成
+      if (promises.length > 0) {
+        await Promise.all(promises);
+      }
+      
+      // 账本数据加载后再获取预算（如果需要）
+      if (currentAccountBook?.id) {
+        await fetchActiveBudgets(currentAccountBook.id);
+      }
+    };
+    
+    initializeData();
+  }, [isAuthenticated]); // 只在认证状态变化时执行一次
 
-  // 获取预算数据
+  // 使用传入的记账数据初始化表单 - 不要重复获取
   useEffect(() => {
-    if (currentAccountBook?.id) {
-      fetchActiveBudgets(currentAccountBook.id);
-    }
-  }, [currentAccountBook?.id, fetchActiveBudgets]);
-
-  // 获取真实记账数据
-  useEffect(() => {
-    if (transactionId && transactionId !== 'placeholder') {
-      console.log('🔄 [TransactionEditModal] 开始获取记账数据:', transactionId);
-      fetchTransaction(transactionId);
-    }
-  }, [transactionId, fetchTransaction]);
-
-  // 使用获取到的记账数据或传入的数据初始化表单
-  useEffect(() => {
-    const dataToUse = transaction || transactionData;
+    // ✅ 直接使用props传入的数据，不要从store重新获取
+    const dataToUse = transactionData;
 
     if (dataToUse) {
       console.log('🔄 [TransactionEditModal] 初始化表单数据:', dataToUse);
@@ -747,9 +763,14 @@ export default function TransactionEditModal({
         setBudgetMode('single');
       }
 
-      // 获取记账的标签和附件
-      if (transactionId && transactionId !== 'placeholder') {
-        // 获取标签
+      // ✅ 优先使用传入数据中的标签和附件，避免重复API调用
+      if (dataToUse.tags && Array.isArray(dataToUse.tags)) {
+        console.log('🔄 [TransactionEditModal] 使用传入的标签数据:', dataToUse.tags);
+        setTransactionTags(dataToUse.tags);
+        setSelectedTagIds(dataToUse.tags.map((tag: any) => tag.id));
+      } else if (transactionId && transactionId !== 'placeholder') {
+        // 只在传入数据中没有标签时才获取
+        console.log('🔄 [TransactionEditModal] 传入数据无标签，从API获取');
         tagApi
           .getTransactionTags(transactionId)
           .then((response) => {
@@ -761,18 +782,20 @@ export default function TransactionEditModal({
           .catch((error) => {
             console.error('获取记账标签失败:', error);
           });
+      }
 
-        // 获取附件
-        console.log('📎 开始获取记账附件:', transactionId);
+      // ✅ 优先使用传入数据中的附件
+      if (dataToUse.attachments && Array.isArray(dataToUse.attachments)) {
+        console.log('📎 [TransactionEditModal] 使用传入的附件数据:', dataToUse.attachments);
+        setAttachments(dataToUse.attachments);
+      } else if (transactionId && transactionId !== 'placeholder') {
+        // 只在传入数据中没有附件时才获取
+        console.log('📎 [TransactionEditModal] 传入数据无附件，从API获取');
         apiClient
           .get(`/transactions/${transactionId}/attachments`)
           .then((data) => {
-            console.log('📎 获取附件响应:', data);
             if (data.success) {
-              console.log('📎 设置附件数据:', data.data);
               setAttachments(data.data || []);
-            } else {
-              console.warn('📎 获取附件失败，响应不成功:', data);
             }
           })
           .catch((error) => {
@@ -780,7 +803,7 @@ export default function TransactionEditModal({
           });
       }
     }
-  }, [transaction, transactionData]);
+  }, [transactionData]); // ✅ 只依赖transactionData，移除transaction依赖
 
   // 根据记账类型筛选分类
   const filteredCategories = categories.filter((category) => category.type === formData.type);

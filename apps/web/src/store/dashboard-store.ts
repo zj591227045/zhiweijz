@@ -139,12 +139,16 @@ const fetchRecentTransactions = async (accountBookId: string, page: number = 1, 
             id: tx.id,
             amount: tx.amount,
             type: tx.type,
+            categoryId: tx.categoryId, // ✅ 添加categoryId，Modal需要
             categoryName: tx.category?.name || '未分类',
             categoryIcon: tx.category?.icon || 'other',
             description: tx.description || '',
             date: tx.date,
             category: tx.category,
-            tags: tx.tags,
+            budgetId: tx.budgetId, // ✅ 添加budgetId，Modal需要
+            isMultiBudget: tx.isMultiBudget, // ✅ 添加多人预算标记
+            budgetAllocation: tx.budgetAllocation, // ✅ 添加预算分摊数据
+            tags: tx.tags || [], // ✅ 确保tags是数组
             attachments: tx.attachments || [], // 保留附件信息
             attachmentCount: tx.attachmentCount || 0, // 保留附件数量
           })),

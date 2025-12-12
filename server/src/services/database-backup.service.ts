@@ -3,6 +3,7 @@
  * 使用pg_dump备份PostgreSQL数据库，并上传到WebDAV
  */
 
+import { logger } from '../utils/logger';
 import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -55,7 +56,7 @@ export class DatabaseBackupService {
   async backup(options: DatabaseBackupOptions = {}): Promise<BackupResult> {
     const startTime = Date.now();
     
-    console.log('[数据库备份] 开始备份...');
+    logger.info('[数据库备份] 开始备份...');
 
     try {
       // 生成备份文件名
@@ -69,7 +70,7 @@ export class DatabaseBackupService {
       const stats = fs.statSync(localPath);
       const fileSize = stats.size;
 
-      console.log(`[数据库备份] 备份文件已创建: ${localPath} (${this.formatFileSize(fileSize)})`);
+      logger.info(`[数据库备份] 备份文件已创建: ${localPath} (${this.formatFileSize(fileSize)})`);
 
       let remotePath: string | undefined;
 
@@ -77,9 +78,9 @@ export class DatabaseBackupService {
       if (options.uploadToWebDAV !== false) {
         try {
           remotePath = await this.uploadToWebDAV(localPath, fileName, options.webdavConfig);
-          console.log(`[数据库备份] 已上传到WebDAV: ${remotePath}`);
+          logger.info(`[数据库备份] 已上传到WebDAV: ${remotePath}`);
         } catch (error) {
-          console.error('[数据库备份] WebDAV上传失败:', error);
+          logger.error('[数据库备份] WebDAV上传失败:', error);
           // 上传失败不影响备份成功
         }
       }
@@ -87,12 +88,12 @@ export class DatabaseBackupService {
       // 删除本地文件（如果不需要保留）
       if (!options.keepLocalCopy && remotePath) {
         fs.unlinkSync(localPath);
-        console.log(`[数据库备份] 本地备份文件已删除: ${localPath}`);
+        logger.info(`[数据库备份] 本地备份文件已删除: ${localPath}`);
       }
 
       const duration = Date.now() - startTime;
 
-      console.log(`[数据库备份] 备份完成，耗时: ${duration}ms`);
+      logger.info(`[数据库备份] 备份完成，耗时: ${duration}ms`);
 
       return {
         success: true,
@@ -104,7 +105,7 @@ export class DatabaseBackupService {
       };
     } catch (error) {
       const duration = Date.now() - startTime;
-      console.error('[数据库备份] 备份失败:', error);
+      logger.error('[数据库备份] 备份失败:', error);
 
       return {
         success: false,
@@ -202,7 +203,7 @@ export class DatabaseBackupService {
       return urlObj.toString();
     } catch (error) {
       // 如果URL解析失败，返回原始URL
-      console.warn('[数据库备份] URL解析失败，使用原始URL:', error);
+      logger.warn('[数据库备份] URL解析失败，使用原始URL:', error);
       return url;
     }
   }
@@ -268,16 +269,16 @@ export class DatabaseBackupService {
       const maxBackups = webdavConfig.maxBackups || 7;
       if (backupFiles.length > maxBackups) {
         const filesToDelete = backupFiles.slice(maxBackups);
-        console.log(`[数据库备份] 需要删除 ${filesToDelete.length} 个旧备份`);
+        logger.info(`[数据库备份] 需要删除 ${filesToDelete.length} 个旧备份`);
 
         for (const file of filesToDelete) {
           // 直接使用文件名删除
           await webdavClientService.deleteFile(file.basename);
-          console.log(`[数据库备份] 已删除旧备份: ${file.basename}`);
+          logger.info(`[数据库备份] 已删除旧备份: ${file.basename}`);
         }
       }
     } catch (error) {
-      console.error('[数据库备份] 清理旧备份失败:', error);
+      logger.error('[数据库备份] 清理旧备份失败:', error);
       // 清理失败不影响备份成功
     }
   }
@@ -341,7 +342,7 @@ export class DatabaseBackupService {
    * 恢复数据库（从本地备份文件）
    */
   async restore(backupFilePath: string): Promise<void> {
-    console.log(`[数据库备份] 开始恢复数据库: ${backupFilePath}`);
+    logger.info(`[数据库备份] 开始恢复数据库: ${backupFilePath}`);
 
     return new Promise((resolve, reject) => {
       const databaseUrl = process.env.DATABASE_URL;
@@ -368,7 +369,7 @@ export class DatabaseBackupService {
 
       pgRestore.on('close', (code) => {
         if (code === 0) {
-          console.log('[数据库备份] 数据库恢复成功');
+          logger.info('[数据库备份] 数据库恢复成功');
           resolve();
         } else {
           reject(new Error(`pg_restore失败，退出码: ${code}\n${errorOutput}`));

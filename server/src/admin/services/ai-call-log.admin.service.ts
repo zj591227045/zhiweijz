@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -42,15 +43,15 @@ export class AICallLogAdminService {
       // 首先检查视图是否已存在
       try {
         await prisma.$queryRaw`SELECT 1 FROM ai_call_logs_unified LIMIT 1;`;
-        console.log('✅ [统一视图] 统一视图已存在，跳过创建');
+        logger.info('✅ [统一视图] 统一视图已存在，跳过创建');
         return;
       } catch (error) {
-        console.log('🔍 [统一视图] 统一视图不存在，开始创建...');
+        logger.info('🔍 [统一视图] 统一视图不存在，开始创建...');
       }
 
       // 先删除现有视图（如果存在）
       await prisma.$executeRaw`DROP VIEW IF EXISTS ai_call_logs_unified;`;
-      console.log('🗑️ [统一视图] 已删除现有视图');
+      logger.info('🗑️ [统一视图] 已删除现有视图');
 
       // 重新创建统一视图，包含用户邮箱信息
       await prisma.$executeRaw`
@@ -124,7 +125,7 @@ export class AICallLogAdminService {
         LEFT JOIN users u ON m.user_id = u.id;
       `;
 
-      console.log('✅ [统一视图] 统一视图重新创建成功');
+      logger.info('✅ [统一视图] 统一视图重新创建成功');
 
       // 测试查询一条记录验证视图
       const testRecord = await prisma.$queryRaw`
@@ -132,10 +133,10 @@ export class AICallLogAdminService {
         FROM ai_call_logs_unified
         LIMIT 1;
       `;
-      console.log('🔍 [统一视图] 测试记录:', JSON.stringify(testRecord, null, 2));
+      logger.info('🔍 [统一视图] 测试记录:', JSON.stringify(testRecord, null, 2));
 
     } catch (error) {
-      console.error('❌ [统一视图] 检查或创建统一视图时出错:', error);
+      logger.error('❌ [统一视图] 检查或创建统一视图时出错:', error);
       // 不抛出错误，继续执行
     }
   }
@@ -144,7 +145,7 @@ export class AICallLogAdminService {
    */
   async getAICallLogs(params: AICallLogListParams) {
     try {
-      console.log('🔍 [AI调用日志] 开始获取日志列表，参数:', JSON.stringify(params, null, 2));
+      logger.info('🔍 [AI调用日志] 开始获取日志列表，参数:', JSON.stringify(params, null, 2));
 
       // 首先检查统一视图是否存在，如果不存在则创建
       await this.ensureUnifiedViewExists();
@@ -286,19 +287,19 @@ export class AICallLogAdminService {
         ${whereConditions}
       `;
 
-      console.log('🔍 [AI调用日志] 执行查询SQL:', query);
-      console.log('🔍 [AI调用日志] 查询参数:', queryParams);
-      console.log('🔍 [AI调用日志] 执行计数SQL:', countQuery);
-      console.log('🔍 [AI调用日志] 计数参数:', countParams);
+      logger.info('🔍 [AI调用日志] 执行查询SQL:', query);
+      logger.info('🔍 [AI调用日志] 查询参数:', queryParams);
+      logger.info('🔍 [AI调用日志] 执行计数SQL:', countQuery);
+      logger.info('🔍 [AI调用日志] 计数参数:', countParams);
 
       const [logs, countResult] = await Promise.all([
         prisma.$queryRawUnsafe(query, ...queryParams),
         prisma.$queryRawUnsafe(countQuery, ...countParams),
       ]);
 
-      console.log('🔍 [AI调用日志] 查询结果数量:', (logs as any[]).length);
-      console.log('🔍 [AI调用日志] 总记录数:', (countResult as any)[0]?.total);
-      console.log('🔍 [AI调用日志] 前3条记录样本:', JSON.stringify((logs as any[]).slice(0, 3), null, 2));
+      logger.info('🔍 [AI调用日志] 查询结果数量:', (logs as any[]).length);
+      logger.info('🔍 [AI调用日志] 总记录数:', (countResult as any)[0]?.total);
+      logger.info('🔍 [AI调用日志] 前3条记录样本:', JSON.stringify((logs as any[]).slice(0, 3), null, 2));
 
       const total = Number((countResult as any)[0].total);
       const totalPages = Math.ceil(total / pageSize);
@@ -347,7 +348,7 @@ export class AICallLogAdminService {
         },
       };
     } catch (error) {
-      console.error('获取AI调用日志列表错误:', error);
+      logger.error('获取AI调用日志列表错误:', error);
       throw new Error('获取AI调用日志列表失败');
     }
   }
@@ -440,7 +441,7 @@ export class AICallLogAdminService {
         },
       };
     } catch (error) {
-      console.error('获取AI调用统计错误:', error);
+      logger.error('获取AI调用统计错误:', error);
       throw new Error('获取AI调用统计失败');
     }
   }
@@ -460,7 +461,7 @@ export class AICallLogAdminService {
         });
       }
     } catch (error) {
-      console.error('获取AI调用日志详情错误:', error);
+      logger.error('获取AI调用日志详情错误:', error);
       throw new Error('获取AI调用日志详情失败');
     }
   }

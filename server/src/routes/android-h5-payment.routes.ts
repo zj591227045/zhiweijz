@@ -3,6 +3,7 @@
  * 处理Android客户端的H5支付请求
  */
 
+import { logger } from '../utils/logger';
 import { Router, Request, Response } from 'express';
 import { authenticate } from '../middlewares/auth.middleware';
 import { H5PaymentService } from '../services/h5-payment.service';
@@ -30,7 +31,7 @@ router.post('/create-order', authenticate, async (req: Request, res: Response) =
     const { productId, payType } = req.body;
     const userId = req.user!.id;
 
-    console.log('💰 [AndroidH5Payment] 创建支付订单请求:', {
+    logger.info('💰 [AndroidH5Payment] 创建支付订单请求:', {
       userId,
       productId,
       payType
@@ -104,7 +105,7 @@ router.post('/create-order', authenticate, async (req: Request, res: Response) =
     }
 
   } catch (error: any) {
-    console.error('💰 [AndroidH5Payment] 创建订单失败:', error);
+    logger.error('💰 [AndroidH5Payment] 创建订单失败:', error);
     
     if (error instanceof AppError) {
       res.status(error.statusCode).json({
@@ -131,7 +132,7 @@ router.get('/query-status/:outTradeNo', authenticate, async (req: Request, res: 
     const { outTradeNo } = req.params;
     const userId = req.user!.id;
 
-    console.log('🔍 [AndroidH5Payment] 查询支付状态:', { userId, outTradeNo });
+    logger.info('🔍 [AndroidH5Payment] 查询支付状态:', { userId, outTradeNo });
 
     if (!outTradeNo) {
       throw new AppError('订单号不能为空', 400);
@@ -146,7 +147,7 @@ router.get('/query-status/:outTradeNo', authenticate, async (req: Request, res: 
     });
 
   } catch (error: any) {
-    console.error('🔍 [AndroidH5Payment] 查询状态失败:', error);
+    logger.error('🔍 [AndroidH5Payment] 查询状态失败:', error);
     
     if (error instanceof AppError) {
       res.status(error.statusCode).json({
@@ -202,7 +203,7 @@ router.get('/products', authenticate, async (req: Request, res: Response) => {
     });
 
   } catch (error: any) {
-    console.error('📋 [AndroidH5Payment] 获取产品列表失败:', error);
+    logger.error('📋 [AndroidH5Payment] 获取产品列表失败:', error);
     
     res.status(500).json({
       success: false,
@@ -218,7 +219,7 @@ router.get('/products', authenticate, async (req: Request, res: Response) => {
  */
 router.post('/notify', async (req: Request, res: Response) => {
   try {
-    console.log('📞 [AndroidH5Payment] 收到支付回调:', req.body);
+    logger.info('📞 [AndroidH5Payment] 收到支付回调:', req.body);
 
     const notification = req.body;
 
@@ -226,14 +227,14 @@ router.post('/notify', async (req: Request, res: Response) => {
     const requiredFields = ['appId', 'outTradeNo', 'tradeNo', 'amount', 'payType', 'status', 'paidTime', 'sign'];
     for (const field of requiredFields) {
       if (!notification[field]) {
-        console.error(`📞 [AndroidH5Payment] 缺少必要字段: ${field}`);
+        logger.error(`📞 [AndroidH5Payment] 缺少必要字段: ${field}`);
         return res.status(400).send('FAIL');
       }
     }
 
     // 只处理支付成功的通知
     if (notification.status !== 'PAID') {
-      console.log('📞 [AndroidH5Payment] 非支付成功状态，忽略:', notification.status);
+      logger.info('📞 [AndroidH5Payment] 非支付成功状态，忽略:', notification.status);
       return res.send('SUCCESS');
     }
 
@@ -241,15 +242,15 @@ router.post('/notify', async (req: Request, res: Response) => {
     const success = await h5PaymentService.handlePaymentNotification(notification);
 
     if (success) {
-      console.log('📞 [AndroidH5Payment] 支付回调处理成功');
+      logger.info('📞 [AndroidH5Payment] 支付回调处理成功');
       res.send('SUCCESS');
     } else {
-      console.error('📞 [AndroidH5Payment] 支付回调处理失败');
+      logger.error('📞 [AndroidH5Payment] 支付回调处理失败');
       res.status(500).send('FAIL');
     }
 
   } catch (error: any) {
-    console.error('📞 [AndroidH5Payment] 支付回调异常:', error);
+    logger.error('📞 [AndroidH5Payment] 支付回调异常:', error);
     res.status(500).send('FAIL');
   }
 });
@@ -284,7 +285,7 @@ router.get('/config-status', authenticate, async (req: Request, res: Response) =
     });
 
   } catch (error: any) {
-    console.error('⚙️ [AndroidH5Payment] 获取配置状态失败:', error);
+    logger.error('⚙️ [AndroidH5Payment] 获取配置状态失败:', error);
     
     res.status(500).json({
       success: false,

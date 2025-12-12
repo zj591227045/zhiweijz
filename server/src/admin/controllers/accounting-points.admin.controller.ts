@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import AccountingPointsService from '../../services/accounting-points.service';
@@ -77,7 +78,7 @@ export class AccountingPointsAdminController {
         }
       });
     } catch (error) {
-      console.error('获取用户记账点统计失败:', error);
+      logger.error('获取用户记账点统计失败:', error);
       res.status(500).json({
         success: false,
         error: '获取用户记账点统计失败'
@@ -166,7 +167,7 @@ export class AccountingPointsAdminController {
         }
       });
     } catch (error) {
-      console.error('获取记账点总体统计失败:', error);
+      logger.error('获取记账点总体统计失败:', error);
       res.status(500).json({
         success: false,
         error: '获取记账点总体统计失败'
@@ -207,7 +208,7 @@ export class AccountingPointsAdminController {
         }
       });
     } catch (error) {
-      console.error('获取用户记账记录失败:', error);
+      logger.error('获取用户记账记录失败:', error);
       res.status(500).json({
         success: false,
         error: '获取用户记账记录失败'
@@ -240,7 +241,7 @@ export class AccountingPointsAdminController {
         }
       });
     } catch (error) {
-      console.error('添加记账点失败:', error);
+      logger.error('添加记账点失败:', error);
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : '添加记账点失败'
@@ -294,7 +295,7 @@ export class AccountingPointsAdminController {
         }
       });
     } catch (error) {
-      console.error('批量添加记账点失败:', error);
+      logger.error('批量添加记账点失败:', error);
       res.status(500).json({
         success: false,
         error: '批量添加记账点失败'
@@ -322,7 +323,7 @@ export class AccountingPointsAdminController {
         data: config
       });
     } catch (error) {
-      console.error('获取记账点配置失败:', error);
+      logger.error('获取记账点配置失败:', error);
       res.status(500).json({
         success: false,
         error: '获取记账点配置失败'
@@ -366,7 +367,7 @@ export class AccountingPointsAdminController {
         data: { registrationGiftPoints: parseInt(points) }
       });
     } catch (error) {
-      console.error('更新注册赠送点数失败:', error);
+      logger.error('更新注册赠送点数失败:', error);
       res.status(500).json({
         success: false,
         error: '更新注册赠送点数失败'
@@ -398,7 +399,7 @@ export class AccountingPointsAdminController {
         });
       }
     } catch (error) {
-      console.error('获取日活跃统计失败:', error);
+      logger.error('获取日活跃统计失败:', error);
       res.status(500).json({
         success: false,
         error: '获取日活跃统计失败'
@@ -419,7 +420,7 @@ export class AccountingPointsAdminController {
         data: stats
       });
     } catch (error) {
-      console.error('获取去重活跃统计失败:', error);
+      logger.error('获取去重活跃统计失败:', error);
       res.status(500).json({
         success: false,
         error: '获取去重活跃统计失败'

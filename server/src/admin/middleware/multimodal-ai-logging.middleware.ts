@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -50,7 +51,7 @@ export class MultimodalAILoggingService {
         },
       });
     } catch (error) {
-      console.error('记录多模态AI调用日志失败:', error);
+      logger.error('记录多模态AI调用日志失败:', error);
       // 不抛出错误，避免影响主要业务流程
     }
   }
@@ -105,7 +106,7 @@ export class MultimodalAILoggingService {
         avgDuration: Math.round(avgDuration._avg.duration || 0),
       };
     } catch (error) {
-      console.error('获取多模态AI调用统计失败:', error);
+      logger.error('获取多模态AI调用统计失败:', error);
       return {
         totalCalls: 0,
         successCalls: 0,

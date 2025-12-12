@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { Request, Response } from 'express';
 import { LLMLogAdminService, LLMLogListParams } from '../services/llm-log.admin.service';
 
@@ -48,7 +49,7 @@ export class LLMLogAdminController {
         data: result,
       });
     } catch (error) {
-      console.error('获取LLM调用日志列表错误:', error);
+      logger.error('获取LLM调用日志列表错误:', error);
       res.status(500).json({
         success: false,
         message: '获取LLM调用日志列表失败',
@@ -73,7 +74,7 @@ export class LLMLogAdminController {
         data: { statistics },
       });
     } catch (error) {
-      console.error('获取LLM调用统计错误:', error);
+      logger.error('获取LLM调用统计错误:', error);
       res.status(500).json({
         success: false,
         message: '获取LLM调用统计失败',
@@ -102,7 +103,7 @@ export class LLMLogAdminController {
         data: { log },
       });
     } catch (error) {
-      console.error('获取LLM调用日志详情错误:', error);
+      logger.error('获取LLM调用日志详情错误:', error);
       res.status(500).json({
         success: false,
         message: '获取LLM调用日志详情失败',
@@ -123,7 +124,7 @@ export class LLMLogAdminController {
         message: 'LLM调用日志删除成功',
       });
     } catch (error) {
-      console.error('删除LLM调用日志错误:', error);
+      logger.error('删除LLM调用日志错误:', error);
       if (error instanceof Error && error.message.includes('不存在')) {
         res.status(404).json({
           success: false,
@@ -161,7 +162,7 @@ export class LLMLogAdminController {
         message: `成功删除 ${result.deletedCount} 条LLM调用日志`,
       });
     } catch (error) {
-      console.error('批量删除LLM调用日志错误:', error);
+      logger.error('批量删除LLM调用日志错误:', error);
       res.status(500).json({
         success: false,
         message: '批量删除LLM调用日志失败',
@@ -185,7 +186,7 @@ export class LLMLogAdminController {
         message: `成功清理 ${result.deletedCount} 条过期的LLM调用日志`,
       });
     } catch (error) {
-      console.error('清理过期LLM调用日志错误:', error);
+      logger.error('清理过期LLM调用日志错误:', error);
       res.status(500).json({
         success: false,
         message: '清理过期LLM调用日志失败',
@@ -230,7 +231,7 @@ export class LLMLogAdminController {
         },
       });
     } catch (error) {
-      console.error('导出LLM调用日志错误:', error);
+      logger.error('导出LLM调用日志错误:', error);
       res.status(500).json({
         success: false,
         message: '导出LLM调用日志失败',

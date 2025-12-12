@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { PrismaClient } from '@prisma/client';
 import type {
   UserAccountingPoints,
@@ -71,19 +72,19 @@ class AccountingPointsService {
    * 获取用户记账点余额
    */
   static async getUserPoints(userId: string): Promise<UserAccountingPoints> {
-    console.log('🔍 [AccountingPointsService] 开始获取用户记账点，用户ID:', userId);
+    logger.info('🔍 [AccountingPointsService] 开始获取用户记账点，用户ID:', userId);
     
     let userPoints = await prisma.userAccountingPoints.findUnique({
       where: { userId }
     });
 
-    console.log('📊 [AccountingPointsService] 数据库查询结果:', userPoints);
+    logger.debug('📊 [AccountingPointsService] 数据库查询结果:', userPoints);
 
     // 如果用户没有记账点账户，创建一个
     if (!userPoints) {
-      console.log('🆕 [AccountingPointsService] 用户没有记账点账户，正在创建...');
+      logger.info('🆕 [AccountingPointsService] 用户没有记账点账户，正在创建...');
       userPoints = await this.createUserPointsAccount(userId);
-      console.log('✅ [AccountingPointsService] 记账点账户创建完成:', userPoints);
+      logger.info('✅ [AccountingPointsService] 记账点账户创建完成:', userPoints);
     }
 
     return userPoints;
@@ -105,7 +106,7 @@ class AccountingPointsService {
 
       return this.REGISTRATION_GIFT;
     } catch (error) {
-      console.error('获取注册赠送点数配置失败:', error);
+      logger.error('获取注册赠送点数配置失败:', error);
       return this.REGISTRATION_GIFT;
     }
   }
@@ -517,7 +518,7 @@ class AccountingPointsService {
         });
 
         // 如果能成功创建记录，说明今天确实是首次访问
-        console.log('🎁 [AccountingPointsService] 今日首次访问，用户ID:', userId, '日期:', today);
+        logger.info('🎁 [AccountingPointsService] 今日首次访问，用户ID:', userId, '日期:', today);
 
         // 确保用户记账点账户存在
         let userPoints = await tx.userAccountingPoints.findUnique({
@@ -543,7 +544,7 @@ class AccountingPointsService {
           );
         }
 
-        console.log('💰 [AccountingPointsService] 计算赠送点数:', {
+        logger.info('💰 [AccountingPointsService] 计算赠送点数:', {
           currentBalance: userPoints.giftBalance,
           limit: this.GIFT_BALANCE_LIMIT,
           dailyGift: this.DAILY_GIFT,
@@ -581,7 +582,7 @@ class AccountingPointsService {
             }
           });
 
-          console.log('✅ [AccountingPointsService] 赠送成功:', {
+          logger.info('✅ [AccountingPointsService] 赠送成功:', {
             pointsGiven: pointsToGive,
             newBalance: newGiftBalance
           });
@@ -598,7 +599,7 @@ class AccountingPointsService {
             data: { lastDailyGiftDate: todayDate }
           });
 
-          console.log('ℹ️ [AccountingPointsService] 首次访问但未赠送点数（已达上限）');
+          logger.info('ℹ️ [AccountingPointsService] 首次访问但未赠送点数（已达上限）');
 
           return {
             isFirstVisitToday: true,
@@ -609,14 +610,14 @@ class AccountingPointsService {
       } catch (error: any) {
         // 如果是唯一约束冲突，说明今天已经赠送过了
         if (error.code === 'P2002' && error.meta?.target?.includes('user_id') && error.meta?.target?.includes('gift_date')) {
-          //console.log('ℹ️ [AccountingPointsService] 今日已赠送过记账点，用户ID:', userId, '日期:', today);
+          //logger.info('ℹ️ [AccountingPointsService] 今日已赠送过记账点，用户ID:', userId, '日期:', today);
           return {
             isFirstVisitToday: false
           };
         }
 
         // 其他错误重新抛出
-        console.error('❌ [AccountingPointsService] 每日赠送检查失败:', error);
+        logger.error('❌ [AccountingPointsService] 每日赠送检查失败:', error);
         throw error;
       }
     });
@@ -666,10 +667,10 @@ class AccountingPointsService {
     });
 
     // 添加调试日志
-    console.log(`🔍 [AccountingPointsService] 获取用户 ${userId} 的记账记录，数量: ${transactions.length}`);
+    logger.info(`🔍 [AccountingPointsService] 获取用户 ${userId} 的记账记录，数量: ${transactions.length}`);
     if (transactions.length > 0) {
-      console.log(`🔍 [AccountingPointsService] 第一条记录时间: ${transactions[0].createdAt}`);
-      console.log(`🔍 [AccountingPointsService] 最后一条记录时间: ${transactions[transactions.length - 1].createdAt}`);
+      logger.info(`🔍 [AccountingPointsService] 第一条记录时间: ${transactions[0].createdAt}`);
+      logger.info(`🔍 [AccountingPointsService] 最后一条记录时间: ${transactions[transactions.length - 1].createdAt}`);
     }
 
     return transactions;

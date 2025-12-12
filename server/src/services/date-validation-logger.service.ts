@@ -6,6 +6,8 @@
 /**
  * 日期校验日志条目
  */
+import { logger } from '../utils/logger';
+
 export interface DateValidationLogEntry {
   timestamp: Date;
   userId: string;
@@ -31,9 +33,9 @@ export class DateValidationLogger {
     const logMessage = this.formatLogMessage(entry, 'VALIDATION');
     
     if (level === 'WARN') {
-      console.warn(logMessage);
+      logger.warn(logMessage);
     } else {
-      console.log(logMessage);
+      logger.info(logMessage);
     }
   }
 
@@ -43,7 +45,7 @@ export class DateValidationLogger {
    */
   logCorrection(entry: DateValidationLogEntry): void {
     const logMessage = this.formatLogMessage(entry, 'CORRECTION');
-    console.warn(logMessage);
+    logger.warn(logMessage);
   }
 
   /**
@@ -65,9 +67,9 @@ export class DateValidationLogger {
     const logMessage = `[日期校验批量统计] 用户: ${userId}, 账本: ${accountBookId}, 来源: ${source}, 总数: ${totalCount}, 有效: ${validCount}, 异常: ${invalidCount}`;
     
     if (invalidCount > 0) {
-      console.warn(logMessage);
+      logger.warn(logMessage);
     } else {
-      console.log(logMessage);
+      logger.info(logMessage);
     }
   }
 
@@ -115,7 +117,7 @@ export class DateValidationLogger {
     accountBookId: string;
     source: string;
   }): void {
-    console.error(
+    logger.error(
       `[日期校验错误] 用户: ${context.userId}, 账本: ${context.accountBookId}, 来源: ${context.source}, 错误: ${error.message}`,
       error.stack
     );

@@ -3,6 +3,7 @@
  * 用于连接WebDAV服务器，上传、下载、列出文件等操作
  */
 
+import { logger } from '../utils/logger';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Readable } from 'stream';
@@ -85,23 +86,23 @@ export class WebDAVClientService {
     });
 
     this.initialized = true;
-    console.log(`[WebDAV] 客户端已初始化`);
-    console.log(`[WebDAV] - URL: ${config.url}`);
-    console.log(`[WebDAV] - 用户名: ${config.username}`);
-    console.log(`[WebDAV] - 基础路径: ${config.basePath}`);
+    logger.info(`[WebDAV] 客户端已初始化`);
+    logger.info(`[WebDAV] - URL: ${config.url}`);
+    logger.info(`[WebDAV] - 用户名: ${config.username}`);
+    logger.info(`[WebDAV] - 基础路径: ${config.basePath}`);
 
     // 测试连接
     try {
       const testPath = config.basePath || '/';
-      console.log(`[WebDAV] 测试路径访问: ${testPath}`);
+      logger.info(`[WebDAV] 测试路径访问: ${testPath}`);
       // 不使用 exists() 方法，使用 getDirectoryContents() 来测试
       await this.client!.getDirectoryContents(testPath, { deep: false });
-      console.log(`[WebDAV] 路径访问测试成功`);
+      logger.info(`[WebDAV] 路径访问测试成功`);
     } catch (error: any) {
-      console.error(`[WebDAV] 初始化后测试失败:`, error.message);
+      logger.error(`[WebDAV] 初始化后测试失败:`, error.message);
       if (error.response) {
-        console.error(`[WebDAV] - HTTP状态: ${error.status}`);
-        console.error(`[WebDAV] - 重定向URL: ${error.response[Symbol.for('Response internals')]?.url || '未知'}`);
+        logger.error(`[WebDAV] - HTTP状态: ${error.status}`);
+        logger.error(`[WebDAV] - 重定向URL: ${error.response[Symbol.for('Response internals')]?.url || '未知'}`);
       }
       throw new Error(`WebDAV连接失败: ${error.message}`);
     }
@@ -124,16 +125,16 @@ export class WebDAVClientService {
 
     try {
       const basePath = this.config?.basePath || '/';
-      console.log(`[WebDAV] 测试连接到: ${basePath}`);
+      logger.info(`[WebDAV] 测试连接到: ${basePath}`);
       // 不使用 exists() 方法，使用 getDirectoryContents() 来测试
       await this.client!.getDirectoryContents(basePath, { deep: false });
-      console.log(`[WebDAV] 连接测试成功`);
+      logger.info(`[WebDAV] 连接测试成功`);
       return true;
     } catch (error: any) {
-      console.error('[WebDAV] 连接测试失败:', error);
+      logger.error('[WebDAV] 连接测试失败:', error);
       if (error.response) {
-        console.error('[WebDAV] 响应状态:', error.status);
-        console.error('[WebDAV] 响应URL:', error.response[Symbol.for('Response internals')]?.url);
+        logger.error('[WebDAV] 响应状态:', error.status);
+        logger.error('[WebDAV] 响应URL:', error.response[Symbol.for('Response internals')]?.url);
       }
       return false;
     }
@@ -177,18 +178,18 @@ export class WebDAVClientService {
         await this.client!.putFileContents(remotePath, fileStream, {
           overwrite: options.overwrite,
         });
-        console.log(`[WebDAV] 文件上传成功: ${options.localPath} -> ${remotePath}`);
+        logger.info(`[WebDAV] 文件上传成功: ${options.localPath} -> ${remotePath}`);
       } else if (options.data) {
         // 从Buffer或Stream上传
         await this.client!.putFileContents(remotePath, options.data, {
           overwrite: options.overwrite,
         });
-        console.log(`[WebDAV] 数据上传成功: ${remotePath}`);
+        logger.info(`[WebDAV] 数据上传成功: ${remotePath}`);
       } else {
         throw new Error('必须提供localPath或data');
       }
     } catch (error) {
-      console.error('[WebDAV] 上传失败:', error);
+      logger.error('[WebDAV] 上传失败:', error);
       throw error;
     }
   }
@@ -230,9 +231,9 @@ export class WebDAVClientService {
         fileStream.on('error', reject);
       });
 
-      console.log(`[WebDAV] 文件下载成功: ${remotePath} -> ${options.localPath}`);
+      logger.info(`[WebDAV] 文件下载成功: ${remotePath} -> ${options.localPath}`);
     } catch (error) {
-      console.error('[WebDAV] 下载失败:', error);
+      logger.error('[WebDAV] 下载失败:', error);
       throw error;
     }
   }
@@ -252,7 +253,7 @@ export class WebDAVClientService {
 
       return contents as FileStat[];
     } catch (error) {
-      console.error('[WebDAV] 列出文件失败:', error);
+      logger.error('[WebDAV] 列出文件失败:', error);
       throw error;
     }
   }
@@ -267,9 +268,9 @@ export class WebDAVClientService {
 
     try {
       await this.client!.deleteFile(fullPath);
-      console.log(`[WebDAV] 文件删除成功: ${fullPath}`);
+      logger.info(`[WebDAV] 文件删除成功: ${fullPath}`);
     } catch (error) {
-      console.error('[WebDAV] 删除失败:', error);
+      logger.error('[WebDAV] 删除失败:', error);
       throw error;
     }
   }
@@ -284,9 +285,9 @@ export class WebDAVClientService {
 
     try {
       await this.client!.createDirectory(fullPath);
-      console.log(`[WebDAV] 目录创建成功: ${fullPath}`);
+      logger.info(`[WebDAV] 目录创建成功: ${fullPath}`);
     } catch (error) {
-      console.error('[WebDAV] 创建目录失败:', error);
+      logger.error('[WebDAV] 创建目录失败:', error);
       throw error;
     }
   }
@@ -323,9 +324,9 @@ export class WebDAVClientService {
 
       // 创建目录
       await this.client!.createDirectory(fullPath);
-      console.log(`[WebDAV] 目录已创建: ${fullPath}`);
+      logger.info(`[WebDAV] 目录已创建: ${fullPath}`);
     } catch (error) {
-      console.error('[WebDAV] 确保目录存在失败:', error);
+      logger.error('[WebDAV] 确保目录存在失败:', error);
       throw error;
     }
   }
@@ -359,9 +360,9 @@ export class WebDAVClientService {
 
       // 创建目录
       await this.client!.createDirectory(fullPath);
-      console.log(`[WebDAV] 目录已创建: ${fullPath}`);
+      logger.info(`[WebDAV] 目录已创建: ${fullPath}`);
     } catch (error) {
-      console.error('[WebDAV] 确保目录存在失败:', error);
+      logger.error('[WebDAV] 确保目录存在失败:', error);
       throw error;
     }
   }
@@ -383,7 +384,7 @@ export class WebDAVClientService {
       if (error.status === 404) {
         return false;
       }
-      console.error('[WebDAV] 检查文件存在失败:', error);
+      logger.error('[WebDAV] 检查文件存在失败:', error);
       return false;
     }
   }
@@ -400,7 +401,7 @@ export class WebDAVClientService {
       const stat = await this.client!.stat(fullPath);
       return stat as FileStat;
     } catch (error) {
-      console.error('[WebDAV] 获取文件信息失败:', error);
+      logger.error('[WebDAV] 获取文件信息失败:', error);
       throw error;
     }
   }

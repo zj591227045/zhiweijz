@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import crypto from 'crypto';
 import prisma from '../config/database';
 import { AIController } from '../controllers/ai-controller';
@@ -117,7 +118,7 @@ export class WechatSmartAccountingService {
       const dateWarning = this.messageFormatter.formatDateWarning(recordsWithDateValidation);
       
       if (dateWarning.hasWarning) {
-        console.log(`⚠️ [微信日期校验] 检测到${dateWarning.correctedRecords.length}条记录日期异常，已自动修正`);
+        logger.info(`⚠️ [微信日期校验] 检测到${dateWarning.correctedRecords.length}条记录日期异常，已自动修正`);
       }
 
       // 6. 智能记账成功，扣除记账点（仅在记账点系统启用时）
@@ -125,7 +126,7 @@ export class WechatSmartAccountingService {
         try {
           await AccountingPointsService.deductPoints(userId, 'text', AccountingPointsService.POINT_COSTS.text);
         } catch (pointsError) {
-          console.error('扣除记账点失败:', pointsError);
+          logger.error('扣除记账点失败:', pointsError);
           // 记账点扣除失败不影响返回结果，但需要记录日志
         }
       }
@@ -135,7 +136,7 @@ export class WechatSmartAccountingService {
         // 使用校验和修正后的记录
         const recordsToCreate = recordsWithDateValidation;
 
-        console.log(`📝 [微信记账] 检测到 ${recordsToCreate.length} 条记录需要创建`);
+        logger.info(`📝 [微信记账] 检测到 ${recordsToCreate.length} 条记录需要创建`);
 
         // 微信图片记账进行重复检测（检测到重复则不创建记录）
         let duplicateResults: any[] = [];
@@ -144,7 +145,7 @@ export class WechatSmartAccountingService {
 
         if (isFromImageRecognition) {
           try {
-            console.log('🔍 [微信重复检测] 开始智能账本匹配和重复检测');
+            logger.info('🔍 [微信重复检测] 开始智能账本匹配和重复检测');
             duplicateResults = await TransactionDuplicateDetectionService.detectBatchDuplicatesWithSmartAccountBook(
               userId,
               accountBookId, // 作为默认账本
@@ -160,17 +161,17 @@ export class WechatSmartAccountingService {
                 skippedDuplicates.push(
                   `记录${index + 1}(${record.amount}元 ${record.note || '无描述'})已存在，跳过创建`
                 );
-                console.log(`⚠️ [微信重复检测] 跳过重复记录: ${record.amount}元 ${record.note || '无描述'}`);
+                logger.info(`⚠️ [微信重复检测] 跳过重复记录: ${record.amount}元 ${record.note || '无描述'}`);
               } else {
                 // 记录不重复，添加到创建列表
                 recordsToActuallyCreate.push(record);
-                console.log(`✅ [微信重复检测] 记录不重复，将创建: ${record.amount}元 ${record.note || '无描述'}`);
+                logger.info(`✅ [微信重复检测] 记录不重复，将创建: ${record.amount}元 ${record.note || '无描述'}`);
               }
             });
 
-            console.log(`📊 [微信重复检测] 原始记录数: ${recordsToCreate.length}, 跳过重复: ${skippedDuplicates.length}, 将创建: ${recordsToActuallyCreate.length}`);
+            logger.info(`📊 [微信重复检测] 原始记录数: ${recordsToCreate.length}, 跳过重复: ${skippedDuplicates.length}, 将创建: ${recordsToActuallyCreate.length}`);
           } catch (duplicateError) {
-            console.error('微信图片记账重复检测失败:', duplicateError);
+            logger.error('微信图片记账重复检测失败:', duplicateError);
             // 重复检测失败时，创建所有记录（保持原有行为）
             recordsToActuallyCreate = recordsToCreate;
           }
@@ -185,9 +186,9 @@ export class WechatSmartAccountingService {
 
           if (transaction) {
             createdTransactions.push(transaction);
-            console.log(`✅ [微信记账] 第 ${i + 1} 条记账记录创建成功: ${transaction.id}`);
+            logger.info(`✅ [微信记账] 第 ${i + 1} 条记账记录创建成功: ${transaction.id}`);
           } else {
-            console.error(`❌ [微信记账] 第 ${i + 1} 条记账记录创建失败`);
+            logger.error(`❌ [微信记账] 第 ${i + 1} 条记账记录创建失败`);
           }
         }
 
@@ -251,7 +252,7 @@ export class WechatSmartAccountingService {
         message: analysisMessage,
       };
     } catch (error) {
-      console.error('微信智能记账处理失败:', error);
+      logger.error('微信智能记账处理失败:', error);
       return {
         success: false,
         message: '记账处理失败，请稍后重试。',
@@ -377,7 +378,7 @@ export class WechatSmartAccountingService {
           const budgetService = new (await import('./budget.service')).BudgetService();
           await budgetService.ensureCurrentMonthBudget(userId, result.accountId);
         } catch (error) {
-          console.error('智能记账时确保当前月份预算失败:', error);
+          logger.error('智能记账时确保当前月份预算失败:', error);
           // 不影响记账创建流程，继续执行
         }
       }
@@ -408,7 +409,7 @@ export class WechatSmartAccountingService {
 
       return transaction;
     } catch (error) {
-      console.error('创建记账记录失败:', error);
+      logger.error('创建记账记录失败:', error);
       return null;
     }
   }
@@ -601,7 +602,7 @@ export class WechatSmartAccountingService {
 
       return message;
     } catch (error) {
-      console.error('获取账本统计失败:', error);
+      logger.error('获取账本统计失败:', error);
       return '获取统计信息失败，请稍后重试。';
     }
   }
@@ -667,7 +668,7 @@ export class WechatSmartAccountingService {
 
       return message;
     } catch (error) {
-      console.error('获取最近记账失败:', error);
+      logger.error('获取最近记账失败:', error);
       return '获取记账记录失败，请稍后重试。';
     }
   }
@@ -752,7 +753,7 @@ export class WechatSmartAccountingService {
 
       return message;
     } catch (error) {
-      console.error('获取时间范围统计失败:', error);
+      logger.error('获取时间范围统计失败:', error);
       return '获取统计信息失败，请稍后重试。';
     }
   }
@@ -835,7 +836,7 @@ export class WechatSmartAccountingService {
 
       return message.trim();
     } catch (error) {
-      console.error('获取预算状态失败:', error);
+      logger.error('获取预算状态失败:', error);
       return '获取预算状态失败，请稍后重试。';
     }
   }
@@ -914,7 +915,7 @@ export class WechatSmartAccountingService {
 
       return message;
     } catch (error) {
-      console.error('获取分类统计失败:', error);
+      logger.error('获取分类统计失败:', error);
       return '获取分类统计失败，请稍后重试。';
     }
   }

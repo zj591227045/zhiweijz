@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 
@@ -55,7 +56,7 @@ interface WebhookEvent {
 // RevenueCat Webhook处理
 router.post('/revenuecat', async (req: Request, res: Response) => {
   try {
-    console.log('📨 [RevenueCatWebhook] 收到webhook请求:', {
+    logger.info('📨 [RevenueCatWebhook] 收到webhook请求:', {
       headers: req.headers,
       body: req.body
     });
@@ -63,7 +64,7 @@ router.post('/revenuecat', async (req: Request, res: Response) => {
     // 验证webhook签名
     const isValidSignature = await verifyWebhookSignature(req);
     if (!isValidSignature) {
-      console.error('🔒 [RevenueCatWebhook] 签名验证失败');
+      logger.error('🔒 [RevenueCatWebhook] 签名验证失败');
       return res.status(401).json({
         success: false,
         message: 'Invalid signature'
@@ -72,7 +73,7 @@ router.post('/revenuecat', async (req: Request, res: Response) => {
 
     const webhookEvent: WebhookEvent = req.body;
     
-    console.log('📨 [RevenueCatWebhook] 收到事件:', {
+    logger.info('📨 [RevenueCatWebhook] 收到事件:', {
       type: webhookEvent.event.type,
       userId: webhookEvent.event.app_user_id,
       productId: webhookEvent.event.product_id,
@@ -89,7 +90,7 @@ router.post('/revenuecat', async (req: Request, res: Response) => {
     });
 
   } catch (error: any) {
-    console.error('❌ [RevenueCatWebhook] 处理失败:', error);
+    logger.error('❌ [RevenueCatWebhook] 处理失败:', error);
     return res.status(500).json({
       success: false,
       message: 'Webhook processing failed',
@@ -107,7 +108,7 @@ async function verifyWebhookSignature(req: Request): Promise<boolean> {
     const webhookSecret = process.env.REVENUECAT_WEBHOOK_SECRET;
 
     // 记录请求信息用于调试
-    console.log('🔒 [WebhookSignature] 验证请求:', {
+    logger.info('🔒 [WebhookSignature] 验证请求:', {
       hasSignature: !!signature,
       hasSecret: !!webhookSecret,
       userAgent: req.headers['user-agent'],
@@ -115,11 +116,11 @@ async function verifyWebhookSignature(req: Request): Promise<boolean> {
     });
 
     if (!signature || !webhookSecret) {
-      console.warn('🔒 [WebhookSignature] 缺少签名或密钥');
+      logger.warn('🔒 [WebhookSignature] 缺少签名或密钥');
 
       // 在开发环境中，如果没有配置密钥，跳过验证
       if (process.env.NODE_ENV === 'development') {
-        console.warn('🔒 [WebhookSignature] 开发环境，跳过签名验证');
+        logger.warn('🔒 [WebhookSignature] 开发环境，跳过签名验证');
         return true;
       }
 
@@ -130,8 +131,8 @@ async function verifyWebhookSignature(req: Request): Promise<boolean> {
         const isRevenueCatRequest = userAgent.includes('RevenueCat') || userAgent.includes('revenuecat');
 
         if (isRevenueCatRequest) {
-          console.warn('🔒 [WebhookSignature] 未配置webhook secret，但请求来自RevenueCat，允许通过');
-          console.warn('🔒 [WebhookSignature] 强烈建议配置webhook secret以增强安全性');
+          logger.warn('🔒 [WebhookSignature] 未配置webhook secret，但请求来自RevenueCat，允许通过');
+          logger.warn('🔒 [WebhookSignature] 强烈建议配置webhook secret以增强安全性');
           return true;
         }
       }
@@ -144,7 +145,7 @@ async function verifyWebhookSignature(req: Request): Promise<boolean> {
     if (signature.startsWith('sk_')) {
       const isValidApiKey = signature === webhookSecret;
       if (!isValidApiKey) {
-        console.error('🔒 [WebhookSignature] API Key不匹配');
+        logger.error('🔒 [WebhookSignature] API Key不匹配');
       }
       return isValidApiKey;
     }
@@ -162,7 +163,7 @@ async function verifyWebhookSignature(req: Request): Promise<boolean> {
 
       // 比较签名（确保长度一致）
       if (token.length !== expectedSignature.length) {
-        console.error('🔒 [WebhookSignature] 签名长度不匹配');
+        logger.error('🔒 [WebhookSignature] 签名长度不匹配');
         return false;
       }
 
@@ -172,17 +173,17 @@ async function verifyWebhookSignature(req: Request): Promise<boolean> {
       );
 
       if (!isValid) {
-        console.error('🔒 [WebhookSignature] 签名不匹配');
+        logger.error('🔒 [WebhookSignature] 签名不匹配');
       }
 
       return isValid;
     } catch (error) {
-      console.error('🔒 [WebhookSignature] 签名验证计算失败:', error);
+      logger.error('🔒 [WebhookSignature] 签名验证计算失败:', error);
       return false;
     }
 
   } catch (error) {
-    console.error('🔒 [WebhookSignature] 验证异常:', error);
+    logger.error('🔒 [WebhookSignature] 验证异常:', error);
     return false;
   }
 }
@@ -197,13 +198,13 @@ async function processWebhookEvent(webhookEvent: WebhookEvent): Promise<boolean>
     // 获取用户ID（从RevenueCat的app_user_id中提取）
     const userId = await extractUserIdFromAppUserId(event.app_user_id);
     if (!userId) {
-      console.warn('📨 [ProcessWebhook] 无法提取用户ID，尝试保存为待关联购买:', event.app_user_id);
+      logger.warn('📨 [ProcessWebhook] 无法提取用户ID，尝试保存为待关联购买:', event.app_user_id);
       // 对于匿名用户的购买，保存到待关联表中
       return await handleAnonymousPurchase(event);
     }
 
     // 记录事件处理开始
-    console.log('🎯 [ProcessWebhook] 开始处理事件:', {
+    logger.info('🎯 [ProcessWebhook] 开始处理事件:', {
       type: event.type,
       userId,
       productId: event.product_id,
@@ -238,24 +239,24 @@ async function processWebhookEvent(webhookEvent: WebhookEvent): Promise<boolean>
         break;
 
       case WebhookEventType.TEST:
-        console.log('🧪 [ProcessWebhook] 收到RevenueCat测试事件，验证webhook配置成功');
+        logger.info('🧪 [ProcessWebhook] 收到RevenueCat测试事件，验证webhook配置成功');
         result = true; // 测试事件直接返回成功
         break;
 
       default:
-        console.log('📨 [ProcessWebhook] 未处理的事件类型:', event.type);
+        logger.info('📨 [ProcessWebhook] 未处理的事件类型:', event.type);
         result = true; // 返回true表示已处理，避免重试
     }
 
     // 记录处理结果
     if (result) {
-      console.log('✅ [ProcessWebhook] 事件处理成功:', {
+      logger.info('✅ [ProcessWebhook] 事件处理成功:', {
         type: event.type,
         userId,
         productId: event.product_id
       });
     } else {
-      console.error('❌ [ProcessWebhook] 事件处理失败:', {
+      logger.error('❌ [ProcessWebhook] 事件处理失败:', {
         type: event.type,
         userId,
         productId: event.product_id
@@ -265,7 +266,7 @@ async function processWebhookEvent(webhookEvent: WebhookEvent): Promise<boolean>
     return result;
 
   } catch (error) {
-    console.error('📨 [ProcessWebhook] 处理异常:', error);
+    logger.error('📨 [ProcessWebhook] 处理异常:', error);
     return false;
   }
 }
@@ -282,7 +283,7 @@ async function extractUserIdFromAppUserId(appUserId: string): Promise<string | n
 
     if (appUserId.startsWith('$RCAnonymousID:')) {
       // 匿名用户，需要通过数据库查找对应的用户
-      console.log('📨 [ExtractUserId] 处理匿名用户ID:', appUserId);
+      logger.info('📨 [ExtractUserId] 处理匿名用户ID:', appUserId);
       return await findUserByRevenueCatId(appUserId);
     }
 
@@ -293,7 +294,7 @@ async function extractUserIdFromAppUserId(appUserId: string): Promise<string | n
     // 直接返回作为用户ID
     return appUserId;
   } catch (error) {
-    console.error('📨 [ExtractUserId] 提取用户ID失败:', error);
+    logger.error('📨 [ExtractUserId] 提取用户ID失败:', error);
     return null;
   }
 }
@@ -318,14 +319,14 @@ async function findUserByRevenueCatId(revenueCatUserId: string): Promise<string 
     await prisma.$disconnect();
 
     if (membership) {
-      console.log('📨 [FindUserByRevenueCat] 找到用户:', { revenueCatUserId, userId: membership.userId });
+      logger.info('📨 [FindUserByRevenueCat] 找到用户:', { revenueCatUserId, userId: membership.userId });
       return membership.userId;
     } else {
-      console.warn('📨 [FindUserByRevenueCat] 未找到对应用户:', revenueCatUserId);
+      logger.warn('📨 [FindUserByRevenueCat] 未找到对应用户:', revenueCatUserId);
       return null;
     }
   } catch (error) {
-    console.error('📨 [FindUserByRevenueCat] 查找用户失败:', error);
+    logger.error('📨 [FindUserByRevenueCat] 查找用户失败:', error);
     return null;
   }
 }
@@ -335,7 +336,7 @@ async function findUserByRevenueCatId(revenueCatUserId: string): Promise<string 
  */
 async function handleAnonymousPurchase(event: any): Promise<boolean> {
   try {
-    console.log('👤 [AnonymousPurchase] 处理匿名用户购买:', {
+    logger.info('👤 [AnonymousPurchase] 处理匿名用户购买:', {
       type: event.type,
       appUserId: event.app_user_id,
       productId: event.product_id,
@@ -352,16 +353,16 @@ async function handleAnonymousPurchase(event: any): Promise<boolean> {
       case 'CANCELLATION':
       case 'EXPIRATION':
         // 对于取消和过期事件，记录日志但不需要保存
-        console.log('👤 [AnonymousPurchase] 匿名用户取消/过期事件，无需处理:', event.type);
+        logger.info('👤 [AnonymousPurchase] 匿名用户取消/过期事件，无需处理:', event.type);
         return true;
 
       default:
-        console.log('👤 [AnonymousPurchase] 跳过未知事件类型:', event.type);
+        logger.info('👤 [AnonymousPurchase] 跳过未知事件类型:', event.type);
         return true;
     }
 
   } catch (error) {
-    console.error('❌ [AnonymousPurchase] 处理匿名用户购买失败:', error);
+    logger.error('❌ [AnonymousPurchase] 处理匿名用户购买失败:', error);
     return false;
   }
 }
@@ -374,7 +375,7 @@ async function saveAnonymousPurchase(event: any): Promise<boolean> {
     // 获取产品映射信息
     const { memberType, duration } = mapProductToMembership(event.product_id);
     if (!memberType) {
-      console.warn('👤 [SaveAnonymousPurchase] 未知的产品ID:', event.product_id);
+      logger.warn('👤 [SaveAnonymousPurchase] 未知的产品ID:', event.product_id);
       return false;
     }
 
@@ -390,7 +391,7 @@ async function saveAnonymousPurchase(event: any): Promise<boolean> {
     );
 
     if (isDuplicate) {
-      console.log('👤 [SaveAnonymousPurchase] 发现重复的待关联购买，跳过保存');
+      logger.info('👤 [SaveAnonymousPurchase] 发现重复的待关联购买，跳过保存');
       return true;
     }
 
@@ -407,11 +408,11 @@ async function saveAnonymousPurchase(event: any): Promise<boolean> {
       eventData: event
     });
 
-    console.log('✅ [SaveAnonymousPurchase] 匿名用户购买已保存为待关联记录');
+    logger.info('✅ [SaveAnonymousPurchase] 匿名用户购买已保存为待关联记录');
     return true;
 
   } catch (error) {
-    console.error('❌ [SaveAnonymousPurchase] 保存匿名用户购买失败:', error);
+    logger.error('❌ [SaveAnonymousPurchase] 保存匿名用户购买失败:', error);
     return false;
   }
 }
@@ -420,7 +421,7 @@ async function saveAnonymousPurchase(event: any): Promise<boolean> {
  * 处理初始购买事件
  */
 async function handleInitialPurchase(userId: string, event: any): Promise<boolean> {
-  console.log('💰 [InitialPurchase] 处理初始购买:', { userId, productId: event.product_id });
+  logger.info('💰 [InitialPurchase] 处理初始购买:', { userId, productId: event.product_id });
 
   try {
     const { MembershipService } = require('../services/membership.service');
@@ -429,7 +430,7 @@ async function handleInitialPurchase(userId: string, event: any): Promise<boolea
     // 根据产品ID确定会员类型和时长
     const { memberType, duration } = mapProductToMembership(event.product_id);
     if (!memberType) {
-      console.warn('💰 [InitialPurchase] 未知的产品ID:', event.product_id);
+      logger.warn('💰 [InitialPurchase] 未知的产品ID:', event.product_id);
       return false;
     }
 
@@ -444,10 +445,10 @@ async function handleInitialPurchase(userId: string, event: any): Promise<boolea
       hasPrioritySupport: true
     });
 
-    console.log('💰 [InitialPurchase] 处理成功:', { userId, memberType, duration });
+    logger.info('💰 [InitialPurchase] 处理成功:', { userId, memberType, duration });
     return true;
   } catch (error) {
-    console.error('💰 [InitialPurchase] 处理失败:', error);
+    logger.error('💰 [InitialPurchase] 处理失败:', error);
     return false;
   }
 }
@@ -456,7 +457,7 @@ async function handleInitialPurchase(userId: string, event: any): Promise<boolea
  * 处理续费事件
  */
 async function handleRenewal(userId: string, event: any): Promise<boolean> {
-  console.log('🔄 [Renewal] 处理续费:', { userId, productId: event.product_id });
+  logger.info('🔄 [Renewal] 处理续费:', { userId, productId: event.product_id });
 
   try {
     const { MembershipService } = require('../services/membership.service');
@@ -465,7 +466,7 @@ async function handleRenewal(userId: string, event: any): Promise<boolean> {
     // 根据产品ID确定会员类型和时长
     const { memberType, duration } = mapProductToMembership(event.product_id);
     if (!memberType) {
-      console.warn('🔄 [Renewal] 未知的产品ID:', event.product_id);
+      logger.warn('🔄 [Renewal] 未知的产品ID:', event.product_id);
       return false;
     }
 
@@ -480,10 +481,10 @@ async function handleRenewal(userId: string, event: any): Promise<boolean> {
       hasPrioritySupport: true
     });
 
-    console.log('🔄 [Renewal] 处理成功:', { userId, memberType, duration });
+    logger.info('🔄 [Renewal] 处理成功:', { userId, memberType, duration });
     return true;
   } catch (error) {
-    console.error('🔄 [Renewal] 处理失败:', error);
+    logger.error('🔄 [Renewal] 处理失败:', error);
     return false;
   }
 }
@@ -492,7 +493,7 @@ async function handleRenewal(userId: string, event: any): Promise<boolean> {
  * 处理取消事件
  */
 async function handleCancellation(userId: string, event: any): Promise<boolean> {
-  console.log('❌ [Cancellation] 处理取消:', { userId, productId: event.product_id });
+  logger.info('❌ [Cancellation] 处理取消:', { userId, productId: event.product_id });
 
   try {
     const { PrismaClient } = require('@prisma/client');
@@ -508,10 +509,10 @@ async function handleCancellation(userId: string, event: any): Promise<boolean> 
 
     await prisma.$disconnect();
 
-    console.log('❌ [Cancellation] 处理成功:', { userId, productId: event.product_id });
+    logger.info('❌ [Cancellation] 处理成功:', { userId, productId: event.product_id });
     return true;
   } catch (error) {
-    console.error('❌ [Cancellation] 处理失败:', error);
+    logger.error('❌ [Cancellation] 处理失败:', error);
     return false;
   }
 }
@@ -520,7 +521,7 @@ async function handleCancellation(userId: string, event: any): Promise<boolean> 
  * 处理恢复订阅事件
  */
 async function handleUncancellation(userId: string, event: any): Promise<boolean> {
-  console.log('✅ [Uncancellation] 处理恢复订阅:', { userId, productId: event.product_id });
+  logger.info('✅ [Uncancellation] 处理恢复订阅:', { userId, productId: event.product_id });
 
   try {
     const { PrismaClient } = require('@prisma/client');
@@ -536,10 +537,10 @@ async function handleUncancellation(userId: string, event: any): Promise<boolean
 
     await prisma.$disconnect();
 
-    console.log('✅ [Uncancellation] 处理成功:', { userId, productId: event.product_id });
+    logger.info('✅ [Uncancellation] 处理成功:', { userId, productId: event.product_id });
     return true;
   } catch (error) {
-    console.error('✅ [Uncancellation] 处理失败:', error);
+    logger.error('✅ [Uncancellation] 处理失败:', error);
     return false;
   }
 }
@@ -548,7 +549,7 @@ async function handleUncancellation(userId: string, event: any): Promise<boolean
  * 处理过期事件
  */
 async function handleExpiration(userId: string, event: any): Promise<boolean> {
-  console.log('⏰ [Expiration] 处理过期:', { userId, productId: event.product_id });
+  logger.info('⏰ [Expiration] 处理过期:', { userId, productId: event.product_id });
 
   try {
     const { MembershipService } = require('../services/membership.service');
@@ -557,10 +558,10 @@ async function handleExpiration(userId: string, event: any): Promise<boolean> {
     // 处理会员过期
     await membershipService.expireMembershipFromRevenueCat(userId);
 
-    console.log('⏰ [Expiration] 处理成功:', { userId, productId: event.product_id });
+    logger.info('⏰ [Expiration] 处理成功:', { userId, productId: event.product_id });
     return true;
   } catch (error) {
-    console.error('⏰ [Expiration] 处理失败:', error);
+    logger.error('⏰ [Expiration] 处理失败:', error);
     return false;
   }
 }
@@ -569,7 +570,7 @@ async function handleExpiration(userId: string, event: any): Promise<boolean> {
  * 处理产品变更事件
  */
 async function handleProductChange(userId: string, event: any): Promise<boolean> {
-  console.log('🔄 [ProductChange] 处理产品变更:', {
+  logger.info('🔄 [ProductChange] 处理产品变更:', {
     userId,
     oldProductId: event.product_id,
     newProductId: event.new_product_id
@@ -584,7 +585,7 @@ async function handleProductChange(userId: string, event: any): Promise<boolean>
     const { memberType, duration } = mapProductToMembership(newProductId);
 
     if (!memberType) {
-      console.warn('🔄 [ProductChange] 未知的新产品ID:', newProductId);
+      logger.warn('🔄 [ProductChange] 未知的新产品ID:', newProductId);
       return false;
     }
 
@@ -599,10 +600,10 @@ async function handleProductChange(userId: string, event: any): Promise<boolean>
       hasPrioritySupport: true
     });
 
-    console.log('🔄 [ProductChange] 处理成功:', { userId, newMemberType: memberType, duration });
+    logger.info('🔄 [ProductChange] 处理成功:', { userId, newMemberType: memberType, duration });
     return true;
   } catch (error) {
-    console.error('🔄 [ProductChange] 处理失败:', error);
+    logger.error('🔄 [ProductChange] 处理失败:', error);
     return false;
   }
 }
@@ -629,7 +630,7 @@ function mapProductToMembership(productId: string): { memberType: 'DONATION_ONE'
     return mapping;
   }
 
-  console.warn('📨 [ProductMapping] 未知的产品ID:', productId);
+  logger.warn('📨 [ProductMapping] 未知的产品ID:', productId);
   return { memberType: null, duration: 0 };
 }
 

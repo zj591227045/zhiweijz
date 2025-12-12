@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { PrismaClient, BudgetType, BudgetPeriod } from '@prisma/client';
 import { BudgetService } from './budget.service';
 import { BudgetRepository } from '../repositories/budget.repository';
@@ -24,19 +25,19 @@ export class BudgetSchedulerService {
    */
   async createMonthlyBudgetsForAllUsers(): Promise<void> {
     try {
-      console.log('开始执行月度预算自动创建任务');
+      logger.info('开始执行月度预算自动创建任务');
 
       // 获取当前月份
       const currentDate = new Date();
       const currentYear = currentDate.getFullYear();
       const currentMonth = currentDate.getMonth() + 1;
 
-      console.log(`当前月份: ${currentYear}-${currentMonth}`);
+      logger.info(`当前月份: ${currentYear}-${currentMonth}`);
 
       // 查找所有需要创建新预算周期的用户
       const usersNeedingBudgets = await this.findUsersNeedingCurrentPeriodBudgets(currentDate);
 
-      console.log(`找到 ${usersNeedingBudgets.length} 个用户需要创建当前月份预算`);
+      logger.info(`找到 ${usersNeedingBudgets.length} 个用户需要创建当前月份预算`);
 
       let successCount = 0;
       let errorCount = 0;
@@ -46,7 +47,7 @@ export class BudgetSchedulerService {
         try {
           if (userInfo.familyMemberId) {
             // 托管成员预算创建
-            console.log(`为托管成员 ${userInfo.familyMemberId} 创建预算`);
+            logger.info(`为托管成员 ${userInfo.familyMemberId} 创建预算`);
             await this.budgetService.autoCreateMissingBudgets(
               userInfo.userId,
               userInfo.accountBookId,
@@ -59,16 +60,16 @@ export class BudgetSchedulerService {
             );
           }
           successCount++;
-          console.log(`成功为用户 ${userInfo.userId} 在账本 ${userInfo.accountBookId} 中创建预算`);
+          logger.info(`成功为用户 ${userInfo.userId} 在账本 ${userInfo.accountBookId} 中创建预算`);
         } catch (error) {
           errorCount++;
-          console.error(`为用户 ${userInfo.userId} 创建预算失败:`, error);
+          logger.error(`为用户 ${userInfo.userId} 创建预算失败:`, error);
         }
       }
 
-      console.log(`月度预算创建任务完成: 成功 ${successCount} 个，失败 ${errorCount} 个`);
+      logger.info(`月度预算创建任务完成: 成功 ${successCount} 个，失败 ${errorCount} 个`);
     } catch (error) {
-      console.error('月度预算创建任务执行失败:', error);
+      logger.error('月度预算创建任务执行失败:', error);
     }
   }
 
@@ -167,7 +168,7 @@ export class BudgetSchedulerService {
    */
   async processExpiredBudgetRollovers(): Promise<void> {
     try {
-      console.log('开始处理过期预算结转任务');
+      logger.info('开始处理过期预算结转任务');
 
       const lastMonth = new Date();
       lastMonth.setMonth(lastMonth.getMonth() - 1);
@@ -186,7 +187,7 @@ export class BudgetSchedulerService {
         },
       });
 
-      console.log(`找到 ${expiredBudgets.length} 个需要处理结转的过期预算`);
+      logger.info(`找到 ${expiredBudgets.length} 个需要处理结转的过期预算`);
 
       let successCount = 0;
       let errorCount = 0;
@@ -195,16 +196,16 @@ export class BudgetSchedulerService {
         try {
           await this.budgetService.processBudgetRollover(budget.id);
           successCount++;
-          console.log(`成功处理预算 ${budget.id} 的结转`);
+          logger.info(`成功处理预算 ${budget.id} 的结转`);
         } catch (error) {
           errorCount++;
-          console.error(`处理预算 ${budget.id} 结转失败:`, error);
+          logger.error(`处理预算 ${budget.id} 结转失败:`, error);
         }
       }
 
-      console.log(`预算结转处理任务完成: 成功 ${successCount} 个，失败 ${errorCount} 个`);
+      logger.info(`预算结转处理任务完成: 成功 ${successCount} 个，失败 ${errorCount} 个`);
     } catch (error) {
-      console.error('预算结转处理任务执行失败:', error);
+      logger.error('预算结转处理任务执行失败:', error);
     }
   }
 
@@ -214,7 +215,7 @@ export class BudgetSchedulerService {
    */
   async cleanupOldBudgetHistory(): Promise<void> {
     try {
-      console.log('开始清理过期预算历史记录');
+      logger.info('开始清理过期预算历史记录');
 
       const oneYearAgo = new Date();
       oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -227,9 +228,9 @@ export class BudgetSchedulerService {
         },
       });
 
-      console.log(`清理了 ${result.count} 条过期预算历史记录`);
+      logger.info(`清理了 ${result.count} 条过期预算历史记录`);
     } catch (error) {
-      console.error('清理预算历史记录失败:', error);
+      logger.error('清理预算历史记录失败:', error);
     }
   }
 
@@ -238,7 +239,7 @@ export class BudgetSchedulerService {
    * 可以在cron job中调用此方法
    */
   async runAllScheduledTasks(): Promise<void> {
-    console.log('开始执行所有预算定时任务');
+    logger.info('开始执行所有预算定时任务');
 
     // 1. 处理过期预算结转
     await this.processExpiredBudgetRollovers();
@@ -253,6 +254,6 @@ export class BudgetSchedulerService {
       await this.cleanupOldBudgetHistory();
     }
 
-    console.log('所有预算定时任务执行完成');
+    logger.info('所有预算定时任务执行完成');
   }
 }

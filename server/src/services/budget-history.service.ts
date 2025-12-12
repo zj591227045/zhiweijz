@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { RolloverType } from '@prisma/client';
 import { BudgetHistoryRepository } from '../repositories/budget-history.repository';
 import { BudgetRepository } from '../repositories/budget.repository';
@@ -111,7 +112,7 @@ export class BudgetHistoryService {
         }
       }
     } catch (error) {
-      console.error('获取预算信息失败:', error);
+      logger.error('获取预算信息失败:', error);
     }
 
     // 确保userId不为空

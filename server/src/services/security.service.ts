@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { PrismaClient } from '@prisma/client';
 import { UserService } from './user.service';
 import {
@@ -99,7 +100,7 @@ export class SecurityService {
     });
 
     // TODO: 发送验证码到邮箱
-    console.log(`发送验证码 ${verificationCode} 到邮箱 ${data.email}`);
+    logger.info(`发送验证码 ${verificationCode} 到邮箱 ${data.email}`);
 
     // 实际应用中应该调用邮件服务发送验证码
   }

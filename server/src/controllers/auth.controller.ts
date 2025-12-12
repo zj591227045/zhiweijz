@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import {
@@ -151,11 +152,11 @@ export class AuthController {
         user: req.user
       };
 
-      console.log('🔍 Token状态检查响应:', responseData);
+      logger.debug('🔍 Token状态检查响应:', responseData);
 
       res.status(200).json(responseData);
     } catch (error) {
-      console.error('检查token状态时发生错误:', error);
+      logger.error('检查token状态时发生错误:', error);
       res.status(500).json({ message: '检查token状态时发生错误' });
     }
   }

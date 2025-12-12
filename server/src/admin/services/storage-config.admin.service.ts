@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { PrismaClient } from '@prisma/client';
 import { S3StorageService, S3Config } from '../../services/s3-storage.service';
 import { FileStorageConfigDto, FileStorageType } from '../../models/file-storage.model';
@@ -123,7 +124,7 @@ export class StorageConfigAdminService {
         },
       };
     } catch (error) {
-      console.error('获取存储配置错误:', error);
+      logger.error('获取存储配置错误:', error);
       throw new Error('获取存储配置失败');
     }
   }
@@ -250,23 +251,23 @@ export class StorageConfigAdminService {
         const { ImageCompressionService } = await import('../../services/image-compression.service');
         const compressionService = ImageCompressionService.getInstance();
         await compressionService.refreshConfig();
-        console.log('图片压缩服务配置已刷新');
+        logger.info('图片压缩服务配置已刷新');
       } catch (error) {
-        console.warn('刷新图片压缩服务配置失败:', error);
+        logger.warn('刷新图片压缩服务配置失败:', error);
       }
 
       // 刷新文件存储服务配置
       try {
         const { reloadGlobalFileStorageConfig } = await import('../../services/file-storage.service');
         await reloadGlobalFileStorageConfig();
-        console.log('文件存储服务配置已刷新');
+        logger.info('文件存储服务配置已刷新');
       } catch (error) {
-        console.warn('刷新文件存储服务配置失败:', error);
+        logger.warn('刷新文件存储服务配置失败:', error);
       }
 
-      console.log('存储配置更新成功');
+      logger.info('存储配置更新成功');
     } catch (error) {
-      console.error('更新存储配置错误:', error);
+      logger.error('更新存储配置错误:', error);
       throw new Error('更新存储配置失败');
     }
   }
@@ -292,36 +293,36 @@ export class StorageConfigAdminService {
         lowerEndpoint.includes('172.2') ||
         lowerEndpoint.includes('172.30.') ||
         lowerEndpoint.includes('172.31.')) {
-      console.log('🔧 检测到MinIO或本地服务，使用路径样式');
+      logger.info('🔧 检测到MinIO或本地服务，使用路径样式');
       return true;
     }
 
     // AWS S3官方服务不需要路径样式
     if (lowerEndpoint.includes('amazonaws.com')) {
-      console.log('🔧 检测到AWS S3，使用虚拟主机样式');
+      logger.info('🔧 检测到AWS S3，使用虚拟主机样式');
       return false;
     }
 
     // 腾讯云COS不需要路径样式
     if (lowerEndpoint.includes('myqcloud.com')) {
-      console.log('🔧 检测到腾讯云COS，使用虚拟主机样式');
+      logger.info('🔧 检测到腾讯云COS，使用虚拟主机样式');
       return false;
     }
 
     // 阿里云OSS不需要路径样式
     if (lowerEndpoint.includes('aliyuncs.com')) {
-      console.log('🔧 检测到阿里云OSS，使用虚拟主机样式');
+      logger.info('🔧 检测到阿里云OSS，使用虚拟主机样式');
       return false;
     }
 
     // 华为云OBS不需要路径样式
     if (lowerEndpoint.includes('myhuaweicloud.com')) {
-      console.log('🔧 检测到华为云OBS，使用虚拟主机样式');
+      logger.info('🔧 检测到华为云OBS，使用虚拟主机样式');
       return false;
     }
 
     // 默认情况下，对于未知的服务，使用路径样式（更兼容）
-    console.log('🔧 未知S3服务，默认使用路径样式');
+    logger.info('🔧 未知S3服务，默认使用路径样式');
     return true;
   }
 
@@ -379,7 +380,7 @@ export class StorageConfigAdminService {
         forcePathStyle: needsPathStyle,
       };
 
-      console.log('🔧 测试S3配置:', {
+      logger.info('🔧 测试S3配置:', {
         endpoint: s3Config.endpoint,
         region: s3Config.region,
         forcePathStyle: s3Config.forcePathStyle,
@@ -414,7 +415,7 @@ export class StorageConfigAdminService {
             accessible: true,
           });
         } catch (error) {
-          console.error(`测试存储桶 ${bucketName} 失败:`, error);
+          logger.error(`测试存储桶 ${bucketName} 失败:`, error);
           bucketTests.push({
             name: bucketName,
             exists: false,
@@ -434,7 +435,7 @@ export class StorageConfigAdminService {
         },
       };
     } catch (error) {
-      console.error('测试存储连接错误:', error);
+      logger.error('测试存储连接错误:', error);
       return {
         success: false,
         message: `存储连接测试失败: ${error instanceof Error ? error.message : '未知错误'}`,
@@ -529,7 +530,7 @@ export class StorageConfigAdminService {
             }
           }
         } catch (error) {
-          console.warn('无法检查存储桶存在性:', error);
+          logger.warn('无法检查存储桶存在性:', error);
           // 如果无法连接S3，将所有配置的存储桶标记为未知状态
           configuredBuckets.forEach(bucket => {
             bucketExistenceMap[bucket] = false;
@@ -560,7 +561,7 @@ export class StorageConfigAdminService {
         bucketInfo,
       };
     } catch (error) {
-      console.error('获取存储统计错误:', error);
+      logger.error('获取存储统计错误:', error);
       throw new Error('获取存储统计失败');
     }
   }

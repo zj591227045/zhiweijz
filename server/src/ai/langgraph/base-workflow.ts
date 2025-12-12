@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { LLMProviderService } from '../llm/llm-provider-service';
 import { WorkflowState, WorkflowConfig } from '../types/workflow-types';
 
@@ -49,7 +50,7 @@ export abstract class BaseWorkflow<T extends WorkflowState> {
    * @returns 更新后的状态
    */
   protected handleError(error: any, state: T): T {
-    console.error(`Error in workflow ${this.config.name}:`, error);
+    logger.error(`Error in workflow ${this.config.name}:`, error);
     return {
       ...state,
       error: error.message || String(error),

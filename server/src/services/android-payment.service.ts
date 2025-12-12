@@ -5,6 +5,8 @@
  * 注意：这是预留接口，暂未实现具体功能
  */
 
+import { logger } from '../utils/logger';
+
 export interface AndroidPaymentConfig {
   // 微信支付配置
   wechatPay: {
@@ -68,7 +70,7 @@ export class AndroidPaymentService {
    */
   async initialize(): Promise<void> {
     // TODO: 实现支付服务初始化
-    console.log('🔄 [AndroidPayment] 初始化支付服务 (预留接口)');
+    logger.info('🔄 [AndroidPayment] 初始化支付服务 (预留接口)');
   }
 
   /**
@@ -76,7 +78,7 @@ export class AndroidPaymentService {
    */
   async createPaymentOrder(request: AndroidPaymentRequest): Promise<AndroidPaymentResponse> {
     // TODO: 实现支付订单创建
-    console.log('💰 [AndroidPayment] 创建支付订单:', request);
+    logger.info('💰 [AndroidPayment] 创建支付订单:', request);
     
     return {
       success: false,
@@ -90,7 +92,7 @@ export class AndroidPaymentService {
    */
   async queryPaymentStatus(orderId: string): Promise<AndroidPaymentResponse> {
     // TODO: 实现支付状态查询
-    console.log('🔍 [AndroidPayment] 查询支付状态:', orderId);
+    logger.info('🔍 [AndroidPayment] 查询支付状态:', orderId);
     
     return {
       success: false,
@@ -104,7 +106,7 @@ export class AndroidPaymentService {
    */
   async handlePaymentCallback(callbackData: any): Promise<boolean> {
     // TODO: 实现支付回调处理
-    console.log('📞 [AndroidPayment] 处理支付回调:', callbackData);
+    logger.info('📞 [AndroidPayment] 处理支付回调:', callbackData);
     return false;
   }
 
@@ -113,7 +115,7 @@ export class AndroidPaymentService {
    */
   async createSubscription(request: AndroidPaymentRequest): Promise<AndroidSubscriptionInfo | null> {
     // TODO: 实现订阅创建
-    console.log('📅 [AndroidPayment] 创建订阅:', request);
+    logger.info('📅 [AndroidPayment] 创建订阅:', request);
     return null;
   }
 
@@ -122,7 +124,7 @@ export class AndroidPaymentService {
    */
   async querySubscriptionStatus(subscriptionId: string): Promise<AndroidSubscriptionInfo | null> {
     // TODO: 实现订阅状态查询
-    console.log('📊 [AndroidPayment] 查询订阅状态:', subscriptionId);
+    logger.info('📊 [AndroidPayment] 查询订阅状态:', subscriptionId);
     return null;
   }
 
@@ -131,7 +133,7 @@ export class AndroidPaymentService {
    */
   async cancelSubscription(subscriptionId: string): Promise<boolean> {
     // TODO: 实现订阅取消
-    console.log('❌ [AndroidPayment] 取消订阅:', subscriptionId);
+    logger.info('❌ [AndroidPayment] 取消订阅:', subscriptionId);
     return false;
   }
 
@@ -140,7 +142,7 @@ export class AndroidPaymentService {
    */
   private async processWechatPayment(request: AndroidPaymentRequest): Promise<AndroidPaymentResponse> {
     // TODO: 实现微信支付处理
-    console.log('💚 [AndroidPayment] 处理微信支付:', request);
+    logger.info('💚 [AndroidPayment] 处理微信支付:', request);
     
     return {
       success: false,
@@ -154,7 +156,7 @@ export class AndroidPaymentService {
    */
   private async processAlipayPayment(request: AndroidPaymentRequest): Promise<AndroidPaymentResponse> {
     // TODO: 实现支付宝支付处理
-    console.log('💙 [AndroidPayment] 处理支付宝支付:', request);
+    logger.info('💙 [AndroidPayment] 处理支付宝支付:', request);
     
     return {
       success: false,
@@ -168,7 +170,7 @@ export class AndroidPaymentService {
    */
   private verifyPaymentSignature(data: any, signature: string, paymentMethod: 'wechat' | 'alipay'): boolean {
     // TODO: 实现支付签名验证
-    console.log('🔐 [AndroidPayment] 验证支付签名:', { paymentMethod, signature });
+    logger.info('🔐 [AndroidPayment] 验证支付签名:', { paymentMethod, signature });
     return false;
   }
 

@@ -352,7 +352,7 @@ class BudgetRepository {
                 startDate: { lte: date },
                 endDate: { gte: date },
             };
-            console.log('查询指定账本的活跃预算，条件:', JSON.stringify(where, null, 2));
+            logger.debug('查询指定账本的活跃预算，条件:', JSON.stringify(where, null, 2));
             return prisma.budget.findMany({
                 where,
                 include: {

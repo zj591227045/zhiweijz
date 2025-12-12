@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { TransactionAttachmentRepository } from '../repositories/file-storage.repository';
 import { FileStorageService } from '../services/file-storage.service';
@@ -72,7 +73,7 @@ export class TransactionAttachmentController {
         message: '附件添加成功',
       });
     } catch (error) {
-      console.error('添加记账附件失败:', error);
+      logger.error('添加记账附件失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '添加附件失败',
@@ -99,7 +100,7 @@ export class TransactionAttachmentController {
         data: attachments,
       });
     } catch (error) {
-      console.error('获取记账附件失败:', error);
+      logger.error('获取记账附件失败:', error);
       res.status(500).json({
         success: false,
         message: '获取记账附件失败',
@@ -149,7 +150,7 @@ export class TransactionAttachmentController {
         message: '文件关联成功',
       });
     } catch (error) {
-      console.error('关联文件到记账失败:', error);
+      logger.error('关联文件到记账失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '关联文件失败',
@@ -169,14 +170,14 @@ export class TransactionAttachmentController {
       }
 
       const { attachmentId } = req.params;
-      console.log('📎 删除附件请求:', { attachmentId, userId });
+      logger.info('📎 删除附件请求:', { attachmentId, userId });
 
       // 首先尝试通过 fileId 查找附件
       let attachments = await this.attachmentRepository.findByFileId(attachmentId);
 
       // 如果通过 fileId 找不到，尝试直接通过附件ID查找
       if (attachments.length === 0) {
-        console.log('📎 通过 fileId 未找到附件，尝试通过附件ID查找');
+        logger.info('📎 通过 fileId 未找到附件，尝试通过附件ID查找');
         // 这里需要添加一个通过附件ID查找的方法
         const attachment = await this.attachmentRepository.findById(attachmentId);
         if (attachment) {
@@ -185,7 +186,7 @@ export class TransactionAttachmentController {
       }
 
       if (attachments.length === 0) {
-        console.log('📎 附件不存在:', attachmentId);
+        logger.info('📎 附件不存在:', attachmentId);
         res.status(404).json({
           success: false,
           message: '附件不存在',
@@ -194,7 +195,7 @@ export class TransactionAttachmentController {
       }
 
       const attachment = attachments[0];
-      console.log('📎 找到附件:', {
+      logger.info('📎 找到附件:', {
         attachmentId: attachment.id,
         fileId: attachment.fileId,
         transactionUserId: attachment.transaction?.userId
@@ -215,13 +216,13 @@ export class TransactionAttachmentController {
       // 删除文件
       await this.fileStorageService.deleteFile(attachment.fileId, userId);
 
-      console.log('📎 附件删除成功:', attachment.id);
+      logger.info('📎 附件删除成功:', attachment.id);
       res.json({
         success: true,
         message: '附件删除成功',
       });
     } catch (error) {
-      console.error('删除记账附件失败:', error);
+      logger.error('删除记账附件失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '删除附件失败',
@@ -309,7 +310,7 @@ export class TransactionAttachmentController {
         message: `批量上传完成：成功 ${successCount} 个，失败 ${failCount} 个`,
       });
     } catch (error) {
-      console.error('批量上传记账附件失败:', error);
+      logger.error('批量上传记账附件失败:', error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : '批量上传失败',
@@ -335,7 +336,7 @@ export class TransactionAttachmentController {
         data: stats,
       });
     } catch (error) {
-      console.error('获取附件统计失败:', error);
+      logger.error('获取附件统计失败:', error);
       res.status(500).json({
         success: false,
         message: '获取附件统计失败',

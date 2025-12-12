@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { PrismaClient } from '@prisma/client';
 import {
   Tag,
@@ -95,7 +96,7 @@ export class TagService {
         },
       };
     } catch (error) {
-      console.error('获取标签列表失败:', error);
+      logger.error('获取标签列表失败:', error);
       throw new Error('获取标签列表失败');
     }
   }
@@ -160,7 +161,7 @@ export class TagService {
         },
       };
     } catch (error) {
-      console.error('获取标签详情失败:', error);
+      logger.error('获取标签详情失败:', error);
       throw error;
     }
   }
@@ -206,7 +207,7 @@ export class TagService {
 
       return this.formatTagResponse(tag);
     } catch (error) {
-      console.error('创建标签失败:', error);
+      logger.error('创建标签失败:', error);
       throw new Error('创建标签失败');
     }
   }
@@ -260,7 +261,7 @@ export class TagService {
 
       return this.formatTagResponse(tag);
     } catch (error) {
-      console.error('更新标签失败:', error);
+      logger.error('更新标签失败:', error);
       throw new Error('更新标签失败');
     }
   }
@@ -286,7 +287,7 @@ export class TagService {
         where: { id: tagId },
       });
     } catch (error) {
-      console.error('删除标签失败:', error);
+      logger.error('删除标签失败:', error);
       throw new Error('删除标签失败');
     }
   }
@@ -521,7 +522,7 @@ export class TagService {
         data: suggestions,
       };
     } catch (error) {
-      console.error('获取标签建议失败:', error);
+      logger.error('获取标签建议失败:', error);
       throw new Error('获取标签建议失败');
     }
   }
@@ -652,7 +653,7 @@ export class TagService {
         },
       };
     } catch (error) {
-      console.error('获取标签统计失败:', error);
+      logger.error('获取标签统计失败:', error);
       throw new Error('获取标签统计失败');
     }
   }

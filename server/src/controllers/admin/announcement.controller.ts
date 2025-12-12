@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { Request, Response } from 'express';
 import { announcementService } from '../../services/admin/announcement.service';
 import { z } from 'zod';
@@ -34,7 +35,7 @@ export const announcementController = {
         data: result,
       });
     } catch (error) {
-      console.error('获取公告列表失败:', error);
+      logger.error('获取公告列表失败:', error);
       res.status(500).json({
         success: false,
         message: '获取公告列表失败',
@@ -61,7 +62,7 @@ export const announcementController = {
         data: announcement,
       });
     } catch (error) {
-      console.error('获取公告详情失败:', error);
+      logger.error('获取公告详情失败:', error);
       res.status(500).json({
         success: false,
         message: '获取公告详情失败',
@@ -89,7 +90,7 @@ export const announcementController = {
         message: '公告创建成功',
       });
     } catch (error) {
-      console.error('创建公告失败:', error);
+      logger.error('创建公告失败:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           success: false,
@@ -125,7 +126,7 @@ export const announcementController = {
         message: '公告更新成功',
       });
     } catch (error) {
-      console.error('更新公告失败:', error);
+      logger.error('更新公告失败:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           success: false,
@@ -152,7 +153,7 @@ export const announcementController = {
         message: '公告删除成功',
       });
     } catch (error) {
-      console.error('删除公告失败:', error);
+      logger.error('删除公告失败:', error);
       res.status(500).json({
         success: false,
         message: '删除公告失败',
@@ -179,7 +180,7 @@ export const announcementController = {
         message: '公告发布成功',
       });
     } catch (error) {
-      console.error('发布公告失败:', error);
+      logger.error('发布公告失败:', error);
       res.status(500).json({
         success: false,
         message: '发布公告失败',
@@ -202,7 +203,7 @@ export const announcementController = {
         message: '公告撤回成功',
       });
     } catch (error) {
-      console.error('撤回公告失败:', error);
+      logger.error('撤回公告失败:', error);
       res.status(500).json({
         success: false,
         message: '撤回公告失败',
@@ -221,7 +222,7 @@ export const announcementController = {
         data: stats,
       });
     } catch (error) {
-      console.error('获取公告统计失败:', error);
+      logger.error('获取公告统计失败:', error);
       res.status(500).json({
         success: false,
         message: '获取公告统计失败',

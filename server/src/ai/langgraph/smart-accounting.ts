@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { LLMProviderService } from '../llm/llm-provider-service';
 import {
   SMART_ACCOUNTING_SYSTEM_PROMPT,
@@ -60,12 +61,12 @@ export class SmartAccounting {
     includeDebugInfo: boolean = false,
   ): Promise<SmartAccountingResponse> {
     if (!accountId) {
-      console.error('处理智能记账时缺少账本ID');
+      logger.error('处理智能记账时缺少账本ID');
       return null;
     }
 
     if (!userId) {
-      console.error('处理智能记账时缺少用户ID');
+      logger.error('处理智能记账时缺少用户ID');
       return null;
     }
 
@@ -78,7 +79,7 @@ export class SmartAccounting {
     const cachedResult = this.cache.get(cacheKey);
     if (cachedResult) {
       // 缓存命中时不需要扣除记账点，因为调用层会处理记账点扣除
-      console.log('智能记账缓存命中，返回缓存结果');
+      logger.info('智能记账缓存命中，返回缓存结果');
       return cachedResult as SmartAccountingResponse;
     }
 
@@ -98,7 +99,7 @@ export class SmartAccounting {
 
       // 检查是否有错误（如内容与记账无关）
       if (analyzedState.error) {
-        console.log('智能记账分析失败:', analyzedState.error);
+        logger.info('智能记账分析失败:', analyzedState.error);
         // 返回包含错误信息的对象，而不是null
         return { error: analyzedState.error };
       }
@@ -123,7 +124,7 @@ export class SmartAccounting {
       // 如果没有结果，返回null
       return null;
     } catch (error) {
-      console.error('工作流执行错误:', error);
+      logger.error('工作流执行错误:', error);
       return null;
     }
   }
@@ -236,7 +237,7 @@ export class SmartAccounting {
 
       return budgets.join('\n');
     } catch (error) {
-      console.error('获取预算列表失败:', error);
+      logger.error('获取预算列表失败:', error);
       return '';
     }
   }
@@ -316,7 +317,7 @@ export class SmartAccounting {
       const budgetListText = await this.getBudgetListForPrompt(state.userId, state.accountId || '');
       const budgetList = budgetListText ? `预算列表：\n${budgetListText}` : '';
       
-      console.log('📊 [预算信息] 获取预算列表:', {
+      logger.info('📊 [预算信息] 获取预算列表:', {
         hasPrebudget: !!budgetListText,
         budgetCount: budgetListText.split('\n').filter(line => line.trim()).length,
         budgetPreview: budgetListText.substring(0, 200) + (budgetListText.length > 200 ? '...' : '')
@@ -328,7 +329,7 @@ export class SmartAccounting {
         config.smartAccounting.smartAccountingPrompt : 
         SMART_ACCOUNTING_SYSTEM_PROMPT;
       
-      console.log('🔧 [智能记账] 使用的提示词模板:', {
+      logger.info('🔧 [智能记账] 使用的提示词模板:', {
         isFromDatabase: !!(config.smartAccounting.smartAccountingPrompt && config.smartAccounting.smartAccountingPrompt.trim()),
         templateLength: smartAccountingTemplate.length,
         templatePreview: smartAccountingTemplate.substring(0, 100) + '...'
@@ -429,11 +430,11 @@ export class SmartAccounting {
             const defaultCategory = categories.find((c: any) => c.name === '其他') || categories[0];
             analyzedTransaction.categoryId = defaultCategory.id;
             analyzedTransaction.categoryName = defaultCategory.name;
-            console.warn(`第 ${i + 1} 条记录的分类ID无效，使用默认分类: ${defaultCategory.name}`);
+            logger.warn(`第 ${i + 1} 条记录的分类ID无效，使用默认分类: ${defaultCategory.name}`);
           }
 
           // 为每条记录进行简单的预算匹配
-          console.log(`🎯 [预算匹配] 为第 ${i + 1} 条记录匹配预算`);
+          logger.info(`🎯 [预算匹配] 为第 ${i + 1} 条记录匹配预算`);
           const matchedBudget = await this.findBestBudgetForTransaction(
             analyzedTransaction,
             state.userId,
@@ -442,9 +443,9 @@ export class SmartAccounting {
           
           if (matchedBudget) {
             analyzedTransaction.budgetId = matchedBudget.id;
-            console.log(`✅ [预算匹配] 第 ${i + 1} 条记录匹配预算: ${matchedBudget.name}`);
+            logger.info(`✅ [预算匹配] 第 ${i + 1} 条记录匹配预算: ${matchedBudget.name}`);
           } else {
-            console.log(`❌ [预算匹配] 第 ${i + 1} 条记录未找到匹配预算`);
+            logger.info(`❌ [预算匹配] 第 ${i + 1} 条记录未找到匹配预算`);
           }
         }
 
@@ -468,7 +469,7 @@ export class SmartAccounting {
 
       throw new Error('无法解析智能分析结果');
     } catch (error) {
-      console.error('智能分析错误:', error);
+      logger.error('智能分析错误:', error);
 
       // Token限额检查已移除，不再特殊处理Token限额错误
 
@@ -509,18 +510,18 @@ export class SmartAccounting {
 
     try {
       let budget = null;
-      console.log(`🎯 [预算匹配] 开始为用户 ${state.userId} 匹配预算`);
+      logger.info(`🎯 [预算匹配] 开始为用户 ${state.userId} 匹配预算`);
 
       // 如果LLM识别出了预算名称，优先根据预算名称匹配
       if (state.analyzedTransaction.budgetName) {
-        console.log(`🔍 [预算匹配] 尝试根据预算名称匹配: ${state.analyzedTransaction.budgetName}`);
+        logger.info(`🔍 [预算匹配] 尝试根据预算名称匹配: ${state.analyzedTransaction.budgetName}`);
         budget = await this.findBudgetByName(
           state.analyzedTransaction.budgetName,
           state.userId,
           state.accountId,
         );
         if (budget) {
-          console.log(`✅ [预算匹配] 根据预算名称找到匹配的预算: ${budget.id} - ${budget.name}`);
+          logger.info(`✅ [预算匹配] 根据预算名称找到匹配的预算: ${budget.id} - ${budget.name}`);
           return {
             ...state,
             matchedBudget: {
@@ -529,7 +530,7 @@ export class SmartAccounting {
             },
           };
         } else {
-          console.log(`❌ [预算匹配] 未找到名称匹配的预算，使用默认逻辑`);
+          logger.info(`❌ [预算匹配] 未找到名称匹配的预算，使用默认逻辑`);
         }
       }
 
@@ -539,7 +540,7 @@ export class SmartAccounting {
       // 2. 当前账本的通用预算（按分类匹配）
       // 3. 当前账本的通用预算（不限分类）
 
-      console.log(`🔍 [预算匹配] 查找用户 ${state.userId} 在账本 ${state.accountId} 的个人预算`);
+      logger.info(`🔍 [预算匹配] 查找用户 ${state.userId} 在账本 ${state.accountId} 的个人预算`);
 
       // 首先尝试找到请求发起人的个人预算（排除托管成员预算）
       budget = await prisma.budget.findFirst({
@@ -558,7 +559,7 @@ export class SmartAccounting {
       });
 
       if (budget) {
-        console.log(
+        logger.info(
           `✅ [预算匹配] 找到用户个人预算: ${budget.id} - ${budget.name} (分类匹配: ${
             budget.categoryId === state.analyzedTransaction.categoryId ? '是' : '否'
           })`,
@@ -567,7 +568,7 @@ export class SmartAccounting {
 
       // 如果没有找到发起人的个人预算，再尝试其他预算
       if (!budget) {
-        console.log(`🔍 [预算匹配] 未找到个人预算，查找账本通用预算`);
+        logger.info(`🔍 [预算匹配] 未找到个人预算，查找账本通用预算`);
         budget = await prisma.budget.findFirst({
           where: {
             OR: [
@@ -594,7 +595,7 @@ export class SmartAccounting {
         });
 
         if (budget) {
-          console.log(
+          logger.info(
             `✅ [预算匹配] 找到账本预算: ${budget.id} - ${budget.name} (类型: ${
               budget.categoryId ? '分类预算' : '通用预算'
             })`,
@@ -612,12 +613,12 @@ export class SmartAccounting {
         };
       }
 
-      console.log(
+      logger.info(
         `❌ [预算匹配] 未找到任何匹配的预算，分类ID: ${state.analyzedTransaction.categoryId}`,
       );
       return state;
     } catch (error) {
-      console.error('预算匹配错误:', error);
+      logger.error('预算匹配错误:', error);
       return state;
     }
   }
@@ -752,7 +753,7 @@ export class SmartAccounting {
 
       return null;
     } catch (error) {
-      console.error('根据名称查找预算失败:', error);
+      logger.error('根据名称查找预算失败:', error);
       return null;
     }
   }
@@ -765,7 +766,7 @@ export class SmartAccounting {
   private async matchAccountHandler(state: SmartAccountingState) {
     // 由于API调用时已经要求提供账本ID，这里只需验证账本是否存在
     if (!state.accountId || !state.userId) {
-      console.error('缺少账本ID或用户ID');
+      logger.error('缺少账本ID或用户ID');
       return state;
     }
 
@@ -794,17 +795,17 @@ export class SmartAccounting {
       });
 
       if (accountBook) {
-        console.log(`验证账本成功: ${accountBook.id} - ${accountBook.name}`);
+        logger.info(`验证账本成功: ${accountBook.id} - ${accountBook.name}`);
         return {
           ...state,
           accountId: accountBook.id,
           accountType: accountBook.type.toLowerCase() as 'personal' | 'family',
         };
       } else {
-        console.error(`账本不存在或用户无权访问: ${state.accountId}`);
+        logger.error(`账本不存在或用户无权访问: ${state.accountId}`);
       }
     } catch (error) {
-      console.error('账本验证错误:', error);
+      logger.error('账本验证错误:', error);
     }
 
     return state;
@@ -817,7 +818,7 @@ export class SmartAccounting {
    */
   private async generateResultHandler(state: SmartAccountingState) {
     if (!state.analyzedTransaction || !state.accountId || !state.userId) {
-      console.error('生成结果时缺少必要信息');
+      logger.error('生成结果时缺少必要信息');
       // 返回一个基本的错误结果
       const errorResult = {
         amount: 0,
@@ -847,14 +848,14 @@ export class SmartAccounting {
       const isArrayFormat = Array.isArray(state.analyzedTransaction);
       const transactions = isArrayFormat ? (state.analyzedTransaction as unknown as any[]) : [(state.analyzedTransaction as unknown) as any];
       
-      console.log(`🔄 [结果生成] 处理 ${transactions.length} 条交易记录`);
+      logger.info(`🔄 [结果生成] 处理 ${transactions.length} 条交易记录`);
 
       const results = [];
 
       // 处理每条交易记录
       for (let i = 0; i < transactions.length; i++) {
         const transaction = transactions[i];
-        console.log(`🔄 [结果生成] 处理第 ${i + 1} 条记录:`, transaction);
+        logger.info(`🔄 [结果生成] 处理第 ${i + 1} 条记录:`, transaction);
 
         // 获取分类信息
         const category = await prisma.category.findUnique({
@@ -944,16 +945,16 @@ export class SmartAccounting {
         };
 
         results.push(result);
-        console.log(`✅ [结果生成] 第 ${i + 1} 条记录生成完成:`, result);
+        logger.info(`✅ [结果生成] 第 ${i + 1} 条记录生成完成:`, result);
       }
 
       // 如果是多条记录，返回数组；如果是单条记录，返回单个对象
       const finalResult = isArrayFormat ? results : results[0];
       
-      console.log('生成智能记账结果:', JSON.stringify(finalResult, null, 2));
+      logger.info('生成智能记账结果:', JSON.stringify(finalResult, null, 2));
       return { ...state, result: finalResult };
     } catch (error) {
-      console.error('生成结果时出错:', error);
+      logger.error('生成结果时出错:', error);
 
       // 如果出错，尝试生成基本结果
       const isArrayFormat = Array.isArray(state.analyzedTransaction);
@@ -996,10 +997,10 @@ export class SmartAccounting {
 
       // 如果LLM识别出了预算名称，优先根据预算名称匹配
       if (transaction.budgetName) {
-        console.log(`🔍 [预算匹配] 尝试根据预算名称匹配: ${transaction.budgetName}`);
+        logger.info(`🔍 [预算匹配] 尝试根据预算名称匹配: ${transaction.budgetName}`);
         budget = await this.findBudgetByName(transaction.budgetName, userId, accountId);
         if (budget) {
-          console.log(`✅ [预算匹配] 根据预算名称找到匹配的预算: ${budget.id} - ${budget.name}`);
+          logger.info(`✅ [预算匹配] 根据预算名称找到匹配的预算: ${budget.id} - ${budget.name}`);
           return budget;
         }
       }
@@ -1026,7 +1027,7 @@ export class SmartAccounting {
       });
 
       if (budget) {
-        console.log(
+        logger.info(
           `✅ [预算匹配] 找到用户个人预算: ${budget.id} - ${budget.name} (分类匹配: ${
             budget.categoryId === transaction.categoryId ? '是' : '否'
           })`,
@@ -1061,7 +1062,7 @@ export class SmartAccounting {
       });
 
       if (budget) {
-        console.log(
+        logger.info(
           `✅ [预算匹配] 找到账本预算: ${budget.id} - ${budget.name} (类型: ${
             budget.categoryId ? '分类预算' : '通用预算'
           })`,
@@ -1070,7 +1071,7 @@ export class SmartAccounting {
 
       return budget;
     } catch (error) {
-      console.error('预算匹配失败:', error);
+      logger.error('预算匹配失败:', error);
       return null;
     }
   }
@@ -1121,7 +1122,7 @@ export class SmartAccounting {
         .map((c: any) => `${c.id}:${c.name}(${c.type === 'EXPENSE' ? '支出' : '收入'})`)
         .join(',');
     } catch (error) {
-      console.error('获取分类列表失败:', error);
+      logger.error('获取分类列表失败:', error);
       return '';
     }
   }

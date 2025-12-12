@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import sharp from 'sharp';
 import { PrismaClient } from '@prisma/client';
 import { CompressionStatsService } from './compression-stats.service';
@@ -125,7 +126,7 @@ export class ImageCompressionService {
       // 更新压缩策略
       this.updateCompressionStrategy(configMap);
     } catch (error) {
-      console.warn('加载图片压缩配置失败，使用默认配置:', error);
+      logger.warn('加载图片压缩配置失败，使用默认配置:', error);
     }
   }
 
@@ -301,14 +302,14 @@ export class ImageCompressionService {
             processingTime,
           });
         } catch (statsError) {
-          console.warn('记录压缩统计失败:', statsError);
+          logger.warn('记录压缩统计失败:', statsError);
           // 统计记录失败不影响主流程
         }
       }
 
       return result;
     } catch (error) {
-      console.error('图片压缩失败:', error);
+      logger.error('图片压缩失败:', error);
       throw new Error(`图片压缩失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
@@ -327,7 +328,7 @@ export class ImageCompressionService {
       if (result.status === 'fulfilled') {
         return result.value;
       } else {
-        console.error(`图片 ${index} 压缩失败:`, result.reason);
+        logger.error(`图片 ${index} 压缩失败:`, result.reason);
         // 返回原始图片作为fallback
         const originalBuffer = images[index].buffer;
         return {

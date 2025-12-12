@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { ChatOpenAI } from '@langchain/openai';
 import { LLMProvider } from './llm-provider';
 import { LLMProviderOptions, Message, LLMResponse, TokenUsage } from '../types/llm-types';
@@ -47,7 +48,7 @@ export class OpenAIProvider implements LLMProvider {
       const response = await model.invoke(prompt);
       return response.content.toString();
     } catch (error) {
-      console.error('[OpenAI] 生成文本时出错:', error);
+      logger.error('[OpenAI] 生成文本时出错:', error);
       throw error;
     }
   }
@@ -88,7 +89,7 @@ export class OpenAIProvider implements LLMProvider {
       const response = await model.invoke(langchainMessages);
       return response.content.toString();
     } catch (error) {
-      console.error('[OpenAI] 生成聊天响应时出错:', error);
+      logger.error('[OpenAI] 生成聊天响应时出错:', error);
       throw error;
     }
   }
@@ -178,7 +179,7 @@ export class OpenAIProvider implements LLMProvider {
         usage,
       };
     } catch (error) {
-      console.error('[OpenAI] 生成聊天响应时出错:', error);
+      logger.error('[OpenAI] 生成聊天响应时出错:', error);
       throw error;
     }
   }

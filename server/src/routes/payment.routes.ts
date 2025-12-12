@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Router, Request, Response } from 'express';
 import { authenticate } from '../middlewares/auth.middleware';
 import { PrismaClient, MemberType, NotificationType, RenewalType, RenewalStatus } from '@prisma/client';
@@ -24,7 +25,7 @@ router.post('/sync-customer', authenticate, async (req: Request, res: Response) 
 
     const userId = req.user!.id;
 
-    console.log('📱 [SyncCustomer] 收到客户信息同步请求:', {
+    logger.info('📱 [SyncCustomer] 收到客户信息同步请求:', {
       userId,
       platform,
       activeSubscriptions: customerInfo.activeSubscriptions,
@@ -46,7 +47,7 @@ router.post('/sync-customer', authenticate, async (req: Request, res: Response) 
     });
 
   } catch (error: any) {
-    console.error('📱 [SyncCustomer] 同步失败:', error);
+    logger.error('📱 [SyncCustomer] 同步失败:', error);
     return res.status(500).json({
       success: false,
       message: '同步客户信息失败',
@@ -76,7 +77,7 @@ router.post('/sync-purchase', authenticate, async (req: Request, res: Response) 
 
     const userId = req.user!.id;
 
-    console.log('📱 [SyncPurchase] 收到购买同步请求:', {
+    logger.info('📱 [SyncPurchase] 收到购买同步请求:', {
       userId,
       productIdentifier,
       platform,
@@ -100,7 +101,7 @@ router.post('/sync-purchase', authenticate, async (req: Request, res: Response) 
     });
 
   } catch (error: any) {
-    console.error('📱 [SyncPurchase] 同步失败:', error);
+    logger.error('📱 [SyncPurchase] 同步失败:', error);
     return res.status(500).json({
       success: false,
       message: '同步购买信息失败',
@@ -127,7 +128,7 @@ async function processCustomerSync(data: {
     // 2. 分析当前会员状态
     const membershipAnalysis = analyzeMembershipStatus(customerInfo);
 
-    console.log('🔍 [ProcessCustomerSync] 会员状态分析结果:', {
+    logger.info('🔍 [ProcessCustomerSync] 会员状态分析结果:', {
       userId,
       membershipAnalysis,
       originalCustomerInfo: {
@@ -166,7 +167,7 @@ async function processCustomerSync(data: {
     };
 
   } catch (error) {
-    console.error('📱 [ProcessCustomerSync] 处理失败:', error);
+    logger.error('📱 [ProcessCustomerSync] 处理失败:', error);
     throw error;
   }
 }
@@ -209,7 +210,7 @@ async function processPurchaseSync(data: {
     };
 
   } catch (error) {
-    console.error('📱 [ProcessPurchaseSync] 处理失败:', error);
+    logger.error('📱 [ProcessPurchaseSync] 处理失败:', error);
     throw error;
   }
 }
@@ -220,7 +221,7 @@ async function processPurchaseSync(data: {
 function analyzeMembershipStatus(customerInfo: any) {
   const { activeSubscriptions, allExpirationDates, entitlements } = customerInfo;
 
-  console.log('🔍 [AnalyzeMembershipStatus] 开始分析会员状态:', {
+  logger.info('🔍 [AnalyzeMembershipStatus] 开始分析会员状态:', {
     activeSubscriptions,
     allExpirationDates,
     entitlements: entitlements?.active || {}
@@ -235,45 +236,45 @@ function analyzeMembershipStatus(customerInfo: any) {
   let expiresAt: Date | null = null;
 
   if (hasActiveSubscriptions) {
-    console.log('🔍 [AnalyzeMembershipStatus] 检查活跃订阅:', activeSubscriptions);
+    logger.info('🔍 [AnalyzeMembershipStatus] 检查活跃订阅:', activeSubscriptions);
 
     // 检查捐赠会员（叁）
     const hasDonationThree = activeSubscriptions.some((sub: string) => {
       const matches = sub.includes('donation.three') || sub.includes('Monthly3') || sub.includes('Annual3');
-      console.log(`🔍 检查订阅 ${sub} 是否为捐赠会员（叁）: ${matches}`);
+      logger.info(`🔍 检查订阅 ${sub} 是否为捐赠会员（叁）: ${matches}`);
       return matches;
     });
 
     if (hasDonationThree) {
       level = 'donation_three';
       isActive = true;
-      console.log('✅ [AnalyzeMembershipStatus] 识别为捐赠会员（叁）');
+      logger.info('✅ [AnalyzeMembershipStatus] 识别为捐赠会员（叁）');
     } else {
       // 检查捐赠会员（贰）
       const hasDonationTwo = activeSubscriptions.some((sub: string) => {
         const matches = sub.includes('donation.two') || sub.includes('Monthly2') || sub.includes('Annual2');
-        console.log(`🔍 检查订阅 ${sub} 是否为捐赠会员（贰）: ${matches}`);
+        logger.info(`🔍 检查订阅 ${sub} 是否为捐赠会员（贰）: ${matches}`);
         return matches;
       });
 
       if (hasDonationTwo) {
         level = 'donation_two';
         isActive = true;
-        console.log('✅ [AnalyzeMembershipStatus] 识别为捐赠会员（贰）');
+        logger.info('✅ [AnalyzeMembershipStatus] 识别为捐赠会员（贰）');
       } else {
         // 检查捐赠会员（壹）
         const hasDonationOne = activeSubscriptions.some((sub: string) => {
           const matches = sub.includes('donation.one') || sub.includes('Monthly1') || sub.includes('Annual1');
-          console.log(`🔍 检查订阅 ${sub} 是否为捐赠会员（壹）: ${matches}`);
+          logger.info(`🔍 检查订阅 ${sub} 是否为捐赠会员（壹）: ${matches}`);
           return matches;
         });
 
         if (hasDonationOne) {
           level = 'donation_one';
           isActive = true;
-          console.log('✅ [AnalyzeMembershipStatus] 识别为捐赠会员（壹）');
+          logger.info('✅ [AnalyzeMembershipStatus] 识别为捐赠会员（壹）');
         } else {
-          console.log('⚠️ [AnalyzeMembershipStatus] 未识别的订阅类型');
+          logger.info('⚠️ [AnalyzeMembershipStatus] 未识别的订阅类型');
         }
       }
     }
@@ -301,7 +302,7 @@ function analyzeMembershipStatus(customerInfo: any) {
     activeSubscriptions // 添加活跃订阅列表
   };
 
-  console.log('✅ [AnalyzeMembershipStatus] 分析完成:', result);
+  logger.info('✅ [AnalyzeMembershipStatus] 分析完成:', result);
 
   return result;
 }
@@ -350,7 +351,7 @@ function getLatestExpirationDate(expirationDates: { [key: string]: string }): Da
  * 更新RevenueCat用户ID映射
  */
 async function updateRevenueCatUserMapping(userId: string, revenueCatUserId: string) {
-  console.log('📱 [UpdateMapping] 更新用户映射:', { userId, revenueCatUserId });
+  logger.info('📱 [UpdateMapping] 更新用户映射:', { userId, revenueCatUserId });
 
   try {
     // 在UserMembership中更新RevenueCat映射
@@ -368,13 +369,13 @@ async function updateRevenueCatUserMapping(userId: string, revenueCatUserId: str
       }
     });
 
-    console.log('✅ [UpdateMapping] 用户映射更新成功');
+    logger.info('✅ [UpdateMapping] 用户映射更新成功');
 
     // 处理该用户的待关联购买
     await processPendingPurchasesForUser(userId, revenueCatUserId);
 
   } catch (error) {
-    console.error('❌ [UpdateMapping] 更新用户映射失败:', error);
+    logger.error('❌ [UpdateMapping] 更新用户映射失败:', error);
     throw error;
   }
 }
@@ -384,7 +385,7 @@ async function updateRevenueCatUserMapping(userId: string, revenueCatUserId: str
  */
 async function processPendingPurchasesForUser(userId: string, revenueCatUserId: string) {
   try {
-    console.log('🔄 [ProcessPending] 开始处理用户待关联购买:', { userId, revenueCatUserId });
+    logger.info('🔄 [ProcessPending] 开始处理用户待关联购买:', { userId, revenueCatUserId });
 
     const { PendingMembershipService } = require('../services/pending-membership.service');
     const pendingService = new PendingMembershipService();
@@ -392,13 +393,13 @@ async function processPendingPurchasesForUser(userId: string, revenueCatUserId: 
     const success = await pendingService.processPendingPurchasesForUser(userId, revenueCatUserId);
 
     if (success) {
-      console.log('✅ [ProcessPending] 用户待关联购买处理成功');
+      logger.info('✅ [ProcessPending] 用户待关联购买处理成功');
     } else {
-      console.warn('⚠️ [ProcessPending] 用户待关联购买处理部分失败');
+      logger.warn('⚠️ [ProcessPending] 用户待关联购买处理部分失败');
     }
 
   } catch (error) {
-    console.error('❌ [ProcessPending] 处理用户待关联购买失败:', error);
+    logger.error('❌ [ProcessPending] 处理用户待关联购买失败:', error);
     // 不抛出错误，避免影响主流程
   }
 }
@@ -416,7 +417,7 @@ async function updateUserMembershipStatus(userId: string, membershipData: {
   hasLifetimePurchase: boolean;
   activeSubscriptions?: string[];
 }) {
-  console.log('📱 [UpdateMembershipStatus] 更新会员状态:', {
+  logger.info('📱 [UpdateMembershipStatus] 更新会员状态:', {
     userId,
     level: membershipData.level,
     isActive: membershipData.isActive,
@@ -474,7 +475,7 @@ async function updateUserMembershipStatus(userId: string, membershipData: {
       }
     });
 
-    console.log('✅ [UpdateMembershipStatus] 会员状态更新成功:', {
+    logger.info('✅ [UpdateMembershipStatus] 会员状态更新成功:', {
       userId,
       memberType,
       isActive: membershipData.isActive,
@@ -500,20 +501,20 @@ async function updateUserMembershipStatus(userId: string, membershipData: {
             monthlyPoints,
             `激活${getMemberTypeLabel(memberType)}赠送`
           );
-          console.log('✅ [UpdateMembershipStatus] 会员积分添加成功:', {
+          logger.info('✅ [UpdateMembershipStatus] 会员积分添加成功:', {
             userId,
             points: monthlyPoints,
             memberType
           });
         }
       } catch (pointsError) {
-        console.error('⚠️ [UpdateMembershipStatus] 添加会员积分失败:', pointsError);
+        logger.error('⚠️ [UpdateMembershipStatus] 添加会员积分失败:', pointsError);
         // 不抛出错误，因为会员状态更新已经成功
       }
     }
 
   } catch (error) {
-    console.error('❌ [UpdateMembershipStatus] 更新会员状态失败:', error);
+    logger.error('❌ [UpdateMembershipStatus] 更新会员状态失败:', error);
     throw error;
   }
 }
@@ -544,7 +545,7 @@ function getMemberTypeLabel(memberType: MemberType): string {
 async function updateUserEntitlements(userId: string, activeEntitlements: { [key: string]: any }) {
   const entitlementList = Object.keys(activeEntitlements);
 
-  console.log('📱 [UpdateEntitlements] 更新用户权益:', {
+  logger.info('📱 [UpdateEntitlements] 更新用户权益:', {
     userId,
     entitlements: entitlementList
   });
@@ -584,9 +585,9 @@ async function updateUserEntitlements(userId: string, activeEntitlements: { [key
       }
     }
 
-    console.log('✅ [UpdateEntitlements] 权益更新成功');
+    logger.info('✅ [UpdateEntitlements] 权益更新成功');
   } catch (error) {
-    console.error('❌ [UpdateEntitlements] 更新权益失败:', error);
+    logger.error('❌ [UpdateEntitlements] 更新权益失败:', error);
     // 权益更新失败不应该阻止主流程
   }
 }
@@ -642,7 +643,7 @@ async function updateUserMembership(userId: string, membershipData: {
   // 计算过期时间
   const expirationDate = getLatestExpirationDate(membershipData.expirationDates);
 
-  console.log('📱 [UpdateMembership] 更新会员状态:', {
+  logger.info('📱 [UpdateMembership] 更新会员状态:', {
     userId,
     level: membershipData.level,
     expiresAt: expirationDate
@@ -698,7 +699,7 @@ async function updateUserMembership(userId: string, membershipData: {
       }
     });
 
-    console.log('✅ [UpdateMembership] 会员状态更新成功:', {
+    logger.info('✅ [UpdateMembership] 会员状态更新成功:', {
       userId,
       memberType,
       isActive: true,
@@ -724,20 +725,20 @@ async function updateUserMembership(userId: string, membershipData: {
             monthlyPoints,
             `激活${getMemberTypeLabel(memberType)}`
           );
-          console.log('✅ [UpdateMembership] 会员记账点重置成功:', {
+          logger.info('✅ [UpdateMembership] 会员记账点重置成功:', {
             userId,
             points: monthlyPoints,
             memberType
           });
         }
       } catch (pointsError) {
-        console.error('⚠️ [UpdateMembership] 添加会员积分失败:', pointsError);
+        logger.error('⚠️ [UpdateMembership] 添加会员积分失败:', pointsError);
         // 不抛出错误，因为会员状态更新已经成功
       }
     }
 
   } catch (error) {
-    console.error('❌ [UpdateMembership] 更新会员状态失败:', error);
+    logger.error('❌ [UpdateMembership] 更新会员状态失败:', error);
     throw error;
   }
 }
@@ -747,7 +748,7 @@ async function updateUserMembership(userId: string, membershipData: {
  */
 async function createMembershipNotification(userId: string, membershipAnalysis: any) {
   try {
-    console.log('📱 [CreateNotification] 创建会员通知:', {
+    logger.info('📱 [CreateNotification] 创建会员通知:', {
       userId,
       level: membershipAnalysis.level,
       isActive: membershipAnalysis.isActive
@@ -790,9 +791,9 @@ async function createMembershipNotification(userId: string, membershipAnalysis: 
       }
     });
 
-    console.log('✅ [CreateNotification] 会员通知创建成功');
+    logger.info('✅ [CreateNotification] 会员通知创建成功');
   } catch (error) {
-    console.error('❌ [CreateNotification] 创建会员通知失败:', error);
+    logger.error('❌ [CreateNotification] 创建会员通知失败:', error);
     // 通知创建失败不应该阻止主流程
   }
 }
@@ -802,7 +803,7 @@ async function createMembershipNotification(userId: string, membershipAnalysis: 
  */
 async function recordMembershipRenewal(userId: string, membershipAnalysis: any, platform: string) {
   try {
-    console.log('📱 [RecordRenewal] 记录续费历史:', {
+    logger.info('📱 [RecordRenewal] 记录续费历史:', {
       userId,
       level: membershipAnalysis.level,
       platform
@@ -814,7 +815,7 @@ async function recordMembershipRenewal(userId: string, membershipAnalysis: any, 
     });
 
     if (!membership) {
-      console.warn('📱 [RecordRenewal] 未找到会员记录，跳过续费记录');
+      logger.warn('📱 [RecordRenewal] 未找到会员记录，跳过续费记录');
       return;
     }
 
@@ -828,7 +829,7 @@ async function recordMembershipRenewal(userId: string, membershipAnalysis: any, 
     });
 
     if (existingRenewal) {
-      console.log('📱 [RecordRenewal] 续费记录已存在，跳过创建');
+      logger.info('📱 [RecordRenewal] 续费记录已存在，跳过创建');
       return;
     }
 
@@ -844,9 +845,9 @@ async function recordMembershipRenewal(userId: string, membershipAnalysis: any, 
       }
     });
 
-    console.log('✅ [RecordRenewal] 续费历史记录成功');
+    logger.info('✅ [RecordRenewal] 续费历史记录成功');
   } catch (error) {
-    console.error('❌ [RecordRenewal] 记录续费历史失败:', error);
+    logger.error('❌ [RecordRenewal] 记录续费历史失败:', error);
     // 续费记录失败不应该阻止主流程
   }
 }

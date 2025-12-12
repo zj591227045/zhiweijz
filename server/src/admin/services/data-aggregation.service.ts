@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -13,7 +14,7 @@ export class DataAggregationService {
    * 启动定时任务
    */
   start() {
-    console.log('启动数据聚合定时任务...');
+    logger.info('启动数据聚合定时任务...');
 
     // 每小时执行一次聚合任务
     setInterval(async () => {
@@ -29,7 +30,7 @@ export class DataAggregationService {
       }
     }, 60 * 60 * 1000); // 每小时检查一次
 
-    console.log('数据聚合定时任务已启动');
+    logger.info('数据聚合定时任务已启动');
   }
 
   /**
@@ -40,7 +41,7 @@ export class DataAggregationService {
     this.isRunning = true;
 
     try {
-      console.log('开始执行每小时数据聚合...');
+      logger.info('开始执行每小时数据聚合...');
 
       const now = new Date();
       const lastHour = new Date(now.getTime() - 60 * 60 * 1000);
@@ -51,9 +52,9 @@ export class DataAggregationService {
       // 聚合API调用数据
       await this.aggregateApiCalls(lastHour, currentHour);
 
-      console.log(`完成 ${lastHour.toISOString()} 的小时数据聚合`);
+      logger.info(`完成 ${lastHour.toISOString()} 的小时数据聚合`);
     } catch (error) {
-      console.error('每小时数据聚合失败:', error);
+      logger.error('每小时数据聚合失败:', error);
     } finally {
       this.isRunning = false;
     }
@@ -64,7 +65,7 @@ export class DataAggregationService {
    */
   private async aggregateDailyData() {
     try {
-      console.log('开始执行每日数据聚合...');
+      logger.info('开始执行每日数据聚合...');
 
       // 获取北京时间的昨日边界
       const now = new Date();
@@ -84,9 +85,9 @@ export class DataAggregationService {
       const yesterdayDateStr = new Date(yesterday.getTime() + 8 * 60 * 60 * 1000)
         .toISOString()
         .split('T')[0];
-      console.log(`完成 ${yesterdayDateStr} 的每日数据聚合（北京时间）`);
+      logger.info(`完成 ${yesterdayDateStr} 的每日数据聚合（北京时间）`);
     } catch (error) {
-      console.error('每日数据聚合失败:', error);
+      logger.error('每日数据聚合失败:', error);
     }
   }
 
@@ -121,10 +122,10 @@ export class DataAggregationService {
       //   error_calls: bigint;
       // }>;
 
-      // console.log(`聚合了 ${apiStats.length} 个API端点的数据`);
-      console.log('API调用数据聚合已禁用');
+      // logger.info(`聚合了 ${apiStats.length} 个API端点的数据`);
+      logger.info('API调用数据聚合已禁用');
     } catch (error) {
-      console.error('聚合API调用数据失败:', error);
+      logger.error('聚合API调用数据失败:', error);
     }
   }
 
@@ -170,11 +171,11 @@ export class DataAggregationService {
         }),
       ]);
 
-      console.log(
+      logger.info(
         `每日统计 - 新用户: ${newUsers}, 活跃用户: ${activeUsers}, 记账: ${totalTransactions}`,
       );
     } catch (error) {
-      console.error('生成每日统计失败:', error);
+      logger.error('生成每日统计失败:', error);
     }
   }
 
@@ -183,7 +184,7 @@ export class DataAggregationService {
    */
   async cleanupOldData() {
     try {
-      console.log('开始清理旧数据...');
+      logger.info('开始清理旧数据...');
 
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -206,9 +207,9 @@ export class DataAggregationService {
       //   }
       // });
 
-      console.log(`清理完成: 访问日志 ${deletedAccessLogs.count} 条`);
+      logger.info(`清理完成: 访问日志 ${deletedAccessLogs.count} 条`);
     } catch (error) {
-      console.error('清理旧数据失败:', error);
+      logger.error('清理旧数据失败:', error);
     }
   }
 
@@ -216,10 +217,10 @@ export class DataAggregationService {
    * 手动执行聚合任务
    */
   async runManualAggregation() {
-    console.log('手动执行数据聚合...');
+    logger.info('手动执行数据聚合...');
     await this.aggregateHourlyData();
     await this.aggregateDailyData();
-    console.log('手动聚合完成');
+    logger.info('手动聚合完成');
   }
 }
 

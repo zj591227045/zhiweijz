@@ -3,6 +3,7 @@
  * 确保iOS和Android平台的会员状态能够正确同步
  */
 
+import { logger } from '../utils/logger';
 import { PrismaClient } from '@prisma/client';
 import { RevenueCatMappingService } from './revenuecat-mapping.service';
 import { MembershipService } from './membership.service';
@@ -48,7 +49,7 @@ export class CrossPlatformSyncService {
    * 同步用户在所有平台的会员状态
    */
   async syncUserMembershipAcrossPlatforms(userId: string): Promise<SyncResult> {
-    console.log('🔄 [CrossPlatformSync] 开始同步用户会员状态:', userId);
+    logger.info('🔄 [CrossPlatformSync] 开始同步用户会员状态:', userId);
 
     const result: SyncResult = {
       success: true,
@@ -65,7 +66,7 @@ export class CrossPlatformSyncService {
       const primaryMembership = this.determinePrimaryMembership(platformMemberships);
       
       if (!primaryMembership) {
-        console.log('ℹ️  [CrossPlatformSync] 用户无有效会员状态:', userId);
+        logger.info('ℹ️  [CrossPlatformSync] 用户无有效会员状态:', userId);
         return result;
       }
 
@@ -82,10 +83,10 @@ export class CrossPlatformSyncService {
         action: 'updated'
       });
 
-      console.log('✅ [CrossPlatformSync] 用户会员状态同步完成:', userId);
+      logger.info('✅ [CrossPlatformSync] 用户会员状态同步完成:', userId);
 
     } catch (error) {
-      console.error('❌ [CrossPlatformSync] 同步失败:', error);
+      logger.error('❌ [CrossPlatformSync] 同步失败:', error);
       result.success = false;
       result.errors.push(`同步用户${userId}失败: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -97,7 +98,7 @@ export class CrossPlatformSyncService {
    * 批量同步所有用户的会员状态
    */
   async syncAllUsersMembership(): Promise<SyncResult> {
-    console.log('🔄 [CrossPlatformSync] 开始批量同步所有用户会员状态');
+    logger.info('🔄 [CrossPlatformSync] 开始批量同步所有用户会员状态');
 
     const result: SyncResult = {
       success: true,
@@ -121,7 +122,7 @@ export class CrossPlatformSyncService {
         distinct: ['userId']
       });
 
-      console.log(`📊 [CrossPlatformSync] 找到${memberships.length}个用户需要同步`);
+      logger.info(`📊 [CrossPlatformSync] 找到${memberships.length}个用户需要同步`);
 
       // 逐个同步用户
       for (const membership of memberships) {
@@ -136,7 +137,7 @@ export class CrossPlatformSyncService {
           }
 
         } catch (error) {
-          console.error(`❌ [CrossPlatformSync] 同步用户${membership.userId}失败:`, error);
+          logger.error(`❌ [CrossPlatformSync] 同步用户${membership.userId}失败:`, error);
           result.errors.push(`用户${membership.userId}: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
@@ -145,10 +146,10 @@ export class CrossPlatformSyncService {
         result.success = false;
       }
 
-      console.log(`✅ [CrossPlatformSync] 批量同步完成，成功同步${result.syncedCount}个用户`);
+      logger.info(`✅ [CrossPlatformSync] 批量同步完成，成功同步${result.syncedCount}个用户`);
 
     } catch (error) {
-      console.error('❌ [CrossPlatformSync] 批量同步失败:', error);
+      logger.error('❌ [CrossPlatformSync] 批量同步失败:', error);
       result.success = false;
       result.errors.push(`批量同步失败: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -160,14 +161,14 @@ export class CrossPlatformSyncService {
    * 处理平台间会员状态冲突
    */
   async resolveMembershipConflicts(userId: string): Promise<boolean> {
-    console.log('⚖️  [CrossPlatformSync] 解决会员状态冲突:', userId);
+    logger.info('⚖️  [CrossPlatformSync] 解决会员状态冲突:', userId);
 
     try {
       // 获取用户在所有平台的会员信息
       const platformMemberships = await this.getUserMembershipsByPlatform(userId);
       
       if (platformMemberships.length <= 1) {
-        console.log('ℹ️  [CrossPlatformSync] 无冲突需要解决');
+        logger.info('ℹ️  [CrossPlatformSync] 无冲突需要解决');
         return true;
       }
 
@@ -189,7 +190,7 @@ export class CrossPlatformSyncService {
       const primaryMembership = sortedMemberships[0];
       await this.syncToMainMembershipRecord(userId, primaryMembership);
 
-      console.log('✅ [CrossPlatformSync] 冲突解决完成，采用:', {
+      logger.info('✅ [CrossPlatformSync] 冲突解决完成，采用:', {
         platform: primaryMembership.platform,
         memberType: primaryMembership.memberType
       });
@@ -197,7 +198,7 @@ export class CrossPlatformSyncService {
       return true;
 
     } catch (error) {
-      console.error('❌ [CrossPlatformSync] 解决冲突失败:', error);
+      logger.error('❌ [CrossPlatformSync] 解决冲突失败:', error);
       return false;
     }
   }
@@ -321,7 +322,7 @@ export class CrossPlatformSyncService {
       return memberTypes.length > 1; // 有不同的会员类型，需要同步
 
     } catch (error) {
-      console.error('❌ [CrossPlatformSync] 检查同步需求失败:', error);
+      logger.error('❌ [CrossPlatformSync] 检查同步需求失败:', error);
       return false;
     }
   }
@@ -352,7 +353,7 @@ export class CrossPlatformSyncService {
       };
 
     } catch (error) {
-      console.error('❌ [CrossPlatformSync] 获取统计信息失败:', error);
+      logger.error('❌ [CrossPlatformSync] 获取统计信息失败:', error);
       return {
         totalUsers: 0,
         syncedUsers: 0,
@@ -385,25 +386,25 @@ export class CrossPlatformSyncScheduler {
    */
   startScheduledSync(intervalMinutes: number = 60): void {
     if (this.intervalId) {
-      console.log('⚠️  [CrossPlatformSyncScheduler] 定时任务已在运行');
+      logger.info('⚠️  [CrossPlatformSyncScheduler] 定时任务已在运行');
       return;
     }
 
-    console.log(`🕐 [CrossPlatformSyncScheduler] 启动定时同步任务，间隔${intervalMinutes}分钟`);
+    logger.info(`🕐 [CrossPlatformSyncScheduler] 启动定时同步任务，间隔${intervalMinutes}分钟`);
 
     this.intervalId = setInterval(async () => {
       try {
-        console.log('🔄 [CrossPlatformSyncScheduler] 执行定时同步任务');
+        logger.info('🔄 [CrossPlatformSyncScheduler] 执行定时同步任务');
         const result = await this.syncService.syncAllUsersMembership();
 
         if (result.success) {
-          console.log(`✅ [CrossPlatformSyncScheduler] 定时同步完成，同步${result.syncedCount}个用户`);
+          logger.info(`✅ [CrossPlatformSyncScheduler] 定时同步完成，同步${result.syncedCount}个用户`);
         } else {
-          console.error(`❌ [CrossPlatformSyncScheduler] 定时同步失败，错误数量: ${result.errors.length}`);
+          logger.error(`❌ [CrossPlatformSyncScheduler] 定时同步失败，错误数量: ${result.errors.length}`);
         }
 
       } catch (error) {
-        console.error('❌ [CrossPlatformSyncScheduler] 定时同步任务异常:', error);
+        logger.error('❌ [CrossPlatformSyncScheduler] 定时同步任务异常:', error);
       }
     }, intervalMinutes * 60 * 1000);
   }
@@ -415,7 +416,7 @@ export class CrossPlatformSyncScheduler {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
-      console.log('⏹️  [CrossPlatformSyncScheduler] 定时同步任务已停止');
+      logger.info('⏹️  [CrossPlatformSyncScheduler] 定时同步任务已停止');
     }
   }
 
@@ -423,7 +424,7 @@ export class CrossPlatformSyncScheduler {
    * 手动执行一次同步
    */
   async executeManualSync(): Promise<SyncResult> {
-    console.log('🔄 [CrossPlatformSyncScheduler] 执行手动同步');
+    logger.info('🔄 [CrossPlatformSyncScheduler] 执行手动同步');
     return await this.syncService.syncAllUsersMembership();
   }
 

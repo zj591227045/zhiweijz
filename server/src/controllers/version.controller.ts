@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { versionService } from '../services/version.service';
 import { AppError } from '../errors/AppError';
@@ -215,7 +216,7 @@ export class VersionController {
       // 管理员创建的版本，createdBy 设置为 undefined，因为管理员表和用户表是分离的
       const createdBy = undefined;
 
-      console.log('🔍 [版本控制器] 创建版本请求:', {
+      logger.info('🔍 [版本控制器] 创建版本请求:', {
         adminId: req.admin?.id,
         createdBy,
         data: { ...data, releaseNotes: data.releaseNotes?.substring(0, 50) + '...' }

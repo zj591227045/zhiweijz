@@ -3,6 +3,7 @@ enum Role {
   ADMIN = 'ADMIN',
   MEMBER = 'MEMBER',
 }
+import { logger } from '../utils/logger';
 import { randomUUID } from 'crypto';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
@@ -83,11 +84,11 @@ export class FamilyService {
           );
         }
       } catch (budgetError) {
-        console.error(`为家庭创建者 ${userId} 创建默认预算失败:`, budgetError);
+        logger.error(`为家庭创建者 ${userId} 创建默认预算失败:`, budgetError);
         // 不影响家庭创建流程，继续执行
       }
     } catch (error) {
-      console.error('创建家庭账本失败:', error);
+      logger.error('创建家庭账本失败:', error);
       // 不影响家庭创建流程，继续执行
     }
 
@@ -118,7 +119,7 @@ export class FamilyService {
       description: '系统自动创建的家庭账本',
       isDefault: true,
     });
-    console.log(`已为家庭 ${familyId} 创建默认账本: ${accountBook.id}`);
+    logger.info(`已为家庭 ${familyId} 创建默认账本: ${accountBook.id}`);
     return accountBook;
   }
 
@@ -253,15 +254,15 @@ export class FamilyService {
         for (const accountBook of familyAccountBooks.data) {
           try {
             await this.accountBookService.deleteAccountBook(accountBook.id, userId);
-            console.log(`已删除家庭账本: ${accountBook.id}`);
+            logger.info(`已删除家庭账本: ${accountBook.id}`);
           } catch (error) {
-            console.error(`删除家庭账本 ${accountBook.id} 失败:`, error);
+            logger.error(`删除家庭账本 ${accountBook.id} 失败:`, error);
             // 继续删除其他账本
           }
         }
       }
     } catch (error) {
-      console.error(`获取或删除家庭 ${id} 的账本失败:`, error);
+      logger.error(`获取或删除家庭 ${id} 的账本失败:`, error);
       // 继续删除家庭
     }
 
@@ -337,7 +338,7 @@ export class FamilyService {
           }
         }
       } catch (error) {
-        console.error(`为新家庭成员 ${member.userId} 创建默认预算失败:`, error);
+        logger.error(`为新家庭成员 ${member.userId} 创建默认预算失败:`, error);
         // 不影响成员添加流程，继续执行
       }
     }
@@ -402,7 +403,7 @@ export class FamilyService {
       try {
         await this.familyBudgetService.deleteMemberBudgets(member.userId, familyId);
       } catch (error) {
-        console.error(`删除家庭成员 ${member.userId} 的预算失败:`, error);
+        logger.error(`删除家庭成员 ${member.userId} 的预算失败:`, error);
         // 不影响成员删除流程，继续执行
       }
     }
@@ -540,7 +541,7 @@ export class FamilyService {
         }
       }
     } catch (error) {
-      console.error(`为通过邀请加入的家庭成员 ${userId} 创建默认预算失败:`, error);
+      logger.error(`为通过邀请加入的家庭成员 ${userId} 创建默认预算失败:`, error);
       // 不影响成员添加流程，继续执行
     }
 
@@ -784,7 +785,7 @@ export class FamilyService {
         categoryStats: categoryStatsArray,
       };
     } catch (error) {
-      console.error('获取家庭统计数据失败:', error);
+      logger.error('获取家庭统计数据失败:', error);
 
       // 如果查询失败，返回空数据而不是模拟数据
       return {
@@ -885,7 +886,7 @@ export class FamilyService {
                 },
               });
             } catch (error) {
-              console.error(`查询用户 ${member.userId} 信息失败:`, error);
+              logger.error(`查询用户 ${member.userId} 信息失败:`, error);
             }
           }
 
@@ -957,7 +958,7 @@ export class FamilyService {
           memberExpense = transactions.reduce((sum, t) => sum + Number(t.amount), 0);
           transactionCount = transactions.length;
         } catch (error) {
-          console.error(`获取成员 ${member.id} 的记账数据失败:`, error);
+          logger.error(`获取成员 ${member.id} 的记账数据失败:`, error);
           // 如果查询失败，使用默认值
           memberExpense = 0;
           transactionCount = 0;
@@ -980,7 +981,7 @@ export class FamilyService {
             });
             isCustodial = userInfo?.isCustodial || false;
           } catch (error) {
-            console.error(`查询用户 ${member.userId} 信息失败:`, error);
+            logger.error(`查询用户 ${member.userId} 信息失败:`, error);
             isCustodial = false;
           }
         }
@@ -1106,7 +1107,7 @@ export class FamilyService {
         }
       }
     } catch (error) {
-      console.error(`为托管用户 ${custodialUser.id} 创建默认预算失败:`, error);
+      logger.error(`为托管用户 ${custodialUser.id} 创建默认预算失败:`, error);
       // 不影响成员添加流程，继续执行
     }
 
@@ -1197,16 +1198,16 @@ export class FamilyService {
     try {
       await this.familyBudgetService.deleteMemberBudgets(user.id, familyId, member.id);
     } catch (error) {
-      console.error(`删除托管用户 ${user.id} 的预算失败:`, error);
+      logger.error(`删除托管用户 ${user.id} 的预算失败:`, error);
       // 不影响成员删除流程，继续执行
     }
 
     // 删除托管用户的记账记录
     try {
       // 这里应该调用记账服务删除与该托管用户相关的记账记录
-      console.log(`需要删除托管用户 ${user.id} 的记账记录`);
+      logger.info(`需要删除托管用户 ${user.id} 的记账记录`);
     } catch (error) {
-      console.error(`删除托管用户 ${user.id} 的记账记录失败:`, error);
+      logger.error(`删除托管用户 ${user.id} 的记账记录失败:`, error);
       // 不影响成员删除流程，继续执行
     }
 
@@ -1227,12 +1228,12 @@ export class FamilyService {
         await prisma.user.delete({
           where: { id: user.id },
         });
-        console.log(`已删除托管用户 ${user.id}`);
+        logger.info(`已删除托管用户 ${user.id}`);
       } else {
-        console.log(`托管用户 ${user.id} 属于其他家庭，保留用户记录`);
+        logger.info(`托管用户 ${user.id} 属于其他家庭，保留用户记录`);
       }
     } catch (error) {
-      console.error(`删除托管用户 ${user.id} 失败:`, error);
+      logger.error(`删除托管用户 ${user.id} 失败:`, error);
       // 不影响成员删除流程，继续执行
     }
   }

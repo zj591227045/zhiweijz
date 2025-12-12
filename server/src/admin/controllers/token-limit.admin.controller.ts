@@ -1,3 +1,4 @@
+import { logger } from '../../utils/logger';
 import { Request, Response } from 'express';
 import { TokenLimitService } from '../../services/token-limit.service';
 import { AppError } from '../../errors/AppError';
@@ -28,7 +29,7 @@ export class TokenLimitAdminController {
         },
       });
     } catch (error) {
-      console.error('获取全局LLM设置失败:', error);
+      logger.error('获取全局LLM设置失败:', error);
       throw new AppError('获取LLM设置失败', 500);
     }
   }
@@ -62,7 +63,7 @@ export class TokenLimitAdminController {
         },
       });
     } catch (error) {
-      console.error('更新全局LLM设置失败:', error);
+      logger.error('更新全局LLM设置失败:', error);
       if (error instanceof AppError) {
         res.status(error.statusCode).json({
           success: false,
@@ -92,7 +93,7 @@ export class TokenLimitAdminController {
         data: result,
       });
     } catch (error) {
-      console.error('获取用户Token限额失败:', error);
+      logger.error('获取用户Token限额失败:', error);
       throw new AppError('获取用户Token限额失败', 500);
     }
   }
@@ -119,7 +120,7 @@ export class TokenLimitAdminController {
         message: '用户Token限额设置成功',
       });
     } catch (error) {
-      console.error('设置用户Token限额失败:', error);
+      logger.error('设置用户Token限额失败:', error);
       if (error instanceof AppError) {
         res.status(error.statusCode).json({
           success: false,
@@ -154,7 +155,7 @@ export class TokenLimitAdminController {
         data: { count: result.count },
       });
     } catch (error) {
-      console.error('批量设置用户Token限额失败:', error);
+      logger.error('批量设置用户Token限额失败:', error);
       if (error instanceof AppError) {
         res.status(error.statusCode).json({
           success: false,
@@ -185,7 +186,7 @@ export class TokenLimitAdminController {
         data: trends,
       });
     } catch (error) {
-      console.error('获取Token使用量趋势失败:', error);
+      logger.error('获取Token使用量趋势失败:', error);
       if (error instanceof AppError) {
         res.status(error.statusCode).json({
           success: false,

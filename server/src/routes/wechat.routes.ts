@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { Router } from 'express';
 import { WechatController } from '../controllers/wechat.controller';
 import { authenticate } from '../middlewares/auth.middleware';
@@ -23,7 +24,7 @@ router.get('/health', wechatController.health.bind(wechatController));
 router.get(
   '/binding-page',
   (req, res, next) => {
-    console.log('🔍 绑定页面路由被访问:', {
+    logger.info('🔍 绑定页面路由被访问:', {
       method: req.method,
       path: req.path,
       userAgent: req.get('User-Agent'),
