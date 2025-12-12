@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
@@ -310,6 +310,10 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [justSwitchedType, setJustSwitchedType] = useState(false);
+  
+  // 修复光标位置问题
+  const descriptionInputRef = useRef<HTMLInputElement>(null);
+  const [descriptionCursorPosition, setDescriptionCursorPosition] = useState<number | null>(null);
 
   // 如果未登录，重定向到登录页
   useEffect(() => {
@@ -443,9 +447,22 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
     }
   };
 
+  // 恢复光标位置
+  useEffect(() => {
+    if (descriptionInputRef.current && descriptionCursorPosition !== null) {
+      descriptionInputRef.current.setSelectionRange(descriptionCursorPosition, descriptionCursorPosition);
+    }
+  }, [formData.description, descriptionCursorPosition]);
+
   // 处理表单字段变化
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    
+    // 如果是描述字段，保存光标位置
+    if (name === 'description' && e.target instanceof HTMLInputElement) {
+      setDescriptionCursorPosition(e.target.selectionStart);
+    }
+    
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -642,6 +659,7 @@ export default function TransactionEditClient({ params }: TransactionEditClientP
                     描述
                   </label>
                   <input
+                    ref={descriptionInputRef}
                     type="text"
                     id="description"
                     name="description"

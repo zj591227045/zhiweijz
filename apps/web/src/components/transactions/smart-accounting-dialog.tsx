@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
@@ -381,11 +381,23 @@ export function SmartAccountingDialog({
   const [touchStartPos, setTouchStartPos] = useState<{ x: number; y: number } | null>(null);
   const [gestureType, setGestureType] = useState<'none' | 'capture' | 'upload'>('none');
   const [isButtonTouched, setIsButtonTouched] = useState(false);
+  
+  // 修复光标位置问题
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [cursorPosition, setCursorPosition] = useState<number | null>(null);
+
+  // 恢复光标位置
+  useEffect(() => {
+    if (textareaRef.current && cursorPosition !== null) {
+      textareaRef.current.setSelectionRange(cursorPosition, cursorPosition);
+    }
+  }, [description, cursorPosition]);
 
   // 重置表单和禁用背景滚动
   useEffect(() => {
     if (isOpen) {
       setDescription('');
+      setCursorPosition(null);
       setIsProcessing(false);
       setProcessingStep(null);
       setIsImageProcessing(false);
@@ -991,10 +1003,15 @@ export function SmartAccountingDialog({
               <p className="smart-accounting-dialog-subtitle">输入一句话，自动识别记账信息</p>
               <div className="smart-accounting-input-wrapper">
                 <textarea
+                  ref={textareaRef}
                   className="smart-accounting-textarea"
                   placeholder="例如：昨天在沃尔玛买了日用品，花了128.5元"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => {
+                    const target = e.target;
+                    setCursorPosition(target.selectionStart);
+                    setDescription(target.value);
+                  }}
                   rows={3}
                 />
               </div>

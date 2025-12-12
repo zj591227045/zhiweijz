@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { fetchApi } from '@/lib/api-client';
@@ -37,6 +37,17 @@ export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccounti
   const router = useRouter();
   const [description, setDescription] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // 修复光标位置问题
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [cursorPosition, setCursorPosition] = useState<number | null>(null);
+
+  // 恢复光标位置
+  useEffect(() => {
+    if (textareaRef.current && cursorPosition !== null) {
+      textareaRef.current.setSelectionRange(cursorPosition, cursorPosition);
+    }
+  }, [description, cursorPosition]);
 
   // 处理智能识别
   const handleSmartAccounting = async () => {
@@ -217,10 +228,15 @@ export function SmartAccountingInput({ accountBookId, onSuccess }: SmartAccounti
 
       <div className="smart-accounting-input-wrapper">
         <textarea
+          ref={textareaRef}
           className="smart-accounting-textarea"
           placeholder="例如：昨天在沃尔玛买了日用品，花了128.5元"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => {
+            const target = e.target;
+            setCursorPosition(target.selectionStart);
+            setDescription(target.value);
+          }}
           rows={3}
           disabled={isProcessing}
         />

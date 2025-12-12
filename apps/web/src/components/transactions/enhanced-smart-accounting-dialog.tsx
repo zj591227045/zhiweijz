@@ -111,6 +111,10 @@ export default function EnhancedSmartAccountingDialog({
   const [description, setDescription] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState('');
+  
+  // 修复光标位置问题
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [cursorPosition, setCursorPosition] = useState<number | null>(null);
 
   // 多模态功能状态
   const [multimodalStatus, setMultimodalStatus] = useState<MultimodalAIStatus | null>(null);
@@ -172,6 +176,13 @@ export default function EnhancedSmartAccountingDialog({
       console.error('🔊 [SafeHaptic] 震动反馈执行失败:', error);
     }
   };
+
+  // 恢复光标位置
+  useEffect(() => {
+    if (textareaRef.current && cursorPosition !== null) {
+      textareaRef.current.setSelectionRange(cursorPosition, cursorPosition);
+    }
+  }, [description, cursorPosition]);
 
   // 录音状态管理器监听器
   useEffect(() => {
@@ -2321,10 +2332,15 @@ export default function EnhancedSmartAccountingDialog({
               {/* 文本输入 */}
               <div className="smart-accounting-input-wrapper">
                 <textarea
+                  ref={textareaRef}
                   className="smart-accounting-textarea"
                   placeholder="例如：昨天在沃尔玛买了日用品，花了128.5元"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => {
+                    const target = e.target;
+                    setCursorPosition(target.selectionStart);
+                    setDescription(target.value);
+                  }}
                   rows={3}
                   readOnly={isProcessingMultimodal && description.includes('快捷指令')}
                 />

@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef, useEffect } from 'react';
 import { useTransactionFormStore } from '@/store/transaction-form-store';
 import { useBudgetStore } from '@/store/budget-store';
 import { useAccountBookStore } from '@/store/account-book-store';
@@ -39,6 +40,17 @@ export function TransactionDetails({
   } = useTransactionFormStore();
   const { currentAccountBook } = useAccountBookStore();
 
+  // 修复光标位置问题
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [cursorPosition, setCursorPosition] = React.useState<number | null>(null);
+
+  // 恢复光标位置
+  useEffect(() => {
+    if (inputRef.current && cursorPosition !== null) {
+      inputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+    }
+  }, [description, cursorPosition]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit();
@@ -69,9 +81,14 @@ export function TransactionDetails({
             描述
           </label>
           <input
+            ref={inputRef}
             type="text"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => {
+              const target = e.target;
+              setCursorPosition(target.selectionStart);
+              setDescription(target.value);
+            }}
             placeholder="添加描述..."
             disabled={isSubmitting}
             style={{
