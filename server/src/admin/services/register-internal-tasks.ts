@@ -12,6 +12,7 @@ import { FileStorageService } from '../../services/file-storage.service';
 import { BudgetSchedulerService } from '../../services/budget-scheduler.service';
 import { databaseBackupService } from '../../services/database-backup.service';
 import { s3BackupService } from '../../services/s3-backup.service';
+import { MultiProviderLLMService } from '../../ai/llm/multi-provider-service';
 
 /**
  * 注册所有内部任务
@@ -166,6 +167,20 @@ export function registerAllInternalTasks(): void {
         console.error(`❌ S3备份失败: ${result.error}`);
         throw new Error(result.error);
       }
+    }
+  });
+
+  // 10. LLM提供商健康检查任务
+  internalTaskRegistry.register({
+    key: 'llm-provider-health-check',
+    name: 'LLM提供商健康检查',
+    description: '检查所有LLM提供商的健康状态，更新可用性信息',
+    suggestedCron: '*/5 * * * *', // 每5分钟执行一次
+    execute: async () => {
+      console.log('🔍 开始执行LLM提供商健康检查...');
+      const multiProviderService = MultiProviderLLMService.getInstance();
+      await multiProviderService.triggerHealthCheck();
+      console.log('✅ LLM提供商健康检查完成');
     }
   });
 

@@ -5,8 +5,8 @@
  * 验证迁移路径的正确性和完整性
  */
 
-const { generateMigrationPath, validateMigrationPaths } = require('./migration-path-generator');
-const { getLatestDbVersion, isValidDbVersion } = require('./version-config');
+const { generateMigrationPath, validateMigrationPaths } = require('../migration-path-generator');
+const { getLatestDbVersion, isValidDbVersion } = require('../version-config');
 const fs = require('fs');
 const path = require('path');
 

@@ -18,8 +18,8 @@ export class LLMProviderService {
   private providers: Map<string, LLMProvider> = new Map();
   /** Token限制服务 */
   private tokenLimitService: TokenLimitService = new TokenLimitService();
-  /** 多提供商服务 */
-  public multiProviderService: MultiProviderLLMService = MultiProviderLLMService.getInstance();
+  /** 多提供商服务（延迟初始化） */
+  private _multiProviderService?: MultiProviderLLMService;
   /** 默认设置 */
   private defaultSettings: LLMSettings = {
     provider: '',
@@ -28,6 +28,14 @@ export class LLMProviderService {
     temperature: 0.7,
     maxTokens: 1000,
   };
+
+  /** 获取多提供商服务实例（延迟加载） */
+  public get multiProviderService(): MultiProviderLLMService {
+    if (!this._multiProviderService) {
+      this._multiProviderService = MultiProviderLLMService.getInstance();
+    }
+    return this._multiProviderService;
+  }
 
   /** 请求上下文，用于传递来源信息 */
   private requestContext: {

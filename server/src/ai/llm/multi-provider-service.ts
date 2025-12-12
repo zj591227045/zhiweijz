@@ -62,11 +62,13 @@ export class MultiProviderLLMService {
 
     if (useUnifiedScheduler) {
       // 使用统一调度器时，不启动独立的健康检查
-      console.log('统一调度器模式 - LLM健康检查由计划任务管理');
+      console.log('[MultiProviderLLM] 统一调度器模式 - 健康检查由计划任务管理');
       return;
     }
 
     // 传统模式：启动独立健康检查
+    console.log('[MultiProviderLLM] 传统模式 - 启动独立健康检查定时器');
+    
     // 每5分钟执行一次健康检查
     this.healthCheckInterval = setInterval(() => {
       this.performHealthCheck();
@@ -392,9 +394,12 @@ export class MultiProviderLLMService {
    */
   private async performHealthCheck(): Promise<void> {
     const config = await this.loadMultiProviderConfig();
-    if (!config || !config.enabled) return;
+    if (!config || !config.enabled) {
+      console.log('[LLM健康检查] 多提供商配置未启用，跳过检查');
+      return;
+    }
 
-    console.log('执行LLM提供商健康检查...');
+    console.log('[LLM健康检查] 开始检查所有提供商...');
 
     const healthCheckPromises = config.providers.map(async (providerInstance) => {
       if (!providerInstance.enabled) return;
@@ -407,12 +412,14 @@ export class MultiProviderLLMService {
         providerInstance.lastHealthCheck = new Date();
         this.providerInstances.set(providerInstance.id, providerInstance);
 
+        const statusIcon = healthStatus.healthy ? '✓' : '✗';
+        const statusText = healthStatus.healthy ? '健康' : '异常';
         console.log(
-          `提供商 ${providerInstance.name} 健康检查: ${healthStatus.healthy ? '✓' : '✗'}`,
-          healthStatus.error ? `错误: ${healthStatus.error}` : '',
+          `[LLM健康检查] ${providerInstance.name}: ${statusIcon} ${statusText}`,
+          healthStatus.error ? `- ${healthStatus.error}` : '',
         );
       } catch (error) {
-        console.error(`提供商 ${providerInstance.name} 健康检查失败:`, error);
+        console.error(`[LLM健康检查] ${providerInstance.name}: ✗ 检查失败 -`, error);
         providerInstance.healthy = false;
         providerInstance.lastHealthCheck = new Date();
         this.providerInstances.set(providerInstance.id, providerInstance);
@@ -433,7 +440,10 @@ export class MultiProviderLLMService {
       });
 
       await this.saveMultiProviderConfig(config);
-      console.log('健康检查完成，状态已保存到数据库');
+      
+      const healthyCount = config.providers.filter(p => p.healthy && p.enabled).length;
+      const totalEnabled = config.providers.filter(p => p.enabled).length;
+      console.log(`[LLM健康检查] 完成 - ${healthyCount}/${totalEnabled} 个提供商健康`);
     }
   }
 
@@ -524,7 +534,7 @@ export class MultiProviderLLMService {
         errorMessage = error instanceof Error ? error.message : String(error);
       }
 
-      console.error(`提供商 ${providerInstance.name} 健康检查失败:`, errorMessage);
+      // 错误日志已在performHealthCheck中统一输出，这里不再重复
 
       return {
         providerId: providerInstance.id,

@@ -12,17 +12,18 @@ server/migrations/
 ├── README-MIGRATION-SYSTEM.md         # 系统重构说明
 ├── version-config.js                  # 版本配置管理
 ├── migration-path-generator.js        # 迁移路径生成器
-├── migration-manager.js               # 迁移执行管理器
-├── data-integrity-check.js            # 数据完整性检查
-├── migration-status.js                # 迁移状态查询
-├── review-migration-system.js           # 迁移系统测试
+├── migration-manager.js               # 迁移执行管理器（主入口）
 ├── migration-template.sql             # SQL文件模板
-└── incremental/                       # 增量迁移文件目录
-    ├── base-schema.sql                # 基础数据库结构
-    ├── admin-features.sql             # 管理功能
-    ├── 1.x.x-to-1.y.y.sql           # 版本升级迁移
-    ├── add-feature-name.sql          # 功能性迁移
-    └── fix-issue-description.sql     # 修复性迁移
+├── incremental/                       # 增量迁移文件目录
+│   ├── base-schema.sql                # 基础数据库结构
+│   ├── admin-features.sql             # 管理功能
+│   ├── 1.x.x-to-1.y.y.sql           # 版本升级迁移
+│   ├── add-feature-name.sql          # 功能性迁移
+│   └── fix-issue-description.sql     # 修复性迁移
+└── scripts/                           # 辅助工具脚本
+    ├── data-integrity-check.js        # 数据完整性检查工具
+    ├── migration-status.js            # 迁移状态诊断工具
+    └── review-migration-system.js     # 迁移系统测试工具
 ```
 
 ## 🚨 AI IDE 数据库更新指南
@@ -280,43 +281,84 @@ $func$ LANGUAGE plpgsql;
 
 ## 5. 测试和验证
 
-#### 5.1 运行测试
+### 5.1 主迁移流程
+
+#### 检查迁移状态
 ```bash
-# 在项目根目录执行
-node server/migrations/review-migration-system.js
-```
-
-#### 5.2 真实数据库测试
-
-**完整测试脚本**：
-```bash
-# 测试全新安装和所有升级路径
-node server/migrations/test-real-database.js
-```
-
-**单文件测试**：
-```bash
-# 测试特定迁移文件
-node server/migrations/test-single-file.js filename
-```
-
-**测试覆盖范围**：
-- ✅ 全新安装（32个迁移文件）
-- ✅ 从0.2.5升级到0.7.0（1.6.0 → 1.8.2，20个迁移）
-- ✅ 从0.5.1升级到0.7.0（1.7.12 → 1.8.2，6个迁移）
-- ✅ 从0.6.0升级到0.7.0（1.7.16 → 1.8.2，3个迁移）
-
-#### 5.3 检查迁移路径
-```bash
-# 检查特定版本的迁移路径
+# 查看当前数据库版本和待执行迁移
 node server/migrations/migration-manager.js status
 ```
 
-#### 4.3 验证文件完整性
-测试脚本会自动检查：
-- 所有引用的迁移文件是否存在
-- 迁移路径是否正确
-- 版本配置是否一致
+#### 执行迁移
+```bash
+# 升级到最新版本
+node server/migrations/migration-manager.js migrate
+
+# 升级到指定版本
+node server/migrations/migration-manager.js migrate 1.9.0
+```
+
+#### 查看当前版本
+```bash
+# 仅显示版本号
+node server/migrations/migration-manager.js version
+```
+
+### 5.2 辅助工具（scripts/ 目录）
+
+#### 数据完整性检查
+在执行迁移前运行，确保数据干净：
+```bash
+node server/migrations/scripts/data-integrity-check.js
+```
+
+**功能**：
+- 检查并修复 `budgets` 和 `categories` 表的 `account_book_id` 为 NULL
+- 清理无效的外键引用
+- 去除重复的唯一约束数据
+
+#### 迁移状态诊断
+生成详细的数据库状态报告：
+```bash
+node server/migrations/scripts/migration-status.js
+```
+
+**功能**：
+- 检查关键表和字段是否存在
+- 检查外键约束完整性
+- 检查数据完整性问题
+- 显示迁移历史记录
+
+#### 迁移系统测试
+验证迁移系统配置正确性：
+```bash
+node server/migrations/scripts/review-migration-system.js
+```
+
+**功能**：
+- 测试版本配置有效性
+- 测试迁移路径生成逻辑
+- 验证所有迁移文件存在
+- 生成迁移测试报告（保存为 `migration-test-report.json`）
+
+### 5.3 推荐的迁移前检查流程
+
+```bash
+# 1. 检查迁移系统配置
+node server/migrations/scripts/review-migration-system.js
+
+# 2. 检查数据完整性
+node server/migrations/scripts/data-integrity-check.js
+
+# 3. 查看迁移状态
+node server/migrations/migration-manager.js status
+
+# 4. 执行迁移
+node server/migrations/migration-manager.js migrate
+
+# 5. 验证迁移结果
+node server/migrations/scripts/migration-status.js
+```
 
 ### 5. 常见错误和解决方案
 
@@ -348,6 +390,24 @@ node server/migrations/migration-manager.js status
 ## 📞 技术支持
 
 如遇到迁移问题：
-1. 运行 `review-migration-system.js` 生成诊断报告
-2. 检查错误日志
-3. 参考 `README-MIGRATION-SYSTEM.md` 了解系统架构
+1. 运行 `scripts/migration-status.js` 查看数据库状态
+2. 运行 `scripts/review-migration-system.js` 生成诊断报告
+3. 检查错误日志
+4. 参考 `README-MIGRATION-SYSTEM.md` 了解系统架构
+
+## 🔧 工具脚本说明
+
+### 主迁移工具
+- **migration-manager.js**: 迁移执行主入口，支持 `migrate`、`status`、`version` 命令
+
+### 辅助工具（scripts/ 目录）
+- **data-integrity-check.js**: 迁移前数据清理，修复常见数据完整性问题
+- **migration-status.js**: 数据库状态诊断，生成详细的健康检查报告
+- **review-migration-system.js**: 迁移系统测试，验证配置和文件完整性
+
+### 配置文件
+- **version-config.js**: 版本历史和映射配置
+- **migration-path-generator.js**: 自动生成迁移路径逻辑
+
+### 模板文件
+- **migration-template.sql**: 新迁移文件的标准模板
