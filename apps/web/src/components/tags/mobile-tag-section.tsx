@@ -5,8 +5,8 @@ import { cn } from '@/lib/utils';
 import { TagDisplay } from './tag-display';
 import { MobileTagSelector } from './tag-selector';
 import { TagResponseDto } from '@/lib/api/types/tag.types';
-import { tagApi } from '@/lib/api/tag-api';
 import { Plus, ChevronRight, Sparkles } from 'lucide-react';
+import { useTags } from '@/hooks/queries';
 
 interface MobileTagSectionProps {
   accountBookId: string;
@@ -36,30 +36,18 @@ export const MobileTagSection: React.FC<MobileTagSectionProps> = ({
   onTagSelectionComplete,
 }) => {
   const [showFullSelector, setShowFullSelector] = useState(false);
-  //console.log('MobileTagSection 渲染，showFullSelector:', showFullSelector);
-  const [allTags, setAllTags] = useState<TagResponseDto[]>([]);
 
-  // 获取标签数据
-  useEffect(() => {
-    const fetchTags = async () => {
-      if (!accountBookId) return;
-
-      try {
-        const response = await tagApi.getTags({
-          accountBookId,
-          isActive: true,
-          sortBy: 'usage',
-          sortOrder: 'desc',
-          limit: 100,
-        });
-        setAllTags(response.data.tags);
-      } catch (error) {
-        console.error('获取标签列表失败:', error);
-      }
-    };
-
-    fetchTags();
-  }, [accountBookId]);
+  // ✅ 使用React Query获取标签数据（自动缓存）
+  const { data: allTags = [] } = useTags(
+    accountBookId,
+    {
+      isActive: true,
+      sortBy: 'usage',
+      sortOrder: 'desc',
+      limit: 100,
+    },
+    !!accountBookId
+  );
 
   // 获取已选择的标签
   const selectedTags = useMemo(() => {

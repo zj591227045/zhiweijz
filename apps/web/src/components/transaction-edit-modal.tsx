@@ -6,7 +6,6 @@ import { useAuthStore } from '@/store/auth-store';
 import { useTransactionStore } from '@/store/transaction-store';
 import { useCategoryStore } from '@/store/category-store';
 import { useAccountBookStore } from '@/store/account-book-store';
-import { useBudgetStore } from '@/store/budget-store';
 import { useTransactionFormStore, BudgetAllocationItem } from '@/store/transaction-form-store';
 import { triggerTransactionChange } from '@/store/dashboard-store';
 import { formatDateForInput, getIconClass } from '@/lib/utils';
@@ -30,6 +29,10 @@ import { apiClient } from '@/lib/api-client';
 import { useMobileBackHandler } from '@/hooks/use-mobile-back-handler';
 import { PageLevel, navigationManager } from '@/lib/mobile-navigation';
 import { hapticPresets } from '@/lib/haptic-feedback';
+
+// ✅ 导入React Query hooks（只用于数据获取，不改变UI）
+import { useBudgetsByDate, useTransactionTags, useUpdateTransactionTags } from '@/hooks/queries';
+import { useBudgetStore } from '@/store/budget-store';
 
 interface TransactionEditModalProps {
   transactionId: string | null;
@@ -84,6 +87,7 @@ function BudgetSelector({
 }) {
   const { currentAccountBook } = useAccountBookStore();
   const { user: currentUser } = useAuthStore();
+  const { fetchActiveBudgets } = useBudgetStore(); // ✅ 用于填充store（供MultiBudgetInlineSelector使用）
   const [isBudgetSelectorOpen, setIsBudgetSelectorOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<BudgetDisplay | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -123,53 +127,36 @@ function BudgetSelector({
     };
   }, [isBudgetSelectorOpen]);
 
-  // 根据日期获取预算数据 - 使用与添加记账页面相同的API
-  const fetchBudgetsByDate = useCallback(async (transactionDate: string, accountBookId: string) => {
-    try {
-      setIsLoading(true);
-      console.log('根据日期获取预算:', { transactionDate, accountBookId });
+  // ✅ 使用React Query获取预算数据（自动缓存，避免重复请求）
+  const {
+    data: queryBudgets,
+    isLoading: isQueryLoading,
+  } = useBudgetsByDate(
+    transactionDate || null,
+    currentAccountBook?.id || null,
+    !!transactionDate && !!currentAccountBook?.id // 只在有日期和账本ID时才查询
+  );
 
-      // 使用与添加记账页面相同的API
-      const response = await budgetService.getBudgetsByDate(transactionDate, accountBookId);
-      console.log('API响应完整信息:', response);
-
-      // 检查响应格式
-      if (!response || !Array.isArray(response)) {
-        console.warn('预算API响应格式不正确:', response);
-        setDateBudgets([]);
-        return [];
-      }
-
-      // 转换预算数据格式
-      const formattedBudgets: BudgetDisplay[] = response.map((budget: any) => ({
-        id: budget.id,
-        name: budget.name || budget.category?.name || '未知分类',
-        amount: budget.amount,
-        spent: budget.spent || 0,
-        rolloverAmount: budget.rolloverAmount || 0,
-        budgetType: budget.budgetType || 'PERSONAL',
-        familyMemberName: budget.familyMemberName || budget.userName,
-        familyMemberId: budget.familyMemberId,
-        userId: budget.userId,
-        userName: budget.userName,
-        startDate: budget.startDate,
-        endDate: budget.endDate,
-        category: budget.category,
-        period: budget.period,
-      }));
-
-      console.log('格式化后的预算数据:', formattedBudgets);
-      setDateBudgets(formattedBudgets);
-      return formattedBudgets;
-    } catch (error) {
-      console.error('根据日期获取预算失败:', error);
-      console.error('错误详情:', error);
-      setDateBudgets([]);
-      return [];
-    } finally {
+  // 同步React Query数据到本地状态（保持原有逻辑不变）
+  useEffect(() => {
+    if (queryBudgets) {
+      setDateBudgets(queryBudgets);
       setIsLoading(false);
     }
-  }, []);
+  }, [queryBudgets]);
+  
+  // ✅ 当切换到多人预算模式时，确保store中有数据（供MultiBudgetInlineSelector使用）
+  useEffect(() => {
+    if (isMultiBudget && isBudgetSelectorOpen && currentAccountBook?.id) {
+      // 只在多人模式且选择器打开时才调用
+      fetchActiveBudgets(currentAccountBook.id);
+    }
+  }, [isMultiBudget, isBudgetSelectorOpen, currentAccountBook?.id, fetchActiveBudgets]);
+
+  // 同步loading状态
+  useEffect(() => {
+    setIsLoading(isQueryLoading);
+  }, [isQueryLoading]);
 
   // 记录初始的budgetId（编辑模式下保持原始预算）
   useEffect(() => {
@@ -179,14 +166,14 @@ function BudgetSelector({
     }
   }, [budgetId, isEditMode, originalBudgetId]);
 
-  // 监听日期和账本变化，重新获取预算
+  // ✅ React Query会自动监听transactionDate和accountBookId的变化
+  // 当日期或账本变化时，自动重新获取预算（带缓存）
   useEffect(() => {
     if (transactionDate && currentAccountBook?.id) {
-      console.log('日期或账本变化，重新获取预算:', {
+      console.log('日期或账本变化，React Query自动处理:', {
         transactionDate,
         accountBookId: currentAccountBook.id,
       });
-      fetchBudgetsByDate(transactionDate, currentAccountBook.id);
 
       // 编辑模式下不重置预算选择，保持原始预算
       if (!isEditMode) {
@@ -197,10 +184,9 @@ function BudgetSelector({
         console.log('编辑模式：保持原始预算选择，不重置');
         setHasInitialized(false);
         setSelectedBudget(null);
-        // 不重置budgetId，保持原始值
       }
     }
-  }, [transactionDate, currentAccountBook?.id, fetchBudgetsByDate, setBudgetId, isEditMode]);
+  }, [transactionDate, currentAccountBook?.id, setBudgetId, isEditMode]);
 
   // 使用日期获取的预算数据
   const formattedBudgets: BudgetDisplay[] = dateBudgets;
@@ -583,7 +569,6 @@ export default function TransactionEditModal({
     useTransactionStore();
   const { categories, fetchCategories } = useCategoryStore();
   const { currentAccountBook, fetchAccountBooks } = useAccountBookStore();
-  const { fetchActiveBudgets } = useBudgetStore();
 
   // 表单状态
   const [formData, setFormData] = useState<UpdateTransactionData>({
@@ -596,6 +581,22 @@ export default function TransactionEditModal({
 
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [transactionTags, setTransactionTags] = useState<TagResponseDto[]>([]);
+
+  // ✅ 使用React Query获取交易标签（自动缓存）
+  const { data: queryTransactionTags } = useTransactionTags(transactionId, !!transactionId);
+  const updateTransactionTags = useUpdateTransactionTags();
+
+  // 同步React Query获取的标签数据到本地状态
+  useEffect(() => {
+    if (queryTransactionTags && queryTransactionTags.length > 0) {
+      // 只在本地状态为空时才同步（避免覆盖传入的数据）
+      if (transactionTags.length === 0) {
+        console.log('🔄 [TransactionEditModal] 同步React Query标签数据:', queryTransactionTags);
+        setTransactionTags(queryTransactionTags);
+        setSelectedTagIds(queryTransactionTags.map((tag) => tag.id));
+      }
+    }
+  }, [queryTransactionTags]);
 
   const [budgetId, setBudgetId] = useState('');
   const [time, setTime] = useState('12:00');
@@ -626,7 +627,7 @@ export default function TransactionEditModal({
   const [attachments, setAttachments] = useState<TransactionAttachment[]>([]);
 
   // 移动端后退处理 - 直接使用 useMobileBackHandler，因为使用了 createPortal
-  const { handleBack } = useMobileBackHandler({
+  useMobileBackHandler({
     pageId: 'transaction-edit-modal',
     pageLevel: PageLevel.MODAL,
     enableHardwareBack: true,
@@ -684,7 +685,7 @@ export default function TransactionEditModal({
     
     // ✅ 检查store中是否已有数据，只在缺失时才获取
     const initializeData = async () => {
-      const promises = [];
+      const promises: Promise<any>[] = [];
       
       // 只在分类列表为空时才获取
       if (categories.length === 0) {
@@ -707,10 +708,7 @@ export default function TransactionEditModal({
         await Promise.all(promises);
       }
       
-      // 账本数据加载后再获取预算（如果需要）
-      if (currentAccountBook?.id) {
-        await fetchActiveBudgets(currentAccountBook.id);
-      }
+      // ✅ 预算数据由BudgetSelector组件的React Query自动获取，不需要在这里手动fetch
     };
     
     initializeData();
@@ -763,26 +761,13 @@ export default function TransactionEditModal({
         setBudgetMode('single');
       }
 
-      // ✅ 优先使用传入数据中的标签和附件，避免重复API调用
+      // ✅ 优先使用传入数据中的标签，避免重复API调用
       if (dataToUse.tags && Array.isArray(dataToUse.tags)) {
         console.log('🔄 [TransactionEditModal] 使用传入的标签数据:', dataToUse.tags);
         setTransactionTags(dataToUse.tags);
         setSelectedTagIds(dataToUse.tags.map((tag: any) => tag.id));
-      } else if (transactionId && transactionId !== 'placeholder') {
-        // 只在传入数据中没有标签时才获取
-        console.log('🔄 [TransactionEditModal] 传入数据无标签，从API获取');
-        tagApi
-          .getTransactionTags(transactionId)
-          .then((response) => {
-            if (response.success) {
-              setTransactionTags(response.data);
-              setSelectedTagIds(response.data.map((tag) => tag.id));
-            }
-          })
-          .catch((error) => {
-            console.error('获取记账标签失败:', error);
-          });
       }
+      // React Query会自动获取交易标签（如果传入数据中没有）
 
       // ✅ 优先使用传入数据中的附件
       if (dataToUse.attachments && Array.isArray(dataToUse.attachments)) {
@@ -864,28 +849,15 @@ export default function TransactionEditModal({
       if (success) {
         toast.success('记账更新成功');
 
-        // 更新记账标签
+        // ✅ 使用React Query mutation更新记账标签
         if (transactionId && transactionId !== 'placeholder') {
           try {
-            // 获取当前记账的标签
-            const currentTagsResponse = await tagApi.getTransactionTags(transactionId);
-            const currentTagIds = currentTagsResponse.success
-              ? currentTagsResponse.data.map((tag) => tag.id)
-              : [];
-
-            // 计算需要添加和移除的标签
-            const tagsToAdd = selectedTagIds.filter((id) => !currentTagIds.includes(id));
-            const tagsToRemove = currentTagIds.filter((id) => !selectedTagIds.includes(id));
-
-            // 添加新标签
-            if (tagsToAdd.length > 0) {
-              await tagApi.addTransactionTags(transactionId, { tagIds: tagsToAdd });
-            }
-
-            // 移除标签
-            for (const tagId of tagsToRemove) {
-              await tagApi.removeTransactionTag(transactionId, tagId);
-            }
+            const currentTagIds = transactionTags.map((tag) => tag.id);
+            await updateTransactionTags.mutateAsync(
+              transactionId,
+              selectedTagIds,
+              currentTagIds
+            );
           } catch (error) {
             console.error('更新记账标签失败:', error);
             // 标签更新失败不影响记账更新成功的提示
@@ -1761,7 +1733,7 @@ export default function TransactionEditModal({
                         accountBookId={currentAccountBook.id}
                         categoryId={formData.categoryId}
                         description={formData.description}
-                        amount={parseFloat(formData.amount) || undefined}
+                        amount={formData.amount ? parseFloat(formData.amount.toString()) : undefined}
                         selectedTagIds={selectedTagIds}
                         onSelectionChange={setSelectedTagIds}
                         disabled={isSubmitting}

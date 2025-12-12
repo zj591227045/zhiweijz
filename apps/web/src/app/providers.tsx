@@ -24,11 +24,17 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
 }
 
 // 创建QueryClient实例
-const queryClient = new QueryClient({
+// 导出供全局使用（例如在非组件中手动操作缓存）
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5分钟
+      gcTime: 10 * 60 * 1000, // 10分钟后清除缓存（原cacheTime）
       retry: 1,
+      refetchOnWindowFocus: false, // 窗口聚焦时不自动重新获取
+    },
+    mutations: {
+      retry: 0, // mutation失败不重试
     },
   },
 });
