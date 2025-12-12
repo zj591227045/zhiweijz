@@ -22,6 +22,13 @@ interface TransactionRecord {
     }>;
     reason?: string;
   };
+  dateValidation?: {
+    isValid: boolean;
+    requiresCorrection: boolean;
+    originalDate: string;
+    suggestedDate: string;
+    reason: string;
+  };
 }
 
 interface ImageFileInfo {

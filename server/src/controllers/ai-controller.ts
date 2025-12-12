@@ -10,6 +10,7 @@ import { MembershipService } from '../services/membership.service';
 import { TransactionDuplicateDetectionService } from '../services/transaction-duplicate-detection.service';
 import { TransactionAttachmentRepository } from '../repositories/file-storage.repository';
 import { AttachmentType } from '../models/file-storage.model';
+import { DateCorrectionMiddleware, SmartAccountingResultWithValidation } from '../middleware/date-correction.middleware';
 
 /**
  * AI功能控制器
@@ -22,6 +23,7 @@ export class AIController {
   private transactionService: TransactionService;
   private membershipService: MembershipService;
   private attachmentRepository: TransactionAttachmentRepository;
+  private dateCorrectionMiddleware: DateCorrectionMiddleware;
 
   /**
    * 构造函数
@@ -33,6 +35,7 @@ export class AIController {
     this.transactionService = new TransactionService();
     this.membershipService = new MembershipService();
     this.attachmentRepository = new TransactionAttachmentRepository();
+    this.dateCorrectionMiddleware = new DateCorrectionMiddleware();
   }
 
   /**
@@ -150,10 +153,23 @@ export class AIController {
         return res.status(400).json({ info: result.error });
       }
 
-      // 检查是否来自图片识别且有多条记录
+      // 日期校验和修正 - App端
       const isMultipleRecords = Array.isArray(result);
       const recordsToCheck = isMultipleRecords ? result : [result];
+      
+      // 对所有记录进行日期校验
+      const recordsWithDateValidation = this.dateCorrectionMiddleware.processBatchRecords(
+        recordsToCheck,
+        'app',
+        { userId, accountBookId: accountId }
+      );
 
+      // 检查是否有日期异常需要用户修正
+      const hasDateAnomalies = this.dateCorrectionMiddleware.hasDateAnomalies(recordsWithDateValidation);
+      
+      console.log(`📅 [日期校验] 记录数: ${recordsWithDateValidation.length}, 有异常: ${hasDateAnomalies}`);
+
+      // 检查是否来自图片识别且有多条记录
       if (isFromImageRecognition && recordsToCheck.length > 1) {
         // 来自图片识别且有多条记录，进行重复检测并返回记录列表供用户选择
         console.log(`📝 [智能记账] 检测到来自图片识别的${recordsToCheck.length}条记录，进行重复检测`);
@@ -163,11 +179,11 @@ export class AIController {
           const duplicateResults = await TransactionDuplicateDetectionService.detectBatchDuplicates(
             userId,
             accountId,
-            recordsToCheck
+            recordsWithDateValidation
           );
 
           // 将重复检测结果附加到记录中
-          const recordsWithDuplicateInfo = recordsToCheck.map((record, index) => {
+          const recordsWithDuplicateInfo = recordsWithDateValidation.map((record, index) => {
             const duplicateInfo = duplicateResults.find(r => r.recordIndex === index);
             return {
               ...record,
@@ -189,7 +205,7 @@ export class AIController {
         } catch (duplicateError) {
           console.error('重复检测失败:', duplicateError);
           // 重复检测失败时，仍然返回记录列表，但不包含重复信息
-          const recordsWithoutDuplicateInfo = recordsToCheck.map(record => ({
+          const recordsWithoutDuplicateInfo = recordsWithDateValidation.map(record => ({
             ...record,
             duplicateDetection: {
               isDuplicate: false,
@@ -207,6 +223,16 @@ export class AIController {
         }
       }
 
+      // 如果有日期异常且不是多条记录选择流程，返回日期修正提示
+      if (hasDateAnomalies && !isFromImageRecognition) {
+        console.log(`⚠️ [日期校验] 检测到日期异常，返回修正提示`);
+        return res.json({
+          requiresDateCorrection: true,
+          records: recordsWithDateValidation,
+          message: '检测到日期异常，请确认修正',
+        });
+      }
+
       // 智能记账成功，扣除记账点（仅在记账点系统启用时）
       if (this.membershipService.isAccountingPointsEnabled()) {
         try {
@@ -217,7 +243,9 @@ export class AIController {
         }
       }
 
-      res.json(result);
+      // 返回带日期校验信息的结果
+      const finalResult = isMultipleRecords ? recordsWithDateValidation : recordsWithDateValidation[0];
+      res.json(finalResult);
     } catch (error) {
       console.error('智能记账错误:', error);
       res.status(500).json({ error: '处理请求时出错' });
@@ -1198,6 +1226,18 @@ export class AIController {
         const recordsToCreate = isMultipleRecords ? smartResult : [smartResult];
         
         console.log(`📝 [记账处理] 检测到 ${recordsToCreate.length} 条记录需要创建`);
+
+        // 日期校验和修正 - 微信端自动修正
+        const recordsWithDateValidation = this.dateCorrectionMiddleware.processBatchRecords(
+          recordsToCreate,
+          'wechat',
+          { userId: actualUserId, accountBookId: accountBookId }
+        );
+
+        // 检查是否有日期异常（微信端会自动修正，但需要记录日志）
+        const hasDateAnomalies = this.dateCorrectionMiddleware.hasDateAnomalies(recordsWithDateValidation);
+        
+        console.log(`📅 [日期校验-微信记账] 记录数: ${recordsWithDateValidation.length}, 有异常: ${hasDateAnomalies}`);
         
         const createdTransactions = [];
         const now = new Date();
@@ -1223,9 +1263,9 @@ export class AIController {
           }
         }
 
-        // 循环创建每条记录
-        for (let i = 0; i < recordsToCreate.length; i++) {
-          const record = recordsToCreate[i];
+        // 循环创建每条记录（使用校验后的记录）
+        for (let i = 0; i < recordsWithDateValidation.length; i++) {
+          const record = recordsWithDateValidation[i];
           
           // 处理日期，如果记录中有日期则使用该日期但保持当前时间，否则使用当前完整时间
           let dateObj;
@@ -1288,21 +1328,31 @@ export class AIController {
           }
         }
 
-        // 返回创建的记账记录
+        // 准备返回结果，如果有日期异常需要添加警告信息
+        let responseData: any;
         if (isMultipleRecords) {
           // 多条记录，返回数组
-          res.status(201).json({
+          responseData = {
             transactions: createdTransactions,
             count: createdTransactions.length,
             smartAccountingResult: smartResult,
-          });
+          };
         } else {
           // 单条记录，保持原有格式
-          res.status(201).json({
+          responseData = {
             ...createdTransactions[0],
             smartAccountingResult: smartResult,
-          });
+          };
         }
+
+        // 如果有日期异常，添加警告信息（微信端）
+        if (hasDateAnomalies) {
+          const warningMessage = this.generateDateWarningMessage(recordsWithDateValidation);
+          responseData.dateWarning = warningMessage;
+          console.log(`⚠️ [日期警告-微信记账] ${warningMessage}`);
+        }
+
+        res.status(201).json(responseData);
       } catch (createError) {
         console.error('创建记账记录错误:', createError);
         // 即使创建失败，也返回智能记账结果
@@ -1417,21 +1467,43 @@ export class AIController {
         
         console.log(`📝 [记账处理] 检测到 ${recordsToCreate.length} 条记录需要创建`);
 
+        // 日期校验和修正 - 直接记账也需要校验
+        const recordsWithDateValidation = this.dateCorrectionMiddleware.processBatchRecords(
+          recordsToCreate,
+          'app',
+          { userId, accountBookId: accountId }
+        );
+
+        // 检查是否有日期异常需要用户修正
+        const hasDateAnomalies = this.dateCorrectionMiddleware.hasDateAnomalies(recordsWithDateValidation);
+        
+        console.log(`📅 [日期校验-直接记账] 记录数: ${recordsWithDateValidation.length}, 有异常: ${hasDateAnomalies}`);
+
+        // 如果有日期异常，返回修正提示（不直接创建）
+        if (hasDateAnomalies) {
+          console.log(`⚠️ [日期校验-直接记账] 检测到日期异常，返回修正提示`);
+          return res.json({
+            requiresDateCorrection: true,
+            records: recordsWithDateValidation,
+            message: '检测到日期异常，请确认修正',
+          });
+        }
+
         // 检查是否来自图片识别且有多条记录
-        if (isFromImageRecognition && recordsToCreate.length > 1) {
+        if (isFromImageRecognition && recordsWithDateValidation.length > 1) {
           // 来自图片识别且有多条记录，进行重复检测并返回记录列表供用户选择
-          console.log(`📝 [直接记账] 检测到来自图片识别的${recordsToCreate.length}条记录，进行重复检测`);
+          console.log(`📝 [直接记账] 检测到来自图片识别的${recordsWithDateValidation.length}条记录，进行重复检测`);
 
           try {
             // 进行重复检测
             const duplicateResults = await TransactionDuplicateDetectionService.detectBatchDuplicates(
               userId,
               accountId,
-              recordsToCreate
+              recordsWithDateValidation
             );
 
             // 将重复检测结果附加到记录中
-            const recordsWithDuplicateInfo = recordsToCreate.map((record, index) => {
+            const recordsWithDuplicateInfo = recordsWithDateValidation.map((record, index) => {
               const duplicateInfo = duplicateResults.find(r => r.recordIndex === index);
               return {
                 ...record,
@@ -1453,7 +1525,7 @@ export class AIController {
           } catch (duplicateError) {
             console.error('重复检测失败:', duplicateError);
             // 重复检测失败时，仍然返回记录列表，但不包含重复信息
-            const recordsWithoutDuplicateInfo = recordsToCreate.map(record => ({
+            const recordsWithoutDuplicateInfo = recordsWithDateValidation.map(record => ({
               ...record,
               duplicateDetection: {
                 isDuplicate: false,
@@ -1496,9 +1568,9 @@ export class AIController {
           }
         }
 
-        // 循环创建每条记录
-        for (let i = 0; i < recordsToCreate.length; i++) {
-          const smartResult = recordsToCreate[i];
+        // 循环创建每条记录（使用校验后的记录）
+        for (let i = 0; i < recordsWithDateValidation.length; i++) {
+          const smartResult = recordsWithDateValidation[i];
           
           // 处理日期，如果记录中有日期则使用该日期但保持当前时间，否则使用当前完整时间
           let dateObj;
@@ -2585,5 +2657,30 @@ export class AIController {
     }
   }
 
+  /**
+   * 生成日期警告消息（用于微信端）
+   * @param records 带日期校验信息的记录
+   * @returns 警告消息
+   */
+  private generateDateWarningMessage(records: SmartAccountingResultWithValidation[]): string {
+    const anomalies = records.filter(r => r.dateValidation && !r.dateValidation.isValid);
+    
+    if (anomalies.length === 0) {
+      return '';
+    }
+
+    const warnings = anomalies.map(record => {
+      const validation = record.dateValidation!;
+      const originalDate = validation.originalDate 
+        ? new Date(validation.originalDate).toLocaleDateString('zh-CN')
+        : '未知日期';
+      const suggestedDate = validation.suggestedDate 
+        ? new Date(validation.suggestedDate).toLocaleDateString('zh-CN')
+        : '今天';
+      return `识别日期"${originalDate}"不在合理范围内，已自动修正为今天(${suggestedDate})`;
+    });
+
+    return `⚠️ 日期修正提示:\n${warnings.join('\n')}`;
+  }
 
 }

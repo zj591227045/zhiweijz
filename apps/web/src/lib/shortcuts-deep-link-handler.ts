@@ -972,6 +972,48 @@ async function handleImageAccountingByUrl(
 
     console.log('🖼️ [ShortcutsHandler] 智能记账响应:', smartAccountingResponse.data);
 
+    // 检查是否需要用户修正日期
+    if (smartAccountingResponse.data?.requiresDateCorrection && smartAccountingResponse.data?.records) {
+      console.log('📅 [ShortcutsHandler] 检测到日期异常，需要用户确认:', smartAccountingResponse.data.records);
+
+      // 显示提示信息，引导用户到App中确认日期
+      toast.warning(`检测到日期异常，请在App中确认修正`, {
+        duration: 6000
+      });
+
+      // 将记录数据保存到sessionStorage，供前端使用
+      sessionStorage.setItem('pendingTransactionRecords', JSON.stringify({
+        records: smartAccountingResponse.data.records,
+        accountBookId: currentAccountId,
+        source: 'shortcuts',
+        requiresDateCorrection: true,
+        timestamp: Date.now()
+      }));
+
+      // 触发事件通知前端有待处理的记录
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('pendingTransactionRecords', {
+          detail: {
+            records: smartAccountingResponse.data.records,
+            accountBookId: currentAccountId,
+            source: 'shortcuts',
+            requiresDateCorrection: true
+          }
+        }));
+      }
+
+      return {
+        success: true,
+        message: `检测到日期异常，请在App中确认修正`,
+        requiresDateCorrection: true,
+        data: {
+          visionResult: visionResponse.data,
+          records: smartAccountingResponse.data.records,
+          accountBookId: currentAccountId
+        }
+      };
+    }
+
     // 检查是否需要用户选择记录
     if (smartAccountingResponse.data?.requiresUserSelection && smartAccountingResponse.data?.records) {
       console.log('📝 [ShortcutsHandler] 检测到多条记录，需要用户选择:', smartAccountingResponse.data.records.length);

@@ -1495,7 +1495,43 @@ export default function EnhancedSmartAccountingDialog({
             { timeout: 60000 }
           );
 
-          if (directResponse && directResponse.requiresUserSelection && directResponse.records) {
+          if (directResponse && directResponse.requiresDateCorrection && directResponse.records) {
+            // 需要用户修正日期
+            console.log('📅 [快捷指令图片记账] 检测到日期异常，需要用户确认:', directResponse.records);
+            progressManager.updateProgress(progressId, '检测到日期异常，请确认修正');
+
+            // 延迟一下再显示选择模态框，确保智能记账模态框已经完全关闭
+            setTimeout(() => {
+              progressManager.hideProgress(progressId);
+              if (accountBookId) {
+                showGlobalSelectionModal(directResponse.records, accountBookId, async (selectedRecords, imageFileInfo) => {
+                  // 自定义的记录创建逻辑
+                  const response = await apiClient.post(
+                    `/ai/account/${accountBookId}/smart-accounting/create-selected`,
+                    {
+                      selectedRecords,
+                      imageFileInfo // 传递图片文件信息
+                    },
+                    { timeout: 60000 }
+                  );
+
+                  if (response && response.success) {
+                    toast.success(`成功创建 ${response.count} 条记账记录`);
+
+                    // 刷新仪表盘数据和记账点余额
+                    try {
+                      await refreshDashboardData(accountBookId);
+                      await fetchBalance();
+                    } catch (refreshError) {
+                      console.error('刷新数据失败:', refreshError);
+                    }
+                  } else {
+                    throw new Error('创建记账记录失败');
+                  }
+                }, response.data?.fileInfo); // 传递图片文件信息
+              }
+            }, 500);
+          } else if (directResponse && directResponse.requiresUserSelection && directResponse.records) {
             // 需要用户选择记录
             console.log('📝 [快捷指令图片记账] 需要用户选择记录:', directResponse.records.length);
             progressManager.updateProgress(progressId, '检测到多条记账记录，请选择需要导入的记录');
@@ -1641,7 +1677,43 @@ export default function EnhancedSmartAccountingDialog({
             { timeout: 60000 },
           );
 
-          if (directAddResponse && directAddResponse.requiresUserSelection && directAddResponse.records) {
+          if (directAddResponse && directAddResponse.requiresDateCorrection && directAddResponse.records) {
+            // 需要用户修正日期
+            console.log('📅 [图片记账] 检测到日期异常，需要用户确认:', directAddResponse.records);
+            progressManager.updateProgress(progressId, '检测到日期异常，请确认修正');
+
+            // 延迟一下再显示选择模态框，确保智能记账模态框已经完全关闭
+            setTimeout(() => {
+              progressManager.hideProgress(progressId);
+              if (accountBookId) {
+                showGlobalSelectionModal(directAddResponse.records, accountBookId, async (selectedRecords, imageFileInfo) => {
+                  // 自定义的记录创建逻辑
+                  const response = await apiClient.post(
+                    `/ai/account/${accountBookId}/smart-accounting/create-selected`,
+                    {
+                      selectedRecords,
+                      imageFileInfo // 传递图片文件信息
+                    },
+                    { timeout: 60000 }
+                  );
+
+                  if (response && response.success) {
+                    toast.success(`成功创建 ${response.count} 条记账记录`);
+
+                    // 刷新仪表盘数据和记账点余额
+                    try {
+                      await refreshDashboardData(accountBookId);
+                      await fetchBalance();
+                    } catch (refreshError) {
+                      console.error('刷新数据失败:', refreshError);
+                    }
+                  } else {
+                    throw new Error('创建记账记录失败');
+                  }
+                }, imageFileInfo); // 传递图片文件信息
+              }
+            }, 500);
+          } else if (directAddResponse && directAddResponse.requiresUserSelection && directAddResponse.records) {
             // 需要用户选择记录
             console.log('📝 [图片记账] 需要用户选择记录:', directAddResponse.records.length);
             progressManager.updateProgress(progressId, '检测到多条记账记录，请选择需要导入的记录');

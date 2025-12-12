@@ -5,6 +5,8 @@ import { SmartAccountingResult, SmartAccountingError } from '../types/smart-acco
 import AccountingPointsService from './accounting-points.service';
 import { MembershipService } from './membership.service';
 import { TransactionDuplicateDetectionService } from './transaction-duplicate-detection.service';
+import { DateCorrectionMiddleware, SmartAccountingResultWithValidation } from '../middleware/date-correction.middleware';
+import { WechatMessageFormatter, WechatWarningMessage } from './wechat-message-formatter.service';
 
 
 export interface WechatSmartAccountingResult {
@@ -17,10 +19,14 @@ export interface WechatSmartAccountingResult {
 export class WechatSmartAccountingService {
   private aiController: AIController;
   private membershipService: MembershipService;
+  private dateCorrectionMiddleware: DateCorrectionMiddleware;
+  private messageFormatter: WechatMessageFormatter;
 
   constructor() {
     this.aiController = new AIController();
     this.membershipService = new MembershipService();
+    this.dateCorrectionMiddleware = new DateCorrectionMiddleware();
+    this.messageFormatter = new WechatMessageFormatter();
   }
 
   /**
@@ -96,7 +102,25 @@ export class WechatSmartAccountingService {
         };
       }
 
-      // 5. 智能记账成功，扣除记账点（仅在记账点系统启用时）
+      // 5. 日期校验和修正 - 微信端自动修正
+      const isMultipleRecords = Array.isArray(analysisResult);
+      const recordsToValidate = isMultipleRecords ? analysisResult : [analysisResult];
+      
+      // 对所有记录进行日期校验和自动修正
+      const recordsWithDateValidation = this.dateCorrectionMiddleware.processBatchRecords(
+        recordsToValidate,
+        'wechat',
+        { userId, accountBookId }
+      );
+
+      // 生成日期警告消息
+      const dateWarning = this.messageFormatter.formatDateWarning(recordsWithDateValidation);
+      
+      if (dateWarning.hasWarning) {
+        console.log(`⚠️ [微信日期校验] 检测到${dateWarning.correctedRecords.length}条记录日期异常，已自动修正`);
+      }
+
+      // 6. 智能记账成功，扣除记账点（仅在记账点系统启用时）
       if (this.membershipService.isAccountingPointsEnabled()) {
         try {
           await AccountingPointsService.deductPoints(userId, 'text', AccountingPointsService.POINT_COSTS.text);
@@ -106,11 +130,10 @@ export class WechatSmartAccountingService {
         }
       }
 
-      // 6. 如果需要创建记账记录
+      // 7. 如果需要创建记账记录
       if (createTransaction) {
-        // 检查是否为数组格式（多条记录）
-        const isMultipleRecords = Array.isArray(analysisResult);
-        const recordsToCreate = isMultipleRecords ? analysisResult : [analysisResult];
+        // 使用校验和修正后的记录
+        const recordsToCreate = recordsWithDateValidation;
 
         console.log(`📝 [微信记账] 检测到 ${recordsToCreate.length} 条记录需要创建`);
 
@@ -187,6 +210,9 @@ export class WechatSmartAccountingService {
             }
           }
 
+          // 附加日期警告消息
+          resultMessage = this.messageFormatter.appendWarningToSuccessMessage(resultMessage, dateWarning);
+
           return {
             success: true,
             message: resultMessage,
@@ -210,10 +236,19 @@ export class WechatSmartAccountingService {
         }
       }
 
-      // 7. 仅返回分析结果
+      // 8. 仅返回分析结果(不创建记账)
+      let analysisMessage = this.formatSuccessMessage(
+        analysisResult, 
+        false, 
+        Array.isArray(analysisResult) ? analysisResult.length : 1
+      );
+      
+      // 附加日期警告消息
+      analysisMessage = this.messageFormatter.appendWarningToSuccessMessage(analysisMessage, dateWarning);
+
       return {
         success: true,
-        message: this.formatSuccessMessage(analysisResult, false, Array.isArray(analysisResult) ? analysisResult.length : 1),
+        message: analysisMessage,
       };
     } catch (error) {
       console.error('微信智能记账处理失败:', error);

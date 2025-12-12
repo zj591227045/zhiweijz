@@ -33,6 +33,13 @@ interface TransactionRecord {
     }>;
     reason?: string;
   };
+  dateValidation?: {
+    isValid: boolean;
+    requiresCorrection: boolean;
+    originalDate: string;
+    suggestedDate: string;
+    reason: string;
+  };
 }
 
 interface TransactionSelectionModalProps {
@@ -109,20 +116,55 @@ export function TransactionSelectionModal({
     return type === 'INCOME' ? '收入' : '支出';
   };
 
+  // 判断是否为单条记录且有日期异常
+  const isSingleRecordWithDateIssue = records.length === 1 && records[0].dateValidation && !records[0].dateValidation.isValid;
+  
+  // 判断是否有日期异常
+  const hasDateIssues = records.some(r => r.dateValidation && !r.dateValidation.isValid);
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col transaction-selection-modal">
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      // 禁止点击空白区域关闭
+      if (!open) return;
+    }}>
+      <DialogContent 
+        className={`${isSingleRecordWithDateIssue ? 'max-w-md' : 'max-w-4xl'} max-h-[80vh] flex flex-col transaction-selection-modal`}
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 dialog-title">
-            <FileText className="h-5 w-5 primary-icon" />
-            选择要导入的记账记录
+            {isSingleRecordWithDateIssue ? (
+              <>
+                <AlertTriangle className="h-5 w-5 text-amber-600" />
+                确认记账信息
+              </>
+            ) : (
+              <>
+                <FileText className="h-5 w-5 primary-icon" />
+                选择要导入的记账记录
+              </>
+            )}
           </DialogTitle>
           <p className="text-sm text-secondary">
-            检测到 {records.length} 条记账记录，请选择需要导入的记录。
-            {records.some(r => r.duplicateDetection?.isDuplicate) && (
-              <span className="ml-2 warning-text">
-                ⚠️ 部分记录可能重复，已自动取消选择
+            {isSingleRecordWithDateIssue ? (
+              <span className="text-amber-700">
+                检测到日期异常，请确认或修改后继续
               </span>
+            ) : (
+              <>
+                检测到 {records.length} 条记账记录，请选择需要导入的记录。
+                {records.some(r => r.duplicateDetection?.isDuplicate) && (
+                  <span className="ml-2 warning-text">
+                    ⚠️ 部分记录可能重复，已自动取消选择
+                  </span>
+                )}
+                {hasDateIssues && (
+                  <span className="ml-2 text-amber-700">
+                    ⚠️ 部分记录日期异常，请确认修正
+                  </span>
+                )}
+              </>
             )}
           </p>
         </DialogHeader>
@@ -145,22 +187,24 @@ export function TransactionSelectionModal({
             e.stopPropagation();
           }}
         >
-          {/* 全选控制 */}
-          <div className="flex items-center justify-between p-4 rounded-lg select-all-control">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="select-all"
-                checked={selectedRecords.size === records.length}
-                onCheckedChange={handleSelectAll}
-              />
-              <label htmlFor="select-all" className="text-sm font-medium">
-                全选 ({selectedRecords.size}/{records.length})
-              </label>
+          {/* 全选控制 - 仅在多条记录时显示 */}
+          {!isSingleRecordWithDateIssue && (
+            <div className="flex items-center justify-between p-4 rounded-lg select-all-control">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="select-all"
+                  checked={selectedRecords.size === records.length}
+                  onCheckedChange={handleSelectAll}
+                />
+                <label htmlFor="select-all" className="text-sm font-medium">
+                  全选 ({selectedRecords.size}/{records.length})
+                </label>
+              </div>
+              <div className="text-sm text-secondary">
+                已选择 {selectedRecords.size} 条记录
+              </div>
             </div>
-            <div className="text-sm text-secondary">
-              已选择 {selectedRecords.size} 条记录
-            </div>
-          </div>
+          )}
 
           {/* 记录列表 */}
           <div className="space-y-3">
@@ -178,11 +222,14 @@ export function TransactionSelectionModal({
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start space-x-3">
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={() => handleRecordToggle(index)}
-                        className="mt-1"
-                      />
+                      {/* 单条记录时隐藏复选框 */}
+                      {!isSingleRecordWithDateIssue && (
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => handleRecordToggle(index)}
+                          className="mt-1"
+                        />
+                      )}
                       
                       <div className="flex-1 space-y-2">
                         {/* 主要信息 */}
@@ -222,6 +269,35 @@ export function TransactionSelectionModal({
                           )}
                         </div>
 
+                        {/* 日期异常警告 */}
+                        {record.dateValidation && !record.dateValidation.isValid && (
+                          <div className="flex items-start space-x-2 p-3 rounded-md bg-amber-50 border border-amber-200">
+                            <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-600" />
+                            <div className="flex-1">
+                              <div className="text-sm font-medium text-amber-900">
+                                日期异常
+                              </div>
+                              <div className="text-xs mt-1 text-amber-700">
+                                {record.dateValidation.reason}
+                              </div>
+                              <div className="text-xs mt-1 text-amber-700">
+                                原始日期: {formatDate(record.dateValidation.originalDate)} → 建议修正为: {formatDate(record.dateValidation.suggestedDate)}
+                              </div>
+                              <div className="mt-2">
+                                <input
+                                  type="date"
+                                  className="text-sm border rounded px-2 py-1"
+                                  value={record.date.split('T')[0]}
+                                  onChange={(e) => {
+                                    // 更新记录的日期
+                                    record.date = new Date(e.target.value).toISOString();
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         {/* 重复检测警告 */}
                         {isDuplicate && (
                           <div className="flex items-start space-x-2 p-3 rounded-md duplicate-warning">
@@ -260,21 +336,21 @@ export function TransactionSelectionModal({
         </div>
 
         {/* 底部操作按钮 */}
-        <div className="flex justify-end space-x-2 pt-4 action-buttons">
+        <div className="flex justify-end gap-3 pt-4 action-buttons">
           <Button
             variant="outline"
             onClick={onClose}
             disabled={isLoading}
-            className="btn-cancel"
+            className="btn-cancel flex-1 sm:flex-none sm:min-w-[120px] h-11"
           >
             取消
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={isLoading || selectedRecords.size === 0}
-            className="btn-primary"
+            className="btn-primary flex-1 sm:flex-none sm:min-w-[120px] h-11"
           >
-            {isLoading ? '创建中...' : `确认导入 (${selectedRecords.size})`}
+            {isLoading ? '创建中...' : isSingleRecordWithDateIssue ? '确认导入' : `确认导入 (${selectedRecords.size})`}
           </Button>
         </div>
       </DialogContent>
