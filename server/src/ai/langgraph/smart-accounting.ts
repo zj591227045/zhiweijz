@@ -379,10 +379,28 @@ export class SmartAccounting {
         for (let i = 0; i < transactions.length; i++) {
           const analyzedTransaction = transactions[i];
 
-          // 处理日期
+          // 处理日期 - 修复时区问题
           if (analyzedTransaction.date) {
-            analyzedTransaction.date = new Date(analyzedTransaction.date);
+            // 如果LLM返回的是日期字符串（如 "2025-12-12"），需要转换为本地时区的日期对象
+            const dateStr = analyzedTransaction.date;
+            if (typeof dateStr === 'string') {
+              // 检查是否是纯日期格式（YYYY-MM-DD）
+              if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+                // 纯日期格式，添加本地时间避免时区偏移
+                // 使用当前时间的时分秒，而不是00:00:00
+                const now = new Date();
+                const [year, month, day] = dateStr.split('-').map(Number);
+                analyzedTransaction.date = new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds());
+              } else {
+                // 包含时间的ISO格式，直接转换
+                analyzedTransaction.date = new Date(dateStr);
+              }
+            } else {
+              // 已经是Date对象，直接使用
+              analyzedTransaction.date = new Date(dateStr);
+            }
           } else {
+            // 没有日期，使用当前时间
             analyzedTransaction.date = new Date();
           }
 

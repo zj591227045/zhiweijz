@@ -294,30 +294,25 @@ export class WechatSmartAccountingService {
    */
   private async createTransactionRecord(result: SmartAccountingResult, userId: string) {
     try {
-      // 确保日期包含当前时间（北京时区）
+      // 确保日期包含当前时间
       let transactionDate: Date;
-
-      // 获取当前时间并转换为北京时区
       const now = new Date();
-      const beijingOffset = 8 * 60; // 北京时区 UTC+8
-      const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-      const beijingTime = new Date(utc + beijingOffset * 60000);
 
       if (result.date) {
-        // 如果智能分析返回了日期，使用该日期但设置为当前北京时间
+        // 如果智能分析返回了日期，使用该日期但设置为当前时间
         const resultDate = new Date(result.date);
         transactionDate = new Date(
           resultDate.getFullYear(),
           resultDate.getMonth(),
           resultDate.getDate(),
-          beijingTime.getHours(),
-          beijingTime.getMinutes(),
-          beijingTime.getSeconds(),
-          beijingTime.getMilliseconds(),
+          now.getHours(),
+          now.getMinutes(),
+          now.getSeconds(),
+          now.getMilliseconds(),
         );
       } else {
-        // 如果没有日期，使用当前北京时间
-        transactionDate = beijingTime;
+        // 如果没有日期，使用当前时间
+        transactionDate = now;
       }
 
       // 获取账本信息以确定是否为家庭账本

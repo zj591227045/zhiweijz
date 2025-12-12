@@ -46,7 +46,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV}
       DOCKER_ENV: ${DOCKER_ENV}
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?schema=public&timezone=${DB_TIMEZONE}
       JWT_SECRET: ${JWT_SECRET}
       PORT: ${BACKEND_PORT}
       # 微信公众号配置
