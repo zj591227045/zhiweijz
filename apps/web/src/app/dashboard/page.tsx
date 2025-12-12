@@ -25,6 +25,7 @@ import { useNotificationStore } from '@/store/notification-store';
 import { NotificationModal } from '@/components/notifications/NotificationModal';
 import { useMobileBackHandler } from '@/hooks/use-mobile-back-handler';
 import { PageLevel, navigationManager } from '@/lib/mobile-navigation';
+import { hapticPresets } from '@/lib/haptic-feedback';
 import './dashboard.css';
 
 export default function DashboardPage() {
@@ -60,6 +61,9 @@ export default function DashboardPage() {
 
   // 返回顶部函数
   const scrollToTop = () => {
+    // 触发振动反馈
+    hapticPresets.navigation();
+    
     const mainContent = document.querySelector('.main-content') as HTMLElement;
     if (mainContent) {
       mainContent.scrollTo({
