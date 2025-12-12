@@ -1,0 +1,14 @@
+{
+  "webdav": {
+    "url": "https://your-webdav-server.com",
+    "username": "your-username",
+    "password": "your-password",
+    "basePath": "/Backup/zhiweijz/S3/"
+  },
+  "s3": {
+    "endpoint": "http://your-s3-server:9000",
+    "accessKeyId": "your-access-key-id",
+    "secretAccessKey": "your-secret-access-key",
+    "region": "us-east-1"
+  }
+}

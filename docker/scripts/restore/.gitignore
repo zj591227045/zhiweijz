@@ -1,0 +1,16 @@
+# 依赖
+node_modules/
+package-lock.json
+
+# 配置文件（包含敏感信息）
+restore-config.json
+
+# 日志
+*.log
+npm-debug.log*
+
+# 临时文件
+.DS_Store
+*.swp
+*.swo
+*~
