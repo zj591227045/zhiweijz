@@ -651,7 +651,7 @@ export class BudgetService {
         LEFT JOIN family_members fm ON b.family_member_id = fm.id
         LEFT JOIN users u ON b.user_id = u.id
         WHERE bh.budget_id = ANY(${budgetIds})
-        ORDER BY bh.period DESC, bh.created_at DESC
+        ORDER BY bh.created_at DESC
       `;
 
       console.log(`从budget_histories表查询到 ${(histories as any[]).length} 条记录`);
@@ -681,17 +681,7 @@ export class BudgetService {
         memberName: history.memberName || '未知成员',
       }));
 
-      // 在前端格式化后再次排序，确保按期间降序排列
-      rolloverHistory.sort((a, b) => {
-        // 首先按period降序排序
-        if (a.period !== b.period) {
-          return b.period.localeCompare(a.period);
-        }
-        // 如果period相同，按创建时间降序排序
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
-
-      console.log('排序后的结转历史（前3条）:');
+      console.log('结转历史（按创建时间降序，前3条）:');
       rolloverHistory.slice(0, 3).forEach((h: any, index: number) => {
         console.log(`  ${index + 1}. period: ${h.period}, createdAt: ${h.createdAt}, amount: ${h.amount}, type: ${h.type}`);
       });
@@ -896,7 +886,7 @@ export class BudgetService {
         return;
       }
 
-      const period = `${budget.endDate.getFullYear()}-${budget.endDate.getMonth() + 1}`;
+      const period = `${budget.endDate.getFullYear()}-${String(budget.endDate.getMonth() + 1).padStart(2, '0')}`;
 
       // 检查是否已存在结转历史记录
       const existingHistory = await prisma.budgetHistory.findFirst({
