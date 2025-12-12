@@ -21,11 +21,11 @@ const DB_VERSION_HISTORY = [
   '1.7.6', '1.7.7', '1.7.8', '1.7.9', '1.7.10', '1.7.11',
   '1.7.12', '1.7.13', '1.7.14', '1.7.15', '1.7.16', '1.8.0',
   '1.8.1', '1.8.2', '1.8.3', '1.8.4', '1.8.5', '1.8.6', '1.8.7', '1.8.8', '1.8.9', '1.8.10',
-  '1.9.0'
+  '1.9.0', '1.9.1'
 ];
 
 // 当前最新的数据库版本
-const LATEST_DB_VERSION = '1.9.0';
+const LATEST_DB_VERSION = '1.9.1';
 
 // 迁移文件与版本的映射
 const MIGRATION_TO_VERSION_MAP = {
@@ -43,6 +43,7 @@ const MIGRATION_TO_VERSION_MAP = {
   'enable-default-internal-tasks': '1.8.9',
   'fix-internal-tasks-display': '1.8.10',
   'add-llm-health-check-task': '1.9.0',
+  'add-performance-history-cleanup-task': '1.9.1',
 };
 
 /**

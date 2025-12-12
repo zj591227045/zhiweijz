@@ -560,12 +560,22 @@ export class PerformanceMonitoringService {
    */
   async cleanupOldData() {
     try {
+      // 删除过期数据
       const result = await prisma.$executeRaw`
         DELETE FROM system_performance_history
         WHERE recorded_at < NOW() - INTERVAL '${this.dataRetentionDays} days'
       `;
 
       console.log(`清理了 ${result} 条过期性能数据`);
+
+      // 执行 VACUUM 回收空间
+      try {
+        await prisma.$executeRaw`VACUUM ANALYZE system_performance_history`;
+        console.log('已执行 VACUUM，回收表空间');
+      } catch (vacuumError) {
+        console.warn('VACUUM 执行失败（可能在事务中）:', vacuumError);
+      }
+
       return result;
     } catch (error) {
       console.error('清理过期性能数据失败:', error);

@@ -58,6 +58,7 @@ const VERSION_TO_MIGRATIONS = {
   '1.8.9': ['enable-default-internal-tasks'],
   '1.8.10': ['fix-internal-tasks-display'],
   '1.9.0': ['add-llm-health-check-task'],
+  '1.9.1': ['add-performance-history-cleanup-task'],
 };
 
 // 基础迁移文件（不属于版本化迁移的基础设施）

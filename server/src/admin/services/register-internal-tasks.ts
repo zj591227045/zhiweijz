@@ -184,6 +184,20 @@ export function registerAllInternalTasks(): void {
     }
   });
 
+  // 11. 性能历史记录清理任务
+  internalTaskRegistry.register({
+    key: 'performance-history-cleanup',
+    name: '性能历史记录清理',
+    description: '清理30天之前的性能历史数据，释放数据库空间',
+    suggestedCron: '0 1 * * *', // 每天凌晨1点执行
+    execute: async () => {
+      console.log('🗑️ 开始清理性能历史记录...');
+      const { performanceMonitoringService } = await import('../../services/performance-monitoring.service');
+      const deletedCount = await performanceMonitoringService.cleanupOldData();
+      console.log(`✅ 性能历史记录清理完成，已删除 ${deletedCount} 条记录`);
+    }
+  });
+
   const registeredCount = internalTaskRegistry.size;
   console.log(`[内部任务注册] 成功注册 ${registeredCount} 个内部任务`);
 }
