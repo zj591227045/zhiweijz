@@ -45,33 +45,66 @@ BEGIN
     END IF;
 END $$;
 
--- 使用 UPSERT 逻辑添加或更新LLM健康检查任务
-INSERT INTO scheduled_tasks (
-    id, 
-    name, 
-    description, 
-    script_type, 
-    script_path, 
-    cron_expression, 
-    is_enabled, 
-    created_at, 
-    updated_at
-) VALUES (
-    gen_random_uuid(),
+-- 创建临时函数来安全插入或更新任务
+CREATE OR REPLACE FUNCTION ensure_internal_task_temp(
+    p_name TEXT,
+    p_description TEXT,
+    p_script_path TEXT,
+    p_cron_expression TEXT,
+    p_should_be_enabled BOOLEAN
+) RETURNS VOID AS $$
+DECLARE
+    existing_task RECORD;
+BEGIN
+    -- 检查任务是否已存在
+    SELECT * INTO existing_task
+    FROM scheduled_tasks
+    WHERE script_type = 'internal' AND script_path = p_script_path;
+
+    IF existing_task IS NULL THEN
+        -- 任务不存在，插入新任务
+        INSERT INTO scheduled_tasks (
+            name,
+            description,
+            script_type,
+            script_path,
+            cron_expression,
+            is_enabled
+        ) VALUES (
+            p_name,
+            p_description,
+            'internal',
+            p_script_path,
+            p_cron_expression,
+            p_should_be_enabled
+        );
+        RAISE NOTICE '✅ 创建新内部任务: % (%)', p_name, p_script_path;
+    ELSE
+        -- 任务存在，更新状态
+        UPDATE scheduled_tasks
+        SET
+            name = p_name,
+            description = p_description,
+            cron_expression = p_cron_expression,
+            is_enabled = p_should_be_enabled,
+            updated_at = NOW()
+        WHERE id = existing_task.id;
+        RAISE NOTICE '✅ 更新内部任务: % (%)', p_name, p_script_path;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 添加LLM健康检查任务（启用）
+SELECT ensure_internal_task_temp(
     'LLM提供商健康检查',
     '检查所有LLM提供商的健康状态，更新可用性信息',
-    'internal',
     'llm-provider-health-check',
-    '*/5 * * * *',  -- 每5分钟执行一次
-    true,
-    NOW(),
-    NOW()
-) ON CONFLICT (script_type, script_path) DO UPDATE SET
-    name = EXCLUDED.name,
-    description = EXCLUDED.description,
-    cron_expression = EXCLUDED.cron_expression,
-    is_enabled = true,
-    updated_at = NOW();
+    '*/5 * * * *',
+    true
+);
+
+-- 删除临时函数
+DROP FUNCTION ensure_internal_task_temp(TEXT, TEXT, TEXT, TEXT, BOOLEAN);
 
 -- 提交事务
 COMMIT;
