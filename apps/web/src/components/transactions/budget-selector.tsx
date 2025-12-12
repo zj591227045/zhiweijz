@@ -288,7 +288,7 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
       hasInitialized,
       date,
       isEditMode: isInEditMode,
-    });
+    };
 
     if (formattedBudgets.length > 0 && !selectedBudget && currentUser && !hasInitialized) {
       console.log('获取到日期匹配的预算:', formattedBudgets);

@@ -13,7 +13,7 @@ import { createLogger } from '@/lib/logger';
 import '@/lib/logger-test'; // 导入测试，会自动运行
 
 import { useDashboardStore } from '@/store/dashboard-store';
-// import TransactionEditModal from '@/components/transaction-edit-modal';
+import TransactionEditModal from '@/components/transaction-edit-modal';
 import { useNotificationStore } from '@/store/notification-store';
 import { NotificationModal } from '@/components/notifications/NotificationModal';
 import { hapticPresets } from '@/lib/haptic-feedback';
@@ -493,17 +493,27 @@ export default function DashboardPage() {
       )}
 
       {/* 记账编辑模态框 - 使用完整的 App Router 组件 */}
-      {/* 暂时注释掉，等待修复导入问题
       {showTransactionEditModal && transactionData && (
         <TransactionEditModal
           key={editingTransactionId || 'new'} // ✅ 添加key，防止不必要的重新挂载
           transactionId={editingTransactionId}
           transactionData={transactionData}
-          onClose={handleEditModalClose} // ✅ 使用稳定的回调引用
-          onSave={handleEditModalSave} // ✅ 使用稳定的回调引用
+          onClose={() => {
+            setShowTransactionEditModal(false);
+            setTransactionData(null);
+            setEditingTransactionId(null);
+          }}
+          onSave={() => {
+            // 刷新仪表盘数据
+            if (currentAccountBook?.id) {
+              refreshDashboardData(currentAccountBook.id);
+            }
+            setShowTransactionEditModal(false);
+            setTransactionData(null);
+            setEditingTransactionId(null);
+          }}
         />
       )}
-      */}
 
       {/* 通知模态框 */}
       <NotificationModal isOpen={isModalOpen} onClose={closeModal} />
