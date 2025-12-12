@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import Link from 'next/link';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { useAccountBookStore } from '@/store/account-book-store';
@@ -10,23 +9,18 @@ import { MonthlyOverview } from '@/components/dashboard/monthly-overview';
 import { BudgetProgress } from '@/components/dashboard/budget-progress';
 import { RecentTransactions } from '@/components/dashboard/recent-transactions';
 import { CalendarView } from '@/components/dashboard/calendar/calendar-view';
-import { formatCurrency, formatDate } from '@/lib/utils';
-import {
-  accountBookService,
-  statisticsService,
-  budgetService,
-  transactionService,
-} from '@/lib/api-services';
-import dayjs from 'dayjs';
+import { createLogger } from '@/lib/logger';
+import '@/lib/logger-test'; // 导入测试，会自动运行
 
 import { useDashboardStore } from '@/store/dashboard-store';
-import TransactionEditModal from '@/components/transaction-edit-modal';
+// import TransactionEditModal from '@/components/transaction-edit-modal';
 import { useNotificationStore } from '@/store/notification-store';
 import { NotificationModal } from '@/components/notifications/NotificationModal';
-import { useMobileBackHandler } from '@/hooks/use-mobile-back-handler';
-import { PageLevel, navigationManager } from '@/lib/mobile-navigation';
 import { hapticPresets } from '@/lib/haptic-feedback';
 import './dashboard.css';
+
+// 创建模块专用 logger
+const dashboardLog = createLogger('Dashboard');
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -139,34 +133,34 @@ export default function DashboardPage() {
 
   // 认证检查和初始数据加载
   useEffect(() => {
-    console.log('🏠 [Dashboard] useEffect 触发，认证状态:', isAuthenticated, '用户:', user);
+    dashboardLog.debug('useEffect 触发，认证状态:', isAuthenticated, '用户:', user);
 
     // 检查用户是否已登录
     if (!isAuthenticated) {
-      console.log('🏠 [Dashboard] 用户未登录，重定向到登录页面');
+      dashboardLog.info('用户未登录，重定向到登录页面');
       router.push('/auth/login');
       return;
     }
 
-    console.log('🏠 [Dashboard] 用户已登录，开始获取账本列表');
+    dashboardLog.debug('用户已登录，开始获取账本列表');
     // 获取账本列表
     fetchAccountBooks();
   }, [isAuthenticated, router]); // 移除函数依赖
 
   // 当账本变化时获取仪表盘数据
   useEffect(() => {
-    console.log('🏠 [Dashboard] 账本变化检测:', {
+    dashboardLog.debug('账本变化检测', {
       isAuthenticated,
       currentAccountBook,
       accountBookId: currentAccountBook?.id,
     });
 
     if (isAuthenticated && currentAccountBook?.id) {
-      console.log('🏠 [Dashboard] 当前账本存在，获取仪表盘数据:', currentAccountBook);
+      dashboardLog.debug('当前账本存在，获取仪表盘数据', currentAccountBook);
       fetchDashboardData(currentAccountBook.id);
       hasInitialized.current = true; // ✅ 标记已初始化
     } else {
-      console.log('🏠 [Dashboard] 条件不满足，不获取仪表盘数据:', {
+      dashboardLog.debug('条件不满足，不获取仪表盘数据', {
         isAuthenticated,
         hasCurrentAccountBook: !!currentAccountBook,
         accountBookId: currentAccountBook?.id,
@@ -177,18 +171,18 @@ export default function DashboardPage() {
   // 用户登录后检查未读通知
   useEffect(() => {
     if (isAuthenticated && user) {
-      console.log('🏠 [Dashboard] 用户已登录，检查未读通知');
+      dashboardLog.debug('用户已登录，检查未读通知');
       checkUnreadOnLogin();
     }
   }, [isAuthenticated, user]); // ✅ 移除函数依赖，避免不必要的重新执行
 
   // 设置记账变化监听器
   useEffect(() => {
-    console.log('仪表盘页面：设置记账变化监听器');
+    dashboardLog.debug('设置记账变化监听器');
     setupTransactionListener();
 
     return () => {
-      console.log('仪表盘页面：清理记账变化监听器');
+      dashboardLog.debug('清理记账变化监听器');
       cleanupTransactionListener();
     };
   }, []); // 只在组件挂载时设置一次
@@ -228,7 +222,7 @@ export default function DashboardPage() {
       if (e.key === 'dashboard_refresh_signal' && e.newValue && currentAccountBook?.id) {
         try {
           const signal = JSON.parse(e.newValue);
-          console.log('🏠 [Dashboard] 监听到localStorage刷新信号:', signal);
+          dashboardLog.debug('🏠 [Dashboard] 监听到localStorage刷新信号:', signal);
 
           // 检查信号是否是最近5秒内的
           if (
@@ -238,7 +232,7 @@ export default function DashboardPage() {
             scheduleRefresh('storage事件');
           }
         } catch (error) {
-          console.error('🏠 [Dashboard] 处理storage事件失败:', error);
+          dashboardLog.error('🏠 [Dashboard] 处理storage事件失败:', error);
         }
       }
     };
@@ -260,12 +254,12 @@ export default function DashboardPage() {
   useEffect(() => {
     // ✅ 只在已初始化后才处理路由变化，避免重复调用
     if (!hasInitialized.current) {
-      console.log('🏠 [Dashboard] 尚未初始化，跳过路由监听');
+      dashboardLog.debug('🏠 [Dashboard] 尚未初始化，跳过路由监听');
       return;
     }
 
     if (pathname === '/dashboard' && currentAccountBook?.id) {
-      console.log('🏠 [Dashboard] 进入仪表盘页面，检查刷新信号');
+      dashboardLog.debug('🏠 [Dashboard] 进入仪表盘页面，检查刷新信号');
 
       // 检查localStorage中的刷新信号
       const checkRefreshSignal = () => {
@@ -274,17 +268,17 @@ export default function DashboardPage() {
           
           // ✅ 没有信号时直接返回，不执行任何操作
           if (!signalStr) {
-            console.log('🏠 [Dashboard] 没有刷新信号，跳过');
+            dashboardLog.debug('🏠 [Dashboard] 没有刷新信号，跳过');
             return false;
           }
 
           const signal = JSON.parse(signalStr);
-          console.log('🏠 [Dashboard] 检测到刷新信号:', signal);
+          dashboardLog.debug('🏠 [Dashboard] 检测到刷新信号:', signal);
 
           // 检查信号是否是最近5秒内的（避免处理过期信号）
           if (Date.now() - signal.timestamp > 5000) {
             localStorage.removeItem('dashboard_refresh_signal');
-            console.log('🏠 [Dashboard] 刷新信号已过期，清除');
+            dashboardLog.debug('🏠 [Dashboard] 刷新信号已过期，清除');
             return false;
           }
 
@@ -293,12 +287,12 @@ export default function DashboardPage() {
 
           // ✅ 只在信号有效且账本匹配时才刷新
           if (signal.accountBookId && currentAccountBook?.id === signal.accountBookId) {
-            console.log('🏠 [Dashboard] 根据刷新信号刷新数据');
+            dashboardLog.debug('🏠 [Dashboard] 根据刷新信号刷新数据');
             refreshDashboardData(signal.accountBookId);
             return true;
           }
         } catch (error) {
-          console.error('🏠 [Dashboard] 处理刷新信号失败:', error);
+          dashboardLog.error('🏠 [Dashboard] 处理刷新信号失败:', error);
           localStorage.removeItem('dashboard_refresh_signal');
         }
         return false;
@@ -316,10 +310,10 @@ export default function DashboardPage() {
         const showModal = localStorage.getItem('showTransactionEditModal');
         const transactionId = localStorage.getItem('pendingTransactionEdit');
 
-        console.log('🏠 [Dashboard] 检查记账编辑模态框标记:', { showModal, transactionId });
+        dashboardLog.debug('🏠 [Dashboard] 检查记账编辑模态框标记:', { showModal, transactionId });
 
         if (showModal === 'true' && transactionId) {
-          console.log('🏠 [Dashboard] 发现记账编辑请求，记账ID:', transactionId);
+          dashboardLog.debug('🏠 [Dashboard] 发现记账编辑请求，记账ID:', transactionId);
 
           // 清除标记
           localStorage.removeItem('showTransactionEditModal');
@@ -337,7 +331,7 @@ export default function DashboardPage() {
 
     // 监听自定义事件
     const handleCheckTransactionEditModal = () => {
-      console.log('🏠 [Dashboard] 收到检查记账编辑模态框事件');
+      dashboardLog.debug('🏠 [Dashboard] 收到检查记账编辑模态框事件');
       checkTransactionEditModal();
     };
 
@@ -354,13 +348,13 @@ export default function DashboardPage() {
   // 获取记账详情 - 使用apiClient调用后端API
   const fetchTransactionData = async (transactionId: string) => {
     try {
-      console.log('🏠 [Dashboard] 从API获取记账详情:', transactionId);
+      dashboardLog.debug('🏠 [Dashboard] 从API获取记账详情:', transactionId);
       
       // 🔍 调试：显示当前所有记账ID
       const allTransactions = groupedTransactions.flatMap((group) => group.transactions);
-      console.log('🏠 [Dashboard] 当前记账列表中的所有ID:', allTransactions.map(t => t.id));
-      console.log('🏠 [Dashboard] 要查找的ID:', transactionId);
-      console.log('🏠 [Dashboard] ID是否存在于列表中:', allTransactions.some(t => t.id === transactionId));
+      dashboardLog.debug('🏠 [Dashboard] 当前记账列表中的所有ID:', allTransactions.map(t => t.id));
+      dashboardLog.debug('🏠 [Dashboard] 要查找的ID:', transactionId);
+      dashboardLog.debug('🏠 [Dashboard] ID是否存在于列表中:', allTransactions.some(t => t.id === transactionId));
       
       // ✅ 使用apiClient而不是fetch，确保请求发送到正确的后端服务器
       const { apiClient } = await import('@/lib/api-client');
@@ -368,17 +362,17 @@ export default function DashboardPage() {
         params: { includeAttachments: true }
       });
       
-      console.log('🏠 [Dashboard] API返回数据:', data);
+      dashboardLog.debug('🏠 [Dashboard] API返回数据:', data);
       
       // ✅ 后端直接返回transaction对象
       if (data && data.id) {
-        console.log('🏠 [Dashboard] 获取记账详情成功');
+        dashboardLog.debug('🏠 [Dashboard] 获取记账详情成功');
         setTransactionData(data);
       } else {
         throw new Error('记账数据格式错误');
       }
     } catch (error: any) {
-      console.error('🏠 [Dashboard] 获取记账详情失败:', error);
+      dashboardLog.error('🏠 [Dashboard] 获取记账详情失败:', error);
       
       if (error.response?.status === 404) {
         alert('该记账不存在或已被删除，请刷新页面');
@@ -391,6 +385,23 @@ export default function DashboardPage() {
       setShowTransactionEditModal(false);
     }
   };
+
+  // ✅ 使用useCallback优化回调函数，避免不必要的重新渲染
+  const handleEditModalClose = useCallback(() => {
+    setShowTransactionEditModal(false);
+    setTransactionData(null);
+    setEditingTransactionId(null);
+  }, []);
+
+  const handleEditModalSave = useCallback(() => {
+    // 刷新仪表盘数据
+    if (currentAccountBook?.id) {
+      refreshDashboardData(currentAccountBook.id);
+    }
+    setShowTransactionEditModal(false);
+    setTransactionData(null);
+    setEditingTransactionId(null);
+  }, [currentAccountBook?.id, refreshDashboardData]);
 
   // 右侧操作按钮
   const rightActions = (
@@ -482,26 +493,17 @@ export default function DashboardPage() {
       )}
 
       {/* 记账编辑模态框 - 使用完整的 App Router 组件 */}
+      {/* 暂时注释掉，等待修复导入问题
       {showTransactionEditModal && transactionData && (
         <TransactionEditModal
+          key={editingTransactionId || 'new'} // ✅ 添加key，防止不必要的重新挂载
           transactionId={editingTransactionId}
           transactionData={transactionData}
-          onClose={() => {
-            setShowTransactionEditModal(false);
-            setTransactionData(null);
-            setEditingTransactionId(null);
-          }}
-          onSave={() => {
-            // 刷新仪表盘数据
-            if (currentAccountBook?.id) {
-              refreshDashboardData(currentAccountBook.id);
-            }
-            setShowTransactionEditModal(false);
-            setTransactionData(null);
-            setEditingTransactionId(null);
-          }}
+          onClose={handleEditModalClose} // ✅ 使用稳定的回调引用
+          onSave={handleEditModalSave} // ✅ 使用稳定的回调引用
         />
       )}
+      */}
 
       {/* 通知模态框 */}
       <NotificationModal isOpen={isModalOpen} onClose={closeModal} />

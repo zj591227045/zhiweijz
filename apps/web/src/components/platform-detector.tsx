@@ -28,7 +28,7 @@ export function PlatformDetector() {
       const applyIOSClasses = () => {
         document.documentElement.classList.add('ios-app');
         document.body.classList.add('ios-app');
-        console.log('✅ iOS类名已添加，CSS适配样式应该生效');
+        // 日志已精简
       };
 
       // 立即执行
@@ -54,7 +54,6 @@ export function PlatformDetector() {
         });
 
         if (needsReapply) {
-          console.log('🔄 检测到新的header元素，确保iOS类名存在');
           setTimeout(applyIOSClasses, 50);
         }
       });

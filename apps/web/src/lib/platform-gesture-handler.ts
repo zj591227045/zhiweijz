@@ -556,15 +556,15 @@ export class PlatformGestureHandler {
     };
 
     this.gestureListeners.push(listener);
-    console.log('👂 [GestureHandler] 添加手势监听器，优先级:', priority, '页面层级:', pageLevel);
+    // 日志已精简：手势监听器添加/移除太频繁
   }
 
   // 移除手势监听器
   public removeGestureListener(handler: (direction: 'left' | 'right') => boolean) {
     const index = this.gestureListeners.findIndex(listener => listener.handler === handler);
     if (index !== -1) {
-      const removed = this.gestureListeners.splice(index, 1)[0];
-      console.log('👂 [GestureHandler] 移除手势监听器，优先级:', removed.priority);
+      this.gestureListeners.splice(index, 1);
+      // 日志已精简：手势监听器添加/移除太频繁
     }
   }
 

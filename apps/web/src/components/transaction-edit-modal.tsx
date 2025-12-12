@@ -161,7 +161,6 @@ function BudgetSelector({
   // 记录初始的budgetId（编辑模式下保持原始预算）
   useEffect(() => {
     if (isEditMode && budgetId && !originalBudgetId) {
-      console.log('编辑模式：记录原始预算ID:', budgetId);
       setOriginalBudgetId(budgetId);
     }
   }, [budgetId, isEditMode, originalBudgetId]);
@@ -170,18 +169,12 @@ function BudgetSelector({
   // 当日期或账本变化时，自动重新获取预算（带缓存）
   useEffect(() => {
     if (transactionDate && currentAccountBook?.id) {
-      console.log('日期或账本变化，React Query自动处理:', {
-        transactionDate,
-        accountBookId: currentAccountBook.id,
-      });
-
       // 编辑模式下不重置预算选择，保持原始预算
       if (!isEditMode) {
         setHasInitialized(false);
         setSelectedBudget(null);
         setBudgetId('');
       } else {
-        console.log('编辑模式：保持原始预算选择，不重置');
         setHasInitialized(false);
         setSelectedBudget(null);
       }
@@ -194,12 +187,10 @@ function BudgetSelector({
   // 智能推荐预算的逻辑 - 在编辑模式下禁用
   const selectRecommendedBudget = useCallback(() => {
     if (isEditMode) {
-      console.log('编辑模式：跳过智能推荐预算逻辑');
       return;
     }
 
     // 新增模式下的智能推荐逻辑可以在这里实现
-    console.log('新增模式：可以执行智能推荐预算逻辑');
   }, [isEditMode]);
 
   // 当日期预算数据加载完成后，智能推荐预算
@@ -212,7 +203,6 @@ function BudgetSelector({
     if (budgetId && formattedBudgets.length > 0 && !selectedBudget) {
       const budget = formattedBudgets.find((b) => b.id === budgetId);
       if (budget) {
-        console.log(`找到匹配的预算: ${budget.id} - ${budget.name}`, { isEditMode });
         setSelectedBudget(budget);
       } else if (isEditMode && budgetId) {
         console.warn(`编辑模式：未在当前日期预算列表中找到原始预算 ${budgetId}`);
@@ -591,7 +581,6 @@ export default function TransactionEditModal({
     if (queryTransactionTags && queryTransactionTags.length > 0) {
       // 只在本地状态为空时才同步（避免覆盖传入的数据）
       if (transactionTags.length === 0) {
-        console.log('🔄 [TransactionEditModal] 同步React Query标签数据:', queryTransactionTags);
         setTransactionTags(queryTransactionTags);
         setSelectedTagIds(queryTransactionTags.map((tag) => tag.id));
       }
@@ -649,7 +638,6 @@ export default function TransactionEditModal({
 
   // 注册模态框到导航管理器
   useEffect(() => {
-    console.log('📱 [TransactionEditModal] 注册模态框到导航管理器');
     navigationManager.openModal({
       id: 'transaction-edit-modal',
       level: PageLevel.MODAL,
@@ -659,7 +647,6 @@ export default function TransactionEditModal({
     });
 
     return () => {
-      console.log('📱 [TransactionEditModal] 从导航管理器移除模态框');
       navigationManager.closeModal();
     };
   }, []);
@@ -689,18 +676,12 @@ export default function TransactionEditModal({
       
       // 只在分类列表为空时才获取
       if (categories.length === 0) {
-        console.log('🔄 [TransactionEditModal] 分类列表为空，获取分类数据');
         promises.push(fetchCategories());
-      } else {
-        console.log('🔄 [TransactionEditModal] 分类列表已存在，跳过获取');
       }
       
       // 只在账本列表为空时才获取
       if (!currentAccountBook) {
-        console.log('🔄 [TransactionEditModal] 账本数据为空，获取账本数据');
         promises.push(fetchAccountBooks());
-      } else {
-        console.log('🔄 [TransactionEditModal] 账本数据已存在，跳过获取');
       }
       
       // 等待所有必要的数据获取完成
@@ -712,7 +693,7 @@ export default function TransactionEditModal({
     };
     
     initializeData();
-  }, [isAuthenticated]); // 只在认证状态变化时执行一次
+  }, [isAuthenticated, categories.length, currentAccountBook]); // ✅ 依赖正确，React会自动去重
 
   // 使用传入的记账数据初始化表单 - 不要重复获取
   useEffect(() => {
@@ -720,8 +701,6 @@ export default function TransactionEditModal({
     const dataToUse = transactionData;
 
     if (dataToUse) {
-      console.log('🔄 [TransactionEditModal] 初始化表单数据:', dataToUse);
-
       const transactionDate = new Date(dataToUse.date);
       const hours = transactionDate.getHours().toString().padStart(2, '0');
       const minutes = transactionDate.getMinutes().toString().padStart(2, '0');
@@ -734,7 +713,6 @@ export default function TransactionEditModal({
         description: dataToUse.description || '',
       };
 
-      console.log('🔄 [TransactionEditModal] 设置表单数据:', newFormData);
       setFormData(newFormData);
       setAmountInput(dataToUse.amount?.toString() || '');
 
@@ -743,19 +721,11 @@ export default function TransactionEditModal({
       setCurrentStep(2); // 直接进入详情步骤
 
       // 初始化多人预算分摊数据
-      console.log('🔍 [TransactionEditModal] 检查多人预算分摊数据:', {
-        isMultiBudget: dataToUse.isMultiBudget,
-        budgetAllocation: dataToUse.budgetAllocation,
-        budgetAllocationLength: dataToUse.budgetAllocation?.length || 0
-      });
-
       if (dataToUse.isMultiBudget && dataToUse.budgetAllocation && Array.isArray(dataToUse.budgetAllocation) && dataToUse.budgetAllocation.length > 0) {
-        console.log('🔍 [TransactionEditModal] 设置为多人预算模式');
         setIsMultiBudget(true);
         setBudgetAllocation(dataToUse.budgetAllocation);
         setBudgetMode('multi');
       } else {
-        console.log('🔍 [TransactionEditModal] 设置为单人预算模式');
         setIsMultiBudget(false);
         setBudgetAllocation([]);
         setBudgetMode('single');
@@ -763,7 +733,6 @@ export default function TransactionEditModal({
 
       // ✅ 优先使用传入数据中的标签，避免重复API调用
       if (dataToUse.tags && Array.isArray(dataToUse.tags)) {
-        console.log('🔄 [TransactionEditModal] 使用传入的标签数据:', dataToUse.tags);
         setTransactionTags(dataToUse.tags);
         setSelectedTagIds(dataToUse.tags.map((tag: any) => tag.id));
       }
@@ -771,11 +740,9 @@ export default function TransactionEditModal({
 
       // ✅ 优先使用传入数据中的附件
       if (dataToUse.attachments && Array.isArray(dataToUse.attachments)) {
-        console.log('📎 [TransactionEditModal] 使用传入的附件数据:', dataToUse.attachments);
         setAttachments(dataToUse.attachments);
       } else if (transactionId && transactionId !== 'placeholder') {
         // 只在传入数据中没有附件时才获取
-        console.log('📎 [TransactionEditModal] 传入数据无附件，从API获取');
         apiClient
           .get(`/transactions/${transactionId}/attachments`)
           .then((data) => {
@@ -1163,11 +1130,7 @@ export default function TransactionEditModal({
 
   // 移动端键盘处理
   useEffect(() => {
-    console.log('🔍 [KeyboardHandler] 初始化虚拟键盘检测', {
-      hasVisualViewport: !!window.visualViewport,
-      initialViewportHeight: window.visualViewport?.height || window.innerHeight,
-      documentHeight: document.documentElement.clientHeight,
-    });
+    // 日志已精简
 
     const handleResize = () => {
       // 检测键盘是否弹出（移动端视口高度变化）
@@ -1175,41 +1138,27 @@ export default function TransactionEditModal({
       const documentHeight = document.documentElement.clientHeight;
       const heightRatio = viewportHeight / documentHeight;
 
-      console.log('🔍 [KeyboardHandler] 视口大小变化', {
-        viewportHeight,
-        documentHeight,
-        heightRatio,
-        keyboardLikelyOpen: heightRatio < 0.75,
-      });
-
       if (heightRatio < 0.75) {
-        console.log('🔍 [KeyboardHandler] 检测到键盘可能已弹出');
         // 键盘可能已弹出，确保输入框可见
         if (amountInputRef.current) {
           setTimeout(() => {
-            console.log('🔍 [KeyboardHandler] 滚动到输入框位置');
             amountInputRef.current?.scrollIntoView({
               behavior: 'smooth',
               block: 'center',
             });
           }, 100);
         }
-      } else {
-        console.log('🔍 [KeyboardHandler] 键盘可能已收起');
       }
     };
 
     // 监听视口变化
     if (window.visualViewport) {
-      console.log('🔍 [KeyboardHandler] 使用 visualViewport API');
       window.visualViewport.addEventListener('resize', handleResize);
     } else {
-      console.log('🔍 [KeyboardHandler] 使用 window resize 事件');
       window.addEventListener('resize', handleResize);
     }
 
     return () => {
-      console.log('🔍 [KeyboardHandler] 清理事件监听器');
       if (window.visualViewport) {
         window.visualViewport.removeEventListener('resize', handleResize);
       } else {

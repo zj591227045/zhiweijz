@@ -277,11 +277,11 @@ export function BudgetSelector({ isEditMode = false }: { isEditMode?: boolean })
     // 如果是编辑模式，不执行推荐逻辑
     const isInEditMode = isEditMode || storeIsEditMode;
     if (isInEditMode) {
-      console.log('编辑模式：跳过智能推荐预算逻辑');
       return;
     }
 
-    console.log('selectRecommendedBudget 调用:', {
+    // 日志已精简
+    const debugInfo = {
       formattedBudgetsLength: formattedBudgets.length,
       selectedBudget,
       currentUser: currentUser?.name,

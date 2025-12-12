@@ -7,6 +7,7 @@ import { MobileTagSelector } from './tag-selector';
 import { TagResponseDto } from '@/lib/api/types/tag.types';
 import { Plus, ChevronRight, Sparkles } from 'lucide-react';
 import { useTags } from '@/hooks/queries';
+import { tagApi } from '@/lib/api/tag-api'; // ✅ 重新导入，供CompactTagRecommendationV2使用
 
 interface MobileTagSectionProps {
   accountBookId: string;

@@ -16,17 +16,6 @@ export const getApiBaseUrl = (): string => {
     const config = store.config;
     const apiUrl = store.getCurrentApiUrl();
 
-    if (isDev) {
-      console.log('📡 服务器配置详情:', {
-        type: config.type,
-        officialUrl: config.officialUrl,
-        customUrl: config.customUrl,
-        currentUrl: config.currentUrl,
-        finalApiUrl: apiUrl,
-        hostname: window.location.hostname
-      });
-    }
-
     return apiUrl;
   } catch (error) {
     console.warn('⚠️ 获取服务器配置失败，使用默认值:', error);

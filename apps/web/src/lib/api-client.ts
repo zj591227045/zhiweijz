@@ -51,16 +51,9 @@ class ApiClient {
             }
           }
         }
-        if (isDev)
-          console.log('🔍 API请求token检查:', {
-            hasToken: !!token,
-            tokenPrefix: token ? token.substring(0, 20) + '...' : 'null',
-            url: config.url,
-          });
+
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
-          if (isDev)
-            console.log('✅ 已添加Authorization头:', `Bearer ${token.substring(0, 20)}...`);
         } else {
           if (isDev) console.warn('⚠️ 没有token，请求可能被拒绝');
         }

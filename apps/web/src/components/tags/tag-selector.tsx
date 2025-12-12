@@ -353,7 +353,7 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
   disabled = false,
   position = 'bottom', // 默认底部弹出
 }) => {
-  console.log('MobileTagSelector 渲染，isOpen:', isOpen, 'position:', position);
+  // 日志已精简
   const [isClosing, setIsClosing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [tags, setTags] = useState<TagResponseDto[]>([]);
@@ -463,7 +463,6 @@ export const MobileTagSelector: React.FC<MobileTagSelectorProps> = ({
   };
 
   if (!isOpen && !isClosing) {
-    console.log('MobileTagSelector 返回null，因为 isOpen:', isOpen, 'isClosing:', isClosing);
     return null;
   }
 

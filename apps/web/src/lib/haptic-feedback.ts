@@ -218,7 +218,7 @@ export class HapticFeedback {
     }
 
     navigator.vibrate(pattern);
-    console.log('🔹 [Haptic] Web振动已触发:', type, pattern);
+    // 日志已精简
   }
 
   // 便捷方法：轻度振动（用于导航和轻量交互）

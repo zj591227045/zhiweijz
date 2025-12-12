@@ -43,7 +43,7 @@ onBack: () => {
   // 检查导航管理器中是否有模态框
   const navigationState = navigationManager.getNavigationState();
   if (navigationState.modalStack.length > 0) {
-    console.log('🏠 [Dashboard] 检测到模态框存在，跳过仪表盘后退处理');
+    dashboardLog.debug('🏠 [Dashboard] 检测到模态框存在，跳过仪表盘后退处理');
     return false; // 不处理，让模态框处理器处理
   }
 

@@ -125,14 +125,13 @@ export const useNavigationStore = create<NavigationState & NavigationActions>()(
         canGoBack: true,
       }));
 
-      console.log('📱 [Navigation] 推入模态框:', newModal);
+      // 日志已精简
     },
 
     // 弹出模态框
     popModal: () => {
       const state = get();
       if (state.modalStack.length === 0) {
-        console.log('📱 [Navigation] 无法弹出模态框：模态框栈为空');
         return null;
       }
 
@@ -144,7 +143,7 @@ export const useNavigationStore = create<NavigationState & NavigationActions>()(
         canGoBack: newModalStack.length > 0 || state.pageStack.length > 1,
       });
 
-      console.log('📱 [Navigation] 弹出模态框:', poppedModal);
+      // 日志已精简
       return poppedModal;
     },
 

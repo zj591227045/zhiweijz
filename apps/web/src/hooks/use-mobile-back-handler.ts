@@ -58,9 +58,9 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
           canGoBack: pageLevel !== PageLevel.DASHBOARD,
         });
 
-        console.log('📱 [BackHandler] 手动注册页面:', { pageId, pageLevel, path: currentPath });
+        // 日志已精简
       } else {
-        console.log('📱 [BackHandler] 页面已注册，跳过:', { pageId, path: currentPath });
+        // 日志已精简
       }
     }
   }, [pageId, pageLevel]);
@@ -283,11 +283,11 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
     }
 
     window.addEventListener('popstate', handlePopState, { passive: false });
-    console.log('📱 [BackHandler] 注册浏览器历史监听器');
+    // 日志已精简
 
     return () => {
       isComponentMounted = false;
-      console.log('📱 [BackHandler] 移除浏览器历史监听器');
+      // 日志已精简
       window.removeEventListener('popstate', handlePopState);
     };
   }, []); // 移除依赖，只在挂载时创建一次
@@ -303,11 +303,11 @@ export function useMobileBackHandler(options: BackHandlerOptions = {}) {
     };
 
     platformGestureHandler.addGestureListener(gestureListener, pageLevel);
-    console.log('📱 [BackHandler] 注册手势监听器，页面层级:', pageLevel);
+    // 日志已精简：手势监听器注册/移除太频繁
 
     return () => {
       platformGestureHandler.removeGestureListener(gestureListener);
-      console.log('📱 [BackHandler] 移除手势监听器');
+      // 日志已精简：手势监听器注册/移除太频繁
     };
   }, [handleBack, pageLevel]);
 
