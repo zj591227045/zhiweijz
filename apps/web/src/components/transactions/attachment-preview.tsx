@@ -12,7 +12,7 @@ import {
   ChevronRight,
   Trash2,
 } from 'lucide-react';
-import { EnhancedAuthenticatedImage } from '@/components/ui/enhanced-authenticated-image';
+import { CachedAuthenticatedImage } from '@/components/ui/cached-authenticated-image';
 import { processAvatarUrl, getThumbnailProxyUrl } from '@/lib/image-proxy';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -525,7 +525,7 @@ export function EnhancedAttachmentPreview({
               transition: 'transform 0.2s ease-in-out',
             }}
           >
-            <EnhancedAuthenticatedImage
+            <CachedAuthenticatedImage
               src={processedUrl}
               alt={currentFile.originalName}
               className="select-none"
@@ -824,7 +824,7 @@ function EnhancedAttachmentCard({
         onClick={onPreview}
       >
         {isImage ? (
-          <EnhancedAuthenticatedImage
+          <CachedAuthenticatedImage
             src={processedUrl}
             alt={file.originalName}
             className="w-full h-full object-cover"
@@ -929,7 +929,7 @@ export function AttachmentThumbnail({
       title={file.originalName}
     >
       {isImage ? (
-        <EnhancedAuthenticatedImage
+        <CachedAuthenticatedImage
           src={processedUrl}
           alt={file.originalName}
           className="w-full h-full object-cover"

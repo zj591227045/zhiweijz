@@ -16,8 +16,9 @@ import { ModalNavigationProvider } from '@/components/navigation/modal-navigatio
 import { MobileNavigationInitializer } from '@/components/navigation/mobile-navigation-initializer';
 import { AndroidTokenManager } from '@/components/shortcuts/android-token-manager';
 
-// 在开发环境下加载调试工具
+// 在开发环境下加载调试工具和日志清理
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  import('@/lib/logger-cleanup'); // 清理旧的日志配置
   import('@/utils/debug-auth');
   import('@/utils/token-test-helper');
   import('@/utils/auth-debug');

@@ -38,8 +38,27 @@ class LoggerConfig {
    */
   private loadSettings(): LoggerSettings {
     const defaultSettings: LoggerSettings = {
-      globalLevel: process.env.NODE_ENV === 'development' ? LogLevel.DEBUG : LogLevel.ERROR,
-      moduleSettings: {},
+      globalLevel: process.env.NODE_ENV === 'development' ? LogLevel.WARN : LogLevel.ERROR,
+      moduleSettings: {
+        // 高频组件使用更高的日志级别，减少噪音
+        'SystemConfig': LogLevel.ERROR,
+        'Image': LogLevel.ERROR,
+        'ImageCache': LogLevel.ERROR,
+        'API': LogLevel.ERROR,
+        'Dashboard': LogLevel.ERROR,
+        'AccountBook': LogLevel.ERROR,
+        'Auth': LogLevel.ERROR,
+        'Test': LogLevel.ERROR,
+        // 保留一些重要的INFO级别日志
+        'TokenManager': LogLevel.INFO,
+        'Navigation': LogLevel.ERROR,
+        'Modal': LogLevel.ERROR,
+        'Onboarding': LogLevel.ERROR,
+        'Platform': LogLevel.ERROR,
+        'Gesture': LogLevel.ERROR,
+        'Haptic': LogLevel.ERROR,
+        'Capacitor': LogLevel.ERROR,
+      },
       enabledInProduction: false,
     };
 
@@ -153,8 +172,27 @@ class LoggerConfig {
    */
   reset(): void {
     this.settings = {
-      globalLevel: process.env.NODE_ENV === 'development' ? LogLevel.DEBUG : LogLevel.ERROR,
-      moduleSettings: {},
+      globalLevel: process.env.NODE_ENV === 'development' ? LogLevel.WARN : LogLevel.ERROR,
+      moduleSettings: {
+        // 高频组件使用更高的日志级别，减少噪音
+        'SystemConfig': LogLevel.ERROR,
+        'Image': LogLevel.ERROR,
+        'ImageCache': LogLevel.ERROR,
+        'API': LogLevel.ERROR,
+        'Dashboard': LogLevel.ERROR,
+        'AccountBook': LogLevel.ERROR,
+        'Auth': LogLevel.ERROR,
+        'Test': LogLevel.ERROR,
+        // 保留一些重要的INFO级别日志
+        'TokenManager': LogLevel.INFO,
+        'Navigation': LogLevel.ERROR,
+        'Modal': LogLevel.ERROR,
+        'Onboarding': LogLevel.ERROR,
+        'Platform': LogLevel.ERROR,
+        'Gesture': LogLevel.ERROR,
+        'Haptic': LogLevel.ERROR,
+        'Capacitor': LogLevel.ERROR,
+      },
       enabledInProduction: false,
     };
     this.saveSettings();

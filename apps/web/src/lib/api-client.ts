@@ -2,8 +2,10 @@
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { getApiBaseUrl } from './server-config';
+import { createLogger } from './logger';
 
-// 是否为开发环境
+// 创建API专用日志器
+const apiLogger = createLogger('API');
 const isDev = process.env.NODE_ENV === 'development';
 
 class ApiClient {
@@ -22,15 +24,13 @@ class ApiClient {
       (config) => {
         // 动态获取API基础URL
         const baseURL = getApiBaseUrl();
-        if (isDev) {
-          console.log('🚀 API请求详情:', {
-            url: config.url,
-            baseURL: baseURL,
-            fullUrl: baseURL + config.url,
-            method: config.method?.toUpperCase()
-          });
-        }
         config.baseURL = baseURL;
+        
+        // 使用分级日志记录请求 - 只在debug级别显示详情
+        apiLogger.debug('请求', {
+          method: config.method?.toUpperCase(),
+          url: config.url
+        });
 
         // 自动添加认证token
         let token = null;
@@ -55,7 +55,7 @@ class ApiClient {
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         } else {
-          if (isDev) console.warn('⚠️ 没有token，请求可能被拒绝');
+          apiLogger.warn('没有认证token，请求可能被拒绝', { url: config.url });
         }
 
         return config;
@@ -177,13 +177,12 @@ export const fetchApi = async (url: string, options: RequestInit = {}): Promise<
     ...options.headers,
   };
 
-  if (isDev)
-    console.log('🚀 fetchApi 调用:', {
-      originalUrl: url,
-      fullUrl,
-      method: options.method || 'GET',
-      hasToken: !!token,
-    });
+  // 使用debug级别记录fetchApi调用
+  apiLogger.debug('fetchApi调用', {
+    method: options.method || 'GET',
+    url: url.length > 50 ? url.substring(0, 50) + '...' : url,
+    hasToken: !!token
+  });
 
   return fetch(fullUrl, {
     ...options,

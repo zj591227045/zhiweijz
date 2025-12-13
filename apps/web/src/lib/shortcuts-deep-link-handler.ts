@@ -5,7 +5,7 @@
 
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
-import { useAccountBookStore } from '@/store/account-book-store';
+import { getCurrentAccountBookId } from '@/lib/account-book-global';
 import { useDashboardStore } from '@/store/dashboard-store';
 
 /**
@@ -237,7 +237,7 @@ async function handleImageAccounting(
     });
 
     // 获取当前账本ID
-    const currentAccountId = accountId || useAccountBookStore.getState().currentAccountBook?.id;
+    const currentAccountId = accountId || getCurrentAccountBookId();
 
     if (!currentAccountId) {
       return {
@@ -774,8 +774,7 @@ async function handleImageAccountingWithUI(
     // 获取当前账本ID
     let currentAccountId = accountId;
     if (!currentAccountId) {
-      const accountBookStore = useAccountBookStore.getState();
-      currentAccountId = accountBookStore.currentAccountBook?.id;
+      currentAccountId = getCurrentAccountBookId();
 
       console.log('🖼️ [ShortcutsHandler] 从store获取账本ID:', {
         hasCurrentAccountBook: !!accountBookStore.currentAccountBook,
@@ -840,9 +839,8 @@ async function handleImageAccountingByUrl(
     // 获取当前账本ID
     let currentAccountId = accountId;
     if (!currentAccountId) {
-      // 从账本store获取当前账本ID
-      const accountBookStore = useAccountBookStore.getState();
-      currentAccountId = accountBookStore.currentAccountBook?.id;
+      // 从全局状态获取当前账本ID
+      currentAccountId = getCurrentAccountBookId();
 
       console.log('🖼️ [ShortcutsHandler] 从store获取账本ID:', {
         hasCurrentAccountBook: !!accountBookStore.currentAccountBook,

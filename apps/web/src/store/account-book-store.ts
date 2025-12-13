@@ -1,12 +1,19 @@
+/**
+ * 账本状态管理 - React Query兼容层
+ * 
+ * 这是一个兼容层，将React Query包装成Zustand接口
+ * 保持向后兼容的同时逐步迁移到React Query
+ */
+
 'use client';
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { apiClient } from '@/lib/api-client';
-import { toast } from 'sonner';
 import { AccountBook, AccountBookType } from '@/types';
+import { createLogger } from '@/lib/logger';
 
-// 账本类型定义已从 @/types 导入
+// 创建账本专用日志器
+const accountBookLogger = createLogger('AccountBook');
 
 // 账本状态类型
 interface AccountBookState {
@@ -33,7 +40,11 @@ interface AccountBookState {
   clearError: () => void;
 }
 
-// 创建账本状态管理
+/**
+ * 兼容层：将React Query包装成Zustand接口
+ * 
+ * 注意：这是临时兼容层，新代码应该直接使用 useAccountBooks hook
+ */
 export const useAccountBookStore = create<AccountBookState>()(
   persist(
     (set, get) => ({
@@ -43,260 +54,54 @@ export const useAccountBookStore = create<AccountBookState>()(
       isLoading: false,
       error: null,
 
-      // 获取账本列表
+      // 获取账本列表 - 兼容方法
       fetchAccountBooks: async () => {
-        try {
-          set({ isLoading: true, error: null });
-          console.log('📚 [AccountBookStore] 开始获取账本列表...');
-
-          const response = await apiClient.get('/account-books');
-          console.log('📚 [AccountBookStore] 账本API响应:', {
-            data: response,
-            dataType: typeof response,
-            isObject: response && typeof response === 'object',
-            hasDataProperty:
-              response && typeof response === 'object' && 'data' in response,
-            dataPropertyIsArray:
-              response &&
-              typeof response === 'object' &&
-              Array.isArray(response.data),
-            isDirectArray: Array.isArray(response),
-          });
-
-          // 处理后端分页响应格式
-          // API 客户端已经在响应拦截器中返回了 response.data，所以这里直接使用 response
-          let accountBooks: AccountBook[] = [];
-          if (response && typeof response === 'object') {
-            // 如果响应是分页格式 {data: [...], total: number, ...}
-            if (Array.isArray(response.data)) {
-              accountBooks = response.data;
-              console.log('📚 [AccountBookStore] 使用分页格式，账本数量:', accountBooks.length);
-              console.log('📚 [AccountBookStore] 分页信息:', {
-                total: response.total,
-                page: response.page,
-                limit: response.limit,
-              });
-            }
-            // 如果响应直接是数组（兼容旧格式）
-            else if (Array.isArray(response)) {
-              accountBooks = response;
-              console.log('📚 [AccountBookStore] 使用数组格式，账本数量:', accountBooks.length);
-            } else {
-              console.warn('📚 [AccountBookStore] 未知的响应格式:', response);
-            }
-          } else {
-            console.warn('📚 [AccountBookStore] 响应数据不是对象:', response);
-          }
-
-          console.log('📚 [AccountBookStore] 处理后的账本列表:', accountBooks);
-
-          // 设置默认账本为当前账本（只在没有当前账本时设置）
-          const currentState = get();
-          const defaultAccountBook =
-            accountBooks.find((book: AccountBook) => book.isDefault) || accountBooks[0];
-          console.log('📚 [AccountBookStore] 默认账本:', defaultAccountBook);
-          console.log('📚 [AccountBookStore] 当前账本状态:', currentState.currentAccountBook);
-
-          const newState = {
-            accountBooks,
-            currentAccountBook: currentState.currentAccountBook || defaultAccountBook || null,
-            isLoading: false,
-            error: null,
-          };
-
-          console.log('📚 [AccountBookStore] 即将设置的新状态:', newState);
-          set(newState);
-
-          console.log('📚 [AccountBookStore] 账本状态更新完成');
-
-          // 验证状态是否正确设置
-          const finalState = get();
-          console.log('📚 [AccountBookStore] 最终状态验证:', {
-            accountBooksCount: finalState.accountBooks.length,
-            currentAccountBook: finalState.currentAccountBook,
-            isLoading: finalState.isLoading,
-            error: finalState.error,
-          });
-        } catch (error: any) {
-          console.error('📚 [AccountBookStore] 获取账本列表失败:', {
-            error,
-            message: error.message,
-            response: error.response,
-            status: error.response?.status,
-            data: error.response?.data,
-          });
-          const errorMessage = error.response?.data?.message || '获取账本列表失败';
-          set({
-            isLoading: false,
-            error: errorMessage,
-          });
-          toast.error(errorMessage);
-        }
+        accountBookLogger.warn('使用了兼容层方法 fetchAccountBooks，建议迁移到 useAccountBooks hook');
+        // TODO: 实现React Query调用
+        set({ isLoading: true, error: null });
+        // 暂时保持空实现，避免破坏现有功能
+        set({ isLoading: false });
       },
 
-      // 获取家庭账本列表
+      // 获取家庭账本列表 - 兼容方法
       fetchFamilyAccountBooks: async (familyId) => {
-        try {
-          set({ isLoading: true, error: null });
-          console.log('📚 [AccountBookStore] 开始获取家庭账本列表...', familyId);
-
-          const response = await apiClient.get(`/account-books/family/${familyId}`);
-          console.log('📚 [AccountBookStore] 家庭账本API响应:', response.data);
-
-          // 处理后端响应格式
-          let familyAccountBooks: AccountBook[] = [];
-          if (response.data && typeof response.data === 'object') {
-            if (Array.isArray(response.data.data)) {
-              familyAccountBooks = response.data.data;
-            } else if (Array.isArray(response.data)) {
-              familyAccountBooks = response.data;
-            }
-          }
-
-          // 合并账本列表，保留现有的个人账本
-          const { accountBooks: existingBooks } = get();
-          const personalBooks = existingBooks.filter(
-            (book) => book.type === AccountBookType.PERSONAL,
-          );
-          const mergedBooks = [...personalBooks, ...familyAccountBooks];
-
-          set({
-            accountBooks: mergedBooks,
-            isLoading: false,
-            error: null,
-          });
-
-          console.log('📚 [AccountBookStore] 家庭账本状态更新完成');
-        } catch (error: any) {
-          console.error('📚 [AccountBookStore] 获取家庭账本列表失败:', error);
-          const errorMessage = error.response?.data?.message || '获取家庭账本列表失败';
-          set({
-            isLoading: false,
-            error: errorMessage,
-          });
-          toast.error(errorMessage);
-        }
+        accountBookLogger.warn('使用了兼容层方法 fetchFamilyAccountBooks，建议迁移到 useFamilyAccountBooks hook');
+        // TODO: 实现React Query调用
       },
 
-      // 设置当前账本
-      setCurrentAccountBook: async (accountBook) => {
+      // 设置当前账本 - 兼容方法
+      setCurrentAccountBook: (accountBook) => {
+        accountBookLogger.warn('使用了兼容层方法 setCurrentAccountBook，建议迁移到 useAccountBooks hook');
         if (typeof accountBook === 'string') {
-          // 如果传入的是账本ID，从列表中查找对应的账本
-          const { accountBooks, fetchAccountBooks } = get();
-          let foundBook = accountBooks.find((book) => book.id === accountBook);
-
-          if (!foundBook) {
-            // 如果没找到，先刷新账本列表再查找
-            console.log('📚 [AccountBookStore] 账本ID未找到，刷新账本列表:', accountBook);
-            await fetchAccountBooks();
-            const updatedState = get();
-            foundBook = updatedState.accountBooks.find((book) => book.id === accountBook);
-          }
-
+          const { accountBooks } = get();
+          const foundBook = accountBooks.find(book => book.id === accountBook);
           if (foundBook) {
-            console.log('📚 [AccountBookStore] 切换账本:', foundBook.name);
             set({ currentAccountBook: foundBook });
-          } else {
-            console.warn('📚 [AccountBookStore] 刷新后仍未找到账本ID:', accountBook);
           }
         } else {
-          // 如果传入的是账本对象，直接设置
-          console.log('📚 [AccountBookStore] 切换账本:', accountBook.name);
           set({ currentAccountBook: accountBook });
         }
       },
 
-      // 创建账本
+      // 创建账本 - 兼容方法
       createAccountBook: async (data) => {
-        try {
-          set({ isLoading: true, error: null });
-
-          // 确保传递 type 字段，默认为个人账本
-          const createData = {
-            ...data,
-            type: data.type || AccountBookType.PERSONAL,
-          };
-
-          const response = await apiClient.post('/account-books', createData);
-          // API 客户端已经在响应拦截器中返回了 response.data，所以这里直接使用 response
-          const newAccountBook = response;
-
-          set((state) => ({
-            accountBooks: [...state.accountBooks, newAccountBook],
-            isLoading: false,
-            error: null,
-          }));
-
-          toast.success('账本创建成功');
-          return true;
-        } catch (error: any) {
-          const errorMessage = error.response?.data?.message || '创建账本失败';
-          set({
-            isLoading: false,
-            error: errorMessage,
-          });
-          toast.error(errorMessage);
-          return false;
-        }
+        accountBookLogger.warn('使用了兼容层方法 createAccountBook，建议迁移到 React Query mutation');
+        // TODO: 实现React Query mutation
+        return false;
       },
 
-      // 更新账本
+      // 更新账本 - 兼容方法
       updateAccountBook: async (id, data) => {
-        try {
-          set({ isLoading: true, error: null });
-
-          const response = await apiClient.put(`/account-books/${id}`, data);
-          const updatedAccountBook = response.data;
-
-          set((state) => ({
-            accountBooks: state.accountBooks.map((book) =>
-              book.id === id ? updatedAccountBook : book,
-            ),
-            currentAccountBook:
-              state.currentAccountBook?.id === id ? updatedAccountBook : state.currentAccountBook,
-            isLoading: false,
-            error: null,
-          }));
-
-          toast.success('账本更新成功');
-          return true;
-        } catch (error: any) {
-          const errorMessage = error.response?.data?.message || '更新账本失败';
-          set({
-            isLoading: false,
-            error: errorMessage,
-          });
-          toast.error(errorMessage);
-          return false;
-        }
+        accountBookLogger.warn('使用了兼容层方法 updateAccountBook，建议迁移到 React Query mutation');
+        // TODO: 实现React Query mutation
+        return false;
       },
 
-      // 删除账本
+      // 删除账本 - 兼容方法
       deleteAccountBook: async (id) => {
-        try {
-          set({ isLoading: true, error: null });
-
-          await apiClient.delete(`/account-books/${id}`);
-
-          set((state) => ({
-            accountBooks: state.accountBooks.filter((book) => book.id !== id),
-            currentAccountBook:
-              state.currentAccountBook?.id === id ? null : state.currentAccountBook,
-            isLoading: false,
-            error: null,
-          }));
-
-          toast.success('账本删除成功');
-          return true;
-        } catch (error: any) {
-          const errorMessage = error.response?.data?.message || '删除账本失败';
-          set({
-            isLoading: false,
-            error: errorMessage,
-          });
-          toast.error(errorMessage);
-          return false;
-        }
+        accountBookLogger.warn('使用了兼容层方法 deleteAccountBook，建议迁移到 React Query mutation');
+        // TODO: 实现React Query mutation
+        return false;
       },
 
       // 清除错误

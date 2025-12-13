@@ -4,6 +4,14 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuthStore } from '@/store/auth-store';
 import { Capacitor } from '@capacitor/core';
 import { fetchApi } from '@/lib/api-client';
+import { createLogger } from '@/lib/logger';
+
+// 创建图片加载专用日志器
+const imageLogger = createLogger('Image');
+
+// 简单的内存缓存
+const imageCache = new Map<string, string>();
+const loadingPromises = new Map<string, Promise<string>>();
 
 interface EnhancedAuthenticatedImageProps {
   src: string;
@@ -80,10 +88,37 @@ export function EnhancedAuthenticatedImage({
     return options;
   };
 
-  // 加载图片（带重试机制）
+  // 加载图片（带重试机制和简单缓存）
   const loadImageWithRetry = useCallback(async (url: string, retry: number = 0): Promise<void> => {
     if (retry > retryCount) {
       throw new Error(`图片加载失败，已重试${retryCount}次`);
+    }
+
+    // 检查缓存
+    const cached = imageCache.get(url);
+    if (cached) {
+      imageLogger.debug('使用缓存图片');
+      setBlobUrl(cached);
+      setError(null);
+      setCurrentRetry(0);
+      stableOnLoad();
+      return;
+    }
+
+    // 检查是否正在加载
+    const loadingPromise = loadingPromises.get(url);
+    if (loadingPromise) {
+      imageLogger.debug('图片正在加载中，等待完成');
+      try {
+        const blobUrl = await loadingPromise;
+        setBlobUrl(blobUrl);
+        setError(null);
+        setCurrentRetry(0);
+        stableOnLoad();
+      } catch (error) {
+        throw error;
+      }
+      return;
     }
 
     // 取消之前的请求
@@ -100,82 +135,105 @@ export function EnhancedAuthenticatedImage({
       abortControllerRef.current?.abort();
     }, timeout);
 
-    try {
-      console.log(`🖼️ [Enhanced] 开始加载图片 (重试${retry}/${retryCount}):`, url);
+    // 创建加载Promise并缓存
+    const loadPromise = (async () => {
+      try {
+        imageLogger.debug('开始加载图片', { 
+          retry: `${retry}/${retryCount}`,
+          url: url.length > 50 ? url.substring(0, 50) + '...' : url
+        });
 
-      const options = getEnhancedFetchOptions(signal);
-      
-      // 使用动态API客户端的fetchApi而不是原生fetch
-      const response = await fetchApi(url, options);
+        const options = getEnhancedFetchOptions(signal);
+        
+        // 使用动态API客户端的fetchApi而不是原生fetch
+        const response = await fetchApi(url, options);
 
-      clearTimeout(timeoutId);
+        clearTimeout(timeoutId);
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('认证失败，请重新登录');
-        } else if (response.status === 404) {
-          throw new Error('图片不存在');
-        } else if (response.status >= 500) {
-          throw new Error(`服务器错误: ${response.status}`);
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('认证失败，请重新登录');
+          } else if (response.status === 404) {
+            throw new Error('图片不存在');
+          } else if (response.status >= 500) {
+            throw new Error(`服务器错误: ${response.status}`);
+          } else {
+            throw new Error(`图片加载失败: ${response.status} ${response.statusText}`);
+          }
+        }
+
+        const blob = await response.blob();
+
+        // 检查是否被取消
+        if (signal.aborted) return '';
+
+        // 验证blob是否为有效图片
+        if (!blob.type.startsWith('image/')) {
+          throw new Error(`无效的图片格式: ${blob.type}`);
+        }
+
+        const blobUrl = URL.createObjectURL(blob);
+        
+        // 缓存成功加载的图片
+        imageCache.set(url, blobUrl);
+        
+        setBlobUrl(blobUrl);
+        setError(null);
+        setCurrentRetry(0);
+
+        imageLogger.debug('图片加载成功');
+
+        // 创建临时img元素获取图片尺寸信息
+        const tempImg = new Image();
+        tempImg.onload = () => {
+          stableOnLoad(tempImg);
+        };
+        tempImg.onerror = () => {
+          stableOnLoad();
+        };
+        tempImg.src = blobUrl;
+
+        return blobUrl;
+      } catch (err) {
+        clearTimeout(timeoutId);
+        
+        if (signal.aborted) return '';
+
+        const error = err instanceof Error ? err : new Error('图片加载失败');
+        imageLogger.warn('图片加载失败', { 
+          retry: `${retry}/${retryCount}`,
+          error: error.message 
+        });
+
+        // 如果是网络错误且还有重试次数，则重试
+        if (retry < retryCount && (
+          error.message.includes('fetch') ||
+          error.message.includes('network') ||
+          error.message.includes('timeout') ||
+          error.message.includes('服务器错误')
+        )) {
+          imageLogger.debug('准备重试加载图片', { 
+            delay: `${(retry + 1) * 1000}ms` 
+          });
+          setCurrentRetry(retry + 1);
+          
+          // 延迟重试
+          setTimeout(() => {
+            loadImageWithRetry(url, retry + 1);
+          }, (retry + 1) * 1000);
+          return '';
         } else {
-          throw new Error(`图片加载失败: ${response.status} ${response.statusText}`);
+          setError(error);
+          stableOnError(error);
+          throw error;
         }
       }
+    })();
 
-      const blob = await response.blob();
-
-      // 检查是否被取消
-      if (signal.aborted) return;
-
-      // 验证blob是否为有效图片
-      if (!blob.type.startsWith('image/')) {
-        throw new Error(`无效的图片格式: ${blob.type}`);
-      }
-
-      const blobUrl = URL.createObjectURL(blob);
-      setBlobUrl(blobUrl);
-      setError(null);
-      setCurrentRetry(0);
-
-      console.log('✅ [Enhanced] 认证图片加载成功:', url);
-
-      // 创建临时img元素获取图片尺寸信息
-      const tempImg = new Image();
-      tempImg.onload = () => {
-        stableOnLoad(tempImg);
-      };
-      tempImg.onerror = () => {
-        stableOnLoad();
-      };
-      tempImg.src = blobUrl;
-
-    } catch (err) {
-      clearTimeout(timeoutId);
-      
-      if (signal.aborted) return;
-
-      const error = err instanceof Error ? err : new Error('图片加载失败');
-      console.error(`❌ [Enhanced] 图片加载失败 (重试${retry}/${retryCount}):`, url, error);
-
-      // 如果是网络错误且还有重试次数，则重试
-      if (retry < retryCount && (
-        error.message.includes('fetch') ||
-        error.message.includes('network') ||
-        error.message.includes('timeout') ||
-        error.message.includes('服务器错误')
-      )) {
-        console.log(`🔄 [Enhanced] 准备重试加载图片，延迟${(retry + 1) * 1000}ms`);
-        setCurrentRetry(retry + 1);
-        
-        // 延迟重试
-        setTimeout(() => {
-          loadImageWithRetry(url, retry + 1);
-        }, (retry + 1) * 1000);
-      } else {
-        setError(error);
-        stableOnError(error);
-      }
-    }
+    // 缓存加载Promise
+    loadingPromises.set(url, loadPromise);
+    
+    return loadPromise;
   }, [token, retryCount, timeout, stableOnLoad, stableOnError]);
 
   // 主加载逻辑
@@ -284,11 +342,11 @@ export function EnhancedAuthenticatedImage({
       className={className}
       style={style}
       onLoad={() => {
-        console.log('🖼️ [Enhanced] 图片渲染完成:', src);
+        imageLogger.debug('图片渲染完成');
         onLoadRef.current?.();
       }}
       onError={(e) => {
-        console.error('🖼️ [Enhanced] 图片渲染失败:', src, e);
+        imageLogger.error('图片渲染失败', e);
         const error = new Error('图片渲染失败');
         setError(error);
         onErrorRef.current?.(error);

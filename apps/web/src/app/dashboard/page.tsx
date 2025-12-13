@@ -12,7 +12,7 @@ import { CalendarView } from '@/components/dashboard/calendar/calendar-view';
 import { createLogger } from '@/lib/logger';
 import '@/lib/logger-test'; // 导入测试，会自动运行
 
-import { useDashboardStore } from '@/store/dashboard-store';
+import { useDashboardData } from '@/hooks/useDashboardData';
 import TransactionEditModal from '@/components/transaction-edit-modal';
 import { useNotificationStore } from '@/store/notification-store';
 import { NotificationModal } from '@/components/notifications/NotificationModal';
@@ -40,7 +40,7 @@ export default function DashboardPage() {
     cleanupTransactionListener,
     showBackToTop,
     setShowBackToTop,
-  } = useDashboardStore();
+  } = useDashboardData();
 
   const { unreadCount, isModalOpen, openModal, closeModal, checkUnreadOnLogin } =
     useNotificationStore();
@@ -70,8 +70,8 @@ export default function DashboardPage() {
     }
   };
 
-  // 从 store 获取 autoRefreshCount
-  const { autoRefreshCount } = useDashboardStore();
+  // 从 hook 获取 autoRefreshCount（React Query版本返回0）
+  const { autoRefreshCount } = useDashboardData();
 
   // 本地状态：是否滚动到底部
   const [isScrolledDown, setIsScrolledDown] = useState(false);
@@ -469,7 +469,7 @@ export default function DashboardPage() {
 
               {/* 预算执行情况 */}
               <div className="dashboard-section">
-                <BudgetProgress categories={budgetCategories} totalBudget={totalBudget} />
+                <BudgetProgress categories={budgetCategories} totalBudget={totalBudget || undefined} />
               </div>
 
               {/* 最近记账 - 占据剩余空间 */}

@@ -1,6 +1,10 @@
 'use client';
 
 import { apiClient } from '@/lib/api-client';
+import { createLogger } from '@/lib/logger';
+
+// 创建系统配置专用日志器
+const configLogger = createLogger('SystemConfig');
 
 // 全局AI配置接口
 export interface GlobalAIConfig {
@@ -61,26 +65,21 @@ export const systemConfigApi = {
    */
   async getGlobalAIConfig(): Promise<GlobalAIConfig> {
     try {
-      console.log('发送获取全局AI配置请求: /system-config/global-ai');
-
-      // 检查认证状态
-      const token = localStorage.getItem('auth-token');
-      if (!token) {
-        console.warn('未找到认证令牌，API调用可能失败');
-      }
+      configLogger.debug('获取全局AI配置');
 
       const response = await apiClient.get<{
         success: boolean;
         data: GlobalAIConfig;
       }>('/system-config/global-ai');
-      console.log('全局AI配置响应数据:', response);
+      
+      configLogger.debug('全局AI配置获取成功', { enabled: response.data.enabled });
       return response.data;
     } catch (error) {
-      console.error('获取全局AI配置失败:', error);
+      configLogger.error('获取全局AI配置失败', error);
 
       // 如果是认证错误，返回默认配置
       if (error instanceof Error && error.message.includes('401')) {
-        console.warn('认证失败，返回默认配置');
+        configLogger.warn('认证失败，使用默认AI配置');
         return {
           enabled: false,
           provider: 'openai',
