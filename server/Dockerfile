@@ -112,8 +112,8 @@ RUN mkdir -p uploads && \
     chown -R nodejs:nodejs /app && \
     chmod +x scripts/deployment/*.sh && \
     chmod +x migrations/migration-manager.js && \
-    chmod +x migrations/data-integrity-check.js && \
-    chmod +x migrations/migration-status.js && \
+    chmod +x migrations/scripts/data-integrity-check.js && \
+    chmod +x migrations/scripts/migration-status.js && \
     find scripts/scheduled -type f -name "*.sh" -exec chmod +x {} \;
 
 # 切换到非root用户
