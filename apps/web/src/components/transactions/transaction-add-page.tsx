@@ -7,6 +7,7 @@ import { useTransactionFormStore } from '@/store/transaction-form-store';
 import { useTransactionStore } from '@/store/transaction-store';
 import { useCategoryStore } from '@/store/category-store';
 import { useAccountBookStore } from '@/store/account-book-store';
+import { useAccountBooks } from '@/hooks/useAccountBooks';
 import { useBudgetStore } from '@/store/budget-store';
 import { triggerTransactionChange } from '@/store/dashboard-store';
 import { tagApi } from '@/lib/api/tag-api';
@@ -47,6 +48,9 @@ export function TransactionAddPage() {
   const { createTransaction } = useTransactionStore();
   const { categories, fetchCategories, isLoading: isCategoriesLoading } = useCategoryStore();
   const { currentAccountBook, fetchAccountBooks } = useAccountBookStore();
+  
+  // 使用React Query获取账本数据（修复空数据问题）
+  const { accountBooks: reactQueryAccountBooks, isLoading: isAccountBooksLoading } = useAccountBooks();
   const { budgets, fetchActiveBudgets } = useBudgetStore();
 
   const [submitting, setSubmitting] = useState(false);
@@ -68,10 +72,16 @@ export function TransactionAddPage() {
     }
   };
 
-  // 获取数据
+  // 同步React Query数据到Zustand store（修复数据流断裂）
   useEffect(() => {
-    fetchAccountBooks();
-  }, [fetchAccountBooks]);
+    if (reactQueryAccountBooks.length > 0 && !currentAccountBook) {
+      const defaultBook = reactQueryAccountBooks.find(book => book.isDefault) || reactQueryAccountBooks[0];
+      if (defaultBook) {
+        console.log('自动设置默认账本:', defaultBook.name);
+        useAccountBookStore.getState().setCurrentAccountBook(defaultBook);
+      }
+    }
+  }, [reactQueryAccountBooks, currentAccountBook]);
 
   // 当账本变化时，重新获取分类和预算
   useEffect(() => {
@@ -407,7 +417,10 @@ export function TransactionAddPage() {
 
         {/* 第一步：分类选择 */}
         {currentStep === 1 && (
-          <CategorySelector categories={filteredCategories} isLoading={isCategoriesLoading} />
+          <CategorySelector 
+            categories={filteredCategories} 
+            isLoading={isCategoriesLoading || isAccountBooksLoading} 
+          />
         )}
 
         {/* 第二步：记账详情 */}

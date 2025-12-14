@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useTransactionFormStore } from '@/store/transaction-form-store';
 import { useBudgetStore } from '@/store/budget-store';
 import { useAccountBookStore } from '@/store/account-book-store';

@@ -54,13 +54,37 @@ export const useAccountBookStore = create<AccountBookState>()(
       isLoading: false,
       error: null,
 
-      // 获取账本列表 - 兼容方法
+      // 获取账本列表 - 兼容方法（临时修复）
       fetchAccountBooks: async () => {
         accountBookLogger.warn('使用了兼容层方法 fetchAccountBooks，建议迁移到 useAccountBooks hook');
-        // TODO: 实现React Query调用
         set({ isLoading: true, error: null });
-        // 暂时保持空实现，避免破坏现有功能
-        set({ isLoading: false });
+        
+        try {
+          // 临时实现：直接调用API而不是依赖React Query
+          const { apiClient } = await import('@/lib/api-client');
+          const response = await apiClient.get('/account-books');
+          
+          let accountBooks = [];
+          if (response?.data && Array.isArray(response.data)) {
+            accountBooks = response.data;
+          } else if (Array.isArray(response)) {
+            accountBooks = response;
+          }
+          
+          set({ 
+            accountBooks, 
+            isLoading: false,
+            currentAccountBook: get().currentAccountBook || accountBooks.find(book => book.isDefault) || accountBooks[0] || null
+          });
+          
+          accountBookLogger.info('兼容层成功获取账本数据', { count: accountBooks.length });
+        } catch (error) {
+          accountBookLogger.error('兼容层获取账本失败', error);
+          set({ 
+            isLoading: false, 
+            error: error instanceof Error ? error.message : '获取账本失败' 
+          });
+        }
       },
 
       // 获取家庭账本列表 - 兼容方法

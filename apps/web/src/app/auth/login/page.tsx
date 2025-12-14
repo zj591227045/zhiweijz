@@ -10,7 +10,6 @@ import { ThemeSwitcher } from '../../../components/theme/theme-switcher';
 import { SimpleSlidingCaptcha } from '@/components/captcha/simple-sliding-captcha';
 import ServerSettings from '@/components/server/server-settings';
 import AnimatedBackground from '@/components/background/animated-background';
-import { adminApiClient } from '@/lib/admin-api-client';
 import { fetchApi } from '@/lib/api-client';
 
 interface SystemInfo {
@@ -30,14 +29,21 @@ export default function LoginPage() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [showServerSettings, setShowServerSettings] = useState(false);
   const [isIOSApp, setIsIOSApp] = useState(false);
-  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
+  const [systemInfo, setSystemInfo] = useState<SystemInfo>({
+  registrationEnabled: true, // 默认允许注册，避免hydration不匹配
+  isSelfHosted: false,
+  message: undefined,
+});
   const [urlMessage, setUrlMessage] = useState<string | null>(null);
 
   // 检测是否为Docker环境
   const isDocker = isDockerEnvironment();
 
-  // 检查注册状态
+  // 检查注册状态 - 延迟执行避免hydration错误
   useEffect(() => {
+    // 确保只在客户端执行
+    if (typeof window === 'undefined') return;
+
     const checkRegistrationStatus = async () => {
       // 如果是官方服务器，直接设置为允许注册，不进行API检查
       if (config.type === 'official') {
@@ -77,15 +83,19 @@ export default function LoginPage() {
       }
     };
 
-    checkRegistrationStatus();
+    // 延迟执行确保hydration完成
+    setTimeout(checkRegistrationStatus, 0);
   }, [config.type]);
 
-  // 检测iOS Capacitor环境
+  // 检测iOS Capacitor环境 - 延迟执行避免hydration错误
   useEffect(() => {
+    // 确保只在客户端执行
+    if (typeof window === 'undefined') return;
+
     const checkIOSCapacitor = async () => {
       try {
-        // 检测是否在Capacitor环境中
-        if (typeof window !== 'undefined') {
+        // 延迟执行确保hydration完成
+        setTimeout(async () => {
           // 动态导入Capacitor避免SSR问题
           const capacitorModule = await import('@capacitor/core');
           const { Capacitor } = capacitorModule;
@@ -105,7 +115,7 @@ export default function LoginPage() {
             // 添加调试信息
             console.log('iOS app classes added to DOM');
           }
-        }
+        }, 0);
       } catch (error) {
         // Capacitor不可用，说明在web环境中
         console.log('Not in Capacitor environment:', error);
@@ -124,9 +134,13 @@ export default function LoginPage() {
     };
   }, []);
 
-  // 检查URL参数中的消息
+  // 检查URL参数中的消息 - 延迟执行避免hydration错误
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    // 确保只在客户端执行
+    if (typeof window === 'undefined') return;
+
+    // 延迟执行确保hydration完成
+    setTimeout(() => {
       const urlParams = new URLSearchParams(window.location.search);
       const message = urlParams.get('message');
       if (message) {
@@ -135,7 +149,7 @@ export default function LoginPage() {
         const newUrl = window.location.pathname;
         window.history.replaceState({}, '', newUrl);
       }
-    }
+    }, 0);
   }, []);
 
   // 显示URL消息
@@ -233,10 +247,6 @@ export default function LoginPage() {
 
   // 渲染注册链接
   const renderRegisterLink = () => {
-    if (!systemInfo) {
-      return <span className="text-gray-500 dark:text-gray-400">检查注册状态中...</span>;
-    }
-
     if (systemInfo.isSelfHosted && !systemInfo.registrationEnabled) {
       return (
         <span className="auth-link text-blue-600 dark:text-blue-400 text-xs sm:text-sm">
