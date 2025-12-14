@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
-import { useDashboardStore } from '@/store/dashboard-store';
+import { refreshDashboardCache } from '@/lib/query-cache-utils';
 import { haptic } from '@/utils/haptic-feedback';
 import '@/styles/smart-accounting-dialog.css';
 
@@ -368,7 +368,7 @@ export function SmartAccountingDialog({
   accountBookId,
 }: SmartAccountingDialogProps) {
   const router = useRouter();
-  const { refreshDashboardData } = useDashboardStore();
+  // 使用新的缓存刷新机制
   const [description, setDescription] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState<string | null>(null);
@@ -650,7 +650,7 @@ export function SmartAccountingDialog({
         if (accountBookId) {
           try {
             console.log('开始刷新仪表盘数据...');
-            await refreshDashboardData(accountBookId);
+            refreshDashboardCache(accountBookId);
             console.log('仪表盘数据刷新完成');
           } catch (refreshError) {
             console.error('刷新仪表盘数据失败:', refreshError);
@@ -755,7 +755,7 @@ export function SmartAccountingDialog({
         if (accountBookId) {
           try {
             console.log('开始刷新仪表盘数据...');
-            await refreshDashboardData(accountBookId);
+            refreshDashboardCache(accountBookId);
             console.log('仪表盘数据刷新完成');
           } catch (refreshError) {
             console.error('刷新仪表盘数据失败:', refreshError);

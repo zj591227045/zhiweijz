@@ -7,7 +7,7 @@ import { useTransactionStore } from '@/store/transaction-store';
 import { useCategoryStore } from '@/store/category-store';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { useTransactionFormStore, BudgetAllocationItem } from '@/store/transaction-form-store';
-import { triggerTransactionChange } from '@/store/dashboard-store';
+import { triggerTransactionChange } from '@/lib/query-cache-utils';
 import { formatDateForInput, getIconClass } from '@/lib/utils';
 import { TransactionType, UpdateTransactionData } from '@/types';
 import { toast } from 'sonner';

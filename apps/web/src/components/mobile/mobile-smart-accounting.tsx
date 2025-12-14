@@ -9,6 +9,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { apiClient } from '@/lib/api-client';
+import { refreshDashboardCache } from '@/lib/query-cache-utils';
 import { Loader2, CheckCircle, AlertCircle, Smartphone } from 'lucide-react';
 
 interface MobileSmartAccountingProps {
@@ -111,6 +112,13 @@ export function MobileSmartAccounting({
         description: `已成功创建记账记录`,
         duration: 3000
       });
+
+      // 刷新仪表盘缓存
+      const accountBookId = data.accountId || currentAccountBook?.id;
+      if (accountBookId) {
+        console.log('🔄 [MobileSmartAccounting] 刷新仪表盘缓存:', accountBookId);
+        refreshDashboardCache(accountBookId);
+      }
 
       onSuccess?.(response.id);
 

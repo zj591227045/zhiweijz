@@ -9,7 +9,7 @@ import { useCategoryStore } from '@/store/category-store';
 import { useAccountBookStore } from '@/store/account-book-store';
 import { useAccountBooks } from '@/hooks/useAccountBooks';
 import { useBudgetStore } from '@/store/budget-store';
-import { triggerTransactionChange } from '@/store/dashboard-store';
+import { triggerTransactionChange } from '@/lib/query-cache-utils';
 import { tagApi } from '@/lib/api/tag-api';
 import { apiClient } from '@/lib/api-client';
 import { AmountInput } from './amount-input';

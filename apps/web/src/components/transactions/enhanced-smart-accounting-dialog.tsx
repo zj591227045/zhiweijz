@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
-import { useDashboardStore } from '@/store/dashboard-store';
+import { refreshDashboardCache } from '@/lib/query-cache-utils';
 import { useAccountingPointsStore } from '@/store/accounting-points-store';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
 import {
@@ -103,7 +103,7 @@ export default function EnhancedSmartAccountingDialog({
   accountBookId,
 }: EnhancedSmartAccountingDialogProps) {
   const router = useRouter();
-  const { refreshDashboardData } = useDashboardStore();
+  // 使用新的缓存刷新机制
   const { balance, fetchBalance } = useAccountingPointsStore();
   const { config, loading: configLoading } = useSystemConfig();
   const { showSelectionModal: showGlobalSelectionModal } = useTransactionSelectionStore();
@@ -1124,7 +1124,7 @@ export default function EnhancedSmartAccountingDialog({
               // 刷新仪表盘数据
               if (accountBookId) {
                 try {
-                  await refreshDashboardData(accountBookId);
+                  refreshDashboardCache(accountBookId);
                   // 刷新记账点余额
                   await fetchBalance();
                 } catch (refreshError) {
@@ -1531,7 +1531,7 @@ export default function EnhancedSmartAccountingDialog({
 
                     // 刷新仪表盘数据和记账点余额
                     try {
-                      await refreshDashboardData(accountBookId);
+                      refreshDashboardCache(accountBookId);
                       await fetchBalance();
                     } catch (refreshError) {
                       console.error('刷新数据失败:', refreshError);
@@ -1567,7 +1567,7 @@ export default function EnhancedSmartAccountingDialog({
 
                     // 刷新仪表盘数据和记账点余额
                     try {
-                      await refreshDashboardData(accountBookId);
+                      refreshDashboardCache(accountBookId);
                       await fetchBalance();
                     } catch (refreshError) {
                       console.error('刷新数据失败:', refreshError);
@@ -1587,7 +1587,7 @@ export default function EnhancedSmartAccountingDialog({
             // 刷新仪表盘数据
             if (accountBookId) {
               try {
-                await refreshDashboardData(accountBookId);
+                refreshDashboardCache(accountBookId);
                 // 刷新记账点余额
                 await fetchBalance();
               } catch (refreshError) {
@@ -1713,7 +1713,7 @@ export default function EnhancedSmartAccountingDialog({
 
                     // 刷新仪表盘数据和记账点余额
                     try {
-                      await refreshDashboardData(accountBookId);
+                      refreshDashboardCache(accountBookId);
                       await fetchBalance();
                     } catch (refreshError) {
                       console.error('刷新数据失败:', refreshError);
@@ -1749,7 +1749,7 @@ export default function EnhancedSmartAccountingDialog({
 
                     // 刷新仪表盘数据和记账点余额
                     try {
-                      await refreshDashboardData(accountBookId);
+                      refreshDashboardCache(accountBookId);
                       await fetchBalance();
                     } catch (refreshError) {
                       console.error('刷新数据失败:', refreshError);
@@ -1769,7 +1769,7 @@ export default function EnhancedSmartAccountingDialog({
             // 刷新仪表盘数据
             if (accountBookId) {
               try {
-                await refreshDashboardData(accountBookId);
+                refreshDashboardCache(accountBookId);
                 // 刷新记账点余额
                 await fetchBalance();
               } catch (refreshError) {
@@ -1864,7 +1864,7 @@ export default function EnhancedSmartAccountingDialog({
 
                     // 刷新仪表盘数据和记账点余额
                     try {
-                      await refreshDashboardData(accountBookId);
+                      refreshDashboardCache(accountBookId);
                       await fetchBalance();
                     } catch (refreshError) {
                       console.error('刷新数据失败:', refreshError);
@@ -1933,7 +1933,7 @@ export default function EnhancedSmartAccountingDialog({
 
                   // 刷新仪表盘数据和记账点余额
                   try {
-                    await refreshDashboardData(accountBookId);
+                    refreshDashboardCache(accountBookId);
                     await fetchBalance();
                   } catch (refreshError) {
                     console.error('刷新数据失败:', refreshError);
@@ -2051,7 +2051,7 @@ export default function EnhancedSmartAccountingDialog({
         // 刷新仪表盘数据
         if (accountBookId) {
           try {
-            await refreshDashboardData(accountBookId);
+            refreshDashboardCache(accountBookId);
             // 刷新记账点余额
             await fetchBalance();
           } catch (refreshError) {
