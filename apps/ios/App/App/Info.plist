@@ -64,5 +64,28 @@
 	<string>需要访问相册来选择小票和账单图片，帮助您快速记账</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>需要访问相册来保存拍摄的小票和账单图片</string>
+
+	<!-- Network Security Configuration -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<!-- 允许任意HTTP连接（仅用于开发/测试） -->
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<!-- 允许本地网络的HTTP连接 -->
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+		<!-- 异常域配置 -->
+		<key>NSExceptionDomains</key>
+		<dict>
+			<!-- localhost异常 -->
+			<key>localhost</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSExceptionMinimumTLSVersion</key>
+				<string>TLSv1.0</string>
+			</dict>
+		</dict>
+	</dict>
 </dict>
 </plist>

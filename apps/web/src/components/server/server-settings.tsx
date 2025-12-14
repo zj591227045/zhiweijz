@@ -5,6 +5,7 @@ import { useServerConfigStore, ServerType } from '@/store/server-config-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { SSLConfigManager } from '@/components/ssl-config-manager';
 
 // 简单的SVG图标组件
 const ArrowLeft = ({ className }: { className?: string }) => (
@@ -93,35 +94,27 @@ export default function ServerSettings({ onClose, onSave }: ServerSettingsProps)
 
     try {
       console.log('🧪 开始测试连接到:', urlToTest);
-      const isConnected = await testConnection(urlToTest);
-      setConnectionStatus(isConnected ? 'success' : 'failed');
+      const result = await testConnection(urlToTest);
+      
+      setConnectionStatus(result.success ? 'success' : 'failed');
 
-      if (isConnected) {
-        toast.success('连接测试成功');
-        console.log('✅ 连接测试成功');
+      if (result.success) {
+        toast.success(`连接测试成功: ${result.message}`);
+        console.log('✅ 连接测试成功:', result);
       } else {
-        toast.error('连接测试失败，请检查服务器地址和网络连接');
-        console.error('❌ 连接测试失败');
+        // 显示详细的错误信息
+        const errorMsg = result.details ? `${result.message}: ${result.details}` : result.message;
+        toast.error(errorMsg);
+        console.error('❌ 连接测试失败:', result);
       }
     } catch (error) {
       console.error('❌ 连接测试异常:', error);
       setConnectionStatus('failed');
 
-      // 根据错误类型提供更具体的提示
+      // 处理意外错误
       let errorMessage = '连接测试失败';
       if (error instanceof Error) {
-        if (error.message.includes('CORS')) {
-          errorMessage = '跨域请求被阻止，请检查服务器CORS配置';
-        } else if (
-          error.message.includes('NetworkError') ||
-          error.message.includes('Failed to fetch')
-        ) {
-          errorMessage = '网络连接失败，请检查服务器地址和网络状态';
-        } else if (error.name === 'AbortError') {
-          errorMessage = '连接超时，请检查服务器是否可访问';
-        } else {
-          errorMessage = `连接测试失败: ${error.message}`;
-        }
+        errorMessage = `连接测试异常: ${error.message}`;
       }
 
       toast.error(errorMessage);
@@ -292,6 +285,9 @@ export default function ServerSettings({ onClose, onSave }: ServerSettingsProps)
                   </div>
                 </div>
               </div>
+
+              {/* SSL配置 - 仅在自定义服务器时显示 */}
+              <SSLConfigManager showForCustomServer={activeTab === 'custom'} />
             </div>
           )}
         </div>
@@ -301,27 +297,35 @@ export default function ServerSettings({ onClose, onSave }: ServerSettingsProps)
           {/* 连接状态提示 */}
           {connectionStatus && (
             <div
-              className={`mb-4 p-3 rounded-lg border ${
+              className={`mb-4 p-4 rounded-lg border ${
                 connectionStatus === 'success'
                   ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
                   : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
               }`}
             >
               <div
-                className={`flex items-center space-x-2 ${
+                className={`flex items-start space-x-3 ${
                   connectionStatus === 'success'
                     ? 'text-green-700 dark:text-green-300'
                     : 'text-red-700 dark:text-red-300'
                 }`}
               >
                 {connectionStatus === 'success' ? (
-                  <CheckCircle className="h-5 w-5" />
+                  <CheckCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
                 ) : (
-                  <div className="h-5 w-5 rounded-full border-2 border-current"></div>
+                  <div className="h-5 w-5 rounded-full border-2 border-current flex-shrink-0 mt-0.5"></div>
                 )}
-                <span className="text-sm font-medium">
-                  {connectionStatus === 'success' ? '✅ 连接测试成功' : '❌ 连接测试失败'}
-                </span>
+                <div className="flex-1">
+                  <div className="text-sm font-medium mb-1">
+                    {connectionStatus === 'success' ? '连接测试成功' : '连接测试失败'}
+                  </div>
+                  <div className="text-xs opacity-90">
+                    {connectionStatus === 'success' 
+                      ? '服务器连接正常，可以进行登录' 
+                      : '请检查上方显示的具体错误信息并进行相应处理'
+                    }
+                  </div>
+                </div>
               </div>
             </div>
           )}

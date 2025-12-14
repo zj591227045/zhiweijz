@@ -22,6 +22,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { login, isAuthenticated, isLoading, error, clearError, getLoginAttempts } = useAuthStore();
   const { isDockerEnvironment, config } = useServerConfigStore();
+  const [isStoreHydrated, setIsStoreHydrated] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -41,8 +42,8 @@ export default function LoginPage() {
 
   // 检查注册状态 - 延迟执行避免hydration错误
   useEffect(() => {
-    // 确保只在客户端执行
-    if (typeof window === 'undefined') return;
+    // 确保只在客户端执行且store已hydrated
+    if (typeof window === 'undefined' || !isStoreHydrated) return;
 
     const checkRegistrationStatus = async () => {
       // 如果是官方服务器，直接设置为允许注册，不进行API检查
@@ -85,7 +86,7 @@ export default function LoginPage() {
 
     // 延迟执行确保hydration完成
     setTimeout(checkRegistrationStatus, 0);
-  }, [config.type]);
+  }, [config.type, isStoreHydrated]);
 
   // 检测iOS Capacitor环境 - 延迟执行避免hydration错误
   useEffect(() => {
@@ -134,10 +135,30 @@ export default function LoginPage() {
     };
   }, []);
 
-  // 检查URL参数中的消息 - 延迟执行避免hydration错误
+  // 处理store hydration
   useEffect(() => {
     // 确保只在客户端执行
     if (typeof window === 'undefined') return;
+
+    // 等待Zustand store完成hydration
+    const checkHydration = () => {
+      try {
+        // 尝试访问store的状态来触发hydration
+        const config = useServerConfigStore.getState().config;
+        setIsStoreHydrated(true);
+      } catch (error) {
+        // Store还没有hydrated，继续等待
+        setTimeout(checkHydration, 100);
+      }
+    };
+
+    checkHydration();
+  }, []);
+
+  // 检查URL参数中的消息 - 延迟执行避免hydration错误
+  useEffect(() => {
+    // 确保只在客户端执行且store已hydrated
+    if (typeof window === 'undefined' || !isStoreHydrated) return;
 
     // 延迟执行确保hydration完成
     setTimeout(() => {
@@ -150,7 +171,7 @@ export default function LoginPage() {
         window.history.replaceState({}, '', newUrl);
       }
     }, 0);
-  }, []);
+  }, [isStoreHydrated]);
 
   // 显示URL消息
   useEffect(() => {
@@ -160,12 +181,12 @@ export default function LoginPage() {
     }
   }, [urlMessage]);
 
-  // 如果已登录，重定向到仪表盘
+  // 如果已登录，重定向到仪表盘 - 等待store hydration
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && isStoreHydrated) {
       router.push('/dashboard');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, isStoreHydrated]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -261,6 +282,20 @@ export default function LoginPage() {
       </Link>
     );
   };
+
+  // 如果store还没有hydrated，显示loading界面
+  if (!isStoreHydrated) {
+    return (
+      <div className="app-container h-screen flex flex-col overflow-hidden relative">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <div className="text-gray-600 dark:text-gray-400">正在加载...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

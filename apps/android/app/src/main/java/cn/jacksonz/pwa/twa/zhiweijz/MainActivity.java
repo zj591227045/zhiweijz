@@ -15,6 +15,7 @@ import com.getcapacitor.JSObject;
 import com.capacitorjs.plugins.camera.CameraPlugin;
 import cn.jacksonz.pwa.twa.zhiweijz.plugins.ShareTargetPlugin;
 import cn.jacksonz.pwa.twa.zhiweijz.plugins.LogBridgePlugin;
+import cn.jacksonz.pwa.twa.zhiweijz.plugins.SSLConfigPlugin;
 
 public class MainActivity extends BridgeActivity {
 
@@ -31,6 +32,9 @@ public class MainActivity extends BridgeActivity {
 
         // 注册日志桥接插件
         registerPlugin(LogBridgePlugin.class);
+
+        // 注册SSL配置插件
+        registerPlugin(SSLConfigPlugin.class);
 
         super.onCreate(savedInstanceState);
 

@@ -3,6 +3,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { getApiBaseUrl } from './server-config';
 import { createLogger } from './logger';
+import { sslConfigService } from './ssl-config';
 
 // 创建API专用日志器
 const apiLogger = createLogger('API');
@@ -70,7 +71,46 @@ class ApiClient {
       (response: AxiosResponse) => {
         return response.data;
       },
-      (error) => {
+      async (error) => {
+        // 处理网络连接错误（包括HTTP和SSL问题）
+        const isNetworkError = error.code === 'NETWORK_ERROR' || 
+                              error.code === 'ERR_NETWORK' ||
+                              error.message?.includes('SSL') || 
+                              error.message?.includes('certificate') ||
+                              error.message?.includes('CERT_') ||
+                              error.message?.includes('Network Error') ||
+                              !error.response;
+
+        if (isNetworkError) {
+          const url = error.config?.baseURL + error.config?.url || '未知URL';
+          const message = error.message || '网络连接失败';
+          
+          apiLogger.warn('检测到网络/SSL错误', { 
+            url, 
+            message, 
+            code: error.code,
+            isNative: sslConfigService.isNativePlatform()
+          });
+          
+          // 在原生平台上显示SSL警告
+          if (sslConfigService.isNativePlatform()) {
+            try {
+              const allowed = await sslConfigService.showSSLWarning(url, message);
+              if (allowed) {
+                // 用户允许后，配置宽松SSL并重试请求
+                await sslConfigService.configurePermissiveSSL();
+                apiLogger.info('用户允许连接，重试请求', { url });
+                return this.instance.request(error.config);
+              } else {
+                apiLogger.info('用户拒绝连接', { url });
+                return Promise.reject(new Error('用户拒绝不安全的连接'));
+              }
+            } catch (sslError) {
+              apiLogger.error('SSL配置处理失败', sslError);
+            }
+          }
+        }
+
         if (error.response?.status === 401) {
           // 检查是否是注销相关的请求，如果是则不自动跳转
           const isDeletionRelated =
