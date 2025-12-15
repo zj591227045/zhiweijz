@@ -37,7 +37,19 @@ export function clearLocalStorageCache(): void {
  * 判断是否应该清除某个localStorage键
  */
 function shouldRemoveKey(key: string): boolean {
-  const patterns = [
+  // 永远不清除的配置（全局设置）
+  const preservePatterns = [
+    'server-config', // 服务器配置应该在注销后保留
+    'theme', // 主题设置应该保留
+  ];
+
+  // 如果是需要保留的配置，直接返回false
+  if (preservePatterns.some((pattern) => key.includes(pattern))) {
+    return false;
+  }
+
+  // 需要清除的用户数据模式
+  const clearPatterns = [
     'auth',
     'user',
     'account-book',
@@ -49,10 +61,9 @@ function shouldRemoveKey(key: string): boolean {
     'dashboard',
     'ai-services',
     'llm-cache',
-    'theme', // 可选：是否清除主题设置
   ];
 
-  return patterns.some((pattern) => key.includes(pattern));
+  return clearPatterns.some((pattern) => key.includes(pattern));
 }
 
 /**

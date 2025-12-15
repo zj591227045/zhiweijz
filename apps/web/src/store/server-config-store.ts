@@ -356,7 +356,7 @@ export const useServerConfigStore = create<ServerConfigState>()(
     {
       name: 'server-config-storage',
       // 只在非Docker环境中持久化配置
-      skipHydration: true, // 跳过hydration以避免SSR/客户端不匹配
+      skipHydration: false, // 允许hydration，确保移动端正确恢复配置
     },
   ),
 );
