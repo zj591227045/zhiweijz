@@ -638,47 +638,130 @@ export default function ShortcutsSettingsPage() {
   // 渲染Android内容
   const renderAndroidContent = () => {
     return (
-      <div
-        className="rounded-lg shadow-sm border p-4 sm:p-6 text-center transition-colors"
-        style={{
-          backgroundColor: 'var(--card-background)',
-          borderColor: 'var(--border-color)',
-        }}
-      >
-        <div
-          className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full mb-3 sm:mb-4 transition-colors"
-          style={{ backgroundColor: 'var(--hover-background)' }}
-        >
-          <Smartphone
-            className="w-6 h-6 sm:w-8 sm:h-8"
-            style={{ color: 'var(--text-secondary)' }}
-          />
+      <div className="space-y-4 sm:space-y-6">
+        {/* 功能介绍 */}
+        <div className="card">
+          <div className="text-center mb-4 sm:mb-6">
+            <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full mb-3 sm:mb-4" style={{ backgroundColor: 'var(--primary-color-light)' }}>
+              <Zap className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: 'var(--primary-color)' }} />
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Android快捷记账</h2>
+            <p className="text-sm sm:text-base" style={{ color: 'var(--text-secondary)' }}>通过分享图片，一键调用智能记账</p>
+          </div>
+
+          <div className="space-y-3 sm:space-y-4">
+            <div className="feature-item">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 feature-icon" />
+              <div>
+                <h4 className="feature-title text-sm sm:text-base">系统分享集成</h4>
+                <p className="feature-description text-xs sm:text-sm">直接使用Android系统分享功能调用智能记账</p>
+              </div>
+            </div>
+            <div className="feature-item">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 feature-icon" />
+              <div>
+                <h4 className="feature-title text-sm sm:text-base">AI图片识别</h4>
+                <p className="feature-description text-xs sm:text-sm">智能识别支付记录、订单详情等财务信息</p>
+              </div>
+            </div>
+            <div className="feature-item">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 feature-icon" />
+              <div>
+                <h4 className="feature-title text-sm sm:text-base">全平台支持</h4>
+                <p className="feature-description text-xs sm:text-sm">支持所有支持分享图片的应用</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <h2
-          className="text-lg sm:text-xl font-bold mb-2"
-          style={{ color: 'var(--text-primary)' }}
-        >
-          Android版本开发中
-        </h2>
-        <p
-          className="text-sm sm:text-base mb-4"
-          style={{ color: 'var(--text-secondary)' }}
-        >
-          Android平台的快捷记账功能正在开发中，敬请期待。
-        </p>
-        <div
-          className="border rounded-lg p-3 sm:p-4 transition-colors"
-          style={{
-            backgroundColor: 'var(--primary-color-light)',
-            borderColor: 'var(--primary-color)',
-          }}
-        >
-          <p
-            className="text-xs sm:text-sm"
-            style={{ color: 'var(--primary-color)' }}
-          >
-            您可以继续使用App内的智能记账功能，支持拍照和语音记账。
-          </p>
+
+        {/* 使用步骤 */}
+        <div className="card">
+          <h3 className="card-header">
+            <Settings className="w-4 h-4 sm:w-5 sm:h-5 icon" />
+            使用方法
+          </h3>
+
+          <div className="space-y-3 sm:space-y-4">
+            <div className="config-step">
+              <span className="config-number">1</span>
+              <div>
+                <h4 className="config-title text-sm sm:text-base">找到支付记录</h4>
+                <p className="config-description text-xs sm:text-sm">在微信、支付宝等应用中找到支付记录或订单详情</p>
+              </div>
+            </div>
+
+            <div className="config-step">
+              <span className="config-number">2</span>
+              <div>
+                <h4 className="config-title text-sm sm:text-base">分享图片</h4>
+                <p className="config-description text-xs sm:text-sm">长按截图选择"分享"，或使用应用的分享功能</p>
+              </div>
+            </div>
+
+            <div className="config-step">
+              <span className="config-number">3</span>
+              <div>
+                <h4 className="config-title text-sm sm:text-base">选择只为记账</h4>
+                <p className="config-description text-xs sm:text-sm">在分享应用列表中选择"只为记账"</p>
+              </div>
+            </div>
+
+            <div className="config-step">
+              <span className="config-number">4</span>
+              <div>
+                <h4 className="config-title text-sm sm:text-base">确认记账</h4>
+                <p className="config-description text-xs sm:text-sm">查看AI识别结果并确认保存</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 支持的应用 */}
+        <div className="card">
+          <h3 className="card-header">
+            <Image className="w-4 h-4 sm:w-5 sm:h-5 icon" />
+            支持的应用
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+            <div className="supported-scenario">
+              <CheckCircle className="w-3 h-3 scenario-icon" />
+              <span className="text-xs sm:text-sm">微信</span>
+            </div>
+            <div className="supported-scenario">
+              <CheckCircle className="w-3 h-3 scenario-icon" />
+              <span className="text-xs sm:text-sm">支付宝</span>
+            </div>
+            <div className="supported-scenario">
+              <CheckCircle className="w-3 h-3 scenario-icon" />
+              <span className="text-xs sm:text-sm">淘宝</span>
+            </div>
+            <div className="supported-scenario">
+              <CheckCircle className="w-3 h-3 scenario-icon" />
+              <span className="text-xs sm:text-sm">美团</span>
+            </div>
+            <div className="supported-scenario">
+              <CheckCircle className="w-3 h-3 scenario-icon" />
+              <span className="text-xs sm:text-sm">饿了么</span>
+            </div>
+            <div className="supported-scenario">
+              <CheckCircle className="w-3 h-3 scenario-icon" />
+              <span className="text-xs sm:text-sm">更多应用</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 温馨提示 */}
+        <div className="alert alert-info">
+          <div className="flex items-center mb-2">
+            <AlertCircle className="w-4 h-4 alert-icon" />
+            <span className="alert-title text-sm sm:text-base">温馨提示</span>
+          </div>
+          <div className="space-y-1 text-xs sm:text-sm">
+            <p>• 确保分享的图片内容清晰，包含完整的金额和商家信息</p>
+            <p>• 如果识别结果不准确，可以手动修改后保存</p>
+            <p>• 首次使用时需要授予"只为记账"访问图片的权限</p>
+            <p>• 使用前请确保已在App中选择了正确的账本</p>
+          </div>
         </div>
       </div>
     );
